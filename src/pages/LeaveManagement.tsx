@@ -482,7 +482,7 @@ export default function LeaveManagement() {
               {currentStep === 1 && (
                 <div className="space-y-5 animate-in slide-in-from-right duration-500">
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-foreground px-1">Nama Penuh *</Label>
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-foreground px-1">Nama Penuh <span className="text-red-500">*</span></Label>
                     <Input
                       placeholder="NAMA SEPERTI DALAM IC"
                       className="h-12 sm:h-14 border-border/50 bg-muted/30 focus:border-[#7B0099] focus:ring-[#7B0099] rounded-2xl font-bold transition-all"
@@ -502,6 +502,7 @@ export default function LeaveManagement() {
                       </Label>
                       <Input
                         placeholder="CONTOH: 900101115566"
+                          className="h-12 sm:h-14 border-border/50 bg-muted/30 rounded-2xl font-bold placeholder:text-muted-foreground placeholder:font-medium"
                         value={formData.noKadPengenalan}
                         className="h-12 sm:h-14 border-border/50 bg-muted/30 rounded-2xl font-bold"
                         onChange={e => {
@@ -521,7 +522,7 @@ export default function LeaveManagement() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-foreground px-1">Cawangan *</Label>
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-foreground px-1">Cawangan <span className="text-red-500">*</span></Label>
                     <Select value={formData.cawangan} onValueChange={(val) => setFormData({ ...formData, cawangan: val })}>
                       <SelectTrigger className="h-12 sm:h-14 border-border/50 bg-muted/30 rounded-2xl font-bold">
                         <SelectValue placeholder="-- Pilih Cawangan --" />
@@ -560,7 +561,7 @@ export default function LeaveManagement() {
               {currentStep === 2 && (
                 <div className="space-y-4 animate-in slide-in-from-right duration-500">
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-foreground px-1">Jenis Cuti *</Label>
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-foreground px-1">Jenis Cuti <span className="text-red-500">*</span></Label>
                     <Select
                       onValueChange={(val) => {
                         const jenisCuti = val as LeaveType;
@@ -586,7 +587,7 @@ export default function LeaveManagement() {
                   {!(formData.jenisCuti === "Replacement Leave" || formData.jenisCuti === "Cuti Ganti") && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label className="text-[10px] font-black uppercase tracking-widest text-foreground px-1">Tarikh Mula *</Label>
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-foreground px-1">Tarikh Mula <span className="text-red-500">*</span></Label>
                         <DatePickerInput
                           value={formData.tarikhMula}
                           minDate={new Date().toISOString().split('T')[0]}
@@ -595,7 +596,7 @@ export default function LeaveManagement() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label className="text-[10px] font-black uppercase tracking-widest text-foreground px-1">Tarikh Akhir *</Label>
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-foreground px-1">Tarikh Akhir <span className="text-red-500">*</span></Label>
                         <DatePickerInput
                           value={formData.tarikhAkhir}
                           minDate={formData.tarikhMula || new Date().toISOString().split('T')[0]}
@@ -677,7 +678,7 @@ export default function LeaveManagement() {
                         {formData.cutiGantiRows.map((row, idx) => (
                           <div key={idx} className={`grid grid-cols-1 sm:grid-cols-4 gap-3 ${idx > 0 ? 'pt-4' : ''}`}>
                             <div className="space-y-2">
-                              <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">Tarikh Cuti {idx + 1} *</Label>
+                              <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">Tarikh Cuti {idx + 1} <span className="text-red-500">*</span></Label>
                               <DatePickerInput
                                 value={row.tarikhCuti}
                                 onChange={(val) => {
@@ -689,7 +690,7 @@ export default function LeaveManagement() {
                               />
                             </div>
                             <div className="space-y-2">
-                              <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">Tarikh/Hari Ganti {idx + 1} *</Label>
+                              <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">Tarikh/Hari Ganti {idx + 1} <span className="text-red-500">*</span></Label>
                               <DatePickerInput
                                 value={row.tarikhGanti}
                                 onChange={(val) => {
@@ -701,9 +702,10 @@ export default function LeaveManagement() {
                               />
                             </div>
                             <div className="space-y-2">
-                              <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">Keterangan / Tugasan {idx + 1} *</Label>
+                              <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">Keterangan / Tugasan {idx + 1} <span className="text-red-500">*</span></Label>
                               <Input
                                 placeholder="Contoh: Kerja lebih masa"
+                                  className="h-12 sm:h-14 border-border/50 bg-muted/30 rounded-2xl font-bold placeholder:text-muted-foreground placeholder:font-medium"
                                 value={row.keterangan}
                                 onChange={e => {
                                   const newRows = [...formData.cutiGantiRows];
@@ -740,9 +742,9 @@ export default function LeaveManagement() {
                   )}
 
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-foreground px-1">Sebab / Tujuan *</Label>
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-foreground px-1">Sebab / Tujuan <span className="text-red-500">*</span></Label>
                     <Textarea
-                      placeholder="CONTOH: URUSAN KELUARGA / KECEMASAN..."
+                      placeholder="CONTOH: URUSAN KELUARGA / KECEMASAN..." className="min-h-[120px] border-border/50 bg-muted/30 rounded-[20px] p-4 text-sm font-bold placeholder:text-muted-foreground placeholder:font-medium transition-all"
                       className="min-h-[120px] border-border/50 bg-muted/30 rounded-[20px] p-4 text-sm font-bold transition-all"
                       value={formData.tujuanCuti}
                       onChange={e => setFormData({ ...formData, tujuanCuti: e.target.value.toUpperCase() })}
@@ -752,9 +754,10 @@ export default function LeaveManagement() {
                   {(formData.jenisCuti === "Unpaid Leave" || formData.jenisCuti === "Cuti Tanpa Gaji") && (
                     <div className="space-y-4 p-4 border border-rose-200 bg-rose-50 dark:border-rose-900/30 dark:bg-rose-900/10 rounded-[20px]">
                       <div className="space-y-2">
-                        <Label className="text-[10px] font-black uppercase tracking-widest text-rose-700 dark:text-rose-400 px-1">No. Telefon Semasa Cuti *</Label>
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-rose-700 dark:text-rose-400 px-1">No. Telefon Semasa Cuti <span className="text-red-500">*</span></Label>
                         <Input
                           placeholder="0123456789"
+                            className="h-12 sm:h-14 border-border/50 bg-muted/30 rounded-2xl font-bold placeholder:text-muted-foreground placeholder:font-medium"
                           className="h-12 border-rose-200 bg-white dark:bg-black/20 rounded-xl font-bold"
                           value={formData.cutiTanpaGajiPhone}
                           onChange={e => setFormData({ ...formData, cutiTanpaGajiPhone: e.target.value })}
@@ -768,9 +771,7 @@ export default function LeaveManagement() {
                           checked={formData.cutiTanpaGajiSignature}
                           onChange={e => setFormData({ ...formData, cutiTanpaGajiSignature: e.target.checked })}
                         />
-                        <label htmlFor="unpaid-signature" className="text-xs text-rose-800 dark:text-rose-300 font-medium leading-relaxed">
-                          Saya mengesahkan permohonan Cuti Tanpa Gaji ini dan memahami implikasi pemotongan gaji yang berkaitan.
-                        </label>
+                        
                       </div>
                     </div>
                   )}
@@ -781,7 +782,7 @@ export default function LeaveManagement() {
               {currentStep === 3 && (
                 <div className="space-y-5 animate-in slide-in-from-right duration-500">
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-foreground px-1">Nama Waris / Kecemasan *</Label>
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-foreground px-1">Nama Waris / Kecemasan <span className="text-red-500">*</span></Label>
                     <Input
                       value={formData.warisNama}
                       className="h-12 sm:h-14 border-border/50 bg-muted/30 rounded-2xl font-bold"
@@ -790,7 +791,7 @@ export default function LeaveManagement() {
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-foreground px-1">No Telefon Waris *</Label>
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-foreground px-1">No Telefon Waris <span className="text-red-500">*</span></Label>
                       <Input
                         value={formData.warisPhone}
                         className="h-12 sm:h-14 border-border/50 bg-muted/30 rounded-2xl font-bold"
@@ -798,9 +799,10 @@ export default function LeaveManagement() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-foreground px-1">Hubungan *</Label>
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-foreground px-1">Hubungan <span className="text-red-500">*</span></Label>
                       <Input
                         placeholder="CONTOH: ISTERI / AYAH"
+                          className="h-12 sm:h-14 border-border/50 bg-muted/30 rounded-2xl font-bold placeholder:text-muted-foreground placeholder:font-medium"
                         value={formData.warisHubungan}
                         className="h-12 sm:h-14 border-border/50 bg-muted/30 rounded-2xl font-bold"
                         onChange={e => setFormData({ ...formData, warisHubungan: e.target.value.toUpperCase() })}
@@ -808,7 +810,7 @@ export default function LeaveManagement() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-foreground px-1">Alamat Waris *</Label>
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-foreground px-1">Alamat Waris <span className="text-red-500">*</span></Label>
                     <Textarea
                       value={formData.warisAlamat}
                       className="min-h-[100px] border-border/50 bg-muted/30 rounded-2xl p-4 font-bold"
