@@ -309,7 +309,7 @@ export default function TeamAttendance() {
             </div>
 
             {/* Row 2: DAY/MONTH toggle and Filters */}
-            <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4 w-full">
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 w-full">
               {/* Left side: DAY / MONTH Toggle */}
               <div className="flex items-center bg-slate-100 dark:bg-slate-900/50 rounded-lg p-1 border border-slate-300 dark:border-slate-700">
                 <button 
@@ -327,7 +327,7 @@ export default function TeamAttendance() {
               </div>
 
               {/* Right side: Filters */}
-              <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto justify-end">
+              <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto justify-end">
                 {/* Date Filter */}
                 <div className="relative">
                   {dateViewMode === "DAY" ? (
@@ -372,44 +372,9 @@ export default function TeamAttendance() {
                   ))}
                 </div>
 
-                {/* Search & Pagination */}
+                {/* Search */}
                 <div className="flex flex-wrap items-center gap-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-foreground">Show</span>
-                    <Select value={entriesPerPage.toString()} onValueChange={(val) => setEntriesPerPage(Number(val))}>
-                      <SelectTrigger className="w-[70px] h-[34px] bg-white border-2 border-[#7B0099] rounded-xl text-black font-bold text-xs focus:ring-0">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="text-black font-bold">
-                        <SelectItem value="25">25</SelectItem>
-                        <SelectItem value="50">50</SelectItem>
-                        <SelectItem value="75">75</SelectItem>
-                        <SelectItem value="100">100</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                    <div className="flex items-center gap-1 bg-white border-2 border-[#7B0099] rounded-xl p-0.5 h-[34px]">
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                        disabled={currentPage === 1}
-                        className="h-6 px-2 text-[10px] font-black text-black hover:text-[#7B0099] hover:bg-[#7B0099]/10"
-                      >
-                        PREV
-                      </Button>
-                      <span className="text-[10px] font-black px-2 text-black">{currentPage} / {totalPages || 1}</span>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.max(1, totalPages)))}
-                        disabled={currentPage >= totalPages || totalPages === 0}
-                        className="h-6 px-2 text-[10px] font-black text-black hover:text-[#7B0099] hover:bg-[#7B0099]/10"
-                      >
-                        NEXT
-                      </Button>
-                    </div>
+                  
 
                   <div className="relative flex items-center">
                     <Search className="w-4 h-4 absolute left-3 text-foreground" />
@@ -499,9 +464,49 @@ export default function TeamAttendance() {
                   )}
                 </TableBody>
               </Table>
-            </div>
-          </CardContent>
-        </Card>
+              </div>
+
+              {/* Bottom Pagination */}
+              <div className="flex items-center justify-between p-4 border-t border-border/50">
+                <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-foreground">Show</span>
+                      <Select value={entriesPerPage.toString()} onValueChange={(val) => setEntriesPerPage(Number(val))}>
+                        <SelectTrigger className="w-[70px] h-[34px] bg-white border-2 border-[#7B0099] rounded-xl text-black font-bold text-xs focus:ring-0">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="text-black font-bold">
+                          <SelectItem value="25">25</SelectItem>
+                          <SelectItem value="50">50</SelectItem>
+                          <SelectItem value="75">75</SelectItem>
+                          <SelectItem value="100">100</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+  
+                      <div className="flex items-center gap-1 bg-white border-2 border-[#7B0099] rounded-xl p-0.5 h-[34px]">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                          disabled={currentPage === 1}
+                          className="h-6 px-2 text-[10px] font-black text-black hover:text-[#7B0099] hover:bg-[#7B0099]/10"
+                        >
+                          PREV
+                        </Button>
+                        <span className="text-[10px] font-black px-2 text-black">{currentPage} / {totalPages || 1}</span>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.max(1, totalPages)))}
+                          disabled={currentPage >= totalPages || totalPages === 0}
+                          className="h-6 px-2 text-[10px] font-black text-black hover:text-[#7B0099] hover:bg-[#7B0099]/10"
+                        >
+                          NEXT
+                        </Button>
+                      </div>
+              </div>
+            </CardContent>
+          </Card>
 
       </div>
     </div>
