@@ -767,6 +767,9 @@ export default function LeaveManagement() {
                           checked={formData.cutiTanpaGajiSignature}
                           onChange={e => setFormData({ ...formData, cutiTanpaGajiSignature: e.target.checked })}
                         />
+                          <label htmlFor="unpaid-signature" className="text-xs font-medium text-slate-700 dark:text-slate-300 leading-snug cursor-pointer">
+                            Saya mengesahkan permohonan Cuti Tanpa Gaji ini dan bersetuju dengan segala syarat yang ditetapkan.
+                          </label>
                         
                       </div>
                     </div>
