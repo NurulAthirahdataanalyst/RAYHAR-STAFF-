@@ -665,6 +665,21 @@ export default function LeaveFormView() {
 
                   
 
+                  
+                  <div className="hidden print:block pt-12 pb-4">
+                    <div className="grid grid-cols-2 gap-16">
+                      <div className="border-t border-foreground pt-2 text-center">
+                        <p className="text-[10px] font-bold uppercase">Tandatangan Kakitangan</p>
+                      </div>
+                      <div className="border-t border-foreground pt-2 text-center">
+                        <p className="text-[10px] font-bold uppercase">Kelulusan Pengurus / HR</p>
+                      </div>
+                    </div>
+                    <p className="text-[10px] text-center italic mt-8 text-foreground">
+                      Borang ini sah digunakan sebagai bukti rasmi cuti kakitangan setelah mendapat kelulusan pihak pengurusan.
+                    </p>
+                  </div>
+
                   <div className="pt-4 flex justify-end gap-3 print:hidden">
                     <Button
                       type="button"
