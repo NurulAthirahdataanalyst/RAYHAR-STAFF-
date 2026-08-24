@@ -2654,9 +2654,11 @@ app.get("/api/leave-entitlements", async (req, res) => {
         GROUP BY user_id
       ) lr ON lr.user_id = p.user_id
       LEFT JOIN (
-          SELECT employee_id, SUM(adjustment_days) AS total_adjustment
+          SELECT employee_id, 
+                 SUM(CASE WHEN UPPER(leave_type) IN ('ANNUAL LEAVE', 'ANNUAL & EMERGENCY LEAVE', 'ANNUAL/EMERGENCY LEAVE', 'CUTI TAHUNAN') THEN adjustment_days ELSE 0 END) AS total_adjustment,
+                 SUM(CASE WHEN UPPER(leave_type) IN ('SICK LEAVE', 'SICK LEAVE (MC)', 'MEDICAL LEAVE', 'CUTI SAKIT') THEN adjustment_days ELSE 0 END) AS medical_adj,
+                 SUM(CASE WHEN UPPER(leave_type) IN ('REPLACEMENT LEAVE', 'CUTI GANTI') THEN adjustment_days ELSE 0 END) AS replacement_adj
           FROM leave_balance_adjustments
-          WHERE UPPER(leave_type) IN ('ANNUAL LEAVE', 'ANNUAL & EMERGENCY LEAVE', 'ANNUAL/EMERGENCY LEAVE', 'CUTI TAHUNAN')
           GROUP BY employee_id
         ) adj ON adj.employee_id = p.user_id
         ${whereClause}
@@ -3116,11 +3118,13 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
       COALESCE(adj.total_adjustment, 0) AS total_adjustment
       FROM profiles p
       LEFT JOIN (
-        SELECT employee_id, SUM(adjustment_days) AS total_adjustment
-        FROM leave_balance_adjustments
-        WHERE UPPER(leave_type) IN ('ANNUAL LEAVE', 'ANNUAL & EMERGENCY LEAVE', 'ANNUAL/EMERGENCY LEAVE', 'CUTI TAHUNAN')
-        GROUP BY employee_id
-      ) adj ON adj.employee_id = p.user_id WHERE p.user_id = ?`, [user_id]);
+          SELECT employee_id, 
+                 SUM(CASE WHEN UPPER(leave_type) IN ('ANNUAL LEAVE', 'ANNUAL & EMERGENCY LEAVE', 'ANNUAL/EMERGENCY LEAVE', 'CUTI TAHUNAN') THEN adjustment_days ELSE 0 END) AS total_adjustment,
+                 SUM(CASE WHEN UPPER(leave_type) IN ('SICK LEAVE', 'SICK LEAVE (MC)', 'MEDICAL LEAVE', 'CUTI SAKIT') THEN adjustment_days ELSE 0 END) AS medical_adj,
+                 SUM(CASE WHEN UPPER(leave_type) IN ('REPLACEMENT LEAVE', 'CUTI GANTI') THEN adjustment_days ELSE 0 END) AS replacement_adj
+          FROM leave_balance_adjustments
+          GROUP BY employee_id
+        ) adj ON adj.employee_id = p.user_id WHERE p.user_id = ?`, [user_id]);
     const employeeBranch = empRows[0]?.branch || "HQ";
     const employeeDept = empRows[0]?.department || "";
     const employeeName = empRows[0]?.full_name || user_id;
@@ -3653,8 +3657,14 @@ app.get("/api/employees/:userId/analytics", async (req, res) => {
     const [companyLeaves] = await pool.query("SELECT * FROM company_leave_calendar WHERE status = 'Active' AND EXTRACT(YEAR FROM start_date) IN (?)", [yearsToFetch]);
     
     // Fetch leave balance adjustments for this employee
-    const [adjRows] = await pool.query("SELECT COALESCE(SUM(adjustment_days), 0) AS total_adjustment FROM leave_balance_adjustments WHERE employee_id = ? AND UPPER(leave_type) IN ('ANNUAL LEAVE', 'ANNUAL & EMERGENCY LEAVE', 'ANNUAL/EMERGENCY LEAVE', 'CUTI TAHUNAN')", [userId]);
-    const totalAdjustment = parseFloat(adjRows[0].total_adjustment || 0);
+    const [adjRows] = await pool.query("SELECT leave_type, SUM(adjustment_days) AS total_adjustment FROM leave_balance_adjustments WHERE employee_id = ? GROUP BY leave_type", [userId]);
+      let totalAdjustment = 0, medicalAdj = 0, replacementAdj = 0;
+      adjRows.forEach(row => {
+          const t = String(row.leave_type).toUpperCase();
+          if (['ANNUAL LEAVE', 'ANNUAL & EMERGENCY LEAVE', 'ANNUAL/EMERGENCY LEAVE', 'CUTI TAHUNAN'].includes(t)) totalAdjustment += parseFloat(row.total_adjustment);
+          else if (['SICK LEAVE', 'SICK LEAVE (MC)', 'MEDICAL LEAVE', 'CUTI SAKIT'].includes(t)) medicalAdj += parseFloat(row.total_adjustment);
+          else if (['REPLACEMENT LEAVE', 'CUTI GANTI'].includes(t)) replacementAdj += parseFloat(row.total_adjustment);
+      });
 
     const [allLeaves] = await pool.query("SELECT * FROM leave_requests WHERE user_id = ? AND EXTRACT(YEAR FROM start_date) IN (?)", [userId, yearsToFetch]);
     const userLeaves = allLeaves.filter(l => l.status === 'Approved');
@@ -3724,7 +3734,7 @@ app.get("/api/employees/:userId/analytics", async (req, res) => {
     const annualEntitlement = parseInt(employee.annual_leave_entitlement || 14);
     const medicalEntitlement = parseInt(employee.medical_leave_entitlement || 14);
     const totalAnnualAllowed = annualEntitlement + totalAdjustment;
-    const totalMedicalAllowed = medicalEntitlement;
+    const totalMedicalAllowed = medicalEntitlement + medicalAdj;
     const totalLeaveBalance = totalAnnualAllowed + totalMedicalAllowed;
     const totalTaken = annualTaken + sickTaken + emergencyTaken + unpaidTaken;
     const remainingAnnual = Math.max(0, totalAnnualAllowed - annualTaken);
@@ -3741,7 +3751,8 @@ app.get("/api/employees/:userId/analytics", async (req, res) => {
         },
         leave: {
           annual: { taken: annualTaken, balance: totalAnnualAllowed, entitlement: annualEntitlement, adjustment: totalAdjustment },
-          sick: { taken: sickTaken, balance: totalMedicalAllowed },
+          sick: { taken: sickTaken, balance: totalMedicalAllowed, entitlement: medicalEntitlement, adjustment: medicalAdj },
+            replacement: { adjustment: replacementAdj },
           unpaid: { taken: unpaidTaken, balance: 0 },
           emergency: { taken: emergencyTaken, balance: 0 },
           entitlement: totalAnnualAllowed,
@@ -4155,16 +4166,20 @@ app.get("/api/user-details/:identifier", async (req, res) => {
         COALESCE(p.annual_leave_entitlement, 14)::int AS annual_leave_entitlement,
         b.operating_zone,
         COALESCE(adj.total_adjustment, 0)::int AS total_adjustment,
+          COALESCE(adj.medical_adj, 0)::int AS medical_adj,
+          COALESCE(adj.replacement_adj, 0)::int AS replacement_adj,
         COALESCE(ur.role, 'employee') AS role
       FROM profiles p
       LEFT JOIN user_role ur ON ur.user_id = p.user_id
       LEFT JOIN branches b ON b.code = p.branch
       LEFT JOIN (
-        SELECT employee_id, SUM(adjustment_days) AS total_adjustment
-        FROM leave_balance_adjustments
-        WHERE UPPER(leave_type) IN ('ANNUAL LEAVE', 'ANNUAL & EMERGENCY LEAVE', 'ANNUAL/EMERGENCY LEAVE', 'CUTI TAHUNAN')
-        GROUP BY employee_id
-      ) adj ON adj.employee_id = p.user_id
+          SELECT employee_id, 
+                 SUM(CASE WHEN UPPER(leave_type) IN ('ANNUAL LEAVE', 'ANNUAL & EMERGENCY LEAVE', 'ANNUAL/EMERGENCY LEAVE', 'CUTI TAHUNAN') THEN adjustment_days ELSE 0 END) AS total_adjustment,
+                 SUM(CASE WHEN UPPER(leave_type) IN ('SICK LEAVE', 'SICK LEAVE (MC)', 'MEDICAL LEAVE', 'CUTI SAKIT') THEN adjustment_days ELSE 0 END) AS medical_adj,
+                 SUM(CASE WHEN UPPER(leave_type) IN ('REPLACEMENT LEAVE', 'CUTI GANTI') THEN adjustment_days ELSE 0 END) AS replacement_adj
+          FROM leave_balance_adjustments
+          GROUP BY employee_id
+        ) adj ON adj.employee_id = p.user_id
       WHERE p.user_id = ? OR p.email = ?
       LIMIT 1
       `,
@@ -4189,6 +4204,9 @@ app.get("/api/user-details/:identifier", async (req, res) => {
         annual_leave_entitlement: user.annual_leave_entitlement,
         operating_zone: user.operating_zone || 'ZONE_B',
         total_adjustment: user.total_adjustment,
+          medical_adj: user.medical_adj,
+          replacement_adj: user.replacement_adj,
+          medical_leave_entitlement: user.medical_leave_entitlement || 14,
       },
       role: user.role,
     });

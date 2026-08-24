@@ -230,7 +230,16 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
       .reduce((acc, curr) => acc + curr.days, 0);
   
 
-  const totalLeavesUsed = annualLeavesUsed + sickLeavesUsed + emergencyLeavesUsed;
+  
+    const sickEntitlement = profile?.medical_leave_entitlement || 14;
+    const sickAdjustment = profile?.medical_adj || 0;
+    const totalSick = sickEntitlement + sickAdjustment;
+    const sickRemaining = Math.max(0, totalSick - sickLeavesUsed);
+
+    const replacementAdj = profile?.replacement_adj || 0;
+    const replacementRemaining = Math.max(0, replacementAdj - replacementLeavesUsed);
+
+    const totalLeavesUsed = annualLeavesUsed + sickLeavesUsed + emergencyLeavesUsed;
     let quotaLeavesUsed = leaveRequests
       .filter(l => String(l.status || "").toUpperCase() !== "REJECTED")
       .filter(l => {
@@ -1394,19 +1403,19 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                 <div>
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-sm font-bold text-foreground">Medical Leave</span>
-                    <span className="text-xs font-black text-foreground">{Math.max(0, 14 - sickLeavesUsed)} Days</span>
+                    <span className="text-xs font-black text-foreground">{sickRemaining} Days</span>
                   </div>
                   <div className="w-full h-2 bg-rose-500/10 rounded-full overflow-hidden">
-                    <div className="h-full bg-rose-500 rounded-full" style={{ width: `${Math.min((Math.max(0, 14 - sickLeavesUsed) / 14) * 100, 100)}%` }} />
+                    <div className="h-full bg-rose-500 rounded-full" style={{ width: `${Math.min((sickRemaining / Math.max(totalSick, 1)) * 100, 100)}%` }} />
                   </div>
                 </div>
                 <div>
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-sm font-bold text-foreground">Replacement Leave</span>
-                    <span className="text-xs font-black text-foreground">{Math.max(0, (profile?.replacement_adj || 0) - replacementLeavesUsed)} Days</span>
+                    <span className="text-xs font-black text-foreground">{replacementRemaining} Days</span>
                   </div>
                   <div className="w-full h-2 bg-amber-500/10 rounded-full overflow-hidden">
-                    <div className="h-full bg-amber-500 rounded-full" style={{ width: `${Math.min((Math.max(0, (profile?.replacement_adj || 0) - replacementLeavesUsed) / Math.max(profile?.replacement_adj || 1, 1)) * 100, 100)}%` }} />
+                    <div className="h-full bg-amber-500 rounded-full" style={{ width: `${Math.min((replacementRemaining / Math.max(replacementAdj, 1)) * 100, 100)}%` }} />
                   </div>
                 </div>
                 <div>

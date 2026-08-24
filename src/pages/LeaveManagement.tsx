@@ -175,6 +175,8 @@ export default function LeaveManagement() {
   }, [formData.tarikhMula, formData.tarikhAkhir, userBranch, formData.jenisCuti, formData.cutiGantiRows, formData.bilanganHari]);
 
   const [totalEntitlement, setTotalEntitlement] = useState(14);
+    const [medicalEntitlement, setMedicalEntitlement] = useState(14);
+    const [replacementEntitlement, setReplacementEntitlement] = useState(0);
 
   useEffect(() => {
     if (!userId) return;
@@ -184,8 +186,15 @@ export default function LeaveManagement() {
         const data = await res.json();
         if (data.success && data.profile) {
           const base = Number(data.profile.annual_leave_entitlement) || 14;
-          const adj = Number(data.profile.total_adjustment) || 0;
-          setTotalEntitlement(base + adj);
+            const adj = Number(data.profile.total_adjustment) || 0;
+            setTotalEntitlement(base + adj);
+            
+            const medicalBase = Number(data.profile.medical_leave_entitlement) || 14;
+            const medicalAdj = Number(data.profile.medical_adj) || 0;
+            setMedicalEntitlement(medicalBase + medicalAdj);
+            
+            const replacementAdj = Number(data.profile.replacement_adj) || 0;
+            setReplacementEntitlement(replacementAdj);
         }
       } catch (err) {
         console.error("Failed to fetch user details for leave entitlement:", err);
@@ -198,21 +207,26 @@ export default function LeaveManagement() {
   useEffect(() => {
     if (!formData.jenisCuti) return;
     
-    const usedAnnualLeave = getUsedLeaveDays(
-      liveRequests.length > 0 ? liveRequests : getLeaveRequests(),
-      "Annual/Emergency Leave",
-      userId || undefined
-    );
-    
-    const isAnnualOrSick = formData.jenisCuti === "Annual/Emergency Leave" || formData.jenisCuti === "Sick Leave";
-    const bakiTerdahulu = isAnnualOrSick ? totalEntitlement - usedAnnualLeave : totalEntitlement;
+    const requests = liveRequests.length > 0 ? liveRequests : getLeaveRequests();
+      const usedAnnualLeave = getUsedLeaveDays(requests, "Annual/Emergency Leave", userId || undefined);
+      const usedSickLeave = getUsedLeaveDays(requests, "Sick Leave", userId || undefined);
+      const usedReplacementLeave = getUsedLeaveDays(requests, "Replacement Leave", userId || undefined);
+      
+      let bakiTerdahulu = totalEntitlement;
+      if (formData.jenisCuti === "Annual/Emergency Leave") {
+         bakiTerdahulu = totalEntitlement - usedAnnualLeave;
+      } else if (formData.jenisCuti === "Sick Leave") {
+         bakiTerdahulu = medicalEntitlement - usedSickLeave;
+      } else if (formData.jenisCuti === "Replacement Leave" || formData.jenisCuti === "Cuti Ganti") {
+         bakiTerdahulu = replacementEntitlement - usedReplacementLeave;
+      }
 
     setFormData(prev => ({
       ...prev,
       bakiTerdahulu,
       bakiAkhir: bakiTerdahulu - prev.bilanganHari
     }));
-  }, [liveRequests, formData.jenisCuti, userId, totalEntitlement]);
+  }, [liveRequests, formData.jenisCuti, userId, totalEntitlement, medicalEntitlement, replacementEntitlement]);
 
   const handleNext = () => {
     // Basic validation untuk setiap step
