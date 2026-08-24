@@ -221,7 +221,7 @@ export default function LeaveEntitlementManagement() {
                       </div>
                     );
                   })}
-                </div>
+                    </div>
               </CardContent>
           </Card>
 
