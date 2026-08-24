@@ -375,7 +375,7 @@ export default function GPSLocationTracker() {
 
       <div className="flex flex-col gap-4">
         <div className="h-[520px] bg-card rounded-lg overflow-hidden">
-          <Map
+          <Map reuseMaps
             ref={mapRef}
             initialViewState={{
               longitude: 103.4194,
