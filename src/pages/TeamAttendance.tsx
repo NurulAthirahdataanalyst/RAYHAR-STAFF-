@@ -354,7 +354,7 @@ export default function TeamAttendance() {
                       onSelectMonthYear={(val) => {
                         setSelectedDate(`${val}-01`);
                       }}
-                      className="appearance-none flex items-center justify-between min-w-[120px] px-4 py-2 bg-white dark:bg-card border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none focus:border-[#7B0099] focus:ring-1 focus:ring-[#7B0099] uppercase tracking-widest h-[34px]"
+                      className="appearance-none flex items-center justify-between gap-3 min-w-[140px] px-4 py-2 bg-white dark:bg-card border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none focus:border-[#7B0099] focus:ring-1 focus:ring-[#7B0099] uppercase tracking-widest h-[34px]"
                     />
                   )}
                 </div>
@@ -471,7 +471,7 @@ export default function TeamAttendance() {
                 <div className="flex items-center gap-2">
                       <span className="text-[10px] font-black uppercase tracking-widest text-foreground">Show</span>
                       <Select value={entriesPerPage.toString()} onValueChange={(val) => setEntriesPerPage(Number(val))}>
-                        <SelectTrigger className="w-[70px] h-[34px] bg-white border-2 border-[#7B0099] rounded-xl text-black font-bold text-xs focus:ring-0">
+                        <SelectTrigger className="w-[70px] h-[34px] bg-white dark:bg-card border border-border rounded-xl text-foreground font-bold text-xs focus:ring-0">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent className="text-black font-bold">
@@ -483,7 +483,7 @@ export default function TeamAttendance() {
                       </Select>
                     </div>
   
-                      <div className="flex items-center gap-1 bg-white border-2 border-[#7B0099] rounded-xl p-0.5 h-[34px]">
+                      <div className="flex items-center gap-1 bg-white dark:bg-card border border-border rounded-xl p-0.5 h-[34px]">
                         <Button 
                           variant="ghost" 
                           size="sm" 
