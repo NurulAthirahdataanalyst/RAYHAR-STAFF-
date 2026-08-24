@@ -999,7 +999,9 @@ export default function Employees() {
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="border-none max-w-6xl w-full overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] max-h-[90vh] p-0 gap-0 bg-[#FFFDF0] dark:bg-slate-900 print:hidden">
           <DialogHeader className="p-4 pb-3 rounded-t-lg bg-[#7B0099] dark:bg-slate-900 dark:border-slate-800 sticky top-0 z-10 shadow-sm">
-            <DialogTitle className="text-xl font-black text-white dark:text-slate-100 tracking-tight">Staff Profile & Analytics</DialogTitle>
+            <DialogTitle className="text-xl font-black text-white dark:text-slate-100 tracking-tight">
+              Staff Profile & Analytics {selectedEmployee ? ` - ${selectedEmployee.name.toUpperCase()}` : ""}
+            </DialogTitle>
           </DialogHeader>
           
           <div className="p-4">
@@ -1495,8 +1497,7 @@ export default function Employees() {
                       <Table>
                         <TableHeader className="bg-muted/50 sticky top-0 z-10">
                           <TableRow>
-                            <TableHead className="text-[10px] font-black uppercase tracking-wider text-foreground">DATE</TableHead>
-                            <TableHead className="text-[10px] font-black uppercase tracking-wider text-foreground">TIME</TableHead>
+                            <TableHead className="text-[10px] font-black uppercase tracking-wider text-foreground">DATE & TIME</TableHead>
                             <TableHead className="text-[10px] font-black uppercase tracking-wider text-foreground">COORDINATE (LATITUDE, LONGITUDE)</TableHead>
                             <TableHead className="text-[10px] font-black uppercase tracking-wider text-foreground">BRANCH</TableHead>
                             <TableHead className="text-[10px] font-black uppercase tracking-wider text-foreground">DISTANCE FROM BRANCH</TableHead>
@@ -1546,14 +1547,24 @@ export default function Employees() {
                               
                               return (
                                 <TableRow key={idx}>
-                                  <TableCell className="text-xs font-bold">{dateStr}</TableCell>
-                                  <TableCell className="text-xs font-bold text-muted-foreground">{timeStr}</TableCell>
+                                  <TableCell className="text-xs font-bold">{dateStr}, {timeStr}</TableCell>
                                   <TableCell className="text-xs font-mono">{log.lat}, {log.lng}</TableCell>
                                   <TableCell className="text-xs font-bold">{selectedEmployee.branch}</TableCell>
                                   <TableCell className="text-xs">{distStr}</TableCell>
                                   <TableCell>
-                                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-black tracking-wider uppercase ${statusClass}`}>
-                                      • {statusLabel}
+                                    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-black tracking-widest uppercase border ${
+                                      isNoGPS ? 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-500/20 dark:text-slate-300 dark:border-slate-500/30' : 
+                                      isTemp ? 'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-500/20 dark:text-purple-300 dark:border-purple-500/30' :
+                                      isOffSite ? 'bg-red-100 text-red-700 border-red-200 dark:bg-red-500/20 dark:text-red-300 dark:border-red-500/30' : 
+                                      'bg-green-100 text-green-700 border-green-200 dark:bg-green-500/20 dark:text-green-300 dark:border-green-500/30'
+                                    }`}>
+                                      <div className={`w-1.5 h-1.5 rounded-full ${
+                                        isNoGPS ? 'bg-slate-500' :
+                                        isTemp ? 'bg-purple-500' :
+                                        isOffSite ? 'bg-red-500' :
+                                        'bg-green-500'
+                                      }`} />
+                                      {statusLabel}
                                     </span>
                                   </TableCell>
                                 </TableRow>
