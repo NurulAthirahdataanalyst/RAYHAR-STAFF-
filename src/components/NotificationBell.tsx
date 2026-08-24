@@ -36,7 +36,7 @@ export default function NotificationBell() {
         
         const hrNotifs = JSON.parse(localStorage.getItem('hrNotifications') || '[]').filter((n: any) => n.user_id === user.user_id);
         
-        let tempNotifs = [];
+        let tempNotifs: any[] = [];
         try {
           const assignmentsRes = await fetch(`${API_BASE_URL}/api/work-assignments-all`);
           const assignmentsData = await assignmentsRes.json();

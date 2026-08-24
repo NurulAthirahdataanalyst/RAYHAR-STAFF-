@@ -127,7 +127,7 @@ export default function OutstationDashboard() {
   const activeNowGrouped = useMemo(() => {
     const active = assignments.filter(a => a.status === "Active");
     const groups: Record<string, {
-      destination: string; department: string; project: string; start_date: string; end_date: string; status: string;
+      destination: string; department: string; project: string; purpose?: string; start_date: string; end_date: string; status: string;
       employees: any[];
     }> = {};
 
@@ -153,7 +153,7 @@ export default function OutstationDashboard() {
   const upcomingGrouped = useMemo(() => {
     const upcomingList = assignments.filter(a => a.status === "Upcoming");
     const groups: Record<string, {
-      destination: string; department: string; project: string; start_date: string; end_date: string; status: string;
+      destination: string; department: string; project: string; purpose?: string; start_date: string; end_date: string; status: string;
       employees: any[];
     }> = {};
 

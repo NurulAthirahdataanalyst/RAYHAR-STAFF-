@@ -476,6 +476,10 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
   const [search, setSearch] = useState("");
   const [leaveDays, setLeaveDays] = useState(14);
   const [leaveYear, setLeaveYear] = useState("2026");
+  const [empSearchOpen, setEmpSearchOpen] = useState(false);
+  const [empSearchText, setEmpSearchText] = useState("");
+  const [checkedEmployees, setCheckedEmployees] = useState<string[]>([]);
+  const [carryToYear, setCarryToYear] = useState<string>(new Date().getFullYear().toString());
 
   // Mode 2: OT convert state variables
   const [selectedEmp, setSelectedEmp] = useState<any | null>(null);
@@ -963,7 +967,10 @@ function CarryForwardLeaveForm({
 }) {
   const [leaveType, setLeaveType] = useState("Annual/Emergency Leave");
   const [leaveYear, setLeaveYear] = useState("2026");
-  const [carryToYear, setCarryToYear] = useState("2027");
+  const [empSearchOpen, setEmpSearchOpen] = useState(false);
+  const [empSearchText, setEmpSearchText] = useState("");
+  const [checkedEmployees, setCheckedEmployees] = useState<string[]>([]);
+  const [carryToYear, setCarryToYear] = useState<string>(new Date().getFullYear().toString());
   const [maxCarry, setMaxCarry] = useState(5);
   const [expiryDate, setExpiryDate] = useState("2027-03-31");
 
@@ -1269,7 +1276,12 @@ function AdditionalLeaveAllocationForm({ employees, onCancel, onRefresh }: { emp
       return;
     }
 
-    if (onRefresh) onRefresh();
+    
+      try {
+        new BroadcastChannel("rayhar_leave_refresh").postMessage("refresh");
+        window.dispatchEvent(new StorageEvent("storage", { key: "rayhar_employee_leave_balances" }));
+      } catch (e) {}
+      if (onRefresh) onRefresh();
 
     // Append to entitlement audit history
     appendHistoryLog(buildHistoryLog({
@@ -1568,6 +1580,11 @@ function ManualLeaveAdjustmentForm({
           </div>
         ),
       });
+      
+      try {
+        new BroadcastChannel("rayhar_leave_refresh").postMessage("refresh");
+        window.dispatchEvent(new StorageEvent("storage", { key: "rayhar_employee_leave_balances" }));
+      } catch (e) {}
       onRefresh?.();
       onCancel();
     } catch (err) {

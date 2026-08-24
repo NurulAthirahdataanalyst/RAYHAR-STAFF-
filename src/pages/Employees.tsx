@@ -82,6 +82,9 @@ export default function Employees() {
     contentRef: printRef,
   });
   const [search, setSearch] = useState("");
+  const [empSearchOpen, setEmpSearchOpen] = useState(false);
+  const [empSearchText, setEmpSearchText] = useState("");
+  const [checkedEmployees, setCheckedEmployees] = useState<string[]>([]);
   const [selectedBranch, setSelectedBranch] = useState("All");
   const [selectedPosition, setSelectedPosition] = useState("All");
   const [selectedStatus, setSelectedStatus] = useState("Active");

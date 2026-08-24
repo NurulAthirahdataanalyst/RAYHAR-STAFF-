@@ -1276,13 +1276,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                       dataKey="clockOutValue" 
                       stroke="#ef4444" 
                       strokeWidth={2} 
-                      dot={(props: any) => {
-                        const { cx, cy, payload } = props;
-                        if (payload.clockOutValue === null || payload.clockOutValue === undefined) {
-                          return null;
-                        }
-                        return <circle cx={cx} cy={cy} r={3} fill="#ef4444" stroke="none" />;
-                      }}
+                      dot={{ r: 3, fill: '#ef4444', strokeWidth: 0 }}
                       activeDot={{ r: 5 }} 
                       connectNulls={true}
                     />

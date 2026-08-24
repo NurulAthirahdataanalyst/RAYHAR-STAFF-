@@ -1662,7 +1662,7 @@ export default function Attendance() {
                 const upcoming = processed.find(a => a.computedStatus === 'Upcoming');
                 const curr = active || upcoming;
 
-                const fmtDate = (dStr) => {
+                const fmtDate = (dStr: string) => {
                   const d = new Date(dStr);
                   return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
                 };

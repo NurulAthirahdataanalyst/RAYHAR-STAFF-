@@ -94,7 +94,7 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
       }
 
       // 2. Fetch leave requests submitted on this date
-      if (role === "hr_admin" || role === "head_of_department" || role === "branch_leader" || role === "managing_director" || role === "operation_manager" || role === "finance_manager") {
+      if (role === "hr_admin" || role === "head_of_department" || role === "branch_leader" || role === "managing_director" || role === "operation_manager" || (role as string) === "finance_manager") {
         try {
           const leaveParams = new URLSearchParams({
             role: role || "employee",

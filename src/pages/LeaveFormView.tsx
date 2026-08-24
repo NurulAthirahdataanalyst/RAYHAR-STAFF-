@@ -622,7 +622,7 @@ export default function LeaveFormView() {
                       </div>
                       
 <div className="relative space-y-4 before:absolute before:inset-0 before:ml-4 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-border/50 before:to-transparent">
-  {selectedForm.approvalHistory.map((history, idx) => {
+  {selectedForm.approvalHistory?.map((history, idx) => {
     const isLast = idx === selectedForm.approvalHistory.length - 1;
     const hStatus = (selectedForm.status === 'Rejected' && isLast) ? 'Rejected' : history.status;
     return (

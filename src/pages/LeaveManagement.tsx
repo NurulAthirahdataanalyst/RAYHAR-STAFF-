@@ -504,7 +504,6 @@ export default function LeaveManagement() {
                         placeholder="CONTOH: 900101115566"
                           className="h-12 sm:h-14 border-border/50 bg-muted/30 rounded-2xl font-bold placeholder:text-muted-foreground placeholder:font-medium"
                         value={formData.noKadPengenalan}
-                        className="h-12 sm:h-14 border-border/50 bg-muted/30 rounded-2xl font-bold"
                         onChange={e => {
                           setIcAutoFilled(false);
                           setFormData({ ...formData, noKadPengenalan: e.target.value });
@@ -712,7 +711,6 @@ export default function LeaveManagement() {
                                   newRows[idx].keterangan = e.target.value;
                                   setFormData({ ...formData, cutiGantiRows: newRows });
                                 }}
-                                className="h-12 bg-card rounded-xl font-bold"
                               />
                             </div>
                             <div className="space-y-2 relative pr-10">
@@ -802,7 +800,6 @@ export default function LeaveManagement() {
                         placeholder="CONTOH: ISTERI / AYAH"
                           className="h-12 sm:h-14 border-border/50 bg-muted/30 rounded-2xl font-bold placeholder:text-muted-foreground placeholder:font-medium"
                         value={formData.warisHubungan}
-                        className="h-12 sm:h-14 border-border/50 bg-muted/30 rounded-2xl font-bold"
                         onChange={e => setFormData({ ...formData, warisHubungan: e.target.value.toUpperCase() })}
                       />
                     </div>
