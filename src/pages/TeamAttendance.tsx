@@ -36,6 +36,44 @@ export default function TeamAttendance() {
     setCurrentPage(1);
   }, [searchQuery, statusFilter, selectedDate, dateViewMode, entriesPerPage]);
 
+  
+  const [historyFor, setHistoryFor] = useState<string | null>(null);
+  const [history, setHistory] = useState<any[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+
+  const openHistory = async (userId: string) => {
+    setHistoryFor(userId);
+    setHistoryLoading(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/employee-location-history?userId=${encodeURIComponent(userId)}&days=14`);
+      const j = await res.json();
+      if (j && j.success) {
+        const sorted = (j.history || []).slice().sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+        setHistory(sorted);
+      } else {
+        setHistory([]);
+      }
+    } catch (e) {
+      setHistory([]);
+    }
+    setHistoryLoading(false);
+  };
+
+  const closeHistory = () => {
+    setHistoryFor(null);
+    setHistory([]);
+  };
+
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && historyFor) {
+        closeHistory();
+      }
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [historyFor]);
+
   const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -174,7 +212,8 @@ export default function TeamAttendance() {
         status: statusLabel,
         late: lateLabel,
         workingHours,
-        date: selectedDate
+        date: selectedDate,
+        clock_in_location: att?.clock_in_location || null
       };
     });
   } else {
@@ -407,65 +446,67 @@ export default function TeamAttendance() {
             <div className="rounded-md border">
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    {dateViewMode === 'MONTH' && <TableHead>Date</TableHead>}
-                    <TableHead>Employee ID</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Department</TableHead>
-                    <TableHead>Time In</TableHead>
-                    <TableHead>Time Out</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Late</TableHead>
-                    <TableHead>Working Hours</TableHead>
-                  </TableRow>
-                </TableHeader>
+                    <TableRow>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Employee ID</TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Branch</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Clock In</TableHead>
+                      <TableHead>Clock Out</TableHead>
+                      <TableHead>Working Hours</TableHead>
+                      <TableHead>Coordinate (Latitude, Longitude)</TableHead>
+                      <TableHead>Distance</TableHead>
+                      <TableHead>Location Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
                 <TableBody>
                   {paginatedList.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={8} className="text-center py-8 text-foreground">
+                      <TableCell colSpan={11} className="text-center py-8 text-foreground">
                         No team members found.
                       </TableCell>
                     </TableRow>
                   ) : (
                     paginatedList.map((emp, idx) => (
                       <TableRow key={dateViewMode === 'MONTH' ? `${emp.user_id}-${emp.date}-${idx}` : emp.user_id}>
-                        {dateViewMode === 'MONTH' && (
-                          <TableCell className="whitespace-nowrap font-medium text-gray-700">
-                            {new Date(emp.date).toLocaleDateString('en-GB')}
+                          <TableCell className="text-muted-foreground whitespace-nowrap">
+                            {emp.date ? new Date(emp.date).toLocaleDateString('en-GB') : new Date(selectedDate).toLocaleDateString('en-GB')}
                           </TableCell>
-                        )}
-                        <TableCell className="font-medium">{emp.user_id}</TableCell>
-                        <TableCell>
-                          <div className="flex flex-col gap-0.5">
+                          <TableCell className="font-medium">{emp.user_id}</TableCell>
+                          <TableCell>
                             <span className="font-medium text-xs">{emp.full_name}</span>
-                            {(emp.temp_branch || (emp as any).temporary_branch) && (
-                              <span className="inline-flex items-center gap-1 text-[9px] font-black text-amber-800 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/70 px-1.5 py-0.5 rounded border border-amber-300 dark:border-amber-700 w-fit shadow-xs">
-                                <MapPin className="w-2.5 h-2.5 text-amber-600 dark:text-amber-400" /> Temp: {emp.temp_branch || (emp as any).temporary_branch}
-                              </span>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>{emp.department || "-"}</TableCell>
-                        <TableCell>{emp.time_in}</TableCell>
-                        <TableCell>{emp.time_out}</TableCell>
-                        <TableCell>
-                          <Badge 
-                            variant={emp.status === "Present" ? "default" : (emp.status === "Absent" ? "destructive" : "secondary")} 
-                            className={`
-                              ${emp.status === "Present" ? "bg-green-500 hover:bg-green-600" : ""} 
-                              ${emp.status === "Company Leave" ? "bg-violet-500 hover:bg-violet-600 text-white" : ""} 
-                              ${emp.status === "Leave" ? "bg-amber-500 hover:bg-amber-600 text-white" : ""} 
-                              ${emp.status === "Outstation" ? "bg-pink-500 hover:bg-pink-600 text-white" : ""}
-                              ${emp.status === "Holiday" ? "bg-blue-500 hover:bg-blue-600 text-white" : ""}
-                              ${emp.status === "Weekend" ? "bg-slate-400 hover:bg-slate-500 text-white" : ""}
-                            `}
-                          >
-                            {emp.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="font-medium text-rose-600">{emp.late}</TableCell>
-                        <TableCell className="font-medium text-gray-700">{emp.workingHours}</TableCell>
-                      </TableRow>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-col">
+                              <span className="font-medium text-xs">{emp.branch || "-"}</span>
+                              {(emp.temp_branch || (emp as any).temporary_branch) && (
+                                <span className="inline-flex items-center gap-1 text-[9px] font-black text-amber-800 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/70 px-1.5 py-0.5 rounded border border-amber-300 dark:border-amber-700 w-fit shadow-xs mt-0.5">
+                                  <MapPin className="w-2.5 h-2.5 text-amber-600 dark:text-amber-400" /> Temp: {emp.temp_branch || (emp as any).temporary_branch}
+                                </span>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <span className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-semibold rounded-full ${
+                              emp.status === 'Present' || emp.status === 'Present (On Time)' ? 'bg-green-100 text-green-700' :
+                              emp.status === 'Present (Late)' ? 'bg-yellow-100 text-yellow-700' :
+                              emp.status === 'Missing Clock-Out' ? 'bg-orange-100 text-orange-700' :
+                              emp.status === 'Outstation' ? 'bg-blue-100 text-blue-700' :
+                              'bg-red-100 text-red-700'
+                            }`}>
+                              {emp.status}
+                            </span>
+                          </TableCell>
+                          <TableCell>{emp.time_in || "-"}</TableCell>
+                          <TableCell>{emp.time_out || "-"}</TableCell>
+                          <TableCell className="font-medium text-gray-700">{emp.workingHours}</TableCell>
+                          <TableCell>{emp.clock_in_location || "N/A"}</TableCell>
+                          <TableCell>N/A</TableCell>
+                          <TableCell>
+                            <Button onClick={() => openHistory(emp.user_id)} variant="outline" size="sm">History</Button>
+                          </TableCell>
+                        </TableRow>
                     ))
                   )}
                 </TableBody>
@@ -474,7 +515,7 @@ export default function TeamAttendance() {
               {totalPages > 1 && (
                 <div className="flex items-center justify-between px-2 py-4 border-t border-border">
                   <div className="text-sm text-muted-foreground">
-                    Showing <span className="font-medium text-foreground">{startIndex + 1}</span> to <span className="font-medium text-foreground">{Math.min(startIndex + entriesPerPage, filteredList.length)}</span> of <span className="font-medium text-foreground">{filteredList.length}</span> entries
+                    <span className="text-[10px] font-bold text-foreground uppercase tracking-widest">TOTAL SHOWING {startIndex + 1} TO {Math.min(startIndex + entriesPerPage, filteredList.length)} OF {filteredList.length} ENTRIES</span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Button
@@ -557,6 +598,62 @@ export default function TeamAttendance() {
           </Card>
 
       </div>
+
+      {historyFor && (
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/40 p-4" onClick={(e) => { if (e.target === e.currentTarget) closeHistory(); }}>
+          <div className="w-full max-w-5xl bg-card rounded-lg p-6 max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-black uppercase">Location History - {employees.find(e => e.user_id === historyFor)?.full_name || historyFor}</h3>
+              <Button onClick={closeHistory} variant="ghost" size="sm">Close</Button>
+            </div>
+            <div className="flex-1 border border-border rounded-lg flex flex-col overflow-hidden [&>div]:flex-1 [&>div]:overflow-auto">
+              <Table>
+                <TableHeader className="sticky top-0 bg-card z-10 shadow-sm border-b">
+                  <TableRow>
+                    <TableHead>Date & Time</TableHead>
+                    <TableHead>Coordinate (Latitude, Longitude)</TableHead>
+                    <TableHead>Branch</TableHead>
+                    <TableHead>Distance from Branch</TableHead>
+                    <TableHead>Location Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {historyLoading ? (
+                    <TableRow><TableCell colSpan={5} className="text-center py-8">Loading history...</TableCell></TableRow>
+                  ) : history.length === 0 ? (
+                    <TableRow><TableCell colSpan={5} className="text-center py-8 text-muted-foreground">No history found</TableCell></TableRow>
+                  ) : (
+                    history.map((h, i) => {
+                      const emp = employees.find(e => e.user_id === historyFor);
+                      const branchName = emp?.branch || "HQ";
+                      
+                      let distance: number | null = null;
+                      // We don't have apiBranches in TeamAttendance, so distance might be N/A
+                      
+                      const isNoGPS = Number(h.lat) === 0 && Number(h.lng) === 0;
+
+                      return (
+                        <TableRow key={i}>
+                          <TableCell>{new Date(h.timestamp).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' })}</TableCell>
+                          <TableCell>{isNoGPS ? "N/A" : `${Number(h.lat).toFixed(7)}, ${Number(h.lng).toFixed(7)}`}</TableCell>
+                          <TableCell>{branchName}</TableCell>
+                          <TableCell>{isNoGPS ? "-" : "N/A"}</TableCell>
+                          <TableCell>
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest border border-green-200 dark:border-green-800/30 bg-green-50 dark:bg-green-900/10 text-green-700 dark:text-green-400">
+                              <span className="w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5"></span>
+                              On-site
+                            </span>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
