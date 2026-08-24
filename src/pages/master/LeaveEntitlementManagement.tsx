@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronLeft, ChevronRight,  useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 
 // HR Notification Helper (Mocking DB insertion via localStorage)
 const createHRNotification = (userId: string, title: string, message: string) => {
@@ -20,8 +20,7 @@ const createHRNotification = (userId: string, title: string, message: string) =>
     console.error("Failed to create HR notification", e);
   }
 };
-import {
-  Award,
+import { ChevronLeft, ChevronRight, Award,
   BadgePlus,
   CalendarRange,
   ClipboardList,
@@ -41,7 +40,7 @@ import {
   Clock,
   Loader2,
   Play,
-} from "lucide-react";
+ } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -539,10 +538,7 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
   });
 
   
-    const indexOfLastItem = currentPage * entriesPerPage;
-    const indexOfFirstItem = indexOfLastItem - entriesPerPage;
-    const currentItems = filtered.slice(indexOfFirstItem, indexOfLastItem);
-    const totalPages = Math.ceil(filtered.length / entriesPerPage);
+    
 
     const uniqueBranches = ["All", ...new Set(employees.map(e => e.branch).filter(Boolean))];
   const uniqueDepts = ["All", ...new Set(employees.map(e => e.department).filter(Boolean))];

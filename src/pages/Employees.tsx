@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { ArrowLeft,  useNavigate } from "react-router-dom";
 import { MonthPicker } from '@/components/shared/MonthPicker';
 import { useRole } from "@/contexts/RoleContext";
 import { Card, CardContent } from "@/components/ui/card";
