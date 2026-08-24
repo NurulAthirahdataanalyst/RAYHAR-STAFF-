@@ -328,7 +328,12 @@ export default function LeaveFormView() {
                       <TableRow 
                         key={form.id} 
                         className="hover:bg-[#7B0099]/5 transition-colors group cursor-pointer"
-                        onClick={() => setSelectedForm(form)}
+                        onClick={() => {
+                          setSelectedForm(form);
+                          if (form.status === "Approved") setActiveTab("approved");
+                          else if (form.status === "Rejected") setActiveTab("rejected");
+                          else if (form.status.startsWith("Pending")) setActiveTab("pending");
+                        }}
                       >
                         <TableCell className="px-6 py-4">
                           <div className="flex flex-col">
@@ -368,7 +373,12 @@ export default function LeaveFormView() {
                   <div
                     key={form.id}
                     className="group relative rounded-[20px] border border-border/50 bg-card/50 p-4 hover:bg-[#7B0099]/5 hover:border-[#7B0099]/30 transition-all duration-300 cursor-pointer touch-target"
-                    onClick={() => setSelectedForm(form)}
+                    onClick={() => {
+                      setSelectedForm(form);
+                      if (form.status === "Approved") setActiveTab("approved");
+                      else if (form.status === "Rejected") setActiveTab("rejected");
+                      else if (form.status.startsWith("Pending")) setActiveTab("pending");
+                    }}
                   >
                     <div className="flex items-center justify-between gap-4">
                       <div className="flex items-start gap-3 min-w-0">
