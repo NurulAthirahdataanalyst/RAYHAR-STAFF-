@@ -410,7 +410,7 @@ export default function LeaveOverview() {
                 <div
                   key={req.id}
                   className="rounded-[24px] border border-border/50 bg-card/50 p-4 sm:p-6 hover:bg-[#7B0099]/5 hover:border-[#7B0099]/30 transition-all duration-300 cursor-pointer group"
-                  onClick={() => navigate("/leave/forms")}
+                  onClick={() => navigate(`/leave/forms?leaveId=${req.id}`)}
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="flex items-start gap-4">
