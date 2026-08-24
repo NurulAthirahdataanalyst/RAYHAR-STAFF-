@@ -745,7 +745,6 @@ export default function LeaveManagement() {
                     <Label className="text-[10px] font-black uppercase tracking-widest text-foreground px-1">Sebab / Tujuan <span className="text-red-500">*</span></Label>
                     <Textarea
                       placeholder="CONTOH: URUSAN KELUARGA / KECEMASAN..." className="min-h-[120px] border-border/50 bg-muted/30 rounded-[20px] p-4 text-sm font-bold placeholder:text-muted-foreground placeholder:font-medium transition-all"
-                      className="min-h-[120px] border-border/50 bg-muted/30 rounded-[20px] p-4 text-sm font-bold transition-all"
                       value={formData.tujuanCuti}
                       onChange={e => setFormData({ ...formData, tujuanCuti: e.target.value.toUpperCase() })}
                     />
@@ -757,8 +756,7 @@ export default function LeaveManagement() {
                         <Label className="text-[10px] font-black uppercase tracking-widest text-rose-700 dark:text-rose-400 px-1">No. Telefon Semasa Cuti <span className="text-red-500">*</span></Label>
                         <Input
                           placeholder="0123456789"
-                            className="h-12 sm:h-14 border-border/50 bg-muted/30 rounded-2xl font-bold placeholder:text-muted-foreground placeholder:font-medium"
-                          className="h-12 border-rose-200 bg-white dark:bg-black/20 rounded-xl font-bold"
+                            className="h-12 border-rose-200 bg-white dark:bg-black/20 rounded-xl font-bold placeholder:text-muted-foreground placeholder:font-medium"
                           value={formData.cutiTanpaGajiPhone}
                           onChange={e => setFormData({ ...formData, cutiTanpaGajiPhone: e.target.value })}
                         />
