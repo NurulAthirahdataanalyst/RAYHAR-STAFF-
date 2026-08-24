@@ -6,13 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ChevronRight, Plus, Search, Shield, Edit, Trash2, Calendar, FileDown, Loader2 } from "lucide-react";
+import { ChevronRight, Plus, Search, Shield, Edit, Trash2, Calendar, FileDown, Loader2 , ArrowLeft } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { API_BASE_URL } from "@/config/api";
 
 export default function Role() {
+  const navigate = useNavigate();
+
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<any>(null);
@@ -143,6 +145,21 @@ export default function Role() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto px-2 sm:px-4 py-4 sm:py-6">
+
+        <div className="mb-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="mb-1 gap-2 px-0 text-foreground hover:bg-transparent hover:text-[#7B0099] transition-colors touch-target"
+            onClick={() => navigate("/master")}
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span className="text-[10px] font-black uppercase tracking-widest">
+              Back to Employee Management
+            </span>
+          </Button>
+        </div>
+
       {/* Action Buttons Portaled to Header */}
       {document.getElementById("page-header-actions") &&
         createPortal(

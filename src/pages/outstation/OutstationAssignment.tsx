@@ -327,6 +327,21 @@ export default function OutstationAssignment() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-8">
+
+        <div className="mb-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="mb-1 gap-2 px-0 text-foreground hover:bg-transparent hover:text-[#7B0099] transition-colors touch-target"
+            onClick={() => navigate("/outstation")}
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span className="text-[10px] font-black uppercase tracking-widest">
+              Back to Outstation Dashboard
+            </span>
+          </Button>
+        </div>
+
       
       {/* Filter Bar */}
       <PageActions>

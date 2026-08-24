@@ -75,6 +75,8 @@ function getDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
 }
 
 export default function Employees() {
+  const navigate = useNavigate();
+
   const { role, userBranch, userDepartment } = useRole();
   const printRef = useRef<HTMLDivElement>(null);
   
@@ -574,6 +576,21 @@ export default function Employees() {
 
   return (
     <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-500">
+
+        <div className="mb-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="mb-1 gap-2 px-0 text-foreground hover:bg-transparent hover:text-[#7B0099] transition-colors touch-target"
+            onClick={() => navigate("/master")}
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span className="text-[10px] font-black uppercase tracking-widest">
+              Back to Employee Management
+            </span>
+          </Button>
+        </div>
+
       {portalTarget && createPortal(
         <>
           {["hr_admin", "managing_director", "operation_manager", "finance_manager"].includes(role) ? (

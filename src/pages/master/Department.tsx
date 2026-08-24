@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Building2, Users, Loader2, Trash2, Search, Plus , X} from 'lucide-react';
+import { Building2, Users, Loader2, Trash2, Search, Plus , X, ArrowLeft } from "lucide-react";
 import { useRole } from "@/contexts/RoleContext";
 import { useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "@/config/api";
@@ -117,6 +117,21 @@ export default function Department() {
 
   return (
     <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-500">
+
+        <div className="mb-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="mb-1 gap-2 px-0 text-foreground hover:bg-transparent hover:text-[#7B0099] transition-colors touch-target"
+            onClick={() => navigate("/master")}
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span className="text-[10px] font-black uppercase tracking-widest">
+              Back to Employee Management
+            </span>
+          </Button>
+        </div>
+
       <PageActions>
         <Button
           onClick={() => navigate("/settings?tab=department")}

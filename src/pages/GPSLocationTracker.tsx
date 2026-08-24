@@ -375,7 +375,7 @@ export default function GPSLocationTracker() {
 
       <div className="flex flex-col gap-4">
         <div className="h-[520px] bg-card rounded-lg overflow-hidden">
-          <Map reuseMaps
+          <Map reuseMaps id="gps-map"
             ref={mapRef}
             initialViewState={{
               longitude: 103.4194,
@@ -410,6 +410,7 @@ export default function GPSLocationTracker() {
               }, {} as Record<string, EmpLocation[]>)
             ).map((group, idx) => {
               const first = group[0];
+              if (!first) return null;
               const isSelected = group.some((l) => selected === l.user_id);
               const isOnline = first.lat && first.lng;
               const statusColor = isSelected ? 'bg-amber-500' : (isOnline ? 'bg-emerald-500' : 'bg-rose-500');

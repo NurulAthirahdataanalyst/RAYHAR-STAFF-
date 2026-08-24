@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, ChevronLeft, ChevronRight, MapPin, CalendarDays, Users, Plane, X, Calendar, Clock } from "lucide-react";
+import { Loader2, ChevronLeft, ChevronRight, MapPin, CalendarDays, Users, Plane, X, Calendar, Clock , ArrowLeft } from "lucide-react";
 
 import PageActions from "@/components/layout/PageActions";
 import { API_BASE_URL } from "../../config/api";
@@ -47,6 +47,8 @@ type Assignment = {
 };
 
 export default function OutstationCalendar({ onlyMine = false }: { onlyMine?: boolean }) {
+  const navigate = useNavigate();
+
   const location = useLocation();
   const isMyCalendar = onlyMine || location.pathname.includes("my-calendar") || location.pathname.includes("my_calendar");
   const { role, userBranch, userDepartment, userId, loading: roleLoading } = useRole();
@@ -124,6 +126,21 @@ export default function OutstationCalendar({ onlyMine = false }: { onlyMine?: bo
 
   return (
     <div className="animate-in fade-in duration-500">
+
+        <div className="mb-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="mb-1 gap-2 px-0 text-foreground hover:bg-transparent hover:text-[#7B0099] transition-colors touch-target"
+            onClick={() => navigate("/outstation/my")}
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span className="text-[10px] font-black uppercase tracking-widest">
+              Back to My Outstation
+            </span>
+          </Button>
+        </div>
+
       {/* Calendar Card */}
       <Card className="border border-slate-200 dark:border-slate-800/80 shadow-xs overflow-hidden rounded-2xl">
         <CardHeader className="flex flex-col gap-4 border-b border-border/50 p-4 sm:p-5">

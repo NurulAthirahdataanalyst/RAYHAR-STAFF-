@@ -1029,8 +1029,7 @@ export default function SettingsPage() {
                     </DialogHeader>
                     <div className="grid grid-cols-1 md:grid-cols-3 h-[500px]">
                       <div className="md:col-span-2 relative h-full">
-                        <Map
-                          id="settings-coord-picker"
+                        <Map reuseMaps id="settings-coord-picker"
                           initialViewState={{
                             longitude: branchLng ? parseFloat(branchLng) : 103.4194,
                             latitude: branchLat ? parseFloat(branchLat) : 4.2248,

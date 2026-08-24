@@ -2001,8 +2001,7 @@ export default function Branches() {
             </div>
           <div className="grid grid-cols-1 md:grid-cols-3 h-[500px]">
             <div className="md:col-span-2 relative h-full">
-              <Map
-                id="branch-coord-picker"
+              <Map reuseMaps id="branch-coord-picker"
                 initialViewState={{
                   longitude: (() => { const v = parseFloat(String(editBranchData.longitude)); return !isNaN(v) ? v : 103.4194; })(),
                   latitude: (() => { const v = parseFloat(String(editBranchData.latitude)); return !isNaN(v) ? v : 4.2248; })(),

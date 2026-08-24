@@ -248,6 +248,21 @@ export default function LeaveFormView() {
 
   return (
     <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-500">
+
+        <div className="mb-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="mb-1 gap-2 px-0 text-foreground hover:bg-transparent hover:text-[#7B0099] transition-colors touch-target"
+            onClick={() => navigate("/leave")}
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span className="text-[10px] font-black uppercase tracking-widest">
+              Back to Leave Overview
+            </span>
+          </Button>
+        </div>
+
       
       
 
