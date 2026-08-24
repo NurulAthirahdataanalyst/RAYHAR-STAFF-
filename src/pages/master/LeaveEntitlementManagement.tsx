@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from "react";
+import React from 'react';
+import { ChevronLeft, ChevronRight,  useState, useEffect, useRef } from "react";
 
 // HR Notification Helper (Mocking DB insertion via localStorage)
 const createHRNotification = (userId: string, title: string, message: string) => {
@@ -421,7 +422,7 @@ function EmployeeSearchSelector({
             setOpen(true);
           }}
           onClick={() => setOpen(true)}
-          className="pl-8 pr-8 bg-white dark:bg-card h-9 text-xs"
+          className="pl-8 pr-8 bg-white dark:bg-card h-10 text-sm"
         />
         {selectedEmployee && (
           <button
@@ -537,7 +538,13 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
     return bMatch && dMatch && sMatch;
   });
 
-  const uniqueBranches = ["All", ...new Set(employees.map(e => e.branch).filter(Boolean))];
+  
+    const indexOfLastItem = currentPage * entriesPerPage;
+    const indexOfFirstItem = indexOfLastItem - entriesPerPage;
+    const currentItems = filtered.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(filtered.length / entriesPerPage);
+
+    const uniqueBranches = ["All", ...new Set(employees.map(e => e.branch).filter(Boolean))];
   const uniqueDepts = ["All", ...new Set(employees.map(e => e.department).filter(Boolean))];
 
   const handleGrant = () => {
@@ -687,7 +694,7 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
               <h4 className="text-xs font-black uppercase tracking-wider text-foreground mb-3 border-b pb-1">Allocation Config</h4>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-bold">Leave Year</Label>
+                  <Label className="text-sm font-bold">Leave Year</Label>
                   <YearPopover 
                     year={leaveYear} 
                     onSelectYear={(y) => {
@@ -700,7 +707,7 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
                     />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-bold">Base Entitlement (Days)</Label>
+                  <Label className="text-sm font-bold">Base Entitlement (Days)</Label>
                   <Input type="number" value={leaveDays} onChange={(e) => setLeaveDays(Number(e.target.value))} className="bg-white dark:bg-card text-xs h-9" />
                 </div>
               </div>
@@ -710,9 +717,9 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
               <h4 className="text-xs font-black uppercase tracking-wider text-foreground mb-3 border-b pb-1">Employee Filter</h4>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-bold">Branch</Label>
+                  <Label className="text-sm font-bold">Branch</Label>
                   <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-                    <SelectTrigger className="bg-white dark:bg-card">
+                    <SelectTrigger className="bg-white dark:bg-card h-10 text-sm">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -721,9 +728,9 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
                   </Select>
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-bold">Department</Label>
+                  <Label className="text-sm font-bold">Department</Label>
                   <Select value={selectedDept} onValueChange={setSelectedDept}>
-                    <SelectTrigger className="bg-white dark:bg-card">
+                    <SelectTrigger className="bg-white dark:bg-card h-10 text-sm">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -732,7 +739,7 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
                   </Select>
                 </div>
                 <div className="space-y-1.5 md:col-span-2">
-                  <Label className="text-xs font-bold">Search Name or ID</Label>
+                  <Label className="text-sm font-bold">Search Name or ID</Label>
                   <Popover open={empSearchOpen} onOpenChange={setEmpSearchOpen}>
                     <PopoverTrigger asChild>
                       <div className="relative w-full cursor-pointer">
@@ -764,7 +771,7 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
                                 setEmpSearchText(e.target.value);
                                 setSearch(e.target.value);
                             }}
-                            className="pl-8 h-9 text-xs"
+                            className="pl-8 h-10 text-sm"
                             autoFocus
                           />
                         </div>
@@ -861,7 +868,7 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
                     {filtered.map((emp) => (
                       <TableRow key={emp.user_id}>
                         <TableCell className="font-medium text-xs">{emp.user_id}</TableCell>
-                        <TableCell className="text-xs font-bold">{emp.full_name}</TableCell>
+                        <TableCell className="text-sm font-bold">{emp.full_name}</TableCell>
                         <TableCell className="text-xs">{emp.branch}</TableCell>
                         <TableCell className="text-xs">{emp.department || "-"}</TableCell>
                         <TableCell className="text-right text-xs font-black text-[#7B0099]">{leaveDays} Days</TableCell>
@@ -928,9 +935,9 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-bold">Leave Type Allocation</Label>
+                    <Label className="text-sm font-bold">Leave Type Allocation</Label>
                     <Select value={targetLeaveType} onValueChange={setTargetLeaveType}>
-                      <SelectTrigger className="bg-white dark:bg-card"><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="bg-white dark:bg-card h-10 text-sm"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="Annual & Emergency Leave">Annual & Emergency Leave</SelectItem>
                         <SelectItem value="Replacement Leave">Replacement Leave</SelectItem>
@@ -938,9 +945,9 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
                     </Select>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-bold">OT Hours Per 1 Day Leave</Label>
+                    <Label className="text-sm font-bold">OT Hours Per 1 Day Leave</Label>
                     <Select value={otHoursLimit.toString()} onValueChange={(val) => setOtHoursLimit(Number(val))}>
-                      <SelectTrigger className="bg-white dark:bg-card"><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="bg-white dark:bg-card h-10 text-sm"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="8">8 Hours Overtime</SelectItem>
                         <SelectItem value="4">4 Hours Overtime</SelectItem>
@@ -1010,6 +1017,9 @@ function CarryForwardLeaveForm({
   const [filterEligible, setFilterEligible] = useState("");
 
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [entriesPerPage, setEntriesPerPage] = useState(10);
+
 
   // Filter Employees dynamically
   const filtered = employees.filter((e) => {
@@ -1028,16 +1038,25 @@ function CarryForwardLeaveForm({
     return bSelected - aSelected;
   });
 
-  const uniqueBranches = ["All", ...new Set(employees.map(e => e.branch).filter(Boolean))];
+  
+    const indexOfLastItem = currentPage * entriesPerPage;
+    const indexOfFirstItem = indexOfLastItem - entriesPerPage;
+    const currentItems = filtered.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(filtered.length / entriesPerPage);
+
+    const uniqueBranches = ["All", ...new Set(employees.map(e => e.branch).filter(Boolean))];
   const uniqueDepts = ["All", ...new Set(employees.map(e => e.department).filter(Boolean))];
 
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedEmployees(filtered.map(e => e.user_id));
-    } else {
-      setSelectedEmployees([]);
-    }
-  };
+  
+    const handleSelectAll = (checked: boolean) => {
+      if (checked) {
+        const toAdd = currentItems.map(e => e.user_id).filter(id => !selectedEmployees.includes(id));
+        setSelectedEmployees([...selectedEmployees, ...toAdd]);
+      } else {
+        const toRemove = currentItems.map(e => e.user_id);
+        setSelectedEmployees(selectedEmployees.filter(id => !toRemove.includes(id)));
+      }
+    };
 
   const handleToggleSelect = (uid: string) => {
     if (selectedEmployees.includes(uid)) {
@@ -1112,9 +1131,9 @@ function CarryForwardLeaveForm({
           <h4 className="text-xs font-black uppercase tracking-wider text-foreground mb-3 border-b pb-1">Carry Forward Configuration</h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
             <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Leave Type</Label>
+              <Label className="text-sm font-bold">Leave Type</Label>
               <Select value={leaveType} onValueChange={setLeaveType}>
-                <SelectTrigger className="bg-white dark:bg-card"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="bg-white dark:bg-card h-10 text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Annual/Emergency Leave">Annual/Emergency Leave</SelectItem>
                   <SelectItem value="Replacement Leave">Replacement Leave</SelectItem>
@@ -1124,30 +1143,30 @@ function CarryForwardLeaveForm({
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Leave Year</Label>
+              <Label className="text-sm font-bold">Leave Year</Label>
               <YearPopover 
                   year={leaveYear} 
                   onSelectYear={(y) => setLeaveYear(y || new Date().getFullYear().toString())}
                   minYear={new Date().getFullYear()}
-                  className="w-full h-9 px-3 appearance-none flex items-center justify-between bg-white dark:bg-card border border-input text-foreground text-xs font-bold rounded-md shadow-sm outline-none cursor-pointer tracking-wider"
+                  className="w-full h-10 px-3 appearance-none flex items-center justify-between bg-white dark:bg-card border border-input text-foreground text-xs font-bold rounded-md shadow-sm outline-none cursor-pointer tracking-wider"
                 />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Carry Forward To</Label>
+              <Label className="text-sm font-bold">Carry Forward To</Label>
                 <YearPopover 
                     year={carryToYear} 
                     onSelectYear={(y) => setCarryToYear(y || String(new Date().getFullYear() + 1))}
                     minYear={new Date().getFullYear()}
                     excludeYear={leaveYear}
-                    className="w-full h-9 px-3 appearance-none flex items-center justify-between bg-white dark:bg-card border border-input text-foreground text-xs font-bold rounded-md shadow-sm outline-none cursor-pointer tracking-wider"
+                    className="w-full h-10 px-3 appearance-none flex items-center justify-between bg-white dark:bg-card border border-input text-foreground text-xs font-bold rounded-md shadow-sm outline-none cursor-pointer tracking-wider"
                   />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Max Carry Forward (Days)</Label>
-              <Input type="number" value={maxCarry} onChange={(e) => setMaxCarry(Number(e.target.value))} className="bg-white dark:bg-card h-9 text-xs" />
+              <Label className="text-sm font-bold">Max Carry Forward (Days)</Label>
+              <Input type="number" value={maxCarry} onChange={(e) => setMaxCarry(Number(e.target.value))} className="bg-white dark:bg-card h-10 text-sm" />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Expiry Date</Label>
+              <Label className="text-sm font-bold">Expiry Date</Label>
               <CustomDatePicker value={expiryDate} onChange={setExpiryDate} placeholder="Expiry Date" />
             </div>
           </div>
@@ -1157,27 +1176,27 @@ function CarryForwardLeaveForm({
           <h4 className="text-xs font-black uppercase tracking-wider text-foreground mb-3 border-b pb-1">Employee Selection</h4>
           <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
             <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Department</Label>
+              <Label className="text-sm font-bold">Department</Label>
               <Select value={selectedDept} onValueChange={setSelectedDept}>
-                <SelectTrigger className="bg-white dark:bg-card"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="bg-white dark:bg-card h-10 text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {uniqueDepts.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Branch</Label>
+              <Label className="text-sm font-bold">Branch</Label>
               <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-                <SelectTrigger className="bg-white dark:bg-card"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="bg-white dark:bg-card h-10 text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {uniqueBranches.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Employment Type</Label>
+              <Label className="text-sm font-bold">Employment Type</Label>
               <Select value={empType} onValueChange={setEmpType}>
-                <SelectTrigger className="bg-white dark:bg-card"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="bg-white dark:bg-card h-10 text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Permanent">Permanent</SelectItem>
                   <SelectItem value="Contract">Contract</SelectItem>
@@ -1186,10 +1205,10 @@ function CarryForwardLeaveForm({
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Search Employee</Label>
+              <Label className="text-sm font-bold">Search Employee</Label>
               <div className="relative">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-foreground" />
-                <Input placeholder="Enter ID or Name..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-8 bg-white dark:bg-card h-9 text-xs" />
+                <Input placeholder="Enter ID or Name..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-8 bg-white dark:bg-card h-10 text-sm" />
               </div>
             </div>
           </div>
@@ -1204,7 +1223,7 @@ function CarryForwardLeaveForm({
                   <TableHead className="w-[50px] text-center">
                     <input
                       type="checkbox"
-                      checked={filtered.length > 0 && selectedEmployees.length === filtered.length}
+                      checked={currentItems.length > 0 && currentItems.every(emp => selectedEmployees.includes(emp.user_id))}
                       onChange={(e) => handleSelectAll(e.target.checked)}
                       className="cursor-pointer rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
                     />
@@ -1218,7 +1237,7 @@ function CarryForwardLeaveForm({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map((emp) => {
+                {currentItems.map((emp) => {
                   const unused = getUnusedDays(emp.user_id);
                   const eligible = Math.min(unused, maxCarry);
                   const selected = selectedEmployees.includes(emp.user_id);
@@ -1249,6 +1268,43 @@ function CarryForwardLeaveForm({
                 })}
               </TableBody>
             </Table>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-gray-100 dark:border-slate-800 gap-4 bg-slate-50/50 dark:bg-slate-900/50">
+            <div className="flex items-center gap-4 text-[10px] font-bold text-foreground uppercase tracking-widest">
+              <span>
+                TOTAL SHOWING {indexOfFirstItem + 1} TO {Math.min(indexOfLastItem, filtered.length)} OF {filtered.length} ENTRIES
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span>Show</span>
+              <Select value={entriesPerPage.toString()} onValueChange={(val) => { setEntriesPerPage(Number(val)); setCurrentPage(1); }}>
+                <SelectTrigger className="h-7 text-[10px] font-bold rounded border-gray-200 dark:border-slate-700 w-[60px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="5">5</SelectItem>
+                  <SelectItem value="10">10</SelectItem>
+                  <SelectItem value="25">25</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                  <SelectItem value="100">100</SelectItem>
+                </SelectContent>
+              </Select>
+              <div className="flex items-center gap-1 ml-2">
+                <Button variant="outline" size="icon" className="h-7 w-7 rounded border-gray-200 dark:border-slate-700" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}><ChevronLeft className="h-4 w-4" /></Button>
+                <div className="flex items-center gap-1 px-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).filter(p => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1).map((p, i, arr) => (
+                    <React.Fragment key={p}>
+                      {i > 0 && arr[i - 1] !== p - 1 && <span className="text-muted-foreground px-1">...</span>}
+                      <Button variant={currentPage === p ? "default" : "outline"} size="icon" className={`h-7 w-7 rounded ${currentPage === p ? 'bg-[#7B0099] hover:bg-[#7B0099]/90 text-white' : 'border-gray-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800'}`} onClick={() => setCurrentPage(p)}>
+                        <span className="text-[10px] font-bold">{p}</span>
+                      </Button>
+                    </React.Fragment>
+                  ))}
+                </div>
+                <Button variant="outline" size="icon" className="h-7 w-7 rounded border-gray-200 dark:border-slate-700" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}><ChevronRight className="h-4 w-4" /></Button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -1356,7 +1412,7 @@ function AdditionalLeaveAllocationForm({ employees, onCancel, onRefresh }: { emp
           <h4 className="text-xs font-black uppercase tracking-wider text-foreground mb-3 border-b pb-1">Employee Information</h4>
           <div className="space-y-4">
             <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Search Employee</Label>
+              <Label className="text-sm font-bold">Search Employee</Label>
               <EmployeeSearchSelector
                 employees={employees}
                 selectedEmployee={selectedEmp}
@@ -1387,9 +1443,9 @@ function AdditionalLeaveAllocationForm({ employees, onCancel, onRefresh }: { emp
           <h4 className="text-xs font-black uppercase tracking-wider text-foreground mb-3 border-b pb-1">Allocation Details</h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Leave Type</Label>
+              <Label className="text-sm font-bold">Leave Type</Label>
               <Select value={leaveType} onValueChange={setLeaveType}>
-                <SelectTrigger className="bg-white dark:bg-card"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="bg-white dark:bg-card h-10 text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Annual/Emergency Leave">Annual/Emergency Leave</SelectItem>
                   <SelectItem value="Replacement Leave">Replacement Leave</SelectItem>
@@ -1399,7 +1455,7 @@ function AdditionalLeaveAllocationForm({ employees, onCancel, onRefresh }: { emp
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Additional Days</Label>
+              <Label className="text-sm font-bold">Additional Days</Label>
               <div className="flex items-center border rounded-md px-3 bg-white dark:bg-card h-9">
                 <span className="text-xs font-bold text-foreground mr-2">+</span>
                 <input
@@ -1411,17 +1467,17 @@ function AdditionalLeaveAllocationForm({ employees, onCancel, onRefresh }: { emp
               </div>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Effective Date</Label>
+              <Label className="text-sm font-bold">Effective Date</Label>
               <CustomDatePicker value={effectiveDate} onChange={setEffectiveDate} placeholder="Effective Date" />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Expiry Date</Label>
+              <Label className="text-sm font-bold">Expiry Date</Label>
               <CustomDatePicker value={expiryDate} onChange={setExpiryDate} placeholder="Expiry Date" />
             </div>
             <div className="space-y-1.5 sm:col-span-2">
-              <Label className="text-xs font-bold">Reason Category</Label>
+              <Label className="text-sm font-bold">Reason Category</Label>
               <Select value={reasonCat} onValueChange={setReasonCat}>
-                <SelectTrigger className="bg-white dark:bg-card"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="bg-white dark:bg-card h-10 text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Performance Reward">Performance Reward</SelectItem>
                   <SelectItem value="Birthday Credit">Birthday Credit</SelectItem>
@@ -1430,7 +1486,7 @@ function AdditionalLeaveAllocationForm({ employees, onCancel, onRefresh }: { emp
               </Select>
             </div>
             <div className="space-y-1.5 sm:col-span-2">
-              <Label className="text-xs font-bold">Remarks</Label>
+              <Label className="text-sm font-bold">Remarks</Label>
               <Textarea
                 rows={3}
                 placeholder="Enter remarks/reason context..."
@@ -1646,7 +1702,7 @@ function ManualLeaveAdjustmentForm({
         {/* Employee Section */}
         <div className="space-y-4">
           <div className="space-y-1.5">
-            <Label className="text-xs font-bold flex items-center">Employee <span className="text-red-500 ml-1">*</span></Label>
+            <Label className="text-sm font-bold flex items-center">Employee <span className="text-red-500 ml-1">*</span></Label>
             <EmployeeSearchSelector
               employees={employees}
               selectedEmployee={selectedEmp}
@@ -1659,15 +1715,15 @@ function ManualLeaveAdjustmentForm({
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <div className="space-y-1.5 border border-border/50 rounded-md p-2 bg-muted/10">
               <Label className="text-[10px] uppercase font-bold text-foreground">Employee ID</Label>
-              <div className="text-xs font-bold">{selectedEmp?.user_id || "—"}</div>
+              <div className="text-sm font-bold">{selectedEmp?.user_id || "—"}</div>
             </div>
             <div className="space-y-1.5 border border-border/50 rounded-md p-2 bg-muted/10">
               <Label className="text-[10px] uppercase font-bold text-foreground">Department</Label>
-              <div className="text-xs font-bold">{selectedEmp?.department || "—"}</div>
+              <div className="text-sm font-bold">{selectedEmp?.department || "—"}</div>
             </div>
             <div className="space-y-1.5 border border-border/50 rounded-md p-2 bg-muted/10 md:col-span-1 col-span-2">
               <Label className="text-[10px] uppercase font-bold text-foreground">Branch</Label>
-              <div className="text-xs font-bold">{selectedEmp?.branch || "—"}</div>
+              <div className="text-sm font-bold">{selectedEmp?.branch || "—"}</div>
             </div>
           </div>
         </div>
@@ -1677,9 +1733,9 @@ function ManualLeaveAdjustmentForm({
         {/* Adjustment Details */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div className="space-y-1.5">
-            <Label className="text-xs font-bold flex items-center">Leave Type <span className="text-red-500 ml-1">*</span></Label>
+            <Label className="text-sm font-bold flex items-center">Leave Type <span className="text-red-500 ml-1">*</span></Label>
             <Select value={leaveType} onValueChange={setLeaveType}>
-              <SelectTrigger className="bg-white dark:bg-card h-9 text-xs"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="bg-white dark:bg-card h-10 text-sm"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="Annual/Emergency Leave">Annual/Emergency Leave</SelectItem>
                   <SelectItem value="Replacement Leave">Replacement Leave</SelectItem>
@@ -1690,7 +1746,7 @@ function ManualLeaveAdjustmentForm({
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-xs font-bold flex items-center">Adjustment Type <span className="text-red-500 ml-1">*</span></Label>
+            <Label className="text-sm font-bold flex items-center">Adjustment Type <span className="text-red-500 ml-1">*</span></Label>
             <div className="flex gap-4 pt-1">
               <label className="flex items-center gap-2 text-xs font-medium cursor-pointer">
                 <input 
@@ -1716,22 +1772,22 @@ function ManualLeaveAdjustmentForm({
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-xs font-bold flex items-center">Adjustment Amount <span className="text-red-500 ml-1">*</span></Label>
+            <Label className="text-sm font-bold flex items-center">Adjustment Amount <span className="text-red-500 ml-1">*</span></Label>
             <div className="relative">
-              <Input type="number" value={adjDays} onChange={(e) => setAdjDays(Number(e.target.value))} className="bg-white dark:bg-card h-9 text-xs pr-12 font-bold" min={1} />
+              <Input type="number" value={adjDays} onChange={(e) => setAdjDays(Number(e.target.value))} className="bg-white dark:bg-card h-10 text-sm pr-12 font-bold" min={1} />
               <span className="absolute right-3 top-2.5 text-xs text-foreground font-medium">Days</span>
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-xs font-bold flex items-center">Effective Date <span className="text-red-500 ml-1">*</span></Label>
+            <Label className="text-sm font-bold flex items-center">Effective Date <span className="text-red-500 ml-1">*</span></Label>
             <CustomDatePicker value={effectiveDate} onChange={setEffectiveDate} placeholder="Effective Date" />
           </div>
 
           <div className="space-y-1.5 md:col-span-2">
-            <Label className="text-xs font-bold flex items-center">Reason Category <span className="text-red-500 ml-1">*</span></Label>
+            <Label className="text-sm font-bold flex items-center">Reason Category <span className="text-red-500 ml-1">*</span></Label>
             <Select value={reasonCategory} onValueChange={setReasonCategory}>
-              <SelectTrigger className="bg-white dark:bg-card h-9 text-xs"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="bg-white dark:bg-card h-10 text-sm"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="Performance Reward">Performance Reward</SelectItem>
                 <SelectItem value="Carry Forward">Carry Forward</SelectItem>
@@ -1747,7 +1803,7 @@ function ManualLeaveAdjustmentForm({
           </div>
 
           <div className="space-y-1.5 md:col-span-2">
-            <Label className="text-xs font-bold flex items-center">Reason Details <span className="text-red-500 ml-1">*</span></Label>
+            <Label className="text-sm font-bold flex items-center">Reason Details <span className="text-red-500 ml-1">*</span></Label>
             <Textarea
               rows={4}
               placeholder="Enter detailed reason for this adjustment..."
@@ -1805,7 +1861,7 @@ function ManualLeaveAdjustmentForm({
 
         {/* Attachment */}
         <div className="space-y-2">
-          <Label className="text-xs font-bold">Attachment (Optional)</Label>
+          <Label className="text-sm font-bold">Attachment (Optional)</Label>
           <div className="border-2 border-dashed border-border/60 rounded-lg p-4 flex flex-col items-center justify-center bg-muted/5 hover:bg-muted/10 transition-colors cursor-pointer">
             <div className="text-xs font-bold text-amber-600 mb-1">Upload Supporting Document</div>
             <div className="text-[10px] text-foreground text-center">
@@ -1912,18 +1968,18 @@ function SpecialLeaveCreditsForm({ employees, onCancel }: any) {
       <CardContent className="space-y-6 pt-6">
         <div className="space-y-4">
           <div className="space-y-1.5">
-            <Label className="text-xs font-bold flex items-center">Employee <span className="text-red-500 ml-1">*</span></Label>
+            <Label className="text-sm font-bold flex items-center">Employee <span className="text-red-500 ml-1">*</span></Label>
             <EmployeeSearchSelector employees={employees} selectedEmployee={selectedEmp} onSelect={setSelectedEmp} placeholder="Search employee..." />
           </div>
           {selectedEmp && (
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               <div className="space-y-1.5 border border-border/50 rounded-md p-2 bg-muted/10">
                 <Label className="text-[10px] uppercase font-bold text-foreground">Employee ID</Label>
-                <div className="text-xs font-bold">{selectedEmp.user_id}</div>
+                <div className="text-sm font-bold">{selectedEmp.user_id}</div>
               </div>
               <div className="space-y-1.5 border border-border/50 rounded-md p-2 bg-muted/10 md:col-span-2">
                 <Label className="text-[10px] uppercase font-bold text-foreground">Department</Label>
-                <div className="text-xs font-bold">{selectedEmp.department || "IT Department"}</div>
+                <div className="text-sm font-bold">{selectedEmp.department || "IT Department"}</div>
               </div>
             </div>
           )}
@@ -1934,9 +1990,9 @@ function SpecialLeaveCreditsForm({ employees, onCancel }: any) {
             <div className="border-t border-border/50" />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold flex items-center">Leave Category <span className="text-red-500 ml-1">*</span></Label>
+                <Label className="text-sm font-bold flex items-center">Leave Category <span className="text-red-500 ml-1">*</span></Label>
                 <Select value={leaveCategory} onValueChange={setLeaveCategory}>
-                  <SelectTrigger className="bg-white dark:bg-card h-9 text-xs"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="bg-white dark:bg-card h-10 text-sm"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Compassionate Leave">Compassionate Leave</SelectItem>
                     <SelectItem value="Marriage Leave">Marriage Leave</SelectItem>
@@ -1947,18 +2003,18 @@ function SpecialLeaveCreditsForm({ employees, onCancel }: any) {
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold flex items-center">Credit Amount <span className="text-red-500 ml-1">*</span></Label>
+                <Label className="text-sm font-bold flex items-center">Credit Amount <span className="text-red-500 ml-1">*</span></Label>
                 <div className="relative">
-                  <Input type="number" value={adjDays} onChange={(e) => setAdjDays(Number(e.target.value))} className="bg-white dark:bg-card h-9 text-xs pr-12 font-bold" min={1} />
+                  <Input type="number" value={adjDays} onChange={(e) => setAdjDays(Number(e.target.value))} className="bg-white dark:bg-card h-10 text-sm pr-12 font-bold" min={1} />
                   <span className="absolute right-3 top-2.5 text-xs text-foreground font-medium">Days</span>
                 </div>
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold flex items-center">Effective Date <span className="text-red-500 ml-1">*</span></Label>
+                <Label className="text-sm font-bold flex items-center">Effective Date <span className="text-red-500 ml-1">*</span></Label>
                 <CustomDatePicker value={effectiveDate} onChange={setEffectiveDate} placeholder="Effective Date" />
               </div>
               <div className="space-y-1.5 md:col-span-2">
-                <Label className="text-xs font-bold">Reason Details & Comments</Label>
+                <Label className="text-sm font-bold">Reason Details & Comments</Label>
                 <Textarea rows={3} placeholder="Optional details..." value={reasonDetails} onChange={(e) => setReasonDetails(e.target.value)} className="bg-white dark:bg-card text-xs resize-none" />
               </div>
             </div>
@@ -2049,18 +2105,18 @@ function MaternityLeaveForm({ employees, onCancel }: any) {
       <CardContent className="space-y-6 pt-6">
         <div className="space-y-4">
           <div className="space-y-1.5">
-            <Label className="text-xs font-bold flex items-center">Female Employee <span className="text-red-500 ml-1">*</span></Label>
+            <Label className="text-sm font-bold flex items-center">Female Employee <span className="text-red-500 ml-1">*</span></Label>
             <EmployeeSearchSelector employees={employees} selectedEmployee={selectedEmp} onSelect={setSelectedEmp} placeholder="Search female employee..." />
           </div>
           {selectedEmp && (
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               <div className="space-y-1.5 border border-border/50 rounded-md p-2 bg-muted/10">
                 <Label className="text-[10px] uppercase font-bold text-foreground">Employee ID</Label>
-                <div className="text-xs font-bold">{selectedEmp.user_id}</div>
+                <div className="text-sm font-bold">{selectedEmp.user_id}</div>
               </div>
               <div className="space-y-1.5 border border-border/50 rounded-md p-2 bg-muted/10 md:col-span-2">
                 <Label className="text-[10px] uppercase font-bold text-foreground">Department</Label>
-                <div className="text-xs font-bold">{selectedEmp.department || "IT Department"}</div>
+                <div className="text-sm font-bold">{selectedEmp.department || "IT Department"}</div>
               </div>
             </div>
           )}
@@ -2071,25 +2127,25 @@ function MaternityLeaveForm({ employees, onCancel }: any) {
             <div className="border-t border-border/50" />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold">Expected Delivery Date (EDD)</Label>
+                <Label className="text-sm font-bold">Expected Delivery Date (EDD)</Label>
                 <CustomDatePicker value={edd} onChange={setEdd} placeholder="EDD" />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold">Total Entitlement (Days) <span className="text-red-500 ml-1">*</span></Label>
-                <Input type="number" value={totalDays} onChange={(e) => setTotalDays(Number(e.target.value))} className="bg-white dark:bg-card h-9 text-xs font-bold" min={1} />
+                <Label className="text-sm font-bold">Total Entitlement (Days) <span className="text-red-500 ml-1">*</span></Label>
+                <Input type="number" value={totalDays} onChange={(e) => setTotalDays(Number(e.target.value))} className="bg-white dark:bg-card h-10 text-sm font-bold" min={1} />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold">Leave Start Date <span className="text-red-500 ml-1">*</span></Label>
+                <Label className="text-sm font-bold">Leave Start Date <span className="text-red-500 ml-1">*</span></Label>
                 <CustomDatePicker value={startDate} onChange={setStartDate} placeholder="Start Date" />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold">Leave End Date</Label>
+                <Label className="text-sm font-bold">Leave End Date</Label>
                 <CustomDatePicker value={endDate} onChange={setEndDate} placeholder="End Date" disabled={true} />
               </div>
             </div>
             
             <div className="space-y-2 mt-2">
-              <Label className="text-xs font-bold flex items-center">Medical Certificate / Proof <span className="text-red-500 ml-1">*</span></Label>
+              <Label className="text-sm font-bold flex items-center">Medical Certificate / Proof <span className="text-red-500 ml-1">*</span></Label>
               <div className="border-2 border-dashed border-border/60 rounded-lg p-4 flex flex-col items-center justify-center bg-muted/5 hover:bg-muted/10 transition-colors cursor-pointer">
                 <div className="text-xs font-bold text-pink-600 mb-1">Upload Medical Document</div>
                 <div className="text-[10px] text-foreground">PDF, JPG, PNG up to 5MB</div>

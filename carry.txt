@@ -1,0 +1,283 @@
+function CarryForwardLeaveForm({
+  employees,
+  onCancel,
+  getUnusedDays,
+}: {
+  employees: any[];
+  onCancel: () => void;
+  getUnusedDays: (id: string) => number;
+}) {
+  const [leaveType, setLeaveType] = useState("Annual/Emergency Leave");
+  const [leaveYear, setLeaveYear] = useState("2026");
+  const [empSearchOpen, setEmpSearchOpen] = useState(false);
+  const [empSearchText, setEmpSearchText] = useState("");
+  const [checkedEmployees, setCheckedEmployees] = useState<string[]>([]);
+  const [carryToYear, setCarryToYear] = useState<string>(new Date().getFullYear().toString());
+  const [maxCarry, setMaxCarry] = useState(5);
+  const [expiryDate, setExpiryDate] = useState("2027-03-31");
+
+  const [selectedBranch, setSelectedBranch] = useState("All");
+  const [selectedDept, setSelectedDept] = useState("All");
+  const [empType, setEmpType] = useState("Permanent");
+  const [search, setSearch] = useState("");
+  const [filterEligible, setFilterEligible] = useState("");
+
+  const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
+
+  // Filter Employees dynamically
+  const filtered = employees.filter((e) => {
+    const bMatch = selectedBranch === "All" || e.branch === selectedBranch;
+    const dMatch = selectedDept === "All" || e.department === selectedDept;
+    const sMatch = !search || e.full_name?.toLowerCase().includes(search.toLowerCase()) || e.user_id?.toLowerCase().includes(search.toLowerCase());
+    
+    const unused = leaveType === "Annual & Emergency Leave" ? (e.annual_leave_balance || 0) : (leaveType === "Replacement Leave" ? (e.replacement_leave_balance || 0) : (e.medical_leave_balance || 0));
+    const eligible = Math.min(unused, maxCarry);
+    const fMatch = !filterEligible || eligible === parseInt(filterEligible);
+    
+    return bMatch && dMatch && sMatch && fMatch;
+  }).sort((a, b) => {
+    const aSelected = selectedEmployees.includes(a.user_id) ? 1 : 0;
+    const bSelected = selectedEmployees.includes(b.user_id) ? 1 : 0;
+    return bSelected - aSelected;
+  });
+
+  const uniqueBranches = ["All", ...new Set(employees.map(e => e.branch).filter(Boolean))];
+  const uniqueDepts = ["All", ...new Set(employees.map(e => e.department).filter(Boolean))];
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedEmployees(filtered.map(e => e.user_id));
+    } else {
+      setSelectedEmployees([]);
+    }
+  };
+
+  const handleToggleSelect = (uid: string) => {
+    if (selectedEmployees.includes(uid)) {
+      setSelectedEmployees(selectedEmployees.filter(id => id !== uid));
+    } else {
+      setSelectedEmployees([...selectedEmployees, uid]);
+    }
+  };
+
+  const handleExecute = () => {
+    // Log to local balance history logs
+    const newLogs = employees
+      .filter((e) => selectedEmployees.includes(e.user_id))
+      .map(emp => {
+        const unused = getUnusedDays(emp.user_id);
+        const eligible = Math.min(unused, maxCarry);
+        const prevBalance = leaveType === "Annual & Emergency Leave" ? emp.annual_leave_balance : (leaveType === "Replacement Leave" ? emp.replacement_leave_balance : emp.medical_leave_balance);
+        const newTotal = prevBalance + eligible;
+        
+        fetch(`${API_BASE_URL}/api/profiles/${emp.user_id}/leave-adjustments`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            leaveType: leaveType,
+            adjustmentDays: eligible,
+            reason: "Carry Forward",
+            approvedBy: "HR Admin"
+          })
+        });
+        return buildHistoryLog({
+          employee_id: emp.user_id,
+          employee_name: emp.full_name,
+          branch: emp.branch || 'HQ',
+          department: emp.department || '',
+          leave_type: leaveType,
+          action: `Carry Forward to ${carryToYear}`,
+          action_type: 'Carry Forward',
+          previous_balance: prevBalance,
+          adjustment: eligible,
+          new_balance: newTotal,
+          reason: `Carry forward from ${leaveYear} to ${carryToYear}, max ${maxCarry} days`,
+          performed_by: 'System Job',
+          performed_role: 'System',
+          source_module: 'Carry Forward Leave',
+        });
+      });
+    newLogs.forEach(log => appendHistoryLog(log));
+
+    toast({
+      title: "Carry Forward Successful",
+      description: `Executed carry forward for ${selectedEmployees.length} employees up to max ${maxCarry} days.`,
+    });
+    onCancel();
+  };
+
+  return (
+    <Card className="border-border/60 bg-card/75 shadow-lg">
+      <CardHeader className="flex flex-row items-center gap-3 space-y-0 border-b pb-4 mb-4 bg-muted/20 rounded-t-xl">
+        <Button variant="ghost" size="icon" onClick={onCancel} className="h-8 w-8 rounded-full hover:bg-emerald-500/10 hover:text-emerald-600 transition-colors">
+          <ArrowLeft className="w-4 h-4" />
+        </Button>
+        <div className="w-9 h-9 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+          <RotateCcw className="w-5 h-5 text-emerald-600" />
+        </div>
+        <div>
+          <CardTitle className="text-base sm:text-lg font-black text-foreground">Carry Forward Leave</CardTitle>
+          <CardDescription className="text-xs">Setup annual roll-over configs and select eligible employees to carry forward unused leaves.</CardDescription>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-6 pt-2">
+        <div>
+          <h4 className="text-xs font-black uppercase tracking-wider text-foreground mb-3 border-b pb-1">Carry Forward Configuration</h4>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">Leave Type</Label>
+              <Select value={leaveType} onValueChange={setLeaveType}>
+                <SelectTrigger className="bg-white dark:bg-card"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Annual/Emergency Leave">Annual/Emergency Leave</SelectItem>
+                  <SelectItem value="Replacement Leave">Replacement Leave</SelectItem>
+                  <SelectItem value="Sick Leave">Sick Leave</SelectItem>
+                  <SelectItem value="Unpaid Leave">Unpaid Leave</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">Leave Year</Label>
+              <YearPopover 
+                  year={leaveYear} 
+                  onSelectYear={(y) => setLeaveYear(y || new Date().getFullYear().toString())}
+                  minYear={new Date().getFullYear()}
+                  className="w-full h-9 px-3 appearance-none flex items-center justify-between bg-white dark:bg-card border border-input text-foreground text-xs font-bold rounded-md shadow-sm outline-none cursor-pointer tracking-wider"
+                />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">Carry Forward To</Label>
+                <YearPopover 
+                    year={carryToYear} 
+                    onSelectYear={(y) => setCarryToYear(y || String(new Date().getFullYear() + 1))}
+                    minYear={new Date().getFullYear()}
+                    excludeYear={leaveYear}
+                    className="w-full h-9 px-3 appearance-none flex items-center justify-between bg-white dark:bg-card border border-input text-foreground text-xs font-bold rounded-md shadow-sm outline-none cursor-pointer tracking-wider"
+                  />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">Max Carry Forward (Days)</Label>
+              <Input type="number" value={maxCarry} onChange={(e) => setMaxCarry(Number(e.target.value))} className="bg-white dark:bg-card h-9 text-xs" />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">Expiry Date</Label>
+              <CustomDatePicker value={expiryDate} onChange={setExpiryDate} placeholder="Expiry Date" />
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h4 className="text-xs font-black uppercase tracking-wider text-foreground mb-3 border-b pb-1">Employee Selection</h4>
+          <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">Department</Label>
+              <Select value={selectedDept} onValueChange={setSelectedDept}>
+                <SelectTrigger className="bg-white dark:bg-card"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {uniqueDepts.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">Branch</Label>
+              <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+                <SelectTrigger className="bg-white dark:bg-card"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {uniqueBranches.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">Employment Type</Label>
+              <Select value={empType} onValueChange={setEmpType}>
+                <SelectTrigger className="bg-white dark:bg-card"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Permanent">Permanent</SelectItem>
+                  <SelectItem value="Contract">Contract</SelectItem>
+                  <SelectItem value="All">All types</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">Search Employee</Label>
+              <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-foreground" />
+                <Input placeholder="Enter ID or Name..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-8 bg-white dark:bg-card h-9 text-xs" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h4 className="text-xs font-black uppercase tracking-wider text-foreground mb-3 border-b pb-1">Eligible Employees</h4>
+          <div className="border rounded-md max-h-80 overflow-y-auto bg-white dark:bg-card">
+            <Table className="text-xs">
+              <TableHeader className="bg-muted/30">
+                <TableRow>
+                  <TableHead className="w-[50px] text-center">
+                    <input
+                      type="checkbox"
+                      checked={filtered.length > 0 && selectedEmployees.length === filtered.length}
+                      onChange={(e) => handleSelectAll(e.target.checked)}
+                      className="cursor-pointer rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                    />
+                  </TableHead>
+                  <TableHead>Employee</TableHead>
+                  <TableHead>Department</TableHead>
+                  <TableHead className="text-center">Unused</TableHead>
+                  <TableHead className="text-center">Eligible</TableHead>
+                  <TableHead className="text-center">Carry Forward</TableHead>
+                  <TableHead className="text-center">Forfeit</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filtered.map((emp) => {
+                  const unused = getUnusedDays(emp.user_id);
+                  const eligible = Math.min(unused, maxCarry);
+                  const selected = selectedEmployees.includes(emp.user_id);
+                  const cf = selected ? eligible : 0;
+                  const forfeit = unused - cf;
+
+                  return (
+                    <TableRow key={emp.user_id} className={selected ? "bg-emerald-500/5" : ""}>
+                      <TableCell className="text-center">
+                        <input
+                          type="checkbox"
+                          checked={selected}
+                          onChange={() => handleToggleSelect(emp.user_id)}
+                          className="cursor-pointer rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <div className="font-bold">{emp.full_name}</div>
+                        <div className="text-[10px] text-foreground">{emp.user_id} • {emp.branch}</div>
+                      </TableCell>
+                      <TableCell>{emp.department || "--"}</TableCell>
+                      <TableCell className="text-center font-bold">{unused}d</TableCell>
+                      <TableCell className="text-center font-bold text-amber-600">{eligible}d</TableCell>
+                      <TableCell className="text-center font-black text-emerald-600">{cf}d</TableCell>
+                      <TableCell className="text-center font-bold text-rose-600">{forfeit}d</TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+
+        <div className="flex justify-between items-center border-t pt-4">
+          <div className="text-xs text-foreground">
+            Selected: <span className="font-bold text-emerald-600">{selectedEmployees.length}</span> / {filtered.length} employees
+          </div>
+          <div className="flex gap-3">
+            <Button variant="outline" size="sm" onClick={onCancel} className="text-xs uppercase font-black tracking-wider">Cancel</Button>
+            <Button size="sm" disabled={selectedEmployees.length === 0} onClick={handleExecute} className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs uppercase font-black tracking-wider">
+              Execute Carry Forward
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
