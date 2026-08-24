@@ -3,6 +3,7 @@ import { useRole } from "@/contexts/RoleContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { 
@@ -1315,7 +1316,7 @@ export default function AttendanceDashboard() {
                 <thead className="bg-gray-50/80 text-foreground uppercase text-[9px] font-bold tracking-wider border-b border-gray-100 dark:border-slate-800">
                   <tr>
                     <th className="px-4 py-2 w-4 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">
-                      <input type="checkbox" className="rounded border-gray-300 text-[#7B0099] focus:ring-[#7B0099]" />
+                      <Checkbox />
                     </th>
                     <th className="px-4 py-2 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Employee</th>
                     <th className="px-4 py-2 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Status</th>
@@ -1387,7 +1388,7 @@ export default function AttendanceDashboard() {
                       return (
                         <tr key={`${record.user_id}-${record.clock_in || index}`} className="hover:bg-gray-50/50 transition-colors">
                           <td className="px-4 py-2">
-                            <input type="checkbox" className="rounded border-gray-300 text-[#7B0099] focus:ring-[#7B0099]" />
+                            <Checkbox />
                           </td>
                           <td className="px-4 py-2">
                             <div className="flex items-center gap-2">
