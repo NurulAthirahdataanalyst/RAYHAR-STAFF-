@@ -195,8 +195,9 @@ export default function LeaveEntitlementManagement() {
               </CardDescription>
             </CardHeader>
             <CardContent className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {modules.map((module) => {
+              <div className="flex flex-col gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {modules.slice(0, 4).map((module) => {
                     const Icon = module.icon;
                     return (
                       <div
@@ -221,7 +222,35 @@ export default function LeaveEntitlementManagement() {
                       </div>
                     );
                   })}
-                    </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {modules.slice(4).map((module) => {
+                    const Icon = module.icon;
+                    return (
+                      <div
+                        key={module.title}
+                        onClick={() => setActiveModule(module.title)}
+                        className="rounded-2xl border border-border/60 bg-card p-6 shadow-sm hover:shadow-md hover:border-[#7B0099]/40 cursor-pointer transition-all duration-200 group flex flex-col justify-between min-h-[220px]"
+                      >
+                        <div>
+                          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-105 ${module.tone}`}>
+                            <Icon className="w-6 h-6" />
+                          </div>
+                          <h3 className="mt-6 text-lg font-black text-foreground group-hover:text-[#7B0099] transition-colors">
+                            {module.title}
+                          </h3>
+                          <p className="mt-3 text-xs sm:text-sm leading-relaxed text-foreground">
+                            {module.description}
+                          </p>
+                        </div>
+                        <div className="mt-8 pt-4 border-t border-border/40 text-[#7B0099] text-xs font-black uppercase tracking-wider flex items-center gap-1.5 group-hover:translate-x-1 transition-transform">
+                          Manage module &rarr;
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
               </CardContent>
           </Card>
 
