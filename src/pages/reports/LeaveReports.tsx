@@ -50,15 +50,27 @@ export default function LeaveReports() {
 
       if (viewType === "day") {
         params.append("date", date);
-      } else {
+      } else if (viewType === "month") {
         params.append("month", selectedMonth);
+        params.append("year", selectedYear);
+      } else if (viewType === "year") {
         params.append("year", selectedYear);
       }
 
       const res = await fetch(`${API_BASE_URL}/api/leave-requests?${params}`);
       const data = await res.json();
       if (data.success) {
-        setLeaveData(data.leaveRequests);
+        let filtered = data.leaveRequests || [];
+        if (viewType === "month") {
+            const m = parseInt(selectedMonth);
+            const y = parseInt(selectedYear);
+            filtered = filtered.filter((r: any) => {
+                if (!r.start_date) return true;
+                const d = new Date(r.start_date);
+                return (d.getMonth() + 1 === m) && (d.getFullYear() === y);
+            });
+        }
+        setLeaveData(filtered);
       } else {
         setLeaveData([]);
       }

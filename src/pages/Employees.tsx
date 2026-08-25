@@ -177,7 +177,40 @@ export default function Employees() {
         }
         if (histRes.ok) {
           const hData = await histRes.json();
-          if (hData.success) setLocationHistory(hData.history || []);
+          let sorted = [];
+          if (hData.success) {
+            sorted = (hData.history || []).slice().sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+            
+            const now = new Date();
+            try {
+              const attRes = await fetch(`${API_BASE_URL}/api/attendance/history?userId=${userId}&month=all&year=${now.getFullYear()}`);
+              const attJ = await attRes.json();
+              if (attJ.success && attJ.history) {
+                sorted.forEach((loc: any) => {
+                  const locTime = new Date(loc.timestamp).getTime();
+                  const matchingAtt = attJ.history.find((a: any) => {
+                    if (!a.clock_in) return false;
+                    const ciTime = new Date(a.clock_in).getTime();
+                    if (Math.abs(locTime - ciTime) < 120000) return true;
+                    if (a.clock_out) {
+                      const coTime = new Date(a.clock_out).getTime();
+                      if (Math.abs(locTime - coTime) < 120000) return true;
+                    }
+                    return false;
+                  });
+                  if (matchingAtt) {
+                    const ciTime = new Date(matchingAtt.clock_in).getTime();
+                    const coTime = matchingAtt.clock_out ? new Date(matchingAtt.clock_out).getTime() : 0;
+                    if (Math.abs(locTime - ciTime) < 120000) loc.attendance_status = "Clock In";
+                    else if (coTime && Math.abs(locTime - coTime) < 120000) loc.attendance_status = "Clock Out";
+                  }
+                });
+              }
+            } catch (e) {
+              console.error("Failed to merge attendance history", e);
+            }
+          }
+          setLocationHistory(sorted);
         }
     } catch (e) {
       console.error(e);
@@ -1524,6 +1557,7 @@ export default function Employees() {
                             <TableHead className="text-[10px] font-black uppercase tracking-wider text-foreground">BRANCH</TableHead>
                             <TableHead className="text-[10px] font-black uppercase tracking-wider text-foreground">DISTANCE FROM BRANCH</TableHead>
                             <TableHead className="text-[10px] font-black uppercase tracking-wider text-foreground">LOCATION STATUS</TableHead>
+                            <TableHead className="text-[10px] font-black uppercase tracking-wider text-foreground">ATTENDANCE STATUS</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -1588,6 +1622,20 @@ export default function Employees() {
                                       }`} />
                                       {statusLabel}
                                     </span>
+                                  </TableCell>
+                                  <TableCell>
+                                    {log.attendance_status ? (
+                                      <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-black border uppercase tracking-widest ${
+                                        log.attendance_status === 'Clock In' 
+                                          ? 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300 border-blue-200 dark:border-blue-500/30'
+                                          : 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300 border-indigo-200 dark:border-indigo-500/30'
+                                      }`}>
+                                        <div className={`w-1.5 h-1.5 rounded-full ${log.attendance_status === 'Clock In' ? 'bg-blue-500' : 'bg-indigo-500'}`} />
+                                        {log.attendance_status}
+                                      </span>
+                                    ) : (
+                                      <span className="text-muted-foreground">-</span>
+                                    )}
                                   </TableCell>
                                 </TableRow>
                               )

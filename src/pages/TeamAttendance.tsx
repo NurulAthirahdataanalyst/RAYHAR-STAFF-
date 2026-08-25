@@ -47,8 +47,36 @@ export default function TeamAttendance() {
     try {
       const res = await fetch(`${API_BASE_URL}/api/employee-location-history?userId=${encodeURIComponent(userId)}&days=14`);
       const j = await res.json();
+      
+      const now = new Date();
+      const attRes = await fetch(`${API_BASE_URL}/api/attendance/history?userId=${encodeURIComponent(userId)}&month=all&year=${now.getFullYear()}`);
+      const attJ = await attRes.json();
+      const attendanceLogs = attJ.success && attJ.history ? attJ.history : [];
+
       if (j && j.success) {
         const sorted = (j.history || []).slice().sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+        
+        sorted.forEach((loc: any) => {
+          const locTime = new Date(loc.timestamp).getTime();
+          const matchingAtt = attendanceLogs.find((a: any) => {
+            if (!a.clock_in) return false;
+            const ciTime = new Date(a.clock_in).getTime();
+            if (Math.abs(locTime - ciTime) < 120000) return true;
+            if (a.clock_out) {
+              const coTime = new Date(a.clock_out).getTime();
+              if (Math.abs(locTime - coTime) < 120000) return true;
+            }
+            return false;
+          });
+          
+          if (matchingAtt) {
+            const ciTime = new Date(matchingAtt.clock_in).getTime();
+            const coTime = matchingAtt.clock_out ? new Date(matchingAtt.clock_out).getTime() : 0;
+            if (Math.abs(locTime - ciTime) < 120000) loc.attendance_status = "Clock In";
+            else if (coTime && Math.abs(locTime - coTime) < 120000) loc.attendance_status = "Clock Out";
+          }
+        });
+        
         setHistory(sorted);
       } else {
         setHistory([]);

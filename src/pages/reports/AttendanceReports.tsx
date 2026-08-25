@@ -85,20 +85,55 @@ export default function AttendanceReports() {
         branch: userBranch || "",
         department: userDepartment || ""
       });
-      if (viewType === "day") {
-        params.append("date", date);
-        url = `${API_BASE_URL}/api/reports/daily-attendance?${params.toString()}`;
-      } else {
-          params.append("month", viewType === "year" ? "all" : selectedMonth);
-          params.append("year", selectedYear);
-          url = `${API_BASE_URL}/api/reports/monthly-attendance?${params.toString()}`;
-      }
-      const [res, workAssignRes] = await Promise.all([
-        fetch(url),
+      let data = { success: true, data: [] };
+      const [workAssignRes] = await Promise.all([
         fetch(`${API_BASE_URL}/api/work-assignments-all`)
       ]);
-      const data = await res.json();
       const workAssignData = await workAssignRes.json();
+
+      if (viewType === "day") {
+        params.append("date", date);
+        const res = await fetch(`${API_BASE_URL}/api/reports/daily-attendance?${params.toString()}`);
+        data = await res.json();
+      } else if (viewType === "month") {
+        params.append("month", selectedMonth);
+        params.append("year", selectedYear);
+        const res = await fetch(`${API_BASE_URL}/api/reports/monthly-attendance?${params.toString()}`);
+        data = await res.json();
+      } else if (viewType === "year") {
+        // Fetch all 12 months in parallel
+        const promises = Array.from({ length: 12 }, (_, i) => {
+          const p = new URLSearchParams(params.toString());
+          p.append("month", (i + 1).toString());
+          p.append("year", selectedYear);
+          return fetch(`${API_BASE_URL}/api/reports/monthly-attendance?${p.toString()}`).then(r => r.json());
+        });
+        const results = await Promise.all(promises);
+        let allData: any[] = [];
+        let aggSummary = { totalEmployees: 0, present: 0, late: 0, outstation: 0, leave: 0, missingClockOut: 0, absent: 0, complianceRate: 0 };
+        let monthsWithData = 0;
+        let sumCompliance = 0;
+        results.forEach(res => {
+          if (res.success && Array.isArray(res.data)) {
+            allData = allData.concat(res.data);
+            if (res.summary) {
+                aggSummary.totalEmployees = Math.max(aggSummary.totalEmployees, res.summary.totalEmployees || 0); // Max employees seen in a month
+                aggSummary.present += res.summary.present || 0;
+                aggSummary.late += res.summary.late || 0;
+                aggSummary.outstation += res.summary.outstation || 0;
+                aggSummary.leave += res.summary.leave || 0;
+                aggSummary.missingClockOut += res.summary.missingClockOut || 0;
+                aggSummary.absent += res.summary.absent || 0;
+                if (res.summary.complianceRate) {
+                    sumCompliance += res.summary.complianceRate;
+                    monthsWithData++;
+                }
+            }
+          }
+        });
+        if (monthsWithData > 0) aggSummary.complianceRate = Math.round(sumCompliance / monthsWithData);
+        data = { success: true, data: allData, summary: aggSummary };
+      }
       const tempMap: Record<string, string> = {};
       if (workAssignData.success && Array.isArray(workAssignData.assignments)) {
         workAssignData.assignments.forEach((a: any) => {

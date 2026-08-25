@@ -566,22 +566,72 @@ export default function Reports() {
           return str;
         };
 
-        const csvContent = [
-          headers.join(","),
-          ...rows.map(row => row.map(escapeCsv).join(","))
-        ].join("\n");
-
-        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-        const link = document.createElement("a");
-        const url = URL.createObjectURL(blob);
-        link.setAttribute("href", url);
-        link.setAttribute("download", reportName);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
-        toast.success(`${generatorType.toUpperCase()} Analytical Report generated successfully!`);
+        if (generatorFormat === 'pdf') {
+          const printWindow = window.open("", "_blank");
+          if (!printWindow) {
+            toast.error("Could not open print window. Please allow popups.");
+            return;
+          }
+          
+          const rowsHtml = rows.map(r => `<tr>${r.map((c: any) => `<td>${escapeCsv(c)}</td>`).join('')}</tr>`).join('');
+          const headersHtml = headers.map(h => `<th>${h}</th>`).join('');
+          
+          printWindow.document.write(`
+            <html>
+              <head>
+                <title>${reportName.replace('.csv', '')}</title>
+                <style>
+                  body { font-family: 'Inter', sans-serif; padding: 20px; color: #1e293b; }
+                  h2 { color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; font-size: 24px; font-weight: 800; }
+                  table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
+                  th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+                  th { background: #f8fafc; font-weight: 700; color: #475569; }
+                </style>
+              </head>
+              <body>
+                <h2>${reportName.replace('.csv', '').replace(/_/g, ' ')}</h2>
+                <table>
+                  <thead><tr>${headersHtml}</tr></thead>
+                  <tbody>${rowsHtml}</tbody>
+                </table>
+                <script>window.onload = function() { window.print(); window.close(); }</script>
+              </body>
+            </html>
+          `);
+          printWindow.document.close();
+          toast.success(`${generatorType.toUpperCase()} Analytical Report PDF generated successfully!`);
+        } else if (generatorFormat === 'excel') {
+          const csvContent = [
+            headers.join(","),
+            ...rows.map(row => row.map(escapeCsv).join(","))
+          ].join("\n");
+          // Add BOM to make Excel recognize UTF-8 properly
+          const blob = new Blob(["\ufeff", csvContent], { type: "application/vnd.ms-excel;charset=utf-8;" });
+          const link = document.createElement("a");
+          const url = URL.createObjectURL(blob);
+          link.setAttribute("href", url);
+          link.setAttribute("download", reportName.replace('.csv', '.csv')); // keep csv but with excel format
+          link.style.visibility = 'hidden';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          toast.success(`${generatorType.toUpperCase()} Analytical Report Excel sheet generated!`);
+        } else {
+          const csvContent = [
+            headers.join(","),
+            ...rows.map(row => row.map(escapeCsv).join(","))
+          ].join("\n");
+          const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+          const link = document.createElement("a");
+          const url = URL.createObjectURL(blob);
+          link.setAttribute("href", url);
+          link.setAttribute("download", reportName);
+          link.style.visibility = 'hidden';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          toast.success(`${generatorType.toUpperCase()} Analytical Report CSV generated successfully!`);
+        }
       } else {
          toast.error("Failed to generate report");
       }
