@@ -332,7 +332,7 @@ export default function Attendance() {
       const response = await fetch(`${API_BASE_URL}/api/work-assignments-all`);
       const data = await response.json();
       if (data.success) {
-        setTempAssignments(data.data.filter((a: any) => a.user_id == id));
+        setTempAssignments(data.assignments.filter((a: any) => a.user_id == id));
       }
     } catch (err) {
       console.error("Error fetching temp assignments:", err);

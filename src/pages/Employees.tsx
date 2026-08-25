@@ -1,4 +1,4 @@
-import { ArrowLeft,  useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { MonthPicker } from '@/components/shared/MonthPicker';
 import { useRole } from "@/contexts/RoleContext";
 import { Card, CardContent } from "@/components/ui/card";
@@ -19,7 +19,8 @@ import {
   Download,
   Printer,
     MapPin,
-    Trash2
+    Trash2,
+    ArrowLeft
 } from 'lucide-react';
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";

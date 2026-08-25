@@ -246,7 +246,7 @@ export default function GPSLocationTracker() {
 
   const focusOn = (empId: string) => {
     const loc = locations[empId];
-    if (!loc || loc.lat == null || loc.lng == null) { toast({ title: "No Location Data", description: "This employee hasn't submitted their GPS location yet.", variant: "default" }); return; } if (!mapRef.current) return;
+    if (!loc || loc.lat == null || loc.lng == null || isNaN(Number(loc.lat)) || isNaN(Number(loc.lng))) { toast({ title: "No Location Data", description: "This employee hasn't submitted their GPS location yet or it is invalid.", variant: "default" }); return; } if (!mapRef.current) return;
     try {
       const mapObj = mapRef.current.getMap ? mapRef.current.getMap() : mapRef.current;
       mapObj.flyTo({ center: [Number(loc.lng), Number(loc.lat)], zoom: 16, duration: 1500 });
@@ -401,7 +401,7 @@ export default function GPSLocationTracker() {
             {Object.values(
               filtered.reduce((acc, emp) => {
                 const loc = locations[emp.user_id];
-                if (!loc || loc.lat == null || loc.lng == null) return acc;
+                if (!loc || loc.lat == null || loc.lng == null || isNaN(Number(loc.lat)) || isNaN(Number(loc.lng))) return acc;
                 // Separate the selected user so they get their own marker tooltip
                 const key = emp.user_id === selected ? `selected-${emp.user_id}` : `${Number(loc.lat).toFixed(5)},${Number(loc.lng).toFixed(5)}`;
                 if (!acc[key]) acc[key] = [];
