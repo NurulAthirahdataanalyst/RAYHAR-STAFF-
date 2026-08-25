@@ -545,9 +545,24 @@ export default function TeamAttendance() {
               {totalPages > 1 && (
                 <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-gray-100 dark:border-slate-800 gap-4 bg-slate-50/50 dark:bg-slate-900/50">
                   <div className="flex items-center gap-4 text-[10px] font-bold text-foreground uppercase tracking-widest">
-                    <span>
-                      TOTAL SHOWING {startIndex + 1} TO {Math.min(startIndex + entriesPerPage, filteredList.length)} OF {filteredList.length} ENTRIES
-                    </span>
+                    <span>TOTAL SHOWING {startIndex + 1} TO {Math.min(startIndex + entriesPerPage, filteredList.length)} OF {filteredList.length} ENTRIES</span>
+                    <div className="flex items-center gap-2">
+                      <span>Show</span>
+                      <Select 
+                        value={entriesPerPage.toString()} 
+                        onValueChange={(val) => { setEntriesPerPage(Number(val)); setCurrentPage(1); }}
+                      >
+                        <SelectTrigger className="h-7 text-[10px] font-bold rounded border-border w-[60px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="10">10</SelectItem>
+                          <SelectItem value="25">25</SelectItem>
+                          <SelectItem value="50">50</SelectItem>
+                          <SelectItem value="100">100</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Button
@@ -586,25 +601,24 @@ export default function TeamAttendance() {
               )}
 
 
-              {/* Bottom Pagination */}
               <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-gray-100 dark:border-slate-800 gap-4 bg-slate-50/50 dark:bg-slate-900/50">
                   <div className="flex items-center gap-4 text-[10px] font-bold text-foreground uppercase tracking-widest">
-                    <span>
-                      TOTAL SHOWING {startIndex + 1} TO {Math.min(startIndex + entriesPerPage, filteredList.length)} OF {filteredList.length} ENTRIES
-                    </span>
-                        <span className="text-[10px] font-black uppercase tracking-widest text-foreground">SHOW</span>
-                      <Select value={entriesPerPage.toString()} onValueChange={(val) => setEntriesPerPage(Number(val))}>
-                        <SelectTrigger className="w-[70px] h-[34px] bg-white dark:bg-card border border-border rounded-xl text-foreground font-bold text-xs focus:ring-0">
+                    <span>TOTAL SHOWING {startIndex + 1} TO {Math.min(startIndex + entriesPerPage, filteredList.length)} OF {filteredList.length} ENTRIES</span>
+                    <div className="flex items-center gap-2">
+                      <span>Show</span>
+                      <Select value={entriesPerPage.toString()} onValueChange={(val) => { setEntriesPerPage(Number(val)); setCurrentPage(1); }}>
+                        <SelectTrigger className="h-7 text-[10px] font-bold rounded border-border w-[60px]">
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent className="text-black font-bold">
+                        <SelectContent>
+                          <SelectItem value="10">10</SelectItem>
                           <SelectItem value="25">25</SelectItem>
                           <SelectItem value="50">50</SelectItem>
-                          <SelectItem value="75">75</SelectItem>
                           <SelectItem value="100">100</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
+                  </div>
   
                       <div className="flex items-center gap-1 bg-white dark:bg-card border border-border rounded-xl p-0.5 h-[34px]">
                         <Button 

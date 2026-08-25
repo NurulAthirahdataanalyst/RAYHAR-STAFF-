@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from \"@/components/ui/select\";
 import { useNavigate } from "react-router-dom";
 import { useRole } from "@/contexts/RoleContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -801,6 +802,24 @@ export default function OutstationDashboard() {
                 <div className="px-6 py-4 border-t border-gray-100 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-card">
                   <div className="flex items-center gap-4 text-[10px] font-bold text-foreground uppercase tracking-widest">
                       <span>TOTAL SHOWING {activeNowGrouped.length > 0 ? 1 : 0} TO {activeNowGrouped.length} OF {activeNowGrouped.length} ENTRIES</span>
+                <div className="flex items-center gap-2">
+                  <span>Show</span>
+                  <Select 
+                    value={pageSize.toString()} 
+                    onValueChange={(val) => { setPageSize(Number(val)); setPage(1); }}
+                  >
+                    <SelectTrigger className="h-7 text-[10px] font-bold rounded border-border w-[60px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="25">25</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                      <SelectItem value="100">100</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+            
                     </div>
                   <div className="flex items-center gap-1">
                       <Button variant="outline" size="sm" disabled className="h-7 px-2 text-[10px] font-bold rounded">
@@ -1071,6 +1090,24 @@ export default function OutstationDashboard() {
                   <div className="px-6 py-4 border-t border-gray-100 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-card">
                     <div className="flex items-center gap-4 text-[10px] font-bold text-foreground uppercase tracking-widest">
                       <span>TOTAL SHOWING {upcomingGrouped.length > 0 ? 1 : 0} TO {upcomingGrouped.length} OF {upcomingGrouped.length} ENTRIES</span>
+                <div className="flex items-center gap-2">
+                  <span>Show</span>
+                  <Select 
+                    value={pageSize.toString()} 
+                    onValueChange={(val) => { setPageSize(Number(val)); setPage(1); }}
+                  >
+                    <SelectTrigger className="h-7 text-[10px] font-bold rounded border-border w-[60px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="25">25</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                      <SelectItem value="100">100</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+            
                     </div>
                   </div>
                   </>

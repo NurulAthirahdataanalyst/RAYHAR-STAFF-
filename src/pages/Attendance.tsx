@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from \"@/components/ui/select\";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { MonthPicker } from "@/components/shared/MonthPicker";
@@ -1911,7 +1912,25 @@ export default function Attendance() {
           {/* Pagination Controls */}
           {totalRows > pageSize && (
             <div className="flex items-center justify-between py-3 px-4 border-t border-border/50 bg-muted/10">
-              <div className="flex items-center gap-4 text-[10px] font-bold text-foreground uppercase tracking-widest"><span>TOTAL SHOWING {(page-1)*pageSize + 1} TO {Math.min(page*pageSize, totalRows)} OF {totalRows} ENTRIES</span></div>
+              <div className="flex items-center gap-4 text-[10px] font-bold text-foreground uppercase tracking-widest"><span>TOTAL SHOWING {(page-1)*pageSize + 1} TO {Math.min(page*pageSize, totalRows)} OF {totalRows} ENTRIES</span>
+                <div className="flex items-center gap-2">
+                  <span>Show</span>
+                  <Select 
+                    value={pageSize.toString()} 
+                    onValueChange={(val) => { setPageSize(Number(val)); setPage(1); }}
+                  >
+                    <SelectTrigger className="h-7 text-[10px] font-bold rounded border-border w-[60px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="25">25</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                      <SelectItem value="100">100</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+            </div>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setPage(p => Math.max(1, p - 1))}

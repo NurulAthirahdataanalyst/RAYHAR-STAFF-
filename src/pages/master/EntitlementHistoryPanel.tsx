@@ -164,6 +164,7 @@ export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => 
   const [selectedLog, setSelectedLog] = useState<EntitlementHistoryLog | null>(null);
   
   const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
 
   const reload = useCallback(() => setLogs(getHistoryLogs()), []);
   useEffect(() => {
@@ -221,8 +222,8 @@ export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => 
   }, [logs, search, dateRange, customFrom, customTo, filterEmployee, filterBranch, filterDept, filterLeave, filterAction, filterBy]);
 
   // Pagination
-  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
-  const paginatedLogs = filtered.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginatedLogs = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
   const grouped = useMemo(() => groupByDate(paginatedLogs), [paginatedLogs]);
 
   // Stats
@@ -536,7 +537,21 @@ export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => 
           {filtered.length > 0 && (
             <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-gray-100 dark:border-slate-800 gap-4 bg-slate-50/50 dark:bg-slate-900/50 shrink-0">
               <div className="flex items-center gap-4 text-[10px] font-bold text-foreground uppercase tracking-widest">
-                <span>TOTAL SHOWING {(currentPage - 1) * 15 + 1} TO {Math.min(currentPage * 15, filtered.length)} OF {filtered.length} ENTRIES</span>
+                <span>TOTAL SHOWING {(currentPage - 1) * itemsPerPage + 1} TO {Math.min(currentPage * itemsPerPage, filtered.length)} OF {filtered.length} ENTRIES</span>
+                <div className="flex items-center gap-2">
+                  <span>Show</span>
+                  <Select value={itemsPerPage.toString()} onValueChange={(val) => { setItemsPerPage(Number(val)); setCurrentPage(1); }}>
+                    <SelectTrigger className="h-7 text-[10px] font-bold rounded border-border w-[60px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="25">25</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                      <SelectItem value="100">100</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 <Button

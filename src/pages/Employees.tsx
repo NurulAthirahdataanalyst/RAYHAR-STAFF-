@@ -1357,10 +1357,11 @@ export default function Employees() {
                                     <SelectValue placeholder="Select Branch" />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    {Object.entries(BRANCH_NAMES).map(([code, name]) => (
-                                      <SelectItem key={code} value={code}>{code} - {name}</SelectItem>
-                                    ))}
-                                  </SelectContent>
+                          <SelectItem value="10">10</SelectItem>
+                          <SelectItem value="25">25</SelectItem>
+                          <SelectItem value="50">50</SelectItem>
+                          <SelectItem value="100">100</SelectItem>
+                        </SelectContent>
                                 </Select>
                               </div>
 
@@ -1382,10 +1383,11 @@ export default function Employees() {
                                     <SelectValue />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    <SelectItem value="Active">Active</SelectItem>
-                                    <SelectItem value="Completed">Completed</SelectItem>
-                                    <SelectItem value="Cancelled">Cancelled</SelectItem>
-                                  </SelectContent>
+                          <SelectItem value="10">10</SelectItem>
+                          <SelectItem value="25">25</SelectItem>
+                          <SelectItem value="50">50</SelectItem>
+                          <SelectItem value="100">100</SelectItem>
+                        </SelectContent>
                                 </Select>
                               </div>
 
@@ -2083,15 +2085,11 @@ export default function Employees() {
                   <SelectValue placeholder="Select Branch" />
                 </SelectTrigger>
                 <SelectContent>
-                  {branchesList.map((b) => (
-                    <SelectItem key={b.code} value={b.code}>
-                      {b.name}
-                    </SelectItem>
-                  ))}
-                  {branchesList.length === 0 && (
-                    <SelectItem value="HQ" disabled>Loading branches...</SelectItem>
-                  )}
-                </SelectContent>
+                          <SelectItem value="10">10</SelectItem>
+                          <SelectItem value="25">25</SelectItem>
+                          <SelectItem value="50">50</SelectItem>
+                          <SelectItem value="100">100</SelectItem>
+                        </SelectContent>
               </Select>
             </div>
 
@@ -2103,18 +2101,11 @@ export default function Employees() {
                     <SelectValue placeholder="Select Department" />
                   </SelectTrigger>
                   <SelectContent>
-                    {departmentsList.map((d) => {
-                      const dName = d.name || d.department_name || d;
-                      return (
-                        <SelectItem key={dName} value={dName}>
-                          {dName}
-                        </SelectItem>
-                      );
-                    })}
-                    {departmentsList.length === 0 && (
-                      <SelectItem value="IT" disabled>Loading departments...</SelectItem>
-                    )}
-                  </SelectContent>
+                          <SelectItem value="10">10</SelectItem>
+                          <SelectItem value="25">25</SelectItem>
+                          <SelectItem value="50">50</SelectItem>
+                          <SelectItem value="100">100</SelectItem>
+                        </SelectContent>
                 </Select>
               </div>
             )}
@@ -2126,13 +2117,11 @@ export default function Employees() {
                   <SelectValue placeholder="Select Role" />
                 </SelectTrigger>
                 <SelectContent>
-                  {availableRoles.filter(r => r.status === 'Active').map(r => (
-                    <SelectItem key={r.id} value={r.name}>{r.name}</SelectItem>
-                  ))}
-                  {availableRoles.filter(r => r.status === 'Active').length === 0 && (
-                    <SelectItem value="Employee" disabled>No roles available</SelectItem>
-                  )}
-                </SelectContent>
+                          <SelectItem value="10">10</SelectItem>
+                          <SelectItem value="25">25</SelectItem>
+                          <SelectItem value="50">50</SelectItem>
+                          <SelectItem value="100">100</SelectItem>
+                        </SelectContent>
               </Select>
             </div>
 

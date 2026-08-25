@@ -317,22 +317,25 @@ export default function LeaveReports() {
             )}
           </CardContent>
 
-          {!loading && filteredList.length > 0 && (
             <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-gray-100 dark:border-slate-800 gap-4 bg-slate-50/50 dark:bg-slate-900/50">
               <div className="flex items-center gap-4 text-[10px] font-bold text-foreground uppercase tracking-widest">
-                <span>
-                  TOTAL SHOWING {filteredList.length === 0 ? 0 : (currentPage - 1) * pageSize + 1} TO {Math.min(currentPage * pageSize, filteredList.length)} OF {filteredList.length} ENTRIES
-                </span>
+                <span>TOTAL SHOWING {filteredList.length === 0 ? 0 : (currentPage - 1) * pageSize + 1} TO {Math.min(currentPage * pageSize, filteredList.length)} OF {filteredList.length} ENTRIES</span>
+                <div className="flex items-center gap-2">
+                  <span>Show</span>
+                  <Select value={pageSize.toString()} onValueChange={(val) => { setPageSize(Number(val)); setCurrentPage(1); }}>
+                    <SelectTrigger className="h-7 text-[10px] font-bold rounded border-border w-[60px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="25">25</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                      <SelectItem value="100">100</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-xs text-foreground">Show</span>
-                <select
-                  value={pageSize}
-                  onChange={(e) => setPageSize(Number(e.target.value))}
-                  className="h-8 px-2 text-xs font-bold border border-slate-300 dark:border-slate-700 rounded-md bg-white dark:bg-slate-900 text-foreground"
-                >
-                  {[10, 15, 25, 50].map(n => <option key={n} value={n}>{n}</option>)}
-                </select>
                 <button
                   disabled={currentPage === 1}
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
@@ -350,7 +353,6 @@ export default function LeaveReports() {
                 </button>
               </div>
             </div>
-          )}
         </Card>
 
       </div>

@@ -565,17 +565,17 @@ export default function AttendanceReports() {
                 </span>
               </div>
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
-                  <span>Rows:</span>
-                  <Select value={String(pageSize)} onValueChange={(value) => setPageSize(Number(value))}>
-                    <SelectTrigger className="w-20 bg-white dark:bg-slate-900">
+                <div className="flex items-center gap-2 text-[10px] font-bold text-foreground uppercase tracking-widest">
+                  <span>Show</span>
+                  <Select value={String(pageSize)} onValueChange={(value) => { setPageSize(Number(value)); setCurrentPage(1); }}>
+                    <SelectTrigger className="h-7 text-[10px] font-bold rounded border-border w-[60px] bg-white dark:bg-slate-900">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="10">10</SelectItem>
-                      <SelectItem value="15">15</SelectItem>
                       <SelectItem value="25">25</SelectItem>
                       <SelectItem value="50">50</SelectItem>
+                      <SelectItem value="100">100</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

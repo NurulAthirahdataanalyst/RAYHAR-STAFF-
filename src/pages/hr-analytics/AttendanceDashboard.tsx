@@ -1468,11 +1468,22 @@ export default function AttendanceDashboard() {
           
           {filteredDailyAttendance.length > parseInt(limit) && !loadingDaily && (
             <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-gray-100 dark:border-slate-800 gap-4 bg-slate-50/50 dark:bg-slate-900/50">
-                <div className="flex items-center gap-4 text-[10px] font-bold text-foreground uppercase tracking-widest">
-                  <span>
-                    TOTAL SHOWING {((currentPage - 1) * parseInt(limit)) + 1} TO {Math.min(currentPage * parseInt(limit), filteredDailyAttendance.length)} OF {filteredDailyAttendance.length} ENTRIES
-                    
-                  </span>
+              <div className="flex items-center gap-4 text-[10px] font-bold text-foreground uppercase tracking-widest">
+                  <span>TOTAL SHOWING {((currentPage - 1) * parseInt(limit)) + 1} TO {Math.min(currentPage * parseInt(limit), filteredDailyAttendance.length)} OF {filteredDailyAttendance.length} ENTRIES</span>
+                  <div className="flex items-center gap-2">
+                    <span>Show</span>
+                    <Select value={limit} onValueChange={(val) => { setLimit(val); setCurrentPage(1); }}>
+                      <SelectTrigger className="h-7 text-[10px] font-bold rounded border-border w-[60px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="10">10</SelectItem>
+                        <SelectItem value="25">25</SelectItem>
+                        <SelectItem value="50">50</SelectItem>
+                        <SelectItem value="100">100</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
                 <div className="flex items-center gap-1.5">
                 <Button 

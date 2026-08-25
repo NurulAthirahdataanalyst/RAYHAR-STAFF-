@@ -267,7 +267,9 @@ export default function LeaveOverview() {
       {/* Leave Balance Cards */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4 w-full">
         {leaveBalances.map((item) => {
-          const isNoEntitlement = item.label === 'UNPAID LEAVE' || item.label === 'REPLACEMENT LEAVE';
+          const isUnpaid = item.label === 'UNPAID LEAVE';
+          const isReplacement = item.label === 'REPLACEMENT LEAVE';
+          const isNoEntitlement = isUnpaid || isReplacement;
 
           return (
           <Card key={item.label} className="relative overflow-hidden border border-border/40 shadow-[0_4px_16px_rgba(0,0,0,0.03)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.12)] bg-white/90 dark:bg-card/80 backdrop-blur-md rounded-xl group hover:shadow-md transition-all duration-300">
@@ -283,7 +285,11 @@ export default function LeaveOverview() {
                 <div className="flex items-baseline gap-1">
                   <span className="text-xl sm:text-2xl font-black text-foreground group-hover:scale-105 transition-transform origin-left duration-500">{item.used}</span>
                   <span className="text-[9px] sm:text-[10px] font-bold text-foreground uppercase">
-                    {isNoEntitlement ? "Days Taken" : `/ ${item.total || 0} DAYS`}
+                    {isReplacement
+                      ? `/ ${item.total || 0} DAYS TAKEN`
+                      : isUnpaid
+                      ? "Days Taken"
+                      : `/ ${item.total || 0} DAYS`}
                   </span>
                 </div>
                 <div className="space-y-1">
@@ -291,7 +297,7 @@ export default function LeaveOverview() {
                     <div
                       className="h-full rounded-full bg-[#7B0099] transition-all duration-1000 ease-out"
                       style={{
-                        width: isNoEntitlement 
+                        width: isNoEntitlement
                           ? (item.used > 0 ? "100%" : "0%")
                           : (item.total ? `${Math.min((item.used / item.total) * 100, 100)}%` : (item.used > 0 ? "100%" : "0%")),
                       }}
@@ -310,7 +316,7 @@ export default function LeaveOverview() {
               </div>
             </CardContent>
           </Card>
-        )})}
+        ))}
       </div>
 
       {/* Leave Requests Table */}
