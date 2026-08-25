@@ -12,7 +12,7 @@ import { exportToCSV } from "@/utils/export";
 import { Loader2, Plane, MapPin, Calendar, Clock, CheckCircle2, XCircle, AlertCircle , X} from 'lucide-react';
 import { MonthPicker } from "@/components/shared/MonthPicker";
 import { YearPopover } from "@/components/shared/YearPopover";
-import { Search } from "lucide-react";
+import { Search, Users } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { API_BASE_URL } from "../../config/api";
 
