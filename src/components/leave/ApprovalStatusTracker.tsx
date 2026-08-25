@@ -14,9 +14,10 @@ interface ApprovalStatusTrackerProps {
   status: string; // "Pending", "Approved", "Rejected"
   approverRole: string; // The role that is currently pending or the role that rejected it
   approvalHistory?: ApprovalHistoryItem[]; // Passed from parent
+  branch?: string; // Employee branch
 }
 
-export function ApprovalStatusTracker({ status, approverRole, approvalHistory = [] }: ApprovalStatusTrackerProps) {
+export function ApprovalStatusTracker({ status, approverRole, approvalHistory = [], branch = "" }: ApprovalStatusTrackerProps) {
   
   // Normalize history and fallback steps to a unified array of items to render horizontally
   let items: any[] = [];
@@ -39,14 +40,23 @@ export function ApprovalStatusTracker({ status, approverRole, approvalHistory = 
     }
   } else {
     const role = String(approverRole || "").toLowerCase();
-    let currentStep = 0; 
-    if (role.includes("branch") || role.includes("hod")) currentStep = 1;
-    else if (role.includes("operation") || role.includes("finance")) currentStep = 2;
-    else if (role.includes("md") || role.includes("managing") || role.includes("director")) currentStep = 3;
+    const isHQ = String(branch).toUpperCase() === 'HQ';
     
-    if (status === 'Approved') currentStep = 4;
+    let currentStep = 0;
     
-    const steps = ["Submit", "HOD", "Operation Manager", "MD"];
+    if (isHQ) {
+      if (role.includes("hod")) currentStep = 1;
+      else if (role.includes("operation")) currentStep = 2;
+    } else {
+      if (role.includes("branch") || role.includes("leader")) currentStep = 1;
+      else if (role.includes("md") || role.includes("managing") || role.includes("director")) currentStep = 2;
+    }
+    
+    const steps = isHQ 
+      ? ["Submit", "HOD", "Operation Manager"] 
+      : ["Submit", "Branch Leader", "MD"];
+      
+    if (status === 'Approved') currentStep = steps.length;
     
     steps.forEach((step, idx) => {
       let nodeState = "Pending"; 

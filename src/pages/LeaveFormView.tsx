@@ -647,7 +647,8 @@ export default function LeaveFormView() {
                     <ApprovalStatusTracker 
                       status={selectedForm.status} 
                       approverRole={selectedForm.approverRole || "HR Admin"} 
-                      approvalHistory={selectedForm.approvalHistory} 
+                      approvalHistory={selectedForm.approvalHistory}
+                        branch={selectedForm.branch || "HQ"} 
                     />
                     
                     {/* Render remarks below the tracker if they exist */}

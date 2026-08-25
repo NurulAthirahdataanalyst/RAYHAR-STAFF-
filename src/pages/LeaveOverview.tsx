@@ -128,6 +128,7 @@ export default function LeaveOverview() {
             from: formatDate(request.start_date),
             to: formatDate(request.end_date),
             days: Number(request.days || 0),
+            branch: request.branch || "HQ",
             status: request.status || "Pending HOD",
             approverRole: request.approver_role,
             reason: request.reason || "",
@@ -449,7 +450,7 @@ export default function LeaveOverview() {
 
                   
   <div className="mt-6 space-y-4 pt-4 pb-2">
-    <ApprovalStatusTracker status={req.status} approverRole={req.approverRole} />
+    <ApprovalStatusTracker status={req.status} approverRole={req.approverRole} branch={(req as any).branch || "HQ"} />
   </div>
 
                 </div>

@@ -318,6 +318,7 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role }: LeaveDetai
                         status={selectedRequest.status} 
                         approverRole={selectedRequest.approverRole || (selectedRequest.approvalHistory && selectedRequest.approvalHistory.length > 0 ? selectedRequest.approvalHistory[selectedRequest.approvalHistory.length - 1].approver_role : "")} 
                         approvalHistory={selectedRequest.approvalHistory}
+                          branch={selectedRequest.branch || "HQ"}
                       />
                     </div>
 

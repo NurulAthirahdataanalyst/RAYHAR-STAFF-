@@ -143,13 +143,21 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       children: [
         { title: "Leave Application", icon: FilePlus2, path: "/leave/apply", roles: HOD_BL_ROLES },
         { title: "My Leave Requests", icon: FileSearch, path: "/leave/forms", roles: HOD_BL_ROLES },
-        { title: "Team Leave Requests", icon: FileCheck, path: "/leave/team", roles: HOD_BL_ROLES },
-        { title: "Leave Approval", icon: ClipboardList, path: "/leave/admin", roles: HOD_BL_ROLES },
-        { title: "Leave Calendar", icon: Calendar, path: "/leave/calendar", roles: HOD_BL_ROLES },
       ],
     },
     { title: "Employee Analytics", icon: BarChart3, path: "/analytics", roles: HOD_BL_ROLES },
     { title: adminSectionTitle, isSection: true, roles: HOD_BL_ROLES },
+    {
+      title: "Approval Center",
+      icon: CheckSquare,
+      path: "/leave/admin",
+      roles: HOD_BL_ROLES,
+      children: [
+        { title: "Leave Approval", icon: ClipboardList, path: "/leave/admin", roles: HOD_BL_ROLES },
+        { title: "Team Leave Requests", icon: FileCheck, path: "/leave/team", roles: HOD_BL_ROLES },
+        { title: "Leave Calendar", icon: Calendar, path: "/leave/calendar", roles: HOD_BL_ROLES },
+      ],
+    },
     { title: "Employee Directory", icon: Users, path: "/employees", roles: HOD_BL_ROLES },
     {
       id: "hod_admin_outstation",
