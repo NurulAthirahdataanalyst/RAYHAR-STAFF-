@@ -251,7 +251,7 @@ export default function AttendanceReports() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", viewType === "day" ? `attendance_report_${date}.csv` : `attendance_report_${months.find(m => m.value === selectedMonth)?.label}_${selectedYear}.csv`);
+    link.setAttribute("download", viewType === "day" ? `attendance_report_${date}.csv` : viewType === "month" ? `attendance_report_${months.find(m => m.value === selectedMonth)?.label}_${selectedYear}.csv` : `attendance_report_${selectedYear}.csv`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
@@ -514,14 +514,14 @@ export default function AttendanceReports() {
                   <TableBody>
                     {pagedList.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={viewType === "month" ? 11 : 10} className="text-center py-8 text-foreground">
+                        <TableCell colSpan={viewType !== "day" ? 11 : 10} className="text-center py-8 text-foreground">
                           No attendance records found for this {viewType}.
                         </TableCell>
                       </TableRow>
                     ) : (
                       pagedList.map((req, idx) => (
                         <TableRow key={idx}>
-                          {viewType === "month" && <TableCell>{formatDate(req.date)}</TableCell>}
+                          {viewType !== "day" && <TableCell>{formatDate(req.date)}</TableCell>}
                           <TableCell className="font-medium">{req.user_id}</TableCell>
                           <TableCell className="max-w-[180px] truncate" title={req.full_name}>{req.full_name}</TableCell>
                           <TableCell>
