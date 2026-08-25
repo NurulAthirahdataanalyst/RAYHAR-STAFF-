@@ -663,56 +663,53 @@ export default function OutstationAssignment() {
               <Label className="text-[11px] font-black uppercase tracking-widest text-foreground dark:text-foreground flex items-center gap-1.5">
                 <Calendar className="w-3.5 h-3.5" /> Duration
               </Label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div>
-                  <Label className="text-[10px] font-bold text-foreground dark:text-gray-300 mb-1 block">Start Date <span className="text-red-500">*</span></Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <button type="button" className="flex h-8 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-1 text-xs shadow-sm transition-colors hover:bg-slate-50 dark:hover:bg-slate-800 text-foreground dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-ring">
-                        {form.start_date ? new Date(form.start_date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).toUpperCase() : "dd/mm/yyyy"}
-                        <CalendarDays className="w-3.5 h-3.5 text-foreground opacity-50" />
-                      </button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl bg-white dark:bg-card z-[9999]" align="start">
-                      <CalendarWidget
-                        mode="single"
-                        selected={form.start_date ? new Date(form.start_date) : undefined}
-                        onSelect={(d) => {
-                          if (d) setForm(f => ({ ...f, start_date: new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().split('T')[0] }));
-                        }}
-                        initialFocus
+              <div className="space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                  <label className="w-16 text-xs font-bold text-foreground uppercase tracking-wider hidden sm:block">Starts</label>
+                  <label className="text-[10px] font-bold text-foreground block sm:hidden">STARTS</label>
+                  <div className="flex-1 flex gap-2">
+                    <div className="relative flex-1">
+                      <input
+                        type="date"
+                        required
+                        className="w-full bg-background border border-border rounded-xl px-3 py-2 text-[13px] sm:text-sm text-foreground focus:outline-none focus:border-[#FFFE00] focus:ring-1 focus:ring-[#FFFE00] transition-all h-[38px]"
+                        value={form.start_date}
+                        onChange={e => setForm(f => ({ ...f, start_date: e.target.value }))}
                       />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-                <div>
-                  <Label className="text-[10px] font-bold text-foreground dark:text-gray-300 mb-1 block">Start Time</Label>
-                  <Input type="time" value={form.start_time} onChange={e => setForm(f => ({ ...f, start_time: e.target.value }))} className="h-8 text-xs" />
-                </div>
-                <div>
-                  <Label className="text-[10px] font-bold text-foreground dark:text-gray-300 mb-1 block">End Date <span className="text-red-500">*</span></Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <button type="button" className="flex h-8 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-1 text-xs shadow-sm transition-colors hover:bg-slate-50 dark:hover:bg-slate-800 text-foreground dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-ring">
-                        {form.end_date ? new Date(form.end_date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).toUpperCase() : "dd/mm/yyyy"}
-                        <CalendarDays className="w-3.5 h-3.5 text-foreground opacity-50" />
-                      </button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl bg-white dark:bg-card z-[9999]" align="start">
-                      <CalendarWidget
-                        mode="single"
-                        selected={form.end_date ? new Date(form.end_date) : undefined}
-                        onSelect={(d) => {
-                          if (d) setForm(f => ({ ...f, end_date: new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().split('T')[0] }));
-                        }}
-                        initialFocus
+                    </div>
+                    <div className="relative flex-1">
+                      <input
+                        type="time"
+                        className="w-full bg-background border border-border rounded-xl px-3 py-2 text-[13px] sm:text-sm text-foreground focus:outline-none focus:border-[#FFFE00] focus:ring-1 focus:ring-[#FFFE00] transition-all h-[38px]"
+                        value={form.start_time}
+                        onChange={e => setForm(f => ({ ...f, start_time: e.target.value }))}
                       />
-                    </PopoverContent>
-                  </Popover>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <Label className="text-[10px] font-bold text-foreground dark:text-gray-300 mb-1 block">End Time</Label>
-                  <Input type="time" value={form.end_time} onChange={e => setForm(f => ({ ...f, end_time: e.target.value }))} className="h-8 text-xs" />
+
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                  <label className="w-16 text-xs font-bold text-foreground uppercase tracking-wider hidden sm:block">Ends</label>
+                  <label className="text-[10px] font-bold text-foreground block sm:hidden">ENDS</label>
+                  <div className="flex-1 flex gap-2">
+                    <div className="relative flex-1">
+                      <input
+                        type="date"
+                        required
+                        className="w-full bg-background border border-border rounded-xl px-3 py-2 text-[13px] sm:text-sm text-foreground focus:outline-none focus:border-[#FFFE00] focus:ring-1 focus:ring-[#FFFE00] transition-all h-[38px]"
+                        value={form.end_date}
+                        onChange={e => setForm(f => ({ ...f, end_date: e.target.value }))}
+                      />
+                    </div>
+                    <div className="relative flex-1">
+                      <input
+                        type="time"
+                        className="w-full bg-background border border-border rounded-xl px-3 py-2 text-[13px] sm:text-sm text-foreground focus:outline-none focus:border-[#FFFE00] focus:ring-1 focus:ring-[#FFFE00] transition-all h-[38px]"
+                        value={form.end_time}
+                        onChange={e => setForm(f => ({ ...f, end_time: e.target.value }))}
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
               {form.start_date && form.end_date && (
