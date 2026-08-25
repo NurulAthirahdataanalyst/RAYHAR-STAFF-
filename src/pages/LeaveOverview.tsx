@@ -233,7 +233,7 @@ export default function LeaveOverview() {
       const balanceKey = mapTypeToBalanceKey(item.type);
       const total = currentBalances[balanceKey];
       const apps = filteredLeaveRequests.filter(
-        r => r.type === item.type && (r.status.startsWith("Approved"))
+        r => (r.type === item.type || leaveTypeLabels[r.type] === leaveTypeLabels[item.type])
       ).length;
       return {
         label: leaveTypeLabels[item.type],
