@@ -362,7 +362,7 @@ export default function Branches() {
   useEffect(() => { setCurrentPage(1); }, [searchQuery, pageSize]);
 
   const totalPages = Math.max(1, Math.ceil(filteredBranches.length / pageSize));
-  const paginatedBranches = filteredBranches.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const paginatedBranches = viewMode === "grid" ? filteredBranches : filteredBranches.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
 
 
@@ -1466,7 +1466,7 @@ export default function Branches() {
           )}
 
           {/* ── Pagination Bar ── */}
-          {!loadingBranches && filteredBranches.length > 0 && (
+          {!loadingBranches && filteredBranches.length > 0 && viewMode === "line" && (
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-1 pt-2">
               {/* Rows per page */}
               <div className="flex items-center gap-2">

@@ -545,7 +545,9 @@ export default function TeamAttendance() {
               {totalPages > 1 && (
                 <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-gray-100 dark:border-slate-800 gap-4 bg-slate-50/50 dark:bg-slate-900/50">
                   <div className="flex items-center gap-4 text-[10px] font-bold text-foreground uppercase tracking-widest">
-                    <spanspan className="text-[10px] font-bold text-foreground uppercase tracking-widest">></span>
+                    <span>
+                      TOTAL SHOWING {startIndex + 1} TO {Math.min(startIndex + entriesPerPage, filteredList.length)} OF {filteredList.length} ENTRIES
+                    </span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Button
@@ -587,7 +589,9 @@ export default function TeamAttendance() {
               {/* Bottom Pagination */}
               <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-gray-100 dark:border-slate-800 gap-4 bg-slate-50/50 dark:bg-slate-900/50">
                   <div className="flex items-center gap-4 text-[10px] font-bold text-foreground uppercase tracking-widest">
-                    <spanspan className="text-[10px] font-bold text-foreground uppercase tracking-widest">></span>
+                    <span>
+                      TOTAL SHOWING {startIndex + 1} TO {Math.min(startIndex + entriesPerPage, filteredList.length)} OF {filteredList.length} ENTRIES
+                    </span>
                         <span className="text-[10px] font-black uppercase tracking-widest text-foreground">SHOW</span>
                       <Select value={entriesPerPage.toString()} onValueChange={(val) => setEntriesPerPage(Number(val))}>
                         <SelectTrigger className="w-[70px] h-[34px] bg-white dark:bg-card border border-border rounded-xl text-foreground font-bold text-xs focus:ring-0">

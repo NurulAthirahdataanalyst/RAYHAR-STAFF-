@@ -799,11 +799,20 @@ export default function OutstationDashboard() {
                   </tbody>
                 </table>
                 <div className="px-6 py-4 border-t border-gray-100 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-card">
-                  <span className="text-[12px] text-foreground dark:text-foreground font-medium">Showing {activeNowGrouped.length > 0 ? 1 : 0}-{activeNowGrouped.length} of {activeNowGrouped.length} Active Outstations</span>
-                  <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" className="h-8 text-[12px] font-medium border-gray-200 dark:border-slate-800">Previous</Button>
-                    <Button variant="outline" size="sm" className="h-8 text-[12px] font-medium border-gray-200 dark:border-slate-800">Next</Button>
-                  </div>
+                  <div className="flex items-center gap-4 text-[10px] font-bold text-foreground uppercase tracking-widest">
+                      <span>TOTAL SHOWING {activeNowGrouped.length > 0 ? 1 : 0} TO {activeNowGrouped.length} OF {activeNowGrouped.length} ENTRIES</span>
+                    </div>
+                  <div className="flex items-center gap-1">
+                      <Button variant="outline" size="sm" disabled className="h-7 px-2 text-[10px] font-bold rounded">
+                        <ChevronLeft className="w-3.5 h-3.5" />
+                      </Button>
+                      <div className="flex items-center gap-1 overflow-x-auto max-w-[150px] sm:max-w-none scrollbar-hide">
+                        <Button variant="default" size="sm" className="h-7 w-7 p-0 text-[10px] font-bold rounded bg-pink-500 text-white border-pink-500 hover:bg-pink-600">1</Button>
+                      </div>
+                      <Button variant="outline" size="sm" disabled className="h-7 px-2 text-[10px] font-bold rounded">
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
                 </div>
                 </>
               )}
@@ -1060,7 +1069,9 @@ export default function OutstationDashboard() {
                     </tbody>
                   </table>
                   <div className="px-6 py-4 border-t border-gray-100 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-card">
-                    <span className="text-[12px] text-foreground dark:text-foreground font-medium">Showing {upcomingGrouped.length > 0 ? 1 : 0}-{upcomingGrouped.length} of {upcomingGrouped.length} Upcoming Outstations</span>
+                    <div className="flex items-center gap-4 text-[10px] font-bold text-foreground uppercase tracking-widest">
+                      <span>TOTAL SHOWING {upcomingGrouped.length > 0 ? 1 : 0} TO {upcomingGrouped.length} OF {upcomingGrouped.length} ENTRIES</span>
+                    </div>
                   </div>
                   </>
                 )}

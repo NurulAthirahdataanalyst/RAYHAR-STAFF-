@@ -1468,7 +1468,9 @@ export default function AttendanceDashboard() {
           
           {filteredDailyAttendance.length > parseInt(limit) && !loadingDaily && (
             <div className="flex items-center gap-4 text-[10px] font-bold text-foreground uppercase tracking-widest">
-                    <spanspan className="text-[10px] font-bold text-foreground uppercase tracking-widest">></span>
+                    <span>
+                      TOTAL SHOWING {((currentPage - 1) * parseInt(limit)) + 1} TO {Math.min(currentPage * parseInt(limit), filteredDailyAttendance.length)} OF {filteredDailyAttendance.length} ENTRIES
+                    </span>
               <div className="flex items-center gap-1.5">
                 <Button 
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))} 

@@ -1911,7 +1911,7 @@ export default function Attendance() {
           {/* Pagination Controls */}
           {totalRows > pageSize && (
             <div className="flex items-center justify-between py-3 px-4 border-t border-border/50 bg-muted/10">
-              <div className="text-sm text-foreground">Showing {(page-1)*pageSize + 1} - {Math.min(page*pageSize, totalRows)} of {totalRows}</div>
+              <div className="flex items-center gap-4 text-[10px] font-bold text-foreground uppercase tracking-widest"><span>TOTAL SHOWING {(page-1)*pageSize + 1} TO {Math.min(page*pageSize, totalRows)} OF {totalRows} ENTRIES</span></div>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setPage(p => Math.max(1, p - 1))}

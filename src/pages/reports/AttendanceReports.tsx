@@ -560,7 +560,9 @@ export default function AttendanceReports() {
           {!loading && filteredList.length > 0 && (
             <div className="flex flex-col gap-3 px-6 py-4 border-t border-slate-200 bg-slate-50 dark:bg-slate-950 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-4 text-[10px] font-bold text-foreground uppercase tracking-widest">
-                <spanspan className="text-[10px] font-bold text-foreground uppercase tracking-widest">></span>
+                <span>
+                  TOTAL SHOWING {filteredList.length === 0 ? 0 : (currentPage - 1) * pageSize + 1} TO {Math.min(currentPage * pageSize, filteredList.length)} OF {filteredList.length} ENTRIES
+                </span>
               </div>
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                 <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">

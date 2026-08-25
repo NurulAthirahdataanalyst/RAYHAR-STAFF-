@@ -536,7 +536,7 @@ export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => 
           {filtered.length > 0 && (
             <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-gray-100 dark:border-slate-800 gap-4 bg-slate-50/50 dark:bg-slate-900/50 shrink-0">
               <div className="flex items-center gap-4 text-[10px] font-bold text-foreground uppercase tracking-widest">
-                <spanspan className="text-[10px] font-bold text-foreground uppercase tracking-widest">></span>
+                <span>TOTAL SHOWING {(currentPage - 1) * 15 + 1} TO {Math.min(currentPage * 15, filtered.length)} OF {filtered.length} ENTRIES</span>
               </div>
               <div className="flex items-center gap-2">
                 <Button
