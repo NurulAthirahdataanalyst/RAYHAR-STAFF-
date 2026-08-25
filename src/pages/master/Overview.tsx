@@ -329,17 +329,17 @@ export default function MasterOverview() {
             {/* Left Portal: Department Master Overview */}
             <Card className="border-none shadow-sm bg-card/60 backdrop-blur-md rounded-[28px] overflow-hidden flex flex-col justify-between">
               <div>
-                <CardHeader className="pb-4 border-b border-border/40 flex flex-row items-center justify-between">
+                <CardHeader className="pb-4 border-b border-border/40 flex flex-row items-center justify-between bg-blue-50/80 dark:bg-blue-900/20">
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-blue-500/10 text-blue-600 rounded-xl">
                       <Building2 className="w-5 h-5" />
                     </div>
                     <div>
-                      <CardTitle className="text-sm sm:text-base font-black text-foreground uppercase tracking-tight">Departments Directory</CardTitle>
-                      <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-foreground opacity-60">Corporate structural nodes and allocation</CardDescription>
+                      <CardTitle className="text-sm sm:text-base font-black text-blue-900 dark:text-blue-100 uppercase tracking-tight">Departments Directory</CardTitle>
+                      <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-blue-800/60 dark:text-blue-200/60">Corporate structural nodes and allocation</CardDescription>
                     </div>
                   </div>
-                  <Badge variant="outline" className="font-black text-[10px] px-3.5 py-1 text-blue-600 border-none bg-blue-500/10">
+                  <Badge variant="outline" className="font-black text-[10px] px-3.5 py-1 text-blue-700 border-none bg-blue-500/20">
                     {totalDepartments} UNITS
                   </Badge>
                 </CardHeader>
@@ -380,17 +380,17 @@ export default function MasterOverview() {
             {/* Right Portal: User Directory Master */}
             <Card className="border-none shadow-sm bg-card/60 backdrop-blur-md rounded-[28px] overflow-hidden flex flex-col justify-between">
               <div>
-                <CardHeader className="pb-4 border-b border-border/40 flex flex-row items-center justify-between">
+                <CardHeader className="pb-4 border-b border-border/40 flex flex-row items-center justify-between bg-purple-50/80 dark:bg-purple-900/20">
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-purple-500/10 text-purple-600 rounded-xl">
                       <Users className="w-5 h-5" />
                     </div>
                     <div>
-                      <CardTitle className="text-sm sm:text-base font-black text-foreground uppercase tracking-tight">System User Directory</CardTitle>
-                      <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-foreground opacity-60">Credentials & active security profiles</CardDescription>
+                      <CardTitle className="text-sm sm:text-base font-black text-purple-900 dark:text-purple-100 uppercase tracking-tight">System User Directory</CardTitle>
+                      <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-purple-800/60 dark:text-purple-200/60">Credentials & active security profiles</CardDescription>
                     </div>
                   </div>
-                  <Badge variant="outline" className="font-black text-[10px] px-3.5 py-1 text-[#7B0099] border-none bg-purple-500/10">
+                  <Badge variant="outline" className="font-black text-[10px] px-3.5 py-1 text-purple-700 border-none bg-purple-500/20">
                     {totalUsers} ACCOUNTS
                   </Badge>
                 </CardHeader>
@@ -433,17 +433,17 @@ export default function MasterOverview() {
             {/* Right Portal: Branches Directory */}
             <Card className="border-none shadow-sm bg-card/60 backdrop-blur-md rounded-[28px] overflow-hidden flex flex-col justify-between">
               <div>
-                <CardHeader className="pb-4 border-b border-border/40 flex flex-row items-center justify-between">
+                <CardHeader className="pb-4 border-b border-border/40 flex flex-row items-center justify-between bg-pink-50/80 dark:bg-pink-900/20">
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-pink-500/10 text-pink-600 rounded-xl">
                       <MapPin className="w-5 h-5" />
                     </div>
                     <div>
-                      <CardTitle className="text-sm sm:text-base font-black text-foreground uppercase tracking-tight">Branches Directory</CardTitle>
-                      <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-foreground opacity-60">Regional network configuration</CardDescription>
+                      <CardTitle className="text-sm sm:text-base font-black text-pink-900 dark:text-pink-100 uppercase tracking-tight">Branches Directory</CardTitle>
+                      <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-pink-800/60 dark:text-pink-200/60">Regional network configuration</CardDescription>
                     </div>
                   </div>
-                  <Badge variant="outline" className="font-black text-[10px] px-3.5 py-1 text-pink-600 border-none bg-pink-500/10">
+                  <Badge variant="outline" className="font-black text-[10px] px-3.5 py-1 text-pink-700 border-none bg-pink-500/20">
                     {totalBranches} BRANCHES
                   </Badge>
                 </CardHeader>
@@ -520,17 +520,17 @@ export default function MasterOverview() {
             {/* ATTENDANCE SETTING */}
             <Card className="xl:col-span-1 border-none shadow-sm bg-card/60 backdrop-blur-md rounded-[28px] overflow-hidden flex flex-col justify-between min-h-[300px]">
               <div className="flex flex-col h-full">
-                <CardHeader className="pb-4 border-b border-border/40 flex flex-row items-start sm:items-center justify-between gap-2">
+                <CardHeader className="pb-4 border-b border-border/40 flex flex-row items-start sm:items-center justify-between gap-2 bg-[#ffff00]/10 dark:bg-[#ffff00]/5">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-[#ffff00]/20 text-amber-600 dark:text-[#ffff00] rounded-xl shrink-0">
+                    <div className="p-2 bg-[#ffff00]/20 text-amber-700 dark:text-[#ffff00] rounded-xl shrink-0">
                       <MapPin className="w-5 h-5" />
                     </div>
                     <div>
-                      <CardTitle className="text-sm sm:text-base font-black text-foreground uppercase tracking-tight">Attendance Assignment</CardTitle>
-                      <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-foreground opacity-60">Temporary Branch Assignment</CardDescription>
+                      <CardTitle className="text-sm sm:text-base font-black text-amber-900 dark:text-amber-100 uppercase tracking-tight">Attendance Assignment</CardTitle>
+                      <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-amber-800/60 dark:text-amber-200/60">Temporary Branch Assignment</CardDescription>
                     </div>
                   </div>
-                  <Badge variant="outline" className="font-black text-[10px] px-3.5 py-1 text-amber-700 dark:text-[#ffff00] border-none bg-[#ffff00]/20 shrink-0">
+                  <Badge variant="outline" className="font-black text-[10px] px-3.5 py-1 text-amber-700 dark:text-[#ffff00] border-none bg-[#ffff00]/30 dark:bg-[#ffff00]/20 shrink-0">
                     {activeAssignments.length} ACTIVE
                   </Badge>
                 </CardHeader>

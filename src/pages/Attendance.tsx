@@ -329,10 +329,10 @@ export default function Attendance() {
   // 3b. Fetch attendance logs history (GET)
   const fetchTempAssignments = useCallback(async (id: string) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/work-assignments-all`);
+      const response = await fetch(`${API_BASE_URL}/api/work-assignments/${id}`);
       const data = await response.json();
       if (data.success) {
-        setTempAssignments(data.assignments.filter((a: any) => a.user_id == id));
+        setTempAssignments(data.assignments);
       }
     } catch (err) {
       console.error("Error fetching temp assignments:", err);
@@ -1675,7 +1675,7 @@ export default function Attendance() {
                           📍 Current Assignment
                         </p>
                         <p className="text-xs font-medium text-foreground">
-                          You are assigned to <strong className="font-bold">{curr.temp_branch}</strong> from {fmtDate(curr.start_date)}{curr.end_date ? ' – ' + fmtDate(curr.end_date) : ''}.
+                          You are assigned to <strong className="font-bold">{curr.temp_branch || curr.location || 'N/A'}</strong> from {fmtDate(curr.start_date)}{curr.end_date ? ' – ' + fmtDate(curr.end_date) : ''}.
                           <br />
                           Please clock in at this branch during this period.
                         </p>
@@ -1695,7 +1695,7 @@ export default function Attendance() {
                           <tbody className="divide-y divide-border/50">
                             {processed.map(a => (
                               <tr key={a.id} className={a.computedStatus === 'Active' ? 'bg-emerald-500/5' : ''}>
-                                <td className="px-3 py-2 font-medium">{a.temp_branch}</td>
+                                <td className="px-3 py-2 font-medium">{a.temp_branch || a.location || 'N/A'}</td>
                                 <td className="px-3 py-2">
                                   {fmtDate(a.start_date)}{a.end_date ? ' – ' + fmtDate(a.end_date) : ''}
                                 </td>

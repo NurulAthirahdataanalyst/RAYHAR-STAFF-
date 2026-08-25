@@ -653,9 +653,7 @@ export default function LeaveAdmin() {
           )}
           {!loading && totalPages > 1 && (
             <div className="flex items-center gap-4 text-[10px] font-bold text-foreground uppercase tracking-widest">
-                    <span>
-                      TOTAL SHOWING {((currentPage - 1) * itemsPerPage) + 1} TO {Math.min(currentPage * itemsPerPage, filteredRequests.length)} OF {filteredRequests.length} ENTRIES
-                    </span>
+                    <spanspan className="text-[10px] font-bold text-foreground uppercase tracking-widest">></span>
               <div className="flex gap-2">
                 <Button
                   variant="outline"

@@ -320,9 +320,7 @@ export default function LeaveReports() {
           {!loading && filteredList.length > 0 && (
             <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-gray-100 dark:border-slate-800 gap-4 bg-slate-50/50 dark:bg-slate-900/50">
               <div className="flex items-center gap-4 text-[10px] font-bold text-foreground uppercase tracking-widest">
-                <span>
-                  TOTAL SHOWING {filteredList.length === 0 ? 0 : (currentPage - 1) * pageSize + 1} TO {Math.min(currentPage * pageSize, filteredList.length)} OF {filteredList.length} ENTRIES
-                </span>
+                <spanspan className="text-[10px] font-bold text-foreground uppercase tracking-widest">></span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-xs text-foreground">Show</span>

@@ -358,6 +358,7 @@ export default function LeaveAnalytics() {
       !roleLoading &&
       role !== "hr_admin" &&
       role !== "managing_director" &&
+      role !== "operation_manager" &&
       role !== "branch_leader" &&
       role !== "head_of_department"
     ) {

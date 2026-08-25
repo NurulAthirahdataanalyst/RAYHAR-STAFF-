@@ -1036,6 +1036,7 @@ export default function WorkforceInsights() {
 
                         const todayStr = new Date().toISOString().split('T')[0];
                         const isCompleted = a.status === 'Completed' || (a.status === 'Active' && end && end.toISOString().split('T')[0] < todayStr);
+                        const isUpcoming = a.status === 'Active' && start && start.toISOString().split('T')[0] > todayStr;
 
                         let sColor = "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20";
                         let sDot = "bg-emerald-500";
@@ -1049,6 +1050,10 @@ export default function WorkforceInsights() {
                           sColor = "bg-red-50 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20";
                           sDot = "bg-red-500";
                           sLabel = "Cancelled";
+                        } else if (isUpcoming) {
+                          sColor = "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20";
+                          sDot = "bg-amber-500";
+                          sLabel = "Upcoming";
                         }
 
                         return (
