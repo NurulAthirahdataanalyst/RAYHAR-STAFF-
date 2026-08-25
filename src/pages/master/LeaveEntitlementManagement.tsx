@@ -223,7 +223,7 @@ export default function LeaveEntitlementManagement() {
                     );
                   })}
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-4">
                   {modules.slice(4).map((module) => {
                     const Icon = module.icon;
                     return (
@@ -688,7 +688,7 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
           <>
             <div>
               <h4 className="text-xs font-black uppercase tracking-wider text-foreground mb-3 border-b pb-1">Allocation Config</h4>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-4">
                 <div className="space-y-1.5">
                   <Label className="text-sm font-bold">Leave Year</Label>
                   <YearPopover 

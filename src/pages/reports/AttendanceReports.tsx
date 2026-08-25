@@ -85,7 +85,7 @@ export default function AttendanceReports() {
         branch: userBranch || "",
         department: userDepartment || ""
       });
-      let data = { success: true, data: [] };
+      let data: { success: boolean; data: any[]; summary?: any } = { success: true, data: [] };
       const [workAssignRes] = await Promise.all([
         fetch(`${API_BASE_URL}/api/work-assignments-all`)
       ]);
@@ -498,7 +498,7 @@ export default function AttendanceReports() {
                 <Table className="text-xs">
                   <TableHeader>
                     <TableRow>
-                      {viewType === "month" && <TableHead className="w-[100px]">Date</TableHead>}
+                      {viewType !== "day" && <TableHead className="w-[100px]">Date</TableHead>}
                       <TableHead className="w-[100px]">Employee ID</TableHead>
                       <TableHead className="min-w-[150px] max-w-[200px]">Name</TableHead>
                       <TableHead className="w-[80px]">Branch</TableHead>
@@ -559,12 +559,10 @@ export default function AttendanceReports() {
 
           {!loading && filteredList.length > 0 && (
             <div className="flex flex-col gap-3 px-6 py-4 border-t border-slate-200 bg-slate-50 dark:bg-slate-950 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-300">
-                <span>Showing</span>
-                <span className="font-semibold">{pagedList.length}</span>
-                <span>of</span>
-                <span className="font-semibold">{filteredList.length}</span>
-                <span>records</span>
+              <div className="flex items-center gap-4 text-[10px] font-bold text-foreground uppercase tracking-widest">
+                <span>
+                  TOTAL SHOWING {filteredList.length === 0 ? 0 : (currentPage - 1) * pageSize + 1} TO {Math.min(currentPage * pageSize, filteredList.length)} OF {filteredList.length} ENTRIES
+                </span>
               </div>
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                 <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
@@ -585,7 +583,7 @@ export default function AttendanceReports() {
                   <Button variant="outline" size="sm" disabled={currentPage === 1} onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}>
                     Prev
                   </Button>
-                  <span>Page {currentPage} of {pageCount}</span>
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-foreground">{currentPage} / {pageCount}</span>
                   <Button variant="outline" size="sm" disabled={currentPage === pageCount} onClick={() => setCurrentPage((prev) => Math.min(prev + 1, pageCount))}>
                     Next
                   </Button>

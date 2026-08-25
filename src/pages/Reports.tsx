@@ -610,7 +610,7 @@ export default function Reports() {
           const link = document.createElement("a");
           const url = URL.createObjectURL(blob);
           link.setAttribute("href", url);
-          link.setAttribute("download", reportName.replace('.csv', '.csv')); // keep csv but with excel format
+          link.setAttribute("download", reportName.replace('.csv', '.xlsx'));
           link.style.visibility = 'hidden';
           document.body.appendChild(link);
           link.click();

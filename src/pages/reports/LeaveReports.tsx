@@ -19,6 +19,8 @@ export default function LeaveReports() {
   const [loading, setLoading] = useState(true);
   const [leaveData, setLeaveData] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(15);
   
   // View Toggle State
   const [viewType, setViewType] = useState<"day" | "month" | "year">("month");
@@ -66,8 +68,18 @@ export default function LeaveReports() {
             const y = parseInt(selectedYear);
             filtered = filtered.filter((r: any) => {
                 if (!r.start_date) return true;
-                const d = new Date(r.start_date);
-                return (d.getMonth() + 1 === m) && (d.getFullYear() === y);
+                // Parse date parts directly from the string to avoid timezone issues
+                const dateStr = r.start_date.slice(0, 10); // "YYYY-MM-DD"
+                const [dYear, dMonth] = dateStr.split('-').map(Number);
+                return dMonth === m && dYear === y;
+            });
+        } else if (viewType === "year") {
+            const y = parseInt(selectedYear);
+            filtered = filtered.filter((r: any) => {
+                if (!r.start_date) return true;
+                const dateStr = r.start_date.slice(0, 10);
+                const [dYear] = dateStr.split('-').map(Number);
+                return dYear === y;
             });
         }
         setLeaveData(filtered);
@@ -86,6 +98,13 @@ export default function LeaveReports() {
     e.user_id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     e.branch?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const pageCount = Math.max(1, Math.ceil(filteredList.length / pageSize));
+  const pagedList = filteredList.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, viewType, date, selectedMonth, selectedYear, pageSize]);
 
   const handleExportCSV = () => {
     const headers = ["Employee", "Branch", "Leave Type", "Start Date", "End Date", "Days", "Status"];
@@ -270,7 +289,7 @@ export default function LeaveReports() {
                         </TableCell>
                       </TableRow>
                     ) : (
-                      filteredList.map((req, idx) => (
+                      pagedList.map((req, idx) => (
                         <TableRow key={idx}>
                           <TableCell className="font-medium">
                             {req.full_name || req.user_id}
@@ -297,6 +316,41 @@ export default function LeaveReports() {
               </div>
             )}
           </CardContent>
+
+          {!loading && filteredList.length > 0 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-gray-100 dark:border-slate-800 gap-4 bg-slate-50/50 dark:bg-slate-900/50">
+              <div className="flex items-center gap-4 text-[10px] font-bold text-foreground uppercase tracking-widest">
+                <span>
+                  TOTAL SHOWING {filteredList.length === 0 ? 0 : (currentPage - 1) * pageSize + 1} TO {Math.min(currentPage * pageSize, filteredList.length)} OF {filteredList.length} ENTRIES
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-foreground">Show</span>
+                <select
+                  value={pageSize}
+                  onChange={(e) => setPageSize(Number(e.target.value))}
+                  className="h-8 px-2 text-xs font-bold border border-slate-300 dark:border-slate-700 rounded-md bg-white dark:bg-slate-900 text-foreground"
+                >
+                  {[10, 15, 25, 50].map(n => <option key={n} value={n}>{n}</option>)}
+                </select>
+                <button
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  className="h-8 px-3 text-xs font-bold border border-slate-300 dark:border-slate-700 rounded-md bg-white dark:bg-slate-900 text-foreground disabled:opacity-40 hover:bg-slate-100 dark:hover:bg-slate-800"
+                >
+                  Prev
+                </button>
+                <span className="text-[10px] font-bold text-foreground uppercase">{currentPage} / {pageCount}</span>
+                <button
+                  disabled={currentPage === pageCount}
+                  onClick={() => setCurrentPage(p => Math.min(pageCount, p + 1))}
+                  className="h-8 px-3 text-xs font-bold border border-slate-300 dark:border-slate-700 rounded-md bg-white dark:bg-slate-900 text-foreground disabled:opacity-40 hover:bg-slate-100 dark:hover:bg-slate-800"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
         </Card>
 
       </div>
