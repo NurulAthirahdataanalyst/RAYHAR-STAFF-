@@ -215,11 +215,14 @@ export default function TeamAttendance() {
 
       if (att) {
         if (att.status === "Present (On Time)" || att.status === "Present (Late)") {
-          statusLabel = "Present";
+          statusLabel = att.clock_out ? "Clocked Out" : "Present";
         } else if (att.status === "Approved Leave") {
           statusLabel = "Leave";
         } else {
           statusLabel = att.status || "Absent";
+          if (statusLabel === "Missing Clock-Out" && att.clock_out) {
+            statusLabel = "Clocked Out";
+          }
         }
 
         if (att.is_late && att.late_minutes != null && att.late_minutes > 0) {
@@ -258,8 +261,13 @@ export default function TeamAttendance() {
       }
 
       let statusLabel = att.status || "Present";
-      if (statusLabel.includes('Present')) statusLabel = 'Present';
-      else if (statusLabel.includes('Leave')) statusLabel = 'Leave';
+      if (statusLabel.includes('Present')) {
+        statusLabel = att.clock_out ? "Clocked Out" : "Present";
+      } else if (statusLabel.includes('Leave')) {
+        statusLabel = 'Leave';
+      } else if (statusLabel === "Missing Clock-Out" && att.clock_out) {
+        statusLabel = "Clocked Out";
+      }
 
       let lateLabel = "--";
       if (att.is_late) {
@@ -519,6 +527,7 @@ export default function TeamAttendance() {
                             <span className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-semibold rounded-full ${
                               emp.status === 'Present' || emp.status === 'Present (On Time)' ? 'bg-green-100 text-green-700' :
                               emp.status === 'Present (Late)' ? 'bg-yellow-100 text-yellow-700' :
+                              emp.status === 'Clocked Out' ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300' :
                               emp.status === 'Missing Clock-Out' ? 'bg-orange-100 text-orange-700' :
                               emp.status === 'Outstation' ? 'bg-blue-100 text-blue-700' :
                               'bg-red-100 text-red-700'
@@ -647,13 +656,14 @@ export default function TeamAttendance() {
                     <TableHead>Branch</TableHead>
                     <TableHead>Distance from Branch</TableHead>
                     <TableHead>Location Status</TableHead>
+                    <TableHead>Attendance Status</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {historyLoading ? (
-                    <TableRow><TableCell colSpan={5} className="text-center py-8">Loading history...</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={6} className="text-center py-8">Loading history...</TableCell></TableRow>
                   ) : history.length === 0 ? (
-                    <TableRow><TableCell colSpan={5} className="text-center py-8 text-muted-foreground">No history found</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">No history found</TableCell></TableRow>
                   ) : (
                     history.map((h, i) => {
                       const emp = employees.find(e => e.user_id === historyFor);
@@ -675,6 +685,20 @@ export default function TeamAttendance() {
                               <span className="w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5"></span>
                               On-site
                             </span>
+                          </TableCell>
+                          <TableCell>
+                            {h.attendance_status ? (
+                              <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-black border uppercase tracking-widest ${
+                                h.attendance_status === 'Clock In' 
+                                  ? 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300 border-blue-200 dark:border-blue-500/30'
+                                  : 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300 border-indigo-200 dark:border-indigo-500/30'
+                              }`}>
+                                <div className={`w-1.5 h-1.5 rounded-full ${h.attendance_status === 'Clock In' ? 'bg-blue-500' : 'bg-indigo-500'}`} />
+                                {h.attendance_status}
+                              </span>
+                            ) : (
+                              <span className="text-muted-foreground">-</span>
+                            )}
                           </TableCell>
                         </TableRow>
                       );
