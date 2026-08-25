@@ -10,7 +10,7 @@ import {
   FileCheck,
   FileText,
   CheckSquare,
-  Users, 
+  Users, Briefcase, 
   Building2, 
   BarChart3, 
   LogOut,

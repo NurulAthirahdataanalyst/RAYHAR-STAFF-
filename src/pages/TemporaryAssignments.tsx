@@ -21,6 +21,7 @@ interface TemporaryAssignment {
   department: string;
   role: string;
   temp_branch: string;
+  primary_branch?: string;
   start_date: string;
   end_date: string | null;
   status: string;
@@ -32,7 +33,7 @@ interface TemporaryAssignment {
 const API_BASE_URL = import.meta.env.VITE_API_URL || "https://attendance-system-gamma-jade.vercel.app";
 
 const TemporaryAssignments = () => {
-  const { role } = useRole();
+  const { role, userBranch, userDepartment } = useRole();
   const isHRAdmin = role === "hr_admin";
 
   const [assignments, setAssignments] = useState<TemporaryAssignment[]>([]);
@@ -182,13 +183,21 @@ const TemporaryAssignments = () => {
     const matchesSearch = a.name.toLowerCase().includes(search.toLowerCase()) || 
                           a.temp_branch.toLowerCase().includes(search.toLowerCase());
     const matchesStatus = statusFilter === "all" || a.computedStatus === statusFilter;
-    return matchesSearch && matchesStatus;
+    
+    let matchesRole = true;
+    if (role === "branch_leader") {
+      matchesRole = a.primary_branch === userBranch;
+    } else if (role === "head_of_department") {
+      matchesRole = a.department === userDepartment;
+    }
+    
+    return matchesSearch && matchesStatus && matchesRole;
   });
 
 
-  const activeCount = assignments.filter(a => a.computedStatus === 'Active').length;
-  const upcomingCount = assignments.filter(a => a.computedStatus === 'Upcoming').length;
-  const completedCount = assignments.filter(a => a.computedStatus === 'Completed').length;
+  const activeCount = filteredAssignments.filter(a => a.computedStatus === 'Active').length;
+  const upcomingCount = filteredAssignments.filter(a => a.computedStatus === 'Upcoming').length;
+  const completedCount = filteredAssignments.filter(a => a.computedStatus === 'Completed').length;
 
   return (
 
