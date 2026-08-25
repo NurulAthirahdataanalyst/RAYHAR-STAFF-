@@ -34,7 +34,7 @@ export default function NotificationBell() {
         const readCompanyLeaves = JSON.parse(localStorage.getItem('readCompanyLeaves') || '[]');
         const deletedCompanyLeaves = JSON.parse(localStorage.getItem('deletedCompanyLeaves') || '[]');
         
-        const hrNotifs = JSON.parse(localStorage.getItem('hrNotifications') || '[]').filter((n: any) => n.user_id === user.user_id);
+        const hrNotifs = JSON.parse(localStorage.getItem('hrNotifications') || '[]').filter((n: any) => String(n.user_id) === String(user.user_id) || String(n.user_id) === String(user.employee_id));
         
         let tempNotifs: any[] = [];
         try {

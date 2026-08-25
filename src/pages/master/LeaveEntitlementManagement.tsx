@@ -1531,20 +1531,57 @@ function ManualLeaveAdjustmentForm({
         try {
           const res = await fetch(`${API_BASE_URL}/api/employees/${selectedEmp.user_id}/analytics`);
           const data = await res.json();
+          
+          const profileRes = await fetch(`${API_BASE_URL}/api/user-details/${encodeURIComponent(selectedEmp.user_id)}`);
+          const profileData = await profileRes.json();
+          
+          const requestsRes = await fetch(`${API_BASE_URL}/api/leave-requests?userId=${encodeURIComponent(selectedEmp.user_id)}`);
+          const requestsData = await requestsRes.json();
+
           if (isMounted && data.success && data.analytics) {
+            const profile = profileData.profile || {};
+            const requests = requestsData.leaveRequests || [];
+            
+            const replacementTaken = requests
+              .filter((r: any) => (r.leave_type === "Replacement Leave" || r.leave_type === "Cuti Ganti") && (r.status === "Approved" || r.status.startsWith("Approved")))
+              .reduce((sum: number, r: any) => sum + Number(r.days || 0), 0);
+              
+            const replacementAdj = Number(profile.replacement_adj) || 0;
+            const replacementBalance = replacementAdj - replacementTaken;
+
             // Build balances object from analytics
             const balances = {
-              "Annual & Emergency Leave": data.analytics.leave.remaining,
-              "Sick Leave (MC)": data.analytics.leave.sick.balance - data.analytics.leave.sick.taken,
-              "Replacement Leave": 0,
-              "Unpaid Leave": 0
+              "Annual & Emergency Leave": {
+                  entitlement: Number(profile.annual_leave_entitlement) || 14,
+                  balance: data.analytics.leave.remaining,
+                  taken: (Number(profile.annual_leave_entitlement) || 14) - data.analytics.leave.remaining,
+                  adjustments: Number(profile.total_adjustment) || 0,
+              },
+              "Sick Leave (MC)": {
+                  entitlement: Number(profile.medical_leave_entitlement) || 14,
+                  balance: data.analytics.leave.sick.balance - data.analytics.leave.sick.taken,
+                  taken: data.analytics.leave.sick.taken,
+                  adjustments: Number(profile.medical_adj) || 0,
+              },
+              "Replacement Leave": {
+                  entitlement: replacementAdj,
+                  balance: replacementBalance,
+                  taken: replacementTaken,
+                  adjustments: replacementAdj,
+              },
+              "Unpaid Leave": {
+                  entitlement: 0,
+                  balance: 0,
+                  taken: 0,
+                  adjustments: 0,
+              }
             };
             setLeaveBalances(balances);
           }
         } catch (err) {
           console.error("Failed to fetch balance", err);
           if (isMounted) {
-            const fallback = (() => ({ "Annual & Emergency Leave": 14, "Replacement Leave": 0, "Sick Leave (MC)": 14, "Unpaid Leave": 0 }))();
+            const fallback = { "Annual & Emergency Leave": 14, "Replacement Leave": 0, "Sick Leave (MC)": 14, "Unpaid Leave": 0 };
             setLeaveBalances(fallback);
           }
         }
