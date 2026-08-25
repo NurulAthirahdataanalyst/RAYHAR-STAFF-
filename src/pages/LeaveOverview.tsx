@@ -303,7 +303,7 @@ export default function LeaveOverview() {
                     </p>
                   ) : isNoEntitlement ? (
                     <p className="text-[7px] font-black text-foreground uppercase tracking-widest mt-1">
-                      {item.applications} {item.applications === 1 ? 'Application' : 'Applications'}
+                      {item.applications} Application
                     </p>
                   ) : null}
                 </div>
