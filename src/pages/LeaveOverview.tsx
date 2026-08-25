@@ -411,7 +411,7 @@ export default function LeaveOverview() {
       {/* Approval Section */}
       <Card className="border-none shadow-[0_20px_50px_rgba(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.2)] bg-card/80 backdrop-blur-md rounded-[24px] sm:rounded-[32px] overflow-hidden">
         <CardHeader className="border-b border-border/50 pb-4 px-4 sm:px-6">
-          <CardTitle className="text-base sm:text-lg font-black text-foreground">Approval Status Tracker</CardTitle>
+          <CardTitle className="text-base sm:text-lg font-black text-foreground">Approval History</CardTitle>
         </CardHeader>
         <CardContent className="p-4 sm:p-6 space-y-4">
           {filteredLeaveRequests.length > 0 ? (

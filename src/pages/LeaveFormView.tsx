@@ -642,7 +642,7 @@ export default function LeaveFormView() {
                   <div className="space-y-4 pt-4 border-t border-border/50">
                     <div className="flex items-center gap-2 mb-4">
                       <Clock className="w-4 h-4 text-[#7B0099]" />
-                      <h3 className="text-[10px] font-black uppercase tracking-[0.2em]">Approval Status Tracker</h3>
+                      <h3 className="text-[10px] font-black uppercase tracking-[0.2em]">Approval History</h3>
                     </div>
                     <ApprovalStatusTracker 
                       status={selectedForm.status} 

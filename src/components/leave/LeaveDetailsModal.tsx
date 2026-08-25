@@ -310,7 +310,7 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role }: LeaveDetai
                   <div className="space-y-4 pt-4 border-t border-border/50">
                     <div className="flex items-center gap-2">
                       <Clock className="w-4 h-4 text-[#7B0099]" />
-                      <h3 className="text-[10px] font-black uppercase tracking-[0.2em]">Approval History</h3>
+                      <h3 className="text-[10px] font-black uppercase tracking-widest text-[#7B0099]">Approval History</h3>
                     </div>
                     
                     <div className="print:hidden">
