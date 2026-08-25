@@ -28,75 +28,83 @@ export default function NotificationBell() {
   const fetchNotifications = async () => {
     if (!user?.user_id) return;
     try {
-      const res = await fetch(`${API_BASE_URL}/api/notifications?user_id=${user.user_id}`);
-      const data = await res.json();
-      if (data.success) {
-        const readCompanyLeaves = JSON.parse(localStorage.getItem('readCompanyLeaves') || '[]');
-        const deletedCompanyLeaves = JSON.parse(localStorage.getItem('deletedCompanyLeaves') || '[]');
-        
-        const hrNotifs = JSON.parse(localStorage.getItem('hrNotifications') || '[]').filter((n: any) => String(n.user_id) === String(user.user_id) || String(n.user_id) === String(user.employee_id));
-        
-        let tempNotifs: any[] = [];
-        try {
-          const assignmentsRes = await fetch(`${API_BASE_URL}/api/work-assignments-all`);
-          const assignmentsData = await assignmentsRes.json();
-          if (assignmentsData.success) {
-            const myAssignments = assignmentsData.data.filter((a: any) => a.user_id === user.user_id);
-            const now = new Date();
-            now.setHours(0,0,0,0);
-            
-            myAssignments.forEach((a: any) => {
-              const startDate = new Date(a.start_date);
-              const endDate = a.end_date ? new Date(a.end_date) : null;
-              
-              let computedStatus = a.status;
-              if (a.status === 'Complete') { computedStatus = 'Completed'; }
-              else if (a.status === 'Active') {
-                if (endDate && endDate < now) { computedStatus = 'Completed'; }
-                else if (startDate > now) { computedStatus = 'Upcoming'; }
-                else { computedStatus = 'Active'; }
-              }
-              
-              if (computedStatus === 'Active' || computedStatus === 'Upcoming') {
-                const diffTime = startDate.getTime() - now.getTime();
-                const startsTomorrow = diffTime > 0 && diffTime <= 86400000;
-                
-                const fmtDate = (d) => new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
-                
-                const notifId = `temp-${a.id}-${computedStatus}`;
-                tempNotifs.push({
-                  id: notifId,
-                  title: startsTomorrow ? 'Temporary Assignment starts tomorrow' : '?? Temporary Branch Assignment',
-                  message: startsTomorrow 
-                    ? `You are required to clock in at ${a.temp_branch} from ${fmtDate(a.start_date)}.`
-                    : `You are assigned to ${a.temp_branch} from ${fmtDate(a.start_date)}${a.end_date ? ' - ' + fmtDate(a.end_date) : ''}. During this period, please clock in at your assigned branch.`,
-                  type: 'temporary_assignment',
-                  is_read: false,
-                  related_leave_id: null,
-                  created_at: new Date().toISOString()
-                });
-              }
-            });
-          }
-        } catch(e) {}
-
-        const allNotifs = [...data.notifications, ...hrNotifs, ...tempNotifs].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-        const readTempAssignments = JSON.parse(localStorage.getItem('readTempAssignments') || '[]');
-        
-        const mapped = allNotifs
-          .filter((n: any) => !(typeof n.id === 'string' && n.id.startsWith('cl-') && deletedCompanyLeaves.includes(n.id)))
-          .map((n: any) => {
-            if (typeof n.id === 'string' && n.id.startsWith('cl-') && readCompanyLeaves.includes(n.id)) {
-                return { ...n, is_read: true };
-              }
-              if (typeof n.id === 'string' && n.id.startsWith('temp-') && readTempAssignments.includes(n.id)) {
-                return { ...n, is_read: true };
-              }
-            return n;
-          });
-        setNotifications(mapped);
-        setUnreadCount(mapped.filter((n: Notification) => !n.is_read).length);
+      let apiNotifs = [];
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/notifications?user_id=${user.user_id}`);
+        const data = await res.json();
+        if (data.success) {
+          apiNotifs = data.notifications || [];
+        }
+      } catch (err) {
+        console.error("API Notifications fetch failed:", err);
       }
+
+      const readCompanyLeaves = JSON.parse(localStorage.getItem('readCompanyLeaves') || '[]');
+      const deletedCompanyLeaves = JSON.parse(localStorage.getItem('deletedCompanyLeaves') || '[]');
+      
+      const resolvedUserId = user?.user_id || user?.id || user?.employee_id;
+      const hrNotifs = JSON.parse(localStorage.getItem('hrNotifications') || '[]').filter((n: any) => String(n.user_id) === String(resolvedUserId) || String(n.user_id) === String(user?.user_id) || String(n.user_id) === String(user?.employee_id));
+      
+      let tempNotifs: any[] = [];
+      try {
+        const assignmentsRes = await fetch(`${API_BASE_URL}/api/work-assignments-all`);
+        const assignmentsData = await assignmentsRes.json();
+        if (assignmentsData.success) {
+          const myAssignments = assignmentsData.data.filter((a: any) => a.user_id === user.user_id);
+          const now = new Date();
+          now.setHours(0,0,0,0);
+          
+          myAssignments.forEach((a: any) => {
+            const startDate = new Date(a.start_date);
+            const endDate = a.end_date ? new Date(a.end_date) : null;
+            
+            let computedStatus = a.status;
+            if (a.status === 'Complete') { computedStatus = 'Completed'; }
+            else if (a.status === 'Active') {
+              if (endDate && endDate < now) { computedStatus = 'Completed'; }
+              else if (startDate > now) { computedStatus = 'Upcoming'; }
+              else { computedStatus = 'Active'; }
+            }
+            
+            if (computedStatus === 'Active' || computedStatus === 'Upcoming') {
+              const diffTime = startDate.getTime() - now.getTime();
+              const startsTomorrow = diffTime > 0 && diffTime <= 86400000;
+              
+              const fmtDate = (d: string) => new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
+              
+              const notifId = `temp-${a.id}-${computedStatus}`;
+              tempNotifs.push({
+                id: notifId,
+                title: startsTomorrow ? 'Temporary Assignment starts tomorrow' : '🏢 Temporary Branch Assignment',
+                message: startsTomorrow 
+                  ? `You are required to clock in at ${a.temp_branch} from ${fmtDate(a.start_date)}.`
+                  : `You are assigned to ${a.temp_branch} from ${fmtDate(a.start_date)}${a.end_date ? ' - ' + fmtDate(a.end_date) : ''}. During this period, please clock in at your assigned branch.`,
+                type: 'temporary_assignment',
+                is_read: false,
+                related_leave_id: null,
+                created_at: new Date().toISOString()
+              });
+            }
+          });
+        }
+      } catch(e) {}
+
+      const allNotifs = [...apiNotifs, ...hrNotifs, ...tempNotifs].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      const readTempAssignments = JSON.parse(localStorage.getItem('readTempAssignments') || '[]');
+      
+      const mapped = allNotifs
+        .filter((n: any) => !(typeof n.id === 'string' && n.id.startsWith('cl-') && deletedCompanyLeaves.includes(n.id)))
+        .map((n: any) => {
+          if (typeof n.id === 'string' && n.id.startsWith('cl-') && readCompanyLeaves.includes(n.id)) {
+              return { ...n, is_read: true };
+            }
+            if (typeof n.id === 'string' && n.id.startsWith('temp-') && readTempAssignments.includes(n.id)) {
+              return { ...n, is_read: true };
+            }
+          return n;
+        });
+      setNotifications(mapped);
+      setUnreadCount(mapped.filter((n: Notification) => !n.is_read).length);
     } catch (err) {
       console.error("Error fetching notifications:", err);
     }
