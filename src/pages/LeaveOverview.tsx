@@ -267,7 +267,7 @@ export default function LeaveOverview() {
       {/* Leave Balance Cards */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4 w-full">
         {leaveBalances.map((item) => {
-          const isNoEntitlement = item.label === 'Unpaid Leave' || item.label === 'Replacement Leave';
+          const isNoEntitlement = item.label === 'UNPAID LEAVE' || item.label === 'REPLACEMENT LEAVE';
 
           return (
           <Card key={item.label} className="relative overflow-hidden border border-border/40 shadow-[0_4px_16px_rgba(0,0,0,0.03)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.12)] bg-white/90 dark:bg-card/80 backdrop-blur-md rounded-xl group hover:shadow-md transition-all duration-300">
