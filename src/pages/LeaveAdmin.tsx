@@ -651,7 +651,7 @@ export default function LeaveAdmin() {
               </Table>
             </div>
           )}
-          {!loading && totalPages > 1 && (
+          {!loading && filteredRequests.length > 0 && (
             <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-gray-100 dark:border-slate-800 gap-4 bg-slate-50/50 dark:bg-slate-900/50">
                 <div className="flex items-center gap-4 text-[10px] font-bold text-foreground uppercase tracking-widest">
                   <span>TOTAL SHOWING {((currentPage - 1) * itemsPerPage) + 1} TO {Math.min(currentPage * itemsPerPage, filteredRequests.length)} OF {filteredRequests.length} ENTRIES</span>
@@ -670,29 +670,37 @@ export default function LeaveAdmin() {
                     </Select>
                   </div>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex items-center gap-1">
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-8 px-3 text-xs rounded-lg"
+                  className="h-7 px-2 text-[10px] font-bold rounded"
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                   disabled={currentPage === 1}
                 >
-                  <ChevronLeft className="w-4 h-4 mr-1" />
-                  Prev
+                  <ChevronLeft className="w-3.5 h-3.5" />
                 </Button>
-                <div className="flex items-center justify-center min-w-[32px] text-xs font-bold bg-white dark:bg-card border border-border/50 rounded-lg">
-                  {currentPage}
+                <div className="flex items-center gap-1 overflow-x-auto max-w-[150px] sm:max-w-none scrollbar-hide">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
+                    <Button
+                      key={pageNum}
+                      variant={currentPage === pageNum ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={`h-7 w-7 p-0 text-[10px] font-bold rounded ${currentPage === pageNum ? 'bg-[#7B0099] text-white hover:bg-[#680082]' : 'text-foreground'}`}
+                    >
+                      {pageNum}
+                    </Button>
+                  ))}
                 </div>
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-8 px-3 text-xs rounded-lg"
+                  className="h-7 px-2 text-[10px] font-bold rounded"
                   onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages}
+                  disabled={currentPage === totalPages || totalPages === 0}
                 >
-                  Next
-                  <ChevronRight className="w-4 h-4 ml-1" />
+                  <ChevronRight className="w-3.5 h-3.5" />
                 </Button>
               </div>
             </div>

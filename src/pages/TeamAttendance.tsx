@@ -542,7 +542,7 @@ export default function TeamAttendance() {
                 </TableBody>
               </Table>
               </div>
-              {totalPages > 1 && (
+              {filteredList.length > 0 && (
                 <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-gray-100 dark:border-slate-800 gap-4 bg-slate-50/50 dark:bg-slate-900/50">
                   <div className="flex items-center gap-4 text-[10px] font-bold text-foreground uppercase tracking-widest">
                     <span>TOTAL SHOWING {startIndex + 1} TO {Math.min(startIndex + entriesPerPage, filteredList.length)} OF {filteredList.length} ENTRIES</span>
@@ -564,24 +564,24 @@ export default function TeamAttendance() {
                       </Select>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center gap-1">
                     <Button
                       variant="outline"
                       size="sm"
+                      className="h-7 px-2 text-[10px] font-bold rounded"
                       onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                       disabled={currentPage === 1}
-                      className="h-8 px-3 text-xs font-bold"
                     >
-                      Previous
+                      <ChevronLeft className="w-3.5 h-3.5" />
                     </Button>
-                    <div className="flex items-center space-x-1">
+                    <div className="flex items-center gap-1 overflow-x-auto max-w-[150px] sm:max-w-none scrollbar-hide">
                       {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
                         <Button
                           key={pageNum}
                           variant={currentPage === pageNum ? "default" : "outline"}
                           size="sm"
                           onClick={() => setCurrentPage(pageNum)}
-                          className={`h-8 w-8 p-0 text-xs font-bold ${currentPage === pageNum ? 'bg-primary text-primary-foreground' : ''}`}
+                          className={`h-7 w-7 p-0 text-[10px] font-bold rounded ${currentPage === pageNum ? 'bg-[#7B0099] text-white hover:bg-[#680082]' : 'text-foreground'}`}
                         >
                           {pageNum}
                         </Button>
@@ -590,58 +590,15 @@ export default function TeamAttendance() {
                     <Button
                       variant="outline"
                       size="sm"
+                      className="h-7 px-2 text-[10px] font-bold rounded"
                       onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                      disabled={currentPage === totalPages}
-                      className="h-8 px-3 text-xs font-bold"
+                      disabled={currentPage === totalPages || totalPages === 0}
                     >
-                      Next
+                      <ChevronRight className="w-3.5 h-3.5" />
                     </Button>
                   </div>
                 </div>
               )}
-
-
-              <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-gray-100 dark:border-slate-800 gap-4 bg-slate-50/50 dark:bg-slate-900/50">
-                  <div className="flex items-center gap-4 text-[10px] font-bold text-foreground uppercase tracking-widest">
-                    <span>TOTAL SHOWING {startIndex + 1} TO {Math.min(startIndex + entriesPerPage, filteredList.length)} OF {filteredList.length} ENTRIES</span>
-                    <div className="flex items-center gap-2">
-                      <span>Show</span>
-                      <Select value={entriesPerPage.toString()} onValueChange={(val) => { setEntriesPerPage(Number(val)); setCurrentPage(1); }}>
-                        <SelectTrigger className="h-7 text-[10px] font-bold rounded border-border w-[60px]">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="10">10</SelectItem>
-                          <SelectItem value="25">25</SelectItem>
-                          <SelectItem value="50">50</SelectItem>
-                          <SelectItem value="100">100</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-  
-                      <div className="flex items-center gap-1 bg-white dark:bg-card border border-border rounded-xl p-0.5 h-[34px]">
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                          disabled={currentPage === 1}
-                          className="h-6 px-2 text-[10px] font-black text-black hover:text-[#7B0099] hover:bg-[#7B0099]/10"
-                        >
-                          PREV
-                        </Button>
-                        <span className="text-[10px] font-black px-2 text-black">{currentPage} / {totalPages || 1}</span>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.max(1, totalPages)))}
-                          disabled={currentPage >= totalPages || totalPages === 0}
-                          className="h-6 px-2 text-[10px] font-black text-black hover:text-[#7B0099] hover:bg-[#7B0099]/10"
-                        >
-                          NEXT
-                        </Button>
-                      </div>
-              </div>
             </CardContent>
           </Card>
 

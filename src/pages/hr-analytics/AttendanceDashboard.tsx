@@ -1466,7 +1466,7 @@ export default function AttendanceDashboard() {
             </div>
           )}
           
-          {filteredDailyAttendance.length > parseInt(limit) && !loadingDaily && (
+          {filteredDailyAttendance.length > 0 && !loadingDaily && (
             <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-gray-100 dark:border-slate-800 gap-4 bg-slate-50/50 dark:bg-slate-900/50">
               <div className="flex items-center gap-4 text-[10px] font-bold text-foreground uppercase tracking-widest">
                   <span>TOTAL SHOWING {((currentPage - 1) * parseInt(limit)) + 1} TO {Math.min(currentPage * parseInt(limit), filteredDailyAttendance.length)} OF {filteredDailyAttendance.length} ENTRIES</span>

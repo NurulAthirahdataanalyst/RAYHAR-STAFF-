@@ -40,6 +40,8 @@ const TemporaryAssignments = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [entriesPerPage, setEntriesPerPage] = useState(10);
 
   const [selectedAssignment, setSelectedAssignment] = useState<TemporaryAssignment | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
@@ -194,6 +196,14 @@ const TemporaryAssignments = () => {
     return matchesSearch && matchesStatus && matchesRole;
   });
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, statusFilter]);
+
+  const indexOfLastItem = currentPage * entriesPerPage;
+  const indexOfFirstItem = indexOfLastItem - entriesPerPage;
+  const currentAssignments = filteredAssignments.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredAssignments.length / entriesPerPage);
 
   const activeCount = filteredAssignments.filter(a => a.computedStatus === 'Active').length;
   const upcomingCount = filteredAssignments.filter(a => a.computedStatus === 'Upcoming').length;
@@ -296,7 +306,7 @@ const TemporaryAssignments = () => {
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredAssignments.map((assignment) => (
+                currentAssignments.map((assignment) => (
                   <TableRow 
                     key={assignment.id} 
                     className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 cursor-pointer"
@@ -370,6 +380,66 @@ const TemporaryAssignments = () => {
               )}
             </TableBody>
           </Table>
+
+          {filteredAssignments.length > 0 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-gray-100 dark:border-slate-800 gap-4 bg-slate-50/50 dark:bg-slate-900/50">
+              <div className="flex items-center gap-4 text-[10px] font-bold text-foreground uppercase tracking-widest">
+                <span>
+                  TOTAL SHOWING {indexOfFirstItem + 1} TO {Math.min(indexOfLastItem, filteredAssignments.length)} OF {filteredAssignments.length} ENTRIES
+                </span>
+                <div className="flex items-center gap-2">
+                  <span>Show</span>
+                  <Select 
+                    value={entriesPerPage.toString()} 
+                    onValueChange={(val) => { setEntriesPerPage(Number(val)); setCurrentPage(1); }}
+                  >
+                    <SelectTrigger className="h-7 text-[10px] font-bold rounded border-border w-[60px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="25">25</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                      <SelectItem value="100">100</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 px-2 text-[10px] font-bold rounded"
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                </Button>
+                <div className="flex items-center gap-1 overflow-x-auto max-w-[150px] sm:max-w-none scrollbar-hide">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
+                    <Button
+                      key={pageNum}
+                      variant={currentPage === pageNum ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={`h-7 w-7 p-0 text-[10px] font-bold rounded ${currentPage === pageNum ? 'bg-[#a01497] text-white hover:bg-[#850f7c]' : 'text-foreground'}`}
+                    >
+                      {pageNum}
+                    </Button>
+                  ))}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 px-2 text-[10px] font-bold rounded"
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages || totalPages === 0}
+                >
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent>
     </Card>
 
