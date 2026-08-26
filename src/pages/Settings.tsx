@@ -609,15 +609,17 @@ export default function SettingsPage() {
                       </div>
                     </div>
                   </div>
-                  <button 
-                    onClick={() => {
-                      setIsAlertsEnabled(!isAlertsEnabled);
-                      toast.success(`SSE Alerts toggled ${!isAlertsEnabled ? 'ON' : 'OFF'}`);
-                    }}
-                    className={`w-12 h-6 flex items-center rounded-md p-1 transition-all shrink-0 ${isAlertsEnabled ? 'bg-[#7B0099]' : 'bg-muted-foreground/30'}`}
-                  >
-                    <div className={`bg-white dark:bg-card w-4.5 h-4.5 rounded-full shadow-md transform transition-all ${isAlertsEnabled ? 'translate-x-6' : 'translate-x-0'}`} />
-                  </button>
+                  <label className="switch shrink-0">
+                    <input 
+                      type="checkbox" 
+                      checked={isAlertsEnabled}
+                      onChange={(e) => {
+                        setIsAlertsEnabled(e.target.checked);
+                        toast.success(`SSE Alerts toggled ${e.target.checked ? 'ON' : 'OFF'}`);
+                      }} 
+                    />
+                    <span className="slider"></span>
+                  </label>
                 </div>
 
                 {/* Switch Item 2 */}
@@ -650,15 +652,17 @@ export default function SettingsPage() {
                         <SelectItem value="monthly" className="text-[9px] font-black uppercase">Monthly (1st)</SelectItem>
                       </SelectContent>
                     </Select>
-                    <button 
-                      onClick={() => {
-                        setIsSchedulingEnabled(!isSchedulingEnabled);
-                        toast.success(`Weekly Report Schedule toggled ${!isSchedulingEnabled ? 'ON' : 'OFF'}`);
-                      }}
-                      className={`w-12 h-6 flex items-center rounded-md p-1 transition-all ${isSchedulingEnabled ? 'bg-[#7B0099]' : 'bg-muted-foreground/30'}`}
-                    >
-                      <div className={`bg-white dark:bg-card w-4.5 h-4.5 rounded-full shadow-md transform transition-all ${isSchedulingEnabled ? 'translate-x-6' : 'translate-x-0'}`} />
-                    </button>
+                    <label className="switch shrink-0">
+                      <input 
+                        type="checkbox" 
+                        checked={isSchedulingEnabled}
+                        onChange={(e) => {
+                          setIsSchedulingEnabled(e.target.checked);
+                          toast.success(`Weekly Report Schedule toggled ${e.target.checked ? 'ON' : 'OFF'}`);
+                        }} 
+                      />
+                      <span className="slider"></span>
+                    </label>
                   </div>
                 </div>
 
