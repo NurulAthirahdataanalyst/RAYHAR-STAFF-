@@ -126,7 +126,7 @@ export function StaffProfileDialog({
   const fetchTodayStats = async (uid: string) => {
     try {
       const dStr = new Date().toLocaleDateString("en-CA");
-      const res = await fetch(${API_BASE_URL}/api/dashboard-stats?userId=&date=);
+      const res = await fetch(`${API_BASE_URL}/api/dashboard-stats?userId=${uid}&date=${dStr}`);
       const data = await res.json();
       if (data.success && data.stats) {
         setTodayStats(data.stats);

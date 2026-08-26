@@ -389,11 +389,11 @@ export default function OutstationAssignment() {
             <Select value={filterStatus} onValueChange={setFilterStatus}>
               <SelectTrigger className="w-[130px] h-8 text-xs"><SelectValue /></SelectTrigger>
               <SelectContent>
-                          <SelectItem value="10">10</SelectItem>
-                          <SelectItem value="25">25</SelectItem>
-                          <SelectItem value="50">50</SelectItem>
-                          <SelectItem value="100">100</SelectItem>
-                        </SelectContent>
+                <SelectItem value="none" disabled>Select Status</SelectItem>
+                {["All", "Active", "Upcoming", "Completed", "Cancelled"].map(s => (
+                  <SelectItem key={s} value={s}>{s}</SelectItem>
+                ))}
+              </SelectContent>
             </Select>
             {(filterStatus !== "All" || filterSearch || !filterMonthYear) && (
               <Badge className="cursor-pointer bg-gray-100 dark:bg-gray-500/20 text-foreground dark:text-gray-300 text-[10px] border border-gray-200 dark:border-slate-800 dark:border-gray-500/30 hover:bg-gray-200"
@@ -506,11 +506,11 @@ export default function OutstationAssignment() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                          <SelectItem value="10">10</SelectItem>
-                          <SelectItem value="25">25</SelectItem>
-                          <SelectItem value="50">50</SelectItem>
-                          <SelectItem value="100">100</SelectItem>
-                        </SelectContent>
+                      <SelectItem value="5">5</SelectItem>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="25">25</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                    </SelectContent>
                   </Select>
                 </div>
               </div>

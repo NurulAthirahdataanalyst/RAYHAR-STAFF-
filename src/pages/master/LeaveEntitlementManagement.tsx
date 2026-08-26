@@ -719,11 +719,8 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                          <SelectItem value="10">10</SelectItem>
-                          <SelectItem value="25">25</SelectItem>
-                          <SelectItem value="50">50</SelectItem>
-                          <SelectItem value="100">100</SelectItem>
-                        </SelectContent>
+                      {uniqueBranches.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
+                    </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-1.5">
@@ -733,11 +730,8 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                          <SelectItem value="10">10</SelectItem>
-                          <SelectItem value="25">25</SelectItem>
-                          <SelectItem value="50">50</SelectItem>
-                          <SelectItem value="100">100</SelectItem>
-                        </SelectContent>
+                      {uniqueDepts.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                    </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-1.5 md:col-span-2">
@@ -941,11 +935,9 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
                     <Select value={targetLeaveType} onValueChange={setTargetLeaveType}>
                       <SelectTrigger className="bg-white dark:bg-card h-10 text-sm"><SelectValue /></SelectTrigger>
                       <SelectContent>
-                          <SelectItem value="10">10</SelectItem>
-                          <SelectItem value="25">25</SelectItem>
-                          <SelectItem value="50">50</SelectItem>
-                          <SelectItem value="100">100</SelectItem>
-                        </SelectContent>
+                        <SelectItem value="Annual & Emergency Leave">Annual & Emergency Leave</SelectItem>
+                        <SelectItem value="Replacement Leave">Replacement Leave</SelectItem>
+                      </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-1.5">
@@ -953,11 +945,9 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
                     <Select value={otHoursLimit.toString()} onValueChange={(val) => setOtHoursLimit(Number(val))}>
                       <SelectTrigger className="bg-white dark:bg-card h-10 text-sm"><SelectValue /></SelectTrigger>
                       <SelectContent>
-                          <SelectItem value="10">10</SelectItem>
-                          <SelectItem value="25">25</SelectItem>
-                          <SelectItem value="50">50</SelectItem>
-                          <SelectItem value="100">100</SelectItem>
-                        </SelectContent>
+                        <SelectItem value="8">8 Hours Overtime</SelectItem>
+                        <SelectItem value="4">4 Hours Overtime</SelectItem>
+                      </SelectContent>
                     </Select>
                   </div>
                 </div>
@@ -1141,11 +1131,11 @@ function CarryForwardLeaveForm({
               <Select value={leaveType} onValueChange={setLeaveType}>
                 <SelectTrigger className="bg-white dark:bg-card h-10 text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                          <SelectItem value="10">10</SelectItem>
-                          <SelectItem value="25">25</SelectItem>
-                          <SelectItem value="50">50</SelectItem>
-                          <SelectItem value="100">100</SelectItem>
-                        </SelectContent>
+                  <SelectItem value="Annual/Emergency Leave">Annual/Emergency Leave</SelectItem>
+                  <SelectItem value="Replacement Leave">Replacement Leave</SelectItem>
+                  <SelectItem value="Sick Leave">Sick Leave</SelectItem>
+                  <SelectItem value="Unpaid Leave">Unpaid Leave</SelectItem>
+                </SelectContent>
               </Select>
             </div>
             <div className="space-y-1.5">
@@ -1186,11 +1176,8 @@ function CarryForwardLeaveForm({
               <Select value={selectedDept} onValueChange={setSelectedDept}>
                 <SelectTrigger className="bg-white dark:bg-card h-10 text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                          <SelectItem value="10">10</SelectItem>
-                          <SelectItem value="25">25</SelectItem>
-                          <SelectItem value="50">50</SelectItem>
-                          <SelectItem value="100">100</SelectItem>
-                        </SelectContent>
+                  {uniqueDepts.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                </SelectContent>
               </Select>
             </div>
             <div className="space-y-1.5">
@@ -1198,11 +1185,8 @@ function CarryForwardLeaveForm({
               <Select value={selectedBranch} onValueChange={setSelectedBranch}>
                 <SelectTrigger className="bg-white dark:bg-card h-10 text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                          <SelectItem value="10">10</SelectItem>
-                          <SelectItem value="25">25</SelectItem>
-                          <SelectItem value="50">50</SelectItem>
-                          <SelectItem value="100">100</SelectItem>
-                        </SelectContent>
+                  {uniqueBranches.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
+                </SelectContent>
               </Select>
             </div>
             <div className="space-y-1.5">
@@ -1210,11 +1194,10 @@ function CarryForwardLeaveForm({
               <Select value={empType} onValueChange={setEmpType}>
                 <SelectTrigger className="bg-white dark:bg-card h-10 text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                          <SelectItem value="10">10</SelectItem>
-                          <SelectItem value="25">25</SelectItem>
-                          <SelectItem value="50">50</SelectItem>
-                          <SelectItem value="100">100</SelectItem>
-                        </SelectContent>
+                  <SelectItem value="Permanent">Permanent</SelectItem>
+                  <SelectItem value="Contract">Contract</SelectItem>
+                  <SelectItem value="All">All types</SelectItem>
+                </SelectContent>
               </Select>
             </div>
             <div className="space-y-1.5">
@@ -1296,11 +1279,12 @@ function CarryForwardLeaveForm({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                          <SelectItem value="10">10</SelectItem>
-                          <SelectItem value="25">25</SelectItem>
-                          <SelectItem value="50">50</SelectItem>
-                          <SelectItem value="100">100</SelectItem>
-                        </SelectContent>
+                  <SelectItem value="5">5</SelectItem>
+                  <SelectItem value="10">10</SelectItem>
+                  <SelectItem value="25">25</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                  <SelectItem value="100">100</SelectItem>
+                </SelectContent>
               </Select>
               <div className="flex items-center gap-1 ml-2">
                 <Button variant="outline" size="icon" className="h-7 w-7 rounded border-gray-200 dark:border-slate-700" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}><ChevronLeft className="h-4 w-4" /></Button>
@@ -1459,11 +1443,11 @@ function AdditionalLeaveAllocationForm({ employees, onCancel, onRefresh }: { emp
               <Select value={leaveType} onValueChange={setLeaveType}>
                 <SelectTrigger className="bg-white dark:bg-card h-10 text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                          <SelectItem value="10">10</SelectItem>
-                          <SelectItem value="25">25</SelectItem>
-                          <SelectItem value="50">50</SelectItem>
-                          <SelectItem value="100">100</SelectItem>
-                        </SelectContent>
+                  <SelectItem value="Annual/Emergency Leave">Annual/Emergency Leave</SelectItem>
+                  <SelectItem value="Replacement Leave">Replacement Leave</SelectItem>
+                  <SelectItem value="Sick Leave">Sick Leave</SelectItem>
+                  <SelectItem value="Unpaid Leave">Unpaid Leave</SelectItem>
+                </SelectContent>
               </Select>
             </div>
             <div className="space-y-1.5">
@@ -1491,11 +1475,10 @@ function AdditionalLeaveAllocationForm({ employees, onCancel, onRefresh }: { emp
               <Select value={reasonCat} onValueChange={setReasonCat}>
                 <SelectTrigger className="bg-white dark:bg-card h-10 text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                          <SelectItem value="10">10</SelectItem>
-                          <SelectItem value="25">25</SelectItem>
-                          <SelectItem value="50">50</SelectItem>
-                          <SelectItem value="100">100</SelectItem>
-                        </SelectContent>
+                  <SelectItem value="Performance Reward">Performance Reward</SelectItem>
+                  <SelectItem value="Birthday Credit">Birthday Credit</SelectItem>
+                  <SelectItem value="OT Replacement">OT Replacement</SelectItem>
+                </SelectContent>
               </Select>
             </div>
             <div className="space-y-1.5 sm:col-span-2">
@@ -1787,11 +1770,11 @@ function ManualLeaveAdjustmentForm({
             <Select value={leaveType} onValueChange={setLeaveType}>
               <SelectTrigger className="bg-white dark:bg-card h-10 text-sm"><SelectValue /></SelectTrigger>
               <SelectContent>
-                          <SelectItem value="10">10</SelectItem>
-                          <SelectItem value="25">25</SelectItem>
-                          <SelectItem value="50">50</SelectItem>
-                          <SelectItem value="100">100</SelectItem>
-                        </SelectContent>
+                <SelectItem value="Annual/Emergency Leave">Annual/Emergency Leave</SelectItem>
+                  <SelectItem value="Replacement Leave">Replacement Leave</SelectItem>
+                  <SelectItem value="Sick Leave">Sick Leave</SelectItem>
+                  <SelectItem value="Unpaid Leave">Unpaid Leave</SelectItem>
+              </SelectContent>
             </Select>
           </div>
 
@@ -1839,11 +1822,16 @@ function ManualLeaveAdjustmentForm({
             <Select value={reasonCategory} onValueChange={setReasonCategory}>
               <SelectTrigger className="bg-white dark:bg-card h-10 text-sm"><SelectValue /></SelectTrigger>
               <SelectContent>
-                          <SelectItem value="10">10</SelectItem>
-                          <SelectItem value="25">25</SelectItem>
-                          <SelectItem value="50">50</SelectItem>
-                          <SelectItem value="100">100</SelectItem>
-                        </SelectContent>
+                <SelectItem value="Performance Reward">Performance Reward</SelectItem>
+                <SelectItem value="Carry Forward">Carry Forward</SelectItem>
+                <SelectItem value="Manual Correction">Manual Correction</SelectItem>
+                <SelectItem value="Special Approval">Special Approval</SelectItem>
+                <SelectItem value="Compensation">Compensation</SelectItem>
+                <SelectItem value="System Migration">System Migration</SelectItem>
+                <SelectItem value="Payroll Correction">Payroll Correction</SelectItem>
+                <SelectItem value="Disciplinary Deduction">Disciplinary Deduction</SelectItem>
+                <SelectItem value="Other">Other</SelectItem>
+              </SelectContent>
             </Select>
           </div>
 
@@ -2039,11 +2027,12 @@ function SpecialLeaveCreditsForm({ employees, onCancel }: any) {
                 <Select value={leaveCategory} onValueChange={setLeaveCategory}>
                   <SelectTrigger className="bg-white dark:bg-card h-10 text-sm"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                          <SelectItem value="10">10</SelectItem>
-                          <SelectItem value="25">25</SelectItem>
-                          <SelectItem value="50">50</SelectItem>
-                          <SelectItem value="100">100</SelectItem>
-                        </SelectContent>
+                    <SelectItem value="Compassionate Leave">Compassionate Leave</SelectItem>
+                    <SelectItem value="Marriage Leave">Marriage Leave</SelectItem>
+                    <SelectItem value="Paternity Leave">Paternity Leave</SelectItem>
+                    <SelectItem value="Exam Leave">Exam Leave</SelectItem>
+                    <SelectItem value="Birthday Leave">Birthday Leave</SelectItem>
+                  </SelectContent>
                 </Select>
               </div>
               <div className="space-y-1.5">
