@@ -712,7 +712,7 @@ export default function LeaveFormView() {
                       className="gap-2 border-[#7B0099] text-[#7B0099] hover:bg-[#7B0099]/5 rounded-xl font-black text-[10px] uppercase tracking-widest px-6"
                       onClick={() => {
                         const originalTitle = document.title;
-                        const empName = selectedForm?.employee || selectedForm?.name || userName || "UNKNOWN";
+                        const empName = selectedForm?.employee || (selectedForm as any)?.name || userName || "UNKNOWN";
                         const branchCode = selectedForm?.branch || userBranch || "HQ";
                         document.title = `LEAVE REQUEST ( ${empName.toUpperCase()} - ${branchCode.toUpperCase()} )`;
                         window.print();

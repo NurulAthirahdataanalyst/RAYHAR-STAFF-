@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { API_BASE_URL } from "@/config/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Users, Clock, AlertCircle, Building2, CalendarDays, Search, MapPin , X} from 'lucide-react';
+import { Loader2, Users, Clock, AlertCircle, Building2, CalendarDays, Search, MapPin, X, ChevronLeft, ChevronRight } from 'lucide-react';
 
 import PageActions from "@/components/layout/PageActions";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";

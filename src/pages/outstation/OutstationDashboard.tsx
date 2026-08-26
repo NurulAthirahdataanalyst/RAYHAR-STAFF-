@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { 
   Loader2, Plane, TrendingUp, RefreshCw, Clock, 
   MapPin, CheckCircle2, Search, Filter, MoreHorizontal, 
-  AlertCircle, ChevronRight, Activity, Map, ArrowRight,
+  AlertCircle, ChevronRight, ChevronLeft, Activity, Map, ArrowRight,
   User, CheckCircle, Calendar, Zap, Briefcase, Users, RotateCcw
 } from "lucide-react";
 import {
@@ -71,6 +71,8 @@ export default function OutstationDashboard() {
 
   // Table state
   const [search, setSearch] = useState("");
+  const [pageSize, setPageSize] = useState(10);
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     if (!roleLoading && !OUTSTATION_ROLES.includes(role)) navigate("/");

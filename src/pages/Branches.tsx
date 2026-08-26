@@ -40,7 +40,6 @@ import {
   List,
   Plus,
   Search,
-  X,
 } from 'lucide-react';
 import { useEffect, useMemo, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";

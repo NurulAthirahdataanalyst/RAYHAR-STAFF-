@@ -459,7 +459,7 @@ export default function LeaveOverview() {
     <ApprovalStatusTracker 
       status={req.status} 
       approverRole={req.approverRole || ""} 
-      approvalHistory={req.approvalHistory || []}
+      approvalHistory={(req as any).approvalHistory || []}
       branch={(req as any).branch || "HQ"} 
     />
   </div>
