@@ -65,21 +65,29 @@ export const ApprovalHistoryTimeline: React.FC<ApprovalHistoryTimelineProps> = (
 
   if (approvalHistory && approvalHistory.length > 0) {
     displayItems = approvalHistory.map(h => {
-      const isApproved = h.status === 'Approved';
-      const isRejected = h.status === 'Rejected';
+      const isApproved = String(h.status).toLowerCase() === 'approved';
+      const isRejected = String(h.status).toLowerCase() === 'rejected';
       const d = h.created_at ? new Date(h.created_at) : null;
       const dateFormatted = d ? `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}` : "";
       
       const roleText = formatRoleWithContext(h.approver_role, h.approver_department, h.approver_branch);
 
       return {
-        status: isApproved ? 'Approved' : (isRejected ? 'Rejected' : 'Pending'),
+        status: isRejected ? 'Rejected' : (isApproved ? 'Approved' : 'Pending'),
         name: h.approver_name || h.approver_id || "Approver",
         roleLabel: roleText,
         dateStr: dateFormatted,
         remarks: h.remarks,
       };
     });
+
+    // If overall leave status is Rejected, ensure the final approval action is marked as Rejected
+    if (status && status.toLowerCase().startsWith("rejected")) {
+      const hasRejectedItem = displayItems.some(i => i.status === 'Rejected');
+      if (!hasRejectedItem && displayItems.length > 0) {
+        displayItems[displayItems.length - 1].status = 'Rejected';
+      }
+    }
 
     // If overall leave status is still Pending, append current pending step
     if (status && status.startsWith("Pending")) {
@@ -113,8 +121,20 @@ export const ApprovalHistoryTimeline: React.FC<ApprovalHistoryTimelineProps> = (
         roleLabel: defaultApprover,
         dateStr: new Date().toLocaleDateString('en-GB'),
       });
-    } else if (status === 'Rejected') {
-      const rejectRole = approverRole ? formatRoleWithContext(approverRole) : "Management";
+    } else if (status && status.toLowerCase().startsWith('rejected')) {
+      let rejectRole = "Management";
+      const sUpper = status.toUpperCase();
+      if (sUpper.includes("BRANCH LEADER") || approverRole === "branch_leader") {
+        rejectRole = `Branch Leader (${branch})`;
+      } else if (sUpper.includes("HOD") || approverRole === "head_of_department") {
+        rejectRole = "Head of Department";
+      } else if (sUpper.includes("OPERATION") || approverRole === "operation_manager") {
+        rejectRole = "Operation Manager";
+      } else if (sUpper.includes("MD") || approverRole === "managing_director") {
+        rejectRole = "Managing Director";
+      } else if (approverRole) {
+        rejectRole = formatRoleWithContext(approverRole, undefined, branch);
+      }
       displayItems.push({
         status: 'Rejected',
         name: "Management",

@@ -64,8 +64,8 @@ export function ApprovalStatusTracker({ status, approverRole, approvalHistory = 
   if (approvalHistory && approvalHistory.length > 0) {
     // We have actual history items
     items = approvalHistory.map((h) => {
-      const isApproved = h.status === 'Approved';
-      const isRejected = h.status === 'Rejected';
+      const isApproved = String(h.status).toLowerCase() === 'approved';
+      const isRejected = String(h.status).toLowerCase() === 'rejected';
       const dateStr = h.created_at ? new Date(h.created_at).toLocaleDateString('en-GB') : "";
       
       const roleStr = formatRoleName(h.approver_role);
@@ -75,13 +75,20 @@ export function ApprovalStatusTracker({ status, approverRole, approvalHistory = 
       return {
         title: roleStr,
         subtitle: nameStr ? `by ${nameStr}${branchStr}` : undefined,
-        status: isApproved ? 'Approved' : (isRejected ? 'Rejected' : 'Pending'),
+        status: isRejected ? 'Rejected' : (isApproved ? 'Approved' : 'Pending'),
         date: dateStr,
       };
     });
 
+    if (status && status.toLowerCase().startsWith("rejected")) {
+      const hasRejected = items.some(i => i.status === 'Rejected');
+      if (!hasRejected && items.length > 0) {
+        items[items.length - 1].status = 'Rejected';
+      }
+    }
+
     // If still pending, append the pending stage
-    if (status === 'Pending') {
+    if (status && status.toLowerCase().startsWith('pending')) {
       const pendingRole = approverRole ? formatRoleName(approverRole) : "MANAGEMENT";
       items.push({
         title: pendingRole,

@@ -882,6 +882,14 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
 
     // Create an index to make looking up notes by month faster
     await connection.query(`CREATE INDEX IF NOT EXISTS idx_personal_notes_user_date ON personal_notes(user_id, date);`);
+    await connection.query(`CREATE INDEX IF NOT EXISTS idx_attendances_user_clock_in ON attendances(user_id, clock_in DESC);`);
+    await connection.query(`CREATE INDEX IF NOT EXISTS idx_attendances_clock_in ON attendances(clock_in);`);
+    await connection.query(`CREATE INDEX IF NOT EXISTS idx_leave_requests_user_status ON leave_requests(user_id, status);`);
+    await connection.query(`CREATE INDEX IF NOT EXISTS idx_leave_requests_status_dates ON leave_requests(status, start_date, end_date);`);
+    await connection.query(`CREATE INDEX IF NOT EXISTS idx_outstation_user_status ON outstation_assignments(user_id, status);`);
+    await connection.query(`CREATE INDEX IF NOT EXISTS idx_profiles_user_status ON profiles(user_id, status);`);
+    await connection.query(`CREATE INDEX IF NOT EXISTS idx_profiles_status_branch ON profiles(status, branch);`);
+    await connection.query(`CREATE INDEX IF NOT EXISTS idx_profiles_status_dept ON profiles(status, department);`);
     console.log('âœ… Auto-migration for personal_notes completed.');
 
     // Auto-migrate system_settings table
