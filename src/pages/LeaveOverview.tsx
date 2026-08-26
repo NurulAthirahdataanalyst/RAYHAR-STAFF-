@@ -316,7 +316,8 @@ export default function LeaveOverview() {
               </div>
             </CardContent>
           </Card>
-        ))}
+          );
+        })}
       </div>
 
       {/* Leave Requests Table */}
