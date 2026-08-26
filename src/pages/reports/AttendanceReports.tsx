@@ -11,6 +11,7 @@ import PageActions from "@/components/layout/PageActions";
 import { useRole } from "@/contexts/RoleContext";
 import { YearPopover } from "@/components/shared/YearPopover";
 import { MonthPicker } from "@/components/shared/MonthPicker";
+import { CustomDatePicker, TablePagination } from "@/components/common/TablePagination";
 
 const calculateWorkingHours = (clockIn: string | null | undefined, clockOut: string | null | undefined) => {
   if (!clockIn) return "--";
@@ -302,11 +303,11 @@ export default function AttendanceReports() {
           {/* RIGHT: Active Filter Controls (Date/Month Picker, Status Dropdown, Export Button) */}
           <div className="flex flex-wrap items-center gap-3 sm:justify-end">
             {viewType === "day" ? (
-              <input
-                type="date"
+              <CustomDatePicker
                 value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="appearance-none flex items-center justify-between px-4 py-2 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-10 min-w-[140px]"
+                onChange={setDate}
+                displayFormat="DD/MM/YYYY"
+                className="h-10 min-w-[140px] px-4 font-black uppercase text-[11px] tracking-widest bg-white dark:bg-card border-slate-300 dark:border-slate-700"
               />
             ) : viewType === "month" ? (
               <MonthPicker
@@ -558,38 +559,13 @@ export default function AttendanceReports() {
           </CardContent>
 
           {!loading && filteredList.length > 0 && (
-            <div className="flex flex-col gap-3 px-6 py-4 border-t border-slate-200 bg-slate-50 dark:bg-slate-950 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-4 text-[10px] font-bold text-foreground uppercase tracking-widest">
-                <span>
-                  TOTAL SHOWING {filteredList.length === 0 ? 0 : (currentPage - 1) * pageSize + 1} TO {Math.min(currentPage * pageSize, filteredList.length)} OF {filteredList.length} ENTRIES
-                </span>
-              </div>
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                <div className="flex items-center gap-2 text-[10px] font-bold text-foreground uppercase tracking-widest">
-                  <span>Show</span>
-                  <Select value={String(pageSize)} onValueChange={(value) => { setPageSize(Number(value)); setCurrentPage(1); }}>
-                    <SelectTrigger className="h-7 text-[10px] font-bold rounded border-border w-[60px] bg-white dark:bg-slate-900">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="10">10</SelectItem>
-                      <SelectItem value="25">25</SelectItem>
-                      <SelectItem value="50">50</SelectItem>
-                      <SelectItem value="100">100</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
-                  <Button variant="outline" size="sm" disabled={currentPage === 1} onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}>
-                    Prev
-                  </Button>
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-foreground">{currentPage} / {pageCount}</span>
-                  <Button variant="outline" size="sm" disabled={currentPage === pageCount} onClick={() => setCurrentPage((prev) => Math.min(prev + 1, pageCount))}>
-                    Next
-                  </Button>
-                </div>
-              </div>
-            </div>
+            <TablePagination
+              currentPage={currentPage}
+              totalItems={filteredList.length}
+              pageSize={pageSize}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={setPageSize}
+            />
           )}
         </Card>
 

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { ApprovalStatusTracker } from "@/components/leave/ApprovalStatusTracker";
+import { ApprovalHistoryTimeline } from "@/components/leave/ApprovalHistoryTimeline";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -48,6 +48,7 @@ type LeaveForm = {
   id: number;
   employee: string;
   branch: string;
+  phone?: string;
   type: LeaveType;
   from: string;
   to: string;
@@ -505,17 +506,21 @@ export default function LeaveFormView() {
                   <div className="grid grid-cols-2 gap-4 text-xs font-bold">
                     <div className="space-y-1">
                       <span className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50">Nama Penuh</span>
-                      <p className="border-b pb-1 border-border/40 truncate">{selectedForm.employee}</p>
+                      <p className="border-b pb-1 border-border/40 break-words font-bold">{selectedForm.employee}</p>
                     </div>
                     <div className="space-y-1">
                       <span className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50">Cawangan</span>
                       <p className="border-b pb-1 border-border/40">{selectedForm.branch}</p>
                     </div>
                     <div className="space-y-1">
+                      <span className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50">No. Telefon</span>
+                      <p className="border-b pb-1 border-border/40 font-black text-[#7B0099]">{selectedForm.phone || (selectedForm as any).applicant_phone || "-"}</p>
+                    </div>
+                    <div className="space-y-1">
                       <span className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50">Jenis Cuti</span>
                       <p className="border-b pb-1 border-border/40">{selectedForm.type}</p>
                     </div>
-                    <div className="space-y-1">
+                    <div className="space-y-1 col-span-2 sm:col-span-1">
                       <span className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50">Status</span>
                       <p className={`font-black uppercase ${selectedForm.status === "Rejected" ? "text-rose-600" : "text-[#7B0099]"}`}>
                         {selectedForm.status}
@@ -551,9 +556,9 @@ export default function LeaveFormView() {
 
                   <div className="space-y-2">
                     <p className="text-[9px] font-black uppercase text-slate-950 dark:text-slate-50 tracking-widest">Sebab / Tujuan</p>
-                    <p className="rounded-[16px] border border-border/40 p-4 font-bold text-foreground bg-muted/10 text-sm leading-relaxed whitespace-pre-wrap">
+                    <div className="rounded-[16px] border border-border/40 p-4 font-bold text-foreground bg-muted/10 text-sm leading-relaxed whitespace-pre-wrap break-words min-h-[50px]">
                       {getCleanReason(selectedForm.reason) || "-"}
-                    </p>
+                    </div>
                   </div>
 
                    {/* Conditional Fields: Cuti Ganti */}
@@ -653,20 +658,16 @@ export default function LeaveFormView() {
                     </div>
                   </div>
 
-                  {/* Approval History Timeline */}
+                  {/* Approval History Timeline (Vertical Flow) */}
                   <div className="space-y-4 pt-4 border-t border-border/50">
-                    <div className="flex items-center gap-2 mb-4">
-                      <Clock className="w-4 h-4 text-[#7B0099]" />
-                      <h3 className="text-[10px] font-black uppercase tracking-[0.2em]">Approval History</h3>
-                    </div>
-                    <ApprovalStatusTracker 
+                    <ApprovalHistoryTimeline 
                       status={selectedForm.status} 
                       approverRole={selectedForm.approverRole || "HR Admin"} 
                       approvalHistory={selectedForm.approvalHistory}
-                        branch={selectedForm.branch || "HQ"} 
+                      branch={selectedForm.branch || "HQ"} 
                     />
                     
-                    {/* Render remarks below the tracker if they exist */}
+                    {/* Render remarks below the timeline if they exist */}
                     {selectedForm.approvalHistory && selectedForm.approvalHistory.length > 0 && selectedForm.approvalHistory.some(h => h.remarks) && (
                       <div className="mt-4 space-y-2">
                         {selectedForm.approvalHistory.filter(h => h.remarks).map((history, idx) => (

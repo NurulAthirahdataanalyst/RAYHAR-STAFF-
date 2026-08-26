@@ -3,6 +3,7 @@ import { format, isSameDay, startOfMonth, endOfMonth, startOfWeek, endOfWeek, ea
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
 import { exportToCSV } from "@/utils/export";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { CustomDatePicker, CustomTimePicker } from "@/components/common/TablePagination";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRole } from "@/contexts/RoleContext";
 import { useLocation } from "react-router-dom";
@@ -1531,21 +1532,19 @@ export default function Calendar() {
                   <label className="w-16 text-xs font-bold text-foreground uppercase tracking-wider">Starts</label>
                   <div className="flex-1 flex gap-2">
                     <div className="relative flex-1">
-                      <input
-                        type="date"
-                        required
-                        className="w-full bg-background border border-border rounded-xl px-3 py-2 text-[13px] sm:text-sm text-foreground focus:outline-none focus:border-[#FFFE00] focus:ring-1 focus:ring-[#FFFE00] transition-all"
+                      <CustomDatePicker
                         value={startDate}
-                        onChange={e => setStartDate(e.target.value)}
+                        onChange={setStartDate}
+                        displayFormat="DD/MM/YYYY"
+                        className="w-full"
                       />
                     </div>
                     {!isAllDay && (
                       <div className="relative flex-1">
-                        <input
-                          type="time"
-                          className="w-full bg-background border border-border rounded-xl px-3 py-2 text-[13px] sm:text-sm text-foreground focus:outline-none focus:border-[#FFFE00] focus:ring-1 focus:ring-[#FFFE00] transition-all"
+                        <CustomTimePicker
                           value={startTime}
-                          onChange={e => setStartTime(e.target.value)}
+                          onChange={setStartTime}
+                          className="w-full"
                         />
                       </div>
                     )}
@@ -1556,21 +1555,19 @@ export default function Calendar() {
                   <label className="w-16 text-xs font-bold text-foreground uppercase tracking-wider">Ends</label>
                   <div className="flex-1 flex gap-2">
                     <div className="relative flex-1">
-                      <input
-                        type="date"
-                        required
-                        className="w-full bg-background border border-border rounded-xl px-3 py-2 text-[13px] sm:text-sm text-foreground focus:outline-none focus:border-[#FFFE00] focus:ring-1 focus:ring-[#FFFE00] transition-all"
+                      <CustomDatePicker
                         value={endDate}
-                        onChange={e => setEndDate(e.target.value)}
+                        onChange={setEndDate}
+                        displayFormat="DD/MM/YYYY"
+                        className="w-full"
                       />
                     </div>
                     {!isAllDay && (
                       <div className="relative flex-1">
-                        <input
-                          type="time"
-                          className="w-full bg-background border border-border rounded-xl px-3 py-2 text-[13px] sm:text-sm text-foreground focus:outline-none focus:border-[#FFFE00] focus:ring-1 focus:ring-[#FFFE00] transition-all"
+                        <CustomTimePicker
                           value={endTime}
-                          onChange={e => setEndTime(e.target.value)}
+                          onChange={setEndTime}
+                          className="w-full"
                         />
                       </div>
                     )}

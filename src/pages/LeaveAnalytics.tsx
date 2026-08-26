@@ -963,8 +963,8 @@ export default function LeaveAnalytics() {
 
   const attentionEmployees = useMemo(() => {
     return [...staffSummary]
-      .sort((a, b) => b.days - a.days)
-      .slice(0, 5)
+      .sort((a, b) => b.days - a.days || a.name.localeCompare(b.name))
+      .slice(0, 6)
       .map(s => ({
         id: s.id,
         name: s.name,

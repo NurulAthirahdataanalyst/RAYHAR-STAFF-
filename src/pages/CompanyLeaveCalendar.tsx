@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Search } from "lucide-react";
+import { TablePagination } from "@/components/leave/ApprovalHistoryTimeline";
 import { API_BASE_URL } from "@/config/api";
 
 interface CompanyLeave {
@@ -41,6 +42,141 @@ const CompanyLeaveCalendar = () => {
   const [branchesList, setBranchesList] = useState<any[]>([]);
   const [departmentsList, setDepartmentsList] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  
+  // Only hr_admin gets CRUD access. Others view only.
+  const isHR = role === 'hr_admin';
+
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [branchSearch, setBranchSearch] = useState('');
+  const [deptSearch, setDeptSearch] = useState('');
+  
+  const [formData, setFormData] = useState<Partial<CompanyLeave>>({
+    leave_name: '',
+    leave_type: 'Holiday',
+    start_date: '',
+    end_date: '',
+    applies_to: 'all',
+    branch_id: '',
+    department_id: '',
+    is_paid: true,
+    attendance_required: false,
+    status: 'Active',
+    remarks: ''
+  });
+
+  const fetchLeaves = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/company-leaves`);
+      const data = await res.json();
+      if (data.success) {
+        setLeaves(data.leaves);
+      }
+      
+      const bRes = await fetch(`${API_BASE_URL}/api/branches`);
+      const bData = await bRes.json();
+      if (bData.success) setBranchesList(bData.branches);
+      
+      const dRes = await fetch(`${API_BASE_URL}/api/departments`);
+      const dData = await dRes.json();
+      if (dData.success) setDepartmentsList(dData.departments);
+      
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to fetch data", variant: "destructive" });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLeaves();
+  }, []);
+
+  const handleOpenDialog = (leave?: CompanyLeave) => {
+    if (leave) {
+      setEditingId(leave.id);
+      setFormData({
+        ...leave,
+        start_date: leave.start_date.split('T')[0],
+        end_date: leave.end_date.split('T')[0],
+      });
+    } else {
+      setEditingId(null);
+      setFormData({
+        leave_name: '',
+        leave_type: 'Holiday',
+        start_date: new Date().toISOString().split('T')[0],
+        end_date: new Date().toISOString().split('T')[0],
+        applies_to: 'all',
+        branch_id: '',
+        department_id: '',
+        is_paid: true,
+        attendance_required: false,
+        status: 'Active',
+        remarks: ''
+      });
+    }
+    setBranchSearch('');
+    setDeptSearch('');
+    setIsDialogOpen(true);
+  };
+
+  const handleSave = async () => {
+    if (!formData.leave_name || !formData.start_date || !formData.end_date) {
+      toast({ title: "Error", description: "Name, start date, and end date are required.", variant: "destructive" });
+      return;
+    }
+    if (!formData.leave_type) {
+      toast({ title: "Error", description: "Please select a Leave Type.", variant: "destructive" });
+import { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useRole } from "@/contexts/RoleContext";
+import { useToast } from "@/hooks/use-toast";
+import PageHeader from "@/components/layout/PageHeader";
+import PageActions from "@/components/layout/PageActions";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Calendar as CalendarIcon, Plus, Trash2, Edit2, ShieldAlert , X} from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import { Search } from "lucide-react";
+import { TablePagination } from "@/components/leave/ApprovalHistoryTimeline";
+import { API_BASE_URL } from "@/config/api";
+
+interface CompanyLeave {
+  id: number;
+  leave_name: string;
+  leave_type: string;
+  start_date: string;
+  end_date: string;
+  applies_to: string;
+  branch_id?: string;
+  department_id?: string;
+  is_paid: boolean;
+  attendance_required: boolean;
+  status: string;
+  remarks?: string;
+  created_by?: string;
+}
+
+const CompanyLeaveCalendar = () => {
+  const { role } = useRole();
+  const { user } = useAuth();
+  const { toast } = useToast();
+  
+  const [leaves, setLeaves] = useState<CompanyLeave[]>([]);
+  const [branchesList, setBranchesList] = useState<any[]>([]);
+  const [departmentsList, setDepartmentsList] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
   
   // Only hr_admin gets CRUD access. Others view only.
   const isHR = role === 'hr_admin';
@@ -174,6 +310,12 @@ const CompanyLeaveCalendar = () => {
 
   return (
     <div className="space-y-6">
+      <PageHeader
+        icon={CalendarIcon}
+        title="Company Leave Calendar"
+        description="Manage organization-wide holidays and company leave schedules."
+      />
+
       {!isHR && (
         <div className="bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 p-4 rounded-lg flex items-start gap-3 border border-blue-200 dark:border-blue-800">
           <ShieldAlert className="w-5 h-5 shrink-0 mt-0.5" />
@@ -215,7 +357,7 @@ const CompanyLeaveCalendar = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {leaves.map((leave) => (
+                  {leaves.slice((page - 1) * limit, page * limit).map((leave) => (
                     <tr key={leave.id} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
                       <td className="px-4 py-3 font-medium">{leave.leave_name}</td>
                       <td className="px-4 py-3 text-foreground whitespace-nowrap">
@@ -261,6 +403,16 @@ const CompanyLeaveCalendar = () => {
               </table>
             </div>
           )}
+
+          {!isLoading && leaves.length > 0 && (
+            <TablePagination
+              currentPage={page}
+              totalItems={leaves.length}
+              pageSize={limit}
+              onPageChange={setPage}
+              onPageSizeChange={setLimit}
+            />
+          )}
         </CardContent>
       </Card>
 
@@ -291,7 +443,6 @@ const CompanyLeaveCalendar = () => {
                     setFormData(prev => ({
                       ...prev,
                       start_date: newStart,
-                      // auto-correct end date if it would be before new start
                       end_date: prev.end_date && prev.end_date < newStart ? newStart : prev.end_date
                     }));
                   }}
@@ -300,7 +451,7 @@ const CompanyLeaveCalendar = () => {
               <div className="grid gap-2">
                 <Label>End Date</Label>
                 <Input 
-                  type="date"
+                  type="date" 
                   min={formData.start_date || undefined}
                   value={formData.end_date} 
                   onChange={(e) => setFormData({ ...formData, end_date: e.target.value })} 

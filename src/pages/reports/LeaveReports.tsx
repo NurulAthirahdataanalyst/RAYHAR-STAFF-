@@ -11,6 +11,7 @@ import { ExportDropdown } from "@/components/shared/ExportDropdown";
 import PageActions from "@/components/layout/PageActions";
 import { YearPopover } from "@/components/shared/YearPopover";
 import { MonthPicker } from "@/components/shared/MonthPicker";
+import { CustomDatePicker, TablePagination } from "@/components/common/TablePagination";
 
 const formatDate = (value: string) => (value ? value.slice(0, 10) : "");
 
@@ -177,11 +178,11 @@ export default function LeaveReports() {
           {/* RIGHT: Active Filter Controls (Date/Month Picker, Export Button) */}
           <div className="flex flex-wrap gap-2 items-center sm:justify-end">
             {viewType === "day" ? (
-              <input
-                type="date"
+              <CustomDatePicker
                 value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="appearance-none flex items-center justify-between px-4 py-2 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-10 min-w-[140px]"
+                onChange={setDate}
+                displayFormat="DD/MM/YYYY"
+                className="h-10 min-w-[140px] px-4 font-black uppercase text-[11px] tracking-widest bg-white dark:bg-card border-slate-300 dark:border-slate-700"
               />
             ) : viewType === "month" ? (
               <MonthPicker
@@ -317,42 +318,15 @@ export default function LeaveReports() {
             )}
           </CardContent>
 
-            <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-gray-100 dark:border-slate-800 gap-4 bg-slate-50/50 dark:bg-slate-900/50">
-              <div className="flex items-center gap-4 text-[10px] font-bold text-foreground uppercase tracking-widest">
-                <span>TOTAL SHOWING {filteredList.length === 0 ? 0 : (currentPage - 1) * pageSize + 1} TO {Math.min(currentPage * pageSize, filteredList.length)} OF {filteredList.length} ENTRIES</span>
-                <div className="flex items-center gap-2">
-                  <span>Show</span>
-                  <Select value={pageSize.toString()} onValueChange={(val) => { setPageSize(Number(val)); setCurrentPage(1); }}>
-                    <SelectTrigger className="h-7 text-[10px] font-bold rounded border-border w-[60px]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="10">10</SelectItem>
-                      <SelectItem value="25">25</SelectItem>
-                      <SelectItem value="50">50</SelectItem>
-                      <SelectItem value="100">100</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  disabled={currentPage === 1}
-                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                  className="h-8 px-3 text-xs font-bold border border-slate-300 dark:border-slate-700 rounded-md bg-white dark:bg-slate-900 text-foreground disabled:opacity-40 hover:bg-slate-100 dark:hover:bg-slate-800"
-                >
-                  Prev
-                </button>
-                <span className="text-[10px] font-bold text-foreground uppercase">{currentPage} / {pageCount}</span>
-                <button
-                  disabled={currentPage === pageCount}
-                  onClick={() => setCurrentPage(p => Math.min(pageCount, p + 1))}
-                  className="h-8 px-3 text-xs font-bold border border-slate-300 dark:border-slate-700 rounded-md bg-white dark:bg-slate-900 text-foreground disabled:opacity-40 hover:bg-slate-100 dark:hover:bg-slate-800"
-                >
-                  Next
-                </button>
-              </div>
-            </div>
+          {!loading && filteredList.length > 0 && (
+            <TablePagination
+              currentPage={currentPage}
+              totalItems={filteredList.length}
+              pageSize={pageSize}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={setPageSize}
+            />
+          )}
         </Card>
 
       </div>

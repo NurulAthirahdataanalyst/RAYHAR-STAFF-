@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { TablePagination } from "@/components/common/TablePagination";
 import { Input } from "@/components/ui/input";
 import {
   Dialog,
@@ -1466,76 +1467,14 @@ export default function Branches() {
 
           {/* ── Pagination Bar ── */}
           {!loadingBranches && filteredBranches.length > 0 && viewMode === "line" && (
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-1 pt-2">
-              {/* Rows per page */}
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-foreground uppercase tracking-wider">Rows per page</span>
-                <div className="flex items-center gap-1">
-                  {[10, 15, 25, 50].map((size) => (
-                    <button
-                      key={size}
-                      onClick={() => setPageSize(size)}
-                      className={`h-7 min-w-[32px] px-2 rounded-md text-xs font-black transition-all duration-150 ${
-                        pageSize === size
-                          ? "bg-[#7B0099] text-white shadow"
-                          : "bg-muted/40 text-foreground hover:bg-muted/70 hover:text-foreground border border-border/40"
-                      }`}
-                    >
-                      {size}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Page info + nav */}
-              <div className="flex items-center gap-3">
-                <span className="text-xs font-bold text-foreground">
-                  {Math.min((currentPage - 1) * pageSize + 1, filteredBranches.length)}–{Math.min(currentPage * pageSize, filteredBranches.length)} of {filteredBranches.length}
-                </span>
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                    disabled={currentPage === 1}
-                    className="h-7 w-7 rounded-md flex items-center justify-center text-xs font-black bg-muted/40 border border-border/40 hover:bg-muted/70 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-                    aria-label="Previous page"
-                  >
-                    ‹
-                  </button>
-                  {/* Page number pills */}
-                  {Array.from({ length: totalPages }, (_, i) => i + 1)
-                    .filter((p) => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
-                    .reduce<(number | "...")[]>((acc, p, idx, arr) => {
-                      if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push("...");
-                      acc.push(p);
-                      return acc;
-                    }, [])
-                    .map((item, idx) =>
-                      item === "..." ? (
-                        <span key={`ellipsis-${idx}`} className="text-xs text-foreground px-1">…</span>
-                      ) : (
-                        <button
-                          key={item}
-                          onClick={() => setCurrentPage(item as number)}
-                          className={`h-7 min-w-[28px] px-1.5 rounded-md text-xs font-black transition-all duration-150 ${
-                            currentPage === item
-                              ? "bg-[#7B0099] text-white shadow"
-                              : "bg-muted/40 text-foreground hover:bg-muted/70 hover:text-foreground border border-border/40"
-                          }`}
-                        >
-                          {item}
-                        </button>
-                      )
-                    )}
-                  <button
-                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                    disabled={currentPage === totalPages}
-                    className="h-7 w-7 rounded-md flex items-center justify-center text-xs font-black bg-muted/40 border border-border/40 hover:bg-muted/70 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-                    aria-label="Next page"
-                  >
-                    ›
-                  </button>
-                </div>
-              </div>
+            <div className="mt-4 rounded-xl overflow-hidden border border-border/50">
+              <TablePagination
+                currentPage={currentPage}
+                totalItems={filteredBranches.length}
+                pageSize={pageSize}
+                onPageChange={setCurrentPage}
+                onPageSizeChange={setPageSize}
+              />
             </div>
           )}
         </div>

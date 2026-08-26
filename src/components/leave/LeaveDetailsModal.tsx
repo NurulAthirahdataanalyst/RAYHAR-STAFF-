@@ -6,7 +6,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { ApprovalStatusTracker } from "@/components/leave/ApprovalStatusTracker";
+import { ApprovalHistoryTimeline } from "@/components/leave/ApprovalHistoryTimeline";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -142,17 +142,21 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role }: LeaveDetai
                 <div className="grid grid-cols-2 gap-4 text-xs font-bold">
                   <div className="space-y-1">
                     <span className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50">Nama Penuh</span>
-                    <p className="border-b pb-1 border-border/40 truncate">{selectedRequest.employee}</p>
+                    <p className="border-b pb-1 border-border/40 break-words font-bold">{selectedRequest.employee || (selectedRequest as any).full_name}</p>
                   </div>
                   <div className="space-y-1">
                     <span className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50">Cawangan</span>
                     <p className="border-b pb-1 border-border/40">{selectedRequest.branch}</p>
                   </div>
                   <div className="space-y-1">
+                    <span className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50">No. Telefon</span>
+                    <p className="border-b pb-1 border-border/40 font-black text-[#7B0099]">{selectedRequest.phone || (selectedRequest as any).applicant_phone || "-"}</p>
+                  </div>
+                  <div className="space-y-1">
                     <span className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50">Jenis Cuti</span>
                     <p className="border-b pb-1 border-border/40">{selectedRequest.type}</p>
                   </div>
-                  <div className="space-y-1">
+                  <div className="space-y-1 col-span-2 sm:col-span-1">
                     <span className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50">Status</span>
                     <p className={`font-black uppercase ${selectedRequest.status === "Rejected" ? "text-rose-600" : "text-[#7B0099]"}`}>
                       {selectedRequest.status}
@@ -188,9 +192,9 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role }: LeaveDetai
 
                 <div className="space-y-2">
                   <p className="text-[9px] font-black uppercase text-slate-950 dark:text-slate-50 tracking-widest">Sebab / Tujuan</p>
-                  <p className="rounded-[16px] border border-border/40 p-4 font-bold text-foreground bg-muted/10 text-sm leading-relaxed whitespace-pre-wrap">
+                  <div className="rounded-[16px] border border-border/40 p-4 font-bold text-foreground bg-muted/10 text-sm leading-relaxed whitespace-pre-wrap break-words min-h-[50px]">
                     {getCleanReason(selectedRequest.reason) || "-"}
-                  </p>
+                  </div>
                 </div>
 
                 {(selectedRequest.type === "Replacement Leave" || selectedRequest.type === "Cuti Ganti") && (() => {
@@ -320,20 +324,16 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role }: LeaveDetai
                   </div>
                 )}
 
-                {/* Approval History Timeline */}
+                {/* Approval History Timeline (Vertical Flow) */}
                 <div className="space-y-4 pt-4 border-t border-border/50">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Clock className="w-4 h-4 text-[#7B0099]" />
-                    <h3 className="text-[10px] font-black uppercase tracking-[0.2em]">Approval History</h3>
-                  </div>
-                  <ApprovalStatusTracker 
+                  <ApprovalHistoryTimeline 
                     status={selectedRequest.status} 
                     approverRole={selectedRequest.approverRole || (selectedRequest.approvalHistory && selectedRequest.approvalHistory.length > 0 ? selectedRequest.approvalHistory[selectedRequest.approvalHistory.length - 1].approver_role : "")} 
                     approvalHistory={selectedRequest.approvalHistory}
                     branch={selectedRequest.branch || "HQ"} 
                   />
                   
-                  {/* Render remarks below the tracker if they exist */}
+                  {/* Render remarks below the timeline if they exist */}
                   {selectedRequest.approvalHistory && selectedRequest.approvalHistory.length > 0 && selectedRequest.approvalHistory.some((h: any) => h.remarks) && (
                     <div className="mt-4 space-y-2">
                       {selectedRequest.approvalHistory.filter((h: any) => h.remarks).map((history: any, idx: number) => (

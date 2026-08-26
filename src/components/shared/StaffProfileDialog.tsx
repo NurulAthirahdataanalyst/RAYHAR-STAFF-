@@ -651,7 +651,11 @@ export function StaffProfileDialog({
                             📍 Clock In
                           </span>
                           <span className="font-bold text-slate-800 dark:text-slate-200">
-                            {todayStats?.clockInTime || "--:--"}
+                            {todayStats?.todayStatus === "On Leave" || todayStats?.todayStatus === "Absent" || todayStats?.todayStatus === "Rest Day"
+                              ? "--"
+                              : (todayStats?.clockInTime && todayStats.clockInTime !== "--:--")
+                              ? todayStats.clockInTime
+                              : "--"}
                           </span>
                         </div>
 
@@ -660,7 +664,9 @@ export function StaffProfileDialog({
                             📍 Clock Out
                           </span>
                           <span className="font-bold text-slate-800 dark:text-slate-200">
-                            {todayStats?.clockOutTime || "--:--"}
+                            {(todayStats?.clockOutTime && todayStats.clockOutTime !== "--:--")
+                              ? todayStats.clockOutTime
+                              : "--"}
                           </span>
                         </div>
 
@@ -682,24 +688,24 @@ export function StaffProfileDialog({
                             📌 Location
                           </span>
                           <span className="font-bold text-slate-800 dark:text-slate-200 truncate max-w-[140px]" title={
-                            todayStats?.isOutstationToday
-                              ? (todayStats.outstationDestination ? `Outstation (${todayStats.outstationDestination})` : "Outstation")
+                            todayStats?.todayStatus === "On Leave"
+                              ? "--"
+                              : todayStats?.isOutstationToday
+                              ? "Outstation"
                               : todayStats?.activeTemporaryAssignment
                               ? (BRANCH_NAMES[todayStats.activeTemporaryAssignment.location] || todayStats.activeTemporaryAssignment.location)
-                              : todayStats?.attendanceLocation
-                              ? (BRANCH_NAMES[todayStats.attendanceLocation] || todayStats.attendanceLocation)
-                              : selectedEmployee?.branch
-                              ? `Permanent Branch`
+                              : (todayStats?.clockInTime && todayStats.clockInTime !== "--:--")
+                              ? (todayStats?.attendanceLocation ? (BRANCH_NAMES[todayStats.attendanceLocation] || todayStats.attendanceLocation) : "Permanent Branch")
                               : "--"
                           }>
-                            {todayStats?.isOutstationToday
-                              ? (todayStats.outstationDestination ? `Outstation (${todayStats.outstationDestination})` : "Outstation")
+                            {todayStats?.todayStatus === "On Leave"
+                              ? "--"
+                              : todayStats?.isOutstationToday
+                              ? "Outstation"
                               : todayStats?.activeTemporaryAssignment
                               ? (BRANCH_NAMES[todayStats.activeTemporaryAssignment.location] || todayStats.activeTemporaryAssignment.location)
-                              : todayStats?.attendanceLocation
-                              ? (BRANCH_NAMES[todayStats.attendanceLocation] || todayStats.attendanceLocation)
-                              : selectedEmployee?.branch
-                              ? `Permanent Branch`
+                              : (todayStats?.clockInTime && todayStats.clockInTime !== "--:--")
+                              ? (todayStats?.attendanceLocation ? (BRANCH_NAMES[todayStats.attendanceLocation] || todayStats.attendanceLocation) : "Permanent Branch")
                               : "--"}
                           </span>
                         </div>
@@ -710,12 +716,12 @@ export function StaffProfileDialog({
                           <span className="text-[10px] font-bold text-foreground">Status:</span>
                           <span className="flex items-center gap-1 text-xs font-bold text-slate-800 dark:text-slate-200">
                             <span className={`w-2 h-2 rounded-full ${
-                              todayStats?.todayStatus?.includes("Present") ? "bg-emerald-500" :
+                              todayStats?.todayStatus?.includes("Present") || todayStats?.todayStatus?.includes("Clocked Out") ? "bg-emerald-500" :
                               todayStats?.todayStatus?.includes("On Leave") ? "bg-purple-500" :
                               todayStats?.todayStatus?.includes("Outstation") ? "bg-blue-500" :
                               todayStats?.todayStatus?.includes("Rest Day") ? "bg-slate-400" : "bg-rose-500"
                             }`} />
-                            {todayStats?.todayStatus || "Absent"}
+                            {todayStats?.todayStatus ? todayStats.todayStatus.replace(/\(.*?\)/g, '').trim() : "Absent"}
                           </span>
                         </div>
 

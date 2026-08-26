@@ -29,6 +29,7 @@ export type LeaveRequest = {
   formFileName: string;
   approverRole?: string;
   attachmentName?: string;
+  phone?: string;
   waris_nama?: string;
   waris_phone?: string;
   waris_alamat?: string;

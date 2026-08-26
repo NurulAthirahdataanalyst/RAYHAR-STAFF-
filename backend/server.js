@@ -505,10 +505,8 @@ async function generateAndSaveLeaveFormPDF(leaveId) {
               'id', la.id,
               'approver_id', la.approver_id,
               'approver_role', la.approver_role,
-              'status', la.status,
-              'remarks', la.remarks,
               'created_at', la.created_at,
-              'approver_name', p2.full_name,
+              'approver_name', COALESCE(p2.full_name, p2.name, la.approver_id),
               'approver_department', p2.department,
               'approver_branch', p2.branch
             ) ORDER BY la.created_at ASC
@@ -516,7 +514,8 @@ async function generateAndSaveLeaveFormPDF(leaveId) {
           FROM leave_approvals la
           LEFT JOIN profiles p2 ON p2.user_id = la.approver_id
           WHERE la.leave_id = lr.leave_id
-        ) as approval_history
+        ) as approval_history,
+        COALESCE(lr.phone, p.phone, '') AS applicant_phone
        FROM leave_requests lr 
        JOIN profiles p ON p.user_id = lr.user_id 
        WHERE lr.leave_id = ?`,
@@ -524,13 +523,14 @@ async function generateAndSaveLeaveFormPDF(leaveId) {
     );
 
     if (rows.length === 0) {
-      console.error(`âŒ Leave request ${leaveId} not found for PDF generation.`);
+      console.error(`❌ Leave request ${leaveId} not found for PDF generation.`);
       return;
     }
 
     const leave = rows[0];
     const employeeName = leave.full_name || leave.user_id;
     const employeeBranch = leave.branch || "HQ";
+    const applicantPhone = leave.applicant_phone || leave.phone || "N/A";
     const appliedAt = leave.created_at || new Date().toISOString();
     
     const submitDate = appliedAt instanceof Date 
@@ -569,74 +569,90 @@ async function generateAndSaveLeaveFormPDF(leaveId) {
       const rightCol = 330;
 
       // Row 1: Nama Penuh & Cawangan
-      doc.fontSize(8).font("Helvetica-Bold").fillColor("#555555").text("NAMA PENUH", leftCol, 108);
-      doc.fontSize(9).font("Helvetica-Bold").fillColor("#111111").text(employeeName.toUpperCase(), leftCol, 120);
+      doc.fontSize(8).font("Helvetica-Bold").fillColor("#555555").text("NAMA PENUH", leftCol, 105);
+      doc.fontSize(9).font("Helvetica-Bold").fillColor("#111111").text(employeeName.toUpperCase(), leftCol, 116, { width: 250 });
 
-      doc.fontSize(8).font("Helvetica-Bold").fillColor("#555555").text("CAWANGAN", rightCol, 108);
-      doc.fontSize(9).font("Helvetica-Bold").fillColor("#111111").text(employeeBranch.toUpperCase(), rightCol, 120);
+      doc.fontSize(8).font("Helvetica-Bold").fillColor("#555555").text("CAWANGAN", rightCol, 105);
+      doc.fontSize(9).font("Helvetica-Bold").fillColor("#111111").text(employeeBranch.toUpperCase(), rightCol, 116);
 
-      // Row 2: Jenis Cuti & Status
-      doc.fontSize(8).font("Helvetica-Bold").fillColor("#555555").text("JENIS CUTI", leftCol, 140);
-      doc.fontSize(9).font("Helvetica-Bold").fillColor("#111111").text(leave.leave_type, leftCol, 152);
+      // Row 2: No. Telefon & Jenis Cuti
+      doc.fontSize(8).font("Helvetica-Bold").fillColor("#555555").text("NO. TELEFON", leftCol, 134);
+      doc.fontSize(9).font("Helvetica-Bold").fillColor("#111111").text(applicantPhone, leftCol, 145);
 
-      doc.fontSize(8).font("Helvetica-Bold").fillColor("#555555").text("STATUS", rightCol, 140);
+      doc.fontSize(8).font("Helvetica-Bold").fillColor("#555555").text("JENIS CUTI", rightCol, 134);
+      doc.fontSize(9).font("Helvetica-Bold").fillColor("#111111").text(leave.leave_type, rightCol, 145);
+
+      // Row 3: Status
+      doc.fontSize(8).font("Helvetica-Bold").fillColor("#555555").text("STATUS", leftCol, 163);
       
       const statusText = (leave.status || "PENDING").toUpperCase();
       let statusColor = "#111111";
       if (statusText === "APPROVED") statusColor = "#137333";
       else if (statusText === "REJECTED") statusColor = "#c5221f";
-      doc.fontSize(9).font("Helvetica-Bold").fillColor(statusColor).text(statusText, rightCol, 152);
+      doc.fontSize(9).font("Helvetica-Bold").fillColor(statusColor).text(statusText, leftCol, 174);
 
       // Divider Line under main info
-      doc.moveTo(40, 175).lineTo(572, 175).strokeColor("#cccccc").lineWidth(1).stroke();
+      doc.moveTo(40, 195).lineTo(572, 195).strokeColor("#cccccc").lineWidth(1).stroke();
 
       // Date Range Box
-      doc.rect(55, 185, 502, 45).strokeColor("#000000").lineWidth(1).stroke();
+      let curY = 205;
+      doc.rect(55, curY, 502, 45).strokeColor("#000000").lineWidth(1).stroke();
 
       const startDateStr = leave.start_date instanceof Date ? leave.start_date.toISOString().slice(0, 10) : String(leave.start_date).slice(0, 10);
       const endDateStr = leave.end_date instanceof Date ? leave.end_date.toISOString().slice(0, 10) : String(leave.end_date).slice(0, 10);
 
-      doc.fontSize(8).font("Helvetica-Bold").fillColor("#555555").text("DARI", 75, 193);
-      doc.fontSize(10).font("Helvetica-Bold").fillColor("#111111").text(startDateStr, 75, 207);
+      doc.fontSize(8).font("Helvetica-Bold").fillColor("#555555").text("DARI", 75, curY + 8);
+      doc.fontSize(10).font("Helvetica-Bold").fillColor("#111111").text(startDateStr, 75, curY + 22);
 
-      doc.fontSize(8).font("Helvetica-Bold").fillColor("#555555").text("HINGGA", 205, 193);
-      doc.fontSize(10).font("Helvetica-Bold").fillColor("#111111").text(endDateStr, 205, 207);
+      doc.fontSize(8).font("Helvetica-Bold").fillColor("#555555").text("HINGGA", 205, curY + 8);
+      doc.fontSize(10).font("Helvetica-Bold").fillColor("#111111").text(endDateStr, 205, curY + 22);
 
       // HARI box on the right
-      doc.roundedRect(375, 190, 170, 35, 4).strokeColor("#000000").lineWidth(1).stroke();
-      doc.fontSize(8).font("Helvetica-Bold").fillColor("#555555").text("HARI", 375, 194, { width: 170, align: "center" });
-      doc.fontSize(12).font("Helvetica-Bold").fillColor("#000000").text(String(leave.days), 375, 206, { width: 170, align: "center" });
+      doc.roundedRect(375, curY + 5, 170, 35, 4).strokeColor("#000000").lineWidth(1).stroke();
+      doc.fontSize(8).font("Helvetica-Bold").fillColor("#555555").text("HARI", 375, curY + 9, { width: 170, align: "center" });
+      doc.fontSize(12).font("Helvetica-Bold").fillColor("#000000").text(String(leave.days), 375, curY + 21, { width: 170, align: "center" });
 
+      curY += 55;
       // Divider Line under Date Range
-      doc.moveTo(40, 240).lineTo(572, 240).strokeColor("#cccccc").lineWidth(1).stroke();
+      doc.moveTo(40, curY).lineTo(572, curY).strokeColor("#cccccc").lineWidth(1).stroke();
 
-      // Sebab / Tujuan
-      doc.fontSize(8).font("Helvetica-Bold").fillColor("#555555").text("SEBAB / TUJUAN", leftCol, 248);
-      doc.roundedRect(55, 260, 502, 35, 4).strokeColor("#000000").lineWidth(1).stroke();
-      doc.fontSize(11).font("Helvetica-Bold").fillColor("#111111").text(`"${leave.reason || '-'}"`, 65, 272);
+      // Sebab / Tujuan (Dynamic Height)
+      curY += 8;
+      doc.fontSize(8).font("Helvetica-Bold").fillColor("#555555").text("SEBAB / TUJUAN", leftCol, curY);
+      curY += 12;
 
+      const cleanReasonText = (leave.reason || "-").split("[CUTI_GANTI_DATA:")[0].trim();
+      const reasonHeight = Math.max(35, doc.heightOfString(`"${cleanReasonText}"`, { width: 480 }) + 16);
+
+      doc.roundedRect(55, curY, 502, reasonHeight, 4).strokeColor("#000000").lineWidth(1).stroke();
+      doc.fontSize(10).font("Helvetica-Bold").fillColor("#111111").text(`"${cleanReasonText}"`, 65, curY + 8, { width: 480 });
+
+      curY += reasonHeight + 10;
       // Divider Line under Reason
-      doc.moveTo(40, 305).lineTo(572, 305).strokeColor("#cccccc").lineWidth(1).stroke();
+      doc.moveTo(40, curY).lineTo(572, curY).strokeColor("#cccccc").lineWidth(1).stroke();
 
       // Emergency Contact Heading
-      doc.fontSize(9).font("Helvetica-Bold").fillColor("#000000").text("MAKLUMAT WARIS (KECEMASAN)", leftCol, 313);
-      doc.rect(55, 330, 502, 80).strokeColor("#000000").lineWidth(1).stroke();
+      curY += 8;
+      doc.fontSize(9).font("Helvetica-Bold").fillColor("#000000").text("MAKLUMAT WARIS (KECEMASAN)", leftCol, curY);
+      curY += 15;
+      doc.rect(55, curY, 502, 75).strokeColor("#000000").lineWidth(1).stroke();
 
       // Emergency Contact Info
-      doc.fontSize(8).font("Helvetica-Bold").fillColor("#555555").text("NAMA", 70, 340);
-      doc.fontSize(9).font("Helvetica-Bold").fillColor("#111111").text((leave.waris_nama || "N/A").toUpperCase(), 70, 350);
+      doc.fontSize(8).font("Helvetica-Bold").fillColor("#555555").text("NAMA", 70, curY + 10);
+      doc.fontSize(9).font("Helvetica-Bold").fillColor("#111111").text((leave.waris_nama || "N/A").toUpperCase(), 70, curY + 20);
 
-      doc.fontSize(8).font("Helvetica-Bold").fillColor("#555555").text("HUBUNGAN", rightCol, 340);
-      doc.fontSize(9).font("Helvetica-Bold").fillColor("#111111").text((leave.waris_hubungan || "N/A").toUpperCase(), rightCol, 350);
+      doc.fontSize(8).font("Helvetica-Bold").fillColor("#555555").text("HUBUNGAN", rightCol, curY + 10);
+      doc.fontSize(9).font("Helvetica-Bold").fillColor("#111111").text((leave.waris_hubungan || "N/A").toUpperCase(), rightCol, curY + 20);
 
-      doc.fontSize(8).font("Helvetica-Bold").fillColor("#555555").text("NO. TELEFON", 70, 375);
-      doc.fontSize(9).font("Helvetica-Bold").fillColor("#111111").text(leave.waris_phone || "N/A", 70, 385);
+      doc.fontSize(8).font("Helvetica-Bold").fillColor("#555555").text("NO. TELEFON", 70, curY + 42);
+      doc.fontSize(9).font("Helvetica-Bold").fillColor("#111111").text(leave.waris_phone || "N/A", 70, curY + 52);
 
-      doc.fontSize(8).font("Helvetica-Bold").fillColor("#555555").text("ALAMAT", rightCol, 375);
-      doc.fontSize(8).font("Helvetica").fillColor("#111111").text(leave.waris_alamat || "N/A", rightCol, 385, { width: 220 });
+      doc.fontSize(8).font("Helvetica-Bold").fillColor("#555555").text("ALAMAT", rightCol, curY + 42);
+      doc.fontSize(8).font("Helvetica").fillColor("#111111").text(leave.waris_alamat || "N/A", rightCol, curY + 52, { width: 220 });
 
+      curY += 85;
       // Divider Line under Emergency Contact
-      doc.moveTo(40, 420).lineTo(572, 420).strokeColor("#cccccc").lineWidth(1).stroke();
+      doc.moveTo(40, curY).lineTo(572, curY).strokeColor("#cccccc").lineWidth(1).stroke();0).strokeColor("#cccccc").lineWidth(1).stroke();
 
       // Approval History Section
       doc.fontSize(9).font("Helvetica-Bold").fillColor("#000000").text("APPROVAL HISTORY", leftCol, 428);
@@ -2968,6 +2984,7 @@ app.get("/api/leave-requests", async (req, res) => {
         p.full_name,
         p.branch,
         p.department,
+        COALESCE(lr.phone, p.phone, '') AS phone,
         COALESCE(ur_approver.role, '') AS approver_role,
         GREATEST((COALESCE(p.annual_leave_entitlement, 14) + COALESCE(adj.annual_adj, 0)) - COALESCE(l_used.annual_days_used, 0), 0)::int AS annual_leave_balance,
         GREATEST((COALESCE(p.medical_leave_entitlement, 14) + COALESCE(adj.medical_adj, 0)) - COALESCE(l_used.medical_days_used, 0), 0)::int AS medical_leave_balance,
@@ -2999,7 +3016,7 @@ app.get("/api/leave-requests", async (req, res) => {
               'status', la.status,
               'remarks', la.remarks,
               'created_at', la.created_at,
-              'approver_name', p2.full_name,
+              'approver_name', COALESCE(p2.full_name, p2.name, la.approver_id),
               'approver_department', p2.department,
               'approver_branch', p2.branch
             ) ORDER BY la.created_at ASC
@@ -3088,8 +3105,12 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
     cuti_ganti_jam,
     cuti_tanpa_gaji_phone,
     cuti_tanpa_gaji_signature,
+    phone,
+    no_telefon,
     no_kad_pengenalan
   } = req.body;
+
+  const applicantPhone = phone || no_telefon || no_kad_pengenalan || null;
 
   if (!user_id || !leave_type || !start_date || !end_date || !days) {
     return res.status(400).json({
@@ -3209,14 +3230,19 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
                             ? 'Pending HOD' 
                             : 'Pending Branch Leader');
 
+    try {
+      await pool.query(`ALTER TABLE leave_requests ADD COLUMN IF NOT EXISTS phone VARCHAR(50)`);
+      await pool.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS phone VARCHAR(50)`);
+    } catch(migErr) {}
+
     const [result] = await pool.query(
       `
       INSERT INTO leave_requests
-        (user_id, leave_type, start_date, end_date, days, reason, status, waris_nama, waris_phone, waris_alamat, waris_hubungan, cuti_ganti_tarikh, cuti_ganti_hari, cuti_ganti_jam, cuti_tanpa_gaji_phone, cuti_tanpa_gaji_signature, mc_file_url)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        (user_id, leave_type, start_date, end_date, days, reason, status, waris_nama, waris_phone, waris_alamat, waris_hubungan, cuti_ganti_tarikh, cuti_ganti_hari, cuti_ganti_jam, cuti_tanpa_gaji_phone, cuti_tanpa_gaji_signature, mc_file_url, phone)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
       [
-        user_id, leave_type, start_date, end_date, days, reason, initialStatus, waris_nama, waris_phone, waris_alamat, waris_hubungan, cuti_ganti_tarikh || null, cuti_ganti_hari || null, cuti_ganti_jam || null, cuti_tanpa_gaji_phone || null, signature_val, mc_file_url
+        user_id, leave_type, start_date, end_date, days, reason, initialStatus, waris_nama, waris_phone, waris_alamat, waris_hubungan, cuti_ganti_tarikh || null, cuti_ganti_hari || null, cuti_ganti_jam || null, cuti_tanpa_gaji_phone || null, signature_val, mc_file_url, applicantPhone
       ]
     );
 
@@ -3237,22 +3263,19 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
     }
 
     const [rows] = await pool.query(
-      `SELECT lr.*, p.full_name, p.branch FROM leave_requests lr JOIN profiles p ON p.user_id = lr.user_id WHERE lr.leave_id = ?`,
+      `SELECT lr.*, p.full_name, p.branch, COALESCE(lr.phone, p.phone, '') AS phone FROM leave_requests lr JOIN profiles p ON p.user_id = lr.user_id WHERE lr.leave_id = ?`,
       [result.insertId]
     );
 
-    // Save IC number to profile for auto-population on future leave requests
-    if (no_kad_pengenalan && no_kad_pengenalan.toString().trim()) {
+    // Save Phone number to profile for auto-population on future leave requests
+    if (applicantPhone && applicantPhone.toString().trim()) {
       try {
         await pool.query(
-          `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS ic_number VARCHAR(20)`
+          `UPDATE profiles SET phone = ? WHERE user_id = ?`,
+          [applicantPhone.toString().trim(), user_id]
         );
-        await pool.query(
-          `UPDATE profiles SET ic_number = ? WHERE user_id = ?`,
-          [no_kad_pengenalan.toString().trim(), user_id]
-        );
-      } catch (icErr) {
-        console.error("Warning: could not save ic_number to profile:", icErr);
+      } catch (phoneErr) {
+        console.error("Warning: could not save phone to profile:", phoneErr);
       }
     }
 
@@ -8750,16 +8773,32 @@ app.delete("/api/company-leaves/:id", async (req, res) => {
 // USER IC NUMBER — Auto-populate Leave Form
 // ===============================
 
-// GET: Fetch saved IC number for a user
+// GET: Fetch saved Phone number for a user
+app.get("/api/user-phone", async (req, res) => {
+  const { userId } = req.query;
+  if (!userId) return res.status(400).json({ success: false, error: "Missing userId" });
+  try {
+    await pool.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS phone VARCHAR(50)`);
+    const [rows] = await pool.query("SELECT phone FROM profiles WHERE user_id = ? LIMIT 1", [userId]);
+    const phone = rows[0]?.phone || null;
+    res.json({ success: true, phone });
+  } catch (err) {
+    console.error("GET /api/user-phone error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// GET: Fetch saved IC / Phone number for a user (legacy support)
 app.get("/api/user-ic", async (req, res) => {
   const { userId } = req.query;
   if (!userId) return res.status(400).json({ success: false, error: "Missing userId" });
   try {
-    // Ensure ic_number column exists (safe idempotent migration)
     await pool.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS ic_number VARCHAR(20)`);
-    const [rows] = await pool.query("SELECT ic_number FROM profiles WHERE user_id = ? LIMIT 1", [userId]);
+    await pool.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS phone VARCHAR(50)`);
+    const [rows] = await pool.query("SELECT ic_number, phone FROM profiles WHERE user_id = ? LIMIT 1", [userId]);
     const icNumber = rows[0]?.ic_number || null;
-    res.json({ success: true, icNumber });
+    const phone = rows[0]?.phone || null;
+    res.json({ success: true, icNumber, phone });
   } catch (err) {
     console.error("GET /api/user-ic error:", err);
     res.status(500).json({ success: false, error: err.message });

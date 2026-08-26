@@ -25,6 +25,7 @@ import { Badge } from "@/components/ui/badge";
 import { API_BASE_URL } from "../../config/api";
 import PageActions from "@/components/layout/PageActions";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
+import { TablePagination } from "@/components/common/TablePagination";
 import { Tooltip as UITooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const fallbackMonthlyData = [
@@ -1287,21 +1288,6 @@ export default function AttendanceDashboard() {
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] text-foreground">Row Per Page</span>
-              <Select value={limit} onValueChange={setLimit}>
-                <SelectTrigger className="w-[60px] h-7 text-[11px] font-semibold rounded-md border-gray-200 dark:border-slate-800 bg-white dark:bg-card text-gray-700 shadow-sm">
-                  <SelectValue placeholder="10" />
-                </SelectTrigger>
-                <SelectContent className="rounded-md">
-                  <SelectItem value="10">10</SelectItem>
-                  <SelectItem value="20">20</SelectItem>
-                  <SelectItem value="50">50</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
         </div>
 
         <CardContent className="p-0">
@@ -1467,56 +1453,13 @@ export default function AttendanceDashboard() {
           )}
           
           {filteredDailyAttendance.length > 0 && !loadingDaily && (
-            <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-gray-100 dark:border-slate-800 gap-4 bg-slate-50/50 dark:bg-slate-900/50">
-              <div className="flex items-center gap-4 text-[10px] font-bold text-foreground uppercase tracking-widest">
-                  <span>TOTAL SHOWING {((currentPage - 1) * parseInt(limit)) + 1} TO {Math.min(currentPage * parseInt(limit), filteredDailyAttendance.length)} OF {filteredDailyAttendance.length} ENTRIES</span>
-                  <div className="flex items-center gap-2">
-                    <span>Show</span>
-                    <Select value={limit} onValueChange={(val) => { setLimit(val); setCurrentPage(1); }}>
-                      <SelectTrigger className="h-7 text-[10px] font-bold rounded border-border w-[60px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="10">10</SelectItem>
-                        <SelectItem value="25">25</SelectItem>
-                        <SelectItem value="50">50</SelectItem>
-                        <SelectItem value="100">100</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1.5">
-                <Button 
-                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))} 
-                  disabled={currentPage === 1}
-                  variant="outline"
-                  size="sm"
-                  className="h-7 rounded-md text-[11px] font-medium border-gray-200 dark:border-slate-800 bg-white dark:bg-card"
-                >
-                  Previous
-                </Button>
-                {Array.from({ length: Math.ceil(filteredDailyAttendance.length / parseInt(limit)) }).map((_, i) => (
-                  <Button 
-                    key={i} 
-                    onClick={() => setCurrentPage(i + 1)}
-                    variant={currentPage === i + 1 ? "default" : "outline"}
-                    size="sm"
-                    className={`h-7 w-7 rounded-md text-[11px] font-medium ${currentPage === i + 1 ? 'bg-[#7B0099] hover:bg-[#5e0080] text-white border-[#7B0099]' : 'border-gray-200 dark:border-slate-800 bg-white dark:bg-card'}`}
-                  >
-                    {i + 1}
-                  </Button>
-                ))}
-                <Button 
-                  onClick={() => setCurrentPage(p => Math.min(Math.ceil(filteredDailyAttendance.length / parseInt(limit)), p + 1))} 
-                  disabled={currentPage === Math.ceil(filteredDailyAttendance.length / parseInt(limit))}
-                  variant="outline"
-                  size="sm"
-                  className="h-7 rounded-md text-[11px] font-medium border-gray-200 dark:border-slate-800 bg-white dark:bg-card"
-                >
-                  Next
-                </Button>
-              </div>
-            </div>
+            <TablePagination
+              currentPage={currentPage}
+              totalItems={filteredDailyAttendance.length}
+              pageSize={parseInt(limit) || 10}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={(newSize) => setLimit(String(newSize))}
+            />
           )}
         </CardContent>
       </Card>
@@ -1532,20 +1475,6 @@ export default function AttendanceDashboard() {
           </div>
           
           <div className="flex items-center gap-3 mt-3 sm:mt-0">
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] text-foreground">Row Per Page</span>
-              <Select value={absentLimit} onValueChange={setAbsentLimit}>
-                <SelectTrigger className="w-[60px] h-7 text-[11px] font-semibold rounded-md border-gray-200 dark:border-slate-800 bg-white dark:bg-card text-gray-700 shadow-sm">
-                  <SelectValue placeholder="10" />
-                </SelectTrigger>
-                <SelectContent className="rounded-md">
-                  <SelectItem value="10">10</SelectItem>
-                  <SelectItem value="20">20</SelectItem>
-                  <SelectItem value="50">50</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
             <div className="relative w-full sm:w-[220px]">
               <Search className="absolute left-3 top-2 h-3 w-3 text-foreground" />
               <input 
@@ -1566,82 +1495,93 @@ export default function AttendanceDashboard() {
               <p className="text-xs font-medium text-foreground animate-pulse">Checking absent employees...</p>
             </div>
           ) : (
-            <div className="relative overflow-x-auto">
-              <table className="w-full text-sm text-left">
-                <thead className="bg-gray-50/80 text-foreground uppercase text-[9px] font-bold tracking-wider border-b border-gray-100 dark:border-slate-800">
-                  <tr>
-                    <th className="px-4 py-2 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Employee</th>
-                    <th className="px-4 py-2 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Branch</th>
-                    <th className="px-4 py-2 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Department</th>
-                    <th className="px-4 py-2 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Role</th>
-                    <th className="px-4 py-2 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {filteredAbsentEmployees.length > 0 ? (
-                    filteredAbsentEmployees.slice((absentCurrentPage - 1) * parseInt(absentLimit), absentCurrentPage * parseInt(absentLimit)).map((emp) => {
-                      let displayStatus = (emp as any).status || "Absent";
-                      const isOutstation = outstationRecords.some((o: any) => 
-                        o.user_id === emp.user_id && 
-                        o.start_date.slice(0,10) <= selectedDate && 
-                        o.end_date.slice(0,10) >= selectedDate
-                      );
-                      if (isOutstation) displayStatus = "Outstation";
+            <>
+              <div className="relative overflow-x-auto">
+                <table className="w-full text-sm text-left">
+                  <thead className="bg-gray-50/80 text-foreground uppercase text-[9px] font-bold tracking-wider border-b border-gray-100 dark:border-slate-800">
+                    <tr>
+                      <th className="px-4 py-2 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Employee</th>
+                      <th className="px-4 py-2 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Branch</th>
+                      <th className="px-4 py-2 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Department</th>
+                      <th className="px-4 py-2 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Role</th>
+                      <th className="px-4 py-2 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {filteredAbsentEmployees.length > 0 ? (
+                      filteredAbsentEmployees.slice((absentCurrentPage - 1) * parseInt(absentLimit), absentCurrentPage * parseInt(absentLimit)).map((emp) => {
+                        let displayStatus = (emp as any).status || "Absent";
+                        const isOutstation = outstationRecords.some((o: any) => 
+                          o.user_id === emp.user_id && 
+                          o.start_date.slice(0,10) <= selectedDate && 
+                          o.end_date.slice(0,10) >= selectedDate
+                        );
+                        if (isOutstation) displayStatus = "Outstation";
 
-                      return (
-                      <tr key={emp.user_id} className="hover:bg-gray-50/50 transition-colors">
-                        <td className="px-4 py-2">
-                          <div className="flex items-center gap-2">
-                            <div className={`w-8 h-8 rounded-md font-bold flex items-center justify-center text-xs uppercase shadow-sm ${displayStatus === 'Outstation' ? 'bg-pink-100 text-pink-700' : displayStatus === 'Company Leave' ? 'bg-purple-100 text-purple-700' : (displayStatus === 'On Leave' || displayStatus === 'Approved Leave') ? 'bg-blue-100 text-blue-700' : 'bg-red-500/10 text-red-600'}`}>
-                              {emp.full_name.charAt(0)}
+                        return (
+                        <tr key={emp.user_id} className="hover:bg-gray-50/50 transition-colors">
+                          <td className="px-4 py-2">
+                            <div className="flex items-center gap-2">
+                              <div className={`w-8 h-8 rounded-md font-bold flex items-center justify-center text-xs uppercase shadow-sm ${displayStatus === 'Outstation' ? 'bg-pink-100 text-pink-700' : displayStatus === 'Company Leave' ? 'bg-purple-100 text-purple-700' : (displayStatus === 'On Leave' || displayStatus === 'Approved Leave') ? 'bg-blue-100 text-blue-700' : 'bg-red-500/10 text-red-600'}`}>
+                                {emp.full_name.charAt(0)}
+                              </div>
+                              <div>
+                                <span className="font-semibold text-gray-800 dark:text-gray-200 block text-xs">{emp.full_name}</span>
+                                <span className="text-[10px] text-foreground mt-0.5 block">{emp.user_id}</span>
+                              </div>
                             </div>
-                            <div>
-                              <span className="font-semibold text-gray-800 dark:text-gray-200 block text-xs">{emp.full_name}</span>
-                              <span className="text-[10px] text-foreground mt-0.5 block">{emp.user_id}</span>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-2 text-[11px] text-gray-600 font-medium">{emp.branch || "HQ"}</td>
-                        <td className="px-4 py-2 text-[11px] text-gray-600 font-medium">{emp.department || "—"}</td>
-                        <td className="px-4 py-2 text-[11px] text-gray-600 font-medium capitalize">
-                          {(emp as any).role?.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())}
-                        </td>
-                        <td className="px-4 py-2">
-                          {displayStatus === 'Outstation' ? (
-                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium bg-pink-50 text-pink-700 border border-pink-200 shadow-sm">
-                              <span className="w-1 h-1 rounded-full mr-1 bg-[#f746b9] animate-pulse" />
-                              Outstation
-                            </span>
-                          ) : displayStatus === 'Company Leave' ? (
-                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium bg-purple-50 text-purple-700 border border-purple-200 shadow-sm">
-                              <span className="w-1 h-1 rounded-full mr-1 bg-purple-500 animate-pulse" />
-                              Company Leave
-                            </span>
-                          ) : (displayStatus === 'On Leave' || displayStatus === 'Approved Leave') ? (
-                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium bg-blue-50 text-blue-700 border border-blue-200 shadow-sm">
-                              <span className="w-1 h-1 rounded-full mr-1 bg-blue-500 animate-pulse" />
-                              On Leave
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium bg-red-50 text-red-700 border border-red-100">
-                              <span className="w-1 h-1 rounded-full mr-1 bg-red-500" />
-                              Absent
-                            </span>
-                          )}
+                          </td>
+                          <td className="px-4 py-2 text-[11px] text-gray-600 font-medium">{emp.branch || "HQ"}</td>
+                          <td className="px-4 py-2 text-[11px] text-gray-600 font-medium">{emp.department || "—"}</td>
+                          <td className="px-4 py-2 text-[11px] text-gray-600 font-medium capitalize">
+                            {(emp as any).role?.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())}
+                          </td>
+                          <td className="px-4 py-2">
+                            {displayStatus === 'Outstation' ? (
+                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium bg-pink-50 text-pink-700 border border-pink-200 shadow-sm">
+                                <span className="w-1 h-1 rounded-full mr-1 bg-[#f746b9] animate-pulse" />
+                                Outstation
+                              </span>
+                            ) : displayStatus === 'Company Leave' ? (
+                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium bg-purple-50 text-purple-700 border border-purple-200 shadow-sm">
+                                <span className="w-1 h-1 rounded-full mr-1 bg-purple-500 animate-pulse" />
+                                Company Leave
+                              </span>
+                            ) : (displayStatus === 'On Leave' || displayStatus === 'Approved Leave') ? (
+                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium bg-blue-50 text-blue-700 border border-blue-200 shadow-sm">
+                                <span className="w-1 h-1 rounded-full mr-1 bg-blue-500 animate-pulse" />
+                                On Leave
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium bg-red-50 text-red-700 border border-red-100">
+                                <span className="w-1 h-1 rounded-full mr-1 bg-red-500" />
+                                Absent
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                        );
+                      })
+                    ) : (
+                      <tr>
+                        <td colSpan={5} className="px-4 py-10 text-center text-xs font-bold text-foreground uppercase tracking-wider italic">
+                          All hands on deck! No employees are absent today.
                         </td>
                       </tr>
-                      );
-                    })
-                  ) : (
-                    <tr>
-                      <td colSpan={5} className="px-4 py-10 text-center text-xs font-bold text-foreground uppercase tracking-wider italic">
-                        All hands on deck! No employees are absent today.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* PAGINATION FOR ABSENTEEISM */}
+              <TablePagination
+                currentPage={absentCurrentPage}
+                totalItems={filteredAbsentEmployees.length}
+                pageSize={parseInt(absentLimit) || 10}
+                onPageChange={setAbsentCurrentPage}
+                onPageSizeChange={(newSize) => setAbsentLimit(String(newSize))}
+              />
+            </>
           )}
         </CardContent>
       </Card>

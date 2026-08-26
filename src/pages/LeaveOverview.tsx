@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { ApprovalStatusTracker } from "@/components/leave/ApprovalStatusTracker";
+import { TablePagination } from "@/components/leave/ApprovalHistoryTimeline";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -94,6 +95,8 @@ export default function LeaveOverview() {
   const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([]);
   const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
   const [refreshKey, setRefreshKey] = useState(0);
+  const [recentPage, setRecentPage] = useState(1);
+  const [recentLimit, setRecentLimit] = useState(10);
 
   const filteredLeaveRequests = useMemo(() => {
     return leaveRequests.filter(req => {
@@ -101,6 +104,11 @@ export default function LeaveOverview() {
       return req.from.startsWith(selectedYear);
     });
   }, [leaveRequests, selectedYear]);
+
+  const paginatedLeaveRequests = useMemo(() => {
+    const start = (recentPage - 1) * recentLimit;
+    return filteredLeaveRequests.slice(start, start + recentLimit);
+  }, [filteredLeaveRequests, recentPage, recentLimit]);
 
   useEffect(() => {
     const fetchLeaveRequests = async () => {
@@ -345,8 +353,8 @@ export default function LeaveOverview() {
                 </TableRow>
               </TableHeader>
               <TableBody className="divide-y divide-border/50">
-                {filteredLeaveRequests.length > 0 ? (
-                  filteredLeaveRequests.map((req, i) => (
+                {paginatedLeaveRequests.length > 0 ? (
+                  paginatedLeaveRequests.map((req, i) => (
                     <TableRow key={i} className="hover:bg-[#7B0099]/5 transition-colors group">
                       <TableCell className="px-5 py-3.5 font-black text-[#7B0099] dark:text-purple-400">{leaveTypeLabels[req.type]}</TableCell>
                       <TableCell className="px-5 py-3.5 text-foreground font-bold">{req.from}</TableCell>
@@ -379,8 +387,8 @@ export default function LeaveOverview() {
 
           {/* Mobile Card View */}
           <div className="sm:hidden divide-y divide-border/50">
-            {filteredLeaveRequests.length > 0 ? (
-              filteredLeaveRequests.map((req, i) => (
+            {paginatedLeaveRequests.length > 0 ? (
+              paginatedLeaveRequests.map((req, i) => (
                 <div key={i} className="p-4 active:bg-[#7B0099]/5 transition-colors space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-black text-foreground">{leaveTypeLabels[req.type]}</span>
@@ -411,6 +419,14 @@ export default function LeaveOverview() {
               </div>
             )}
           </div>
+
+          <TablePagination
+            currentPage={recentPage}
+            totalItems={filteredLeaveRequests.length}
+            pageSize={recentLimit}
+            onPageChange={setRecentPage}
+            onPageSizeChange={setRecentLimit}
+          />
         </CardContent>
       </Card>
 

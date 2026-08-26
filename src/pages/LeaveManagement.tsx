@@ -51,29 +51,37 @@ export default function LeaveManagement() {
     void fetchLiveRequests();
   }, [userId]);
 
-  // Fetch saved IC number to auto-populate the form on next submission
-  const [icAutoFilled, setIcAutoFilled] = useState(false);
+  // Fetch saved phone number to auto-populate the form on next submission
+  const [phoneAutoFilled, setPhoneAutoFilled] = useState(false);
   useEffect(() => {
     if (!userId) return;
-    const fetchSavedIc = async () => {
+    const fetchSavedPhone = async () => {
       try {
-        const res = await fetch(`${API_BASE_URL}/api/user-ic?userId=${encodeURIComponent(userId)}`);
+        const res = await fetch(`${API_BASE_URL}/api/user-phone?userId=${encodeURIComponent(userId)}`);
         const data = await res.json();
-        if (data.success && data.icNumber) {
-          setFormData(prev => ({ ...prev, noKadPengenalan: data.icNumber }));
-          setIcAutoFilled(true);
+        if (data.success && data.phone) {
+          setFormData(prev => ({ ...prev, noTelefon: data.phone }));
+          setPhoneAutoFilled(true);
+        } else {
+          // Fallback to user-ic endpoint if legacy
+          const resLegacy = await fetch(`${API_BASE_URL}/api/user-ic?userId=${encodeURIComponent(userId)}`);
+          const dataLegacy = await resLegacy.json();
+          if (dataLegacy.success && dataLegacy.phone) {
+            setFormData(prev => ({ ...prev, noTelefon: dataLegacy.phone }));
+            setPhoneAutoFilled(true);
+          }
         }
       } catch (err) {
-        console.error("Failed to fetch saved IC:", err);
+        console.error("Failed to fetch saved phone:", err);
       }
     };
-    void fetchSavedIc();
+    void fetchSavedPhone();
   }, [userId]);
 
   // Form State
   const [formData, setFormData] = useState({
     namaPenuh: "",
-    noKadPengenalan: "",
+    noTelefon: "",
     tarikhPermohonan: new Date().toISOString().split('T')[0],
     cawangan: "",
     tarikhMula: "",
@@ -344,9 +352,11 @@ export default function LeaveManagement() {
         payload.append("cuti_tanpa_gaji_signature", formData.cutiTanpaGajiSignature ? "true" : "false");
       }
 
-      // Always send IC number so the backend can save it for future auto-population
-      if (formData.noKadPengenalan.trim()) {
-        payload.append("no_kad_pengenalan", formData.noKadPengenalan.trim());
+      // Always send phone number so the backend can save it for future auto-population
+      if (formData.noTelefon.trim()) {
+        payload.append("phone", formData.noTelefon.trim());
+        payload.append("no_telefon", formData.noTelefon.trim());
+        payload.append("no_kad_pengenalan", formData.noTelefon.trim());
       }
 
       const response = await fetch(`${API_BASE_URL}/api/leave-requests`, {
@@ -372,6 +382,7 @@ export default function LeaveManagement() {
         appliedAt,
         formFileName: getLeaveFormFileName(appliedAt, leaveType, formData.namaPenuh),
         attachmentName: formData.lampiranMc?.name,
+        phone: formData.noTelefon.trim(),
         waris_nama: formData.warisNama,
         waris_phone: formData.warisPhone,
         waris_alamat: formData.warisAlamat,
@@ -493,20 +504,20 @@ export default function LeaveManagement() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label className="text-[10px] font-black uppercase tracking-widest text-foreground px-1">
-                        No Kad Pengenalan *
-                        {icAutoFilled && (
+                        No. Telefon *
+                        {phoneAutoFilled && (
                           <span className="ml-2 text-[9px] font-black text-emerald-600 normal-case tracking-normal">
                             ✓ Tersimpan
                           </span>
                         )}
                       </Label>
                       <Input
-                        placeholder="CONTOH: 900101115566"
-                          className="h-12 sm:h-14 border-border/50 bg-muted/30 rounded-2xl font-bold placeholder:text-muted-foreground placeholder:font-medium"
-                        value={formData.noKadPengenalan}
+                        placeholder="CONTOH: 0123456789"
+                        className="h-12 sm:h-14 border-border/50 bg-muted/30 rounded-2xl font-bold placeholder:text-muted-foreground placeholder:font-medium"
+                        value={formData.noTelefon}
                         onChange={e => {
-                          setIcAutoFilled(false);
-                          setFormData({ ...formData, noKadPengenalan: e.target.value });
+                          setPhoneAutoFilled(false);
+                          setFormData({ ...formData, noTelefon: e.target.value });
                         }}
                       />
                     </div>

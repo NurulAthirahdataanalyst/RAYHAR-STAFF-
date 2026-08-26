@@ -10,6 +10,7 @@ import {
   BarChart, Bar, XAxis, YAxis, Legend
 } from "recharts";
 
+import { TablePagination } from "@/components/common/TablePagination";
 import PageActions from "@/components/layout/PageActions";
 
 const ALLOWED_ROLES = ["hr_admin", "managing_director", "operation_manager", "finance_manager", "branch_leader", "head_of_department"];
@@ -52,6 +53,8 @@ export default function OutstationAnalytics() {
   const [stats, setStats] = useState<any>({});
   const [loading, setLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
+  const [recentPage, setRecentPage] = useState(1);
+  const [recentLimit, setRecentLimit] = useState(10);
 
   // Role authorization check
   useEffect(() => {
@@ -218,11 +221,15 @@ export default function OutstationAnalytics() {
 
   const totalStatusEvents = useMemo(() => statusData.reduce((sum, i) => sum + i.value, 0), [statusData]);
 
-  const recentAssignments = useMemo(() => assignments
+  const allRecentAssignments = useMemo(() => assignments
     .slice()
-    .sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime())
-    .slice(0, 5),
+    .sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime()),
   [assignments]);
+
+  const paginatedRecentAssignments = useMemo(() => {
+    const start = (recentPage - 1) * recentLimit;
+    return allRecentAssignments.slice(start, start + recentLimit);
+  }, [allRecentAssignments, recentPage, recentLimit]);
 
   const upcomingGroups = useMemo(() => {
     const groups: Record<string, { destination: string; purpose: string; start_date: string; count: number }> = {};
@@ -538,35 +545,45 @@ export default function OutstationAnalytics() {
             <CardContent className="p-0">
               {loading ? (
                 <div className="p-6 flex items-center justify-center"><Loader2 className="animate-spin w-6 h-6 text-[#7B0099]" /></div>
-              ) : recentAssignments.length === 0 ? (
+              ) : allRecentAssignments.length === 0 ? (
                 <div className="p-6 text-center text-foreground text-xs">No recent outstations found.</div>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
-                    <thead className="bg-slate-50/80 dark:bg-slate-800/60 text-foreground dark:text-foreground text-[11px] font-bold uppercase tracking-wider border-b border-slate-100 dark:border-slate-800">
-                      <tr>
-                        <th className="px-4 py-3 text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Employee</th>
-                        <th className="px-4 py-3 text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Destination</th>
-                        <th className="px-4 py-3 text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Purpose</th>
-                        <th className="px-4 py-3 text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Period</th>
-                        <th className="px-4 py-3 text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Status</th>
-                        <th className="px-4 py-3 text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Duration</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
-                      {recentAssignments.map((item, index) => (
-                        <tr key={index} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
-                          <td className="px-4 py-3 font-semibold text-foreground dark:text-slate-100">{item.full_name || item.user_id}</td>
-                          <td className="px-4 py-3 text-foreground dark:text-slate-300">{item.destination || "-"}</td>
-                          <td className="px-4 py-3 text-foreground dark:text-slate-300">{item.purpose || item.project || "-"}</td>
-                          <td className="px-4 py-3 text-foreground dark:text-foreground">{formatShortDate(item.start_date)} - {formatShortDate(item.end_date)}</td>
-                          <td className="px-4 py-3">{statusBadge(item.status || "Unknown")}</td>
-                          <td className="px-4 py-3 text-foreground dark:text-foreground">{item.total_days ? `${item.total_days} days` : "-"}</td>
+                <>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead className="bg-slate-50/80 dark:bg-slate-800/60 text-foreground dark:text-foreground text-[11px] font-bold uppercase tracking-wider border-b border-slate-100 dark:border-slate-800">
+                        <tr>
+                          <th className="px-4 py-3 text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Employee</th>
+                          <th className="px-4 py-3 text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Destination</th>
+                          <th className="px-4 py-3 text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Purpose</th>
+                          <th className="px-4 py-3 text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Period</th>
+                          <th className="px-4 py-3 text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Status</th>
+                          <th className="px-4 py-3 text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Duration</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
+                        {paginatedRecentAssignments.map((item, index) => (
+                          <tr key={index} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
+                            <td className="px-4 py-3 font-semibold text-foreground dark:text-slate-100">{item.full_name || item.user_id}</td>
+                            <td className="px-4 py-3 text-foreground dark:text-slate-300">{item.destination || "-"}</td>
+                            <td className="px-4 py-3 text-foreground dark:text-slate-300">{item.purpose || item.project || "-"}</td>
+                            <td className="px-4 py-3 text-foreground dark:text-foreground">{formatShortDate(item.start_date)} - {formatShortDate(item.end_date)}</td>
+                            <td className="px-4 py-3">{statusBadge(item.status || "Unknown")}</td>
+                            <td className="px-4 py-3 text-foreground dark:text-foreground">{item.total_days ? `${item.total_days} days` : "-"}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <TablePagination
+                    currentPage={recentPage}
+                    totalItems={allRecentAssignments.length}
+                    pageSize={recentLimit}
+                    onPageChange={setRecentPage}
+                    onPageSizeChange={setRecentLimit}
+                  />
+                </>
               )}
             </CardContent>
           </Card>
