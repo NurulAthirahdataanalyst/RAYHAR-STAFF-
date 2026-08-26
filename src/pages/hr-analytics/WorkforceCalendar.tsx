@@ -158,6 +158,50 @@ export default function WorkforceCalendar() {
     };
   }, [role, userBranch, userDepartment, roleLoading]);
 
+  
+  // Fetch Daily Attendance when selectedDay changes
+  useEffect(() => {
+    if (!selectedDay || !isMounted.current) return;
+    const fetchDailyData = async () => {
+      setLoadingDaily(true);
+      try {
+        const dateStr = format(selectedDay, 'yyyy-MM-dd');
+        const [dailyRes, absentRes] = await Promise.all([
+          fetch(`${API_BASE_URL}/api/reports/daily-attendance?date=${dateStr}&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}`),
+          fetch(`${API_BASE_URL}/api/reports/absent-employees?date=${dateStr}&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}`)
+        ]);
+        
+        let allAtt: any[] = [];
+        
+        if (dailyRes.ok) {
+           const d = await dailyRes.json();
+           if (d.success && d.report) allAtt = [...d.report];
+        }
+        
+        if (absentRes.ok) {
+           const d = await absentRes.json();
+           if (d.success && d.report) {
+               const absents = d.report.map((x: any) => ({
+                  ...x,
+                  status: "Absent"
+               }));
+               allAtt = [...allAtt, ...absents];
+           }
+        }
+        
+        if (isMounted.current) {
+           setDailyAttendance(allAtt);
+        }
+      } catch (err) {
+        console.error("Failed to fetch daily stats", err);
+      } finally {
+        if (isMounted.current) setLoadingDaily(false);
+      }
+    };
+    
+    fetchDailyData();
+  }, [selectedDay, role, userBranch, userDepartment]);
+
   // Calendar grid
   const calDays = useMemo(() => {
     const firstDayOfMonth = new Date(viewYear, viewMonth, 1);
