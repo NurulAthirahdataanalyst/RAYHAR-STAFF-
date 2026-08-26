@@ -18,11 +18,12 @@ interface ApprovalStatusTrackerProps {
   branch?: string; // Employee branch
 }
 
-export function ApprovalStatusTracker({ status, approverRole, approvalHistory = [], branch = "" }: ApprovalStatusTrackerProps) {
+export function ApprovalStatusTracker({ status, approverRole, approvalHistory = [], branch = "", variant = "linear" }: ApprovalStatusTrackerProps) {
+  const isStaggered = variant === "staggered";
   
   if (approvalHistory && approvalHistory.length > 0) {
     return (
-      <div className="relative pl-6 space-y-6 before:absolute before:inset-0 before:ml-2.5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-300 dark:before:via-slate-700 before:to-transparent mt-4 mb-4">
+      <div className={`relative pl-6 space-y-6 before:absolute before:inset-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-300 dark:before:via-slate-700 before:to-transparent mt-4 mb-4 ${isStaggered ? "before:ml-2.5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0" : "before:ml-[11px]"}`}>
         {approvalHistory.map((h, idx) => {
           const isApproved = h.status === 'Approved';
           const isRejected = h.status === 'Rejected';
@@ -37,13 +38,13 @@ export function ApprovalStatusTracker({ status, approverRole, approvalHistory = 
           
           return (
             <div key={idx} className={`relative flex items-center group is-active ${isStaggered ? "justify-between md:justify-normal md:odd:flex-row-reverse" : "justify-start"}`}>
-              <div className={`flex items-center justify-center w-6 h-6 rounded-full border-[3px] bg-white dark:bg-slate-900 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10 ${borderClass} ${isApproved ? 'text-emerald-500' : (isRejected ? 'text-rose-500' : 'text-[#7B0099]')}`}>
+              <div className={`w-6 h-6 rounded-full border-[3px] bg-white dark:bg-slate-900 shadow z-10 flex items-center justify-center ${borderClass} ${isApproved ? 'text-emerald-500' : (isRejected ? 'text-rose-500' : 'text-[#7B0099]')} ${isStaggered ? "shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2" : "absolute -left-[13px] top-2"}`}>
                 {isApproved && <Check className="w-3.5 h-3.5 font-bold" strokeWidth={4} />}
                 {isRejected && <X className="w-3.5 h-3.5 font-bold" strokeWidth={4} />}
                 {!isApproved && !isRejected && <div className="w-2 h-2 rounded-full bg-[#7B0099]" />}
               </div>
               
-              <div className="w-[calc(100%-2rem)] md:w-[calc(50%-1.5rem)] p-3 rounded border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-800">
+              <div className={`p-3 border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-800 ${isStaggered ? "w-[calc(100%-2rem)] md:w-[calc(50%-1.5rem)] rounded" : "rounded-xl ml-8 w-full"}`}>
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div className="flex flex-col gap-1">
                      <div className="flex items-center gap-2">
@@ -68,11 +69,11 @@ export function ApprovalStatusTracker({ status, approverRole, approvalHistory = 
         
         {/* If the overall status is pending, show the pending step */}
         {status === 'Pending' && (
-           <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-              <div className="flex items-center justify-center w-6 h-6 rounded-full border-[3px] bg-white dark:bg-slate-900 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10 border-[#7B0099] text-[#7B0099]">
+           <div className={`relative flex items-center group is-active ${isStaggered ? "justify-between md:justify-normal md:odd:flex-row-reverse" : "justify-start"}`}>
+              <div className={`w-6 h-6 rounded-full border-[3px] bg-white dark:bg-slate-900 shadow z-10 flex items-center justify-center border-[#7B0099] text-[#7B0099] ${isStaggered ? "shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2" : "absolute -left-[13px] top-2"}`}>
                 <div className="w-2 h-2 rounded-full bg-[#7B0099]" />
               </div>
-              <div className="w-[calc(100%-2rem)] md:w-[calc(50%-1.5rem)] p-3 rounded border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-800 opacity-60">
+              <div className={`p-3 border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-800 opacity-60 ${isStaggered ? "w-[calc(100%-2rem)] md:w-[calc(50%-1.5rem)] rounded" : "rounded-xl ml-8 w-full"}`}>
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                      <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded text-[#7B0099] bg-[#7B0099]/10">
@@ -106,12 +107,12 @@ export function ApprovalStatusTracker({ status, approverRole, approvalHistory = 
   
   const steps = isHQ 
     ? ["Submit", "HOD", "Operation Manager"] 
-    : ["Submit", "Branch Leader", "MD"];
+    : ["Submit", "Branch Leader", "Managing Director"];
     
   if (status === 'Approved') currentStep = steps.length;
   
   return (
-    <div className="relative pl-6 space-y-6 before:absolute before:inset-0 before:ml-2.5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-300 dark:before:via-slate-700 before:to-transparent mt-4 mb-4">
+    <div className={`relative pl-6 space-y-6 before:absolute before:inset-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-300 dark:before:via-slate-700 before:to-transparent mt-4 mb-4 ${isStaggered ? "before:ml-2.5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0" : "before:ml-[11px]"}`}>
       {steps.map((step, idx) => {
         let nodeState = "pending"; 
         
@@ -137,14 +138,14 @@ export function ApprovalStatusTracker({ status, approverRole, approvalHistory = 
         const borderClass = isApproved ? 'border-emerald-500' : (isRejected ? 'border-rose-500' : 'border-[#7B0099]');
         
         return (
-          <div key={idx} className={`relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active ${nodeState === 'pending' ? 'opacity-60' : ''}`}>
-            <div className={`flex items-center justify-center w-6 h-6 rounded-full border-[3px] bg-white dark:bg-slate-900 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10 ${borderClass} ${isApproved ? 'text-emerald-500' : (isRejected ? 'text-rose-500' : 'text-[#7B0099]')}`}>
+          <div key={idx} className={`relative flex items-center group is-active ${nodeState === 'pending' ? 'opacity-60' : ''} ${isStaggered ? "justify-between md:justify-normal md:odd:flex-row-reverse" : "justify-start"}`}>
+            <div className={`w-6 h-6 rounded-full border-[3px] bg-white dark:bg-slate-900 shadow z-10 flex items-center justify-center ${borderClass} ${isApproved ? 'text-emerald-500' : (isRejected ? 'text-rose-500' : 'text-[#7B0099]')} ${isStaggered ? "shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2" : "absolute -left-[13px] top-2"}`}>
               {isApproved && <Check className="w-3.5 h-3.5 font-bold" strokeWidth={4} />}
               {isRejected && <X className="w-3.5 h-3.5 font-bold" strokeWidth={4} />}
               {nodeState === 'pending' && <div className="w-2 h-2 rounded-full bg-[#7B0099]" />}
             </div>
             
-            <div className="w-[calc(100%-2rem)] md:w-[calc(50%-1.5rem)] p-3 rounded border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-800">
+            <div className={`p-3 border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-800 ${isStaggered ? "w-[calc(100%-2rem)] md:w-[calc(50%-1.5rem)] rounded" : "rounded-xl ml-8 w-full"}`}>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div className="flex flex-col gap-1">
                    <div className="flex items-center gap-2">
