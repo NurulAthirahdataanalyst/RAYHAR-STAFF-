@@ -6,7 +6,6 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { ApprovalStatusTracker } from "@/components/leave/ApprovalStatusTracker";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -325,15 +324,6 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role }: LeaveDetai
                     <div className="flex items-center gap-2">
                       <Clock className="w-4 h-4 text-[#7B0099]" />
                       <h3 className="text-[10px] font-black uppercase tracking-widest text-[#7B0099]">Approval History</h3>
-                    </div>
-                    
-                    <div className="print:hidden">
-                      <ApprovalStatusTracker 
-                        status={selectedRequest.status} 
-                        approverRole={selectedRequest.approverRole || (selectedRequest.approvalHistory && selectedRequest.approvalHistory.length > 0 ? selectedRequest.approvalHistory[selectedRequest.approvalHistory.length - 1].approver_role : "")} 
-                        approvalHistory={selectedRequest.approvalHistory}
-                          branch={selectedRequest.branch || "HQ"}
-                      />
                     </div>
 
                     <div className="relative space-y-4 before:absolute before:inset-0 before:ml-4 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-border/50 before:to-transparent">
