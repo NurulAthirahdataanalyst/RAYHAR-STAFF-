@@ -173,6 +173,12 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       ],
     },
     {
+      title: "Temporary Assignments",
+      icon: Building2,
+      path: "/branches/temporary-assignments",
+      roles: HOD_BL_ROLES,
+    },
+    {
       title: "Workforce Analytics",
       icon: PieChart,
       path: "/hr-analytics/attendance",

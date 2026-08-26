@@ -104,7 +104,18 @@ export function StaffProfileDialog({
            if(data.success) {
               const emp = data.employees.find((e: any) => e.user_id === employeeId || e.id === employeeId);
               if(emp) {
-                 setSelectedEmployee(emp);
+                 // Format the raw API employee to match the shape expected by the render code
+                 const formatted = {
+                   ...emp,
+                   id: emp.user_id,
+                   name: emp.full_name || emp.name || "New User",
+                   email: emp.email || "Account Active",
+                   position: (emp.role === "operation_manager" || emp.role === "finance_manager" || emp.position === "Finance Manager" || emp.position === "finance_manager") ? "Operation Manager" : emp.role === "hr_admin" ? "HR Admin" : emp.role ? emp.role.split('_').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') : "Employee",
+                   branch: emp.branch || "HQ",
+                   department: emp.department || "General",
+                   status: emp.status || "Active",
+                 };
+                 setSelectedEmployee(formatted);
                  setIsModalOpen(true);
               }
            }
@@ -624,6 +635,110 @@ export function StaffProfileDialog({
                         </div>
                       </div>
                     </div>
+
+                    {/* Today's Attendance Card */}
+                    <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-800/60 dark:border-slate-700 shadow-sm flex flex-col gap-3">
+                      <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-700 pb-2">
+                        <span className="text-[10px] font-black tracking-widest uppercase text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
+                          <Clock className="w-3.5 h-3.5 text-[#7B0099]" />
+                          TODAY'S ATTENDANCE
+                        </span>
+                      </div>
+
+                      <div className="space-y-2 text-xs">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-semibold text-foreground flex items-center gap-1.5">
+                            📍 Clock In
+                          </span>
+                          <span className="font-bold text-slate-800 dark:text-slate-200">
+                            {todayStats?.clockInTime || "--:--"}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-semibold text-foreground flex items-center gap-1.5">
+                            📍 Clock Out
+                          </span>
+                          <span className="font-bold text-slate-800 dark:text-slate-200">
+                            {todayStats?.clockOutTime || "--:--"}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-semibold text-foreground flex items-center gap-1.5">
+                            📏 Distance
+                          </span>
+                          <span className="font-bold text-slate-800 dark:text-slate-200">
+                            {todayStats?.distanceMeters !== undefined && todayStats?.distanceMeters !== null
+                              ? todayStats.distanceMeters >= 1000
+                                ? `${(todayStats.distanceMeters / 1000).toFixed(2)} km`
+                                : `${todayStats.distanceMeters} m`
+                              : "--"}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-semibold text-foreground flex items-center gap-1.5">
+                            📌 Location
+                          </span>
+                          <span className="font-bold text-slate-800 dark:text-slate-200 truncate max-w-[140px]" title={
+                            todayStats?.isOutstationToday
+                              ? (todayStats.outstationDestination ? `Outstation (${todayStats.outstationDestination})` : "Outstation")
+                              : todayStats?.activeTemporaryAssignment
+                              ? (BRANCH_NAMES[todayStats.activeTemporaryAssignment.location] || todayStats.activeTemporaryAssignment.location)
+                              : todayStats?.attendanceLocation
+                              ? (BRANCH_NAMES[todayStats.attendanceLocation] || todayStats.attendanceLocation)
+                              : selectedEmployee?.branch
+                              ? `Permanent Branch`
+                              : "--"
+                          }>
+                            {todayStats?.isOutstationToday
+                              ? (todayStats.outstationDestination ? `Outstation (${todayStats.outstationDestination})` : "Outstation")
+                              : todayStats?.activeTemporaryAssignment
+                              ? (BRANCH_NAMES[todayStats.activeTemporaryAssignment.location] || todayStats.activeTemporaryAssignment.location)
+                              : todayStats?.attendanceLocation
+                              ? (BRANCH_NAMES[todayStats.attendanceLocation] || todayStats.attendanceLocation)
+                              : selectedEmployee?.branch
+                              ? `Permanent Branch`
+                              : "--"}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="pt-2 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between flex-wrap gap-1.5">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10px] font-bold text-foreground">Status:</span>
+                          <span className="flex items-center gap-1 text-xs font-bold text-slate-800 dark:text-slate-200">
+                            <span className={`w-2 h-2 rounded-full ${
+                              todayStats?.todayStatus?.includes("Present") ? "bg-emerald-500" :
+                              todayStats?.todayStatus?.includes("On Leave") ? "bg-purple-500" :
+                              todayStats?.todayStatus?.includes("Outstation") ? "bg-blue-500" :
+                              todayStats?.todayStatus?.includes("Rest Day") ? "bg-slate-400" : "bg-rose-500"
+                            }`} />
+                            {todayStats?.todayStatus || "Absent"}
+                          </span>
+                        </div>
+
+                        {/* Dynamic Tag */}
+                        {todayStats?.isOutstationToday ? (
+                          <Badge className="bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 text-[9px] font-bold">
+                            Outstation
+                          </Badge>
+                        ) : todayStats?.activeTemporaryAssignment ? (
+                          <Badge className="bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 text-[9px] font-bold">
+                            Temporary
+                          </Badge>
+                        ) : todayStats?.isMultiLocation ? (
+                          <Badge className="bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-300 text-[9px] font-bold">
+                            Multi Location
+                          </Badge>
+                        ) : todayStats?.todayStatus === "On Leave" && todayStats?.onLeaveType ? (
+                          <Badge className="bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 text-[9px] font-bold">
+                            {todayStats.onLeaveType}
+                          </Badge>
+                        ) : null}
+                      </div>
+                    </div>
                   </div>
 
                   {/* Right Columns: Advanced Analytics (8 cols) */}
@@ -832,6 +947,78 @@ export function StaffProfileDialog({
                               </div>
                               <span className="text-[9px] font-bold text-foreground uppercase tracking-widest">Rejected Requests</span>
                             </button>
+                          </div>
+
+                          {/* 3 Leave Type Breakdown Cards (Replacement, Unpaid, Medical) */}
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
+                            {/* REPLACEMENT LEAVE */}
+                            <div className="border border-slate-200 dark:border-slate-800/60 bg-white dark:bg-slate-800 rounded-xl p-3 flex flex-col justify-between shadow-sm">
+                              <p className="text-[9px] font-bold uppercase tracking-widest text-foreground dark:text-foreground mb-1">Replacement Leave</p>
+                              <div className="my-1.5">
+                                <span className="text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tighter">
+                                  {analytics.leave?.replacement?.taken || 0}
+                                </span>
+                                <span className="text-xs font-semibold text-foreground ml-1.5">Days Taken</span>
+                              </div>
+                              <div className="mt-1">
+                                <div className="flex justify-between items-center text-[9px] font-bold text-foreground mb-1">
+                                  <span className="uppercase tracking-wider">Progress</span>
+                                  <span>{analytics.leave?.replacement?.taken || 0} / {analytics.leave?.replacement?.entitlement || 0}</span>
+                                </div>
+                                <Progress 
+                                  value={
+                                    (analytics.leave?.replacement?.entitlement || 0) > 0 
+                                      ? Math.min(100, Math.round(((analytics.leave?.replacement?.taken || 0) / analytics.leave.replacement.entitlement) * 100)) 
+                                      : (analytics.leave?.replacement?.taken || 0) > 0 ? 100 : 0
+                                  } 
+                                  className="h-1.5" 
+                                />
+                              </div>
+                            </div>
+
+                            {/* UNPAID LEAVE */}
+                            <div className="border border-slate-200 dark:border-slate-800/60 bg-white dark:bg-slate-800 rounded-xl p-3 flex flex-col justify-between shadow-sm">
+                              <p className="text-[9px] font-bold uppercase tracking-widest text-foreground dark:text-foreground mb-1">Unpaid Leave</p>
+                              <div className="my-1.5">
+                                <span className="text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tighter">
+                                  {analytics.leave?.unpaid?.taken || 0}
+                                </span>
+                                <span className="text-xs font-semibold text-foreground ml-1.5">
+                                  {(analytics.leave?.unpaid?.taken || 0) === 0 ? "Application" : "Days Taken"}
+                                </span>
+                              </div>
+                              <div className="mt-1">
+                                <div className="flex justify-between items-center text-[9px] font-bold text-foreground mb-1">
+                                  <span className="uppercase tracking-wider">Usage</span>
+                                  <span>{(analytics.leave?.unpaid?.taken || 0) === 0 ? "0 Application" : `${analytics.leave?.unpaid?.taken} Days`}</span>
+                                </div>
+                                <Progress 
+                                  value={(analytics.leave?.unpaid?.taken || 0) > 0 ? 100 : 0} 
+                                  className="h-1.5" 
+                                />
+                              </div>
+                            </div>
+
+                            {/* MEDICAL LEAVE (SICK LEAVE) */}
+                            <div className="border border-slate-200 dark:border-slate-800/60 bg-white dark:bg-slate-800 rounded-xl p-3 flex flex-col justify-between shadow-sm">
+                              <p className="text-[9px] font-bold uppercase tracking-widest text-foreground dark:text-foreground mb-1">Medical Leave (Sick Leave)</p>
+                              <div className="my-1.5">
+                                <span className="text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tighter">
+                                  {analytics.leave?.sick?.taken || 0}
+                                </span>
+                                <span className="text-xs font-semibold text-foreground ml-1.5">Days Taken</span>
+                              </div>
+                              <div className="mt-1">
+                                <div className="flex justify-between items-center text-[9px] font-bold text-foreground mb-1">
+                                  <span className="uppercase tracking-wider">Progress</span>
+                                  <span>{analytics.leave?.sick?.taken || 0} / {analytics.leave?.sick?.entitlement || 14}</span>
+                                </div>
+                                <Progress 
+                                  value={Math.min(100, Math.round(((analytics.leave?.sick?.taken || 0) / (analytics.leave?.sick?.entitlement || 14)) * 100))} 
+                                  className="h-1.5" 
+                                />
+                              </div>
+                            </div>
                           </div>
                         </section>
                       </>

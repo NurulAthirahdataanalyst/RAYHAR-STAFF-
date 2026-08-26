@@ -65,7 +65,7 @@ export function getBreadcrumbs(pathname: string, search?: string): BreadcrumbSeg
 
   // Branch Management Pages
   if (pathname === "/branches") return [home, { label: "BRANCH MANAGEMENT", path: "/branches" }, { label: "BRANCH OVERVIEW" }];
-  if (pathname === "/branches/temporary-assignment" || pathname === "/branches/temporary-assignments") return [home, { label: "BRANCH MANAGEMENT", path: "/branches" }, { label: "TEMPORARY ASSIGNMENTS" }];
+  if (pathname === "/branches/temporary-assignment" || pathname === "/branches/temporary-assignments") return [home, { label: "TEMPORARY ASSIGNMENTS" }];
 
   // Workforce Analytics Pages
   if (pathname === "/hr-analytics/attendance") return [home, { label: "WORKFORCE ANALYTICS", path: "/hr-analytics/attendance" }, { label: "ATTENDANCE DASHBOARD" }];

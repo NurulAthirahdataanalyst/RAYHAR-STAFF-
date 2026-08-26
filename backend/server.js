@@ -3712,21 +3712,24 @@ app.get("/api/employees/:userId/analytics", async (req, res) => {
     let monthlyAbsent = Math.max(0, monthlyExpected - monthlyPresent);
     let yearlyAbsent = Math.max(0, yearlyExpected - yearlyPresent);
 
-    let annualTaken = 0, sickTaken = 0, unpaidTaken = 0, emergencyTaken = 0;
+    let annualTaken = 0, sickTaken = 0, unpaidTaken = 0, emergencyTaken = 0, replacementTaken = 0;
     userLeaves.forEach(l => {
       const leaveYear = new Date(l.start_date).getFullYear();
       if (leaveYear === yearNum) {
-        const days = parseInt(l.days || 0);
-        if (l.leave_type.toLowerCase().includes('annual')) annualTaken += days;
-        else if (l.leave_type.toLowerCase().includes('medical') || l.leave_type.toLowerCase().includes('sick')) sickTaken += days;
-        else if (l.leave_type.toLowerCase().includes('emergency')) emergencyTaken += days;
+        const days = parseFloat(l.days || 0);
+        const lt = (l.leave_type || '').toLowerCase();
+        if (lt.includes('annual')) annualTaken += days;
+        else if (lt.includes('medical') || lt.includes('sick') || lt.includes('mc')) sickTaken += days;
+        else if (lt.includes('replacement') || lt.includes('cuti ganti') || lt.includes('ganti')) replacementTaken += days;
+        else if (lt.includes('emergency')) emergencyTaken += days;
+        else if (lt.includes('unpaid') || lt.includes('tanpa gaji')) unpaidTaken += days;
         else unpaidTaken += days;
       }
     });
 
     let pendingLeaves = 0, rejectedLeaves = 0;
     allLeaves.forEach(l => {
-        if (l.status === 'Pending') pendingLeaves++;
+        if (l.status && l.status.startsWith('Pending')) pendingLeaves++;
         if (l.status === 'Rejected') rejectedLeaves++;
     });
 
@@ -3736,11 +3739,12 @@ app.get("/api/employees/:userId/analytics", async (req, res) => {
     const totalAnnualAllowed = annualEntitlement + totalAdjustment;
     const totalMedicalAllowed = medicalEntitlement + medicalAdj;
     const totalLeaveBalance = totalAnnualAllowed + totalMedicalAllowed;
-    const totalTaken = annualTaken + sickTaken + emergencyTaken + unpaidTaken;
+    const totalTaken = annualTaken + sickTaken + emergencyTaken + unpaidTaken + replacementTaken;
     const remainingAnnual = Math.max(0, totalAnnualAllowed - annualTaken);
     const remainingSick = Math.max(0, totalMedicalAllowed - sickTaken);
+    const remainingReplacement = Math.max(0, replacementAdj - replacementTaken);
     const remainingLeaveBalance = remainingAnnual + remainingSick;
-    const leaveUtilizationRate = totalLeaveBalance > 0 ? Math.round(((annualTaken + sickTaken) / totalLeaveBalance) * 100) : 0;
+    const leaveUtilizationRate = totalAnnualAllowed > 0 ? Math.round((annualTaken / totalAnnualAllowed) * 100) : 0;
 
     res.json({
       success: true,
@@ -3750,9 +3754,9 @@ app.get("/api/employees/:userId/analytics", async (req, res) => {
           yearly: { rate: Math.min(100, yearlyAttendanceRate), present: yearlyPresent, late: yearlyLate, absent: yearlyAbsent }
         },
         leave: {
-          annual: { taken: annualTaken, balance: totalAnnualAllowed, entitlement: annualEntitlement, adjustment: totalAdjustment },
-          sick: { taken: sickTaken, balance: totalMedicalAllowed, entitlement: medicalEntitlement, adjustment: medicalAdj },
-            replacement: { adjustment: replacementAdj },
+          annual: { taken: annualTaken, balance: remainingAnnual, entitlement: totalAnnualAllowed, adjustment: totalAdjustment },
+          sick: { taken: sickTaken, balance: remainingSick, entitlement: totalMedicalAllowed, adjustment: medicalAdj },
+          replacement: { taken: replacementTaken, balance: remainingReplacement, entitlement: replacementAdj, adjustment: replacementAdj },
           unpaid: { taken: unpaidTaken, balance: 0 },
           emergency: { taken: emergencyTaken, balance: 0 },
           entitlement: totalAnnualAllowed,
@@ -5407,7 +5411,9 @@ app.get("/api/dashboard-stats", async (req, res) => {
     // 1. TODAY ATTENDANCE STATUS
     const [todayRows] = await pool.query(
       `
-      SELECT clock_in, clock_out, TO_CHAR(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS clock_in_time, TO_CHAR(clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS clock_out_time
+      SELECT clock_in, clock_out, location, attendance_type, distance_meters,
+             TO_CHAR(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS clock_in_time, 
+             TO_CHAR(clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS clock_out_time
       FROM attendances WHERE user_id = ? AND DATE(clock_in) = ?::date ORDER BY clock_in DESC LIMIT 1
       `,
       [userId, queryDate]
@@ -5429,6 +5435,9 @@ app.get("/api/dashboard-stats", async (req, res) => {
     let clockInTime = "--:--";
     let clockOutTime = "--:--";
     let todayStatusTime = "--:--";
+    let distanceMeters = todayRows.length > 0 && todayRows[0].distance_meters !== null ? todayRows[0].distance_meters : null;
+    let attendanceLocation = todayRows.length > 0 && todayRows[0].location ? todayRows[0].location : null;
+    let attendanceType = todayRows.length > 0 && todayRows[0].attendance_type ? todayRows[0].attendance_type : null;
 
     if (todayRows.length > 0) {
       const record = todayRows[0];
@@ -5460,15 +5469,31 @@ app.get("/api/dashboard-stats", async (req, res) => {
       }
     }
 
+    // Check temporary assignment active today
+    const [tempAssignmentRows] = await pool.query(
+      `SELECT location, start_date, end_date FROM employee_work_assignment WHERE user_id = ? AND status = 'Active' AND ?::date BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND COALESCE((end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date, '2099-12-31'::date) LIMIT 1`,
+      [userId, queryDate]
+    );
+    const activeTemporaryAssignment = tempAssignmentRows.length > 0 ? tempAssignmentRows[0] : null;
+
+    // Check allowed locations (multi location)
+    const [allowedLocationsRows] = await pool.query(
+      `SELECT allowed_branch FROM employee_allowed_locations WHERE user_id = ?`,
+      [userId]
+    );
+    const isMultiLocation = allowedLocationsRows.length > 0;
+
     // OVERRIDE IF ON LEAVE TODAY
     const [onLeaveTodayRows] = await pool.query(
-      `SELECT status FROM leave_requests WHERE user_id = ? AND status = 'Approved' AND ?::date BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date`,
+      `SELECT status, leave_type FROM leave_requests WHERE user_id = ? AND status = 'Approved' AND ?::date BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date LIMIT 1`,
       [userId, queryDate]
     );
 
+    let onLeaveType = null;
     if (onLeaveTodayRows.length > 0) {
       todayStatus = "On Leave";
       todayStatusTime = "--:--";
+      onLeaveType = onLeaveTodayRows[0].leave_type;
     }
 
     // OVERRIDE IF COMPANY LEAVE TODAY (Highest priority)
@@ -5483,6 +5508,8 @@ app.get("/api/dashboard-stats", async (req, res) => {
     );
     let companyLeaveCountCurrentMonth = 0;
     let isAllStaffCompanyLeaveToday = false;
+    let isOutstationToday = false;
+    let outstationDestination = null;
     
     if (empProfile.length > 0) {
       const p = empProfile[0];
@@ -5520,6 +5547,8 @@ app.get("/api/dashboard-stats", async (req, res) => {
       );
   
       if (onOutstationTodayRows.length > 0 && !matchingLeave) {
+        isOutstationToday = true;
+        outstationDestination = onOutstationTodayRows[0].destination;
         if (todayRows.length > 0) {
             todayStatus = todayRows[0].clock_out ? "Clocked Out (Outstation)" : "Clocked In (Outstation)";
         } else {
@@ -5894,6 +5923,14 @@ app.get("/api/dashboard-stats", async (req, res) => {
         clockInTime,
         clockOutTime,
         todayStatusTime,
+        distanceMeters,
+        attendanceLocation,
+        attendanceType,
+        activeTemporaryAssignment,
+        isMultiLocation,
+        onLeaveType,
+        isOutstationToday,
+        outstationDestination,
         attendanceRate,
         ...(adminStats || {}),
         presentToday: adminStats ? adminStats.presentToday : 0

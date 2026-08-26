@@ -202,19 +202,21 @@ const TemporaryAssignments = () => {
   return (
 
     <div className="space-y-6 w-full">
-      <PageActions>
-        <Button 
-          onClick={() => {
-            setEditId(null);
-            setAssignForm({ user_id: "", location: "", start_date: "", end_date: "", status: "Active" });
-            setShowAssignModal(true);
-          }}
-          className="bg-[#a01497] hover:bg-[#850f7c] text-white font-bold whitespace-nowrap"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Assign Temporary Branch
-        </Button>
-      </PageActions>
+      {isHRAdmin && (
+        <PageActions>
+          <Button 
+            onClick={() => {
+              setEditId(null);
+              setAssignForm({ user_id: "", location: "", start_date: "", end_date: "", status: "Active" });
+              setShowAssignModal(true);
+            }}
+            className="bg-[#a01497] hover:bg-[#850f7c] text-white font-bold whitespace-nowrap"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Assign Temporary Branch
+          </Button>
+        </PageActions>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 rounded-md p-4 flex flex-col justify-between">
