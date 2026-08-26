@@ -207,6 +207,7 @@ export default function LeaveFormView() {
           cutiTanpaGajiSignature: request.cuti_tanpa_gaji_signature,
           mcFileUrl: request.mc_file_url,
           balance: request.balance !== undefined && request.balance !== null ? Number(request.balance) : (request.annual_leave_balance !== undefined ? Number(request.annual_leave_balance) : undefined),
+          phone: request.phone || "N/A",
           approvalHistory: request.approval_history || [],
         };
       });
@@ -554,10 +555,18 @@ export default function LeaveFormView() {
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <p className="text-[9px] font-black uppercase text-slate-950 dark:text-slate-50 tracking-widest">Sebab / Tujuan</p>
-                    <div className="rounded-[16px] border border-border/40 p-4 font-bold text-foreground bg-muted/10 text-sm leading-relaxed whitespace-pre-wrap break-words min-h-[50px]">
-                      {getCleanReason(selectedForm.reason) || "-"}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <p className="text-[9px] font-black uppercase text-slate-950 dark:text-slate-50 tracking-widest">Sebab / Tujuan</p>
+                      <div className="rounded-[16px] border border-border/40 p-4 font-bold text-foreground bg-muted/10 text-sm leading-relaxed whitespace-pre-wrap break-words min-h-[50px] max-h-[150px] overflow-y-auto">
+                        {getCleanReason(selectedForm.reason) || "-"}
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <p className="text-[9px] font-black uppercase text-slate-950 dark:text-slate-50 tracking-widest">No. Telefon</p>
+                      <div className="rounded-[16px] border border-border/40 p-4 font-bold text-foreground bg-muted/10 text-sm h-full min-h-[50px] flex items-center">
+                        {selectedForm.phone || "-"}
+                      </div>
                     </div>
                   </div>
 

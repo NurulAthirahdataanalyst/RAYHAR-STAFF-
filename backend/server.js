@@ -575,27 +575,22 @@ async function generateAndSaveLeaveFormPDF(leaveId) {
       doc.fontSize(8).font("Helvetica-Bold").fillColor("#555555").text("CAWANGAN", rightCol, 105);
       doc.fontSize(9).font("Helvetica-Bold").fillColor("#111111").text(employeeBranch.toUpperCase(), rightCol, 116);
 
-      // Row 2: No. Telefon & Jenis Cuti
-      doc.fontSize(8).font("Helvetica-Bold").fillColor("#555555").text("NO. TELEFON", leftCol, 134);
-      doc.fontSize(9).font("Helvetica-Bold").fillColor("#111111").text(applicantPhone, leftCol, 145);
+      // Row 2: Jenis Cuti & Status
+      doc.fontSize(8).font("Helvetica-Bold").fillColor("#555555").text("JENIS CUTI", leftCol, 134);
+      doc.fontSize(9).font("Helvetica-Bold").fillColor("#111111").text(leave.leave_type, leftCol, 145);
 
-      doc.fontSize(8).font("Helvetica-Bold").fillColor("#555555").text("JENIS CUTI", rightCol, 134);
-      doc.fontSize(9).font("Helvetica-Bold").fillColor("#111111").text(leave.leave_type, rightCol, 145);
-
-      // Row 3: Status
-      doc.fontSize(8).font("Helvetica-Bold").fillColor("#555555").text("STATUS", leftCol, 163);
-      
+      doc.fontSize(8).font("Helvetica-Bold").fillColor("#555555").text("STATUS", rightCol, 134);
       const statusText = (leave.status || "PENDING").toUpperCase();
       let statusColor = "#111111";
       if (statusText === "APPROVED") statusColor = "#137333";
       else if (statusText === "REJECTED") statusColor = "#c5221f";
-      doc.fontSize(9).font("Helvetica-Bold").fillColor(statusColor).text(statusText, leftCol, 174);
+      doc.fontSize(9).font("Helvetica-Bold").fillColor(statusColor).text(statusText, rightCol, 145);
 
       // Divider Line under main info
-      doc.moveTo(40, 195).lineTo(572, 195).strokeColor("#cccccc").lineWidth(1).stroke();
+      doc.moveTo(40, 165).lineTo(572, 165).strokeColor("#cccccc").lineWidth(1).stroke();
 
       // Date Range Box
-      let curY = 205;
+      let curY = 175;
       doc.rect(55, curY, 502, 45).strokeColor("#000000").lineWidth(1).stroke();
 
       const startDateStr = leave.start_date instanceof Date ? leave.start_date.toISOString().slice(0, 10) : String(leave.start_date).slice(0, 10);
@@ -616,16 +611,22 @@ async function generateAndSaveLeaveFormPDF(leaveId) {
       // Divider Line under Date Range
       doc.moveTo(40, curY).lineTo(572, curY).strokeColor("#cccccc").lineWidth(1).stroke();
 
-      // Sebab / Tujuan (Dynamic Height)
+      // Sebab / Tujuan (Dynamic Height) & No. Telefon
       curY += 8;
       doc.fontSize(8).font("Helvetica-Bold").fillColor("#555555").text("SEBAB / TUJUAN", leftCol, curY);
+      doc.fontSize(8).font("Helvetica-Bold").fillColor("#555555").text("NO. TELEFON", rightCol, curY);
       curY += 12;
 
       const cleanReasonText = (leave.reason || "-").split("[CUTI_GANTI_DATA:")[0].trim();
-      const reasonHeight = Math.max(35, doc.heightOfString(`"${cleanReasonText}"`, { width: 480 }) + 16);
+      const reasonHeight = Math.max(35, doc.heightOfString(`"${cleanReasonText}"`, { width: 250 }) + 16);
 
-      doc.roundedRect(55, curY, 502, reasonHeight, 4).strokeColor("#000000").lineWidth(1).stroke();
-      doc.fontSize(10).font("Helvetica-Bold").fillColor("#111111").text(`"${cleanReasonText}"`, 65, curY + 8, { width: 480 });
+      // Sebab box
+      doc.roundedRect(55, curY, 260, reasonHeight, 4).strokeColor("#000000").lineWidth(1).stroke();
+      doc.fontSize(10).font("Helvetica-Bold").fillColor("#111111").text(`"${cleanReasonText}"`, 65, curY + 8, { width: 240 });
+
+      // Phone box
+      doc.roundedRect(rightCol, curY, 227, reasonHeight, 4).strokeColor("#000000").lineWidth(1).stroke();
+      doc.fontSize(10).font("Helvetica-Bold").fillColor("#111111").text(applicantPhone || "-", rightCol + 10, curY + 8, { width: 200 });
 
       curY += reasonHeight + 10;
       // Divider Line under Reason
