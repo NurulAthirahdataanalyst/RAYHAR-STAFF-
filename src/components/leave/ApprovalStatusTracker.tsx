@@ -1,5 +1,5 @@
 import React from 'react';
-import { Check, X } from 'lucide-react';
+import { Check, X, Clock } from 'lucide-react';
 
 interface ApprovalHistoryItem {
   approver_id?: string;
@@ -11,7 +11,7 @@ interface ApprovalHistoryItem {
 }
 
 interface ApprovalStatusTrackerProps {
-  variant?: 'staggered' | 'linear';
+  variant?: 'horizontal' | 'linear' | 'staggered';
   status: string; // "Pending", "Approved", "Rejected"
   approverRole: string; // The role that is currently pending or the role that rejected it
   approvalHistory?: ApprovalHistoryItem[]; // Passed from parent
@@ -34,150 +34,164 @@ const formatRoleName = (r?: string) => {
   return map[key] || r.replace(/_/g, ' ').toUpperCase();
 };
 
-export function ApprovalStatusTracker({ status, approverRole, approvalHistory = [], branch = "", variant = "linear" }: ApprovalStatusTrackerProps) {
-  const isStaggered = variant === "staggered";
-  
-  if (approvalHistory && approvalHistory.length > 0) {
-    return (
-      <div className={`relative pl-6 space-y-6 before:absolute before:inset-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-300 dark:before:via-slate-700 before:to-transparent mt-4 mb-4 ${isStaggered ? "before:ml-2.5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0" : "before:ml-[11px]"}`}>
-        {approvalHistory.map((h, idx) => {
-          const isApproved = h.status === 'Approved';
-          const isRejected = h.status === 'Rejected';
-          const colorClass = isApproved ? 'text-emerald-500 bg-emerald-500/10' : (isRejected ? 'text-rose-500 bg-rose-500/10' : 'text-[#7B0099] bg-[#7B0099]/10');
-          const borderClass = isApproved ? 'border-emerald-500' : (isRejected ? 'border-rose-500' : 'border-[#7B0099]');
-          
-          let dateStr = "";
-          if (h.created_at) {
-             const d = new Date(h.created_at);
-             dateStr = d.toLocaleDateString('en-GB');
-          }
-          
-          return (
-            <div key={idx} className={`relative flex items-center group is-active ${isStaggered ? "justify-between md:justify-normal md:odd:flex-row-reverse" : "justify-start"}`}>
-              <div className={`w-6 h-6 rounded-full border-[3px] bg-white dark:bg-slate-900 shadow z-10 flex items-center justify-center ${borderClass} ${isApproved ? 'text-emerald-500' : (isRejected ? 'text-rose-500' : 'text-[#7B0099]')} ${isStaggered ? "shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2" : "absolute -left-[13px] top-2"}`}>
-                {isApproved && <Check className="w-3.5 h-3.5 font-bold" strokeWidth={4} />}
-                {isRejected && <X className="w-3.5 h-3.5 font-bold" strokeWidth={4} />}
-                {!isApproved && !isRejected && <div className="w-2 h-2 rounded-full bg-[#7B0099]" />}
-              </div>
-              
-              <div className={`p-3 border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-800 ${isStaggered ? "w-[calc(100%-2rem)] md:w-[calc(50%-1.5rem)] rounded" : "rounded-xl ml-8 w-full"}`}>
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <div className="flex flex-col gap-1">
-                     <div className="flex items-center gap-2">
-                       <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded ${colorClass}`}>
-                          {h.status}
-                       </span>
-                     </div>
-                     <span className="text-[11px] font-bold text-foreground">
-                        by {h.approver_name || h.approver_id} ({formatRoleName(h.approver_role)}{h.approver_branch ? ` [${h.approver_branch}]` : ''})
-                     </span>
-                  </div>
-                  {dateStr && (
-                     <div className="text-[10px] font-bold text-muted-foreground whitespace-nowrap">
-                        {dateStr}
-                     </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          );
-        })}
-        
-        {/* If the overall status is pending, show the pending step */}
-        {status === 'Pending' && (
-           <div className={`relative flex items-center group is-active ${isStaggered ? "justify-between md:justify-normal md:odd:flex-row-reverse" : "justify-start"}`}>
-              <div className={`w-6 h-6 rounded-full border-[3px] bg-white dark:bg-slate-900 shadow z-10 flex items-center justify-center border-[#7B0099] text-[#7B0099] ${isStaggered ? "shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2" : "absolute -left-[13px] top-2"}`}>
-                <div className="w-2 h-2 rounded-full bg-[#7B0099]" />
-              </div>
-              <div className={`p-3 border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-800 opacity-60 ${isStaggered ? "w-[calc(100%-2rem)] md:w-[calc(50%-1.5rem)] rounded" : "rounded-xl ml-8 w-full"}`}>
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                     <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded text-[#7B0099] bg-[#7B0099]/10">
-                        PENDING
-                     </span>
-                     <span className="text-[11px] font-bold text-foreground">
-                        Pending {approverRole ? `at ${formatRoleName(approverRole)}` : 'Approval'}
-                     </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-        )}
-      </div>
-    );
-  }
-
-  // Fallback to vertical layout with correct branch logic if no explicit history is provided
-  const role = String(approverRole || "").toLowerCase();
+export function ApprovalStatusTracker({ status, approverRole, approvalHistory = [], branch = "" }: ApprovalStatusTrackerProps) {
   const isHQ = String(branch).toUpperCase() === 'HQ';
-  
-  let currentStep = 0;
-  
-  if (isHQ) {
-    if (role.includes("hod")) currentStep = 1;
-    else if (role.includes("operation")) currentStep = 2;
-  } else {
-    if (role.includes("branch") || role.includes("leader")) currentStep = 1;
-    else if (role.includes("md") || role.includes("managing") || role.includes("director")) currentStep = 2;
-  }
-  
-  const steps = isHQ 
+  const role = String(approverRole || "").toLowerCase();
+
+  // Define standard steps based on branch
+  const defaultStepLabels = isHQ 
     ? ["Submit", "HOD", "Operation Manager"] 
     : ["Submit", "Branch Leader", "Managing Director"];
-    
-  if (status === 'Approved') currentStep = steps.length;
-  
-  return (
-    <div className={`relative pl-6 space-y-6 before:absolute before:inset-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-300 dark:before:via-slate-700 before:to-transparent mt-4 mb-4 ${isStaggered ? "before:ml-2.5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0" : "before:ml-[11px]"}`}>
-      {steps.map((step, idx) => {
-        let nodeState = "pending"; 
-        
-        if (idx === 0) {
-          nodeState = "approved"; 
-        } else if (status === 'Approved') {
-          nodeState = "approved";
-        } else if (status === 'Rejected') {
-          if (idx < currentStep) nodeState = "approved";
-          else if (idx === currentStep) nodeState = "rejected";
-          else nodeState = "future";
-        } else {
-          if (idx < currentStep) nodeState = "approved";
-          else if (idx === currentStep) nodeState = "pending";
-          else nodeState = "future";
-        }
-        
-        if (nodeState === "future") return null;
 
-        const isApproved = nodeState === 'approved';
-        const isRejected = nodeState === 'rejected';
-        const colorClass = isApproved ? 'text-emerald-500 bg-emerald-500/10' : (isRejected ? 'text-rose-500 bg-rose-500/10' : 'text-[#7B0099] bg-[#7B0099]/10');
-        const borderClass = isApproved ? 'border-emerald-500' : (isRejected ? 'border-rose-500' : 'border-[#7B0099]');
-        
-        return (
-          <div key={idx} className={`relative flex items-center group is-active ${nodeState === 'pending' ? 'opacity-60' : ''} ${isStaggered ? "justify-between md:justify-normal md:odd:flex-row-reverse" : "justify-start"}`}>
-            <div className={`w-6 h-6 rounded-full border-[3px] bg-white dark:bg-slate-900 shadow z-10 flex items-center justify-center ${borderClass} ${isApproved ? 'text-emerald-500' : (isRejected ? 'text-rose-500' : 'text-[#7B0099]')} ${isStaggered ? "shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2" : "absolute -left-[13px] top-2"}`}>
-              {isApproved && <Check className="w-3.5 h-3.5 font-bold" strokeWidth={4} />}
-              {isRejected && <X className="w-3.5 h-3.5 font-bold" strokeWidth={4} />}
-              {nodeState === 'pending' && <div className="w-2 h-2 rounded-full bg-[#7B0099]" />}
-            </div>
-            
-            <div className={`p-3 border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-800 ${isStaggered ? "w-[calc(100%-2rem)] md:w-[calc(50%-1.5rem)] rounded" : "rounded-xl ml-8 w-full"}`}>
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div className="flex flex-col gap-1">
-                   <div className="flex items-center gap-2">
-                     <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded ${colorClass}`}>
-                        {nodeState === 'pending' ? 'PENDING' : nodeState.toUpperCase()}
-                     </span>
-                   </div>
-                   <span className="text-[11px] font-bold text-foreground">
-                      {step}
-                   </span>
+  let currentStepIndex = 0;
+  if (isHQ) {
+    if (role.includes("hod")) currentStepIndex = 1;
+    else if (role.includes("operation") || role.includes("finance")) currentStepIndex = 2;
+  } else {
+    if (role.includes("branch") || role.includes("leader")) currentStepIndex = 1;
+    else if (role.includes("md") || role.includes("managing") || role.includes("director")) currentStepIndex = 2;
+  }
+  if (status === 'Approved') currentStepIndex = defaultStepLabels.length;
+
+  // Build unified items to display in horizontal line
+  let items: Array<{
+    title: string;
+    subtitle?: string;
+    status: 'Approved' | 'Rejected' | 'Pending' | 'Future';
+    date?: string;
+  }> = [];
+
+  if (approvalHistory && approvalHistory.length > 0) {
+    // We have actual history items
+    items = approvalHistory.map((h) => {
+      const isApproved = h.status === 'Approved';
+      const isRejected = h.status === 'Rejected';
+      const dateStr = h.created_at ? new Date(h.created_at).toLocaleDateString('en-GB') : "";
+      
+      const roleStr = formatRoleName(h.approver_role);
+      const branchStr = h.approver_branch ? ` [${h.approver_branch}]` : '';
+      const nameStr = h.approver_name || h.approver_id || "";
+
+      return {
+        title: roleStr,
+        subtitle: nameStr ? `by ${nameStr}${branchStr}` : undefined,
+        status: isApproved ? 'Approved' : (isRejected ? 'Rejected' : 'Pending'),
+        date: dateStr,
+      };
+    });
+
+    // If still pending, append the pending stage
+    if (status === 'Pending') {
+      const pendingRole = approverRole ? formatRoleName(approverRole) : "MANAGEMENT";
+      items.push({
+        title: pendingRole,
+        subtitle: `Awaiting Approval`,
+        status: 'Pending',
+      });
+    }
+  } else {
+    // Fallback: 3 default steps
+    items = defaultStepLabels.map((label, idx) => {
+      let stepStatus: 'Approved' | 'Rejected' | 'Pending' | 'Future' = 'Future';
+      if (idx === 0) {
+        stepStatus = 'Approved';
+      } else if (status === 'Approved') {
+        stepStatus = 'Approved';
+      } else if (status === 'Rejected') {
+        if (idx < currentStepIndex) stepStatus = 'Approved';
+        else if (idx === currentStepIndex) stepStatus = 'Rejected';
+        else stepStatus = 'Future';
+      } else {
+        if (idx < currentStepIndex) stepStatus = 'Approved';
+        else if (idx === currentStepIndex) stepStatus = 'Pending';
+        else stepStatus = 'Future';
+      }
+
+      return {
+        title: label.toUpperCase(),
+        subtitle: idx === 0 ? "Application Submitted" : undefined,
+        status: stepStatus,
+      };
+    });
+  }
+
+  return (
+    <div className="w-full py-2">
+      <div className="flex items-start justify-between relative">
+        {items.map((item, idx) => {
+          const isApproved = item.status === 'Approved';
+          const isRejected = item.status === 'Rejected';
+          const isPending = item.status === 'Pending';
+          const isFuture = item.status === 'Future';
+
+          const isLast = idx === items.length - 1;
+
+          const circleBorder = isApproved
+            ? 'border-emerald-500 bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50'
+            : isRejected
+            ? 'border-rose-500 bg-rose-50 text-rose-600 dark:bg-rose-950/50'
+            : isPending
+            ? 'border-[#7B0099] bg-purple-50 text-[#7B0099] dark:bg-purple-950/50 shadow-md shadow-[#7B0099]/20 animate-pulse'
+            : 'border-slate-300 bg-slate-100 text-slate-400 dark:border-slate-700 dark:bg-slate-800';
+
+          const badgeBg = isApproved
+            ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+            : isRejected
+            ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'
+            : isPending
+            ? 'bg-[#7B0099]/10 text-[#7B0099] dark:text-purple-300 border-[#7B0099]/20'
+            : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400 border-slate-200';
+
+          return (
+            <React.Fragment key={idx}>
+              {/* Step Item */}
+              <div className="flex flex-col items-center text-center flex-1 z-10 min-w-0 px-1">
+                {/* Node Icon */}
+                <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center mb-2 shadow-sm transition-all ${circleBorder}`}>
+                  {isApproved && <Check className="w-4 h-4 font-black" strokeWidth={3.5} />}
+                  {isRejected && <X className="w-4 h-4 font-black" strokeWidth={3.5} />}
+                  {isPending && <Clock className="w-4 h-4 font-bold animate-spin" />}
+                  {isFuture && <div className="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-600" />}
                 </div>
+
+                {/* Status Badge */}
+                <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded border mb-1 whitespace-nowrap ${badgeBg}`}>
+                  {item.status === 'Future' ? 'PENDING' : item.status.toUpperCase()}
+                </span>
+
+                {/* Title (Role) */}
+                <h4 className="text-[11px] font-black text-foreground truncate max-w-full">
+                  {item.title}
+                </h4>
+
+                {/* Subtitle (Approver Name / Context) */}
+                {item.subtitle && (
+                  <p className="text-[9px] font-bold text-muted-foreground truncate max-w-full mt-0.5">
+                    {item.subtitle}
+                  </p>
+                )}
+
+                {/* Date */}
+                {item.date && (
+                  <span className="text-[8px] font-bold text-foreground/50 mt-0.5">
+                    {item.date}
+                  </span>
+                )}
               </div>
-            </div>
-          </div>
-        );
-      })}
+
+              {/* Connecting Line between steps */}
+              {!isLast && (
+                <div className="flex-1 flex items-center self-start mt-4 -mx-2 px-1">
+                  <div className={`h-[3px] w-full rounded-full transition-colors ${
+                    isApproved ? 'bg-emerald-500' : isRejected ? 'bg-rose-400' : 'bg-slate-200 dark:bg-slate-700'
+                  }`} />
+                </div>
+              )}
+            </React.Fragment>
+          );
+        })}
+      </div>
     </div>
   );
 }
+

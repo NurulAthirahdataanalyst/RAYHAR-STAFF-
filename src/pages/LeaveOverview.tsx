@@ -456,7 +456,12 @@ export default function LeaveOverview() {
 
                   
   <div className="mt-6 space-y-4 pt-4 pb-2">
-    <ApprovalStatusTracker status={req.status} approverRole={req.approverRole || ""} branch={(req as any).branch || "HQ"} variant="staggered" />
+    <ApprovalStatusTracker 
+      status={req.status} 
+      approverRole={req.approverRole || ""} 
+      approvalHistory={req.approvalHistory || []}
+      branch={(req as any).branch || "HQ"} 
+    />
   </div>
 
                 </div>
