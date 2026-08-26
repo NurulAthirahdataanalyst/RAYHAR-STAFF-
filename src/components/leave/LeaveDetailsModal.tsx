@@ -15,26 +15,40 @@ import { parseCutiGantiRows, getCleanReason } from "@/lib/leaveStorage";
 import { API_BASE_URL } from "@/config/api";
 
 const formatRole = (role: string) => {
-  if (!role) return "Approver";
-  return role.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+  if (!role) return "APPROVER";
+  const map: Record<string, string> = {
+    branch_leader: "BRANCH LEADER",
+    managing_director: "MANAGING DIRECTOR",
+    operation_manager: "OPERATION MANAGER",
+    finance_manager: "OPERATION MANAGER",
+    head_of_department: "HEAD OF DEPARTMENT",
+    hr_admin: "HR ADMIN",
+    branch_officer: "BRANCH OFFICER",
+    employee: "EMPLOYEE",
+  };
+  const key = role.toLowerCase().trim();
+  return map[key] || role.replace(/_/g, ' ').toUpperCase();
 };
 
 const formatApproverRole = (role: string, department?: string, branch?: string) => {
-  if (!role) return "Approver";
+  if (!role) return "APPROVER";
   const normalized = role.toLowerCase().trim();
   if (normalized === "head_of_department") {
-    return `Head Of Department (${department || "N/A"})`;
+    return `HEAD OF DEPARTMENT (${department || "N/A"})`;
   }
   if (normalized === "branch_leader") {
-    return `Branch Leader (${branch || "N/A"})`;
+    return `BRANCH LEADER (${branch || "N/A"})`;
   }
   if (normalized === "operation_manager" || normalized === "finance_manager") {
-    return "Operation Manager";
+    return "OPERATION MANAGER";
   }
   if (normalized === "managing_director") {
-    return "Managing Director";
+    return "MANAGING DIRECTOR";
   }
-  return role.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+  if (normalized === "hr_admin") {
+    return "HR ADMIN";
+  }
+  return formatRole(role);
 };
 
 const ADMIN_VIEW_ROLES = ["hr_admin", "branch_leader", "managing_director", "operation_manager", "finance_manager", "head_of_department"];
@@ -384,10 +398,9 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role }: LeaveDetai
                     className="gap-2 border-[#7B0099] text-[#7B0099] hover:bg-[#7B0099]/5 rounded-xl font-black text-[10px] uppercase tracking-widest px-6"
                     onClick={() => {
                       const originalTitle = document.title;
-                      const empId = selectedRequest.userId || selectedRequest.user_id || "UNKNOWN";
-                      const empName = selectedRequest.employee || "UNKNOWN";
-                      const branch = selectedRequest.branch || "HQ";
-                      document.title = `Leave Request (${empName} - ${empId}) (${branch})`;
+                      const empName = selectedRequest.employee || selectedRequest.name || "UNKNOWN";
+                      const branch = selectedRequest.branch || selectedRequest.branch_code || "HQ";
+                      document.title = `LEAVE REQUEST ( ${empName.toUpperCase()} - ${branch.toUpperCase()} )`;
                       window.print();
                       setTimeout(() => { document.title = originalTitle; }, 500);
                     }}

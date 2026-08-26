@@ -21,7 +21,21 @@ export default function TeamLeaveRequests() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRequest, setSelectedRequest] = useState<any | null>(null);
 
-  const formatRole = (r: string) => r.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase());
+  const formatRole = (r: string) => {
+    if (!r) return "APPROVER";
+    const map: Record<string, string> = {
+      branch_leader: "BRANCH LEADER",
+      managing_director: "MANAGING DIRECTOR",
+      operation_manager: "OPERATION MANAGER",
+      finance_manager: "OPERATION MANAGER",
+      head_of_department: "HEAD OF DEPARTMENT",
+      hr_admin: "HR ADMIN",
+      branch_officer: "BRANCH OFFICER",
+      employee: "EMPLOYEE",
+    };
+    const key = r.toLowerCase().trim();
+    return map[key] || r.replace(/_/g, " ").toUpperCase();
+  };
 
   const getDisplayStatus = (status: string) => {
     switch (status) {
@@ -42,12 +56,12 @@ export default function TeamLeaveRequests() {
   };
 
   const formatApproverRole = (approverRole: string | undefined, approverDepartment: string | undefined, approverBranch: string | undefined) => {
-    if (!approverRole) return "Admin";
-    if (approverRole === "hr_admin") return "HR Admin";
-    if (approverRole === "managing_director") return "Managing Director";
-    if (approverRole === "operation_manager" || approverRole === "finance_manager") return "Operation Manager";
-    if (approverRole === "branch_leader") return `Branch Leader (${approverBranch || 'HQ'})`;
-    if (approverRole === "head_of_department") return `HOD (${approverDepartment || 'General'})`;
+    if (!approverRole) return "APPROVER";
+    if (approverRole === "hr_admin") return "HR ADMIN";
+    if (approverRole === "managing_director") return "MANAGING DIRECTOR";
+    if (approverRole === "operation_manager" || approverRole === "finance_manager") return "OPERATION MANAGER";
+    if (approverRole === "branch_leader") return `BRANCH LEADER (${approverBranch || 'HQ'})`;
+    if (approverRole === "head_of_department") return `HEAD OF DEPARTMENT (${approverDepartment || 'General'})`;
     return formatRole(approverRole);
   };
 
@@ -496,9 +510,9 @@ export default function TeamLeaveRequests() {
                       className="gap-2 border-[#7B0099] text-[#7B0099] hover:bg-[#7B0099]/5 rounded-xl font-black text-[10px] uppercase tracking-widest px-6"
                       onClick={() => {
                         const originalTitle = document.title;
-                        const empId = selectedRequest.user_id || "UNKNOWN";
+                        const empName = selectedRequest.employee || selectedRequest.name || "UNKNOWN";
                         const branch = selectedRequest.branch || "HQ";
-                        document.title = `Leave Request (${empId}) (${branch})`;
+                        document.title = `LEAVE REQUEST ( ${empName.toUpperCase()} - ${branch.toUpperCase()} )`;
                         window.print();
                         setTimeout(() => { document.title = originalTitle; }, 500);
                       }}

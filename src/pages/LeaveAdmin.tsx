@@ -88,25 +88,40 @@ type LeaveRequest = {
 const formatDate = (value: string) => (value ? value.slice(0, 10) : "");
 
 const formatRole = (role: string) => {
-  return role.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+  if (!role) return "APPROVER";
+  const map: Record<string, string> = {
+    branch_leader: "BRANCH LEADER",
+    managing_director: "MANAGING DIRECTOR",
+    operation_manager: "OPERATION MANAGER",
+    finance_manager: "OPERATION MANAGER",
+    head_of_department: "HEAD OF DEPARTMENT",
+    hr_admin: "HR ADMIN",
+    branch_officer: "BRANCH OFFICER",
+    employee: "EMPLOYEE",
+  };
+  const key = role.toLowerCase().trim();
+  return map[key] || role.replace(/_/g, ' ').toUpperCase();
 };
 
 const formatApproverRole = (role: string, department?: string, branch?: string) => {
-  if (!role) return "Approver";
+  if (!role) return "APPROVER";
   const normalized = role.toLowerCase().trim();
   if (normalized === "head_of_department") {
-    return `Head Of Department (${department || "N/A"})`;
+    return `HEAD OF DEPARTMENT (${department || "N/A"})`;
   }
   if (normalized === "branch_leader") {
-    return `Branch Leader (${branch || "N/A"})`;
+    return `BRANCH LEADER (${branch || "N/A"})`;
   }
   if (normalized === "operation_manager" || normalized === "finance_manager") {
-    return "Operation Manager";
+    return "OPERATION MANAGER";
   }
   if (normalized === "managing_director") {
-    return "Managing Director";
+    return "MANAGING DIRECTOR";
   }
-  return role.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+  if (normalized === "hr_admin") {
+    return "HR ADMIN";
+  }
+  return formatRole(role);
 };
 
 // Roles that can approve/reject leave requests

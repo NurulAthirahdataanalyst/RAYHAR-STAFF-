@@ -18,6 +18,22 @@ interface ApprovalStatusTrackerProps {
   branch?: string; // Employee branch
 }
 
+const formatRoleName = (r?: string) => {
+  if (!r) return "MANAGER";
+  const map: Record<string, string> = {
+    branch_leader: "BRANCH LEADER",
+    managing_director: "MANAGING DIRECTOR",
+    operation_manager: "OPERATION MANAGER",
+    finance_manager: "OPERATION MANAGER",
+    head_of_department: "HEAD OF DEPARTMENT",
+    hr_admin: "HR ADMIN",
+    branch_officer: "BRANCH OFFICER",
+    employee: "EMPLOYEE",
+  };
+  const key = r.toLowerCase().trim();
+  return map[key] || r.replace(/_/g, ' ').toUpperCase();
+};
+
 export function ApprovalStatusTracker({ status, approverRole, approvalHistory = [], branch = "", variant = "linear" }: ApprovalStatusTrackerProps) {
   const isStaggered = variant === "staggered";
   
@@ -53,7 +69,7 @@ export function ApprovalStatusTracker({ status, approverRole, approvalHistory = 
                        </span>
                      </div>
                      <span className="text-[11px] font-bold text-foreground">
-                        by {h.approver_name || h.approver_id} ({h.approver_role || 'Manager'}{h.approver_branch ? ` [${h.approver_branch}]` : ''})
+                        by {h.approver_name || h.approver_id} ({formatRoleName(h.approver_role)}{h.approver_branch ? ` [${h.approver_branch}]` : ''})
                      </span>
                   </div>
                   {dateStr && (
@@ -80,7 +96,7 @@ export function ApprovalStatusTracker({ status, approverRole, approvalHistory = 
                         PENDING
                      </span>
                      <span className="text-[11px] font-bold text-foreground">
-                        Pending {approverRole ? `at ${approverRole}` : 'Approval'}
+                        Pending {approverRole ? `at ${formatRoleName(approverRole)}` : 'Approval'}
                      </span>
                   </div>
                 </div>

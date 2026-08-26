@@ -1972,10 +1972,9 @@ export default function Employees() {
                         className="gap-2 border-[#7B0099] text-[#7B0099] hover:bg-[#7B0099]/5 rounded-xl font-black text-[10px] uppercase tracking-widest px-6"
                         onClick={() => {
                           const originalTitle = document.title;
-                          const empName = selectedEmployee?.name || "UNKNOWN";
-                          const empId = selectedEmployee?.user_id || "UNKNOWN";
-                          const branch = selectedEmployee?.branch || "HQ";
-                          document.title = `Leave Request (${empName} - ${empId}) (${branch})`;
+                          const empName = selectedEmployee?.name || selectedEmployee?.full_name || "UNKNOWN";
+                          const branch = selectedEmployee?.branch || selectedEmployee?.branch_code || "HQ";
+                          document.title = `LEAVE REQUEST ( ${empName.toUpperCase()} - ${branch.toUpperCase()} )`;
                           handlePrint();
                           setTimeout(() => {
                             document.title = originalTitle;
