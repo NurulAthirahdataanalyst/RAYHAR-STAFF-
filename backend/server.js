@@ -652,7 +652,7 @@ async function generateAndSaveLeaveFormPDF(leaveId) {
 
       curY += 85;
       // Divider Line under Emergency Contact
-      doc.moveTo(40, curY).lineTo(572, curY).strokeColor("#cccccc").lineWidth(1).stroke();0).strokeColor("#cccccc").lineWidth(1).stroke();
+      doc.moveTo(40, curY).lineTo(572, curY).strokeColor("#cccccc").lineWidth(1).stroke();
 
       // Approval History Section
       doc.fontSize(9).font("Helvetica-Bold").fillColor("#000000").text("APPROVAL HISTORY", leftCol, 428);

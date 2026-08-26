@@ -113,24 +113,6 @@ const CompanyLeaveCalendar = () => {
         applies_to: 'all',
         branch_id: '',
         department_id: '',
-        is_paid: true,
-        attendance_required: false,
-        status: 'Active',
-        remarks: ''
-      });
-    }
-    setBranchSearch('');
-    setDeptSearch('');
-    setIsDialogOpen(true);
-  };
-
-  const handleSave = async () => {
-    if (!formData.leave_name || !formData.start_date || !formData.end_date) {
-      toast({ title: "Error", description: "Name, start date, and end date are required.", variant: "destructive" });
-      return;
-    }
-    if (!formData.leave_type) {
-      toast({ title: "Error", description: "Please select a Leave Type.", variant: "destructive" });
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRole } from "@/contexts/RoleContext";
