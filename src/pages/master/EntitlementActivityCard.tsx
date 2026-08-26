@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { getHistoryLogs, EntitlementHistoryLog } from "@/lib/entitlementHistory";
 import { MonthPicker } from "@/components/shared/MonthPicker";
 import { EntitlementDetailModal } from "./EntitlementDetailModal";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 // ——— Badge config ———
 export const ACTION_BADGE: Record<string, { bg: string; text: string; dot: string; label: string; border: string }> = {
@@ -39,8 +40,6 @@ interface Props {
   onViewHistory: () => void;
 }
 
-const ITEMS_PER_PAGE = 5;
-
 export default function EntitlementActivityCard({ onViewHistory }: Props) {
   const [logs, setLogs] = useState<EntitlementHistoryLog[]>([]);
   const [selectedMonthStr, setSelectedMonthStr] = useState<string>(() => {
@@ -48,6 +47,7 @@ export default function EntitlementActivityCard({ onViewHistory }: Props) {
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   });
   const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [selectedLog, setSelectedLog] = useState<EntitlementHistoryLog | null>(null);
 
   const reload = () => setLogs(getHistoryLogs());
@@ -123,8 +123,9 @@ export default function EntitlementActivityCard({ onViewHistory }: Props) {
     },
   ];
 
-  const totalPages = Math.ceil(thisMonthLogs.length / ITEMS_PER_PAGE);
-  const paginatedLogs = thisMonthLogs.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+  const totalPages = Math.max(1, Math.ceil(thisMonthLogs.length / itemsPerPage));
+  const paginatedLogs = thisMonthLogs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
 
   return (
     <>
@@ -195,7 +196,7 @@ export default function EntitlementActivityCard({ onViewHistory }: Props) {
 
         <CardContent className="p-0 flex-1 flex flex-col">
           {paginatedLogs.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-10 text-foreground">
+            <div className="flex flex-col items-center justify-center py-10 text-foreground flex-1">
               <History className="w-8 h-8 opacity-20 mb-2" />
               <p className="text-xs font-medium">No activity for {selectedMonthName}.</p>
               <p className="text-[10px] mt-0.5 text-center px-4">
@@ -241,29 +242,42 @@ export default function EntitlementActivityCard({ onViewHistory }: Props) {
             </div>
           )}
 
-          {totalPages > 1 && (
-            <div className="p-3 border-t border-border/40 flex items-center justify-between">
-              <span className="text-xs text-muted-foreground font-medium pl-2">
-                Page {currentPage} of {totalPages}
-              </span>
-              <div className="flex items-center gap-1">
+          {thisMonthLogs.length > 0 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-border/40 gap-4 bg-slate-50/50 dark:bg-slate-900/50 shrink-0">
+              <div className="flex items-center gap-4 text-[10px] font-bold text-foreground uppercase tracking-widest">
+                <span>TOTAL SHOWING {startIndex + 1} TO {Math.min(startIndex + itemsPerPage, thisMonthLogs.length)} OF {thisMonthLogs.length} ENTRIES</span>
+                <div className="flex items-center gap-2">
+                  <span>Show</span>
+                  <Select value={itemsPerPage.toString()} onValueChange={(val) => { setItemsPerPage(Number(val)); setCurrentPage(1); }}>
+                    <SelectTrigger className="h-7 text-[10px] font-bold rounded border-border w-[60px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="25">25</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                      <SelectItem value="100">100</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
                 <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 w-8 p-0"
+                  variant="outline" size="sm" className="h-8 px-3 text-xs font-bold border border-slate-300 dark:border-slate-700 rounded-md bg-white dark:bg-slate-900 text-foreground disabled:opacity-40 hover:bg-slate-100 dark:hover:bg-slate-800"
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
                 >
-                  <ChevronLeft className="h-4 w-4" />
+                  Prev
                 </Button>
+                <span className="text-[10px] font-bold text-foreground uppercase tracking-widest">
+                  {currentPage} / {totalPages}
+                </span>
                 <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 w-8 p-0"
+                  variant="outline" size="sm" className="h-8 px-3 text-xs font-bold border border-slate-300 dark:border-slate-700 rounded-md bg-white dark:bg-slate-900 text-foreground disabled:opacity-40 hover:bg-slate-100 dark:hover:bg-slate-800"
                   onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
                 >
-                  <ChevronRight className="h-4 w-4" />
+                  Next
                 </Button>
               </div>
             </div>

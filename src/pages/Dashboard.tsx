@@ -662,13 +662,25 @@ export default function Dashboard() {
             <Card 
               onClick={() => {
                 if (safeTodayStatus.includes("Absent")) {
-                  navigate("/hr-analytics/attendance#employee-absenteeism");
+                  if (role === "employee") {
+                    navigate("/attendance");
+                  } else if (role === "branch_leader" || role === "branch_officer" || role === "head_of_department") {
+                    navigate("/team-attendance");
+                  } else {
+                    navigate("/hr-analytics/attendance#employee-absenteeism");
+                  }
                 } else if (displayStatus.includes("Outstation")) {
-                  navigate("/outstation");
+                  navigate("/outstation/my");
                 } else if (isOnLeave) {
                   navigate("/leave/admin");
                 } else if (isPresent || isClockedOut) {
-                  navigate("/hr-analytics/attendance#admin-attendance");
+                  if (role === "employee") {
+                    navigate("/attendance");
+                  } else if (role === "branch_leader" || role === "branch_officer" || role === "head_of_department") {
+                    navigate("/team-attendance");
+                  } else {
+                    navigate("/hr-analytics/attendance#admin-attendance");
+                  }
                 }
               }}
               className={`rounded-2xl shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] group relative overflow-hidden flex flex-col justify-between cursor-pointer ${
@@ -723,7 +735,18 @@ export default function Dashboard() {
             </Card>
 
             {/* 2. Attendance */}
-            <Card className="rounded-2xl border border-blue-200 dark:border-blue-900/60 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-blue-50/60 dark:bg-blue-950/30 group relative overflow-hidden flex flex-col justify-between">
+            <Card 
+              onClick={() => {
+                if (role === "employee") {
+                  navigate("/attendance");
+                } else if (role === "branch_leader" || role === "branch_officer" || role === "head_of_department") {
+                  navigate("/team-attendance");
+                } else {
+                  navigate("/hr-analytics/attendance");
+                }
+              }}
+              className="rounded-2xl border border-blue-200 dark:border-blue-900/60 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-blue-50/60 dark:bg-blue-950/30 group relative overflow-hidden flex flex-col justify-between cursor-pointer"
+            >
               <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform duration-500 ease-out group-hover:scale-115 group-hover:rotate-6 group-hover:-translate-y-1.5 pointer-events-none">
                 <TrendingUp className="w-24 h-24 text-blue-600" />
               </div>
@@ -746,7 +769,18 @@ export default function Dashboard() {
             </Card>
 
             {/* 3. Leave Balance */}
-            <Card className="rounded-2xl border border-purple-200 dark:border-purple-900/60 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-purple-50/60 dark:bg-purple-950/30 group relative overflow-hidden flex flex-col justify-between">
+            <Card 
+              onClick={() => {
+                if (role === "employee") {
+                  navigate("/leave/admin");
+                } else if (role === "branch_leader" || role === "branch_officer" || role === "head_of_department") {
+                  navigate("/leave/team");
+                } else {
+                  navigate("/leave");
+                }
+              }}
+              className="rounded-2xl border border-purple-200 dark:border-purple-900/60 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-purple-50/60 dark:bg-purple-950/30 group relative overflow-hidden flex flex-col justify-between cursor-pointer"
+            >
               <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform duration-500 ease-out group-hover:scale-115 group-hover:rotate-6 group-hover:-translate-y-1.5 pointer-events-none">
                 <CalendarCheck className="w-24 h-24 text-purple-600" />
               </div>
@@ -769,7 +803,18 @@ export default function Dashboard() {
             </Card>
 
             {/* 4. Pending */}
-            <Card className="rounded-2xl border border-amber-200 dark:border-amber-900/60 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-amber-50/60 dark:bg-amber-950/30 group relative overflow-hidden flex flex-col justify-between">
+            <Card 
+              onClick={() => {
+                if (role === "employee") {
+                  navigate("/leave/admin");
+                } else if (role === "branch_leader" || role === "branch_officer" || role === "head_of_department") {
+                  navigate("/leave/team");
+                } else {
+                  navigate("/leave");
+                }
+              }}
+              className="rounded-2xl border border-amber-200 dark:border-amber-900/60 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-amber-50/60 dark:bg-amber-950/30 group relative overflow-hidden flex flex-col justify-between cursor-pointer"
+            >
               <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform duration-500 ease-out group-hover:scale-115 group-hover:rotate-6 group-hover:-translate-y-1.5 pointer-events-none">
                 <AlertTriangle className="w-24 h-24 text-amber-600" />
               </div>
@@ -958,13 +1003,21 @@ export default function Dashboard() {
                     variant={isPresent ? "success" : isClockedOut ? "default" : (isOnLeave || isCompanyLeave) ? "purple" : "maroon"}
                     onClick={() => {
                       if (safeTodayStatus.includes("Absent")) {
-                        navigate("/hr-analytics/attendance#employee-absenteeism");
+                        if (role === "branch_leader" || role === "branch_officer" || role === "head_of_department") {
+                          navigate("/team-attendance");
+                        } else {
+                          navigate("/hr-analytics/attendance#employee-absenteeism");
+                        }
                       } else if (displayStatus.includes("Outstation")) {
-                        navigate("/outstation");
+                        navigate("/outstation/my");
                       } else if (isOnLeave) {
                         navigate("/leave/admin");
                       } else if (isPresent || isClockedOut) {
-                        navigate("/hr-analytics/attendance#admin-attendance");
+                        if (role === "branch_leader" || role === "branch_officer" || role === "head_of_department") {
+                          navigate("/team-attendance");
+                        } else {
+                          navigate("/hr-analytics/attendance#admin-attendance");
+                        }
                       }
                     }}
                   />
@@ -1028,7 +1081,13 @@ export default function Dashboard() {
                   value={String(stats.presentToday ?? 0)}
                   subtitle="Clocked In Today"
                   variant="success"
-                  onClick={() => navigate("/hr-analytics/attendance#admin-attendance")}
+                  onClick={() => {
+                    if (role === "branch_leader" || role === "branch_officer" || role === "head_of_department") {
+                      navigate("/team-attendance");
+                    } else {
+                      navigate("/hr-analytics/attendance#admin-attendance");
+                    }
+                  }}
                 />
                 <StatCard
                   icon={MapPin}
@@ -1036,6 +1095,13 @@ export default function Dashboard() {
                   value={String(stats.outstationToday ?? 0)}
                   subtitle={`${stats.upcomingOutstation ?? 0} Upcoming`}
                   variant="purple"
+                  onClick={() => {
+                    if (role === "branch_leader" || role === "branch_officer" || role === "head_of_department") {
+                      navigate("/outstation/assignment");
+                    } else {
+                      navigate("/outstation");
+                    }
+                  }}
                 />
                 <StatCard
                   icon={XCircle}
@@ -1043,7 +1109,13 @@ export default function Dashboard() {
                   value={String(stats.onLeave ?? 0)}
                   subtitle="Approved Leaves"
                   variant="default"
-                  onClick={() => navigate("/leave/admin")}
+                  onClick={() => {
+                    if (role === "branch_leader" || role === "branch_officer" || role === "head_of_department") {
+                      navigate("/leave/team");
+                    } else {
+                      navigate("/leave/admin");
+                    }
+                  }}
                 />
                 <StatCard
                   icon={(stats.absentToday ?? 0) > 0 ? AlertTriangle : CheckCircle2}
@@ -1051,7 +1123,13 @@ export default function Dashboard() {
                   value={String(stats.absentToday ?? 0)}
                   subtitle={(stats.absentToday ?? 0) > 0 ? "Not Clocked In" : "All Present"}
                   variant="maroon"
-                  onClick={() => navigate("/hr-analytics/attendance#employee-absenteeism")}
+                  onClick={() => {
+                    if (role === "branch_leader" || role === "branch_officer" || role === "head_of_department") {
+                      navigate("/team-attendance");
+                    } else {
+                      navigate("/hr-analytics/attendance#employee-absenteeism");
+                    }
+                  }}
                   footer={
                     (stats.restDayToday ?? 0) > 0 ? (
                       <div className="flex items-center gap-2">

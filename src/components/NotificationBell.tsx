@@ -249,6 +249,11 @@ export default function NotificationBell() {
       navigate('/calendar');
       return;
     }
+
+    if (notif.title === 'Leave Added' || notif.title === 'Leave Deducted') {
+      navigate('/leave');
+      return;
+    }
     
     const queryParam = notif.related_leave_id ? `?leaveId=${notif.related_leave_id}` : "";
     
