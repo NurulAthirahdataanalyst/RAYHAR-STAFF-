@@ -1197,13 +1197,14 @@ export default function SettingsPage() {
                     <div>
                       <span className="text-[10px] font-black text-foreground uppercase tracking-wider block">Status: {isDeptActive ? 'Active' : 'Inactive'}</span>
                     </div>
-                    <button 
-                      type="button"
-                      onClick={() => setIsDeptActive(!isDeptActive)}
-                      className={`w-12 h-6 flex items-center rounded-md p-1 transition-all ${isDeptActive ? 'bg-emerald-500' : 'bg-muted-foreground/30'}`}
-                    >
-                      <div className={`bg-white dark:bg-card w-4.5 h-4.5 rounded-full shadow-md transform transition-all ${isDeptActive ? 'translate-x-6' : 'translate-x-0'}`} />
-                    </button>
+                    <label className="switch shrink-0" style={{ '--color-green': '#10b981' } as React.CSSProperties}>
+                      <input 
+                        type="checkbox" 
+                        checked={isDeptActive}
+                        onChange={(e) => setIsDeptActive(e.target.checked)} 
+                      />
+                      <span className="slider"></span>
+                    </label>
                   </div>
                 </div>
 
