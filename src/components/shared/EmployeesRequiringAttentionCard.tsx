@@ -180,7 +180,7 @@ export const EmployeesRequiringAttentionCard = ({ data = [], variant = 'grid', o
               const { progressColor, badgeColor, takenColor, avatarColor, iconColor } = getColors(percent, idx);
 
               return (
-                <div key={emp.id || idx} className="border border-slate-300 dark:border-slate-700 rounded-2xl p-4 hover:border-slate-300 hover:shadow-md transition-all group flex flex-col bg-slate-50/30">
+                <div key={emp.id || idx} onClick={() => onEmployeeClick ? onEmployeeClick(emp.id) : navigate('/employees')} className="border border-slate-300 dark:border-slate-700 rounded-2xl p-4 hover:border-slate-300 hover:shadow-md transition-all group flex flex-col bg-slate-50/30 cursor-pointer">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3 min-w-0">
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 ${avatarColor}`}>

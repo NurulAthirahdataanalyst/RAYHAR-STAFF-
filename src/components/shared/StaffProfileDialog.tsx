@@ -93,6 +93,8 @@ export function StaffProfileDialog({
   const [printingLeaveId, setPrintingLeaveId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [analytics, setAnalytics] = useState<any>(null);
+  const [todayStats, setTodayStats] = useState<any>(null);
+
   useEffect(() => {
     if (isOpen && employeeId) {
       // Fetch employee basic info
@@ -121,6 +123,21 @@ export function StaffProfileDialog({
   }, [isModalOpen]);
   const [loadingAnalytics, setLoadingAnalytics] = useState(false);
   const [analyticsDate, setAnalyticsDate] = useState<string>(new Date().toISOString().substring(0, 7));
+  const fetchTodayStats = async (uid: string) => {
+    try {
+      const dStr = new Date().toLocaleDateString("en-CA");
+      const res = await fetch(${API_BASE_URL}/api/dashboard-stats?userId=&date=);
+      const data = await res.json();
+      if (data.success && data.stats) {
+        setTodayStats(data.stats);
+      } else {
+        setTodayStats(null);
+      }
+    } catch(e) {
+      setTodayStats(null);
+    }
+  };
+
 
   const fetchAnalytics = async (userId: string, dateStr = analyticsDate) => {
     setLoadingAnalytics(true);
@@ -158,6 +175,7 @@ export function StaffProfileDialog({
   const [loadingSettings, setLoadingSettings] = useState(false);
 
   const fetchAttendanceSettings = async (userId: string) => {
+    fetchTodayStats(userId);
     setLoadingSettings(true);
     try {
       const [waRes, alRes] = await Promise.all([
