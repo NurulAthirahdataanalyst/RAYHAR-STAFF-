@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { ApprovalStatusTracker } from "@/components/leave/ApprovalStatusTracker";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ApprovalStatusTracker } from "@/components/leave/ApprovalStatusTracker";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -457,7 +456,7 @@ export default function LeaveOverview() {
 
                   
   <div className="mt-6 space-y-4 pt-4 pb-2">
-    <ApprovalStatusTracker status={req.status} approverRole={req.approverRole} branch={(req as any).branch || "HQ"} variant="staggered" />
+    <ApprovalStatusTracker status={req.status} approverRole={req.approverRole || ""} branch={(req as any).branch || "HQ"} variant="staggered" />
   </div>
 
                 </div>
