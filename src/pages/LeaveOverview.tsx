@@ -239,14 +239,39 @@ export default function LeaveOverview() {
     return leaveTypes.map((item) => {
       const balanceKey = mapTypeToBalanceKey(item.type);
       const total = currentBalances[balanceKey];
-      const apps = filteredLeaveRequests.filter(
+      const relatedApps = filteredLeaveRequests.filter(
         r => (r.type === item.type || leaveTypeLabels[r.type] === leaveTypeLabels[item.type])
-      ).length;
+      );
+      const apps = relatedApps.length;
+      
+      let latestAppDate = null;
+      let replacementForDate = null;
+
+      if (leaveTypeLabels[item.type] === "REPLACEMENT LEAVE" && apps > 0) {
+        const sorted = [...relatedApps].sort((a, b) => new Date(b.from).getTime() - new Date(a.from).getTime());
+        const latest = sorted[0];
+        latestAppDate = latest.from;
+        
+        if (latest.reason) {
+          const match = latest.reason.match(/\[CUTI_GANTI_DATA:([\s\S]*?)\]\]/);
+          if (match) {
+            try {
+              const parsed = JSON.parse(match[1]);
+              if (parsed && parsed.length > 0) {
+                replacementForDate = parsed[0].tarikhGanti;
+              }
+            } catch (e) {}
+          }
+        }
+      }
+
       return {
         label: leaveTypeLabels[item.type],
         used: getUsedLeaveDays(filteredLeaveRequests, item.type),
         total: total,
         applications: apps,
+        latestAppDate,
+        replacementForDate,
       };
     });
   }, [filteredLeaveRequests, currentBalances]);
@@ -289,37 +314,65 @@ export default function LeaveOverview() {
                     <Calendar className="w-2.5 h-2.5 text-[#7B0099]/40" />
                   </div>
                 </div>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-xl sm:text-2xl font-black text-foreground group-hover:scale-105 transition-transform origin-left duration-500">{item.used}</span>
-                  <span className="text-[9px] sm:text-[10px] font-bold text-foreground uppercase">
-                    {isReplacement
-                      ? `/ ${item.total || 0} DAYS TAKEN`
-                      : isUnpaid
-                      ? "Days Taken"
-                      : `/ ${item.total || 0} DAYS`}
-                  </span>
-                </div>
-                <div className="space-y-1">
-                  <div className="h-1 overflow-hidden rounded-full bg-[#7B0099]/10">
-                    <div
-                      className="h-full rounded-full bg-[#7B0099] transition-all duration-1000 ease-out"
-                      style={{
-                        width: isNoEntitlement
-                          ? (item.used > 0 ? "100%" : "0%")
-                          : (item.total ? `${Math.min((item.used / item.total) * 100, 100)}%` : (item.used > 0 ? "100%" : "0%")),
-                      }}
-                    />
+                
+                {isReplacement ? (
+                  <div className="space-y-3">
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-xl sm:text-2xl font-black text-foreground group-hover:scale-105 transition-transform origin-left duration-500">{item.used}</span>
+                      <span className="text-[9px] sm:text-[10px] font-bold text-foreground uppercase">
+                        Days Taken
+                      </span>
+                    </div>
+                    
+                    <div className="border-t border-border/50 pt-2 space-y-1">
+                      <p className="text-[9px] font-bold text-foreground uppercase tracking-wider">
+                        {item.applications} Application{item.applications !== 1 ? 's' : ''}
+                      </p>
+                      {item.latestAppDate && (
+                        <p className="text-[8px] text-muted-foreground">
+                          <span className="font-semibold text-foreground">Latest:</span> {new Date(item.latestAppDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                        </p>
+                      )}
+                      {item.replacementForDate && (
+                        <p className="text-[8px] text-muted-foreground mt-0.5">
+                          <span className="font-semibold text-foreground">Replacement for:</span> {new Date(item.replacementForDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                  {!isNoEntitlement && item.total > 0 ? (
-                    <p className="text-[7px] font-black text-foreground text-right uppercase tracking-widest mt-1">
-                      {Math.max(item.total - item.used, 0)} DAYS REMAINING
-                    </p>
-                  ) : isNoEntitlement ? (
-                    <p className="text-[7px] font-black text-foreground uppercase tracking-widest mt-1">
-                      {item.applications} Application
-                    </p>
-                  ) : null}
-                </div>
+                ) : (
+                  <>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-xl sm:text-2xl font-black text-foreground group-hover:scale-105 transition-transform origin-left duration-500">{item.used}</span>
+                      <span className="text-[9px] sm:text-[10px] font-bold text-foreground uppercase">
+                        {isUnpaid
+                          ? "Days Taken"
+                          : `/ ${item.total || 0} DAYS`}
+                      </span>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="h-1 overflow-hidden rounded-full bg-[#7B0099]/10">
+                        <div
+                          className="h-full rounded-full bg-[#7B0099] transition-all duration-1000 ease-out"
+                          style={{
+                            width: isNoEntitlement
+                              ? (item.used > 0 ? "100%" : "0%")
+                              : (item.total ? `${Math.min((item.used / item.total) * 100, 100)}%` : (item.used > 0 ? "100%" : "0%")),
+                          }}
+                        />
+                      </div>
+                      {!isNoEntitlement && item.total > 0 ? (
+                        <p className="text-[7px] font-black text-foreground text-right uppercase tracking-widest mt-1">
+                          {Math.max(item.total - item.used, 0)} DAYS REMAINING
+                        </p>
+                      ) : isNoEntitlement ? (
+                        <p className="text-[7px] font-black text-foreground uppercase tracking-widest mt-1">
+                          {item.applications} Application{item.applications !== 1 ? 's' : ''}
+                        </p>
+                      ) : null}
+                    </div>
+                  </>
+                )}
               </div>
             </CardContent>
           </Card>

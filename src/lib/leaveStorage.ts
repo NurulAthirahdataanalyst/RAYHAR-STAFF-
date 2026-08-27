@@ -92,20 +92,7 @@ export const getUsedLeaveDays = (
       }
 
       // Check for replacement leave validation status overrides
-      const isReplacementLeaveType = request.type === "Replacement Leave" || request.type === "Cuti Ganti";
-      if (isReplacementLeaveType) {
-        const hasValidations = request.replacement_validations && request.replacement_validations.length > 0;
-        const allValidated = hasValidations && request.replacement_validations!.every(v => v.validation_status === 'Validated');
-        
-        if (!allValidated) {
-          // If not fully validated yet, it acts as an Annual Leave!
-          if (type === "Annual/Emergency Leave" || type === "Cuti Tahunan") {
-            isSameType = true;
-          } else if (type === "Replacement Leave" || type === "Cuti Ganti") {
-            isSameType = false;
-          }
-        }
-      }
+      
 
       const isApproved = request.status === "Approved";
       const isSameEmployee = userId

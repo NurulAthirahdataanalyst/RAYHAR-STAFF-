@@ -2518,7 +2518,7 @@ app.get("/api/branch-employees", async (req, res) => {
       LEFT JOIN (
         SELECT
           user_id,
-          SUM(CASE WHEN leave_type IN ('Cuti Tahunan', 'Annual/Emergency Leave', 'Cuti Sakit', 'Sick Leave', 'Replacement Leave', 'Cuti Ganti') AND status = 'Approved' THEN days ELSE 0 END) AS annual_days_used,
+          SUM(CASE WHEN leave_type IN ('Cuti Tahunan', 'Annual/Emergency Leave', 'Cuti Sakit', 'Sick Leave') AND status = 'Approved' THEN days ELSE 0 END) AS annual_days_used,
           SUM(CASE WHEN status LIKE 'Pending%' THEN 1 ELSE 0 END) AS pending_leaves,
           SUM(CASE WHEN status = 'Approved' THEN 1 ELSE 0 END) AS approved_leaves,
           SUM(CASE WHEN status = 'Rejected' THEN 1 ELSE 0 END) AS rejected_leaves,
@@ -2675,7 +2675,7 @@ app.get("/api/leave-entitlements", async (req, res) => {
       LEFT JOIN (
         SELECT
           user_id,
-          SUM(CASE WHEN leave_type IN ('Cuti Tahunan', 'Annual/Emergency Leave', 'Replacement Leave', 'Cuti Ganti') AND status = 'Approved' THEN days ELSE 0 END) AS annual_days_used,
+          SUM(CASE WHEN leave_type IN ('Cuti Tahunan', 'Annual/Emergency Leave') AND status = 'Approved' THEN days ELSE 0 END) AS annual_days_used,
           SUM(CASE WHEN status LIKE 'Pending%' THEN 1 ELSE 0 END) AS pending_count
         FROM leave_requests
         GROUP BY user_id
@@ -3049,7 +3049,7 @@ app.get("/api/leave-requests", async (req, res) => {
       ) adj ON adj.employee_id = lr.user_id
       LEFT JOIN (
         SELECT user_id,
-               SUM(CASE WHEN leave_type IN ('Cuti Tahunan', 'Annual/Emergency Leave', 'Replacement Leave', 'Cuti Ganti') AND status = 'Approved' THEN days ELSE 0 END) AS annual_days_used,
+               SUM(CASE WHEN leave_type IN ('Cuti Tahunan', 'Annual/Emergency Leave') AND status = 'Approved' THEN days ELSE 0 END) AS annual_days_used,
                SUM(CASE WHEN leave_type IN ('Cuti Sakit', 'Sick Leave', 'Medical Leave') AND status = 'Approved' THEN days ELSE 0 END) AS medical_days_used,
                SUM(CASE WHEN UPPER(leave_type) IN ('REPLACEMENT LEAVE', 'CUTI GANTI') AND status = 'Approved' THEN days ELSE 0 END) AS replacement_days_used
         FROM leave_requests
@@ -3883,7 +3883,7 @@ app.get("/api/employees", async (req, res) => {
       LEFT JOIN (
         SELECT
           user_id,
-          SUM(CASE WHEN leave_type IN ('Cuti Tahunan', 'Annual/Emergency Leave', 'Replacement Leave', 'Cuti Ganti') AND status = 'Approved' THEN days ELSE 0 END) AS annual_days_used,
+          SUM(CASE WHEN leave_type IN ('Cuti Tahunan', 'Annual/Emergency Leave') AND status = 'Approved' THEN days ELSE 0 END) AS annual_days_used,
           SUM(CASE WHEN leave_type IN ('Cuti Sakit', 'Sick Leave', 'Medical Leave') AND status = 'Approved' THEN days ELSE 0 END) AS medical_days_used,
           SUM(CASE WHEN UPPER(leave_type) IN ('REPLACEMENT LEAVE', 'CUTI GANTI') AND status = 'Approved' THEN days ELSE 0 END) AS replacement_days_used,
           SUM(CASE WHEN status LIKE 'Pending%' THEN 1 ELSE 0 END) AS pending_leaves,
@@ -7420,9 +7420,9 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
        ) adj ON adj.employee_id = p.user_id
        LEFT JOIN (
          SELECT user_id, 
-                SUM(CASE WHEN leave_type IN ('Annual Leave', 'Annual & Emergency Leave', 'Annual/Emergency Leave', 'Cuti Tahunan', 'Replacement Leave', 'Cuti Ganti') AND status = 'Approved' THEN days ELSE 0 END) as annual_days_used
+                SUM(CASE WHEN leave_type IN ('Annual Leave', 'Annual & Emergency Leave', 'Annual/Emergency Leave', 'Cuti Tahunan') AND status = 'Approved' THEN days ELSE 0 END) as annual_days_used
          FROM leave_requests
-         WHERE leave_type IN ('Annual Leave', 'Annual & Emergency Leave', 'Annual/Emergency Leave', 'Cuti Tahunan', 'Replacement Leave', 'Cuti Ganti')
+         WHERE leave_type IN ('Annual Leave', 'Annual & Emergency Leave', 'Annual/Emergency Leave', 'Cuti Tahunan')
          GROUP BY user_id
        ) lr ON lr.user_id = p.user_id
        WHERE p.status = 'Active' ${profileFilter}
