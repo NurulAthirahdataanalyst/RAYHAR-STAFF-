@@ -1072,6 +1072,8 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
       await connection.query("ALTER TABLE profiles DROP COLUMN IF EXISTS telegram_chat_id");
       await connection.query("ALTER TABLE profiles DROP COLUMN IF EXISTS reset_token");
       await connection.query("ALTER TABLE profiles DROP COLUMN IF EXISTS reset_token_expires");
+      await connection.query("ALTER TABLE leave_requests ADD COLUMN IF NOT EXISTS phone VARCHAR(50)");
+      await connection.query("ALTER TABLE profiles ADD COLUMN IF NOT EXISTS phone VARCHAR(50)");
       console.log('ðŸš€ Successfully migrated: Removed telegram_chat_id, reset_token, and reset_token_expires from profiles table.');
     } catch (migErr) {
       console.error('âš ï¸ Migration warning during cleanup of unused columns:', migErr.message);
