@@ -506,7 +506,7 @@ async function generateAndSaveLeaveFormPDF(leaveId) {
               'approver_id', la.approver_id,
               'approver_role', la.approver_role,
               'created_at', la.created_at,
-              'approver_name', COALESCE(p2.full_name, p2.name, la.approver_id),
+              'approver_name', COALESCE(p2.full_name, la.approver_id),
               'approver_department', p2.department,
               'approver_branch', p2.branch
             ) ORDER BY la.created_at ASC
@@ -3027,7 +3027,7 @@ app.get("/api/leave-requests", async (req, res) => {
               'status', la.status,
               'remarks', la.remarks,
               'created_at', la.created_at,
-              'approver_name', COALESCE(p2.full_name, p2.name, la.approver_id),
+              'approver_name', COALESCE(p2.full_name, la.approver_id),
               'approver_department', p2.department,
               'approver_branch', p2.branch
             ) ORDER BY la.created_at ASC
