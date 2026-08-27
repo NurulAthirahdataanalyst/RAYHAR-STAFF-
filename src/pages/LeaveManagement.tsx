@@ -472,7 +472,7 @@ export default function LeaveManagement() {
                   {idx + 1}
                 </div>
                 <span className={`text-[8px] sm:text-[9px] mt-2 font-black text-center uppercase tracking-widest ${currentStep >= idx + 1 ? 'text-[#7B0099]' : 'text-foreground opacity-50'}`}>
-                  {label.split(' ')[0]}
+                  {label}
                 </span>
               </div>
             ))}
