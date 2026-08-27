@@ -1155,9 +1155,9 @@ async function saveAlert(alert) {
           payload JSON,
           acknowledged BOOLEAN DEFAULT FALSE,
           ack_by VARCHAR(64),
-          ack_at DATETIME,
-          created_at DATETIME
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+          ack_at TIMESTAMP,
+          created_at TIMESTAMP
+        );
       `);
       await pool.query(`INSERT INTO alerts (type, user_id, payload, created_at) VALUES (?, ?, ?, ?)` , [alert.type || null, alert.userId || alert.user_id || null, JSON.stringify(alert), new Date()]);
     } catch (e2) {
