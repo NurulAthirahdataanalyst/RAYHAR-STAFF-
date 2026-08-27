@@ -710,8 +710,8 @@ export function StaffProfileDialog({
                           </span>
                           <span className="font-bold text-slate-800 dark:text-slate-200">
                             {todayStats?.distanceMeters !== undefined && todayStats?.distanceMeters !== null
-                              ? todayStats.distanceMeters >= 1000
-                                ? `${(todayStats.distanceMeters / 1000).toFixed(2)} km`
+                              ? Number(todayStats.distanceMeters) >= 1000
+                                ? `${(Number(todayStats.distanceMeters) / 1000).toFixed(2)} km`
                                 : `${todayStats.distanceMeters} m`
                               : "--"}
                           </span>
@@ -1226,7 +1226,7 @@ export function StaffProfileDialog({
                                     <div className="text-muted-foreground">{timeStr}</div>
                                   </td>
                                   <td className="px-2 py-2 font-mono text-[10px] text-muted-foreground whitespace-nowrap">
-                                    {h.lat?.toFixed(7)}, {h.lng?.toFixed(7)}
+                                    {h.lat != null ? Number(h.lat).toFixed(7) : '-'}{', '}{h.lng != null ? Number(h.lng).toFixed(7) : '-'}
                                   </td>
                                   <td className="px-2 py-2">
                                     {h.attendance_status ? (

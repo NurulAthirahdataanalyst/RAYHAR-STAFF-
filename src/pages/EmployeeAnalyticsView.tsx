@@ -99,16 +99,23 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
   }, [lastMonthLogs, companyLeaves, profile]);
 
   useEffect(() => {
-    
+    if (!userId) return;
     fetch(`${API_BASE_URL}/api/replacement-leave-stats?user_id=${userId}`)
       .then(res => res.json())
       .then(data => {
-        if (data.success) {
+        if (data.success && data.stats) {
           setRlStats({
-            available: data.available_credits,
-            earned: data.total_earned,
-            used: data.total_used,
-            latest: data.latest_earned
+            available: Number(data.stats.available) || 0,
+            earned: Number(data.stats.earned) || 0,
+            used: Number(data.stats.used) || 0,
+            latest: data.stats.latestEarned || null
+          });
+        } else if (data.success) {
+          setRlStats({
+            available: Number(data.available_credits || data.available) || 0,
+            earned: Number(data.total_earned || data.earned) || 0,
+            used: Number(data.total_used || data.used) || 0,
+            latest: data.latest_earned || data.latestEarned || null
           });
         }
       })

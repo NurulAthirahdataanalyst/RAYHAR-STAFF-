@@ -97,6 +97,36 @@ export default function LeaveOverview() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [recentPage, setRecentPage] = useState(1);
   const [recentLimit, setRecentLimit] = useState(10);
+  const [rlStats, setRlStats] = useState<{ available: number; earned: number; used: number; latestEarned: string | null }>({
+    available: 0,
+    earned: 0,
+    used: 0,
+    latestEarned: null,
+  });
+
+  useEffect(() => {
+    if (!userId) return;
+    fetch(`${API_BASE_URL}/api/replacement-leave-stats?user_id=${encodeURIComponent(userId)}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success && data.stats) {
+          setRlStats({
+            available: Number(data.stats.available) || 0,
+            earned: Number(data.stats.earned) || 0,
+            used: Number(data.stats.used) || 0,
+            latestEarned: data.stats.latestEarned || null,
+          });
+        } else if (data.success) {
+          setRlStats({
+            available: Number(data.available_credits || data.available) || 0,
+            earned: Number(data.total_earned || data.earned) || 0,
+            used: Number(data.total_used || data.used) || 0,
+            latestEarned: data.latest_earned || data.latestEarned || null,
+          });
+        }
+      })
+      .catch(console.error);
+  }, [userId, refreshKey]);
 
   const filteredLeaveRequests = useMemo(() => {
     return leaveRequests.filter(req => {
@@ -275,7 +305,7 @@ export default function LeaveOverview() {
         rlStats: leaveTypeLabels[item.type] === "REPLACEMENT LEAVE" ? rlStats : null
       };
     });
-  }, [filteredLeaveRequests, currentBalances]);
+  }, [filteredLeaveRequests, currentBalances, rlStats]);
 
   return (
     <div className="space-y-3 sm:space-y-5 animate-in fade-in duration-500">
