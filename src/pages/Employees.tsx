@@ -38,6 +38,7 @@ import { useToast } from "@/hooks/use-toast";
 import { parseCutiGantiRows, getCleanReason } from "@/lib/leaveStorage";
 import { API_BASE_URL } from "../config/api";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
+import { StaffProfileDialog } from "@/components/shared/StaffProfileDialog";
 
 const BRANCH_NAMES: Record<string, string> = {
   HQ: "Rayhar HQ",

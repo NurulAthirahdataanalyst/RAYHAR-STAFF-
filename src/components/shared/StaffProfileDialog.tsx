@@ -1191,13 +1191,67 @@ export function StaffProfileDialog({
                 </TabsContent>
                 
                 <TabsContent value="location_history">
-                  <div className="p-4 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800/60 min-h-[300px] flex items-center justify-center">
-                    <div className="text-center text-muted-foreground">
-                      <p className="text-sm font-semibold">Location History will appear here.</p>
-                      <p className="text-xs">Under development.</p>
+                  <div className="p-4 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800/60">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-sm font-bold text-foreground uppercase tracking-widest">Location History (Last 14 Days)</h3>
+                      <span className="text-xs text-muted-foreground">{locationHistory.length} records</span>
                     </div>
+                    {loadingSettings ? (
+                      <div className="flex items-center justify-center min-h-[200px]">
+                        <p className="text-sm text-muted-foreground">Loading location history...</p>
+                      </div>
+                    ) : locationHistory.length === 0 ? (
+                      <div className="flex items-center justify-center min-h-[200px]">
+                        <p className="text-sm text-muted-foreground">No location history available for this employee.</p>
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto max-h-[400px] overflow-y-auto">
+                        <table className="w-full text-xs">
+                          <thead className="sticky top-0 bg-slate-50 dark:bg-slate-900">
+                            <tr>
+                              <th className="text-left font-bold text-muted-foreground uppercase tracking-widest px-2 py-2">Timestamp</th>
+                              <th className="text-left font-bold text-muted-foreground uppercase tracking-widest px-2 py-2">Coordinates</th>
+                              <th className="text-left font-bold text-muted-foreground uppercase tracking-widest px-2 py-2">Attendance Status</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {locationHistory.map((h: any, idx: number) => {
+                              const ts = h.timestamp ? new Date(h.timestamp) : null;
+                              const dateStr = ts ? ts.toLocaleDateString('ms-MY', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '-';
+                              const timeStr = ts ? ts.toLocaleTimeString('ms-MY', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }) : '-';
+                              return (
+                                <tr key={idx} className="border-b border-slate-100 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-900/30">
+                                  <td className="px-2 py-2 whitespace-nowrap">
+                                    <div className="font-bold text-foreground">{dateStr}</div>
+                                    <div className="text-muted-foreground">{timeStr}</div>
+                                  </td>
+                                  <td className="px-2 py-2 font-mono text-[10px] text-muted-foreground whitespace-nowrap">
+                                    {h.lat?.toFixed(7)}, {h.lng?.toFixed(7)}
+                                  </td>
+                                  <td className="px-2 py-2">
+                                    {h.attendance_status ? (
+                                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black border uppercase tracking-widest ${
+                                        h.attendance_status === 'Clock In'
+                                          ? 'bg-blue-100 text-blue-700 border-blue-200'
+                                          : 'bg-indigo-100 text-indigo-700 border-indigo-200'
+                                      }`}>
+                                        <div className={`w-1.5 h-1.5 rounded-full ${h.attendance_status === 'Clock In' ? 'bg-blue-500' : 'bg-indigo-500'}`} />
+                                        {h.attendance_status}
+                                      </span>
+                                    ) : (
+                                      <span className="text-muted-foreground">-</span>
+                                    )}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
                   </div>
                 </TabsContent>
+
 </Tabs>
             ) : (
               <div className="py-20 text-center text-foreground dark:text-foreground">
