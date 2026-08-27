@@ -4616,7 +4616,7 @@ app.get('/api/employee-location-history', async (req, res) => {
     // 6. Fetch replacement_leave_requests (earning or validated RL)
     const [rlRows] = await pool.query(`
       SELECT replacement_date FROM replacement_leave_requests 
-      WHERE employee_id = ? AND (validation_status = 'Validated' OR status = 'Approved')
+      WHERE employee_id = ? AND validation_status = 'Validated'
     `, [String(userId)]);
     (rlRows || []).forEach(r => {
       if (!r.replacement_date) return;
