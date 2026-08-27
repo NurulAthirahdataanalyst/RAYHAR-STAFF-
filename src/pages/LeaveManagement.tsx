@@ -289,8 +289,38 @@ export default function LeaveManagement() {
       return;
     }
 
-    if (currentStep < 3) setCurrentStep(currentStep + 1);
-    else void handleSubmit();
+    if (currentStep < 3) {
+      setCurrentStep(currentStep + 1);
+    } else {
+      const formatDate = (dateStr: string) => {
+        if (!dateStr) return "";
+        const parts = dateStr.split('-');
+        if (parts.length === 3) {
+          return `${parts[2]}/${parts[1]}/${parts[0]}`;
+        }
+        return dateStr;
+      };
+      
+      const typeStr = String(formData.jenisCuti || "").toUpperCase();
+      let displayStart = formatDate(formData.tarikhMula);
+      let displayEnd = formatDate(formData.tarikhAkhir);
+      
+      if (formData.jenisCuti === "Replacement Leave" || formData.jenisCuti === "Cuti Ganti") {
+        const validRows = formData.cutiGantiRows.filter(r => r.tarikhCuti);
+        if (validRows.length > 0) {
+          const dates = validRows.map(r => r.tarikhCuti).sort();
+          displayStart = formatDate(dates[0]);
+          displayEnd = formatDate(dates[dates.length - 1]);
+        }
+      }
+
+      const daysStr = Number(formData.bilanganHari).toFixed(2);
+      const msg = `Adakah anda pasti untuk memohon ${typeStr} dari : ${displayStart} hingga ${displayEnd} selama ${daysStr} Hari ?`;
+      
+      if (window.confirm(msg)) {
+        void handleSubmit();
+      }
+    }
   };
 
   const handleSubmit = async () => {
