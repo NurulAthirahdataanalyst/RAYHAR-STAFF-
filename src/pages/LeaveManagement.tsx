@@ -185,6 +185,32 @@ export default function LeaveManagement() {
   const [totalEntitlement, setTotalEntitlement] = useState(14);
     const [medicalEntitlement, setMedicalEntitlement] = useState(14);
     const [replacementEntitlement, setReplacementEntitlement] = useState(0);
+    const [rlMode, setRlMode] = useState<'earning' | 'taking'>('taking');
+    const [earnedCredits, setEarnedCredits] = useState<any[]>([]);
+
+  // Fetch available RL credits when Replacement Leave is selected
+  useEffect(() => {
+    if (!userId) return;
+    if (formData.jenisCuti !== 'Replacement Leave' && formData.jenisCuti !== 'Cuti Ganti') return;
+    
+    fetch(`${API_BASE_URL}/api/employees/${encodeURIComponent(userId)}/replacement-leaves`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.success && Array.isArray(data.replacementLeaves)) {
+          // Only show credits that are validated and haven't been used yet
+          const available = data.replacementLeaves.filter((r: any) => 
+            r.validation_status === 'Validated' && !r.leave_request_id
+          );
+          setEarnedCredits(available.map((r: any) => ({
+            id: r.id,
+            replacement_date: r.replacement_date,
+            description: r.description || r.reason || `Cuti Ganti ${new Date(r.replacement_date).toLocaleDateString('en-GB')}`,
+            actual_hours: r.actual_hours || r.hours_worked || 4
+          })));
+        }
+      })
+      .catch(console.error);
+  }, [userId, formData.jenisCuti]);
 
   useEffect(() => {
     if (!userId) return;

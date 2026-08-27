@@ -385,9 +385,6 @@ export default function LeaveOverview() {
                         <span className="text-[11px] font-black">{item.rlStats?.latestEarned ? new Date(item.rlStats.latestEarned).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '--'}</span>
                       </div>
                       
-                      <Button variant="outline" className="w-full text-[10px] uppercase font-black tracking-widest h-9 border-emerald-500/30 text-emerald-600 hover:bg-emerald-500/10 transition-all">
-                        View RL Details
-                      </Button>
                     </div>
                   </div>
                 ) : (

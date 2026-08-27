@@ -857,91 +857,59 @@ export default function Attendance() {
         const acc = position.coords.accuracy;
 
         const isClockOut = !!activeSession;
-        if (isClockOut) {
-          // Compute distance from the session's branch on clock-out (same as clock-in)
-          let dist_out: number | undefined = undefined;
-          const clockOutBranchCode = activeSession?.location || selectedLocation || user?.branch || 'HQ';
-          const clockOutBranchInfo = branches.find((b: any) => b.code === clockOutBranchCode || b.name === clockOutBranchCode);
-          if (clockOutBranchInfo && clockOutBranchInfo.latitude && clockOutBranchInfo.longitude) {
-            dist_out = Math.round(haversineDistance(lat, lng, parseFloat(clockOutBranchInfo.latitude), parseFloat(clockOutBranchInfo.longitude)));
-          }
-          performClockInOrOut(employeeId, "Normal", lat, lng, acc, dist_out);
-          return;
-        }
-
-        if (isOutstationAssigned) {
+        
+        if (isOutstationAssigned || activeSession?.attendance_type === 'OUTSTATION') {
           performClockInOrOut(employeeId, "OUTSTATION", lat, lng, acc, undefined);
           return;
         }
 
-        // It is Clock In
+        // Determine attendance type and target location code
         let attendance_type = "BRANCH";
         if (attendanceMode === 'temporary') attendance_type = "Temporary Assignment";
         else if (attendanceMode === 'multi') attendance_type = "Multi-Location";
 
-        // Find branch coords — check against the selected working location
-        let dist_meters: number | undefined = undefined;
-        let withinAnyBranch = false;
-        let closestBranchCode: string | undefined = undefined;
-
-        if (attendanceMode === 'multi' && allowedLocations.length > 0) {
-          // Check ONLY against the branch the user selected from the dropdown
-          const locCode = selectedLocation || allowedLocations[0];
-          const locInfo = branches.find((b: any) => b.code === locCode || b.name === locCode);
-          if (locInfo && locInfo.latitude && locInfo.longitude) {
-            const r = locInfo.radius || 50;
-            const d = Math.round(haversineDistance(lat, lng, parseFloat(locInfo.latitude), parseFloat(locInfo.longitude)));
-            dist_meters = d;
-            if (d <= r) {
-              withinAnyBranch = true;
-              closestBranchCode = locCode;
-            }
-          }
-          
-          if (!withinAnyBranch) {
-            toast({ title: "Clock In Failed", description: `You are outside your selected branch location (${locCode}). Distance: ${dist_meters ?? '--'}m`, variant: "destructive" });
-            setLoading(false);
-            return;
-          }
-                  } else {
-            // Single branch mode — check user's home branch only
-            const branchCode = selectedLocation || user?.branch || 'HQ';
-            const branchInfo = branches.find((b: any) => b.code === branchCode || b.name === branchCode);
-
-            if (!branchInfo || !branchInfo.latitude || !branchInfo.longitude || String(branchInfo.latitude).trim() === '' || String(branchInfo.longitude).trim() === '') {
-              toast({ title: "Clock In Failed", description: "Your branch location coordinates are not configured in the system. Please contact HR.", variant: "destructive" });
-              setLoading(false);
-              return;
-            }
-
-            if (branchInfo && branchInfo.latitude && branchInfo.longitude) {
-            const latNum = parseFloat(branchInfo.latitude);
-            const lngNum = parseFloat(branchInfo.longitude);
-            const radius = branchInfo.radius || 50;
-            
-            if (isNaN(latNum) || isNaN(lngNum)) {
-              toast({ title: "Clock In Failed", description: "Your branch location coordinates are invalid. Please contact HR.", variant: "destructive" });
-              setLoading(false);
-              return;
-            }
-
-            dist_meters = Math.round(haversineDistance(lat, lng, latNum, lngNum));
-            
-            if (isNaN(dist_meters)) {
-              toast({ title: "Clock In Failed", description: "Unable to calculate distance to branch. Please try again.", variant: "destructive" });
-              setLoading(false);
-              return;
-            }
-            
-            if (dist_meters > radius) {
-              toast({ title: "Clock In Failed", description: `You are outside the branch radius (${radius}m). Distance: ${dist_meters}m`, variant: "destructive" });
-              setLoading(false);
-              return;
-            }
-          }
+        if (isClockOut && activeSession?.attendance_type) {
+           attendance_type = activeSession.attendance_type;
         }
+
+        let dist_meters: number | undefined = undefined;
+        const targetBranchCode = isClockOut 
+          ? (activeSession?.location || selectedLocation || user?.branch || 'HQ')
+          : (attendanceMode === 'multi' ? (selectedLocation || allowedLocations[0]) : (selectedLocation || user?.branch || 'HQ'));
           
-        // Either within a branch radius or no coords found (fallback to normal clockin)
+        const branchInfo = branches.find((b: any) => b.code === targetBranchCode || b.name === targetBranchCode);
+
+        if (!branchInfo || !branchInfo.latitude || !branchInfo.longitude || String(branchInfo.latitude).trim() === '' || String(branchInfo.longitude).trim() === '') {
+          toast({ title: isClockOut ? "Clock Out Failed" : "Clock In Failed", description: "Your branch location coordinates are not configured in the system. Please contact HR.", variant: "destructive" });
+          setLoading(false);
+          return;
+        }
+
+        const latNum = parseFloat(branchInfo.latitude);
+        const lngNum = parseFloat(branchInfo.longitude);
+        const radius = branchInfo.radius || 50;
+
+        if (isNaN(latNum) || isNaN(lngNum)) {
+          toast({ title: isClockOut ? "Clock Out Failed" : "Clock In Failed", description: "Your branch location coordinates are invalid. Please contact HR.", variant: "destructive" });
+          setLoading(false);
+          return;
+        }
+
+        dist_meters = Math.round(haversineDistance(lat, lng, latNum, lngNum));
+        
+        if (isNaN(dist_meters)) {
+          toast({ title: isClockOut ? "Clock Out Failed" : "Clock In Failed", description: "Unable to calculate distance to branch. Please try again.", variant: "destructive" });
+          setLoading(false);
+          return;
+        }
+        
+        if (dist_meters > radius) {
+          toast({ title: isClockOut ? "Clock Out Failed" : "Clock In Failed", description: `You are outside the branch radius (${radius}m). Distance: ${dist_meters}m`, variant: "destructive" });
+          setLoading(false);
+          return;
+        }
+
+        // Within branch radius, proceed
         performClockInOrOut(employeeId, attendance_type, lat, lng, acc, dist_meters);
       },
       (error) => {
