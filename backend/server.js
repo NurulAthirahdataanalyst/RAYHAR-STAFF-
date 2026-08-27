@@ -4546,36 +4546,76 @@ app.get('/api/employee-location-history', async (req, res) => {
     const to = new Date();
     const from = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
-          // Fetch from employee_location_logs
-      const [logsRows] = await pool.query(
-        `SELECT latitude, longitude, accuracy, recorded_at as timestamp FROM employee_location_logs WHERE employee_id = ? AND recorded_at BETWEEN ? AND ? ORDER BY recorded_at DESC LIMIT 500`,
-        [String(userId), from.toISOString(), to.toISOString()]
-      );
-  
-      // Fetch from attendances table (older checks)
-      const [attRows] = await pool.query(
-        `SELECT clock_in_latitude as latitude, clock_in_longitude as longitude, clock_in_accuracy as accuracy, clock_in as timestamp FROM attendances WHERE user_id = ? AND clock_in BETWEEN ? AND ? ORDER BY clock_in DESC LIMIT 500`,
-        [String(userId), from.toISOString(), to.toISOString()]
-      );
-      
-      const combined = [
-        ...(logsRows || []).map(r => ({ lat: r.latitude, lng: r.longitude, accuracy: r.accuracy, timestamp: r.timestamp })),
-        ...(attRows || []).map(a => ({ lat: a.latitude, lng: a.longitude, accuracy: a.accuracy, timestamp: a.timestamp }))
-      ];
-      
-      // Deduplicate by timestamp (closest to 1 minute) just in case
-      const deduped = [];
-      const seen = new Set();
-      combined.forEach(item => {
-        if (!item.timestamp) return;
-        const timeKey = Math.floor(new Date(item.timestamp).getTime() / 60000);
-        if (!seen.has(timeKey)) {
-          seen.add(timeKey);
-          deduped.push(item);
+    // Fetch from employee_location_logs (passive background pings)
+    const [logsRows] = await pool.query(
+      `SELECT latitude, longitude, accuracy, recorded_at as timestamp FROM employee_location_logs WHERE employee_id = ? AND recorded_at BETWEEN ? AND ? ORDER BY recorded_at DESC LIMIT 500`,
+      [String(userId), from.toISOString(), to.toISOString()]
+    );
+
+    // Fetch Clock In events from attendances
+    const [clockInRows] = await pool.query(
+      `SELECT clock_in_latitude as latitude, clock_in_longitude as longitude, clock_in_accuracy as accuracy, clock_in as timestamp FROM attendances WHERE user_id = ? AND clock_in BETWEEN ? AND ? ORDER BY clock_in DESC LIMIT 200`,
+      [String(userId), from.toISOString(), to.toISOString()]
+    );
+
+    // Fetch Clock Out events from attendances
+    const [clockOutRows] = await pool.query(
+      `SELECT clock_out_latitude as latitude, clock_out_longitude as longitude, NULL as accuracy, clock_out as timestamp FROM attendances WHERE user_id = ? AND clock_out IS NOT NULL AND clock_out BETWEEN ? AND ? ORDER BY clock_out DESC LIMIT 200`,
+      [String(userId), from.toISOString(), to.toISOString()]
+    );
+
+    // Build a minute-keyed map of attendance events for fast lookup
+    const attendanceMinuteMap = new Map();
+    (clockInRows || []).forEach(a => {
+      if (!a.timestamp) return;
+      const key = Math.floor(new Date(a.timestamp).getTime() / 60000);
+      attendanceMinuteMap.set(key, 'Clock In');
+    });
+    (clockOutRows || []).forEach(a => {
+      if (!a.timestamp) return;
+      const key = Math.floor(new Date(a.timestamp).getTime() / 60000);
+      attendanceMinuteMap.set(key, 'Clock Out');
+    });
+
+    // Tag each location log point with attendance_status if within ±2 minutes of a clock event
+    const taggedLogs = (logsRows || []).map(r => {
+      const timeKey = Math.floor(new Date(r.timestamp).getTime() / 60000);
+      let attendance_status = null;
+      for (let offset = -2; offset <= 2; offset++) {
+        if (attendanceMinuteMap.has(timeKey + offset)) {
+          attendance_status = attendanceMinuteMap.get(timeKey + offset);
+          break;
         }
-      });
-      
-      deduped.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      }
+      return { lat: r.latitude, lng: r.longitude, accuracy: r.accuracy, timestamp: r.timestamp, attendance_status };
+    });
+
+    // Add dedicated Clock In points
+    const clockInPoints = (clockInRows || []).map(a => ({
+      lat: a.latitude, lng: a.longitude, accuracy: a.accuracy, timestamp: a.timestamp, attendance_status: 'Clock In'
+    }));
+
+    // Add dedicated Clock Out points (only if they have coordinates)
+    const clockOutPoints = (clockOutRows || []).filter(a => a.latitude && a.longitude).map(a => ({
+      lat: a.latitude, lng: a.longitude, accuracy: null, timestamp: a.timestamp, attendance_status: 'Clock Out'
+    }));
+
+    const combined = [...taggedLogs, ...clockInPoints, ...clockOutPoints];
+
+    // Deduplicate by minute, preferring entries with attendance_status
+    const seen = new Map();
+    combined.forEach(item => {
+      if (!item.timestamp) return;
+      const timeKey = Math.floor(new Date(item.timestamp).getTime() / 60000);
+      const existing = seen.get(timeKey);
+      if (!existing || (!existing.attendance_status && item.attendance_status)) {
+        seen.set(timeKey, item);
+      }
+    });
+
+    const deduped = [];
+    seen.forEach(item => deduped.push(item));
+    deduped.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
       return res.json({ success: true, history: deduped.slice(0, 500) });
   } catch (e) {
