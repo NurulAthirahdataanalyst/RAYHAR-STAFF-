@@ -4645,18 +4645,6 @@ app.get('/api/employee-location-history', async (req, res) => {
       [String(userId), from.toISOString(), to.toISOString()]
     );
 
-    // Minute-keyed sets for attendance events
-    const clockInMinuteMap = new Set();
-    const clockOutMinuteMap = new Set();
-    (clockInRows || []).forEach(a => {
-      if (!a.timestamp) return;
-      clockInMinuteMap.add(Math.floor(new Date(a.timestamp).getTime() / 60000));
-    });
-    (clockOutRows || []).forEach(a => {
-      if (!a.timestamp) return;
-      clockOutMinuteMap.add(Math.floor(new Date(a.timestamp).getTime() / 60000));
-    });
-
     // Helper: determine attendance status for a timestamp & event type
     const getAttendanceStatus = (ts, isClockInEvent = false, isClockOutEvent = false) => {
       const d = new Date(ts);
@@ -4673,23 +4661,8 @@ app.get('/api/employee-location-history', async (req, res) => {
         return 'Clock In';
       }
 
-      // Check minute offset for nearby clock-in / clock-out
-      const timeKey = Math.floor(d.getTime() / 60000);
-      let foundIn = false;
-      let foundOut = false;
-      for (let offset = -2; offset <= 2; offset++) {
-        if (clockOutMinuteMap.has(timeKey + offset)) { foundOut = true; break; }
-        if (clockInMinuteMap.has(timeKey + offset)) { foundIn = true; break; }
-      }
-
-      if (foundOut) return 'Clock Out';
-      if (foundIn) {
-        if (replacementDatesSet.has(dateStr)) return 'Replacement Leave';
-        if (outstationDatesSet.has(dateStr)) return 'Outstation';
-        return 'Clock In';
-      }
-
-      // Passive pings during special status days
+      // Passive ping — only tag special-day statuses, never Clock In or Clock Out
+      // (Clock In/Out are determined exclusively from the attendances table rows)
       if (replacementDatesSet.has(dateStr)) return 'Replacement Leave';
       if (outstationDatesSet.has(dateStr)) return 'Outstation';
       if (leaveDatesMap.has(dateStr)) return leaveDatesMap.get(dateStr) || 'On Leave';
@@ -4790,7 +4763,10 @@ app.get('/api/employee-location-history', async (req, res) => {
       };
     });
 
-    const combined = [...taggedLogs, ...clockInPoints, ...clockOutPoints];
+    // clockOutPoints and clockInPoints are authoritative — put them first so they
+    // win deduplication. Passive taggedLogs come last and will be replaced if a
+    // real attendance event falls in the same minute bucket.
+    const combined = [...clockOutPoints, ...clockInPoints, ...taggedLogs];
 
     // Deduplicate by minute, preferring entries with attendance_status
     const seen = new Map();
