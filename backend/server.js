@@ -4546,59 +4546,249 @@ app.get('/api/employee-location-history', async (req, res) => {
     const to = new Date();
     const from = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
-    // Fetch from employee_location_logs (passive background pings)
+    // 1. Fetch employee profile & branch
+    const [profRows] = await pool.query(`SELECT branch FROM profiles WHERE user_id = ?`, [String(userId)]);
+    const permBranch = profRows[0]?.branch || 'HQ';
+
+    // 2. Fetch active/past temporary work assignments
+    const [tempAssignments] = await pool.query(`
+      SELECT location, start_date, COALESCE(end_date, '2099-12-31') as end_date 
+      FROM employee_work_assignment 
+      WHERE user_id = ? AND status = 'Active'
+    `, [String(userId)]);
+
+    // 3. Fetch branches table
+    const [branchesRows] = await pool.query(`SELECT code, name, latitude, longitude, radius FROM branches`);
+    const branchMap = new Map();
+    (branchesRows || []).forEach(b => {
+      if (b.code) branchMap.set(b.code, b);
+      if (b.name) branchMap.set(b.name, b);
+    });
+
+    // 4. Fetch outstation assignments for employee in date range
+    const [outstationRows] = await pool.query(`
+      SELECT start_date, end_date FROM outstation_assignments 
+      WHERE user_id = ? AND status IN ('Approved', 'Active')
+    `, [String(userId)]);
+
+    const outstationDatesSet = new Set();
+    (outstationRows || []).forEach(o => {
+      if (!o.start_date) return;
+      const s = new Date(o.start_date);
+      const e = o.end_date ? new Date(o.end_date) : new Date(o.start_date);
+      for (let d = new Date(s); d <= e; d.setDate(d.getDate() + 1)) {
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        outstationDatesSet.add(`${yyyy}-${mm}-${dd}`);
+      }
+    });
+
+    // 5. Fetch leave requests for employee
+    const [leaveRows] = await pool.query(`
+      SELECT leave_type, start_date, end_date FROM leave_requests 
+      WHERE user_id = ? AND status = 'Approved'
+    `, [String(userId)]);
+
+    const replacementDatesSet = new Set();
+    const leaveDatesMap = new Map();
+
+    (leaveRows || []).forEach(l => {
+      if (!l.start_date) return;
+      const s = new Date(l.start_date);
+      const e = l.end_date ? new Date(l.end_date) : new Date(l.start_date);
+      const typeUpper = String(l.leave_type || '').toUpperCase();
+      const isRepl = typeUpper.includes('REPLACEMENT') || typeUpper.includes('GANTI');
+      
+      for (let d = new Date(s); d <= e; d.setDate(d.getDate() + 1)) {
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        const dStr = `${yyyy}-${mm}-${dd}`;
+        if (isRepl) {
+          replacementDatesSet.add(dStr);
+        } else {
+          leaveDatesMap.set(dStr, l.leave_type);
+        }
+      }
+    });
+
+    // 6. Fetch replacement_leave_requests (earning or validated RL)
+    const [rlRows] = await pool.query(`
+      SELECT replacement_date FROM replacement_leave_requests 
+      WHERE employee_id = ? AND (validation_status = 'Validated' OR status = 'Approved')
+    `, [String(userId)]);
+    (rlRows || []).forEach(r => {
+      if (!r.replacement_date) return;
+      const d = new Date(r.replacement_date);
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      replacementDatesSet.add(`${yyyy}-${mm}-${dd}`);
+    });
+
+    // 7. Fetch location logs
     const [logsRows] = await pool.query(
       `SELECT latitude, longitude, accuracy, recorded_at as timestamp FROM employee_location_logs WHERE employee_id = ? AND recorded_at BETWEEN ? AND ? ORDER BY recorded_at DESC LIMIT 500`,
       [String(userId), from.toISOString(), to.toISOString()]
     );
 
-    // Fetch Clock In events from attendances
+    // 8. Fetch Clock In events from attendances
     const [clockInRows] = await pool.query(
       `SELECT clock_in_latitude as latitude, clock_in_longitude as longitude, clock_in_accuracy as accuracy, clock_in as timestamp FROM attendances WHERE user_id = ? AND clock_in BETWEEN ? AND ? ORDER BY clock_in DESC LIMIT 200`,
       [String(userId), from.toISOString(), to.toISOString()]
     );
 
-    // Fetch Clock Out events from attendances
+    // 9. Fetch Clock Out events from attendances
     const [clockOutRows] = await pool.query(
       `SELECT clock_out_latitude as latitude, clock_out_longitude as longitude, NULL as accuracy, clock_out as timestamp FROM attendances WHERE user_id = ? AND clock_out IS NOT NULL AND clock_out BETWEEN ? AND ? ORDER BY clock_out DESC LIMIT 200`,
       [String(userId), from.toISOString(), to.toISOString()]
     );
 
-    // Build a minute-keyed map of attendance events for fast lookup
-    const attendanceMinuteMap = new Map();
+    // Minute-keyed sets for attendance events
+    const clockInMinuteMap = new Set();
+    const clockOutMinuteMap = new Set();
     (clockInRows || []).forEach(a => {
       if (!a.timestamp) return;
-      const key = Math.floor(new Date(a.timestamp).getTime() / 60000);
-      attendanceMinuteMap.set(key, 'Clock In');
+      clockInMinuteMap.add(Math.floor(new Date(a.timestamp).getTime() / 60000));
     });
     (clockOutRows || []).forEach(a => {
       if (!a.timestamp) return;
-      const key = Math.floor(new Date(a.timestamp).getTime() / 60000);
-      attendanceMinuteMap.set(key, 'Clock Out');
+      clockOutMinuteMap.add(Math.floor(new Date(a.timestamp).getTime() / 60000));
     });
 
-    // Tag each location log point with attendance_status if within ±2 minutes of a clock event
-    const taggedLogs = (logsRows || []).map(r => {
-      const timeKey = Math.floor(new Date(r.timestamp).getTime() / 60000);
-      let attendance_status = null;
+    // Helper: determine attendance status for a timestamp & event type
+    const getAttendanceStatus = (ts, isClockInEvent = false, isClockOutEvent = false) => {
+      const d = new Date(ts);
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      const dateStr = `${yyyy}-${mm}-${dd}`;
+
+      if (isClockOutEvent) return 'Clock Out';
+
+      if (isClockInEvent) {
+        if (replacementDatesSet.has(dateStr)) return 'Replacement Leave';
+        if (outstationDatesSet.has(dateStr)) return 'Outstation';
+        return 'Clock In';
+      }
+
+      // Check minute offset for nearby clock-in / clock-out
+      const timeKey = Math.floor(d.getTime() / 60000);
+      let foundIn = false;
+      let foundOut = false;
       for (let offset = -2; offset <= 2; offset++) {
-        if (attendanceMinuteMap.has(timeKey + offset)) {
-          attendance_status = attendanceMinuteMap.get(timeKey + offset);
+        if (clockOutMinuteMap.has(timeKey + offset)) { foundOut = true; break; }
+        if (clockInMinuteMap.has(timeKey + offset)) { foundIn = true; break; }
+      }
+
+      if (foundOut) return 'Clock Out';
+      if (foundIn) {
+        if (replacementDatesSet.has(dateStr)) return 'Replacement Leave';
+        if (outstationDatesSet.has(dateStr)) return 'Outstation';
+        return 'Clock In';
+      }
+
+      // Passive pings during special status days
+      if (replacementDatesSet.has(dateStr)) return 'Replacement Leave';
+      if (outstationDatesSet.has(dateStr)) return 'Outstation';
+      if (leaveDatesMap.has(dateStr)) return leaveDatesMap.get(dateStr) || 'On Leave';
+
+      return null;
+    };
+
+    // Helper: calculate distance (Haversine)
+    const calcDistance = (lat1, lon1, lat2, lon2) => {
+      if (lat1 == null || lon1 == null || lat2 == null || lon2 == null) return null;
+      const p1 = Number(lat1), p2 = Number(lon1), p3 = Number(lat2), p4 = Number(lon2);
+      if (isNaN(p1) || isNaN(p2) || isNaN(p3) || isNaN(p4)) return null;
+      const R = 6371000;
+      const dLat = ((p3 - p1) * Math.PI) / 180;
+      const dLon = ((p4 - p2) * Math.PI) / 180;
+      const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos((p1 * Math.PI) / 180) * Math.cos((p3 * Math.PI) / 180) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return Math.round(R * c);
+    };
+
+    // Helper: resolve branch, distance, location status for a point
+    const resolveLocationDetails = (lat, lng, ts) => {
+      const pointDate = new Date(ts);
+      let activeBranchCode = permBranch;
+
+      // Check temp assignments
+      for (const ta of tempAssignments) {
+        const s = new Date(ta.start_date);
+        const e = new Date(ta.end_date);
+        if (pointDate >= s && pointDate <= e) {
+          activeBranchCode = ta.location;
           break;
         }
       }
-      return { lat: r.latitude, lng: r.longitude, accuracy: r.accuracy, timestamp: r.timestamp, attendance_status };
+
+      const bObj = branchMap.get(activeBranchCode);
+      const bLat = bObj ? parseFloat(bObj.latitude) : null;
+      const bLng = bObj ? parseFloat(bObj.longitude) : null;
+      const radius = bObj ? (bObj.radius || 100) : 100;
+
+      const pLat = Number(lat);
+      const pLng = Number(lng);
+      const isNoGPS = (!pLat && !pLng) || (pLat === 0 && pLng === 0);
+
+      let distance = null;
+      if (!isNoGPS && bLat != null && bLng != null && !isNaN(bLat) && !isNaN(bLng)) {
+        distance = calcDistance(pLat, pLng, bLat, bLng);
+      }
+
+      let location_status = 'NO GPS';
+      if (!isNoGPS) {
+        location_status = (distance !== null && distance > radius) ? 'OFF-SITE' : 'ON-SITE';
+      }
+
+      return {
+        branch: activeBranchCode,
+        distance,
+        location_status
+      };
+    };
+
+    // Build combined point items
+    const taggedLogs = (logsRows || []).map(r => {
+      const locDetails = resolveLocationDetails(r.latitude, r.longitude, r.timestamp);
+      return {
+        lat: r.latitude,
+        lng: r.longitude,
+        accuracy: r.accuracy,
+        timestamp: r.timestamp,
+        ...locDetails,
+        attendance_status: getAttendanceStatus(r.timestamp, false, false)
+      };
     });
 
-    // Add dedicated Clock In points
-    const clockInPoints = (clockInRows || []).map(a => ({
-      lat: a.latitude, lng: a.longitude, accuracy: a.accuracy, timestamp: a.timestamp, attendance_status: 'Clock In'
-    }));
+    const clockInPoints = (clockInRows || []).map(a => {
+      const locDetails = resolveLocationDetails(a.latitude, a.longitude, a.timestamp);
+      return {
+        lat: a.latitude,
+        lng: a.longitude,
+        accuracy: a.accuracy,
+        timestamp: a.timestamp,
+        ...locDetails,
+        attendance_status: getAttendanceStatus(a.timestamp, true, false)
+      };
+    });
 
-    // Add dedicated Clock Out points (only if they have coordinates)
-    const clockOutPoints = (clockOutRows || []).filter(a => a.latitude && a.longitude).map(a => ({
-      lat: a.latitude, lng: a.longitude, accuracy: null, timestamp: a.timestamp, attendance_status: 'Clock Out'
-    }));
+    const clockOutPoints = (clockOutRows || []).filter(a => a.latitude && a.longitude).map(a => {
+      const locDetails = resolveLocationDetails(a.latitude, a.longitude, a.timestamp);
+      return {
+        lat: a.latitude,
+        lng: a.longitude,
+        accuracy: null,
+        timestamp: a.timestamp,
+        ...locDetails,
+        attendance_status: getAttendanceStatus(a.timestamp, false, true)
+      };
+    });
 
     const combined = [...taggedLogs, ...clockInPoints, ...clockOutPoints];
 
@@ -4617,7 +4807,7 @@ app.get('/api/employee-location-history', async (req, res) => {
     seen.forEach(item => deduped.push(item));
     deduped.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
-      return res.json({ success: true, history: deduped.slice(0, 500) });
+    return res.json({ success: true, history: deduped.slice(0, 500) });
   } catch (e) {
     console.error('/api/employee-location-history error', e.message || e);
     res.status(500).json({ success: false, error: e.message || String(e) });

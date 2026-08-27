@@ -630,16 +630,28 @@ export default function GPSLocationTracker() {
                               )}
                           </TableCell>
                           <TableCell>
-                            {h.attendance_status ? (
-                              <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-black border uppercase tracking-widest ${
-                                h.attendance_status === 'Clock In' 
-                                  ? 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300 border-blue-200 dark:border-blue-500/30'
-                                  : 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300 border-indigo-200 dark:border-indigo-500/30'
-                              }`}>
-                                <div className={`w-1.5 h-1.5 rounded-full ${h.attendance_status === 'Clock In' ? 'bg-blue-500' : 'bg-indigo-500'}`} />
-                                {h.attendance_status}
-                              </span>
-                            ) : (
+                            {h.attendance_status ? (() => {
+                              const statusColors: Record<string, string> = {
+                                'Clock In': 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300 border-blue-200 dark:border-blue-500/30',
+                                'Clock Out': 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300 border-indigo-200 dark:border-indigo-500/30',
+                                'Replacement Leave': 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300 border-amber-200 dark:border-amber-500/30',
+                                'Outstation': 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300 border-purple-200 dark:border-purple-500/30',
+                              };
+                              const dotColors: Record<string, string> = {
+                                'Clock In': 'bg-blue-500',
+                                'Clock Out': 'bg-indigo-500',
+                                'Replacement Leave': 'bg-amber-500',
+                                'Outstation': 'bg-purple-500',
+                              };
+                              const cls = statusColors[h.attendance_status] || 'bg-teal-100 text-teal-700 dark:bg-teal-500/20 dark:text-teal-300 border-teal-200 dark:border-teal-500/30';
+                              const dot = dotColors[h.attendance_status] || 'bg-teal-500';
+                              return (
+                                <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-black border uppercase tracking-widest ${cls}`}>
+                                  <div className={`w-1.5 h-1.5 rounded-full ${dot}`} />
+                                  {h.attendance_status}
+                                </span>
+                              );
+                            })() : (
                               <span className="text-muted-foreground">-</span>
                             )}
                           </TableCell>

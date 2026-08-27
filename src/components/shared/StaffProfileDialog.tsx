@@ -1207,11 +1207,13 @@ export function StaffProfileDialog({
                     ) : (
                       <div className="overflow-x-auto max-h-[400px] overflow-y-auto">
                         <table className="w-full text-xs">
-                          <thead className="sticky top-0 bg-slate-50 dark:bg-slate-900">
+                          <thead className="sticky top-0 bg-slate-50 dark:bg-slate-900 z-10">
                             <tr>
-                              <th className="text-left font-bold text-muted-foreground uppercase tracking-widest px-2 py-2">Timestamp</th>
-                              <th className="text-left font-bold text-muted-foreground uppercase tracking-widest px-2 py-2">Coordinates</th>
-                              <th className="text-left font-bold text-muted-foreground uppercase tracking-widest px-2 py-2">Attendance Status</th>
+                              <th className="text-left font-black text-foreground uppercase tracking-widest px-2 py-2">Timestamp</th>
+                              <th className="text-left font-black text-foreground uppercase tracking-widest px-2 py-2">Coordinates</th>
+                              <th className="text-left font-black text-foreground uppercase tracking-widest px-2 py-2">Distance from Branch</th>
+                              <th className="text-left font-black text-foreground uppercase tracking-widest px-2 py-2">Location Status</th>
+                              <th className="text-left font-black text-foreground uppercase tracking-widest px-2 py-2">Attendance Status</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -1219,6 +1221,27 @@ export function StaffProfileDialog({
                               const ts = h.timestamp ? new Date(h.timestamp) : null;
                               const dateStr = ts ? ts.toLocaleDateString('ms-MY', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '-';
                               const timeStr = ts ? ts.toLocaleTimeString('ms-MY', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }) : '-';
+                              const pLat = Number(h.lat);
+                              const pLng = Number(h.lng);
+                              const isNoGPS = (!pLat && !pLng) || (pLat === 0 && pLng === 0);
+
+                              // Attendance status badge colors
+                              const statusColors: Record<string, string> = {
+                                'Clock In': 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-500/20 dark:text-blue-300 dark:border-blue-500/30',
+                                'Clock Out': 'bg-indigo-100 text-indigo-700 border-indigo-200 dark:bg-indigo-500/20 dark:text-indigo-300 dark:border-indigo-500/30',
+                                'Replacement Leave': 'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-500/30',
+                                'Outstation': 'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-500/20 dark:text-purple-300 dark:border-purple-500/30',
+                              };
+                              const statusDotColors: Record<string, string> = {
+                                'Clock In': 'bg-blue-500',
+                                'Clock Out': 'bg-indigo-500',
+                                'Replacement Leave': 'bg-amber-500',
+                                'Outstation': 'bg-purple-500',
+                              };
+                              const attStatus = h.attendance_status || null;
+                              const attClass = attStatus ? (statusColors[attStatus] || 'bg-teal-100 text-teal-700 border-teal-200 dark:bg-teal-500/20 dark:text-teal-300 dark:border-teal-500/30') : '';
+                              const attDot = attStatus ? (statusDotColors[attStatus] || 'bg-teal-500') : '';
+
                               return (
                                 <tr key={idx} className="border-b border-slate-100 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-900/30">
                                   <td className="px-2 py-2 whitespace-nowrap">
@@ -1226,17 +1249,34 @@ export function StaffProfileDialog({
                                     <div className="text-muted-foreground">{timeStr}</div>
                                   </td>
                                   <td className="px-2 py-2 font-mono text-[10px] text-muted-foreground whitespace-nowrap">
-                                    {h.lat != null ? Number(h.lat).toFixed(7) : '-'}{', '}{h.lng != null ? Number(h.lng).toFixed(7) : '-'}
+                                    {isNoGPS ? 'N/A' : `${pLat.toFixed(7)}, ${pLng.toFixed(7)}`}
+                                  </td>
+                                  <td className="px-2 py-2 whitespace-nowrap font-bold text-foreground">
+                                    {isNoGPS || h.distance == null ? '-' : `${h.distance} m`}
                                   </td>
                                   <td className="px-2 py-2">
-                                    {h.attendance_status ? (
-                                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black border uppercase tracking-widest ${
-                                        h.attendance_status === 'Clock In'
-                                          ? 'bg-blue-100 text-blue-700 border-blue-200'
-                                          : 'bg-indigo-100 text-indigo-700 border-indigo-200'
-                                      }`}>
-                                        <div className={`w-1.5 h-1.5 rounded-full ${h.attendance_status === 'Clock In' ? 'bg-blue-500' : 'bg-indigo-500'}`} />
-                                        {h.attendance_status}
+                                    {isNoGPS ? (
+                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black border uppercase tracking-widest bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-500/20 dark:text-slate-300 dark:border-slate-500/30">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-slate-500" />
+                                        No GPS
+                                      </span>
+                                    ) : h.location_status === 'OFF-SITE' ? (
+                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black border uppercase tracking-widest bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-500/20 dark:text-orange-300 dark:border-orange-500/30">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+                                        Off-Site
+                                      </span>
+                                    ) : (
+                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black border uppercase tracking-widest bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                        On-Site
+                                      </span>
+                                    )}
+                                  </td>
+                                  <td className="px-2 py-2">
+                                    {attStatus ? (
+                                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black border uppercase tracking-widest ${attClass}`}>
+                                        <div className={`w-1.5 h-1.5 rounded-full ${attDot}`} />
+                                        {attStatus}
                                       </span>
                                     ) : (
                                       <span className="text-muted-foreground">-</span>
