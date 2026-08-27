@@ -760,28 +760,83 @@ export default function LeaveManagement() {
                   </div>
 
                   {(formData.jenisCuti === "Unpaid Leave" || formData.jenisCuti === "Cuti Tanpa Gaji") && (
-                    <div className="space-y-4 p-4 border border-rose-200 bg-rose-50 dark:border-rose-900/30 dark:bg-rose-900/10 rounded-[20px]">
-                      <div className="space-y-2">
-                        <Label className="text-[10px] font-black uppercase tracking-widest text-rose-700 dark:text-rose-400 px-1">No. Telefon Semasa Cuti <span className="text-red-500">*</span></Label>
-                        <Input
-                          placeholder="0123456789"
-                            className="h-12 border-rose-200 bg-white dark:bg-black/20 rounded-xl font-bold placeholder:text-muted-foreground placeholder:font-medium"
-                          value={formData.cutiTanpaGajiPhone}
-                          onChange={e => setFormData({ ...formData, cutiTanpaGajiPhone: e.target.value })}
-                        />
-                      </div>
-                      <div className="flex items-start space-x-3 pt-2">
+                    <div className="p-5 border border-[#7B0099]/30 bg-[#7B0099]/5 rounded-[20px] transition-colors duration-300">
+                      <style>{`
+                        .flip-checkbox { display: none; }
+                        .flip-label { display: flex; align-items: center; cursor: pointer; gap: 16px; margin: 0; }
+                        .flip-box {
+                          width: 32px;
+                          height: 32px;
+                          perspective: 1000px;
+                          display: flex;
+                          justify-content: center;
+                          align-items: center;
+                          position: relative;
+                          transition: transform 0.4s ease;
+                          flex-shrink: 0;
+                        }
+                        .flip-front, .flip-back {
+                          width: 100%;
+                          height: 100%;
+                          position: absolute;
+                          display: flex;
+                          justify-content: center;
+                          align-items: center;
+                          border-radius: 8px;
+                          backface-visibility: hidden;
+                          transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+                        }
+                        .flip-front {
+                          background: white;
+                          border: 2px solid #7B0099;
+                          transform: rotateY(0deg);
+                          box-shadow: 0 2px 4px rgba(123, 0, 153, 0.1);
+                        }
+                        .flip-back {
+                          background: #7B0099;
+                          border: 2px solid #7B0099;
+                          transform: rotateY(180deg);
+                          box-shadow: 0 2px 8px rgba(123, 0, 153, 0.3);
+                        }
+                        .flip-label:hover .flip-box { transform: scale(1.05); }
+                        .flip-checkbox:checked + .flip-label .flip-front { transform: rotateY(180deg); }
+                        .flip-checkbox:checked + .flip-label .flip-back { transform: rotateY(0deg); }
+                        
+                        .flip-icon-path {
+                          stroke: white;
+                          stroke-width: 3;
+                          stroke-linecap: round;
+                          stroke-linejoin: round;
+                          fill: transparent;
+                          stroke-dasharray: 20;
+                          stroke-dashoffset: 20;
+                          transition: stroke-dashoffset 0.4s ease 0.2s;
+                        }
+                        .flip-checkbox:checked + .flip-label .flip-icon-path {
+                          stroke-dashoffset: 0;
+                        }
+                      `}</style>
+                      <div>
                         <input
                           type="checkbox"
                           id="unpaid-signature"
-                          className="mt-1 w-4 h-4 rounded border-rose-300 text-rose-600 focus:ring-rose-500"
+                          className="flip-checkbox"
                           checked={formData.cutiTanpaGajiSignature}
                           onChange={e => setFormData({ ...formData, cutiTanpaGajiSignature: e.target.checked })}
                         />
-                          <label htmlFor="unpaid-signature" className="text-xs font-medium text-slate-700 dark:text-slate-300 leading-snug cursor-pointer">
+                        <label htmlFor="unpaid-signature" className="flip-label group">
+                          <div className="flip-box">
+                            <div className="flip-front"></div>
+                            <div className="flip-back">
+                              <svg width="20" height="20" viewBox="0 0 24 24">
+                                <path className="flip-icon-path" d="M5 13l4 4L19 7" />
+                              </svg>
+                            </div>
+                          </div>
+                          <span className="text-sm font-semibold text-[#7B0099] leading-relaxed group-hover:opacity-80 transition-opacity duration-200">
                             Saya mengesahkan permohonan Cuti Tanpa Gaji ini dan bersetuju dengan segala syarat yang ditetapkan.
-                          </label>
-                        
+                          </span>
+                        </label>
                       </div>
                     </div>
                   )}
