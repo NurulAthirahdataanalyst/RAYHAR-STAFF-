@@ -60,6 +60,23 @@ const BRANCH_NAMES: Record<string, string> = {
   JB: "Johor Bharu",
 };
 
+
+// Haversine formula
+function getDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
+  const R = 6371e3; // metres
+  const φ1 = lat1 * Math.PI/180; // φ, λ in radians
+  const φ2 = lat2 * Math.PI/180;
+  const Δφ = (lat2-lat1) * Math.PI/180;
+  const Δλ = (lon2-lon1) * Math.PI/180;
+
+  const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+            Math.cos(φ1) * Math.cos(φ2) *
+            Math.sin(Δλ/2) * Math.sin(Δλ/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+  return R * c; // in metres
+}
+
 export function StaffProfileDialog({ 
   employeeId, 
   isOpen, 
@@ -181,6 +198,10 @@ export function StaffProfileDialog({
     }
   }, [selectedEmployee, isModalOpen, analyticsDate]);
 
+    const [tempAssignmentsHistory, setTempAssignmentsHistory] = useState<any[]>([]);
+  const [locationHistory, setLocationHistory] = useState<any[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+
   const [tempAssignment, setTempAssignment] = useState({ location: "", start_date: "", end_date: "", status: "Active" });
   const [allowedLocations, setAllowedLocations] = useState<string[]>([]);
   const [loadingSettings, setLoadingSettings] = useState(false);
@@ -189,13 +210,23 @@ export function StaffProfileDialog({
     fetchTodayStats(userId);
     setLoadingSettings(true);
     try {
-      const [waRes, alRes] = await Promise.all([
+      const [waRes, alRes, histRes] = await Promise.all([
         fetch(`${API_BASE_URL}/api/work-assignments/${userId}`),
-        fetch(`${API_BASE_URL}/api/allowed-locations/${userId}`)
+        fetch(`${API_BASE_URL}/api/allowed-locations/${userId}`),
+        fetch(`${API_BASE_URL}/api/employee-location-history?userId=${userId}&days=14`)
       ]);
       const waData = await waRes.json();
       const alData = await alRes.json();
+      const histData = await histRes.json();
+      if (histData.success) {
+        setLocationHistory(histData.history || []);
+      } else {
+        setLocationHistory([]);
+      }
 
+      if (waData.success) {
+        setTempAssignmentsHistory(waData.assignments || []);
+      }
       if (waData.success && waData.assignments.length > 0) {
         const activeOrLatest = waData.assignments[0];
         setTempAssignment({
@@ -593,9 +624,12 @@ export function StaffProfileDialog({
           <div className="p-4">
             {selectedEmployee ? (
               <Tabs defaultValue="basic" className="w-full">
-                <TabsList className="mb-4">
-                  <TabsTrigger value="basic">Staff Profile & Analytics</TabsTrigger>
-                  <TabsTrigger value="attendance_settings">Attendance Settings</TabsTrigger>
+                <TabsList className="mb-4 flex flex-wrap h-auto gap-1 bg-slate-100/50 dark:bg-slate-900/50 p-1 rounded-xl">
+                  <TabsTrigger value="basic" className="rounded-lg text-xs">Staff Profile & Analytics</TabsTrigger>
+                  <TabsTrigger value="attendance_settings" className="rounded-lg text-xs">Attendance Settings</TabsTrigger>
+                  <TabsTrigger value="temporary_assignment" className="rounded-lg text-xs">Temporary Assignment</TabsTrigger>
+                  <TabsTrigger value="multi_location" className="rounded-lg text-xs">Multi Location Branch</TabsTrigger>
+                  <TabsTrigger value="location_history" className="rounded-lg text-xs">Location History</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="basic" className="mt-0">
@@ -757,7 +791,7 @@ export function StaffProfileDialog({
                         <h3 className="text-xs font-black text-slate-800 dark:text-slate-100 uppercase tracking-wider">Attendance Performance</h3>
                       </div>
                       <div className="flex items-center gap-2">
-                        <MonthPicker monthYear={analyticsDate} onSelectMonthYear={setAnalyticsDate} className="h-8 px-3 text-[10px] font-bold uppercase tracking-widest bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full cursor-pointer hover:bg-slate-50 transition-colors focus:outline-none focus:ring-1 focus:ring-[#7B0099]" />
+                        <MonthPicker monthYear={analyticsDate} onSelectMonthYear={setAnalyticsDate} className="flex items-center justify-between gap-2 h-8 px-3 text-[10px] font-bold uppercase tracking-widest bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full cursor-pointer hover:bg-slate-50 transition-colors focus:outline-none focus:ring-1 focus:ring-[#7B0099]" />
                       </div>
                     </div>
 
