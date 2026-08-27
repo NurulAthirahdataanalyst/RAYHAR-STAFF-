@@ -8468,12 +8468,18 @@ app.get("/api/reports/generator", async (req, res) => {
           p.user_id,
           p.full_name,
           p.branch,
+          p.department,
           lr.leave_type,
+          lr.start_date,
+          lr.end_date,
           lr.days,
-          lr.status
+          lr.status,
+          lr.reason,
+          lr.applied_at
         FROM leave_requests lr
         JOIN profiles p ON p.user_id = lr.user_id
-        WHERE lr.status = 'Approved' ${leaveWhereClause}
+        WHERE 1=1 ${leaveWhereClause}
+        ORDER BY lr.applied_at DESC
       `, leaveParams);
       
       res.json({ success: true, data: rows });
