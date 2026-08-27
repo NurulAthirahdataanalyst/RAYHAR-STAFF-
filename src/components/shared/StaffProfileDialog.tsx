@@ -617,8 +617,8 @@ export function StaffProfileDialog({
       {/* Employee Details Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="max-w-6xl w-full overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] max-h-[90vh] p-0 gap-0 bg-slate-50 dark:bg-slate-900 print:hidden">
-          <DialogHeader className="p-4 pb-3 border-b bg-white dark:bg-slate-900 dark:border-slate-800 sticky top-0 z-10 shadow-sm">
-            <DialogTitle className="text-xl font-black text-slate-800 dark:text-slate-100 tracking-tight">Staff Profile & Analytics</DialogTitle>
+          <DialogHeader className="p-4 pb-3 border-b bg-[#942392] sticky top-0 z-10 shadow-sm text-white">
+            <DialogTitle className="text-xl font-black tracking-tight text-white uppercase">Staff Profile & Analytics {selectedEmployee ? `- ${selectedEmployee.name} (${selectedEmployee.branch})` : ""}</DialogTitle>
           </DialogHeader>
           
           <div className="p-4">
@@ -1171,7 +1171,34 @@ export function StaffProfileDialog({
                     </div>
                   )}
                 </TabsContent>
-              </Tabs>
+              
+                <TabsContent value="temporary_assignment">
+                  <div className="p-4 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800/60 min-h-[300px] flex items-center justify-center">
+                    <div className="text-center text-muted-foreground">
+                      <p className="text-sm font-semibold">Temporary Assignment details will appear here.</p>
+                      <p className="text-xs">Under development.</p>
+                    </div>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="multi_location">
+                  <div className="p-4 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800/60 min-h-[300px] flex items-center justify-center">
+                    <div className="text-center text-muted-foreground">
+                      <p className="text-sm font-semibold">Multi Location Branch settings will appear here.</p>
+                      <p className="text-xs">Under development.</p>
+                    </div>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="location_history">
+                  <div className="p-4 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800/60 min-h-[300px] flex items-center justify-center">
+                    <div className="text-center text-muted-foreground">
+                      <p className="text-sm font-semibold">Location History will appear here.</p>
+                      <p className="text-xs">Under development.</p>
+                    </div>
+                  </div>
+                </TabsContent>
+</Tabs>
             ) : (
               <div className="py-20 text-center text-foreground dark:text-foreground">
                 <p>Loading profile details...</p>

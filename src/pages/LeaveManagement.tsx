@@ -507,7 +507,7 @@ export default function LeaveManagement() {
                         No. Telefon *
                         {phoneAutoFilled && (
                           <span className="ml-2 text-[9px] font-black text-emerald-600 normal-case tracking-normal">
-                            ✓ Tersimpan
+                            âœ“ Tersimpan
                           </span>
                         )}
                       </Label>
@@ -672,84 +672,143 @@ export default function LeaveManagement() {
 
                   {(formData.jenisCuti === "Replacement Leave" || formData.jenisCuti === "Cuti Ganti") && (
                     <div className="space-y-4 rounded-[24px] border border-[#7B0099]/20 bg-[#7B0099]/5 p-5 animate-in fade-in zoom-in-95">
-                      <div className="flex items-center justify-between">
-                        <h4 className="text-purple-700 font-black text-[10px] uppercase tracking-widest">Butiran Cuti Ganti</h4>
-                        <Button
+                      <div className="flex bg-white/50 p-1 rounded-xl w-full mb-6 relative z-10 border border-purple-100 shadow-inner">
+                        <button
                           type="button"
-                          size="sm"
-                          onClick={addCutiGantiRow}
-                          className="h-8 rounded-xl bg-[#7B0099] hover:bg-[#5e0080] text-white gap-1 text-[10px] font-black uppercase tracking-widest px-3 shadow-md shadow-[#7B0099]/20 transition-all active:scale-95"
+                          onClick={() => setRlMode('earning')}
+                          className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${rlMode === 'earning' ? 'bg-gradient-to-r from-[#7B0099] to-[#9d00c6] text-white shadow-md scale-[1.02]' : 'text-[#7B0099] hover:bg-[#7B0099]/10'}`}
                         >
-                          <Plus className="w-3.5 h-3.5" /> Tambah Baris
-                        </Button>
+                          EARNING RL
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setRlMode('taking')}
+                          className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${rlMode === 'taking' ? 'bg-gradient-to-r from-[#7B0099] to-[#9d00c6] text-white shadow-md scale-[1.02]' : 'text-[#7B0099] hover:bg-[#7B0099]/10'}`}
+                        >
+                          TAKING RL
+                        </button>
                       </div>
 
                       <div className="space-y-4 divide-y divide-[#7B0099]/10">
-                        {formData.cutiGantiRows.map((row, idx) => (
-                          <div key={idx} className={`grid grid-cols-1 sm:grid-cols-4 gap-3 ${idx > 0 ? 'pt-4' : ''}`}>
+                        {rlMode === 'earning' ? (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-in fade-in slide-in-from-left-2">
                             <div className="space-y-2">
-                              <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">Tarikh Cuti {idx + 1} <span className="text-red-500">*</span></Label>
+                              <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">Tarikh/Hari Ganti <span className="text-red-500">*</span></Label>
                               <DatePickerInput
-                                value={row.tarikhCuti}
+                                value={formData.cutiGantiRows[0]?.tarikhGanti || ""}
                                 onChange={(val) => {
                                   const newRows = [...formData.cutiGantiRows];
-                                  newRows[idx].tarikhCuti = val;
+                                  if(!newRows[0]) newRows[0] = { tarikhCuti: "", tarikhGanti: "", keterangan: "", jamGanti: "" };
+                                  newRows[0].tarikhGanti = val;
                                   setFormData({ ...formData, cutiGantiRows: newRows });
                                 }}
-                                className="h-12 bg-card rounded-xl font-bold"
+                                className="h-12 bg-card rounded-xl font-bold border border-[#7B0099]/20"
                               />
                             </div>
+                            
                             <div className="space-y-2">
-                              <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">Tarikh/Hari Ganti {idx + 1} <span className="text-red-500">*</span></Label>
-                              <DatePickerInput
-                                value={row.tarikhGanti}
-                                onChange={(val) => {
+                              <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">Jenis Hari <span className="text-red-500">*</span></Label>
+                              <Select
+                                value={formData.cutiGantiRows[0]?.jamGanti === "Public Holiday" ? "Public Holiday" : (formData.cutiGantiRows[0]?.jamGanti === "Weekend" ? "Weekend" : "")}
+                                onValueChange={(val) => {
                                   const newRows = [...formData.cutiGantiRows];
-                                  newRows[idx].tarikhGanti = val;
+                                  if(!newRows[0]) newRows[0] = { tarikhCuti: "", tarikhGanti: "", keterangan: "", jamGanti: "" };
+                                  newRows[0].jamGanti = val;
                                   setFormData({ ...formData, cutiGantiRows: newRows });
                                 }}
-                                className="h-12 bg-card rounded-xl font-bold"
-                              />
+                              >
+                                <SelectTrigger className="h-12 bg-card rounded-xl font-bold border border-[#7B0099]/20">
+                                  <SelectValue placeholder="Pilih Jenis Hari" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="Weekend">Weekend</SelectItem>
+                                  <SelectItem value="Public Holiday">Public Holiday</SelectItem>
+                                </SelectContent>
+                              </Select>
                             </div>
+
                             <div className="space-y-2">
-                              <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">Keterangan / Tugasan {idx + 1} <span className="text-red-500">*</span></Label>
+                              <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">Keterangan / Tugasan <span className="text-red-500">*</span></Label>
                               <Input
                                 placeholder="Contoh: Kerja lebih masa"
-                                  className="h-12 sm:h-14 border-border/50 bg-muted/30 rounded-2xl font-bold placeholder:text-muted-foreground placeholder:font-medium"
-                                value={row.keterangan}
+                                className="h-12 border border-[#7B0099]/20 bg-white dark:bg-card rounded-xl font-bold placeholder:text-muted-foreground placeholder:font-medium"
+                                value={formData.cutiGantiRows[0]?.keterangan || ""}
                                 onChange={e => {
                                   const newRows = [...formData.cutiGantiRows];
-                                  newRows[idx].keterangan = e.target.value;
+                                  if(!newRows[0]) newRows[0] = { tarikhCuti: "", tarikhGanti: "", keterangan: "", jamGanti: "" };
+                                  newRows[0].keterangan = e.target.value;
                                   setFormData({ ...formData, cutiGantiRows: newRows });
                                 }}
                               />
                             </div>
-                            <div className="space-y-2 relative pr-10">
-                              <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">Jam Ganti {idx + 1}</Label>
-                              <Input
-                                readOnly
-                                placeholder="Auto-calc"
-                                value={row.jamGanti}
-                                className="h-12 bg-card rounded-xl font-bold bg-muted"
-                              />
-                              {formData.cutiGantiRows.length > 1 && (
-                                <Button
-                                  type="button"
-                                  size="sm"
-                                  variant="destructive"
-                                  onClick={() => removeCutiGantiRow(idx)}
-                                  className="absolute right-0 bottom-0 h-12 w-8 rounded-xl p-0 flex items-center justify-center shadow-sm hover:bg-rose-600 transition-colors"
-                                >
-                                  <Trash2 className="w-4 h-4 text-white" />
-                                </Button>
-                              )}
+
+                            <div className="space-y-2">
+                              <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">RL Credit</Label>
+                              <div className="h-12 bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400 rounded-xl font-bold flex items-center justify-center border border-emerald-200 dark:border-emerald-800 text-[11px] uppercase tracking-wider px-2 shadow-inner">
+                                +1 Day (Auto)
+                              </div>
                             </div>
                           </div>
-                        ))}
+                        ) : (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-in fade-in slide-in-from-right-2">
+                            <div className="space-y-2">
+                              <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">Tarikh Cuti <span className="text-red-500">*</span></Label>
+                              <DatePickerInput
+                                value={formData.tarikhMula}
+                                onChange={(val) => setFormData({ ...formData, tarikhMula: val, tarikhAkhir: val })}
+                                className="h-12 bg-card rounded-xl font-bold border border-[#7B0099]/20"
+                              />
+                            </div>
+                            
+                            <div className="space-y-2 lg:col-span-2">
+                              <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">Pilih Cuti Ganti <span className="text-red-500">*</span></Label>
+                              <Select
+                                value={formData.cutiGantiRows[0]?.tarikhGanti || ""}
+                                onValueChange={(val) => {
+                                  const sel = earnedCredits.find(c => c.id.toString() === val);
+                                  if (sel) {
+                                    const newRows = [{
+                                      tarikhCuti: formData.tarikhMula,
+                                      tarikhGanti: sel.id.toString(),
+                                      keterangan: sel.description,
+                                      jamGanti: sel.actual_hours
+                                    }];
+                                    setFormData({ ...formData, cutiGantiRows: newRows });
+                                  }
+                                }}
+                              >
+                                <SelectTrigger className="h-12 bg-card rounded-xl font-bold border border-[#7B0099]/20">
+                                  <SelectValue placeholder="Pilih Rekod Cuti Ganti (Earned)" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {earnedCredits.length === 0 ? (
+                                    <div className="p-3 text-[10px] font-black uppercase tracking-widest text-muted-foreground text-center">Tiada Rekod Available</div>
+                                  ) : (
+                                    earnedCredits.map(c => (
+                                      <SelectItem key={c.id} value={c.id.toString()}>
+                                        {new Date(c.replacement_date).toLocaleDateString('en-GB')} — {c.description || 'Tiada info'} — {c.actual_hours}h
+                                      </SelectItem>
+                                    ))
+                                  )}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">Jam Ganti</Label>
+                              <Input
+                                readOnly
+                                value={formData.cutiGantiRows[0]?.jamGanti || "--"}
+                                className="h-12 bg-muted rounded-xl font-bold border border-[#7B0099]/10"
+                              />
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
 
+                  {!(rlMode === 'earning' && (formData.jenisCuti === "Replacement Leave" || formData.jenisCuti === "Cuti Ganti")) && (
                   <div className="space-y-2">
                     <Label className="text-[10px] font-black uppercase tracking-widest text-foreground px-1">Sebab / Tujuan <span className="text-red-500">*</span></Label>
                     <Textarea
@@ -758,6 +817,7 @@ export default function LeaveManagement() {
                       onChange={e => setFormData({ ...formData, tujuanCuti: e.target.value.toUpperCase() })}
                     />
                   </div>
+                  )}
 
                   {(formData.jenisCuti === "Unpaid Leave" || formData.jenisCuti === "Cuti Tanpa Gaji") && (
                     <div className="p-5 border border-[#7B0099]/30 bg-[#7B0099]/5 rounded-[20px] transition-colors duration-300">

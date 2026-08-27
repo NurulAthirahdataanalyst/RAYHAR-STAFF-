@@ -3123,6 +3123,25 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
 
   const applicantPhone = phone || no_telefon || no_kad_pengenalan || null;
 
+  if (req.body.action === 'Earn RL') {
+    const { user_id, replacement_date, description } = req.body;
+    if (!user_id || !replacement_date || !description) {
+      return res.status(400).json({ success: false, error: "Missing required fields for Earning RL" });
+    }
+    
+    // Check if duplicate
+    const [dup] = await pool.query(`SELECT id FROM replacement_leave_requests WHERE employee_id = ? AND replacement_date = ? AND validation_status != 'Failed' AND validation_status != 'Cancelled'`, [user_id, replacement_date]);
+    if (dup.length > 0) {
+      return res.status(400).json({ success: false, error: "You have already claimed Replacement Leave for this date." });
+    }
+
+    // Insert into replacement_leave_requests
+    await pool.query(`INSERT INTO replacement_leave_requests (employee_id, replacement_date, description, validation_status, required_hours) VALUES (?, ?, ?, 'Pending', 4.00)`, [user_id, replacement_date, description]);
+    
+    // We could trigger a validation check right here, but the cron will catch it.
+    return res.json({ success: true, message: "Replacement Leave credit claimed and is pending validation." });
+  }
+
   if (!user_id || !leave_type || !start_date || !end_date || !days) {
     return res.status(400).json({
       success: false,
@@ -9720,6 +9739,43 @@ pool.query(`
     recorded_at TIMESTAMP
   );
 `).catch(e => console.error('Table init error:', e));
+
+
+// REPLACEMENT LEAVE STATS
+app.get("/api/replacement-leave-stats", async (req, res) => {
+  const { user_id } = req.query;
+  if (!user_id) return res.status(400).json({ success: false, error: "user_id required" });
+  try {
+    const [rows] = await pool.query(`
+      SELECT 
+        SUM(CASE WHEN validation_status = 'Validated' THEN 1 ELSE 0 END) as earned,
+        SUM(CASE WHEN leave_request_id IS NOT NULL AND leave_request_id NOT IN (
+          SELECT leave_id FROM leave_requests WHERE status IN ('Rejected', 'Cancelled')
+        ) THEN 1 ELSE 0 END) as used,
+        MAX(CASE WHEN validation_status = 'Validated' THEN replacement_date ELSE NULL END) as latest_earned
+      FROM replacement_leave_requests 
+      WHERE employee_id = ?
+    `, [user_id]);
+    
+    const [adjRows] = await pool.query(`
+      SELECT SUM(adjustment_days) as adj
+      FROM leave_balance_adjustments
+      WHERE employee_id = ? AND UPPER(leave_type) IN ('REPLACEMENT LEAVE', 'CUTI GANTI')
+    `, [user_id]);
+    
+    const adj = parseFloat(adjRows[0]?.adj) || 0;
+    const earned_from_requests = parseInt(rows[0]?.earned) || 0;
+    const earned = earned_from_requests + adj;
+    
+    const used = parseInt(rows[0]?.used) || 0;
+    const available = earned - used;
+    
+    res.json({ success: true, stats: { earned, used, available, latestEarned: rows[0]?.latest_earned } });
+  } catch (err) {
+    console.error("Error fetching RL stats:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on port ${PORT}`);

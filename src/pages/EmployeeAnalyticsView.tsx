@@ -35,6 +35,8 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
   const [rankData, setRankData] = useState<{ rank: number | null, total: number, score: number }>({ rank: null, total: 0, score: 0 });
   const [lastMonthLogs, setLastMonthLogs] = useState<any[]>([]);
   const [profile, setProfile] = useState<any>(null);
+  const [rlStats, setRlStats] = useState<{available: number, earned: number, used: number, latest: string|null}>({available: 0, earned: 0, used: 0, latest: null});
+
   const [companyLeaves, setCompanyLeaves] = useState<any[]>([]);
   const [outstations, setOutstations] = useState<any[]>([]);
   const leaveRequests = propLeaveRequests;
@@ -97,6 +99,21 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
   }, [lastMonthLogs, companyLeaves, profile]);
 
   useEffect(() => {
+    
+    fetch(`${API_BASE_URL}/api/replacement-leave-stats?user_id=${userId}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          setRlStats({
+            available: data.available_credits,
+            earned: data.total_earned,
+            used: data.total_used,
+            latest: data.latest_earned
+          });
+        }
+      })
+      .catch(console.error);
+
     fetch(`${API_BASE_URL}/api/user-details/${userId}`)
       .then(res => res.json())
       .then(data => {
@@ -177,57 +194,41 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
 
   // Existing Calculations
   const approvedLeaves = leaveRequests.filter(l => String(l.status || "").toUpperCase() === "APPROVED");
-    const annualLeavesUsed = approvedLeaves
-      .filter(l => {
-        const type = String(l.leave_type || "").toUpperCase();
-        return type === 'CUTI TAHUNAN' || type === 'ANNUAL LEAVE' || type === 'ANNUAL/EMERGENCY LEAVE' || type === 'ANNUAL & EMERGENCY LEAVE';
-      })
-      .filter(l => {
-        const startStr = getLocalDateString(l.start_date);
-        return startStr ? startStr.startsWith(year) : false;
-      })
-      .reduce((acc, curr) => acc + curr.days, 0);
-    const sickLeavesUsed = approvedLeaves
-      .filter(l => {
-        const type = String(l.leave_type || "").toUpperCase();
-        return type === 'CUTI SAKIT' || type === 'SICK LEAVE';
-      })
-      .filter(l => {
-        const startStr = getLocalDateString(l.start_date);
-        return startStr ? startStr.startsWith(year) : false;
-      })
-      .reduce((acc, curr) => acc + curr.days, 0);
-    const emergencyLeavesUsed = approvedLeaves
-      .filter(l => {
-        const type = String(l.leave_type || "").toUpperCase();
-        return type === 'KECEMASAN' || type === 'EMERGENCY';
-      })
-      .filter(l => {
-        const startStr = getLocalDateString(l.start_date);
-        return startStr ? startStr.startsWith(year) : false;
-      })
-      .reduce((acc, curr) => acc + curr.days, 0);
-    const replacementLeavesUsed = approvedLeaves
-      .filter(l => {
-        const type = String(l.leave_type || "").toUpperCase();
-        return type === 'REPLACEMENT LEAVE' || type === 'CUTI GANTI';
-      })
-      .filter(l => {
-        const startStr = l.start_date ? getLocalDateString(l.start_date) : '';
-        return startStr ? startStr.startsWith(year) : false;
-      })
-      .reduce((acc, curr) => acc + curr.days, 0);
+  
+  const annualLeavesArr = approvedLeaves.filter(l => {
+    const type = String(l.leave_type || "").toUpperCase();
+    return type === 'CUTI TAHUNAN' || type === 'ANNUAL LEAVE' || type === 'ANNUAL/EMERGENCY LEAVE' || type === 'ANNUAL & EMERGENCY LEAVE';
+  }).filter(l => getLocalDateString(l.start_date)?.startsWith(year));
+  const annualLeavesUsed = annualLeavesArr.reduce((acc, curr) => acc + curr.days, 0);
+  const annualApps = annualLeavesArr.length;
 
-    const unpaidLeavesUsed = approvedLeaves
-      .filter(l => {
-        const type = String(l.leave_type || "").toUpperCase();
-        return type === 'UNPAID LEAVE' || type === 'CUTI TANPA GAJI';
-      })
-      .filter(l => {
-        const startStr = l.start_date ? getLocalDateString(l.start_date) : '';
-        return startStr ? startStr.startsWith(year) : false;
-      })
-      .reduce((acc, curr) => acc + curr.days, 0);
+  const sickLeavesArr = approvedLeaves.filter(l => {
+    const type = String(l.leave_type || "").toUpperCase();
+    return type === 'CUTI SAKIT' || type === 'SICK LEAVE';
+  }).filter(l => getLocalDateString(l.start_date)?.startsWith(year));
+  const sickLeavesUsed = sickLeavesArr.reduce((acc, curr) => acc + curr.days, 0);
+  const sickApps = sickLeavesArr.length;
+
+  const emergencyLeavesArr = approvedLeaves.filter(l => {
+    const type = String(l.leave_type || "").toUpperCase();
+    return type === 'KECEMASAN' || type === 'EMERGENCY';
+  }).filter(l => getLocalDateString(l.start_date)?.startsWith(year));
+  const emergencyLeavesUsed = emergencyLeavesArr.reduce((acc, curr) => acc + curr.days, 0);
+  const emergencyApps = emergencyLeavesArr.length;
+
+  const replacementLeavesArr = approvedLeaves.filter(l => {
+    const type = String(l.leave_type || "").toUpperCase();
+    return type === 'REPLACEMENT LEAVE' || type === 'CUTI GANTI';
+  }).filter(l => (l.start_date ? getLocalDateString(l.start_date) : '')?.startsWith(year));
+  const replacementLeavesUsed = replacementLeavesArr.reduce((acc, curr) => acc + curr.days, 0);
+  const replacementApps = replacementLeavesArr.length;
+
+  const unpaidLeavesArr = approvedLeaves.filter(l => {
+    const type = String(l.leave_type || "").toUpperCase();
+    return type === 'UNPAID LEAVE' || type === 'CUTI TANPA GAJI';
+  }).filter(l => (l.start_date ? getLocalDateString(l.start_date) : '')?.startsWith(year));
+  const unpaidLeavesUsed = unpaidLeavesArr.reduce((acc, curr) => acc + curr.days, 0);
+  const unpaidApps = unpaidLeavesArr.length;
   
 
   
@@ -1385,40 +1386,64 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                 <Calendar className="w-3.5 h-3.5 text-indigo-500" /> LEAVE BREAKDOWN
               </h3>
               <div className="space-y-4">
+                {/* Annual / Emergency Leave */}
                 <div>
                   <div className="flex justify-between items-center mb-1">
-                    <span className="text-sm font-bold text-foreground">Annual / Emergency</span>
-                    <span className="text-xs font-black text-foreground">{Math.max(0, totalEntitlement - (annualLeavesUsed + emergencyLeavesUsed))} Days</span>
+                    <span className="text-sm font-bold text-foreground">Annual / Emergency Leave</span>
+                    <span className="text-sm font-bold text-foreground">{annualLeavesUsed + emergencyLeavesUsed} / {totalEntitlement} Days</span>
                   </div>
-                  <div className="w-full h-2 bg-indigo-500/10 rounded-full overflow-hidden">
-                    <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${Math.min((Math.max(0, totalEntitlement - (annualLeavesUsed + emergencyLeavesUsed)) / Math.max(totalEntitlement, 1)) * 100, 100)}%` }} />
+                  <div className="w-full h-2 bg-indigo-500/10 rounded-full overflow-hidden mb-1">
+                    <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${Math.min(((annualLeavesUsed + emergencyLeavesUsed) / Math.max(totalEntitlement, 1)) * 100, 100)}%` }} />
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-black text-foreground">{Math.max(0, totalEntitlement - (annualLeavesUsed + emergencyLeavesUsed))} Days Available</span>
+                    <span className="text-[10px] font-black text-muted-foreground uppercase tracking-wider">{annualApps + emergencyApps} APPLICATION{(annualApps + emergencyApps) !== 1 ? 'S' : ''}</span>
                   </div>
                 </div>
+
+                {/* Medical Leave */}
                 <div>
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-sm font-bold text-foreground">Medical Leave</span>
-                    <span className="text-xs font-black text-foreground">{sickRemaining} Days</span>
+                    <span className="text-sm font-bold text-foreground">{sickLeavesUsed} / {totalSick} Days</span>
                   </div>
-                  <div className="w-full h-2 bg-rose-500/10 rounded-full overflow-hidden">
-                    <div className="h-full bg-rose-500 rounded-full" style={{ width: `${Math.min((sickRemaining / Math.max(totalSick, 1)) * 100, 100)}%` }} />
+                  <div className="w-full h-2 bg-rose-500/10 rounded-full overflow-hidden mb-1">
+                    <div className="h-full bg-rose-500 rounded-full" style={{ width: `${Math.min((sickLeavesUsed / Math.max(totalSick, 1)) * 100, 100)}%` }} />
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-black text-foreground">{sickRemaining} Days Available</span>
+                    <span className="text-[10px] font-black text-muted-foreground uppercase tracking-wider">{sickApps} APPLICATION{sickApps !== 1 ? 'S' : ''}</span>
                   </div>
                 </div>
+
+                {/* Replacement Leave */}
                 <div>
                   <div className="flex justify-between items-center mb-1">
-                    <span className="text-sm font-bold text-foreground">Replacement Leave</span>
-                    <span className="text-xs font-black text-foreground">{replacementRemaining} Days</span>
+                    <span className="text-sm font-bold text-foreground uppercase">Replacement Leave</span>
+                    <span className="text-sm font-bold text-foreground">{rlStats.used} {rlStats.used === 1 ? 'Day Taken' : 'Days Taken'}</span>
                   </div>
-                  <div className="w-full h-2 bg-amber-500/10 rounded-full overflow-hidden">
-                    <div className="h-full bg-amber-500 rounded-full" style={{ width: `${Math.min((replacementRemaining / Math.max(replacementAdj, 1)) * 100, 100)}%` }} />
+                  <div className="w-full h-2 bg-amber-500/10 rounded-full overflow-hidden mb-1">
+                    <div className="h-full bg-amber-500 rounded-full" style={{ width: `${Math.min((rlStats.used / Math.max(rlStats.earned, 1)) * 100, 100)}%` }} />
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-black text-foreground">{rlStats.available} {rlStats.available === 1 ? 'Day Available' : 'Days Available'}</span>
+                    <span className="text-[10px] font-black text-muted-foreground uppercase tracking-wider">{replacementApps} APPLICATION{replacementApps !== 1 ? 'S' : ''}</span>
                   </div>
                 </div>
+
+                {/* Unpaid Leave */}
                 <div>
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-sm font-bold text-foreground">Unpaid Leave</span>
-                    <span className="text-xs font-black text-foreground">{unpaidLeavesUsed} Days Used</span>
+                    <span className="text-sm font-bold text-foreground">{unpaidLeavesUsed} {unpaidLeavesUsed === 1 ? 'Day' : 'Days'}</span>
                   </div>
-                  <div className="w-full h-2 bg-slate-500/10 rounded-full overflow-hidden">
-                    <div className="h-full bg-slate-500 rounded-full" style={{ width: `${Math.min((unpaidLeavesUsed / 14) * 100, 100)}%` }} />
+                  <div className="w-full h-2 bg-slate-500/10 rounded-full overflow-hidden mb-1">
+                    {/* Fixed visual indicator for unpaid leave (e.g., just show 25% or proportional to arbitrary number like 14) */}
+                    <div className="h-full bg-slate-500 rounded-full" style={{ width: `${unpaidLeavesUsed > 0 ? Math.min((unpaidLeavesUsed / 14) * 100, 100) : 0}%` }} />
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span></span>
+                    <span className="text-[10px] font-black text-muted-foreground uppercase tracking-wider">{unpaidApps} APPLICATION{unpaidApps !== 1 ? 'S' : ''}</span>
                   </div>
                 </div>
               </div>

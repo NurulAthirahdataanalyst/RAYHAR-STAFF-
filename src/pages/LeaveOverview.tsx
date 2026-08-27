@@ -272,6 +272,7 @@ export default function LeaveOverview() {
         applications: apps,
         latestAppDate,
         replacementForDate,
+        rlStats: leaveTypeLabels[item.type] === "REPLACEMENT LEAVE" ? rlStats : null
       };
     });
   }, [filteredLeaveRequests, currentBalances]);
@@ -316,28 +317,47 @@ export default function LeaveOverview() {
                 </div>
                 
                 {isReplacement ? (
-                  <div className="space-y-3">
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-xl sm:text-2xl font-black text-foreground group-hover:scale-105 transition-transform origin-left duration-500">{item.used}</span>
-                      <span className="text-[9px] sm:text-[10px] font-bold text-foreground uppercase">
-                        Days Taken
-                      </span>
+                  <div className="space-y-3 flex-1 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-2xl sm:text-3xl font-black text-foreground">{item.rlStats?.available || 0}</span>
+                        <span className="text-[10px] sm:text-[11px] font-bold text-foreground uppercase">Days Available</span>
+                      </div>
+                      
+                      <div className="space-y-1 mt-2">
+                        <div className="h-2 overflow-hidden rounded-full bg-emerald-500/20">
+                          <div 
+                            className="h-full rounded-full bg-emerald-500 transition-all duration-1000 ease-out" 
+                            style={{ width: `${(item.rlStats?.earned || 0) > 0 ? ((item.rlStats?.available || 0) / (item.rlStats?.earned || 1)) * 100 : 0}%` }} 
+                          />
+                        </div>
+                      </div>
                     </div>
-                    
-                    <div className="border-t border-border/50 pt-2 space-y-1">
-                      <p className="text-[9px] font-bold text-foreground uppercase tracking-wider">
-                        {item.applications} Application{item.applications !== 1 ? 's' : ''}
-                      </p>
-                      {item.latestAppDate && (
-                        <p className="text-[8px] text-muted-foreground">
-                          <span className="font-semibold text-foreground">Latest:</span> {new Date(item.latestAppDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-                        </p>
-                      )}
-                      {item.replacementForDate && (
-                        <p className="text-[8px] text-muted-foreground mt-0.5">
-                          <span className="font-semibold text-foreground">Replacement for:</span> {new Date(item.replacementForDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-                        </p>
-                      )}
+
+                    <div className="grid grid-cols-3 gap-1 text-center border-t border-b border-border/50 py-3 mt-3">
+                      <div className="flex flex-col">
+                        <span className="text-[9px] text-muted-foreground uppercase font-black tracking-widest">Earned</span>
+                        <span className="text-sm font-black">{item.rlStats?.earned || 0} Days</span>
+                      </div>
+                      <div className="flex flex-col border-l border-r border-border/50">
+                        <span className="text-[9px] text-muted-foreground uppercase font-black tracking-widest">Used</span>
+                        <span className="text-sm font-black">{item.rlStats?.used || 0} Days</span>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[9px] text-muted-foreground uppercase font-black tracking-widest">Available</span>
+                        <span className="text-sm font-black text-emerald-600 dark:text-emerald-400">{item.rlStats?.available || 0} Days</span>
+                      </div>
+                    </div>
+
+                    <div className="pt-2 space-y-3">
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-widest">Latest Earned</span>
+                        <span className="text-[11px] font-black">{item.rlStats?.latestEarned ? new Date(item.rlStats.latestEarned).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '--'}</span>
+                      </div>
+                      
+                      <Button variant="outline" className="w-full text-[10px] uppercase font-black tracking-widest h-9 border-emerald-500/30 text-emerald-600 hover:bg-emerald-500/10 transition-all">
+                        View RL Details
+                      </Button>
                     </div>
                   </div>
                 ) : (
