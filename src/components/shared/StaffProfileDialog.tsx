@@ -1078,7 +1078,7 @@ export function StaffProfileDialog({
                     <div className="flex justify-center p-12"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                      {/* Primary Branch & Temp Assignment */}
+                      {/* Primary Branch */}
                       <div className="space-y-4">
                         <Card>
                           <CardContent className="p-4 space-y-4">
@@ -1088,59 +1088,74 @@ export function StaffProfileDialog({
                             </div>
                           </CardContent>
                         </Card>
-
-                        <Card>
-                          <CardContent className="p-4 space-y-4">
-                            <h3 className="font-bold text-lg border-b pb-2">Temporary Assignment</h3>
-                            
-                            <div className="space-y-3">
-                              <div>
-                                <Label className="text-xs font-bold text-foreground uppercase">Working Branch</Label>
-                                <Select value={tempAssignment.location} onValueChange={(val) => setTempAssignment({...tempAssignment, location: val})}>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select Branch" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {Object.entries(BRANCH_NAMES).map(([code, name]) => (
-                                      <SelectItem key={code} value={code}>{code} - {name}</SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              </div>
-
-                              <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                  <Label className="text-xs font-bold text-foreground uppercase">Start Date</Label>
-                                  <Input type="date" value={tempAssignment.start_date} onChange={(e) => setTempAssignment({...tempAssignment, start_date: e.target.value})} />
-                                </div>
-                                <div>
-                                  <Label className="text-xs font-bold text-foreground uppercase">End Date</Label>
-                                  <Input type="date" value={tempAssignment.end_date} onChange={(e) => setTempAssignment({...tempAssignment, end_date: e.target.value})} />
-                                </div>
-                              </div>
-                              
-                              <div>
-                                <Label className="text-xs font-bold text-foreground uppercase">Status</Label>
-                                <Select value={tempAssignment.status} onValueChange={(val) => setTempAssignment({...tempAssignment, status: val})}>
-                                  <SelectTrigger>
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="Active">Active</SelectItem>
-                                    <SelectItem value="Completed">Completed</SelectItem>
-                                    <SelectItem value="Cancelled">Cancelled</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-
-                              <Button className="w-full mt-2 bg-[#a01497] hover:bg-[#850f7c] text-white" onClick={saveTempAssignment}>Save Temporary Assignment</Button>
-                            </div>
-                          </CardContent>
-                        </Card>
                       </div>
+                    </div>
+                  )}
+                </TabsContent>
+              
+                <TabsContent value="temporary_assignment" className="mt-0">
+                  {loadingSettings ? (
+                    <div className="flex justify-center p-12"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
+                  ) : (
+                    <div className="max-w-2xl mx-auto">
+                      <Card>
+                        <CardContent className="p-4 space-y-4">
+                          <h3 className="font-bold text-lg border-b pb-2">Temporary Assignment</h3>
+                          
+                          <div className="space-y-3">
+                            <div>
+                              <Label className="text-xs font-bold text-foreground uppercase">Working Branch</Label>
+                              <Select value={tempAssignment.location} onValueChange={(val) => setTempAssignment({...tempAssignment, location: val})}>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select Branch" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {Object.entries(BRANCH_NAMES).map(([code, name]) => (
+                                    <SelectItem key={code} value={code}>{code} - {name}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
 
-                      {/* Allowed Branches — HR Admin only */}
-                      {role === "hr_admin" && (
+                            <div className="grid grid-cols-2 gap-3">
+                              <div>
+                                <Label className="text-xs font-bold text-foreground uppercase">Start Date</Label>
+                                <Input type="date" value={tempAssignment.start_date} onChange={(e) => setTempAssignment({...tempAssignment, start_date: e.target.value})} />
+                              </div>
+                              <div>
+                                <Label className="text-xs font-bold text-foreground uppercase">End Date</Label>
+                                <Input type="date" value={tempAssignment.end_date} onChange={(e) => setTempAssignment({...tempAssignment, end_date: e.target.value})} />
+                              </div>
+                            </div>
+                            
+                            <div>
+                              <Label className="text-xs font-bold text-foreground uppercase">Status</Label>
+                              <Select value={tempAssignment.status} onValueChange={(val) => setTempAssignment({...tempAssignment, status: val})}>
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="Active">Active</SelectItem>
+                                  <SelectItem value="Completed">Completed</SelectItem>
+                                  <SelectItem value="Cancelled">Cancelled</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            <Button className="w-full mt-2 bg-[#a01497] hover:bg-[#850f7c] text-white" onClick={saveTempAssignment}>Save Temporary Assignment</Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  )}
+                </TabsContent>
+                
+                <TabsContent value="multi_location" className="mt-0">
+                  {loadingSettings ? (
+                    <div className="flex justify-center p-12"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
+                  ) : (
+                    <div className="max-w-3xl mx-auto">
+                      {role === "hr_admin" ? (
                         <Card>
                           <CardContent className="p-4 space-y-4">
                             <div className="flex justify-between items-center border-b pb-2">
@@ -1167,27 +1182,13 @@ export function StaffProfileDialog({
                             <Button className="w-full mt-4 bg-[#a01497] hover:bg-[#850f7c] text-white" onClick={saveAllowedLocations}>Save Allowed Branches</Button>
                           </CardContent>
                         </Card>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center p-8 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800/60">
+                          <p className="text-sm font-semibold text-muted-foreground">Only HR Admin can manage Multi Location Branch settings.</p>
+                        </div>
                       )}
                     </div>
                   )}
-                </TabsContent>
-              
-                <TabsContent value="temporary_assignment">
-                  <div className="p-4 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800/60 min-h-[300px] flex items-center justify-center">
-                    <div className="text-center text-muted-foreground">
-                      <p className="text-sm font-semibold">Temporary Assignment details will appear here.</p>
-                      <p className="text-xs">Under development.</p>
-                    </div>
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="multi_location">
-                  <div className="p-4 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800/60 min-h-[300px] flex items-center justify-center">
-                    <div className="text-center text-muted-foreground">
-                      <p className="text-sm font-semibold">Multi Location Branch settings will appear here.</p>
-                      <p className="text-xs">Under development.</p>
-                    </div>
-                  </div>
                 </TabsContent>
                 
                 <TabsContent value="location_history">
