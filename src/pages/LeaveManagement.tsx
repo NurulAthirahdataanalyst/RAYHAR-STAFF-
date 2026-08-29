@@ -237,6 +237,32 @@ export default function LeaveManagement() {
     }));
   }, [liveRequests, formData.jenisCuti, userId, totalEntitlement, medicalEntitlement, replacementEntitlement]);
 
+  const isStepValid = () => {
+    if (currentStep === 1) {
+      return !!(formData.namaPenuh?.trim() && formData.cawangan && formData.noTelefon?.trim());
+    }
+    if (currentStep === 2) {
+      if (!formData.jenisCuti) return false;
+      const isReplacement = formData.jenisCuti === "Replacement Leave" || formData.jenisCuti === "Cuti Ganti";
+      const isSick = formData.jenisCuti === "Sick Leave" || formData.jenisCuti === "Cuti Sakit";
+      const isUnpaid = formData.jenisCuti === "Unpaid Leave" || formData.jenisCuti === "Cuti Tanpa Gaji";
+
+      if (isReplacement) {
+        return formData.cutiGantiRows.length > 0 && !formData.cutiGantiRows.some(row => !row.tarikhCuti || !row.tarikhGanti || !row.keterangan?.trim());
+      } else {
+        if (!formData.tarikhMula || !formData.tarikhAkhir || !formData.tujuanCuti?.trim()) return false;
+        
+        if (isSick && !formData.lampiranMc) return false;
+        if (isUnpaid && (!formData.cutiTanpaGajiSignature)) return false; // wait, let's look at cutiTanpaGajiPhone, is it used in step 2? Wait!
+        return true;
+      }
+    }
+    if (currentStep === 3) {
+      return !!(formData.warisNama?.trim() && formData.warisPhone?.trim() && formData.warisHubungan?.trim() && formData.warisAlamat?.trim());
+    }
+    return true;
+  };
+
   const handleNext = () => {
     // Basic validation untuk setiap step
     if (currentStep === 1 && (!formData.namaPenuh || !formData.cawangan || !formData.noTelefon)) {
@@ -760,7 +786,7 @@ export default function LeaveManagement() {
                                     setFormData({ ...formData, cutiGantiRows: newRows });
                                   }}
                                   placeholder="Contoh: Kerja lebih masa"
-                                  className="h-12 bg-card rounded-xl font-bold border border-[#7B0099]/20"
+                                  className="h-12 bg-card rounded-xl font-bold border border-[#7B0099]/20 placeholder:text-muted-foreground placeholder:font-normal"
                                 />
                               </div>
                             </div>
@@ -898,7 +924,7 @@ export default function LeaveManagement() {
                     <Input
                       value={formData.warisNama}
                       className="h-12 sm:h-14 border-border/50 bg-muted/30 rounded-2xl font-bold"
-                      onChange={e => setFormData({ ...formData, warisNama: e.target.value.toUpperCase() })}
+                      onChange={e => setFormData({ ...formData, warisNama: e.target.value })}
                     />
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -914,9 +940,9 @@ export default function LeaveManagement() {
                       <Label className="text-[10px] font-black uppercase tracking-widest text-foreground px-1">Hubungan <span className="text-red-500">*</span></Label>
                       <Input
                         placeholder="CONTOH: ISTERI / AYAH"
-                          className="h-12 sm:h-14 border-border/50 bg-muted/30 rounded-2xl font-bold placeholder:text-muted-foreground placeholder:font-medium"
+                        className="h-12 sm:h-14 border-border/50 bg-muted/30 rounded-2xl font-bold placeholder:text-muted-foreground placeholder:font-medium"
                         value={formData.warisHubungan}
-                        onChange={e => setFormData({ ...formData, warisHubungan: e.target.value.toUpperCase() })}
+                        onChange={e => setFormData({ ...formData, warisHubungan: e.target.value })}
                       />
                     </div>
                   </div>
@@ -925,7 +951,7 @@ export default function LeaveManagement() {
                     <Textarea
                       value={formData.warisAlamat}
                       className="min-h-[100px] border-border/50 bg-muted/30 rounded-2xl p-4 font-bold"
-                      onChange={e => setFormData({ ...formData, warisAlamat: e.target.value.toUpperCase() })}
+                      onChange={e => setFormData({ ...formData, warisAlamat: e.target.value })}
                     />
                   </div>
                   <div className="p-4 bg-rose-500/5 border border-rose-500/10 rounded-2xl flex gap-3 items-start">
@@ -949,9 +975,9 @@ export default function LeaveManagement() {
                 </Button>
                 <Button
                   type="button"
-                  className="flex-[2] h-12 sm:h-14 rounded-2xl gap-2 bg-[#7B0099] font-black text-[10px] uppercase tracking-widest text-white shadow-lg shadow-[#7B0099]/20 hover:bg-[#5e0080] active:scale-95 transition-all"
+                  className="flex-[2] h-12 sm:h-14 rounded-2xl gap-2 bg-[#7B0099] font-black text-[10px] uppercase tracking-widest text-white shadow-lg shadow-[#7B0099]/20 hover:bg-[#5e0080] active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={handleNext}
-                  disabled={loading}
+                  disabled={loading || !isStepValid()}
                 >
                   {currentStep === 3 ? (
                     loading ? "MENGHANTAR..." : <><Send className="w-4 h-4" /> Hantar Permohonan</>
