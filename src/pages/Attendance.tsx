@@ -1878,7 +1878,7 @@ export default function Attendance() {
           </CardContent>
 
           {/* Pagination Controls */}
-          {totalRows > pageSize && (
+          {totalRows > 0 && (
             <div className="flex items-center justify-between py-3 px-4 border-t border-border/50 bg-muted/10">
               <div className="flex items-center gap-4 text-[10px] font-bold text-foreground uppercase tracking-widest"><span>TOTAL SHOWING {(page-1)*pageSize + 1} TO {Math.min(page*pageSize, totalRows)} OF {totalRows} ENTRIES</span>
                 <div className="flex items-center gap-2">
