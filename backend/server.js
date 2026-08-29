@@ -5971,20 +5971,37 @@ app.get("/api/dashboard-stats", async (req, res) => {
         WHERE user_id = ? AND clock_out IS NOT NULL
           AND DATE(clock_out AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
         UNION ALL
-        SELECT 'leave', 'You',
+        SELECT 'leave' AS type, 'You' AS actor,
           CASE lr.status
-            WHEN 'Approved' THEN 'Leave request approved'
-            WHEN 'Rejected' THEN 'Leave request rejected'
+            WHEN 'Pending HOD' THEN 'Submitted leave to HOD'
+            WHEN 'Pending Operation Manager' THEN 'Submitted leave to Operation Manager'
+            WHEN 'Pending Finance' THEN 'Submitted leave to Finance'
+            WHEN 'Pending MD' THEN 'Submitted leave to MD'
+            WHEN 'Pending Branch Leader' THEN 'Submitted leave to Branch Leader'
             ELSE 'Submitted leave request'
-          END,
-          NULL,
-          CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD Mon'), ' – ', TO_CHAR(lr.end_date, 'DD Mon'), COALESCE(CONCAT(' • ', TRIM(split_part(lr.reason, '[CUTI_GANTI_DATA:', 1))), '')),
-          TO_CHAR(lr.updated_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM'),
-          lr.updated_at,
-          lr.status
+          END AS action,
+          NULL AS target,
+          CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD Mon'), ' – ', TO_CHAR(lr.end_date, 'DD Mon'), COALESCE(CONCAT(' • ', TRIM(split_part(lr.reason, '[CUTI_GANTI_DATA:', 1))), '')) AS context,
+          TO_CHAR(lr.updated_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time,
+          lr.updated_at AS sort_time,
+          lr.status AS badge
         FROM leave_requests lr
         WHERE lr.user_id = ?
           AND DATE(lr.updated_at AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
+          AND lr.status LIKE 'Pending%'
+        UNION ALL
+        SELECT 'approval' AS type, COALESCE(approver.full_name, la.approver_role) AS actor,
+          CASE WHEN la.status = 'Approved' THEN 'Approved your leave' ELSE 'Rejected your leave' END AS action,
+          NULL AS target,
+          CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD Mon'), ' – ', TO_CHAR(lr.end_date, 'DD Mon'), COALESCE(CONCAT(' • ', TRIM(split_part(lr.reason, '[CUTI_GANTI_DATA:', 1))), '')) AS context,
+          TO_CHAR(la.created_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time,
+          la.created_at AS sort_time,
+          UPPER(la.status) AS badge
+        FROM leave_approvals la
+        JOIN leave_requests lr ON lr.leave_id = la.leave_id
+        LEFT JOIN profiles approver ON approver.user_id = la.approver_id
+        WHERE lr.user_id = ?
+          AND DATE(la.created_at AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
         UNION ALL
         SELECT
           CASE WHEN type = 'reminder' THEN 'note' ELSE 'note' END,
@@ -6029,7 +6046,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
       )
       SELECT type, actor, action, target, context, time, badge FROM acts
       ORDER BY sort_time DESC LIMIT 10`,
-      [userId, queryDate, userId, queryDate, userId, queryDate, userId, queryDate, userId, queryDate, userId, queryDate]
+      [userId, queryDate, userId, queryDate, userId, queryDate, userId, queryDate, userId, queryDate, userId, queryDate, userId, queryDate]
     );
 
     // ── Layer 2: TEAM ACTIVITY (branch_leader, hod, hr_admin, md, finance_manager) ─
@@ -6086,13 +6103,11 @@ app.get("/api/dashboard-stats", async (req, res) => {
 
           UNION ALL
 
-          -- Leave actions (Submitted / Approved)
+          -- Leave submissions (Pending states)
           SELECT 
-            CASE WHEN lr.status LIKE 'Pending%' THEN 'leave' ELSE 'approval' END AS type,
-            CASE WHEN lr.status LIKE 'Pending%' THEN emp.full_name ELSE COALESCE(approver.full_name, 'System') END AS actor,
+            'leave' AS type,
+            emp.full_name AS actor,
             CASE lr.status
-              WHEN 'Approved' THEN 'Approved leave request'
-              WHEN 'Rejected' THEN 'Rejected leave request'
               WHEN 'Pending HOD' THEN 'Submitted leave to HOD'
               WHEN 'Pending Operation Manager' THEN 'Submitted leave to Operation Manager'
               WHEN 'Pending Finance' THEN 'Submitted leave to Finance'
@@ -6100,15 +6115,34 @@ app.get("/api/dashboard-stats", async (req, res) => {
               WHEN 'Pending Branch Leader' THEN 'Submitted leave to Branch Leader'
               ELSE 'Submitted leave request'
             END AS action,
-            CASE WHEN lr.status LIKE 'Pending%' THEN NULL ELSE emp.full_name END AS target,
+            NULL AS target,
             CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD Mon'), ' – ', TO_CHAR(lr.end_date, 'DD Mon'), COALESCE(CONCAT(' • ', TRIM(split_part(lr.reason, '[CUTI_GANTI_DATA:', 1))), '')) AS context,
             TO_CHAR(lr.updated_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time,
             lr.updated_at AS sort_time,
             lr.status AS badge
           FROM leave_requests lr
           JOIN profiles emp ON emp.user_id = lr.user_id
-          LEFT JOIN profiles approver ON approver.user_id = lr.approver_id
           WHERE DATE(lr.updated_at AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
+            AND lr.status LIKE 'Pending%'
+            AND emp.status = 'Active' ${teamFilter.replace(/p\./g, 'emp.')}
+
+          UNION ALL
+
+          -- Leave approvals (History from all approvers)
+          SELECT 
+            'approval' AS type,
+            COALESCE(approver.full_name, la.approver_role) AS actor,
+            CASE WHEN la.status = 'Approved' THEN 'Approved leave request' ELSE 'Rejected leave request' END AS action,
+            emp.full_name AS target,
+            CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD Mon'), ' – ', TO_CHAR(lr.end_date, 'DD Mon'), COALESCE(CONCAT(' • ', TRIM(split_part(lr.reason, '[CUTI_GANTI_DATA:', 1))), '')) AS context,
+            TO_CHAR(la.created_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time,
+            la.created_at AS sort_time,
+            UPPER(la.status) AS badge
+          FROM leave_approvals la
+          JOIN leave_requests lr ON lr.leave_id = la.leave_id
+          JOIN profiles emp ON emp.user_id = lr.user_id
+          LEFT JOIN profiles approver ON approver.user_id = la.approver_id
+          WHERE DATE(la.created_at AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
             AND emp.status = 'Active' ${teamFilter.replace(/p\./g, 'emp.')}
 
           UNION ALL
@@ -6151,7 +6185,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
         )
         SELECT type, actor, action, target, context, time, badge FROM team_acts
         ORDER BY sort_time DESC LIMIT 10`,
-        [queryDate, ...teamParams, queryDate, ...teamParams, queryDate, ...teamParams, queryDate, ...teamParams, queryDate, ...teamParams]
+        [queryDate, ...teamParams, queryDate, ...teamParams, queryDate, ...teamParams, queryDate, ...teamParams, queryDate, ...teamParams, queryDate, ...teamParams]
       );
       teamActivityRows = teamRows;
     }
