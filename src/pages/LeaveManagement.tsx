@@ -310,7 +310,7 @@ export default function LeaveManagement() {
 
   const handleNext = () => {
     // Basic validation untuk setiap step
-    if (currentStep === 1 && (!formData.namaPenuh || !formData.cawangan)) {
+    if (currentStep === 1 && (!formData.namaPenuh || !formData.cawangan || !formData.noTelefon)) {
       toast.error("Sila isi maklumat wajib");
       return;
     }
@@ -620,7 +620,7 @@ export default function LeaveManagement() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label className="text-[10px] font-black uppercase tracking-widest text-foreground px-1">
-                        No. Telefon *
+                        No. Telefon <span className="text-red-500">*</span>
                         {phoneAutoFilled && (
                           <span className="ml-2 text-[9px] font-black text-emerald-600 normal-case tracking-normal">
                             âœ“ Tersimpan
@@ -744,7 +744,7 @@ export default function LeaveManagement() {
                   {(formData.jenisCuti === "Annual/Emergency Leave" || formData.jenisCuti === "Cuti Tahunan" || formData.jenisCuti === "Sick Leave" || formData.jenisCuti === "Cuti Sakit") && (
                     <div className="p-5 rounded-[24px] bg-amber-500/10 border border-amber-500/20 space-y-4 animate-in fade-in zoom-in-95">
                       <h4 className="flex items-center gap-2 text-amber-800 dark:text-amber-400 font-black text-[10px] uppercase tracking-widest">
-                        <Calculator className="w-4 h-4" /> Annual/Emergency Leave Quota Calculator
+                        <Calculator className="w-4 h-4" /> {(formData.jenisCuti === "Sick Leave" || formData.jenisCuti === "Cuti Sakit") ? "Medical/Sick Leave Quota Calculator" : "Annual/Emergency Leave Quota Calculator"}
                       </h4>
                       <div className="grid grid-cols-3 gap-3">
                         <div className="space-y-1 text-center">
