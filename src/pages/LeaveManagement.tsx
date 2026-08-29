@@ -180,6 +180,20 @@ export default function LeaveManagement() {
     }
 
     if (formData.tarikhMula && formData.tarikhAkhir) {
+      const applyFallback = () => {
+        const d1 = new Date(formData.tarikhMula);
+        const d2 = new Date(formData.tarikhAkhir);
+        const diffTime = d2.getTime() - d1.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+        const realDays = diffDays > 0 ? diffDays : 0;
+        setFormData(prev => ({
+          ...prev,
+          bilanganHari: realDays,
+          mohon: realDays,
+          bakiAkhir: prev.bakiTerdahulu - realDays
+        }));
+      };
+
       const fetchDays = async () => {
         try {
           const res = await fetch(`${API_BASE_URL}/api/calculate-leave-days?start=${formData.tarikhMula}&end=${formData.tarikhAkhir}&branch=${encodeURIComponent(userBranch)}`);
@@ -193,21 +207,11 @@ export default function LeaveManagement() {
               bakiAkhir: prev.bakiTerdahulu - realDays
             }));
           } else {
-            // Fallback
-            const d1 = new Date(formData.tarikhMula);
-            const d2 = new Date(formData.tarikhAkhir);
-            const diffTime = d2.getTime() - d1.getTime();
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-            const realDays = diffDays > 0 ? diffDays : 0;
-            setFormData(prev => ({
-              ...prev,
-              bilanganHari: realDays,
-              mohon: realDays,
-              bakiAkhir: prev.bakiTerdahulu - realDays
-            }));
+            applyFallback();
           }
         } catch (err) {
           console.error("Failed to calculate leave days:", err);
+          applyFallback();
         }
       };
       fetchDays();
@@ -317,8 +321,14 @@ export default function LeaveManagement() {
           toast.error("Tarikh mula cuti mestilah hari ini atau tarikh akan datang sahaja.");
           return;
         }
-        if (formData.bilanganHari <= 0) {
+        const end = new Date(formData.tarikhAkhir);
+        end.setHours(0, 0, 0, 0);
+        if (end.getTime() < start.getTime()) {
           toast.error("Tarikh akhir mesti sama atau selepas tarikh mula");
+          return;
+        }
+        if (formData.bilanganHari <= 0) {
+          toast.error("Tempoh cuti tidak sah (0 hari berkerja).");
           return;
         }
       }
