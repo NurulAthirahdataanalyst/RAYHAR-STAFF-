@@ -681,116 +681,23 @@ export default function Employees() {
 
       <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 bg-card/50 backdrop-blur-sm p-3 rounded-2xl border border-border/50">
         <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 w-full sm:w-auto flex-1">
-          <Popover open={empSearchOpen} onOpenChange={setEmpSearchOpen}>
-              <PopoverTrigger asChild>
-                <div className="relative w-full sm:max-w-xs cursor-pointer">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground" />
-                  <div className="pl-9 pr-8 h-11 sm:h-10 border border-border/60 bg-background/50 rounded-md flex items-center gap-1 overflow-hidden">
-                    {checkedEmployees.length > 0 ? (
-                      <span className="text-xs font-bold text-[#7B0099] truncate">{checkedEmployees.length} employee{checkedEmployees.length > 1 ? 's' : ''} selected</span>
-                    ) : (
-                      <span className="text-xs text-muted-foreground">{search || "Search employees..."}</span>
-                    )}
-                  </div>
-                  {(search || checkedEmployees.length > 0) && (
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); setSearch(''); setCheckedEmployees([]); setEmpSearchText(''); }} 
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground/40 hover:text-foreground z-10 transition-colors"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  )}
-                </div>
-              </PopoverTrigger>
-              <PopoverContent className="w-[340px] p-0 shadow-xl" align="start">
-                <div className="p-3 border-b border-border/50">
-                  <div className="relative">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-foreground/50" />
-                    <Input
-                      placeholder="Search employees..."
-                      value={empSearchText}
-                      onChange={(e) => {
-                          setEmpSearchText(e.target.value);
-                          setSearch(e.target.value);
-                      }}
-                      className="pl-8 h-9 text-xs"
-                      autoFocus
-                    />
-                  </div>
-                  {checkedEmployees.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mt-2">
-                      {checkedEmployees.map(id => {
-                        const emp = dbEmployees.find(e => (e.id?.toString() || e.user_id || e.name) === id);
-                        return emp ? (
-                          <span key={id} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#7B0099]/10 text-[#7B0099] text-[10px] font-bold">
-                            {emp.name}
-                            <button onClick={() => setCheckedEmployees(prev => prev.filter(x => x !== id))} className="hover:text-red-500">
-                              <X className="w-2.5 h-2.5" />
-                            </button>
-                          </span>
-                        ) : null;
-                      })}
-                    </div>
-                  )}
-                </div>
-                <div className="max-h-[260px] overflow-y-auto p-1">
-                  {(() => {
-                    const empList = dbEmployees
-                      .filter(e => {
-                        const bMatch = selectedBranch === "All" || e.branch === selectedBranch;
-                        const pMatch = selectedPosition === "All" || e.position === selectedPosition;
-                        const sMatch = selectedStatus === "All" || e.status === selectedStatus;
-                        const tMatch = !empSearchText || e.name.toLowerCase().includes(empSearchText.toLowerCase()) || (e.user_id || '').toLowerCase().includes(empSearchText.toLowerCase());
-                        return bMatch && pMatch && sMatch && tMatch;
-                      })
-                      .sort((a, b) => {
-                        const aId = a.id?.toString() || a.user_id || a.name;
-                        const bId = b.id?.toString() || b.user_id || b.name;
-                        const aChecked = checkedEmployees.includes(aId) ? 0 : 1;
-                        const bChecked = checkedEmployees.includes(bId) ? 0 : 1;
-                        if (aChecked !== bChecked) return aChecked - bChecked;
-                        return a.name.localeCompare(b.name);
-                      });
-                    return empList.map(emp => {
-                      const empId = emp.id?.toString() || emp.user_id || emp.name;
-                      const isChecked = checkedEmployees.includes(empId);
-                      return (
-                        <div
-                          key={empId}
-                          onClick={() => {
-                            setCheckedEmployees(prev =>
-                              prev.includes(empId) ? prev.filter(x => x !== empId) : [...prev, empId]
-                            );
-                          }}
-                          className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors ${isChecked ? 'bg-[#7B0099]/5' : 'hover:bg-muted/50'}`}
-                        >
-                          <label className="relative cursor-pointer" style={{width:18,height:18}} onClick={(e) => e.preventDefault()}>
-                            <input type="checkbox" checked={isChecked} readOnly className="sr-only peer" />
-                            <svg viewBox="0 0 18 18" width="18" height="18" className="relative z-10" style={{fill:'none',strokeLinecap:'round',strokeLinejoin:'round',stroke: isChecked ? '#7B0099' : '#c8ccd4',strokeWidth:1.5,transition:'all 0.2s ease'}}>
-                              <path d="M1,9 L1,3.5 C1,2 2,1 3.5,1 L14.5,1 C16,1 17,2 17,3.5 L17,14.5 C17,16 16,17 14.5,17 L3.5,17 C2,17 1,16 1,14.5 L1,9 Z"
-                                style={{strokeDasharray:60, strokeDashoffset: isChecked ? 60 : 0, transition:'all 0.3s linear'}} />
-                              <polyline points="1 9 7 14 15 4"
-                                style={{strokeDasharray:22, strokeDashoffset: isChecked ? 42 : 66, transition: isChecked ? 'all 0.2s linear 0.15s' : 'all 0.2s linear'}} />
-                            </svg>
-                          </label>
-                          <div className="flex-1 min-w-0">
-                            <p className={`text-xs font-bold truncate ${isChecked ? 'text-[#7B0099]' : 'text-foreground'}`}>{emp.name}</p>
-                            <p className="text-[10px] text-muted-foreground truncate">{emp.user_id || emp.email || ''} · {emp.branch || ''}</p>
-                          </div>
-                          {isChecked && <span className="text-[10px] font-bold text-[#7B0099] bg-[#7B0099]/10 px-2 py-0.5 rounded-full">Selected</span>}
-                        </div>
-                      );
-                    });
-                  })()}
-                </div>
-                {checkedEmployees.length > 0 && (
-                  <div className="border-t border-border/50 p-2 flex justify-between items-center">
-                    <span className="text-[10px] font-bold text-[#7B0099]">{checkedEmployees.length} selected</span>
-                    <Button size="sm" variant="ghost" className="text-[10px] h-6 text-red-500 hover:text-red-600" onClick={() => setCheckedEmployees([])}>Clear All</Button>
-                  </div>
-                )}
-              </PopoverContent>
-            </Popover>
+          <div className="relative w-full sm:max-w-xs">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/50" />
+            <Input
+              placeholder="Search employees..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9 pr-8 h-11 sm:h-10 border border-border/60 bg-background/50 focus:ring-[#7B0099]/20 font-bold text-xs rounded-xl"
+            />
+            {search && (
+              <button 
+                onClick={(e) => { e.stopPropagation(); setSearch(''); }} 
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground/40 hover:text-foreground z-10 transition-colors"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
 
           {(["hr_admin", "managing_director", "operation_manager", "finance_manager"].includes(role) || uniqueBranches.length > 1) && (
             <Select value={selectedBranch} onValueChange={setSelectedBranch}>
