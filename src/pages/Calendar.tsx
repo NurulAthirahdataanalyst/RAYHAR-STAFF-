@@ -1493,11 +1493,11 @@ export default function Calendar() {
       {isAddEventModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xl animate-in fade-in transition-all duration-300">
           <div className="bg-card w-full max-w-md rounded-2xl shadow-2xl border border-border/60 overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between p-5 border-b border-border/60">
-              <h3 className="font-bold text-lg text-foreground">Add New Event</h3>
+            <div className="flex items-center justify-between p-5 border-b border-border/60 bg-[#942392]">
+              <h3 className="font-bold text-lg text-white">Add New Event</h3>
               <button 
                 onClick={() => setIsAddEventModalOpen(false)} 
-                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted text-foreground transition-colors"
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/20 text-white transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>

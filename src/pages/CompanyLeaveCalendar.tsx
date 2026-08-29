@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Search } from "lucide-react";
-import { TablePagination } from "@/components/leave/ApprovalHistoryTimeline";
+import { DatePickerInput } from "@/components/shared/DatePickerInput";
 import { API_BASE_URL } from "@/config/api";
 
 interface CompanyLeave {
@@ -280,11 +280,11 @@ const CompanyLeaveCalendar = () => {
 
       {/* Dialog for Add/Edit */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>{editingId ? "Edit Company Leave" : "Add Company Leave"}</DialogTitle>
+        <DialogContent className="max-w-md p-0 overflow-hidden border-none shadow-2xl bg-card rounded-2xl [&>button]:text-white [&>button]:top-5 [&>button]:right-5">
+          <DialogHeader className="bg-[#942392] px-6 py-4 flex flex-row items-center justify-between">
+            <DialogTitle className="text-white font-black text-lg">{editingId ? "Edit Company Leave" : "Add Company Leave"}</DialogTitle>
           </DialogHeader>
-          <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto px-1">
+          <div className="p-6 pt-2 space-y-4 max-h-[70vh] overflow-y-auto px-1">
             <div className="grid gap-2">
               <Label>Leave Name (e.g. Hari Raya, Company Trip)</Label>
               <Input 
@@ -297,26 +297,25 @@ const CompanyLeaveCalendar = () => {
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label>Start Date</Label>
-                <Input 
-                  type="date" 
+                <DatePickerInput 
                   value={formData.start_date} 
-                  onChange={(e) => {
-                    const newStart = e.target.value;
+                  onChange={(val) => {
                     setFormData(prev => ({
                       ...prev,
-                      start_date: newStart,
-                      end_date: prev.end_date && prev.end_date < newStart ? newStart : prev.end_date
+                      start_date: val,
+                      end_date: prev.end_date && prev.end_date < val ? val : prev.end_date
                     }));
                   }}
+                  placeholder="dd/mm/yyyy"
                 />
               </div>
               <div className="grid gap-2">
                 <Label>End Date</Label>
-                <Input 
-                  type="date" 
-                  min={formData.start_date || undefined}
+                <DatePickerInput 
+                  minDate={formData.start_date || undefined}
                   value={formData.end_date} 
-                  onChange={(e) => setFormData({ ...formData, end_date: e.target.value })} 
+                  onChange={(val) => setFormData({ ...formData, end_date: val })} 
+                  placeholder="dd/mm/yyyy"
                 />
               </div>
             </div>
