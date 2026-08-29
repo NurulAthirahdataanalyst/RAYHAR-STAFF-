@@ -1041,15 +1041,15 @@ export default function LeaveAnalytics() {
       {/* Filter Toolbar Line directly under main header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200/60 dark:border-slate-800/60">
         {/* LEFT: DAY | MONTH | YEAR View Toggle Bar */}
-        <div className="inline-flex items-center bg-slate-100 dark:bg-slate-900/50 rounded-lg p-1 border border-slate-300 dark:border-slate-700 shadow-xs shrink-0">
+        <div className="inline-flex items-center bg-slate-100 dark:bg-slate-900 p-1.5 rounded-xl shadow-inner border border-slate-200 dark:border-slate-800 shrink-0 gap-1">
           <button
             onClick={() => {
               setViewType("day");
               if (selectedMonth === "all") setSelectedMonth((new Date().getMonth() + 1).toString());
             }}
-            className={`h-7 px-4 text-[11px] font-black tracking-widest rounded-md transition-all ${
+            className={`flex items-center justify-center h-8 px-5 text-[11px] font-black tracking-widest rounded-lg transition-all duration-300 ${
               viewType === "day"
-                ? "bg-[#FFFE00] text-[#7B0099] ring-1 ring-[#7B0099] shadow-sm"
+                ? "bg-[#FFFE00] text-[#7B0099] shadow-md"
                 : "text-foreground hover:text-slate-700 hover:bg-slate-200/50"
             }`}
           >
@@ -1060,9 +1060,9 @@ export default function LeaveAnalytics() {
               setViewType("month");
               if (selectedMonth === "all") setSelectedMonth((new Date().getMonth() + 1).toString());
             }}
-            className={`h-7 px-4 text-[11px] font-black tracking-widest rounded-md transition-all ${
+            className={`flex items-center justify-center h-8 px-5 text-[11px] font-black tracking-widest rounded-lg transition-all duration-300 ${
               viewType === "month"
-                ? "bg-[#FFFE00] text-[#7B0099] ring-1 ring-[#7B0099] shadow-sm"
+                ? "bg-[#FFFE00] text-[#7B0099] shadow-md"
                 : "text-foreground hover:text-slate-700 hover:bg-slate-200/50"
             }`}
           >
@@ -1073,9 +1073,9 @@ export default function LeaveAnalytics() {
               setViewType("year");
               setSelectedMonth("all");
             }}
-            className={`h-7 px-4 text-[11px] font-black tracking-widest rounded-md transition-all ${
+            className={`flex items-center justify-center h-8 px-5 text-[11px] font-black tracking-widest rounded-lg transition-all duration-300 ${
               viewType === "year"
-                ? "bg-[#FFFE00] text-[#7B0099] ring-1 ring-[#7B0099] shadow-sm"
+                ? "bg-[#FFFE00] text-[#7B0099] shadow-md"
                 : "text-foreground hover:text-slate-700 hover:bg-slate-200/50"
             }`}
           >

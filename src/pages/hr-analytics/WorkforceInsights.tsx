@@ -441,63 +441,66 @@ export default function WorkforceInsights() {
     <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto">
         
         <PageActions>
-          <div className="flex items-center gap-3 flex-wrap">
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                {viewMode === "day" ? (
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <button className="appearance-none flex items-center justify-between px-4 py-2 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-10 gap-3 hover:border-slate-400 min-w-[140px]">
-                        <span>{displayDate}</span>
-                        <CalendarIcon className="w-4 h-4 text-foreground" />
-                      </button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0 overflow-hidden border-none shadow-xl" align="end">
-                      <Calendar
-                        mode="single"
-                        selected={selectedDate}
-                        onSelect={handleDateSelect}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                ) : viewMode === "month" ? (
-                  <MonthPicker
-                    monthYear={`${year}-${month.padStart(2, '0')}`}
-                    onSelectMonthYear={(val) => {
-                      const [newYear, newMonth] = val.split('-');
-                      setYear(newYear);
-                      setMonth(parseInt(newMonth).toString());
-                    }}
-                    className="appearance-none flex items-center justify-between px-4 py-2 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-10 min-w-[140px]"
-                  />
-                ) : (
-                  <YearPopover year={year} onSelectYear={setYear} />
-                )}
-              </div>
-
-              <div className="flex items-center bg-slate-100 dark:bg-slate-900/50 rounded-lg p-1 border border-slate-300 dark:border-slate-700">
-                <button 
-                  className={`h-7 px-4 text-[11px] font-black tracking-widest rounded-md transition-all ${viewMode === 'day' ? 'bg-[#FFFE00] text-[#7B0099] ring-1 ring-[#7B0099] shadow-sm' : 'text-foreground hover:text-slate-700 hover:bg-slate-200/50'}`}
-                  onClick={() => setViewMode('day')}
-                >
-                  DAY
-                </button>
-                <button 
-                  className={`h-7 px-4 text-[11px] font-black tracking-widest rounded-md transition-all ${viewMode === 'month' ? 'bg-[#FFFE00] text-[#7B0099] ring-1 ring-[#7B0099] shadow-sm' : 'text-foreground hover:text-slate-700 hover:bg-slate-200/50'}`}
-                  onClick={() => setViewMode('month')}
-                >
-                  MONTH
-                </button>
-              </div>
-            </div>
-
-            <ExportDropdown 
-              onExportCSV={() => exportToCSV(data.departmentMetrics || [], 'Workforce_Insights')} 
-              onExportPDF={() => window.print()} 
-            />
-          </div>
+          <ExportDropdown 
+            onExportCSV={() => exportToCSV(data.departmentMetrics || [], 'Workforce_Insights')} 
+            onExportPDF={() => window.print()} 
+          />
         </PageActions>
+
+        {/* Filter Toolbar Line directly under main header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200/60 dark:border-slate-800/60">
+          {/* LEFT: DAY | MONTH View Toggle Bar */}
+          <div className="inline-flex items-center bg-slate-100 dark:bg-slate-900 p-1.5 rounded-xl shadow-inner border border-slate-200 dark:border-slate-800 shrink-0 gap-1">
+            <button 
+              className={`flex items-center justify-center h-8 px-5 text-[11px] font-black tracking-widest rounded-lg transition-all duration-300 ${viewMode === 'day' ? 'bg-[#FFFE00] text-[#7B0099] shadow-md' : 'text-foreground hover:text-slate-700 hover:bg-slate-200/50'}`}
+              onClick={() => setViewMode('day')}
+            >
+              DAY
+            </button>
+            <button 
+              className={`flex items-center justify-center h-8 px-5 text-[11px] font-black tracking-widest rounded-lg transition-all duration-300 ${viewMode === 'month' ? 'bg-[#FFFE00] text-[#7B0099] shadow-md' : 'text-foreground hover:text-slate-700 hover:bg-slate-200/50'}`}
+              onClick={() => setViewMode('month')}
+            >
+              MONTH
+            </button>
+          </div>
+
+          {/* RIGHT: Active Filter Controls */}
+          <div className="flex flex-wrap items-center justify-end gap-2.5">
+            <div className="relative">
+              {viewMode === "day" ? (
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button className="appearance-none flex items-center justify-between px-4 py-2 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-10 gap-3 hover:border-[#7B0099]/40 min-w-[140px]">
+                      <span>{displayDate}</span>
+                      <CalendarIcon className="w-4 h-4 text-foreground" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl bg-white dark:bg-card z-50" align="end">
+                    <Calendar
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={handleDateSelect}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              ) : viewMode === "month" ? (
+                <MonthPicker
+                  monthYear={`${year}-${month.padStart(2, '0')}`}
+                  onSelectMonthYear={(val) => {
+                    const [newYear, newMonth] = val.split('-');
+                    setYear(newYear);
+                    setMonth(parseInt(newMonth).toString());
+                  }}
+                  className="appearance-none flex items-center justify-between px-4 py-2 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-10 min-w-[140px]"
+                />
+              ) : (
+                <YearPopover year={year} onSelectYear={setYear} />
+              )}
+            </div>
+          </div>
+        </div>
 
         {/* Redesigned Top Section: 5-column layout */}
         {viewMode === 'day' ? (
