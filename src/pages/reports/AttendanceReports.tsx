@@ -163,11 +163,31 @@ export default function AttendanceReports() {
         });
       }
       if (data.success) {
-        const processedData = data.data.map((r: any) => ({
+        let processedData = data.data.map((r: any) => ({
           ...r,
           status: r.status || "Unknown",
           temp_branch: tempMap[r.user_id] || null
         }));
+
+        if (viewType === "month") {
+          const today = new Date();
+          // Adjust to Malaysia Time roughly for "today"
+          const myTime = new Date(today.getTime() + (8 * 60 * 60 * 1000));
+          const todayStr = myTime.toISOString().slice(0, 10);
+          
+          const selM = parseInt(selectedMonth);
+          const selY = parseInt(selectedYear);
+          const isCurrentMonth = (myTime.getMonth() + 1 === selM && myTime.getFullYear() === selY);
+
+          // Filter out future dates if we are viewing the current month
+          if (isCurrentMonth) {
+             processedData = processedData.filter((r: any) => r.date <= todayStr);
+          }
+          
+          // Sort descending by date
+          processedData.sort((a: any, b: any) => b.date.localeCompare(a.date));
+        }
+
         setAttendanceData(processedData);
         setMonthlySummary(data.summary || null);
       } else {

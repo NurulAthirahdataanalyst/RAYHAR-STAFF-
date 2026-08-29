@@ -67,12 +67,28 @@ export default function LeaveReports() {
         if (viewType === "month") {
             const m = parseInt(selectedMonth);
             const y = parseInt(selectedYear);
+            
+            const today = new Date();
+            const myTime = new Date(today.getTime() + (8 * 60 * 60 * 1000));
+            const todayStr = myTime.toISOString().slice(0, 10);
+            const isCurrentMonth = (myTime.getMonth() + 1 === m && myTime.getFullYear() === y);
+
             filtered = filtered.filter((r: any) => {
                 if (!r.start_date) return true;
                 // Parse date parts directly from the string to avoid timezone issues
                 const dateStr = r.start_date.slice(0, 10); // "YYYY-MM-DD"
+                
+                if (isCurrentMonth && dateStr > todayStr) return false;
+                
                 const [dYear, dMonth] = dateStr.split('-').map(Number);
                 return dMonth === m && dYear === y;
+            });
+
+            // Sort descending by start_date
+            filtered.sort((a: any, b: any) => {
+                const dateA = a.start_date ? a.start_date.slice(0, 10) : "";
+                const dateB = b.start_date ? b.start_date.slice(0, 10) : "";
+                return dateB.localeCompare(dateA);
             });
         } else if (viewType === "year") {
             const y = parseInt(selectedYear);
@@ -81,6 +97,12 @@ export default function LeaveReports() {
                 const dateStr = r.start_date.slice(0, 10);
                 const [dYear] = dateStr.split('-').map(Number);
                 return dYear === y;
+            });
+            // Sort descending by start_date for year too? Yes, makes sense.
+            filtered.sort((a: any, b: any) => {
+                const dateA = a.start_date ? a.start_date.slice(0, 10) : "";
+                const dateB = b.start_date ? b.start_date.slice(0, 10) : "";
+                return dateB.localeCompare(dateA);
             });
         }
         setLeaveData(filtered);
