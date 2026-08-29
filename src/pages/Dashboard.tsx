@@ -1542,7 +1542,17 @@ export default function Dashboard() {
                 if (activeTab === "my") feedItems = activityFeed.my;
                 else if (activeTab === "team") feedItems = activityFeed.team;
                 else if (activeTab === "system") feedItems = activityFeed.system;
-                else if (activeTab === "all") feedItems = [...activityFeed.my, ...activityFeed.team, ...activityFeed.system].sort((a, b) => 0);
+                else if (activeTab === "all") {
+                  const allItems = [...activityFeed.my, ...activityFeed.team, ...activityFeed.system];
+                  const uniqueItems = Array.from(
+                    new Map(allItems.map(item => [`${item.actor}-${item.action}-${item.sort_time}`, item])).values()
+                  );
+                  feedItems = uniqueItems.sort((a, b) => {
+                    const timeA = new Date(a.sort_time).getTime();
+                    const timeB = new Date(b.sort_time).getTime();
+                    return timeB - timeA;
+                  });
+                }
 
                 if (activityFilter !== "all") {
                   feedItems = feedItems.filter(item => item.type === activityFilter);

@@ -6088,18 +6088,19 @@ app.get("/api/dashboard-stats", async (req, res) => {
 
           -- Leave actions (Submitted / Approved)
           SELECT 
-            CASE WHEN lr.status = 'Pending' THEN 'leave' ELSE 'approval' END AS type,
-            CASE WHEN lr.status = 'Pending' THEN emp.full_name ELSE approver.full_name END AS actor,
+            CASE WHEN lr.status LIKE 'Pending%' THEN 'leave' ELSE 'approval' END AS type,
+            CASE WHEN lr.status LIKE 'Pending%' THEN emp.full_name ELSE COALESCE(approver.full_name, 'System') END AS actor,
             CASE lr.status
               WHEN 'Approved' THEN 'Approved leave request'
               WHEN 'Rejected' THEN 'Rejected leave request'
-              WHEN 'Pending HOD Approval' THEN 'Submitted leave to HOD'
-              WHEN 'Pending Finance Approval' THEN 'Submitted leave to Finance'
-              WHEN 'Pending MD Approval' THEN 'Submitted leave to MD'
-              WHEN 'Pending' THEN 'Submitted leave request'
-              ELSE CONCAT('Updated leave: ', lr.status)
+              WHEN 'Pending HOD' THEN 'Submitted leave to HOD'
+              WHEN 'Pending Operation Manager' THEN 'Submitted leave to Operation Manager'
+              WHEN 'Pending Finance' THEN 'Submitted leave to Finance'
+              WHEN 'Pending MD' THEN 'Submitted leave to MD'
+              WHEN 'Pending Branch Leader' THEN 'Submitted leave to Branch Leader'
+              ELSE 'Submitted leave request'
             END AS action,
-            CASE WHEN lr.status = 'Pending' THEN NULL ELSE emp.full_name END AS target,
+            CASE WHEN lr.status LIKE 'Pending%' THEN NULL ELSE emp.full_name END AS target,
             CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD Mon'), ' – ', TO_CHAR(lr.end_date, 'DD Mon'), COALESCE(CONCAT(' • ', TRIM(split_part(lr.reason, '[CUTI_GANTI_DATA:', 1))), '')) AS context,
             TO_CHAR(lr.updated_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time,
             lr.updated_at AS sort_time,
