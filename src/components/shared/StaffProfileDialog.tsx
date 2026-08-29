@@ -627,6 +627,8 @@ export function StaffProfileDialog({
                 <TabsList className="mb-4 flex w-fit mx-auto flex-wrap h-auto gap-1 bg-slate-100 dark:bg-slate-900 p-2 rounded-xl shadow-inner border border-slate-200 dark:border-slate-800">
                   <TabsTrigger value="basic" className="rounded-lg text-xs neumorphic-tab font-semibold">Staff Profile & Analytics</TabsTrigger>
                   <TabsTrigger value="attendance_settings" className="rounded-lg text-xs neumorphic-tab font-semibold">Attendance Settings</TabsTrigger>
+                  <TabsTrigger value="temporary_assignment" className="rounded-lg text-xs neumorphic-tab font-semibold">Temporary Assignment</TabsTrigger>
+                  <TabsTrigger value="multi_location" className="rounded-lg text-xs neumorphic-tab font-semibold">Multi Location Branch</TabsTrigger>
                   <TabsTrigger value="location_history" className="rounded-lg text-xs neumorphic-tab font-semibold">Location History</TabsTrigger>
                 </TabsList>
                 
@@ -1075,194 +1077,195 @@ export function StaffProfileDialog({
                   {loadingSettings ? (
                     <div className="flex justify-center p-12"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
                   ) : (
-                    <div className="flex flex-col gap-6 w-full mx-auto">
-                      
-                      {/* MULTI LOCATION BRANCHES ROW */}
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <div className="space-y-6">
-                          {/* Primary Branch */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <div className="space-y-4">
+                        <Card>
+                          <CardContent className="p-4 space-y-4">
+                            <h3 className="font-bold text-lg border-b pb-2">Primary Branch</h3>
+                            <div className="bg-slate-100 dark:bg-slate-800 p-3 rounded text-sm font-semibold">
+                              {selectedEmployee.branch} - {BRANCH_NAMES[selectedEmployee.branch as keyof typeof BRANCH_NAMES] || "Unknown"}
+                            </div>
+                          </CardContent>
+                        </Card>
+
+                        {role === "hr_admin" ? (
                           <Card>
                             <CardContent className="p-4 space-y-4">
-                              <h3 className="font-bold text-lg border-b pb-2">Primary Branch</h3>
-                              <div className="bg-slate-100 dark:bg-slate-800 p-3 rounded text-sm font-semibold">
-                                {selectedEmployee.branch} - {BRANCH_NAMES[selectedEmployee.branch as keyof typeof BRANCH_NAMES] || "Unknown"}
+                              <div className="flex justify-between items-center border-b pb-2">
+                                <h3 className="font-bold text-lg">Manage Allowed Branches</h3>
                               </div>
+                              <div className="text-xs text-foreground mb-2">Select the branches this employee is permitted to clock into.</div>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[300px] overflow-y-auto pr-2">
+                                {Object.entries(BRANCH_NAMES).map(([code, name]) => (
+                                  <div key={code} className="flex items-center space-x-2 border p-2 rounded hover:bg-slate-50 dark:hover:bg-slate-800">
+                                    <Checkbox 
+                                      id={`branch-${code}`} 
+                                      checked={allowedLocations.includes(code)}
+                                      onCheckedChange={(checked) => {
+                                        if (checked) setAllowedLocations([...allowedLocations, code]);
+                                        else setAllowedLocations(allowedLocations.filter(c => c !== code));
+                                      }}
+                                    />
+                                    <Label htmlFor={`branch-${code}`} className="text-sm cursor-pointer flex-1">
+                                      {code} - {name}
+                                    </Label>
+                                  </div>
+                                ))}
+                              </div>
+                              <Button className="w-full mt-4 bg-[#a01497] hover:bg-[#850f7c] text-white" onClick={saveAllowedLocations}>Save Allowed Branches</Button>
                             </CardContent>
                           </Card>
-                          
-                          {/* Manage Allowed Branches (HR Admin Only) */}
-                          {role === "hr_admin" ? (
-                            <Card>
-                              <CardContent className="p-4 space-y-4">
-                                <div className="flex justify-between items-center border-b pb-2">
-                                  <h3 className="font-bold text-lg">Manage Allowed Branches</h3>
+                        ) : null}
+                      </div>
+
+                      <div className="space-y-4">
+                        <Card>
+                          <CardContent className="p-4 space-y-4">
+                            <h3 className="font-bold text-lg border-b pb-2">Temporary Assignment</h3>
+                            
+                            <div className="space-y-3">
+                              <div>
+                                <Label className="text-xs font-bold text-foreground uppercase">Working Branch</Label>
+                                <Select value={tempAssignment.location} onValueChange={(val) => setTempAssignment({...tempAssignment, location: val})}>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select Branch" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {Object.entries(BRANCH_NAMES).map(([code, name]) => (
+                                      <SelectItem key={code} value={code}>{code} - {name}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                  <Label className="text-xs font-bold text-foreground uppercase">Start Date</Label>
+                                  <Input type="date" value={tempAssignment.start_date} onChange={(e) => setTempAssignment({...tempAssignment, start_date: e.target.value})} />
                                 </div>
-                                <div className="text-xs text-foreground mb-2">Select the branches this employee is permitted to clock into.</div>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[300px] overflow-y-auto pr-2">
-                                  {Object.entries(BRANCH_NAMES).map(([code, name]) => (
-                                    <div key={code} className="flex items-center space-x-2 border p-2 rounded hover:bg-slate-50 dark:hover:bg-slate-800">
-                                      <Checkbox 
-                                        id={`branch-${code}`} 
-                                        checked={allowedLocations.includes(code)}
-                                        onCheckedChange={(checked) => {
-                                          if (checked) setAllowedLocations([...allowedLocations, code]);
-                                          else setAllowedLocations(allowedLocations.filter(c => c !== code));
-                                        }}
-                                      />
-                                      <Label htmlFor={`branch-${code}`} className="text-sm cursor-pointer flex-1">
-                                        {code} - {name}
-                                      </Label>
-                                    </div>
-                                  ))}
+                                <div>
+                                  <Label className="text-xs font-bold text-foreground uppercase">End Date</Label>
+                                  <Input type="date" value={tempAssignment.end_date} onChange={(e) => setTempAssignment({...tempAssignment, end_date: e.target.value})} />
                                 </div>
-                                <Button className="w-full mt-4 bg-[#a01497] hover:bg-[#850f7c] text-white" onClick={saveAllowedLocations}>Save Allowed Branches</Button>
-                              </CardContent>
-                            </Card>
-                          ) : null}
-                        </div>
-                        
-                        <div className="space-y-6">
-                          {/* Allowed Branches Table */}
-                          <Card>
-                            <CardContent className="p-4 space-y-4">
-                              <h3 className="font-bold text-lg border-b pb-2 mb-4">Allowed Branches</h3>
-                              <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-800">
-                                <table className="w-full text-sm text-left">
-                                  <thead className="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
-                                    <tr>
-                                      <th className="px-4 py-3 font-semibold text-slate-600 dark:text-slate-300">Type</th>
-                                      <th className="px-4 py-3 font-semibold text-slate-600 dark:text-slate-300">Branch</th>
-                                      <th className="px-4 py-3 font-semibold text-slate-600 dark:text-slate-300">Code</th>
-                                      <th className="px-4 py-3 font-semibold text-slate-600 dark:text-slate-300">Status</th>
-                                    </tr>
-                                  </thead>
-                                  <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
-                                    <tr className="hover:bg-slate-50/50 dark:hover:bg-slate-900/50">
-                                      <td className="px-4 py-3 font-bold text-slate-800 dark:text-slate-200">Main</td>
-                                      <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{selectedEmployee?.branch ? (BRANCH_NAMES[selectedEmployee.branch as keyof typeof BRANCH_NAMES] || selectedEmployee.branch) : '-'}</td>
-                                      <td className="px-4 py-3 font-bold text-slate-800 dark:text-slate-200">{selectedEmployee?.branch || '-'}</td>
+                              </div>
+                              
+                              <div>
+                                <Label className="text-xs font-bold text-foreground uppercase">Status</Label>
+                                <Select value={tempAssignment.status} onValueChange={(val) => setTempAssignment({...tempAssignment, status: val})}>
+                                  <SelectTrigger>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="Active">Active</SelectItem>
+                                    <SelectItem value="Completed">Completed</SelectItem>
+                                    <SelectItem value="Cancelled">Cancelled</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+
+                              <Button className="w-full mt-2 bg-[#a01497] hover:bg-[#850f7c] text-white" onClick={saveTempAssignment}>Save Temporary Assignment</Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </div>
+                    </div>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="temporary_assignment" className="mt-0">
+                  {loadingSettings ? (
+                    <div className="flex justify-center p-12"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
+                  ) : (
+                    <div className="max-w-3xl mx-auto space-y-6">
+                      <Card>
+                        <CardContent className="p-4 space-y-4">
+                          <h3 className="font-bold text-lg border-b pb-2">Assignment History</h3>
+                          {tempAssignmentsHistory.length === 0 ? (
+                            <div className="text-center py-8 text-sm text-muted-foreground border rounded-lg border-dashed">
+                              No temporary assignments found for this employee.
+                            </div>
+                          ) : (
+                            <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-800">
+                              <table className="w-full text-sm text-left">
+                                <thead className="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+                                  <tr>
+                                    <th className="px-4 py-3 font-semibold text-slate-600 dark:text-slate-300">Branch</th>
+                                    <th className="px-4 py-3 font-semibold text-slate-600 dark:text-slate-300">Assignment</th>
+                                    <th className="px-4 py-3 font-semibold text-slate-600 dark:text-slate-300">Start Date</th>
+                                    <th className="px-4 py-3 font-semibold text-slate-600 dark:text-slate-300">End Date</th>
+                                    <th className="px-4 py-3 font-semibold text-slate-600 dark:text-slate-300">Status</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                                  {tempAssignmentsHistory.map((ta, idx) => (
+                                    <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/50">
+                                      <td className="px-4 py-3 font-bold text-slate-800 dark:text-slate-200">{ta.location}</td>
+                                      <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{BRANCH_NAMES[ta.location as keyof typeof BRANCH_NAMES] || ta.location}</td>
+                                      <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{ta.start_date ? new Date(ta.start_date).toLocaleDateString('en-GB') : '-'}</td>
+                                      <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{ta.end_date ? new Date(ta.end_date).toLocaleDateString('en-GB') : '-'}</td>
                                       <td className="px-4 py-3">
-                                        <span className="px-2 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400">
-                                          Permanent
+                                        <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${ta.status === 'Active' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400'}`}>
+                                          {ta.status}
                                         </span>
                                       </td>
                                     </tr>
-                                    {allowedLocations.filter(c => c !== selectedEmployee?.branch).map((loc, idx) => (
-                                      <tr key={loc} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/50">
-                                        <td className="px-4 py-3 font-bold text-slate-800 dark:text-slate-200">{idx + 1}</td>
-                                        <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{BRANCH_NAMES[loc as keyof typeof BRANCH_NAMES] || loc}</td>
-                                        <td className="px-4 py-3 font-bold text-slate-800 dark:text-slate-200">{loc}</td>
-                                        <td className="px-4 py-3">
-                                          <span className="px-2 py-1 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400">
-                                            Active
-                                          </span>
-                                        </td>
-                                      </tr>
-                                    ))}
-                                  </tbody>
-                                </table>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        </div>
-                      </div>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </div>
+                  )}
+                </TabsContent>
 
-                      {/* TEMPORARY ASSIGNMENT ROW */}
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <div className="space-y-6">
-                          <Card>
-                            <CardContent className="p-4 space-y-4">
-                              <h3 className="font-bold text-lg border-b pb-2">Temporary Assignment</h3>
-                              
-                              <div className="space-y-3">
-                                <div>
-                                  <Label className="text-xs font-bold text-foreground uppercase">Working Branch</Label>
-                                  <Select value={tempAssignment.location} onValueChange={(val) => setTempAssignment({...tempAssignment, location: val})}>
-                                    <SelectTrigger>
-                                      <SelectValue placeholder="Select Branch" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {Object.entries(BRANCH_NAMES).map(([code, name]) => (
-                                        <SelectItem key={code} value={code}>{code} - {name}</SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-3">
-                                  <div>
-                                    <Label className="text-xs font-bold text-foreground uppercase">Start Date</Label>
-                                    <Input type="date" value={tempAssignment.start_date} onChange={(e) => setTempAssignment({...tempAssignment, start_date: e.target.value})} />
-                                  </div>
-                                  <div>
-                                    <Label className="text-xs font-bold text-foreground uppercase">End Date</Label>
-                                    <Input type="date" value={tempAssignment.end_date} onChange={(e) => setTempAssignment({...tempAssignment, end_date: e.target.value})} />
-                                  </div>
-                                </div>
-                                
-                                <div>
-                                  <Label className="text-xs font-bold text-foreground uppercase">Status</Label>
-                                  <Select value={tempAssignment.status} onValueChange={(val) => setTempAssignment({...tempAssignment, status: val})}>
-                                    <SelectTrigger>
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="Active">Active</SelectItem>
-                                      <SelectItem value="Completed">Completed</SelectItem>
-                                      <SelectItem value="Cancelled">Cancelled</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-
-                                <Button className="w-full mt-2 bg-[#a01497] hover:bg-[#850f7c] text-white" onClick={saveTempAssignment}>Save Temporary Assignment</Button>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        </div>
-                        
-                        <div className="space-y-6">
-                          <Card>
-                            <CardContent className="p-4 space-y-4">
-                              <h3 className="font-bold text-lg border-b pb-2">Assignment History</h3>
-                              {tempAssignmentsHistory.length === 0 ? (
-                                <div className="text-center py-8 text-sm text-muted-foreground border rounded-lg border-dashed">
-                                  No temporary assignments found for this employee.
-                                </div>
-                              ) : (
-                                <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-800">
-                                  <table className="w-full text-sm text-left">
-                                    <thead className="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
-                                      <tr>
-                                        <th className="px-4 py-3 font-semibold text-slate-600 dark:text-slate-300">Branch</th>
-                                        <th className="px-4 py-3 font-semibold text-slate-600 dark:text-slate-300">Assignment</th>
-                                        <th className="px-4 py-3 font-semibold text-slate-600 dark:text-slate-300">Start Date</th>
-                                        <th className="px-4 py-3 font-semibold text-slate-600 dark:text-slate-300">End Date</th>
-                                        <th className="px-4 py-3 font-semibold text-slate-600 dark:text-slate-300">Status</th>
-                                      </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
-                                      {tempAssignmentsHistory.map((ta, idx) => (
-                                        <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/50">
-                                          <td className="px-4 py-3 font-bold text-slate-800 dark:text-slate-200">{ta.location}</td>
-                                          <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{BRANCH_NAMES[ta.location as keyof typeof BRANCH_NAMES] || ta.location}</td>
-                                          <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{ta.start_date ? new Date(ta.start_date).toLocaleDateString('en-GB') : '-'}</td>
-                                          <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{ta.end_date ? new Date(ta.end_date).toLocaleDateString('en-GB') : '-'}</td>
-                                          <td className="px-4 py-3">
-                                            <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${ta.status === 'Active' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400'}`}>
-                                              {ta.status}
-                                            </span>
-                                          </td>
-                                        </tr>
-                                      ))}
-                                    </tbody>
-                                  </table>
-                                </div>
-                              )}
-                            </CardContent>
-                          </Card>
-                        </div>
-                      </div>
-
+                <TabsContent value="multi_location" className="mt-0">
+                  {loadingSettings ? (
+                    <div className="flex justify-center p-12"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
+                  ) : (
+                    <div className="max-w-3xl mx-auto space-y-6">
+                      <Card>
+                        <CardContent className="p-4 space-y-4">
+                          <h3 className="font-bold text-lg border-b pb-2 mb-4">Allowed Branches</h3>
+                          <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-800">
+                            <table className="w-full text-sm text-left">
+                              <thead className="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+                                <tr>
+                                  <th className="px-4 py-3 font-semibold text-slate-600 dark:text-slate-300">Type</th>
+                                  <th className="px-4 py-3 font-semibold text-slate-600 dark:text-slate-300">Branch</th>
+                                  <th className="px-4 py-3 font-semibold text-slate-600 dark:text-slate-300">Code</th>
+                                  <th className="px-4 py-3 font-semibold text-slate-600 dark:text-slate-300">Status</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                                <tr className="hover:bg-slate-50/50 dark:hover:bg-slate-900/50">
+                                  <td className="px-4 py-3 font-bold text-slate-800 dark:text-slate-200">Main</td>
+                                  <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{selectedEmployee?.branch ? (BRANCH_NAMES[selectedEmployee.branch as keyof typeof BRANCH_NAMES] || selectedEmployee.branch) : '-'}</td>
+                                  <td className="px-4 py-3 font-bold text-slate-800 dark:text-slate-200">{selectedEmployee?.branch || '-'}</td>
+                                  <td className="px-4 py-3">
+                                    <span className="px-2 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400">
+                                      Permanent
+                                    </span>
+                                  </td>
+                                </tr>
+                                {allowedLocations.filter(c => c !== selectedEmployee?.branch).map((loc, idx) => (
+                                  <tr key={loc} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/50">
+                                    <td className="px-4 py-3 font-bold text-slate-800 dark:text-slate-200">{idx + 1}</td>
+                                    <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{BRANCH_NAMES[loc as keyof typeof BRANCH_NAMES] || loc}</td>
+                                    <td className="px-4 py-3 font-bold text-slate-800 dark:text-slate-200">{loc}</td>
+                                    <td className="px-4 py-3">
+                                      <span className="px-2 py-1 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400">
+                                        Active
+                                      </span>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </CardContent>
+                      </Card>
                     </div>
                   )}
                 </TabsContent>
