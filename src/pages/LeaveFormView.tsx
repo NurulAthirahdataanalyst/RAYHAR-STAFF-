@@ -338,6 +338,7 @@ export default function LeaveFormView() {
               ]).map((tab) => (
                 <button
                   key={tab.key}
+                  role="tab"
                   onClick={() => setActiveTab(tab.key)}
                   className={`text-sm font-black uppercase tracking-widest pb-3 -mb-[1px] transition-colors border-b-[3px] whitespace-nowrap ${
                     activeTab === tab.key 

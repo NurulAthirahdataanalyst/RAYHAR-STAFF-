@@ -223,6 +223,7 @@ export default function MyOutstation() {
             {(["Upcoming", "Active", "Completed", "Cancelled"] as const).map((s) => (
               <button
                 key={s}
+                role="tab"
                 onClick={() => { setTab(s); setSearchParams({ tab: s.toLowerCase() }); }}
                 className={`text-sm font-black uppercase tracking-widest pb-3 translate-y-[1px] transition-colors border-b-[3px] whitespace-nowrap ${
                   tab === s 
