@@ -346,58 +346,18 @@ export default function LeaveOverview() {
                   </div>
                 </div>
                 
-                {isReplacement ? (
-                  <div className="space-y-3 flex-1 flex flex-col justify-between">
-                    <div>
-                      <div className="flex items-baseline gap-1">
-                        <span className="text-2xl sm:text-3xl font-black text-foreground">{item.rlStats?.available || 0}</span>
-                        <span className="text-[10px] sm:text-[11px] font-bold text-foreground uppercase">Days Available</span>
-                      </div>
-                      
-                      <div className="space-y-1 mt-2">
-                        <div className="h-2 overflow-hidden rounded-full bg-emerald-500/20">
-                          <div 
-                            className="h-full rounded-full bg-emerald-500 transition-all duration-1000 ease-out" 
-                            style={{ width: `${(item.rlStats?.earned || 0) > 0 ? ((item.rlStats?.available || 0) / (item.rlStats?.earned || 1)) * 100 : 0}%` }} 
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-1 text-center border-t border-b border-border/50 py-3 mt-3">
-                      <div className="flex flex-col">
-                        <span className="text-[9px] text-muted-foreground uppercase font-black tracking-widest">Earned</span>
-                        <span className="text-sm font-black">{item.rlStats?.earned || 0} Days</span>
-                      </div>
-                      <div className="flex flex-col border-l border-r border-border/50">
-                        <span className="text-[9px] text-muted-foreground uppercase font-black tracking-widest">Used</span>
-                        <span className="text-sm font-black">{item.rlStats?.used || 0} Days</span>
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-[9px] text-muted-foreground uppercase font-black tracking-widest">Available</span>
-                        <span className="text-sm font-black text-emerald-600 dark:text-emerald-400">{item.rlStats?.available || 0} Days</span>
-                      </div>
-                    </div>
-
-                    <div className="pt-2 space-y-3">
-                      <div className="flex flex-col gap-0.5">
-                        <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-widest">Latest Earned</span>
-                        <span className="text-[11px] font-black">{item.rlStats?.latestEarned ? new Date(item.rlStats.latestEarned).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '--'}</span>
-                      </div>
-                      
-                    </div>
-                  </div>
-                ) : (
-                  <>
+                <div className="flex flex-col h-full justify-between flex-1 space-y-4">
+                  <div>
                     <div className="flex items-baseline gap-1">
                       <span className="text-xl sm:text-2xl font-black text-foreground group-hover:scale-105 transition-transform origin-left duration-500">{item.used}</span>
                       <span className="text-[9px] sm:text-[10px] font-bold text-foreground uppercase">
-                        {isUnpaid
+                        {isNoEntitlement
                           ? "Days Taken"
                           : `/ ${item.total || 0} DAYS`}
                       </span>
                     </div>
-                    <div className="space-y-1">
+                    
+                    <div className="space-y-1 mt-2">
                       <div className="h-1 overflow-hidden rounded-full bg-[#7B0099]/10">
                         <div
                           className="h-full rounded-full bg-[#7B0099] transition-all duration-1000 ease-out"
@@ -408,18 +368,29 @@ export default function LeaveOverview() {
                           }}
                         />
                       </div>
-                      {!isNoEntitlement && item.total > 0 ? (
-                        <p className="text-[7px] font-black text-foreground text-right uppercase tracking-widest mt-1">
-                          {Math.max(item.total - item.used, 0)} DAYS REMAINING
-                        </p>
-                      ) : isNoEntitlement ? (
-                        <p className="text-[7px] font-black text-foreground uppercase tracking-widest mt-1">
-                          {item.applications} Application{item.applications !== 1 ? 's' : ''}
-                        </p>
-                      ) : null}
+                      <div className="flex items-center justify-between mt-1">
+                        {!isNoEntitlement && item.total > 0 ? (
+                          <p className="text-[7px] font-black text-foreground text-right uppercase tracking-widest w-full">
+                            {Math.max(item.total - item.used, 0)} DAYS REMAINING
+                          </p>
+                        ) : isNoEntitlement ? (
+                          <p className="text-[7px] font-black text-foreground uppercase tracking-widest text-right w-full">
+                            {item.applications} Application{item.applications !== 1 ? 's' : ''}
+                          </p>
+                        ) : null}
+                      </div>
                     </div>
-                  </>
-                )}
+                  </div>
+                  
+                  {isReplacement && (
+                    <div className="pt-2 mt-auto">
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-widest">Latest Used</span>
+                        <span className="text-[11px] font-black">{item.latestAppDate ? new Date(item.latestAppDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'No Record'}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>
