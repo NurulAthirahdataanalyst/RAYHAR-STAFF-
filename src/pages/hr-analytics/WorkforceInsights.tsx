@@ -440,13 +440,6 @@ export default function WorkforceInsights() {
   return (
     <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto">
         
-        <PageActions>
-          <ExportDropdown 
-            onExportCSV={() => exportToCSV(data.departmentMetrics || [], 'Workforce_Insights')} 
-            onExportPDF={() => window.print()} 
-          />
-        </PageActions>
-
         {/* Filter Toolbar Line directly under main header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200/60 dark:border-slate-800/60">
           {/* LEFT: DAY | MONTH View Toggle Bar */}
@@ -499,6 +492,10 @@ export default function WorkforceInsights() {
                 <YearPopover year={year} onSelectYear={setYear} />
               )}
             </div>
+            <ExportDropdown 
+              onExportCSV={() => exportToCSV(data.departmentMetrics || [], 'Workforce_Insights')} 
+              onExportPDF={() => window.print()} 
+            />
           </div>
         </div>
 
@@ -1018,72 +1015,79 @@ export default function WorkforceInsights() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
-                      {tempAssignments.slice(0, 5).map((a, i) => {
-                        const empName = a.name || a.full_name || a.employee_name || 'N/A';
-                        const empRole = a.role ? a.role.replace(/_/g, ' ').toUpperCase() : '';
-                        const primaryBranch = a.primary_branch || a.branch || '';
-                        const empRoleBranch = empRole && primaryBranch ? `${empRole} • ${primaryBranch}` : (empRole || primaryBranch);
-
-                        const origBranchCode = a.primary_branch || a.original_branch || a.branch || 'HQ';
-                        const origBranchName = BRANCH_NAMES[origBranchCode] || origBranchCode;
-
-                        const tempBranchCode = a.temp_branch || a.temporary_branch || a.location || a.assigned_branch || 'N/A';
-                        const tempBranchName = BRANCH_NAMES[tempBranchCode] || tempBranchCode;
-
-                        const start = a.start_date ? new Date(a.start_date) : null;
-                        const end = a.end_date ? new Date(a.end_date) : null;
-
-                        const startDateStr = start ? format(start, "MMM d, yyyy") : "";
-                        const endDateStr = end ? format(end, "MMM d, yyyy") : "Ongoing";
-                        const durationText = start ? `${startDateStr} - ${endDateStr}` : "—";
-
-                        const todayStr = new Date().toISOString().split('T')[0];
-                        const isCompleted = a.status === 'Completed' || (a.status === 'Active' && end && end.toISOString().split('T')[0] < todayStr);
-                        const isUpcoming = a.status === 'Active' && start && start.toISOString().split('T')[0] > todayStr;
-
-                        let sColor = "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20";
-                        let sDot = "bg-emerald-500";
-                        let sLabel = "Active";
-
-                        if (isCompleted) {
-                          sColor = "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20";
-                          sDot = "bg-blue-500";
-                          sLabel = "Completed";
-                        } else if (a.status === 'Cancelled') {
-                          sColor = "bg-red-50 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20";
-                          sDot = "bg-red-500";
-                          sLabel = "Cancelled";
-                        } else if (isUpcoming) {
-                          sColor = "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20";
-                          sDot = "bg-amber-500";
-                          sLabel = "Upcoming";
-                        }
+                      {(() => {
+                        const activeAndUpcomingAssignments = tempAssignments.filter(a => {
+                          const start = a.start_date ? new Date(a.start_date) : null;
+                          const end = a.end_date ? new Date(a.end_date) : null;
+                          const todayStr = new Date().toISOString().split('T')[0];
+                          const isCompleted = a.status === 'Completed' || (a.status === 'Active' && end && end.toISOString().split('T')[0] < todayStr);
+                          const isCancelled = a.status === 'Cancelled';
+                          
+                          return !isCompleted && !isCancelled;
+                        });
 
                         return (
-                          <tr key={i} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
-                            <td className="py-3 pr-4">
-                              <div className="text-xs font-bold text-slate-900 dark:text-slate-100">{empName}</div>
-                              {empRoleBranch && <div className="text-[10px] text-foreground font-medium mt-0.5">{empRoleBranch}</div>}
-                            </td>
-                            <td className="py-3 pr-4 text-xs text-foreground font-medium">{origBranchName}</td>
-                            <td className="py-3 pr-4 text-xs font-semibold text-slate-800 dark:text-slate-200">{tempBranchName}</td>
-                            <td className="py-3 pr-4 text-xs text-foreground font-medium">{durationText}</td>
-                            <td className="py-3">
-                              <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wide ${sColor}`}>
-                                <span className={`w-1.5 h-1.5 rounded-full ${sDot}`}></span>
-                                {sLabel}
-                              </span>
-                            </td>
-                          </tr>
+                          <>
+                            {activeAndUpcomingAssignments.slice(0, 5).map((a, i) => {
+                              const empName = a.name || a.full_name || a.employee_name || 'N/A';
+                              const empRole = a.role ? a.role.replace(/_/g, ' ').toUpperCase() : '';
+                              const primaryBranch = a.primary_branch || a.branch || '';
+                              const empRoleBranch = empRole && primaryBranch ? `${empRole} • ${primaryBranch}` : (empRole || primaryBranch);
+
+                              const origBranchCode = a.primary_branch || a.original_branch || a.branch || 'HQ';
+                              const origBranchName = BRANCH_NAMES[origBranchCode] || origBranchCode;
+
+                              const tempBranchCode = a.temp_branch || a.temporary_branch || a.location || a.assigned_branch || 'N/A';
+                              const tempBranchName = BRANCH_NAMES[tempBranchCode] || tempBranchCode;
+
+                              const start = a.start_date ? new Date(a.start_date) : null;
+                              const end = a.end_date ? new Date(a.end_date) : null;
+
+                              const startDateStr = start ? format(start, "MMM d, yyyy") : "";
+                              const endDateStr = end ? format(end, "MMM d, yyyy") : "Ongoing";
+                              const durationText = start ? `${startDateStr} - ${endDateStr}` : "—";
+
+                              const todayStr = new Date().toISOString().split('T')[0];
+                              const isUpcoming = a.status === 'Active' && start && start.toISOString().split('T')[0] > todayStr;
+
+                              let sColor = "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20";
+                              let sDot = "bg-emerald-500";
+                              let sLabel = "Active";
+
+                              if (isUpcoming) {
+                                sColor = "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20";
+                                sDot = "bg-amber-500";
+                                sLabel = "Upcoming";
+                              }
+
+                              return (
+                                <tr key={i} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                                  <td className="py-3 pr-4">
+                                    <div className="text-xs font-bold text-slate-900 dark:text-slate-100">{empName}</div>
+                                    {empRoleBranch && <div className="text-[10px] text-foreground font-medium mt-0.5">{empRoleBranch}</div>}
+                                  </td>
+                                  <td className="py-3 pr-4 text-xs text-foreground font-medium">{origBranchName}</td>
+                                  <td className="py-3 pr-4 text-xs font-semibold text-slate-800 dark:text-slate-200">{tempBranchName}</td>
+                                  <td className="py-3 pr-4 text-xs text-foreground font-medium">{durationText}</td>
+                                  <td className="py-3">
+                                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wide ${sColor}`}>
+                                      <span className={`w-1.5 h-1.5 rounded-full ${sDot}`}></span>
+                                      {sLabel}
+                                    </span>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                            {activeAndUpcomingAssignments.length === 0 && (
+                              <tr>
+                                <td colSpan={5} className="py-8 text-center text-xs text-foreground">
+                                  No temporary assignments found.
+                                </td>
+                              </tr>
+                            )}
+                          </>
                         );
-                      })}
-                      {tempAssignments.length === 0 && (
-                        <tr>
-                          <td colSpan={5} className="py-8 text-center text-xs text-foreground">
-                            No temporary assignments found.
-                          </td>
-                        </tr>
-                      )}
+                      })()}
                     </tbody>
                   </table>
                 </div>

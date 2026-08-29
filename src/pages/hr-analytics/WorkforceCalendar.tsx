@@ -482,9 +482,35 @@ export default function WorkforceCalendar() {
             return true;
           });
 
-          const presentOnTime = filteredAtt.filter(a => a.status === "Present (On Time)");
-          const presentLate = filteredAtt.filter(a => a.status === "Present (Late)" || a.is_late);
-          const absent = filteredAtt.filter(a => a.status === "Absent");
+          // Helper to convert "08:30 AM" to minutes for comparison
+          const timeToMinutes = (timeStr: string) => {
+            if (!timeStr || timeStr === "-") return -1;
+            const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+            if (!match) return -1;
+            let [_, h, m, ampm] = match;
+            let hours = parseInt(h);
+            if (ampm.toUpperCase() === "PM" && hours < 12) hours += 12;
+            if (ampm.toUpperCase() === "AM" && hours === 12) hours = 0;
+            return hours * 60 + parseInt(m);
+          };
+
+          // Deduplicate: Keep only the latest clock in
+          const uniqueAttMap = new Map();
+          filteredAtt.forEach(a => {
+            if (!uniqueAttMap.has(a.user_id)) {
+              uniqueAttMap.set(a.user_id, a);
+            } else {
+              const existing = uniqueAttMap.get(a.user_id);
+              if (timeToMinutes(a.time_in) > timeToMinutes(existing.time_in)) {
+                uniqueAttMap.set(a.user_id, a);
+              }
+            }
+          });
+          const uniqueAtt = Array.from(uniqueAttMap.values());
+
+          const presentOnTime = uniqueAtt.filter(a => a.status === "Present (On Time)");
+          const presentLate = uniqueAtt.filter(a => a.status === "Present (Late)" || a.is_late);
+          const absent = uniqueAtt.filter(a => a.status === "Absent");
 
           return createPortal(
             <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-all duration-300" onClick={() => setSelectedDay(null)}>
@@ -574,7 +600,7 @@ export default function WorkforceCalendar() {
                               <div key={a.user_id} className="border border-gray-100 rounded-lg p-3 shadow-sm bg-white dark:bg-slate-900 dark:border-slate-800">
                                 <div className="flex justify-between items-start">
                                   <div className="flex flex-col">
-                                    <span className="text-xs font-bold uppercase truncate">{a.full_name}</span>
+                                    <span className="text-xs font-bold uppercase truncate">{a.full_name} {a.branch ? `(${a.branch})` : ''}</span>
                                     <div className="flex items-center gap-1.5 mt-1">
                                       <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                                       <span className="text-[10px] font-black uppercase text-emerald-600">Present</span>
@@ -607,7 +633,7 @@ export default function WorkforceCalendar() {
                               <div key={a.user_id} className="border border-gray-100 rounded-lg p-3 shadow-sm bg-white dark:bg-slate-900 dark:border-slate-800">
                                 <div className="flex justify-between items-start">
                                   <div className="flex flex-col">
-                                    <span className="text-xs font-bold uppercase truncate">{a.full_name}</span>
+                                    <span className="text-xs font-bold uppercase truncate">{a.full_name} {a.branch ? `(${a.branch})` : ''}</span>
                                     <div className="flex items-center gap-1.5 mt-1">
                                       <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
                                       <span className="text-[10px] font-black uppercase text-amber-600">Late</span>
@@ -640,7 +666,7 @@ export default function WorkforceCalendar() {
                               <div key={a.user_id} className="border border-gray-100 rounded-lg p-3 shadow-sm bg-white dark:bg-slate-900 dark:border-slate-800">
                                 <div className="flex justify-between items-start">
                                   <div className="flex flex-col">
-                                    <span className="text-xs font-bold uppercase truncate">{a.full_name}</span>
+                                    <span className="text-xs font-bold uppercase truncate">{a.full_name} {a.branch ? `(${a.branch})` : ''}</span>
                                     <div className="flex items-center gap-1.5 mt-1">
                                       <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
                                       <span className="text-[10px] font-black uppercase text-red-600">Absent</span>
