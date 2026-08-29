@@ -630,6 +630,7 @@ export default function LeaveManagement() {
                   <div className="space-y-2">
                     <Label className="text-[10px] font-black uppercase tracking-widest text-foreground px-1">Jenis Cuti <span className="text-red-500">*</span></Label>
                     <Select
+                      value={formData.jenisCuti}
                       onValueChange={(val) => {
                         const jenisCuti = val as LeaveType;
                         setFormData({
