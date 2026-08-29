@@ -6,8 +6,33 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { 
+  Building2, Calendar, FileText, Upload, Plus, Trash2, ShieldCheck, Phone, CheckCircle2, Clock, MapPin, Search, Plane, 
+  Car, FileCheck, Info, Briefcase, Activity, CheckCircle, ChevronDown, Download, Send, CreditCard
+} from "lucide-react";
+
+const LeaveBtn3D = ({ children, onClick, disabled, type = "button", variant = "primary", wrapperClass = "", innerClass = "" }: any) => {
+  const isPrimary = variant === "primary";
+  return (
+    <button
+      type={type as any}
+      onClick={onClick}
+      disabled={disabled}
+      className={`group relative border-none bg-transparent p-0 cursor-pointer focus:outline-none touch-manipulation select-none ${wrapperClass} ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:brightness-110'}`}
+      style={{ WebkitTapHighlightColor: 'transparent' }}
+    >
+      <span className={`absolute top-0 left-0 w-full h-full rounded-[inherit] bg-black/25 will-change-transform transform translate-y-[2px] transition-transform duration-[600ms] ease-[cubic-bezier(.3,.7,.4,1)] ${disabled ? '' : 'group-hover:translate-y-[4px] group-hover:duration-[250ms] group-hover:ease-[cubic-bezier(.3,.7,.4,1.5)] group-active:translate-y-[1px] group-active:duration-[34ms]'}`}></span>
+      
+      <span className={`absolute top-0 left-0 w-full h-full rounded-[inherit] ${isPrimary ? 'bg-gradient-to-l from-[#4a005c] via-[#63007a] to-[#4a005c]' : 'bg-gradient-to-l from-slate-300 via-slate-200 to-slate-300'}`}></span>
+      
+      <span className={`relative flex items-center justify-center w-full h-full rounded-[inherit] will-change-transform transform -translate-y-[4px] transition-transform duration-[600ms] ease-[cubic-bezier(.3,.7,.4,1)] ${disabled ? '' : 'group-hover:-translate-y-[6px] group-hover:duration-[250ms] group-hover:ease-[cubic-bezier(.3,.7,.4,1.5)] group-active:-translate-y-[2px] group-active:duration-[34ms]'} ${innerClass}`}>
+        {children}
+      </span>
+    </button>
+  );
+};
 import { toast } from "sonner";
-import { PlaneTakeoff, Calculator, Plus, Send, Info, History, Paperclip, Trash2 } from "lucide-react";
+import { PlaneTakeoff, Calculator, Plus as PlusIcon, Send as SendIcon, Info as InfoIcon, History, Paperclip, Trash2 as Trash2Icon } from "lucide-react";
 import { useRole } from "@/contexts/RoleContext";
 import { API_BASE_URL } from "../config/api";
 import {
@@ -514,12 +539,13 @@ export default function LeaveManagement() {
               </ul>
             </div>
 
-            <Button
+            <LeaveBtn3D
               onClick={() => setCurrentStep(1)}
-              className="w-full sm:w-auto px-12 py-7 bg-[#7B0099] text-white text-xs sm:text-sm font-black uppercase tracking-[0.2em] rounded-[20px] shadow-xl shadow-[#7B0099]/20 hover:bg-[#5e0080] hover:scale-[1.02] active:scale-95 transition-all"
+              wrapperClass="w-full sm:w-auto h-14 sm:h-16 rounded-[20px] mt-4"
+              innerClass="px-12 bg-[#7B0099] text-white text-xs sm:text-sm font-black uppercase tracking-[0.2em]"
             >
               Mula Permohonan <Plus className="ml-2 w-5 h-5" />
-            </Button>
+            </LeaveBtn3D>
           </CardContent>
         </Card>
       )}
@@ -972,17 +998,19 @@ export default function LeaveManagement() {
 
               {/* Navigasi Butang */}
               <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-border/50">
-                <Button
+                <LeaveBtn3D
                   type="button"
                   variant="ghost"
-                  className="flex-1 h-12 sm:h-14 rounded-2xl font-black text-[10px] uppercase tracking-widest"
+                  wrapperClass="flex-1 h-12 sm:h-14 rounded-2xl"
+                  innerClass="font-black text-[10px] uppercase tracking-widest text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800"
                   onClick={() => setCurrentStep(currentStep - 1)}
                 >
                   Kembali
-                </Button>
-                <Button
+                </LeaveBtn3D>
+                <LeaveBtn3D
                   type="button"
-                  className="flex-[2] h-12 sm:h-14 rounded-2xl gap-2 bg-[#7B0099] font-black text-[10px] uppercase tracking-widest text-white shadow-lg shadow-[#7B0099]/20 hover:bg-[#5e0080] active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  wrapperClass="flex-[2] h-12 sm:h-14 rounded-2xl"
+                  innerClass="gap-2 bg-[#7B0099] font-black text-[10px] uppercase tracking-widest text-white"
                   onClick={handleNext}
                   disabled={loading || !isStepValid()}
                 >
@@ -991,7 +1019,7 @@ export default function LeaveManagement() {
                   ) : (
                     "Seterusnya"
                   )}
-                </Button>
+                </LeaveBtn3D>
               </div>
             </CardContent>
           </Card>
