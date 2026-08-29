@@ -1240,7 +1240,7 @@ export function StaffProfileDialog({
                               </thead>
                               <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
                                 <tr className="hover:bg-slate-50/50 dark:hover:bg-slate-900/50">
-                                  <td className="px-4 py-3 font-bold text-slate-800 dark:text-slate-200">Main</td>
+                                  <td className="px-4 py-3 font-bold text-slate-800 dark:text-slate-200 whitespace-nowrap uppercase">Permanent Branch</td>
                                   <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{selectedEmployee?.branch ? (BRANCH_NAMES[selectedEmployee.branch as keyof typeof BRANCH_NAMES] || selectedEmployee.branch) : '-'}</td>
                                   <td className="px-4 py-3 font-bold text-slate-800 dark:text-slate-200">{selectedEmployee?.branch || '-'}</td>
                                   <td className="px-4 py-3">
@@ -1251,7 +1251,7 @@ export function StaffProfileDialog({
                                 </tr>
                                 {allowedLocations.filter(c => c !== selectedEmployee?.branch).map((loc, idx) => (
                                   <tr key={loc} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/50">
-                                    <td className="px-4 py-3 font-bold text-slate-800 dark:text-slate-200">{idx + 1}</td>
+                                    <td className="px-4 py-3 font-bold text-slate-800 dark:text-slate-200 whitespace-nowrap uppercase">Branch {idx + 2}</td>
                                     <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{BRANCH_NAMES[loc as keyof typeof BRANCH_NAMES] || loc}</td>
                                     <td className="px-4 py-3 font-bold text-slate-800 dark:text-slate-200">{loc}</td>
                                     <td className="px-4 py-3">

@@ -688,6 +688,7 @@ export default function Employees() {
                   <Input
                     placeholder={checkedEmployees.length > 0 ? `${checkedEmployees.length} employee${checkedEmployees.length > 1 ? 's' : ''} selected` : "Search employees..."}
                     value={empSearchText}
+                    onKeyDown={(e) => e.stopPropagation()}
                     onChange={(e) => {
                         setEmpSearchText(e.target.value);
                         setSearch(e.target.value);
