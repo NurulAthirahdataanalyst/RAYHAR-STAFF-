@@ -242,10 +242,6 @@
     margin: 0 !important;
   }
 
-  #leave-form-print {
-    zoom: 1.3;
-  }
-
   /* 2. Hide everything that isn't the form */
   #root, 
   header, 
