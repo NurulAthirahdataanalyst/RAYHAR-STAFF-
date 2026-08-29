@@ -135,20 +135,18 @@ export default function LeaveManagement() {
   const [totalEntitlement, setTotalEntitlement] = useState(14);
   const [medicalEntitlement, setMedicalEntitlement] = useState(14);
   const [replacementEntitlement, setReplacementEntitlement] = useState(0);
-  const [rlMode, setRlMode] = useState<'earning' | 'taking' | 'apply_with_rl'>('taking');
-  const [rlQualifyStatus, setRlQualifyStatus] = useState<{status: 'scheduled' | 'qualified' | 'not_qualified', hours: number} | null>(null);
-  const [earnedCredits, setEarnedCredits] = useState<any[]>([]);
+  // Removed unused RL states and attendance checks
 
   // Automatik kira bilangan hari & baki cuti
   useEffect(() => {
     if (formData.jenisCuti === "Replacement Leave" || formData.jenisCuti === "Cuti Ganti") {
-      const realDays = 1;
+      const realDays = formData.cutiGantiRows.length || 1;
       if (formData.bilanganHari !== realDays) {
         setFormData(prev => ({
           ...prev,
           bilanganHari: realDays,
           mohon: realDays,
-          bakiAkhir: rlMode === 'earning' ? prev.bakiTerdahulu : prev.bakiTerdahulu - realDays
+          bakiAkhir: prev.bakiTerdahulu - realDays
         }));
       }
       return;
@@ -187,97 +185,7 @@ export default function LeaveManagement() {
       };
       fetchDays();
     }
-  }, [formData.tarikhMula, formData.tarikhAkhir, userBranch, formData.jenisCuti, formData.cutiGantiRows, formData.bilanganHari, rlMode]);
-
-  // Fetch available RL credits when Replacement Leave is selected
-  useEffect(() => {
-    if (!userId) return;
-    if (formData.jenisCuti !== 'Replacement Leave' && formData.jenisCuti !== 'Cuti Ganti') return;
-    
-    fetch(`${API_BASE_URL}/api/employees/${encodeURIComponent(userId)}/replacement-leaves`)
-      .then(r => r.json())
-      .then(data => {
-        if (data.success && Array.isArray(data.replacementLeaves)) {
-          // Only show credits that are validated and haven't been used yet
-          const available = data.replacementLeaves.filter((r: any) => 
-            r.validation_status === 'Validated' && !r.leave_request_id
-          );
-          setEarnedCredits(available.map((r: any) => ({
-            id: r.id,
-            replacement_date: r.replacement_date,
-            description: r.description || r.reason || `Cuti Ganti ${new Date(r.replacement_date).toLocaleDateString('en-GB')}`,
-            actual_hours: r.actual_hours || r.hours_worked || 4
-          })));
-        }
-      })
-      .catch(err => console.error("Error fetching available RL credits:", err));
-  }, [userId, formData.jenisCuti]);
-
-  // Check attendance qualification for Earning RL and Apply with RL Date
-  useEffect(() => {
-    if (!userId) return;
-    if (formData.jenisCuti !== 'Replacement Leave' && formData.jenisCuti !== 'Cuti Ganti') return;
-    if (rlMode !== 'apply_with_rl' && rlMode !== 'earning') return;
-    
-    const tarikhGanti = formData.cutiGantiRows[0]?.tarikhGanti;
-    if (!tarikhGanti) {
-      setRlQualifyStatus(null);
-      return;
-    }
-    
-    // Parse month and year from tarikhGanti (YYYY-MM-DD)
-    const [year, month] = tarikhGanti.split('-');
-    if (!year || !month) return;
-
-    const targetDate = new Date(tarikhGanti);
-    const today = new Date();
-    targetDate.setHours(0,0,0,0);
-    today.setHours(0,0,0,0);
-    const isFutureOrToday = targetDate.getTime() >= today.getTime();
-
-    fetch(`${API_BASE_URL}/api/attendance/history?userId=${encodeURIComponent(userId)}&year=${year}&month=${parseInt(month, 10)}`)
-      .then(r => r.json())
-      .then(data => {
-        if (data.success && data.history) {
-          const record = data.history.find((h: any) => h.date === tarikhGanti);
-          if (record && record.clock_in && record.clock_out) {
-             const diffMs = new Date(record.clock_out).getTime() - new Date(record.clock_in).getTime();
-             const diffHrs = diffMs / (1000 * 60 * 60);
-             if (diffHrs >= 4) {
-               setRlQualifyStatus({ status: 'qualified', hours: diffHrs });
-               if (rlMode === 'apply_with_rl') {
-                 setFormData(prev => {
-                   const newRows = [...prev.cutiGantiRows];
-                   if (newRows[0]) newRows[0].jamGanti = diffHrs.toFixed(1);
-                   return { ...prev, cutiGantiRows: newRows };
-                 });
-               }
-               return;
-             } else {
-               setRlQualifyStatus({ status: 'not_qualified', hours: diffHrs });
-               return;
-             }
-          }
-          // No valid clock-in/out
-          if (isFutureOrToday) {
-             setRlQualifyStatus({ status: 'scheduled', hours: 0 });
-             if (rlMode === 'apply_with_rl') {
-               setFormData(prev => {
-                 const newRows = [...prev.cutiGantiRows];
-                 if (newRows[0]) newRows[0].jamGanti = "Scheduled";
-                 return { ...prev, cutiGantiRows: newRows };
-               });
-             }
-          } else {
-             setRlQualifyStatus({ status: 'not_qualified', hours: 0 });
-          }
-        }
-      })
-      .catch(err => {
-         console.error("Failed to check attendance:", err);
-         setRlQualifyStatus({ status: isFutureOrToday ? 'scheduled' : 'not_qualified', hours: 0 });
-      });
-  }, [formData.cutiGantiRows[0]?.tarikhGanti, rlMode, formData.jenisCuti, userId]);
+  }, [formData.tarikhMula, formData.tarikhAkhir, userBranch, formData.jenisCuti, formData.cutiGantiRows.length]);
 
   useEffect(() => {
     if (!userId) return;
@@ -371,24 +279,10 @@ export default function LeaveManagement() {
       return;
     }
     if (currentStep === 2 && (formData.jenisCuti === "Replacement Leave" || formData.jenisCuti === "Cuti Ganti")) {
-      if (rlMode === 'earning') {
-        const invalidRow = formData.cutiGantiRows.some(row => !row.tarikhGanti || !row.keterangan || !row.jamGanti);
-        if (invalidRow) {
-          toast.error("Sila lengkapkan semua butiran baris Cuti Ganti (Earning)");
-          return;
-        }
-      } else if (rlMode === 'taking') {
-        const invalidRow = formData.cutiGantiRows.some(row => !row.tarikhCuti || !row.id);
-        if (invalidRow) {
-          toast.error("Sila lengkapkan semua butiran baris Cuti Ganti (Taking)");
-          return;
-        }
-      } else if (rlMode === 'apply_with_rl') {
-        const invalidRow = formData.cutiGantiRows.some(row => !row.tarikhCuti || !row.tarikhGanti);
-        if (invalidRow) {
-          toast.error("Sila lengkapkan semua butiran (Apply with RL Date)");
-          return;
-        }
+      const invalidRow = formData.cutiGantiRows.some(row => !row.tarikhCuti || !row.tarikhGanti);
+      if (invalidRow) {
+        toast.error("Sila lengkapkan semua butiran Cuti Ganti (Tarikh Cuti & Tarikh/Hari Cuti Ganti)");
+        return;
       }
     }
     if (currentStep === 2 && (formData.jenisCuti === "Unpaid Leave" || formData.jenisCuti === "Cuti Tanpa Gaji") && (!formData.cutiTanpaGajiPhone || !formData.cutiTanpaGajiSignature)) {
@@ -762,10 +656,10 @@ export default function LeaveManagement() {
                   )}
 
                   {/* Pengiraan Cuti Tahunan */}
-                  {(formData.jenisCuti === "Annual/Emergency Leave" || formData.jenisCuti === "Cuti Tahunan" || formData.jenisCuti === "Sick Leave" || formData.jenisCuti === "Cuti Sakit") && (
+                  {(formData.jenisCuti === "Annual/Emergency Leave" || formData.jenisCuti === "Cuti Tahunan") && (
                     <div className="p-5 rounded-[24px] bg-amber-500/10 border border-amber-500/20 space-y-4 animate-in fade-in zoom-in-95">
                       <h4 className="flex items-center gap-2 text-amber-800 dark:text-amber-400 font-black text-[10px] uppercase tracking-widest">
-                        <Calculator className="w-4 h-4" /> {(formData.jenisCuti === "Sick Leave" || formData.jenisCuti === "Cuti Sakit") ? "Medical/Sick Leave Quota Calculator" : "Annual/Emergency Leave Quota Calculator"}
+                        <Calculator className="w-4 h-4" /> Annual/Emergency Leave Quota Calculator
                       </h4>
                       <div className="grid grid-cols-3 gap-3">
                         <div className="space-y-1 text-center">
@@ -813,7 +707,6 @@ export default function LeaveManagement() {
                     <div className="space-y-4 rounded-[24px] border border-[#7B0099]/20 bg-[#7B0099]/5 p-5 animate-in fade-in zoom-in-95">
                       <div className="space-y-4 divide-y divide-[#7B0099]/10">
                         {formData.cutiGantiRows.map((row, index) => {
-                          const status = rlQualifyStatuses[index];
                           return (
                             <div key={index} className={`grid grid-cols-1 sm:grid-cols-2 gap-4 animate-in fade-in ${index > 0 ? 'pt-4 relative' : ''}`}>
                               {index > 0 && (
@@ -856,32 +749,6 @@ export default function LeaveManagement() {
                                   className="h-12 bg-card rounded-xl font-bold border border-[#7B0099]/20"
                                 />
                               </div>
-
-                              <div className="space-y-2 sm:col-span-2 mt-2">
-                                <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">Status Kelayakan / Jam Ganti</Label>
-                                {status ? (
-                                  status.status === 'qualified' ? (
-                                    <div className="p-3 bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400 rounded-xl font-bold flex flex-col justify-center border border-emerald-200 dark:border-emerald-800 text-[11px] uppercase tracking-wider">
-                                      <span className="text-sm">✅ QUALIFIED</span>
-                                      <span className="opacity-80 mt-1">{status.hours.toFixed(1)} Hours (FOLLOWING THE WORKING HOURS WHEN THEY CLOCK IN)</span>
-                                    </div>
-                                  ) : status.status === 'scheduled' ? (
-                                    <div className="p-3 bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400 rounded-xl font-bold flex flex-col justify-center border border-blue-200 dark:border-blue-800 text-[11px] uppercase tracking-wider">
-                                      <span className="text-sm">🗓️ SCHEDULED</span>
-                                      <span className="opacity-80 mt-1">Menunggu rekod kedatangan pada {row.tarikhGanti}</span>
-                                    </div>
-                                  ) : (
-                                    <div className="p-3 bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400 rounded-xl flex flex-col justify-center font-bold border border-red-200 dark:border-red-800 text-[11px] uppercase tracking-wider">
-                                      <span className="text-sm">❌ NOT QUALIFIED</span>
-                                      <span className="opacity-80 mt-1">Attendance for {row.tarikhGanti} is incomplete. Clock In and Clock Out are required before Replacement Leave can be validated.</span>
-                                    </div>
-                                  )
-                                ) : (
-                                  <div className="p-3 bg-muted/50 text-muted-foreground rounded-xl font-bold flex items-center border border-border text-[11px] uppercase tracking-wider">
-                                    Masukkan Tarikh/Hari Cuti Ganti untuk semak kelayakan
-                                  </div>
-                                )}
-                              </div>
                             </div>
                           );
                         })}
@@ -908,9 +775,9 @@ export default function LeaveManagement() {
                   )}
 
                   {(formData.jenisCuti === "Replacement Leave" || formData.jenisCuti === "Cuti Ganti") && (
-                    <div className="flex items-center justify-between p-5 bg-[#7B0099]/5 rounded-3xl border-2 border-[#7B0099]/10">
+                    <div className="flex items-center justify-between p-5 bg-[#7B0099]/5 rounded-3xl border-2 border-[#7B0099]/10 mt-4">
                       <span className="text-[10px] font-black uppercase tracking-widest text-[#7B0099]">Bilangan Hari</span>
-                      <span className="text-3xl sm:text-4xl font-black text-[#7B0099] tracking-tighter">1 <span className="text-sm">HARI</span></span>
+                      <span className="text-3xl sm:text-4xl font-black text-[#7B0099] tracking-tighter">{formData.cutiGantiRows.length} <span className="text-sm">HARI</span></span>
                     </div>
                   )}
 

@@ -337,60 +337,56 @@ export default function LeaveOverview() {
           return (
           <Card key={item.label} className="relative overflow-hidden border border-border/40 shadow-[0_4px_16px_rgba(0,0,0,0.03)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.12)] bg-white/90 dark:bg-card/80 backdrop-blur-md rounded-xl group hover:shadow-md transition-all duration-300">
             <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#7B0099]" />
-            <CardContent className="p-3 sm:p-4 space-y-2 pl-4 sm:pl-4 flex flex-col h-full justify-between">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <p className="text-[8px] sm:text-[9px] font-black uppercase tracking-[0.2em] text-[#7B0099] dark:text-purple-400 truncate">{item.label}</p>
-                  <div className="w-5 h-5 rounded-full bg-[#7B0099]/5 flex items-center justify-center">
-                    <Calendar className="w-2.5 h-2.5 text-[#7B0099]/40" />
+            <CardContent className="p-3 sm:p-4 pl-4 sm:pl-4 flex flex-col h-full gap-3 sm:gap-4">
+              <div className="flex items-center justify-between">
+                <p className="text-[8px] sm:text-[9px] font-black uppercase tracking-[0.2em] text-[#7B0099] dark:text-purple-400 truncate">{item.label}</p>
+                <div className="w-5 h-5 rounded-full bg-[#7B0099]/5 flex items-center justify-center shrink-0">
+                  <Calendar className="w-2.5 h-2.5 text-[#7B0099]/40" />
+                </div>
+              </div>
+              
+              <div className="flex flex-col flex-1 gap-2">
+                <div className="flex items-baseline gap-1">
+                  <span className="text-xl sm:text-2xl font-black text-foreground group-hover:scale-105 transition-transform origin-left duration-500">{item.used}</span>
+                  <span className="text-[9px] sm:text-[10px] font-bold text-foreground uppercase">
+                    {isNoEntitlement
+                      ? "Days Taken"
+                      : `/ ${item.total || 0} DAYS`}
+                  </span>
+                </div>
+                
+                <div className="space-y-1">
+                  <div className="h-1 overflow-hidden rounded-full bg-[#7B0099]/10">
+                    <div
+                      className="h-full rounded-full bg-[#7B0099] transition-all duration-1000 ease-out"
+                      style={{
+                        width: isNoEntitlement
+                          ? (item.used > 0 ? "100%" : "0%")
+                          : (item.total ? `${Math.min((item.used / item.total) * 100, 100)}%` : (item.used > 0 ? "100%" : "0%")),
+                      }}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between pt-1">
+                    {!isNoEntitlement && item.total > 0 ? (
+                      <p className="text-[7px] font-black text-foreground text-right uppercase tracking-widest w-full">
+                        {Math.max(item.total - item.used, 0)} DAYS REMAINING
+                      </p>
+                    ) : isNoEntitlement ? (
+                      <p className="text-[7px] font-black text-foreground uppercase tracking-widest text-right w-full">
+                        {item.applications} Application{item.applications !== 1 ? 's' : ''}
+                      </p>
+                    ) : null}
                   </div>
                 </div>
                 
-                <div className="flex flex-col h-full justify-between flex-1 space-y-4">
-                  <div>
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-xl sm:text-2xl font-black text-foreground group-hover:scale-105 transition-transform origin-left duration-500">{item.used}</span>
-                      <span className="text-[9px] sm:text-[10px] font-bold text-foreground uppercase">
-                        {isNoEntitlement
-                          ? "Days Taken"
-                          : `/ ${item.total || 0} DAYS`}
-                      </span>
-                    </div>
-                    
-                    <div className="space-y-1 mt-2">
-                      <div className="h-1 overflow-hidden rounded-full bg-[#7B0099]/10">
-                        <div
-                          className="h-full rounded-full bg-[#7B0099] transition-all duration-1000 ease-out"
-                          style={{
-                            width: isNoEntitlement
-                              ? (item.used > 0 ? "100%" : "0%")
-                              : (item.total ? `${Math.min((item.used / item.total) * 100, 100)}%` : (item.used > 0 ? "100%" : "0%")),
-                          }}
-                        />
-                      </div>
-                      <div className="flex items-center justify-between mt-1">
-                        {!isNoEntitlement && item.total > 0 ? (
-                          <p className="text-[7px] font-black text-foreground text-right uppercase tracking-widest w-full">
-                            {Math.max(item.total - item.used, 0)} DAYS REMAINING
-                          </p>
-                        ) : isNoEntitlement ? (
-                          <p className="text-[7px] font-black text-foreground uppercase tracking-widest text-right w-full">
-                            {item.applications} Application{item.applications !== 1 ? 's' : ''}
-                          </p>
-                        ) : null}
-                      </div>
+                {isReplacement && (
+                  <div className="pt-1 mt-auto">
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-widest">Latest Used</span>
+                      <span className="text-[11px] font-black leading-none">{item.latestAppDate ? new Date(item.latestAppDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'No Record'}</span>
                     </div>
                   </div>
-                  
-                  {isReplacement && (
-                    <div className="pt-2 mt-auto">
-                      <div className="flex flex-col gap-0.5">
-                        <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-widest">Latest Used</span>
-                        <span className="text-[11px] font-black">{item.latestAppDate ? new Date(item.latestAppDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'No Record'}</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                )}
               </div>
             </CardContent>
           </Card>
