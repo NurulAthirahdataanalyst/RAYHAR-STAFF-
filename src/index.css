@@ -137,6 +137,41 @@
     font-family: var(--font-heading);
     letter-spacing: -0.02em;
   }
+
+  /* Global Button Animation */
+  button, 
+  [role="button"], 
+  .btn, 
+  a[role="button"] {
+    --tw-translate-x: 0;
+    --tw-translate-y: 0;
+    --tw-rotate: 0;
+    --tw-skew-x: 0;
+    --tw-skew-y: 0;
+    --tw-scale-x: 1;
+    --tw-scale-y: 1;
+    transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y)) !important;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s ease !important;
+    will-change: transform;
+  }
+
+  button:hover:not(:disabled):not([data-disabled="true"]):not([disabled]),
+  [role="button"]:hover:not(:disabled):not([data-disabled="true"]):not([disabled]),
+  .btn:hover:not(:disabled):not([data-disabled="true"]):not([disabled]),
+  a[role="button"]:hover:not(:disabled) {
+    --tw-translate-y: -1.5px;
+    --tw-scale-x: 1.015;
+    --tw-scale-y: 1.015;
+  }
+
+  button:active:not(:disabled):not([data-disabled="true"]):not([disabled]),
+  [role="button"]:active:not(:disabled):not([data-disabled="true"]):not([disabled]),
+  .btn:active:not(:disabled):not([data-disabled="true"]):not([disabled]),
+  a[role="button"]:active:not(:disabled) {
+    --tw-translate-y: 1px;
+    --tw-scale-x: 0.975;
+    --tw-scale-y: 0.975;
+  }
 }
 
 @layer utilities {
