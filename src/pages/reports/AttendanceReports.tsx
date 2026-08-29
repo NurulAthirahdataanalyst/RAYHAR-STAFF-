@@ -220,10 +220,14 @@ export default function AttendanceReports() {
 
   const handleExportCSV = () => {
     const headers = viewType === "day"
-      ? ["Employee ID", "Name", "Branch", "Clock In", "Clock Out", "Status", "Working Hours"]
-      : ["Date", "Employee ID", "Name", "Branch", "Clock In", "Clock Out", "Status", "Working Hours"];
+      ? ["Employee ID", "Name", "Branch", "Clock In", "Clock Out", "Status", "Working Hours", "Coordinate (Latitude, Longitude)", "Distance", "Location Status"]
+      : ["Date", "Employee ID", "Name", "Branch", "Clock In", "Clock Out", "Status", "Working Hours", "Coordinate (Latitude, Longitude)", "Distance", "Location Status"];
     const rows = filteredList.map(a => {
       const workingHrs = calculateWorkingHours(a.clock_in, a.clock_out);
+      const coords = a.latitude && a.longitude ? `${Number(a.latitude).toFixed(6)}, ${Number(a.longitude).toFixed(6)}` : "-";
+      const distance = a.distance_meters !== null && a.distance_meters !== undefined ? `${Math.round(a.distance_meters)}m` : "-";
+      const locationStatus = a.location || a.clock_in_location || "-";
+      
       if (viewType === "day") {
         return [
           `"${(a.user_id || '').replace(/"/g, '""')}"`,
@@ -232,7 +236,10 @@ export default function AttendanceReports() {
           `"${(a.time_in || 'N/A').replace(/"/g, '""')}"`,
           `"${(a.time_out || 'N/A').replace(/"/g, '""')}"`,
           `"${(a.status || '').replace(/"/g, '""')}"`,
-          `"${workingHrs}"`
+          `"${workingHrs}"`,
+          `"${coords}"`,
+          `"${distance}"`,
+          `"${locationStatus}"`
         ];
       } else {
         return [
@@ -243,7 +250,10 @@ export default function AttendanceReports() {
           `"${(a.time_in || 'N/A').replace(/"/g, '""')}"`,
           `"${(a.time_out || 'N/A').replace(/"/g, '""')}"`,
           `"${(a.status || '').replace(/"/g, '""')}"`,
-          `"${workingHrs}"`
+          `"${workingHrs}"`,
+          `"${coords}"`,
+          `"${distance}"`,
+          `"${locationStatus}"`
         ];
       }
     });
@@ -549,6 +559,27 @@ export default function AttendanceReports() {
                           <TableCell>{req.time_in || "-"}</TableCell>
                           <TableCell>{req.time_out || "-"}</TableCell>
                           <TableCell>{calculateWorkingHours(req.clock_in, req.clock_out)}</TableCell>
+                          <TableCell>
+                            {req.latitude && req.longitude 
+                              ? `${Number(req.latitude).toFixed(6)}, ${Number(req.longitude).toFixed(6)}` 
+                              : "-"}
+                          </TableCell>
+                          <TableCell>
+                            {req.distance_meters !== null && req.distance_meters !== undefined 
+                              ? `${Math.round(req.distance_meters)}m` 
+                              : "-"}
+                          </TableCell>
+                          <TableCell>
+                            {(req.location || req.clock_in_location) ? (
+                              <span className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-semibold rounded-full ${
+                                (req.location || req.clock_in_location).includes('ON-SITE') 
+                                  ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
+                                  : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
+                              }`}>
+                                {req.location || req.clock_in_location}
+                              </span>
+                            ) : "-"}
+                          </TableCell>
                         </TableRow>
                       ))
                     )}

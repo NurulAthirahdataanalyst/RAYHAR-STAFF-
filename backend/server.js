@@ -6374,7 +6374,7 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
     );
 
     const [clockRows] = await pool.query(
-      `SELECT a.user_id, a.clock_in, a.clock_out, a.location, a.attendance_type,
+      `SELECT a.user_id, a.clock_in, a.clock_out, a.location, a.attendance_type, a.distance_meters, a.clock_in_latitude, a.clock_in_longitude,
               TO_CHAR(a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_in,
               TO_CHAR(a.clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_out
        FROM attendances a
@@ -6445,7 +6445,11 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
         clock_out: clock.clock_out,
         is_late: isLate,
         missing_clock_out: missingClockOut,
-        status: status
+        status: status,
+        location: clock.location,
+        distance_meters: clock.distance_meters,
+        latitude: clock.clock_in_latitude,
+        longitude: clock.clock_in_longitude
       };
     });
 
@@ -6646,7 +6650,7 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
 
     // 2. Fetch all clock-ins for that date
     const [clockRows] = await pool.query(
-      `SELECT a.user_id, a.clock_in, a.clock_out, a.location, a.attendance_type,
+      `SELECT a.user_id, a.clock_in, a.clock_out, a.location, a.attendance_type, a.distance_meters, a.clock_in_latitude, a.clock_in_longitude,
               TO_CHAR(a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_in,
               TO_CHAR(a.clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_out
        FROM attendances a
@@ -6835,6 +6839,10 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
         temp_branch: tempBranch || null,
         clock_in_location: clockRow ? (clockRow.location || null) : null,
         attendance_type: clockRow ? (clockRow.attendance_type || null) : null,
+        location: clockRow ? clockRow.location : null,
+        distance_meters: clockRow ? clockRow.distance_meters : null,
+        latitude: clockRow ? clockRow.clock_in_latitude : null,
+        longitude: clockRow ? clockRow.clock_in_longitude : null,
         department: p.department,
         role: p.role,
         clock_in,
