@@ -343,6 +343,7 @@ export default function LeaveAdmin() {
         from: formatDate(request.start_date),
         to: formatDate(request.end_date),
         days: Number(request.days || 0),
+        phone: request.phone || request.applicant_phone || "-",
         balance: request.balance !== undefined && request.balance !== null ? Number(request.balance) : (request.annual_leave_balance !== undefined ? Number(request.annual_leave_balance) : undefined),
         annual_leave_balance: request.annual_leave_balance,
         medical_leave_balance: request.medical_leave_balance,

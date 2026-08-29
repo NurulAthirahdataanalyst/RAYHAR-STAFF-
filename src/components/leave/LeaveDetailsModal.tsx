@@ -169,7 +169,7 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role }: LeaveDetai
                   </div>
                 </div>
 
-                <div className="grid grid-cols-4 gap-3 p-4 bg-muted/30 rounded-[20px] border border-border/50">
+                <div className={`grid ${!(selectedRequest.type === "Replacement Leave" || selectedRequest.type === "Cuti Ganti") ? 'grid-cols-4' : 'grid-cols-3'} gap-3 p-4 bg-muted/30 rounded-[20px] border border-border/50`}>
                   <div className="text-center flex flex-col justify-center">
                     <p className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50 mb-1">Dari</p>
                     <p className="font-black text-xs sm:text-sm">{selectedRequest.from}</p>
@@ -182,12 +182,14 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role }: LeaveDetai
                     <p className="text-[9px] uppercase font-black text-[#7B0099]">Hari</p>
                     <p className="font-black text-lg text-[#7B0099] leading-none mt-0.5">{selectedRequest.days}</p>
                   </div>
+                  {!(selectedRequest.type === "Replacement Leave" || selectedRequest.type === "Cuti Ganti") && (
                   <div className="text-center rounded-[14px] border-2 border-emerald-500 bg-white dark:bg-slate-900 shadow-sm flex flex-col justify-center py-1">
                     <p className="text-[9px] uppercase font-black text-emerald-600">Baki Layak</p>
                     <p className="font-black text-sm text-emerald-600 mt-0.5">
                       {bakiLayak} HARI
                     </p>
                   </div>
+                  )}
                 </div>
 
                 {!(selectedRequest.type === "Replacement Leave" || selectedRequest.type === "Cuti Ganti") && (

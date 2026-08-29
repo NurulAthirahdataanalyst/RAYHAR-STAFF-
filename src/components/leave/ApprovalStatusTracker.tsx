@@ -44,12 +44,13 @@ export function ApprovalStatusTracker({ status, approverRole, approvalHistory = 
     : ["Submit", "Branch Leader", "Managing Director"];
 
   let currentStepIndex = 0;
+  const sUpper = status.toUpperCase();
   if (isHQ) {
-    if (role.includes("hod")) currentStepIndex = 1;
-    else if (role.includes("operation") || role.includes("finance")) currentStepIndex = 2;
+    if (role.includes("hod") || sUpper.includes("HOD")) currentStepIndex = 1;
+    else if (role.includes("operation") || role.includes("finance") || sUpper.includes("OPERATION") || sUpper.includes("FINANCE")) currentStepIndex = 2;
   } else {
-    if (role.includes("branch") || role.includes("leader")) currentStepIndex = 1;
-    else if (role.includes("md") || role.includes("managing") || role.includes("director")) currentStepIndex = 2;
+    if (role.includes("branch") || role.includes("leader") || sUpper.includes("BRANCH LEADER")) currentStepIndex = 1;
+    else if (role.includes("md") || role.includes("managing") || role.includes("director") || sUpper.includes("MD")) currentStepIndex = 2;
   }
   if (status === 'Approved') currentStepIndex = defaultStepLabels.length;
 

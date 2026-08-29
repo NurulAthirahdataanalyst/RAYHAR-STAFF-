@@ -156,7 +156,7 @@ export const parseCutiGantiRows = (
     return [{
       tarikhCuti: fallbackTarikh,
       tarikhGanti: fallbackHari || "",
-      keterangan: getCleanReason(reason) || "Migrated",
+      keterangan: getCleanReason(reason) || "-",
       jamGanti: fallbackJam || 0
     }];
   }

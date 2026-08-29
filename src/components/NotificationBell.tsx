@@ -311,9 +311,17 @@ export default function NotificationBell() {
                     <h4 className={`text-sm font-bold mb-1 text-white`}>
                       {notif.title.replace(/Pending Finance(?: Manager)?/g, "Pending Operation Manager")}
                     </h4>
-                    <p className={`text-sm leading-relaxed text-white`}>
-                      {notif.message.replace(/Pending Finance(?: Manager)?/g, "Pending Operation Manager")}
-                    </p>
+                    <div className={`text-sm leading-relaxed text-white space-y-1`}>
+                      {notif.message.replace(/Pending Finance(?: Manager)?/g, "Pending Operation Manager").split('\n').map((line, i) => (
+                        <p key={i}>
+                          {line.split(/(\*\*.*?\*\*)/).map((part, j) => 
+                            part.startsWith('**') && part.endsWith('**') 
+                              ? <strong key={j} className="font-bold">{part.slice(2, -2)}</strong> 
+                              : part
+                          )}
+                        </p>
+                      ))}
+                    </div>
                     <span className="text-[10px] font-bold text-white/60 uppercase tracking-widest mt-2 block">
                       {new Date(notif.created_at).toLocaleString(undefined, {
                         month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'

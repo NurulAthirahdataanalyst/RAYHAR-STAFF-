@@ -3370,6 +3370,19 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
           );
         }
 
+        // Notify employee of their leave progress
+        const targetApprover = isHQ ? "HOD" : "Branch Leader";
+        await pool.query(
+          `INSERT INTO notifications (user_id, title, message, type, related_leave_id) VALUES (?, ?, ?, ?, ?)`,
+          [
+            leaveData.user_id, 
+            `LEAVE APPROVAL PROGRESS`, 
+            `**Your leave application needs approval.**\n\nCurrently waiting for **${targetApprover}**.\n\n**Status:** 🟡 Pending Approval by **${targetApprover}**`, 
+            'status_update', 
+            result.insertId
+          ]
+        );
+
         // Notify HR
         const [hrRows] = await pool.query(
           `SELECT p.email FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'hr_admin' AND p.status = 'Active' LIMIT 1`
@@ -3555,10 +3568,19 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
         }
 
         // Notify employee of intermediate status updates
-        if (nextStatus === "Pending Finance" || nextStatus === "Pending MD") {
+        if (nextStatus.startsWith("Pending ")) {
+          const waitingFor = nextStatus.replace("Pending ", "");
+          const msg = `**Your leave application needs approval.**\n\nCurrently waiting for **${waitingFor}**.\n\n**Status:** 🟡 Pending Approval by **${waitingFor}**`;
           await pool.query(
             `INSERT INTO notifications (user_id, title, message, type, related_leave_id) VALUES (?, ?, ?, ?, ?)`,
-            [leaveData.user_id, `Leave Update: ${nextStatus}`, `Your leave request is now ${nextStatus}.`, 'status_update', leaveId]
+            [leaveData.user_id, `LEAVE APPROVAL PROGRESS`, msg, 'status_update', leaveId]
+          );
+        } else if (nextStatus === "Approved" || nextStatus === "Rejected") {
+          const icon = nextStatus === "Approved" ? "🟢" : "🔴";
+          const msg = `**Your leave application has been ${nextStatus}.**\n\n**Status:** ${icon} ${nextStatus} by **${approverRole}**`;
+          await pool.query(
+            `INSERT INTO notifications (user_id, title, message, type, related_leave_id) VALUES (?, ?, ?, ?, ?)`,
+            [leaveData.user_id, `LEAVE ${nextStatus.toUpperCase()}`, msg, 'status_update', leaveId]
           );
         }
       }
