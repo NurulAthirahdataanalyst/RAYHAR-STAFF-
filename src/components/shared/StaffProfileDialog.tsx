@@ -624,12 +624,12 @@ export function StaffProfileDialog({
           <div className="p-4">
             {selectedEmployee ? (
               <Tabs defaultValue="basic" className="w-full">
-                <TabsList className="mb-4 flex flex-wrap h-auto gap-1 bg-slate-100/50 dark:bg-slate-900/50 p-1 rounded-xl">
-                  <TabsTrigger value="basic" className="rounded-lg text-xs">Staff Profile & Analytics</TabsTrigger>
-                  <TabsTrigger value="attendance_settings" className="rounded-lg text-xs">Attendance Settings</TabsTrigger>
-                  <TabsTrigger value="temporary_assignment" className="rounded-lg text-xs">Temporary Assignment</TabsTrigger>
-                  <TabsTrigger value="multi_location" className="rounded-lg text-xs">Multi Location Branch</TabsTrigger>
-                  <TabsTrigger value="location_history" className="rounded-lg text-xs">Location History</TabsTrigger>
+                <TabsList className="mb-4 flex flex-wrap h-auto gap-1 bg-slate-100 dark:bg-slate-900 p-2 rounded-xl shadow-inner border border-slate-200 dark:border-slate-800">
+                  <TabsTrigger value="basic" className="rounded-lg text-xs neumorphic-tab font-semibold">Staff Profile & Analytics</TabsTrigger>
+                  <TabsTrigger value="attendance_settings" className="rounded-lg text-xs neumorphic-tab font-semibold">Attendance Settings</TabsTrigger>
+                  <TabsTrigger value="temporary_assignment" className="rounded-lg text-xs neumorphic-tab font-semibold">Temporary Assignment</TabsTrigger>
+                  <TabsTrigger value="multi_location" className="rounded-lg text-xs neumorphic-tab font-semibold">Multi Location Branch</TabsTrigger>
+                  <TabsTrigger value="location_history" className="rounded-lg text-xs neumorphic-tab font-semibold">Location History</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="basic" className="mt-0">
