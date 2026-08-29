@@ -635,7 +635,7 @@ export default function Employees() {
           <Button
             variant="ghost"
             size="sm"
-            className="mb-1 gap-2 px-0 text-foreground hover:bg-transparent hover:text-[#7B0099] transition-colors touch-target"
+            className="mb-1 gap-2 px-0 text-foreground hover:bg-transparent hover:text-[#7B0099] transition-colors touch-target no-global-hover"
             onClick={() => navigate("/master")}
           >
             <ArrowLeft className="h-4 w-4" />
