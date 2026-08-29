@@ -208,6 +208,22 @@ export default function Calendar() {
   const [eventDescription, setEventDescription] = useState("");
   const [eventType, setEventType] = useState("reminder");
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsAddEventModalOpen(false);
+      }
+    };
+
+    if (isAddEventModalOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isAddEventModalOpen]);
+
   // Custom Categories State
   const [customCategories, setCustomCategories] = useState<CustomCategory[]>(() => {
     try {
@@ -1491,8 +1507,14 @@ export default function Calendar() {
 
       {/* Add New Event Modal Overlay */}
       {isAddEventModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xl animate-in fade-in transition-all duration-300">
-          <div className="bg-card w-full max-w-md rounded-2xl shadow-2xl border border-border/60 overflow-hidden animate-in zoom-in-95 duration-200">
+        <div 
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xl animate-in fade-in transition-all duration-300"
+          onClick={() => setIsAddEventModalOpen(false)}
+        >
+          <div 
+            className="bg-card w-full max-w-md rounded-2xl shadow-2xl border border-border/60 overflow-hidden animate-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between p-5 border-b border-border/60 bg-[#942392]">
               <h3 className="font-bold text-lg text-white">Add New Event</h3>
               <button 

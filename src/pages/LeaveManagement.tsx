@@ -717,7 +717,7 @@ export default function LeaveManagement() {
                                     newRows.splice(index, 1);
                                     setFormData({ ...formData, cutiGantiRows: newRows });
                                   }}
-                                  className="absolute top-4 right-0 p-2 bg-red-100 text-red-600 rounded-full hover:bg-red-200 transition-colors z-10"
+                                  className="absolute top-4 right-0 p-2 text-red-500 hover:text-red-700 transition-colors z-10"
                                 >
                                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
                                 </button>
@@ -746,6 +746,20 @@ export default function LeaveManagement() {
                                     newRows[index].tarikhGanti = val;
                                     setFormData({ ...formData, cutiGantiRows: newRows });
                                   }}
+                                  className="h-12 bg-card rounded-xl font-bold border border-[#7B0099]/20"
+                                />
+                              </div>
+
+                              <div className="space-y-2 sm:col-span-2">
+                                <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">Keterangan / Sebab <span className="text-red-500">*</span></Label>
+                                <Input
+                                  value={row.keterangan || ""}
+                                  onChange={(e) => {
+                                    const newRows = [...formData.cutiGantiRows];
+                                    newRows[index].keterangan = e.target.value;
+                                    setFormData({ ...formData, cutiGantiRows: newRows });
+                                  }}
+                                  placeholder="Contoh: Kerja lebih masa"
                                   className="h-12 bg-card rounded-xl font-bold border border-[#7B0099]/20"
                                 />
                               </div>

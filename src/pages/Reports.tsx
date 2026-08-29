@@ -884,7 +884,7 @@ export default function Reports() {
                           )}
 
                           <div className="space-y-1.5">
-                            <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Month (YYYY-MM)</label>
+                            <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Month</label>
                             <MonthPicker
                               monthYear={selectedMonth === 'all' ? `${selectedYear}-all` : `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`}
                               onSelectMonthYear={(val) => {
@@ -897,7 +897,7 @@ export default function Reports() {
                           </div>
 
                           <div className="space-y-1.5">
-                            <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Year (YYYY)</label>
+                            <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Year</label>
                             <YearPopover
                               year={selectedYear}
                               onSelectYear={setSelectedYear}
