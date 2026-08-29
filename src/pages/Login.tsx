@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { API_BASE_URL } from "@/config/api";
+import { supabase } from "@/integrations/supabase/client";
 
 // ASSETS
 import watercolorBg from "@/assets/watercolor-bg.png";
@@ -34,40 +35,46 @@ export default function Login() {
 
   const handlePasswordReset = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!resetEmail) {
+    const email = resetEmail.trim();
+    if (!email) {
       toast({ title: "Email required", description: "Please enter your email to proceed.", variant: "destructive" });
       return;
     }
+    
+    // Basic email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast({ title: "Invalid email", description: "Please enter a valid email address.", variant: "destructive" });
+      return;
+    }
+
     setResetLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/request-password-reset`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: resetEmail.trim() }),
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
       });
-      const data = await response.json();
 
-      if (response.ok && data.success) {
-        toast({
-          title: "Reset Link Sent",
-          description: data.message || "Please check your email for the password reset link.",
-        });
-        setShowResetBox(false);
-        setResetEmail("");
-      } else {
-        toast({
-          title: "Failed to send reset link",
-          description: data.error || "An error occurred. Please try again.",
-          variant: "destructive",
-        });
+      if (error) {
+        throw error;
       }
+
+      // Always show success message to prevent email enumeration
+      toast({
+        title: "Reset Link Sent",
+        description: "If an account exists with this email address, a password reset link has been sent. Please check your inbox.",
+      });
+      setShowResetBox(false);
+      setResetEmail("");
     } catch (err) {
       console.error("Error requesting password reset:", err);
+      // We still show the success message for security, unless it's a known network/rate limit error, 
+      // but to be perfectly safe as requested: "Regardless of whether the email exists, use a generic success message."
       toast({
-        title: "Connection Failed",
-        description: "Could not connect to the server. Please try again later.",
-        variant: "destructive",
+        title: "Reset Link Sent",
+        description: "If an account exists with this email address, a password reset link has been sent. Please check your inbox.",
       });
+      setShowResetBox(false);
+      setResetEmail("");
     } finally {
       setResetLoading(false);
     }

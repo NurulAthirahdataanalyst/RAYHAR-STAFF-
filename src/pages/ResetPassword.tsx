@@ -5,32 +5,49 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
 import { Loader2, ShieldCheck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { API_BASE_URL } from "@/config/api";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 import watercolorBg from "@/assets/watercolor-bg.png";
 import rayharLogo from "@/assets/favicon.png";
 
 export default function ResetPassword() {
-  const [searchParams] = useSearchParams();
-  const token = searchParams.get("token");
-  
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [isSessionChecking, setIsSessionChecking] = useState(true);
   const { toast } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!token) {
-      setError("Invalid or missing reset token. Please request a new link.");
-    }
-  }, [token]);
+    const checkSession = async () => {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error || !session) {
+        setError("This password reset link is no longer valid. Please request a new password reset link.");
+      }
+      setIsSessionChecking(false);
+    };
+
+    checkSession();
+    
+    // Also listen for auth state change in case the hash is processed slightly after mount
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "PASSWORD_RECOVERY" || session) {
+        setError(null);
+        setIsSessionChecking(false);
+      }
+    });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!token) return;
 
     if (newPassword.length < 6) {
       toast({ title: "Password too short", description: "Password must be at least 6 characters.", variant: "destructive" });
@@ -43,24 +60,19 @@ export default function ResetPassword() {
 
     setLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/reset-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, newPassword }),
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
       });
 
-      const data = await response.json();
-
-      if (response.ok && data.success) {
-        toast({ title: "Password Reset Successful", description: "You can now log in with your new password." });
-        navigate("/login");
-      } else {
-        setError(data.error || "Failed to reset password.");
-        toast({ title: "Reset failed", description: data.error || "Failed to reset password.", variant: "destructive" });
+      if (error) {
+        throw error;
       }
-    } catch (err) {
+
+      setIsSuccess(true);
+      toast({ title: "Password Updated", description: "Your password has been successfully updated." });
+    } catch (err: any) {
       console.error("Reset password error:", err);
-      toast({ title: "Connection Failed", description: "Could not connect to the server.", variant: "destructive" });
+      toast({ title: "Update Failed", description: err.message || "Failed to update password.", variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -87,19 +99,52 @@ export default function ResetPassword() {
         </div>
 
         <Card className="border-white/40 shadow-2xl bg-white/80 backdrop-blur-xl rounded-[20px] sm:rounded-[30px] overflow-hidden">
-          <CardHeader className="pb-2 bg-white/50 text-center">
-            <h2 className="text-lg font-bold text-[#7B0099]">Create New Password</h2>
-            <p className="text-xs text-foreground">Enter your new secure password below.</p>
-          </CardHeader>
-          
-          <form onSubmit={handleResetPassword}>
-            <CardContent className="space-y-4 pt-4">
-              {error ? (
-                <div className="p-3 bg-red-50 text-red-600 border border-red-200 rounded-lg text-xs font-medium text-center">
-                  {error}
-                </div>
-              ) : (
-                <>
+          {isSessionChecking ? (
+            <CardContent className="py-12 flex flex-col items-center justify-center">
+              <Loader2 className="h-8 w-8 animate-spin text-[#7B0099] mb-4" />
+              <p className="text-sm font-medium text-slate-600">Verifying secure session...</p>
+            </CardContent>
+          ) : isSuccess ? (
+            <div className="text-center p-6 sm:p-8 space-y-4">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <ShieldCheck className="w-8 h-8 text-green-600" />
+              </div>
+              <h2 className="text-xl font-bold text-slate-900">Password Updated</h2>
+              <p className="text-sm text-slate-600">
+                Your password has been successfully updated. You can now sign in using your new password.
+              </p>
+              <Button 
+                onClick={() => navigate("/login")}
+                className="w-full mt-4 bg-[#7B0099] hover:bg-[#5e0080] text-white rounded-xl h-11 font-black uppercase tracking-wider"
+              >
+                Back to Sign In
+              </Button>
+            </div>
+          ) : error ? (
+            <div className="text-center p-6 sm:p-8 space-y-4">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <ShieldCheck className="w-8 h-8 text-red-600" />
+              </div>
+              <h2 className="text-xl font-bold text-slate-900">Reset Link Expired</h2>
+              <p className="text-sm text-slate-600">
+                {error}
+              </p>
+              <Button 
+                onClick={() => navigate("/login")}
+                className="w-full mt-4 bg-[#7B0099] hover:bg-[#5e0080] text-white rounded-xl h-11 font-black uppercase tracking-wider"
+              >
+                Back to Sign In
+              </Button>
+            </div>
+          ) : (
+            <>
+              <CardHeader className="pb-2 bg-white/50 text-center">
+                <h2 className="text-lg font-bold text-[#7B0099]">Create New Password</h2>
+                <p className="text-xs text-foreground">Enter your new secure password below.</p>
+              </CardHeader>
+              
+              <form onSubmit={handleResetPassword}>
+                <CardContent className="space-y-4 pt-4">
                   <div className="space-y-2">
                     <Label htmlFor="new-password">New Password</Label>
                     <Input
@@ -122,36 +167,36 @@ export default function ResetPassword() {
                       required
                     />
                   </div>
-                </>
-              )}
-            </CardContent>
-            
-            <CardFooter className="flex flex-col gap-4">
-              <Button 
-                type="submit" 
-                className="w-full bg-[#7B0099] hover:bg-[#5e0080] text-white rounded-xl h-12 sm:h-11 transition-all touch-target text-sm sm:text-base font-black uppercase tracking-wider" 
-                disabled={loading || !!error}
-              >
-                {loading && <Loader2 className="animate-spin mr-2" />}
-                Reset Password
-              </Button>
-              
-              <div className="text-center mt-2">
-                <button
-                  type="button"
-                  onClick={() => navigate("/login")}
-                  className="text-xs text-foreground font-bold hover:text-[#7B0099] hover:underline transition-colors uppercase"
-                >
-                  Back to Sign In
-                </button>
-              </div>
+                </CardContent>
+                
+                <CardFooter className="flex flex-col gap-4">
+                  <Button 
+                    type="submit" 
+                    className="w-full bg-[#7B0099] hover:bg-[#5e0080] text-white rounded-xl h-12 sm:h-11 transition-all touch-target text-sm sm:text-base font-black uppercase tracking-wider" 
+                    disabled={loading}
+                  >
+                    {loading && <Loader2 className="animate-spin mr-2" />}
+                    Update Password
+                  </Button>
+                  
+                  <div className="text-center mt-2">
+                    <button
+                      type="button"
+                      onClick={() => navigate("/login")}
+                      className="text-xs text-foreground font-bold hover:text-[#7B0099] hover:underline transition-colors uppercase"
+                    >
+                      Back to Sign In
+                    </button>
+                  </div>
 
-              <div className="flex items-center justify-center gap-1.5 text-[10px] text-foreground font-extrabold uppercase tracking-wider pt-2 border-t border-slate-100 dark:border-slate-800/50 w-full">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-                <span>Secure Password Setup</span>
-              </div>
-            </CardFooter>
-          </form>
+                  <div className="flex items-center justify-center gap-1.5 text-[10px] text-foreground font-extrabold uppercase tracking-wider pt-2 border-t border-slate-100 dark:border-slate-800/50 w-full">
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                    <span>Secure Password Setup</span>
+                  </div>
+                </CardFooter>
+              </form>
+            </>
+          )}
         </Card>
       </div>
     </div>
