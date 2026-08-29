@@ -819,13 +819,14 @@ export default function LeaveManagement() {
                             <div className="space-y-2 lg:col-span-2">
                               <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">Pilih Cuti Ganti <span className="text-red-500">*</span></Label>
                               <Select
-                                value={formData.cutiGantiRows[0]?.tarikhGanti || ""}
+                                value={formData.cutiGantiRows[0]?.id || ""}
                                 onValueChange={(val) => {
                                   const sel = earnedCredits.find(c => c.id.toString() === val);
                                   if (sel) {
                                     const newRows = [{
                                       tarikhCuti: formData.tarikhMula,
-                                      tarikhGanti: sel.id.toString(),
+                                      id: sel.id.toString(),
+                                      tarikhGanti: sel.replacement_date,
                                       keterangan: sel.description,
                                       jamGanti: sel.actual_hours
                                     }];

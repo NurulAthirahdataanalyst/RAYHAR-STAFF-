@@ -177,11 +177,6 @@ const CompanyLeaveCalendar = () => {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        icon={CalendarIcon}
-        title="Company Leave Calendar"
-        description="Manage organization-wide holidays and company leave schedules."
-      />
 
       {!isHR && (
         <div className="bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 p-4 rounded-lg flex items-start gap-3 border border-blue-200 dark:border-blue-800">

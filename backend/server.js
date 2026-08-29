@@ -4763,10 +4763,9 @@ app.get('/api/employee-location-history', async (req, res) => {
       };
     });
 
-    // clockOutPoints and clockInPoints are authoritative — put them first so they
-    // win deduplication. Passive taggedLogs come last and will be replaced if a
-    // real attendance event falls in the same minute bucket.
-    const combined = [...clockOutPoints, ...clockInPoints, ...taggedLogs];
+    // clockOutPoints and clockInPoints are authoritative. We do not include passive taggedLogs
+    // anymore because the user requested to only see actual clock-in/out events.
+    const combined = [...clockOutPoints, ...clockInPoints];
 
     // Deduplicate by minute, preferring entries with attendance_status
     const seen = new Map();
@@ -9762,11 +9761,35 @@ app.post("/api/cron/validate-replacement-leaves", async (req, res) => {
 // Endpoint to fetch replacement leaves for a user
 app.get("/api/employees/:userId/replacement-leaves", async (req, res) => {
   try {
+    const userId = req.params.userId;
     const [rows] = await pool.query(
       `SELECT * FROM replacement_leave_requests WHERE employee_id = ? ORDER BY replacement_date DESC`,
-      [req.params.userId]
+      [userId]
     );
-    res.json({ success: true, replacementLeaves: rows });
+    
+    // Add manual adjustments as synthetic rows so they can be selected in the frontend dropdown
+    const [adjRows] = await pool.query(`
+      SELECT SUM(adjustment_days) as adj
+      FROM leave_balance_adjustments
+      WHERE employee_id = ? AND UPPER(leave_type) IN ('REPLACEMENT LEAVE', 'CUTI GANTI')
+    `, [userId]);
+    
+    const adj = parseFloat(adjRows[0]?.adj) || 0;
+    const syntheticRows = [];
+    for (let i = 0; i < adj; i++) {
+      syntheticRows.push({
+        id: `adj_${i}`,
+        employee_id: userId,
+        leave_request_id: null,
+        replacement_date: new Date().toISOString().split('T')[0],
+        description: 'Manual HR Adjustment',
+        required_hours: 8,
+        actual_hours: 8,
+        validation_status: 'Validated'
+      });
+    }
+
+    res.json({ success: true, replacementLeaves: [...syntheticRows, ...rows] });
   } catch(e) {
     res.status(500).json({ success: false, error: e.message });
   }
