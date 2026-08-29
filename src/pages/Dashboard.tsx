@@ -1512,7 +1512,7 @@ export default function Dashboard() {
               </div>
 
               {/* Filter Chips */}
-              <div className="flex gap-2 my-3 flex-wrap">
+              <div className="flex gap-4 mt-6 mb-4 flex-wrap px-1">
                 {([
                   { key: "all", label: "ALL" },
                   { key: "attendance", label: "ATTENDANCE" },
@@ -1524,10 +1524,10 @@ export default function Dashboard() {
                   <button
                     key={chip.key}
                     onClick={() => setActivityFilter(chip.key)}
-                    className={`px-3 py-1 rounded-full text-[10px] font-bold border transition-all duration-200 ${
+                    className={`px-5 py-2.5 rounded-full text-[10px] font-black tracking-widest transition-all duration-300 active:scale-95 ${
                       activityFilter === chip.key
-                        ? "bg-[#a01497] text-white border-[#a01497]"
-                        : "bg-white dark:bg-card border-slate-200 dark:border-slate-800 text-slate-600 hover:border-slate-300"
+                        ? "bg-slate-100 dark:bg-slate-800 text-[#a01497] shadow-[inset_4px_4px_8px_rgba(0,0,0,0.1),inset_-4px_-4px_8px_rgba(255,255,255,0.9)] dark:shadow-[inset_4px_4px_8px_rgba(0,0,0,0.5),inset_-4px_-4px_8px_rgba(255,255,255,0.05)]"
+                        : "bg-slate-100 dark:bg-slate-800 text-slate-500 shadow-[4px_4px_10px_rgba(0,0,0,0.1),-4px_-4px_10px_rgba(255,255,255,0.9)] dark:shadow-[4px_4px_10px_rgba(0,0,0,0.4),-4px_-4px_10px_rgba(255,255,255,0.02)] hover:text-slate-700 dark:hover:text-slate-300"
                     }`}
                   >
                     {chip.label}
