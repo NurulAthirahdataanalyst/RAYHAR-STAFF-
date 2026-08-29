@@ -13,7 +13,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { FileText, Printer, Loader2, ArrowLeft, PhoneCall, Eye, Calendar, MapPin, Clock, Check, X } from "lucide-react";
+import { FileText, Printer, Loader2, ArrowLeft, PhoneCall, Eye, Calendar, MapPin, Clock, Check, X, Download } from "lucide-react";
 import { useRole } from "@/contexts/RoleContext";
 
 import PageActions from "@/components/layout/PageActions";
@@ -263,10 +263,38 @@ export default function LeaveFormView() {
     }
   }, [selectedForm?.id, userId]);
 
+  const handleExport = () => {
+    if (filteredForms.length === 0) {
+      toast.error("No records to export");
+      return;
+    }
+    const headers = ["Leave Type", "From", "To", "Days", "Status", "Applied At"];
+    const rows = filteredForms.map(f => [
+      leaveTypeLabels[f.type] || f.type,
+      f.from,
+      f.to,
+      f.days,
+      getDisplayStatus(f.status),
+      new Date(f.appliedAt).toLocaleDateString()
+    ]);
+    const csvContent = [
+      headers.join(","),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(","))
+    ].join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `leave_requests_${activeTab}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-500">
 
-        <div className="mb-4">
+        <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <Button
             variant="ghost"
             size="sm"
@@ -278,10 +306,25 @@ export default function LeaveFormView() {
               Back to Leave Overview
             </span>
           </Button>
-        </div>
 
-      
-      
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              onClick={handleExport}
+              className="gap-2 bg-card border border-border/50 text-foreground hover:bg-muted rounded-xl font-black text-[10px] uppercase tracking-widest px-4 shadow-sm transition-all active:scale-95"
+            >
+              <Download className="w-3.5 h-3.5" />
+              Export
+            </Button>
+            <Button
+              onClick={() => navigate("/leave/apply")}
+              className="gap-2 bg-[#7B0099] text-white hover:bg-[#5e0080] rounded-xl font-black text-[10px] uppercase tracking-widest px-4 shadow-sm transition-all active:scale-95"
+            >
+              <FileText className="w-3.5 h-3.5" />
+              New Application
+            </Button>
+          </div>
+        </div>
 
       <Card className="border-none shadow-[0_20px_50px_rgba(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.2)] bg-card/80 backdrop-blur-md rounded-[24px] sm:rounded-[32px] overflow-hidden">
         <CardContent className="p-0">
@@ -326,13 +369,6 @@ export default function LeaveFormView() {
               <Badge variant="outline" className="font-black text-[10px] px-3 py-1 bg-white/50 dark:bg-black/20 border-border/50 text-foreground">
                 {filteredForms.length} {activeTab === "pending" ? "PENDING" : activeTab === "approved" ? "APPROVED" : activeTab === "rejected" ? "REJECTED" : "TOTAL"}
               </Badge>
-              <Button
-                onClick={() => navigate("/leave/apply")}
-                className="gap-2 bg-[#7B0099] text-white hover:bg-[#5e0080] rounded-xl font-black text-[10px] uppercase tracking-widest px-4 shadow-sm transition-all active:scale-95"
-              >
-                <FileText className="w-3.5 h-3.5" />
-                New Application
-              </Button>
             </div>
           </div>
           {loading ? (
