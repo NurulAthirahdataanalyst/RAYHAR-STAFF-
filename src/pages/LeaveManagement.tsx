@@ -811,226 +811,98 @@ export default function LeaveManagement() {
 
                   {(formData.jenisCuti === "Replacement Leave" || formData.jenisCuti === "Cuti Ganti") && (
                     <div className="space-y-4 rounded-[24px] border border-[#7B0099]/20 bg-[#7B0099]/5 p-5 animate-in fade-in zoom-in-95">
-                      <div className="flex bg-white/50 p-1 rounded-xl w-full mb-6 relative z-10 border border-purple-100 shadow-inner overflow-x-auto gap-1">
-                        <button
-                          type="button"
-                          onClick={() => setRlMode('earning')}
-                          className={`flex-1 min-w-[110px] py-2.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${rlMode === 'earning' ? 'bg-gradient-to-r from-[#7B0099] to-[#9d00c6] text-white shadow-md scale-[1.02]' : 'text-[#7B0099] hover:bg-[#7B0099]/10'}`}
-                        >
-                          EARNING RL
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setRlMode('taking')}
-                          className={`flex-1 min-w-[110px] py-2.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${rlMode === 'taking' ? 'bg-gradient-to-r from-[#7B0099] to-[#9d00c6] text-white shadow-md scale-[1.02]' : 'text-[#7B0099] hover:bg-[#7B0099]/10'}`}
-                        >
-                          TAKING RL
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setRlMode('apply_with_rl')}
-                          className={`flex-1 min-w-[140px] py-2.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${rlMode === 'apply_with_rl' ? 'bg-gradient-to-r from-[#7B0099] to-[#9d00c6] text-white shadow-md scale-[1.02]' : 'text-[#7B0099] hover:bg-[#7B0099]/10'}`}
-                        >
-                          APPLY WITH RL DATE
-                        </button>
+                      <div className="space-y-4 divide-y divide-[#7B0099]/10">
+                        {formData.cutiGantiRows.map((row, index) => {
+                          const status = rlQualifyStatuses[index];
+                          return (
+                            <div key={index} className={`grid grid-cols-1 sm:grid-cols-2 gap-4 animate-in fade-in ${index > 0 ? 'pt-4 relative' : ''}`}>
+                              {index > 0 && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const newRows = [...formData.cutiGantiRows];
+                                    newRows.splice(index, 1);
+                                    setFormData({ ...formData, cutiGantiRows: newRows });
+                                  }}
+                                  className="absolute top-4 right-0 p-2 bg-red-100 text-red-600 rounded-full hover:bg-red-200 transition-colors z-10"
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+                                </button>
+                              )}
+                              <div className="space-y-2">
+                                <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">Tarikh Cuti <span className="text-red-500">*</span></Label>
+                                <DatePickerInput
+                                  value={row.tarikhCuti}
+                                  minDate={new Date().toISOString().split('T')[0]}
+                                  onChange={(val) => {
+                                    const newRows = [...formData.cutiGantiRows];
+                                    newRows[index].tarikhCuti = val;
+                                    setFormData(prev => ({ ...prev, cutiGantiRows: newRows }));
+                                  }}
+                                  className="h-12 bg-card rounded-xl font-bold border border-[#7B0099]/20"
+                                />
+                              </div>
+                              
+                              <div className="space-y-2">
+                                <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">Tarikh/Hari Cuti Ganti <span className="text-red-500">*</span></Label>
+                                <DatePickerInput
+                                  value={row.tarikhGanti || ""}
+                                  minDate={new Date().toISOString().split('T')[0]}
+                                  onChange={(val) => {
+                                    const newRows = [...formData.cutiGantiRows];
+                                    newRows[index].tarikhGanti = val;
+                                    setFormData({ ...formData, cutiGantiRows: newRows });
+                                  }}
+                                  className="h-12 bg-card rounded-xl font-bold border border-[#7B0099]/20"
+                                />
+                              </div>
+
+                              <div className="space-y-2 sm:col-span-2 mt-2">
+                                <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">Status Kelayakan / Jam Ganti</Label>
+                                {status ? (
+                                  status.status === 'qualified' ? (
+                                    <div className="p-3 bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400 rounded-xl font-bold flex flex-col justify-center border border-emerald-200 dark:border-emerald-800 text-[11px] uppercase tracking-wider">
+                                      <span className="text-sm">✅ QUALIFIED</span>
+                                      <span className="opacity-80 mt-1">{status.hours.toFixed(1)} Hours (FOLLOWING THE WORKING HOURS WHEN THEY CLOCK IN)</span>
+                                    </div>
+                                  ) : status.status === 'scheduled' ? (
+                                    <div className="p-3 bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400 rounded-xl font-bold flex flex-col justify-center border border-blue-200 dark:border-blue-800 text-[11px] uppercase tracking-wider">
+                                      <span className="text-sm">🗓️ SCHEDULED</span>
+                                      <span className="opacity-80 mt-1">Menunggu rekod kedatangan pada {row.tarikhGanti}</span>
+                                    </div>
+                                  ) : (
+                                    <div className="p-3 bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400 rounded-xl flex flex-col justify-center font-bold border border-red-200 dark:border-red-800 text-[11px] uppercase tracking-wider">
+                                      <span className="text-sm">❌ NOT QUALIFIED</span>
+                                      <span className="opacity-80 mt-1">Attendance for {row.tarikhGanti} is incomplete. Clock In and Clock Out are required before Replacement Leave can be validated.</span>
+                                    </div>
+                                  )
+                                ) : (
+                                  <div className="p-3 bg-muted/50 text-muted-foreground rounded-xl font-bold flex items-center border border-border text-[11px] uppercase tracking-wider">
+                                    Masukkan Tarikh/Hari Cuti Ganti untuk semak kelayakan
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
 
-                      <div className="space-y-4 divide-y divide-[#7B0099]/10">
-                        {rlMode === 'earning' ? (
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-in fade-in slide-in-from-left-2">
-                            <div className="space-y-2">
-                              <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">Tarikh/Hari Ganti <span className="text-red-500">*</span></Label>
-                              <DatePickerInput
-                                value={formData.cutiGantiRows[0]?.tarikhGanti || ""}
-                                minDate={new Date().toISOString().split('T')[0]}
-                                onChange={(val) => {
-                                  const newRows = [...formData.cutiGantiRows];
-                                  if(!newRows[0]) newRows[0] = { tarikhCuti: "", tarikhGanti: "", keterangan: "", jamGanti: "" };
-                                  newRows[0].tarikhGanti = val;
-                                  setFormData({ ...formData, cutiGantiRows: newRows });
-                                }}
-                                className="h-12 bg-card rounded-xl font-bold border border-[#7B0099]/20"
-                              />
-                            </div>
-                            
-                            <div className="space-y-2">
-                              <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">Jenis Hari <span className="text-red-500">*</span></Label>
-                              <Select
-                                value={formData.cutiGantiRows[0]?.jamGanti === "Public Holiday" ? "Public Holiday" : (formData.cutiGantiRows[0]?.jamGanti === "Weekend" ? "Weekend" : "")}
-                                onValueChange={(val) => {
-                                  const newRows = [...formData.cutiGantiRows];
-                                  if(!newRows[0]) newRows[0] = { tarikhCuti: "", tarikhGanti: "", keterangan: "", jamGanti: "" };
-                                  newRows[0].jamGanti = val;
-                                  setFormData({ ...formData, cutiGantiRows: newRows });
-                                }}
-                              >
-                                <SelectTrigger className="h-12 bg-card rounded-xl font-bold border border-[#7B0099]/20">
-                                  <SelectValue placeholder="Pilih Jenis Hari" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="Weekend">Weekend</SelectItem>
-                                  <SelectItem value="Public Holiday">Public Holiday</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-
-                            <div className="space-y-2 lg:col-span-2">
-                              <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">Keterangan / Tugasan <span className="text-red-500">*</span></Label>
-                              <Input
-                                placeholder="Contoh: Kerja lebih masa"
-                                className="h-12 border border-[#7B0099]/20 bg-white dark:bg-card rounded-xl font-bold placeholder:text-muted-foreground placeholder:font-medium"
-                                value={formData.cutiGantiRows[0]?.keterangan || ""}
-                                onChange={e => {
-                                  const newRows = [...formData.cutiGantiRows];
-                                  if(!newRows[0]) newRows[0] = { tarikhCuti: "", tarikhGanti: "", keterangan: "", jamGanti: "" };
-                                  newRows[0].keterangan = e.target.value;
-                                  setFormData({ ...formData, cutiGantiRows: newRows });
-                                }}
-                              />
-                            </div>
-
-                            <div className="space-y-2 lg:col-span-4 mt-2">
-                              <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">Status Kelayakan / RL Credit</Label>
-                              {rlQualifyStatus ? (
-                                rlQualifyStatus.status === 'qualified' ? (
-                                  <div className="p-3 bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400 rounded-xl font-bold flex flex-col justify-center border border-emerald-200 dark:border-emerald-800 text-[11px] uppercase tracking-wider">
-                                    <span className="text-sm">✅ QUALIFIED</span>
-                                    <span className="opacity-80 mt-1">+1 Day (Auto) - {rlQualifyStatus.hours.toFixed(1)} Hours Logged</span>
-                                  </div>
-                                ) : rlQualifyStatus.status === 'scheduled' ? (
-                                  <div className="p-3 bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400 rounded-xl font-bold flex flex-col justify-center border border-blue-200 dark:border-blue-800 text-[11px] uppercase tracking-wider">
-                                    <span className="text-sm">🗓️ SCHEDULED</span>
-                                    <span className="opacity-80 mt-1">Menunggu rekod kedatangan pada {formData.cutiGantiRows[0]?.tarikhGanti}</span>
-                                  </div>
-                                ) : (
-                                  <div className="p-3 bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400 rounded-xl font-bold flex flex-col justify-center border border-red-200 dark:border-red-800 text-[11px] uppercase tracking-wider">
-                                    <span className="text-sm">❌ NOT QUALIFIED</span>
-                                    <span className="opacity-80 mt-1">Attendance for {formData.cutiGantiRows[0]?.tarikhGanti} is incomplete. Clock In and Clock Out are required.</span>
-                                  </div>
-                                )
-                              ) : (
-                                <div className="p-3 bg-muted/50 text-muted-foreground rounded-xl font-bold flex items-center border border-border text-[11px] uppercase tracking-wider">
-                                  Masukkan Tarikh/Hari Ganti untuk semak kelayakan
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        ) : rlMode === 'apply_with_rl' ? (
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-in fade-in slide-in-from-bottom-2">
-                            <div className="space-y-2">
-                              <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">Tarikh Cuti <span className="text-red-500">*</span></Label>
-                              <DatePickerInput
-                                value={formData.tarikhMula}
-                                minDate={new Date().toISOString().split('T')[0]}
-                                onChange={(val) => {
-                                  setFormData({ ...formData, tarikhMula: val, tarikhAkhir: val });
-                                  const newRows = [...formData.cutiGantiRows];
-                                  if(!newRows[0]) newRows[0] = { tarikhCuti: "", tarikhGanti: "", keterangan: "", jamGanti: "" };
-                                  newRows[0].tarikhCuti = val;
-                                  setFormData(prev => ({ ...prev, cutiGantiRows: newRows }));
-                                }}
-                                className="h-12 bg-card rounded-xl font-bold border border-[#7B0099]/20"
-                              />
-                            </div>
-                            
-                            <div className="space-y-2">
-                              <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">Tarikh/Hari Cuti Ganti <span className="text-red-500">*</span></Label>
-                              <DatePickerInput
-                                value={formData.cutiGantiRows[0]?.tarikhGanti || ""}
-                                minDate={new Date().toISOString().split('T')[0]}
-                                onChange={(val) => {
-                                  const newRows = [...formData.cutiGantiRows];
-                                  if(!newRows[0]) newRows[0] = { tarikhCuti: "", tarikhGanti: "", keterangan: "", jamGanti: "" };
-                                  newRows[0].tarikhGanti = val;
-                                  setFormData({ ...formData, cutiGantiRows: newRows });
-                                }}
-                                className="h-12 bg-card rounded-xl font-bold border border-[#7B0099]/20"
-                              />
-                            </div>
-
-                            <div className="space-y-2 sm:col-span-2 mt-2">
-                              <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">Status Kelayakan / Jam Ganti</Label>
-                              {rlQualifyStatus ? (
-                                rlQualifyStatus.status === 'qualified' ? (
-                                  <div className="p-3 bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400 rounded-xl font-bold flex flex-col justify-center border border-emerald-200 dark:border-emerald-800 text-[11px] uppercase tracking-wider">
-                                    <span className="text-sm">✅ QUALIFIED</span>
-                                    <span className="opacity-80 mt-1">{rlQualifyStatus.hours.toFixed(1)} Hours (FOLLOWING THE WORKING HOURS WHEN THEY CLOCK IN)</span>
-                                  </div>
-                                ) : rlQualifyStatus.status === 'scheduled' ? (
-                                  <div className="p-3 bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400 rounded-xl font-bold flex flex-col justify-center border border-blue-200 dark:border-blue-800 text-[11px] uppercase tracking-wider">
-                                    <span className="text-sm">🗓️ SCHEDULED</span>
-                                    <span className="opacity-80 mt-1">Menunggu rekod kedatangan pada {formData.cutiGantiRows[0]?.tarikhGanti}</span>
-                                  </div>
-                                ) : (
-                                  <div className="p-3 bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400 rounded-xl flex flex-col justify-center font-bold border border-red-200 dark:border-red-800 text-[11px] uppercase tracking-wider">
-                                    <span className="text-sm">❌ NOT QUALIFIED</span>
-                                    <span className="opacity-80 mt-1">Attendance for {formData.cutiGantiRows[0]?.tarikhGanti} is incomplete. Clock In and Clock Out are required before Replacement Leave can be validated.</span>
-                                  </div>
-                                )
-                              ) : (
-                                <div className="p-3 bg-muted/50 text-muted-foreground rounded-xl font-bold flex items-center border border-border text-[11px] uppercase tracking-wider">
-                                  Masukkan Tarikh/Hari Cuti Ganti untuk semak kelayakan
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        ) : rlMode === 'taking' ? (
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-in fade-in slide-in-from-right-2">
-                            <div className="space-y-2">
-                              <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">Tarikh Cuti <span className="text-red-500">*</span></Label>
-                              <DatePickerInput
-                                value={formData.tarikhMula}
-                                minDate={new Date().toISOString().split('T')[0]}
-                                onChange={(val) => setFormData({ ...formData, tarikhMula: val, tarikhAkhir: val })}
-                                className="h-12 bg-card rounded-xl font-bold border border-[#7B0099]/20"
-                              />
-                            </div>
-                            
-                            <div className="space-y-2 lg:col-span-2">
-                              <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">Pilih Cuti Ganti <span className="text-red-500">*</span></Label>
-                              <Select
-                                value={formData.cutiGantiRows[0]?.id || ""}
-                                onValueChange={(val) => {
-                                  const sel = earnedCredits.find(c => c.id.toString() === val);
-                                  if (sel) {
-                                    const newRows = [{
-                                      tarikhCuti: formData.tarikhMula,
-                                      id: sel.id.toString(),
-                                      tarikhGanti: sel.replacement_date,
-                                      keterangan: sel.description,
-                                      jamGanti: sel.actual_hours
-                                    }];
-                                    setFormData({ ...formData, cutiGantiRows: newRows });
-                                  }
-                                }}
-                              >
-                                <SelectTrigger className="h-12 bg-card rounded-xl font-bold border border-[#7B0099]/20">
-                                  <SelectValue placeholder="Pilih Rekod Cuti Ganti (Earned)" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {earnedCredits.length === 0 ? (
-                                    <div className="p-3 text-[10px] font-black uppercase tracking-widest text-muted-foreground text-center">Tiada Rekod Available</div>
-                                  ) : (
-                                    earnedCredits.map(c => (
-                                      <SelectItem key={c.id} value={c.id.toString()}>
-                                        {new Date(c.replacement_date).toLocaleDateString('en-GB')} — {c.description || 'Tiada info'} — {c.actual_hours}h
-                                      </SelectItem>
-                                    ))
-                                  )}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            
-                            <div className="space-y-2">
-                              <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">Jam Ganti</Label>
-                              <Input
-                                readOnly
-                                value={formData.cutiGantiRows[0]?.jamGanti || "--"}
-                                className="h-12 bg-muted rounded-xl font-bold border border-[#7B0099]/10"
-                              />
-                            </div>
-                          </div>
-                        ) : null}
+                      <div className="flex justify-end mt-4">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setFormData(prev => ({
+                              ...prev,
+                              cutiGantiRows: [
+                                ...prev.cutiGantiRows,
+                                { tarikhCuti: "", tarikhGanti: "", keterangan: "", jamGanti: "" }
+                              ]
+                            }));
+                          }}
+                          className="px-4 py-2 bg-[#7B0099]/10 text-[#7B0099] rounded-xl font-bold text-xs hover:bg-[#7B0099]/20 transition-all flex items-center gap-2"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg> TAMBAH BARIS
+                        </button>
                       </div>
                     </div>
                   )}
