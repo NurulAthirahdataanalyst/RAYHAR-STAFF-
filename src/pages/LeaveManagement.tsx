@@ -752,6 +752,7 @@ export default function LeaveManagement() {
                               <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">Tarikh/Hari Ganti <span className="text-red-500">*</span></Label>
                               <DatePickerInput
                                 value={formData.cutiGantiRows[0]?.tarikhGanti || ""}
+                                minDate={new Date().toISOString().split('T')[0]}
                                 onChange={(val) => {
                                   const newRows = [...formData.cutiGantiRows];
                                   if(!newRows[0]) newRows[0] = { tarikhCuti: "", tarikhGanti: "", keterangan: "", jamGanti: "" };
@@ -811,6 +812,7 @@ export default function LeaveManagement() {
                               <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">Tarikh Cuti <span className="text-red-500">*</span></Label>
                               <DatePickerInput
                                 value={formData.tarikhMula}
+                                minDate={new Date().toISOString().split('T')[0]}
                                 onChange={(val) => setFormData({ ...formData, tarikhMula: val, tarikhAkhir: val })}
                                 className="h-12 bg-card rounded-xl font-bold border border-[#7B0099]/20"
                               />
