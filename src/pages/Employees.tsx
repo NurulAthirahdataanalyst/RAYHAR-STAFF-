@@ -682,43 +682,33 @@ export default function Employees() {
       <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 bg-card/50 backdrop-blur-sm p-3 rounded-2xl border border-border/50">
         <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 w-full sm:w-auto flex-1">
           <Popover open={empSearchOpen} onOpenChange={setEmpSearchOpen}>
-              <PopoverTrigger asChild>
-                <div className="relative w-full sm:max-w-xs cursor-pointer">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground" />
-                  <div className="pl-9 pr-8 h-11 sm:h-10 border border-border/60 bg-background/50 rounded-md flex items-center gap-1 overflow-hidden">
-                    {checkedEmployees.length > 0 ? (
-                      <span className="text-xs font-bold text-[#7B0099] truncate">{checkedEmployees.length} employee{checkedEmployees.length > 1 ? 's' : ''} selected</span>
-                    ) : (
-                      <span className="text-xs text-muted-foreground">{search || "Search employees..."}</span>
-                    )}
-                  </div>
-                  {(search || checkedEmployees.length > 0) && (
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); setSearch(''); setCheckedEmployees([]); setEmpSearchText(''); }} 
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground/40 hover:text-foreground z-10 transition-colors"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  )}
-                </div>
-              </PopoverTrigger>
-              <PopoverContent className="w-[340px] p-0 shadow-xl" align="start">
-                <div className="p-3 border-b border-border/50">
-                  <div className="relative">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-foreground/50" />
-                    <Input
-                      placeholder="Search employees..."
-                      value={empSearchText}
-                      onChange={(e) => {
-                          setEmpSearchText(e.target.value);
-                          setSearch(e.target.value);
-                      }}
-                      className="pl-8 h-9 text-xs"
-                      autoFocus
-                    />
-                  </div>
-                  {checkedEmployees.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mt-2">
+              <div className="relative w-full sm:max-w-xs">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/50 z-10 pointer-events-none" />
+                <PopoverTrigger asChild>
+                  <Input
+                    placeholder={checkedEmployees.length > 0 ? `${checkedEmployees.length} employee${checkedEmployees.length > 1 ? 's' : ''} selected` : "Search employees..."}
+                    value={empSearchText}
+                    onChange={(e) => {
+                        setEmpSearchText(e.target.value);
+                        setSearch(e.target.value);
+                        if (!empSearchOpen) setEmpSearchOpen(true);
+                    }}
+                    className={`pl-9 pr-8 h-11 sm:h-10 border bg-background/50 rounded-xl font-semibold text-xs focus-visible:ring-1 focus-visible:ring-[#7B0099]/50 w-full transition-all ${checkedEmployees.length > 0 ? 'border-[#7B0099]/50 text-[#7B0099] placeholder:text-[#7B0099]/80 placeholder:font-bold' : 'border-border/60'}`}
+                  />
+                </PopoverTrigger>
+                {(search || checkedEmployees.length > 0) && (
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); setSearch(''); setCheckedEmployees([]); setEmpSearchText(''); }} 
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground/40 hover:text-foreground z-10 transition-colors"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+              <PopoverContent className="w-[340px] p-0 shadow-xl" align="start" onOpenAutoFocus={(e) => e.preventDefault()}>
+                {checkedEmployees.length > 0 && (
+                  <div className="p-3 border-b border-border/50">
+                    <div className="flex flex-wrap gap-1.5">
                       {checkedEmployees.map(id => {
                         const emp = dbEmployees.find(e => (e.id?.toString() || e.user_id || e.name) === id);
                         return emp ? (
@@ -731,8 +721,8 @@ export default function Employees() {
                         ) : null;
                       })}
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
                 <div className="max-h-[260px] overflow-y-auto p-1">
                   {(() => {
                     const empList = dbEmployees
