@@ -29,7 +29,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger, PopoverAnchor } from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -684,11 +684,12 @@ export default function Employees() {
           <Popover open={empSearchOpen} onOpenChange={setEmpSearchOpen}>
               <div className="relative w-full sm:max-w-xs">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/50 z-10 pointer-events-none" />
-                <PopoverTrigger asChild>
+                
+                <PopoverAnchor asChild>
                   <Input
                     placeholder={checkedEmployees.length > 0 ? `${checkedEmployees.length} employee${checkedEmployees.length > 1 ? 's' : ''} selected` : "Search employees..."}
                     value={empSearchText}
-                    onKeyDown={(e) => e.stopPropagation()}
+                    onFocus={() => setEmpSearchOpen(true)}
                     onChange={(e) => {
                         setEmpSearchText(e.target.value);
                         setSearch(e.target.value);
@@ -696,6 +697,9 @@ export default function Employees() {
                     }}
                     className={`pl-9 pr-8 h-11 sm:h-10 border bg-background/50 rounded-xl font-semibold text-xs focus-visible:ring-1 focus-visible:ring-[#7B0099]/50 w-full transition-all ${checkedEmployees.length > 0 ? 'border-[#7B0099]/50 text-[#7B0099] placeholder:text-[#7B0099]/80 placeholder:font-bold' : 'border-border/60'}`}
                   />
+                </PopoverAnchor>
+                <PopoverTrigger asChild>
+                  <button type="button" className="sr-only" aria-hidden="true" />
                 </PopoverTrigger>
                 {(search || checkedEmployees.length > 0) && (
                   <button 
