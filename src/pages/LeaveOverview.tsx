@@ -277,12 +277,12 @@ export default function LeaveOverview() {
       let latestAppDate = null;
       let replacementForDate = null;
 
-      if (leaveTypeLabels[item.type] === "REPLACEMENT LEAVE" && apps > 0) {
+      if (apps > 0) {
         const sorted = [...relatedApps].sort((a, b) => new Date(b.from).getTime() - new Date(a.from).getTime());
         const latest = sorted[0];
         latestAppDate = latest.from;
         
-        if (latest.reason) {
+        if (leaveTypeLabels[item.type] === "REPLACEMENT LEAVE" && latest.reason) {
           const match = latest.reason.match(/\[CUTI_GANTI_DATA:([\s\S]*?)\]\]/);
           if (match) {
             try {
@@ -379,14 +379,12 @@ export default function LeaveOverview() {
                   </div>
                 </div>
                 
-                {isReplacement && (
                   <div className="pt-1 mt-auto">
                     <div className="flex flex-col gap-0.5">
-                      <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-widest">Latest Used</span>
+                      <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-widest">Latest Application</span>
                       <span className="text-[11px] font-black leading-none">{item.latestAppDate ? new Date(item.latestAppDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'No Record'}</span>
                     </div>
                   </div>
-                )}
               </div>
             </CardContent>
           </Card>
