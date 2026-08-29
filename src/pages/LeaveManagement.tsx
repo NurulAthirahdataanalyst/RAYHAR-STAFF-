@@ -61,6 +61,7 @@ export default function LeaveManagement() {
         const data = await res.json();
         if (data.success && data.phone) {
           setFormData(prev => ({ ...prev, noTelefon: data.phone }));
+          localStorage.setItem('latestNoTelefon', data.phone);
           setPhoneAutoFilled(true);
         } else {
           // Fallback to user-ic endpoint if legacy
@@ -68,6 +69,7 @@ export default function LeaveManagement() {
           const dataLegacy = await resLegacy.json();
           if (dataLegacy.success && dataLegacy.phone) {
             setFormData(prev => ({ ...prev, noTelefon: dataLegacy.phone }));
+            localStorage.setItem('latestNoTelefon', dataLegacy.phone);
             setPhoneAutoFilled(true);
           }
         }
@@ -81,7 +83,7 @@ export default function LeaveManagement() {
   // Form State
   const [formData, setFormData] = useState({
     namaPenuh: "",
-    noTelefon: "",
+    noTelefon: localStorage.getItem('latestNoTelefon') || "",
     tarikhPermohonan: new Date().toISOString().split('T')[0],
     cawangan: "",
     tarikhMula: "",
@@ -425,6 +427,10 @@ export default function LeaveManagement() {
 
       if (!response.ok || !data.success) {
         throw new Error(data.error || "Permohonan tidak dapat dihantar");
+      }
+
+      if (formData.noTelefon.trim()) {
+        localStorage.setItem('latestNoTelefon', formData.noTelefon.trim());
       }
 
       saveLeaveRequest({
