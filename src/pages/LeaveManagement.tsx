@@ -132,16 +132,23 @@ export default function LeaveManagement() {
     }));
   }, [userName, userBranch]);
 
+  const [totalEntitlement, setTotalEntitlement] = useState(14);
+  const [medicalEntitlement, setMedicalEntitlement] = useState(14);
+  const [replacementEntitlement, setReplacementEntitlement] = useState(0);
+  const [rlMode, setRlMode] = useState<'earning' | 'taking' | 'apply_with_rl'>('taking');
+  const [rlQualifyStatus, setRlQualifyStatus] = useState<{qualified: boolean, hours: number} | null>(null);
+  const [earnedCredits, setEarnedCredits] = useState<any[]>([]);
+
   // Automatik kira bilangan hari & baki cuti
   useEffect(() => {
     if (formData.jenisCuti === "Replacement Leave" || formData.jenisCuti === "Cuti Ganti") {
-      const realDays = formData.cutiGantiRows.filter(r => r.tarikhCuti).length;
+      const realDays = 1;
       if (formData.bilanganHari !== realDays) {
         setFormData(prev => ({
           ...prev,
           bilanganHari: realDays,
           mohon: realDays,
-          bakiAkhir: prev.bakiTerdahulu - realDays
+          bakiAkhir: rlMode === 'earning' ? prev.bakiTerdahulu : prev.bakiTerdahulu - realDays
         }));
       }
       return;
@@ -180,13 +187,7 @@ export default function LeaveManagement() {
       };
       fetchDays();
     }
-  }, [formData.tarikhMula, formData.tarikhAkhir, userBranch, formData.jenisCuti, formData.cutiGantiRows, formData.bilanganHari]);
-
-  const [totalEntitlement, setTotalEntitlement] = useState(14);
-    const [medicalEntitlement, setMedicalEntitlement] = useState(14);
-    const [replacementEntitlement, setReplacementEntitlement] = useState(0);
-    const [rlMode, setRlMode] = useState<'earning' | 'taking'>('taking');
-    const [earnedCredits, setEarnedCredits] = useState<any[]>([]);
+  }, [formData.tarikhMula, formData.tarikhAkhir, userBranch, formData.jenisCuti, formData.cutiGantiRows, formData.bilanganHari, rlMode]);
 
   // Fetch available RL credits when Replacement Leave is selected
   useEffect(() => {
@@ -209,8 +210,53 @@ export default function LeaveManagement() {
           })));
         }
       })
-      .catch(console.error);
+      .catch(err => console.error("Error fetching available RL credits:", err));
   }, [userId, formData.jenisCuti]);
+
+  // Check attendance qualification for Earning RL and Apply with RL Date
+  useEffect(() => {
+    if (!userId) return;
+    if (formData.jenisCuti !== 'Replacement Leave' && formData.jenisCuti !== 'Cuti Ganti') return;
+    if (rlMode !== 'apply_with_rl' && rlMode !== 'earning') return;
+    
+    const tarikhGanti = formData.cutiGantiRows[0]?.tarikhGanti;
+    if (!tarikhGanti) {
+      setRlQualifyStatus(null);
+      return;
+    }
+    
+    // Parse month and year from tarikhGanti (YYYY-MM-DD)
+    const [year, month] = tarikhGanti.split('-');
+    if (!year || !month) return;
+
+    fetch(`${API_BASE_URL}/api/attendance/history?userId=${encodeURIComponent(userId)}&year=${year}&month=${parseInt(month, 10)}`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.success && data.history) {
+          const record = data.history.find((h: any) => h.date === tarikhGanti);
+          if (record && record.clock_in && record.clock_out) {
+             const diffMs = new Date(record.clock_out).getTime() - new Date(record.clock_in).getTime();
+             const diffHrs = diffMs / (1000 * 60 * 60);
+             if (diffHrs >= 4) {
+               setRlQualifyStatus({ qualified: true, hours: diffHrs });
+               if (rlMode === 'apply_with_rl') {
+                 setFormData(prev => {
+                   const newRows = [...prev.cutiGantiRows];
+                   if (newRows[0]) newRows[0].jamGanti = diffHrs.toFixed(1);
+                   return { ...prev, cutiGantiRows: newRows };
+                 });
+               }
+               return;
+             }
+          }
+          setRlQualifyStatus({ qualified: false, hours: 0 });
+        }
+      })
+      .catch(err => {
+         console.error("Failed to check attendance:", err);
+         setRlQualifyStatus({ qualified: false, hours: 0 });
+      });
+  }, [formData.cutiGantiRows[0]?.tarikhGanti, rlMode, formData.jenisCuti, userId]);
 
   useEffect(() => {
     if (!userId) return;
@@ -304,10 +350,24 @@ export default function LeaveManagement() {
       return;
     }
     if (currentStep === 2 && (formData.jenisCuti === "Replacement Leave" || formData.jenisCuti === "Cuti Ganti")) {
-      const invalidRow = formData.cutiGantiRows.some(row => !row.tarikhCuti || !row.tarikhGanti || Number(row.jamGanti) <= 0);
-      if (invalidRow) {
-        toast.error("Sila lengkapkan semua butiran baris Cuti Ganti");
-        return;
+      if (rlMode === 'earning') {
+        const invalidRow = formData.cutiGantiRows.some(row => !row.tarikhGanti || !row.keterangan || !row.jamGanti);
+        if (invalidRow) {
+          toast.error("Sila lengkapkan semua butiran baris Cuti Ganti (Earning)");
+          return;
+        }
+      } else if (rlMode === 'taking') {
+        const invalidRow = formData.cutiGantiRows.some(row => !row.tarikhCuti || !row.id);
+        if (invalidRow) {
+          toast.error("Sila lengkapkan semua butiran baris Cuti Ganti (Taking)");
+          return;
+        }
+      } else if (rlMode === 'apply_with_rl') {
+        const invalidRow = formData.cutiGantiRows.some(row => !row.tarikhCuti || !row.tarikhGanti || !row.keterangan || !row.jamGanti);
+        if (invalidRow) {
+          toast.error("Sila lengkapkan semua butiran (Apply with RL Date)");
+          return;
+        }
       }
     }
     if (currentStep === 2 && (formData.jenisCuti === "Unpaid Leave" || formData.jenisCuti === "Cuti Tanpa Gaji") && (!formData.cutiTanpaGajiPhone || !formData.cutiTanpaGajiSignature)) {
@@ -673,10 +733,12 @@ export default function LeaveManagement() {
                     </div>
                   )}
 
-                  <div className="flex items-center justify-between p-5 bg-[#7B0099]/5 rounded-3xl border-2 border-[#7B0099]/10">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-[#7B0099]">Bilangan Hari</span>
-                    <span className="text-3xl sm:text-4xl font-black text-[#7B0099] tracking-tighter">{formData.bilanganHari} <span className="text-sm">HARI</span></span>
-                  </div>
+                  {!(formData.jenisCuti === "Replacement Leave" || formData.jenisCuti === "Cuti Ganti") && (
+                    <div className="flex items-center justify-between p-5 bg-[#7B0099]/5 rounded-3xl border-2 border-[#7B0099]/10">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-[#7B0099]">Bilangan Hari</span>
+                      <span className="text-3xl sm:text-4xl font-black text-[#7B0099] tracking-tighter">{formData.bilanganHari} <span className="text-sm">HARI</span></span>
+                    </div>
+                  )}
 
                   {/* Pengiraan Cuti Tahunan */}
                   {(formData.jenisCuti === "Annual/Emergency Leave" || formData.jenisCuti === "Cuti Tahunan" || formData.jenisCuti === "Sick Leave" || formData.jenisCuti === "Cuti Sakit") && (
@@ -728,20 +790,27 @@ export default function LeaveManagement() {
 
                   {(formData.jenisCuti === "Replacement Leave" || formData.jenisCuti === "Cuti Ganti") && (
                     <div className="space-y-4 rounded-[24px] border border-[#7B0099]/20 bg-[#7B0099]/5 p-5 animate-in fade-in zoom-in-95">
-                      <div className="flex bg-white/50 p-1 rounded-xl w-full mb-6 relative z-10 border border-purple-100 shadow-inner">
+                      <div className="flex bg-white/50 p-1 rounded-xl w-full mb-6 relative z-10 border border-purple-100 shadow-inner overflow-x-auto gap-1">
                         <button
                           type="button"
                           onClick={() => setRlMode('earning')}
-                          className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${rlMode === 'earning' ? 'bg-gradient-to-r from-[#7B0099] to-[#9d00c6] text-white shadow-md scale-[1.02]' : 'text-[#7B0099] hover:bg-[#7B0099]/10'}`}
+                          className={`flex-1 min-w-[110px] py-2.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${rlMode === 'earning' ? 'bg-gradient-to-r from-[#7B0099] to-[#9d00c6] text-white shadow-md scale-[1.02]' : 'text-[#7B0099] hover:bg-[#7B0099]/10'}`}
                         >
                           EARNING RL
                         </button>
                         <button
                           type="button"
                           onClick={() => setRlMode('taking')}
-                          className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${rlMode === 'taking' ? 'bg-gradient-to-r from-[#7B0099] to-[#9d00c6] text-white shadow-md scale-[1.02]' : 'text-[#7B0099] hover:bg-[#7B0099]/10'}`}
+                          className={`flex-1 min-w-[110px] py-2.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${rlMode === 'taking' ? 'bg-gradient-to-r from-[#7B0099] to-[#9d00c6] text-white shadow-md scale-[1.02]' : 'text-[#7B0099] hover:bg-[#7B0099]/10'}`}
                         >
                           TAKING RL
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setRlMode('apply_with_rl')}
+                          className={`flex-1 min-w-[140px] py-2.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${rlMode === 'apply_with_rl' ? 'bg-gradient-to-r from-[#7B0099] to-[#9d00c6] text-white shadow-md scale-[1.02]' : 'text-[#7B0099] hover:bg-[#7B0099]/10'}`}
+                        >
+                          APPLY WITH RL DATE
                         </button>
                       </div>
 
@@ -784,7 +853,7 @@ export default function LeaveManagement() {
                               </Select>
                             </div>
 
-                            <div className="space-y-2">
+                            <div className="space-y-2 lg:col-span-2">
                               <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">Keterangan / Tugasan <span className="text-red-500">*</span></Label>
                               <Input
                                 placeholder="Contoh: Kerja lebih masa"
@@ -799,14 +868,99 @@ export default function LeaveManagement() {
                               />
                             </div>
 
-                            <div className="space-y-2">
-                              <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">RL Credit</Label>
-                              <div className="h-12 bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400 rounded-xl font-bold flex items-center justify-center border border-emerald-200 dark:border-emerald-800 text-[11px] uppercase tracking-wider px-2 shadow-inner">
-                                +1 Day (Auto)
-                              </div>
+                            <div className="space-y-2 lg:col-span-4 mt-2">
+                              <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">Status Kelayakan / RL Credit</Label>
+                              {rlQualifyStatus ? (
+                                rlQualifyStatus.qualified ? (
+                                  <div className="p-3 bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400 rounded-xl font-bold flex flex-col justify-center border border-emerald-200 dark:border-emerald-800 text-[11px] uppercase tracking-wider">
+                                    <span className="text-sm">✅ QUALIFIED</span>
+                                    <span className="opacity-80 mt-1">+1 Day (Auto) - {rlQualifyStatus.hours.toFixed(1)} Hours Logged</span>
+                                  </div>
+                                ) : (
+                                  <div className="p-3 bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400 rounded-xl font-bold flex flex-col justify-center border border-red-200 dark:border-red-800 text-[11px] uppercase tracking-wider">
+                                    <span className="text-sm">❌ NOT YET QUALIFIED</span>
+                                    <span className="opacity-80 mt-1">Attendance for {formData.cutiGantiRows[0]?.tarikhGanti} is incomplete. Clock In and Clock Out are required.</span>
+                                  </div>
+                                )
+                              ) : (
+                                <div className="p-3 bg-muted/50 text-muted-foreground rounded-xl font-bold flex items-center border border-border text-[11px] uppercase tracking-wider">
+                                  Masukkan Tarikh/Hari Ganti untuk semak kelayakan
+                                </div>
+                              )}
                             </div>
                           </div>
-                        ) : (
+                        ) : rlMode === 'apply_with_rl' ? (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-in fade-in slide-in-from-bottom-2">
+                            <div className="space-y-2">
+                              <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">Tarikh Cuti <span className="text-red-500">*</span></Label>
+                              <DatePickerInput
+                                value={formData.tarikhMula}
+                                minDate={new Date().toISOString().split('T')[0]}
+                                onChange={(val) => {
+                                  setFormData({ ...formData, tarikhMula: val, tarikhAkhir: val });
+                                  const newRows = [...formData.cutiGantiRows];
+                                  if(!newRows[0]) newRows[0] = { tarikhCuti: "", tarikhGanti: "", keterangan: "", jamGanti: "" };
+                                  newRows[0].tarikhCuti = val;
+                                  setFormData(prev => ({ ...prev, cutiGantiRows: newRows }));
+                                }}
+                                className="h-12 bg-card rounded-xl font-bold border border-[#7B0099]/20"
+                              />
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">Tarikh/Hari Cuti Ganti <span className="text-red-500">*</span></Label>
+                              <DatePickerInput
+                                value={formData.cutiGantiRows[0]?.tarikhGanti || ""}
+                                minDate={new Date().toISOString().split('T')[0]}
+                                onChange={(val) => {
+                                  const newRows = [...formData.cutiGantiRows];
+                                  if(!newRows[0]) newRows[0] = { tarikhCuti: "", tarikhGanti: "", keterangan: "", jamGanti: "" };
+                                  newRows[0].tarikhGanti = val;
+                                  // For Apply with RL, jamGanti needs a fallback in case qualification is missed, but qualification blocks it anyway
+                                  newRows[0].jamGanti = "8";
+                                  setFormData({ ...formData, cutiGantiRows: newRows });
+                                }}
+                                className="h-12 bg-card rounded-xl font-bold border border-[#7B0099]/20"
+                              />
+                            </div>
+
+                            <div className="space-y-2 lg:col-span-2">
+                              <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">Keterangan / Sebab <span className="text-red-500">*</span></Label>
+                              <Input
+                                placeholder="Contoh: Kerja lebih masa"
+                                className="h-12 border border-[#7B0099]/20 bg-white dark:bg-card rounded-xl font-bold placeholder:text-muted-foreground placeholder:font-medium"
+                                value={formData.cutiGantiRows[0]?.keterangan || ""}
+                                onChange={e => {
+                                  const newRows = [...formData.cutiGantiRows];
+                                  if(!newRows[0]) newRows[0] = { tarikhCuti: "", tarikhGanti: "", keterangan: "", jamGanti: "8" };
+                                  newRows[0].keterangan = e.target.value;
+                                  setFormData({ ...formData, cutiGantiRows: newRows });
+                                }}
+                              />
+                            </div>
+
+                            <div className="space-y-2 lg:col-span-4 mt-2">
+                              <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">Status Kelayakan / Jam Ganti</Label>
+                              {rlQualifyStatus ? (
+                                rlQualifyStatus.qualified ? (
+                                  <div className="p-3 bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400 rounded-xl font-bold flex flex-col justify-center border border-emerald-200 dark:border-emerald-800 text-[11px] uppercase tracking-wider">
+                                    <span className="text-sm">✅ QUALIFIED</span>
+                                    <span className="opacity-80 mt-1">{rlQualifyStatus.hours.toFixed(1)} Hours (FOLLOWING THE WORKING HOURS WHEN THEY CLOCK IN)</span>
+                                  </div>
+                                ) : (
+                                  <div className="p-3 bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400 rounded-xl font-bold flex flex-col justify-center border border-red-200 dark:border-red-800 text-[11px] uppercase tracking-wider">
+                                    <span className="text-sm">❌ NOT YET QUALIFIED</span>
+                                    <span className="opacity-80 mt-1">Attendance for {formData.cutiGantiRows[0]?.tarikhGanti} is incomplete. Clock In and Clock Out are required before Replacement Leave can be validated.</span>
+                                  </div>
+                                )
+                              ) : (
+                                <div className="p-3 bg-muted/50 text-muted-foreground rounded-xl font-bold flex items-center border border-border text-[11px] uppercase tracking-wider">
+                                  Masukkan Tarikh/Hari Cuti Ganti untuk semak kelayakan
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ) : rlMode === 'taking' ? (
                           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-in fade-in slide-in-from-right-2">
                             <div className="space-y-2">
                               <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">Tarikh Cuti <span className="text-red-500">*</span></Label>
@@ -862,8 +1016,15 @@ export default function LeaveManagement() {
                               />
                             </div>
                           </div>
-                        )}
+                        ) : null}
                       </div>
+                    </div>
+                  )}
+
+                  {(formData.jenisCuti === "Replacement Leave" || formData.jenisCuti === "Cuti Ganti") && (
+                    <div className="flex items-center justify-between p-5 bg-[#7B0099]/5 rounded-3xl border-2 border-[#7B0099]/10">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-[#7B0099]">Bilangan Hari</span>
+                      <span className="text-3xl sm:text-4xl font-black text-[#7B0099] tracking-tighter">1 <span className="text-sm">HARI</span></span>
                     </div>
                   )}
 
