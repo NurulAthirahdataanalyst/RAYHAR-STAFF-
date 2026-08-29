@@ -15,6 +15,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Search } from "lucide-react";
 import { DatePickerInput } from "@/components/shared/DatePickerInput";
+import { TablePagination } from "@/components/common/TablePagination";
 import { API_BASE_URL } from "@/config/api";
 
 interface CompanyLeave {
