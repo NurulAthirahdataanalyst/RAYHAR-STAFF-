@@ -1097,7 +1097,7 @@ export function StaffProfileDialog({
                   {loadingSettings ? (
                     <div className="flex justify-center p-12"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
                   ) : (
-                    <div className="max-w-2xl mx-auto">
+                    <div className="max-w-3xl mx-auto space-y-6">
                       <Card>
                         <CardContent className="p-4 space-y-4">
                           <h3 className="font-bold text-lg border-b pb-2">Temporary Assignment</h3>
@@ -1146,6 +1146,46 @@ export function StaffProfileDialog({
                           </div>
                         </CardContent>
                       </Card>
+
+                      <Card>
+                        <CardContent className="p-4 space-y-4">
+                          <h3 className="font-bold text-lg border-b pb-2">Assignment History</h3>
+                          {tempAssignmentsHistory.length === 0 ? (
+                            <div className="text-center py-8 text-sm text-muted-foreground border rounded-lg border-dashed">
+                              No temporary assignments found for this employee.
+                            </div>
+                          ) : (
+                            <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-800">
+                              <table className="w-full text-sm text-left">
+                                <thead className="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+                                  <tr>
+                                    <th className="px-4 py-3 font-semibold text-slate-600 dark:text-slate-300">Branch</th>
+                                    <th className="px-4 py-3 font-semibold text-slate-600 dark:text-slate-300">Assignment</th>
+                                    <th className="px-4 py-3 font-semibold text-slate-600 dark:text-slate-300">Start Date</th>
+                                    <th className="px-4 py-3 font-semibold text-slate-600 dark:text-slate-300">End Date</th>
+                                    <th className="px-4 py-3 font-semibold text-slate-600 dark:text-slate-300">Status</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                                  {tempAssignmentsHistory.map((ta, idx) => (
+                                    <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/50">
+                                      <td className="px-4 py-3 font-bold text-slate-800 dark:text-slate-200">{ta.location}</td>
+                                      <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{BRANCH_NAMES[ta.location as keyof typeof BRANCH_NAMES] || ta.location}</td>
+                                      <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{ta.start_date ? new Date(ta.start_date).toLocaleDateString('en-GB') : '-'}</td>
+                                      <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{ta.end_date ? new Date(ta.end_date).toLocaleDateString('en-GB') : '-'}</td>
+                                      <td className="px-4 py-3">
+                                        <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${ta.status === 'Active' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400'}`}>
+                                          {ta.status}
+                                        </span>
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
                     </div>
                   )}
                 </TabsContent>
@@ -1154,12 +1194,56 @@ export function StaffProfileDialog({
                   {loadingSettings ? (
                     <div className="flex justify-center p-12"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
                   ) : (
-                    <div className="max-w-3xl mx-auto">
+                    <div className="max-w-3xl mx-auto space-y-6">
+                      {/* Allowed Branches Table */}
+                      <Card>
+                        <CardContent className="p-4 space-y-4">
+                          <h3 className="font-bold text-lg border-b pb-2 mb-4">Allowed Branches</h3>
+                          <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-800">
+                            <table className="w-full text-sm text-left">
+                              <thead className="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+                                <tr>
+                                  <th className="px-4 py-3 font-semibold text-slate-600 dark:text-slate-300">Type</th>
+                                  <th className="px-4 py-3 font-semibold text-slate-600 dark:text-slate-300">Branch</th>
+                                  <th className="px-4 py-3 font-semibold text-slate-600 dark:text-slate-300">Code</th>
+                                  <th className="px-4 py-3 font-semibold text-slate-600 dark:text-slate-300">Status</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                                <tr className="hover:bg-slate-50/50 dark:hover:bg-slate-900/50">
+                                  <td className="px-4 py-3 font-bold text-slate-800 dark:text-slate-200">Main</td>
+                                  <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{selectedEmployee?.branch ? (BRANCH_NAMES[selectedEmployee.branch as keyof typeof BRANCH_NAMES] || selectedEmployee.branch) : '-'}</td>
+                                  <td className="px-4 py-3 font-bold text-slate-800 dark:text-slate-200">{selectedEmployee?.branch || '-'}</td>
+                                  <td className="px-4 py-3">
+                                    <span className="px-2 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400">
+                                      Permanent
+                                    </span>
+                                  </td>
+                                </tr>
+                                {allowedLocations.filter(c => c !== selectedEmployee?.branch).map((loc, idx) => (
+                                  <tr key={loc} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/50">
+                                    <td className="px-4 py-3 font-bold text-slate-800 dark:text-slate-200">{idx + 1}</td>
+                                    <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{BRANCH_NAMES[loc as keyof typeof BRANCH_NAMES] || loc}</td>
+                                    <td className="px-4 py-3 font-bold text-slate-800 dark:text-slate-200">{loc}</td>
+                                    <td className="px-4 py-3">
+                                      <span className="px-2 py-1 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400">
+                                        Active
+                                      </span>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* Edit Section (HR Admin Only) */}
                       {role === "hr_admin" ? (
                         <Card>
                           <CardContent className="p-4 space-y-4">
                             <div className="flex justify-between items-center border-b pb-2">
-                              <h3 className="font-bold text-lg">Allowed Branches</h3>
+                              <h3 className="font-bold text-lg">Manage Allowed Branches</h3>
                             </div>
                             <div className="text-xs text-foreground mb-2">Select the branches this employee is permitted to clock into.</div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[300px] overflow-y-auto pr-2">
@@ -1182,11 +1266,7 @@ export function StaffProfileDialog({
                             <Button className="w-full mt-4 bg-[#a01497] hover:bg-[#850f7c] text-white" onClick={saveAllowedLocations}>Save Allowed Branches</Button>
                           </CardContent>
                         </Card>
-                      ) : (
-                        <div className="flex flex-col items-center justify-center p-8 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800/60">
-                          <p className="text-sm font-semibold text-muted-foreground">Only HR Admin can manage Multi Location Branch settings.</p>
-                        </div>
-                      )}
+                      ) : null}
                     </div>
                   )}
                 </TabsContent>
