@@ -190,12 +190,14 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role }: LeaveDetai
                   </div>
                 </div>
 
+                {!(selectedRequest.type === "Replacement Leave" || selectedRequest.type === "Cuti Ganti") && (
                 <div className="space-y-2">
                   <p className="text-[9px] font-black uppercase text-slate-950 dark:text-slate-50 tracking-widest">Sebab / Tujuan</p>
                   <div className="rounded-[16px] border border-border/40 p-4 font-bold text-foreground bg-muted/10 text-sm leading-relaxed whitespace-pre-wrap break-words min-h-[50px]">
                     {getCleanReason(selectedRequest.reason) || "-"}
                   </div>
                 </div>
+                )}
 
                 {(selectedRequest.type === "Replacement Leave" || selectedRequest.type === "Cuti Ganti") && (() => {
                   const rows = parseCutiGantiRows(

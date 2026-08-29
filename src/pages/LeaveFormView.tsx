@@ -497,11 +497,11 @@ export default function LeaveFormView() {
                 </DialogHeader>
               </div>
 
-              <div id="leave-form-print" className="p-4 sm:p-8 space-y-6">
-                <div className="rounded-[24px] border border-border/50 p-6 sm:p-8 space-y-6 bg-card shadow-sm">
-                  <div className="text-center border-b-2 border-foreground/50 dark:border-purple-500/50 pb-4">
-                    <h2 className="text-3xl font-black tracking-tighter text-foreground dark:text-purple-400">RAYHAR GROUP</h2>
-                    <p className="text-[20px] font-black tracking-[0.3em] uppercase opacity-60 dark:text-purple-300">Permohonan Cuti Kakitangan</p>
+              <div id="leave-form-print" className="p-4 sm:p-8 print:p-2 space-y-6 print:space-y-2">
+                <div className="rounded-[24px] border border-border/50 p-6 sm:p-8 print:p-4 space-y-6 print:space-y-3 bg-card shadow-sm print:shadow-none print:border-none">
+                  <div className="text-center border-b-2 border-foreground/50 dark:border-purple-500/50 pb-4 print:pb-2">
+                    <h2 className="text-3xl print:text-2xl font-black tracking-tighter text-foreground dark:text-purple-400">RAYHAR GROUP</h2>
+                    <p className="text-[20px] print:text-[14px] font-black tracking-[0.3em] uppercase opacity-60 dark:text-purple-300">Permohonan Cuti Kakitangan</p>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4 text-xs font-bold">
@@ -555,20 +555,14 @@ export default function LeaveFormView() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <p className="text-[9px] font-black uppercase text-slate-950 dark:text-slate-50 tracking-widest">Sebab / Tujuan</p>
-                      <div className="rounded-[16px] border border-border/40 p-4 font-bold text-foreground bg-muted/10 text-sm leading-relaxed whitespace-pre-wrap break-words min-h-[50px] max-h-[150px] overflow-y-auto">
-                        {getCleanReason(selectedForm.reason) || "-"}
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <p className="text-[9px] font-black uppercase text-slate-950 dark:text-slate-50 tracking-widest">No. Telefon</p>
-                      <div className="rounded-[16px] border border-border/40 p-4 font-bold text-foreground bg-muted/10 text-sm h-full min-h-[50px] flex items-center">
-                        {selectedForm.phone || "-"}
-                      </div>
+                  {!(selectedForm.type === "Replacement Leave" || selectedForm.type === "Cuti Ganti") && (
+                  <div className="space-y-2">
+                    <p className="text-[9px] font-black uppercase text-slate-950 dark:text-slate-50 tracking-widest">Sebab / Tujuan</p>
+                    <div className="rounded-[16px] border border-border/40 p-4 font-bold text-foreground bg-muted/10 text-sm leading-relaxed whitespace-pre-wrap break-words min-h-[50px] max-h-[100px] overflow-y-auto print:max-h-none print:overflow-visible print:p-2">
+                      {getCleanReason(selectedForm.reason) || "-"}
                     </div>
                   </div>
+                  )}
 
                    {/* Conditional Fields: Cuti Ganti */}
                   {(selectedForm.type === "Replacement Leave" || selectedForm.type === "Cuti Ganti") && (() => {
@@ -642,12 +636,12 @@ export default function LeaveFormView() {
                   )}
 
                   {/* Waris Section */}
-                  <div className="pt-4 border-t border-border/50 space-y-4">
+                  <div className="pt-4 border-t border-border/50 space-y-4 print:space-y-2 print:pt-2">
                     <div className="flex items-center gap-2">
                       <PhoneCall className="w-4 h-4 text-rose-500" />
                       <h3 className="text-[10px] font-black uppercase tracking-[0.2em]">Maklumat Waris (Kecemasan)</h3>
                     </div>
-                    <div className="grid grid-cols-2 gap-4 bg-muted/20 p-4 rounded-[20px]">
+                    <div className="grid grid-cols-2 gap-4 print:gap-2 bg-muted/20 p-4 print:p-2 rounded-[20px] print:rounded-none">
                       <div className="space-y-1">
                         <span className="text-[8px] font-black text-slate-950 dark:text-slate-50 uppercase">Nama</span>
                         <p className="text-[11px] font-bold truncate">{selectedForm.warisNama}</p>
@@ -668,7 +662,7 @@ export default function LeaveFormView() {
                   </div>
 
                   {/* Approval History Timeline (Vertical Flow) */}
-                  <div className="space-y-4 pt-4 border-t border-border/50">
+                  <div className="space-y-4 print:space-y-2 pt-4 print:pt-2 border-t border-border/50">
                     <ApprovalHistoryTimeline 
                       status={selectedForm.status} 
                       approverRole={selectedForm.approverRole || "HR Admin"} 
@@ -701,7 +695,7 @@ export default function LeaveFormView() {
                   
 
                   
-                  <div className="hidden print:block pt-12 pb-4">
+                  <div className="hidden print:block pt-6 pb-2">
                     <div className="grid grid-cols-2 gap-16">
                       <div className="border-t border-foreground pt-2 text-center">
                         <p className="text-[10px] font-bold uppercase">Tandatangan Kakitangan</p>
@@ -710,7 +704,7 @@ export default function LeaveFormView() {
                         <p className="text-[10px] font-bold uppercase">Kelulusan Pengurus / HR</p>
                       </div>
                     </div>
-                    <p className="text-[10px] text-center italic mt-8 text-foreground">
+                    <p className="text-[9px] text-center italic mt-4 text-foreground">
                       Borang ini sah digunakan sebagai bukti rasmi cuti kakitangan setelah mendapat kelulusan pihak pengurusan.
                     </p>
                   </div>

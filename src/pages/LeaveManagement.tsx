@@ -914,7 +914,7 @@ export default function LeaveManagement() {
                     </div>
                   )}
 
-                  {!(rlMode === 'earning' && (formData.jenisCuti === "Replacement Leave" || formData.jenisCuti === "Cuti Ganti")) && (
+                  {!(formData.jenisCuti === "Replacement Leave" || formData.jenisCuti === "Cuti Ganti") && (
                   <div className="space-y-2">
                     <Label className="text-[10px] font-black uppercase tracking-widest text-foreground px-1">Sebab / Tujuan <span className="text-red-500">*</span></Label>
                     <Textarea
