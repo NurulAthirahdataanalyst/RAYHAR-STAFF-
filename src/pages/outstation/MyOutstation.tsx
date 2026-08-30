@@ -217,47 +217,8 @@ export default function MyOutstation() {
       {/* Main Content Card */}
       <Card className="border-none shadow-[0_20px_50px_rgba(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.2)] bg-card/80 backdrop-blur-md rounded-[24px] sm:rounded-[32px] overflow-hidden">
         
-        {/* Tabs & Export inside Card Header */}
-        <div className="px-6 pt-6 border-b border-gray-100 dark:border-slate-800/50 bg-white/50 dark:bg-slate-900/50 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
-          <div className="flex items-center gap-6 w-full sm:w-auto overflow-x-auto scrollbar-none">
-            {(["Upcoming", "Active", "Completed", "Cancelled"] as const).map((s) => (
-              <button
-                key={s}
-                role="tab"
-                onClick={() => { setTab(s); setSearchParams({ tab: s.toLowerCase() }); }}
-                className={`text-sm font-black uppercase tracking-widest pb-3 translate-y-[1px] transition-colors border-b-[3px] whitespace-nowrap ${
-                  tab === s 
-                    ? (s === "Upcoming" ? "text-amber-500 border-amber-500" :
-                       s === "Active" ? "text-pink-500 border-pink-500" :
-                       s === "Completed" ? "text-emerald-500 border-emerald-500" :
-                       "text-red-500 border-red-500")
-                    : "text-foreground border-transparent hover:text-yellow-500 hover:border-yellow-500"
-                }`}
-              >
-                {s}
-                {counts[s] > 0 && (
-                  <span className={`ml-2 px-1.5 py-0.5 rounded-full text-[10px] ${
-                    tab === s 
-                      ? (s === "Upcoming" ? "bg-amber-500 text-white" :
-                         s === "Active" ? "bg-pink-500 text-white" :
-                         s === "Completed" ? "bg-emerald-500 text-white" :
-                         "bg-red-500 text-white")
-                      : "bg-muted-foreground/20 text-foreground transition-colors group-hover:bg-yellow-500 group-hover:text-white"
-                  }`}>
-                    {counts[s]}
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
-          
-          <div className="pb-3 flex gap-2">
-            <ExportDropdown onExportCSV={() => exportToCSV(filtered, `My_Outstations_${tab}`)} />
-          </div>
-        </div>
-
         {/* Filters Row */}
-        <div className="p-4 sm:p-6 border-b border-gray-100 dark:border-slate-800/50 bg-white/50 dark:bg-slate-900/50">
+        <div className="p-4 sm:px-6 sm:pt-6 sm:pb-2 border-b-0 bg-white/50 dark:bg-slate-900/50">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="relative flex-1 sm:max-w-xs">
               <Search className="w-3.5 h-3.5 text-foreground absolute left-3 top-1/2 -translate-y-1/2" />
@@ -307,6 +268,45 @@ export default function MyOutstation() {
                 <YearPopover year={selectedYear} onSelectYear={setSelectedYear} className="flex items-center justify-between h-9 px-3 text-[10px] font-black uppercase tracking-widest text-foreground dark:text-slate-100 bg-white dark:bg-card border border-slate-200 dark:border-slate-700 rounded-md shadow-sm min-w-[140px]" />
               )}
             </div>
+          </div>
+        </div>
+
+        {/* Tabs & Export inside Card Header */}
+        <div className="px-4 sm:px-6 pt-2 sm:pt-4 border-b border-gray-100 dark:border-slate-800/50 bg-white/50 dark:bg-slate-900/50 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
+          <div className="flex items-center gap-6 w-full sm:w-auto overflow-x-auto scrollbar-none">
+            {(["Upcoming", "Active", "Completed", "Cancelled"] as const).map((s) => (
+              <button
+                key={s}
+                role="tab"
+                onClick={() => { setTab(s); setSearchParams({ tab: s.toLowerCase() }); }}
+                className={`text-sm font-black uppercase tracking-widest pb-3 translate-y-[1px] transition-colors border-b-[3px] whitespace-nowrap ${
+                  tab === s 
+                    ? (s === "Upcoming" ? "text-amber-500 border-amber-500" :
+                       s === "Active" ? "text-pink-500 border-pink-500" :
+                       s === "Completed" ? "text-emerald-500 border-emerald-500" :
+                       "text-red-500 border-red-500")
+                    : "text-foreground border-transparent hover:text-yellow-500 hover:border-yellow-500"
+                }`}
+              >
+                {s}
+                {counts[s] > 0 && (
+                  <span className={`ml-2 px-1.5 py-0.5 rounded-full text-[10px] ${
+                    tab === s 
+                      ? (s === "Upcoming" ? "bg-amber-500 text-white" :
+                         s === "Active" ? "bg-pink-500 text-white" :
+                         s === "Completed" ? "bg-emerald-500 text-white" :
+                         "bg-red-500 text-white")
+                      : "bg-muted-foreground/20 text-foreground transition-colors group-hover:bg-yellow-500 group-hover:text-white"
+                  }`}>
+                    {counts[s]}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+          
+          <div className="pb-3 flex gap-2">
+            <ExportDropdown onExportCSV={() => exportToCSV(filtered, `My_Outstations_${tab}`)} />
           </div>
         </div>
 
