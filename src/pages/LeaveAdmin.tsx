@@ -549,13 +549,13 @@ export default function LeaveAdmin() {
               <Table>
                 <TableHeader className="bg-muted/20 border-b border-border/40">
                   <TableRow>
-                    <TableHead className="px-3 py-4 text-[13px]">Employee</TableHead>
-                    <TableHead className="px-3 py-4 text-[13px]">Leave Type</TableHead>
-                    <TableHead className="px-3 py-4 text-[13px]">From</TableHead>
-                    <TableHead className="px-3 py-4 text-[13px]">To</TableHead>
-                    <TableHead className="px-3 py-4 text-[13px]">Days</TableHead>
-                    <TableHead className="px-3 py-4 text-[13px]">Status</TableHead>
-                    {canApprove && <TableHead className="px-3 py-4 text-[13px] text-right">Actions</TableHead>}
+                    <TableHead className="px-3 py-4 text-[10px]">Employee</TableHead>
+                    <TableHead className="px-3 py-4 text-[10px]">Leave Type</TableHead>
+                    <TableHead className="px-3 py-4 text-[10px]">From</TableHead>
+                    <TableHead className="px-3 py-4 text-[10px]">To</TableHead>
+                    <TableHead className="px-3 py-4 text-[10px]">Days</TableHead>
+                    <TableHead className="px-3 py-4 text-[10px]">Status</TableHead>
+                    {canApprove && <TableHead className="px-3 py-4 text-[10px] text-right">Actions</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody className="divide-y divide-border/40">
