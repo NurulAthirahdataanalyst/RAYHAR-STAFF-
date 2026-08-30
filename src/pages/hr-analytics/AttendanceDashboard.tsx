@@ -1799,7 +1799,7 @@ export default function AttendanceDashboard() {
               </p>
               <p 
                 className="text-[10px] font-bold text-[#7B0099] cursor-pointer hover:underline flex items-center gap-1"
-                onClick={() => navigate('/branches')}
+                onClick={() => navigate((role === "head_of_department" || role === "hod" || role === "branch_leader") ? "/employee-directory" : "/branches")}
               >
                 View All <ChevronRight className="w-3 h-3" />
               </p>
@@ -1937,19 +1937,19 @@ export default function AttendanceDashboard() {
               </div>
 
               {/* Anomaly Insight Section */}
-              {((liveStats.absent || 14) / (liveStats.total || 15)) > 0.2 && (
+              {((liveStats.absent || 0) / (liveStats.total || 1)) > 0.2 && (
                 <div className="bg-amber-50 border border-amber-100 rounded-lg p-4 flex flex-col gap-2">
                   <div className="flex items-center gap-2 text-amber-800">
                     <AlertCircle className="w-4 h-4 shrink-0" />
-                    <span className="text-[13px] font-semibold">Attendance dropped {Math.round(((liveStats.absent || 14)/(liveStats.total || 15))*100)}% this month.</span>
+                    <span className="text-[13px] font-semibold">Attendance dropped {Math.min(Math.round(((liveStats.absent || 0)/(liveStats.total || 1))*100), 100)}% this month.</span>
                   </div>
                   <p className="text-[12px] text-amber-700 pl-6">
                     Primary cause:<br />
-                    <span className="font-medium text-amber-900">{liveStats.absent || 14} employees currently absent.</span>
+                    <span className="font-medium text-amber-900">{liveStats.absent || 0} employees currently absent.</span>
                   </p>
                   <div className="pl-6 pt-1">
                     <button
-                      onClick={() => navigate("/branches")}
+                      onClick={() => navigate((role === "head_of_department" || role === "hod" || role === "branch_leader") ? "/employee-directory" : "/branches")}
                       className="text-[12px] font-semibold text-amber-700 hover:text-amber-900 flex items-center gap-1"
                     >
                       View Employees <ChevronDown className="w-3 h-3 -rotate-90" />
