@@ -352,7 +352,7 @@ export default function OutstationAssignment() {
       </PageActions>
 
       {/* Table */}
-      <Card className="border border-gray-200 dark:border-slate-800 dark:border-gray-500/30/80 shadow-sm overflow-hidden">
+      <Card className="border border-slate-100 dark:border-slate-700 bg-white dark:bg-card shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] rounded-[24px] overflow-hidden">
         <CardHeader className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 dark:border-slate-800">
           <CardTitle className="text-sm font-black uppercase tracking-wide flex items-center gap-2">
             <Plane className="w-4 h-4 text-pink-500" />

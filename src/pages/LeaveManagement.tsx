@@ -518,7 +518,7 @@ export default function LeaveManagement() {
 
       {/* STEP 0: ARAHAN (FRONT PAGE) */}
       {currentStep === 0 && (
-        <Card className="border-none shadow-[0_20px_50px_rgba(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.2)] bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden">
+        <Card className="border border-slate-100 dark:border-slate-700 bg-white dark:bg-card shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] rounded-[24px] backdrop-blur-md overflow-hidden">
           <CardContent className="p-5 sm:p-8 text-center space-y-4 sm:space-y-5">
             <div className="bg-[#7B0099]/10 w-20 h-20 sm:w-24 sm:h-24 rounded-[32px] flex items-center justify-center mx-auto rotate-12 transition-transform hover:rotate-0 duration-300">
               <PlaneTakeoff className="w-10 h-10 sm:w-12 sm:h-12 text-[#7B0099]" />
@@ -577,7 +577,7 @@ export default function LeaveManagement() {
             ))}
           </div>
 
-          <Card className="border-none shadow-[0_20px_50px_rgba(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.2)] bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden">
+          <Card className="border border-slate-100 dark:border-slate-700 bg-white dark:bg-card shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] rounded-[24px] backdrop-blur-md overflow-hidden">
             <CardHeader className="bg-gradient-to-r from-[#7B0099] to-[#a855f7] text-white p-4 sm:p-6">
               <CardTitle className="flex items-center gap-3 text-base sm:text-lg font-black uppercase tracking-widest">
                 <div className="bg-white/20 p-2 rounded-xl">

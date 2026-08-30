@@ -536,7 +536,7 @@ export default function LeaveAdmin() {
           </div>
       </div>
 
-      <Card className="border border-border/60 shadow-sm bg-card rounded-lg overflow-hidden">
+      <Card className="border border-slate-100 dark:border-slate-700 bg-white dark:bg-card shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] rounded-[24px] overflow-hidden">
         {/* Table Content */}
         <CardContent className="p-0">
           {loading ? (

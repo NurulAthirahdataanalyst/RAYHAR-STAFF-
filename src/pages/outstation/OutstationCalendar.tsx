@@ -142,7 +142,7 @@ export default function OutstationCalendar({ onlyMine = false }: { onlyMine?: bo
         </div>
 
       {/* Calendar Card */}
-      <Card className="border border-slate-200 dark:border-slate-800/80 shadow-xs overflow-hidden rounded-2xl">
+      <Card className="border border-slate-100 dark:border-slate-700 bg-white dark:bg-card shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] rounded-[24px] overflow-hidden">
         <CardHeader className="flex flex-col gap-4 border-b border-border/50 p-4 sm:p-5">
           {/* Controls */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 w-full">

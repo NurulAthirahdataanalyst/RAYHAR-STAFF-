@@ -281,7 +281,7 @@ const CompanyLeaveCalendar = () => {
 
       {/* Dialog for Add/Edit */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-md p-0 overflow-hidden border-none shadow-2xl bg-card rounded-2xl [&>button]:text-white [&>button]:top-5 [&>button]:right-5">
+        <DialogContent className="max-w-md p-0 overflow-hidden border-none shadow-2xl bg-card rounded-[24px] [&>button]:text-white [&>button]:top-5 [&>button]:right-5">
           <DialogHeader className="bg-[#942392] px-6 py-4 flex flex-row items-center justify-between">
             <DialogTitle className="text-white font-black text-lg">{editingId ? "Edit Company Leave" : "Add Company Leave"}</DialogTitle>
           </DialogHeader>
