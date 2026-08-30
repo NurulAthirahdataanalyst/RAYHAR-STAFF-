@@ -1,4 +1,4 @@
-﻿const dotenv = require("dotenv");
+const dotenv = require("dotenv");
 dotenv.config();
 
 const express = require("express");
@@ -3366,7 +3366,7 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
         if (approverUserId) {
           await pool.query(
             `INSERT INTO notifications (user_id, title, message, type, related_leave_id) VALUES (?, ?, ?, ?, ?)`,
-            [approverUserId, `New Leave Request: ${leaveData.full_name}`, `${leaveData.full_name} submitted a Leave Request and Need Your Approval\n${leaveData.leave_type} • ${new Date(leaveData.start_date).getTime() === new Date(leaveData.end_date).getTime() ? require('date-fns').format(new Date(leaveData.start_date), 'dd/MM/yyyy') : (leaveData.leave_type === 'Replacement Leave' || leaveData.leave_type === 'Cuti Ganti' ? require('date-fns').format(new Date(leaveData.start_date), 'dd/MM/yyyy') + ' and ' + require('date-fns').format(new Date(leaveData.end_date), 'dd/MM/yyyy') : require('date-fns').format(new Date(leaveData.start_date), 'dd/MM/yyyy') + ' - ' + require('date-fns').format(new Date(leaveData.end_date), 'dd/MM/yyyy'))} • ${leaveData.days} Days`, 'leave_approval', result.insertId]
+            [approverUserId, `${leaveData.full_name} submitted a Leave Request and Need Your Approval`, `${leaveData.leave_type} • ${new Date(leaveData.start_date).getTime() === new Date(leaveData.end_date).getTime() ? require('date-fns').format(new Date(leaveData.start_date), 'dd/MM/yyyy') : (leaveData.leave_type === 'Replacement Leave' || leaveData.leave_type === 'Cuti Ganti' ? require('date-fns').format(new Date(leaveData.start_date), 'dd/MM/yyyy') + ' and ' + require('date-fns').format(new Date(leaveData.end_date), 'dd/MM/yyyy') : require('date-fns').format(new Date(leaveData.start_date), 'dd/MM/yyyy') + ' - ' + require('date-fns').format(new Date(leaveData.end_date), 'dd/MM/yyyy'))} • ${leaveData.days} Days`, 'leave_approval', result.insertId]
           );
         }
 

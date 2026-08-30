@@ -1,38 +1,42 @@
-import re
+import codecs
 
-path = 'src/pages/hr-analytics/WorkforceInsights.tsx'
-with open(path, 'r', encoding='utf-8') as f:
+with codecs.open('src/pages/hr-analytics/WorkforceInsights.tsx', 'r', 'utf-8') as f:
     content = f.read()
 
-# Replace <div class="flex items-center gap-2"><Icon /><CardTitle ...>Title</CardTitle></div>
-# With just <CardTitle ...>Title</CardTitle>
+# 1. Add getCleanReason import
+import_str = 'import { format, subDays, addDays, startOfWeek, endOfWeek } from "date-fns";'
+if 'getCleanReason' not in content:
+    content = content.replace(import_str, 'import { getCleanReason } from "@/lib/leaveStorage";\n' + import_str)
 
-titles = [
-    "Branch Workforce Distribution",
-    "Temporary Branch Assignment",
-    "Attendance Overview",
-    "Attendance Trend",
-    "Monthly Comparison",
-    "Leave Utilization Trend vs. Previous Month",
-    r"Missing Punch-Outs?|Missing Punch",
-    r"Travel & Outstation Summary|Travel & Outstation"
-]
+# 2. Fix scopeLabel reference error
+# Let's see where scopeLabel is used:
+# {scopeLabel && <span ...>{scopeLabel}</span>}
+# It's likely undefined because it was removed or never declared.
+# I'll declare it: const scopeLabel = role === "head_of_department" || role === "hod" ? userDepartment : (role === "branch_leader" ? userBranch : "");
+# Wait, let's find a good place to declare it. Inside unction WorkforceInsights() { ...
+content = content.replace('const cardHoverEffect = cardHoverEffects.purple;', 'const cardHoverEffect = cardHoverEffects.purple;\n  const scopeLabel = role === "head_of_department" || role === "hod" ? userDepartment : (role === "branch_leader" ? userBranch : "");')
 
-for title in titles:
-    # Look for: <div className="flex items-center gap-2">\s*<[A-Za-z0-9]+[^>]*/>\s*<CardTitle className="text-base font-bold text-slate-800 dark:text-slate-200">TITLE</CardTitle>\s*</div>
-    pattern = r'<div className="flex items-center[^"]*">\s*<[A-Z][A-Za-z0-9]*[^>]*/>\s*<CardTitle className="text-base font-bold text-slate-800 dark:text-slate-200">(' + title + r')</CardTitle>\s*</div>'
-    content = re.sub(pattern, r'<CardTitle className="text-base font-bold text-slate-800 dark:text-slate-200">\1</CardTitle>', content)
+# 3. Use getCleanReason for Pending Approvals reason
+reasonOld = '''                              Reason: {
+                                (() => {
+                                  if (!item.reason) return "-";
+                                  if (item.reason.startsWith("[CUTI_GANTI_DATA:") && item.reason.endsWith("]")) {
+                                    try {
+                                      const jsonStr = item.reason.substring(17, item.reason.length - 1);
+                                      const data = JSON.parse(jsonStr);
+                                      if (Array.isArray(data) && data.length > 0) {
+                                        return "Replacement Leave (" + data.map(d => d.keterangan || "-").join(", ") + ")";
+                                      }
+                                    } catch (e) {}
+                                  }
+                                  return item.reason;
+                                })()
+                              }'''
+reasonNew = '''                              Reason: { getCleanReason(item.reason) || "-" }'''
+content = content.replace(reasonOld, reasonNew)
+content = content.replace(reasonOld.replace('\n', '\r\n'), reasonNew)
 
-    # What about the ones that weren't matched at all by the first pass?
-    # e.g. Attendance Trend
-    pattern_alt = r'<div className="flex items-center[^"]*">\s*<[A-Z][A-Za-z0-9]*[^>]*/>\s*<CardTitle[^>]*>(' + title + r')</CardTitle>\s*</div>'
-    content = re.sub(pattern_alt, r'<CardTitle className="text-base font-bold text-slate-800 dark:text-slate-200">\1</CardTitle>', content)
-    
-    # What about ones with a subtitle?
-    # e.g. <p className="...">subtitle</p>
-    # Since I don't know the exact class, I will just remove <p className="text-[11px] text-slate-500">...</p> that follow the title
-    pattern_p = r'(<CardTitle className="text-base font-bold text-slate-800 dark:text-slate-200">' + title + r'</CardTitle>)\s*<p[^>]*>.*?</p>'
-    content = re.sub(pattern_p, r'\1', content, flags=re.DOTALL)
-
-with open(path, 'w', encoding='utf-8') as f:
+with codecs.open('src/pages/hr-analytics/WorkforceInsights.tsx', 'w', 'utf-8') as f:
     f.write(content)
+
+print("Updated WorkforceInsights.tsx")

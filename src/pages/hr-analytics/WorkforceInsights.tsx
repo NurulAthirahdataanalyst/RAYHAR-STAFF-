@@ -10,6 +10,7 @@ import { exportToCSV } from "@/utils/export";
 import { API_BASE_URL } from "@/config/api";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Loader2, Users, UserCheck, CalendarDays, Calendar as CalendarIcon, Clock, FileCheck, CheckCircle2, XCircle, AlertTriangle, Building2, Download, ChevronRight, ChevronDown, Wifi, WifiOff, TrendingUp, MapPin, Plane, FileText, AlertCircle, Award, ChevronLeft } from "lucide-react";
+import { getCleanReason } from "@/lib/leaveStorage";
 import { format, subDays, addDays, startOfWeek, endOfWeek } from "date-fns";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend, Sector, AreaChart, Area, ReferenceArea } from "recharts";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -60,6 +61,7 @@ const cardHoverEffects: Record<string, string> = {
   slate: "cursor-pointer transition-all duration-200 hover:border-slate-500 hover:ring-1 hover:ring-slate-500 hover:bg-slate-50/50 dark:hover:bg-slate-900/50",
 };
 const cardHoverEffect = cardHoverEffects.purple;
+  const scopeLabel = role === "head_of_department" || role === "hod" ? userDepartment : (role === "branch_leader" ? userBranch : "");
 
 const AVATAR_COLORS = [
   "bg-purple-100 text-purple-700",
