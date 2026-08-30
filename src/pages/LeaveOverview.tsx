@@ -382,7 +382,7 @@ export default function LeaveOverview() {
                   <div className="pt-1 mt-auto">
                     <div className="flex flex-col gap-0.5">
                       <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-widest">Latest Application</span>
-                      <span className="text-[11px] font-black leading-none">{item.latestAppDate ? new Date(item.latestAppDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'No Record'}</span>
+                      <span className="text-[11px] font-black leading-none uppercase">{item.latestAppDate ? new Date(item.latestAppDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'No Record'}</span>
                     </div>
                   </div>
               </div>
