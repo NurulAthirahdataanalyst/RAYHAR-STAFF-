@@ -1,54 +1,59 @@
-import os
+import codecs
+import re
 
-# Fix server.js
-server_path = r"c:\Users\HP\ATTENDANCE_SYSTEM\backend\server.js"
-with open(server_path, 'r', encoding='utf-8') as f:
+with codecs.open('src/pages/outstation/OutstationAnalytics.tsx', 'r', 'utf-8') as f:
     content = f.read()
 
-# 1. fix dashboard-stats annual_adjustment
-content = content.replace(
-    "leave_type IN ('Annual Leave', 'Annual & Emergency Leave', 'Annual/Emergency Leave', 'Cuti Tahunan')",
-    "UPPER(leave_type) IN ('ANNUAL LEAVE', 'ANNUAL & EMERGENCY LEAVE', 'ANNUAL/EMERGENCY LEAVE', 'CUTI TAHUNAN')"
-)
+# 1. Imports
+target_imports = r'import \{ TablePagination \} from "@/components/common/TablePagination";'
+replace_imports = r'import { TablePagination } from "@/components/common/TablePagination";\nimport { YearPopover } from "@/components/shared/YearPopover";'
+content = re.sub(target_imports, replace_imports, content)
 
-# 2. fix dashboard-stats used_days annual
-content = content.replace(
-    "leave_type IN ('Cuti Tahunan', 'Annual Leave', 'Annual/Emergency Leave', 'Annual & Emergency Leave', 'Kecemasan', 'Emergency')",
-    "UPPER(leave_type) IN ('CUTI TAHUNAN', 'ANNUAL LEAVE', 'ANNUAL/EMERGENCY LEAVE', 'ANNUAL & EMERGENCY LEAVE', 'KECEMASAN', 'EMERGENCY')"
-)
+# 2. Add selectedYear state
+target_state = r'const \[selectedMonth, setSelectedMonth\] = useState<string>\("all"\);'
+replace_state = r'const [selectedMonth, setSelectedMonth] = useState<string>("all");\n  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());'
+content = re.sub(target_state, replace_state, content)
 
-# 3. fix dashboard-stats used_days replacement
-content = content.replace(
-    "leave_type IN ('Replacement Leave', 'Cuti Ganti')",
-    "UPPER(leave_type) IN ('REPLACEMENT LEAVE', 'CUTI GANTI')"
-)
+# 3. Add filteredAssignments useMemo
+target_filtered = r'// Group individual employee assignments into distinct Outstation Events'
+replace_filtered = r'''// Filter by selected year
+  const filteredAssignments = useMemo(() => {
+    return assignments.filter(a => {
+      if (!a.start_date) return false;
+      return a.start_date.startsWith(selectedYear);
+    });
+  }, [assignments, selectedYear]);
 
-# 4. fix user-details total_adjustment
-content = content.replace(
-    'const [adjRows] = await pool.query("SELECT COALESCE(SUM(adjustment_days), 0) AS total_adjustment FROM leave_balance_adjustments WHERE employee_id = ?", [userId]);',
-    'const [adjRows] = await pool.query("SELECT COALESCE(SUM(adjustment_days), 0) AS total_adjustment FROM leave_balance_adjustments WHERE employee_id = ? AND UPPER(leave_type) IN (\'ANNUAL LEAVE\', \'ANNUAL & EMERGENCY LEAVE\', \'ANNUAL/EMERGENCY LEAVE\', \'CUTI TAHUNAN\')", [userId]);'
-)
+  // Group individual employee assignments into distinct Outstation Events'''
+content = re.sub(target_filtered, replace_filtered, content)
 
-with open(server_path, 'w', encoding='utf-8') as f:
+# 4. Replace 'assignments' with 'filteredAssignments' inside eventGroups, activeStaffCount, totalDestinations, destinationData, allRecentAssignments, upcomingGroups
+content = re.sub(r'assignments\.forEach\(\(a\)', r'filteredAssignments.forEach((a)', content)
+content = re.sub(r'assignments\.filter\(a =>', r'filteredAssignments.filter(a =>', content)
+content = re.sub(r'assignments\.map\(a =>', r'filteredAssignments.map(a =>', content)
+content = re.sub(r'assignments\s*\n\s*\.slice', r'filteredAssignments\n      .slice', content)
+content = re.sub(r'\[assignments\]\)', r'[filteredAssignments])', content)
+
+# 5. Replace Refresh button with YearPopover
+target_btn = r'''<PageActions>
+          <Button onClick=\{\(\) => void fetchData\(\)\} className="h-11 px-5 w-full sm:w-auto">
+            <RefreshCw className="w-3.5 h-3.5 mr-2" /> Refresh
+          </Button>
+        </PageActions>'''
+replace_btn = r'''<PageActions>
+          <YearPopover 
+            year={selectedYear} 
+            onSelectYear={setSelectedYear} 
+            className="flex items-center justify-between h-10 px-4 text-[11px] font-black uppercase tracking-widest text-slate-900 dark:text-slate-100 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 rounded-md shadow-sm min-w-[140px] shrink-0" 
+          />
+        </PageActions>'''
+content = re.sub(target_btn, replace_btn, content)
+
+# 6. Make sure "Across entire year" texts use selectedYear instead of "year"
+content = re.sub(r'Across entire year', r'Across {selectedYear}', content)
+
+
+with codecs.open('src/pages/outstation/OutstationAnalytics.tsx', 'w', 'utf-8') as f:
     f.write(content)
 
-
-# Fix EmployeeAnalyticsView.tsx
-view_path = r"c:\Users\HP\ATTENDANCE_SYSTEM\src\pages\EmployeeAnalyticsView.tsx"
-with open(view_path, 'r', encoding='utf-8') as f:
-    content = f.read()
-
-content = content.replace(
-    "return type === 'CUTI TAHUNAN' || type === 'ANNUAL/EMERGENCY LEAVE' || type === 'ANNUAL & EMERGENCY LEAVE';",
-    "return type === 'CUTI TAHUNAN' || type === 'ANNUAL LEAVE' || type === 'ANNUAL/EMERGENCY LEAVE' || type === 'ANNUAL & EMERGENCY LEAVE';"
-)
-
-content = content.replace(
-    "return ['CUTI TAHUNAN', 'ANNUAL/EMERGENCY LEAVE', 'ANNUAL & EMERGENCY LEAVE', 'CUTI SAKIT', 'SICK LEAVE', 'KECEMASAN', 'EMERGENCY'].includes(type);",
-    "return ['CUTI TAHUNAN', 'ANNUAL LEAVE', 'ANNUAL/EMERGENCY LEAVE', 'ANNUAL & EMERGENCY LEAVE', 'CUTI SAKIT', 'SICK LEAVE', 'KECEMASAN', 'EMERGENCY'].includes(type);"
-)
-
-with open(view_path, 'w', encoding='utf-8') as f:
-    f.write(content)
-
-print("Fixes applied.")
+print("Updated OutstationAnalytics")

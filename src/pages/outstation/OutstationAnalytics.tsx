@@ -11,6 +11,7 @@ import {
 } from "recharts";
 
 import { TablePagination } from "@/components/common/TablePagination";
+import { YearPopover } from "@/components/shared/YearPopover";
 import PageActions from "@/components/layout/PageActions";
 
 const ALLOWED_ROLES = ["hr_admin", "managing_director", "operation_manager", "finance_manager", "branch_leader", "head_of_department"];
@@ -53,6 +54,7 @@ export default function OutstationAnalytics() {
   const [stats, setStats] = useState<any>({});
   const [loading, setLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
   const [recentPage, setRecentPage] = useState(1);
   const [recentLimit, setRecentLimit] = useState(10);
 
@@ -110,6 +112,13 @@ export default function OutstationAnalytics() {
     return () => es.close();
   }, [fetchData]);
 
+  const filteredAssignments = useMemo(() => {
+    return assignments.filter(a => {
+      if (!a.start_date) return false;
+      return a.start_date.startsWith(selectedYear);
+    });
+  }, [assignments, selectedYear]);
+
   // Group individual employee assignments into distinct Outstation Events
   const eventGroups = useMemo(() => {
     const today = new Date().toISOString().slice(0, 10);
@@ -152,11 +161,11 @@ export default function OutstationAnalytics() {
     });
 
     return Object.values(groups);
-  }, [assignments]);
+  }, [filteredAssignments]);
 
-  const totalEventsCount = eventGroups.length > 0 ? eventGroups.length : assignments.length;
-  const activeStaffCount = useMemo(() => new Set(assignments.filter(a => a.status === "Active").map(a => a.user_id)).size, [assignments]);
-  const totalDestinations = useMemo(() => new Set(assignments.map(a => a.destination || "Unknown")).size, [assignments]);
+  const totalEventsCount = eventGroups.length > 0 ? eventGroups.length : filteredAssignments.length;
+  const activeStaffCount = useMemo(() => new Set(filteredAssignments.filter(a => a.status === "Active").map(a => a.user_id)).size, [filteredAssignments]);
+  const totalDestinations = useMemo(() => new Set(filteredAssignments.map(a => a.destination || "Unknown")).size, [filteredAssignments]);
   const activeCount = eventGroups.filter(e => e.status === "Active").length;
   const completedCount = eventGroups.filter(e => e.status === "Completed").length;
   const upcomingCount = eventGroups.filter(e => e.status === "Upcoming").length;
@@ -207,7 +216,7 @@ export default function OutstationAnalytics() {
       .map(([destination, count]) => ({ destination, count }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 5);
-  }, [assignments]);
+  }, [filteredAssignments]);
 
   // Outstation Status Donut Chart Data (grouped by Unique Events)
   const statusData = useMemo(() => {
@@ -221,10 +230,10 @@ export default function OutstationAnalytics() {
 
   const totalStatusEvents = useMemo(() => statusData.reduce((sum, i) => sum + i.value, 0), [statusData]);
 
-  const allRecentAssignments = useMemo(() => assignments
+  const allRecentAssignments = useMemo(() => filteredAssignments
     .slice()
     .sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime()),
-  [assignments]);
+  [filteredAssignments]);
 
   const paginatedRecentAssignments = useMemo(() => {
     const start = (recentPage - 1) * recentLimit;
@@ -233,13 +242,13 @@ export default function OutstationAnalytics() {
 
   const upcomingGroups = useMemo(() => {
     const groups: Record<string, { destination: string; purpose: string; start_date: string; count: number }> = {};
-    assignments.filter(a => a.status === "Upcoming").forEach(a => {
+    filteredAssignments.filter(a => a.status === "Upcoming").forEach(a => {
       const key = `${a.destination}_${a.purpose}_${a.start_date}`;
       if (!groups[key]) groups[key] = { destination: a.destination, purpose: a.purpose || a.project || "General", start_date: a.start_date, count: 0 };
       groups[key].count += 1;
     });
     return Object.values(groups).slice(0, 4);
-  }, [assignments]);
+  }, [filteredAssignments]);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-12">
@@ -404,7 +413,7 @@ export default function OutstationAnalytics() {
                     <p className="text-[11px] font-bold text-purple-700 dark:text-purple-300 uppercase tracking-wider">Total Events</p>
                     <p className="text-2xl font-black text-purple-950 dark:text-purple-100 mt-1">{trackerSummary.total}</p>
                     <p className="text-[10px] text-purple-600/80 dark:text-purple-400 mt-0.5">
-                      {selectedMonth === "all" ? "Across entire year" : `For ${MONTH_NAMES[parseInt(selectedMonth, 10)]}`}
+                      {selectedMonth === "all" ? "Across {selectedYear}" : `For ${MONTH_NAMES[parseInt(selectedMonth, 10)]}`}
                     </p>
                   </div>
                   <div className="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/60 flex items-center justify-center text-[#7B0099] dark:text-purple-300 shadow-xs">
@@ -417,7 +426,7 @@ export default function OutstationAnalytics() {
                     <p className="text-[11px] font-bold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">Total Completed Events</p>
                     <p className="text-2xl font-black text-emerald-950 dark:text-emerald-100 mt-1">{trackerSummary.completed}</p>
                     <p className="text-[10px] text-emerald-600/80 dark:text-emerald-400 mt-0.5">
-                      {selectedMonth === "all" ? "Across entire year" : `For ${MONTH_NAMES[parseInt(selectedMonth, 10)]}`}
+                      {selectedMonth === "all" ? "Across {selectedYear}" : `For ${MONTH_NAMES[parseInt(selectedMonth, 10)]}`}
                     </p>
                   </div>
                   <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/60 flex items-center justify-center text-emerald-600 dark:text-emerald-300 shadow-xs">
