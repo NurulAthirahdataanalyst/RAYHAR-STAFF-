@@ -284,7 +284,7 @@ export default function LeaveManagement() {
         if (!formData.tarikhMula || !formData.tarikhAkhir || !formData.tujuanCuti?.trim()) return false;
         
         if (isSick && !formData.lampiranMc) return false;
-        if (isUnpaid && (!formData.cutiTanpaGajiSignature)) return false; // wait, let's look at cutiTanpaGajiPhone, is it used in step 2? Wait!
+        if (isUnpaid && !formData.cutiTanpaGajiSignature) return false;
         return true;
       }
     }
@@ -348,8 +348,8 @@ export default function LeaveManagement() {
         return;
       }
     }
-    if (currentStep === 2 && (formData.jenisCuti === "Unpaid Leave" || formData.jenisCuti === "Cuti Tanpa Gaji") && (!formData.cutiTanpaGajiPhone || !formData.cutiTanpaGajiSignature)) {
-      toast.error("Sila lengkapkan butiran Cuti Tanpa Gaji dan tandatangan pengesahan");
+    if (currentStep === 2 && (formData.jenisCuti === "Unpaid Leave" || formData.jenisCuti === "Cuti Tanpa Gaji") && (!formData.cutiTanpaGajiSignature)) {
+      toast.error("Sila sahkan permohonan Cuti Tanpa Gaji anda");
       return;
     }
 
@@ -442,7 +442,7 @@ export default function LeaveManagement() {
         payload.append("cuti_ganti_jam", String(firstRow.jamGanti));
       }
       if (leaveType === "Unpaid Leave" || leaveType === "Cuti Tanpa Gaji") {
-        payload.append("cuti_tanpa_gaji_phone", formData.cutiTanpaGajiPhone);
+        payload.append("cuti_tanpa_gaji_phone", formData.noTelefon);
         payload.append("cuti_tanpa_gaji_signature", formData.cutiTanpaGajiSignature ? "true" : "false");
       }
 
