@@ -580,10 +580,10 @@ export default function Dashboard() {
       {/* Header - responsive */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="min-w-0">
-          <h1 className="text-responsive-2xl font-bold tracking-tight text-foreground truncate" style={{ fontFamily: "'Helvetica', sans-serif" }}>
+          <h1 className="text-responsive-2xl font-bold tracking-tight text-foreground truncate" style={{ fontFamily: "'Outfit', sans-serif" }}>
             {getGreeting()}, {rawName}!
           </h1>
-          <p className="text-foreground font-normal mt-1 flex items-center gap-2 text-responsive-sm" style={{ fontFamily: "'Helvetica', sans-serif" }}>
+          <p className="text-foreground font-medium mt-1 flex items-center gap-2 text-responsive-sm" style={{ fontFamily: "'Outfit', sans-serif" }}>
             {selectedDate.toLocaleDateString("en-US", {
               weekday: "long",
               month: "long",
