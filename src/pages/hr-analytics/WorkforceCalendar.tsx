@@ -218,7 +218,8 @@ export default function WorkforceCalendar() {
   const currentMonthEvents = events.filter(e => e.start_date <= monthEndStr && e.end_date >= monthStartStr);
   const kpiAnnual = currentMonthEvents.filter(e => e.source === "leave" && e.status === "Approved" && e.type?.includes("Annual")).length;
   const kpiSick = currentMonthEvents.filter(e => e.source === "leave" && e.status === "Approved" && e.type?.includes("Sick")).length;
-  const kpiEmergency = currentMonthEvents.filter(e => e.source === "leave" && e.status === "Approved" && e.type?.includes("Emergency")).length;
+  const kpiReplacement = currentMonthEvents.filter(e => e.source === "leave" && e.status === "Approved" && e.type?.includes("Replacement")).length;
+  const kpiUnpaid = currentMonthEvents.filter(e => e.source === "leave" && e.status === "Approved" && e.type?.includes("Unpaid")).length;
   
   const outstationEvents = currentMonthEvents.filter(e => e.source === "outstation");
   const kpiOutstation = new Set(outstationEvents.map(e => `${e.start_date}_${e.end_date}_${e.destination || e.project || e.meeting_title}`)).size;
@@ -264,11 +265,12 @@ export default function WorkforceCalendar() {
     <div className="space-y-6 animate-in fade-in duration-500 pb-8">
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
         {[
           { label: "Annual Leave", value: kpiAnnual, dot: "bg-emerald-500", border: "border-l-emerald-500", icon: Calendar },
           { label: "Sick Leave", value: kpiSick, dot: "bg-red-500", border: "border-l-red-500", icon: Activity },
-          { label: "Emergency Leave", value: kpiEmergency, dot: "bg-orange-500", border: "border-l-orange-500", icon: AlertCircle },
+          { label: "Replacement Leave", value: kpiReplacement, dot: "bg-blue-500", border: "border-l-blue-500", icon: Calendar },
+          { label: "Unpaid Leave", value: kpiUnpaid, dot: "bg-gray-500", border: "border-l-gray-500", icon: AlertCircle },
           { label: "Outstation", value: kpiOutstation, dot: "bg-pink-500", border: "border-l-pink-500", icon: Plane },
           { label: "Company Leave", value: kpiCompany, dot: "bg-purple-500", border: "border-l-purple-500", icon: Building2 },
           { label: "Pending", value: kpiPending, dot: "bg-amber-400", border: "border-l-amber-400", icon: FileText },
@@ -277,7 +279,7 @@ export default function WorkforceCalendar() {
             <CardContent className="p-4 flex items-center gap-3">
               <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${kpi.dot}`} />
               <div className="min-w-0">
-                <p className="text-[10px] font-black uppercase tracking-wider text-foreground leading-tight">{kpi.label}</p>
+                <p className="text-[10px] font-black uppercase tracking-wider text-black dark:text-white leading-tight">{kpi.label}</p>
                 <p className="text-2xl font-black text-gray-800 dark:text-gray-100 leading-tight">{kpi.value}</p>
               </div>
             </CardContent>
@@ -345,7 +347,7 @@ export default function WorkforceCalendar() {
         {[
           { key: "Annual Leave",    label: "Annual Leave" },
           { key: "Sick Leave",      label: "Sick Leave" },
-          { key: "Emergency Leave", label: "Emergency Leave" },
+          { key: "Unpaid Leave", label: "Unpaid Leave" },
           { key: "Replacement Leave", label: "Replacement Leave" },
           { key: "Outstation",      label: "Outstation" },
           { key: "Company Leave",   label: "Company Leave" },
