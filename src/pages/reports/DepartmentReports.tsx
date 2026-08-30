@@ -19,6 +19,16 @@ export default function DepartmentReports() {
     fetchData();
   }, [role, userBranch, userDepartment]);
 
+  // Lock the internal states to match user's branch/dept for fixed roles
+  useEffect(() => {
+    if (role === "branch_leader" && userBranch) {
+      setSelectedBranch(userBranch);
+    }
+    if ((role === "head_of_department" || role === "hod") && userDepartment) {
+      setSelectedDept(userDepartment);
+    }
+  }, [role, userBranch, userDepartment]);
+
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -120,35 +130,53 @@ export default function DepartmentReports() {
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-2">
             <span className="text-xs font-semibold text-foreground uppercase tracking-wider">Branch:</span>
-            <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-              <SelectTrigger className="w-[140px] h-9 bg-white dark:bg-slate-950">
-                <SelectValue placeholder="All Branches" />
-              </SelectTrigger>
-              <SelectContent>
-                {branches.map(b => (
-                  <SelectItem key={b} value={b} className="uppercase text-xs">
-                    {b === "All" ? "All Branches" : b}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {role === "branch_leader" ? (
+              <div className="h-9 px-3 bg-slate-100 dark:bg-slate-800 rounded-md flex items-center border border-slate-200 dark:border-slate-700">
+                <span className="uppercase text-xs font-bold text-slate-500 dark:text-slate-400">
+                  {userBranch || "ALL"}
+                </span>
+              </div>
+            ) : (
+              <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+                <SelectTrigger className="w-[140px] h-9 bg-white dark:bg-slate-950">
+                  <SelectValue placeholder="All Branches" />
+                </SelectTrigger>
+                <SelectContent>
+                  {branches.map(b => (
+                    <SelectItem key={b} value={b} className="uppercase text-xs">
+                      {b === "All" ? "All Branches" : b}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-foreground uppercase tracking-wider">Dept:</span>
-            <Select value={selectedDept} onValueChange={setSelectedDept}>
-              <SelectTrigger className="w-[160px] h-9 bg-white dark:bg-slate-950">
-                <SelectValue placeholder="All Departments" />
-              </SelectTrigger>
-              <SelectContent>
-                {departments.map(d => (
-                  <SelectItem key={d} value={d} className="uppercase text-xs">
-                    {d === "All" ? "All Departments" : d}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {role !== "branch_leader" && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-foreground uppercase tracking-wider">Dept:</span>
+              {role === "head_of_department" || role === "hod" ? (
+                <div className="h-9 px-3 bg-slate-100 dark:bg-slate-800 rounded-md flex items-center border border-slate-200 dark:border-slate-700">
+                  <span className="uppercase text-xs font-bold text-slate-500 dark:text-slate-400">
+                    {userDepartment || "ALL"}
+                  </span>
+                </div>
+              ) : (
+                <Select value={selectedDept} onValueChange={setSelectedDept}>
+                  <SelectTrigger className="w-[160px] h-9 bg-white dark:bg-slate-950">
+                    <SelectValue placeholder="All Departments" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {departments.map(d => (
+                      <SelectItem key={d} value={d} className="uppercase text-xs">
+                        {d === "All" ? "All Departments" : d}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+          )}
 
           <ExportDropdown onExportCSV={handleExportCSV} />
         </div>
