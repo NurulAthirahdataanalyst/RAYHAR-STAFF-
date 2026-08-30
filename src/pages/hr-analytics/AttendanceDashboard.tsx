@@ -1310,9 +1310,7 @@ export default function AttendanceDashboard() {
               <table className="w-full text-sm text-left">
                 <thead className="bg-gray-50/80 text-foreground uppercase text-[9px] font-bold tracking-wider border-b border-gray-100 dark:border-slate-800">
                   <tr>
-                    <th className="px-4 py-2 w-4 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">
-                      <Checkbox />
-                    </th>
+                    
                     <th className="px-4 py-2 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Employee</th>
                     <th className="px-4 py-2 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Status</th>
                     <th className="px-4 py-2 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Time In</th>
@@ -1382,9 +1380,7 @@ export default function AttendanceDashboard() {
 
                       return (
                         <tr key={`${record.user_id}-${record.clock_in || index}`} className="hover:bg-gray-50/50 transition-colors">
-                          <td className="px-4 py-2">
-                            <Checkbox />
-                          </td>
+                          
                           <td className="px-4 py-2">
                             <div className="flex items-center gap-2">
                               <div className="w-8 h-8 rounded-md bg-[#7B0099]/10 text-[#7B0099] font-bold flex items-center justify-center text-xs uppercase shadow-sm">
