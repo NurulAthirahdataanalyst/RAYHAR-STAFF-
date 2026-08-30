@@ -1,16 +1,12 @@
-import re
+import codecs
 
-file_path = "c:\\Users\\HP\\ATTENDANCE_SYSTEM\\backend\\server.js"
-with open(file_path, "r", encoding="utf-8") as f:
-    content = f.read()
+with codecs.open('src/pages/GPSLocationTracker.tsx', 'r', 'utf-8') as f:
+    lines = f.readlines()
 
-# Fix the redeclaration syntax error
-content = re.sub(
-    r'      const \[outstationRows\] = await pool\.query\(\n\s*`SELECT destination FROM outstation_assignments WHERE user_id = \? AND status != \'Cancelled\' AND \(CURRENT_TIMESTAMP AT TIME ZONE \'Asia/Kuala_Lumpur\'\)::date BETWEEN \(start_date AT TIME ZONE \'Asia/Kuala_Lumpur\'\)::date AND \(end_date AT TIME ZONE \'Asia/Kuala_Lumpur\'\)::date`,\n\s*\[empId\]\n\s*\);\n\s*const isOnOutstation = outstationRows\.length > 0;',
-    '',
-    content
-)
+for i in range(len(lines)):
+    if '})' in lines[i] and ')}' in lines[i+1] and '</TableBody>' in lines[i+2]:
+        lines[i+1] = lines[i+1].replace(')}', '})()}')
+        break
 
-with open(file_path, "w", encoding="utf-8") as f:
-    f.write(content)
-print("Fixed syntax error")
+with codecs.open('src/pages/GPSLocationTracker.tsx', 'w', 'utf-8') as f:
+    f.writelines(lines)

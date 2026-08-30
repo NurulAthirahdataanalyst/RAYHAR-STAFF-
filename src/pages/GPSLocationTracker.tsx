@@ -669,6 +669,7 @@ export default function GPSLocationTracker() {
                         </TableRow>
                         );
                     })
+                    })()
                   )}
                 </TableBody>
               </Table>
