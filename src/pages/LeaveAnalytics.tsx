@@ -277,11 +277,9 @@ function StatCard({
 }) {
   return (
     <Card
-      className={`relative overflow-hidden border-0 shadow-[0_8px_24px_rgba(0,0,0,0.02)] ${bgClass} rounded-[20px]`}
+      className={`relative overflow-hidden border border-gray-200 dark:border-slate-800/80 shadow-sm border-l-4 ${borderClass.replace('bg-', 'border-l-')} ${bgClass} rounded-[20px]`}
     >
-      <div
-        className={`absolute left-0 top-0 bottom-0 w-[5px] ${borderClass}`}
-      />
+      
       <CardContent className="p-4 sm:p-5 pl-5 sm:pl-6">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">

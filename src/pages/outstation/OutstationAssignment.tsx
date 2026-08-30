@@ -327,9 +327,9 @@ export default function OutstationAssignment() {
   const totalDays = calcTotalDays(form.start_date, form.end_date);
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 pb-8">
+    <div className="space-y-4 animate-in fade-in duration-500 pb-8">
 
-        <div className="mb-4">
+        <div className="mb-2">
           <Button
             variant="ghost"
             size="sm"

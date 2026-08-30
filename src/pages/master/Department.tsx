@@ -116,9 +116,9 @@ export default function Department() {
   );
 
   return (
-    <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-500">
+    <div className="space-y-4 sm:space-y-4 animate-in fade-in duration-500">
 
-        <div className="mb-4">
+        <div className="mb-2">
           <Button
             variant="ghost"
             size="sm"

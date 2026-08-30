@@ -5,7 +5,7 @@ import { useRole } from "@/contexts/RoleContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Loader2, ChevronLeft, ChevronRight, X, Calendar, User, FileText } from "lucide-react";
+import { Loader2, ChevronLeft, ChevronRight, X, Calendar, User, FileText, Activity, AlertCircle } from "lucide-react";
 import { API_BASE_URL } from "../config/api";
 
 const PRIMARY_COLOR = "#7B0099";
@@ -108,10 +108,41 @@ export default function LeaveCalendar() {
     return isSameDay(day, new Date());
   };
 
+  
+  const monthStartStr = format(new Date(viewYear, viewMonth, 1), 'yyyy-MM-dd');
+  const monthEndStr = format(new Date(viewYear, viewMonth + 1, 0), 'yyyy-MM-dd');
+  const currentMonthRequests = requests.filter(r => r.start_date <= monthEndStr && r.end_date >= monthStartStr);
+  const kpiAnnual = currentMonthRequests.filter(r => r.status === "Approved" && r.leave_type?.includes("Annual")).length;
+  const kpiSick = currentMonthRequests.filter(r => r.status === "Approved" && r.leave_type?.includes("Sick")).length;
+  const kpiReplacement = currentMonthRequests.filter(r => r.status === "Approved" && r.leave_type?.includes("Replacement")).length;
+  const kpiUnpaid = currentMonthRequests.filter(r => r.status === "Approved" && r.leave_type?.includes("Unpaid")).length;
+
   if (roleLoading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin w-7 h-7 text-[#7B0099]" /></div>;
+
 
   return (
     <div className="space-y-5 animate-in fade-in duration-500 max-w-7xl mx-auto px-4 pt-2 pb-8">
+
+      
+      {/* KPI Cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {[
+          { label: "Annual Leave", value: kpiAnnual, dot: "bg-emerald-500", border: "border-l-emerald-500", icon: Calendar },
+          { label: "Sick Leave", value: kpiSick, dot: "bg-red-500", border: "border-l-red-500", icon: Activity },
+          { label: "Replacement Leave", value: kpiReplacement, dot: "bg-blue-500", border: "border-l-blue-500", icon: Calendar },
+          { label: "Unpaid Leave", value: kpiUnpaid, dot: "bg-gray-500", border: "border-l-gray-500", icon: AlertCircle },
+        ].map(kpi => (
+          <Card key={kpi.label} className={`border border-gray-200 dark:border-slate-800/80 shadow-sm border-l-4 ${kpi.border}`}>
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${kpi.dot}`} />
+              <div className="min-w-0">
+                <p className="text-[10px] font-black uppercase tracking-wider text-black dark:text-white leading-tight">{kpi.label}</p>
+                <p className="text-2xl font-black text-gray-800 dark:text-gray-100 leading-tight">{kpi.value}</p>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
       {/* Controls */}
       <Card className="border border-gray-200 dark:border-slate-800/80 shadow-sm">

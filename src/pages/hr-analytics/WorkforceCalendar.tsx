@@ -302,7 +302,7 @@ export default function WorkforceCalendar() {
             <Select value={filterType} onValueChange={setFilterType}>
               <SelectTrigger className="w-[145px] h-8 text-xs"><SelectValue /></SelectTrigger>
               <SelectContent>
-                {["All Types", "Annual Leave", "Sick Leave", "Emergency Leave", "Replacement Leave", "Outstation", "Company Leave", "Pending"].map(t => (
+                {["All Types", "Annual Leave", "Sick Leave", "Unpaid Leave", "Replacement Leave", "Outstation", "Company Leave", "Pending"].map(t => (
                   <SelectItem key={t} value={t} className="text-xs">{t}</SelectItem>
                 ))}
               </SelectContent>
@@ -510,7 +510,18 @@ export default function WorkforceCalendar() {
 
           const presentOnTime = uniqueAtt.filter(a => a.status === "Present (On Time)");
           const presentLate = uniqueAtt.filter(a => a.status === "Present (Late)" || a.is_late);
-          const absent = uniqueAtt.filter(a => a.status === "Absent");
+          
+          const isWeekend = (dateObj, branchId) => {
+            if (!branchId) return dateObj.getDay() === 0 || dateObj.getDay() === 6;
+            const branchUpper = String(branchId).toUpperCase();
+            const isFriSat = ['JHB', 'JOHOR BAHRU', 'BPT', 'BATU PAHAT', 'JB - JOHOR BHARU', 'JB', 'KBR', 'KOTA BHARU', 'KTG', 'KUALA TERENGGANU', 'ASR', 'ALOR SETAR', 'SPJ', 'SUNGAI PETANI', 'SOUTHERN'].some(b => branchUpper.includes(b));
+            const day = dateObj.getDay();
+            return isFriSat ? (day === 5 || day === 6) : (day === 0 || day === 6);
+          };
+          const rawAbsent = uniqueAtt.filter(a => a.status === "Absent");
+          const absent = rawAbsent.filter(a => !isWeekend(selectedDay, a.branch));
+          const restDays = rawAbsent.filter(a => isWeekend(selectedDay, a.branch));
+
 
           return createPortal(
             <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-all duration-300" onClick={() => setSelectedDay(null)}>
@@ -592,7 +603,7 @@ export default function WorkforceCalendar() {
                     <div className="space-y-6">
                       {presentOnTime.length > 0 && (
                         <div>
-                          <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 border-b pb-1">
+                          <div className="text-[10px] font-black uppercase tracking-widest text-black dark:text-white mb-2 border-b pb-1">
                             Total Present (On Time) ({presentOnTime.length})
                           </div>
                           <div className="space-y-2">
@@ -608,11 +619,11 @@ export default function WorkforceCalendar() {
                                   </div>
                                   <div className="flex gap-4 text-right">
                                     <div className="flex flex-col items-center">
-                                      <span className="text-[9px] font-black uppercase text-gray-400">Clock In</span>
+                                      <span className="text-[9px] font-black uppercase text-black dark:text-white">Clock In</span>
                                       <span className="text-xs font-mono mt-0.5">{a.time_in || "-"}</span>
                                     </div>
                                     <div className="flex flex-col items-center">
-                                      <span className="text-[9px] font-black uppercase text-gray-400">Clock Out</span>
+                                      <span className="text-[9px] font-black uppercase text-black dark:text-white">Clock Out</span>
                                       <span className="text-xs font-mono mt-0.5">{a.time_out || "-"}</span>
                                     </div>
                                   </div>
@@ -625,7 +636,7 @@ export default function WorkforceCalendar() {
 
                       {presentLate.length > 0 && (
                         <div>
-                          <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 border-b pb-1">
+                          <div className="text-[10px] font-black uppercase tracking-widest text-black dark:text-white mb-2 border-b pb-1">
                             Total Present (Late) ({presentLate.length})
                           </div>
                           <div className="space-y-2">
@@ -641,11 +652,11 @@ export default function WorkforceCalendar() {
                                   </div>
                                   <div className="flex gap-4 text-right">
                                     <div className="flex flex-col items-center">
-                                      <span className="text-[9px] font-black uppercase text-gray-400">Clock In</span>
+                                      <span className="text-[9px] font-black uppercase text-black dark:text-white">Clock In</span>
                                       <span className="text-xs font-mono mt-0.5">{a.time_in || "-"}</span>
                                     </div>
                                     <div className="flex flex-col items-center">
-                                      <span className="text-[9px] font-black uppercase text-gray-400">Clock Out</span>
+                                      <span className="text-[9px] font-black uppercase text-black dark:text-white">Clock Out</span>
                                       <span className="text-xs font-mono mt-0.5">{a.time_out || "-"}</span>
                                     </div>
                                   </div>
@@ -658,7 +669,7 @@ export default function WorkforceCalendar() {
 
                       {absent.length > 0 && (
                         <div>
-                          <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 border-b pb-1">
+                          <div className="text-[10px] font-black uppercase tracking-widest text-black dark:text-white mb-2 border-b pb-1">
                             Absent ({absent.length})
                           </div>
                           <div className="space-y-2">
@@ -674,11 +685,11 @@ export default function WorkforceCalendar() {
                                   </div>
                                   <div className="flex gap-4 text-right">
                                     <div className="flex flex-col items-center opacity-50">
-                                      <span className="text-[9px] font-black uppercase text-gray-400">Clock In</span>
+                                      <span className="text-[9px] font-black uppercase text-black dark:text-white">Clock In</span>
                                       <span className="text-xs font-mono mt-0.5">-</span>
                                     </div>
                                     <div className="flex flex-col items-center opacity-50">
-                                      <span className="text-[9px] font-black uppercase text-gray-400">Clock Out</span>
+                                      <span className="text-[9px] font-black uppercase text-black dark:text-white">Clock Out</span>
                                       <span className="text-xs font-mono mt-0.5">-</span>
                                     </div>
                                   </div>
@@ -834,6 +845,39 @@ export default function WorkforceCalendar() {
                     </div>
                   </div>
                 )}
+
+                      {restDays.length > 0 && (
+                        <div>
+                          <div className="text-[10px] font-black uppercase tracking-widest text-black dark:text-white mb-2 border-b pb-1">
+                            Rest Day / Weekend ({restDays.length})
+                          </div>
+                          <div className="space-y-2">
+                            {restDays.map(a => (
+                              <div key={a.user_id} className="border border-gray-100 rounded-lg p-3 shadow-sm bg-white dark:bg-slate-900 dark:border-slate-800">
+                                <div className="flex justify-between items-start">
+                                  <div className="flex flex-col">
+                                    <span className="text-xs font-bold uppercase truncate">{a.full_name} {a.branch ? `(${a.branch})` : ''}</span>
+                                    <div className="flex items-center gap-1.5 mt-1">
+                                      <div className="w-1.5 h-1.5 rounded-full bg-slate-500" />
+                                      <span className="text-[10px] font-black uppercase text-slate-600">Rest Day</span>
+                                    </div>
+                                  </div>
+                                  <div className="flex gap-4 text-right">
+                                    <div className="flex flex-col items-center opacity-50">
+                                      <span className="text-[9px] font-black uppercase text-black dark:text-white">Clock In</span>
+                                      <span className="text-xs font-mono mt-0.5">-</span>
+                                    </div>
+                                    <div className="flex flex-col items-center opacity-50">
+                                      <span className="text-[9px] font-black uppercase text-black dark:text-white">Clock Out</span>
+                                      <span className="text-xs font-mono mt-0.5">-</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
               </div>
             </div>
           </div>

@@ -145,9 +145,9 @@ export default function Role() {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto px-2 sm:px-4 py-4 sm:py-6">
+    <div className="space-y-4 animate-in fade-in duration-500 max-w-7xl mx-auto px-2 sm:px-4 pt-0 pb-4 sm:pb-6">
 
-        <div className="mb-4">
+        <div className="mb-2">
           <Button
             variant="ghost"
             size="sm"

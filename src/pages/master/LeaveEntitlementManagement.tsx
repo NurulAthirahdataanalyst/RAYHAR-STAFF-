@@ -179,7 +179,7 @@ export default function LeaveEntitlementManagement() {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 pb-12">
+    <div className="space-y-4 animate-in fade-in duration-500 pb-12">
 
       {activeModule === null ? (
         // DASHBOARD VIEW
@@ -661,7 +661,7 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
           <CardDescription className="text-xs">Setup or reset the annual base leave days for your staff.</CardDescription>
         </div>
       </CardHeader>
-      <CardContent className="space-y-6 pt-2">
+      <CardContent className="space-y-4 pt-2">
         {/* Toggle Mode */}
         <div className="flex gap-2 p-1 bg-muted/30 border rounded-lg w-fit">
           <Button
@@ -1122,7 +1122,7 @@ function CarryForwardLeaveForm({
           <CardDescription className="text-xs">Setup annual roll-over configs and select eligible employees to carry forward unused leaves.</CardDescription>
         </div>
       </CardHeader>
-      <CardContent className="space-y-6 pt-2">
+      <CardContent className="space-y-4 pt-2">
         <div>
           <h4 className="text-xs font-black uppercase tracking-wider text-foreground mb-3 border-b pb-1">Carry Forward Configuration</h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
@@ -1403,7 +1403,7 @@ function AdditionalLeaveAllocationForm({ employees, onCancel, onRefresh }: { emp
           <CardDescription className="text-xs">Grant extra leave days to specific employees as rewards or adjustments.</CardDescription>
         </div>
       </CardHeader>
-      <CardContent className="space-y-6 pt-2">
+      <CardContent className="space-y-4 pt-2">
         <div>
           <h4 className="text-xs font-black uppercase tracking-wider text-foreground mb-3 border-b pb-1">Employee Information</h4>
           <div className="space-y-4">
@@ -1731,7 +1731,7 @@ function ManualLeaveAdjustmentForm({
         </div>
       </CardHeader>
       
-      <CardContent className="space-y-6 pt-6">
+      <CardContent className="space-y-4 pt-6">
         {/* Employee Section */}
         <div className="space-y-4">
           <div className="space-y-1.5">
@@ -1998,7 +1998,7 @@ function SpecialLeaveCreditsForm({ employees, onCancel }: any) {
         </div>
       </CardHeader>
       
-      <CardContent className="space-y-6 pt-6">
+      <CardContent className="space-y-4 pt-6">
         <div className="space-y-4">
           <div className="space-y-1.5">
             <Label className="text-sm font-bold flex items-center">Employee <span className="text-red-500 ml-1">*</span></Label>
@@ -2135,7 +2135,7 @@ function MaternityLeaveForm({ employees, onCancel }: any) {
         </div>
       </CardHeader>
       
-      <CardContent className="space-y-6 pt-6">
+      <CardContent className="space-y-4 pt-6">
         <div className="space-y-4">
           <div className="space-y-1.5">
             <Label className="text-sm font-bold flex items-center">Female Employee <span className="text-red-500 ml-1">*</span></Label>
