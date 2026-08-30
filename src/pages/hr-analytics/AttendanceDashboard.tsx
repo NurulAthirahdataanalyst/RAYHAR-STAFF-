@@ -1,4 +1,4 @@
-﻿
+
 import { useRole } from "@/contexts/RoleContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -1140,8 +1140,7 @@ export default function AttendanceDashboard() {
                 { label: "Outstation", val: `${liveStats.total > 0 ? Math.round(((liveStats.outstation || 0) / liveStats.total) * 100) : 0}%`, sub: `${liveStats.outstation || 0} / ${liveStats.total} Employees`, color: "text-pink-600", bg: "bg-pink-50", icon: <MapPin className="w-5 h-5"/>, trend: "—" },
               ];
             })().map((k, i) => (
-                <div key={i} className={
-elative overflow-hidden border border-gray-200 dark:border-slate-800/80 shadow-sm border-l-4  bg-white dark:bg-card rounded-md p-4 flex flex-col justify-between h-[150px] transition-all duration-300 cursor-pointer hover:shadow-lg hover:-translate-y-1 }>
+                <div key={i} className={`relative overflow-hidden border border-gray-200 dark:border-slate-800/80 shadow-sm border-l-4 ${k.color.replace('text-', 'border-l-')} bg-white dark:bg-card rounded-md p-4 flex flex-col justify-between h-[150px] transition-all duration-300 cursor-pointer hover:shadow-lg hover:-translate-y-1 ${k.color.includes('emerald') ? 'hover:border-emerald-500 hover:ring-1 hover:ring-emerald-500 hover:bg-emerald-50/50 dark:hover:bg-emerald-900/20' : k.color.includes('amber') ? 'hover:border-amber-500 hover:ring-1 hover:ring-amber-500 hover:bg-amber-50/50 dark:hover:bg-amber-900/20' : k.color.includes('rose') ? 'hover:border-rose-500 hover:ring-1 hover:ring-rose-500 hover:bg-rose-50/50 dark:hover:bg-rose-900/20' : k.color.includes('blue') ? 'hover:border-blue-500 hover:ring-1 hover:ring-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-900/20' : k.color.includes('indigo') ? 'hover:border-indigo-500 hover:ring-1 hover:ring-indigo-500 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/20' : k.color.includes('pink') ? 'hover:border-pink-500 hover:ring-1 hover:ring-pink-500 hover:bg-pink-50/50 dark:hover:bg-pink-900/20' : k.color.includes('foreground') ? 'hover:border-slate-400 hover:ring-1 hover:ring-slate-400 hover:bg-slate-50/50 dark:hover:bg-slate-800/50' : 'hover:border-[#7B0099] hover:ring-1 hover:ring-[#7B0099] hover:bg-[#7B0099]/10'}`}>
                 <div className="flex items-start justify-between">
                   <div className={`p-2 rounded-lg ${k.bg} ${k.color}`}>
                     {k.icon}
