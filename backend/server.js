@@ -4787,7 +4787,7 @@ app.get('/api/employee-location-history', async (req, res) => {
 
     // clockOutPoints and clockInPoints are authoritative. We do not include passive taggedLogs
     // anymore because the user requested to only see actual clock-in/out events.
-    const combined = [...clockOutPoints, ...clockInPoints];
+    const combined = [...clockOutPoints, ...clockInPoints, ...taggedLogs.map(t => ({...t, is_update: true}))];
 
     // Deduplicate by minute, preferring entries with attendance_status
     const seen = new Map();
