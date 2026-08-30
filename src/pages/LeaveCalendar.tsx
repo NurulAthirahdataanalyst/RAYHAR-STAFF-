@@ -121,7 +121,7 @@ export default function LeaveCalendar() {
 
 
   return (
-    <div className="space-y-5 animate-in fade-in duration-500 max-w-7xl mx-auto px-4 pt-2 pb-8">
+    <div className="space-y-5 animate-in fade-in duration-500 w-full pt-2 pb-8">
 
       
       {/* KPI Cards */}

@@ -362,7 +362,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* ═══════ MAIN CONTENT ═══════ */}
-        <div className="relative p-4 sm:p-6 lg:p-8 max-w-[1500px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="relative p-4 sm:p-4 lg:p-5 w-full mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
           
           <div className="flex flex-col lg:flex-row gap-4 lg:gap-8 items-start relative w-full">
             

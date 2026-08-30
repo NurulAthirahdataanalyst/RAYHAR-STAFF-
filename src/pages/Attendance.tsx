@@ -1172,7 +1172,7 @@ export default function Attendance() {
     <div className="relative flex flex-col mx-auto w-full animate-in fade-in duration-700">
 
 
-      <div className="relative z-10 flex-1 flex flex-col lg:flex-row items-center lg:items-stretch justify-center gap-5 lg:gap-6 pb-6 w-full max-w-7xl mx-auto">
+      <div className="relative z-10 flex-1 flex flex-col lg:flex-row items-center lg:items-stretch justify-center gap-5 lg:gap-6 pb-6 w-full w-full">
 
         {/* Main Clocking Card */}
         <div className="bg-card dark:bg-card w-full max-w-[340px] sm:max-w-md lg:flex-1 rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 p-4 sm:p-5 md:p-6 flex flex-col items-center relative overflow-hidden border border-border lg:self-start">
@@ -1693,7 +1693,7 @@ export default function Attendance() {
       </div>
 
       {/* BOTTOM PANEL: Employee Attendance Data Table */}
-      <div className="relative z-10 w-full max-w-7xl mx-auto pb-8">
+      <div className="relative z-10 w-full w-full pb-8">
         <Card className="border-border shadow-sm overflow-hidden bg-card/60 backdrop-blur-md min-h-[400px]">
           {/* Header Row */}
           <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/50 bg-muted/20 pb-4">

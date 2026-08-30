@@ -198,7 +198,7 @@ export default function MasterOverview() {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-5 animate-in fade-in duration-500 max-w-7xl mx-auto px-1 sm:px-4">
+    <div className="space-y-4 sm:space-y-5 animate-in fade-in duration-500 w-full">
       
       <PageActions>
         <div className="flex items-center gap-3">

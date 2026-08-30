@@ -735,7 +735,7 @@ export default function Reports() {
   const distColors = ['#7B0099', '#C2185B', '#EAB308'];
   const rawTypeDist = leaveUtilization?.leaveTypeDistribution || [];
   return (
-    <div className={`p-4 ${sidebarCollapsed ? "md:p-8" : "md:p-6"} space-y-6 max-w-7xl mx-auto transition-all duration-300`}>
+    <div className={`p-4 ${sidebarCollapsed ? "md:p-8" : "md:p-6"} space-y-6 w-full transition-all duration-300`}>
       <Card className="border border-white/60 bg-white/40 dark:bg-card/40 backdrop-blur-2xl shadow-2xl rounded-[32px] overflow-hidden relative">
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#7B0099] to-transparent opacity-50" />
         <CardContent className="p-6 sm:p-8">

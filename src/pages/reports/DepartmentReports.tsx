@@ -182,7 +182,7 @@ export default function DepartmentReports() {
         </div>
       </PageActions>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="w-full py-6">
         {/* KPI Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
           <Card className="border-border shadow-sm">

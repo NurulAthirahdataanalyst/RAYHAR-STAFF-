@@ -1105,7 +1105,7 @@ export default function AttendanceDashboard() {
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto px-4 pt-2 pb-6">
+    <div className="space-y-6 animate-in fade-in duration-500 w-full pt-2 pb-6">
 
       {/* ── LIVE PRESENCE PANEL ─────────────────────────────────────────── */}
       

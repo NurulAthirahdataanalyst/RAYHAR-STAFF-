@@ -144,7 +144,7 @@ export default function TeamLeaveRequests() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="w-full py-6">
         <div className="flex flex-col md:flex-row justify-end items-start md:items-center mb-6 gap-4">
           <div className="flex flex-wrap gap-2">
             <Badge variant="outline" className="text-sm font-medium border-primary/20 bg-primary/5">
