@@ -61,7 +61,6 @@ const cardHoverEffects: Record<string, string> = {
   slate: "cursor-pointer transition-all duration-200 hover:border-slate-500 hover:ring-1 hover:ring-slate-500 hover:bg-slate-50/50 dark:hover:bg-slate-900/50",
 };
 const cardHoverEffect = cardHoverEffects.purple;
-  const scopeLabel = role === "head_of_department" || role === "hod" ? userDepartment : (role === "branch_leader" ? userBranch : "");
 
 const AVATAR_COLORS = [
   "bg-purple-100 text-purple-700",
@@ -103,6 +102,7 @@ interface PendingItem {
 export default function WorkforceInsights() {
   const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
   const { role, userBranch, userDepartment, userId } = useRole();
+  const scopeLabel = role === "head_of_department" || role === "hod" ? userDepartment : (role === "branch_leader" ? userBranch : "");
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
