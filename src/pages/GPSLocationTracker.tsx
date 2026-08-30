@@ -624,12 +624,12 @@ export default function GPSLocationTracker() {
                               ) : isOffSite ? (
                                 <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-300 text-[10px] font-black border border-orange-200 dark:border-orange-500/30 uppercase tracking-widest">
                                   <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
-                                  Off-Site
+                                  Off-Site {h.is_update ? "- UPDATED" : ""}
                                 </span>
                               ) : (
                                 <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300 text-[10px] font-black border border-emerald-200 dark:border-emerald-500/30 uppercase tracking-widest">
                                   <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                                  On-Site
+                                  On-Site {h.is_update ? "- UPDATED" : ""}
                                 </span>
                               )}
                           </TableCell>

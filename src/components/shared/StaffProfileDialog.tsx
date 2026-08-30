@@ -1343,12 +1343,12 @@ export function StaffProfileDialog({
                                     ) : h.location_status === 'OFF-SITE' ? (
                                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black border uppercase tracking-widest bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-500/20 dark:text-orange-300 dark:border-orange-500/30">
                                         <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
-                                        Off-Site
+                                        Off-Site {h.is_update ? "- UPDATED" : ""}
                                       </span>
                                     ) : (
                                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black border uppercase tracking-widest bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30">
                                         <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                                        On-Site
+                                        On-Site {h.is_update ? "- UPDATED" : ""}
                                       </span>
                                     )}
                                   </td>
