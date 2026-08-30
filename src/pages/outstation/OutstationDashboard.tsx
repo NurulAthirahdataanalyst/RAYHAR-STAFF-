@@ -569,8 +569,8 @@ export default function OutstationDashboard() {
                   <div className="w-16 h-16 rounded-full bg-gray-50 dark:bg-slate-900/50 flex items-center justify-center mb-4 border border-gray-100 dark:border-slate-800">
                     <CheckCircle className="w-8 h-8 text-green-500" />
                   </div>
-                  <h3 className="text-[16px] font-bold text-foreground dark:text-gray-100 mb-1">No Active Outstations</h3>
-                  <p className="text-[13px] text-foreground dark:text-foreground max-w-sm mb-6">Everyone is currently at their assigned workplace. There are no ongoing travels.</p>
+                  <h3 className="text-sm font-bold text-muted-foreground mb-1">No Active Outstations</h3>
+                  <p className="text-[12px] text-muted-foreground max-w-sm mb-6">Everyone is currently at their assigned workplace. There are no ongoing travels.</p>
                   <Button variant="outline" className="border-gray-300 shadow-sm" onClick={() => navigate("/outstation/assignment")}>View Assignments</Button>
                 </div>
               ) : (
@@ -858,8 +858,8 @@ export default function OutstationDashboard() {
                     <div className="w-16 h-16 rounded-full bg-gray-50 dark:bg-slate-900/50 flex items-center justify-center mb-4 border border-gray-100 dark:border-slate-800">
                       <Calendar className="w-8 h-8 text-orange-500" />
                     </div>
-                    <h3 className="text-[16px] font-bold text-foreground dark:text-gray-100 mb-1">No Upcoming Outstations</h3>
-                    <p className="text-[13px] text-foreground dark:text-foreground max-w-sm mb-6">There are no scheduled travels.</p>
+                    <h3 className="text-sm font-bold text-muted-foreground mb-1">No Upcoming Outstations</h3>
+                    <p className="text-[12px] text-muted-foreground max-w-sm mb-6">There are no scheduled travels.</p>
                   </div>
                 ) : (
                   <>
@@ -1131,7 +1131,7 @@ export default function OutstationDashboard() {
               <CardContent className="p-0 flex flex-col divide-y divide-gray-50">
                 <div className="p-5">
                   <h4 className="text-[10px] font-bold text-foreground uppercase tracking-widest mb-3">Departing Soon</h4>
-                  {loading ? <Skeleton className="h-10 w-full rounded" /> : upcoming.length === 0 ? <p className="text-[12px] text-foreground dark:text-foreground">No upcoming departures</p> : upcoming.slice(0, 3).map((a, i) => (
+                  {loading ? <Skeleton className="h-10 w-full rounded" /> : upcoming.length === 0 ? <p className="text-[12px] text-muted-foreground">No upcoming departures</p> : upcoming.slice(0, 3).map((a, i) => (
                     <div key={i} className="flex items-center gap-3 mb-3 last:mb-0">
                       <div className="w-8 h-8 rounded-md bg-orange-50 flex items-center justify-center flex-shrink-0 border border-orange-100">
                         <Plane className="w-4 h-4 text-orange-600 transform rotate-45" />
@@ -1145,7 +1145,7 @@ export default function OutstationDashboard() {
                 </div>
                 <div className="p-5">
                   <h4 className="text-[10px] font-bold text-foreground uppercase tracking-widest mb-3">Returning Today</h4>
-                  {loading ? <Skeleton className="h-10 w-full rounded" /> : returns.length === 0 ? <p className="text-[12px] text-foreground dark:text-foreground">No returns expected today</p> : returns.slice(0, 3).map((a, i) => (
+                  {loading ? <Skeleton className="h-10 w-full rounded" /> : returns.length === 0 ? <p className="text-[12px] text-muted-foreground">No returns expected today</p> : returns.slice(0, 3).map((a, i) => (
                     <div key={i} className="flex items-center gap-3 mb-3 last:mb-0">
                       <div className="w-8 h-8 rounded-md bg-blue-50 flex items-center justify-center flex-shrink-0 border border-blue-100">
                         <Plane className="w-4 h-4 text-blue-600 transform -rotate-45" />
