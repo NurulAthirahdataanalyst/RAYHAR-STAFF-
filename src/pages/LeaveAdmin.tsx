@@ -455,7 +455,7 @@ export default function LeaveAdmin() {
           { title: "Rejected Leaves", count: rejectedCount, bg: "bg-amber-500", icon: XCircle },
           { title: "Pending Requests", count: pendingCount, bg: "bg-cyan-500", icon: Clock },
         ].map((stat, i) => (
-          <div key={i} className={`bg-card border border-gray-200 dark:border-slate-800/80 shadow-sm border-l-4 ${stat.bg.replace('bg-', 'border-l-')} rounded-lg overflow-hidden flex relative h-[100px] hover:shadow-md transition-shadow`}>
+          <div key={i} className={`bg-card border border-gray-200 dark:border-slate-800/80 shadow-sm hover:-translate-y-1 hover:shadow-lg${stat.bg.replace('bg-', 'border-l-')} rounded-lg overflow-hidden flex relative h-[100px] hover:shadow-md transition-shadow`}>
             <div className={`w-[85px] ${stat.bg} flex items-center justify-center relative shrink-0`}>
               <stat.icon className="text-white w-8 h-8 z-10" />
               <div className="absolute -right-[20px] top-0 bottom-0 w-[40px] bg-card transform skew-x-[-20deg]" />
