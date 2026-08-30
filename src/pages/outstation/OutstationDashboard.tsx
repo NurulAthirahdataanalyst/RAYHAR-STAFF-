@@ -375,7 +375,7 @@ export default function OutstationDashboard() {
         {/* ROW 1: Enterprise Analytics-Style KPI Cards */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
             {/* 1. Total Outstation */}
-            <Card className="rounded-[20px] border border-purple-200 dark:border-purple-900/60 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-purple-50/60 dark:bg-purple-950/30 group relative overflow-hidden flex flex-col justify-between">
+            <Card className="border border-purple-200 dark:border-purple-900/60 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-purple-50/60 dark:bg-purple-950/30 group relative overflow-hidden flex flex-col justify-between rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
               <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform duration-500 ease-out group-hover:scale-115 group-hover:rotate-6 group-hover:-translate-y-1.5 pointer-events-none">
                 <Briefcase className="w-24 h-24 text-[#7B0099]" />
               </div>
@@ -402,7 +402,7 @@ export default function OutstationDashboard() {
             </Card>
             
             {/* 2. Active Outstation */}
-            <Card className="rounded-[20px] border border-emerald-200 cursor-pointer $1" onClick={() => navigate('/outstation/my?tab=Active')}>
+            <Card className="border border-emerald-200 cursor-pointer $1 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]" onClick={() => navigate('/outstation/my?tab=Active')}>
               <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform duration-500 ease-out group-hover:scale-115 group-hover:rotate-6 group-hover:-translate-y-1.5 pointer-events-none">
                 <Plane className="w-24 h-24 text-emerald-600" />
               </div>
@@ -429,7 +429,7 @@ export default function OutstationDashboard() {
             </Card>
 
             {/* 3. Departing Today */}
-            <Card className="rounded-[20px] border border-orange-200 cursor-pointer $1" onClick={() => navigate('/outstation/my?tab=Upcoming')}>
+            <Card className="border border-orange-200 cursor-pointer $1 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]" onClick={() => navigate('/outstation/my?tab=Upcoming')}>
               <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform duration-500 ease-out group-hover:scale-115 group-hover:rotate-6 group-hover:-translate-y-1.5 pointer-events-none">
                 <Clock className="w-24 h-24 text-orange-600" />
               </div>
@@ -456,7 +456,7 @@ export default function OutstationDashboard() {
             </Card>
 
             {/* 4. Returning Today */}
-            <Card className="rounded-[20px] border border-blue-200 dark:border-blue-900/60 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-blue-50/60 dark:bg-blue-950/30 group relative overflow-hidden flex flex-col justify-between">
+            <Card className="border border-blue-200 dark:border-blue-900/60 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-blue-50/60 dark:bg-blue-950/30 group relative overflow-hidden flex flex-col justify-between rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
               <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform duration-500 ease-out group-hover:scale-115 group-hover:rotate-6 group-hover:-translate-y-1.5 pointer-events-none">
                 <RotateCcw className="w-24 h-24 text-blue-600" />
               </div>
@@ -483,7 +483,7 @@ export default function OutstationDashboard() {
             </Card>
 
             {/* 5. Upcoming Events */}
-            <Card className="rounded-[20px] border border-purple-200 dark:border-purple-900/60 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-purple-50/60 dark:bg-purple-950/30 group relative overflow-hidden flex flex-col justify-between">
+            <Card className="border border-purple-200 dark:border-purple-900/60 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-purple-50/60 dark:bg-purple-950/30 group relative overflow-hidden flex flex-col justify-between rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
               <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform duration-500 ease-out group-hover:scale-115 group-hover:rotate-6 group-hover:-translate-y-1.5 pointer-events-none">
                 <Calendar className="w-24 h-24 text-purple-600" />
               </div>
@@ -510,7 +510,7 @@ export default function OutstationDashboard() {
             </Card>
 
             {/* 6. Employees Scheduled */}
-            <Card className="rounded-[20px] border border-amber-200 dark:border-amber-900/60 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-amber-50/60 dark:bg-amber-950/30 group relative overflow-hidden flex flex-col justify-between">
+            <Card className="border border-amber-200 dark:border-amber-900/60 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-amber-50/60 dark:bg-amber-950/30 group relative overflow-hidden flex flex-col justify-between rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
               <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform duration-500 ease-out group-hover:scale-115 group-hover:rotate-6 group-hover:-translate-y-1.5 pointer-events-none">
                 <Users className="w-24 h-24 text-amber-600" />
               </div>
@@ -544,7 +544,7 @@ export default function OutstationDashboard() {
           <div className="lg:col-span-8 flex flex-col gap-6">
             
             {/* Active Outstations Table */}
-            <Card className="border-0 shadow-sm rounded-[16px] bg-white dark:bg-card overflow-hidden flex flex-col">
+            <Card className="border-0 bg-white dark:bg-card overflow-hidden flex flex-col rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
               <CardHeader className="px-6 py-5 border-b border-gray-100 dark:border-slate-800 bg-white dark:bg-card flex flex-row flex-wrap items-center justify-between gap-4 sticky top-0 z-10">
               <div>
                 <CardTitle className="text-base font-bold text-foreground dark:text-slate-200">Active Outstations</CardTitle>
@@ -841,7 +841,7 @@ export default function OutstationDashboard() {
             </Card>
 
             {/* Upcoming Outstations Table */}
-            <Card className="border-0 shadow-sm rounded-[16px] bg-white dark:bg-card overflow-hidden flex flex-col">
+            <Card className="border-0 bg-white dark:bg-card overflow-hidden flex flex-col rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
               <CardHeader className="px-6 py-5 border-b border-gray-100 dark:border-slate-800 bg-white dark:bg-card flex flex-row flex-wrap items-center justify-between gap-4 sticky top-0 z-10">
                 <div>
                   <CardTitle className="text-base font-bold text-foreground dark:text-slate-200">Upcoming Outstations</CardTitle>
@@ -1122,7 +1122,7 @@ export default function OutstationDashboard() {
           <div className="lg:col-span-4 flex flex-col gap-6">
             
             {/* Alerts & Upcoming List */}
-            <Card className="border-0 shadow-sm rounded-[16px] bg-white dark:bg-card overflow-hidden flex-1">
+            <Card className="border-0 bg-white dark:bg-card overflow-hidden flex-1 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
               <CardHeader className="px-5 py-4 border-b border-gray-50">
                 <CardTitle className="text-base font-bold text-foreground dark:text-slate-200 flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 text-orange-500" /> Alerts & Upcoming
@@ -1161,7 +1161,7 @@ export default function OutstationDashboard() {
             </Card>
 
             {/* Quick Actions */}
-            <Card className="border border-slate-200 dark:border-slate-800 shadow-none rounded-[16px] bg-white dark:bg-card overflow-hidden">
+            <Card className="border border-slate-100 dark:border-slate-800 bg-white dark:bg-card overflow-hidden rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
               <CardHeader className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex flex-row items-center gap-2">
                 <Zap className="w-4 h-4 text-[#7B0099]" />
                 <CardTitle className="text-[11px] font-bold text-foreground dark:text-slate-100 uppercase tracking-widest">

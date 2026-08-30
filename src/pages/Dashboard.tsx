@@ -639,7 +639,7 @@ export default function Dashboard() {
       </div>
 
       {showEmptyState ? (
-        <Card className="border border-slate-200 dark:border-slate-800 shadow-none rounded-[20px] p-12 flex flex-col items-center justify-center text-center gap-4 bg-white dark:bg-card">
+        <Card className="border border-slate-100 dark:border-slate-800   p-12 flex flex-col items-center justify-center text-center gap-4 bg-white dark:bg-card rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
           <div className="p-4 rounded-full bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
             <CalendarOff className="w-8 h-8 text-foreground animate-pulse" />
           </div>
@@ -843,7 +843,7 @@ export default function Dashboard() {
                 {["hr_admin", "managing_director", "operation_manager"].includes(role) ? (
                   <>
                     <div onClick={() => navigate("/calendar/company-leave")} className="cursor-pointer col-span-1 sm:col-span-2 lg:col-span-2 flex h-full">
-                      <Card className="w-full border-none shadow-[0_2px_12px_rgba(0,0,0,0.06)] bg-white dark:bg-card overflow-hidden flex flex-col relative group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 rounded-[20px] ring-1 ring-slate-100">
+                      <Card className="w-full border-none shadow-[0_2px_12px_rgba(0,0,0,0.06)] bg-white dark:bg-card overflow-hidden flex flex-col relative group transition-all duration-300 hover: hover:-translate-y-1   ring-1 ring-slate-100 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
                         <CardContent className="p-4 sm:p-5 flex items-center justify-between h-full relative z-10 w-full">
                           <div className="flex items-center gap-4 min-w-0">
                             <div className="w-16 h-16 shrink-0 drop-shadow-sm transition-transform duration-500 group-hover:scale-105">
@@ -937,7 +937,7 @@ export default function Dashboard() {
                   </>
                 ) : (
                   <div onClick={() => navigate("/calendar/company-leave")} className="cursor-pointer col-span-1 sm:col-span-2 flex h-full">
-                    <Card className="w-full border-none shadow-xl bg-gradient-to-br from-[#f8f5ff] to-[#f2ecfc] overflow-hidden flex flex-col relative group transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 rounded-2xl ring-1 ring-white/60">
+                    <Card className="w-full border-none bg-gradient-to-br from-[#f8f5ff] to-[#f2ecfc] overflow-hidden flex flex-col relative group transition-all duration-300 hover: hover:-translate-y-1 ring-1 ring-white/60 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
                       <div className="absolute inset-0 bg-white/40 backdrop-blur-sm z-0"></div>
                       <CardContent className="p-4 sm:p-5 flex items-center justify-between h-full relative z-10 w-full">
                         <div className="flex items-center gap-4 sm:gap-6 min-w-0">
@@ -1024,7 +1024,7 @@ export default function Dashboard() {
                 )}
                 {stats.activeCompanyLeave ? (
                   <div onClick={() => navigate("/calendar/company-leave")} className="cursor-pointer">
-                    <Card className="border-none shadow-md bg-card overflow-hidden h-[120px] sm:h-[130px] flex flex-col relative group transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                    <Card className="border-none bg-card overflow-hidden h-[120px] sm:h-[130px] flex flex-col relative group transition-all duration-300 hover: hover:-translate-y-1 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
                       <div className="absolute top-0 right-0 p-3 opacity-10 transition-transform duration-500 group-hover:scale-110 group-hover:opacity-20 text-[#a01497]">
                         <CalendarCheck className="w-16 h-16 sm:w-20 sm:h-20" />
                       </div>
@@ -1153,7 +1153,7 @@ export default function Dashboard() {
       </div>
 
       {isCompanyLeave && stats.activeCompanyLeave && ["hr_admin", "managing_director", "operation_manager"].includes(role) && (
-        <Card className="border-none shadow-[0_2px_12px_rgba(0,0,0,0.06)] rounded-[20px] overflow-hidden bg-white dark:bg-card mb-6 animate-in fade-in slide-in-from-bottom-2 duration-700 delay-100 fill-mode-both">
+        <Card className="border-none shadow-[0_2px_12px_rgba(0,0,0,0.06)]   overflow-hidden bg-white dark:bg-card mb-6 animate-in fade-in slide-in-from-bottom-2 duration-700 delay-100 fill-mode-both rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
           <CardHeader className="border-b border-border/50 pb-3 px-4 flex flex-col md:flex-row md:items-center justify-between bg-white dark:bg-card gap-4">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-[#a01497]/10 rounded-xl">
@@ -1372,7 +1372,7 @@ export default function Dashboard() {
         <div className="xl:col-span-2 space-y-4">
           {/* Who's Out Today - admin roles only */}
           {["hr_admin", "branch_leader", "managing_director", "operation_manager", "head_of_department"].includes(role) && (
-            <Card className="border-2 border-purple-100 dark:border-purple-900/50 shadow-sm rounded-xl overflow-hidden bg-white dark:bg-card">
+            <Card className="border-2 border-purple-100 dark:border-purple-900/50 overflow-hidden bg-white dark:bg-card rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
               <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 px-4 pt-4">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
                   <div className="flex items-start gap-2">
@@ -1470,7 +1470,7 @@ export default function Dashboard() {
           )}
 
           {/* Enterprise Recent Activity Feed */}
-          <Card className="border border-slate-200 dark:border-slate-800 shadow-none rounded-md overflow-hidden bg-white dark:bg-card">
+          <Card className="border border-slate-100 dark:border-slate-800 overflow-hidden bg-white dark:bg-card rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
             <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-0 px-4 pt-4">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
                 <div className="flex items-center gap-2">
@@ -1642,7 +1642,7 @@ export default function Dashboard() {
         <div className="xl:col-span-1 space-y-4">
           
           {/* Quick Actions */}
-          <Card className="border border-slate-200 dark:border-slate-800 shadow-none rounded-md overflow-hidden bg-white dark:bg-card">
+          <Card className="border border-slate-100 dark:border-slate-800 overflow-hidden bg-white dark:bg-card rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
             <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 px-4 pt-4">
               <div className="flex items-center gap-2">
                 <Zap className="w-5 h-5 text-[#a01497]" />
@@ -1672,7 +1672,7 @@ export default function Dashboard() {
           </Card>
 
           {/* Active Outstation */}
-          <Card className="border border-slate-200 dark:border-slate-800 shadow-none rounded-md overflow-hidden bg-white dark:bg-card mb-6">
+          <Card className="border border-slate-100 dark:border-slate-800 overflow-hidden bg-white dark:bg-card mb-6 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
             <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 px-4 pt-4 flex flex-row items-center justify-between">
               <CardTitle className="text-[11px] font-bold text-slate-800 dark:text-slate-100 uppercase tracking-widest cursor-pointer hover:underline" onClick={() => navigate("/outstation/my?tab=active")}>
                 Active Outstation
@@ -1741,7 +1741,7 @@ export default function Dashboard() {
           </Card>
 
           {/* Upcoming Outstation */}
-          <Card className="border border-slate-200 dark:border-slate-800 shadow-none rounded-md overflow-hidden bg-white dark:bg-card">
+          <Card className="border border-slate-100 dark:border-slate-800 overflow-hidden bg-white dark:bg-card rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
             <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 px-4 pt-4 flex flex-row items-center justify-between">
               <CardTitle className="text-[11px] font-bold text-slate-800 dark:text-slate-100 uppercase tracking-widest cursor-pointer hover:underline" onClick={() => navigate("/outstation/my?tab=upcoming")}>
                 Upcoming Outstation
@@ -1812,7 +1812,7 @@ export default function Dashboard() {
 
           {/* Temporary Staff */}
           {["hr_admin", "branch_leader", "managing_director", "operation_manager", "head_of_department"].includes(role) && (
-            <Card className="border border-slate-200 dark:border-slate-800 shadow-none rounded-md overflow-hidden bg-white dark:bg-card mt-6">
+            <Card className="border border-slate-100 dark:border-slate-800 overflow-hidden bg-white dark:bg-card mt-6 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
               <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 px-4 pt-4 flex flex-row items-center justify-between">
                 <div className="flex flex-col gap-0.5">
                   <CardTitle className="text-[11px] font-bold text-slate-800 dark:text-slate-100 uppercase tracking-widest cursor-pointer hover:underline" onClick={() => navigate("/branches/temporary-assignments")}>
@@ -1887,7 +1887,7 @@ export default function Dashboard() {
           )}
 
           {/* Monthly Attendance Score */}
-          <Card className="border-none shadow-none rounded-md overflow-hidden bg-purple-800 text-white">
+          <Card className="border-none overflow-hidden bg-purple-800 text-white rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
             <CardContent className="p-5">
               <p className="text-[10px] font-bold uppercase tracking-widest opacity-80 mb-2">
                 Monthly Attendance Score
@@ -1905,7 +1905,7 @@ export default function Dashboard() {
           </Card>
 
           {/* Server Status */}
-          <Card className="border border-slate-200 dark:border-slate-800 shadow-none rounded-md overflow-hidden bg-white dark:bg-card">
+          <Card className="border border-slate-100 dark:border-slate-800 overflow-hidden bg-white dark:bg-card rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
             <CardContent className="p-4 flex items-center justify-between">
               <span className="text-[10px] font-bold text-foreground uppercase tracking-widest">
                 Server Status

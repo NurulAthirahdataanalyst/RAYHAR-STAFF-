@@ -848,9 +848,18 @@ export default function AttendanceDashboard() {
         
         const expectedWorkforce = Math.max(0, permanentStaffCount - temporaryOut) + temporaryIn;
 
-        const activePermanent = dailyAttendance.filter(emp => emp.branch === b.branch && (!emp.temp_branch || emp.temp_branch === b.branch));
-        const activeTemporary = dailyAttendance.filter(emp => emp.branch !== b.branch && emp.temp_branch === b.branch);
+        const validBranches = new Set(listSource.map(bs => bs.branch));
         
+        const activePermanent = dailyAttendance.filter(emp => {
+          if (emp.branch !== b.branch) return false;
+          // If they have a temp branch but it's not in our branch list (e.g. a department name), ignore it
+          const hasValidTempBranch = emp.temp_branch && validBranches.has(emp.temp_branch);
+          return !hasValidTempBranch || emp.temp_branch === b.branch;
+        });
+        
+        const activeTemporary = dailyAttendance.filter(emp => {
+          return emp.branch !== b.branch && emp.temp_branch === b.branch;
+        });
         const presentOnTime = activePermanent.filter(emp => emp.status === 'Present (On Time)' || emp.status === 'Present').length;
         const presentLate = activePermanent.filter(emp => emp.status === 'Present (Late)').length;
         const onLeave = activePermanent.filter(emp => emp.status === 'On Leave' || emp.status === 'Approved Leave').length;
@@ -1158,7 +1167,7 @@ export default function AttendanceDashboard() {
       </div>
 
       {/* FILTER BAR SECTION */}
-      <Card className="border border-gray-200 dark:border-slate-800/80 bg-white dark:bg-card rounded-lg shadow-sm overflow-hidden mb-6">
+      <Card className="border border-slate-100 dark:border-slate-800/80 bg-white dark:bg-card overflow-hidden mb-6 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
         <div className="p-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
             <h2 className="text-base font-bold text-gray-800 dark:text-gray-200 flex items-center gap-2">
@@ -1257,7 +1266,7 @@ export default function AttendanceDashboard() {
       </Card>
 
       {/* ADMIN ATTENDANCE TABLE */}
-      <Card id="admin-attendance" className="border border-gray-200 dark:border-slate-800/80 bg-white dark:bg-card rounded-lg shadow-sm overflow-hidden mb-6 scroll-mt-24">
+      <Card id="admin-attendance" className="border border-slate-100 dark:border-slate-800/80 bg-white dark:bg-card overflow-hidden mb-6 scroll-mt-24 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
         <div className="p-4 border-b border-gray-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2">
@@ -1465,7 +1474,7 @@ export default function AttendanceDashboard() {
       </Card>
 
       {/* EMPLOYEE ABSENTEEISM TABLE */}
-      <Card id="employee-absenteeism" className="border border-gray-200 dark:border-slate-800/80 bg-white dark:bg-card rounded-lg shadow-sm overflow-hidden mb-6 scroll-mt-24">
+      <Card id="employee-absenteeism" className="border border-slate-100 dark:border-slate-800/80 bg-white dark:bg-card overflow-hidden mb-6 scroll-mt-24 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
         <div className="p-4 border-b border-gray-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-3">
             <h2 className="text-base font-bold text-gray-800 dark:text-gray-200">Employee Absenteeism & On Leave</h2>
@@ -1589,7 +1598,7 @@ export default function AttendanceDashboard() {
       {/* REST DAY EMPLOYEES GRID */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         {/* ZONE A */}
-        <Card className="border border-gray-200 dark:border-slate-800/80 bg-white dark:bg-card rounded-lg shadow-sm overflow-hidden">
+        <Card className="border border-slate-100 dark:border-slate-800/80 bg-white dark:bg-card overflow-hidden rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
           <div className="p-4 border-b border-gray-100 dark:border-slate-800 flex items-center justify-between">
             <h2 className="text-sm font-bold text-gray-800 dark:text-gray-200">Employees on Rest Day (Zone A)</h2>
             <span className="px-2 py-0.5 text-[10px] font-black uppercase tracking-wider rounded bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-slate-700">
@@ -1630,7 +1639,7 @@ export default function AttendanceDashboard() {
         </Card>
 
         {/* ZONE B */}
-        <Card className="border border-gray-200 dark:border-slate-800/80 bg-white dark:bg-card rounded-lg shadow-sm overflow-hidden">
+        <Card className="border border-slate-100 dark:border-slate-800/80 bg-white dark:bg-card overflow-hidden rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
           <div className="p-4 border-b border-gray-100 dark:border-slate-800 flex items-center justify-between">
             <h2 className="text-sm font-bold text-gray-800 dark:text-gray-200">Employees on Rest Day (Zone B)</h2>
             <span className="px-2 py-0.5 text-[10px] font-black uppercase tracking-wider rounded bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-slate-700">
@@ -1675,7 +1684,7 @@ export default function AttendanceDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
         
         {/* Branch Workforce Distribution */}
-        <Card className="border border-gray-200 dark:border-slate-800/80 bg-white dark:bg-card rounded-xl shadow-sm overflow-hidden lg:col-span-6 flex flex-col h-fit">
+        <Card className="border border-slate-100 dark:border-slate-800/80 bg-white dark:bg-card overflow-hidden lg:col-span-6 flex flex-col h-fit rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
           <CardHeader className="pb-4 pt-5 px-6 border-b border-gray-100 dark:border-slate-800 flex flex-row items-start justify-between">
             <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-200">Branch Workforce Distribution</CardTitle>
             <div className="flex items-center gap-2 flex-wrap justify-end">
@@ -1799,7 +1808,7 @@ export default function AttendanceDashboard() {
         </Card>
 
         {/* Attendance Overview */}
-        <Card className="border border-gray-200 dark:border-slate-800/80 bg-white dark:bg-card rounded-xl shadow-sm overflow-hidden lg:col-span-6 flex flex-col h-fit">
+        <Card className="border border-slate-100 dark:border-slate-800/80 bg-white dark:bg-card overflow-hidden lg:col-span-6 flex flex-col h-fit rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
           <CardHeader className="pb-4 pt-5 px-6 border-b border-gray-100 dark:border-slate-800 flex flex-row items-start justify-between">
             <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-200">Attendance Overview</CardTitle>
           </CardHeader>
