@@ -1904,13 +1904,13 @@ export default function Attendance() {
                   onClick={() => setPage(p => Math.max(1, p - 1))}
                   disabled={page === 1}
                   className="px-3 py-1 text-[11px] font-black rounded-md border border-border bg-background hover:bg-muted disabled:opacity-50"
-                >Prev</button>
+                >{"<"}</button>
                 <div className="text-sm font-bold">{page} / {totalPages}</div>
                 <button
                   onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
                   className="px-3 py-1 text-[11px] font-black rounded-md border border-border bg-background hover:bg-muted disabled:opacity-50"
-                >Next</button>
+                >{">"}</button>
               </div>
             </div>
           )}

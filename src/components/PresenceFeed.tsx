@@ -309,6 +309,16 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
       };
     }
 
+    if (status === "Rest Day" || status === "Weekend") {
+      return {
+        icon: AlertCircle,
+        color: "text-blue-500",
+        bg: "bg-blue-50 dark:bg-blue-950/20 border-blue-100 dark:border-blue-900/20",
+        dot: "bg-blue-500",
+        label: "Rest Day"
+      };
+    }
+
     return { 
       icon: AlertCircle, 
       color: "text-foreground", 
