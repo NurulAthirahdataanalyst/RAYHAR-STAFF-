@@ -5973,15 +5973,15 @@ app.get("/api/dashboard-stats", async (req, res) => {
         UNION ALL
         SELECT 'leave' AS type, 'You' AS actor,
           CASE lr.status
-            WHEN 'Pending HOD' THEN 'Submitted leave to HOD'
-            WHEN 'Pending Operation Manager' THEN 'Submitted leave to Operation Manager'
-            WHEN 'Pending Finance' THEN 'Submitted leave to Finance'
-            WHEN 'Pending MD' THEN 'Submitted leave to MD'
-            WHEN 'Pending Branch Leader' THEN 'Submitted leave to Branch Leader'
-            ELSE 'Submitted leave request'
+            WHEN 'Pending HOD' THEN 'submitted a Leave Request (Pending HOD)'
+            WHEN 'Pending Operation Manager' THEN 'submitted a Leave Request (Pending OM)'
+            WHEN 'Pending Finance' THEN 'submitted a Leave Request (Pending Finance)'
+            WHEN 'Pending MD' THEN 'submitted a Leave Request (Pending MD)'
+            WHEN 'Pending Branch Leader' THEN 'submitted a Leave Request (Pending Branch Leader)'
+            ELSE 'submitted a Leave Request'
           END AS action,
           NULL AS target,
-          CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD Mon'), ' – ', TO_CHAR(lr.end_date, 'DD Mon'), COALESCE(CONCAT(' • ', TRIM(split_part(lr.reason, '[CUTI_GANTI_DATA:', 1))), '')) AS context,
+          CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' – ', TO_CHAR(lr.end_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Days') AS context,
           TO_CHAR(lr.updated_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time,
           lr.updated_at AS sort_time,
           lr.status AS badge
@@ -5991,9 +5991,9 @@ app.get("/api/dashboard-stats", async (req, res) => {
           AND lr.status LIKE 'Pending%'
         UNION ALL
         SELECT 'approval' AS type, COALESCE(approver.full_name, la.approver_role) AS actor,
-          CASE WHEN la.status = 'Approved' THEN 'Approved your leave' ELSE 'Rejected your leave' END AS action,
+          CASE WHEN la.status = 'Approved' THEN 'approved your Leave Request' ELSE 'rejected your Leave Request' END AS action,
           NULL AS target,
-          CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD Mon'), ' – ', TO_CHAR(lr.end_date, 'DD Mon'), COALESCE(CONCAT(' • ', TRIM(split_part(lr.reason, '[CUTI_GANTI_DATA:', 1))), '')) AS context,
+          CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' – ', TO_CHAR(lr.end_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Days') AS context,
           TO_CHAR(la.created_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time,
           la.created_at AS sort_time,
           UPPER(la.status) AS badge
@@ -6003,10 +6003,21 @@ app.get("/api/dashboard-stats", async (req, res) => {
         WHERE lr.user_id = ?
           AND DATE(la.created_at AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
         UNION ALL
+        SELECT 'leave' AS type, lba.approved_by AS actor,
+          CASE WHEN lba.adjustment_days < 0 THEN 'deducted your leave' ELSE 'added your leave' END AS action,
+          NULL AS target,
+          CONCAT(lba.leave_type, ' • ', lba.adjustment_days, ' Days (', lba.reason, ')') AS context,
+          TO_CHAR(lba.created_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time,
+          lba.created_at AS sort_time,
+          'Adjustment' AS badge
+        FROM leave_balance_adjustments lba
+        WHERE lba.employee_id = ?
+          AND DATE(lba.created_at AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
+        UNION ALL
         SELECT
           CASE WHEN type = 'reminder' THEN 'note' ELSE 'note' END,
           'You',
-          CASE WHEN type = 'reminder' THEN 'Added a reminder' ELSE 'Added a note' END,
+          CASE WHEN type = 'reminder' THEN 'added a reminder' ELSE 'added a note' END,
           NULL, note_text,
           TO_CHAR(created_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM'),
           created_at,
@@ -6015,24 +6026,14 @@ app.get("/api/dashboard-stats", async (req, res) => {
           AND DATE(created_at AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
         UNION ALL
         SELECT 'outstation' AS type,
-          CONCAT(oa.assigned_by_name, ' (', 
-            CASE LOWER(oa.assigned_by_role) 
-              WHEN 'managing_director' THEN 'Managing Director' 
-              WHEN 'hr_admin' THEN 'HR' 
-              WHEN 'operation_manager' THEN 'Operation Manager' 
-              WHEN 'finance_manager' THEN 'Operation Manager'
-              WHEN 'branch_leader' THEN CONCAT('Branch Leader, ', COALESCE(assigner.branch, oa.branch))
-              WHEN 'head_of_department' THEN CONCAT('Head of Department, ', COALESCE(assigner.department, oa.department))
-              ELSE oa.assigned_by_role 
-            END, ')') AS actor,
-          'assigned an outstation to' AS action,
+          oa.assigned_by_name AS actor,
+          'assigned an Outstation to' AS action,
           'You' AS target,
-          CONCAT('Branch: ', COALESCE(oa.branch, 'HQ'), ' • Destination: ', oa.destination, ' • Date: ', TO_CHAR(oa.start_date, 'DD Mon YYYY'), COALESCE(CONCAT(' • ', oa.purpose), '') ) AS context,
+          CONCAT('Event: ', oa.purpose, ' — ', oa.destination, ' • ', TO_CHAR(oa.start_date, 'DD/MM/YYYY'), ' – ', TO_CHAR(oa.end_date, 'DD/MM/YYYY'), ' • ', oa.total_days, ' Days') AS context,
           TO_CHAR(oa.created_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time,
           oa.created_at AS sort_time,
           'Assigned' AS badge
         FROM outstation_assignments oa
-        LEFT JOIN profiles assigner ON assigner.user_id = oa.assigned_by
         WHERE oa.user_id = ?
           AND DATE(oa.created_at AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
         UNION ALL
@@ -6046,7 +6047,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
       )
       SELECT type, actor, action, target, context, time, badge FROM acts
       ORDER BY sort_time DESC LIMIT 10`,
-      [userId, queryDate, userId, queryDate, userId, queryDate, userId, queryDate, userId, queryDate, userId, queryDate, userId, queryDate]
+      [userId, queryDate, userId, queryDate, userId, queryDate, userId, queryDate, userId, queryDate, userId, queryDate, userId, queryDate, userId, queryDate]
     );
 
     // ── Layer 2: TEAM ACTIVITY (branch_leader, hod, hr_admin, md, finance_manager) ─
@@ -6108,15 +6109,15 @@ app.get("/api/dashboard-stats", async (req, res) => {
             'leave' AS type,
             emp.full_name AS actor,
             CASE lr.status
-              WHEN 'Pending HOD' THEN 'Submitted leave to HOD'
-              WHEN 'Pending Operation Manager' THEN 'Submitted leave to Operation Manager'
-              WHEN 'Pending Finance' THEN 'Submitted leave to Finance'
-              WHEN 'Pending MD' THEN 'Submitted leave to MD'
-              WHEN 'Pending Branch Leader' THEN 'Submitted leave to Branch Leader'
-              ELSE 'Submitted leave request'
+              WHEN 'Pending HOD' THEN 'submitted a Leave Request (Pending HOD)'
+              WHEN 'Pending Operation Manager' THEN 'submitted a Leave Request (Pending OM)'
+              WHEN 'Pending Finance' THEN 'submitted a Leave Request (Pending Finance)'
+              WHEN 'Pending MD' THEN 'submitted a Leave Request (Pending MD)'
+              WHEN 'Pending Branch Leader' THEN 'submitted a Leave Request (Pending Branch Leader)'
+              ELSE 'submitted a Leave Request'
             END AS action,
             NULL AS target,
-            CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD Mon'), ' – ', TO_CHAR(lr.end_date, 'DD Mon'), COALESCE(CONCAT(' • ', TRIM(split_part(lr.reason, '[CUTI_GANTI_DATA:', 1))), '')) AS context,
+            CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' – ', TO_CHAR(lr.end_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Days') AS context,
             TO_CHAR(lr.updated_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time,
             lr.updated_at AS sort_time,
             lr.status AS badge
@@ -6132,9 +6133,9 @@ app.get("/api/dashboard-stats", async (req, res) => {
           SELECT 
             'approval' AS type,
             COALESCE(approver.full_name, la.approver_role) AS actor,
-            CASE WHEN la.status = 'Approved' THEN 'Approved leave request' ELSE 'Rejected leave request' END AS action,
+            CASE WHEN la.status = 'Approved' THEN 'approved a Leave Request for' ELSE 'rejected a Leave Request for' END AS action,
             emp.full_name AS target,
-            CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD Mon'), ' – ', TO_CHAR(lr.end_date, 'DD Mon'), COALESCE(CONCAT(' • ', TRIM(split_part(lr.reason, '[CUTI_GANTI_DATA:', 1))), '')) AS context,
+            CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' – ', TO_CHAR(lr.end_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Days') AS context,
             TO_CHAR(la.created_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time,
             la.created_at AS sort_time,
             UPPER(la.status) AS badge
@@ -6147,27 +6148,34 @@ app.get("/api/dashboard-stats", async (req, res) => {
 
           UNION ALL
 
+          -- Leave Adjustments
+          SELECT 
+            'leave' AS type,
+            lba.approved_by AS actor,
+            CASE WHEN lba.adjustment_days < 0 THEN 'deducted leave for' ELSE 'added leave for' END AS action,
+            emp.full_name AS target,
+            CONCAT(lba.leave_type, ' • ', lba.adjustment_days, ' Days (', lba.reason, ')') AS context,
+            TO_CHAR(lba.created_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time,
+            lba.created_at AS sort_time,
+            'Adjustment' AS badge
+          FROM leave_balance_adjustments lba
+          JOIN profiles emp ON emp.user_id = lba.employee_id
+          WHERE DATE(lba.created_at AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
+            AND emp.status = 'Active' ${teamFilter.replace(/p\./g, 'emp.')}
+
+          UNION ALL
+
           -- Outstation assignments today
           SELECT 'outstation' AS type,
-            CONCAT(oa.assigned_by_name, ' (', 
-              CASE LOWER(oa.assigned_by_role) 
-                WHEN 'managing_director' THEN 'Managing Director' 
-                WHEN 'hr_admin' THEN 'HR' 
-                WHEN 'operation_manager' THEN 'Operation Manager' 
-                WHEN 'finance_manager' THEN 'Operation Manager'
-                WHEN 'branch_leader' THEN CONCAT('Branch Leader, ', COALESCE(assigner.branch, oa.branch))
-                WHEN 'head_of_department' THEN CONCAT('Head of Department, ', COALESCE(assigner.department, oa.department))
-                ELSE oa.assigned_by_role 
-              END, ')') AS actor,
-            'assigned an outstation to' AS action,
+            oa.assigned_by_name AS actor,
+            'assigned an Outstation to' AS action,
             emp.full_name AS target,
-            CONCAT('Branch: ', COALESCE(oa.branch, 'HQ'), ' • Destination: ', oa.destination, ' • Date: ', TO_CHAR(oa.start_date, 'DD Mon YYYY'), COALESCE(CONCAT(' • ', oa.purpose), '')) AS context,
+            CONCAT('Event: ', oa.purpose, ' — ', oa.destination, ' • ', TO_CHAR(oa.start_date, 'DD/MM/YYYY'), ' – ', TO_CHAR(oa.end_date, 'DD/MM/YYYY'), ' • ', oa.total_days, ' Days') AS context,
             TO_CHAR(oa.created_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time,
             oa.created_at AS sort_time,
             'Assigned' AS badge
           FROM outstation_assignments oa
           JOIN profiles emp ON emp.user_id = oa.user_id
-          LEFT JOIN profiles assigner ON assigner.user_id = oa.assigned_by
           WHERE DATE(oa.created_at AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
             AND emp.status = 'Active' ${teamFilter.replace(/p\./g, 'oa.')}
           
@@ -6185,7 +6193,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
         )
         SELECT type, actor, action, target, context, time, badge FROM team_acts
         ORDER BY sort_time DESC LIMIT 10`,
-        [queryDate, ...teamParams, queryDate, ...teamParams, queryDate, ...teamParams, queryDate, ...teamParams, queryDate, ...teamParams, queryDate, ...teamParams]
+        [queryDate, ...teamParams, queryDate, ...teamParams, queryDate, ...teamParams, queryDate, ...teamParams, queryDate, ...teamParams, queryDate, ...teamParams, queryDate, ...teamParams]
       );
       teamActivityRows = teamRows;
     }
@@ -6207,16 +6215,13 @@ app.get("/api/dashboard-stats", async (req, res) => {
 
       const [sysRows] = await pool.query(
         `SELECT 'system' AS type,
-          'System' AS actor,
+          COALESCE(cl.created_by, 'HR') AS actor,
           CASE
-            WHEN cl.status = 'Active' THEN 'Activated Company Leave'
-            ELSE 'Deactivated Company Leave'
+            WHEN cl.status = 'Active' THEN 'created a Company Leave'
+            ELSE 'cancelled a Company Leave'
           END AS action,
-          cl.leave_name AS target,
-          CONCAT('Applies to: ', cl.applies_to,
-            CASE WHEN cl.applies_to = 'branch' THEN CONCAT(' (', cl.branch_id, ')') ELSE '' END,
-            CASE WHEN cl.applies_to = 'department' THEN CONCAT(' (', cl.department_id, ')') ELSE '' END
-          ) AS context,
+          NULL AS target,
+          CONCAT(cl.leave_name, ' • ', TO_CHAR(cl.start_date, 'DD/MM/YYYY'), ' • ', (cl.end_date - cl.start_date + 1), ' Day(s)') AS context,
           TO_CHAR(cl.updated_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time,
           TO_CHAR(cl.updated_at, 'DD Mon YYYY') AS date,
           cl.status AS badge
@@ -9439,11 +9444,11 @@ app.delete('/api/outstation/:id', async (req, res) => {
     );
 
     // 4. Record the deletion in the activity log
-    const auditActor = `[${approverRole}] ${assignment.assigned_by_name}`;
-    const auditContext = `Branch: ${assignment.branch || 'HQ'} • Destination: ${assignment.destination} • Date: ${formattedStartDate}`;
+    const auditActor = assignment.assigned_by_name || approverRole;
+    const auditContext = `Event: ${assignment.purpose} — ${assignment.destination} • ${formattedStartDate} • ${assignment.total_days} Days`;
     await pool.query(
       `INSERT INTO activity_logs (user_id, actor, action, target, context, type) VALUES ($1, $2, $3, $4, $5, $6)`,
-      [assignment.user_id, auditActor, 'deleted an outstation assignment for', assignment.full_name, auditContext, 'outstation']
+      [assignment.user_id, auditActor, 'cancelled an outstation assignment for', assignment.full_name, auditContext, 'outstation']
     );
 
     // 5. Update the status to 'Cancelled' instead of deleting
