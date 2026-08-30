@@ -550,7 +550,7 @@ export default function LeaveAnalytics() {
 
   // ─ Staff-level summary (for Branch Leader / HOD) ─────────────────────────
   const staffSummary = useMemo(() => {
-    const map: Record<string, { id: string; name: string; total: number; approved: number; rejected: number; pending: number; days: number; department: string; branch: string; quota: number; }> = {};
+    const map: Record<string, { id: string; name: string; total: number; approved: number; rejected: number; pending: number; days: number; department: string; branch: string; quota: number; rawRole: string; }> = {};
     
     allEmployees.forEach(emp => {
       map[emp.user_id] = {
@@ -563,7 +563,8 @@ export default function LeaveAnalytics() {
         days: 0,
         department: emp.department || "General",
         branch: emp.branch || "HQ",
-        quota: entitlements[emp.user_id] || QUOTA_PER_EMPLOYEE
+        quota: entitlements[emp.user_id] || QUOTA_PER_EMPLOYEE,
+        rawRole: emp.role || "employee"
       };
     });
     records.forEach((r) => {
@@ -578,9 +579,10 @@ export default function LeaveAnalytics() {
           days: 0,
           department: r.department || "General",
           branch: r.branch || "HQ",
-          quota: entitlements[r.user_id] || 14
-        };
-      }
+          quota: entitlements[r.user_id] || 14,
+            rawRole: r.role || "employee"
+          };
+        }
       map[r.user_id].total++;
       if (r.status === "Approved") {
         map[r.user_id].approved++;
@@ -968,7 +970,7 @@ export default function LeaveAnalytics() {
       .map(s => ({
         id: s.id,
         name: s.name,
-        role: s.department === "General" ? "Employee" : "Executive",
+        role: (s.rawRole === "head_of_department" || s.rawRole === "hod") ? `Head Of Department (${s.department})` : s.rawRole === "branch_leader" ? "Branch Leader" : "Employee",
         dept: s.department,
         branch: s.branch,
         taken: s.days,
