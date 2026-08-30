@@ -310,7 +310,7 @@ export default function WorkforceInsights() {
       
       const [res, tempRes] = await Promise.all([
         fetch(`${API_BASE_URL}/api/reports/workforce-insights?${params}`),
-        fetch(`${API_BASE_URL}/api/work-assignments-all`)
+        fetch(`${API_BASE_URL}/api/work-assignments-all?${params}`)
       ]);
       
       if (!res.ok) {
@@ -1098,34 +1098,9 @@ export default function WorkforceInsights() {
           {/* HOD & Branch Leader LIVE CARDS (Only show for these roles, under Branch Distribution) */}
             {['head_of_department', 'branch_leader'].includes(role) && (() => {
               // Filter live data to only show employees within HOD's dept or Branch Leader's branch
-              const filteredClockIns = [...clockInOut, ...lateList]
-                .filter(emp => {
-                  if (role === 'head_of_department') return emp.department === userDepartment;
-                  if (role === 'branch_leader') return emp.branch === userBranch;
-                  return true;
-                })
-                .sort((a, b) => (a.clock_in || '').localeCompare(b.clock_in || ''));
+              const displayClockIns = [...clockInOut, ...lateList].sort((a, b) => (a.clock_in || '').localeCompare(b.clock_in || ''));
 
-              const filteredAbsent = absentList.filter(emp => {
-                if (role === 'head_of_department') return emp.department === userDepartment;
-                if (role === 'branch_leader') return emp.branch === userBranch;
-                return true;
-              });
-
-              const scopeLabel = role === 'branch_leader' ? userBranch : userDepartment;
-
-              // Mock names when there are no real live clock-ins (for UI demo)
-              const mockClockInsHOD = [
-                { user_id: 'h1', full_name: 'Nurul Athirah', initials: 'NA', branch: 'HQ', department: 'Haji Umrah (BHU)', clock_in: '08:45 AM', is_late: false },
-                { user_id: 'h2', full_name: 'Md Khan', initials: 'MK', branch: 'HQ', department: 'Haji Umrah (BHU)', clock_in: '08:50 AM', is_late: false },
-                { user_id: 'h3', full_name: 'Nurain Syakirah', initials: 'NS', branch: 'HQ', department: 'Haji Umrah (BHU)', clock_in: '08:55 AM', is_late: false }
-              ];
-              const displayClockIns = filteredClockIns.length > 0 ? filteredClockIns : mockClockInsHOD;
-
-              const mockAbsentHOD = [
-                { user_id: 'h4', full_name: 'Nur Syuhada', initials: 'NS', branch: 'HQ', department: 'Haji Umrah (BHU)', status: 'absent' }
-              ];
-              const displayAbsent = filteredAbsent.length > 0 ? filteredAbsent : mockAbsentHOD;
+              const displayAbsent = absentList;
 
               return (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1511,14 +1486,8 @@ export default function WorkforceInsights() {
                 (a.clock_in || '').localeCompare(b.clock_in || '')
               );
               
-              // Mock names when there are no real live clock-ins
-              const mockClockIns = [
-                { user_id: 'm1', full_name: 'Ahmad Faiz Bin Rahman', initials: 'AF', branch: 'HQ', department: 'IT', clock_in: '08:45 AM', is_late: false },
-                { user_id: 'm2', full_name: 'Nurul Athirah Abdul Rahman', initials: 'NA', branch: 'HQ', department: 'HR', clock_in: '08:50 AM', is_late: false },
-                { user_id: 'm3', full_name: 'Firdaus Zulkifli', initials: 'FZ', branch: 'Shah Alam', department: 'Sales', clock_in: '08:55 AM', is_late: false },
-                { user_id: 'm4', full_name: 'Hafiz Irfan Bin Sabri', initials: 'HI', branch: 'Kuala Lumpur', department: 'Support', clock_in: '08:59 AM', is_late: false }
-              ];
-              const displayClockIns = allClockIns.length > 0 ? allClockIns : mockClockIns;
+              
+              const displayClockIns = allClockIns;
               return (
                 <div className="flex-1 space-y-2 max-h-[260px] overflow-y-auto custom-scrollbar pr-0.5">
                   {displayClockIns.length === 0 && !feedConnected && (
@@ -2197,9 +2166,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
     const mIdx = ((targetMonthIdx - i) + 12) % 12;
     emptyTrend.push({ 
       month: monthsArr[mIdx], 
-      Annual: mockAnnual[5 - i], 
-      Sick: mockSick[5 - i], 
-      Replacement: mockReplacement[5 - i] 
+      Annual: 0, Sick: 0, Replacement: 0 
     });
   }
 
