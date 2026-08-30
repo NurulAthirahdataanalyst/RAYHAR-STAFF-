@@ -1856,20 +1856,22 @@ export default function WorkforceInsights() {
                           </p>
                           <p className="text-[10px] text-foreground font-medium mt-0.5">
                             Reason: {
-                              (() => {
-                                if (!item.reason) return "-";
-                                if (item.reason.startsWith("[CUTI_GANTI_DATA:") && item.reason.endsWith("]")) {
-                                  try {
-                                    const jsonStr = item.reason.substring(17, item.reason.length - 1);
-                                    const data = JSON.parse(jsonStr);
-                                    if (Array.isArray(data) && data.length > 0) {
-                                      return "Replacement Leave (" + data.map(d => d.keterangan || "-").join(", ") + ")";
-                                    }
-                                  } catch (e) {}
-                                }
-                                return item.reason;
-                              })()
-                            }
+                                (() => {
+                                  if (!item.reason) return "-";
+                                  const match = item.reason.match(/\[CUTI_GANTI_DATA:([\s\S]*?)\]/);
+                                  if (match && match[1]) {
+                                    try {
+                                      const data = JSON.parse(match[1]);
+                                      if (Array.isArray(data) && data.length > 0) {
+                                        let text = item.reason.replace(match[0], "").trim();
+                                        const details = data.map(d => d.keterangan || "-").filter(Boolean).join(", ");
+                                        return "Replacement Leave (" + details + ")" + (text ? " - " + text : "");
+                                      }
+                                    } catch (e) {}
+                                  }
+                                  return item.reason;
+                                })()
+                              }
                           </p>
                         </div>
                       </div>
