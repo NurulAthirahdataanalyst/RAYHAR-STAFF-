@@ -1,43 +1,49 @@
 import os
-import glob
+import codecs
 
-def fix_file(path):
-    with open(path, 'r', encoding='utf-8') as f:
-        content = f.read()
+# 1. Update Input to have bg-gray-50
+input_file = 'src/components/ui/input.tsx'
+with codecs.open(input_file, 'r', 'utf-8') as f:
+    content = f.read()
 
-    # Search for any <input type="month" ... />
-    import re
-    # We will use re.sub with a custom function to parse the value and onChange props
+content = content.replace('bg-background', 'bg-gray-50 dark:bg-slate-900')
+with codecs.open(input_file, 'w', 'utf-8') as f:
+    f.write(content)
+
+
+# 2. Update Header background color to #942392
+layout_file = 'src/components/layout/AppLayout.tsx'
+with codecs.open(layout_file, 'r', 'utf-8') as f:
+    layout_content = f.read()
+
+layout_content = layout_content.replace('bg-gradient-to-r from-[#800A7A] via-[#7B0099] to-[#3d0052]', 'bg-[#942392]')
+with codecs.open(layout_file, 'w', 'utf-8') as f:
+    f.write(layout_content)
+
+
+# 3. Use PasswordInput
+def replace_passwords(filepath):
+    if not os.path.exists(filepath): return
+    with codecs.open(filepath, 'r', 'utf-8') as f:
+        c = f.read()
     
-    # Actually, TeamAttendance has this EXACT block twice:
-    block = """              <input
-                type="month"
-                value={`${new Date(selectedDate).getFullYear()}-${String(new Date(selectedDate).getMonth() + 1).padStart(2, '0')}`}
-                onChange={(e) => {
-                  if (e.target.value) {
-                    setSelectedDate(`${e.target.value}-01`);
-                  }
-                }}
-                className="appearance-none px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none focus:border-[#7B0099] focus:ring-1 focus:ring-[#7B0099] uppercase tracking-widest h-[34px]"
-              />"""
-              
-    replacement = """              <MonthPicker
-                monthYear={`${new Date(selectedDate).getFullYear()}-${String(new Date(selectedDate).getMonth() + 1).padStart(2, '0')}`}
-                onSelectMonthYear={(val) => {
-                  setSelectedDate(`${val}-01`);
-                }}
-                className="appearance-none flex items-center justify-between min-w-[120px] px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none focus:border-[#7B0099] focus:ring-1 focus:ring-[#7B0099] uppercase tracking-widest h-[34px]"
-              />"""
-    
-    # Replace \n with \r\n to match windows if needed
-    if block not in content and block.replace('\n', '\r\n') in content:
-        block = block.replace('\n', '\r\n')
-        replacement = replacement.replace('\n', '\r\n')
+    if 'type="password"' in c:
+        if 'import { Input }' in c and 'PasswordInput' not in c:
+            c = c.replace('import { Input } from "@/components/ui/input"', 'import { Input } from "@/components/ui/input"\nimport { PasswordInput } from "@/components/ui/password-input"')
         
-    if block in content:
-        content = content.replace(block, replacement)
-        with open(path, 'w', encoding='utf-8') as f:
-            f.write(content)
-        print("Replaced in", path)
+        c = c.replace('<Input id="login-password" type="password"', '<PasswordInput id="login-password"')
+        c = c.replace('<Input id="signup-password" type="password"', '<PasswordInput id="signup-password"')
+        c = c.replace('<Input id="signup-confirm-password" type="password"', '<PasswordInput id="signup-confirm-password"')
+        c = c.replace('<Input\n                      id="new-password"\n                      type="password"', '<PasswordInput\n                      id="new-password"')
+        c = c.replace('<Input\n                      id="confirm-password"\n                      type="password"', '<PasswordInput\n                      id="confirm-password"')
+        c = c.replace('<Input\n                      id="current-password"\n                      type="password"', '<PasswordInput\n                      id="current-password"')
+        c = c.replace('<Input\n                      id="new-password-settings"\n                      type="password"', '<PasswordInput\n                      id="new-password-settings"')
+        
+        with codecs.open(filepath, 'w', 'utf-8') as f:
+            f.write(c)
 
-fix_file("src/pages/TeamAttendance.tsx")
+replace_passwords('src/pages/Login.tsx')
+replace_passwords('src/pages/ResetPassword.tsx')
+replace_passwords('src/pages/Settings.tsx')
+
+print('Done applying fixes!')

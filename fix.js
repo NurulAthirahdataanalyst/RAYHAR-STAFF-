@@ -1,30 +1,6 @@
 const fs = require('fs');
-
-try {
-  let db = fs.readFileSync('src/pages/Dashboard.tsx', 'utf8');
-  if (db.includes('<PageActions>') && !db.includes('</PageActions>')) {
-    db = db.replace('</PopoverContent>\n          </Popover>\n        </div>', '</PopoverContent>\n          </Popover>\n        </div>\n      </PageActions>');
-  }
-  db = db.replace(/<PageActions>\s*<div className=\"flex items-center gap-2/g, '<PageActions>\n        <div className=\"flex items-center gap-2');
-  fs.writeFileSync('src/pages/Dashboard.tsx', db);
-  console.log('Fixed Dashboard.tsx');
-} catch (e) {
-  console.error(e);
-}
-
-try {
-  let mo = fs.readFileSync('src/pages/outstation/MyOutstation.tsx', 'utf8');
-  mo = mo.replace('</div>\n          </CardHeader>', '</CardHeader>');
-  fs.writeFileSync('src/pages/outstation/MyOutstation.tsx', mo);
-  console.log('Fixed MyOutstation.tsx');
-} catch (e) {
-  console.error(e);
-}
-
-try {
-  let ta = fs.readFileSync('src/pages/TeamAttendance.tsx', 'utf8');
-  fs.writeFileSync('src/pages/TeamAttendance.tsx', ta);
-  console.log('Fixed TeamAttendance.tsx');
-} catch (e) {
-  console.error(e);
-}
+let content = fs.readFileSync('src/pages/hr-analytics/AttendanceDashboard.tsx', 'utf-8');
+const search = \<div key={i} className={\nelative overflow-hidden border border-gray-200 dark:border-slate-800/80 shadow-sm border-l-4  bg-white dark:bg-card rounded-md p-4 flex flex-col justify-between h-[150px] transition-all duration-300 cursor-pointer hover:shadow-lg hover:-translate-y-1 }>\;
+const replace = \<div key={i} className={\\\elative overflow-hidden border border-gray-200 dark:border-slate-800/80 shadow-sm border-l-4 \$\\{k.color.replace('text-', 'border-l-')\\} bg-white dark:bg-card rounded-md p-4 flex flex-col justify-between h-[150px] transition-all duration-300 cursor-pointer hover:shadow-lg hover:-translate-y-1 \$\\{k.color.includes('emerald') ? 'hover:border-emerald-500 hover:ring-1 hover:ring-emerald-500 hover:bg-emerald-50/50 dark:hover:bg-emerald-900/20' : k.color.includes('amber') ? 'hover:border-amber-500 hover:ring-1 hover:ring-amber-500 hover:bg-amber-50/50 dark:hover:bg-amber-900/20' : k.color.includes('rose') ? 'hover:border-rose-500 hover:ring-1 hover:ring-rose-500 hover:bg-rose-50/50 dark:hover:bg-rose-900/20' : k.color.includes('blue') ? 'hover:border-blue-500 hover:ring-1 hover:ring-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-900/20' : k.color.includes('indigo') ? 'hover:border-indigo-500 hover:ring-1 hover:ring-indigo-500 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/20' : k.color.includes('pink') ? 'hover:border-pink-500 hover:ring-1 hover:ring-pink-500 hover:bg-pink-50/50 dark:hover:bg-pink-900/20' : k.color.includes('foreground') ? 'hover:border-slate-400 hover:ring-1 hover:ring-slate-400 hover:bg-slate-50/50 dark:hover:bg-slate-800/50' : 'hover:border-[#7B0099] hover:ring-1 hover:ring-[#7B0099] hover:bg-[#7B0099]/10'\\}\\\}>\;
+content = content.replace(search, replace);
+fs.writeFileSync('src/pages/hr-analytics/AttendanceDashboard.tsx', content);

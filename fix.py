@@ -1,55 +1,21 @@
 import codecs
 
-with codecs.open('backend/server.js', 'r', 'utf-8') as f:
-    content = f.read()
+file_path = 'src/pages/hr-analytics/AttendanceDashboard.tsx'
+with codecs.open(file_path, 'r', 'utf-8') as f:
+    lines = f.readlines()
 
-teamActivityOld = \"\"\"            CASE lr.status
-              WHEN 'Pending HOD' THEN 'submitted a Leave Request'
-              WHEN 'Pending Operation Manager' THEN 'submitted a Leave Request'
-              WHEN 'Pending Finance' THEN 'submitted a Leave Request'
-              WHEN 'Pending MD' THEN 'submitted a Leave Request'
-              WHEN 'Pending Branch Leader' THEN 'submitted a Leave Request'
-              ELSE 'submitted a Leave Request'
-            END AS action,
-            NULL AS target,
-            CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' – ', TO_CHAR(lr.end_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Days') AS context,\"\"\"
+new_lines = []
+for i, line in enumerate(lines):
+    if line.startswith('elative overflow-hidden'):
+        continue
+    elif '<div key={i} className={' in line and 'elative overflow' in lines[i+1]:
+        continue
+    elif '              })().map((k, i) => (' in line:
+        new_lines.append(line)
+        new_line = r"                <div key={i} className={elative overflow-hidden border border-gray-200 dark:border-slate-800/80 shadow-sm border-l-4  bg-white dark:bg-card rounded-md p-4 flex flex-col justify-between h-[150px] transition-all duration-300 cursor-pointer hover:shadow-lg hover:-translate-y-1 }>\n"
+        new_lines.append(new_line)
+    else:
+        new_lines.append(line)
 
-teamActivityNew = \"\"\"            CASE lr.status
-              WHEN 'Pending HOD' THEN 'submitted a Leave Request and Need Your Approval'
-              WHEN 'Pending Operation Manager' THEN 'submitted a Leave Request and Need Your Approval'
-              WHEN 'Pending Finance' THEN 'submitted a Leave Request and Need Your Approval'
-              WHEN 'Pending MD' THEN 'submitted a Leave Request and Need Your Approval'
-              WHEN 'Pending Branch Leader' THEN 'submitted a Leave Request and Need Your Approval'
-              ELSE 'submitted a Leave Request and Need Your Approval'
-            END AS action,
-            NULL AS target,
-            CASE 
-              WHEN lr.leave_type = 'Replacement Leave' OR lr.leave_type = 'Cuti Ganti' THEN 
-                CASE WHEN lr.start_date = lr.end_date 
-                     THEN CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Days')
-                     ELSE CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' and ', TO_CHAR(lr.end_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Days')
-                END
-              ELSE 
-                CASE WHEN lr.start_date = lr.end_date 
-                     THEN CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Days')
-                     ELSE CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' - ', TO_CHAR(lr.end_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Days')
-                END
-            END AS context,\"\"\"
-
-if teamActivityOld in content:
-    content = content.replace(teamActivityOld, teamActivityNew)
-    print("Replaced Team Activity")
-else:
-    print("Could not find Team Activity")
-
-notifOld = "[approverUserId, New Leave Request: , ${leaveData.full_name} has requested  days of ., 'leave_approval', result.insertId]"
-notifNew = "[approverUserId, New Leave Request: , ${leaveData.full_name} submitted a Leave Request and Need Your Approval\\n •  •  Days, 'leave_approval', result.insertId]"
-
-if notifOld in content:
-    content = content.replace(notifOld, notifNew)
-    print("Replaced Notification")
-else:
-    print("Could not find notification")
-
-with codecs.open('backend/server.js', 'w', 'utf-8') as f:
-    f.write(content)
+with codecs.open(file_path, 'w', 'utf-8') as f:
+    f.write(''.join(new_lines))

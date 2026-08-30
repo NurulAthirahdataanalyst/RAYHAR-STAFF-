@@ -180,8 +180,9 @@ export default function WorkforceCalendar() {
         
         if (absentRes.ok) {
            const d = await absentRes.json();
-           if (d.success && d.report) {
-               const absents = d.report.map((x: any) => ({
+           const absentData = d.report || d.data;
+             if (d.success && absentData) {
+               const absents = absentData.map((x: any) => ({
                   ...x,
                   status: "Absent"
                }));
