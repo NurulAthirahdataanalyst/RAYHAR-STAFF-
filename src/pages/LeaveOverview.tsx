@@ -335,8 +335,8 @@ export default function LeaveOverview() {
           const isNoEntitlement = isUnpaid || isReplacement;
 
           return (
-          <Card key={item.label} className="relative overflow-hidden border border-border/40 shadow-[0_4px_16px_rgba(0,0,0,0.03)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.12)] bg-white/90 dark:bg-card/80 backdrop-blur-md rounded-xl group hover:shadow-md transition-all duration-300">
-            <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#7B0099]" />
+          <Card key={item.label} className="relative overflow-hidden border border-gray-200 dark:border-slate-800/80 shadow-sm border-l-4 border-l-[#7B0099] bg-white/90 dark:bg-card/80 backdrop-blur-md rounded-xl group hover:shadow-md transition-all duration-300">
+            
             <CardContent className="p-3 sm:p-4 pl-4 sm:pl-4 flex flex-col h-full gap-3 sm:gap-4">
               <div className="flex items-center justify-between">
                 <p className="text-[8px] sm:text-[9px] font-black uppercase tracking-[0.2em] text-[#7B0099] dark:text-purple-400 truncate">{item.label}</p>

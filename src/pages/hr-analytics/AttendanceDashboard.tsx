@@ -1140,7 +1140,7 @@ export default function AttendanceDashboard() {
                 { label: "Outstation", val: `${liveStats.total > 0 ? Math.round(((liveStats.outstation || 0) / liveStats.total) * 100) : 0}%`, sub: `${liveStats.outstation || 0} / ${liveStats.total} Employees`, color: "text-pink-600", bg: "bg-pink-50", icon: <MapPin className="w-5 h-5"/>, trend: "—" },
               ];
             })().map((k, i) => (
-              <div key={i} className={`relative overflow-hidden border border-slate-200 dark:border-slate-700 bg-white dark:bg-card rounded-md shadow-none p-4 flex flex-col justify-between h-[150px] transition-all duration-200 cursor-pointer hover:border-purple-500 hover:ring-1 hover:ring-purple-500 hover:bg-purple-50/50 dark:hover:bg-slate-900/50`}>
+              <div key={i} className={`relative overflow-hidden border border-gray-200 dark:border-slate-800/80 shadow-sm border-l-4 ${k.color.replace('text-', 'border-l-')} bg-white dark:bg-card rounded-md p-4 flex flex-col justify-between h-[150px] transition-all duration-200 cursor-pointer hover:border-purple-500 hover:ring-1 hover:ring-purple-500 hover:bg-purple-50/50 dark:hover:bg-slate-900/50`}>
                 <div className="flex items-start justify-between">
                   <div className={`p-2 rounded-lg ${k.bg} ${k.color}`}>
                     {k.icon}

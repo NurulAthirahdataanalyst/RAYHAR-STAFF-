@@ -318,7 +318,7 @@ export default function TeamAttendance() {
         {/* Metrics */}
         
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-          <Card className="border-border shadow-sm">
+          <Card className="border border-gray-200 dark:border-slate-800/80 shadow-sm border-l-4 border-l-[#7B0099]">
             <CardContent className="p-6 flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
                 <Users className="w-6 h-6 text-primary" />
@@ -330,7 +330,7 @@ export default function TeamAttendance() {
             </CardContent>
           </Card>
           
-          <Card className="border-border shadow-sm">
+          <Card className="border border-gray-200 dark:border-slate-800/80 shadow-sm border-l-4 border-l-green-500">
             <CardContent className="p-6 flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center">
                 <Clock className="w-6 h-6 text-green-500" />
@@ -342,7 +342,7 @@ export default function TeamAttendance() {
             </CardContent>
           </Card>
 
-          <Card className="border-border shadow-sm">
+          <Card className="border border-gray-200 dark:border-slate-800/80 shadow-sm border-l-4 border-l-amber-500">
             <CardContent className="p-6 flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center">
                 <Clock className="w-6 h-6 text-amber-500" />
@@ -354,7 +354,7 @@ export default function TeamAttendance() {
             </CardContent>
           </Card>
 
-          <Card className="border-border shadow-sm">
+          <Card className="border border-gray-200 dark:border-slate-800/80 shadow-sm border-l-4 border-l-red-500">
             <CardContent className="p-6 flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-red-500/10 flex items-center justify-center">
                 <AlertCircle className="w-6 h-6 text-red-500" />
