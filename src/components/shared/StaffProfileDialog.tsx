@@ -201,6 +201,8 @@ export function StaffProfileDialog({
     const [tempAssignmentsHistory, setTempAssignmentsHistory] = useState<any[]>([]);
   const [locationHistory, setLocationHistory] = useState<any[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  const [historyPage, setHistoryPage] = useState(1);
+  const historyItemsPerPage = 10;
 
   const [tempAssignment, setTempAssignment] = useState({ location: "", start_date: "", end_date: "", status: "Active" });
   const [allowedLocations, setAllowedLocations] = useState<string[]>([]);
@@ -220,6 +222,7 @@ export function StaffProfileDialog({
       const histData = await histRes.json();
       if (histData.success) {
         setLocationHistory(histData.history || []);
+        setHistoryPage(1);
       } else {
         setLocationHistory([]);
       }
@@ -1297,7 +1300,11 @@ export function StaffProfileDialog({
                             </tr>
                           </thead>
                           <tbody>
-                            {locationHistory.map((h: any, idx: number) => {
+                            {(() => {
+                              const totalHistoryPages = Math.ceil(locationHistory.length / historyItemsPerPage);
+                              const startIndex = (historyPage - 1) * historyItemsPerPage;
+                              const paginatedHistory = locationHistory.slice(startIndex, startIndex + historyItemsPerPage);
+                              return paginatedHistory.map((h: any, idx: number) => {
                               const ts = h.timestamp ? new Date(h.timestamp) : null;
                               const dateStr = ts ? ts.toLocaleDateString('ms-MY', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '-';
                               const timeStr = ts ? ts.toLocaleTimeString('ms-MY', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }) : '-';

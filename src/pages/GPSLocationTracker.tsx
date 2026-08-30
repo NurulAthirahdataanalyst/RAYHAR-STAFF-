@@ -264,6 +264,8 @@ export default function GPSLocationTracker() {
   const [historyFor, setHistoryFor] = useState<string | null>(null);
   const [history, setHistory] = useState<any[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+    const [historyPage, setHistoryPage] = useState(1);
+    const historyItemsPerPage = 10;
 
   const [apiBranches, setApiBranches] = useState<any[]>([]);
   useEffect(() => {
@@ -292,6 +294,7 @@ export default function GPSLocationTracker() {
       if (j && j.success) {
         const sorted = (j.history || []).slice().sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
         setHistory(sorted);
+          setHistoryPage(1);
         setReplayIndex(0);
         setReplayPlaying(false);
       }
@@ -595,7 +598,11 @@ export default function GPSLocationTracker() {
                   ) : history.length === 0 ? (
                     <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">No history found</TableCell></TableRow>
                   ) : (
-                    history.map((h, i) => {
+                    (() => {
+                      const totalHistoryPages = Math.ceil(history.length / historyItemsPerPage);
+                      const startIndex = (historyPage - 1) * historyItemsPerPage;
+                      const paginatedHistory = history.slice(startIndex, startIndex + historyItemsPerPage);
+                      return paginatedHistory.map((h, i) => {
                       const emp = employees.find(e => e.user_id === historyFor);
                       const branchName = emp?.branch || "HQ";
                       const bObj = apiBranches.find(b => b.name === branchName || b.code === branchName);
