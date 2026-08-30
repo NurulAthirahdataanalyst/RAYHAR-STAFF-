@@ -412,20 +412,12 @@ const TemporaryAssignments = () => {
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                   disabled={currentPage === 1}
                 >
-                  <ChevronLeft className="w-3.5 h-3.5" />
+                  {"<"}
                 </Button>
-                <div className="flex items-center gap-1 overflow-x-auto max-w-[150px] sm:max-w-none scrollbar-hide">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
-                    <Button
-                      key={pageNum}
-                      variant={currentPage === pageNum ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setCurrentPage(pageNum)}
-                      className={`h-7 w-7 p-0 text-[10px] font-bold rounded ${currentPage === pageNum ? 'bg-[#a01497] text-white hover:bg-[#850f7c]' : 'text-foreground'}`}
-                    >
-                      {pageNum}
-                    </Button>
-                  ))}
+                <div className="flex items-center gap-1">
+                  <span className="text-[10px] font-bold text-slate-600 dark:text-slate-400">
+                    {currentPage} / {totalPages}
+                  </span>
                 </div>
                 <Button
                   variant="outline"
@@ -434,7 +426,7 @@ const TemporaryAssignments = () => {
                   onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                   disabled={currentPage === totalPages || totalPages === 0}
                 >
-                  <ChevronRight className="w-3.5 h-3.5" />
+                  {">"}
                 </Button>
               </div>
             </div>

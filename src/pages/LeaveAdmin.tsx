@@ -686,7 +686,7 @@ export default function LeaveAdmin() {
                     </Select>
                   </div>
                 </div>
-                <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1">
                 <Button
                   variant="outline"
                   size="sm"
@@ -694,7 +694,7 @@ export default function LeaveAdmin() {
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                   disabled={currentPage === 1}
                 >
-                  <ChevronLeft className="w-3.5 h-3.5" />
+                  {"<"}
                 </Button>
                 <div className="flex items-center gap-1 overflow-x-auto max-w-[150px] sm:max-w-none scrollbar-hide">
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
@@ -716,7 +716,7 @@ export default function LeaveAdmin() {
                   onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                   disabled={currentPage === totalPages || totalPages === 0}
                 >
-                  <ChevronRight className="w-3.5 h-3.5" />
+                  {">"}
                 </Button>
               </div>
             </div>

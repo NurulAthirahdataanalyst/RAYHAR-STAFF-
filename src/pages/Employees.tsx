@@ -1032,16 +1032,16 @@ export default function Employees() {
                       disabled={currentPage === 1}
                       className="h-8 px-3 text-xs font-bold"
                     >
-                      &laquo;
+                      {"<"}
                     </Button>
-                    <div className="flex items-center gap-1 overflow-x-auto max-w-[200px] sm:max-w-none">
+                    <div className="flex items-center gap-1 overflow-x-auto max-w-[150px] sm:max-w-none scrollbar-hide">
                       {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
                         <Button
                           key={pageNum}
                           variant={currentPage === pageNum ? "default" : "outline"}
                           size="sm"
                           onClick={() => setCurrentPage(pageNum)}
-                          className={`h-8 w-8 p-0 text-xs font-bold ${currentPage === pageNum ? 'bg-primary text-primary-foreground' : ''}`}
+                          className={`h-8 w-8 p-0 text-xs font-bold ${currentPage === pageNum ? 'bg-[#a01497] text-white hover:bg-[#8a1182]' : 'text-slate-600 dark:text-slate-300'}`}
                         >
                           {pageNum}
                         </Button>
@@ -1051,10 +1051,10 @@ export default function Employees() {
                       variant="outline" 
                       size="sm" 
                       onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                      disabled={currentPage === totalPages}
+                      disabled={currentPage === totalPages || totalPages === 0}
                       className="h-8 px-3 text-xs font-bold"
                     >
-                      &raquo;
+                      {">"}
                     </Button>
                   </div>
                 </div>

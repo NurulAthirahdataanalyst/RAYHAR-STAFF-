@@ -572,7 +572,7 @@ export default function TeamAttendance() {
                       onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                       disabled={currentPage === 1}
                     >
-                      <ChevronLeft className="w-3.5 h-3.5" />
+                      {"<"}
                     </Button>
                     <div className="flex items-center gap-1 overflow-x-auto max-w-[150px] sm:max-w-none scrollbar-hide">
                       {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
@@ -594,7 +594,7 @@ export default function TeamAttendance() {
                       onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                       disabled={currentPage === totalPages || totalPages === 0}
                     >
-                      <ChevronRight className="w-3.5 h-3.5" />
+                      {">"}
                     </Button>
                   </div>
                 </div>
