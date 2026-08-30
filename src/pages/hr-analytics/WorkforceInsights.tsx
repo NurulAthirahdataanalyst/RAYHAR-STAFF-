@@ -971,7 +971,7 @@ export default function WorkforceInsights() {
 
                   return (
                     <div className="grid grid-cols-3 gap-4">
-                      <div className="flex flex-col p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900/50">
+                      <div className="flex flex-col p-4 rounded-[24px] border-none shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] bg-white dark:bg-slate-900/50">
                         <div className="flex items-center gap-2 mb-2">
                           <div className="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
                           <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">Active</span>
@@ -979,7 +979,7 @@ export default function WorkforceInsights() {
                         <span className="text-3xl font-black text-slate-800 dark:text-slate-100">{active}</span>
                         <span className="text-[11px] text-foreground mt-1 font-medium">Currently Active</span>
                       </div>
-                      <div className="flex flex-col p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900/50">
+                      <div className="flex flex-col p-4 rounded-[24px] border-none shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] bg-white dark:bg-slate-900/50">
                         <div className="flex items-center gap-2 mb-2">
                           <div className="w-2.5 h-2.5 rounded-full bg-blue-500"></div>
                           <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">Completed</span>
@@ -987,7 +987,7 @@ export default function WorkforceInsights() {
                         <span className="text-3xl font-black text-slate-800 dark:text-slate-100">{completed}</span>
                         <span className="text-[11px] text-foreground mt-1 font-medium">Past Assignments</span>
                       </div>
-                      <div className="flex flex-col p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900/50">
+                      <div className="flex flex-col p-4 rounded-[24px] border-none shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] bg-white dark:bg-slate-900/50">
                         <div className="flex items-center gap-2 mb-2">
                           <div className="w-2.5 h-2.5 rounded-full bg-amber-500"></div>
                           <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">Upcoming</span>
@@ -2812,21 +2812,21 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
              </div>
              
              <div className="grid grid-cols-2 gap-3 flex-1">
-               <div className="flex flex-col justify-center items-center py-2 bg-[#DCFCE7] rounded-xl border border-emerald-100">
+               <div className="flex flex-col justify-center items-center py-2 bg-[#DCFCE7] rounded-[24px] border-none shadow-[0_4px_20px_rgb(0,0,0,0.04)]">
                  <span className="text-2xl font-black text-emerald-700 mb-0.5">+{movement.newJoiners || 0}</span>
                  <p className="text-[10px] font-bold text-emerald-900 uppercase tracking-wider">New Joiners</p>
                  <p className="text-[8px] font-bold text-emerald-600 mt-0.5">This Month</p>
                </div>
-               <div className="flex flex-col justify-center items-center py-2 bg-[#FEE2E2] rounded-xl border border-rose-100">
+               <div className="flex flex-col justify-center items-center py-2 bg-[#FEE2E2] rounded-[24px] border-none shadow-[0_4px_20px_rgb(0,0,0,0.04)]">
                  <span className="text-2xl font-black text-rose-700 mb-0.5">-{movement.resigned || 0}</span>
                  <p className="text-[10px] font-bold text-rose-900 uppercase tracking-wider">Resigned</p>
                  <p className="text-[8px] font-bold text-rose-600 mt-0.5">This Month</p>
                </div>
-               <div className="flex flex-col justify-center items-center py-2 bg-[#F8FAFC] rounded-xl border border border-slate-300 dark:border-slate-700 text-center">
+               <div className="flex flex-col justify-center items-center py-2 bg-[#F8FAFC] rounded-[24px] border-none shadow-[0_4px_20px_rgb(0,0,0,0.04)] text-center">
                  <span className="text-xl font-black text-slate-700 mb-0.5">{movement.transferred || 0}</span>
                  <p className="text-[9px] font-bold text-foreground uppercase tracking-wider">Transferred</p>
                </div>
-               <div className="flex flex-col justify-center items-center py-2 bg-[#F3E8FF] rounded-xl border border-purple-200 text-center">
+               <div className="flex flex-col justify-center items-center py-2 bg-[#F3E8FF] rounded-[24px] border-none shadow-[0_4px_20px_rgb(0,0,0,0.04)] text-center">
                  <span className="text-xl font-black text-purple-700 mb-0.5">{movement.promotions || 0}</span>
                  <p className="text-[9px] font-bold text-purple-500 uppercase tracking-wider">Promotions</p>
                </div>

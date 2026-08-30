@@ -1200,7 +1200,7 @@ export default function Dashboard() {
               return (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
                   {/* Total Employees */}
-                  <div className="bg-white dark:bg-card rounded-xl border border-slate-100 dark:border-slate-800 p-3 shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col relative h-[180px]">
+                  <div className="bg-white dark:bg-card rounded-[24px] border-none shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] p-3 flex flex-col relative h-[180px]">
                     <div className="flex items-center gap-2 mb-4">
                       <div className="w-6 h-6 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
                         <Users className="w-3.5 h-3.5" />
@@ -1226,7 +1226,7 @@ export default function Dashboard() {
                   </div>
 
                   {/* Present */}
-                  <div className="bg-white dark:bg-card rounded-xl border border-slate-100 dark:border-slate-800 p-3 shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col relative h-[180px]">
+                  <div className="bg-white dark:bg-card rounded-[24px] border-none shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] p-3 flex flex-col relative h-[180px]">
                     <div className="flex items-center gap-2 mb-4">
                       <div className="w-6 h-6 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
                         <CheckCircle2 className="w-3.5 h-3.5" />
@@ -1257,7 +1257,7 @@ export default function Dashboard() {
                   </div>
 
                   {/* Affected By Company Leave */}
-                  <div className="bg-white dark:bg-card rounded-xl border border-slate-100 dark:border-slate-800 p-3 shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col relative h-[180px]">
+                  <div className="bg-white dark:bg-card rounded-[24px] border-none shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] p-3 flex flex-col relative h-[180px]">
                     <div className="flex items-center gap-2 mb-4">
                       <div className="w-6 h-6 rounded-md bg-[#a01497]/10 text-[#a01497] flex items-center justify-center shrink-0">
                         <Users className="w-3.5 h-3.5" />
@@ -1288,7 +1288,7 @@ export default function Dashboard() {
                   </div>
 
                   {/* Attendance Rate */}
-                  <div className="bg-white dark:bg-card rounded-xl border border-slate-100 dark:border-slate-800 p-3 shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col relative h-[180px]">
+                  <div className="bg-white dark:bg-card rounded-[24px] border-none shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] p-3 flex flex-col relative h-[180px]">
                     <div className="flex items-center gap-2 mb-4">
                       <div className="w-6 h-6 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
                         <BarChart className="w-3.5 h-3.5" />
@@ -1319,7 +1319,7 @@ export default function Dashboard() {
                   </div>
 
                   {/* Late Arrivals */}
-                  <div className="bg-white dark:bg-card rounded-xl border border-slate-100 dark:border-slate-800 p-3 shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col relative h-[180px]">
+                  <div className="bg-white dark:bg-card rounded-[24px] border-none shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] p-3 flex flex-col relative h-[180px]">
                     <div className="flex items-center gap-2 mb-4">
                       <div className="w-6 h-6 rounded-md bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
                         <Clock className="w-3.5 h-3.5" />

@@ -1816,27 +1816,27 @@ export default function AttendanceDashboard() {
             
             {/* KPI micro-header */}
             <div className="grid grid-cols-6 gap-3 mb-6">
-              <div className="flex flex-col items-center justify-center py-3 px-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/30 transition-colors hover:border-purple-200 dark:hover:border-purple-900/50">
+              <div className="flex flex-col items-center justify-center py-3 px-2 rounded-[24px] border-none shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] bg-slate-50/50 dark:bg-slate-800/30 transition-colors hover:border-purple-200 dark:hover:border-purple-900/50">
                 <span className="text-[10px] font-bold text-foreground uppercase text-center tracking-tight leading-tight mb-1">Total<br/>Employees</span>
                 <span className="text-[20px] font-black text-slate-800 dark:text-slate-100">{liveStats.total || 0}</span>
               </div>
-              <div className="flex flex-col items-center justify-center py-3 px-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/30 transition-colors hover:border-purple-200 dark:hover:border-purple-900/50">
+              <div className="flex flex-col items-center justify-center py-3 px-2 rounded-[24px] border-none shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] bg-slate-50/50 dark:bg-slate-800/30 transition-colors hover:border-purple-200 dark:hover:border-purple-900/50">
                 <span className="text-[10px] font-bold text-foreground uppercase text-center tracking-tight leading-tight mb-1">Total<br/>Present</span>
                 <span className="text-[20px] font-black text-slate-800 dark:text-slate-100">{liveStats.present || 0}</span>
               </div>
-              <div className="flex flex-col items-center justify-center py-3 px-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/30 transition-colors hover:border-purple-200 dark:hover:border-purple-900/50">
+              <div className="flex flex-col items-center justify-center py-3 px-2 rounded-[24px] border-none shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] bg-slate-50/50 dark:bg-slate-800/30 transition-colors hover:border-purple-200 dark:hover:border-purple-900/50">
                 <span className="text-[10px] font-bold text-foreground uppercase text-center tracking-tight leading-tight mb-1">Present<br/>(On Time)</span>
                 <span className="text-[20px] font-black text-slate-800 dark:text-slate-100">{Math.max(0, (liveStats.present || 0) - (liveStats.late || 0))}</span>
               </div>
-              <div className="flex flex-col items-center justify-center py-3 px-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/30 transition-colors hover:border-purple-200 dark:hover:border-purple-900/50">
+              <div className="flex flex-col items-center justify-center py-3 px-2 rounded-[24px] border-none shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] bg-slate-50/50 dark:bg-slate-800/30 transition-colors hover:border-purple-200 dark:hover:border-purple-900/50">
                 <span className="text-[10px] font-bold text-foreground uppercase text-center tracking-tight leading-tight mb-1">Present<br/>(Late)</span>
                 <span className="text-[20px] font-black text-slate-800 dark:text-slate-100">{liveStats.late || 0}</span>
               </div>
-              <div className="flex flex-col items-center justify-center py-3 px-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/30 transition-colors hover:border-purple-200 dark:hover:border-purple-900/50">
+              <div className="flex flex-col items-center justify-center py-3 px-2 rounded-[24px] border-none shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] bg-slate-50/50 dark:bg-slate-800/30 transition-colors hover:border-purple-200 dark:hover:border-purple-900/50">
                 <span className="text-[10px] font-bold text-foreground uppercase text-center tracking-tight leading-tight mb-1">Absent<br/>&nbsp;</span>
                 <span className="text-[20px] font-black text-slate-800 dark:text-slate-100">{liveStats.absent || 0}</span>
               </div>
-              <div className="flex flex-col items-center justify-center py-3 px-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/30 transition-colors hover:border-purple-200 dark:hover:border-purple-900/50">
+              <div className="flex flex-col items-center justify-center py-3 px-2 rounded-[24px] border-none shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] bg-slate-50/50 dark:bg-slate-800/30 transition-colors hover:border-purple-200 dark:hover:border-purple-900/50">
                 <span className="text-[10px] font-bold text-foreground uppercase text-center tracking-tight leading-tight mb-1">Outstation<br/>&nbsp;</span>
                 <span className="text-[20px] font-black text-slate-800 dark:text-slate-100">{liveStats.outstation || 0}</span>
               </div>
