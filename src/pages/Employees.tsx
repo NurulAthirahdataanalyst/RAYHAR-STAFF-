@@ -20,7 +20,9 @@ import {
   Printer,
     MapPin,
     Trash2,
-    ArrowLeft
+    ArrowLeft,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
@@ -286,6 +288,7 @@ export default function Employees() {
   const [signupBranch, setSignupBranch] = useState("HQ");
   const [signupDepartment, setSignupDepartment] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [signupRole, setSignupRole] = useState("");
   const [availableRoles, setAvailableRoles] = useState<any[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -1409,7 +1412,7 @@ export default function Employees() {
       
             {/* Status Confirmation Modal */}
       <Dialog open={!!statusConfirmEmp} onOpenChange={(open) => !open && setStatusConfirmEmp(null)}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[425px] overflow-hidden [&>button]:text-white [&>button]:hover:text-white/80">
           <DialogHeader>
             <DialogTitle className={`text-xl font-black ${statusConfirmEmp?.status === "Active" ? "text-amber-600" : "text-emerald-600"}`}>
               {statusConfirmEmp?.status === "Active" ? "Inactive Employee?" : "Reactivate Employee?"}
@@ -1446,7 +1449,7 @@ export default function Employees() {
 
       {/* Delete Confirmation Modal */}
       <Dialog open={!!deleteConfirmEmp} onOpenChange={(open) => !open && setDeleteConfirmEmp(null)}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[425px] overflow-hidden [&>button]:text-white [&>button]:hover:text-white/80">
           <DialogHeader>
             <DialogTitle className="text-xl font-black text-rose-600">Delete Employee?</DialogTitle>
           </DialogHeader>
@@ -1473,26 +1476,26 @@ export default function Employees() {
 
       {/* Add User Modal */}
       <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Add New Staff</DialogTitle>
-            <DialogDescription>
+        <DialogContent className="sm:max-w-[425px] overflow-hidden [&>button]:text-white [&>button]:hover:text-white/80">
+          <DialogHeader className="bg-[#942392] p-6 -mx-6 -mt-6 sm:rounded-t-lg">
+            <DialogTitle className="text-white">Add New Staff</DialogTitle>
+            <DialogDescription className="text-white/80">
               Create a new user account for an employee. They will be assigned to the selected branch.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSignup} className="space-y-4 pt-4">
             <div className="space-y-2">
               <Label htmlFor="signup-name">Full Name</Label>
-              <Input id="signup-name" type="text" placeholder="e.g. AHMAD ALBAB" value={signupName} onChange={(e) => setSignupName(e.target.value.toUpperCase())} required />
+              <Input id="signup-name" type="text" className="bg-slate-100 dark:bg-slate-800/50 border-transparent focus:bg-white dark:focus:bg-slate-800" placeholder="e.g. AHMAD ALBAB" value={signupName} onChange={(e) => setSignupName(e.target.value.toUpperCase())} required />
             </div>
             <div className="space-y-2">
               <Label htmlFor="signup-email">Email</Label>
-              <Input id="signup-email" type="email" placeholder="ahmad@rayhar.com" value={signupEmail} onChange={(e) => setSignupEmail(e.target.value)} required />
+              <Input id="signup-email" type="email" className="bg-slate-100 dark:bg-slate-800/50 border-transparent focus:bg-white dark:focus:bg-slate-800" placeholder="ahmad@rayhar.com" value={signupEmail} onChange={(e) => setSignupEmail(e.target.value)} required />
             </div>
             <div className="space-y-2">
               <Label htmlFor="signup-branch">Branch</Label>
               <Select value={signupBranch} onValueChange={setSignupBranch}>
-                <SelectTrigger className="rounded-md">
+                <SelectTrigger className="rounded-md bg-slate-100 dark:bg-slate-800/50 border-transparent focus:bg-white dark:focus:bg-slate-800">
                   <SelectValue placeholder="Select Branch" />
                 </SelectTrigger>
                 <SelectContent>
@@ -1512,7 +1515,7 @@ export default function Employees() {
               <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
                 <Label htmlFor="signup-department">Department</Label>
                 <Select value={signupDepartment} onValueChange={setSignupDepartment} required>
-                  <SelectTrigger className="rounded-md">
+                  <SelectTrigger className="rounded-md bg-slate-100 dark:bg-slate-800/50 border-transparent focus:bg-white dark:focus:bg-slate-800">
                     <SelectValue placeholder="Select Department" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1535,7 +1538,7 @@ export default function Employees() {
             <div className="space-y-2">
               <Label htmlFor="signup-role">Role</Label>
               <Select value={signupRole} onValueChange={setSignupRole}>
-                <SelectTrigger className="rounded-md">
+                <SelectTrigger className="rounded-md bg-slate-100 dark:bg-slate-800/50 border-transparent focus:bg-white dark:focus:bg-slate-800">
                   <SelectValue placeholder="Select Role" />
                 </SelectTrigger>
                 <SelectContent>
@@ -1551,7 +1554,12 @@ export default function Employees() {
 
             <div className="space-y-2">
               <Label htmlFor="signup-password">Password</Label>
-              <Input id="signup-password" type="password" placeholder="Min. 6 characters" value={signupPassword} onChange={(e) => setSignupPassword(e.target.value)} required />
+              <div className="relative">
+                <Input id="signup-password" type={showPassword ? "text" : "password"} className="bg-slate-100 dark:bg-slate-800/50 border-transparent focus:bg-white dark:focus:bg-slate-800 pr-10" placeholder="Min. 6 characters" value={signupPassword} onChange={(e) => setSignupPassword(e.target.value)} required />
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none">
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
             
             <DialogFooter className="pt-4">

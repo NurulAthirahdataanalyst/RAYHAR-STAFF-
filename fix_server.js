@@ -1,9 +1,8 @@
-import codecs
+const fs = require('fs');
+let content = fs.readFileSync('backend/server.js', 'utf8');
 
-with codecs.open('backend/server.js', 'r', 'utf-8') as f:
-    content = f.read()
-
-teamActivityOld = \"\"\"            CASE lr.status
+// Replace the Team block (which now has just 'submitted a Leave Request')
+const teamActivityOld = \            CASE lr.status
               WHEN 'Pending HOD' THEN 'submitted a Leave Request'
               WHEN 'Pending Operation Manager' THEN 'submitted a Leave Request'
               WHEN 'Pending Finance' THEN 'submitted a Leave Request'
@@ -12,9 +11,9 @@ teamActivityOld = \"\"\"            CASE lr.status
               ELSE 'submitted a Leave Request'
             END AS action,
             NULL AS target,
-            CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' – ', TO_CHAR(lr.end_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Days') AS context,\"\"\"
+            CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' – ', TO_CHAR(lr.end_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Days') AS context,\;
 
-teamActivityNew = \"\"\"            CASE lr.status
+const teamActivityNew = \            CASE lr.status
               WHEN 'Pending HOD' THEN 'submitted a Leave Request and Need Your Approval'
               WHEN 'Pending Operation Manager' THEN 'submitted a Leave Request and Need Your Approval'
               WHEN 'Pending Finance' THEN 'submitted a Leave Request and Need Your Approval'
@@ -34,22 +33,25 @@ teamActivityNew = \"\"\"            CASE lr.status
                      THEN CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Days')
                      ELSE CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' - ', TO_CHAR(lr.end_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Days')
                 END
-            END AS context,\"\"\"
+            END AS context,\;
 
-if teamActivityOld in content:
-    content = content.replace(teamActivityOld, teamActivityNew)
-    print("Replaced Team Activity")
-else:
-    print("Could not find Team Activity")
+if (content.includes(teamActivityOld)) {
+  content = content.replace(teamActivityOld, teamActivityNew);
+  console.log('Replaced Team Activity');
+} else {
+  console.log('Could not find Team Activity old string');
+}
 
-notifOld = "[approverUserId, New Leave Request: , ${leaveData.full_name} has requested  days of ., 'leave_approval', result.insertId]"
-notifNew = "[approverUserId, New Leave Request: , ${leaveData.full_name} submitted a Leave Request and Need Your Approval\\n •  •  Days, 'leave_approval', result.insertId]"
+// Replace Notification logic
+const notifOld = "[approverUserId, \New Leave Request: \\, \\ has requested \ days of \.\, 'leave_approval', result.insertId]";
+const notifNew = "[approverUserId, \New Leave Request: \\, \\ submitted a Leave Request and Need Your Approval\\n\ • \ • \ Days\, 'leave_approval', result.insertId]";
 
-if notifOld in content:
-    content = content.replace(notifOld, notifNew)
-    print("Replaced Notification")
-else:
-    print("Could not find notification")
+if (content.includes(notifOld)) {
+  content = content.replace(notifOld, notifNew);
+  console.log('Replaced notification');
+} else {
+  console.log('Could not find notification old string');
+}
 
-with codecs.open('backend/server.js', 'w', 'utf-8') as f:
-    f.write(content)
+fs.writeFileSync('backend/server.js', content);
+console.log('Updated server.js');

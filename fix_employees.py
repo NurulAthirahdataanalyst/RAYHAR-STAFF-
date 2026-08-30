@@ -1,99 +1,65 @@
-import re
+import codecs
 
-path = "src/pages/Employees.tsx"
-with open(path, "r", encoding="utf-8") as f:
+with codecs.open('src/pages/Employees.tsx', 'r', 'utf-8') as f:
     content = f.read()
 
-# 1. Add tempAssignmentsHistory state
-content = content.replace(
-    'const [tempAssignment, setTempAssignment] = useState({ location: "", start_date: "", end_date: "", status: "Active" });',
-    'const [tempAssignment, setTempAssignment] = useState({ location: "", start_date: "", end_date: "", status: "Active" });\n  const [tempAssignmentsHistory, setTempAssignmentsHistory] = useState<any[]>([]);'
-)
+# 1. Add Eye, EyeOff to lucide-react imports
+if 'EyeOff' not in content:
+    content = content.replace('ArrowLeft\r\n} from \'lucide-react\';', 'ArrowLeft,\n  Eye,\n  EyeOff\n} from \'lucide-react\';')
+    content = content.replace('ArrowLeft\n} from \'lucide-react\';', 'ArrowLeft,\n  Eye,\n  EyeOff\n} from \'lucide-react\';')
 
-# 2. Update fetchAttendanceSettings
-content = content.replace(
-    'if (waData.success && waData.assignments.length > 0) {\n        const activeOrLatest = waData.assignments[0];',
-    'if (waData.success && waData.assignments.length > 0) {\n        setTempAssignmentsHistory(waData.assignments);\n        const activeOrLatest = waData.assignments[0];'
-)
-content = content.replace(
-    '      } else {\n        setTempAssignment({ location: "", start_date: "", end_date: "", status: "Active" });\n      }',
-    '      } else {\n        setTempAssignmentsHistory([]);\n        setTempAssignment({ location: "", start_date: "", end_date: "", status: "Active" });\n      }'
-)
+# 2. Add showPassword state
+if 'const [showPassword' not in content:
+    content = content.replace('const [signupPassword, setSignupPassword] = useState("");', 'const [signupPassword, setSignupPassword] = useState("");\n  const [showPassword, setShowPassword] = useState(false);')
 
-# 3. Add tab trigger
-content = content.replace(
-    '<TabsTrigger value="attendance_settings">Attendance Settings</TabsTrigger>',
-    '<TabsTrigger value="attendance_settings">Attendance Settings</TabsTrigger>\n                  <TabsTrigger value="temporary_branch">Temporary Branch</TabsTrigger>'
-)
+# 3. DialogHeader update
+headerOld = '''            <DialogHeader>
+              <DialogTitle>Add New Staff</DialogTitle>
+              <DialogDescription>'''
+headerNew = '''            <DialogHeader className="bg-[#942392] p-6 -mx-6 -mt-6 sm:rounded-t-lg">
+              <DialogTitle className="text-white">Add New Staff</DialogTitle>
+              <DialogDescription className="text-white/80">'''
+content = content.replace(headerOld, headerNew)
+content = content.replace(headerOld.replace('\n', '\r\n'), headerNew)
 
-# 4. Add tab content
-tab_content = """
-                <TabsContent value="temporary_branch" className="mt-0">
-                  <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
-                    <div className="mb-6">
-                      <h3 className="text-lg font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                        <MapPin className="w-5 h-5 text-indigo-500" />
-                        Temporary Branch History
-                      </h3>
-                      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-1">View this employee's previous temporary branch transfers.</p>
-                    </div>
+# Also need to update DialogContent to allow button styling
+dialogContentOld = '<DialogContent className="sm:max-w-[425px]">'
+dialogContentNew = '<DialogContent className="sm:max-w-[425px] overflow-hidden [&>button]:text-white [&>button]:hover:text-white/80">'
+content = content.replace(dialogContentOld, dialogContentNew)
 
-                    {tempAssignmentsHistory.length === 0 ? (
-                      <div className="border border-slate-200 dark:border-slate-700 border-dashed rounded-xl p-8 flex flex-col items-center justify-center text-center bg-slate-50/50 dark:bg-slate-900/50">
-                        <div className="w-12 h-12 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full flex items-center justify-center mb-3 shadow-sm">
-                          <MapPin className="w-5 h-5 text-slate-400" />
-                        </div>
-                        <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">No Temporary Transfer</h4>
-                        <p className="text-xs font-semibold text-slate-500 max-w-[250px]">This employee has no previous temporary branch transfer records.</p>
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-                          <span className="text-xs font-bold text-slate-500">Total Temporary Transfers</span>
-                          <span className="text-xs font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">{tempAssignmentsHistory.length} Transfers</span>
-                        </div>
-                        
-                        <div className="rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-                          <Table>
-                            <TableHeader>
-                              <TableRow className="bg-slate-50/50 dark:bg-slate-900/50">
-                                <TableHead className="font-bold text-slate-500 text-xs">Temporary Branch</TableHead>
-                                <TableHead className="font-bold text-slate-500 text-xs">Period</TableHead>
-                                <TableHead className="font-bold text-slate-500 text-xs">Status</TableHead>
-                              </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                              {tempAssignmentsHistory.map((assignment, idx) => (
-                                <TableRow key={idx}>
-                                  <TableCell className="font-bold text-sm text-slate-800 dark:text-slate-200">
-                                    <div className="flex items-center gap-2">
-                                      <MapPin className="w-3.5 h-3.5 text-indigo-400" />
-                                      {assignment.temp_branch || assignment.location}
-                                    </div>
-                                  </TableCell>
-                                  <TableCell className="text-xs font-semibold text-slate-600 dark:text-slate-400">
-                                    {assignment.start_date ? new Date(assignment.start_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }).toUpperCase() : '?'} – {assignment.end_date ? new Date(assignment.end_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }).toUpperCase() : '?'}
-                                  </TableCell>
-                                  <TableCell>
-                                    <span className={`px-2.5 py-0.5 text-[10px] font-bold rounded-full ${assignment.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}`}>
-                                      {assignment.status}
-                                    </span>
-                                  </TableCell>
-                                </TableRow>
-                              ))}
-                            </TableBody>
-                          </Table>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </TabsContent>
-"""
+# 4. Update Inputs and Selects in the modal
+inputNameOld = '              <Input id="signup-name" type="text" placeholder="e.g. AHMAD ALBAB" value={signupName} onChange={(e) => setSignupName(e.target.value.toUpperCase())} required />'
+inputNameNew = '              <Input id="signup-name" type="text" className="bg-slate-100 border-transparent focus:bg-white" placeholder="e.g. AHMAD ALBAB" value={signupName} onChange={(e) => setSignupName(e.target.value.toUpperCase())} required />'
+content = content.replace(inputNameOld, inputNameNew)
 
-content = content.replace(
-    '</TabsContent>\n              </Tabs>\n            ) : (',
-    '</TabsContent>\n' + tab_content + '              </Tabs>\n            ) : ('
-)
+inputEmailOld = '              <Input id="signup-email" type="email" placeholder="ahmad@rayhar.com" value={signupEmail} onChange={(e) => setSignupEmail(e.target.value)} required />'
+inputEmailNew = '              <Input id="signup-email" type="email" className="bg-slate-100 border-transparent focus:bg-white" placeholder="ahmad@rayhar.com" value={signupEmail} onChange={(e) => setSignupEmail(e.target.value)} required />'
+content = content.replace(inputEmailOld, inputEmailNew)
 
-with open(path, "w", encoding="utf-8") as f:
+# SelectTriggers in the modal
+# Wait, replacing all <SelectTrigger className="rounded-md"> will replace them everywhere. There are only a few in this file anyway?
+selectOld = '<SelectTrigger className="rounded-md">'
+selectNew = '<SelectTrigger className="rounded-md bg-slate-100 border-transparent focus:bg-white">'
+content = content.replace(selectOld, selectNew)
+
+# 5. Update Password Field
+pwOld = '''              <div className="space-y-2">
+                <Label htmlFor="signup-password">Password</Label>
+                <Input id="signup-password" type="password" placeholder="Min. 6 characters" value={signupPassword} onChange={(e) => setSignupPassword(e.target.value)} required />
+              </div>'''
+pwNew = '''              <div className="space-y-2">
+                <Label htmlFor="signup-password">Password</Label>
+                <div className="relative">
+                  <Input id="signup-password" type={showPassword ? "text" : "password"} className="bg-slate-100 border-transparent focus:bg-white pr-10" placeholder="Min. 6 characters" value={signupPassword} onChange={(e) => setSignupPassword(e.target.value)} required />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none">
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>'''
+content = content.replace(pwOld, pwNew)
+content = content.replace(pwOld.replace('\n', '\r\n'), pwNew)
+
+with codecs.open('src/pages/Employees.tsx', 'w', 'utf-8') as f:
     f.write(content)
+
+print("Updated Employees.tsx")

@@ -1,4 +1,4 @@
-const dotenv = require("dotenv");
+﻿const dotenv = require("dotenv");
 dotenv.config();
 
 const express = require("express");
@@ -3366,7 +3366,7 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
         if (approverUserId) {
           await pool.query(
             `INSERT INTO notifications (user_id, title, message, type, related_leave_id) VALUES (?, ?, ?, ?, ?)`,
-            [approverUserId, `New Leave Request: ${leaveData.full_name}`, `${leaveData.full_name} has requested ${leaveData.days} days of ${leaveData.leave_type}.`, 'leave_approval', result.insertId]
+            [approverUserId, `New Leave Request: ${leaveData.full_name}`, `${leaveData.full_name} submitted a Leave Request and Need Your Approval\n${leaveData.leave_type} • ${new Date(leaveData.start_date).getTime() === new Date(leaveData.end_date).getTime() ? require('date-fns').format(new Date(leaveData.start_date), 'dd/MM/yyyy') : (leaveData.leave_type === 'Replacement Leave' || leaveData.leave_type === 'Cuti Ganti' ? require('date-fns').format(new Date(leaveData.start_date), 'dd/MM/yyyy') + ' and ' + require('date-fns').format(new Date(leaveData.end_date), 'dd/MM/yyyy') : require('date-fns').format(new Date(leaveData.start_date), 'dd/MM/yyyy') + ' - ' + require('date-fns').format(new Date(leaveData.end_date), 'dd/MM/yyyy'))} • ${leaveData.days} Days`, 'leave_approval', result.insertId]
           );
         }
 
@@ -5973,15 +5973,26 @@ app.get("/api/dashboard-stats", async (req, res) => {
         UNION ALL
         SELECT 'leave' AS type, 'You' AS actor,
           CASE lr.status
-            WHEN 'Pending HOD' THEN 'submitted a Leave Request (Pending HOD)'
-            WHEN 'Pending Operation Manager' THEN 'submitted a Leave Request (Pending OM)'
-            WHEN 'Pending Finance' THEN 'submitted a Leave Request (Pending Finance)'
-            WHEN 'Pending MD' THEN 'submitted a Leave Request (Pending MD)'
-            WHEN 'Pending Branch Leader' THEN 'submitted a Leave Request (Pending Branch Leader)'
+            WHEN 'Pending HOD' THEN 'submitted a Leave Request and Need Your Approval'
+            WHEN 'Pending Operation Manager' THEN 'submitted a Leave Request and Need Your Approval'
+            WHEN 'Pending Finance' THEN 'submitted a Leave Request and Need Your Approval'
+            WHEN 'Pending MD' THEN 'submitted a Leave Request and Need Your Approval'
+            WHEN 'Pending Branch Leader' THEN 'submitted a Leave Request and Need Your Approval'
             ELSE 'submitted a Leave Request'
           END AS action,
           NULL AS target,
-          CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' – ', TO_CHAR(lr.end_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Days') AS context,
+          CASE 
+            WHEN lr.leave_type = 'Replacement Leave' OR lr.leave_type = 'Cuti Ganti' THEN 
+              CASE WHEN lr.start_date = lr.end_date 
+                   THEN CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Days')
+                   ELSE CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' and ', TO_CHAR(lr.end_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Days')
+              END
+            ELSE 
+              CASE WHEN lr.start_date = lr.end_date 
+                   THEN CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Days')
+                   ELSE CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' - ', TO_CHAR(lr.end_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Days')
+              END
+          END AS context,
           TO_CHAR(lr.updated_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time,
           lr.updated_at AS sort_time,
           lr.status AS badge
@@ -5993,7 +6004,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
         SELECT 'approval' AS type, COALESCE(approver.full_name, la.approver_role) AS actor,
           CASE WHEN la.status = 'Approved' THEN 'approved your Leave Request' ELSE 'rejected your Leave Request' END AS action,
           NULL AS target,
-          CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' – ', TO_CHAR(lr.end_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Days') AS context,
+          CASE WHEN lr.leave_type = 'Replacement Leave' OR lr.leave_type = 'Cuti Ganti' THEN CASE WHEN lr.start_date = lr.end_date THEN CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Days') ELSE CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' and ', TO_CHAR(lr.end_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Days') END ELSE CASE WHEN lr.start_date = lr.end_date THEN CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Days') ELSE CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' - ', TO_CHAR(lr.end_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Days') END END AS context,
           TO_CHAR(la.created_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time,
           la.created_at AS sort_time,
           UPPER(la.status) AS badge
@@ -6109,15 +6120,15 @@ app.get("/api/dashboard-stats", async (req, res) => {
             'leave' AS type,
             emp.full_name AS actor,
             CASE lr.status
-              WHEN 'Pending HOD' THEN 'submitted a Leave Request (Pending HOD)'
-              WHEN 'Pending Operation Manager' THEN 'submitted a Leave Request (Pending OM)'
-              WHEN 'Pending Finance' THEN 'submitted a Leave Request (Pending Finance)'
-              WHEN 'Pending MD' THEN 'submitted a Leave Request (Pending MD)'
-              WHEN 'Pending Branch Leader' THEN 'submitted a Leave Request (Pending Branch Leader)'
+              WHEN 'Pending HOD' THEN 'submitted a Leave Request and Need Your Approval'
+              WHEN 'Pending Operation Manager' THEN 'submitted a Leave Request and Need Your Approval'
+              WHEN 'Pending Finance' THEN 'submitted a Leave Request and Need Your Approval'
+              WHEN 'Pending MD' THEN 'submitted a Leave Request and Need Your Approval'
+              WHEN 'Pending Branch Leader' THEN 'submitted a Leave Request and Need Your Approval'
               ELSE 'submitted a Leave Request'
             END AS action,
             NULL AS target,
-            CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' – ', TO_CHAR(lr.end_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Days') AS context,
+            CASE WHEN lr.leave_type = 'Replacement Leave' OR lr.leave_type = 'Cuti Ganti' THEN CASE WHEN lr.start_date = lr.end_date THEN CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Days') ELSE CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' and ', TO_CHAR(lr.end_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Days') END ELSE CASE WHEN lr.start_date = lr.end_date THEN CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Days') ELSE CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' - ', TO_CHAR(lr.end_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Days') END END AS context,
             TO_CHAR(lr.updated_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time,
             lr.updated_at AS sort_time,
             lr.status AS badge
@@ -6135,7 +6146,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
             COALESCE(approver.full_name, la.approver_role) AS actor,
             CASE WHEN la.status = 'Approved' THEN 'approved a Leave Request for' ELSE 'rejected a Leave Request for' END AS action,
             emp.full_name AS target,
-            CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' – ', TO_CHAR(lr.end_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Days') AS context,
+            CASE WHEN lr.leave_type = 'Replacement Leave' OR lr.leave_type = 'Cuti Ganti' THEN CASE WHEN lr.start_date = lr.end_date THEN CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Days') ELSE CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' and ', TO_CHAR(lr.end_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Days') END ELSE CASE WHEN lr.start_date = lr.end_date THEN CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Days') ELSE CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' - ', TO_CHAR(lr.end_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Days') END END AS context,
             TO_CHAR(la.created_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time,
             la.created_at AS sort_time,
             UPPER(la.status) AS badge
@@ -10104,6 +10115,8 @@ app.listen(PORT, "0.0.0.0", () => {
 // =================================================================
 // END OF FILE
 // =================================================================
+
+
 
 
 

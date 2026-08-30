@@ -1,4 +1,4 @@
-
+﻿
 import { useRole } from "@/contexts/RoleContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -1799,7 +1799,7 @@ export default function AttendanceDashboard() {
               </p>
               <p 
                 className="text-[10px] font-bold text-[#7B0099] cursor-pointer hover:underline flex items-center gap-1"
-                onClick={() => navigate((role === "head_of_department" || role === "hod" || role === "branch_leader") ? "/employee-directory" : "/branches")}
+                onClick={() => navigate((role === "head_of_department" || role === "hod" || role === "branch_leader") ? "/employees" : "/branches")}
               >
                 View All <ChevronRight className="w-3 h-3" />
               </p>
@@ -1949,7 +1949,7 @@ export default function AttendanceDashboard() {
                   </p>
                   <div className="pl-6 pt-1">
                     <button
-                      onClick={() => navigate((role === "head_of_department" || role === "hod" || role === "branch_leader") ? "/employee-directory" : "/branches")}
+                      onClick={() => navigate((role === "head_of_department" || role === "hod" || role === "branch_leader") ? "/employees" : "/branches")}
                       className="text-[12px] font-semibold text-amber-700 hover:text-amber-900 flex items-center gap-1"
                     >
                       View Employees <ChevronDown className="w-3 h-3 -rotate-90" />
@@ -1967,4 +1967,5 @@ export default function AttendanceDashboard() {
     </div>
   );
 }
+
 
