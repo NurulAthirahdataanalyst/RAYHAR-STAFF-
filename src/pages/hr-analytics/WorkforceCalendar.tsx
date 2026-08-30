@@ -447,9 +447,22 @@ export default function WorkforceCalendar() {
                                 );
                               }
 
+                              const isElevated = role === "branch_leader" || role === "hod" || role === "head_of_department";
+                              let namesStr = "";
+                              if (isElevated && !key.startsWith("Present") && key !== "Rest/Wknd") {
+                                const matchingEvts = evts.filter(e => {
+                                  let eKey = e.type;
+                                  if (e.source === "leave") eKey = "Leave";
+                                  else if (e.source === "outstation") eKey = "Outstation";
+                                  return eKey === key;
+                                });
+                                const names = matchingEvts.map(e => (e.employee || 'Unknown').split(' ')[0]);
+                                if (names.length > 0) namesStr = `: ${names.join(', ')}`;
+                              }
+
                               return (
                                 <div key={key} className={`px-1.5 py-0.5 rounded text-[10px] font-bold flex items-center gap-1 ${c.bg} ${c.text} border ${c.border}`}>
-                                  <span className="truncate">{count} {displayLabel}</span>
+                                  <span className="truncate">{count} {displayLabel}{namesStr}</span>
                                 </div>
                               );
                             })}

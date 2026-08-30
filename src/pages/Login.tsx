@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Input } from "@/components/ui/input"
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -198,7 +199,7 @@ export default function Login() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="login-password">Password</Label>
-                    <Input id="login-password" type="password" placeholder="••••••••" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} required />
+                    <PasswordInput id="login-password" placeholder="••••••••" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} required />
                   </div>
                 </CardContent>
                 <CardFooter className="flex flex-col gap-4">
@@ -342,11 +343,11 @@ export default function Login() {
 
                   <div className="space-y-2">
                     <Label htmlFor="signup-password">Password</Label>
-                    <Input id="signup-password" type="password" placeholder="Min. 6 characters" value={signupPassword} onChange={(e) => setSignupPassword(e.target.value)} required />
+                    <PasswordInput id="signup-password" placeholder="Min. 6 characters" value={signupPassword} onChange={(e) => setSignupPassword(e.target.value)} required />
                   </div>
                   <div className="space-y-2 animate-in fade-in duration-300">
                     <Label htmlFor="signup-confirm-password">Confirm Password</Label>
-                    <Input id="signup-confirm-password" type="password" placeholder="Confirm your password" value={signupConfirmPassword} onChange={(e) => setSignupConfirmPassword(e.target.value)} required />
+                    <PasswordInput id="signup-confirm-password" placeholder="Confirm your password" value={signupConfirmPassword} onChange={(e) => setSignupConfirmPassword(e.target.value)} required />
                     {signupConfirmPassword && (
                       <div className={`text-[10px] sm:text-xs font-bold flex items-center gap-1 mt-1.5 transition-all ${signupPassword === signupConfirmPassword ? 'text-emerald-600' : 'text-rose-500'}`}>
                         {signupPassword === signupConfirmPassword ? (

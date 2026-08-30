@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Input } from "@/components/ui/input"
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
 import { Loader2, ShieldCheck } from "lucide-react";
@@ -147,9 +148,7 @@ export default function ResetPassword() {
                 <CardContent className="space-y-4 pt-4">
                   <div className="space-y-2">
                     <Label htmlFor="new-password">New Password</Label>
-                    <Input
-                      id="new-password"
-                      type="password"
+                    <PasswordInput
                       placeholder="••••••••"
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
@@ -158,9 +157,7 @@ export default function ResetPassword() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="confirm-password">Confirm Password</Label>
-                    <Input
-                      id="confirm-password"
-                      type="password"
+                    <PasswordInput
                       placeholder="••••••••"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
