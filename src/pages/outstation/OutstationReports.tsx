@@ -144,7 +144,11 @@ export default function OutstationReports() {
   }, [assignments]);
 
   const departments = useMemo(() => ["All", ...Array.from(new Set(assignments.map(a => a.department || "").filter(Boolean))).sort()], [assignments]);
-  const branches = useMemo(() => ["All", ...Array.from(new Set(assignments.map(a => a.branch || "").filter(Boolean))).sort()], [assignments]);
+  const branches = useMemo(() => ["All", ...Array.from(new Set(assignments.map(a => a.branch || "").filter(Boolean))).sort((a, b) => {
+    if (a === "Rayhar HQ" || a === "HQ") return -1;
+    if (b === "Rayhar HQ" || b === "HQ") return 1;
+    return a.localeCompare(b);
+  })], [assignments]);
 
   const filteredEvents = useMemo(() => {
     return eventGroups.filter(e => {

@@ -216,7 +216,11 @@ export default function GPSLocationTracker() {
   const branches = useMemo(() => {
     const set = new Set<string>();
     visibleEmployees.forEach((e) => set.add(e.branch || "Unknown"));
-    return ["All", ...Array.from(set).sort()];
+    return ["All", ...Array.from(set).sort((a, b) => {
+      if (a === "Rayhar HQ" || a === "HQ") return -1;
+      if (b === "Rayhar HQ" || b === "HQ") return 1;
+      return a.localeCompare(b);
+    })];
   }, [visibleEmployees]);
 
   const filtered = useMemo(() => {

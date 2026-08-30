@@ -421,7 +421,11 @@ export default function Employees() {
 
   const uniqueBranches = Array.from(
     new Set(dbEmployees.map((emp) => emp.branch).filter(Boolean))
-  ).sort() as string[];
+  ).sort((a, b) => {
+    if (a === "Rayhar HQ" || a === "HQ") return -1;
+    if (b === "Rayhar HQ" || b === "HQ") return 1;
+    return (a as string).localeCompare(b as string);
+  }) as string[];
 
   const uniquePositions = Array.from(
     new Set(dbEmployees.map((emp) => emp.position).filter(Boolean))
