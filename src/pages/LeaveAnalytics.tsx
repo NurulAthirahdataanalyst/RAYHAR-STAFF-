@@ -611,7 +611,11 @@ export default function LeaveAnalytics() {
         if (selectedMonthYear) {
           const tzOffset = d.getTimezoneOffset() * 60000;
           const localMonthStr = (new Date(d.getTime() - tzOffset)).toISOString().slice(0, 7);
-          if (localMonthStr !== selectedMonthYear) return false;
+          if (selectedMonthYear.endsWith('-all')) {
+            if (localMonthStr.split('-')[0] !== selectedMonthYear.split('-')[0]) return false;
+          } else if (localMonthStr !== selectedMonthYear) {
+            return false;
+          }
         }
       } else if (viewType === "year") {
         if (selectedYear && d.getFullYear().toString() !== selectedYear) return false;

@@ -63,24 +63,24 @@ export default function EntitlementActivityCard({ onViewHistory }: Props) {
     setCurrentPage(1);
   }, [selectedMonthStr]);
 
-  const isAllYear = selectedMonthStr.length === 4;
+  const isAllYear = selectedMonthStr.endsWith('-all');
+  const [yStr, mStr] = selectedMonthStr.split('-');
   
   let selectedMonthName = selectedMonthStr;
   let thisMonthLogs = [];
   let prevMonthLogs = [];
 
-  if (isAllYear) {
-    const year = parseInt(selectedMonthStr);
+  if (isAllYear || !mStr) {
+    const year = parseInt(yStr);
     selectedMonthName = `${year}`;
     thisMonthLogs = logs.filter(l => l.date.startsWith(`${year}-`));
     prevMonthLogs = logs.filter(l => l.date.startsWith(`${year - 1}-`));
   } else {
-    const [y, m] = selectedMonthStr.split('-');
-    const d = new Date(parseInt(y), parseInt(m) - 1, 1);
+    const d = new Date(parseInt(yStr), parseInt(mStr) - 1, 1);
     selectedMonthName = d.toLocaleString('en-MY', { month: 'long', year: 'numeric' });
-    thisMonthLogs = logs.filter(l => l.date.startsWith(selectedMonthStr));
+    thisMonthLogs = logs.filter(l => l.date.startsWith(`${yStr}-${mStr}`));
     
-    const prevD = new Date(parseInt(y), parseInt(m) - 2, 1);
+    const prevD = new Date(parseInt(yStr), parseInt(mStr) - 2, 1);
     const prevMonthStr = `${prevD.getFullYear()}-${String(prevD.getMonth() + 1).padStart(2, '0')}`;
     prevMonthLogs = logs.filter(l => l.date.startsWith(prevMonthStr));
   }

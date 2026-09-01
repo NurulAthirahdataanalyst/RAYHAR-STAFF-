@@ -345,7 +345,11 @@ export default function AttendanceReports() {
                 onSelectMonthYear={(val) => {
                   const [y, m] = val.split('-');
                   setSelectedYear(y);
-                  setSelectedMonth(parseInt(m).toString());
+                  if (m === 'all') {
+                    setSelectedMonth("all");
+                  } else {
+                    setSelectedMonth(parseInt(m).toString());
+                  }
                 }}
                 className="flex items-center justify-between h-10 px-4 text-[11px] font-black uppercase tracking-widest text-slate-900 dark:text-slate-100 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 rounded-md shadow-sm min-w-[140px]"
               />

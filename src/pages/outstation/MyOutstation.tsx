@@ -260,7 +260,11 @@ export default function MyOutstation() {
                   onSelectMonthYear={(val) => {
                     const [y, m] = val.split('-');
                     setSelectedYear(y);
-                    setSelectedMonth(parseInt(m).toString());
+                    if (m === 'all') {
+                      setSelectedMonth('all');
+                    } else {
+                      setSelectedMonth(parseInt(m).toString());
+                    }
                   }}
                   className="flex items-center justify-between h-9 px-3 text-[10px] font-black uppercase tracking-widest text-foreground dark:text-slate-100 bg-white dark:bg-card border border-slate-200 dark:border-slate-700 rounded-md shadow-sm min-w-[140px]"
                 />

@@ -212,7 +212,11 @@ export default function LeaveReports() {
                 onSelectMonthYear={(val) => {
                   const [yyyy, mm] = val.split('-');
                   setSelectedYear(yyyy);
-                  setSelectedMonth(parseInt(mm).toString());
+                  if (mm === 'all') {
+                    setSelectedMonth("all");
+                  } else {
+                    setSelectedMonth(parseInt(mm).toString());
+                  }
                 }}
                 className="appearance-none flex items-center justify-between px-4 py-2 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-10 min-w-[140px]"
               />

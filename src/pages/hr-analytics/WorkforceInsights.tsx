@@ -486,7 +486,11 @@ export default function WorkforceInsights() {
                   onSelectMonthYear={(val) => {
                     const [newYear, newMonth] = val.split('-');
                     setYear(newYear);
-                    setMonth(parseInt(newMonth).toString());
+                    if (newMonth === 'all') {
+                      setMonth('all');
+                    } else {
+                      setMonth(parseInt(newMonth).toString());
+                    }
                   }}
                   className="appearance-none flex items-center justify-between px-4 py-2 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-10 min-w-[140px]"
                 />

@@ -162,7 +162,9 @@ export default function OutstationReports() {
         const dateObj = new Date(e.startDate);
         if (viewType === "month" && selectedMonthYear) {
           const [y, m] = selectedMonthYear.split('-');
-          if (dateObj.getFullYear() !== parseInt(y) || (dateObj.getMonth() + 1) !== parseInt(m)) {
+          if (m === 'all') {
+            if (dateObj.getFullYear() !== parseInt(y)) return false;
+          } else if (dateObj.getFullYear() !== parseInt(y) || (dateObj.getMonth() + 1) !== parseInt(m)) {
             return false;
           }
         } else if (viewType === "year" && selectedYear) {

@@ -172,10 +172,15 @@ export function StaffProfileDialog({
     try {
       const params = new URLSearchParams();
       if (dateStr) {
-        const monthStr = dateStr.substring(0, 7); // YYYY-MM
-        const yearStr = dateStr.substring(0, 4);  // YYYY
-        params.append("month", monthStr);
-        params.append("year", yearStr);
+        if (dateStr.endsWith('-all')) {
+          params.append('month', 'all');
+          params.append('year', dateStr.substring(0, 4));
+        } else {
+          const monthStr = dateStr.substring(0, 7); // YYYY-MM
+          const yearStr = dateStr.substring(0, 4);  // YYYY
+          params.append('month', monthStr);
+          params.append('year', yearStr);
+        }
       }
       
       const res = await fetch(`${API_BASE_URL}/api/employees/${userId}/analytics?${params}`);
