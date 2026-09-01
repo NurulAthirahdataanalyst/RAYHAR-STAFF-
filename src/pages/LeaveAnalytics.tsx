@@ -500,16 +500,16 @@ export default function LeaveAnalytics() {
 
       let newLists = { present: [] as string[], onLeave: [] as string[], outstation: [] as string[], absent: [] as string[] };
       if (presentData.success) {
-        newLists.present = presentData.attendance.filter((a: any) => a.clock_in).map((a: any) => a.full_name);
+        newLists.present = (presentData.attendance || []).filter((a: any) => a.clock_in).map((a: any) => a.full_name);
       }
       if (absentData.success) {
-        newLists.absent = absentData.data.map((a: any) => a.full_name);
+        newLists.absent = (absentData.data || []).map((a: any) => a.full_name);
       }
       if (outstationData.success) {
-        newLists.outstation = outstationData.data.map((a: any) => a.full_name);
+        newLists.outstation = (outstationData.data || []).map((a: any) => a.full_name);
       }
       if (onLeaveData.success) {
-        newLists.onLeave = onLeaveData.data.map((a: any) => a.full_name);
+        newLists.onLeave = (onLeaveData.data || []).map((a: any) => a.full_name);
       }
       setLists(newLists);
 
@@ -1195,7 +1195,7 @@ export default function LeaveAnalytics() {
                       return (
                         <div className="bg-white dark:bg-card p-3 rounded-xl shadow-lg border border-slate-100 dark:border-slate-800">
                           <p className="font-bold text-slate-800 dark:text-slate-200 text-xs mb-2">{label}</p>
-                          {payload.map((entry: any, index: number) => (
+                          {(payload || []).map((entry: any, index: number) => (
                             <div key={index} className="flex justify-between items-center gap-4 text-xs font-semibold mb-1">
                               <span style={{ color: entry.color }}>{entry.name}</span>
                               <span className="text-slate-700 dark:text-slate-300">{entry.value}</span>
@@ -1231,7 +1231,7 @@ export default function LeaveAnalytics() {
                       return (
                         <div className="bg-white dark:bg-card p-3 rounded-xl shadow-lg border border-slate-100 dark:border-slate-800 text-xs">
                           <p className="font-bold text-slate-800 dark:text-slate-200 mb-2">{label}</p>
-                          {payload.map((entry: any, index: number) => (
+                          {(payload || []).map((entry: any, index: number) => (
                             <div key={index} className="flex justify-between items-center gap-4 font-semibold mb-1">
                               <span style={{ color: entry.color }}>{entry.name}</span>
                               <span className="text-slate-700 dark:text-slate-300">{entry.value}</span>
@@ -1302,7 +1302,7 @@ export default function LeaveAnalytics() {
                       return (
                         <div className="bg-white dark:bg-card p-3 rounded-xl shadow-lg border border-slate-100 dark:border-slate-800 text-xs">
                           <p className="font-bold text-slate-800 dark:text-slate-200 mb-2">{label}</p>
-                          {payload.map((entry: any, index: number) => (
+                          {(payload || []).map((entry: any, index: number) => (
                             <div key={index} className="flex justify-between items-center gap-4 font-semibold mb-1">
                               <span style={{ color: '#8B5CF6' }}>{entry.name}</span>
                               <span className="text-slate-700 dark:text-slate-300">{entry.value}</span>
@@ -1347,7 +1347,7 @@ export default function LeaveAnalytics() {
                       return (
                         <div className="bg-white dark:bg-card p-3 rounded-xl shadow-lg border border-slate-100 dark:border-slate-800 text-xs">
                           <p className="font-bold text-slate-800 dark:text-slate-200 mb-2">{label}</p>
-                          {payload.map((entry: any, index: number) => (
+                          {(payload || []).map((entry: any, index: number) => (
                             <div key={index} className="flex justify-between items-center gap-4 font-semibold mb-1">
                               <span style={{ color: '#3B82F6' }}>{entry.name}</span>
                               <span className="text-slate-700 dark:text-slate-300">{entry.value}</span>
