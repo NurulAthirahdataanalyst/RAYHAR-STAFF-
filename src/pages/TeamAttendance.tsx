@@ -634,7 +634,7 @@ export default function TeamAttendance() {
               <h3 className="text-lg font-black uppercase">Location History - {employees.find(e => e.user_id === historyFor)?.full_name || historyFor}</h3>
               <Button onClick={closeHistory} variant="ghost" size="sm">Close</Button>
             </div>
-            <div className="flex-1 border border-border rounded-lg flex flex-col overflow-hidden [&>div]:flex-1 [&>div]:overflow-auto">
+            <div className="flex-1 border border-border rounded-lg flex flex-col overflow-hidden relative"><div className="flex-1 overflow-auto" id="team-location-history-scroll">
               <Table>
                 <TableHeader className="sticky top-0 bg-card z-10 shadow-sm border-b">
                   <TableRow>

@@ -1273,7 +1273,7 @@ async function getLiveAttendanceStats(queryDate, role, branch, department) {
 
     // Total active employees
     const [allProfiles] = await pool.query(
-      `SELECT user_id, full_name, branch, department, role FROM profiles p WHERE status = 'Active' AND DATE(created_at) <= ?::date ${filterP}`,
+      `SELECT user_id, full_name, branch, department, role FROM profiles p WHERE status = 'Active' AND (created_at IS NULL OR DATE(created_at) <= ?::date) ${filterP}`,
       [dateStr, ...paramsTotal]
     );
     const total = allProfiles.length;
@@ -5519,7 +5519,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
       const hasRecords = totalDayAttendances > 0;
 
       const [employeeRows] = await pool.query(
-        `SELECT COUNT(*) AS total_employees FROM profiles WHERE status = 'Active' AND DATE(created_at) <= ${dateCondition}::date ${profileFilter}`,
+        `SELECT COUNT(*) AS total_employees FROM profiles WHERE status = 'Active' AND (created_at IS NULL OR DATE(created_at) <= ${dateCondition}::date) ${profileFilter}`,
         profileQueryParams
       );
 
@@ -5620,7 +5620,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
       );
 
       const [allActiveProfiles] = await pool.query(
-        `SELECT user_id, branch, department FROM profiles WHERE status = 'Active' AND DATE(created_at) <= ${dateCondition}::date ${profileFilter}`,
+        `SELECT user_id, branch, department FROM profiles WHERE status = 'Active' AND (created_at IS NULL OR DATE(created_at) <= ${dateCondition}::date) ${profileFilter}`,
         profileQueryParams
       );
 

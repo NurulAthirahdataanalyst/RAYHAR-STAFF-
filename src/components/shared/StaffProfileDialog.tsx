@@ -1293,7 +1293,7 @@ export function StaffProfileDialog({
                         <p className="text-sm text-muted-foreground">No location history available for this employee.</p>
                       </div>
                     ) : (
-                      <div className="overflow-x-auto max-h-[400px] overflow-y-auto">
+                      <div className="relative"><div className="overflow-x-auto max-h-[400px] overflow-y-auto" id="staff-location-scroll">
                         <table className="w-full text-xs">
                           <thead className="sticky top-0 bg-slate-50 dark:bg-slate-900 z-10">
                             <tr>
