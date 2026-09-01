@@ -730,6 +730,7 @@ export default function LeaveFormView() {
                       approverRole={selectedForm.approverRole || "HR Admin"} 
                       approvalHistory={selectedForm.approvalHistory}
                       branch={selectedForm.branch || "HQ"} 
+                      department={selectedForm.department || ""}
                       pendingApproverName={selectedForm.pending_approver_name}
                     />
                     
