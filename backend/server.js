@@ -4476,13 +4476,13 @@ app.post('/api/employee-location-update', async (req, res) => {
     }
 
     const [att] = await pool.query(
-      SELECT clock_in, clock_out FROM attendances 
-       WHERE user_id = ? AND DATE(clock_in AT TIME ZONE \'Asia/Kuala_Lumpur\') = CURRENT_DATE 
-       ORDER BY clock_in DESC LIMIT 1,
+      `SELECT clock_in, clock_out FROM attendances 
+       WHERE user_id = ? AND DATE(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur') = CURRENT_DATE 
+       ORDER BY clock_in DESC LIMIT 1`,
       [uid]
     );
     if (!att.length || att[0].clock_out) {
-       return res.json({ success: true, message: \'No active shift\' });
+       return res.json({ success: true, message: 'No active shift' });
     }
 
     // Insert into employee_location_logs (create table if not present in DB schema migration)
