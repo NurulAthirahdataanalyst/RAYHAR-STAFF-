@@ -1,12 +1,7 @@
-import codecs
+with open('src/pages/TeamAttendance.tsx', 'r', encoding='utf-8') as f:
+    text = f.read()
 
-with codecs.open('src/pages/GPSLocationTracker.tsx', 'r', 'utf-8') as f:
-    lines = f.readlines()
+text = text.replace('fetch(${API_BASE_URL}/api/branches)', 'fetch(`${API_BASE_URL}/api/branches`)')
 
-for i in range(len(lines)):
-    if '})' in lines[i] and ')}' in lines[i+1] and '</TableBody>' in lines[i+2]:
-        lines[i+1] = lines[i+1].replace(')}', '})()}')
-        break
-
-with codecs.open('src/pages/GPSLocationTracker.tsx', 'w', 'utf-8') as f:
-    f.writelines(lines)
+with open('src/pages/TeamAttendance.tsx', 'w', encoding='utf-8') as f:
+    f.write(text)

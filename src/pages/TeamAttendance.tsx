@@ -43,7 +43,7 @@ export default function TeamAttendance() {
   const [apiBranches, setApiBranches] = useState<any[]>([]);
 
   useEffect(() => {
-    fetch(${API_BASE_URL}/api/branches)
+    fetch(`${API_BASE_URL}/api/branches`)
       .then(res => res.json())
       .then(data => {
         if (data && data.success && data.branches) {
