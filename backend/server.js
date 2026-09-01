@@ -5990,36 +5990,6 @@ app.get("/api/dashboard-stats", async (req, res) => {
         WHERE user_id = ? AND clock_out IS NOT NULL
           AND DATE(clock_out AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
         UNION ALL
-        SELECT 'leave' AS type, 'You' AS actor,
-          CASE lr.status
-            WHEN 'Pending Branch Leader' THEN CONCAT('submitted a Leave Request and Need Approval By ', COALESCE((SELECT CONCAT(UPPER(full_name), ' (BRANCH LEADER • ', COALESCE(branch, 'HQ'), ')') FROM profiles WHERE role='Branch Leader' AND branch=(SELECT branch FROM profiles WHERE user_id=lr.user_id) LIMIT 1), 'Branch Leader'))
-            WHEN 'Pending HOD' THEN CONCAT('submitted a Leave Request and Need Approval By ', COALESCE((SELECT CONCAT(UPPER(full_name), ' (HOD • ', COALESCE(department, ''), ' • ', COALESCE(branch, 'HQ'), ')') FROM profiles WHERE role IN ('Head of Department', 'HOD') AND department=(SELECT department FROM profiles WHERE user_id=lr.user_id) AND branch=(SELECT branch FROM profiles WHERE user_id=lr.user_id) LIMIT 1), 'HOD'))
-            WHEN 'Pending Operation Manager' THEN CONCAT('submitted a Leave Request and Need Approval By ', COALESCE((SELECT CONCAT(UPPER(full_name), ' (OPERATION MANAGER)') FROM profiles WHERE role IN ('Operation Manager', 'Operations Manager', 'Operation', 'Operations') LIMIT 1), 'Operation Manager'))
-            WHEN 'Pending Finance' THEN CONCAT('submitted a Leave Request and Need Approval By ', COALESCE((SELECT CONCAT(UPPER(full_name), ' (FINANCE MANAGER)') FROM profiles WHERE role IN ('Finance Manager', 'Finance') LIMIT 1), 'Finance Manager'))
-            WHEN 'Pending MD' THEN CONCAT('submitted a Leave Request and Need Approval By ', COALESCE((SELECT CONCAT(UPPER(full_name), ' (MANAGING DIRECTOR)') FROM profiles WHERE role IN ('Managing Director', 'MD') LIMIT 1), 'Managing Director'))
-            ELSE 'submitted a Leave Request'
-          END AS action,
-          NULL AS target,
-          CASE 
-            WHEN lr.leave_type = 'Replacement Leave' OR lr.leave_type = 'Cuti Ganti' THEN 
-              CASE WHEN lr.start_date = lr.end_date 
-                   THEN CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Days')
-                   ELSE CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' and ', TO_CHAR(lr.end_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Days')
-              END
-            ELSE 
-              CASE WHEN lr.start_date = lr.end_date 
-                   THEN CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Days')
-                   ELSE CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' - ', TO_CHAR(lr.end_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Days')
-              END
-          END AS context,
-          TO_CHAR(lr.updated_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time,
-          lr.updated_at AS sort_time,
-          lr.status AS badge
-        FROM leave_requests lr
-        WHERE lr.user_id = ?
-          AND DATE(lr.updated_at AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
-          AND lr.status LIKE 'Pending%'
-        UNION ALL
         SELECT 'approval' AS type, COALESCE(approver.full_name, la.approver_role) AS actor,
           CASE WHEN la.status = 'Approved' THEN 'approved your Leave Request' ELSE 'rejected your Leave Request' END AS action,
           NULL AS target,
@@ -6074,10 +6044,22 @@ app.get("/api/dashboard-stats", async (req, res) => {
         FROM activity_logs
         WHERE user_id = ?
           AND DATE(created_at AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
+        UNION ALL
+        SELECT 'leave' AS type,
+          'You' AS actor,
+          'submitted a Leave Request' AS action,
+          NULL AS target,
+          CASE WHEN lr.leave_type = 'Replacement Leave' OR lr.leave_type = 'Cuti Ganti' THEN CASE WHEN lr.start_date = lr.end_date THEN CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Day') ELSE CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' and ', TO_CHAR(lr.end_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Day') END ELSE CASE WHEN lr.start_date = lr.end_date THEN CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Day') ELSE CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' - ', TO_CHAR(lr.end_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Day') END END AS context,
+          TO_CHAR(lr.created_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time,
+          lr.created_at AS sort_time,
+          'Pending' AS badge
+        FROM leave_requests lr
+        WHERE lr.user_id = ?
+          AND DATE(lr.created_at AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
       )
       SELECT type, actor, action, target, context, time, badge FROM acts
       ORDER BY sort_time DESC`,
-      [userId, queryDate, userId, queryDate, userId, queryDate, userId, queryDate, userId, queryDate, userId, queryDate, userId, queryDate, userId, queryDate]
+      [userId, queryDate, userId, queryDate, userId, queryDate, userId, queryDate, userId, queryDate, userId, queryDate, userId, queryDate, userId, queryDate, userId, queryDate]
     );
 
     // ── Layer 2: TEAM ACTIVITY (branch_leader, hod, hr_admin, md, finance_manager) ─
@@ -6139,31 +6121,6 @@ app.get("/api/dashboard-stats", async (req, res) => {
 
           UNION ALL
 
-          -- Leave submissions (Pending states)
-          SELECT 
-            'leave' AS type,
-            CONCAT(emp.full_name, ' (', COALESCE(emp.branch, 'HQ'), ')') AS actor,
-            CASE lr.status
-              WHEN 'Pending Branch Leader' THEN CONCAT('submitted a Leave Request and Need Approval By ', COALESCE((SELECT CONCAT(UPPER(full_name), ' (BRANCH LEADER • ', COALESCE(branch, 'HQ'), ')') FROM profiles WHERE role='Branch Leader' AND branch=emp.branch LIMIT 1), 'Branch Leader'))
-              WHEN 'Pending HOD' THEN CONCAT('submitted a Leave Request and Need Approval By ', COALESCE((SELECT CONCAT(UPPER(full_name), ' (HOD • ', COALESCE(department, ''), ' • ', COALESCE(branch, 'HQ'), ')') FROM profiles WHERE role IN ('Head of Department', 'HOD') AND department=emp.department AND branch=emp.branch LIMIT 1), 'HOD'))
-              WHEN 'Pending Operation Manager' THEN CONCAT('submitted a Leave Request and Need Approval By ', COALESCE((SELECT CONCAT(UPPER(full_name), ' (OPERATION MANAGER)') FROM profiles WHERE role IN ('Operation Manager', 'Operations Manager', 'Operation', 'Operations') LIMIT 1), 'Operation Manager'))
-              WHEN 'Pending Finance' THEN CONCAT('submitted a Leave Request and Need Approval By ', COALESCE((SELECT CONCAT(UPPER(full_name), ' (FINANCE MANAGER)') FROM profiles WHERE role IN ('Finance Manager', 'Finance') LIMIT 1), 'Finance Manager'))
-              WHEN 'Pending MD' THEN CONCAT('submitted a Leave Request and Need Approval By ', COALESCE((SELECT CONCAT(UPPER(full_name), ' (MANAGING DIRECTOR)') FROM profiles WHERE role IN ('Managing Director', 'MD') LIMIT 1), 'Managing Director'))
-              ELSE 'submitted a Leave Request'
-            END AS action,
-            NULL AS target,
-            CASE WHEN lr.leave_type = 'Replacement Leave' OR lr.leave_type = 'Cuti Ganti' THEN CASE WHEN lr.start_date = lr.end_date THEN CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Days') ELSE CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' and ', TO_CHAR(lr.end_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Days') END ELSE CASE WHEN lr.start_date = lr.end_date THEN CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Days') ELSE CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' - ', TO_CHAR(lr.end_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Days') END END AS context,
-            TO_CHAR(lr.updated_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time,
-            lr.updated_at AS sort_time,
-            lr.status AS badge
-          FROM leave_requests lr
-          JOIN profiles emp ON emp.user_id = lr.user_id
-          WHERE DATE(lr.updated_at AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
-            AND lr.status LIKE 'Pending%'
-            AND emp.status = 'Active' ${teamFilter.replace(/p\./g, 'emp.')}
-
-          UNION ALL
-
           -- Leave approvals (History from all approvers)
           SELECT 
             'approval' AS type,
@@ -6196,6 +6153,22 @@ app.get("/api/dashboard-stats", async (req, res) => {
           FROM leave_balance_adjustments lba
           JOIN profiles emp ON emp.user_id = lba.employee_id
           WHERE DATE(lba.created_at AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
+            AND emp.status = 'Active' ${teamFilter.replace(/p\./g, 'emp.')}
+          UNION ALL
+
+          -- Leave Submissions
+          SELECT 
+            'leave' AS type,
+            emp.full_name AS actor,
+            'submitted a Leave Request' AS action,
+            NULL AS target,
+            CASE WHEN lr.leave_type = 'Replacement Leave' OR lr.leave_type = 'Cuti Ganti' THEN CASE WHEN lr.start_date = lr.end_date THEN CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Day') ELSE CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' and ', TO_CHAR(lr.end_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Day') END ELSE CASE WHEN lr.start_date = lr.end_date THEN CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Day') ELSE CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' - ', TO_CHAR(lr.end_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Day') END END AS context,
+            TO_CHAR(lr.created_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time,
+            lr.created_at AS sort_time,
+            'Pending' AS badge
+          FROM leave_requests lr
+          JOIN profiles emp ON emp.user_id = lr.user_id
+          WHERE DATE(lr.created_at AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
             AND emp.status = 'Active' ${teamFilter.replace(/p\./g, 'emp.')}
 
           UNION ALL
@@ -6273,7 +6246,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
             ELSE 'cancelled a Company Leave'
           END AS action,
           NULL AS target,
-          CONCAT(cl.leave_name, ' • ', TO_CHAR(cl.start_date, 'DD/MM/YYYY'), ' • ', (cl.end_date - cl.start_date + 1), ' Day(s)') AS context,
+          CONCAT(cl.leave_name, ' • ', TO_CHAR(cl.start_date, 'DD/MM/YYYY'), ' • ', (cl.end_date - cl.start_date + 1), ' Day') AS context,
           TO_CHAR(cl.updated_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time,
           TO_CHAR(cl.updated_at, 'DD Mon YYYY') AS date,
           cl.status AS badge

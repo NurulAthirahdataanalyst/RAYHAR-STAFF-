@@ -481,7 +481,7 @@ export default function LeaveAnalytics() {
       }
 
       if (data.success && Array.isArray(data.leaveRequests)) {
-        const formatted: LeaveRecord[] = data.leaveRequests.map((r: any) => ({
+        const formatted: LeaveRecord[] = (data.leaveRequests || []).map((r: any) => ({
           leave_id: r.leave_id,
           user_id: r.user_id,
           full_name: r.full_name || r.user_id,
@@ -929,7 +929,7 @@ export default function LeaveAnalytics() {
 
   // 3. Leave Seasonality
   const seasonality = useMemo(() => {
-    return monthlyTrend.map(m => ({
+    return (monthlyTrend || []).map(m => ({
       name: m.month,
       approved: m.approved,
       rejected: m.rejected,
@@ -1508,7 +1508,7 @@ export default function LeaveAnalytics() {
           <div className="space-y-2 flex-1">
             {records.length > 0 ? (
               <>
-                {aiInsights.map((insight, i) => (
+                {(aiInsights || []).map((insight, i) => (
                   <div key={i} className="flex items-start gap-2 p-2.5 rounded-lg bg-purple-50 border border-purple-100">
                     <div className="w-1.5 h-1.5 rounded-full bg-purple-500 mt-1.5 shrink-0" />
                     <p className="text-xs text-purple-800 font-medium leading-relaxed">{insight}</p>

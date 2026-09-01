@@ -2061,7 +2061,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
   
 
   const liveBranchRanking = useMemo(() => {
-    const listSource = rawBranchMetrics.map((b:any) => ({ branch: b.name, totalEmployees: b.count || 0 }));
+    const listSource = (rawBranchMetrics || []).map((b:any) => ({ branch: b.name, totalEmployees: b.count || 0 }));
     
     const activeTempOnDate = (tempAssignments || []).filter((a: any) => {
       if (a.status !== 'Active') return false;

@@ -527,9 +527,6 @@ export default function WorkforceCalendar() {
           });
           const uniqueAtt = Array.from(uniqueAttMap.values());
 
-          const presentOnTime = uniqueAtt.filter(a => a.status === "Present (On Time)");
-          const presentLate = uniqueAtt.filter(a => a.status === "Present (Late)" || a.is_late);
-          
           const isWeekend = (dateObj, branchId) => {
             if (!branchId) return dateObj.getDay() === 0 || dateObj.getDay() === 6;
             const branchUpper = String(branchId).toUpperCase();
@@ -537,7 +534,17 @@ export default function WorkforceCalendar() {
             const day = dateObj.getDay();
             return isFriSat ? (day === 5 || day === 6) : (day === 0 || day === 6);
           };
-          const rawAbsent = uniqueAtt.filter(a => a.status === "Absent");
+          
+          // Categorize outstation and temporary first
+          const outstation = uniqueAtt.filter(a => a.status === "Outstation");
+          const temporary = uniqueAtt.filter(a => a.temp_branch && a.status !== "Outstation");
+          
+          // Remaining regular attendees
+          const regulars = uniqueAtt.filter(a => a.status !== "Outstation" && !a.temp_branch);
+          const presentOnTime = regulars.filter(a => a.status === "Present (On Time)");
+          const presentLate = regulars.filter(a => a.status === "Present (Late)" || a.is_late);
+          
+          const rawAbsent = regulars.filter(a => a.status === "Absent");
           const absent = rawAbsent.filter(a => !isWeekend(selectedDay, a.branch));
           const restDays = rawAbsent.filter(a => isWeekend(selectedDay, a.branch));
 
@@ -681,6 +688,72 @@ export default function WorkforceCalendar() {
                                     <div className="flex flex-col items-center">
                                       <span className="text-[9px] font-black uppercase text-black dark:text-white">Clock Out</span>
                                       <span className="text-xs font-mono mt-0.5">{a.time_out || "-"}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {temporary.length > 0 && (
+                        <div>
+                          <div className="text-[10px] font-black uppercase tracking-widest text-black dark:text-white mb-2 border-b pb-1">
+                            Total Temporary ({temporary.length})
+                          </div>
+                          <div className="space-y-2">
+                            {temporary.map(a => (
+                              <div key={a.user_id} className="border border-gray-100 rounded-lg p-3 shadow-sm bg-white dark:bg-slate-900 dark:border-slate-800">
+                                <div className="flex justify-between items-start">
+                                  <div className="flex flex-col">
+                                    <span className="text-xs font-bold uppercase truncate">{a.full_name} ({a.temp_branch})</span>
+                                    <div className="flex items-center gap-1.5 mt-1">
+                                      <div className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+                                      <span className="text-[10px] font-black uppercase text-indigo-600">Temporary</span>
+                                    </div>
+                                  </div>
+                                  <div className="flex gap-4 text-right">
+                                    <div className="flex flex-col items-center">
+                                      <span className="text-[9px] font-black uppercase text-black dark:text-white opacity-50">Clock In</span>
+                                      <span className="text-xs font-bold font-mono mt-0.5">{a.time_in || '-'}</span>
+                                    </div>
+                                    <div className="flex flex-col items-center">
+                                      <span className="text-[9px] font-black uppercase text-black dark:text-white opacity-50">Clock Out</span>
+                                      <span className="text-xs font-bold font-mono mt-0.5">{a.time_out || '-'}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {outstation.length > 0 && (
+                        <div>
+                          <div className="text-[10px] font-black uppercase tracking-widest text-black dark:text-white mb-2 border-b pb-1">
+                            Total Outstation ({outstation.length})
+                          </div>
+                          <div className="space-y-2">
+                            {outstation.map(a => (
+                              <div key={a.user_id} className="border border-gray-100 rounded-lg p-3 shadow-sm bg-white dark:bg-slate-900 dark:border-slate-800">
+                                <div className="flex justify-between items-start">
+                                  <div className="flex flex-col">
+                                    <span className="text-xs font-bold uppercase truncate">{a.full_name} {a.branch ? `(${a.branch})` : ''}</span>
+                                    <div className="flex items-center gap-1.5 mt-1">
+                                      <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                                      <span className="text-[10px] font-black uppercase text-blue-600">Outstation</span>
+                                    </div>
+                                  </div>
+                                  <div className="flex gap-4 text-right">
+                                    <div className="flex flex-col items-center">
+                                      <span className="text-[9px] font-black uppercase text-black dark:text-white opacity-50">Clock In</span>
+                                      <span className="text-xs font-bold font-mono mt-0.5">{a.time_in || '-'}</span>
+                                    </div>
+                                    <div className="flex flex-col items-center">
+                                      <span className="text-[9px] font-black uppercase text-black dark:text-white opacity-50">Clock Out</span>
+                                      <span className="text-xs font-bold font-mono mt-0.5">{a.time_out || '-'}</span>
                                     </div>
                                   </div>
                                 </div>
