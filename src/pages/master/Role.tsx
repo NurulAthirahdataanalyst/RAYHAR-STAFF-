@@ -147,7 +147,7 @@ export default function Role() {
   return (
     <div className="space-y-4 animate-in fade-in duration-500 w-full pt-0 pb-4 sm:pb-6">
 
-        <div className="mb-2">
+        <div className="mb-2 flex items-center justify-between">
           <Button
             variant="ghost"
             size="sm"
@@ -159,23 +159,21 @@ export default function Role() {
               Back to Employee Management
             </span>
           </Button>
-        </div>
 
-      {/* Action Buttons Portaled to Header */}
-      {document.getElementById("page-header-actions") &&
-        createPortal(
-          <div className="flex items-center gap-3 animate-in fade-in slide-in-from-right-4 duration-500">
+          <div className="flex items-center gap-3">
             <ExportDropdown 
               onExportCSV={() => exportToCSV(roles, 'Roles_List')} 
               onExportPDF={() => window.print()} 
             />
-            <Button onClick={() => setIsAddModalOpen(true)} className="gap-2 bg-[#7B0099] hover:bg-[#60007A] text-white shadow-sm">
-              <Plus className="w-4 h-4" />
+            <Button 
+              onClick={() => setIsAddModalOpen(true)} 
+              className="h-9 px-6 rounded-xl bg-[#7B0099] text-white hover:bg-[#7B0099]/95 font-black text-[9px] uppercase tracking-wider shadow-lg shadow-[#7B0099]/15 transition-all touch-target whitespace-nowrap flex items-center"
+            >
+              <Plus className="w-4 h-4 mr-2" />
               Add Roles
             </Button>
-          </div>,
-          document.getElementById("page-header-actions")!
-        )}
+          </div>
+        </div>
 
       <Card className="border-0 shadow-sm rounded-xl overflow-hidden bg-white dark:bg-card">
         <CardContent className="p-0">

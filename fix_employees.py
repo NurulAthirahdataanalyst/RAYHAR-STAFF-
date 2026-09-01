@@ -1,65 +1,41 @@
-import codecs
+import re
 
-with codecs.open('src/pages/Employees.tsx', 'r', 'utf-8') as f:
-    content = f.read()
+with open('src/pages/Employees.tsx', 'r', encoding='utf-8') as f:
+    text = f.read()
 
-# 1. Add Eye, EyeOff to lucide-react imports
-if 'EyeOff' not in content:
-    content = content.replace('ArrowLeft\r\n} from \'lucide-react\';', 'ArrowLeft,\n  Eye,\n  EyeOff\n} from \'lucide-react\';')
-    content = content.replace('ArrowLeft\n} from \'lucide-react\';', 'ArrowLeft,\n  Eye,\n  EyeOff\n} from \'lucide-react\';')
+new_back_div = """        <div className="mb-2 flex items-center justify-between">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="mb-1 gap-2 px-0 text-foreground hover:bg-transparent hover:text-[#7B0099] transition-colors touch-target no-global-hover"
+            onClick={() => navigate("/master")}
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span className="text-[10px] font-black uppercase tracking-widest">
+              Back to Employee Management
+            </span>
+          </Button>
 
-# 2. Add showPassword state
-if 'const [showPassword' not in content:
-    content = content.replace('const [signupPassword, setSignupPassword] = useState("");', 'const [signupPassword, setSignupPassword] = useState("");\n  const [showPassword, setShowPassword] = useState(false);')
+          {["hr_admin", "managing_director", "operation_manager", "finance_manager"].includes(role) ? (
+            <Button 
+              onClick={() => setIsAddModalOpen(true)}
+              className="h-9 px-6 rounded-xl bg-[#7B0099] text-white hover:bg-[#7B0099]/95 font-black text-[9px] uppercase tracking-wider shadow-lg shadow-[#7B0099]/15 transition-all whitespace-nowrap touch-target flex items-center"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Staff
+            </Button>
+          ) : (
+            <div className="flex flex-wrap items-center justify-end gap-3 sm:gap-4 w-full sm:w-auto">
+              <ExportDropdown onExportCSV={handleExportCSV} />
+            </div>
+          )}
+        </div>"""
 
-# 3. DialogHeader update
-headerOld = '''            <DialogHeader>
-              <DialogTitle>Add New Staff</DialogTitle>
-              <DialogDescription>'''
-headerNew = '''            <DialogHeader className="bg-[#942392] p-6 -mx-6 -mt-6 sm:rounded-t-lg">
-              <DialogTitle className="text-white">Add New Staff</DialogTitle>
-              <DialogDescription className="text-white/80">'''
-content = content.replace(headerOld, headerNew)
-content = content.replace(headerOld.replace('\n', '\r\n'), headerNew)
+text = re.sub(r'        <div className="mb-2">\n\s*<Button\n\s*variant="ghost".*?Back to Employee Management\n\s*</span>\n\s*</Button>\n\s*</div>', new_back_div, text, flags=re.DOTALL)
+text = re.sub(r'\s*\{portalTarget && createPortal\(.*?\s*portalTarget\s*\)\s*\}', '', text, flags=re.DOTALL)
 
-# Also need to update DialogContent to allow button styling
-dialogContentOld = '<DialogContent className="sm:max-w-[425px]">'
-dialogContentNew = '<DialogContent className="sm:max-w-[425px] overflow-hidden [&>button]:text-white [&>button]:hover:text-white/80">'
-content = content.replace(dialogContentOld, dialogContentNew)
+if 'Plus' not in text.split('lucide-react')[0]:
+    text = text.replace('ArrowLeft,', 'ArrowLeft, Plus,')
 
-# 4. Update Inputs and Selects in the modal
-inputNameOld = '              <Input id="signup-name" type="text" placeholder="e.g. AHMAD ALBAB" value={signupName} onChange={(e) => setSignupName(e.target.value.toUpperCase())} required />'
-inputNameNew = '              <Input id="signup-name" type="text" className="bg-slate-100 border-transparent focus:bg-white" placeholder="e.g. AHMAD ALBAB" value={signupName} onChange={(e) => setSignupName(e.target.value.toUpperCase())} required />'
-content = content.replace(inputNameOld, inputNameNew)
-
-inputEmailOld = '              <Input id="signup-email" type="email" placeholder="ahmad@rayhar.com" value={signupEmail} onChange={(e) => setSignupEmail(e.target.value)} required />'
-inputEmailNew = '              <Input id="signup-email" type="email" className="bg-slate-100 border-transparent focus:bg-white" placeholder="ahmad@rayhar.com" value={signupEmail} onChange={(e) => setSignupEmail(e.target.value)} required />'
-content = content.replace(inputEmailOld, inputEmailNew)
-
-# SelectTriggers in the modal
-# Wait, replacing all <SelectTrigger className="rounded-md"> will replace them everywhere. There are only a few in this file anyway?
-selectOld = '<SelectTrigger className="rounded-md">'
-selectNew = '<SelectTrigger className="rounded-md bg-slate-100 border-transparent focus:bg-white">'
-content = content.replace(selectOld, selectNew)
-
-# 5. Update Password Field
-pwOld = '''              <div className="space-y-2">
-                <Label htmlFor="signup-password">Password</Label>
-                <Input id="signup-password" type="password" placeholder="Min. 6 characters" value={signupPassword} onChange={(e) => setSignupPassword(e.target.value)} required />
-              </div>'''
-pwNew = '''              <div className="space-y-2">
-                <Label htmlFor="signup-password">Password</Label>
-                <div className="relative">
-                  <Input id="signup-password" type={showPassword ? "text" : "password"} className="bg-slate-100 border-transparent focus:bg-white pr-10" placeholder="Min. 6 characters" value={signupPassword} onChange={(e) => setSignupPassword(e.target.value)} required />
-                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none">
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>'''
-content = content.replace(pwOld, pwNew)
-content = content.replace(pwOld.replace('\n', '\r\n'), pwNew)
-
-with codecs.open('src/pages/Employees.tsx', 'w', 'utf-8') as f:
-    f.write(content)
-
-print("Updated Employees.tsx")
+with open('src/pages/Employees.tsx', 'w', encoding='utf-8') as f:
+    f.write(text)

@@ -118,7 +118,7 @@ export default function Department() {
   return (
     <div className="space-y-4 sm:space-y-4 animate-in fade-in duration-500">
 
-        <div className="mb-2">
+        <div className="mb-2 flex items-center justify-between">
           <Button
             variant="ghost"
             size="sm"
@@ -130,17 +130,15 @@ export default function Department() {
               Back to Employee Management
             </span>
           </Button>
-        </div>
 
-      <PageActions>
-        <Button
-          onClick={() => navigate("/settings?tab=department")}
-          className="h-9 px-6 rounded-xl bg-[#7B0099] text-white hover:bg-[#7B0099]/95 font-black text-[9px] uppercase tracking-wider shadow-lg shadow-[#7B0099]/15 transition-all"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add New Department
-        </Button>
-      </PageActions>
+          <Button
+            onClick={() => navigate("/settings?tab=department")}
+            className="h-9 px-6 rounded-xl bg-[#7B0099] text-white hover:bg-[#7B0099]/95 font-black text-[9px] uppercase tracking-wider shadow-lg shadow-[#7B0099]/15 transition-all touch-target whitespace-nowrap flex items-center"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add New Department
+          </Button>
+        </div>
 
       {loading ? (
         <Card className="border-none shadow-sm overflow-hidden bg-card/60 backdrop-blur-md">

@@ -20,7 +20,7 @@ import {
   Printer,
     MapPin,
     Trash2,
-    ArrowLeft,
+    ArrowLeft, Plus,
   Eye,
   EyeOff
 } from 'lucide-react';
@@ -638,7 +638,7 @@ export default function Employees() {
   return (
     <div className="space-y-4 sm:space-y-4 animate-in fade-in duration-500">
 
-        <div className="mb-2">
+        <div className="mb-2 flex items-center justify-between">
           <Button
             variant="ghost"
             size="sm"
@@ -650,39 +650,21 @@ export default function Employees() {
               Back to Employee Management
             </span>
           </Button>
-        </div>
 
-      {portalTarget && createPortal(
-        <>
           {["hr_admin", "managing_director", "operation_manager", "finance_manager"].includes(role) ? (
             <Button 
               onClick={() => setIsAddModalOpen(true)}
-              className="bg-[#7B0099] hover:bg-[#5e0080] text-white font-bold gap-2 whitespace-nowrap touch-target"
+              className="h-9 px-6 rounded-xl bg-[#7B0099] text-white hover:bg-[#7B0099]/95 font-black text-[9px] uppercase tracking-wider shadow-lg shadow-[#7B0099]/15 transition-all whitespace-nowrap touch-target flex items-center"
             >
-              <Users className="w-4 h-4" />
+              <Plus className="w-4 h-4 mr-2" />
               Add Staff
             </Button>
           ) : (
             <div className="flex flex-wrap items-center justify-end gap-3 sm:gap-4 w-full sm:w-auto">
               <ExportDropdown onExportCSV={handleExportCSV} />
-              <Card className="border-border shadow-sm m-0">
-                <CardContent className="p-3 sm:p-4 flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center">
-                    <Users className="w-5 h-5 text-green-500" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-foreground uppercase tracking-wider">Total Employees</p>
-                    <h3 className="text-2xl font-bold mt-0.5 text-green-600 dark:text-green-400 leading-none">
-                      {filtered.length}
-                    </h3>
-                  </div>
-                </CardContent>
-              </Card>
             </div>
           )}
-        </>,
-        portalTarget
-      )}
+        </div>
 
 
 
