@@ -6059,7 +6059,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
       )
       SELECT type, actor, action, target, context, time, badge FROM acts
       ORDER BY sort_time DESC`,
-      [userId, queryDate, userId, queryDate, userId, queryDate, userId, queryDate, userId, queryDate, userId, queryDate, userId, queryDate, userId, queryDate, userId, queryDate]
+      [userId, queryDate, userId, queryDate, userId, queryDate, userId, queryDate, userId, queryDate, userId, queryDate, userId, queryDate, userId, queryDate]
     );
 
     // ── Layer 2: TEAM ACTIVITY (branch_leader, hod, hr_admin, md, finance_manager) ─
