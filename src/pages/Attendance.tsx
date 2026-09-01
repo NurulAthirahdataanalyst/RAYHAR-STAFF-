@@ -1668,7 +1668,7 @@ export default function Attendance() {
 
       {/* BOTTOM PANEL: Employee Attendance Data Table */}
       <div className="relative z-10 w-full w-full pb-8">
-        <Card className="border border-slate-100 dark:border-slate-700 bg-white dark:bg-card shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] rounded-[24px] overflow-hidden backdrop-blur-md min-h-[400px]">
+        <Card className="border border-slate-100 dark:border-slate-700 bg-white dark:bg-card shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] rounded-[24px] overflow-hidden backdrop-blur-md ">
           {/* Header Row */}
           <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/50 bg-muted/20 pb-4">
             <div>
