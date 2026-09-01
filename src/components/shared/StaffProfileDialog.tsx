@@ -384,7 +384,7 @@ export function StaffProfileDialog({
         throw new Error(data.error || "Failed to fetch employees");
       }
 
-      const formattedData = data.employees.map((employee: any) => {
+      const formattedData = (data.employees || []).map((employee: any) => {
         const activeAssignment = assignments.find((a: any) => 
           a.user_id === employee.user_id && a.status === 'Active' && 
           (!a.start_date || new Date(a.start_date) <= new Date()) &&
@@ -439,11 +439,11 @@ export function StaffProfileDialog({
   }, [viewLeaveStatus, selectedEmployee]);
 
   const uniqueBranches = Array.from(
-    new Set(dbEmployees.map((emp) => emp.branch).filter(Boolean))
+    new Set((dbEmployees || []).map((emp) => emp.branch).filter(Boolean))
   ).sort() as string[];
 
   const uniquePositions = Array.from(
-    new Set(dbEmployees.map((emp) => emp.position).filter(Boolean))
+    new Set((dbEmployees || []).map((emp) => emp.position).filter(Boolean))
   ).sort() as string[];
 
   const filtered = dbEmployees.filter((e) => {
@@ -486,7 +486,7 @@ export function StaffProfileDialog({
     const today = new Date().toISOString().split('T')[0];
     const csvContent = [
       ["Name", "Email", "Position", "Permanent Branch", "Working Branch", "Status"],
-      ...filtered.map((emp) => {
+      ...((filtered || [])).map((emp) => {
         // Use active temporary branch if available, otherwise permanent branch
         const workingBranch = emp.tempBranch || emp.branch;
         return [
@@ -1205,7 +1205,7 @@ export function StaffProfileDialog({
                                   </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
-                                  {tempAssignmentsHistory.map((ta, idx) => (
+                                  {(tempAssignmentsHistory || []).map((ta, idx) => (
                                     <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/50">
                                       <td className="px-4 py-3 font-bold text-slate-800 dark:text-slate-200">{ta.location}</td>
                                       <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{BRANCH_NAMES[ta.location as keyof typeof BRANCH_NAMES] || ta.location}</td>
@@ -1257,7 +1257,7 @@ export function StaffProfileDialog({
                                     </span>
                                   </td>
                                 </tr>
-                                {allowedLocations.filter(c => c !== selectedEmployee?.branch).map((loc, idx) => (
+                                {(allowedLocations || []).filter(c => c !== selectedEmployee?.branch).map((loc, idx) => (
                                   <tr key={loc} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/50">
                                     <td className="px-4 py-3 font-bold text-slate-800 dark:text-slate-200 whitespace-nowrap uppercase">Branch {idx + 2}</td>
                                     <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{BRANCH_NAMES[loc as keyof typeof BRANCH_NAMES] || loc}</td>
@@ -1309,7 +1309,7 @@ export function StaffProfileDialog({
                               const totalHistoryPages = Math.ceil(locationHistory.length / historyItemsPerPage);
                               const startIndex = (historyPage - 1) * historyItemsPerPage;
                               const paginatedHistory = locationHistory.slice(startIndex, startIndex + historyItemsPerPage);
-                              return paginatedHistory.map((h: any, idx: number) => {
+                              return (paginatedHistory || []).map((h: any, idx: number) => {
                               const ts = h.timestamp ? new Date(h.timestamp) : null;
                               const dateStr = ts ? ts.toLocaleDateString('ms-MY', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '-';
                               const timeStr = ts ? ts.toLocaleTimeString('ms-MY', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }) : '-';
@@ -1673,7 +1673,7 @@ export function StaffProfileDialog({
                           </h3>
                         </div>
                         <div className="relative space-y-4 before:absolute before:inset-0 before:ml-4 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-border/50 before:to-transparent">
-                          {req.approval_history.map((history: any, idx: number) => (
+                          {(req.approval_history || []).map((history: any, idx: number) => (
                             <div key={idx} className="relative flex items-start gap-4">
                               <div className={`absolute left-4 -translate-x-1/2 flex h-2 w-2 items-center justify-center rounded-full border border-white dark:border-slate-900 ${history.status === 'Approved' ? 'bg-emerald-500' : 'bg-rose-500'} z-10`} />
                               <div className="ml-6 flex-1 bg-muted/30 rounded-[16px] p-3 border border-border/40">
@@ -1763,7 +1763,7 @@ export function StaffProfileDialog({
                   <SelectValue placeholder="Select Branch" />
                 </SelectTrigger>
                 <SelectContent>
-                  {branchesList.map((b) => (
+                  {(branchesList || []).map((b) => (
                     <SelectItem key={b.code} value={b.code}>
                       {b.name}
                     </SelectItem>
@@ -1783,7 +1783,7 @@ export function StaffProfileDialog({
                     <SelectValue placeholder="Select Department" />
                   </SelectTrigger>
                   <SelectContent>
-                    {departmentsList.map((d) => {
+                    {(departmentsList || []).map((d) => {
                       const dName = d.name || d.department_name || d;
                       return (
                         <SelectItem key={dName} value={dName}>
@@ -1806,7 +1806,7 @@ export function StaffProfileDialog({
                   <SelectValue placeholder="Select Role" />
                 </SelectTrigger>
                 <SelectContent>
-                  {availableRoles.filter(r => r.status === 'Active').map(r => (
+                  {(availableRoles || []).filter(r => r.status === 'Active').map(r => (
                     <SelectItem key={r.id} value={r.name}>{r.name}</SelectItem>
                   ))}
                   {availableRoles.filter(r => r.status === 'Active').length === 0 && (
