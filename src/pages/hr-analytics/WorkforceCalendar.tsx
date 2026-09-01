@@ -528,11 +528,20 @@ export default function WorkforceCalendar() {
           const uniqueAtt = Array.from(uniqueAttMap.values());
 
           const isWeekend = (dateObj, branchId) => {
-            if (!branchId) return dateObj.getDay() === 0 || dateObj.getDay() === 6;
-            const branchUpper = String(branchId).toUpperCase();
-            const isFriSat = ['JHB', 'JOHOR BAHRU', 'BPT', 'BATU PAHAT', 'JB - JOHOR BHARU', 'JB', 'KBR', 'KOTA BHARU', 'KTG', 'KUALA TERENGGANU', 'ASR', 'ALOR SETAR', 'SPJ', 'SUNGAI PETANI', 'SOUTHERN'].some(b => branchUpper.includes(b));
             const day = dateObj.getDay();
-            return isFriSat ? (day === 5 || day === 6) : (day === 0 || day === 6);
+            const dateNum = dateObj.getDate();
+            const isFirstWeek = dateNum <= 7;
+            
+            if (!branchId) return day === 0 || (day === 6 && isFirstWeek);
+            
+            const branchUpper = String(branchId).toUpperCase();
+            const isZoneA = ['JHB', 'JOHOR BAHRU', 'BPT', 'BATU PAHAT', 'JB - JOHOR BHARU', 'JB', 'KBR', 'KOTA BHARU', 'KTG', 'KUALA TERENGGANU', 'ASR', 'ALOR SETAR', 'SPJ', 'SUNGAI PETANI', 'SOUTHERN'].some(b => branchUpper.includes(b));
+            
+            if (isZoneA) {
+              return day === 5 || (day === 6 && isFirstWeek);
+            } else {
+              return day === 0 || (day === 6 && isFirstWeek);
+            }
           };
           
           // Categorize outstation and temporary first
