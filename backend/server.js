@@ -5448,11 +5448,11 @@ app.get("/api/attendance/history", async (req, res) => {
 app.get("/api/dashboard-stats", async (req, res) => {
   const userId = req.query.userId;
   let role = req.query.role ? req.query.role.toString().trim().toLowerCase() : "";
-  if (role === 'hr' || role === 'hr admin') role = 'hr_admin';
-  if (role === 'md' || role === 'managing director') role = 'managing_director';
-  if (role === 'branch leader') role = 'branch_leader';
-  if (role === 'finance manager' || role === 'operation manager' || role === 'operations manager') role = 'operation_manager';
-  if (role === 'head of department' || role === 'hod') role = 'head_of_department';
+    if (role.includes('hr admin') || role === 'hr_admin' || role.includes('hr ')) role = 'hr_admin';
+    else if (role.includes('md') || role.includes('managing director')) role = 'managing_director';
+    else if (role.includes('branch leader') || role === 'branch_leader') role = 'branch_leader';
+    else if (role.includes('finance manager') || role.includes('operation manager') || role.includes('operations manager')) role = 'operation_manager';
+    else if (role.includes('head of department') || role.includes('hod') || role === 'head_of_department') role = 'head_of_department';
 
   const branch = req.query.branch ? req.query.branch.toString().trim() : "";
 
@@ -5527,7 +5527,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
       const onLeaveParams = [queryDate, ...queryParams];
 
       const [presentRows] = await pool.query(
-        `SELECT COUNT(DISTINCT user_id) AS present_today FROM attendances 
+        `SELECT DISTINCT user_id FROM attendances 
          WHERE DATE(clock_in) = ${dateCondition} 
          AND user_id NOT IN (SELECT user_id FROM leave_requests WHERE status = 'Approved' AND ${dateCondition} BETWEEN DATE(start_date) AND DATE(end_date))
          AND user_id NOT IN (SELECT user_id FROM outstation_assignments WHERE status != 'Cancelled' AND ${dateCondition} BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date)
@@ -5536,7 +5536,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
       );
 
       const [onLeaveRows] = await pool.query(
-        `SELECT COUNT(DISTINCT user_id) AS on_leave FROM leave_requests WHERE status = 'Approved' AND ${dateCondition} BETWEEN DATE(start_date) AND DATE(end_date) ${attendanceFilter}`,
+        `SELECT DISTINCT user_id FROM leave_requests WHERE status = 'Approved' AND ${dateCondition} BETWEEN DATE(start_date) AND DATE(end_date) ${attendanceFilter}`,
         onLeaveParams
       );
 
@@ -5581,7 +5581,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
 
       const outstationParams = queryDate ? [queryDate, ...queryParams] : queryParams;
       const [outstationTodayRows] = await pool.query(
-        `SELECT COUNT(DISTINCT user_id) AS outstation_today FROM outstation_assignments WHERE status != 'Cancelled' AND ${dateCondition} BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date ${attendanceFilter}`,
+        `SELECT DISTINCT user_id FROM outstation_assignments WHERE status != 'Cancelled' AND ${dateCondition} BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date ${attendanceFilter}`,
         outstationParams
       );
 
@@ -5689,18 +5689,18 @@ app.get("/api/dashboard-stats", async (req, res) => {
 
       adminStats = {
         totalEmployees: parseInt(employeeRows[0].total_employees || 0),
-        presentToday: parseInt(presentRows[0].present_today || 0),
-        onLeave: parseInt(onLeaveRows[0].on_leave || 0),
+        presentToday: presentRows.length,
+        onLeave: onLeaveRows.length,
         outstation: parseInt(outstationRows[0].outstation || 0),
         lateArrivals: parseInt(lateRows[0].late_arrivals || 0),
         pendingApprovals: parseInt(pendingRows[0].pending_approvals || 0),
         companyLeave: companyLeaveCount,
         activeCompanyLeave: upcomingCompanyLeaveRows.length > 0 ? upcomingCompanyLeaveRows[0] : null,
-        outstationToday: parseInt(outstationTodayRows[0].outstation_today || 0),
+        outstationToday: outstationTodayRows.length,
         upcomingOutstation: parseInt(upcomingOutstationRows[0].upcoming_outstation || 0),
         absentToday: absentCount,
         restDayToday: restDayCount,
-        hasRecords: totalDayAttendances > 0 || companyLeaveCount > 0 || parseInt(onLeaveRows[0].on_leave || 0) > 0 || parseInt(outstationTodayRows[0].outstation_today || 0) > 0 || absentCount > 0 || restDayCount > 0,
+        hasRecords: totalDayAttendances > 0 || companyLeaveCount > 0 || onLeaveRows.length > 0 || outstationTodayRows.length > 0 || absentCount > 0 || restDayCount > 0,
         totalTemporary: parseInt(temporaryRows[0].total_temporary || 0),
         totalMultiLocation: parseInt(multiLocationRows[0].total_multi_location || 0),
       };
@@ -8381,11 +8381,11 @@ app.get("/api/reports/generator", async (req, res) => {
     let { type, month, year, branch, department, requesterRole, requesterBranch, requesterDept, requesterId } = req.query;
     
     // Normalize role string
-    if (requesterRole === 'hr' || requesterRole === 'hr admin') requesterRole = 'hr_admin';
-    if (requesterRole === 'md' || requesterRole === 'managing director') requesterRole = 'managing_director';
-    if (requesterRole === 'branch leader') requesterRole = 'branch_leader';
-    if (requesterRole === 'finance manager') requesterRole = 'finance_manager';
-    if (requesterRole === 'head of department' || requesterRole === 'hod') requesterRole = 'head_of_department';
+    if (requesterRole.includes('hr admin') || requesterRole === 'hr_admin' || requesterRole.includes('hr ')) requesterRole = 'hr_admin';
+    else if (requesterRole.includes('md') || requesterRole.includes('managing director')) requesterRole = 'managing_director';
+    else if (requesterRole.includes('branch leader') || requesterRole === 'branch_leader') requesterRole = 'branch_leader';
+    else if (requesterRole.includes('finance manager') || requesterRole.includes('operation manager') || requesterRole.includes('operations manager')) requesterRole = 'operation_manager';
+    else if (requesterRole.includes('head of department') || requesterRole.includes('hod') || requesterRole === 'head_of_department') requesterRole = 'head_of_department';
     
     // Enforce role-based scoping
     if (requesterRole === 'employee') {
