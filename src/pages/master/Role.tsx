@@ -165,13 +165,13 @@ export default function Role() {
               onExportCSV={() => exportToCSV(roles, 'Roles_List')} 
               onExportPDF={() => window.print()} 
             />
-            <Button 
+            {role === "hr_admin" && ( <Button 
               onClick={() => setIsAddModalOpen(true)} 
               className="h-9 px-6 rounded-xl bg-[#7B0099] text-white hover:bg-[#7B0099]/95 font-black text-[9px] uppercase tracking-wider shadow-lg shadow-[#7B0099]/15 transition-all touch-target whitespace-nowrap flex items-center"
             >
               <Plus className="w-4 h-4 mr-2" />
               Add Roles
-            </Button>
+            </Button> )}
           </div>
         </div>
 
@@ -399,3 +399,4 @@ export default function Role() {
     </div>
   );
 }
+

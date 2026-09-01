@@ -131,13 +131,13 @@ export default function Department() {
             </span>
           </Button>
 
-          <Button
+          {role === "hr_admin" && ( <Button
             onClick={() => navigate("/settings?tab=department")}
             className="h-9 px-6 rounded-xl bg-[#7B0099] text-white hover:bg-[#7B0099]/95 font-black text-[9px] uppercase tracking-wider shadow-lg shadow-[#7B0099]/15 transition-all touch-target whitespace-nowrap flex items-center"
           >
             <Plus className="w-4 h-4 mr-2" />
             Add New Department
-          </Button>
+          </Button> )}
         </div>
 
       {loading ? (
@@ -283,4 +283,5 @@ export default function Department() {
     </div>
   );
 }
+
 
