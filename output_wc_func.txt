@@ -1,0 +1,117 @@
+async function getWorkforceCalendarData(role, branch, department, month, year) {
+  const params = [];
+  let leaveWhere = '';
+  let outstationWhere = 'WHERE 1=1';
+
+  if (role === 'branch_leader' && branch) {
+    leaveWhere = `AND p.branch = $${params.length + 1}`;
+    params.push(branch);
+    outstationWhere = `WHERE oa.branch = $${params.length}`;
+  } else if (role === 'head_of_department' && department) {
+    leaveWhere = `AND p.department = $${params.length + 1}`;
+    params.push(department);
+    outstationWhere = `WHERE oa.department = $${params.length}`;
+  } else if (role === 'head_of_department' && !department) {
+    return [];
+  }
+
+  const events = [];
+
+  // 1. Personal leaves (Approved only for calendar - pending shown separately)
+  try {
+    const leaveParamsCopy = [...params];
+    const [leaveRows] = await pool.query(
+      `SELECT lr.leave_id AS id, lr.user_id, p.full_name, p.branch, p.department,
+              lr.leave_type, lr.start_date, lr.end_date, lr.days, lr.status, lr.reason
+       FROM leave_requests lr
+       JOIN profiles p ON p.user_id = lr.user_id
+       WHERE lr.status IN ('Approved')
+       ${leaveWhere}
+       ORDER BY lr.start_date DESC`,
+      leaveParamsCopy
+    );
+    for (const r of leaveRows) {
+      events.push({
+        id: `leave-${r.id}`,
+        user_id: r.user_id,
+        name: r.full_name,
+        type: r.leave_type,
+        source: 'leave',
+        start_date: r.start_date,
+        end_date: r.end_date,
+        start_time: null,
+        end_time: null,
+        status: r.status,
+        days: r.days,
+      });
+    }
+  } catch (e) { console.error('workforce-calendar leave fetch error:', e); }
+
+  // 2. Outstation
+  try {
+    const outstationParamsCopy = [...params];
+    const [outstationRows] = await pool.query(
+      `SELECT oa.id, oa.user_id, p.full_name, oa.branch, oa.department,
+              oa.destination, oa.purpose, oa.project, oa.meeting_title, oa.client_company, oa.start_date, oa.end_date, oa.status
+       FROM outstation_assignments oa
+       LEFT JOIN profiles p ON oa.user_id = p.user_id
+       ${outstationWhere}
+       ORDER BY oa.start_date DESC`,
+      outstationParamsCopy
+    );
+    for (const r of outstationRows) {
+      events.push({
+        id: `outstation-${r.id}`,
+        user_id: r.user_id,
+        name: r.full_name,
+        type: 'Outstation',
+        source: 'outstation',
+        start_date: r.start_date,
+        end_date: r.end_date,
+        start_time: null,
+        end_time: null,
+        status: r.status,
+        destination: r.destination,
+        days: null,
+      });
+    }
+  } catch (e) { console.error('workforce-calendar outstation fetch error:', e); }
+
+  // 3. Company leaves
+  try {
+    const [companyRows] = await pool.query(
+      `SELECT id, leave_name, leave_type, start_date, end_date, applies_to, branch_id, department_id, status
+       FROM company_leave_calendar
+       WHERE status = 'Active'
+       ORDER BY start_date DESC`
+    );
+    for (const r of companyRows) {
+      events.push({
+        id: `company-${r.id}`,
+        user_id: null,
+        name: r.leave_name,
+        type: r.leave_type,
+        source: 'company_leave',
+        start_date: r.start_date,
+        end_date: r.end_date,
+        start_time: null,
+        end_time: null,
+        status: r.status,
+        applies_to: r.applies_to,
+        days: null,
+      });
+    }
+  } catch (e) { console.error('workforce-calendar company_leave fetch error:', e); }
+
+  // 4. Attendance & Absents (Only if month & year are provided to prevent massive queries)
+  try {
+    if (month && year) {
+      const lateTimeStr = typeof getLateThresholdTime === 'function' ? getLateThresholdTime() : '09:00:00';
+      const attParams = [lateTimeStr, month, year];
+      let attWhere = '';
+      if (role === 'branch_leader' && branch) {
+        attWhere = `AND p.branch = $4`;
+        attParams.push(branch);
+      } else if (role === 'head_of_department' && department) {
+        attWhere = `AND p.department = $4`;
+        a

@@ -1,0 +1,75 @@
+/api/workforce-calendar — consolidated workforce availability
+app.get('/api/workforce-calendar', async (req, res) => {
+    try {
+      const { role, branch, department, month, year } = req.query;
+      const events = await getWorkforceCalendarData(role, branch, department, month, year);
+    res.json({ success: true, events });
+  } catch (err) {
+    console.error('GET /api/workforce-calendar error:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// SSE stream for workforce calendar real-time updates
+app.get('/api/workforce-calendar/stream', (req, res) => {
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.flushHeaders();
+
+  res.write(': connected\n\n');
+  workforceCalendarClients.push(res);
+  console.log(`📌 Workforce-Calendar SSE Client connected. Total: ${workforceCalendarClients.length}`);
+
+  req.on('close', () => {
+    workforceCalendarClients = workforceCalendarClients.filter((c) => c !== res);
+    console.log(`📌 Workforce-Calendar SSE Client disconnected. Total: ${workforceCalendarClients.length}`);
+  });
+});
+
+// =================================================================
+// END WORKFORCE CALENDAR API
+// =================================================================
+
+// --- CUTI GANTI / REPLACEMENT LEAVE VALIDATION ---
+app.post("/api/cron/validate-replacement-leaves", async (req, res) => {
+  try {
+    // 1. Move Approved -> Waiting for Replacement Date when the date is today or passed
+    await pool.query(
+      `UPDATE replacement_leave_requests 
+       SET validation_status = 'Waiting for Replacement Date', updated_at = CURRENT_TIMESTAMP
+       WHERE validation_status = 'Approved' 
+       AND replacement_date <= CURRENT_DATE`
+    );
+
+    // 2. Validate those that are Waiting for Replacement Date and the date is in the past (so attendance is finalized)
+    // Or if it's today and they have clocked out.
+    const [pendingRequests] = await pool.query(
+      `SELECT r.*, p.full_name 
+       FROM replacement_leave_requests r
+       JOIN profiles p ON p.user_id = r.employee_id
+       WHERE r.validation_status = 'Waiting for Replacement Date'
+       AND r.replacement_date <= CURRENT_DATE`
+    );
+
+    let processed = 0;
+    for (const request of pendingRequests) {
+      // Find attendance for this user and date
+      const [att] = await pool.query(
+        `SELECT id, working_hours, clock_in, clock_out FROM attendances 
+         WHERE employee_id = ? AND date = ?`,
+        [request.employee_id, request.replacement_date]
+      );
+      
+      let newStatus = null;
+      let actualHours = 0;
+      let attId = null;
+
+      if (att.length > 0) {
+        attId = att[0].id;
+        const clockOut = att[0].clock_out;
+        const whStr = att[0].working_hours; // e.g., "8h 30m"
+        
+        // Only validate if date is past, OR they have clocked out today
+  

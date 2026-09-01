@@ -248,7 +248,10 @@ export default function WorkforceCalendar() {
         
         if (filterBranch !== "__ALL__" && e.branch !== filterBranch) return false;
         if (filterDept !== "__ALL__" && e.department !== filterDept) return false;
-        return e.start_date <= dateStr && e.end_date >= dateStr;
+        
+        const evStart = e.start_date.substring(0, 10);
+        const evEnd = e.end_date.substring(0, 10);
+        return evStart <= dateStr && evEnd >= dateStr;
       })
       .sort((a, b) => getEventPriority(a) - getEventPriority(b));
   };
