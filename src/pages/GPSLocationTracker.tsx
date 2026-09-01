@@ -271,12 +271,15 @@ export default function GPSLocationTracker() {
     setSelected(empId);
   };
 
-  // Location history modal
+  // Location history modal - with full pagination (Load More)
   const [historyFor, setHistoryFor] = useState<string | null>(null);
   const [history, setHistory] = useState<any[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
-    const [historyPage, setHistoryPage] = useState(1);
-    const historyItemsPerPage = 10;
+  const [historyLoadingMore, setHistoryLoadingMore] = useState(false);
+  const [historyTotal, setHistoryTotal] = useState(0);
+  const [historyCurrentPage, setHistoryCurrentPage] = useState(1);
+  const [historyHasMore, setHistoryHasMore] = useState(false);
+  const HISTORY_LIMIT = 50;
 
   const [apiBranches, setApiBranches] = useState<any[]>([]);
   useEffect(() => {
@@ -285,8 +288,7 @@ export default function GPSLocationTracker() {
     }).catch(() => {});
   }, []);
 
-
-    useEffect(() => {
+  useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && historyFor) {
         closeHistory();
@@ -299,22 +301,43 @@ export default function GPSLocationTracker() {
   const openHistory = async (userId: string) => {
     setHistoryFor(userId);
     setHistoryLoading(true);
+    setHistory([]);
+    setHistoryCurrentPage(1);
+    setHistoryTotal(0);
+    setHistoryHasMore(false);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/employee-location-history?userId=${encodeURIComponent(userId)}&days=14`);
+      const res = await fetch(`${API_BASE_URL}/api/employee-location-history?userId=${encodeURIComponent(userId)}&page=1&limit=${HISTORY_LIMIT}`);
       const j = await res.json();
       if (j && j.success) {
-        const sorted = (j.history || []).slice().sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-        setHistory(sorted);
-          setHistoryPage(1);
+        setHistory(j.history || []);
+        setHistoryTotal(j.total || 0);
+        setHistoryHasMore(j.hasMore || false);
+        setHistoryCurrentPage(1);
         setReplayIndex(0);
         setReplayPlaying(false);
       }
-      else setHistory([]);
     } catch (e) { setHistory([]); }
     setHistoryLoading(false);
   };
 
-  const closeHistory = () => { setHistoryFor(null); setHistory([]); };
+  const loadMoreHistory = async () => {
+    if (!historyFor || historyLoadingMore || !historyHasMore) return;
+    setHistoryLoadingMore(true);
+    const nextPage = historyCurrentPage + 1;
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/employee-location-history?userId=${encodeURIComponent(historyFor)}&page=${nextPage}&limit=${HISTORY_LIMIT}`);
+      const j = await res.json();
+      if (j && j.success) {
+        setHistory(prev => [...prev, ...(j.history || [])]);
+        setHistoryTotal(j.total || 0);
+        setHistoryHasMore(j.hasMore || false);
+        setHistoryCurrentPage(nextPage);
+      }
+    } catch (e) {}
+    setHistoryLoadingMore(false);
+  };
+
+  const closeHistory = () => { setHistoryFor(null); setHistory([]); setHistoryTotal(0); setHistoryHasMore(false); };
 
   // Admin alerts (arrival/departure/breach)
   const [alerts, setAlerts] = useState<any[]>([]);
@@ -583,50 +606,47 @@ export default function GPSLocationTracker() {
             </Table>
           </div>
         </div>
-      </div>
-    {historyFor && (
+      {historyFor && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/40 p-4" onClick={(e) => { if (e.target === e.currentTarget) closeHistory(); }}>
           <div className="w-full max-w-5xl bg-card rounded-lg p-6 max-h-[90vh] flex flex-col">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-black uppercase">Location History - {employees.find(e => e.user_id === historyFor)?.full_name || historyFor}</h3>
+            <div className="flex items-center justify-between mb-2">
+              <div>
+                <h3 className="text-lg font-black uppercase">Location History - {employees.find(e => e.user_id === historyFor)?.full_name || historyFor}</h3>
+                {!historyLoading && historyTotal > 0 && (
+                  <p className="text-xs text-muted-foreground mt-0.5">{historyTotal.toLocaleString()} total records</p>
+                )}
+              </div>
               <Button onClick={closeHistory} variant="ghost" size="sm">Close</Button>
             </div>
-            <div className="flex-1 border border-border rounded-lg flex flex-col overflow-hidden [&>div]:flex-1 [&>div]:overflow-auto">
-              <Table>
-                <TableHeader className="sticky top-0 bg-card z-10 shadow-sm border-b">
-                  <TableRow>
-                    <TableHead>Date & Time</TableHead>
-                    <TableHead>Coordinate (Latitude, Longitude)</TableHead>
-                    <TableHead>Branch</TableHead>
-                    <TableHead>Distance from Branch</TableHead>
-                    <TableHead>Location Status</TableHead>
-                    <TableHead>Attendance Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {historyLoading ? (
-                    <TableRow><TableCell colSpan={6} className="text-center py-8">Loading history...</TableCell></TableRow>
-                  ) : history.length === 0 ? (
-                    <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">No history found</TableCell></TableRow>
-                  ) : (
-                    (() => {
-                      const totalHistoryPages = Math.ceil(history.length / historyItemsPerPage);
-                      const startIndex = (historyPage - 1) * historyItemsPerPage;
-                      const paginatedHistory = history.slice(startIndex, startIndex + historyItemsPerPage);
-                      return paginatedHistory.map((h, i) => {
-                      const emp = employees.find(e => e.user_id === historyFor);
-                      const branchName = emp?.branch || "HQ";
-                      const bObj = apiBranches.find(b => b.name === branchName || b.code === branchName);
-                      let distance: number | null = null;
-                      if (bObj && bObj.latitude && bObj.longitude) {
-                        distance = getDistance(h.lat, h.lng, parseFloat(bObj.latitude), parseFloat(bObj.longitude));
-                      }
-                      const radius = bObj?.radius || bObj?.allowed_radius || 100;
-                      const isOffSite = distance !== null && distance > radius;
+            <div className="flex-1 border border-border rounded-lg flex flex-col overflow-hidden">
+              <div className="flex-1 overflow-auto">
+                <Table>
+                  <TableHeader className="sticky top-0 bg-card z-10 shadow-sm border-b">
+                    <TableRow>
+                      <TableHead>Date &amp; Time</TableHead>
+                      <TableHead>Coordinate (Latitude, Longitude)</TableHead>
+                      <TableHead>Branch</TableHead>
+                      <TableHead>Distance from Branch</TableHead>
+                      <TableHead>Location Status</TableHead>
+                      <TableHead>Attendance Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {historyLoading ? (
+                      <TableRow><TableCell colSpan={6} className="text-center py-8">Loading history...</TableCell></TableRow>
+                    ) : history.length === 0 ? (
+                      <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">No history found</TableCell></TableRow>
+                    ) : (
+                      history.map((h, i) => {
+                        const emp = employees.find(e => e.user_id === historyFor);
+                        const branchName = h.branch || emp?.branch || "HQ";
+                        const distance: number | null = h.distance ?? null;
+                        const radius = apiBranches.find((b: any) => b.name === branchName || b.code === branchName)?.radius || 100;
+                        const isOffSite = distance !== null && distance > radius;
                         const isNoGPS = Number(h.lat) === 0 && Number(h.lng) === 0;
-                        
+
                         return (
-                          <TableRow key={i}>
+                          <TableRow key={`${h.timestamp}-${i}`}>
                             <TableCell className="font-medium whitespace-nowrap">
                               {new Date(h.timestamp).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}, {new Date(h.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                             </TableCell>
@@ -636,59 +656,75 @@ export default function GPSLocationTracker() {
                             <TableCell>
                               {isNoGPS ? (
                                 <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 dark:bg-slate-500/20 dark:text-slate-300 text-[10px] font-black border border-slate-200 dark:border-slate-500/30 uppercase tracking-widest">
-                                  <div className="w-1.5 h-1.5 rounded-full bg-slate-500" />
-                                  No GPS
+                                  <div className="w-1.5 h-1.5 rounded-full bg-slate-500" />No GPS
                                 </span>
                               ) : isOffSite ? (
                                 <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-300 text-[10px] font-black border border-orange-200 dark:border-orange-500/30 uppercase tracking-widest">
-                                  <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
-                                  Off-Site {h.is_update ? "- UPDATED" : ""}
+                                  <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />Off-Site {h.is_update ? "- UPDATED" : ""}
                                 </span>
                               ) : (
                                 <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300 text-[10px] font-black border border-emerald-200 dark:border-emerald-500/30 uppercase tracking-widest">
-                                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                                  On-Site {h.is_update ? "- UPDATED" : ""}
+                                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />On-Site {h.is_update ? "- UPDATED" : ""}
                                 </span>
                               )}
-                          </TableCell>
-                          <TableCell>
-                            {h.attendance_status ? (() => {
-                              const statusColors: Record<string, string> = {
-                                'Clock In': 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300 border-blue-200 dark:border-blue-500/30',
-                                'Clock Out': 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300 border-indigo-200 dark:border-indigo-500/30',
-                                'Replacement Leave': 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300 border-amber-200 dark:border-amber-500/30',
-                                'Outstation': 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300 border-purple-200 dark:border-purple-500/30',
-                              };
-                              const dotColors: Record<string, string> = {
-                                'Clock In': 'bg-blue-500',
-                                'Clock Out': 'bg-indigo-500',
-                                'Replacement Leave': 'bg-amber-500',
-                                'Outstation': 'bg-purple-500',
-                              };
-                              const cls = statusColors[h.attendance_status] || 'bg-teal-100 text-teal-700 dark:bg-teal-500/20 dark:text-teal-300 border-teal-200 dark:border-teal-500/30';
-                              const dot = dotColors[h.attendance_status] || 'bg-teal-500';
-                              return (
-                                <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-black border uppercase tracking-widest ${cls}`}>
-                                  <div className={`w-1.5 h-1.5 rounded-full ${dot}`} />
-                                  {h.attendance_status}
-                                </span>
-                              );
-                            })() : (
-                              <span className="text-muted-foreground">-</span>
-                            )}
-                          </TableCell>
-                        </TableRow>
+                            </TableCell>
+                            <TableCell>
+                              {h.attendance_status ? (() => {
+                                const statusColors: Record<string, string> = {
+                                  'Clock In': 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300 border-blue-200 dark:border-blue-500/30',
+                                  'Clock Out': 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300 border-indigo-200 dark:border-indigo-500/30',
+                                  'Replacement Leave': 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300 border-amber-200 dark:border-amber-500/30',
+                                  'Outstation': 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300 border-purple-200 dark:border-purple-500/30',
+                                };
+                                const dotColors: Record<string, string> = {
+                                  'Clock In': 'bg-blue-500', 'Clock Out': 'bg-indigo-500',
+                                  'Replacement Leave': 'bg-amber-500', 'Outstation': 'bg-purple-500',
+                                };
+                                const cls = statusColors[h.attendance_status] || 'bg-teal-100 text-teal-700 dark:bg-teal-500/20 dark:text-teal-300 border-teal-200 dark:border-teal-500/30';
+                                const dot = dotColors[h.attendance_status] || 'bg-teal-500';
+                                return (
+                                  <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-black border uppercase tracking-widest ${cls}`}>
+                                    <div className={`w-1.5 h-1.5 rounded-full ${dot}`} />
+                                    {h.attendance_status}
+                                  </span>
+                                );
+                              })() : (
+                                <span className="text-muted-foreground">-</span>
+                              )}
+                            </TableCell>
+                          </TableRow>
                         );
-                    })
-                    })()
+                      })
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+              {/* Footer: showing count + Load More */}
+              {!historyLoading && history.length > 0 && (
+                <div className="border-t border-border px-4 py-3 flex items-center justify-between bg-card/80">
+                  <span className="text-xs text-muted-foreground">
+                    Showing {history.length.toLocaleString()} of {historyTotal.toLocaleString()} records
+                  </span>
+                  {historyHasMore ? (
+                    <Button
+                      onClick={loadMoreHistory}
+                      disabled={historyLoadingMore}
+                      variant="outline"
+                      size="sm"
+                      className="text-xs font-bold uppercase tracking-widest"
+                    >
+                      {historyLoadingMore ? "Loading..." : "Load More"}
+                    </Button>
+                  ) : (
+                    <span className="text-xs text-muted-foreground italic">All location history loaded</span>
                   )}
-                </TableBody>
-              </Table>
+                </div>
+              )}
             </div>
           </div>
-        </div>
       )}
       </>
     );
+}
 }
 
