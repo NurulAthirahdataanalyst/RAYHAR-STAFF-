@@ -50,7 +50,7 @@ export default function NotificationBell() {
         const assignmentsRes = await fetch(`${API_BASE_URL}/api/work-assignments-all`);
         const assignmentsData = await assignmentsRes.json();
         if (assignmentsData.success) {
-          const myAssignments = assignmentsData.data.filter((a: any) => a.user_id === user.user_id);
+          const myAssignments = assignmentsData.assignments.filter((a: any) => a.user_id === user.user_id);
           const now = new Date();
           now.setHours(0,0,0,0);
           

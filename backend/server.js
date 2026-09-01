@@ -6027,9 +6027,9 @@ app.get("/api/dashboard-stats", async (req, res) => {
         UNION ALL
         SELECT 'outstation' AS type,
           oa.assigned_by_name AS actor,
-          'assigned an Outstation to' AS action,
+          'created an upcoming outstation assignment for' AS action,
           'You' AS target,
-          CONCAT('Event: ', oa.purpose, ' — ', oa.destination, ' • ', TO_CHAR(oa.start_date, 'DD/MM/YYYY'), ' – ', TO_CHAR(oa.end_date, 'DD/MM/YYYY'), ' • ', oa.total_days, ' Days') AS context,
+          CONCAT('for event ', oa.purpose, ' at ', oa.destination, ' from ', TO_CHAR(oa.start_date, 'DD/MM/YYYY'), ' - ', TO_CHAR(oa.end_date, 'DD/MM/YYYY')) AS context,
           TO_CHAR(oa.created_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time,
           oa.created_at AS sort_time,
           'Assigned' AS badge
@@ -6176,9 +6176,9 @@ app.get("/api/dashboard-stats", async (req, res) => {
           -- Outstation assignments today
           SELECT 'outstation' AS type,
             oa.assigned_by_name AS actor,
-            'assigned an Outstation to' AS action,
+            'created an upcoming outstation assignment for' AS action,
             emp.full_name AS target,
-            CONCAT('Event: ', oa.purpose, ' — ', oa.destination, ' • ', TO_CHAR(oa.start_date, 'DD/MM/YYYY'), ' – ', TO_CHAR(oa.end_date, 'DD/MM/YYYY'), ' • ', oa.total_days, ' Days') AS context,
+            CONCAT('for event ', oa.purpose, ' at ', oa.destination, ' from ', TO_CHAR(oa.start_date, 'DD/MM/YYYY'), ' - ', TO_CHAR(oa.end_date, 'DD/MM/YYYY')) AS context,
             TO_CHAR(oa.created_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time,
             oa.created_at AS sort_time,
             'Assigned' AS badge
@@ -9350,8 +9350,8 @@ app.post('/api/outstation', async (req, res) => {
           `INSERT INTO notifications (user_id, title, message, type) VALUES ($1, $2, $3, $4)`,
           [
             emp.user_id,
-            'New Outstation Assignment',
-            `You have been assigned to an outstation by ${assigned_by_name} (${formattedRole}). Please review the assignment details.`,
+            '🔔 **UPCOMING OUTSTATION ASSIGNMENT**',
+            `${formattedRole} created an upcoming outstation assignment for you: ${purpose} at ${destination} from ${start_date} - ${end_date}.`,
             'outstation'
           ]
         );
@@ -10129,8 +10129,6 @@ app.listen(PORT, "0.0.0.0", () => {
 // =================================================================
 // END OF FILE
 // =================================================================
-
-
 
 
 
