@@ -1633,11 +1633,11 @@ export default function Attendance() {
                         <table className="w-full text-left text-xs whitespace-nowrap">
                           <thead className="bg-muted/50 border-b border-border/50">
                             <tr>
-                              <th className="px-3 py-2 font-black uppercase text-[9px] tracking-wider text-muted-foreground">Branch</th>
-                              <th className="px-3 py-2 font-black uppercase text-[9px] tracking-wider text-muted-foreground">Position</th>
-                              <th className="px-3 py-2 font-black uppercase text-[9px] tracking-wider text-muted-foreground">Start Date</th>
-                              <th className="px-3 py-2 font-black uppercase text-[9px] tracking-wider text-muted-foreground">End Date</th>
-                              <th className="px-3 py-2 font-black uppercase text-[9px] tracking-wider text-muted-foreground">Status</th>
+                              <th className="px-3 py-2 font-black uppercase text-[9px] tracking-wider text-slate-900 dark:text-slate-100">Branch</th>
+                              <th className="px-3 py-2 font-black uppercase text-[9px] tracking-wider text-slate-900 dark:text-slate-100">Position</th>
+                              <th className="px-3 py-2 font-black uppercase text-[9px] tracking-wider text-slate-900 dark:text-slate-100">Start Date</th>
+                              <th className="px-3 py-2 font-black uppercase text-[9px] tracking-wider text-slate-900 dark:text-slate-100">End Date</th>
+                              <th className="px-3 py-2 font-black uppercase text-[9px] tracking-wider text-slate-900 dark:text-slate-100">Status</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-border/50">
@@ -1931,9 +1931,9 @@ export default function Attendance() {
                         <table className="w-full text-left text-xs whitespace-nowrap">
                           <thead className="bg-muted/50 border-b border-border/50">
                             <tr>
-                              <th className="px-4 py-3 font-black uppercase text-[10px] tracking-wider text-muted-foreground">Temporary Branch</th>
-                              <th className="px-4 py-3 font-black uppercase text-[10px] tracking-wider text-muted-foreground">Assignment Period</th>
-                              <th className="px-4 py-3 font-black uppercase text-[10px] tracking-wider text-muted-foreground">Status</th>
+                              <th className="px-4 py-3 font-black uppercase text-[10px] tracking-wider text-slate-900 dark:text-slate-100">Temporary Branch</th>
+                              <th className="px-4 py-3 font-black uppercase text-[10px] tracking-wider text-slate-900 dark:text-slate-100">Assignment Period</th>
+                              <th className="px-4 py-3 font-black uppercase text-[10px] tracking-wider text-slate-900 dark:text-slate-100">Status</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-border/50">
