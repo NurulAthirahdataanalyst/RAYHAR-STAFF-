@@ -990,7 +990,7 @@ export default function WorkforceInsights() {
 
                         return (
                           <>
-                            {(activeAndUpcomingAssignments || []).slice(0, 5).map((a, i) => {
+                            {(Array.isArray(activeAndUpcomingAssignments) ? activeAndUpcomingAssignments : []).slice(0, 5).map((a, i) => {
                               const empName = a.name || a.full_name || a.employee_name || 'N/A';
                               const empRole = a.role ? a.role.replace(/_/g, ' ').toUpperCase() : '';
                               const primaryBranch = a.primary_branch || a.branch || '';
@@ -2781,7 +2781,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                    <Plane className="w-6 h-6 opacity-30 mb-2" />
                    <p className="text-[9px] font-bold uppercase tracking-widest">No Routes Recorded</p>
                  </div>
-               ) : (outstationSummary?.popularRoutes || data.outstationAnalytics?.popularRoutes || []).map((r: any, i: number) => {
+               ) : (Array.isArray(outstationSummary?.popularRoutes || data.outstationAnalytics?.popularRoutes) ? (outstationSummary?.popularRoutes || data.outstationAnalytics?.popularRoutes) : []).map((r: any, i: number) => {
                  const currentRoutes = outstationSummary?.popularRoutes || data.outstationAnalytics?.popularRoutes || [];
                  const maxTrips = Math.max(...currentRoutes.map((pr: any) => pr.trips));
                  const w = maxTrips > 0 ? (r.trips / maxTrips) * 100 : 0;
@@ -2860,7 +2860,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
              </div>
              
              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 flex-1">
-               {(liveHrAlerts || hrAlerts || []).map((alert: any, i: number) => {
+               {(Array.isArray(liveHrAlerts) ? liveHrAlerts : Array.isArray(hrAlerts) ? hrAlerts : []).map((alert: any, i: number) => {
                  let bgColor = 'bg-slate-50 dark:bg-slate-900/50';
                  let borderColor = 'border border-slate-300 dark:border-slate-700';
                  let iconColor = 'text-foreground';
