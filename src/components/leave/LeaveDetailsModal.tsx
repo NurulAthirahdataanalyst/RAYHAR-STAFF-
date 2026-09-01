@@ -117,7 +117,7 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role }: LeaveDetai
 
   return (
     <Dialog open={!!selectedRequest} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto border-none shadow-2xl rounded-[32px] p-0 safe-area-bottom">
+      <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] overflow-y-auto border-none shadow-2xl rounded-[32px] p-0 safe-area-bottom">
         {selectedRequest && (
           <>
             <div className="p-6 bg-gradient-to-br from-[#7B0099] to-[#a855f7] text-white print:hidden">
@@ -211,7 +211,7 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role }: LeaveDetai
                   return (
                     <div className="space-y-3">
                       <p className="text-[9px] font-black uppercase text-blue-600 opacity-80 tracking-widest px-1">Butiran Cuti Ganti</p>
-                      <div className="border border-blue-500/20 rounded-[20px] overflow-hidden bg-blue-500/5">
+                      <div className="border border-blue-500/20 rounded-[20px] overflow-x-auto bg-blue-500/5">
                         <Table>
                           <TableHeader>
                             <TableRow className="bg-blue-500/10 hover:bg-blue-500/10 border-b border-blue-500/20">

@@ -380,7 +380,7 @@ export default function Employees() {
           id: employee.user_id,
           name: employee.full_name || "New User",
           email: employee.email || "Account Active",
-          position: (employee.role === "operation_manager" || employee.role === "finance_manager" || employee.position === "Finance Manager" || employee.position === "finance_manager") ? "Operation Manager" : employee.role === "hr_admin" ? "HR Admin" : employee.role ? employee.role.split('_').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') : "Employee",
+          position: (employee.role === "operation_manager" || employee.role === "finance_manager" || employee.position === "Finance Manager" || employee.position === "finance_manager") ? "Operation Manager" : employee.role === "hr_admin" ? "HR Admin" : employee.role ? String(employee.role).split('_').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') : "Employee",
           branch: employee.branch || "HQ",
           department: employee.department || "General",
           status: employee.status || "Active",
@@ -872,7 +872,7 @@ export default function Employees() {
                           <TableCell className="py-4 px-6">
                             <div className="flex items-center gap-4">
                               <div className="w-10 h-10 rounded-xl bg-[#7B0099]/10 flex items-center justify-center text-xs font-black text-[#7B0099] group-hover:scale-110 transition-transform">
-                                {emp.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
+                                {String(emp.name).split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
                               </div>
                               <div className="min-w-0">
                                 <p className="font-bold text-foreground group-hover:text-[#7B0099] transition-colors">{emp.name}</p>
@@ -947,7 +947,7 @@ export default function Employees() {
                       onClick={() => handleEmployeeClick(emp)}
                     >
                       <div className="w-12 h-12 rounded-2xl bg-[#7B0099]/10 flex items-center justify-center text-sm font-black text-[#7B0099] shrink-0">
-                        {emp.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
+                        {String(emp.name).split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2 mb-1">

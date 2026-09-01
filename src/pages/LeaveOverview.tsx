@@ -286,7 +286,8 @@ export default function LeaveOverview() {
           const match = latest.reason.match(/\[CUTI_GANTI_DATA:([\s\S]*?)\]\]/);
           if (match) {
             try {
-              const parsed = JSON.parse(match[1]);
+              const rawJson = latest.reason.substring(latest.reason.indexOf('[CUTI_GANTI_DATA:') + 17, latest.reason.lastIndexOf(']]') + 1);
+              const parsed = JSON.parse(rawJson);
               if (parsed && parsed.length > 0) {
                 replacementForDate = parsed[0].tarikhGanti;
               }

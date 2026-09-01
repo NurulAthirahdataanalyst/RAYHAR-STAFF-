@@ -3153,11 +3153,14 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
   
   let cutiGantiData = [];
   if (leave_type === 'Replacement Leave' || leave_type === 'Cuti Ganti') {
-    const match = reason.match(/\[CUTI_GANTI_DATA:(.*?)\]/);
-    if (match && match[1]) {
+    const match = reason.match(/\[CUTI_GANTI_DATA:([\s\S]*?)\]\]/);
+    if (match) {
       try {
-        cutiGantiData = JSON.parse(match[1]);
-      } catch(e) {}
+        const rawJson = reason.substring(reason.indexOf('[CUTI_GANTI_DATA:') + 17, reason.lastIndexOf(']]') + 1);
+        cutiGantiData = JSON.parse(rawJson);
+      } catch(e) {
+        console.error("Backend JSON parse failed for Cuti Ganti Data", e);
+      }
     } else if (cuti_ganti_tarikh) {
       cutiGantiData = [{ tarikh: cuti_ganti_tarikh, hari: cuti_ganti_hari, jam: cuti_ganti_jam }];
     }

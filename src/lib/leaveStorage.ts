@@ -145,7 +145,7 @@ export const parseCutiGantiRows = (
   const match = reason.match(/\[CUTI_GANTI_DATA:([\s\S]*?)\]\]/);
   if (match) {
     try {
-      const rawJson = reason.substring(reason.indexOf('[CUTI_GANTI_DATA:') + 17, reason.lastIndexOf(']') + 1);
+      const rawJson = reason.substring(reason.indexOf('[CUTI_GANTI_DATA:') + 17, reason.lastIndexOf(']]') + 1);
       return JSON.parse(rawJson) as CutiGantiRow[];
     } catch (e) {
       console.error("Failed to parse cuti ganti rows:", e);

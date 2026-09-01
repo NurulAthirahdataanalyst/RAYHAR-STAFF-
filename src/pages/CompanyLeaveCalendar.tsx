@@ -281,12 +281,12 @@ const CompanyLeaveCalendar = () => {
 
       {/* Dialog for Add/Edit */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-md p-0 overflow-hidden border-none shadow-2xl bg-card rounded-[24px] [&>button]:text-white [&>button]:top-5 [&>button]:right-5">
-          <DialogHeader className="bg-[#942392] px-6 py-4 flex flex-row items-center justify-between">
-            <DialogTitle className="text-white font-black text-lg">{editingId ? "Edit Company Leave" : "Add Company Leave"}</DialogTitle>
+        <DialogContent className="max-w-lg p-0 overflow-hidden border-none shadow-2xl bg-card rounded-[24px] [&>button]:text-white [&>button]:top-5 [&>button]:right-5">
+          <DialogHeader className="bg-[#942392] px-6 py-5 flex flex-row items-center justify-between">
+            <DialogTitle className="text-white font-black text-xl">{editingId ? "Edit Company Leave" : "Add Company Leave"}</DialogTitle>
           </DialogHeader>
-          <div className="p-6 pt-2 space-y-4 max-h-[70vh] overflow-y-auto px-1">
-            <div className="grid gap-2">
+          <div className="p-6 pt-4 space-y-6 max-h-[75vh] overflow-y-auto">
+            <div className="grid gap-3">
               <Label>Leave Name (e.g. Hari Raya, Company Trip)</Label>
               <Input 
                 value={formData.leave_name} 
@@ -295,8 +295,8 @@ const CompanyLeaveCalendar = () => {
               />
             </div>
             
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
+            <div className="grid grid-cols-2 gap-6">
+              <div className="grid gap-3">
                 <Label>Start Date</Label>
                 <DatePickerInput 
                   value={formData.start_date} 
@@ -310,7 +310,7 @@ const CompanyLeaveCalendar = () => {
                   placeholder="dd/mm/yyyy"
                 />
               </div>
-              <div className="grid gap-2">
+              <div className="grid gap-3">
                 <Label>End Date</Label>
                 <DatePickerInput 
                   minDate={formData.start_date || undefined}
@@ -341,8 +341,8 @@ const CompanyLeaveCalendar = () => {
               );
             })()}
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
+            <div className="grid grid-cols-2 gap-6">
+              <div className="grid gap-3">
                 <Label>Leave Type</Label>
                 <Select value={formData.leave_type} onValueChange={(val) => setFormData({ ...formData, leave_type: val })}>
                   <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
@@ -354,7 +354,7 @@ const CompanyLeaveCalendar = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="grid gap-2">
+              <div className="grid gap-3">
                 <Label>Applies To</Label>
                 <Select value={formData.applies_to} onValueChange={(val) => setFormData({ ...formData, applies_to: val })}>
                   <SelectTrigger><SelectValue placeholder="Select coverage" /></SelectTrigger>
@@ -491,7 +491,7 @@ const CompanyLeaveCalendar = () => {
               <Label htmlFor="is_paid" className="cursor-pointer">This is a paid leave</Label>
             </div>
             
-            <div className="grid gap-2 pt-2">
+            <div className="grid gap-3 pt-2">
               <Label>Remarks (Optional)</Label>
               <Input 
                 value={formData.remarks || ''} 
@@ -499,15 +499,13 @@ const CompanyLeaveCalendar = () => {
                 placeholder="Additional notes"
               />
             </div>
-
           </div>
-          <DialogFooter>
+          <DialogFooter className="px-6 py-4 border-t border-border/40">
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
             <Button onClick={handleSave} className="bg-purple-600 hover:bg-purple-700">Save Leave</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
     </div>
   );
 };

@@ -127,7 +127,7 @@ export function StaffProfileDialog({
                    id: emp.user_id,
                    name: emp.full_name || emp.name || "New User",
                    email: emp.email || "Account Active",
-                   position: (emp.role === "operation_manager" || emp.role === "finance_manager" || emp.position === "Finance Manager" || emp.position === "finance_manager") ? "Operation Manager" : emp.role === "hr_admin" ? "HR Admin" : emp.role ? emp.role.split('_').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') : "Employee",
+                   position: (emp.role === "operation_manager" || emp.role === "finance_manager" || emp.position === "Finance Manager" || emp.position === "finance_manager") ? "Operation Manager" : emp.role === "hr_admin" ? "HR Admin" : emp.role ? String(emp.role).split('_').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') : "Employee",
                    branch: emp.branch || "HQ",
                    department: emp.department || "General",
                    status: emp.status || "Active",
