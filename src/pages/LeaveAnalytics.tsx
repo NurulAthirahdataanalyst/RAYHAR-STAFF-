@@ -481,7 +481,7 @@ export default function LeaveAnalytics() {
       }
 
       if (data.success && Array.isArray(data.leaveRequests)) {
-        const formatted: LeaveRecord[] = (data.leaveRequests || []).map((r: any) => ({
+        const formatted: LeaveRecord[] = (Array.isArray(data.leaveRequests) ? data.leaveRequests : []).map((r: any) => ({
           leave_id: r.leave_id,
           user_id: r.user_id,
           full_name: r.full_name || r.user_id,
@@ -503,13 +503,13 @@ export default function LeaveAnalytics() {
         newLists.present = (presentData.attendance || []).filter((a: any) => a.clock_in).map((a: any) => a.full_name);
       }
       if (absentData.success) {
-        newLists.absent = (absentData.data || []).map((a: any) => a.full_name);
+        newLists.absent = (Array.isArray(absentData.data) ? absentData.data : []).map((a: any) => a.full_name);
       }
       if (outstationData.success) {
-        newLists.outstation = (outstationData.data || []).map((a: any) => a.full_name);
+        newLists.outstation = (Array.isArray(outstationData.data) ? outstationData.data : []).map((a: any) => a.full_name);
       }
       if (onLeaveData.success) {
-        newLists.onLeave = (onLeaveData.data || []).map((a: any) => a.full_name);
+        newLists.onLeave = (Array.isArray(onLeaveData.data) ? onLeaveData.data : []).map((a: any) => a.full_name);
       }
       setLists(newLists);
 
@@ -929,7 +929,7 @@ export default function LeaveAnalytics() {
 
   // 3. Leave Seasonality
   const seasonality = useMemo(() => {
-    return (monthlyTrend || []).map(m => ({
+    return (Array.isArray(monthlyTrend) ? monthlyTrend : []).map(m => ({
       name: m.month,
       approved: m.approved,
       rejected: m.rejected,
@@ -1195,7 +1195,7 @@ export default function LeaveAnalytics() {
                       return (
                         <div className="bg-white dark:bg-card p-3 rounded-xl shadow-lg border border-slate-100 dark:border-slate-800">
                           <p className="font-bold text-slate-800 dark:text-slate-200 text-xs mb-2">{label}</p>
-                          {(payload || []).map((entry: any, index: number) => (
+                          {(Array.isArray(payload) ? payload : []).map((entry: any, index: number) => (
                             <div key={index} className="flex justify-between items-center gap-4 text-xs font-semibold mb-1">
                               <span style={{ color: entry.color }}>{entry.name}</span>
                               <span className="text-slate-700 dark:text-slate-300">{entry.value}</span>
@@ -1231,7 +1231,7 @@ export default function LeaveAnalytics() {
                       return (
                         <div className="bg-white dark:bg-card p-3 rounded-xl shadow-lg border border-slate-100 dark:border-slate-800 text-xs">
                           <p className="font-bold text-slate-800 dark:text-slate-200 mb-2">{label}</p>
-                          {(payload || []).map((entry: any, index: number) => (
+                          {(Array.isArray(payload) ? payload : []).map((entry: any, index: number) => (
                             <div key={index} className="flex justify-between items-center gap-4 font-semibold mb-1">
                               <span style={{ color: entry.color }}>{entry.name}</span>
                               <span className="text-slate-700 dark:text-slate-300">{entry.value}</span>
@@ -1302,7 +1302,7 @@ export default function LeaveAnalytics() {
                       return (
                         <div className="bg-white dark:bg-card p-3 rounded-xl shadow-lg border border-slate-100 dark:border-slate-800 text-xs">
                           <p className="font-bold text-slate-800 dark:text-slate-200 mb-2">{label}</p>
-                          {(payload || []).map((entry: any, index: number) => (
+                          {(Array.isArray(payload) ? payload : []).map((entry: any, index: number) => (
                             <div key={index} className="flex justify-between items-center gap-4 font-semibold mb-1">
                               <span style={{ color: '#8B5CF6' }}>{entry.name}</span>
                               <span className="text-slate-700 dark:text-slate-300">{entry.value}</span>
@@ -1347,7 +1347,7 @@ export default function LeaveAnalytics() {
                       return (
                         <div className="bg-white dark:bg-card p-3 rounded-xl shadow-lg border border-slate-100 dark:border-slate-800 text-xs">
                           <p className="font-bold text-slate-800 dark:text-slate-200 mb-2">{label}</p>
-                          {(payload || []).map((entry: any, index: number) => (
+                          {(Array.isArray(payload) ? payload : []).map((entry: any, index: number) => (
                             <div key={index} className="flex justify-between items-center gap-4 font-semibold mb-1">
                               <span style={{ color: '#3B82F6' }}>{entry.name}</span>
                               <span className="text-slate-700 dark:text-slate-300">{entry.value}</span>
@@ -1508,7 +1508,7 @@ export default function LeaveAnalytics() {
           <div className="space-y-2 flex-1">
             {records.length > 0 ? (
               <>
-                {(aiInsights || []).map((insight, i) => (
+                {(Array.isArray(aiInsights) ? aiInsights : []).map((insight, i) => (
                   <div key={i} className="flex items-start gap-2 p-2.5 rounded-lg bg-purple-50 border border-purple-100">
                     <div className="w-1.5 h-1.5 rounded-full bg-purple-500 mt-1.5 shrink-0" />
                     <p className="text-xs text-purple-800 font-medium leading-relaxed">{insight}</p>

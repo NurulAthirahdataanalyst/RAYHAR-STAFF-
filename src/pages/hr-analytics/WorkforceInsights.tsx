@@ -548,7 +548,7 @@ export default function WorkforceInsights() {
             {(() => {
               let highestLateTime = "None";
               if (feedConnected && lateList.length > 0) {
-                const maxTime = Math.max(...(lateList || []).map(emp => emp.clock_in ? new Date(emp.clock_in).getTime() : 0));
+                const maxTime = Math.max(...(Array.isArray(lateList) ? lateList : []).map(emp => emp.clock_in ? new Date(emp.clock_in).getTime() : 0));
                 if (maxTime > 0) {
                    highestLateTime = new Date(maxTime).toLocaleTimeString('en-US', {
                        timeZone: 'Asia/Kuala_Lumpur',
@@ -804,7 +804,7 @@ export default function WorkforceInsights() {
                 <CardContent className="p-5 flex flex-col">
                   <div className={`space-y-4 flex-1 pr-2 ${filteredBranches.length > 5 ? 'overflow-y-auto custom-scrollbar max-h-[220px] custom-scrollbar' : 'overflow-y-visible'}`}>
                     <TooltipProvider>
-                      {(filteredBranches || []).map((branch: any, idx: number) => {
+                      {(Array.isArray(filteredBranches) ? filteredBranches : []).map((branch: any, idx: number) => {
                         const branchEmployees = liveEmployees.filter(emp => emp.branch === branch.name);
 
                         let outstation: number, presentOnTime: number, presentLate: number, onLeave: number, companyLeave: number, absent: number;
@@ -1087,7 +1087,7 @@ export default function WorkforceInsights() {
                       dataKey="value"
                       stroke="none"
                     >
-                      {(donutData || []).map((entry, index) => (
+                      {(Array.isArray(donutData) ? donutData : []).map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
@@ -1112,7 +1112,7 @@ export default function WorkforceInsights() {
 
               {/* 6-Shape Compact Legend */}
               <div className="grid grid-cols-2 gap-2 w-full mt-auto mb-4">
-                {(donutData || []).map((entry, index) => (
+                {(Array.isArray(donutData) ? donutData : []).map((entry, index) => (
                   <div key={entry.name} className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg border ${index === 0 ? 'bg-indigo-50/70 border-indigo-100' : 'bg-slate-50 dark:bg-slate-900/50 border-slate-100 dark:border-slate-800'} transition-colors`}>
                     <div className="flex items-center gap-1 mb-1">
                       <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
@@ -1311,7 +1311,7 @@ export default function WorkforceInsights() {
                           <p className="text-[10px] font-semibold">No clock-ins yet today</p>
                         </div>
                       )}
-                      {(displayClockIns || []).map((emp) => (
+                      {(Array.isArray(displayClockIns) ? displayClockIns : []).map((emp) => (
                         <div key={emp.user_id} className="flex items-center justify-between p-2 hover:bg-slate-50 dark:hover:bg-slate-900/50 rounded-lg transition-colors">
                           <div className="flex items-center gap-2.5">
                             <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs uppercase shadow-sm ${getAvatarColor(emp.full_name)}`}>
@@ -1376,7 +1376,7 @@ export default function WorkforceInsights() {
                           <p className="text-[10px] font-semibold">No absentees today!</p>
                         </div>
                       )}
-                      {(displayAbsent || []).map((emp) => (
+                      {(Array.isArray(displayAbsent) ? displayAbsent : []).map((emp) => (
                         <div key={emp.user_id} className="flex items-center justify-between p-2 hover:bg-slate-50 dark:hover:bg-slate-900/50 rounded-lg transition-colors">
                           <div className="flex items-center gap-2.5">
                             <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs uppercase shadow-sm ${getAvatarColor(emp.full_name)}`}>
@@ -1533,7 +1533,7 @@ export default function WorkforceInsights() {
                       <p className="text-[10px] font-semibold">No clock-ins yet today</p>
                     </div>
                   )}
-                  {(displayClockIns || []).map((emp) => (
+                  {(Array.isArray(displayClockIns) ? displayClockIns : []).map((emp) => (
                     <div key={emp.user_id} className="flex items-center justify-between p-2 hover:bg-slate-50 dark:bg-slate-900/50 rounded-lg transition-colors">
                       <div className="flex items-center gap-2.5">
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs uppercase shadow-sm ${getAvatarColor(emp.full_name)}`}>
@@ -1600,7 +1600,7 @@ export default function WorkforceInsights() {
                   <p className="text-[10px] font-semibold">No late arrivals today!</p>
                 </div>
               )}
-              {(lateList || []).map((emp) => (
+              {(Array.isArray(lateList) ? lateList : []).map((emp) => (
                 <div key={emp.user_id} className="flex items-center justify-between p-2 hover:bg-slate-50 dark:bg-slate-900/50 rounded-lg transition-colors">
                   <div className="flex items-center gap-2.5">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs uppercase shadow-sm ${getAvatarColor(emp.full_name)}`}>
@@ -1665,7 +1665,7 @@ export default function WorkforceInsights() {
                   <p className="text-[10px] font-semibold">No absentees today!</p>
                 </div>
               )}
-              {(absentList || []).map((emp) => (
+              {(Array.isArray(absentList) ? absentList : []).map((emp) => (
                 <div key={emp.user_id} className="flex items-center justify-between p-2 hover:bg-slate-50 dark:bg-slate-900/50 rounded-lg transition-colors">
                   <div className="flex items-center gap-2.5">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs uppercase shadow-sm ${getAvatarColor(emp.full_name)}`}>
@@ -1746,7 +1746,7 @@ export default function WorkforceInsights() {
                       <p className="text-[10px] font-semibold">No active outstations today.</p>
                     </div>
                   )}
-                  {(activeOutstationList || []).map((item, idx) => {
+                  {(Array.isArray(activeOutstationList) ? activeOutstationList : []).map((item, idx) => {
                     const borderColors = ['border-purple-500', 'border-indigo-500', 'border-blue-500', 'border-sky-500'];
                     const borderColor = borderColors[idx % borderColors.length];
                     const displayEmps = item.employees.slice(0, 3);
@@ -1794,7 +1794,7 @@ export default function WorkforceInsights() {
                           </div>
                           <div className="flex flex-col items-end">
                             <div className="flex -space-x-1.5 mt-0.5">
-                              {(displayEmps || []).map((e: any, eIdx: number) => (
+                              {(Array.isArray(displayEmps) ? displayEmps : []).map((e: any, eIdx: number) => (
                                 <div key={eIdx} title={e.name} className={`w-5 h-5 rounded-full flex items-center justify-center font-bold text-[8px] uppercase shadow-sm border-2 border-white dark:border-card ${getAvatarColor(e.name)}`}>
                                   {e.initials}
                                 </div>
@@ -1845,7 +1845,7 @@ export default function WorkforceInsights() {
                   <p className="text-[10px] mt-0.5">No pending approvals remaining.</p>
                 </div>
               ) : (
-                (pendingApprovalsList || []).map((item) => {
+                (Array.isArray(pendingApprovalsList) ? pendingApprovalsList : []).map((item) => {
                   const { canApprove, displayStatus, statusBadgeClass } = getApprovalState(role, item.status);
                   return (
                     <div key={item.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 border border-slate-300 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:bg-slate-900/50 transition-all gap-3">
@@ -1932,7 +1932,7 @@ export default function WorkforceInsights() {
                   <p className="text-[10px] font-semibold">No upcoming outstations today!</p>
                 </div>
               )}
-              {(upcomingOutstationList || []).map((item, idx) => {
+              {(Array.isArray(upcomingOutstationList) ? upcomingOutstationList : []).map((item, idx) => {
                 const borderColors = ['border-orange-500', 'border-cyan-500', 'border-pink-500', 'border-emerald-500'];
                 const borderColor = borderColors[idx % borderColors.length];
                 const displayEmps = item.employees.slice(0, 3);
@@ -1977,7 +1977,7 @@ export default function WorkforceInsights() {
                         </div>
                       </div>
                       <div className="flex -space-x-1.5">
-                        {(displayEmps || []).map((e: any, i: number) => (
+                        {(Array.isArray(displayEmps) ? displayEmps : []).map((e: any, i: number) => (
                           <div key={i} title={e.name} className={`w-5 h-5 rounded-full border border-white text-[8px] font-bold flex items-center justify-center shadow-sm ${getAvatarColor(e.name)}`}>
                             {e.initials}
                           </div>
@@ -2061,7 +2061,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
   
 
   const liveBranchRanking = useMemo(() => {
-    const listSource = (rawBranchMetrics || []).map((b:any) => ({ branch: b.name, totalEmployees: b.count || 0 }));
+    const listSource = (Array.isArray(rawBranchMetrics) ? rawBranchMetrics : []).map((b:any) => ({ branch: b.name, totalEmployees: b.count || 0 }));
     
     const activeTempOnDate = (tempAssignments || []).filter((a: any) => {
       if (a.status !== 'Active') return false;
@@ -2170,7 +2170,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
       }));
   }, [rawBranchMetrics, clockInOut, tempAssignments, selectedRegion, year, month, day]);
 
-  const departmentMetrics = (data.departmentMetrics || []).map((d: any) => ({ ...d, name: (d.name || '').toUpperCase() }));
+  const departmentMetrics = (Array.isArray(data.departmentMetrics) ? data.departmentMetrics : []).map((d: any) => ({ ...d, name: (d.name || '').toUpperCase() }));
   const topDepartments = [...departmentMetrics].sort((a:any,b:any)=>b.value-a.value).slice(0, 5);
 
   const attendanceTrend = data.attendanceOverview?.monthlyTrend || [];
@@ -2212,7 +2212,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
 
   const baseTrendData = liveWeeklyAttendanceTrend || data?.attendanceOverview?.weeklyAttendanceTrend || [];
   const activeEmp = topKpi?.activeEmployees || data?.topKpi?.activeEmployees || 82;
-  const trendDataWithWeekend = (baseTrendData || []).map((day: any) => {
+  const trendDataWithWeekend = (Array.isArray(baseTrendData) ? baseTrendData : []).map((day: any) => {
     const totalTracked = (day.present || 0) + (day.late || 0) + (day.absent || 0) + (day.leave || 0);
     return {
       ...day,
@@ -2704,7 +2704,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                          dataKey="value"
                          stroke="none"
                        >
-                         {(leaveData || []).map((entry, index) => (
+                         {(Array.isArray(leaveData) ? leaveData : []).map((entry, index) => (
                            <Cell key={`cell-${index}`} fill={entry.color} />
                          ))}
                        </Pie>
@@ -2716,7 +2716,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                    </div>
                  </div>
                  <div className="flex-1 pl-4 space-y-2">
-                   {(leaveData || []).map((entry, idx) => (
+                   {(Array.isArray(leaveData) ? leaveData : []).map((entry, idx) => (
                      <div key={idx} className="flex justify-between items-center">
                        <div className="flex items-center gap-1.5">
                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }}></span>
