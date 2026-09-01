@@ -163,7 +163,18 @@ export default function GPSLocationTracker() {
     setLoading(true);
     try {
       // Use aggregated endpoint to fetch all locations at once
-      const res = await fetch(`${API_BASE_URL}/api/employee-locations`);
+            let queryParams = "";
+      const userRole = role || user?.role || "";
+      const userBranch = user?.branch || "";
+      const userDepartment = user?.department || "";
+      
+      if (userRole === "branch_leader" && userBranch) {
+        queryParams = `?role=branch_leader&branch=${encodeURIComponent(userBranch)}`;
+      } else if (userRole === "head_of_department" && userDepartment) {
+        queryParams = `?role=head_of_department&department=${encodeURIComponent(userDepartment)}`;
+      }
+      
+      const res = await fetch(`${API_BASE_URL}/api/employee-locations${queryParams}`);
       const j = await res.json();
       const list: Employee[] = [];
       const locMap: Record<string, EmpLocation> = {};

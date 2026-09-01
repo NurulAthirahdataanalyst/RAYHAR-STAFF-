@@ -46,8 +46,8 @@ export function useBackgroundLocation() {
     // Update immediately on mount
     updateLocation();
 
-    // Then update every 3 minutes (180000 ms)
-    const interval = setInterval(updateLocation, 180000);
+    // Then update every 3 minutes (3600000 ms)
+    const interval = setInterval(updateLocation, 3600000);
 
     return () => clearInterval(interval);
   }, [user]);

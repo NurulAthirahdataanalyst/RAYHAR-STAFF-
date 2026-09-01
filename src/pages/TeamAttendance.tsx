@@ -40,6 +40,29 @@ export default function TeamAttendance() {
   const [historyFor, setHistoryFor] = useState<string | null>(null);
   const [history, setHistory] = useState<any[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [apiBranches, setApiBranches] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch(${API_BASE_URL}/api/branches)
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.success && data.branches) {
+          setApiBranches(data.branches);
+        }
+      })
+      .catch(console.error);
+  }, []);
+
+  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const R = 6371e3;
+    const p1 = lat1 * Math.PI/180;
+    const p2 = lat2 * Math.PI/180;
+    const dp = (lat2-lat1) * Math.PI/180;
+    const dl = (lon2-lon1) * Math.PI/180;
+    const a = Math.sin(dp/2) * Math.sin(dp/2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl/2) * Math.sin(dl/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  };
 
   const openHistory = async (userId: string) => {
     setHistoryFor(userId);
@@ -531,8 +554,8 @@ export default function TeamAttendance() {
                           <TableCell>{emp.time_in || "-"}</TableCell>
                           <TableCell>{emp.time_out || "-"}</TableCell>
                           <TableCell className="font-medium text-gray-700">{emp.workingHours}</TableCell>
-                          <TableCell>{emp.clock_in_location || "N/A"}</TableCell>
-                          <TableCell>N/A</TableCell>
+                  <TableCell>{emp.latitude && emp.longitude ? `${Number(emp.latitude).toFixed(6)}, ${Number(emp.longitude).toFixed(6)}` : (emp.clock_in_location || "N/A")}</TableCell>
+                  <TableCell>{emp.distance_meters != null ? `${Math.round(emp.distance_meters)} m` : "N/A"}</TableCell>
                           <TableCell>
                             <Button onClick={() => openHistory(emp.user_id)} variant="outline" size="sm">History</Button>
                           </TableCell>
@@ -636,6 +659,10 @@ export default function TeamAttendance() {
                       let distance: number | null = null;
                       // We don't have apiBranches in TeamAttendance, so distance might be N/A
                       
+                          const branchData = apiBranches.find((b: any) => b.branch_code === branchName);
+                          if (branchData && branchData.latitude && branchData.longitude && h.lat && h.lng) {
+                            distance = calculateDistance(Number(h.lat), Number(h.lng), Number(branchData.latitude), Number(branchData.longitude));
+                          }
                       const isNoGPS = Number(h.lat) === 0 && Number(h.lng) === 0;
 
                       return (
@@ -643,7 +670,7 @@ export default function TeamAttendance() {
                           <TableCell>{new Date(h.timestamp).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' })}</TableCell>
                           <TableCell>{isNoGPS ? "N/A" : `${Number(h.lat).toFixed(7)}, ${Number(h.lng).toFixed(7)}`}</TableCell>
                           <TableCell>{branchName}</TableCell>
-                          <TableCell>{isNoGPS ? "-" : "N/A"}</TableCell>
+                          <TableCell>{isNoGPS ? "-" : (distance !== null ? `${Math.round(distance)} m` : "N/A")}</TableCell>
                           <TableCell>
                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest border border-green-200 dark:border-green-800/30 bg-green-50 dark:bg-green-900/10 text-green-700 dark:text-green-400">
                               <span className="w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5"></span>

@@ -4414,27 +4414,22 @@ app.get("/api/attendance-status", async (req, res) => {
 // ===============================
 app.get("/api/employee-locations", async (req, res) => {
   try {
-    // Ensure table exists before querying so we don't crash
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS employee_location_logs (
-        id SERIAL PRIMARY KEY,
-        employee_id VARCHAR(64),
-        latitude DOUBLE PRECISION,
-        longitude DOUBLE PRECISION,
-        accuracy DOUBLE PRECISION,
-        recorded_at TIMESTAMP
-      );
-    `).catch(() => {});
+    const { branch, department, role } = req.query || {};
 
-    const { branch } = req.query || {};
-
-    // Subquery selects latest clock_in per user for today
-    // Works on MySQL and Postgres
     let params = [];
-    let branchFilter = "";
-    if (branch) {
-      branchFilter = "WHERE p.branch = ?";
-      params.push(branch);
+    let filter = "";
+
+    if (role === 'branch_leader') {
+        const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
+        filter = "AND p.branch = ?";
+        params.push(safeBranch);
+    } else if (role === 'head_of_department') {
+        const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
+        filter = "AND p.department = ?";
+        params.push(safeDept);
+    } else if (branch && branch !== "All") {
+        filter = "AND p.branch = ?";
+        params.push(branch);
     }
 
     const sql = `
@@ -4449,7 +4444,7 @@ app.get("/api/employee-locations", async (req, res) => {
       JOIN (
         SELECT user_id, MAX(clock_in) AS max_in
         FROM attendances
-        WHERE DATE(clock_in) = CURRENT_DATE
+        WHERE (clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date
         GROUP BY user_id
       ) m ON a.user_id = m.user_id AND a.clock_in = m.max_in
       LEFT JOIN (
@@ -4460,9 +4455,9 @@ app.get("/api/employee-locations", async (req, res) => {
       ) el ON el.employee_id = a.user_id
       LEFT JOIN profiles p ON p.user_id = a.user_id
       LEFT JOIN outstation_assignments oa ON oa.user_id = a.user_id 
-           AND oa.status != 'Cancelled' 
-           AND CURRENT_DATE BETWEEN (oa.start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (oa.end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date
-      WHERE 1=1 ${branchFilter ? 'AND ' + branchFilter.replace('WHERE ', '') : ''}
+        AND oa.status != 'Cancelled'
+        AND CURRENT_DATE BETWEEN (oa.start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (oa.end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date
+      WHERE 1=1 ${filter}
     `;
     const [rows] = await pool.query(sql, params);
 
@@ -4472,14 +4467,22 @@ app.get("/api/employee-locations", async (req, res) => {
     res.status(500).json({ success: false, error: err.message });
   }
 });
-
-// Employee location update endpoint
 app.post('/api/employee-location-update', async (req, res) => {
   try {
     const { user_id, latitude, longitude, accuracy, timestamp } = req.body || {};
     const uid = user_id || (req.user && req.user.user_id) || null;
     if (!uid || latitude == null || longitude == null) {
       return res.status(400).json({ success: false, error: 'Missing required fields' });
+    }
+
+    const [att] = await pool.query(
+      SELECT clock_in, clock_out FROM attendances 
+       WHERE user_id = ? AND DATE(clock_in AT TIME ZONE \'Asia/Kuala_Lumpur\') = CURRENT_DATE 
+       ORDER BY clock_in DESC LIMIT 1,
+      [uid]
+    );
+    if (!att.length || att[0].clock_out) {
+       return res.json({ success: true, message: \'No active shift\' });
     }
 
     // Insert into employee_location_logs (create table if not present in DB schema migration)
