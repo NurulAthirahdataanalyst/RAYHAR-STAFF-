@@ -1,0 +1,36 @@
+v className="relative">
+                          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-foreground/50" />
+                          <Input
+                            placeholder="Search employees..."
+                            value={empSearchText}
+                            onChange={(e) => {
+                                setEmpSearchText(e.target.value);
+                                setSearch(e.target.value);
+                            }}
+                            className="pl-8 h-10 text-sm"
+                            autoFocus
+                          />
+                        </div>
+                        {checkedEmployees.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5 mt-2">
+                            {checkedEmployees.map(id => {
+                              const emp = employees.find(e => e.user_id === id);
+                              return emp ? (
+                                <span key={id} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#7B0099]/10 text-[#7B0099] text-[10px] font-bold">
+                                  {emp.full_name}
+                                  <button onClick={() => setCheckedEmployees(prev => prev.filter(x => x !== id))} className="hover:text-red-500">
+                                    <X className="w-2.5 h-2.5" />
+                                  </button>
+                                </span>
+                              ) : null;
+                            })}
+                          </div>
+                        )}
+                      </div>
+                      <div className="max-h-[260px] overflow-y-auto p-1">
+                        {(() => {
+                          const empList = employees
+                            .filter(e => {
+                              const bMatch = selectedBranch === "All" || e.branch === selectedBranch;
+                              const dMatch = selectedDept === "All" || e.department === selectedDept;
+                              const tMatch = !empSearchText || e.full_name?.toLowerCase().includes(empSearchText.toLowerCase()) || (e.user_id || '').toLowerCase().includes(empSearchText.toLowe
