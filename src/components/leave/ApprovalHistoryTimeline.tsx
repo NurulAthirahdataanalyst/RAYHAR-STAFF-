@@ -20,6 +20,7 @@ interface ApprovalHistoryTimelineProps {
   approverRole?: string;
   approvalHistory?: ApprovalHistoryRecord[];
   branch?: string;
+  pendingApproverName?: string;
 }
 
 const formatRoleWithContext = (role?: string, department?: string, branch?: string) => {
@@ -51,6 +52,7 @@ export const ApprovalHistoryTimeline: React.FC<ApprovalHistoryTimelineProps> = (
   approverRole,
   approvalHistory = [],
   branch = "HQ",
+  pendingApproverName,
 }) => {
   const isHQ = String(branch).toUpperCase() === 'HQ';
 
@@ -92,9 +94,7 @@ export const ApprovalHistoryTimeline: React.FC<ApprovalHistoryTimelineProps> = (
     // If overall leave status is still Pending, append current pending step
     if (status && status.startsWith("Pending")) {
       let pendingRoleName = "";
-      if (approverRole) {
-        pendingRoleName = formatRoleWithContext(approverRole);
-      } else if (status === "Pending HOD") {
+      if (status === "Pending HOD") {
         pendingRoleName = "Head of Department";
       } else if (status === "Pending Branch Leader") {
         pendingRoleName = `Branch Leader (${branch})`;
@@ -102,12 +102,15 @@ export const ApprovalHistoryTimeline: React.FC<ApprovalHistoryTimelineProps> = (
         pendingRoleName = "Operation Manager";
       } else if (status === "Pending MD") {
         pendingRoleName = "Managing Director";
+      } else if (approverRole) {
+        pendingRoleName = formatRoleWithContext(approverRole);
       } else {
         pendingRoleName = isHQ ? "Head of Department" : `Branch Leader (${branch})`;
       }
 
       displayItems.push({
         status: 'Pending',
+        name: pendingApproverName || "Approver",
         roleLabel: pendingRoleName,
       });
     }
@@ -143,14 +146,23 @@ export const ApprovalHistoryTimeline: React.FC<ApprovalHistoryTimelineProps> = (
       });
     } else {
       // Pending
-      let pendingRoleName = isHQ ? "Head of Department" : `Branch Leader (${branch})`;
-      if (status === "Pending Operation Manager" || status === "Pending Finance") {
+      let pendingRoleName = "";
+      if (status === "Pending HOD") {
+        pendingRoleName = "Head of Department";
+      } else if (status === "Pending Branch Leader") {
+        pendingRoleName = `Branch Leader (${branch})`;
+      } else if (status === "Pending Operation Manager" || status === "Pending Finance") {
         pendingRoleName = "Operation Manager";
       } else if (status === "Pending MD") {
         pendingRoleName = "Managing Director";
+      } else if (approverRole) {
+        pendingRoleName = formatRoleWithContext(approverRole);
+      } else {
+        pendingRoleName = isHQ ? "Head of Department" : `Branch Leader (${branch})`;
       }
       displayItems.push({
         status: 'Pending',
+        name: pendingApproverName || "Approver",
         roleLabel: pendingRoleName,
       });
     }
@@ -218,9 +230,12 @@ export const ApprovalHistoryTimeline: React.FC<ApprovalHistoryTimelineProps> = (
                       </p>
                     ) : (
                       <p className="font-bold text-foreground/80">
-                        Pending approval from{' '}
-                        <span className="font-black text-foreground">
-                          {item.roleLabel}
+                        Pending approval by{' '}
+                        <span className="font-black text-foreground uppercase">
+                          {item.name}
+                        </span>{' '}
+                        <span className="font-bold text-foreground/80">
+                          ({item.roleLabel})
                         </span>
                       </p>
                     )}

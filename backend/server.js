@@ -3035,7 +3035,17 @@ app.get("/api/leave-requests", async (req, res) => {
           FROM leave_approvals la
           LEFT JOIN profiles p2 ON p2.user_id = la.approver_id
           WHERE la.leave_id = lr.leave_id
-        ) as approval_history
+        ) as approval_history,
+        (
+          CASE 
+            WHEN lr.status = 'Pending Branch Leader' THEN (SELECT UPPER(full_name) FROM profiles p2 WHERE p2.role IN ('Branch Leader', 'branch_leader') AND p2.branch = p.branch AND p2.status = 'Active' LIMIT 1)
+            WHEN lr.status = 'Pending HOD' THEN (SELECT UPPER(full_name) FROM profiles p2 WHERE p2.role IN ('Head of Department', 'HOD', 'head_of_department') AND p2.department = p.department AND p2.branch = p.branch AND p2.status = 'Active' LIMIT 1)
+            WHEN lr.status = 'Pending Operation Manager' THEN (SELECT UPPER(full_name) FROM profiles p2 WHERE p2.role IN ('Operation Manager', 'Operations Manager', 'Operation', 'Operations', 'operation_manager') AND p2.status = 'Active' LIMIT 1)
+            WHEN lr.status = 'Pending MD' THEN (SELECT UPPER(full_name) FROM profiles p2 WHERE p2.role IN ('Managing Director', 'MD', 'managing_director') AND p2.status = 'Active' LIMIT 1)
+            WHEN lr.status = 'Pending HR' THEN (SELECT UPPER(full_name) FROM profiles p2 WHERE p2.role IN ('HR Admin', 'hr_admin', 'HR') AND p2.status = 'Active' LIMIT 1)
+            ELSE NULL
+          END
+        ) AS pending_approver_name
       FROM leave_requests lr
       JOIN profiles p ON p.user_id = lr.user_id
       LEFT JOIN user_role ur_approver ON ur_approver.user_id = lr.approver_id
