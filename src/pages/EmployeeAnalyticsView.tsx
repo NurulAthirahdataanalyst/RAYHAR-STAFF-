@@ -160,7 +160,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
       .then(res => res.json())
       .then(data => {
         if (data.success) {
-          const userAssignments = (data.assignments || []).filter((a: any) => String(a.user_id) === String(userId));
+          const userAssignments = (Array.isArray(data.assignments) ? data.assignments : []).filter((a: any) => String(a.user_id) === String(userId));
           setTemporaryAssignments(userAssignments);
         }
       })

@@ -2063,7 +2063,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
   const liveBranchRanking = useMemo(() => {
     const listSource = (Array.isArray(rawBranchMetrics) ? rawBranchMetrics : []).map((b:any) => ({ branch: b.name, totalEmployees: b.count || 0 }));
     
-    const activeTempOnDate = (tempAssignments || []).filter((a: any) => {
+    const activeTempOnDate = (Array.isArray(tempAssignments) ? tempAssignments : []).filter((a: any) => {
       if (a.status !== 'Active') return false;
       const sd = new Date(a.start_date);
       const ed = new Date(a.end_date);
@@ -2099,8 +2099,8 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
         
         const expectedWorkforce = Math.max(0, permanentStaffCount - temporaryOut) + temporaryIn;
 
-        const activePermanent = (clockInOut || []).filter((emp:any) => emp.branch === b.branch && (!emp.temp_branch || emp.temp_branch === b.branch));
-        const activeTemporary = (clockInOut || []).filter((emp:any) => emp.branch !== b.branch && emp.temp_branch === b.branch);
+        const activePermanent = (Array.isArray(clockInOut) ? clockInOut : []).filter((emp:any) => emp.branch === b.branch && (!emp.temp_branch || emp.temp_branch === b.branch));
+        const activeTemporary = (Array.isArray(clockInOut) ? clockInOut : []).filter((emp:any) => emp.branch !== b.branch && emp.temp_branch === b.branch);
         
         const presentOnTime = activePermanent.filter((emp:any) => emp.status === 'Present (On Time)' || emp.status === 'Present').length;
         const presentLate = activePermanent.filter((emp:any) => emp.status === 'Present (Late)').length;

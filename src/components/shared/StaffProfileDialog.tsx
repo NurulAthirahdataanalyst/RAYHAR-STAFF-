@@ -1257,7 +1257,7 @@ export function StaffProfileDialog({
                                     </span>
                                   </td>
                                 </tr>
-                                {(allowedLocations || []).filter(c => c !== selectedEmployee?.branch).map((loc, idx) => (
+                                {(Array.isArray(allowedLocations) ? allowedLocations : []).filter(c => c !== selectedEmployee?.branch).map((loc, idx) => (
                                   <tr key={loc} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/50">
                                     <td className="px-4 py-3 font-bold text-slate-800 dark:text-slate-200 whitespace-nowrap uppercase">Branch {idx + 2}</td>
                                     <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{BRANCH_NAMES[loc as keyof typeof BRANCH_NAMES] || loc}</td>
@@ -1806,7 +1806,7 @@ export function StaffProfileDialog({
                   <SelectValue placeholder="Select Role" />
                 </SelectTrigger>
                 <SelectContent>
-                  {(availableRoles || []).filter(r => r.status === 'Active').map(r => (
+                  {(Array.isArray(availableRoles) ? availableRoles : []).filter(r => r.status === 'Active').map(r => (
                     <SelectItem key={r.id} value={r.name}>{r.name}</SelectItem>
                   ))}
                   {availableRoles.filter(r => r.status === 'Active').length === 0 && (

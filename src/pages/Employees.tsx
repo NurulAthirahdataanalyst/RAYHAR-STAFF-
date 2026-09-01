@@ -1524,7 +1524,7 @@ export default function Employees() {
                   <SelectValue placeholder="Select Role" />
                 </SelectTrigger>
                 <SelectContent>
-                  {(availableRoles || []).filter(r => r.status === 'Active').map(r => (
+                  {(Array.isArray(availableRoles) ? availableRoles : []).filter(r => r.status === 'Active').map(r => (
                     <SelectItem key={r.id} value={r.name}>{r.name}</SelectItem>
                   ))}
                   {availableRoles.filter(r => r.status === 'Active').length === 0 && (

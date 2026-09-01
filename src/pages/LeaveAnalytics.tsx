@@ -500,7 +500,7 @@ export default function LeaveAnalytics() {
 
       let newLists = { present: [] as string[], onLeave: [] as string[], outstation: [] as string[], absent: [] as string[] };
       if (presentData.success) {
-        newLists.present = (presentData.attendance || []).filter((a: any) => a.clock_in).map((a: any) => a.full_name);
+        newLists.present = (Array.isArray(presentData.attendance) ? presentData.attendance : []).filter((a: any) => a.clock_in).map((a: any) => a.full_name);
       }
       if (absentData.success) {
         newLists.absent = (Array.isArray(absentData.data) ? absentData.data : []).map((a: any) => a.full_name);
