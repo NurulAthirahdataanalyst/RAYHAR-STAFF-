@@ -606,7 +606,8 @@ export default function GPSLocationTracker() {
             </Table>
           </div>
         </div>
-      {historyFor && (
+      </div>
+    {historyFor && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/40 p-4" onClick={(e) => { if (e.target === e.currentTarget) closeHistory(); }}>
           <div className="w-full max-w-5xl bg-card rounded-lg p-6 max-h-[90vh] flex flex-col">
             <div className="flex items-center justify-between mb-2">
@@ -722,9 +723,8 @@ export default function GPSLocationTracker() {
               )}
             </div>
           </div>
+        </div>
       )}
       </>
     );
 }
-}
-
