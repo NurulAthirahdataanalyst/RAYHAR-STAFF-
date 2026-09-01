@@ -75,10 +75,8 @@ export default function NotificationBell() {
               const notifId = `temp-${a.id}-${computedStatus}`;
               tempNotifs.push({
                 id: notifId,
-                title: startsTomorrow ? 'Temporary Assignment starts tomorrow' : '🏢 Temporary Branch Assignment',
-                message: startsTomorrow 
-                  ? `You are required to clock in at ${a.temp_branch} from ${fmtDate(a.start_date)}.`
-                  : `You are assigned to ${a.temp_branch} from ${fmtDate(a.start_date)}${a.end_date ? ' - ' + fmtDate(a.end_date) : ''}. During this period, please clock in at your assigned branch.`,
+                title: 'UPCOMING TEMPORARY ASSIGNMENT',
+                message: `You have an upcoming temporary branch assignment at **${a.temp_branch}** from **${fmtDate(a.start_date)} – ${a.end_date ? fmtDate(a.end_date) : 'Ongoing'}** Created By **HR Admin**`,
                 type: 'temporary_assignment',
                 is_read: false,
                 related_leave_id: null,

@@ -6076,7 +6076,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
           AND DATE(created_at AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
       )
       SELECT type, actor, action, target, context, time, badge FROM acts
-      ORDER BY sort_time DESC LIMIT 10`,
+      ORDER BY sort_time DESC`,
       [userId, queryDate, userId, queryDate, userId, queryDate, userId, queryDate, userId, queryDate, userId, queryDate, userId, queryDate, userId, queryDate]
     );
 
@@ -6225,10 +6225,27 @@ app.get("/api/dashboard-stats", async (req, res) => {
           JOIN profiles emp ON emp.user_id = al.user_id
           WHERE DATE(al.created_at AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
             AND emp.status = 'Active' ${teamFilter.replace(/p\./g, 'emp.')}
+
+          UNION ALL
+
+          -- Temporary Assignments today
+          SELECT 'outstation' AS type,
+            'HR Admin' AS actor,
+            'assigned a temporary branch assignment to' AS action,
+            emp.full_name AS target,
+            CONCAT(ewa.location, ' • ', TO_CHAR(ewa.start_date, 'DD/MM/YYYY'), ' – ', COALESCE(TO_CHAR(ewa.end_date, 'DD/MM/YYYY'), 'Ongoing')) AS context,
+            TO_CHAR(ewa.created_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time,
+            ewa.created_at AS sort_time,
+            'Assigned' AS badge
+          FROM employee_work_assignment ewa
+          JOIN profiles emp ON emp.user_id = ewa.user_id
+          WHERE DATE(ewa.created_at AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
+            AND emp.status = 'Active' ${teamFilter.replace(/p\./g, 'emp.')}
         )
+
         SELECT type, actor, action, target, context, time, badge FROM team_acts
-        ORDER BY sort_time DESC LIMIT 10`,
-        [queryDate, ...teamParams, queryDate, ...teamParams, queryDate, ...teamParams, queryDate, ...teamParams, queryDate, ...teamParams, queryDate, ...teamParams, queryDate, ...teamParams]
+        ORDER BY sort_time DESC`,
+        [queryDate, ...teamParams, queryDate, ...teamParams, queryDate, ...teamParams, queryDate, ...teamParams, queryDate, ...teamParams, queryDate, ...teamParams, queryDate, ...teamParams, queryDate, ...teamParams]
       );
       teamActivityRows = teamRows;
     }
@@ -6263,7 +6280,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
         FROM company_leave_calendar cl
         WHERE 1=1
           ${sysFilter}
-        ORDER BY cl.updated_at DESC LIMIT 10`,
+        ORDER BY cl.updated_at DESC`,
         sysParams
       );
       systemActivityRows = sysRows;

@@ -46,6 +46,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { format, isToday } from "date-fns";
 import { cn } from "@/lib/utils";
 import { LeaveDetailsModal } from "@/components/leave/LeaveDetailsModal";
+import { TablePagination } from "@/components/common/TablePagination";
 import { toast } from "sonner";
 
 
@@ -112,6 +113,9 @@ export default function Dashboard() {
   const [activities, setActivities] = useState<any[]>([]);
   const [activityFeed, setActivityFeed] = useState<{ my: any[]; team: any[]; system: any[] }>({ my: [], team: [], system: [] });
   const [activeTab, setActiveTab] = useState<"my" | "team" | "system" | "all">("my");
+  const [activityPage, setActivityPage] = useState(1);
+  const [activityPageSize, setActivityPageSize] = useState(10);
+
   const [activityFilter, setActivityFilter] = useState<"all" | "attendance" | "leave" | "approval" | "system" | "outstation">("all");
   const [whoOutToday, setWhoOutToday] = useState<any[]>([]);
   const [upcomingOutstations, setUpcomingOutstations] = useState<any[]>([]);
@@ -1484,7 +1488,7 @@ export default function Dashboard() {
                     <span className="text-xs italic text-foreground">Updated a few seconds ago</span>
                   )}
                   <div className="border border-slate-200 dark:border-slate-800 rounded px-2 py-1 text-[10px] font-bold text-slate-600">
-                    Last 10 Events
+                    Recent Activities
                   </div>
                 </div>
               </div>
@@ -1499,7 +1503,7 @@ export default function Dashboard() {
                 ] as { key: "my" | "team" | "system" | "all"; label: string }[]).map(tab => (
                   <button
                     key={tab.key}
-                    onClick={() => setActiveTab(tab.key)}
+                    onClick={() => { setActiveTab(tab.key); setActivityPage(1); }}
                     className={`pb-2 text-sm font-bold transition-all duration-200 border-b-2 ${
                       activeTab === tab.key
                         ? "border-[#a01497] text-[#a01497]"
@@ -1523,7 +1527,7 @@ export default function Dashboard() {
                 ] as { key: "all" | "attendance" | "leave" | "approval" | "system" | "outstation"; label: string }[]).map(chip => (
                   <button
                     key={chip.key}
-                    onClick={() => setActivityFilter(chip.key)}
+                    onClick={() => { setActivityFilter(chip.key); setActivityPage(1); }}
                     className={`px-5 py-2.5 rounded-full text-[10px] font-black tracking-widest transition-all duration-300 active:scale-95 ${
                       activityFilter === chip.key
                         ? "bg-slate-100 dark:bg-slate-800 text-[#a01497] shadow-[inset_4px_4px_8px_rgba(0,0,0,0.1),inset_-4px_-4px_8px_rgba(255,255,255,0.9)] dark:shadow-[inset_4px_4px_8px_rgba(0,0,0,0.5),inset_-4px_-4px_8px_rgba(255,255,255,0.05)]"
@@ -1568,72 +1572,77 @@ export default function Dashboard() {
                 }
 
                 return (
-                  <div className="w-full text-left border-t border-slate-100 dark:border-slate-800">
-                    <div className="grid grid-cols-12 px-4 py-2 bg-slate-50 dark:bg-slate-900/50 text-[10px] font-bold text-foreground uppercase tracking-widest border-b border-slate-100 dark:border-slate-800">
-                      <div className="col-span-2">Type</div>
-                      <div className="col-span-2">Timestamp</div>
-                      <div className="col-span-6">Description</div>
-                      <div className="col-span-2 text-right">Status</div>
-                    </div>
-                    {feedItems.map((item, i) => {
-                      const badgeColor: Record<string, string> = {
-                        Present: "text-[#a01497] border-purple-200",
-                        "Clocked Out": "text-slate-600 border-slate-200 dark:border-slate-800",
-                        Approved: "text-emerald-700 border-emerald-200",
-                        Rejected: "text-red-700 border-red-200",
-                        Late: "text-rose-700 border-rose-200",
-                        Active: "text-violet-700 border-violet-200",
-                        System: "text-blue-700 border-blue-200",
-                        Reminder: "text-yellow-700 border-yellow-200",
-                        Note: "text-slate-600 border-slate-200 dark:border-slate-800",
-                        Assigned: "text-pink-700 border-pink-200 bg-pink-50/50",
-                      };
-                      const badgeCls = badgeColor[item.badge] || "text-foreground border-slate-200 dark:border-slate-800";
-                      
-                      const typeIcon: Record<string, string> = {
-                        attendance: "text-[#a01497]",
-                        leave: "text-[#a01497]",
-                        approval: "text-[#a01497]",
-                        system: "text-rose-600",
-                        outstation: "text-pink-600",
-                      };
+                  <>
+                    <div className="w-full text-left border-t border-slate-100 dark:border-slate-800">
+                      <div className="grid grid-cols-12 px-4 py-2 bg-slate-50 dark:bg-slate-900/50 text-[10px] font-bold text-foreground uppercase tracking-widest border-b border-slate-100 dark:border-slate-800">
+                        <div className="col-span-2">Type</div>
+                        <div className="col-span-2">Timestamp</div>
+                        <div className="col-span-6">Description</div>
+                        <div className="col-span-2 text-right">Status</div>
+                      </div>
+                      {feedItems.slice((activityPage - 1) * activityPageSize, activityPage * activityPageSize).map((item, i) => {
+                        const badgeColor: Record<string, string> = {
+                          Present: "text-[#a01497] border-purple-200",
+                          "Clocked Out": "text-slate-600 border-slate-200 dark:border-slate-800",
+                          Approved: "text-emerald-700 border-emerald-200",
+                          Rejected: "text-red-700 border-red-200",
+                          Late: "text-rose-700 border-rose-200",
+                          Active: "text-violet-700 border-violet-200",
+                          System: "text-blue-700 border-blue-200",
+                          Reminder: "text-yellow-700 border-yellow-200",
+                          Note: "text-slate-600 border-slate-200 dark:border-slate-800",
+                          Assigned: "text-pink-700 border-pink-200 bg-pink-50/50",
+                        };
+                        const badgeCls = badgeColor[item.badge] || "text-foreground border-slate-200 dark:border-slate-800";
+                        
+                        const typeIcon: Record<string, string> = {
+                          attendance: "text-[#a01497]",
+                          leave: "text-[#a01497]",
+                          approval: "text-[#a01497]",
+                          system: "text-rose-600",
+                          outstation: "text-pink-600",
+                        };
 
-                      return (
-                        <div
-                          key={i}
-                          className="grid grid-cols-12 px-4 py-3 border-b border-slate-50 items-center hover:bg-slate-50 dark:bg-slate-900/50 transition-colors"
-                        >
-                          <div className="col-span-2 flex items-center gap-2 text-xs font-bold text-slate-700 capitalize">
-                            <div className={`w-1.5 h-1.5 rounded-full bg-current ${typeIcon[item.type] || 'text-foreground'}`}></div>
-                            {item.type}
+                        return (
+                          <div
+                            key={i}
+                            className="grid grid-cols-12 px-4 py-3 border-b border-slate-50 items-center hover:bg-slate-50 dark:bg-slate-900/50 transition-colors"
+                          >
+                            <div className="col-span-2 flex items-center gap-2 text-xs font-bold text-slate-700 capitalize">
+                              <div className={`w-1.5 h-1.5 rounded-full bg-current ${typeIcon[item.type] || 'text-foreground'}`}></div>
+                              {item.type}
+                            </div>
+                            <div className="col-span-2 text-[11px] text-slate-600">
+                              {item.time}
+                            </div>
+                            <div className="col-span-6 text-[11px] text-slate-800 dark:text-slate-100 pr-4 break-words leading-normal">
+                              <span className="font-bold">{item.actor}</span> {item.action} {item.target && item.target}
+                              {item.context && <span className="block text-foreground mt-0.5 break-words font-normal leading-normal">{item.context}</span>}
+                            </div>
+                            <div className="col-span-2 text-right">
+                              <span className={`inline-block px-2 py-0.5 text-[9px] font-bold uppercase rounded border ${badgeCls}`}>
+                                {item.badge}
+                              </span>
+                            </div>
                           </div>
-                          <div className="col-span-2 text-[11px] text-slate-600">
-                            {item.time}
-                          </div>
-                          <div className="col-span-6 text-[11px] text-slate-800 dark:text-slate-100 pr-4 break-words leading-normal">
-                            <span className="font-bold">{item.actor}</span> {item.action} {item.target && item.target}
-                            {item.context && <span className="block text-foreground mt-0.5 break-words font-normal leading-normal">{item.context}</span>}
-                          </div>
-                          <div className="col-span-2 text-right">
-                            <span className={`inline-block px-2 py-0.5 text-[9px] font-bold uppercase rounded border ${badgeCls}`}>
-                              {item.badge}
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                        );
+                      })}
+                    </div>
+                    <div className="p-4 border-t border-slate-100 dark:border-slate-800 flex justify-end bg-white dark:bg-card">
+                      <TablePagination
+                        currentPage={activityPage}
+                        totalItems={feedItems.length}
+                        pageSize={activityPageSize}
+                        onPageChange={setActivityPage}
+                        onPageSizeChange={(size) => {
+                          setActivityPageSize(size);
+                          setActivityPage(1);
+                        }}
+                      />
+                    </div>
+                  </>
                 );
               })()}
-
-              <div className="p-3 border-t border-slate-100 dark:border-slate-800 flex justify-center">
-                <button
-                  onClick={() => navigate("/attendance")}
-                  className="text-[11px] font-bold text-[#a01497] hover:underline"
-                >
-                  Load More History
-                </button>
-              </div>
             </CardContent>
           </Card>
         </div>
