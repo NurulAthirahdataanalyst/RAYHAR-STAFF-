@@ -238,6 +238,8 @@ export default function EmployeeAnalytics() {
   const isAdminView = ["branch_leader", "managing_director", "md", "finance_manager", "head_of_department", "operation_manager", "hr", "hr_admin", "admin"].includes(role?.toLowerCase());
   // User previously asked to hide from MD/OM and HOD/Branch Leader, but now wants them back.
   const showOvertime = ["hr", "hr_admin", "admin", "finance_manager", "managing_director", "md", "operation_manager", "head_of_department", "hod", "branch_leader"].includes(role?.toLowerCase());
+  // HOD and Branch Leader only see their own department, so don't show the multi-department trend
+  const showDeptOvertime = !["head_of_department", "hod", "branch_leader"].includes(role?.toLowerCase());
 
   const [selectedMonth, setSelectedMonth] = useState((new Date().getMonth() + 1).toString());
   const [selectedYear,  setSelectedYear]  = useState(new Date().getFullYear().toString());
@@ -644,7 +646,7 @@ export default function EmployeeAnalytics() {
 
           {/* ── Overtime Monitoring ── */}
           {showOvertime && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
+            <div className={`grid grid-cols-1 ${showDeptOvertime ? 'lg:grid-cols-2' : ''} gap-4 sm:gap-5`}>
               {/* Employee Overtime Bar */}
               <Card className="border-2 border-slate-300 dark:border-slate-600 bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20 hover:ring-amber-500/20 shadow-[0_15px_40px_rgba(0,0,0,0.05)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.25)]">
                 <CardHeader className="border-b border-border/40">
@@ -689,7 +691,8 @@ export default function EmployeeAnalytics() {
               </Card>
 
               {/* Department Overtime Trend */}
-              <Card className="border-2 border-slate-300 dark:border-slate-600 bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20 hover:ring-blue-500/20 shadow-[0_15px_40px_rgba(0,0,0,0.05)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.25)]">
+              {showDeptOvertime && (
+                <Card className="border-2 border-slate-300 dark:border-slate-600 bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20 hover:ring-blue-500/20 shadow-[0_15px_40px_rgba(0,0,0,0.05)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.25)]">
                 <CardHeader className="border-b border-border/40">
                   <CardTitle className="text-sm font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
                     <div className="p-2 bg-blue-500/10 rounded-xl"><TrendingUp className="w-4 h-4 text-blue-500" /></div>
@@ -744,6 +747,7 @@ export default function EmployeeAnalytics() {
                   )}
                 </CardContent>
               </Card>
+              )}
             </div>
           )}
 
