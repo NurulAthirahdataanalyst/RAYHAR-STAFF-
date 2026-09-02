@@ -3883,7 +3883,7 @@ app.get("/api/employees", async (req, res) => {
     } else if (role === "head_of_department" && req.query.department) {
       filters.push("p.department = ?");
       params.push(req.query.department);
-    } else if (!["hr_admin", "managing_director", "finance_manager"].includes(role) && branch) {
+    } else if (!["hr_admin", "admin", "hr", "managing_director", "md", "finance_manager", "operation_manager"].includes(role) && branch) {
       filters.push("p.branch = ?");
       params.push(branch);
     }
@@ -8334,7 +8334,7 @@ app.get("/api/who-out-today", async (req, res) => {
       params.push(department);
     } else if (role === "head_of_department") {
       filters.push("1 = 0");
-    } else if (!["hr_admin", "managing_director", "finance_manager"].includes(role) && branch) {
+    } else if (!["hr_admin", "admin", "hr", "managing_director", "md", "finance_manager", "operation_manager"].includes(role) && branch) {
       filters.push("p.branch = ?");
       params.push(branch);
     }
