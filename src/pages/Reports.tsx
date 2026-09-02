@@ -24,7 +24,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { YearPopover } from "@/components/shared/YearPopover";
 import { MonthPicker } from "@/components/shared/MonthPicker";
 
 const fallbackMonthlyData = [
@@ -884,7 +883,7 @@ export default function Reports() {
                           )}
 
                           <div className="space-y-1.5">
-                            <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Month</label>
+                            <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Period</label>
                             <MonthPicker
                               monthYear={selectedMonth === 'all' ? `${selectedYear}-all` : `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`}
                               onSelectMonthYear={(val) => {
@@ -893,15 +892,6 @@ export default function Reports() {
                                 setSelectedMonth(m);
                               }}
                               className="w-full h-11 px-3 flex items-center justify-between text-xs font-black uppercase tracking-widest rounded-xl border border-border bg-background/30 text-foreground outline-none cursor-pointer hover:border-[#942392]/40 focus:ring-1 focus:ring-[#942392]"
-                            />
-                          </div>
-
-                          <div className="space-y-1.5">
-                            <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Year</label>
-                            <YearPopover
-                              year={selectedYear}
-                              onSelectYear={setSelectedYear}
-                              className="w-full h-11 px-3 text-xs font-black uppercase tracking-widest rounded-xl border border-border bg-background/30 flex items-center justify-between text-foreground hover:border-[#942392]/40 cursor-pointer"
                             />
                           </div>
                         </div>
