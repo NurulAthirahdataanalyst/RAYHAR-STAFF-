@@ -2150,6 +2150,19 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
   const [activeProfilesCountRes] = await pool.query(`SELECT COUNT(*) as cnt FROM profiles p WHERE status = 'Active' ${leaveTrendRoleFilter}`, leaveTrendFilterParams);
   const activeCount = parseInt(activeProfilesCountRes[0].cnt || 0);
 
+  const dNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  
+  const targetDLive = new Date(dateStr);
+  const dayOfWeekLive = targetDLive.getDay();
+  const diffToSatLive = dayOfWeekLive === 6 ? 0 : -1 - dayOfWeekLive;
+  const weekStartDLive = new Date(targetDLive);
+  weekStartDLive.setDate(targetDLive.getDate() + diffToSatLive);
+  weekStartDLive.setHours(0,0,0,0);
+
+  const weekEndDLive = new Date(weekStartDLive);
+  weekEndDLive.setDate(weekStartDLive.getDate() + 6);
+  weekEndDLive.setHours(23,59,59,999);
+
   const [weeklyAttRows] = await pool.query(
     `SELECT a.user_id, clock_in, 
             CASE WHEN (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::time > ?::time THEN 1 ELSE 0 END as is_late
@@ -2182,19 +2195,7 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
     'Sat': { present: 0, late: 0, leave: 0, expected: 0, absent: 0, weekend: 0 },
     'Sun': { present: 0, late: 0, leave: 0, expected: 0, absent: 0, weekend: 0 },
   };
-  const dNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   
-  const targetDLive = new Date(dateStr);
-  const dayOfWeekLive = targetDLive.getDay();
-  const diffToSatLive = dayOfWeekLive === 6 ? 0 : -1 - dayOfWeekLive;
-  const weekStartDLive = new Date(targetDLive);
-  weekStartDLive.setDate(targetDLive.getDate() + diffToSatLive);
-  weekStartDLive.setHours(0,0,0,0);
-
-  const weekEndDLive = new Date(weekStartDLive);
-  weekEndDLive.setDate(weekStartDLive.getDate() + 6);
-  weekEndDLive.setHours(23,59,59,999);
-
   const branchZoneMapLive = await getBranchZoneMap();
   const [allProfilesLive] = await pool.query(`SELECT user_id, branch FROM profiles WHERE status = 'Active'`);
   
