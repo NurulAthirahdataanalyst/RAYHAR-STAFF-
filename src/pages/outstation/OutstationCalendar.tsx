@@ -325,7 +325,7 @@ export default function OutstationCalendar({ onlyMine = false }: { onlyMine?: bo
                 <p className="text-[10px] font-black uppercase text-foreground mb-3">Assigned Employees ({relatedAssignments.length})</p>
                 <div className="space-y-2">
                   {relatedAssignments.map((a: any) => (
-                    <div key={a.id} className={`flex items-center gap-3 p-2.5 rounded-xl border transition-colors ${a.id === selectedEvent.id ? 'border-pink-200 dark:border-pink-900/50 bg-pink-50/50 dark:bg-pink-900/10' : 'border-gray-100 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-900/50'}`}>
+                    <div key={a.id} className="flex items-center gap-3 p-2.5 rounded-xl border transition-colors border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm">
                       <div className="w-8 h-8 rounded-full bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 text-[10px] font-bold flex items-center justify-center shrink-0">
                         {a.full_name?.split(' ').map((n:string)=>n[0]).join('').substring(0,2).toUpperCase()}
                       </div>
