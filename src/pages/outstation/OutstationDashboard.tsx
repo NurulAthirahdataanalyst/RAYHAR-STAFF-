@@ -382,7 +382,7 @@ export default function OutstationDashboard() {
               <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
                 <div>
                   <div className="flex items-center gap-1.5 mb-2">
-                    <div className="w-2.5 h-2.5 rounded-full bg-[#942392] shadow-xs"></div>
+                    <div className="w-2.5 h-2.5 shrink-0 rounded-full bg-[#942392] shadow-xs"></div>
                     <span className="text-[11px] font-extrabold text-foreground dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Total Outstation</span>
                   </div>
                   {loading ? (
@@ -409,7 +409,7 @@ export default function OutstationDashboard() {
               <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
                 <div>
                   <div className="flex items-center gap-1.5 mb-2">
-                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-xs"></div>
+                    <div className="w-2.5 h-2.5 shrink-0 rounded-full bg-emerald-500 shadow-xs"></div>
                     <span className="text-[11px] font-extrabold text-foreground dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Active Outstation</span>
                   </div>
                   {loading ? (
@@ -436,7 +436,7 @@ export default function OutstationDashboard() {
               <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
                 <div>
                   <div className="flex items-center gap-1.5 mb-2">
-                    <div className="w-2.5 h-2.5 rounded-full bg-orange-500 shadow-xs"></div>
+                    <div className="w-2.5 h-2.5 shrink-0 rounded-full bg-orange-500 shadow-xs"></div>
                     <span className="text-[11px] font-extrabold text-foreground dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Departing Today</span>
                   </div>
                   {loading ? (
@@ -463,7 +463,7 @@ export default function OutstationDashboard() {
               <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
                 <div>
                   <div className="flex items-center gap-1.5 mb-2">
-                    <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-xs"></div>
+                    <div className="w-2.5 h-2.5 shrink-0 rounded-full bg-blue-500 shadow-xs"></div>
                     <span className="text-[11px] font-extrabold text-foreground dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Returning Today</span>
                   </div>
                   {loading ? (
@@ -490,7 +490,7 @@ export default function OutstationDashboard() {
               <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
                 <div>
                   <div className="flex items-center gap-1.5 mb-2">
-                    <div className="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-xs"></div>
+                    <div className="w-2.5 h-2.5 shrink-0 rounded-full bg-purple-500 shadow-xs"></div>
                     <span className="text-[11px] font-extrabold text-foreground dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Upcoming Events</span>
                   </div>
                   {loading ? (
@@ -517,7 +517,7 @@ export default function OutstationDashboard() {
               <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
                 <div>
                   <div className="flex items-center gap-1.5 mb-2">
-                    <div className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-xs"></div>
+                    <div className="w-2.5 h-2.5 shrink-0 rounded-full bg-amber-500 shadow-xs"></div>
                     <span className="text-[11px] font-extrabold text-foreground dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Employees Scheduled</span>
                   </div>
                   {loading ? (
