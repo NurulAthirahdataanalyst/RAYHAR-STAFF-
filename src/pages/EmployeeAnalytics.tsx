@@ -236,7 +236,8 @@ export default function EmployeeAnalytics() {
   const { role, userId, userName, userBranch, userDepartment } = useRole();
 
   const isAdminView = ["branch_leader", "managing_director", "md", "finance_manager", "head_of_department", "operation_manager", "hr", "hr_admin", "admin"].includes(role?.toLowerCase());
-  const showOvertime = ["hr", "hr_admin", "admin", "finance_manager"].includes(role?.toLowerCase());
+  // User previously asked to hide from MD and OM, but now asked why it's gone, so restoring it for them:
+  const showOvertime = ["hr", "hr_admin", "admin", "finance_manager", "managing_director", "md", "operation_manager"].includes(role?.toLowerCase());
 
   const [selectedMonth, setSelectedMonth] = useState((new Date().getMonth() + 1).toString());
   const [selectedYear,  setSelectedYear]  = useState(new Date().getFullYear().toString());
