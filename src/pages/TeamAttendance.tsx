@@ -654,16 +654,12 @@ export default function TeamAttendance() {
                   ) : (
                     history.map((h, i) => {
                       const emp = employees.find(e => e.user_id === historyFor);
-                      const branchName = emp?.branch || "HQ";
+                      const branchName = h.branch || emp?.branch || "HQ";
                       
-                      let distance: number | null = null;
-                      // We don't have apiBranches in TeamAttendance, so distance might be N/A
-                      
-                          const branchData = apiBranches.find((b: any) => b.branch_code === branchName);
-                          if (branchData && branchData.latitude && branchData.longitude && h.lat && h.lng) {
-                            distance = calculateDistance(Number(h.lat), Number(h.lng), Number(branchData.latitude), Number(branchData.longitude));
-                          }
-                      const isNoGPS = Number(h.lat) === 0 && Number(h.lng) === 0;
+                      // Use server-computed distance (already computed via Haversine in backend)
+                      const distance: number | null = h.distance != null ? Number(h.distance) : null;
+                      const isNoGPS = !h.lat || !h.lng || (Number(h.lat) === 0 && Number(h.lng) === 0);
+                      const locationStatus: string = h.location_status || "ON-SITE";
 
                       return (
                         <TableRow key={i}>
@@ -672,9 +668,9 @@ export default function TeamAttendance() {
                           <TableCell>{branchName}</TableCell>
                           <TableCell>{isNoGPS ? "-" : (distance !== null ? `${Math.round(distance)} m` : "N/A")}</TableCell>
                           <TableCell>
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest border border-green-200 dark:border-green-800/30 bg-green-50 dark:bg-green-900/10 text-green-700 dark:text-green-400">
-                              <span className="w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5"></span>
-                              On-site
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${locationStatus === 'OFF-SITE' ? 'border-red-200 dark:border-red-800/30 bg-red-50 dark:bg-red-900/10 text-red-700 dark:text-red-400' : locationStatus === 'NO GPS' ? 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/10 text-slate-500' : 'border-green-200 dark:border-green-800/30 bg-green-50 dark:bg-green-900/10 text-green-700 dark:text-green-400'}`}>
+                              <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${locationStatus === 'OFF-SITE' ? 'bg-red-500' : locationStatus === 'NO GPS' ? 'bg-slate-400' : 'bg-green-500'}`}></span>
+                              {locationStatus}
                             </span>
                           </TableCell>
                           <TableCell>
