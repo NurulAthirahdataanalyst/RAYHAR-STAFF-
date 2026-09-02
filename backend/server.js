@@ -2155,11 +2155,10 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
             CASE WHEN (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::time > ?::time THEN 1 ELSE 0 END as is_late
      FROM attendances a
      JOIN profiles p ON a.user_id = p.user_id
-     WHERE EXTRACT(YEAR FROM clock_in) = ? 
-       AND EXTRACT(MONTH FROM clock_in) = ?
+     WHERE a.clock_in >= ? AND a.clock_in <= ?
        AND p.status = 'Active'
        ${leaveTrendRoleFilter}`,
-    [lateTimeStr, tYear, tMonth, ...leaveTrendFilterParams]
+    [lateTimeStr, weekStartDLive.toISOString(), weekEndDLive.toISOString(), ...leaveTrendFilterParams]
   );
   
   const [weeklyLeaveRows] = await pool.query(
@@ -7514,8 +7513,18 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       dIter.setDate(dIter.getDate() + 1);
     }
 
-    // Add Present and Late from attRows (ONLY for current week)
-    attRows.forEach(att => {
+    // We need to fetch attendances specifically for the requested week because attRows might only contain data for the requested month.
+    const [weekAttRows] = await pool.query(
+      `SELECT a.*, p.name, p.department, p.branch,
+        CASE WHEN (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::time > ?::time THEN 1 ELSE 0 END as is_late
+       FROM attendances a
+       JOIN profiles p ON p.user_id = a.user_id
+       WHERE a.clock_in >= ? AND a.clock_in <= ? AND p.status = 'Active' ${profileFilter}`,
+      [lateTimeStr, weekStartD.toISOString(), weekEndD.toISOString(), ...pFilterParams]
+    );
+
+    // Add Present and Late from weekAttRows (ONLY for current week)
+    weekAttRows.forEach(att => {
       const dateObj = new Date(att.clock_in);
       const isOutstation = outstationEmployees.has(att.user_id);
       
