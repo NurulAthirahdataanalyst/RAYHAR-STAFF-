@@ -550,14 +550,7 @@ export default function OutstationDashboard() {
                 <CardTitle className="text-base font-bold text-foreground dark:text-slate-200">Active Outstations</CardTitle>
                 <p className="text-[13px] text-foreground dark:text-foreground font-medium mt-0.5">Real-time status of employees currently on assignment</p>
               </div>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="icon" className="h-9 w-9 border-gray-200 dark:border-slate-800 text-foreground dark:text-gray-300 rounded-[8px]">
-                  <Filter className="w-4 h-4" />
-                </Button>
-                <Button variant="outline" size="icon" className="h-9 w-9 border-gray-200 dark:border-slate-800 text-foreground dark:text-gray-300 rounded-[8px]">
-                  <MoreHorizontal className="w-4 h-4" />
-                </Button>
-              </div>
+
             </CardHeader>
             <CardContent className="p-0 flex-1 overflow-x-auto">
               {loading ? (

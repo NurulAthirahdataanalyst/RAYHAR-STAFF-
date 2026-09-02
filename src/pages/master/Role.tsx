@@ -12,9 +12,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { API_BASE_URL } from "@/config/api";
+import { useRole } from "@/contexts/RoleContext";
 
 export default function Role() {
   const navigate = useNavigate();
+  const { role } = useRole();
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);

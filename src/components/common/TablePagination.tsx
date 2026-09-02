@@ -74,7 +74,7 @@ export const TablePagination: React.FC<TablePaginationProps> = ({
           disabled={currentPage === 1}
           variant="outline"
           size="sm"
-          className="h-7 w-7 p-0 rounded-md border-gray-200 dark:border-slate-800 bg-white dark:bg-card text-foreground disabled:opacity-40"
+          className="h-7 w-7 p-0 rounded-md border-gray-200 dark:border-slate-800 bg-white dark:bg-card text-foreground hover:bg-[#942392] hover:text-white hover:border-[#942392] focus:bg-[#942392] focus:text-white disabled:opacity-40 transition-colors"
           title="Previous page"
         >
           <ChevronLeft className="h-4 w-4" />
@@ -112,7 +112,7 @@ export const TablePagination: React.FC<TablePaginationProps> = ({
           disabled={currentPage >= totalPages}
           variant="outline"
           size="sm"
-          className="h-7 w-7 p-0 rounded-md border-gray-200 dark:border-slate-800 bg-white dark:bg-card text-foreground disabled:opacity-40"
+          className="h-7 w-7 p-0 rounded-md border-gray-200 dark:border-slate-800 bg-white dark:bg-card text-foreground hover:bg-[#942392] hover:text-white hover:border-[#942392] focus:bg-[#942392] focus:text-white disabled:opacity-40 transition-colors"
           title="Next page"
         >
           <ChevronRight className="h-4 w-4" />
