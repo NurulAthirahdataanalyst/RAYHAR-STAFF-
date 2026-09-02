@@ -482,6 +482,7 @@ export default function WorkforceInsights() {
                 </Popover>
               ) : viewMode === "month" ? (
                 <MonthPicker
+                  hideAllYear={true}
                   monthYear={`${year}-${month.padStart(2, '0')}`}
                   onSelectMonthYear={(val) => {
                     const [newYear, newMonth] = val.split('-');

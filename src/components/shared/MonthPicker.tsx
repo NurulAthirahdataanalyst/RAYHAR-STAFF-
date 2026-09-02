@@ -12,7 +12,7 @@ interface MonthPickerProps {
 const FULL_MONTHS = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-export function MonthPicker({ monthYear, onSelectMonthYear, className }: MonthPickerProps) {
+export function MonthPicker({ monthYear, onSelectMonthYear, className, hideAllYear }: MonthPickerProps) {
   const [open, setOpen] = useState(false);
   
   const currentDate = new Date();
@@ -124,16 +124,18 @@ export function MonthPicker({ monthYear, onSelectMonthYear, className }: MonthPi
             >
               This month
             </button>
-            <button
-              type="button"
-              onClick={() => {
-                onSelectMonthYear(`${viewYear}-all`); // clear
-                // setOpen(false);
-              }}
-              className="text-[#942392] hover:underline text-[11px] font-bold"
-            >
-              All year
-            </button>
+            {!hideAllYear && (
+              <button
+                type="button"
+                onClick={() => {
+                  onSelectMonthYear(`${viewYear}-all`); // clear
+                  // setOpen(false);
+                }}
+                className="text-[#942392] hover:underline text-[11px] font-bold"
+              >
+                All year
+              </button>
+            )}
           </div>
         </div>
       </PopoverContent>
