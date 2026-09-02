@@ -9999,12 +9999,12 @@ app.get("/api/work-assignments/:user_id", async (req, res) => {
 
 app.post("/api/work-assignments", async (req, res) => {
   try {
-    const { user_id, location, start_date, end_date, status } = req.body;
+    const { user_id, location, start_date, end_date, status, purpose, remarks } = req.body;
     let returningClause = "";
     // Note: RETURNING is for Postgres, wait, this pool is custom or standard. Let's just do a normal insert
     const [result] = await pool.query(
-      `INSERT INTO employee_work_assignment (user_id, location, start_date, end_date, status) VALUES (?, ?, ?, ?, ?)`,
-      [user_id, location, start_date, end_date || null, status || 'Active']
+      `INSERT INTO employee_work_assignment (user_id, location, start_date, end_date, status, purpose, remarks) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [user_id, location, start_date, end_date || null, status || 'Active', purpose || null, remarks || null]
     );
     res.json({ success: true, insertedId: result.insertId || (result.rows && result.rows.length ? result.rows[0].id : null) });
   } catch(e) {
@@ -10014,10 +10014,10 @@ app.post("/api/work-assignments", async (req, res) => {
 
 app.put("/api/work-assignments/:id", async (req, res) => {
   try {
-    const { location, start_date, end_date, status } = req.body;
+    const { location, start_date, end_date, status, purpose, remarks } = req.body;
     await pool.query(
-      `UPDATE employee_work_assignment SET location = ?, start_date = ?, end_date = ?, status = ? WHERE id = ?`,
-      [location, start_date, end_date || null, status, req.params.id]
+      `UPDATE employee_work_assignment SET location = ?, start_date = ?, end_date = ?, status = ?, purpose = ?, remarks = ? WHERE id = ?`,
+      [location, start_date, end_date || null, status, purpose || null, remarks || null, req.params.id]
     );
     res.json({ success: true });
   } catch(e) {

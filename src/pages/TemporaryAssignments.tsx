@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { MapPin, Calendar, CheckCircle2, XCircle, Search, Loader2, Plus, Edit, Trash2, Clock, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -47,7 +48,7 @@ const TemporaryAssignments = () => {
 
   // Modal State
   const [showAssignModal, setShowAssignModal] = useState(false);
-  const [assignForm, setAssignForm] = useState({ user_id: "", location: "", start_date: "", end_date: "", status: "Active" });
+  const [assignForm, setAssignForm] = useState({ user_id: "", location: "", start_date: "", end_date: "", status: "Active", purpose: "", remarks: "" });
   const [submittingAssign, setSubmittingAssign] = useState(false);
   const [employees, setEmployees] = useState<any[]>([]);
   const [branches, setBranches] = useState<any[]>([]);
@@ -128,7 +129,7 @@ const TemporaryAssignments = () => {
         toast.success(editId ? "Assignment updated successfully" : "Assignment created successfully");
         setShowAssignModal(false);
         fetchAssignments();
-        setAssignForm({ user_id: "", location: "", start_date: "", end_date: "", status: "Active" });
+        setAssignForm({ user_id: "", location: "", start_date: "", end_date: "", status: "Active", purpose: "", remarks: "" });
         setEditId(null);
       } else {
         toast.error("Failed to save assignment");
