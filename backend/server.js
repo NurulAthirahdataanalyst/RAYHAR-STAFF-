@@ -7515,7 +7515,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
 
     // We need to fetch attendances specifically for the requested week because attRows might only contain data for the requested month.
     const [weekAttRows] = await pool.query(
-      `SELECT a.*, p.name, p.department, p.branch,
+      `SELECT a.*, p.full_name, p.department, p.branch,
         CASE WHEN (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::time > ?::time THEN 1 ELSE 0 END as is_late
        FROM attendances a
        JOIN profiles p ON p.user_id = a.user_id
