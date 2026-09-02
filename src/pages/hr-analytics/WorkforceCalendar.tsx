@@ -527,15 +527,19 @@ export default function WorkforceCalendar() {
           });
           const uniqueAtt = Array.from(uniqueAttMap.values());
 
-          const isWeekend = (dateObj, branchId) => {
+          const isWeekend = (dateObj, branchId, zoneObj) => {
             const day = dateObj.getDay();
             const dateNum = dateObj.getDate();
             const isFirstWeek = dateNum <= 7;
             
-            if (!branchId) return day === 0 || (day === 6 && isFirstWeek);
-            
-            const branchUpper = String(branchId).toUpperCase();
-            const isZoneA = ['JHB', 'JOHOR BAHRU', 'BPT', 'BATU PAHAT', 'JB - JOHOR BHARU', 'JB', 'KBR', 'KOTA BHARU', 'KTG', 'KUALA TERENGGANU', 'ASR', 'ALOR SETAR', 'SPJ', 'SUNGAI PETANI', 'SOUTHERN'].some(b => branchUpper.includes(b));
+            let isZoneA = false;
+            if (zoneObj === 'ZONE_A' || zoneObj === 'ZONE_B') {
+              isZoneA = (zoneObj === 'ZONE_A');
+            } else {
+              if (!branchId) return day === 0 || (day === 6 && isFirstWeek);
+              const branchUpper = String(branchId).toUpperCase();
+              isZoneA = ['AOR', 'KBR', 'TGG', 'DGN', 'KMM', 'CNH', 'KBG', 'JTH', 'RMP', 'MZM', 'TWU', 'BTM', 'KKS', 'MLK', 'SNS', 'JB', 'BTP', 'JHB', 'JOHOR BAHRU', 'BPT', 'BATU PAHAT', 'JB - JOHOR BHARU', 'KOTA BHARU', 'KTG', 'KUALA TERENGGANU', 'ASR', 'ALOR SETAR', 'SPJ', 'SUNGAI PETANI', 'SOUTHERN'].some(b => branchUpper.includes(b));
+            }
             
             if (isZoneA) {
               return day === 5 || (day === 6 && isFirstWeek);
@@ -554,8 +558,8 @@ export default function WorkforceCalendar() {
           const presentLate = regulars.filter(a => a.status === "Present (Late)" || a.is_late);
           
           const rawAbsent = regulars.filter(a => a.status === "Absent");
-          const absent = rawAbsent.filter(a => !isWeekend(selectedDay, a.branch));
-          const restDays = rawAbsent.filter(a => isWeekend(selectedDay, a.branch));
+          const absent = rawAbsent.filter(a => !isWeekend(selectedDay, a.branch, a.zone));
+          const restDays = rawAbsent.filter(a => isWeekend(selectedDay, a.branch, a.zone));
 
 
           return createPortal(
