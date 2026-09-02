@@ -262,7 +262,7 @@ export default function OutstationAnalytics() {
     }
   };
   
-  const monthYearVal = selectedMonth === "all" ? ${selectedYear}-all : ${selectedYear}-;
+  const monthYearVal = selectedMonth === "all" ? `${selectedYear}-all` : `${selectedYear}-${(parseInt(selectedMonth, 10) + 1).toString().padStart(2, '0')}`;
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-12">
@@ -434,7 +434,7 @@ export default function OutstationAnalytics() {
                     <p className="text-[11px] font-bold text-purple-700 dark:text-purple-300 uppercase tracking-wider">Total Events</p>
                     <p className="text-2xl font-black text-purple-950 dark:text-purple-100 mt-1">{trackerSummary.total}</p>
                     <p className="text-[10px] text-purple-600/80 dark:text-purple-400 mt-0.5">
-                      {selectedMonth === "all" ? "Across {selectedYear}" : `For ${MONTH_NAMES[parseInt(selectedMonth, 10)]}`}
+                      {selectedMonth === "all" ? `Across ${selectedYear}` : `For ${MONTH_NAMES[parseInt(selectedMonth, 10)]}`}
                     </p>
                   </div>
                   <div className="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/60 flex items-center justify-center text-[#942392] dark:text-purple-300 shadow-xs">
@@ -447,7 +447,7 @@ export default function OutstationAnalytics() {
                     <p className="text-[11px] font-bold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">Total Completed Events</p>
                     <p className="text-2xl font-black text-emerald-950 dark:text-emerald-100 mt-1">{trackerSummary.completed}</p>
                     <p className="text-[10px] text-emerald-600/80 dark:text-emerald-400 mt-0.5">
-                      {selectedMonth === "all" ? "Across {selectedYear}" : `For ${MONTH_NAMES[parseInt(selectedMonth, 10)]}`}
+                      {selectedMonth === "all" ? `Across ${selectedYear}` : `For ${MONTH_NAMES[parseInt(selectedMonth, 10)]}`}
                     </p>
                   </div>
                   <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/60 flex items-center justify-center text-emerald-600 dark:text-emerald-300 shadow-xs">
