@@ -1281,7 +1281,7 @@ export function StaffProfileDialog({
                 <TabsContent value="location_history">
                   <div className="p-4 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800/60">
                     <div className="flex items-center justify-between mb-3">
-                      <h3 className="text-sm font-bold text-foreground uppercase tracking-widest">Location History (Last 14 Days)</h3>
+                      <h3 className="text-sm font-bold text-foreground uppercase tracking-widest">Location History</h3>
                       <span className="text-xs text-muted-foreground">{locationHistory.length} records</span>
                     </div>
                     {loadingSettings ? (
