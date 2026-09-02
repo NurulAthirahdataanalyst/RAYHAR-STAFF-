@@ -117,10 +117,10 @@ export default function OutstationAnalytics() {
     return assignments.filter(a => {
       if (!a.start_date) return false;
       if (!a.start_date.startsWith(selectedYear)) return false;
-      if (selectedMonth !== "all") {
-        const m = (parseInt(selectedMonth, 10) + 1).toString().padStart(2, '0');
-        if (!a.start_date.startsWith(${selectedYear}-)) return false;
-      }
+        if (selectedMonth !== "all") {
+          const m = (parseInt(selectedMonth, 10) + 1).toString().padStart(2, '0');
+          if (!a.start_date.startsWith(`${selectedYear}-${m}`)) return false;
+        }
       return true;
     });
   }, [assignments, selectedYear, selectedMonth]);
