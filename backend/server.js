@@ -7965,12 +7965,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       }),
       leaveAnalytics: realLeaveAnalytics,
       outstationAnalytics: dynamicMetrics.outstationAnalytics,
-      workforceMovement: {
-        newJoiners: 4,
-        resigned: 2,
-        transferred: 3,
-        promotions: 1
-      },
+      workforceMovement: { newJoiners: parseInt((await pool.query('SELECT COUNT(*) as cnt FROM profiles WHERE EXTRACT(MONTH FROM created_at) = ? AND EXTRACT(YEAR FROM created_at) = ? AND status=\'Active\'', [requestedMonth, requestedYear]))[0][0]?.cnt || 0), resigned: parseInt((await pool.query('SELECT COUNT(*) as cnt FROM profiles WHERE status = \'Inactive\''))[0][0]?.cnt || 0), transferred: parseInt((await pool.query('SELECT COUNT(DISTINCT user_id) as cnt FROM employee_work_assignment WHERE type = \'Temporary Assignment\' AND start_date < ? AND end_date >= ?', [new Date(requestedYear, requestedMonth, 1).toISOString().substring(0, 10), new Date(requestedYear, requestedMonth - 1, 1).toISOString().substring(0, 10)]))[0][0]?.cnt || 0) },
       hrAlerts: dynamicMetrics.hrAlerts,
       topKpi: {
         totalHeadcount,
@@ -10143,6 +10138,8 @@ app.listen(PORT, "0.0.0.0", () => {
 // =================================================================
 // END OF FILE
 // =================================================================
+
+
 
 
 

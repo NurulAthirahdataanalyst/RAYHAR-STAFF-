@@ -2700,6 +2700,10 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                  <div className="w-[140px] h-[140px] relative">
                    <ResponsiveContainer width="100%" height="100%">
                      <PieChart>
+                       <RechartsTooltip 
+                          contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 8px 30px rgba(0,0,0,0.12)' }} 
+                          itemStyle={{ fontSize: '11px', fontWeight: 'bold' }} 
+                        />
                        <Pie
                          data={leaveData}
                          innerRadius={45}
@@ -2778,27 +2782,18 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                })()}
              </div>
              
-             <p className="text-[10px] font-bold text-foreground uppercase tracking-widest mb-4">Popular Routes</p>
+             <p className="text-[10px] font-bold text-foreground uppercase tracking-widest mb-4">EVENT</p>
              <div className="space-y-4 flex-1 overflow-y-auto custom-scrollbar pr-1 mb-2">
                {((outstationSummary?.popularRoutes || data.outstationAnalytics?.popularRoutes || [])).length === 0 ? (
                  <div className="flex flex-col items-center justify-center h-full text-foreground py-4">
                    <Plane className="w-6 h-6 opacity-30 mb-2" />
-                   <p className="text-[9px] font-bold uppercase tracking-widest">No Routes Recorded</p>
+                   <p className="text-[9px] font-bold uppercase tracking-widest">NO EVENTS RECORDED</p>
                  </div>
-               ) : (Array.isArray(outstationSummary?.popularRoutes || data.outstationAnalytics?.popularRoutes) ? (outstationSummary?.popularRoutes || data.outstationAnalytics?.popularRoutes) : []).map((r: any, i: number) => {
-                 const currentRoutes = outstationSummary?.popularRoutes || data.outstationAnalytics?.popularRoutes || [];
-                 const maxTrips = Math.max(...currentRoutes.map((pr: any) => pr.trips));
-                 const w = maxTrips > 0 ? (r.trips / maxTrips) * 100 : 0;
-                 return (
+               ) : (Array.isArray(outstationSummary?.popularRoutes || data.outstationAnalytics?.popularRoutes) ? (outstationSummary?.popularRoutes || data.outstationAnalytics?.popularRoutes) : []).map((r: any, i: number) => (
                    <div key={i} className="flex items-center gap-3">
-                     <span className="text-[11px] font-bold text-[#3B66A7] truncate w-[130px]" title={r.route}>{r.route}</span>
-                     <div className="flex-1 flex items-center relative group cursor-pointer">
-                       <div className="h-2 bg-[#DBEAFE] dark:bg-blue-900/30 rounded-full group-hover:bg-blue-200 transition-colors" style={{ width: `${Math.max(10, w)}%` }}></div>
-                     </div>
-                     <span className="text-[13px] font-bold text-[#1E293B] dark:text-white w-4 text-right">{r.trips}</span>
+                     <span className="text-[11px] font-bold text-[#3B66A7] truncate" title={r.route}>{r.route} &rarr; {r.trips}</span>
                    </div>
-                 );
-               })}
+               ))}
              </div>
 
              <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-end items-center">
@@ -2826,13 +2821,9 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                  <p className="text-[10px] font-bold text-rose-900 uppercase tracking-wider">Resigned</p>
                  <p className="text-[8px] font-bold text-rose-600 mt-0.5">This Month</p>
                </div>
-               <div className="flex flex-col justify-center items-center py-2 bg-[#F8FAFC] rounded-[24px] border-none shadow-[0_4px_20px_rgb(0,0,0,0.04)] text-center">
+               <div className="col-span-2 flex flex-col justify-center items-center py-2 bg-[#F8FAFC] rounded-[24px] border-none shadow-[0_4px_20px_rgb(0,0,0,0.04)] text-center">
                  <span className="text-xl font-black text-slate-700 mb-0.5">{movement.transferred || 0}</span>
                  <p className="text-[9px] font-bold text-foreground uppercase tracking-wider">Transferred</p>
-               </div>
-               <div className="flex flex-col justify-center items-center py-2 bg-[#F3E8FF] rounded-[24px] border-none shadow-[0_4px_20px_rgb(0,0,0,0.04)] text-center">
-                 <span className="text-xl font-black text-purple-700 mb-0.5">{movement.promotions || 0}</span>
-                 <p className="text-[9px] font-bold text-purple-500 uppercase tracking-wider">Promotions</p>
                </div>
              </div>
              <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end">
