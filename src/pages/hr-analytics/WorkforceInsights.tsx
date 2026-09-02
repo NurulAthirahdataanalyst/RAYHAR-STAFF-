@@ -1229,7 +1229,7 @@ export default function WorkforceInsights() {
                   <CheckCircle2 className="w-4 h-4 text-emerald-500" /> Top Attendance Performers
                 </h4>
                 <div className="space-y-3">
-                  {data?.performance?.topAttendance?.length > 0 ? data.performance.topAttendance.map((emp: any, i: number) => (
+                  {data?.performance?.topAttendance?.length > 0 ? (Array.isArray(data.performance.topAttendance) ? data.performance.topAttendance : []).map((emp: any, i: number) => (
                     <div key={i} className="flex items-center justify-between p-2 hover:bg-slate-50 dark:bg-slate-900/50 rounded-md transition-colors">
                       <div className="flex items-center gap-3">
                         <div className="w-6 h-6 rounded bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-600">
@@ -1250,7 +1250,7 @@ export default function WorkforceInsights() {
                   <AlertTriangle className="w-4 h-4 text-red-500" /> Highest Late Arrivals
                 </h4>
                 <div className="space-y-3">
-                  {data?.performance?.topLate?.length > 0 ? data.performance.topLate.map((emp: any, i: number) => (
+                  {data?.performance?.topLate?.length > 0 ? (Array.isArray(data.performance.topLate) ? data.performance.topLate : []).map((emp: any, i: number) => (
                     <div key={i} className="flex items-center justify-between p-2 hover:bg-slate-50 dark:bg-slate-900/50 rounded-md transition-colors">
                       <div className="flex items-center gap-3">
                         <div className="w-6 h-6 rounded bg-red-50 flex items-center justify-center text-xs font-bold text-red-600">

@@ -1118,11 +1118,11 @@ export function StaffProfileDialog({
                               <div className="grid grid-cols-2 gap-3">
                                 <div>
                                   <Label className="text-xs font-bold text-foreground uppercase">Start Date</Label>
-                                  <Input type="date" value={tempAssignment.start_date} onChange={(e) => setTempAssignment({...tempAssignment, start_date: e.target.value})()} />
+                                  <Input type="date" value={tempAssignment.start_date} onChange={(e) => setTempAssignment({...tempAssignment, start_date: e.target.value})} />
                                 </div>
                                 <div>
                                   <Label className="text-xs font-bold text-foreground uppercase">End Date</Label>
-                                  <Input type="date" value={tempAssignment.end_date} onChange={(e) => setTempAssignment({...tempAssignment, end_date: e.target.value})()} />
+                                  <Input type="date" value={tempAssignment.end_date} onChange={(e) => setTempAssignment({...tempAssignment, end_date: e.target.value})} />
                                 </div>
                               </div>
                               
@@ -1790,7 +1790,7 @@ export function StaffProfileDialog({
                           {dName}
                         </SelectItem>
                       );
-                    })()}
+                    })}
                     {departmentsList.length === 0 && (
                       <SelectItem value="IT" disabled>Loading departments...</SelectItem>
                     )}
