@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { useRole } from "@/contexts/RoleContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -123,7 +123,12 @@ export default function OutstationAssignment() {
   const [filterStatus, setFilterStatus] = useState("All");
   const [filterSearch, setFilterSearch] = useState("");
   const currentDate = new Date();
-  const [filterMonthYear, setFilterMonthYear] = useState(`${currentDate.getFullYear()}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}`);
+  const [searchParams] = useSearchParams();
+  const initialMonth = searchParams.get('month');
+  const initialYear = searchParams.get('year');
+  const [filterMonthYear, setFilterMonthYear] = useState(
+    initialMonth && initialYear ? `${initialYear}-${initialMonth}` : `${currentDate.getFullYear()}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}`
+  );
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);

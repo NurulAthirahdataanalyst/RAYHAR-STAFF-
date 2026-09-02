@@ -559,7 +559,7 @@ export default function OutstationAnalytics() {
                   <div className="text-[11px] text-yellow-600 dark:text-yellow-500 font-bold uppercase tracking-wider">
                     TOTAL DESTINATION - {destinationData.length}
                   </div>
-                  <Button variant="link" className="text-[11px] h-auto p-0 text-[#942392] dark:text-purple-400 font-bold" onClick={() => navigate('/outstation')}>
+                  <Button variant="link" className="text-[11px] h-auto p-0 text-[#942392] dark:text-purple-400 font-bold hover:no-underline" onClick={() => navigate(`/outstation/assignment?month=${selectedMonth}&year=${selectedYear}`)}>
                     VIEW ALL OUTSTATION
                   </Button>
                 </div>
