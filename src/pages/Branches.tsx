@@ -1165,7 +1165,7 @@ export default function Branches() {
                 return (
                   <Card
                     key={branch.code}
-                    className="cursor-pointer hover:shadow-2xl hover:-translate-y-1 transition-all border-none shadow-sm bg-card/80 backdrop-blur-md overflow-hidden group rounded-[24px]"
+                    className="cursor-pointer hover:shadow-2xl hover:-translate-y-1 transition-all border border-gray-100 dark:border-slate-800 shadow-[0_8px_30px_rgb(0,0,0,0.04)] bg-white dark:bg-card overflow-hidden group rounded-[24px] relative"
                     onClick={() =>
                       setSelectedBranch({
                         ...branch,
@@ -1177,99 +1177,98 @@ export default function Branches() {
                       })
                     }
                   >
-                    <CardContent className="p-0">
-                      <div className="p-6">
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex items-start gap-4 min-w-0">
-                            <div className="w-12 h-12 rounded-[18px] bg-muted/50 flex items-center justify-center shrink-0 group-hover:bg-[#942392]/10 transition-colors">
-                              <Building2 className="w-6 h-6 text-foreground group-hover:text-[#942392] transition-colors" />
-                            </div>
-                            <div className="min-w-0">
-                              <h3 className="font-black text-foreground text-lg leading-tight truncate group-hover:text-[#942392] transition-colors">
-                                {branch.name}
-                              </h3>
-                              <div className="flex items-center gap-1.5 text-[10px] font-bold text-foreground mt-1 uppercase tracking-widest truncate opacity-60">
-                                <MapPin className="w-3 h-3 shrink-0" />
-                                {location}
-                              </div>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2 shrink-0">
-                            <Badge
-                              variant="outline"
-                              className="font-mono text-[9px] h-5 px-1.5 bg-muted/20 border-border/50"
-                            >
-                              {branch.code}
-                            </Badge>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="w-7 h-7 hover:bg-rose-500/10 hover:text-rose-500 text-foreground"
-                              onClick={(e) =>
-                                handleDeleteBranch(e, branch.code)
-                              }
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </Button>
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-4 gap-2 mt-6">
-                          <div className="bg-emerald-500/10 rounded-[16px] px-1 py-3 border border-emerald-500/20 text-center">
-                            <p className="text-xl font-black text-emerald-600 dark:text-emerald-400 leading-none">
-                              {presentToday}
-                            </p>
-                            <p className="text-[8.5px] tracking-tighter font-black text-emerald-600/70 dark:text-emerald-400/70 uppercase mt-1">
-                              Present
-                            </p>
-                          </div>
-                          <div className="bg-amber-500/10 rounded-[16px] px-1 py-3 border border-amber-500/20 text-center">
-                            <p className="text-xl font-black text-amber-600 dark:text-amber-400 leading-none">
-                              {onLeave}
-                            </p>
-                            <p className="text-[8.5px] tracking-tighter font-black text-amber-600/70 dark:text-amber-400/70 uppercase mt-1">
-                              Leave
-                            </p>
-                          </div>
-                          <div className="bg-blue-500/10 rounded-[16px] px-1 py-3 border border-blue-500/20 text-center">
-                            <p className="text-xl font-black text-blue-600 dark:text-blue-400 leading-none">
-                              {outstation}
-                            </p>
-                            <p className="text-[8.5px] tracking-tighter font-black text-blue-600/70 dark:text-blue-400/70 uppercase mt-1">
-                              Outstation
-                            </p>
-                          </div>
-                          <div className="bg-rose-500/10 rounded-[16px] px-1 py-3 border border-rose-500/20 text-center">
-                            <p className="text-xl font-black text-rose-600 dark:text-rose-400 leading-none">
-                              {absent}
-                            </p>
-                            <p className="text-[8.5px] tracking-tighter font-black text-rose-600/70 dark:text-rose-400/70 uppercase mt-1">
-                              Absent
-                            </p>
-                          </div>
+                    {/* Top Banner (Purple & Yellow angled split) */}
+                    <div className="absolute top-0 left-0 w-full h-[85px] bg-yellow-400">
+                      <div 
+                        className="w-[55%] h-full bg-[#942392]" 
+                        style={{ clipPath: 'polygon(0 0, 100% 0, 85% 100%, 0% 100%)' }}
+                      ></div>
+                    </div>
+
+                    <CardContent className="p-0 relative mt-[85px]">
+                      {/* Top Right Badges (Absolute to Card) */}
+                      <div className="absolute -top-[70px] right-4 flex items-center gap-2">
+                        <Badge
+                          variant="outline"
+                          className="font-black text-[11px] h-8 px-3 bg-white border-white text-slate-800 shadow-sm rounded-md"
+                        >
+                          {branch.code}
+                        </Badge>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="w-8 h-8 bg-white text-slate-800 hover:text-red-600 hover:bg-white rounded-md shadow-sm"
+                          onClick={(e) => handleDeleteBranch(e, branch.code)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+
+                      {/* Center Building Icon */}
+                      <div className="absolute left-1/2 -translate-x-1/2 -top-[42px]">
+                        <div className="w-[84px] h-[84px] rounded-full bg-[#F5F3F7] flex items-center justify-center border-[6px] border-white dark:border-card">
+                          <Building2 className="w-8 h-8 text-[#942392]" strokeWidth={2.5} />
                         </div>
                       </div>
-                      <div className="px-6 py-4 bg-muted/30 flex items-center justify-between border-t border-border/50">
-                        <div className="flex items-center gap-4">
-                          <div className="flex items-center gap-1.5">
-                            <Users className="w-3.5 h-3.5 text-slate-950 dark:text-slate-50" />
-                            <span className="text-[11px] font-black text-foreground/70">
-                              {totalEmployees}
-                            </span>
+
+                      {/* Branch Info */}
+                      <div className="pt-14 pb-5 px-6 text-center">
+                        <h3 className="font-black text-slate-900 dark:text-white text-2xl leading-tight">
+                          {branch.name}
+                        </h3>
+                        <div className="flex items-center justify-center gap-1.5 mt-2">
+                          <MapPin className="w-3.5 h-3.5 text-[#942392]" />
+                          <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest leading-none pt-0.5">
+                            {location}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* 4 Stats */}
+                      <div className="flex items-center justify-between border-t border-b border-gray-100 dark:border-slate-800 py-4 mx-4">
+                        {/* Present */}
+                        <div className="flex-1 flex flex-col items-center border-r border-gray-200 dark:border-slate-700 last:border-0">
+                          <UserCheck className="w-5 h-5 text-emerald-600 mb-1.5" strokeWidth={2.5} />
+                          <p className="text-xl font-black text-emerald-600 leading-none">{presentToday}</p>
+                          <p className="text-[9px] font-black text-emerald-600 uppercase mt-1 tracking-widest">Present</p>
+                        </div>
+                        {/* Leave */}
+                        <div className="flex-1 flex flex-col items-center border-r border-gray-200 dark:border-slate-700 last:border-0">
+                          <Leaf className="w-5 h-5 text-amber-500 mb-1.5" strokeWidth={2.5} />
+                          <p className="text-xl font-black text-amber-500 leading-none">{onLeave}</p>
+                          <p className="text-[9px] font-black text-amber-500 uppercase mt-1 tracking-widest">Leave</p>
+                        </div>
+                        {/* Outstation */}
+                        <div className="flex-1 flex flex-col items-center border-r border-gray-200 dark:border-slate-700 last:border-0">
+                          <Briefcase className="w-5 h-5 text-blue-600 mb-1.5" strokeWidth={2.5} />
+                          <p className="text-xl font-black text-blue-600 leading-none">{outstation}</p>
+                          <p className="text-[9px] font-black text-blue-600 uppercase mt-1 tracking-widest">Outstation</p>
+                        </div>
+                        {/* Absent */}
+                        <div className="flex-1 flex flex-col items-center">
+                          <UserX className="w-5 h-5 text-red-600 mb-1.5" strokeWidth={2.5} />
+                          <p className="text-xl font-black text-red-600 leading-none">{absent}</p>
+                          <p className="text-[9px] font-black text-red-600 uppercase mt-1 tracking-widest">Absent</p>
+                        </div>
+                      </div>
+
+                      {/* Bottom Footer */}
+                      <div className="px-6 py-4 flex items-center justify-between">
+                        <div className="flex items-center gap-5">
+                          <div className="flex items-center gap-2">
+                            <Users className="w-4 h-4 text-[#942392]" strokeWidth={2.5} />
+                            <span className="text-sm font-black text-slate-800 dark:text-slate-200">{totalEmployees}</span>
                           </div>
-                          <div className="flex items-center gap-1.5">
-                            <TrendingUp
-                              className={`w-3.5 h-3.5 ${attendanceRate > 80 ? "text-emerald-500" : "text-amber-500"}`}
-                            />
-                            <span className="text-[11px] font-black text-foreground/70">
-                              {attendanceRate}%
-                            </span>
+                          <div className="flex items-center gap-2">
+                            <TrendingUp className={w-4 h-4 } strokeWidth={2.5} />
+                            <span className="text-sm font-black text-slate-800 dark:text-slate-200">{attendanceRate}%</span>
                           </div>
                         </div>
                         <div className="text-right min-w-0 ml-4">
-                          <p className="text-[9px] font-black text-foreground uppercase leading-none opacity-40">
+                          <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none">
                             Leader
                           </p>
-                          <p className="text-[10px] font-black text-foreground/80 mt-0.5 truncate">
+                          <p className="text-[10px] font-black text-slate-800 dark:text-slate-200 mt-1 truncate uppercase">
                             {leader}
                           </p>
                         </div>
