@@ -51,14 +51,14 @@ const BRANCH_NAMES: Record<string, string> = {
 };
 
 const cardHoverEffects: Record<string, string> = {
-  emerald: "cursor-pointer transition-all duration-200 hover:border-emerald-500 hover:ring-1 hover:ring-emerald-500 hover:bg-emerald-50/50 dark:hover:bg-slate-900/50",
-  orange: "cursor-pointer transition-all duration-200 hover:border-orange-500 hover:ring-1 hover:ring-orange-500 hover:bg-orange-50/50 dark:hover:bg-slate-900/50",
-  purple: "cursor-pointer transition-all duration-200 hover:border-purple-500 hover:ring-1 hover:ring-purple-500 hover:bg-purple-50/50 dark:hover:bg-slate-900/50",
-  red: "cursor-pointer transition-all duration-200 hover:border-red-500 hover:ring-1 hover:ring-red-500 hover:bg-red-50/50 dark:hover:bg-slate-900/50",
-  amber: "cursor-pointer transition-all duration-200 hover:border-amber-500 hover:ring-1 hover:ring-amber-500 hover:bg-amber-50/50 dark:hover:bg-slate-900/50",
-  blue: "cursor-pointer transition-all duration-200 hover:border-blue-500 hover:ring-1 hover:ring-blue-500 hover:bg-blue-50/50 dark:hover:bg-slate-900/50",
-  indigo: "cursor-pointer transition-all duration-200 hover:border-indigo-500 hover:ring-1 hover:ring-indigo-500 hover:bg-indigo-50/50 dark:hover:bg-slate-900/50",
-  slate: "cursor-pointer transition-all duration-200 hover:border-slate-500 hover:ring-1 hover:ring-slate-500 hover:bg-slate-50/50 dark:hover:bg-slate-900/50",
+  emerald: "cursor-pointer transition-all duration-200 hover:bg-emerald-50/50 dark:hover:bg-slate-900/50 group",
+  orange: "cursor-pointer transition-all duration-200 hover:bg-orange-50/50 dark:hover:bg-slate-900/50 group",
+  purple: "cursor-pointer transition-all duration-200 hover:bg-purple-50/50 dark:hover:bg-slate-900/50 group",
+  red: "cursor-pointer transition-all duration-200 hover:bg-red-50/50 dark:hover:bg-slate-900/50 group",
+  amber: "cursor-pointer transition-all duration-200 hover:bg-amber-50/50 dark:hover:bg-slate-900/50 group",
+  blue: "cursor-pointer transition-all duration-200 hover:bg-blue-50/50 dark:hover:bg-slate-900/50 group",
+  indigo: "cursor-pointer transition-all duration-200 hover:bg-indigo-50/50 dark:hover:bg-slate-900/50 group",
+  slate: "cursor-pointer transition-all duration-200 hover:bg-slate-50/50 dark:hover:bg-slate-900/50 group",
 };
 const cardHoverEffect = cardHoverEffects.purple;
 
@@ -582,7 +582,7 @@ export default function WorkforceInsights() {
             <Card className={`border border-slate-100 bg-white p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.purple} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
               <div>
                 <div className="w-10 h-10 rounded-full border border-purple-100 bg-purple-50/50 flex items-center justify-center mb-3">
-                  <CalendarDays className="w-5 h-5 text-purple-600" />
+                  <CalendarDays className="w-5 h-5 text-purple-600 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
                 </div>
                 <p className="text-[11px] font-extrabold text-purple-600 uppercase tracking-wider mb-2">On Leave Today</p>
                 <div className="flex flex-col items-start mt-1">
@@ -590,10 +590,11 @@ export default function WorkforceInsights() {
                   <p className="text-[12px] font-semibold text-foreground mt-1">Employees</p>
                 </div>
               </div>
-                <div className="flex items-center gap-1.5 flex-nowrap overflow-hidden">
-                  <span className="bg-orange-50 text-orange-600 text-[10px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap">AL {data.leave?.annual || 0}</span>
-                  <span className="bg-purple-50 text-purple-600 text-[10px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap">MC {data.leave?.medical || 0}</span>
-                  <span className="bg-blue-50 text-blue-600 text-[10px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap">EL {data.leave?.emergency || 0}</span>
+                <div className="flex items-center gap-1 flex-wrap">
+                  <span className="bg-orange-50 text-orange-600 text-[9px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap">AL {data.leave?.annual || 0}</span>
+                  <span className="bg-purple-50 text-purple-600 text-[9px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap">MC {data.leave?.medical || 0}</span>
+                  <span className="bg-blue-50 text-blue-600 text-[9px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap">RL {data.leave?.replacement || 0}</span>
+                  <span className="bg-slate-100 text-slate-600 text-[9px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap">UL {data.leave?.unpaid || 0}</span>
                 </div>
             </Card>
 

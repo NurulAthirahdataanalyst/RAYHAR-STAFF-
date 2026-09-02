@@ -1177,48 +1177,37 @@ export default function Branches() {
                       })
                     }
                   >
-                    {/* Top Banner (Purple & Yellow angled split) */}
-                    <div className="absolute top-0 left-0 w-full h-[85px] bg-yellow-400">
-                      <div 
-                        className="w-[55%] h-full bg-[#942392]" 
-                        style={{ clipPath: 'polygon(0 0, 100% 0, 85% 100%, 0% 100%)' }}
-                      ></div>
-                    </div>
-
-                    <CardContent className="p-0 relative mt-[85px]">
-                      {/* Top Right Badges (Absolute to Card) */}
-                      <div className="absolute -top-[70px] right-4 flex items-center gap-2">
+                    <CardContent className="p-0 relative">
+                      {/* Top Right Badges */}
+                      <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
                         <Badge
                           variant="outline"
-                          className="font-black text-[11px] h-8 px-3 bg-white border-white text-slate-800 shadow-sm rounded-md"
+                          className="font-black text-[11px] h-8 px-3 bg-white border-slate-200 text-slate-800 shadow-sm rounded-md"
                         >
                           {branch.code}
                         </Badge>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="w-8 h-8 bg-white text-slate-800 hover:text-red-600 hover:bg-white rounded-md shadow-sm"
+                          className="w-8 h-8 bg-white text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-md shadow-sm border border-slate-200"
                           onClick={(e) => handleDeleteBranch(e, branch.code)}
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
 
-                      {/* Center Building Icon */}
-                      <div className="absolute left-1/2 -translate-x-1/2 -top-[42px]">
-                        <div className="w-[84px] h-[84px] rounded-full bg-[#F5F3F7] flex items-center justify-center border-[6px] border-white dark:border-card">
-                          <Building2 className="w-8 h-8 text-[#942392]" strokeWidth={2.5} />
+                      {/* Building Icon centered at top */}
+                      <div className="flex flex-col items-center pt-8 pb-4">
+                        <div className="w-[72px] h-[72px] rounded-full bg-[#EADDED] flex items-center justify-center mb-4">
+                          <Building2 className="w-7 h-7 text-[#942392]" strokeWidth={2.5} />
                         </div>
-                      </div>
-
-                      {/* Branch Info */}
-                      <div className="pt-14 pb-5 px-6 text-center">
-                        <h3 className="font-black text-slate-900 dark:text-white text-2xl leading-tight">
+                        {/* Branch Info */}
+                        <h3 className="font-black text-slate-900 dark:text-white text-xl leading-tight text-center px-4">
                           {branch.name}
                         </h3>
-                        <div className="flex items-center justify-center gap-1.5 mt-2">
-                          <MapPin className="w-3.5 h-3.5 text-[#942392]" />
-                          <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest leading-none pt-0.5">
+                        <div className="flex items-start justify-center gap-1 mt-2 px-4 max-w-full">
+                          <MapPin className="w-3.5 h-3.5 text-[#942392] mt-0.5 shrink-0" />
+                          <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest leading-tight text-center">
                             {location}
                           </span>
                         </div>
