@@ -7739,7 +7739,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       `SELECT
          p.user_id as id,
          p.full_name as name,
-         CASE WHEN p.department = 'General' THEN 'Employee' ELSE 'Executive' END as role,
+         p.role as role,
          p.department as dept,
          p.branch,
          COALESCE(lr.annual_days_used, 0) as taken,
@@ -7766,8 +7766,8 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
     const attentionEmployees = attentionRows.map(r => ({
       id: r.id,
       name: r.name,
-      role: r.role,
-      dept: r.dept || 'General',
+      role: r.role ? r.role.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Employee',
+      dept: (r.dept && r.dept !== 'General') ? r.dept : '--',
       branch: r.branch || 'HQ',
       taken: parseInt(r.taken) || 0,
       total: parseInt(r.total) || 14

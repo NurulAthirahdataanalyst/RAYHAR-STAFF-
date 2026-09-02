@@ -1,19 +1,10 @@
 const { Pool } = require('pg');
-require('dotenv').config({path: '.env'});
+require('dotenv').config();
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
-(async () => {
-  const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false }
-  });
-  
-  try {
-    const res = await pool.query("SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'leave_requests'");
-    console.log("leave_requests columns:");
-    console.table(res.rows);
-  } catch(e) {
-    console.error(e);
-  } finally {
-    pool.end();
-  }
-})();
+async function check() {
+  const { rows } = await pool.query("SELECT column_name FROM information_schema.columns WHERE table_name = 'profiles'");
+  console.log(rows.map(r => r.column_name));
+  process.exit(0);
+}
+check();

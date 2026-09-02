@@ -1,5 +1,10 @@
 const { Pool } = require('pg');
-const dotenv = require('dotenv');
-dotenv.config({path: './.env'});
+require('dotenv').config();
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-pool.query("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';").then(res => { console.log(res.rows); process.exit(0); }).catch(e => console.log(e));
+
+async function check() {
+  const { rows } = await pool.query("SELECT table_name FROM information_schema.tables WHERE table_schema='public'");
+  console.log(rows.map(r => r.table_name));
+  process.exit(0);
+}
+check();
