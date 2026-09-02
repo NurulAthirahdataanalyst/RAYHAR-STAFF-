@@ -1478,7 +1478,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
         <div className="mt-3">
           <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card">
             <CardContent className="p-5">
-              <h3 className="text-[11px] font-bold uppercase tracking-wider text-foreground pb-3 border-b mb-4">REPLACEMENT LEAVES</h3>
+              <h3 className="text-[11px] font-bold uppercase tracking-wider text-foreground pb-3 border-b mb-4">EARNED REPLACEMENT LEAVES</h3>
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
@@ -1486,6 +1486,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                       <th className="pb-3 border-b border-border/50 text-[10px] text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Leave Date</th>
                       <th className="pb-3 border-b border-border/50 text-[10px] text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Replacement Date</th>
                       <th className="pb-3 border-b border-border/50 text-[10px] text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Hours Required</th>
+                      <th className="pb-3 border-b border-border/50 text-[10px] text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Description</th>
                       <th className="pb-3 border-b border-border/50 text-[10px] text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Status</th>
                     </tr>
                   </thead>
@@ -1495,6 +1496,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                         <td className="py-3 border-b border-border/30 text-xs font-medium">{getLocalDateString(rl.leave_date)}</td>
                         <td className="py-3 border-b border-border/30 text-xs font-medium">{getLocalDateString(rl.replacement_date)}</td>
                         <td className="py-3 border-b border-border/30 text-xs font-medium">{rl.required_hours} {rl.required_hours == 1 ? 'Hour' : 'Hours'}</td>
+                        <td className="py-3 border-b border-border/30 text-xs text-muted-foreground">{rl.description || "-"}</td>
                         <td className="py-3 border-b border-border/30">
                           <span className={`text-[10px] font-bold px-2.5 py-1 rounded-md 
                             ${rl.validation_status === 'Validated' ? 'bg-emerald-500/10 text-emerald-600' :
