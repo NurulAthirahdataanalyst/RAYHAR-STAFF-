@@ -402,7 +402,7 @@ export default function OutstationDashboard() {
             </Card>
             
             {/* 2. Active Outstation */}
-            <Card className="border border-emerald-200 cursor-pointer $1 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]" onClick={() => navigate('/outstation/my?tab=Active')}>
+            <Card className="border border-emerald-200 cursor-pointer group relative overflow-hidden flex flex-col justify-between rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]" onClick={() => navigate('/outstation/my?tab=Active')}>
               <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform duration-500 ease-out group-hover:scale-115 group-hover:rotate-6 group-hover:-translate-y-1.5 pointer-events-none">
                 <Plane className="w-24 h-24 text-emerald-600" />
               </div>
@@ -429,7 +429,7 @@ export default function OutstationDashboard() {
             </Card>
 
             {/* 3. Departing Today */}
-            <Card className="border border-orange-200 cursor-pointer $1 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]" onClick={() => navigate('/outstation/my?tab=Upcoming')}>
+            <Card className="border border-orange-200 cursor-pointer group relative overflow-hidden flex flex-col justify-between rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]" onClick={() => navigate('/outstation/my?tab=Upcoming')}>
               <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform duration-500 ease-out group-hover:scale-115 group-hover:rotate-6 group-hover:-translate-y-1.5 pointer-events-none">
                 <Clock className="w-24 h-24 text-orange-600" />
               </div>

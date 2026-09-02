@@ -11,7 +11,7 @@ import {
 } from "recharts";
 
 import { TablePagination } from "@/components/common/TablePagination";
-import { YearPopover } from "@/components/shared/YearPopover";
+import { MonthPicker } from "@/components/shared/MonthPicker";
 import PageActions from "@/components/layout/PageActions";
 
 const ALLOWED_ROLES = ["hr_admin", "managing_director", "operation_manager", "finance_manager", "branch_leader", "head_of_department"];
@@ -250,13 +250,34 @@ export default function OutstationAnalytics() {
     return Object.values(groups).slice(0, 4);
   }, [filteredAssignments]);
 
+
+  const handleMonthYearChange = (val: string) => {
+    if (val.endsWith("-all")) {
+      setSelectedYear(val.split("-")[0]);
+      setSelectedMonth("all");
+    } else {
+      const [y, m] = val.split("-");
+      setSelectedYear(y);
+      setSelectedMonth((parseInt(m, 10) - 1).toString());
+    }
+  };
+  
+  const monthYearVal = selectedMonth === "all" ? ${selectedYear}-all : ${selectedYear}-;
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-12">
       
       <PageActions>
-        <Button onClick={() => void fetchData()} className="h-11 px-5 w-full sm:w-auto">
-          <RefreshCw className="w-3.5 h-3.5 mr-2" /> Refresh
-        </Button>
+        <div className="flex items-center gap-3">
+          <MonthPicker
+            monthYear={monthYearVal}
+            onSelectMonthYear={handleMonthYearChange}
+            className="h-10"
+          />
+          <Button onClick={() => void fetchData()} className="h-10 px-5 w-full sm:w-auto">
+            <RefreshCw className="w-3.5 h-3.5 mr-2" /> Refresh
+          </Button>
+        </div>
       </PageActions>
 
       {/* TOP KPI CARDS */}
