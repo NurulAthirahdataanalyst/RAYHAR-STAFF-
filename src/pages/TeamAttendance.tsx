@@ -77,7 +77,7 @@ export default function TeamAttendance() {
       const attendanceLogs = attJ.success && attJ.history ? attJ.history : [];
 
       if (j && j.success) {
-        const sorted = (j.history || []).slice().sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+        const sorted = (Array.isArray(j.history) ? j.history : []).slice().sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
         
         sorted.forEach((loc: any) => {
           const locTime = new Date(loc.timestamp).getTime();

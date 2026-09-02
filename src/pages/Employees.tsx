@@ -200,7 +200,7 @@ export default function Employees() {
           const hData = await histRes.json();
           let sorted = [];
           if (hData.success) {
-            sorted = (hData.history || []).slice().sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+            sorted = (Array.isArray(hData.history) ? hData.history : []).slice().sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
             
             const now = new Date();
             try {
