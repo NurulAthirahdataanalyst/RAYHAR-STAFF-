@@ -580,7 +580,7 @@ export default function WorkforceCalendar() {
                   <div>
                     <h4 className="text-[10px] font-black uppercase text-foreground mb-3 flex items-center gap-2 tracking-widest text-[#a01497]">
                       <div className="w-1.5 h-1.5 rounded-full bg-[#a01497]" />
-                      Approved Leave & Outstation
+                      Approved Leave & Outstation ({leaveEvts.length})
                     </h4>
                     {leaveEvts.length > 0 ? (
                       <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
@@ -775,7 +775,7 @@ export default function WorkforceCalendar() {
                       {absent.length > 0 && (
                         <div>
                           <div className="text-[10px] font-black uppercase tracking-widest text-black dark:text-white mb-2 border-b pb-1">
-                            Absent ({absent.length})
+                            Total Absent ({absent.length})
                           </div>
                           <div className="space-y-2">
                             {absent.map(a => (
@@ -808,7 +808,7 @@ export default function WorkforceCalendar() {
                       {restDays.length > 0 && (
                         <div>
                           <div className="text-[10px] font-black uppercase tracking-widest text-black dark:text-white mb-2 border-b pb-1">
-                            Rest Day / Weekend ({restDays.length})
+                            Total Rest Day / Weekend ({restDays.length})
                           </div>
                           <div className="space-y-2">
                             {restDays.map(a => (
@@ -987,7 +987,7 @@ export default function WorkforceCalendar() {
                       {restDays.length > 0 && (
                         <div>
                           <div className="text-[10px] font-black uppercase tracking-widest text-black dark:text-white mb-2 border-b pb-1">
-                            Rest Day / Weekend ({restDays.length})
+                            Total Rest Day / Weekend ({restDays.length})
                           </div>
                           <div className="space-y-2">
                             {restDays.map(a => (
