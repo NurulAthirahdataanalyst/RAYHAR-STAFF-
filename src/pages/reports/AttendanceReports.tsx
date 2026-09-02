@@ -575,6 +575,7 @@ export default function AttendanceReports() {
                               req.status === 'Present (Late)' ? 'bg-yellow-100 text-yellow-700' :
                               req.status === 'Missing Clock-Out' ? 'bg-orange-100 text-orange-700' :
                               req.status === 'Outstation' ? 'bg-blue-100 text-blue-700' :
+                              req.status === 'Approved Leave' || req.status === 'Company Leave' ? 'bg-blue-100 text-blue-700' :
                               'bg-red-100 text-red-700'
                             }`}>
                               {req.status}

@@ -546,6 +546,7 @@ export default function TeamAttendance() {
                               emp.status === 'Clocked Out' ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300' :
                               emp.status === 'Missing Clock-Out' ? 'bg-orange-100 text-orange-700' :
                               emp.status === 'Outstation' ? 'bg-blue-100 text-blue-700' :
+                              emp.status === 'Approved Leave' || emp.status === 'Company Leave' ? 'bg-blue-100 text-blue-700' :
                               'bg-red-100 text-red-700'
                             }`}>
                               {emp.status}
