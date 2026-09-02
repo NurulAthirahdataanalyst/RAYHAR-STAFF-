@@ -1414,12 +1414,12 @@ export function StaffProfileDialog({
       <Dialog open={!!viewLeaveStatus} onOpenChange={(open) => !open && setViewLeaveStatus(null)}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <div className="print:hidden">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5 text-primary" />
+            <DialogHeader className="bg-[#942392] p-6 -mx-6 -mt-6 mb-4 rounded-t-lg border-b border-[#942392]/20">
+              <DialogTitle className="flex items-center gap-2 text-white">
+                <FileText className="h-5 w-5 text-white/90" />
                 {viewLeaveStatus} Leaves - {selectedEmployee?.name}
               </DialogTitle>
-              <DialogDescription>
+              <DialogDescription className="text-white/80">
                 Review the submitted leave forms with this status.
               </DialogDescription>
             </DialogHeader>
