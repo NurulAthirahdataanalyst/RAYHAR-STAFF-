@@ -1260,7 +1260,7 @@ export default function Branches() {
                             <span className="text-sm font-black text-slate-800 dark:text-slate-200">{totalEmployees}</span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <TrendingUp className={w-4 h-4 } strokeWidth={2.5} />
+                            <TrendingUp className="w-4 h-4" strokeWidth={2.5} />
                             <span className="text-sm font-black text-slate-800 dark:text-slate-200">{attendanceRate}%</span>
                           </div>
                         </div>
