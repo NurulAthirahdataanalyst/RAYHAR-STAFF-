@@ -25,7 +25,7 @@ import { API_BASE_URL } from "../../config/api";
 const OUTSTATION_ROLES = ["hr_admin", "managing_director", "operation_manager", "finance_manager", "branch_leader", "head_of_department"];
 
 // Semantic Colors
-const C_PURPLE =  "#7B0099]"; // Brand
+const C_PURPLE =  "#942392]"; // Brand
 const C_BLUE = "#2563eb";   // Info
 const C_GREEN = "#16a34a";  // Completed
 const C_ORANGE = "#ea580c"; // Upcoming
@@ -367,7 +367,7 @@ export default function OutstationDashboard() {
     <div className="animate-in fade-in duration-500 pb-12">
       <div className="py-2">
         <PageActions>
-          <Button className="h-10 px-5 text-[14px] font-semibold text-white shadow-sm bg-[#7B0099] hover:bg-[#3b0764] w-full sm:w-auto" onClick={() => navigate("/outstation/assignment", { state: { openNew: true } })}>
+          <Button className="h-10 px-5 text-[14px] font-semibold text-white shadow-sm bg-[#942392] hover:bg-[#3b0764] w-full sm:w-auto" onClick={() => navigate("/outstation/assignment", { state: { openNew: true } })}>
             <Plane className="w-4 h-4 mr-2" /> New Assignment 
           </Button>
         </PageActions>
@@ -377,19 +377,19 @@ export default function OutstationDashboard() {
             {/* 1. Total Outstation */}
             <Card className="border border-purple-200 dark:border-purple-900/60 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-purple-50/60 dark:bg-purple-950/30 group relative overflow-hidden flex flex-col justify-between rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
               <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform duration-500 ease-out group-hover:scale-115 group-hover:rotate-6 group-hover:-translate-y-1.5 pointer-events-none">
-                <Briefcase className="w-24 h-24 text-[#7B0099]" />
+                <Briefcase className="w-24 h-24 text-[#942392]" />
               </div>
               <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
                 <div>
                   <div className="flex items-center gap-1.5 mb-2">
-                    <div className="w-2.5 h-2.5 rounded-full bg-[#7B0099] shadow-xs"></div>
+                    <div className="w-2.5 h-2.5 rounded-full bg-[#942392] shadow-xs"></div>
                     <span className="text-[11px] font-extrabold text-foreground dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Total Outstation</span>
                   </div>
                   {loading ? (
                     <Skeleton className="h-[36px] w-16 my-2" />
                   ) : (
                     <div className="my-1">
-                      <span className="text-3xl font-black text-[#7B0099] dark:text-purple-300 leading-none">{totalEventsCount}</span>
+                      <span className="text-3xl font-black text-[#942392] dark:text-purple-300 leading-none">{totalEventsCount}</span>
                     </div>
                   )}
                 </div>
@@ -637,7 +637,7 @@ export default function OutstationDashboard() {
                               
                                 <DialogContent className="max-w-lg w-[95vw] sm:w-full rounded-2xl p-0 overflow-hidden max-h-[90vh] flex flex-col">
                                     {/* Header (Fixed) */}
-                                    <div className="bg-[#7B0099] px-6 py-5 text-white shrink-0">
+                                    <div className="bg-[#942392] px-6 py-5 text-white shrink-0">
                                       <div className="flex items-start gap-3">
                                         <div className="p-2 rounded-xl bg-white/20 shrink-0">
                                           <Plane className="w-5 h-5 text-white" />
@@ -693,9 +693,9 @@ export default function OutstationDashboard() {
                                             <p className="text-[10px] text-black dark:text-white font-bold uppercase">End Date</p>
                                             <p className="text-sm font-black text-foreground dark:text-gray-100 mt-0.5">{formatShortDate(g.end_date)}</p>
                                           </div>
-                                          <div className="bg-[#7B0099]/5 rounded-xl p-3 border border-[#7B0099]/20">
-                                            <p className="text-[10px] text-[#7B0099] font-bold uppercase">Total Days</p>
-                                            <p className="text-lg font-black text-[#7B0099] mt-0.5">
+                                          <div className="bg-[#942392]/5 rounded-xl p-3 border border-[#942392]/20">
+                                            <p className="text-[10px] text-[#942392] font-bold uppercase">Total Days</p>
+                                            <p className="text-lg font-black text-[#942392] mt-0.5">
                                               {g.employees[0]?.total_days || 0} {g.employees[0]?.total_days === 1 ? 'Day' : 'Days'}
                                             </p>
                                           </div>
@@ -710,7 +710,7 @@ export default function OutstationDashboard() {
                                         <div className="space-y-2">
                                           {g.employees.map((emp: any, idx: number) => (
                                             <div key={idx} className="flex items-center gap-3 bg-gray-50 dark:bg-slate-900/50 rounded-xl p-3 border border-gray-100 dark:border-slate-800">
-                                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#7B0099]/20 to-pink-200 flex items-center justify-center text-[10px] font-black text-[#7B0099] shrink-0">
+                                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#942392]/20 to-pink-200 flex items-center justify-center text-[10px] font-black text-[#942392] shrink-0">
                                                 {(emp.full_name || "?").split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
                                               </div>
                                               <div className="flex-1 min-w-0">
@@ -734,7 +734,7 @@ export default function OutstationDashboard() {
                                               <title>Outstation Assignment - ${ g.project || g.purpose || "Trip" }</title>
                                               <style>
                                                 body { font-family: Arial, sans-serif; padding: 20px; color: #333; }
-                                                h1 { color: #7B0099; font-size: 24px; margin-bottom: 5px; }
+                                                h1 { color: #942392; font-size: 24px; margin-bottom: 5px; }
                                                 h2 { font-size: 16px; margin-top: 30px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
                                                 .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
                                                 .info-box { background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #eee; }
@@ -925,7 +925,7 @@ export default function OutstationDashboard() {
                                 
                                 <DialogContent className="max-w-lg w-[95vw] sm:w-full rounded-2xl p-0 overflow-hidden max-h-[90vh] flex flex-col">
                                     {/* Header (Fixed) */}
-                                    <div className="bg-[#7B0099] px-6 py-5 text-white shrink-0">
+                                    <div className="bg-[#942392] px-6 py-5 text-white shrink-0">
                                       <div className="flex items-start gap-3">
                                         <div className="p-2 rounded-xl bg-white/20 shrink-0">
                                           <Plane className="w-5 h-5 text-white" />
@@ -981,9 +981,9 @@ export default function OutstationDashboard() {
                                             <p className="text-[10px] text-black dark:text-white font-bold uppercase">End Date</p>
                                             <p className="text-sm font-black text-foreground dark:text-gray-100 mt-0.5">{formatShortDate(g.end_date)}</p>
                                           </div>
-                                          <div className="bg-[#7B0099]/5 rounded-xl p-3 border border-[#7B0099]/20">
-                                            <p className="text-[10px] text-[#7B0099] font-bold uppercase">Total Days</p>
-                                            <p className="text-lg font-black text-[#7B0099] mt-0.5">
+                                          <div className="bg-[#942392]/5 rounded-xl p-3 border border-[#942392]/20">
+                                            <p className="text-[10px] text-[#942392] font-bold uppercase">Total Days</p>
+                                            <p className="text-lg font-black text-[#942392] mt-0.5">
                                               {g.employees[0]?.total_days || 0} {g.employees[0]?.total_days === 1 ? 'Day' : 'Days'}
                                             </p>
                                           </div>
@@ -998,7 +998,7 @@ export default function OutstationDashboard() {
                                         <div className="space-y-2">
                                           {g.employees.map((emp: any, idx: number) => (
                                             <div key={idx} className="flex items-center gap-3 bg-gray-50 dark:bg-slate-900/50 rounded-xl p-3 border border-gray-100 dark:border-slate-800">
-                                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#7B0099]/20 to-pink-200 flex items-center justify-center text-[10px] font-black text-[#7B0099] shrink-0">
+                                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#942392]/20 to-pink-200 flex items-center justify-center text-[10px] font-black text-[#942392] shrink-0">
                                                 {(emp.full_name || "?").split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
                                               </div>
                                               <div className="flex-1 min-w-0">
@@ -1022,7 +1022,7 @@ export default function OutstationDashboard() {
                                               <title>Outstation Assignment - ${ g.project || g.purpose || "Trip" }</title>
                                               <style>
                                                 body { font-family: Arial, sans-serif; padding: 20px; color: #333; }
-                                                h1 { color: #7B0099; font-size: 24px; margin-bottom: 5px; }
+                                                h1 { color: #942392; font-size: 24px; margin-bottom: 5px; }
                                                 h2 { font-size: 16px; margin-top: 30px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
                                                 .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
                                                 .info-box { background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #eee; }
@@ -1163,7 +1163,7 @@ export default function OutstationDashboard() {
             {/* Quick Actions */}
             <Card className="border border-slate-100 dark:border-slate-800 bg-white dark:bg-card overflow-hidden rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
               <CardHeader className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex flex-row items-center gap-2">
-                <Zap className="w-4 h-4 text-[#7B0099]" />
+                <Zap className="w-4 h-4 text-[#942392]" />
                 <CardTitle className="text-[11px] font-bold text-foreground dark:text-slate-100 uppercase tracking-widest">
                   Quick Actions
                 </CardTitle>
@@ -1171,19 +1171,19 @@ export default function OutstationDashboard() {
               <CardContent className="p-4">
                 <div className="grid grid-cols-2 gap-3">
                   <div onClick={() => navigate("/outstation/assignment")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-purple-500 hover:ring-1 hover:ring-purple-500 hover:bg-purple-50/50 dark:hover:bg-slate-900/50 transition-all duration-200">
-                    <Plane className="w-6 h-6 text-[#7B0099] mb-2" />
+                    <Plane className="w-6 h-6 text-[#942392] mb-2" />
                     <span className="text-[10px] font-bold text-foreground dark:text-slate-300 uppercase text-center">New Assignment</span>
                   </div>
                   <div onClick={() => navigate("/outstation/calendar")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-purple-500 hover:ring-1 hover:ring-purple-500 hover:bg-purple-50/50 dark:hover:bg-slate-900/50 transition-all duration-200">
-                    <Calendar className="w-6 h-6 text-[#7B0099] mb-2" />
+                    <Calendar className="w-6 h-6 text-[#942392] mb-2" />
                     <span className="text-[10px] font-bold text-foreground dark:text-slate-300 uppercase text-center">Calendar View</span>
                   </div>
                   <div onClick={() => navigate("/outstation/analytics")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-purple-500 hover:ring-1 hover:ring-purple-500 hover:bg-purple-50/50 dark:hover:bg-slate-900/50 transition-all duration-200">
-                    <Activity className="w-6 h-6 text-[#7B0099] mb-2" />
+                    <Activity className="w-6 h-6 text-[#942392] mb-2" />
                     <span className="text-[10px] font-bold text-foreground dark:text-slate-300 uppercase text-center">Analytics</span>
                   </div>
                   <div onClick={() => navigate("/outstation/reports")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-purple-500 hover:ring-1 hover:ring-purple-500 hover:bg-purple-50/50 dark:hover:bg-slate-900/50 transition-all duration-200">
-                    <Map className="w-6 h-6 text-[#7B0099] mb-2" />
+                    <Map className="w-6 h-6 text-[#942392] mb-2" />
                     <span className="text-[10px] font-bold text-foreground dark:text-slate-300 uppercase text-center">Reports</span>
                   </div>
                 </div>

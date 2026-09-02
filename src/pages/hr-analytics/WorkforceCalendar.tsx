@@ -50,7 +50,7 @@ function getEventPriority(event: WorkforceEvent): number {
 
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const DAYS   = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
-const PRIMARY = "#7B0099";
+const PRIMARY = "#942392";
 
 type WorkforceEvent = {
   id: string;
@@ -263,7 +263,7 @@ export default function WorkforceCalendar() {
   };
   const canFilterBranchDept = ["hr_admin", "managing_director", "finance_manager"].includes(role);
 
-  if (roleLoading) return <div className="min-h-[60vh] flex items-center justify-center"><Loader2 className="animate-spin w-8 h-8 text-[#7B0099]" /></div>;
+  if (roleLoading) return <div className="min-h-[60vh] flex items-center justify-center"><Loader2 className="animate-spin w-8 h-8 text-[#942392]" /></div>;
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-8">
@@ -370,11 +370,11 @@ export default function WorkforceCalendar() {
       {/* Calendar Grid */}
       <Card className="border border-gray-200 dark:border-slate-800/80 shadow-sm overflow-hidden">
         {loading ? (
-          <div className="h-80 flex items-center justify-center"><Loader2 className="animate-spin w-7 h-7 text-[#7B0099]" /></div>
+          <div className="h-80 flex items-center justify-center"><Loader2 className="animate-spin w-7 h-7 text-[#942392]" /></div>
         ) : (
           <>
             {/* Day Headers */}
-            <div className="grid grid-cols-7 border-b border-border/60 bg-[#7B0099] divide-x divide-white/20">
+            <div className="grid grid-cols-7 border-b border-border/60 bg-[#942392] divide-x divide-white/20">
               {DAYS.map(d => (
                 <div key={d} className="px-2 py-3 text-center text-[11px] font-bold uppercase tracking-widest text-white">{d}</div>
               ))}
@@ -393,7 +393,7 @@ export default function WorkforceCalendar() {
                 
                 if (today) {
                   cellBg = "bg-[#DBC5E1]";
-                  textCol = "text-[#7B0099]";
+                  textCol = "text-[#942392]";
                 } else if (!isCurrentMonth) {
                   cellBg = "bg-slate-50/50 dark:bg-slate-900/50";
                   textCol = "text-foreground opacity-50";
@@ -894,7 +894,7 @@ export default function WorkforceCalendar() {
                 <div className="space-y-3">
                   {selectedEvent.source !== "company_leave" && (
                     <div className="flex items-center gap-2.5">
-                      <User className="w-3.5 h-3.5 text-[#7B0099] shrink-0" />
+                      <User className="w-3.5 h-3.5 text-[#942392] shrink-0" />
                       <div>
                         <p className="text-[9px] font-black uppercase text-foreground">Employee</p>
                         <p className="text-[12px] font-bold text-gray-800 dark:text-gray-100">{selectedEvent.employee}</p>
@@ -904,7 +904,7 @@ export default function WorkforceCalendar() {
                   )}
                   {selectedEvent.destination && (
                     <div className="flex items-center gap-2.5">
-                      <MapPin className="w-3.5 h-3.5 text-[#7B0099] shrink-0" />
+                      <MapPin className="w-3.5 h-3.5 text-[#942392] shrink-0" />
                       <div>
                         <p className="text-[9px] font-black uppercase text-foreground">Destination</p>
                         <p className="text-[12px] font-bold text-gray-800 dark:text-gray-100">
@@ -919,7 +919,7 @@ export default function WorkforceCalendar() {
                     </div>
                   )}
                   <div className="flex items-center gap-2.5">
-                    <Calendar className="w-3.5 h-3.5 text-[#7B0099] shrink-0" />
+                    <Calendar className="w-3.5 h-3.5 text-[#942392] shrink-0" />
                     <div>
                       <p className="text-[9px] font-black uppercase text-foreground">
                         Duration{selectedEvent.days ? ` (${selectedEvent.days} ${Number(selectedEvent.days) === 1 ? 'Day' : 'Days'})` : ''}

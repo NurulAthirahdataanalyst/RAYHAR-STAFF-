@@ -350,11 +350,11 @@
     -webkit-print-color-adjust: exact;
   }
 
-  .text-\[\#7B0099\] {
+  .text-\[\#942392\] {
     color: #000 !important;
   }
 
-  .bg-\[\#7B0099\]\/10,
+  .bg-\[\#942392\]\/10,
   .bg-muted\/30 {
     background-color: #f3f4f6 !important;
     border: 1px solid #ddd !important;
@@ -500,23 +500,23 @@ input[type=range]::-webkit-slider-thumb {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: #7B0099;
+  background: #942392;
   cursor: pointer;
   border: 3px solid white;
-  box-shadow: 0 0 0 2px #7B0099, 0 2px 8px rgba(123,0,153,0.4);
+  box-shadow: 0 0 0 2px #942392, 0 2px 8px rgba(123,0,153,0.4);
   transition: box-shadow 0.2s;
 }
 input[type=range]::-webkit-slider-thumb:hover {
-  box-shadow: 0 0 0 3px #7B0099, 0 4px 12px rgba(123,0,153,0.5);
+  box-shadow: 0 0 0 3px #942392, 0 4px 12px rgba(123,0,153,0.5);
 }
 input[type=range]::-moz-range-thumb {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: #7B0099;
+  background: #942392;
   cursor: pointer;
   border: 3px solid white;
-  box-shadow: 0 0 0 2px #7B0099;
+  box-shadow: 0 0 0 2px #942392;
 }
 
 /* Hide scrollbar for Chrome, Safari and Opera */
@@ -575,10 +575,10 @@ input[type=range]::-moz-range-thumb {
   opacity: 1;
 }
 .check:hover svg {
-  stroke: #7B0099;
+  stroke: #942392;
 }
 .cbx:checked + .check svg {
-  stroke: #7B0099;
+  stroke: #942392;
 }
 .cbx:checked + .check svg path {
   stroke-dashoffset: 60;
@@ -598,7 +598,7 @@ input[type=range]::-moz-range-thumb {
  --toggle-shadow-offset: 10px;
  --toggle-wider: 3em;
  --color-grey: #cccccc;
- --color-green: #7B0099;
+ --color-green: #942392;
  display: inline-block;
  position: relative;
  font-size: 11px; /* Adjust scale */

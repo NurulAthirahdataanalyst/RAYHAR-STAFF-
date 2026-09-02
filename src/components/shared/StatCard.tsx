@@ -60,7 +60,7 @@ export default function StatCard({
             <circle cx="50%" cy="50%" r="42%" stroke="currentColor" strokeWidth="5" fill="transparent" 
               strokeDasharray={175.9}
               strokeDashoffset={175.9 - (progress / 100) * 175.9}
-              className="text-[#7B0099] dark:text-indigo-400 transition-all duration-1000 ease-out" 
+              className="text-[#942392] dark:text-indigo-400 transition-all duration-1000 ease-out" 
               strokeLinecap="round"
             />
           </svg>
@@ -79,7 +79,7 @@ export default function StatCard({
       gold: "bg-amber-500/10 border-amber-500/20 text-amber-900 dark:text-amber-100",
       success: "bg-emerald-500/10 border-emerald-500/20 text-emerald-900 dark:text-emerald-100",
       warning: "bg-amber-500/10 border-amber-500/20 text-amber-900 dark:text-amber-100",
-      purple: "bg-[#7B0099]/10 border-[#7B0099]/20 text-[#7B0099] dark:text-indigo-100",
+      purple: "bg-[#942392]/10 border-[#942392]/20 text-[#942392] dark:text-indigo-100",
     };
     const iconColors: Record<string, string> = {
       default: "text-blue-600 dark:text-blue-400",
@@ -87,7 +87,7 @@ export default function StatCard({
       gold: "text-amber-600 dark:text-amber-400",
       success: "text-emerald-600 dark:text-emerald-400",
       warning: "text-amber-600 dark:text-amber-400",
-      purple: "text-[#7B0099] dark:text-indigo-400",
+      purple: "text-[#942392] dark:text-indigo-400",
     };
     
     const analyticsStyle = bgColors[variant] || bgColors.default;
@@ -145,8 +145,8 @@ export default function StatCard({
           <Icon className={`w-[18px] h-[18px] ${
             variant === 'maroon' ? 'text-rose-600 dark:text-rose-400' : 
             variant === 'warning' ? 'text-amber-600 dark:text-amber-400' : 
-            variant === 'purple' ? 'text-[#7B0099] dark:text-indigo-400' : 
-            variant === 'success' ? 'text-[#7B0099] dark:text-indigo-400' :
+            variant === 'purple' ? 'text-[#942392] dark:text-indigo-400' : 
+            variant === 'success' ? 'text-[#942392] dark:text-indigo-400' :
             'text-slate-600 dark:text-foreground'
           }`} />
         </div>

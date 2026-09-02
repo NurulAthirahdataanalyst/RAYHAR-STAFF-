@@ -579,17 +579,17 @@ export default function Attendance() {
           <title>Rayhar Staff Attendance Report - ${user?.full_name || 'Employee'}</title>
           <style>
             body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #1e293b; padding: 40px; }
-            h1 { color: #7B0099; margin-bottom: 5px; font-size: 24px; font-weight: 800; }
+            h1 { color: #942392; margin-bottom: 5px; font-size: 24px; font-weight: 800; }
             h2 { color: #64748b; font-size: 14px; margin-top: 0; font-weight: 600; margin-bottom: 30px; text-transform: uppercase; letter-spacing: 1px; }
             .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 40px; padding: 20px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; }
             .meta-item { font-size: 13px; }
             .meta-item strong { color: #475569; }
             table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-            th { background: #7B0099; color: white; text-align: left; padding: 12px 16px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+            th { background: #942392; color: white; text-align: left; padding: 12px 16px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
             td { padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-size: 13px; }
             tr:nth-child(even) td { background: #f8fafc; }
             .badge { padding: 4px 8px; border-radius: 9999px; font-size: 10px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; white-space: nowrap; display: inline-block; }
-            .badge-present { background: #f3e8ff; color: #7b0099; }
+            .badge-present { background: #f3e8ff; color: #942392; }
             .badge-absent { background: #fee2e2; color: #991b1b; }
             .badge-leave { background: #fef3c7; color: #92400e; }
             .badge-companyleave { background: #eae5ff; color: #581c87; }
@@ -608,7 +608,7 @@ export default function Attendance() {
               <h1 style="margin: 0; font-size: 28px; letter-spacing: -0.5px;">RAYHAR GROUP</h1>
               <h2 style="margin: 2px 0 24px 0; font-size: 13px; font-weight: 700; color: #64748b;">Staff Attendance Report</h2>
             </div>
-            <button onclick="window.print();" style="background: #7B0099; color: white; border: none; padding: 10px 20px; font-weight: 800; border-radius: 8px; cursor: pointer; font-size: 12px; transition: background 0.2s;">PRINT REPORT</button>
+            <button onclick="window.print();" style="background: #942392; color: white; border: none; padding: 10px 20px; font-weight: 800; border-radius: 8px; cursor: pointer; font-size: 12px; transition: background 0.2s;">PRINT REPORT</button>
           </div>
 
           {/* Month-only KPI Cards */}
@@ -1151,7 +1151,7 @@ export default function Attendance() {
     return (
       <div className="flex h-[60vh] sm:h-[80vh] items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="animate-spin text-[#7B0099] w-10 h-10" />
+          <Loader2 className="animate-spin text-[#942392] w-10 h-10" />
           <p className="text-foreground font-medium animate-pulse text-sm">Initializing Attendance System...</p>
         </div>
       </div>
@@ -1216,7 +1216,7 @@ export default function Attendance() {
                       <circle
                         cx="50" cy="50" r="46"
                         fill="none"
-                        stroke="#7B0099"
+                        stroke="#942392"
                         strokeWidth="6"
                         strokeDasharray={289.027}
                         strokeDashoffset={289.027 - (shiftProgress * 289.027)}
@@ -1247,7 +1247,7 @@ export default function Attendance() {
                     ? "bg-card dark:bg-card border-[3px] border-emerald-500 focus:ring-emerald-200 dark:focus:ring-emerald-800 text-emerald-600 dark:text-emerald-400 shadow-emerald-500/20"
                     : attendanceStatus && !attendanceStatus.clockInAllowed
                     ? "bg-purple-100 dark:bg-purple-950/60 border-[3px] border-purple-500 text-purple-600 dark:text-purple-400 shadow-purple-500/10 cursor-not-allowed"
-                    : "bg-gradient-to-tr from-[#5e0080] via-[#7B0099] to-purple-500 focus:ring-purple-200 dark:focus:ring-purple-800 text-white shadow-purple-500/40"
+                    : "bg-gradient-to-tr from-[#5e0080] via-[#942392] to-purple-500 focus:ring-purple-200 dark:focus:ring-purple-800 text-white shadow-purple-500/40"
                     }`}
                   aria-label={activeSession ? "Clock out - End shift" : (attendanceStatus && !attendanceStatus.clockInAllowed) ? "Company Leave - Clock-in disabled" : "Clock in - Start shift"}
                 >
@@ -1354,7 +1354,7 @@ export default function Attendance() {
                     type="button"
                     onClick={handleUpdateLocation}
                     disabled={outstationLocationLoading}
-                    className="mt-3 w-full bg-[#7B0099] hover:bg-[#5f007d] text-white rounded-full h-10 font-black text-[11px] uppercase tracking-widest border-b-[4px] border-[#a300cc] active:border-b-0 active:translate-y-[4px] transition-all"
+                    className="mt-3 w-full bg-[#942392] hover:bg-[#5f007d] text-white rounded-full h-10 font-black text-[11px] uppercase tracking-widest border-b-[4px] border-[#a300cc] active:border-b-0 active:translate-y-[4px] transition-all"
                   >
                     {outstationLocationLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <MapPin className="w-4 h-4 mr-2" />}
                     Update Location
@@ -1366,7 +1366,7 @@ export default function Attendance() {
               <div className="w-full border border-border/50 rounded-lg overflow-hidden mt-3 sm:mt-4">
                 <div className="grid grid-cols-3 divide-x divide-border/50">
                   <div className="flex flex-col items-center py-3 px-2 gap-1 bg-muted/20">
-                    <div className="w-7 h-7 rounded-full bg-purple-50 dark:bg-purple-950/30 text-[#7B0099] dark:text-purple-400 flex items-center justify-center">
+                    <div className="w-7 h-7 rounded-full bg-purple-50 dark:bg-purple-950/30 text-[#942392] dark:text-purple-400 flex items-center justify-center">
                       <Clock className="w-3.5 h-3.5" />
                     </div>
                     <span className="text-[9px] uppercase font-bold text-foreground tracking-wider text-center">Clock In</span>
@@ -1421,10 +1421,10 @@ export default function Attendance() {
             {/* Stat Card 1: Total Hours Today */}
             <div className="border border-slate-100 dark:border-slate-700 bg-white dark:bg-card shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] rounded-[24px] hover:border-purple-300 dark:hover:border-purple-700 transition-colors p-4 flex flex-col items-center justify-center relative overflow-hidden group">
               <div className="absolute top-0 right-0 p-2 opacity-10">
-                <Clock className="w-10 h-10 text-[#7B0099]" />
+                <Clock className="w-10 h-10 text-[#942392]" />
               </div>
               <div className="w-8 h-8 rounded-full bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center mb-2 shadow-sm">
-                 <Clock className="w-4 h-4 text-[#7B0099] dark:text-purple-400" />
+                 <Clock className="w-4 h-4 text-[#942392] dark:text-purple-400" />
               </div>
               <div className="text-xl sm:text-2xl font-black text-foreground font-mono">
                 {stats.totalHoursToday} <span className="text-xs text-foreground">hrs</span>
@@ -1437,7 +1437,7 @@ export default function Attendance() {
             {/* Stat Card 2: Total Hours Week */}
             <div className="border border-slate-100 dark:border-slate-700 bg-white dark:bg-card shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] rounded-[24px] hover:border-purple-300 dark:hover:border-purple-700 transition-colors p-4 flex flex-col items-center justify-center relative overflow-hidden group">
               <div className="absolute top-0 right-0 p-2 opacity-10">
-                <Timer className="w-10 h-10 text-[#7B0099]" />
+                <Timer className="w-10 h-10 text-[#942392]" />
               </div>
               <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center mb-2 shadow-sm">
                  <Timer className="w-4 h-4 text-blue-600 dark:text-blue-400" />
@@ -1453,7 +1453,7 @@ export default function Attendance() {
             {/* Stat Card 3: Total Hours Month */}
             <div className="border border-slate-100 dark:border-slate-700 bg-white dark:bg-card shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] rounded-[24px] hover:border-purple-300 dark:hover:border-purple-700 transition-colors p-4 flex flex-col items-center justify-center relative overflow-hidden group">
               <div className="absolute top-0 right-0 p-2 opacity-10">
-                <FileText className="w-10 h-10 text-[#7B0099]" />
+                <FileText className="w-10 h-10 text-[#942392]" />
               </div>
               <div className="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center mb-2 shadow-sm">
                  <FileText className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
@@ -1469,7 +1469,7 @@ export default function Attendance() {
             {/* Stat Card 4: Overtime This Month */}
             <div className="border border-slate-100 dark:border-slate-700 bg-white dark:bg-card shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] rounded-[24px] hover:border-purple-300 dark:hover:border-purple-700 transition-colors p-4 flex flex-col items-center justify-center relative overflow-hidden group">
               <div className="absolute top-0 right-0 p-2 opacity-10">
-                <Fingerprint className="w-10 h-10 text-[#7B0099]" />
+                <Fingerprint className="w-10 h-10 text-[#942392]" />
               </div>
               <div className="w-8 h-8 rounded-full bg-rose-50 dark:bg-rose-900/30 flex items-center justify-center mb-2 shadow-sm">
                  <Fingerprint className="w-4 h-4 text-rose-600 dark:text-rose-400" />
@@ -1713,7 +1713,7 @@ export default function Attendance() {
                 <button
                   onClick={() => setViewMode("day")}
                   className={`px-4 py-1.5 text-[10px] font-black tracking-wider rounded-md transition-all uppercase ${
-                    viewMode === "day" ? "bg-[#7B0099] text-white shadow-sm" : "text-foreground hover:text-foreground"
+                    viewMode === "day" ? "bg-[#942392] text-white shadow-sm" : "text-foreground hover:text-foreground"
                   }`}
                 >
                   Day
@@ -1721,7 +1721,7 @@ export default function Attendance() {
                 <button
                   onClick={() => setViewMode("month")}
                   className={`px-4 py-1.5 text-[10px] font-black tracking-wider rounded-md transition-all uppercase ${
-                    viewMode === "month" ? "bg-[#7B0099] text-white shadow-sm" : "text-foreground hover:text-foreground"
+                    viewMode === "month" ? "bg-[#942392] text-white shadow-sm" : "text-foreground hover:text-foreground"
                   }`}
                 >
                   Month
@@ -1735,7 +1735,7 @@ export default function Attendance() {
                     key={status}
                     onClick={() => setStatusFilter(status)}
                     className={`px-3 py-1.5 text-[10px] font-black tracking-wider rounded-md transition-all uppercase ${
-                      statusFilter === status ? "bg-[#7B0099] text-white shadow-sm" : "text-foreground hover:text-foreground"
+                      statusFilter === status ? "bg-[#942392] text-white shadow-sm" : "text-foreground hover:text-foreground"
                     }`}
                   >
                     {status}
@@ -1770,7 +1770,7 @@ export default function Attendance() {
                 {fetchingHistory && historyLogs.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={attendanceMode === 'multi' ? 8 : 7} className="py-12 text-center">
-                      <Loader2 className="w-6 h-6 animate-spin text-[#7B0099] mx-auto mb-2" />
+                      <Loader2 className="w-6 h-6 animate-spin text-[#942392] mx-auto mb-2" />
                       <p className="text-sm font-medium text-foreground">Loading Data...</p>
                     </TableCell>
                   </TableRow>
@@ -1791,7 +1791,7 @@ export default function Attendance() {
                       if (log.late !== "00:00" && log.late !== "--") {
                         statusBadge = "bg-rose-100/50 text-rose-700 border-rose-200/50 dark:bg-rose-900/20 dark:text-rose-400";
                       } else {
-                        statusBadge = "bg-purple-100/50 text-[#7B0099] border-[#7B0099]/20 dark:bg-purple-900/20 dark:text-purple-400";
+                        statusBadge = "bg-purple-100/50 text-[#942392] border-[#942392]/20 dark:bg-purple-900/20 dark:text-purple-400";
                       }
                     } else if (log.status === "Company Leave") {
                       statusBadge = "bg-violet-100/50 text-violet-700 border-violet-200/50 dark:bg-violet-900/20 dark:text-violet-400";
@@ -1984,7 +1984,7 @@ export default function Attendance() {
             </p>
             <div className="flex justify-end gap-2 pt-2">
               <Button type="button" variant="outline" onClick={() => setOutstationPromptOpen(false)}>Cancel</Button>
-              <Button type="button" onClick={confirmOutstationMode} className="bg-[#7B0099] text-white hover:bg-[#7B0099]/90">
+              <Button type="button" onClick={confirmOutstationMode} className="bg-[#942392] text-white hover:bg-[#942392]/90">
                 Outstation Mode
               </Button>
             </div>

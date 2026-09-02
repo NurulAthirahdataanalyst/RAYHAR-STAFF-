@@ -367,7 +367,7 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
         
         <div className="flex-1 w-full flex flex-col items-center gap-4 max-h-[450px] overflow-y-auto scrollbar-none px-2">
           {loading && activities.length === 0 ? (
-            <Loader2 className="w-5 h-5 animate-spin text-[#7B0099]" />
+            <Loader2 className="w-5 h-5 animate-spin text-[#942392]" />
           ) : filtered.length === 0 ? (
             <span className="text-[10px] text-foreground">Empty</span>
           ) : (
@@ -448,7 +448,7 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
                 variant="outline"
                 className={cn(
                   "h-7 px-2.5 text-[10px] font-black uppercase tracking-wider rounded-lg border-border/60 bg-background/50 hover:bg-accent hover:text-accent-foreground shadow-sm",
-                  !isToday(selectedDate) && "text-[#7B0099] border-[#7B0099]/30 bg-purple-50 dark:bg-purple-950/20"
+                  !isToday(selectedDate) && "text-[#942392] border-[#942392]/30 bg-purple-50 dark:bg-purple-950/20"
                 )}
               >
                 <CalendarIcon className="mr-1.5 h-3 w-3" />
@@ -473,7 +473,7 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
             placeholder="Filter activity..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 h-9 text-xs border-border/60 bg-background/30 focus-visible:ring-[#7B0099]/20 rounded-lg"
+            className="pl-9 h-9 text-xs border-border/60 bg-background/30 focus-visible:ring-[#942392]/20 rounded-lg"
           />
         </div>
       </CardHeader>
@@ -481,7 +481,7 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
       <CardContent className="flex-1 overflow-y-auto p-0 scrollbar-none relative">
         {loading && activities.length === 0 ? (
           <div className="flex justify-center p-8">
-            <Loader2 className="w-6 h-6 animate-spin text-[#7B0099]" />
+            <Loader2 className="w-6 h-6 animate-spin text-[#942392]" />
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center p-8 text-xs text-foreground font-medium">
@@ -524,7 +524,7 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
                           <span className="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded bg-pink-50 dark:bg-pink-950/40 text-pink-600 border border-pink-100 dark:border-pink-900/40 shrink-0">
                             📍 {emp.destination}
                           </span>
-                          <span className="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded bg-purple-50 dark:bg-purple-950/40 text-[#7B0099] border border-purple-100 dark:border-purple-900/40 shrink-0">
+                          <span className="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded bg-purple-50 dark:bg-purple-950/40 text-[#942392] border border-purple-100 dark:border-purple-900/40 shrink-0">
                             {getDeptShortCode(emp.department, emp.branch)}
                           </span>
                         </div>
@@ -552,7 +552,7 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
                         </div>
 
                         <div className="mt-2.5 flex items-center gap-2">
-                          <span className="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded bg-purple-50 dark:bg-purple-950/40 text-[#7B0099] border border-purple-100 dark:border-purple-900/40 shrink-0">
+                          <span className="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded bg-purple-50 dark:bg-purple-950/40 text-[#942392] border border-purple-100 dark:border-purple-900/40 shrink-0">
                             {getDeptShortCode(emp.department, emp.branch)}
                           </span>
                           {emp.today_attendance_type === "Temporary Assignment" && (
@@ -571,7 +571,7 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
         )}
       </CardContent>
       <div className="p-3 border-t border-border/20 text-center bg-background/10">
-        <button className="text-[10px] font-black text-[#7B0099] hover:text-[#7B0099]/85 uppercase tracking-widest transition-colors hover:underline">
+        <button className="text-[10px] font-black text-[#942392] hover:text-[#942392]/85 uppercase tracking-widest transition-colors hover:underline">
           Load Full History
         </button>
       </div>

@@ -336,9 +336,9 @@ export default function OutstationReports() {
           {/* Title row — always has Export CSV on the right */}
           <div className="flex items-center justify-between mb-3">
             <CardTitle className="text-sm font-black uppercase tracking-wide flex items-center gap-2">
-              <Plane className="w-4 h-4 text-[#7B0099]" />
+              <Plane className="w-4 h-4 text-[#942392]" />
               {selectedEventName ? `Event Details: ${selectedEventName}` : "Events Overview"}
-              <Badge className="bg-[#7B0099]/10 text-[#7B0099] border border-[#7B0099]/20 text-[10px] font-black">
+              <Badge className="bg-[#942392]/10 text-[#942392] border border-[#942392]/20 text-[10px] font-black">
                 {selectedEventName ? filteredAssignments.length : filteredEvents.length}
               </Badge>
             </CardTitle>
@@ -357,7 +357,7 @@ export default function OutstationReports() {
                   onClick={() => setViewType("month")}
                   className={`text-sm font-medium pb-2 -mb-[13px] transition-colors border-b-[3px] ${
                     viewType === "month"
-                      ? "text-[#7B0099] border-[#7B0099]"
+                      ? "text-[#942392] border-[#942392]"
                       : "text-foreground hover:text-yellow-500 border-transparent hover:border-yellow-500"
                   }`}
                 >
@@ -388,7 +388,7 @@ export default function OutstationReports() {
                     <MonthPicker
                       monthYear={selectedMonthYear}
                       onSelectMonthYear={setSelectedMonthYear}
-                      className="appearance-none flex items-center justify-between px-3 py-1.5 bg-gray-50 dark:bg-card border border-slate-200 dark:border-slate-800 text-foreground dark:text-slate-100 text-xs font-black rounded-md shadow-sm outline-none cursor-pointer h-8 gap-2 hover:border-[#7B0099]/40"
+                      className="appearance-none flex items-center justify-between px-3 py-1.5 bg-gray-50 dark:bg-card border border-slate-200 dark:border-slate-800 text-foreground dark:text-slate-100 text-xs font-black rounded-md shadow-sm outline-none cursor-pointer h-8 gap-2 hover:border-[#942392]/40"
                     />
                   ) : (
                     <YearPopover
@@ -487,7 +487,7 @@ export default function OutstationReports() {
                           <Button
                             size="sm"
                             variant="outline"
-                            className="h-7 text-[10px] font-bold gap-1.5 border-[#7B0099]/30 text-[#7B0099] hover:bg-[#7B0099]/5 whitespace-nowrap"
+                            className="h-7 text-[10px] font-bold gap-1.5 border-[#942392]/30 text-[#942392] hover:bg-[#942392]/5 whitespace-nowrap"
                             onClick={() => setViewFormEvent(e)}
                           >
                             <FileText className="w-3 h-3" /> View Form
@@ -530,7 +530,7 @@ export default function OutstationReports() {
           {viewFormEvent && (
             <>
               {/* Header (Fixed) */}
-              <div className="bg-[#7B0099] px-6 py-5 text-white shrink-0">
+              <div className="bg-[#942392] px-6 py-5 text-white shrink-0">
                 <div className="flex items-start gap-3">
                   <div className="p-2 rounded-xl bg-white/20 shrink-0">
                     <Plane className="w-5 h-5 text-white" />
@@ -582,9 +582,9 @@ export default function OutstationReports() {
                       <p className="text-[10px] text-black dark:text-white font-bold uppercase">End Date</p>
                       <p className="text-sm font-black text-foreground dark:text-gray-100 mt-0.5">{fmtDate(viewFormEvent.endDate)}</p>
                     </div>
-                    <div className="bg-[#7B0099]/5 rounded-xl p-3 border border-[#7B0099]/20">
-                      <p className="text-[10px] text-[#7B0099] font-bold uppercase">Total Days</p>
-                      <p className="text-lg font-black text-[#7B0099] mt-0.5">{viewFormEvent.totalDays} {viewFormEvent.totalDays === 1 ? 'Day' : 'Days'}</p>
+                    <div className="bg-[#942392]/5 rounded-xl p-3 border border-[#942392]/20">
+                      <p className="text-[10px] text-[#942392] font-bold uppercase">Total Days</p>
+                      <p className="text-lg font-black text-[#942392] mt-0.5">{viewFormEvent.totalDays} {viewFormEvent.totalDays === 1 ? 'Day' : 'Days'}</p>
                     </div>
                   </div>
                 </div>
@@ -597,7 +597,7 @@ export default function OutstationReports() {
                   <div className="space-y-2">
                     {viewFormEvent.assignments.map((a, idx) => (
                       <div key={idx} className="flex items-center gap-3 bg-gray-50 dark:bg-slate-900/50 rounded-xl p-3 border border-gray-100 dark:border-slate-800">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#7B0099]/20 to-pink-200 flex items-center justify-center text-[10px] font-black text-[#7B0099] shrink-0">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#942392]/20 to-pink-200 flex items-center justify-center text-[10px] font-black text-[#942392] shrink-0">
                           {(a.full_name || "?").split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
                         </div>
                         <div className="flex-1 min-w-0">

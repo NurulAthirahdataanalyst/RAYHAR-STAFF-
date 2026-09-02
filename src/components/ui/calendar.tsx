@@ -43,7 +43,7 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
       </button>
       <button
         onClick={handleToday}
-        className="text-xs font-bold text-[#7B0099] hover:text-[#5e0080] transition-colors py-1 px-2.5 rounded hover:bg-[#7B0099]/10 cursor-pointer bg-transparent border-none"
+        className="text-xs font-bold text-[#942392] hover:text-[#5e0080] transition-colors py-1 px-2.5 rounded hover:bg-[#942392]/10 cursor-pointer bg-transparent border-none"
         type="button"
       >
         Today
@@ -58,7 +58,7 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
       classNames={{
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
         month: "space-y-4",
-        caption: "flex justify-center pt-2 pb-2 relative items-center bg-[#7B0099] text-white -mt-3 -mx-3 mb-2 shadow-sm rounded-t-md",
+        caption: "flex justify-center pt-2 pb-2 relative items-center bg-[#942392] text-white -mt-3 -mx-3 mb-2 shadow-sm rounded-t-md",
         caption_label: "text-sm font-bold text-white",
         nav: "space-x-1 flex items-center",
         nav_button: cn(
@@ -75,8 +75,8 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
         day: cn(buttonVariants({ variant: "ghost" }), "h-9 w-9 p-0 font-normal aria-selected:opacity-100"),
         day_range_end: "day-range-end",
         day_selected:
-          "bg-[#7B0099] text-white hover:bg-[#5e0080] hover:text-white focus:bg-[#7B0099] focus:text-white rounded-md",
-        day_today: "bg-[#FFFE00] text-[#7B0099] font-bold rounded-md",
+          "bg-[#942392] text-white hover:bg-[#5e0080] hover:text-white focus:bg-[#942392] focus:text-white rounded-md",
+        day_today: "bg-[#FFFE00] text-[#942392] font-bold rounded-md",
         day_outside:
           "day-outside text-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-foreground aria-selected:opacity-30",
         day_disabled: "text-foreground opacity-50",

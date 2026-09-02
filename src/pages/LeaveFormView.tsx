@@ -298,7 +298,7 @@ export default function LeaveFormView() {
           <Button
             variant="ghost"
             size="sm"
-            className="mb-1 gap-2 px-0 text-foreground hover:bg-transparent hover:text-[#7B0099] transition-colors touch-target no-global-hover"
+            className="mb-1 gap-2 px-0 text-foreground hover:bg-transparent hover:text-[#942392] transition-colors touch-target no-global-hover"
             onClick={() => navigate("/leave")}
           >
             <ArrowLeft className="h-4 w-4" />
@@ -318,7 +318,7 @@ export default function LeaveFormView() {
             </Button>
             <Button
               onClick={() => navigate("/leave/apply")}
-              className="gap-2 bg-[#7B0099] text-white hover:bg-[#5e0080] rounded-xl font-black text-[10px] uppercase tracking-widest px-4 shadow-sm transition-all active:scale-95"
+              className="gap-2 bg-[#942392] text-white hover:bg-[#5e0080] rounded-xl font-black text-[10px] uppercase tracking-widest px-4 shadow-sm transition-all active:scale-95"
             >
               <FileText className="w-3.5 h-3.5" />
               New Application
@@ -342,7 +342,7 @@ export default function LeaveFormView() {
                   onClick={() => setActiveTab(tab.key)}
                   className={`text-sm font-black uppercase tracking-widest pb-3 -mb-[1px] transition-colors border-b-[3px] whitespace-nowrap ${
                     activeTab === tab.key 
-                      ? (tab.key === "history" ? "text-[#7B0099] border-[#7B0099]" :
+                      ? (tab.key === "history" ? "text-[#942392] border-[#942392]" :
                          tab.key === "pending" ? "text-amber-500 border-amber-500" :
                          tab.key === "approved" ? "text-emerald-500 border-emerald-500" :
                          "text-red-500 border-red-500")
@@ -353,7 +353,7 @@ export default function LeaveFormView() {
                   {tab.count > 0 && (
                     <span className={`ml-2 px-1.5 py-0.5 rounded-full text-[10px] ${
                       activeTab === tab.key 
-                        ? (tab.key === "history" ? "bg-[#7B0099] text-white" :
+                        ? (tab.key === "history" ? "bg-[#942392] text-white" :
                            tab.key === "pending" ? "bg-amber-500 text-white" :
                            tab.key === "approved" ? "bg-emerald-500 text-white" :
                            "bg-red-500 text-white")
@@ -374,7 +374,7 @@ export default function LeaveFormView() {
           </div>
           {loading ? (
             <div className="flex flex-col items-center justify-center p-12 gap-3">
-              <Loader2 className="w-8 h-8 animate-spin text-[#7B0099]" />
+              <Loader2 className="w-8 h-8 animate-spin text-[#942392]" />
               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground animate-pulse">Syncing History...</p>
             </div>
           ) : filteredForms.length > 0 ? (
@@ -396,7 +396,7 @@ export default function LeaveFormView() {
                     {filteredForms.map((form) => (
                       <TableRow 
                         key={form.id} 
-                        className="hover:bg-[#7B0099]/5 transition-colors group cursor-pointer"
+                        className="hover:bg-[#942392]/5 transition-colors group cursor-pointer"
                         onClick={() => {
                           setSelectedForm(form);
                           if (form.status === "Approved") setActiveTab("approved");
@@ -406,7 +406,7 @@ export default function LeaveFormView() {
                       >
                         <TableCell className="px-6 py-4">
                           <div className="flex flex-col">
-                            <span className="font-black text-[#7B0099] dark:text-purple-400">{leaveTypeLabels[form.type]}</span>
+                            <span className="font-black text-[#942392] dark:text-purple-400">{leaveTypeLabels[form.type]}</span>
                             <span className="text-[10px] font-bold text-foreground uppercase tracking-widest mt-0.5">{form.appliedAt.slice(0, 10)}</span>
                           </div>
                         </TableCell>
@@ -426,7 +426,7 @@ export default function LeaveFormView() {
                           </Badge>
                         </TableCell>
                         <TableCell className="px-6 py-4 text-right">
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-foreground hover:text-[#7B0099] hover:bg-[#7B0099]/10">
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-foreground hover:text-[#942392] hover:bg-[#942392]/10">
                             <Eye className="w-4 h-4" />
                           </Button>
                         </TableCell>
@@ -441,7 +441,7 @@ export default function LeaveFormView() {
                 {filteredForms.map((form) => (
                   <div
                     key={form.id}
-                    className="group relative rounded-[20px] border border-border/50 bg-card/50 p-4 hover:bg-[#7B0099]/5 hover:border-[#7B0099]/30 transition-all duration-300 cursor-pointer touch-target"
+                    className="group relative rounded-[20px] border border-border/50 bg-card/50 p-4 hover:bg-[#942392]/5 hover:border-[#942392]/30 transition-all duration-300 cursor-pointer touch-target"
                     onClick={() => {
                       setSelectedForm(form);
                       if (form.status === "Approved") setActiveTab("approved");
@@ -451,11 +451,11 @@ export default function LeaveFormView() {
                   >
                     <div className="flex items-center justify-between gap-4">
                       <div className="flex items-start gap-3 min-w-0">
-                        <div className="w-10 h-10 rounded-[14px] bg-[#7B0099]/10 flex items-center justify-center text-[#7B0099] group-hover:scale-110 transition-transform duration-300 shrink-0">
+                        <div className="w-10 h-10 rounded-[14px] bg-[#942392]/10 flex items-center justify-center text-[#942392] group-hover:scale-110 transition-transform duration-300 shrink-0">
                           <FileText className="h-5 w-5" />
                         </div>
                         <div className="min-w-0 space-y-1">
-                          <p className="text-sm font-black text-foreground truncate group-hover:text-[#7B0099] transition-colors">
+                          <p className="text-sm font-black text-foreground truncate group-hover:text-[#942392] transition-colors">
                             {leaveTypeLabels[form.type]}
                           </p>
                           <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold text-foreground uppercase tracking-widest">
@@ -492,8 +492,8 @@ export default function LeaveFormView() {
             </>
           ) : (
             <div className="py-20 text-center flex flex-col items-center gap-4 animate-in fade-in zoom-in duration-500">
-              <div className="w-20 h-20 rounded-[32px] bg-muted/30 flex items-center justify-center border-2 border-dashed border-border/50 group hover:border-[#7B0099]/30 transition-colors">
-                <FileText className="h-10 w-10 text-foreground/30 group-hover:text-[#7B0099]/30 transition-colors" />
+              <div className="w-20 h-20 rounded-[32px] bg-muted/30 flex items-center justify-center border-2 border-dashed border-border/50 group hover:border-[#942392]/30 transition-colors">
+                <FileText className="h-10 w-10 text-foreground/30 group-hover:text-[#942392]/30 transition-colors" />
               </div>
               <div className="space-y-1">
                 <p className="text-xs font-black text-foreground uppercase tracking-widest">
@@ -507,7 +507,7 @@ export default function LeaveFormView() {
                 <Button
                   variant="outline"
                   onClick={() => navigate("/leave/apply")}
-                  className="mt-2 rounded-xl border-[#7B0099] text-[#7B0099] hover:bg-[#7B0099]/5 font-black text-[10px] uppercase tracking-widest"
+                  className="mt-2 rounded-xl border-[#942392] text-[#942392] hover:bg-[#942392]/5 font-black text-[10px] uppercase tracking-widest"
                 >
                   Start New Application
                 </Button>
@@ -522,7 +522,7 @@ export default function LeaveFormView() {
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto border-none shadow-2xl rounded-[32px] p-0 safe-area-bottom">
           {selectedForm && (
             <>
-              <div className="p-6 bg-gradient-to-br from-[#7B0099] to-[#a855f7] text-white print:hidden">
+              <div className="p-6 bg-gradient-to-br from-[#942392] to-[#a855f7] text-white print:hidden">
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-3 text-white text-xl font-black tracking-tight">
                     <FileText className="h-6 w-6" />
@@ -552,7 +552,7 @@ export default function LeaveFormView() {
                     </div>
                     <div className="space-y-1">
                       <span className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50">No. Telefon</span>
-                      <p className="border-b pb-1 border-border/40 font-black text-[#7B0099]">{selectedForm.phone || (selectedForm as any).applicant_phone || "-"}</p>
+                      <p className="border-b pb-1 border-border/40 font-black text-[#942392]">{selectedForm.phone || (selectedForm as any).applicant_phone || "-"}</p>
                     </div>
                     <div className="space-y-1">
                       <span className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50">Jenis Cuti</span>
@@ -560,7 +560,7 @@ export default function LeaveFormView() {
                     </div>
                     <div className="space-y-1 col-span-2 sm:col-span-1">
                       <span className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50">Status</span>
-                      <p className={`font-black uppercase ${selectedForm.status === "Rejected" ? "text-rose-600" : "text-[#7B0099]"}`}>
+                      <p className={`font-black uppercase ${selectedForm.status === "Rejected" ? "text-rose-600" : "text-[#942392]"}`}>
                         {selectedForm.status}
                         {selectedForm.status === "Rejected" && selectedForm.approverRole && (
                           <span className="block text-[8px] text-rose-500 mt-0.5 opacity-60">
@@ -581,8 +581,8 @@ export default function LeaveFormView() {
                       <p className="font-black text-xs sm:text-sm">{selectedForm.to}</p>
                     </div>
                     <div className="text-center bg-white dark:bg-slate-900 rounded-[14px] border border-border/50 py-1 shadow-sm flex flex-col justify-center">
-                      <p className="text-[9px] uppercase font-black text-[#7B0099]">Hari</p>
-                      <p className="font-black text-lg text-[#7B0099] leading-none mt-0.5">{selectedForm.days}</p>
+                      <p className="text-[9px] uppercase font-black text-[#942392]">Hari</p>
+                      <p className="font-black text-lg text-[#942392] leading-none mt-0.5">{selectedForm.days}</p>
                     </div>
                     {!(selectedForm.type === "Replacement Leave" || selectedForm.type === "Cuti Ganti") && (
                     <div className="text-center rounded-[14px] border-2 border-emerald-500 bg-white dark:bg-slate-900 shadow-sm flex flex-col justify-center py-1">
@@ -683,14 +683,14 @@ export default function LeaveFormView() {
                   {(selectedForm.type === "Sick Leave" || selectedForm.type === "Cuti Sakit") && selectedForm.mcFileUrl && (
                     <div className="p-4 bg-purple-500/10 border border-purple-500/20 rounded-[16px] flex items-center justify-between group">
                       <div className="flex items-center gap-3">
-                        <FileText className="w-5 h-5 text-[#7B0099]" />
-                        <span className="text-[10px] font-black text-[#7B0099] uppercase tracking-widest">MC Attachment</span>
+                        <FileText className="w-5 h-5 text-[#942392]" />
+                        <span className="text-[10px] font-black text-[#942392] uppercase tracking-widest">MC Attachment</span>
                       </div>
                       <a
                         href={`${API_BASE_URL}${selectedForm.mcFileUrl}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-[9px] font-black uppercase tracking-widest bg-[#7B0099] text-white px-4 py-2 rounded-xl hover:bg-[#5e0080] transition-colors shadow-lg"
+                        className="text-[9px] font-black uppercase tracking-widest bg-[#942392] text-white px-4 py-2 rounded-xl hover:bg-[#5e0080] transition-colors shadow-lg"
                       >
                         View File
                       </a>
@@ -714,7 +714,7 @@ export default function LeaveFormView() {
                       </div>
                       <div className="space-y-1">
                         <span className="text-[8px] font-black text-slate-950 dark:text-slate-50 uppercase">No. Telefon</span>
-                        <p className="text-[11px] font-black text-[#7B0099]">{selectedForm.warisPhone}</p>
+                        <p className="text-[11px] font-black text-[#942392]">{selectedForm.warisPhone}</p>
                       </div>
                       <div className="space-y-1">
                         <span className="text-[8px] font-black text-slate-950 dark:text-slate-50 uppercase">Alamat</span>
@@ -777,7 +777,7 @@ export default function LeaveFormView() {
                     <Button
                       type="button"
                       variant="outline"
-                      className="gap-2 border-[#7B0099] text-[#7B0099] hover:bg-[#7B0099]/5 rounded-xl font-black text-[10px] uppercase tracking-widest px-6"
+                      className="gap-2 border-[#942392] text-[#942392] hover:bg-[#942392]/5 rounded-xl font-black text-[10px] uppercase tracking-widest px-6"
                       onClick={() => {
                         const originalTitle = document.title;
                         const empName = selectedForm?.employee || (selectedForm as any)?.name || userName || "UNKNOWN";

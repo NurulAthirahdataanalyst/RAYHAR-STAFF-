@@ -512,7 +512,7 @@ export default function SettingsPage() {
   if (loading) {
     return (
       <div className="flex flex-col h-[60vh] items-center justify-center space-y-4">
-        <Loader2 className="animate-spin text-[#7B0099] w-10 h-10 opacity-60" />
+        <Loader2 className="animate-spin text-[#942392] w-10 h-10 opacity-60" />
         <p className="text-foreground animate-pulse text-xs font-black uppercase tracking-widest">
           Syncing Portal Configs...
         </p>
@@ -532,7 +532,7 @@ export default function SettingsPage() {
         </div>
         <button 
           onClick={() => toast.info("Audit logs are locked. Only system super-admins can view detailed log histories.")}
-          className="flex items-center self-start sm:self-auto gap-2 px-4 py-2 bg-[#7B0099]/10 text-[#7B0099] hover:bg-[#7B0099]/15 border border-[#7B0099]/20 font-black text-[10px] uppercase tracking-widest rounded-xl transition-all shadow-sm"
+          className="flex items-center self-start sm:self-auto gap-2 px-4 py-2 bg-[#942392]/10 text-[#942392] hover:bg-[#942392]/15 border border-[#942392]/20 font-black text-[10px] uppercase tracking-widest rounded-xl transition-all shadow-sm"
         >
           <History className="w-3.5 h-3.5" />
           <span>View Audit Log</span>
@@ -540,7 +540,7 @@ export default function SettingsPage() {
       </div>
 
       {/* HORIZONTAL NAVIGATION TABS - PILL REDESIGN */}
-      <div className="flex bg-gradient-to-r from-[#800A7A] via-[#7B0099] to-[#3d0052] p-2 rounded-xl shadow-inner overflow-x-auto gap-1 scrollbar-none items-center w-full lg:w-fit max-w-full border border-[#7B0099]/20 relative z-10 mb-6">
+      <div className="flex bg-gradient-to-r from-[#800A7A] via-[#942392] to-[#3d0052] p-2 rounded-xl shadow-inner overflow-x-auto gap-1 scrollbar-none items-center w-full lg:w-fit max-w-full border border-[#942392]/20 relative z-10 mb-6">
         {[
           { id: "system", label: "System Configuration", icon: SlidersHorizontal },
           { id: "staff", label: "Personnel Management", icon: UserPlus },
@@ -555,11 +555,11 @@ export default function SettingsPage() {
               onClick={() => handleTabChange(tab.id as SettingsTab)}
               className={`flex items-center gap-2 py-2 px-4 font-semibold text-xs whitespace-nowrap rounded-lg transition-all duration-300 ${
                 isActive 
-                  ? "bg-white dark:bg-card text-[#7B0099] shadow-md" 
+                  ? "bg-white dark:bg-card text-[#942392] shadow-md" 
                   : "text-white/80 hover:text-white hover:bg-white/10"
               }`}
             >
-              <Icon className={`w-4 h-4 shrink-0 transition-colors ${isActive ? "text-[#7B0099]" : "text-white/80"}`} />
+              <Icon className={`w-4 h-4 shrink-0 transition-colors ${isActive ? "text-[#942392]" : "text-white/80"}`} />
               <span>{tab.label}</span>
             </button>
           );
@@ -577,7 +577,7 @@ export default function SettingsPage() {
             <Card className="border-none shadow-sm bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-[20px] overflow-hidden p-6 space-y-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-2.5 bg-[#7B0099]/10 rounded-xl text-[#7B0099]">
+                  <div className="p-2.5 bg-[#942392]/10 rounded-xl text-[#942392]">
                     <SlidersHorizontal className="w-5 h-5" />
                   </div>
                   <div>
@@ -596,7 +596,7 @@ export default function SettingsPage() {
                 {/* Switch Item 1 */}
                 <div className="flex items-center justify-between p-4 bg-muted/20 border border-border/30 rounded-2xl">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-[#7B0099]/10 flex items-center justify-center text-[#7B0099] shrink-0">
+                    <div className="w-10 h-10 rounded-xl bg-[#942392]/10 flex items-center justify-center text-[#942392] shrink-0">
                       <BellRing className="w-5 h-5" />
                     </div>
                     <div>
@@ -707,7 +707,7 @@ export default function SettingsPage() {
           {activeTab === "staff" && (
             <Card className="border-none shadow-sm bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-[20px] overflow-hidden p-6 space-y-6 animate-in slide-in-from-left duration-300">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-[#7B0099]/10 rounded-xl text-[#7B0099]">
+                <div className="p-2.5 bg-[#942392]/10 rounded-xl text-[#942392]">
                   <UserPlus className="w-5 h-5" />
                 </div>
                 <div>
@@ -725,7 +725,7 @@ export default function SettingsPage() {
                       placeholder="Enter employee's full name"
                       value={staffName}
                       onChange={(e) => setStaffName(e.target.value)}
-                      className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#7B0099] focus:ring-2 focus:ring-[#7B0099]/10 rounded-xl text-xs font-bold outline-none"
+                      className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#942392] focus:ring-2 focus:ring-[#942392]/10 rounded-xl text-xs font-bold outline-none"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -735,7 +735,7 @@ export default function SettingsPage() {
                       placeholder="e.g. staff@gmail.com"
                       value={staffEmail}
                       onChange={(e) => setStaffEmail(e.target.value)}
-                      className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#7B0099] focus:ring-2 focus:ring-[#7B0099]/10 rounded-xl text-xs font-bold outline-none"
+                      className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#942392] focus:ring-2 focus:ring-[#942392]/10 rounded-xl text-xs font-bold outline-none"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -745,7 +745,7 @@ export default function SettingsPage() {
                       placeholder="Minimum 6 characters"
                       value={staffPassword}
                       onChange={(e) => setStaffPassword(e.target.value)}
-                      className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#7B0099] focus:ring-2 focus:ring-[#7B0099]/10 rounded-xl text-xs font-bold outline-none"
+                      className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#942392] focus:ring-2 focus:ring-[#942392]/10 rounded-xl text-xs font-bold outline-none"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -838,7 +838,7 @@ export default function SettingsPage() {
                   <Button
                     type="submit"
                     disabled={submittingStaff}
-                    className="h-11 px-8 rounded-xl bg-[#7B0099] text-white hover:bg-[#7B0099]/95 font-black text-[9px] uppercase tracking-wider shadow-lg shadow-[#7B0099]/15 transition-all"
+                    className="h-11 px-8 rounded-xl bg-[#942392] text-white hover:bg-[#942392]/95 font-black text-[9px] uppercase tracking-wider shadow-lg shadow-[#942392]/15 transition-all"
                   >
                     {submittingStaff ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -859,7 +859,7 @@ export default function SettingsPage() {
             <Card className="border-none shadow-sm bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-[20px] overflow-hidden p-6 space-y-6 animate-in slide-in-from-left duration-300">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="p-2.5 bg-[#7B0099]/10 rounded-xl text-[#7B0099]">
+                  <div className="p-2.5 bg-[#942392]/10 rounded-xl text-[#942392]">
                     <Building2 className="w-5 h-5" />
                   </div>
                   <div>
@@ -878,7 +878,7 @@ export default function SettingsPage() {
                   <button 
                     type="button"
                     onClick={() => toast.info("Select a CSV/Excel file to start bulk importing branches.")}
-                    className="px-2.5 py-1.5 bg-[#7B0099] text-white rounded-lg hover:bg-[#7B0099]/95 text-[8px] font-black uppercase tracking-wider shadow-sm"
+                    className="px-2.5 py-1.5 bg-[#942392] text-white rounded-lg hover:bg-[#942392]/95 text-[8px] font-black uppercase tracking-wider shadow-sm"
                   >
                     Bulk Import
                   </button>
@@ -894,7 +894,7 @@ export default function SettingsPage() {
                       placeholder="e.g. AOR "
                       value={branchCode}
                       onChange={(e) => setBranchCode(e.target.value)}
-                      className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#7B0099] focus:ring-2 focus:ring-[#7B0099]/10 rounded-xl text-xs font-black uppercase placeholder:normal-case outline-none"
+                      className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#942392] focus:ring-2 focus:ring-[#942392]/10 rounded-xl text-xs font-black uppercase placeholder:normal-case outline-none"
                     />
                   </div>
                   <div className="space-y-1.5 col-span-1 md:col-span-2">
@@ -904,7 +904,7 @@ export default function SettingsPage() {
                       placeholder="e.g. ALOR SETAR "
                       value={branchNameInput}
                       onChange={(e) => setBranchNameInput(e.target.value)}
-                      className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#7B0099] focus:ring-2 focus:ring-[#7B0099]/10 rounded-xl text-xs font-bold placeholder:normal-case uppercase outline-none"
+                      className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#942392] focus:ring-2 focus:ring-[#942392]/10 rounded-xl text-xs font-bold placeholder:normal-case uppercase outline-none"
                     />
                   </div>
                 </div>
@@ -934,7 +934,7 @@ export default function SettingsPage() {
                           }).catch(() => { toast.dismiss(); toast.error("Search failed"); });
                         }
                       }}
-                      className="flex-1 h-11 px-4 bg-background/30 border border-border/80 focus:border-[#7B0099] focus:ring-2 focus:ring-[#7B0099]/10 rounded-xl text-xs font-bold placeholder:normal-case uppercase outline-none"
+                      className="flex-1 h-11 px-4 bg-background/30 border border-border/80 focus:border-[#942392] focus:ring-2 focus:ring-[#942392]/10 rounded-xl text-xs font-bold placeholder:normal-case uppercase outline-none"
                     />
                     <button
                       type="button"
@@ -968,7 +968,7 @@ export default function SettingsPage() {
                   <select
                     value={branchZoneInput}
                     onChange={(e) => setBranchZoneInput(e.target.value)}
-                    className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#7B0099] focus:ring-2 focus:ring-[#7B0099]/10 rounded-xl text-xs font-bold uppercase outline-none"
+                    className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#942392] focus:ring-2 focus:ring-[#942392]/10 rounded-xl text-xs font-bold uppercase outline-none"
                   >
                     <option value="ZONE_B">ZONE B (West Coast - Sat/Sun Off)</option>
                     <option value="ZONE_A">ZONE A (East Coast - Fri/Sat Off)</option>
@@ -986,7 +986,7 @@ export default function SettingsPage() {
                         value={branchLat && branchLng ? `${branchLat}, ${branchLng}` : ""}
                         className="w-full h-11 px-4 bg-background/30 border border-border/80 rounded-xl text-xs font-bold outline-none cursor-not-allowed text-foreground"
                       />
-                      <Button type="button" onClick={() => setIsMapModalOpen(true)} className="h-11 bg-[#7B0099] text-white hover:bg-[#7B0099]/90 rounded-xl px-4 shrink-0 text-xs font-bold">
+                      <Button type="button" onClick={() => setIsMapModalOpen(true)} className="h-11 bg-[#942392] text-white hover:bg-[#942392]/90 rounded-xl px-4 shrink-0 text-xs font-bold">
                         <MapPin className="w-4 h-4 mr-2" /> Select
                       </Button>
                     </div>
@@ -1002,10 +1002,10 @@ export default function SettingsPage() {
                         className="absolute -top-1 flex flex-col items-center pointer-events-none transition-all duration-150"
                         style={{ left: `calc(${(((parseFloat(branchRadius || "50") - 0) / 500) * 100)}% - ${(((parseFloat(branchRadius || "50") - 0) / 500) * 100) * 0.28}px)` }}
                       >
-                        <div className="bg-[#7B0099] text-white text-[11px] font-black px-2 py-0.5 rounded-md shadow-lg whitespace-nowrap">
+                        <div className="bg-[#942392] text-white text-[11px] font-black px-2 py-0.5 rounded-md shadow-lg whitespace-nowrap">
                           {branchRadius || 50}m
                         </div>
-                        <div className="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[5px] border-t-[#7B0099]" />
+                        <div className="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[5px] border-t-[#942392]" />
                       </div>
                       <input
                         type="range"
@@ -1016,7 +1016,7 @@ export default function SettingsPage() {
                         onChange={(e) => setBranchRadius(e.target.value)}
                         className="w-full h-2 rounded-full appearance-none cursor-pointer"
                         style={{
-                          background: `linear-gradient(to right, #7B0099 0%, #7B0099 ${(((parseFloat(branchRadius || "50") - 0) / 500) * 100)}%, #e5e7eb ${(((parseFloat(branchRadius || "50") - 0) / 500) * 100)}%, #e5e7eb 100%)`
+                          background: `linear-gradient(to right, #942392 0%, #942392 ${(((parseFloat(branchRadius || "50") - 0) / 500) * 100)}%, #e5e7eb ${(((parseFloat(branchRadius || "50") - 0) / 500) * 100)}%, #e5e7eb 100%)`
                         }}
                       />
                       <div className="flex justify-between mt-1">
@@ -1060,7 +1060,7 @@ export default function SettingsPage() {
                             <MapMarker longitude={parseFloat(branchLng)} latitude={parseFloat(branchLat)} anchor="bottom">
                               <div style={{ width: 24, height: 36 }}>
                                 <svg viewBox="0 0 24 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                  <path d="M12 0C5.373 0 0 5.373 0 12c0 9 12 24 12 24s12-15 12-24C24 5.373 18.627 0 12 0z" fill="#7B0099"/>
+                                  <path d="M12 0C5.373 0 0 5.373 0 12c0 9 12 24 12 24s12-15 12-24C24 5.373 18.627 0 12 0z" fill="#942392"/>
                                   <circle cx="12" cy="12" r="5" fill="white"/>
                                 </svg>
                               </div>
@@ -1103,7 +1103,7 @@ export default function SettingsPage() {
                         
                         <div className="mt-auto flex gap-3 pt-6">
                           <Button type="button" variant="outline" onClick={() => setIsMapModalOpen(false)} className="flex-1 h-11 rounded-xl text-[10px] font-black uppercase tracking-wider bg-white">Cancel</Button>
-                          <Button type="button" onClick={() => setIsMapModalOpen(false)} className="flex-1 h-11 rounded-xl bg-[#7B0099] text-white hover:bg-[#7B0099]/90 text-[10px] font-black uppercase tracking-wider shadow-md">Save</Button>
+                          <Button type="button" onClick={() => setIsMapModalOpen(false)} className="flex-1 h-11 rounded-xl bg-[#942392] text-white hover:bg-[#942392]/90 text-[10px] font-black uppercase tracking-wider shadow-md">Save</Button>
                         </div>
                       </div>
                     </div>
@@ -1130,7 +1130,7 @@ export default function SettingsPage() {
                   <Button
                     type="submit"
                     disabled={submittingBranch}
-                    className="h-11 px-8 rounded-xl bg-[#7B0099] text-white hover:bg-[#7B0099]/95 font-black text-[9px] uppercase tracking-wider shadow-lg shadow-[#7B0099]/15 transition-all"
+                    className="h-11 px-8 rounded-xl bg-[#942392] text-white hover:bg-[#942392]/95 font-black text-[9px] uppercase tracking-wider shadow-lg shadow-[#942392]/15 transition-all"
                   >
                     {submittingBranch ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -1150,7 +1150,7 @@ export default function SettingsPage() {
           {activeTab === "department" && (
             <Card className="border-none shadow-sm bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-[20px] overflow-hidden p-6 space-y-6 animate-in slide-in-from-left duration-300">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-[#7B0099]/10 rounded-xl text-[#7B0099]">
+                <div className="p-2.5 bg-[#942392]/10 rounded-xl text-[#942392]">
                   <Layers className="w-5 h-5" />
                 </div>
                 <div>
@@ -1168,7 +1168,7 @@ export default function SettingsPage() {
                       placeholder="e.g. Strategic Planning"
                       value={deptNameInput}
                       onChange={(e) => setDeptNameInput(e.target.value)}
-                      className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#7B0099] focus:ring-2 focus:ring-[#7B0099]/10 rounded-xl text-xs font-bold placeholder:normal-case outline-none"
+                      className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#942392] focus:ring-2 focus:ring-[#942392]/10 rounded-xl text-xs font-bold placeholder:normal-case outline-none"
                     />
                   </div>
                   <div className="space-y-1.5 col-span-1">
@@ -1178,7 +1178,7 @@ export default function SettingsPage() {
                       placeholder="e.g. E.G. STR-PLAN-001"
                       value={deptCode}
                       onChange={(e) => setDeptCode(e.target.value)}
-                      className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#7B0099] focus:ring-2 focus:ring-[#7B0099]/10 rounded-xl text-xs font-black uppercase placeholder:normal-case outline-none"
+                      className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#942392] focus:ring-2 focus:ring-[#942392]/10 rounded-xl text-xs font-black uppercase placeholder:normal-case outline-none"
                     />
                   </div>
                 </div>
@@ -1191,7 +1191,7 @@ export default function SettingsPage() {
                       placeholder="Search employee name..."
                       value={deptManager}
                       onChange={(e) => setDeptManager(e.target.value)}
-                      className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#7B0099] focus:ring-2 focus:ring-[#7B0099]/10 rounded-xl text-xs font-bold outline-none"
+                      className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#942392] focus:ring-2 focus:ring-[#942392]/10 rounded-xl text-xs font-bold outline-none"
                     />
                   </div>
                   <div className="flex items-center justify-between p-4 bg-muted/20 border border-border/30 rounded-2xl h-11 mt-auto">
@@ -1225,7 +1225,7 @@ export default function SettingsPage() {
                   <Button
                     type="submit"
                     disabled={submittingDept}
-                    className="h-11 px-8 rounded-xl bg-[#7B0099] text-white hover:bg-[#7B0099]/95 font-black text-[9px] uppercase tracking-wider shadow-lg shadow-[#7B0099]/15 transition-all"
+                    className="h-11 px-8 rounded-xl bg-[#942392] text-white hover:bg-[#942392]/95 font-black text-[9px] uppercase tracking-wider shadow-lg shadow-[#942392]/15 transition-all"
                   >
                     {submittingDept ? (
                       <Loader2 className="w-4 h-4 animate-spin" />

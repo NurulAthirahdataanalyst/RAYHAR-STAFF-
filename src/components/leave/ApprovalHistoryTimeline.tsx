@@ -358,7 +358,7 @@ export const TablePagination: React.FC<TablePaginationProps> = ({
               size="sm"
               className={`h-7 min-w-[28px] px-2 rounded-md text-[11px] font-bold ${
                 isActive
-                  ? 'bg-[#7B0099] hover:bg-[#5e0080] text-white border-[#7B0099]'
+                  ? 'bg-[#942392] hover:bg-[#5e0080] text-white border-[#942392]'
                   : 'border-gray-200 dark:border-slate-800 bg-white dark:bg-card text-foreground'
               }`}
             >

@@ -25,7 +25,7 @@ export function DatePickerInput({ value, onChange, placeholder = "Select date", 
           type="button"
           disabled={disabled}
           className={cn(
-            "appearance-none flex w-full items-center justify-between px-4 py-2 bg-white dark:bg-card border border-slate-200 dark:border-slate-800 text-foreground text-[11px] sm:text-xs font-black rounded-2xl shadow-sm outline-none cursor-pointer uppercase tracking-widest h-12 sm:h-14 gap-3 hover:border-[#7B0099]/40",
+            "appearance-none flex w-full items-center justify-between px-4 py-2 bg-white dark:bg-card border border-slate-200 dark:border-slate-800 text-foreground text-[11px] sm:text-xs font-black rounded-2xl shadow-sm outline-none cursor-pointer uppercase tracking-widest h-12 sm:h-14 gap-3 hover:border-[#942392]/40",
             !date && "text-foreground",
             disabled && "opacity-50 cursor-not-allowed",
             className

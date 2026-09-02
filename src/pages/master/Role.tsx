@@ -151,7 +151,7 @@ export default function Role() {
           <Button
             variant="ghost"
             size="sm"
-            className="mb-1 gap-2 px-0 text-foreground hover:bg-transparent hover:text-[#7B0099] transition-colors touch-target"
+            className="mb-1 gap-2 px-0 text-foreground hover:bg-transparent hover:text-[#942392] transition-colors touch-target"
             onClick={() => navigate("/master")}
           >
             <ArrowLeft className="h-4 w-4" />
@@ -167,7 +167,7 @@ export default function Role() {
             />
             {role === "hr_admin" && ( <Button 
               onClick={() => setIsAddModalOpen(true)} 
-              className="h-9 px-6 rounded-xl bg-[#7B0099] text-white hover:bg-[#7B0099]/95 font-black text-[9px] uppercase tracking-wider shadow-lg shadow-[#7B0099]/15 transition-all touch-target whitespace-nowrap flex items-center"
+              className="h-9 px-6 rounded-xl bg-[#942392] text-white hover:bg-[#942392]/95 font-black text-[9px] uppercase tracking-wider shadow-lg shadow-[#942392]/15 transition-all touch-target whitespace-nowrap flex items-center"
             >
               <Plus className="w-4 h-4 mr-2" />
               Add Roles
@@ -251,7 +251,7 @@ export default function Role() {
                 {loading ? (
                   <tr>
                     <td colSpan={4} className="px-6 py-8 text-center text-foreground">
-                      <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-[#7B0099]" />
+                      <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-[#942392]" />
                       Loading roles...
                     </td>
                   </tr>
@@ -329,13 +329,13 @@ export default function Role() {
                 value={newRoleName}
                 onChange={(e) => setNewRoleName(e.target.value)}
                 placeholder="e.g. Finance Manager"
-                className="border-gray-200 dark:border-slate-800 focus-visible:ring-[#7B0099] h-11"
+                className="border-gray-200 dark:border-slate-800 focus-visible:ring-[#942392] h-11"
               />
             </div>
             <div className="space-y-2.5">
               <Label htmlFor="new-status" className="text-sm font-semibold text-gray-700">Status</Label>
               <Select value={newRoleStatus} onValueChange={setNewRoleStatus}>
-                <SelectTrigger className="border-gray-200 dark:border-slate-800 focus:ring-[#7B0099] h-11">
+                <SelectTrigger className="border-gray-200 dark:border-slate-800 focus:ring-[#942392] h-11">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -349,7 +349,7 @@ export default function Role() {
             <Button variant="outline" onClick={() => setIsAddModalOpen(false)} className="border-gray-200 dark:border-slate-800 text-gray-700 bg-white dark:bg-card">
               Cancel
             </Button>
-            <Button onClick={handleAddRole} className="bg-[#7B0099] hover:bg-[#60007A] text-white">
+            <Button onClick={handleAddRole} className="bg-[#942392] hover:bg-[#60007A] text-white">
               Save
             </Button>
           </DialogFooter>
@@ -370,13 +370,13 @@ export default function Role() {
                 value={editRoleName}
                 onChange={(e) => setEditRoleName(e.target.value)}
                 placeholder="e.g. Finance Manager"
-                className="border-gray-200 dark:border-slate-800 focus-visible:ring-[#7B0099] h-11"
+                className="border-gray-200 dark:border-slate-800 focus-visible:ring-[#942392] h-11"
               />
             </div>
             <div className="space-y-2.5">
               <Label htmlFor="edit-status" className="text-sm font-semibold text-gray-700">Status</Label>
               <Select value={editRoleStatus} onValueChange={setEditRoleStatus}>
-                <SelectTrigger className="border-gray-200 dark:border-slate-800 focus:ring-[#7B0099] h-11">
+                <SelectTrigger className="border-gray-200 dark:border-slate-800 focus:ring-[#942392] h-11">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -390,7 +390,7 @@ export default function Role() {
             <Button variant="outline" onClick={() => setIsEditModalOpen(false)} className="border-gray-200 dark:border-slate-800 text-gray-700 bg-white dark:bg-card">
               Cancel
             </Button>
-            <Button onClick={handleUpdateRole} disabled={isSaving} className="bg-[#7B0099] hover:bg-[#60007A] text-white">
+            <Button onClick={handleUpdateRole} disabled={isSaving} className="bg-[#942392] hover:bg-[#60007A] text-white">
               {isSaving ? "Saving..." : "Save"}
             </Button>
           </DialogFooter>

@@ -25,7 +25,7 @@ import {
 import { API_BASE_URL } from "../../config/api";
 
 const OUTSTATION_ROLES = ["hr_admin", "managing_director", "operation_manager", "finance_manager", "branch_leader", "head_of_department"];
-const PINK = "#7B0099]";
+const PINK = "#942392]";
 
 const BRANCHES = ["HQ","KMM","TGG","CNH","KBG","DGN","JTH","KBR","RMP","MZM","TWU","AOR","BTM","KKS","SHA","BBB","KUL","IPH","MJG","MLK","SNS","JB","BTP"];
 
@@ -335,7 +335,7 @@ export default function OutstationAssignment() {
           <Button
             variant="ghost"
             size="sm"
-            className="gap-2 px-0 text-foreground hover:bg-transparent hover:text-[#7B0099] transition-colors touch-target"
+            className="gap-2 px-0 text-foreground hover:bg-transparent hover:text-[#942392] transition-colors touch-target"
             onClick={() => navigate("/outstation")}
           >
             <ArrowLeft className="h-4 w-4" />
@@ -345,7 +345,7 @@ export default function OutstationAssignment() {
           </Button>
           
           <Button 
-            className="h-10 px-5 text-[14px] font-semibold text-white shadow-sm bg-[#7B0099] hover:bg-[#3b0764] w-full sm:w-auto shrink-0" 
+            className="h-10 px-5 text-[14px] font-semibold text-white shadow-sm bg-[#942392] hover:bg-[#3b0764] w-full sm:w-auto shrink-0" 
             onClick={openNew}
           >
             <Plane className="w-4 h-4 mr-2" /> New Assignment
@@ -771,7 +771,7 @@ export default function OutstationAssignment() {
           {viewFormAssignment && (
             <>
               {/* Header (Fixed) */}
-              <div className="bg-[#7B0099] px-6 py-5 text-white shrink-0">
+              <div className="bg-[#942392] px-6 py-5 text-white shrink-0">
                 <div className="flex items-start gap-3">
                   <div className="p-2 rounded-xl bg-white/20 shrink-0">
                     <Plane className="w-5 h-5 text-white" />
@@ -823,9 +823,9 @@ export default function OutstationAssignment() {
                       <p className="text-[10px] text-black dark:text-white font-bold uppercase">End Date</p>
                       <p className="text-sm font-black text-foreground dark:text-gray-100 mt-0.5">{fmtDate(viewFormAssignment.end_date)}</p>
                     </div>
-                    <div className="bg-[#7B0099]/5 rounded-xl p-3 border border-[#7B0099]/20">
-                      <p className="text-[10px] text-[#7B0099] font-bold uppercase">Total Days</p>
-                      <p className="text-lg font-black text-[#7B0099] mt-0.5">{viewFormAssignment.total_days || 0} {viewFormAssignment.total_days === 1 ? 'Day' : 'Days'}</p>
+                    <div className="bg-[#942392]/5 rounded-xl p-3 border border-[#942392]/20">
+                      <p className="text-[10px] text-[#942392] font-bold uppercase">Total Days</p>
+                      <p className="text-lg font-black text-[#942392] mt-0.5">{viewFormAssignment.total_days || 0} {viewFormAssignment.total_days === 1 ? 'Day' : 'Days'}</p>
                     </div>
                   </div>
                 </div>
@@ -837,7 +837,7 @@ export default function OutstationAssignment() {
                   </p>
                   <div className="space-y-2">
                       <div className="flex items-center gap-3 bg-gray-50 dark:bg-slate-900/50 rounded-xl p-3 border border-gray-100 dark:border-slate-800">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#7B0099]/20 to-pink-200 flex items-center justify-center text-[10px] font-black text-[#7B0099] shrink-0">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#942392]/20 to-pink-200 flex items-center justify-center text-[10px] font-black text-[#942392] shrink-0">
                           {(viewFormAssignment.full_name || "?").split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
                         </div>
                         <div className="flex-1 min-w-0">
@@ -862,7 +862,7 @@ export default function OutstationAssignment() {
                         <title>Outstation Assignment - ${viewFormAssignment.project || viewFormAssignment.purpose || "Trip"}</title>
                         <style>
                           body { font-family: Arial, sans-serif; padding: 20px; color: #333; }
-                          h1 { color: #7B0099; font-size: 24px; margin-bottom: 5px; }
+                          h1 { color: #942392; font-size: 24px; margin-bottom: 5px; }
                           h2 { font-size: 16px; margin-top: 30px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
                           .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
                           .info-box { background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #eee; }

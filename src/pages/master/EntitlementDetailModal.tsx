@@ -40,7 +40,7 @@ export function EntitlementDetailModal({ log, onClose }: { log: EntitlementHisto
         {/* Modal */}
         <div className="relative w-full max-w-md max-h-[90vh] bg-white dark:bg-card rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 pointer-events-auto">
           {/* Modal header */}
-          <div className="flex items-center justify-between p-5 border-b border-[#7B0099] bg-[#7B0099]">
+          <div className="flex items-center justify-between p-5 border-b border-[#942392] bg-[#942392]">
             <div>
               <p className="text-[10px] font-bold text-white uppercase tracking-wider">Leave Entitlement Record</p>
               <p className="text-xs font-black text-white mt-0.5">{log.history_id}</p>
@@ -51,7 +51,7 @@ export function EntitlementDetailModal({ log, onClose }: { log: EntitlementHisto
                 size="sm"
                 onClick={saveAsPDF}
                 disabled={isExporting}
-                className="h-8 px-2 text-xs bg-white text-[#7B0099] border-white hover:bg-white/90 hover:text-[#7B0099]"
+                className="h-8 px-2 text-xs bg-white text-[#942392] border-white hover:bg-white/90 hover:text-[#942392]"
               >
                 <Download className="w-3 h-3 mr-1" />
                 PDF

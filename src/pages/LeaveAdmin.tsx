@@ -487,7 +487,7 @@ export default function LeaveAdmin() {
                   setSelectedMonth("all");
                 }
               }}
-              className="appearance-none flex items-center justify-between px-4 py-2 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-[11px] font-black uppercase tracking-widest rounded-md shadow-sm outline-none cursor-pointer h-10 gap-3 hover:border-[#7B0099]/40 min-w-[140px]"
+              className="appearance-none flex items-center justify-between px-4 py-2 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-[11px] font-black uppercase tracking-widest rounded-md shadow-sm outline-none cursor-pointer h-10 gap-3 hover:border-[#942392]/40 min-w-[140px]"
             />
 
             <Select value={selectedLeaveType} onValueChange={setSelectedLeaveType}>
@@ -541,7 +541,7 @@ export default function LeaveAdmin() {
         <CardContent className="p-0">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20 gap-3">
-              <Loader2 className="w-8 h-8 animate-spin text-[#7B0099]" />
+              <Loader2 className="w-8 h-8 animate-spin text-[#942392]" />
               <p className="text-xs font-bold uppercase tracking-wider text-foreground animate-pulse">Loading Leaves...</p>
             </div>
           ) : (
@@ -575,12 +575,12 @@ export default function LeaveAdmin() {
                       >
                         <TableCell className="px-3 py-3.5">
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-md bg-[#7B0099]/10 text-[#7B0099] flex items-center justify-center text-xs font-bold shrink-0">
+                            <div className="w-8 h-8 rounded-md bg-[#942392]/10 text-[#942392] flex items-center justify-center text-xs font-bold shrink-0">
                               {req.employee.charAt(0).toUpperCase()}
                             </div>
                             <div className="flex flex-col">
                               <span
-                                className="font-bold text-foreground group-hover:text-[#7B0099] transition-colors text-left"
+                                className="font-bold text-foreground group-hover:text-[#942392] transition-colors text-left"
                               >
                                 {req.employee}
                               </span>
@@ -703,7 +703,7 @@ export default function LeaveAdmin() {
                       variant={currentPage === pageNum ? "default" : "outline"}
                       size="sm"
                       onClick={() => setCurrentPage(pageNum)}
-                      className={`h-7 w-7 p-0 text-[10px] font-bold rounded ${currentPage === pageNum ? 'bg-[#7B0099] text-white hover:bg-[#680082]' : 'text-foreground'}`}
+                      className={`h-7 w-7 p-0 text-[10px] font-bold rounded ${currentPage === pageNum ? 'bg-[#942392] text-white hover:bg-[#680082]' : 'text-foreground'}`}
                     >
                       {pageNum}
                     </Button>
@@ -756,7 +756,7 @@ export default function LeaveAdmin() {
                 value={remarks}
                 onChange={(e) => setRemarks(e.target.value)}
                 placeholder="Type your feedback here..."
-                className="w-full min-h-[120px] rounded-[20px] border-border/50 bg-muted/30 focus:border-[#7B0099] focus:ring-[#7B0099] text-sm p-4 transition-all"
+                className="w-full min-h-[120px] rounded-[20px] border-border/50 bg-muted/30 focus:border-[#942392] focus:ring-[#942392] text-sm p-4 transition-all"
               />
             </div>
             <div className="flex flex-col sm:flex-row justify-end gap-3">

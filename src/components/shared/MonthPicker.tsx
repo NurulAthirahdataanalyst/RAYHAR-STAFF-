@@ -51,7 +51,7 @@ export function MonthPicker({ monthYear, onSelectMonthYear, className }: MonthPi
           type="button"
           className={
             className ||
-            "appearance-none flex items-center justify-between px-4 py-2 bg-white dark:bg-card border border-slate-200 dark:border-slate-800 text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-9 sm:h-10 gap-3 hover:border-[#7B0099]/40 min-w-[120px]"
+            "appearance-none flex items-center justify-between px-4 py-2 bg-white dark:bg-card border border-slate-200 dark:border-slate-800 text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-9 sm:h-10 gap-3 hover:border-[#942392]/40 min-w-[120px]"
           }
         >
           <span className="font-black text-foreground uppercase tracking-widest">{displayString}</span>
@@ -63,7 +63,7 @@ export function MonthPicker({ monthYear, onSelectMonthYear, className }: MonthPi
         align="start"
       >
         {/* Purple Header */}
-        <div className="flex items-center justify-between bg-[#7B0099] text-white p-3 pt-4 pb-4">
+        <div className="flex items-center justify-between bg-[#942392] text-white p-3 pt-4 pb-4">
           <button
             type="button"
             onClick={() => setViewYear((prev) => prev - 1)}
@@ -100,7 +100,7 @@ export function MonthPicker({ monthYear, onSelectMonthYear, className }: MonthPi
                   }}
                   className={`py-2 px-1 text-xs font-bold rounded-lg transition-all text-center ${
                     isSelected
-                      ? "bg-[#7B0099] text-white shadow-sm"
+                      ? "bg-[#942392] text-white shadow-sm"
                       : "hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
                   }`}
                 >
@@ -130,7 +130,7 @@ export function MonthPicker({ monthYear, onSelectMonthYear, className }: MonthPi
                 onSelectMonthYear(`${viewYear}-all`); // clear
                 // setOpen(false);
               }}
-              className="text-[#7B0099] hover:underline text-[11px] font-bold"
+              className="text-[#942392] hover:underline text-[11px] font-bold"
             >
               All year
             </button>

@@ -410,7 +410,7 @@ export default function EmployeeAnalytics() {
       {/* ── Page Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-[#7B0099] rounded-xl text-white">
+          <div className="p-2.5 bg-[#942392] rounded-xl text-white">
             <Activity className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
           </div>
           <div>
@@ -440,7 +440,7 @@ export default function EmployeeAnalytics() {
                 setSelectedMonth("all");
               }
             }}
-            className="appearance-none flex items-center justify-between px-4 py-2 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-[11px] font-black uppercase tracking-widest rounded-md shadow-sm outline-none cursor-pointer h-10 gap-3 hover:border-[#7B0099]/40 min-w-[140px]"
+            className="appearance-none flex items-center justify-between px-4 py-2 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-[11px] font-black uppercase tracking-widest rounded-md shadow-sm outline-none cursor-pointer h-10 gap-3 hover:border-[#942392]/40 min-w-[140px]"
           />
         </div>
       </div>
@@ -469,10 +469,10 @@ export default function EmployeeAnalytics() {
           </div>
 
           {/* Leaderboard */}
-          <Card className="border-2 border-slate-300 dark:border-slate-600 bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20 hover:ring-[#7B0099]/20 shadow-[0_20px_50px_rgba(0,0,0,0.05)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.25)]">
+          <Card className="border-2 border-slate-300 dark:border-slate-600 bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20 hover:ring-[#942392]/20 shadow-[0_20px_50px_rgba(0,0,0,0.05)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.25)]">
             <CardHeader className="border-b border-border/40">
               <CardTitle className="text-sm font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
-                <div className="p-2 bg-[#7B0099]/10 rounded-xl"><Award className="w-4 h-4 text-[#7B0099]" /></div>
+                <div className="p-2 bg-[#942392]/10 rounded-xl"><Award className="w-4 h-4 text-[#942392]" /></div>
                 Punctuality Leaderboard
               </CardTitle>
               <CardDescription className="text-[10px] font-bold uppercase tracking-widest opacity-60 ml-11 italic">
@@ -482,7 +482,7 @@ export default function EmployeeAnalytics() {
             <CardContent className="p-0">
               {loadingTeam ? (
                 <div className="flex items-center justify-center p-16 gap-3">
-                  <Loader2 className="animate-spin text-[#7B0099] w-7 h-7" />
+                  <Loader2 className="animate-spin text-[#942392] w-7 h-7" />
                   <span className="text-[10px] font-black text-foreground uppercase tracking-widest animate-pulse">Calculating metrics…</span>
                 </div>
               ) : teamMetrics.length === 0 ? (
@@ -502,8 +502,8 @@ export default function EmployeeAnalytics() {
                           key={m.userId}
                           type="button"
                           onClick={() => setSelectedEmpId(isSelected ? null : m.userId)}
-                          className={`w-full text-left px-4 sm:px-6 py-4 transition-all duration-200 hover:bg-[#7B0099]/5 ${
-                            isSelected ? "bg-[#7B0099]/8 border-l-2 border-[#7B0099]" : ""
+                          className={`w-full text-left px-4 sm:px-6 py-4 transition-all duration-200 hover:bg-[#942392]/5 ${
+                            isSelected ? "bg-[#942392]/8 border-l-2 border-[#942392]" : ""
                           }`}
                         >
                           <div className="flex items-center gap-4">
@@ -527,10 +527,10 @@ export default function EmployeeAnalytics() {
                                 <span className="text-[8px] font-black text-foreground uppercase">Punctuality</span>
                                 <div className="flex items-center gap-1.5">
                                   <div className="w-24 h-1.5 rounded-full bg-muted/40 overflow-hidden">
-                                    <div className="h-full rounded-full bg-[#7B0099] transition-all"
+                                    <div className="h-full rounded-full bg-[#942392] transition-all"
                                       style={{ width: `${m.punctualityScore}%` }} />
                                   </div>
-                                  <span className="text-[10px] font-black text-[#7B0099] w-8">{m.punctualityScore}%</span>
+                                  <span className="text-[10px] font-black text-[#942392] w-8">{m.punctualityScore}%</span>
                                 </div>
                               </div>
                               <div className="flex flex-col items-end gap-0.5">
@@ -542,7 +542,7 @@ export default function EmployeeAnalytics() {
                             <Badge className={`text-[8px] font-black px-2 py-0.5 ${cfg.color} border-none flex items-center gap-1`}>
                               <BadgeIcon className="w-2.5 h-2.5" />{cfg.label}
                             </Badge>
-                            <ChevronRight className={`w-4 h-4 text-foreground/40 transition-transform ${isSelected ? "rotate-90 text-[#7B0099]" : ""}`} />
+                            <ChevronRight className={`w-4 h-4 text-foreground/40 transition-transform ${isSelected ? "rotate-90 text-[#942392]" : ""}`} />
                           </div>
 
                           {/* Expanded detail */}
@@ -556,7 +556,7 @@ export default function EmployeeAnalytics() {
                                 { label: "Overtime",      value: `${m.overtimeHours}h`,         color: "text-amber-500"    },
                                 { label: "Consistency",   value: `${m.consistencyScore}%`,      color: "text-blue-600"     },
                                 { label: "Avg Hours",     value: `${m.avgWorkHours}h`,          color: "text-foreground"   },
-                                { label: "Leave Taken",   value: `${m.leaveCount}`,             color: "text-[#7B0099]"    },
+                                { label: "Leave Taken",   value: `${m.leaveCount}`,             color: "text-[#942392]"    },
                               ].map(s => (
                                 <div key={s.label} className="bg-muted/20 p-3 rounded-2xl">
                                   <p className="text-[8px] font-black text-foreground uppercase opacity-60">{s.label}</p>
@@ -615,7 +615,7 @@ export default function EmployeeAnalytics() {
                               onClick={() => setCurrentPage(pageNum)}
                               className={`h-8 w-8 p-0 text-xs font-bold ${
                                 currentPage === pageNum 
-                                  ? 'bg-[#7B0099] text-white hover:bg-[#7B0099]/90' 
+                                  ? 'bg-[#942392] text-white hover:bg-[#942392]/90' 
                                   : 'border-border bg-white dark:bg-card'
                               }`}
                             >
@@ -657,7 +657,7 @@ export default function EmployeeAnalytics() {
               <CardContent className="pt-5">
                 {loadingTeam ? (
                   <div className="h-[220px] flex items-center justify-center">
-                    <Loader2 className="animate-spin text-[#7B0099] opacity-40 w-7 h-7" />
+                    <Loader2 className="animate-spin text-[#942392] opacity-40 w-7 h-7" />
                   </div>
                 ) : (
                   <ResponsiveContainer width="100%" height={220}>
@@ -700,7 +700,7 @@ export default function EmployeeAnalytics() {
               <CardContent className="pt-5">
                 {loadingTeam ? (
                   <div className="h-[220px] flex items-center justify-center">
-                    <Loader2 className="animate-spin text-[#7B0099] opacity-40 w-7 h-7" />
+                    <Loader2 className="animate-spin text-[#942392] opacity-40 w-7 h-7" />
                   </div>
                 ) : deptOvertimeData.length === 0 ? (
                   <div className="h-[220px] flex items-center justify-center text-[10px] font-black text-foreground/30 uppercase tracking-widest">
@@ -751,7 +751,7 @@ export default function EmployeeAnalytics() {
                 <div className="flex flex-wrap items-center gap-4 sm:gap-8">
                   <span className="text-[9px] font-black uppercase tracking-[0.2em] text-foreground">Team Summary:</span>
                   {[
-                    { label: "Total Employees", value: teamMetrics.length, color: "bg-[#7B0099] text-white" },
+                    { label: "Total Employees", value: teamMetrics.length, color: "bg-[#942392] text-white" },
                     { label: "Champions",  value: teamMetrics.filter(m => m.badge === "CHAMPION").length,  color: "bg-amber-500 text-white"  },
                     { label: "Reliable",   value: teamMetrics.filter(m => m.badge === "RELIABLE").length,  color: "bg-emerald-500 text-white" },
                     { label: "Improving",  value: teamMetrics.filter(m => m.badge === "IMPROVING").length, color: "bg-blue-500 text-white"    },
@@ -762,8 +762,8 @@ export default function EmployeeAnalytics() {
                       <span className="text-[10px] font-black text-foreground uppercase">{s.label}</span>
                     </div>
                   ))}
-                  <div className="ml-auto flex items-center gap-1.5 text-[9px] font-black text-[#7B0099] uppercase tracking-wider bg-[#7B0099]/10 px-3 py-1.5 rounded-xl font-bold">
-                    <ArrowUpRight className="w-3.5 h-3.5 text-[#7B0099]" />
+                  <div className="ml-auto flex items-center gap-1.5 text-[9px] font-black text-[#942392] uppercase tracking-wider bg-[#942392]/10 px-3 py-1.5 rounded-xl font-bold">
+                    <ArrowUpRight className="w-3.5 h-3.5 text-[#942392]" />
                     Team Average OT: {(teamMetrics.reduce((s, m) => s + m.overtimeHours, 0) / teamMetrics.length).toFixed(1)}h
                   </div>
                 </div>

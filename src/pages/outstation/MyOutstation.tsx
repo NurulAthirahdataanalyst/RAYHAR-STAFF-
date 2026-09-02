@@ -226,7 +226,7 @@ export default function MyOutstation() {
                 placeholder="Search destination..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-8 h-9 text-xs border-gray-200 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-900/50 focus-visible:ring-[#7B0099] uppercase font-bold tracking-wider rounded-xl"
+                className="pl-8 h-9 text-xs border-gray-200 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-900/50 focus-visible:ring-[#942392] uppercase font-bold tracking-wider rounded-xl"
               />
                 {search && (
                   <button 
@@ -241,13 +241,13 @@ export default function MyOutstation() {
             <div className="flex items-center gap-3">
               <div className="flex items-center bg-slate-100 dark:bg-slate-900/50 rounded-lg p-1 border border-slate-300 dark:border-slate-700">
                 <button 
-                  className={`h-7 px-3 text-[10px] font-black tracking-widest rounded-md transition-all ${viewMode === 'month' ? 'bg-white dark:bg-slate-800 text-[#7B0099] shadow-sm' : 'text-foreground hover:text-foreground'}`}
+                  className={`h-7 px-3 text-[10px] font-black tracking-widest rounded-md transition-all ${viewMode === 'month' ? 'bg-white dark:bg-slate-800 text-[#942392] shadow-sm' : 'text-foreground hover:text-foreground'}`}
                   onClick={() => setViewMode('month')}
                 >
                   MONTH
                 </button>
                 <button 
-                  className={`h-7 px-3 text-[10px] font-black tracking-widest rounded-md transition-all ${viewMode === 'year' ? 'bg-white dark:bg-slate-800 text-[#7B0099] shadow-sm' : 'text-foreground hover:text-foreground'}`}
+                  className={`h-7 px-3 text-[10px] font-black tracking-widest rounded-md transition-all ${viewMode === 'year' ? 'bg-white dark:bg-slate-800 text-[#942392] shadow-sm' : 'text-foreground hover:text-foreground'}`}
                   onClick={() => setViewMode('year')}
                 >
                   YEAR
@@ -317,14 +317,14 @@ export default function MyOutstation() {
         <CardContent className="p-0">
           {loading ? (
             <div className="flex flex-col items-center justify-center p-12 gap-3">
-              <Loader2 className="w-8 h-8 animate-spin text-[#7B0099]" />
+              <Loader2 className="w-8 h-8 animate-spin text-[#942392]" />
               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground animate-pulse">Syncing Outstations...</p>
             </div>
           ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center p-12 gap-4 text-center">
               <div className="flex flex-col items-center gap-3">
-                <div className="w-20 h-20 rounded-[32px] bg-muted/30 flex items-center justify-center border-2 border-dashed border-border/50 group hover:border-[#7B0099]/30 transition-colors">
-                  <Plane className="h-10 w-10 text-foreground/30 group-hover:text-[#7B0099]/30 transition-colors" />
+                <div className="w-20 h-20 rounded-[32px] bg-muted/30 flex items-center justify-center border-2 border-dashed border-border/50 group hover:border-[#942392]/30 transition-colors">
+                  <Plane className="h-10 w-10 text-foreground/30 group-hover:text-[#942392]/30 transition-colors" />
                 </div>
                 <div className="space-y-1">
                   <p className="text-xs font-black text-foreground uppercase tracking-widest">
@@ -371,7 +371,7 @@ export default function MyOutstation() {
           {viewFormAssignment && (
             <>
               {/* Header (Fixed) */}
-              <div className="bg-[#7B0099] px-6 py-5 text-white shrink-0">
+              <div className="bg-[#942392] px-6 py-5 text-white shrink-0">
                 <div className="flex items-start gap-3">
                   <div className="p-2 rounded-xl bg-white/20 shrink-0">
                     <Plane className="w-5 h-5 text-white" />
@@ -423,9 +423,9 @@ export default function MyOutstation() {
                       <p className="text-[10px] text-black dark:text-white font-bold uppercase">End Date</p>
                       <p className="text-sm font-black text-foreground dark:text-gray-100 mt-0.5">{formatShortDate(viewFormAssignment.end_date)}</p>
                     </div>
-                    <div className="bg-[#7B0099]/5 rounded-xl p-3 border border-[#7B0099]/20">
-                      <p className="text-[10px] text-[#7B0099] font-bold uppercase">Total Days</p>
-                      <p className="text-lg font-black text-[#7B0099] mt-0.5">
+                    <div className="bg-[#942392]/5 rounded-xl p-3 border border-[#942392]/20">
+                      <p className="text-[10px] text-[#942392] font-bold uppercase">Total Days</p>
+                      <p className="text-lg font-black text-[#942392] mt-0.5">
                         {viewFormAssignment.total_days || 0} {viewFormAssignment.total_days === 1 ? 'Day' : 'Days'}
                       </p>
                     </div>
@@ -439,7 +439,7 @@ export default function MyOutstation() {
                   </p>
                   <div className="space-y-2">
                     <div className="flex items-center gap-3 bg-gray-50 dark:bg-slate-900/50 rounded-xl p-3 border border-gray-100 dark:border-slate-800">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#7B0099]/20 to-pink-200 flex items-center justify-center text-[10px] font-black text-[#7B0099] shrink-0">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#942392]/20 to-pink-200 flex items-center justify-center text-[10px] font-black text-[#942392] shrink-0">
                         {(viewFormAssignment.full_name || "?").split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
                       </div>
                       <div className="flex-1 min-w-0">

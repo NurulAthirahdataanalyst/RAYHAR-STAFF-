@@ -431,7 +431,7 @@ export default function WorkforceInsights() {
         <div className="bg-white dark:bg-card border border border-slate-300 dark:border-slate-700 rounded-md shadow-lg p-2 flex flex-col gap-1 min-w-[100px]">
           <p className="text-[11px] font-bold text-slate-600 bg-slate-50 dark:bg-slate-900/50 px-2 py-1 rounded-sm border-b border-slate-100 dark:border-slate-800">{label}</p>
           <div className="flex items-center gap-1.5 px-2 py-1">
-            <div className="w-2 h-2 rounded-full bg-[#7B0099]"></div>
+            <div className="w-2 h-2 rounded-full bg-[#942392]"></div>
             <p className="text-[11px] text-slate-700">Attendance: <span className="font-bold">{payload[0].value}%</span></p>
           </div>
         </div>
@@ -447,13 +447,13 @@ export default function WorkforceInsights() {
           {/* LEFT: DAY | MONTH View Toggle Bar */}
           <div className="inline-flex items-center bg-slate-100 dark:bg-slate-900 p-1.5 rounded-xl shadow-inner border border-slate-200 dark:border-slate-800 shrink-0 gap-1">
             <button 
-              className={`flex items-center justify-center h-8 px-5 text-[11px] font-black tracking-widest rounded-lg transition-all duration-300 ${viewMode === 'day' ? 'bg-[#FFFE00] text-[#7B0099] shadow-md' : 'text-foreground hover:text-slate-700 hover:bg-slate-200/50'}`}
+              className={`flex items-center justify-center h-8 px-5 text-[11px] font-black tracking-widest rounded-lg transition-all duration-300 ${viewMode === 'day' ? 'bg-[#FFFE00] text-[#942392] shadow-md' : 'text-foreground hover:text-slate-700 hover:bg-slate-200/50'}`}
               onClick={() => setViewMode('day')}
             >
               DAY
             </button>
             <button 
-              className={`flex items-center justify-center h-8 px-5 text-[11px] font-black tracking-widest rounded-lg transition-all duration-300 ${viewMode === 'month' ? 'bg-[#FFFE00] text-[#7B0099] shadow-md' : 'text-foreground hover:text-slate-700 hover:bg-slate-200/50'}`}
+              className={`flex items-center justify-center h-8 px-5 text-[11px] font-black tracking-widest rounded-lg transition-all duration-300 ${viewMode === 'month' ? 'bg-[#FFFE00] text-[#942392] shadow-md' : 'text-foreground hover:text-slate-700 hover:bg-slate-200/50'}`}
               onClick={() => setViewMode('month')}
             >
               MONTH
@@ -466,7 +466,7 @@ export default function WorkforceInsights() {
               {viewMode === "day" ? (
                 <Popover>
                   <PopoverTrigger asChild>
-                    <button className="appearance-none flex items-center justify-between px-4 py-2 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-10 gap-3 hover:border-[#7B0099]/40 min-w-[140px]">
+                    <button className="appearance-none flex items-center justify-between px-4 py-2 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-10 gap-3 hover:border-[#942392]/40 min-w-[140px]">
                       <span>{displayDate}</span>
                       <CalendarIcon className="w-4 h-4 text-foreground" />
                     </button>
@@ -1132,7 +1132,7 @@ export default function WorkforceInsights() {
                   <Users className="w-4 h-4 mr-2" /> Manage Team
                 </Button>
                 <p 
-                  className="text-[10px] font-bold text-[#7B0099] cursor-pointer hover:underline flex items-center gap-1 justify-end mt-1"
+                  className="text-[10px] font-bold text-[#942392] cursor-pointer hover:underline flex items-center gap-1 justify-end mt-1"
                   onClick={() => {
                     navigate('/hr-analytics/attendance');
                     setTimeout(() => {
@@ -1158,58 +1158,58 @@ export default function WorkforceInsights() {
               <div className="flex flex-col gap-3">
                 <div 
                   onClick={() => navigate("/leave/admin?tab=pending")}
-                  className="flex items-center justify-between p-4 bg-slate-50/80 hover:bg-[#7B0099]/5 border border-transparent hover:border-[#7B0099]/20 rounded-lg transition-all duration-300 cursor-pointer group"
+                  className="flex items-center justify-between p-4 bg-slate-50/80 hover:bg-[#942392]/5 border border-transparent hover:border-[#942392]/20 rounded-lg transition-all duration-300 cursor-pointer group"
                 >
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded-lg bg-yellow-100/50 flex items-center justify-center transition-transform group-hover:scale-110 duration-300">
                       <Clock className="w-5 h-5 text-yellow-600" />
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-slate-800 dark:text-slate-200 group-hover:text-[#7B0099] transition-colors">Pending Requests</p>
+                      <p className="text-sm font-bold text-slate-800 dark:text-slate-200 group-hover:text-[#942392] transition-colors">Pending Requests</p>
                       <p className="text-xs text-foreground font-medium">Awaiting Approval</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
                     <span className="text-2xl font-bold text-slate-700">{data.leaveMonitoring.pendingApproval}</span>
-                    <ChevronRight className="w-5 h-5 text-foreground group-hover:text-[#7B0099] group-hover:translate-x-1 transition-all duration-300" />
+                    <ChevronRight className="w-5 h-5 text-foreground group-hover:text-[#942392] group-hover:translate-x-1 transition-all duration-300" />
                   </div>
                 </div>
 
                 <div 
                   onClick={() => navigate("/leave/admin?tab=approved")}
-                  className="flex items-center justify-between p-4 bg-slate-50/80 hover:bg-[#7B0099]/5 border border-transparent hover:border-[#7B0099]/20 rounded-lg transition-all duration-300 cursor-pointer group"
+                  className="flex items-center justify-between p-4 bg-slate-50/80 hover:bg-[#942392]/5 border border-transparent hover:border-[#942392]/20 rounded-lg transition-all duration-300 cursor-pointer group"
                 >
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded-lg bg-emerald-100/50 flex items-center justify-center transition-transform group-hover:scale-110 duration-300">
                       <FileCheck className="w-5 h-5 text-emerald-600" />
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-slate-800 dark:text-slate-200 group-hover:text-[#7B0099] transition-colors">Approved Leave</p>
+                      <p className="text-sm font-bold text-slate-800 dark:text-slate-200 group-hover:text-[#942392] transition-colors">Approved Leave</p>
                       <p className="text-xs text-foreground font-medium">This Month</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
                     <span className="text-2xl font-bold text-slate-700">{data.leaveMonitoring.approvedThisMonth}</span>
-                    <ChevronRight className="w-5 h-5 text-foreground group-hover:text-[#7B0099] group-hover:translate-x-1 transition-all duration-300" />
+                    <ChevronRight className="w-5 h-5 text-foreground group-hover:text-[#942392] group-hover:translate-x-1 transition-all duration-300" />
                   </div>
                 </div>
 
                 <div 
                   onClick={() => navigate("/leave/admin?tab=approved")}
-                  className="flex items-center justify-between p-4 bg-slate-50/80 hover:bg-[#7B0099]/5 border border-transparent hover:border-[#7B0099]/20 rounded-lg transition-all duration-300 cursor-pointer group"
+                  className="flex items-center justify-between p-4 bg-slate-50/80 hover:bg-[#942392]/5 border border-transparent hover:border-[#942392]/20 rounded-lg transition-all duration-300 cursor-pointer group"
                 >
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded-lg bg-blue-100/50 flex items-center justify-center transition-transform group-hover:scale-110 duration-300">
                       <Users className="w-5 h-5 text-blue-600" />
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-slate-800 dark:text-slate-200 group-hover:text-[#7B0099] transition-colors">Staff on Leave</p>
+                      <p className="text-sm font-bold text-slate-800 dark:text-slate-200 group-hover:text-[#942392] transition-colors">Staff on Leave</p>
                       <p className="text-xs text-foreground font-medium">Out of Office (Today)</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
                     <span className="text-2xl font-bold text-slate-700">{data.leaveMonitoring.staffOnLeaveToday}</span>
-                    <ChevronRight className="w-5 h-5 text-foreground group-hover:text-[#7B0099] group-hover:translate-x-1 transition-all duration-300" />
+                    <ChevronRight className="w-5 h-5 text-foreground group-hover:text-[#942392] group-hover:translate-x-1 transition-all duration-300" />
                   </div>
                 </div>
               </div>
@@ -1431,58 +1431,58 @@ export default function WorkforceInsights() {
               <div className="flex flex-col gap-3">
                 <div 
                   onClick={() => navigate("/leave/admin?tab=pending")}
-                  className="flex items-center justify-between p-4 bg-slate-50/80 hover:bg-[#7B0099]/5 border border-transparent hover:border-[#7B0099]/20 rounded-lg transition-all duration-300 cursor-pointer group"
+                  className="flex items-center justify-between p-4 bg-slate-50/80 hover:bg-[#942392]/5 border border-transparent hover:border-[#942392]/20 rounded-lg transition-all duration-300 cursor-pointer group"
                 >
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded-lg bg-yellow-100/50 flex items-center justify-center transition-transform group-hover:scale-110 duration-300">
                       <Clock className="w-5 h-5 text-yellow-600" />
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-slate-800 dark:text-slate-200 group-hover:text-[#7B0099] transition-colors">Pending Requests</p>
+                      <p className="text-sm font-bold text-slate-800 dark:text-slate-200 group-hover:text-[#942392] transition-colors">Pending Requests</p>
                       <p className="text-xs text-foreground font-medium">Awaiting Approval</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
                     <span className="text-2xl font-bold text-slate-700">{data.leaveMonitoring.pendingApproval}</span>
-                    <ChevronRight className="w-5 h-5 text-foreground group-hover:text-[#7B0099] group-hover:translate-x-1 transition-all duration-300" />
+                    <ChevronRight className="w-5 h-5 text-foreground group-hover:text-[#942392] group-hover:translate-x-1 transition-all duration-300" />
                   </div>
                 </div>
 
                 <div 
                   onClick={() => navigate("/leave/admin?tab=approved")}
-                  className="flex items-center justify-between p-4 bg-slate-50/80 hover:bg-[#7B0099]/5 border border-transparent hover:border-[#7B0099]/20 rounded-lg transition-all duration-300 cursor-pointer group"
+                  className="flex items-center justify-between p-4 bg-slate-50/80 hover:bg-[#942392]/5 border border-transparent hover:border-[#942392]/20 rounded-lg transition-all duration-300 cursor-pointer group"
                 >
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded-lg bg-emerald-100/50 flex items-center justify-center transition-transform group-hover:scale-110 duration-300">
                       <FileCheck className="w-5 h-5 text-emerald-600" />
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-slate-800 dark:text-slate-200 group-hover:text-[#7B0099] transition-colors">Approved Leave</p>
+                      <p className="text-sm font-bold text-slate-800 dark:text-slate-200 group-hover:text-[#942392] transition-colors">Approved Leave</p>
                       <p className="text-xs text-foreground font-medium">This Month</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
                     <span className="text-2xl font-bold text-slate-700">{data.leaveMonitoring.approvedThisMonth}</span>
-                    <ChevronRight className="w-5 h-5 text-foreground group-hover:text-[#7B0099] group-hover:translate-x-1 transition-all duration-300" />
+                    <ChevronRight className="w-5 h-5 text-foreground group-hover:text-[#942392] group-hover:translate-x-1 transition-all duration-300" />
                   </div>
                 </div>
 
                 <div 
                   onClick={() => navigate("/leave/admin?tab=approved")}
-                  className="flex items-center justify-between p-4 bg-slate-50/80 hover:bg-[#7B0099]/5 border border-transparent hover:border-[#7B0099]/20 rounded-lg transition-all duration-300 cursor-pointer group"
+                  className="flex items-center justify-between p-4 bg-slate-50/80 hover:bg-[#942392]/5 border border-transparent hover:border-[#942392]/20 rounded-lg transition-all duration-300 cursor-pointer group"
                 >
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded-lg bg-blue-100/50 flex items-center justify-center transition-transform group-hover:scale-110 duration-300">
                       <Users className="w-5 h-5 text-blue-600" />
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-slate-800 dark:text-slate-200 group-hover:text-[#7B0099] transition-colors">Staff on Leave</p>
+                      <p className="text-sm font-bold text-slate-800 dark:text-slate-200 group-hover:text-[#942392] transition-colors">Staff on Leave</p>
                       <p className="text-xs text-foreground font-medium">Out of Office (Today)</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
                     <span className="text-2xl font-bold text-slate-700">{data.leaveMonitoring.staffOnLeaveToday}</span>
-                    <ChevronRight className="w-5 h-5 text-foreground group-hover:text-[#7B0099] group-hover:translate-x-1 transition-all duration-300" />
+                    <ChevronRight className="w-5 h-5 text-foreground group-hover:text-[#942392] group-hover:translate-x-1 transition-all duration-300" />
                   </div>
                 </div>
               </div>
@@ -1995,7 +1995,7 @@ export default function WorkforceInsights() {
               })}
             </div>
             
-            <button onClick={() => navigate('/outstation/assignment')} className="text-xs font-semibold text-[#7B0099] hover:text-[#5c0073] text-center mt-4 flex items-center justify-center gap-1 w-full pt-2 border-t border-slate-100 dark:border-slate-800">
+            <button onClick={() => navigate('/outstation/assignment')} className="text-xs font-semibold text-[#942392] hover:text-[#5c0073] text-center mt-4 flex items-center justify-center gap-1 w-full pt-2 border-t border-slate-100 dark:border-slate-800">
               View All <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </Card>
@@ -2325,7 +2325,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
 
          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 items-start">
            <div className="lg:col-span-2 flex flex-col gap-6">
-            <Card className="p-5 border border-slate-100 dark:border-slate-700 hover:border-[#7B0099] hover: transition-all duration-300 flex flex-col relative overflow-hidden rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
+            <Card className="p-5 border border-slate-100 dark:border-slate-700 hover:border-[#942392] hover: transition-all duration-300 flex flex-col relative overflow-hidden rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
                 <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-200">Attendance Trend</CardTitle>
                 
@@ -2336,7 +2336,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                         variant="outline"
                         size="sm"
                         onClick={() => setTrendWeekStart(startOfWeek(new Date(), { weekStartsOn: 6 }))}
-                        className="h-8 text-xs font-black px-4 mr-2 bg-[#FFD700] text-[#7B0099] border-2 border-[#7B0099] hover:bg-[#FFE55C] shadow-md"
+                        className="h-8 text-xs font-black px-4 mr-2 bg-[#FFD700] text-[#942392] border-2 border-[#942392] hover:bg-[#FFE55C] shadow-md"
                       >
                         This Week
                       </Button>
@@ -2345,7 +2345,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                     <ChevronLeft className="w-4 h-4 text-foreground" />
                   </Button>
                   <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-slate-200 dark:border-slate-700 dark:bg-slate-800/50 rounded-full shadow-sm">
-                    <span className="text-xs sm:text-sm font-black text-[#7B0099] whitespace-nowrap">
+                    <span className="text-xs sm:text-sm font-black text-[#942392] whitespace-nowrap">
                       {format(trendWeekStart, "dd MMM yyyy")} - {format(endOfWeek(trendWeekStart, { weekStartsOn: 6 }), "dd MMM yyyy")}
                     </span>
                   </div>
@@ -2430,7 +2430,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
               </div>
             </Card>
            
-           <Card className="p-5 border border-slate-100 dark:border-slate-700 bg-white dark:bg-card flex flex-col hover:border-[#7B0099] hover: transition-all duration-300 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
+           <Card className="p-5 border border-slate-100 dark:border-slate-700 bg-white dark:bg-card flex flex-col hover:border-[#942392] hover: transition-all duration-300 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
               <div className="flex items-center mb-6 border-b border-slate-100 dark:border-slate-800 pb-3">
                 <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-200">Leave Utilization Trend vs. Previous Month</CardTitle>
               </div>
@@ -2453,7 +2453,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
            
            
            <div className="lg:col-span-1 flex flex-col gap-6">
-             <Card className="p-5 border border-slate-100 dark:border-slate-700 hover:border-[#7B0099] hover: transition-all duration-300 flex flex-col rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
+             <Card className="p-5 border border-slate-100 dark:border-slate-700 hover:border-[#942392] hover: transition-all duration-300 flex flex-col rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
              <div className="flex justify-between items-center mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
                <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-200">Monthly Comparison</CardTitle>
              </div>
@@ -2503,7 +2503,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                </table>
              </div>
              <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end">
-               <button className="text-xs font-bold text-foreground hover:text-[#7B0099] transition-colors flex items-center gap-1">Open Report <ChevronRight className="w-3 h-3" /></button>
+               <button className="text-xs font-bold text-foreground hover:text-[#942392] transition-colors flex items-center gap-1">Open Report <ChevronRight className="w-3 h-3" /></button>
              </div>
              </Card>
              
@@ -2524,7 +2524,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
          {/* Row 1: 2 Columns */}
          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
            {/* Department Workforce Distribution */}
-           <Card className="lg:col-span-5 p-4 border border-slate-100 dark:border-slate-700 hover:border-[#7B0099] hover: transition-all duration-300 flex flex-col rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
+           <Card className="lg:col-span-5 p-4 border border-slate-100 dark:border-slate-700 hover:border-[#942392] hover: transition-all duration-300 flex flex-col rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
              <div className="flex justify-between items-center mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
                <div className="flex items-center gap-2">
                  <Building2 className="w-4 h-4 text-foreground" />
@@ -2559,12 +2559,12 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                  <span className="w-1.5 h-1.5 rounded-full bg-[#FF5722]"></span>
                  HQ operations represent {(departmentMetrics.reduce((sum:number,d:any)=>sum+d.value,0)/topKpi.totalHeadcount*100 || 0).toFixed(0)}% of workforce
                </p>
-               <button className="text-xs font-bold text-foreground hover:text-[#7B0099] transition-colors flex items-center gap-1">View All <ChevronRight className="w-3 h-3" /></button>
+               <button className="text-xs font-bold text-foreground hover:text-[#942392] transition-colors flex items-center gap-1">View All <ChevronRight className="w-3 h-3" /></button>
              </div>
            </Card>
 
            {/* Branch Workforce Distribution */}
-           <Card className="lg:col-span-7 p-4 border border-slate-100 dark:border-slate-700 hover:border-[#7B0099] hover: transition-all duration-300 flex flex-col bg-white dark:bg-card rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
+           <Card className="lg:col-span-7 p-4 border border-slate-100 dark:border-slate-700 hover:border-[#942392] hover: transition-all duration-300 flex flex-col bg-white dark:bg-card rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
              <div className="flex justify-between items-center mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
                <div className="flex items-center gap-2">
                  <MapPin className="w-4 h-4 text-foreground" />
@@ -2675,7 +2675,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                   Showing {liveBranchRanking.length} locations
                 </p>
-                <button className="text-xs font-bold text-foreground hover:text-[#7B0099] transition-colors flex items-center gap-1">See All <ChevronRight className="w-3 h-3" /></button>
+                <button className="text-xs font-bold text-foreground hover:text-[#942392] transition-colors flex items-center gap-1">See All <ChevronRight className="w-3 h-3" /></button>
               </div>
             </Card>
           </div>
@@ -2683,7 +2683,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
          {/* Row 2: 3 Columns */}
          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
            {/* Leave Distribution (Donut Chart) */}
-           <Card className="p-4 border border-slate-100 dark:border-slate-700 hover:border-[#7B0099] hover: transition-all duration-300 flex flex-col rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
+           <Card className="p-4 border border-slate-100 dark:border-slate-700 hover:border-[#942392] hover: transition-all duration-300 flex flex-col rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
              <div className="flex justify-between items-center mb-2 border-b border-slate-100 dark:border-slate-800 pb-3">
                <div className="flex items-center gap-2">
                  <FileText className="w-4 h-4 text-foreground" />
@@ -2734,12 +2734,12 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
              )}
 
              <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end">
-               <button className="text-xs font-bold text-foreground hover:text-[#7B0099] transition-colors flex items-center gap-1">View Details <ChevronRight className="w-3 h-3" /></button>
+               <button className="text-xs font-bold text-foreground hover:text-[#942392] transition-colors flex items-center gap-1">View Details <ChevronRight className="w-3 h-3" /></button>
              </div>
            </Card>
 
            {/* Travel & Outstation Summary */}
-           <Card className="p-5 border border-slate-100 dark:border-slate-700 hover:border-[#7B0099] hover: transition-all duration-300 flex flex-col relative bg-white dark:bg-card rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
+           <Card className="p-5 border border-slate-100 dark:border-slate-700 hover:border-[#942392] hover: transition-all duration-300 flex flex-col relative bg-white dark:bg-card rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
              {feedConnected && (
                <div className="absolute top-4 right-4 flex items-center gap-1 bg-red-500 text-white text-[9px] font-black px-2 py-1 rounded uppercase tracking-widest z-10 shadow-sm">
                  <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" /> LIVE
@@ -2798,12 +2798,12 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
              </div>
 
              <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-end items-center">
-               <button onClick={() => navigate('/outstation/reports')} className="text-[11px] font-bold text-foreground hover:text-[#7B0099] transition-colors flex items-center gap-1">Explore <ChevronRight className="w-3 h-3" /></button>
+               <button onClick={() => navigate('/outstation/reports')} className="text-[11px] font-bold text-foreground hover:text-[#942392] transition-colors flex items-center gap-1">Explore <ChevronRight className="w-3 h-3" /></button>
              </div>
            </Card>
 
            {/* Workforce Movement */}
-           <Card className="p-4 border border-slate-100 dark:border-slate-700 hover:border-[#7B0099] hover: transition-all duration-300 flex flex-col rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
+           <Card className="p-4 border border-slate-100 dark:border-slate-700 hover:border-[#942392] hover: transition-all duration-300 flex flex-col rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
              <div className="flex justify-between items-center mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
                <div className="flex items-center gap-2">
                  <Users className="w-4 h-4 text-foreground" />
@@ -2832,7 +2832,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                </div>
              </div>
              <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end">
-               <button className="text-xs font-bold text-foreground hover:text-[#7B0099] transition-colors flex items-center gap-1">Open Report <ChevronRight className="w-3 h-3" /></button>
+               <button className="text-xs font-bold text-foreground hover:text-[#942392] transition-colors flex items-center gap-1">Open Report <ChevronRight className="w-3 h-3" /></button>
              </div>
            </Card>
           </div>
@@ -2846,10 +2846,10 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
          {/* SUPPORTING SECTION */}
        <div>
          <div className="grid grid-cols-1 gap-6">
-           <Card className="p-4 border-l-4 border-l-[#7B0099] border-y !border-y-slate-600 border-r !border-r-slate-600 dark:!border-y-slate-500 dark:!border-r-slate-500 hover:border-[#7B0099] hover: transition-all duration-300 flex flex-col rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
+           <Card className="p-4 border-l-4 border-l-[#942392] border-y !border-y-slate-600 border-r !border-r-slate-600 dark:!border-y-slate-500 dark:!border-r-slate-500 hover:border-[#942392] hover: transition-all duration-300 flex flex-col rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
              <div className="flex justify-between items-center mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
                <div className="flex items-center gap-2">
-                 <AlertCircle className="w-4 h-4 text-[#7B0099]" />
+                 <AlertCircle className="w-4 h-4 text-[#942392]" />
                  <h3 className="text-sm font-bold text-[#1A1F36]">HR Alerts</h3>
                </div>
                {feedConnected && (
@@ -2894,7 +2894,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
              </div>
 
              <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end">
-               <button className="text-xs font-bold text-foreground hover:text-[#7B0099] transition-colors flex items-center gap-1">See All <ChevronRight className="w-3 h-3" /></button>
+               <button className="text-xs font-bold text-foreground hover:text-[#942392] transition-colors flex items-center gap-1">See All <ChevronRight className="w-3 h-3" /></button>
              </div>
            </Card>
          </div>

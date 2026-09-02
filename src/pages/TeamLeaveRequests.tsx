@@ -288,7 +288,7 @@ export default function TeamLeaveRequests() {
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto border-none shadow-2xl rounded-[32px] p-0 safe-area-bottom">
           {selectedRequest && (
             <>
-              <div className="p-6 bg-gradient-to-br from-[#7B0099] to-[#a855f7] text-white print:hidden">
+              <div className="p-6 bg-gradient-to-br from-[#942392] to-[#a855f7] text-white print:hidden">
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-3 text-white text-xl font-black tracking-tight">
                     <FileText className="h-6 w-6" />
@@ -318,7 +318,7 @@ export default function TeamLeaveRequests() {
                     </div>
                     <div className="space-y-1">
                       <span className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50">No. Telefon</span>
-                      <p className="border-b pb-1 border-border/40 font-black text-[#7B0099]">{selectedRequest.phone || (selectedRequest as any).applicant_phone || "-"}</p>
+                      <p className="border-b pb-1 border-border/40 font-black text-[#942392]">{selectedRequest.phone || (selectedRequest as any).applicant_phone || "-"}</p>
                     </div>
                     <div className="space-y-1">
                       <span className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50">Jenis Cuti</span>
@@ -326,7 +326,7 @@ export default function TeamLeaveRequests() {
                     </div>
                     <div className="space-y-1 col-span-2 sm:col-span-1">
                       <span className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50">Status</span>
-                      <p className={`font-black uppercase ${selectedRequest.status === "Rejected" ? "text-rose-600" : "text-[#7B0099]"}`}>
+                      <p className={`font-black uppercase ${selectedRequest.status === "Rejected" ? "text-rose-600" : "text-[#942392]"}`}>
                         {getDisplayStatus(selectedRequest.status)}
                         {selectedRequest.status === "Rejected" && selectedRequest.approverRole && (
                           <span className="block text-[8px] text-rose-500 mt-0.5 opacity-60">
@@ -347,8 +347,8 @@ export default function TeamLeaveRequests() {
                       <p className="font-black text-xs sm:text-sm">{selectedRequest.to}</p>
                     </div>
                     <div className="text-center bg-white dark:bg-slate-900 rounded-[14px] border border-border/50 py-1 shadow-sm flex flex-col justify-center">
-                      <p className="text-[9px] uppercase font-black text-[#7B0099]">Hari</p>
-                      <p className="font-black text-lg text-[#7B0099] leading-none mt-0.5">{selectedRequest.days}</p>
+                      <p className="text-[9px] uppercase font-black text-[#942392]">Hari</p>
+                      <p className="font-black text-lg text-[#942392] leading-none mt-0.5">{selectedRequest.days}</p>
                     </div>
                     <div className="text-center rounded-[14px] border-2 border-emerald-500 bg-white dark:bg-slate-900 shadow-sm flex flex-col justify-center py-1">
                       <p className="text-[9px] uppercase font-black text-emerald-600">Baki Layak</p>
@@ -422,14 +422,14 @@ export default function TeamLeaveRequests() {
                   {(selectedRequest.type === "Sick Leave" || selectedRequest.type === "Cuti Sakit") && selectedRequest.mcFileUrl && (
                     <div className="p-4 bg-purple-500/10 border border-purple-500/20 rounded-[16px] flex items-center justify-between group">
                       <div className="flex items-center gap-3">
-                        <FileText className="w-5 h-5 text-[#7B0099]" />
-                        <span className="text-[10px] font-black text-[#7B0099] uppercase tracking-widest">MC Attachment</span>
+                        <FileText className="w-5 h-5 text-[#942392]" />
+                        <span className="text-[10px] font-black text-[#942392] uppercase tracking-widest">MC Attachment</span>
                       </div>
                       <a
                         href={`${API_BASE_URL}${selectedRequest.mcFileUrl}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-[9px] font-black uppercase tracking-widest bg-[#7B0099] text-white px-4 py-2 rounded-xl hover:bg-[#5e0080] transition-colors shadow-lg"
+                        className="text-[9px] font-black uppercase tracking-widest bg-[#942392] text-white px-4 py-2 rounded-xl hover:bg-[#5e0080] transition-colors shadow-lg"
                       >
                         View File
                       </a>
@@ -453,7 +453,7 @@ export default function TeamLeaveRequests() {
                       </div>
                       <div className="space-y-1">
                         <span className="text-[8px] font-black text-slate-950 dark:text-slate-50 uppercase">No. Telefon</span>
-                        <p className="text-[11px] font-black text-[#7B0099]">{selectedRequest.warisPhone}</p>
+                        <p className="text-[11px] font-black text-[#942392]">{selectedRequest.warisPhone}</p>
                       </div>
                       <div className="space-y-1">
                         <span className="text-[8px] font-black text-slate-950 dark:text-slate-50 uppercase">Alamat</span>
@@ -506,7 +506,7 @@ export default function TeamLeaveRequests() {
                     <Button
                       type="button"
                       variant="outline"
-                      className="gap-2 border-[#7B0099] text-[#7B0099] hover:bg-[#7B0099]/5 rounded-xl font-black text-[10px] uppercase tracking-widest px-6"
+                      className="gap-2 border-[#942392] text-[#942392] hover:bg-[#942392]/5 rounded-xl font-black text-[10px] uppercase tracking-widest px-6"
                       onClick={() => {
                         const originalTitle = document.title;
                         const empName = selectedRequest.employee || selectedRequest.name || "UNKNOWN";

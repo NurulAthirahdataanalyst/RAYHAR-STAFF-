@@ -341,7 +341,7 @@ export default function TeamAttendance() {
         {/* Metrics */}
         
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-          <Card className="border border-gray-200 dark:border-slate-800/80 shadow-sm border-l-4 border-l-[#7B0099]">
+          <Card className="border border-gray-200 dark:border-slate-800/80 shadow-sm border-l-4 border-l-[#942392]">
             <CardContent className="p-6 flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
                 <Users className="w-6 h-6 text-primary" />
@@ -411,13 +411,13 @@ export default function TeamAttendance() {
               <div className="flex items-center bg-slate-100 dark:bg-slate-900/50 rounded-lg p-1 border border-slate-300 dark:border-slate-700">
                 <button 
                   onClick={() => setDateViewMode('DAY')}
-                  className={`h-7 px-4 text-[11px] font-bold tracking-widest rounded-md transition-all ${dateViewMode === 'DAY' ? 'bg-[#7B0099] text-white shadow-sm' : 'text-foreground hover:text-slate-700 hover:bg-slate-200/50'}`}
+                  className={`h-7 px-4 text-[11px] font-bold tracking-widest rounded-md transition-all ${dateViewMode === 'DAY' ? 'bg-[#942392] text-white shadow-sm' : 'text-foreground hover:text-slate-700 hover:bg-slate-200/50'}`}
                 >
                   DAY
                 </button>
                 <button 
                   onClick={() => setDateViewMode('MONTH')}
-                  className={`h-7 px-4 text-[11px] font-bold tracking-widest rounded-md transition-all ${dateViewMode === 'MONTH' ? 'bg-[#7B0099] text-white shadow-sm' : 'text-foreground hover:text-slate-700 hover:bg-slate-200/50'}`}
+                  className={`h-7 px-4 text-[11px] font-bold tracking-widest rounded-md transition-all ${dateViewMode === 'MONTH' ? 'bg-[#942392] text-white shadow-sm' : 'text-foreground hover:text-slate-700 hover:bg-slate-200/50'}`}
                 >
                   MONTH
                 </button>
@@ -430,7 +430,7 @@ export default function TeamAttendance() {
                   {dateViewMode === "DAY" ? (
                     <Popover>
                       <PopoverTrigger asChild>
-                        <button className="appearance-none flex items-center justify-center px-4 py-2 bg-white dark:bg-card border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-[34px] gap-2 hover:border-[#7B0099] hover:ring-1 hover:ring-[#7B0099] transition-all">
+                        <button className="appearance-none flex items-center justify-center px-4 py-2 bg-white dark:bg-card border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-[34px] gap-2 hover:border-[#942392] hover:ring-1 hover:ring-[#942392] transition-all">
                           {new Date(selectedDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()} <CalendarDays className="w-4 h-4 text-foreground" />
                         </button>
                       </PopoverTrigger>
@@ -451,7 +451,7 @@ export default function TeamAttendance() {
                       onSelectMonthYear={(val) => {
                         setSelectedDate(`${val}-01`);
                       }}
-                      className="appearance-none flex items-center justify-between gap-3 min-w-[140px] px-4 py-2 bg-white dark:bg-card border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none focus:border-[#7B0099] focus:ring-1 focus:ring-[#7B0099] uppercase tracking-widest h-[34px]"
+                      className="appearance-none flex items-center justify-between gap-3 min-w-[140px] px-4 py-2 bg-white dark:bg-card border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none focus:border-[#942392] focus:ring-1 focus:ring-[#942392] uppercase tracking-widest h-[34px]"
                     />
                   )}
                 </div>
@@ -462,7 +462,7 @@ export default function TeamAttendance() {
                     <button
                       key={status}
                       onClick={() => setStatusFilter(status)}
-                      className={`px-4 py-1.5 rounded-md text-xs font-bold transition-colors whitespace-nowrap ${statusFilter === status ? 'bg-white dark:bg-card text-foreground shadow-sm ring-1 ring-[#7B0099]' : 'text-foreground hover:text-gray-900 dark:text-gray-100'}`}
+                      className={`px-4 py-1.5 rounded-md text-xs font-bold transition-colors whitespace-nowrap ${statusFilter === status ? 'bg-white dark:bg-card text-foreground shadow-sm ring-1 ring-[#942392]' : 'text-foreground hover:text-gray-900 dark:text-gray-100'}`}
                     >
                       {status}
                     </button>
@@ -604,7 +604,7 @@ export default function TeamAttendance() {
                           variant={currentPage === pageNum ? "default" : "outline"}
                           size="sm"
                           onClick={() => setCurrentPage(pageNum)}
-                          className={`h-7 w-7 p-0 text-[10px] font-bold rounded ${currentPage === pageNum ? 'bg-[#7B0099] text-white hover:bg-[#680082]' : 'text-foreground'}`}
+                          className={`h-7 w-7 p-0 text-[10px] font-bold rounded ${currentPage === pageNum ? 'bg-[#942392] text-white hover:bg-[#680082]' : 'text-foreground'}`}
                         >
                           {pageNum}
                         </Button>

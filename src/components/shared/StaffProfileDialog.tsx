@@ -646,7 +646,7 @@ export function StaffProfileDialog({
                   {/* Left Column: Bio & Info (4 cols) */}
                   <div className="lg:col-span-4 space-y-4">
                     <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-800/60 dark:border-slate-700 shadow-sm flex flex-col items-center text-center">
-                      <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#7B0099] to-indigo-600 flex items-center justify-center text-white text-3xl font-black shadow-md shadow-[#7B0099]/20 mb-3 border-4 border-white">
+                      <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#942392] to-indigo-600 flex items-center justify-center text-white text-3xl font-black shadow-md shadow-[#942392]/20 mb-3 border-4 border-white">
                         {selectedEmployee.name.charAt(0)}
                       </div>
                       <h2 className="text-lg font-black text-slate-900 dark:text-slate-100 leading-tight mb-1">{selectedEmployee.name}</h2>
@@ -682,7 +682,7 @@ export function StaffProfileDialog({
                     <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-800/60 dark:border-slate-700 shadow-sm flex flex-col gap-3">
                       <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-700 pb-2">
                         <span className="text-[10px] font-black tracking-widest uppercase text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
-                          <Clock className="w-3.5 h-3.5 text-[#7B0099]" />
+                          <Clock className="w-3.5 h-3.5 text-[#942392]" />
                           TODAY'S ATTENDANCE
                         </span>
                       </div>
@@ -799,13 +799,13 @@ export function StaffProfileDialog({
                         <h3 className="text-xs font-black text-slate-800 dark:text-slate-100 uppercase tracking-wider">Attendance Performance</h3>
                       </div>
                       <div className="flex items-center gap-2">
-                        <MonthPicker monthYear={analyticsDate} onSelectMonthYear={setAnalyticsDate} className="flex items-center justify-between gap-2 h-8 px-3 text-[10px] font-bold uppercase tracking-widest bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full cursor-pointer hover:bg-slate-50 transition-colors focus:outline-none focus:ring-1 focus:ring-[#7B0099]" />
+                        <MonthPicker monthYear={analyticsDate} onSelectMonthYear={setAnalyticsDate} className="flex items-center justify-between gap-2 h-8 px-3 text-[10px] font-bold uppercase tracking-widest bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full cursor-pointer hover:bg-slate-50 transition-colors focus:outline-none focus:ring-1 focus:ring-[#942392]" />
                       </div>
                     </div>
 
                     {loadingAnalytics ? (
                       <div className="flex flex-col items-center justify-center py-20 text-foreground bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-800/60 dark:border-slate-700 shadow-sm">
-                        <Loader2 className="w-8 h-8 animate-spin mb-3 text-[#7B0099]" />
+                        <Loader2 className="w-8 h-8 animate-spin mb-3 text-[#942392]" />
                         <p className="text-xs font-bold tracking-wide">Loading enterprise analytics...</p>
                       </div>
                     ) : analytics ? (
@@ -1467,7 +1467,7 @@ export function StaffProfileDialog({
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  className="h-7 text-[10px] bg-[#7B0099] text-white hover:bg-[#5c0073] font-bold"
+                                  className="h-7 text-[10px] bg-[#942392] text-white hover:bg-[#5c0073] font-bold"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     setSelectedLeaveFormDetail(req);
@@ -1498,7 +1498,7 @@ export function StaffProfileDialog({
             const toStr = new Date(req.end_date).toLocaleDateString('ms-MY', { day: '2-digit', month: '2-digit', year: 'numeric' });
             return (
               <>
-                <div className="p-6 bg-gradient-to-br from-[#7B0099] to-[#a855f7] text-white print:hidden">
+                <div className="p-6 bg-gradient-to-br from-[#942392] to-[#a855f7] text-white print:hidden">
                   <DialogHeader>
                     <DialogTitle className="flex items-center gap-3 text-white text-xl font-black tracking-tight">
                       <FileText className="h-6 w-6" />
@@ -1532,7 +1532,7 @@ export function StaffProfileDialog({
                       </div>
                       <div className="space-y-1">
                         <span className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50">Status</span>
-                        <p className={`font-black uppercase ${req.status === "Rejected" ? "text-rose-600" : "text-[#7B0099]"}`}>
+                        <p className={`font-black uppercase ${req.status === "Rejected" ? "text-rose-600" : "text-[#942392]"}`}>
                           {req.status}
                         </p>
                       </div>
@@ -1548,8 +1548,8 @@ export function StaffProfileDialog({
                         <p className="font-black text-xs sm:text-sm">{toStr}</p>
                       </div>
                       <div className="text-center bg-white dark:bg-slate-900 rounded-[14px] border border-border/50 py-1 shadow-sm flex flex-col justify-center">
-                        <p className="text-[9px] uppercase font-black text-[#7B0099]">Hari</p>
-                        <p className="font-black text-lg text-[#7B0099] leading-none mt-0.5">{req.days}</p>
+                        <p className="text-[9px] uppercase font-black text-[#942392]">Hari</p>
+                        <p className="font-black text-lg text-[#942392] leading-none mt-0.5">{req.days}</p>
                       </div>
                       <div className="text-center rounded-[14px] border-2 border-emerald-500 bg-white dark:bg-slate-900 shadow-sm flex flex-col justify-center py-1">
                         <p className="text-[9px] uppercase font-black text-emerald-600">Baki Layak</p>
@@ -1623,14 +1623,14 @@ export function StaffProfileDialog({
                     {(req.leave_type === "Sick Leave" || req.leave_type === "Cuti Sakit") && req.mc_file_url && (
                       <div className="p-4 bg-purple-500/10 border border-purple-500/20 rounded-[16px] flex items-center justify-between group">
                         <div className="flex items-center gap-3">
-                          <FileText className="w-5 h-5 text-[#7B0099]" />
-                          <span className="text-[10px] font-black text-[#7B0099] uppercase tracking-widest">MC Attachment</span>
+                          <FileText className="w-5 h-5 text-[#942392]" />
+                          <span className="text-[10px] font-black text-[#942392] uppercase tracking-widest">MC Attachment</span>
                         </div>
                         <a
                           href={`${API_BASE_URL}${req.mc_file_url}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-[9px] font-black uppercase tracking-widest bg-[#7B0099] text-white px-4 py-2 rounded-xl hover:bg-[#5e0080] transition-colors shadow-lg"
+                          className="text-[9px] font-black uppercase tracking-widest bg-[#942392] text-white px-4 py-2 rounded-xl hover:bg-[#5e0080] transition-colors shadow-lg"
                         >
                           View File
                         </a>
@@ -1654,7 +1654,7 @@ export function StaffProfileDialog({
                         </div>
                         <div className="space-y-1">
                           <span className="text-[8px] font-black text-slate-950 dark:text-slate-50 uppercase">No. Telefon</span>
-                          <p className="text-[11px] font-black text-[#7B0099]">{req.waris_phone || "-"}</p>
+                          <p className="text-[11px] font-black text-[#942392]">{req.waris_phone || "-"}</p>
                         </div>
                         <div className="space-y-1">
                           <span className="text-[8px] font-black text-slate-950 dark:text-slate-50 uppercase">Alamat</span>
@@ -1667,7 +1667,7 @@ export function StaffProfileDialog({
                     {req.approval_history && req.approval_history.length > 0 && (
                       <div className="space-y-4 pt-4 border-t border-border/50">
                         <div className="flex items-center gap-2">
-                          <Clock className="w-4 h-4 text-[#7B0099]" />
+                          <Clock className="w-4 h-4 text-[#942392]" />
                           <h3 className="text-[10px] font-black uppercase tracking-[0.2em]">
                             Approval History
                           </h3>
@@ -1715,7 +1715,7 @@ export function StaffProfileDialog({
                       <Button
                         type="button"
                         variant="outline"
-                        className="gap-2 border-[#7B0099] text-[#7B0099] hover:bg-[#7B0099]/5 rounded-xl font-black text-[10px] uppercase tracking-widest px-6"
+                        className="gap-2 border-[#942392] text-[#942392] hover:bg-[#942392]/5 rounded-xl font-black text-[10px] uppercase tracking-widest px-6"
                         onClick={() => {
                           const originalTitle = document.title;
                           const empName = selectedEmployee?.name || selectedEmployee?.full_name || "UNKNOWN";

@@ -656,13 +656,13 @@ export default function AttendanceDashboard() {
           <title>Rayhar Daily Attendance Report - ${displayDate}</title>
           <style>
             body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #1e293b; padding: 40px; }
-            h1 { color: #7B0099; margin-bottom: 5px; font-size: 24px; font-weight: 800; }
+            h1 { color: #942392; margin-bottom: 5px; font-size: 24px; font-weight: 800; }
             h2 { color: #64748b; font-size: 13px; margin-top: 0; font-weight: 600; margin-bottom: 30px; text-transform: uppercase; letter-spacing: 1px; }
             .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 40px; padding: 20px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; }
             .meta-item { font-size: 13px; }
             .meta-item strong { color: #475569; }
             table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-            th { background: #7B0099; color: white; text-align: left; padding: 12px 16px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+            th { background: #942392; color: white; text-align: left; padding: 12px 16px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
             td { padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-size: 13px; }
             tr:nth-child(even) td { background: #f8fafc; }
             .badge { padding: 4px 8px; border-radius: 9999px; font-size: 10px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; white-space: nowrap; display: inline-block; }
@@ -686,7 +686,7 @@ export default function AttendanceDashboard() {
               <h1 style="margin: 0; font-size: 28px; letter-spacing: -0.5px;">RAYHAR GROUP</h1>
               <h2 style="margin: 2px 0 24px 0; font-size: 13px; font-weight: 700; color: #64748b;">Daily Attendance Report</h2>
             </div>
-            <button onclick="window.print();" style="background: #7B0099; color: white; border: none; padding: 10px 20px; font-weight: 800; border-radius: 8px; cursor: pointer; font-size: 12px; transition: background 0.2s;">PRINT REPORT</button>
+            <button onclick="window.print();" style="background: #942392; color: white; border: none; padding: 10px 20px; font-weight: 800; border-radius: 8px; cursor: pointer; font-size: 12px; transition: background 0.2s;">PRINT REPORT</button>
           </div>
           
           <div class="meta-grid">
@@ -1089,7 +1089,7 @@ export default function AttendanceDashboard() {
     return row;
   });
 
-  const distColors = ['#7B0099', '#C2185B', '#EAB308'];
+  const distColors = ['#942392', '#C2185B', '#EAB308'];
   const rawTypeDist = leaveUtilization?.leaveTypeDistribution || [];
   const processedPieData = rawTypeDist.map((r: any) => ({
     name: r.leave_type,
@@ -1099,7 +1099,7 @@ export default function AttendanceDashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 animate-spin text-[#7B0099]" />
+        <Loader2 className="w-8 h-8 animate-spin text-[#942392]" />
       </div>
     );
   }
@@ -1123,7 +1123,7 @@ export default function AttendanceDashboard() {
                 ? { label: "Company Leave", val: `${liveStats.total > 0 ? Math.round(((liveStats.companyLeave || 0) / liveStats.total) * 100) : 0}%`, sub: `${liveStats.companyLeave || 0} / ${liveStats.total} Employees`, color: "text-indigo-600", bg: "bg-indigo-50", icon: <Building2 className="w-5 h-5"/>, trend: "—" }
                 : { label: "Weekend", val: `${liveStats.total > 0 ? Math.round(((liveStats.weekend || 0) / liveStats.total) * 100) : 0}%`, sub: `${liveStats.weekend || 0} / ${liveStats.total} Employees`, color: "text-foreground", bg: "bg-slate-100", icon: <CalendarDays className="w-5 h-5"/>, trend: "—" };
               return [
-                { label: "Present Today", val: `${denom > 0 ? Math.round((liveStats.present / denom) * 100) : 0}%`, sub: `${liveStats.present} / ${denom} Employees`, color: "text-[#7B0099]", bg: "bg-[#7B0099]/10", icon: <CheckCircle2 className="w-5 h-5"/>, trend: "↑ 5% vs Yesterday" },
+                { label: "Present Today", val: `${denom > 0 ? Math.round((liveStats.present / denom) * 100) : 0}%`, sub: `${liveStats.present} / ${denom} Employees`, color: "text-[#942392]", bg: "bg-[#942392]/10", icon: <CheckCircle2 className="w-5 h-5"/>, trend: "↑ 5% vs Yesterday" },
                 { label: "On Time", val: `${denom > 0 ? Math.round(((liveStats.present - liveStats.late) / denom) * 100) : 0}%`, sub: `${Math.max(0, liveStats.present - liveStats.late)} / ${denom} Employees`, color: "text-emerald-600", bg: "bg-emerald-50", icon: <Clock className="w-5 h-5"/>, trend: "—" },
                 { label: "Late", val: `${denom > 0 ? Math.round((liveStats.late / denom) * 100) : 0}%`, sub: `${liveStats.late} / ${denom} Employees`, color: "text-amber-600", bg: "bg-amber-50", icon: <AlertCircle className="w-5 h-5"/>, trend: "—" },
                 { 
@@ -1140,7 +1140,7 @@ export default function AttendanceDashboard() {
                 { label: "Outstation", val: `${liveStats.total > 0 ? Math.round(((liveStats.outstation || 0) / liveStats.total) * 100) : 0}%`, sub: `${liveStats.outstation || 0} / ${liveStats.total} Employees`, color: "text-pink-600", bg: "bg-pink-50", icon: <MapPin className="w-5 h-5"/>, trend: "—" },
               ];
             })().map((k, i) => (
-                <div key={i} className={`relative overflow-hidden border border-gray-200 dark:border-slate-800/80 shadow-sm border-l-4 ${k.color.replace('text-', 'border-l-')} bg-white dark:bg-card rounded-md p-4 flex flex-col justify-between h-[150px] transition-all duration-300 cursor-pointer hover:shadow-lg hover:-translate-y-1 ${k.color.includes('emerald') ? 'hover:border-emerald-500 hover:ring-1 hover:ring-emerald-500 hover:bg-emerald-50/50 dark:hover:bg-emerald-900/20' : k.color.includes('amber') ? 'hover:border-amber-500 hover:ring-1 hover:ring-amber-500 hover:bg-amber-50/50 dark:hover:bg-amber-900/20' : k.color.includes('rose') ? 'hover:border-rose-500 hover:ring-1 hover:ring-rose-500 hover:bg-rose-50/50 dark:hover:bg-rose-900/20' : k.color.includes('blue') ? 'hover:border-blue-500 hover:ring-1 hover:ring-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-900/20' : k.color.includes('indigo') ? 'hover:border-indigo-500 hover:ring-1 hover:ring-indigo-500 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/20' : k.color.includes('pink') ? 'hover:border-pink-500 hover:ring-1 hover:ring-pink-500 hover:bg-pink-50/50 dark:hover:bg-pink-900/20' : k.color.includes('foreground') ? 'hover:border-slate-400 hover:ring-1 hover:ring-slate-400 hover:bg-slate-50/50 dark:hover:bg-slate-800/50' : 'hover:border-[#7B0099] hover:ring-1 hover:ring-[#7B0099] hover:bg-[#7B0099]/10'}`}>
+                <div key={i} className={`relative overflow-hidden border border-gray-200 dark:border-slate-800/80 shadow-sm border-l-4 ${k.color.replace('text-', 'border-l-')} bg-white dark:bg-card rounded-md p-4 flex flex-col justify-between h-[150px] transition-all duration-300 cursor-pointer hover:shadow-lg hover:-translate-y-1 ${k.color.includes('emerald') ? 'hover:border-emerald-500 hover:ring-1 hover:ring-emerald-500 hover:bg-emerald-50/50 dark:hover:bg-emerald-900/20' : k.color.includes('amber') ? 'hover:border-amber-500 hover:ring-1 hover:ring-amber-500 hover:bg-amber-50/50 dark:hover:bg-amber-900/20' : k.color.includes('rose') ? 'hover:border-rose-500 hover:ring-1 hover:ring-rose-500 hover:bg-rose-50/50 dark:hover:bg-rose-900/20' : k.color.includes('blue') ? 'hover:border-blue-500 hover:ring-1 hover:ring-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-900/20' : k.color.includes('indigo') ? 'hover:border-indigo-500 hover:ring-1 hover:ring-indigo-500 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/20' : k.color.includes('pink') ? 'hover:border-pink-500 hover:ring-1 hover:ring-pink-500 hover:bg-pink-50/50 dark:hover:bg-pink-900/20' : k.color.includes('foreground') ? 'hover:border-slate-400 hover:ring-1 hover:ring-slate-400 hover:bg-slate-50/50 dark:hover:bg-slate-800/50' : 'hover:border-[#942392] hover:ring-1 hover:ring-[#942392] hover:bg-[#942392]/10'}`}>
                 <div className="flex items-start justify-between">
                   <div className={`p-2 rounded-lg ${k.bg} ${k.color}`}>
                     {k.icon}
@@ -1187,7 +1187,7 @@ export default function AttendanceDashboard() {
                   placeholder="Search Employee..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full h-9 pl-9 pr-3 text-[11px] bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-gray-700 dark:text-gray-300 placeholder:text-foreground focus:outline-none focus:ring-1 focus:ring-[#7B0099] focus:border-[#7B0099] transition-all"
+                  className="w-full h-9 pl-9 pr-3 text-[11px] bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-gray-700 dark:text-gray-300 placeholder:text-foreground focus:outline-none focus:ring-1 focus:ring-[#942392] focus:border-[#942392] transition-all"
                 />
               </div>
 
@@ -1195,7 +1195,7 @@ export default function AttendanceDashboard() {
               <div className="relative">
                 <Popover>
                   <PopoverTrigger asChild>
-                    <button className="appearance-none flex items-center justify-between px-4 py-2 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer tracking-widest h-10 gap-3 hover:border-[#7B0099]/40 min-w-[140px]">
+                    <button className="appearance-none flex items-center justify-between px-4 py-2 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer tracking-widest h-10 gap-3 hover:border-[#942392]/40 min-w-[140px]">
                       {new Date(selectedDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })} <CalendarDays className="w-4 h-4 text-foreground" />
                     </button>
                   </PopoverTrigger>
@@ -1215,7 +1215,7 @@ export default function AttendanceDashboard() {
               {/* Department Filter */}
               {role !== "head_of_department" && (
                 <Select value={selectedDepartmentFilter} onValueChange={setSelectedDepartmentFilter}>
-                  <SelectTrigger className="w-[140px] h-9 text-[11px] font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-none outline-none hover:border-[#7B0099]/40 hover:ring-1 hover:ring-[#7B0099]/40 hover:bg-[#7B0099]/5 dark:hover:border-[#7B0099]/60 dark:hover:ring-[#7B0099]/60 dark:hover:bg-[#7B0099]/20 transition-all duration-200 focus:ring-1 focus:ring-[#7B0099]">
+                  <SelectTrigger className="w-[140px] h-9 text-[11px] font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-none outline-none hover:border-[#942392]/40 hover:ring-1 hover:ring-[#942392]/40 hover:bg-[#942392]/5 dark:hover:border-[#942392]/60 dark:hover:ring-[#942392]/60 dark:hover:bg-[#942392]/20 transition-all duration-200 focus:ring-1 focus:ring-[#942392]">
                     <SelectValue placeholder="Department" />
                   </SelectTrigger>
                   <SelectContent className="rounded-md">
@@ -1230,7 +1230,7 @@ export default function AttendanceDashboard() {
               {/* Branch Filter */}
               {role !== "branch_leader" && (
                 <Select value={selectedBranchFilter} onValueChange={setSelectedBranchFilter}>
-                  <SelectTrigger className="w-[130px] h-9 text-[11px] font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-none outline-none hover:border-[#7B0099]/40 hover:ring-1 hover:ring-[#7B0099]/40 hover:bg-[#7B0099]/5 dark:hover:border-[#7B0099]/60 dark:hover:ring-[#7B0099]/60 dark:hover:bg-[#7B0099]/20 transition-all duration-200 focus:ring-1 focus:ring-[#7B0099]">
+                  <SelectTrigger className="w-[130px] h-9 text-[11px] font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-none outline-none hover:border-[#942392]/40 hover:ring-1 hover:ring-[#942392]/40 hover:bg-[#942392]/5 dark:hover:border-[#942392]/60 dark:hover:ring-[#942392]/60 dark:hover:bg-[#942392]/20 transition-all duration-200 focus:ring-1 focus:ring-[#942392]">
                     <SelectValue placeholder="Branch" />
                   </SelectTrigger>
                   <SelectContent className="rounded-md">
@@ -1244,7 +1244,7 @@ export default function AttendanceDashboard() {
 
               {/* Status Filter */}
               <Select value={selectedStatusFilter} onValueChange={setSelectedStatusFilter}>
-                <SelectTrigger className="w-[130px] h-9 text-[11px] font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-none outline-none hover:border-[#7B0099]/40 hover:ring-1 hover:ring-[#7B0099]/40 hover:bg-[#7B0099]/5 dark:hover:border-[#7B0099]/60 dark:hover:ring-[#7B0099]/60 dark:hover:bg-[#7B0099]/20 transition-all duration-200 focus:ring-1 focus:ring-[#7B0099]">
+                <SelectTrigger className="w-[130px] h-9 text-[11px] font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-none outline-none hover:border-[#942392]/40 hover:ring-1 hover:ring-[#942392]/40 hover:bg-[#942392]/5 dark:hover:border-[#942392]/60 dark:hover:ring-[#942392]/60 dark:hover:bg-[#942392]/20 transition-all duration-200 focus:ring-1 focus:ring-[#942392]">
                   <SelectValue placeholder="Select Status" />
                 </SelectTrigger>
                 <SelectContent className="rounded-md">
@@ -1302,7 +1302,7 @@ export default function AttendanceDashboard() {
         <CardContent className="p-0">
           {loadingDaily ? (
             <div className="flex flex-col items-center justify-center p-20 gap-4">
-              <Loader2 className="h-8 w-8 animate-spin text-[#7B0099] opacity-40" />
+              <Loader2 className="h-8 w-8 animate-spin text-[#942392] opacity-40" />
               <p className="text-xs font-medium text-foreground animate-pulse">Syncing logs...</p>
             </div>
           ) : (
@@ -1383,7 +1383,7 @@ export default function AttendanceDashboard() {
                           
                           <td className="px-4 py-2">
                             <div className="flex items-center gap-2">
-                              <div className="w-8 h-8 rounded-md bg-[#7B0099]/10 text-[#7B0099] font-bold flex items-center justify-center text-xs uppercase shadow-sm">
+                              <div className="w-8 h-8 rounded-md bg-[#942392]/10 text-[#942392] font-bold flex items-center justify-center text-xs uppercase shadow-sm">
                                 {record.full_name.charAt(0)}
                               </div>
                               <div>
@@ -1487,7 +1487,7 @@ export default function AttendanceDashboard() {
                 placeholder="Search..."
                 value={absentSearchTerm}
                 onChange={(e) => setAbsentSearchTerm(e.target.value)}
-                className="pl-8 pr-3 py-1 w-full text-[11px] border border-gray-200 dark:border-slate-800 rounded-md focus:outline-none focus:ring-1 focus:ring-[#7B0099] h-7 shadow-sm"
+                className="pl-8 pr-3 py-1 w-full text-[11px] border border-gray-200 dark:border-slate-800 rounded-md focus:outline-none focus:ring-1 focus:ring-[#942392] h-7 shadow-sm"
               />
             </div>
           </div>
@@ -1496,7 +1496,7 @@ export default function AttendanceDashboard() {
         <CardContent className="p-0">
           {loadingAbsent ? (
             <div className="flex flex-col items-center justify-center p-12 gap-4">
-              <Loader2 className="h-6 w-6 animate-spin text-[#7B0099] opacity-40" />
+              <Loader2 className="h-6 w-6 animate-spin text-[#942392] opacity-40" />
               <p className="text-xs font-medium text-foreground animate-pulse">Checking absent employees...</p>
             </div>
           ) : (
@@ -1794,7 +1794,7 @@ export default function AttendanceDashboard() {
                 )}
               </p>
               <p 
-                className="text-[10px] font-bold text-[#7B0099] cursor-pointer hover:underline flex items-center gap-1"
+                className="text-[10px] font-bold text-[#942392] cursor-pointer hover:underline flex items-center gap-1"
                 onClick={() => navigate((role === "head_of_department" || role === "hod" || role === "branch_leader") ? "/employees" : "/branches")}
               >
                 View All <ChevronRight className="w-3 h-3" />

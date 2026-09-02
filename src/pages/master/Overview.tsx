@@ -192,7 +192,7 @@ export default function MasterOverview() {
   if (roleLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7B0099]" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#942392]" />
       </div>
     );
   }
@@ -211,7 +211,7 @@ export default function MasterOverview() {
             variant="outline"
             size="sm"
             onClick={fetchData}
-            className="gap-2 border-[#7B0099] text-[#7B0099] hover:bg-[#7B0099]/5 rounded-xl font-black text-[10px] uppercase tracking-widest px-4 py-2 h-9 shadow-sm active:scale-95 transition-all"
+            className="gap-2 border-[#942392] text-[#942392] hover:bg-[#942392]/5 rounded-xl font-black text-[10px] uppercase tracking-widest px-4 py-2 h-9 shadow-sm active:scale-95 transition-all"
           >
             <RefreshCw className="w-3.5 h-3.5" />
             Sync Hub
@@ -222,7 +222,7 @@ export default function MasterOverview() {
       {loading ? (
         <Card className="border-none shadow-sm overflow-hidden bg-card/60 backdrop-blur-md rounded-[28px]">
           <CardContent className="p-24 flex flex-col items-center justify-center gap-4">
-            <Loader2 className="w-10 h-10 animate-spin text-[#7B0099]" />
+            <Loader2 className="w-10 h-10 animate-spin text-[#942392]" />
             <p className="text-xs font-black text-foreground animate-pulse uppercase tracking-[0.25em]">Syncing Core Master Directory...</p>
           </CardContent>
         </Card>
@@ -270,17 +270,17 @@ export default function MasterOverview() {
  
             {/* KPI 3: Total System Users */}
             <Card onClick={() => navigate("/employees")} className="cursor-pointer shadow-md bg-[#faf5ff] dark:bg-[#200a2d] border border-[#f3e8ff] dark:border-[#4c1266]/40 rounded-[24px] relative overflow-hidden transition-all duration-300 group hover:shadow-lg">
-              <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#7B0099]" />
+              <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#942392]" />
               <CardContent className="p-6 flex items-center justify-between gap-4">
                 <div className="space-y-1.5 min-w-0 flex-1">
                   <span className="text-[10px] font-black text-purple-700 dark:text-purple-400 uppercase tracking-widest block whitespace-normal break-words leading-tight">Total Staff / Users</span>
                   <div className="flex items-baseline gap-2 flex-wrap">
-                    <span className="text-3xl font-black text-[#7B0099] dark:text-purple-400">{totalUsers}</span>
+                    <span className="text-3xl font-black text-[#942392] dark:text-purple-400">{totalUsers}</span>
                     <span className="text-[9px] font-black text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 rounded-md px-2 py-0.5 whitespace-nowrap">{activeUsers} Active</span>
                   </div>
                   <p className="text-[9px] text-purple-800/60 dark:text-purple-400/60 font-semibold uppercase tracking-wider">Access Licenses Provisioned</p>
                 </div>
-                <div className="w-12 h-12 rounded-2xl bg-[#7B0099]/10 dark:bg-[#7B0099]/20 flex items-center justify-center text-[#7B0099] dark:text-purple-400 shrink-0 group-hover:scale-110 transition-transform">
+                <div className="w-12 h-12 rounded-2xl bg-[#942392]/10 dark:bg-[#942392]/20 flex items-center justify-center text-[#942392] dark:text-purple-400 shrink-0 group-hover:scale-110 transition-transform">
                   <Users className="w-5 h-5" />
                 </div>
               </CardContent>
@@ -422,7 +422,7 @@ export default function MasterOverview() {
               <div className="p-6 border-t border-border/40 bg-muted/5">
                 <Button 
                   onClick={() => navigate("/employees")}
-                  className="w-full py-5 rounded-xl bg-[#7B0099] hover:bg-[#5e0080] text-white font-black text-[10px] uppercase tracking-widest shadow-md flex items-center justify-center gap-1.5"
+                  className="w-full py-5 rounded-xl bg-[#942392] hover:bg-[#5e0080] text-white font-black text-[10px] uppercase tracking-widest shadow-md flex items-center justify-center gap-1.5"
                 >
                   Manage System Users
                   <ChevronRight className="w-4 h-4" />

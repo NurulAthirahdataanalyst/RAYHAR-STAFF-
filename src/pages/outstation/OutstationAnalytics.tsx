@@ -264,16 +264,16 @@ export default function OutstationAnalytics() {
         {/* 1. Total Outstation */}
         <Card className="rounded-[20px] border border-purple-200 dark:border-purple-900/60 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-purple-50/60 dark:bg-purple-950/30 group relative overflow-hidden flex flex-col justify-between">
           <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform duration-500 ease-out group-hover:scale-115 group-hover:rotate-6 group-hover:-translate-y-1.5 pointer-events-none">
-            <Briefcase className="w-24 h-24 text-[#7B0099]" />
+            <Briefcase className="w-24 h-24 text-[#942392]" />
           </div>
           <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
             <div>
               <div className="flex items-center gap-1.5 mb-2">
-                <div className="w-2.5 h-2.5 rounded-full bg-[#7B0099] shadow-xs"></div>
+                <div className="w-2.5 h-2.5 rounded-full bg-[#942392] shadow-xs"></div>
                 <span className="text-[11px] font-extrabold text-foreground dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Total Outstation</span>
               </div>
               <div className="my-1">
-                <span className="text-3xl font-black text-[#7B0099] dark:text-purple-300 leading-none">{totalEventsCount}</span>
+                <span className="text-3xl font-black text-[#942392] dark:text-purple-300 leading-none">{totalEventsCount}</span>
               </div>
             </div>
             <div className="mt-3 pt-2.5 border-t border-purple-200/80 dark:border-purple-800/60">
@@ -395,7 +395,7 @@ export default function OutstationAnalytics() {
                 <select
                   value={selectedMonth}
                   onChange={(e) => setSelectedMonth(e.target.value)}
-                  className="h-9 px-3 text-xs font-bold rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-foreground dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#7B0099] cursor-pointer shadow-xs"
+                  className="h-9 px-3 text-xs font-bold rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-foreground dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#942392] cursor-pointer shadow-xs"
                 >
                   <option value="all">All Months (Jan - Dec)</option>
                   {MONTH_NAMES.map((name, idx) => (
@@ -416,7 +416,7 @@ export default function OutstationAnalytics() {
                       {selectedMonth === "all" ? "Across {selectedYear}" : `For ${MONTH_NAMES[parseInt(selectedMonth, 10)]}`}
                     </p>
                   </div>
-                  <div className="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/60 flex items-center justify-center text-[#7B0099] dark:text-purple-300 shadow-xs">
+                  <div className="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/60 flex items-center justify-center text-[#942392] dark:text-purple-300 shadow-xs">
                     <Briefcase className="w-5 h-5" />
                   </div>
                 </div>
@@ -446,7 +446,7 @@ export default function OutstationAnalytics() {
                       cursor={{ fill: 'rgba(123, 0, 153, 0.05)' }}
                     />
                     <Legend wrapperStyle={{ paddingTop: '10px', fontSize: '12px' }} />
-                    <Bar dataKey="totalEvents" name="Total Events" fill="#7B0099" radius={[4, 4, 0, 0]} barSize={14} />
+                    <Bar dataKey="totalEvents" name="Total Events" fill="#942392" radius={[4, 4, 0, 0]} barSize={14} />
                     <Bar dataKey="completedEvents" name="Total Completed Events" fill="#16a34a" radius={[4, 4, 0, 0]} barSize={14} />
                   </BarChart>
                 </ResponsiveContainer>
@@ -512,7 +512,7 @@ export default function OutstationAnalytics() {
                 <div key={index} className="flex items-center justify-between gap-3 text-xs">
                   <div className="w-32 font-medium text-foreground dark:text-slate-300 truncate">{item.destination}</div>
                   <div className="flex-1 bg-slate-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
-                    <div className="h-2.5 rounded-full bg-[#7B0099]" style={{ width: `${Math.min(100, (item.count / (destinationData[0]?.count || 1)) * 100)}%` }} />
+                    <div className="h-2.5 rounded-full bg-[#942392]" style={{ width: `${Math.min(100, (item.count / (destinationData[0]?.count || 1)) * 100)}%` }} />
                   </div>
                   <div className="w-12 text-right font-bold text-foreground dark:text-slate-300">{item.count} {item.count === 1 ? 'Trip' : 'Trips'}</div>
                 </div>
@@ -553,7 +553,7 @@ export default function OutstationAnalytics() {
             </CardHeader>
             <CardContent className="p-0">
               {loading ? (
-                <div className="p-6 flex items-center justify-center"><Loader2 className="animate-spin w-6 h-6 text-[#7B0099]" /></div>
+                <div className="p-6 flex items-center justify-center"><Loader2 className="animate-spin w-6 h-6 text-[#942392]" /></div>
               ) : allRecentAssignments.length === 0 ? (
                 <div className="p-6 text-center text-foreground text-xs">No recent outstations found.</div>
               ) : (

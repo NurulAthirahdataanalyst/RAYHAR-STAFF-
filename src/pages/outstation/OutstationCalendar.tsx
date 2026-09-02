@@ -131,7 +131,7 @@ export default function OutstationCalendar({ onlyMine = false }: { onlyMine?: bo
           <Button
             variant="ghost"
             size="sm"
-            className="mb-1 gap-2 px-0 text-foreground hover:bg-transparent hover:text-[#7B0099] transition-colors touch-target"
+            className="mb-1 gap-2 px-0 text-foreground hover:bg-transparent hover:text-[#942392] transition-colors touch-target"
             onClick={() => navigate("/outstation/my")}
           >
             <ArrowLeft className="h-4 w-4" />
@@ -187,7 +187,7 @@ export default function OutstationCalendar({ onlyMine = false }: { onlyMine?: bo
         ) : (
           <>
             {/* Day Headers */}
-            <div className="grid grid-cols-7 border-b border-border/60 bg-[#7B0099] divide-x divide-white/20">
+            <div className="grid grid-cols-7 border-b border-border/60 bg-[#942392] divide-x divide-white/20">
               {DAYS.map(d => (
                 <div key={d} className="px-2 py-3 text-center text-[11px] font-bold uppercase tracking-widest text-white">{d}</div>
               ))}
@@ -206,7 +206,7 @@ export default function OutstationCalendar({ onlyMine = false }: { onlyMine?: bo
                 
                 if (today) {
                   cellBg = "bg-[#DBC5E1]";
-                  textCol = "text-[#7B0099]";
+                  textCol = "text-[#942392]";
                 } else if (!isCurrentMonth) {
                   cellBg = "bg-slate-50/50 dark:bg-slate-900/50";
                   textCol = "text-foreground opacity-50";

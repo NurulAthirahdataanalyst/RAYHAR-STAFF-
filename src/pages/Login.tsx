@@ -182,7 +182,7 @@ export default function Login() {
           <img src={rayharLogo} alt="Rayhar Logo" className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl shadow-xl" />
           <div className="text-center">
             <h1 className="font-heading font-black text-slate-900 dark:text-slate-100 text-xl sm:text-2xl tracking-tight">Rayhar Group</h1>
-            <p className="text-[10px] sm:text-xs font-extrabold text-[#7B0099] uppercase tracking-widest">Staff Admin Panel</p>
+            <p className="text-[10px] sm:text-xs font-extrabold text-[#942392] uppercase tracking-widest">Staff Admin Panel</p>
           </div>
         </div>
 
@@ -203,7 +203,7 @@ export default function Login() {
                   </div>
                 </CardContent>
                 <CardFooter className="flex flex-col gap-4">
-                  <Button type="submit" className="w-full bg-[#7B0099] hover:bg-[#5e0080] text-white rounded-xl h-12 sm:h-11 transition-all touch-target text-sm sm:text-base font-black uppercase tracking-wider" disabled={loading}>
+                  <Button type="submit" className="w-full bg-[#942392] hover:bg-[#5e0080] text-white rounded-xl h-12 sm:h-11 transition-all touch-target text-sm sm:text-base font-black uppercase tracking-wider" disabled={loading}>
                     {loading && <Loader2 className="animate-spin mr-2" />}
                     Sign In to Portal
                   </Button>
@@ -211,10 +211,10 @@ export default function Login() {
                   {/* Modern Bottom Utilities Section */}
                   <div className="w-full space-y-4 pt-2">
                     {/* Email Reset Box */}
-                    <div className="flex flex-col gap-3 p-3 rounded-[16px] bg-[#FBF0FF] border border-[#7B0099]/15 text-xs shadow-sm">
+                    <div className="flex flex-col gap-3 p-3 rounded-[16px] bg-[#FBF0FF] border border-[#942392]/15 text-xs shadow-sm">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2 text-slate-600 font-bold">
-                          <svg className="w-4 h-4 text-[#7B0099]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <svg className="w-4 h-4 text-[#942392]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M21.2 8.4c.5.38.8.97.8 1.6v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V10a2 2 0 0 1 .8-1.6l8-6a2 2 0 0 1 2.4 0l8 6Z"/>
                             <path d="m22 10-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 10"/>
                           </svg>
@@ -229,14 +229,14 @@ export default function Login() {
                         <button
                           type="button"
                           onClick={() => setShowResetBox(!showResetBox)}
-                          className="text-[#7B0099] font-black hover:underline cursor-pointer transition-colors"
+                          className="text-[#942392] font-black hover:underline cursor-pointer transition-colors"
                         >
                           Reset via Email
                         </button>
                       </div>
 
                       {showResetBox && (
-                        <div className="pt-2 border-t border-[#7B0099]/10 animate-in fade-in slide-in-from-top-2 duration-300">
+                        <div className="pt-2 border-t border-[#942392]/10 animate-in fade-in slide-in-from-top-2 duration-300">
                           <p className="text-[10px] text-foreground mb-2 font-medium">
                             Enter your email to receive a secure password reset link.
                           </p>
@@ -246,13 +246,13 @@ export default function Login() {
                               placeholder="you@rayhar.com"
                               value={resetEmail}
                               onChange={(e) => setResetEmail(e.target.value)}
-                              className="h-8 text-xs bg-white dark:bg-card border-[#7B0099]/20 focus-visible:ring-[#7B0099]"
+                              className="h-8 text-xs bg-white dark:bg-card border-[#942392]/20 focus-visible:ring-[#942392]"
                             />
                             <Button
                               type="button"
                               onClick={handlePasswordReset}
                               disabled={resetLoading}
-                              className="h-8 bg-[#7B0099] hover:bg-[#5e0080] text-white text-xs font-bold rounded-md px-3 flex items-center justify-center shrink-0"
+                              className="h-8 bg-[#942392] hover:bg-[#5e0080] text-white text-xs font-bold rounded-md px-3 flex items-center justify-center shrink-0"
                             >
                               {resetLoading ? (
                                 <Loader2 className="h-3 w-3 animate-spin" />
@@ -366,7 +366,7 @@ export default function Login() {
                   </div>
                 </CardContent>
                 <CardFooter className="flex flex-col gap-4">
-                  <Button type="submit" className="w-full bg-[#7B0099] hover:bg-[#5e0080] text-white rounded-xl h-12 sm:h-11 transition-all touch-target text-sm sm:text-base font-black uppercase tracking-wider" disabled={loading}>
+                  <Button type="submit" className="w-full bg-[#942392] hover:bg-[#5e0080] text-white rounded-xl h-12 sm:h-11 transition-all touch-target text-sm sm:text-base font-black uppercase tracking-wider" disabled={loading}>
                     {loading && <Loader2 className="animate-spin mr-2" />}
                     {loading ? "Registering..." : "Create Account"}
                   </Button>
@@ -377,7 +377,7 @@ export default function Login() {
                     <button
                       type="button"
                       onClick={() => setActiveTab("login")}
-                      className="text-[#7B0099] font-black hover:underline ml-1 uppercase"
+                      className="text-[#942392] font-black hover:underline ml-1 uppercase"
                     >
                       SIGN IN
                     </button>

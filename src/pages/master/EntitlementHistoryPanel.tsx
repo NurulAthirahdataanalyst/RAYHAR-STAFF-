@@ -97,7 +97,7 @@ function exportPDF(logs: EntitlementHistoryLog[], title: string) {
   w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"/><title>${title}</title>
   <style>
     body{font-family:'Segoe UI',sans-serif;color:#1e293b;padding:32px;font-size:12px}
-    h1{font-size:22px;font-weight:900;color:#7B0099;margin:0}
+    h1{font-size:22px;font-weight:900;color:#942392;margin:0}
     h2{font-size:12px;color:#64748b;font-weight:600;margin:2px 0 24px;text-transform:uppercase;letter-spacing:1px}
     .meta{display:flex;gap:24px;margin-bottom:20px;padding:12px 16px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0}
     .meta span{font-size:11px} .meta b{color:#475569}
@@ -119,7 +119,7 @@ function exportPDF(logs: EntitlementHistoryLog[], title: string) {
     <th>Date</th><th>Employee</th><th>Action</th><th>Leave Type</th>
     <th>Adjustment</th><th>Balance</th><th>Performed By</th><th>Reason</th>
   </tr></thead><tbody>${rows}</tbody></table>
-  <button onclick="window.print()" style="margin-top:20px;padding:8px 20px;background:#7B0099;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:700">PRINT</button>
+  <button onclick="window.print()" style="margin-top:20px;padding:8px 20px;background:#942392;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:700">PRINT</button>
   </body></html>`);
   w.document.close();
 }
@@ -269,7 +269,7 @@ export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => 
               </Button>
               <div>
                 <CardTitle className="flex items-center gap-2 text-xl font-black">
-                  <History className="w-5 h-5 text-[#7B0099]" />
+                  <History className="w-5 h-5 text-[#942392]" />
                   Leave Balance History
                 </CardTitle>
                 <CardDescription className="text-xs mt-1">
@@ -331,7 +331,7 @@ export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => 
                 </SelectContent>
               </Select>
               
-              <Button variant="outline" size="sm" className={`h-9 text-xs gap-1.5 ${showFilters ? 'bg-[#7B0099]/5 border-[#7B0099]/40 text-[#7B0099]' : ''}`}
+              <Button variant="outline" size="sm" className={`h-9 text-xs gap-1.5 ${showFilters ? 'bg-[#942392]/5 border-[#942392]/40 text-[#942392]' : ''}`}
                 onClick={() => setShowFilters(!showFilters)}>
                 <Filter className="w-3.5 h-3.5" />
                 Filters
@@ -384,13 +384,13 @@ export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => 
                             />
                             {/* Custom animated checkbox */}
                             <div className="relative w-[18px] h-[18px] -translate-y-px 
-                               peer-checked:[&>svg]:stroke-[#7B0099] 
+                               peer-checked:[&>svg]:stroke-[#942392] 
                                peer-checked:[&>svg>path]:[stroke-dashoffset:60] 
                                peer-checked:[&>svg>polyline]:[stroke-dashoffset:42] 
                                peer-checked:[&>svg>path]:transition-all peer-checked:[&>svg>polyline]:transition-all 
                                peer-checked:[&>svg>path]:duration-300 peer-checked:[&>svg>polyline]:duration-200 peer-checked:[&>svg>polyline]:delay-150">
                               <div className="absolute top-[-15px] left-[-15px] w-[48px] h-[48px] rounded-full bg-slate-900/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none" />
-                              <svg width="18px" height="18px" viewBox="0 0 18 18" className="relative z-10 fill-none stroke-[#c8ccd4] stroke-[1.5] transition-all duration-200 group-hover:stroke-[#7B0099] [stroke-linecap:round] [stroke-linejoin:round]">
+                              <svg width="18px" height="18px" viewBox="0 0 18 18" className="relative z-10 fill-none stroke-[#c8ccd4] stroke-[1.5] transition-all duration-200 group-hover:stroke-[#942392] [stroke-linecap:round] [stroke-linejoin:round]">
                                 <path d="M1,9 L1,3.5 C1,2 2,1 3.5,1 L14.5,1 C16,1 17,2 17,3.5 L17,14.5 C17,16 16,17 14.5,17 L3.5,17 C2,17 1,16 1,14.5 L1,9 Z" className="[stroke-dasharray:60] [stroke-dashoffset:0]"></path>
                                 <polyline points="1 9 7 14 15 4" className="[stroke-dasharray:22] [stroke-dashoffset:66]"></polyline>
                               </svg>
@@ -436,7 +436,7 @@ export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => 
             {[
               { icon: ClipboardList, label: 'Total Records',      val: filtered.length,  color: 'text-slate-700'  },
               { icon: Calendar,      label: "Today's Changes",    val: todayCount,        color: 'text-blue-600'   },
-              { icon: BarChart3,     label: 'This Month',         val: monthCount,        color: 'text-[#7B0099]'  },
+              { icon: BarChart3,     label: 'This Month',         val: monthCount,        color: 'text-[#942392]'  },
               { icon: Users,         label: 'Employees Affected', val: empAffected,       color: 'text-emerald-600'},
             ].map(s => {
               const Icon = s.icon;

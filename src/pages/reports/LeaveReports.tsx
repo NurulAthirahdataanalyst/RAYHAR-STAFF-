@@ -169,7 +169,7 @@ export default function LeaveReports() {
               onClick={() => setViewType("day")}
               className={`text-[11px] font-black uppercase tracking-widest pb-3 -mb-[1px] transition-colors border-b-[3px] ${
                 viewType === "day"
-                  ? "text-[#7B0099] border-[#7B0099]"
+                  ? "text-[#942392] border-[#942392]"
                   : "text-foreground hover:text-yellow-500 border-transparent hover:border-yellow-500"
               }`}
             >
@@ -179,7 +179,7 @@ export default function LeaveReports() {
               onClick={() => setViewType("month")}
               className={`text-[11px] font-black uppercase tracking-widest pb-3 -mb-[1px] transition-colors border-b-[3px] ${
                 viewType === "month"
-                  ? "text-[#7B0099] border-[#7B0099]"
+                  ? "text-[#942392] border-[#942392]"
                   : "text-foreground hover:text-yellow-500 border-transparent hover:border-yellow-500"
               }`}
             >
@@ -189,7 +189,7 @@ export default function LeaveReports() {
               onClick={() => setViewType("year")}
               className={`text-[11px] font-black uppercase tracking-widest pb-3 -mb-[1px] transition-colors border-b-[3px] ${
                 viewType === "year"
-                  ? "text-[#7B0099] border-[#7B0099]"
+                  ? "text-[#942392] border-[#942392]"
                   : "text-foreground hover:text-yellow-500 border-transparent hover:border-yellow-500"
               }`}
             >

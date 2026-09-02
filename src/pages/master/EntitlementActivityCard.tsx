@@ -134,7 +134,7 @@ export default function EntitlementActivityCard({ onViewHistory }: Props) {
           <div className="flex items-start justify-between gap-2">
             <div>
               <CardTitle className="flex items-center gap-2 text-base font-black">
-                <History className="w-5 h-5 text-[#7B0099]" />
+                <History className="w-5 h-5 text-[#942392]" />
                 Leave Entitlement Activity
               </CardTitle>
               <CardDescription className="text-[11px] mt-0.5">
@@ -149,7 +149,7 @@ export default function EntitlementActivityCard({ onViewHistory }: Props) {
               />
               <button
                 onClick={onViewHistory}
-                className="text-xs font-bold text-[#7B0099] hover:text-[#5e0080] flex items-center transition-colors px-2"
+                className="text-xs font-bold text-[#942392] hover:text-[#5e0080] flex items-center transition-colors px-2"
               >
                 View Full History <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
               </button>

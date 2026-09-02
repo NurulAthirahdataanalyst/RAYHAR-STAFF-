@@ -495,7 +495,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                             e.stopPropagation();
                             setExpandedMenus(prev => prev[menuKey] ? {} : { [menuKey]: true });
                           }}
-                          className="ml-auto p-0.5 rounded-md text-foreground dark:text-foreground hover:text-[#7B0099] dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5 transition-all"
+                          className="ml-auto p-0.5 rounded-md text-foreground dark:text-foreground hover:text-[#942392] dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5 transition-all"
                           aria-label={isMenuExpanded ? "Collapse submenu" : "Expand submenu"}
                         >
                           {isMenuExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}

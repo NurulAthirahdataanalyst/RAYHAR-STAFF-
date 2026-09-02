@@ -315,11 +315,11 @@ export default function LeaveOverview() {
           <YearPopover 
             year={selectedYear} 
             onSelectYear={setSelectedYear} 
-            className="appearance-none flex items-center justify-between px-3 py-1.5 h-9 w-[90px] bg-card border border-[#7B0099]/20 text-foreground text-[10px] font-black rounded-xl shadow-sm outline-none cursor-pointer uppercase tracking-widest gap-2"
+            className="appearance-none flex items-center justify-between px-3 py-1.5 h-9 w-[90px] bg-card border border-[#942392]/20 text-foreground text-[10px] font-black rounded-xl shadow-sm outline-none cursor-pointer uppercase tracking-widest gap-2"
           />
           <Button
             onClick={() => navigate("/leave/apply")}
-            className="gap-2 bg-[#7B0099] text-white hover:bg-[#5e0080] rounded-xl font-black text-[10px] uppercase tracking-widest px-4 h-9 shadow-lg shadow-[#7B0099]/20 transition-all active:scale-95"
+            className="gap-2 bg-[#942392] text-white hover:bg-[#5e0080] rounded-xl font-black text-[10px] uppercase tracking-widest px-4 h-9 shadow-lg shadow-[#942392]/20 transition-all active:scale-95"
           >
             <Plus className="w-4 h-4" />
             Apply for Leave
@@ -336,13 +336,13 @@ export default function LeaveOverview() {
           const isNoEntitlement = isUnpaid || isReplacement;
 
           return (
-          <Card key={item.label} className="relative overflow-hidden border border-slate-100 dark:border-slate-700 bg-white dark:bg-card shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] rounded-[24px] border-l-4 border-l-[#7B0099] group hover:shadow-md transition-all duration-300">
+          <Card key={item.label} className="relative overflow-hidden border border-slate-100 dark:border-slate-700 bg-white dark:bg-card shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] rounded-[24px] border-l-4 border-l-[#942392] group hover:shadow-md transition-all duration-300">
             
             <CardContent className="p-3 sm:p-4 pl-4 sm:pl-4 flex flex-col h-full gap-3 sm:gap-4">
               <div className="flex items-center justify-between">
-                <p className="text-[8px] sm:text-[9px] font-black uppercase tracking-[0.2em] text-[#7B0099] dark:text-purple-400 truncate">{item.label}</p>
-                <div className="w-5 h-5 rounded-full bg-[#7B0099]/5 flex items-center justify-center shrink-0">
-                  <Calendar className="w-2.5 h-2.5 text-[#7B0099]/40" />
+                <p className="text-[8px] sm:text-[9px] font-black uppercase tracking-[0.2em] text-[#942392] dark:text-purple-400 truncate">{item.label}</p>
+                <div className="w-5 h-5 rounded-full bg-[#942392]/5 flex items-center justify-center shrink-0">
+                  <Calendar className="w-2.5 h-2.5 text-[#942392]/40" />
                 </div>
               </div>
               
@@ -357,9 +357,9 @@ export default function LeaveOverview() {
                 </div>
                 
                 <div className="space-y-1">
-                  <div className="h-1 overflow-hidden rounded-full bg-[#7B0099]/10">
+                  <div className="h-1 overflow-hidden rounded-full bg-[#942392]/10">
                     <div
-                      className="h-full rounded-full bg-[#7B0099] transition-all duration-1000 ease-out"
+                      className="h-full rounded-full bg-[#942392] transition-all duration-1000 ease-out"
                       style={{
                         width: isNoEntitlement
                           ? (item.used > 0 ? "100%" : "0%")
@@ -401,7 +401,7 @@ export default function LeaveOverview() {
             <YearPopover 
               year={selectedYear} 
               onSelectYear={setSelectedYear} 
-              className="appearance-none flex items-center justify-between px-3 py-1.5 h-10 w-[90px] bg-card border border-[#7B0099]/20 text-foreground text-[10px] font-black rounded-xl shadow-sm outline-none cursor-pointer uppercase tracking-widest gap-2"
+              className="appearance-none flex items-center justify-between px-3 py-1.5 h-10 w-[90px] bg-card border border-[#942392]/20 text-foreground text-[10px] font-black rounded-xl shadow-sm outline-none cursor-pointer uppercase tracking-widest gap-2"
             />
           </div>
         </CardHeader>
@@ -421,8 +421,8 @@ export default function LeaveOverview() {
               <TableBody className="divide-y divide-border/50">
                 {paginatedLeaveRequests.length > 0 ? (
                   paginatedLeaveRequests.map((req, i) => (
-                    <TableRow key={i} className="hover:bg-[#7B0099]/5 transition-colors group">
-                      <TableCell className="px-5 py-3.5 font-black text-[#7B0099] dark:text-purple-400">{leaveTypeLabels[req.type]}</TableCell>
+                    <TableRow key={i} className="hover:bg-[#942392]/5 transition-colors group">
+                      <TableCell className="px-5 py-3.5 font-black text-[#942392] dark:text-purple-400">{leaveTypeLabels[req.type]}</TableCell>
                       <TableCell className="px-5 py-3.5 text-foreground font-bold">{req.from}</TableCell>
                       <TableCell className="px-5 py-3.5 text-foreground font-bold">{req.to}</TableCell>
                       <TableCell className="px-5 py-3.5 text-center font-black text-foreground">{req.days}</TableCell>
@@ -455,7 +455,7 @@ export default function LeaveOverview() {
           <div className="sm:hidden divide-y divide-border/50">
             {paginatedLeaveRequests.length > 0 ? (
               paginatedLeaveRequests.map((req, i) => (
-                <div key={i} className="p-4 active:bg-[#7B0099]/5 transition-colors space-y-3">
+                <div key={i} className="p-4 active:bg-[#942392]/5 transition-colors space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-black text-foreground">{leaveTypeLabels[req.type]}</span>
                     <Badge
@@ -475,7 +475,7 @@ export default function LeaveOverview() {
                       <span className="opacity-30">→</span>
                       <span>{req.to}</span>
                     </div>
-                    <span className="text-[11px] font-black text-[#7B0099]">{req.days} DAYS</span>
+                    <span className="text-[11px] font-black text-[#942392]">{req.days} DAYS</span>
                   </div>
                 </div>
               ))
@@ -509,12 +509,12 @@ export default function LeaveOverview() {
               return (
                 <div
                   key={req.id}
-                  className="rounded-[24px] border border-border/50 bg-card/50 p-4 sm:p-6 hover:bg-[#7B0099]/5 hover:border-[#7B0099]/30 transition-all duration-300 cursor-pointer group"
+                  className="rounded-[24px] border border-border/50 bg-card/50 p-4 sm:p-6 hover:bg-[#942392]/5 hover:border-[#942392]/30 transition-all duration-300 cursor-pointer group"
                   onClick={() => navigate(`/leave/forms?leaveId=${req.id}`)}
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-[14px] sm:rounded-2xl bg-[#7B0099]/10 flex items-center justify-center text-[#7B0099] group-hover:scale-110 transition-transform duration-300">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-[14px] sm:rounded-2xl bg-[#942392]/10 flex items-center justify-center text-[#942392] group-hover:scale-110 transition-transform duration-300">
                         <FileText className="h-5 w-5 sm:h-6 sm:w-6" />
                       </div>
                       <div className="min-w-0">

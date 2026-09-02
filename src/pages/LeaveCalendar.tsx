@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, ChevronLeft, ChevronRight, X, Calendar, User, FileText, Activity, AlertCircle } from "lucide-react";
 import { API_BASE_URL } from "../config/api";
 
-const PRIMARY_COLOR = "#7B0099";
+const PRIMARY_COLOR = "#942392";
 
 function fmtDate(d: string) {
   if (!d) return "—";
@@ -117,7 +117,7 @@ export default function LeaveCalendar() {
   const kpiReplacement = currentMonthRequests.filter(r => r.status === "Approved" && r.leave_type?.includes("Replacement")).length;
   const kpiUnpaid = currentMonthRequests.filter(r => r.status === "Approved" && r.leave_type?.includes("Unpaid")).length;
 
-  if (roleLoading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin w-7 h-7 text-[#7B0099]" /></div>;
+  if (roleLoading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin w-7 h-7 text-[#942392]" /></div>;
 
 
   return (
@@ -186,11 +186,11 @@ export default function LeaveCalendar() {
       {/* Calendar Grid */}
       <Card className="border border-gray-200 dark:border-slate-800/80 shadow-sm overflow-hidden">
         {loading ? (
-          <div className="h-80 flex items-center justify-center"><Loader2 className="animate-spin w-7 h-7 text-[#7B0099]" /></div>
+          <div className="h-80 flex items-center justify-center"><Loader2 className="animate-spin w-7 h-7 text-[#942392]" /></div>
         ) : (
           <>
             {/* Day Headers */}
-            <div className="grid grid-cols-7 border-b border-border/60 bg-[#7B0099] divide-x divide-white/20">
+            <div className="grid grid-cols-7 border-b border-border/60 bg-[#942392] divide-x divide-white/20">
               {DAYS.map(d => (
                 <div key={d} className="px-2 py-3 text-center text-[11px] font-bold uppercase tracking-widest text-white">{d}</div>
               ))}
@@ -209,7 +209,7 @@ export default function LeaveCalendar() {
                 
                 if (today) {
                   cellBg = "bg-[#DBC5E1]";
-                  textCol = "text-[#7B0099]";
+                  textCol = "text-[#942392]";
                 } else if (!isCurrentMonth) {
                   cellBg = "bg-slate-50/50 dark:bg-slate-900/50";
                   textCol = "text-foreground opacity-50";
@@ -295,7 +295,7 @@ function LeaveDetailPopup({ selectedEvent, requests, filterStatus, onClose }: { 
         <div className="p-6 pt-4 overflow-y-auto pr-1 space-y-4 custom-scrollbar">
           <div className="space-y-3 border-t border-gray-100 dark:border-slate-800 pt-4">
             <div className="flex items-center gap-2.5">
-              <User className="w-3.5 h-3.5 text-[#7B0099] shrink-0" />
+              <User className="w-3.5 h-3.5 text-[#942392] shrink-0" />
               <div>
                 <p className="text-[9px] font-black uppercase text-foreground">Employee</p>
                 <p className="text-[12px] font-bold text-gray-800 dark:text-gray-100">{selectedEvent.full_name || selectedEvent.user_id}</p>
@@ -303,7 +303,7 @@ function LeaveDetailPopup({ selectedEvent, requests, filterStatus, onClose }: { 
             </div>
             
             <div className="flex items-center gap-2.5">
-              <Calendar className="w-3.5 h-3.5 text-[#7B0099] shrink-0" />
+              <Calendar className="w-3.5 h-3.5 text-[#942392] shrink-0" />
               <div>
                 <p className="text-[9px] font-black uppercase text-foreground">Duration ({selectedEvent.days} {selectedEvent.days > 1 ? 'Days' : 'Day'})</p>
                 <p className="text-[12px] font-bold text-gray-800 dark:text-gray-100">{fmtDate(selectedEvent.start_date)} → {fmtDate(selectedEvent.end_date)}</p>
@@ -324,7 +324,7 @@ function LeaveDetailPopup({ selectedEvent, requests, filterStatus, onClose }: { 
               <div className="space-y-2">
                 {relatedLeaves.filter(a => a.leave_id !== selectedEvent.leave_id).map((a) => (
                   <div key={a.leave_id} className={`flex items-center gap-3 p-2.5 rounded-xl border transition-colors border-gray-100 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-900/50`}>
-                    <div className="w-8 h-8 rounded-full bg-[#7B0099]/10 text-[#7B0099] text-[10px] font-bold flex items-center justify-center shrink-0">
+                    <div className="w-8 h-8 rounded-full bg-[#942392]/10 text-[#942392] text-[10px] font-bold flex items-center justify-center shrink-0">
                       {(a.full_name || a.user_id).split(' ').map((n:string)=>n[0]).join('').substring(0,2).toUpperCase()}
                     </div>
                     <div className="min-w-0 flex-1">

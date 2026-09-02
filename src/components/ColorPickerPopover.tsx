@@ -93,7 +93,7 @@ export default function ColorPickerPopover({ color, onChange }: ColorPickerProps
   const [format, setFormat] = useState<'HEX' | 'RGB' | 'HSL' | 'HSB'>('HEX');
   const [copied, setCopied] = useState(false);
   
-  const activeColorHex = color.startsWith('#') ? color : '#7B0099';
+  const activeColorHex = color.startsWith('#') ? color : '#942392';
   const initialRgb = hexToRgb(activeColorHex);
   const initialHsv = rgbToHsv(initialRgb.r, initialRgb.g, initialRgb.b);
   

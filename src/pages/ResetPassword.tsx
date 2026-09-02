@@ -95,14 +95,14 @@ export default function ResetPassword() {
           <img src={rayharLogo} alt="Rayhar Logo" className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl shadow-xl" />
           <div className="text-center">
             <h1 className="font-heading font-black text-slate-900 dark:text-slate-100 text-xl sm:text-2xl tracking-tight">Rayhar Group</h1>
-            <p className="text-[10px] sm:text-xs font-extrabold text-[#7B0099] uppercase tracking-widest">Password Reset</p>
+            <p className="text-[10px] sm:text-xs font-extrabold text-[#942392] uppercase tracking-widest">Password Reset</p>
           </div>
         </div>
 
         <Card className="border-white/40 shadow-2xl bg-white/80 backdrop-blur-xl rounded-[20px] sm:rounded-[30px] overflow-hidden">
           {isSessionChecking ? (
             <CardContent className="py-12 flex flex-col items-center justify-center">
-              <Loader2 className="h-8 w-8 animate-spin text-[#7B0099] mb-4" />
+              <Loader2 className="h-8 w-8 animate-spin text-[#942392] mb-4" />
               <p className="text-sm font-medium text-slate-600">Verifying secure session...</p>
             </CardContent>
           ) : isSuccess ? (
@@ -116,7 +116,7 @@ export default function ResetPassword() {
               </p>
               <Button 
                 onClick={() => navigate("/login")}
-                className="w-full mt-4 bg-[#7B0099] hover:bg-[#5e0080] text-white rounded-xl h-11 font-black uppercase tracking-wider"
+                className="w-full mt-4 bg-[#942392] hover:bg-[#5e0080] text-white rounded-xl h-11 font-black uppercase tracking-wider"
               >
                 Back to Sign In
               </Button>
@@ -132,7 +132,7 @@ export default function ResetPassword() {
               </p>
               <Button 
                 onClick={() => navigate("/login")}
-                className="w-full mt-4 bg-[#7B0099] hover:bg-[#5e0080] text-white rounded-xl h-11 font-black uppercase tracking-wider"
+                className="w-full mt-4 bg-[#942392] hover:bg-[#5e0080] text-white rounded-xl h-11 font-black uppercase tracking-wider"
               >
                 Back to Sign In
               </Button>
@@ -140,7 +140,7 @@ export default function ResetPassword() {
           ) : (
             <>
               <CardHeader className="pb-2 bg-white/50 text-center">
-                <h2 className="text-lg font-bold text-[#7B0099]">Create New Password</h2>
+                <h2 className="text-lg font-bold text-[#942392]">Create New Password</h2>
                 <p className="text-xs text-foreground">Enter your new secure password below.</p>
               </CardHeader>
               
@@ -169,7 +169,7 @@ export default function ResetPassword() {
                 <CardFooter className="flex flex-col gap-4">
                   <Button 
                     type="submit" 
-                    className="w-full bg-[#7B0099] hover:bg-[#5e0080] text-white rounded-xl h-12 sm:h-11 transition-all touch-target text-sm sm:text-base font-black uppercase tracking-wider" 
+                    className="w-full bg-[#942392] hover:bg-[#5e0080] text-white rounded-xl h-12 sm:h-11 transition-all touch-target text-sm sm:text-base font-black uppercase tracking-wider" 
                     disabled={loading}
                   >
                     {loading && <Loader2 className="animate-spin mr-2" />}
@@ -180,7 +180,7 @@ export default function ResetPassword() {
                     <button
                       type="button"
                       onClick={() => navigate("/login")}
-                      className="text-xs text-foreground font-bold hover:text-[#7B0099] hover:underline transition-colors uppercase"
+                      className="text-xs text-foreground font-bold hover:text-[#942392] hover:underline transition-colors uppercase"
                     >
                       Back to Sign In
                     </button>

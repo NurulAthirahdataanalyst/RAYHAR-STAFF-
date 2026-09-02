@@ -642,7 +642,7 @@ export default function Employees() {
           <Button
             variant="ghost"
             size="sm"
-            className="mb-1 gap-2 px-0 text-foreground hover:bg-transparent hover:text-[#7B0099] transition-colors touch-target no-global-hover"
+            className="mb-1 gap-2 px-0 text-foreground hover:bg-transparent hover:text-[#942392] transition-colors touch-target no-global-hover"
             onClick={() => navigate("/master")}
           >
             <ArrowLeft className="h-4 w-4" />
@@ -654,7 +654,7 @@ export default function Employees() {
           {role === "hr_admin" ? (
             <Button 
               onClick={() => setIsAddModalOpen(true)}
-              className="h-9 px-6 rounded-xl bg-[#7B0099] text-white hover:bg-[#7B0099]/95 font-black text-[9px] uppercase tracking-wider shadow-lg shadow-[#7B0099]/15 transition-all whitespace-nowrap touch-target flex items-center"
+              className="h-9 px-6 rounded-xl bg-[#942392] text-white hover:bg-[#942392]/95 font-black text-[9px] uppercase tracking-wider shadow-lg shadow-[#942392]/15 transition-all whitespace-nowrap touch-target flex items-center"
             >
               <Plus className="w-4 h-4 mr-2" />
               Add Staff
@@ -684,7 +684,7 @@ export default function Employees() {
                         setSearch(e.target.value);
                         if (!empSearchOpen) setEmpSearchOpen(true);
                     }}
-                    className={`pl-9 pr-8 h-11 sm:h-10 border bg-background/50 rounded-xl font-semibold text-xs focus-visible:ring-1 focus-visible:ring-[#7B0099]/50 w-full transition-all ${checkedEmployees.length > 0 ? 'border-[#7B0099]/50 text-[#7B0099] placeholder:text-[#7B0099]/80 placeholder:font-bold' : 'border-border/60'}`}
+                    className={`pl-9 pr-8 h-11 sm:h-10 border bg-background/50 rounded-xl font-semibold text-xs focus-visible:ring-1 focus-visible:ring-[#942392]/50 w-full transition-all ${checkedEmployees.length > 0 ? 'border-[#942392]/50 text-[#942392] placeholder:text-[#942392]/80 placeholder:font-bold' : 'border-border/60'}`}
                   />
                 </PopoverAnchor>
                 <PopoverTrigger asChild>
@@ -706,7 +706,7 @@ export default function Employees() {
                       {checkedEmployees.map(id => {
                         const emp = dbEmployees.find(e => (e.id?.toString() || e.user_id || e.name) === id);
                         return emp ? (
-                          <span key={id} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#7B0099]/10 text-[#7B0099] text-[10px] font-bold">
+                          <span key={id} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#942392]/10 text-[#942392] text-[10px] font-bold">
                             {emp.name}
                             <button onClick={() => setCheckedEmployees(prev => prev.filter(x => x !== id))} className="hover:text-red-500">
                               <X className="w-2.5 h-2.5" />
@@ -746,11 +746,11 @@ export default function Employees() {
                               prev.includes(empId) ? prev.filter(x => x !== empId) : [...prev, empId]
                             );
                           }}
-                          className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors ${isChecked ? 'bg-[#7B0099]/5' : 'hover:bg-muted/50'}`}
+                          className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors ${isChecked ? 'bg-[#942392]/5' : 'hover:bg-muted/50'}`}
                         >
                           <label className="relative cursor-pointer" style={{width:18,height:18}} onClick={(e) => e.preventDefault()}>
                             <input type="checkbox" checked={isChecked} readOnly className="sr-only peer" />
-                            <svg viewBox="0 0 18 18" width="18" height="18" className="relative z-10" style={{fill:'none',strokeLinecap:'round',strokeLinejoin:'round',stroke: isChecked ? '#7B0099' : '#c8ccd4',strokeWidth:1.5,transition:'all 0.2s ease'}}>
+                            <svg viewBox="0 0 18 18" width="18" height="18" className="relative z-10" style={{fill:'none',strokeLinecap:'round',strokeLinejoin:'round',stroke: isChecked ? '#942392' : '#c8ccd4',strokeWidth:1.5,transition:'all 0.2s ease'}}>
                               <path d="M1,9 L1,3.5 C1,2 2,1 3.5,1 L14.5,1 C16,1 17,2 17,3.5 L17,14.5 C17,16 16,17 14.5,17 L3.5,17 C2,17 1,16 1,14.5 L1,9 Z"
                                 style={{strokeDasharray:60, strokeDashoffset: isChecked ? 60 : 0, transition:'all 0.3s linear'}} />
                               <polyline points="1 9 7 14 15 4"
@@ -758,10 +758,10 @@ export default function Employees() {
                             </svg>
                           </label>
                           <div className="flex-1 min-w-0">
-                            <p className={`text-xs font-bold truncate ${isChecked ? 'text-[#7B0099]' : 'text-foreground'}`}>{emp.name}</p>
+                            <p className={`text-xs font-bold truncate ${isChecked ? 'text-[#942392]' : 'text-foreground'}`}>{emp.name}</p>
                             <p className="text-[10px] text-muted-foreground truncate">{emp.user_id || emp.email || ''} · {emp.branch || ''}</p>
                           </div>
-                          {isChecked && <span className="text-[10px] font-bold text-[#7B0099] bg-[#7B0099]/10 px-2 py-0.5 rounded-full">Selected</span>}
+                          {isChecked && <span className="text-[10px] font-bold text-[#942392] bg-[#942392]/10 px-2 py-0.5 rounded-full">Selected</span>}
                         </div>
                       );
                     });
@@ -769,7 +769,7 @@ export default function Employees() {
                 </div>
                 {checkedEmployees.length > 0 && (
                   <div className="border-t border-border/50 p-2 flex justify-between items-center">
-                    <span className="text-[10px] font-bold text-[#7B0099]">{checkedEmployees.length} selected</span>
+                    <span className="text-[10px] font-bold text-[#942392]">{checkedEmployees.length} selected</span>
                     <Button size="sm" variant="ghost" className="text-[10px] h-6 text-red-500 hover:text-red-600" onClick={() => setCheckedEmployees([])}>Clear All</Button>
                   </div>
                 )}
@@ -778,7 +778,7 @@ export default function Employees() {
 
           {(["hr_admin", "managing_director", "operation_manager", "finance_manager"].includes(role) || uniqueBranches.length > 1) && (
             <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-              <SelectTrigger className="w-full sm:w-[180px] h-11 sm:h-10 border-border/60 bg-background/50 focus:ring-[#7B0099]/20 font-bold text-xs rounded-xl">
+              <SelectTrigger className="w-full sm:w-[180px] h-11 sm:h-10 border-border/60 bg-background/50 focus:ring-[#942392]/20 font-bold text-xs rounded-xl">
                 <SelectValue placeholder="All Branches" />
               </SelectTrigger>
               <SelectContent className="rounded-xl">
@@ -793,7 +793,7 @@ export default function Employees() {
           )}
 
           <Select value={selectedPosition} onValueChange={setSelectedPosition}>
-            <SelectTrigger className="w-full sm:w-[180px] h-11 sm:h-10 border-border/60 bg-background/50 focus:ring-[#7B0099]/20 font-bold text-xs rounded-xl">
+            <SelectTrigger className="w-full sm:w-[180px] h-11 sm:h-10 border-border/60 bg-background/50 focus:ring-[#942392]/20 font-bold text-xs rounded-xl">
               <SelectValue placeholder="All Positions" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
@@ -807,7 +807,7 @@ export default function Employees() {
           </Select>
 
           <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-            <SelectTrigger className="w-full sm:w-[150px] h-11 sm:h-10 border-border/60 bg-background/50 focus:ring-[#7B0099]/20 font-bold text-xs rounded-xl">
+            <SelectTrigger className="w-full sm:w-[150px] h-11 sm:h-10 border-border/60 bg-background/50 focus:ring-[#942392]/20 font-bold text-xs rounded-xl">
               <SelectValue placeholder="Status: Active" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
@@ -819,7 +819,7 @@ export default function Employees() {
         </div>
         
         <Badge variant="outline" className="px-3 py-1.5 text-xs font-bold whitespace-nowrap bg-muted/30 border-border/60 h-10 sm:h-auto flex items-center justify-center rounded-md">
-          Total <span className="ml-2 flex items-center justify-center bg-[#7B0099] text-white rounded-md h-5 min-w-[20px] px-1.5 text-[10px] leading-none shrink-0">{filtered.length}</span>
+          Total <span className="ml-2 flex items-center justify-center bg-[#942392] text-white rounded-md h-5 min-w-[20px] px-1.5 text-[10px] leading-none shrink-0">{filtered.length}</span>
         </Badge>
       </div>
 
@@ -827,7 +827,7 @@ export default function Employees() {
         <CardContent className="p-0">
           {loading ? (
             <div className="flex flex-col items-center justify-center p-12 gap-3">
-              <Loader2 className="w-8 h-8 animate-spin text-[#7B0099]" />
+              <Loader2 className="w-8 h-8 animate-spin text-[#942392]" />
               <p className="text-xs font-bold text-foreground animate-pulse uppercase tracking-widest">Loading Personnel...</p>
             </div>
           ) : (
@@ -848,16 +848,16 @@ export default function Employees() {
                       (Array.isArray(currentItems) ? currentItems : []).map((emp) => (
                         <TableRow 
                           key={emp.id} 
-                          className="hover:bg-[#7B0099]/5 transition-colors cursor-pointer group"
+                          className="hover:bg-[#942392]/5 transition-colors cursor-pointer group"
                           onClick={() => handleEmployeeClick(emp)}
                         >
                           <TableCell className="py-4 px-6">
                             <div className="flex items-center gap-4">
-                              <div className="w-10 h-10 rounded-xl bg-[#7B0099]/10 flex items-center justify-center text-xs font-black text-[#7B0099] group-hover:scale-110 transition-transform">
+                              <div className="w-10 h-10 rounded-xl bg-[#942392]/10 flex items-center justify-center text-xs font-black text-[#942392] group-hover:scale-110 transition-transform">
                                 {String(emp.name).split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
                               </div>
                               <div className="min-w-0">
-                                <p className="font-bold text-foreground group-hover:text-[#7B0099] transition-colors">{emp.name}</p>
+                                <p className="font-bold text-foreground group-hover:text-[#942392] transition-colors">{emp.name}</p>
                                 <p className="text-[10px] text-foreground truncate font-medium">{emp.email}</p>
                               </div>
                             </div>
@@ -925,10 +925,10 @@ export default function Employees() {
                   (Array.isArray(currentItems) ? currentItems : []).map((emp) => (
                     <div 
                       key={emp.id} 
-                      className="p-4 active:bg-[#7B0099]/5 transition-colors flex items-center gap-4 cursor-pointer"
+                      className="p-4 active:bg-[#942392]/5 transition-colors flex items-center gap-4 cursor-pointer"
                       onClick={() => handleEmployeeClick(emp)}
                     >
-                      <div className="w-12 h-12 rounded-2xl bg-[#7B0099]/10 flex items-center justify-center text-sm font-black text-[#7B0099] shrink-0">
+                      <div className="w-12 h-12 rounded-2xl bg-[#942392]/10 flex items-center justify-center text-sm font-black text-[#942392] shrink-0">
                         {String(emp.name).split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -1120,7 +1120,7 @@ export default function Employees() {
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  className="h-7 text-[10px] bg-[#7B0099] text-white hover:bg-[#5c0073] font-bold"
+                                  className="h-7 text-[10px] bg-[#942392] text-white hover:bg-[#5c0073] font-bold"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     setSelectedLeaveFormDetail(req);
@@ -1151,7 +1151,7 @@ export default function Employees() {
             const toStr = new Date(req.end_date).toLocaleDateString('ms-MY', { day: '2-digit', month: '2-digit', year: 'numeric' });
             return (
               <>
-                <div className="p-6 bg-gradient-to-br from-[#7B0099] to-[#a855f7] text-white print:hidden">
+                <div className="p-6 bg-gradient-to-br from-[#942392] to-[#a855f7] text-white print:hidden">
                   <DialogHeader>
                     <DialogTitle className="flex items-center gap-3 text-white text-xl font-black tracking-tight">
                       <FileText className="h-6 w-6" />
@@ -1185,7 +1185,7 @@ export default function Employees() {
                       </div>
                       <div className="space-y-1">
                         <span className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50">Status</span>
-                        <p className={`font-black uppercase ${req.status === "Rejected" ? "text-rose-600" : "text-[#7B0099]"}`}>
+                        <p className={`font-black uppercase ${req.status === "Rejected" ? "text-rose-600" : "text-[#942392]"}`}>
                           {req.status}
                         </p>
                       </div>
@@ -1201,8 +1201,8 @@ export default function Employees() {
                         <p className="font-black text-xs sm:text-sm">{toStr}</p>
                       </div>
                       <div className="text-center bg-white dark:bg-slate-900 rounded-[14px] border border-border/50 py-1 shadow-sm flex flex-col justify-center">
-                        <p className="text-[9px] uppercase font-black text-[#7B0099]">Hari</p>
-                        <p className="font-black text-lg text-[#7B0099] leading-none mt-0.5">{req.days}</p>
+                        <p className="text-[9px] uppercase font-black text-[#942392]">Hari</p>
+                        <p className="font-black text-lg text-[#942392] leading-none mt-0.5">{req.days}</p>
                       </div>
                       <div className="text-center rounded-[14px] border-2 border-emerald-500 bg-white dark:bg-slate-900 shadow-sm flex flex-col justify-center py-1">
                         <p className="text-[9px] uppercase font-black text-emerald-600">Baki Layak</p>
@@ -1276,14 +1276,14 @@ export default function Employees() {
                     {(req.leave_type === "Sick Leave" || req.leave_type === "Cuti Sakit") && req.mc_file_url && (
                       <div className="p-4 bg-purple-500/10 border border-purple-500/20 rounded-[16px] flex items-center justify-between group">
                         <div className="flex items-center gap-3">
-                          <FileText className="w-5 h-5 text-[#7B0099]" />
-                          <span className="text-[10px] font-black text-[#7B0099] uppercase tracking-widest">MC Attachment</span>
+                          <FileText className="w-5 h-5 text-[#942392]" />
+                          <span className="text-[10px] font-black text-[#942392] uppercase tracking-widest">MC Attachment</span>
                         </div>
                         <a
                           href={`${API_BASE_URL}${req.mc_file_url}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-[9px] font-black uppercase tracking-widest bg-[#7B0099] text-white px-4 py-2 rounded-xl hover:bg-[#5e0080] transition-colors shadow-lg"
+                          className="text-[9px] font-black uppercase tracking-widest bg-[#942392] text-white px-4 py-2 rounded-xl hover:bg-[#5e0080] transition-colors shadow-lg"
                         >
                           View File
                         </a>
@@ -1307,7 +1307,7 @@ export default function Employees() {
                         </div>
                         <div className="space-y-1">
                           <span className="text-[8px] font-black text-slate-950 dark:text-slate-50 uppercase">No. Telefon</span>
-                          <p className="text-[11px] font-black text-[#7B0099]">{req.waris_phone || "-"}</p>
+                          <p className="text-[11px] font-black text-[#942392]">{req.waris_phone || "-"}</p>
                         </div>
                         <div className="space-y-1">
                           <span className="text-[8px] font-black text-slate-950 dark:text-slate-50 uppercase">Alamat</span>
@@ -1320,7 +1320,7 @@ export default function Employees() {
                     {req.approval_history && req.approval_history.length > 0 && (
                       <div className="space-y-4 pt-4 border-t border-border/50">
                         <div className="flex items-center gap-2">
-                          <Clock className="w-4 h-4 text-[#7B0099]" />
+                          <Clock className="w-4 h-4 text-[#942392]" />
                           <h3 className="text-[10px] font-black uppercase tracking-[0.2em]">
                             Approval History
                           </h3>
@@ -1368,7 +1368,7 @@ export default function Employees() {
                       <Button
                         type="button"
                         variant="outline"
-                        className="gap-2 border-[#7B0099] text-[#7B0099] hover:bg-[#7B0099]/5 rounded-xl font-black text-[10px] uppercase tracking-widest px-6"
+                        className="gap-2 border-[#942392] text-[#942392] hover:bg-[#942392]/5 rounded-xl font-black text-[10px] uppercase tracking-widest px-6"
                         onClick={() => {
                           const originalTitle = document.title;
                           const empName = selectedEmployee?.name || selectedEmployee?.full_name || "UNKNOWN";

@@ -438,13 +438,13 @@ export default function Reports() {
           <title>Rayhar Daily Attendance Report - ${displayDate}</title>
           <style>
             body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #1e293b; padding: 40px; }
-            h1 { color: #7B0099; margin-bottom: 5px; font-size: 24px; font-weight: 800; }
+            h1 { color: #942392; margin-bottom: 5px; font-size: 24px; font-weight: 800; }
             h2 { color: #64748b; font-size: 13px; margin-top: 0; font-weight: 600; margin-bottom: 30px; text-transform: uppercase; letter-spacing: 1px; }
             .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 40px; padding: 20px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; }
             .meta-item { font-size: 13px; }
             .meta-item strong { color: #475569; }
             table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-            th { background: #7B0099; color: white; text-align: left; padding: 12px 16px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+            th { background: #942392; color: white; text-align: left; padding: 12px 16px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
             td { padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-size: 13px; }
             tr:nth-child(even) td { background: #f8fafc; }
             .badge { padding: 4px 8px; border-radius: 9999px; font-size: 10px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; white-space: nowrap; display: inline-block; }
@@ -462,7 +462,7 @@ export default function Reports() {
               <h1 style="margin: 0; font-size: 28px; letter-spacing: -0.5px;">RAYHAR GROUP</h1>
               <h2 style="margin: 2px 0 24px 0; font-size: 13px; font-weight: 700; color: #64748b;">Daily Attendance Report</h2>
             </div>
-            <button onclick="window.print();" style="background: #7B0099; color: white; border: none; padding: 10px 20px; font-weight: 800; border-radius: 8px; cursor: pointer; font-size: 12px; transition: background 0.2s;">PRINT REPORT</button>
+            <button onclick="window.print();" style="background: #942392; color: white; border: none; padding: 10px 20px; font-weight: 800; border-radius: 8px; cursor: pointer; font-size: 12px; transition: background 0.2s;">PRINT REPORT</button>
           </div>
           
           <div class="meta-grid">
@@ -732,12 +732,12 @@ export default function Reports() {
     return row;
   });
 
-  const distColors = ['#7B0099', '#C2185B', '#EAB308'];
+  const distColors = ['#942392', '#C2185B', '#EAB308'];
   const rawTypeDist = leaveUtilization?.leaveTypeDistribution || [];
   return (
     <div className={`p-4 ${sidebarCollapsed ? "md:p-8" : "md:p-6"} space-y-6 w-full transition-all duration-300`}>
       <Card className="border border-white/60 bg-white/40 dark:bg-card/40 backdrop-blur-2xl shadow-2xl rounded-[32px] overflow-hidden relative">
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#7B0099] to-transparent opacity-50" />
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#942392] to-transparent opacity-50" />
         <CardContent className="p-6 sm:p-8">
           {/* GENERATE REPORT SECTION */}
           <div className="space-y-4 sm:space-y-5 animate-in fade-in duration-500">
@@ -758,13 +758,13 @@ export default function Reports() {
                         onClick={() => setGeneratorType("trends")}
                         className={`p-4 rounded-xl border-2 text-left flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${
                           generatorType === "trends"
-                            ? "border-[#7B0099] bg-[#7B0099]/5 text-foreground"
+                            ? "border-[#942392] bg-[#942392]/5 text-foreground"
                             : "border-border/40 bg-white/40 dark:bg-card/20 text-foreground hover:bg-muted/40 hover:text-foreground"
                         }`}
                       >
                         <div className="flex items-center gap-3">
                           <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                            generatorType === "trends" ? "bg-[#7B0099]/15 text-[#7B0099]" : "bg-muted dark:bg-slate-800 text-foreground"
+                            generatorType === "trends" ? "bg-[#942392]/15 text-[#942392]" : "bg-muted dark:bg-slate-800 text-foreground"
                           }`}>
                             <Clock className="w-5 h-5" />
                           </div>
@@ -778,13 +778,13 @@ export default function Reports() {
                         onClick={() => setGeneratorType("leave")}
                         className={`p-4 rounded-xl border-2 text-left flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${
                           generatorType === "leave"
-                            ? "border-[#7B0099] bg-[#7B0099]/5 text-foreground"
+                            ? "border-[#942392] bg-[#942392]/5 text-foreground"
                             : "border-border/40 bg-white/40 dark:bg-card/20 text-foreground hover:bg-muted/40 hover:text-foreground"
                         }`}
                       >
                         <div className="flex items-center gap-3">
                           <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                            generatorType === "leave" ? "bg-[#7B0099]/15 text-[#7B0099]" : "bg-muted dark:bg-slate-800 text-foreground"
+                            generatorType === "leave" ? "bg-[#942392]/15 text-[#942392]" : "bg-muted dark:bg-slate-800 text-foreground"
                           }`}>
                             <PieChart className="w-5 h-5" />
                           </div>
@@ -798,13 +798,13 @@ export default function Reports() {
                         onClick={() => setGeneratorType("outstation")}
                         className={`p-4 rounded-xl border-2 text-left flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${
                           generatorType === "outstation"
-                            ? "border-[#7B0099] bg-[#7B0099]/5 text-foreground"
+                            ? "border-[#942392] bg-[#942392]/5 text-foreground"
                             : "border-border/40 bg-white/40 dark:bg-card/20 text-foreground hover:bg-muted/40 hover:text-foreground"
                         }`}
                       >
                         <div className="flex items-center gap-3">
                           <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                            generatorType === "outstation" ? "bg-[#7B0099]/15 text-[#7B0099]" : "bg-muted dark:bg-slate-800 text-foreground"
+                            generatorType === "outstation" ? "bg-[#942392]/15 text-[#942392]" : "bg-muted dark:bg-slate-800 text-foreground"
                           }`}>
                             <Briefcase className="w-5 h-5" />
                           </div>
@@ -818,13 +818,13 @@ export default function Reports() {
                         onClick={() => setGeneratorType("company_leave")}
                         className={`p-4 rounded-xl border-2 text-left flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${
                           generatorType === "company_leave"
-                            ? "border-[#7B0099] bg-[#7B0099]/5 text-foreground"
+                            ? "border-[#942392] bg-[#942392]/5 text-foreground"
                             : "border-border/40 bg-white/40 dark:bg-card/20 text-foreground hover:bg-muted/40 hover:text-foreground"
                         }`}
                       >
                         <div className="flex items-center gap-3">
                           <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                            generatorType === "company_leave" ? "bg-[#7B0099]/15 text-[#7B0099]" : "bg-muted dark:bg-slate-800 text-foreground"
+                            generatorType === "company_leave" ? "bg-[#942392]/15 text-[#942392]" : "bg-muted dark:bg-slate-800 text-foreground"
                           }`}>
                             <Building2 className="w-5 h-5" />
                           </div>
@@ -892,7 +892,7 @@ export default function Reports() {
                                 setSelectedYear(y);
                                 setSelectedMonth(m);
                               }}
-                              className="w-full h-11 px-3 flex items-center justify-between text-xs font-black uppercase tracking-widest rounded-xl border border-border bg-background/30 text-foreground outline-none cursor-pointer hover:border-[#7B0099]/40 focus:ring-1 focus:ring-[#7B0099]"
+                              className="w-full h-11 px-3 flex items-center justify-between text-xs font-black uppercase tracking-widest rounded-xl border border-border bg-background/30 text-foreground outline-none cursor-pointer hover:border-[#942392]/40 focus:ring-1 focus:ring-[#942392]"
                             />
                           </div>
 
@@ -901,7 +901,7 @@ export default function Reports() {
                             <YearPopover
                               year={selectedYear}
                               onSelectYear={setSelectedYear}
-                              className="w-full h-11 px-3 text-xs font-black uppercase tracking-widest rounded-xl border border-border bg-background/30 flex items-center justify-between text-foreground hover:border-[#7B0099]/40 cursor-pointer"
+                              className="w-full h-11 px-3 text-xs font-black uppercase tracking-widest rounded-xl border border-border bg-background/30 flex items-center justify-between text-foreground hover:border-[#942392]/40 cursor-pointer"
                             />
                           </div>
                         </div>
@@ -917,7 +917,7 @@ export default function Reports() {
                     onClick={() => setGeneratorFormat("csv")}
                     className={`py-3 px-4 rounded-xl border flex flex-col items-center justify-center gap-1.5 transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${
                       generatorFormat === "csv"
-                        ? "border-[#7B0099] bg-[#7B0099]/5 text-[#7B0099] font-black"
+                        ? "border-[#942392] bg-[#942392]/5 text-[#942392] font-black"
                         : "border-border/50 bg-background/20 text-foreground font-semibold hover:bg-muted/40 hover:text-foreground"
                     }`}
                   >
@@ -928,7 +928,7 @@ export default function Reports() {
                     onClick={() => setGeneratorFormat("excel")}
                     className={`py-3 px-4 rounded-xl border flex flex-col items-center justify-center gap-1.5 transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${
                       generatorFormat === "excel"
-                        ? "border-[#7B0099] bg-[#7B0099]/5 text-[#7B0099] font-black"
+                        ? "border-[#942392] bg-[#942392]/5 text-[#942392] font-black"
                         : "border-border/50 bg-background/20 text-foreground font-semibold hover:bg-muted/40 hover:text-foreground"
                     }`}
                   >
@@ -939,7 +939,7 @@ export default function Reports() {
                     onClick={() => setGeneratorFormat("pdf")}
                     className={`py-3 px-4 rounded-xl border flex flex-col items-center justify-center gap-1.5 transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${
                       generatorFormat === "pdf"
-                        ? "border-[#7B0099] bg-[#7B0099]/5 text-[#7B0099] font-black"
+                        ? "border-[#942392] bg-[#942392]/5 text-[#942392] font-black"
                         : "border-border/50 bg-background/20 text-foreground font-semibold hover:bg-muted/40 hover:text-foreground"
                     }`}
                   >
@@ -960,7 +960,7 @@ export default function Reports() {
               {/* Counter Display */}
               <div className="bg-muted/30 border border-border/30 rounded-2xl p-5 text-center flex flex-col gap-1 items-center justify-center select-none shadow-inner">
                 <span className="text-[9px] font-black text-foreground uppercase tracking-widest">Live Compiled Dataset</span>
-                <span className="text-3xl font-black text-[#7B0099] font-mono mt-1">
+                <span className="text-3xl font-black text-[#942392] font-mono mt-1">
                   {previewCount.toLocaleString()} Records
                 </span>
                 <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest mt-1 flex items-center gap-1.5 animate-pulse">
@@ -974,7 +974,7 @@ export default function Reports() {
                 <span className="text-[9px] font-black text-foreground uppercase tracking-widest">Active Scope Preview</span>
                 <div className="grid grid-cols-6 gap-1 bg-background/20 border border-border/30 rounded-xl p-2.5">
                   {Array.from({ length: 24 }).map((_, i) => {
-                    const fill = i % 3 === 0 ? 'bg-[#7B0099]/20' : i % 3 === 1 ? 'bg-[#7B0099]/60' : 'bg-[#7B0099]';
+                    const fill = i % 3 === 0 ? 'bg-[#942392]/20' : i % 3 === 1 ? 'bg-[#942392]/60' : 'bg-[#942392]';
                     return <div key={i} className={`h-4.5 rounded-[3px] ${fill}`} />;
                   })}
                 </div>
@@ -984,7 +984,7 @@ export default function Reports() {
               <Button
                 onClick={triggerGenerateReport}
                 disabled={isGenerating}
-                className="w-full py-6 rounded-[18px] bg-[#FFFE00] hover:bg-[#E6E500] text-[#7B0099] ring-2 ring-[#7B0099] font-black text-xs uppercase tracking-widest shadow-xl shadow-[#7B0099]/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                className="w-full py-6 rounded-[18px] bg-[#FFFE00] hover:bg-[#E6E500] text-[#942392] ring-2 ring-[#942392] font-black text-xs uppercase tracking-widest shadow-xl shadow-[#942392]/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
               >
                 {isGenerating ? (
                   <>

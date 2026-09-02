@@ -139,7 +139,7 @@ export function ApprovalStatusTracker({ status, approverRole, approvalHistory = 
             : isRejected
             ? 'border-rose-500 bg-rose-50 text-rose-600 dark:bg-rose-950/50'
             : isPending
-            ? 'border-[#7B0099] bg-purple-50 text-[#7B0099] dark:bg-purple-950/50 shadow-md shadow-[#7B0099]/20 animate-pulse'
+            ? 'border-[#942392] bg-purple-50 text-[#942392] dark:bg-purple-950/50 shadow-md shadow-[#942392]/20 animate-pulse'
             : 'border-slate-300 bg-slate-100 text-slate-400 dark:border-slate-700 dark:bg-slate-800';
 
           const badgeBg = isApproved
@@ -147,7 +147,7 @@ export function ApprovalStatusTracker({ status, approverRole, approvalHistory = 
             : isRejected
             ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'
             : isPending
-            ? 'bg-[#7B0099]/10 text-[#7B0099] dark:text-purple-300 border-[#7B0099]/20'
+            ? 'bg-[#942392]/10 text-[#942392] dark:text-purple-300 border-[#942392]/20'
             : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400 border-slate-200';
 
           return (

@@ -122,7 +122,7 @@ export default function Department() {
           <Button
             variant="ghost"
             size="sm"
-            className="mb-1 gap-2 px-0 text-foreground hover:bg-transparent hover:text-[#7B0099] transition-colors touch-target"
+            className="mb-1 gap-2 px-0 text-foreground hover:bg-transparent hover:text-[#942392] transition-colors touch-target"
             onClick={() => navigate("/master")}
           >
             <ArrowLeft className="h-4 w-4" />
@@ -133,7 +133,7 @@ export default function Department() {
 
           {role === "hr_admin" && ( <Button
             onClick={() => navigate("/settings?tab=department")}
-            className="h-9 px-6 rounded-xl bg-[#7B0099] text-white hover:bg-[#7B0099]/95 font-black text-[9px] uppercase tracking-wider shadow-lg shadow-[#7B0099]/15 transition-all touch-target whitespace-nowrap flex items-center"
+            className="h-9 px-6 rounded-xl bg-[#942392] text-white hover:bg-[#942392]/95 font-black text-[9px] uppercase tracking-wider shadow-lg shadow-[#942392]/15 transition-all touch-target whitespace-nowrap flex items-center"
           >
             <Plus className="w-4 h-4 mr-2" />
             Add New Department

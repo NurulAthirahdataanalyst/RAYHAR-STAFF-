@@ -163,7 +163,7 @@ export default function LeaveEntitlementManagement() {
   if (roleLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7B0099]" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#942392]" />
       </div>
     );
   }
@@ -187,7 +187,7 @@ export default function LeaveEntitlementManagement() {
           <Card className="overflow-hidden border-border/60 bg-card/77 backdrop-blur-sm">
             <CardHeader className="border-b border-border/50 bg-muted/20 rounded-t-xl">
               <CardTitle className="flex items-center gap-2 text-lg font-black">
-                <Layers3 className="w-5 h-5 text-[#7B0099]" />
+                <Layers3 className="w-5 h-5 text-[#942392]" />
                 Module Scope
               </CardTitle>
               <CardDescription>
@@ -203,20 +203,20 @@ export default function LeaveEntitlementManagement() {
                       <div
                         key={module.title}
                         onClick={() => setActiveModule(module.title)}
-                        className="rounded-2xl border border-border/60 bg-card p-6 shadow-sm hover:shadow-md hover:border-[#7B0099]/40 cursor-pointer transition-all duration-200 group flex flex-col justify-between min-h-[220px]"
+                        className="rounded-2xl border border-border/60 bg-card p-6 shadow-sm hover:shadow-md hover:border-[#942392]/40 cursor-pointer transition-all duration-200 group flex flex-col justify-between min-h-[220px]"
                       >
                         <div>
                           <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-105 ${module.tone}`}>
                             <Icon className="w-6 h-6" />
                           </div>
-                          <h3 className="mt-6 text-lg font-black text-foreground group-hover:text-[#7B0099] transition-colors">
+                          <h3 className="mt-6 text-lg font-black text-foreground group-hover:text-[#942392] transition-colors">
                             {module.title}
                           </h3>
                           <p className="mt-3 text-xs sm:text-sm leading-relaxed text-foreground">
                             {module.description}
                           </p>
                         </div>
-                        <div className="mt-8 pt-4 border-t border-border/40 text-[#7B0099] text-xs font-black uppercase tracking-wider flex items-center gap-1.5 group-hover:translate-x-1 transition-transform">
+                        <div className="mt-8 pt-4 border-t border-border/40 text-[#942392] text-xs font-black uppercase tracking-wider flex items-center gap-1.5 group-hover:translate-x-1 transition-transform">
                           Manage module &rarr;
                         </div>
                       </div>
@@ -230,20 +230,20 @@ export default function LeaveEntitlementManagement() {
                       <div
                         key={module.title}
                         onClick={() => setActiveModule(module.title)}
-                        className="rounded-2xl border border-border/60 bg-card p-6 shadow-sm hover:shadow-md hover:border-[#7B0099]/40 cursor-pointer transition-all duration-200 group flex flex-col justify-between min-h-[220px]"
+                        className="rounded-2xl border border-border/60 bg-card p-6 shadow-sm hover:shadow-md hover:border-[#942392]/40 cursor-pointer transition-all duration-200 group flex flex-col justify-between min-h-[220px]"
                       >
                         <div>
                           <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-105 ${module.tone}`}>
                             <Icon className="w-6 h-6" />
                           </div>
-                          <h3 className="mt-6 text-lg font-black text-foreground group-hover:text-[#7B0099] transition-colors">
+                          <h3 className="mt-6 text-lg font-black text-foreground group-hover:text-[#942392] transition-colors">
                             {module.title}
                           </h3>
                           <p className="mt-3 text-xs sm:text-sm leading-relaxed text-foreground">
                             {module.description}
                           </p>
                         </div>
-                        <div className="mt-8 pt-4 border-t border-border/40 text-[#7B0099] text-xs font-black uppercase tracking-wider flex items-center gap-1.5 group-hover:translate-x-1 transition-transform">
+                        <div className="mt-8 pt-4 border-t border-border/40 text-[#942392] text-xs font-black uppercase tracking-wider flex items-center gap-1.5 group-hover:translate-x-1 transition-transform">
                           Manage module &rarr;
                         </div>
                       </div>
@@ -279,7 +279,7 @@ export default function LeaveEntitlementManagement() {
                     "Review the balance history before closing the leave year.",
                   ].map((step, index) => (
                     <li key={step} className="flex gap-3 rounded-2xl border border-border/60 p-4">
-                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#7B0099]/10 text-[11px] font-black text-[#7B0099]">
+                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#942392]/10 text-[11px] font-black text-[#942392]">
                         {index + 1}
                       </div>
                       <p className="text-sm text-foreground/90">{step}</p>
@@ -474,7 +474,7 @@ function CustomDatePicker({ value, onChange, placeholder, disabled }: { value: s
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <button type="button" disabled={disabled} className="appearance-none flex items-center justify-between w-full px-3 h-9 bg-white dark:bg-card border border-input text-foreground text-xs font-bold rounded-md shadow-sm outline-none cursor-pointer tracking-wider hover:border-[#7B0099]/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+        <button type="button" disabled={disabled} className="appearance-none flex items-center justify-between w-full px-3 h-9 bg-white dark:bg-card border border-input text-foreground text-xs font-bold rounded-md shadow-sm outline-none cursor-pointer tracking-wider hover:border-[#942392]/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
           <span className="font-bold text-foreground">
             {value ? format(new Date(value), "dd MMM yyyy").toUpperCase() : (placeholder || "Select Date")}
           </span>
@@ -741,7 +741,7 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
                       <div className="relative w-full cursor-pointer">
                         <div className="pl-3 pr-8 h-9 border border-border/60 bg-white dark:bg-card rounded-md flex items-center gap-1 overflow-hidden">
                           {checkedEmployees.length > 0 ? (
-                            <span className="text-xs font-bold text-[#7B0099] truncate">{checkedEmployees.length} employee{checkedEmployees.length > 1 ? 's' : ''} selected</span>
+                            <span className="text-xs font-bold text-[#942392] truncate">{checkedEmployees.length} employee{checkedEmployees.length > 1 ? 's' : ''} selected</span>
                           ) : (
                             <span className="text-xs text-muted-foreground">{search || "Enter employee name..."}</span>
                           )}
@@ -776,7 +776,7 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
                             {checkedEmployees.map(id => {
                               const emp = employees.find(e => e.user_id === id);
                               return emp ? (
-                                <span key={id} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#7B0099]/10 text-[#7B0099] text-[10px] font-bold">
+                                <span key={id} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#942392]/10 text-[#942392] text-[10px] font-bold">
                                   {emp.full_name}
                                   <button onClick={() => setCheckedEmployees(prev => prev.filter(x => x !== id))} className="hover:text-red-500">
                                     <X className="w-2.5 h-2.5" />
@@ -819,11 +819,11 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
                                       setCheckedEmployees(prev => [...prev, ...idsToAdd]);
                                     }
                                   }}
-                                  className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors border-b border-border/50 mb-1 ${allSelected ? 'bg-[#7B0099]/5' : 'hover:bg-muted/50'}`}
+                                  className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors border-b border-border/50 mb-1 ${allSelected ? 'bg-[#942392]/5' : 'hover:bg-muted/50'}`}
                                 >
                                   <label className="relative cursor-pointer" style={{width:18,height:18}} onClick={(e) => e.preventDefault()}>
                                     <input type="checkbox" checked={allSelected} readOnly className="sr-only peer" />
-                                    <svg viewBox="0 0 18 18" width="18" height="18" className="relative z-10" style={{fill:'none',strokeLinecap:'round',strokeLinejoin:'round',stroke: allSelected ? '#7B0099' : '#c8ccd4',strokeWidth:1.5,transition:'all 0.2s ease'}}>
+                                    <svg viewBox="0 0 18 18" width="18" height="18" className="relative z-10" style={{fill:'none',strokeLinecap:'round',strokeLinejoin:'round',stroke: allSelected ? '#942392' : '#c8ccd4',strokeWidth:1.5,transition:'all 0.2s ease'}}>
                                       <path d="M1,9 L1,3.5 C1,2 2,1 3.5,1 L14.5,1 C16,1 17,2 17,3.5 L17,14.5 C17,16 16,17 14.5,17 L3.5,17 C2,17 1,16 1,14.5 L1,9 Z"
                                         style={{strokeDasharray:60, strokeDashoffset: allSelected ? 60 : 0, transition:'all 0.3s linear'}} />
                                       <polyline points="1 9 7 14 15 4"
@@ -831,7 +831,7 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
                                     </svg>
                                   </label>
                                   <div className="flex-1 min-w-0">
-                                    <p className={`text-xs font-bold truncate ${allSelected ? 'text-[#7B0099]' : 'text-foreground'}`}>ALL EMPLOYEE</p>
+                                    <p className={`text-xs font-bold truncate ${allSelected ? 'text-[#942392]' : 'text-foreground'}`}>ALL EMPLOYEE</p>
                                   </div>
                                 </div>
                               )}
@@ -845,11 +845,11 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
                                     prev.includes(emp.user_id) ? prev.filter(x => x !== emp.user_id) : [...prev, emp.user_id]
                                   );
                                 }}
-                                className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors ${isChecked ? 'bg-[#7B0099]/5' : 'hover:bg-muted/50'}`}
+                                className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors ${isChecked ? 'bg-[#942392]/5' : 'hover:bg-muted/50'}`}
                               >
                                 <label className="relative cursor-pointer" style={{width:18,height:18}} onClick={(e) => e.preventDefault()}>
                                   <input type="checkbox" checked={isChecked} readOnly className="sr-only peer" />
-                                  <svg viewBox="0 0 18 18" width="18" height="18" className="relative z-10" style={{fill:'none',strokeLinecap:'round',strokeLinejoin:'round',stroke: isChecked ? '#7B0099' : '#c8ccd4',strokeWidth:1.5,transition:'all 0.2s ease'}}>
+                                  <svg viewBox="0 0 18 18" width="18" height="18" className="relative z-10" style={{fill:'none',strokeLinecap:'round',strokeLinejoin:'round',stroke: isChecked ? '#942392' : '#c8ccd4',strokeWidth:1.5,transition:'all 0.2s ease'}}>
                                     <path d="M1,9 L1,3.5 C1,2 2,1 3.5,1 L14.5,1 C16,1 17,2 17,3.5 L17,14.5 C17,16 16,17 14.5,17 L3.5,17 C2,17 1,16 1,14.5 L1,9 Z"
                                       style={{strokeDasharray:60, strokeDashoffset: isChecked ? 60 : 0, transition:'all 0.3s linear'}} />
                                     <polyline points="1 9 7 14 15 4"
@@ -857,10 +857,10 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
                                   </svg>
                                 </label>
                                 <div className="flex-1 min-w-0">
-                                  <p className={`text-xs font-bold truncate ${isChecked ? 'text-[#7B0099]' : 'text-foreground'}`}>{emp.full_name}</p>
+                                  <p className={`text-xs font-bold truncate ${isChecked ? 'text-[#942392]' : 'text-foreground'}`}>{emp.full_name}</p>
                                   <p className="text-[10px] text-muted-foreground truncate">{emp.user_id} · {emp.branch || ''}</p>
                                 </div>
-                                {isChecked && <span className="text-[10px] font-bold text-[#7B0099] bg-[#7B0099]/10 px-2 py-0.5 rounded-full">Selected</span>}
+                                {isChecked && <span className="text-[10px] font-bold text-[#942392] bg-[#942392]/10 px-2 py-0.5 rounded-full">Selected</span>}
                               </div>
                             );
                               })}
@@ -870,7 +870,7 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
                       </div>
                       {checkedEmployees.length > 0 && (
                         <div className="border-t border-border/50 p-2 flex justify-between items-center">
-                          <span className="text-[10px] font-bold text-[#7B0099]">{checkedEmployees.length} selected</span>
+                          <span className="text-[10px] font-bold text-[#942392]">{checkedEmployees.length} selected</span>
                           <Button size="sm" variant="ghost" className="text-[10px] h-6 text-red-500 hover:text-red-600" onClick={() => setCheckedEmployees([])}>Clear All</Button>
                         </div>
                       )}
@@ -902,7 +902,7 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
                         <TableCell className="text-sm font-bold">{emp.full_name}</TableCell>
                         <TableCell className="text-xs">{emp.branch}</TableCell>
                         <TableCell className="text-xs">{emp.department || "-"}</TableCell>
-                        <TableCell className="text-right text-xs font-black text-[#7B0099]">{leaveDays} Days</TableCell>
+                        <TableCell className="text-right text-xs font-black text-[#942392]">{leaveDays} Days</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -1242,7 +1242,7 @@ function CarryForwardLeaveForm({
                   <div className="relative w-full cursor-pointer">
                     <div className="pl-3 pr-8 h-10 border border-border/60 bg-white dark:bg-card rounded-md flex items-center gap-1 overflow-hidden text-sm">
                       {selectedEmployees.length > 0 ? (
-                        <span className="font-bold text-[#7B0099] truncate">{selectedEmployees.length} employee{selectedEmployees.length > 1 ? 's' : ''} selected</span>
+                        <span className="font-bold text-[#942392] truncate">{selectedEmployees.length} employee{selectedEmployees.length > 1 ? 's' : ''} selected</span>
                       ) : (
                         <span className="text-muted-foreground">{search || "Search employees..."}</span>
                       )}
@@ -1277,7 +1277,7 @@ function CarryForwardLeaveForm({
                         {selectedEmployees.map(id => {
                           const emp = employees.find(e => e.user_id === id);
                           return emp ? (
-                            <span key={id} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#7B0099]/10 text-[#7B0099] text-[10px] font-bold">
+                            <span key={id} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#942392]/10 text-[#942392] text-[10px] font-bold">
                               {emp.full_name}
                               <button onClick={() => setSelectedEmployees(prev => prev.filter(x => x !== id))} className="hover:text-red-500">
                                 <X className="w-2.5 h-2.5" />
@@ -1320,11 +1320,11 @@ function CarryForwardLeaveForm({
                                   setSelectedEmployees(prev => [...prev, ...idsToAdd]);
                                 }
                               }}
-                              className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors border-b border-border/50 mb-1 ${allSelected ? 'bg-[#7B0099]/5' : 'hover:bg-muted/50'}`}
+                              className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors border-b border-border/50 mb-1 ${allSelected ? 'bg-[#942392]/5' : 'hover:bg-muted/50'}`}
                             >
                               <label className="relative cursor-pointer" style={{width:18,height:18}} onClick={(e) => e.preventDefault()}>
                                 <input type="checkbox" checked={allSelected} readOnly className="sr-only peer" />
-                                <svg viewBox="0 0 18 18" width="18" height="18" className="relative z-10" style={{fill:'none',strokeLinecap:'round',strokeLinejoin:'round',stroke: allSelected ? '#7B0099' : '#c8ccd4',strokeWidth:1.5,transition:'all 0.2s ease'}}>
+                                <svg viewBox="0 0 18 18" width="18" height="18" className="relative z-10" style={{fill:'none',strokeLinecap:'round',strokeLinejoin:'round',stroke: allSelected ? '#942392' : '#c8ccd4',strokeWidth:1.5,transition:'all 0.2s ease'}}>
                                   <path d="M1,9 L1,3.5 C1,2 2,1 3.5,1 L14.5,1 C16,1 17,2 17,3.5 L17,14.5 C17,16 16,17 14.5,17 L3.5,17 C2,17 1,16 1,14.5 L1,9 Z"
                                     style={{strokeDasharray:60, strokeDashoffset: allSelected ? 60 : 0, transition:'all 0.3s linear'}} />
                                   <polyline points="1 9 7 14 15 4"
@@ -1332,7 +1332,7 @@ function CarryForwardLeaveForm({
                                 </svg>
                               </label>
                               <div className="flex-1 min-w-0">
-                                <p className={`text-xs font-bold truncate ${allSelected ? 'text-[#7B0099]' : 'text-foreground'}`}>ALL EMPLOYEE</p>
+                                <p className={`text-xs font-bold truncate ${allSelected ? 'text-[#942392]' : 'text-foreground'}`}>ALL EMPLOYEE</p>
                               </div>
                             </div>
                           )}
@@ -1346,11 +1346,11 @@ function CarryForwardLeaveForm({
                                     prev.includes(emp.user_id) ? prev.filter(x => x !== emp.user_id) : [...prev, emp.user_id]
                                   );
                                 }}
-                                className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors ${isChecked ? 'bg-[#7B0099]/5' : 'hover:bg-muted/50'}`}
+                                className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors ${isChecked ? 'bg-[#942392]/5' : 'hover:bg-muted/50'}`}
                               >
                                 <label className="relative cursor-pointer" style={{width:18,height:18}} onClick={(e) => e.preventDefault()}>
                                   <input type="checkbox" checked={isChecked} readOnly className="sr-only peer" />
-                                  <svg viewBox="0 0 18 18" width="18" height="18" className="relative z-10" style={{fill:'none',strokeLinecap:'round',strokeLinejoin:'round',stroke: isChecked ? '#7B0099' : '#c8ccd4',strokeWidth:1.5,transition:'all 0.2s ease'}}>
+                                  <svg viewBox="0 0 18 18" width="18" height="18" className="relative z-10" style={{fill:'none',strokeLinecap:'round',strokeLinejoin:'round',stroke: isChecked ? '#942392' : '#c8ccd4',strokeWidth:1.5,transition:'all 0.2s ease'}}>
                                     <path d="M1,9 L1,3.5 C1,2 2,1 3.5,1 L14.5,1 C16,1 17,2 17,3.5 L17,14.5 C17,16 16,17 14.5,17 L3.5,17 C2,17 1,16 1,14.5 L1,9 Z"
                                       style={{strokeDasharray:60, strokeDashoffset: isChecked ? 60 : 0, transition:'all 0.3s linear'}} />
                                     <polyline points="1 9 7 14 15 4"
@@ -1358,10 +1358,10 @@ function CarryForwardLeaveForm({
                                   </svg>
                                 </label>
                                 <div className="flex-1 min-w-0">
-                                  <p className={`text-xs font-bold truncate ${isChecked ? 'text-[#7B0099]' : 'text-foreground'}`}>{emp.full_name}</p>
+                                  <p className={`text-xs font-bold truncate ${isChecked ? 'text-[#942392]' : 'text-foreground'}`}>{emp.full_name}</p>
                                   <p className="text-[10px] text-muted-foreground truncate">{emp.user_id} · {emp.branch || ''}</p>
                                 </div>
-                                {isChecked && <span className="text-[10px] font-bold text-[#7B0099] bg-[#7B0099]/10 px-2 py-0.5 rounded-full">Selected</span>}
+                                {isChecked && <span className="text-[10px] font-bold text-[#942392] bg-[#942392]/10 px-2 py-0.5 rounded-full">Selected</span>}
                               </div>
                             );
                           })}
@@ -1371,7 +1371,7 @@ function CarryForwardLeaveForm({
                   </div>
                   {selectedEmployees.length > 0 && (
                     <div className="border-t border-border/50 p-2 flex justify-between items-center">
-                      <span className="text-[10px] font-bold text-[#7B0099]">{selectedEmployees.length} selected</span>
+                      <span className="text-[10px] font-bold text-[#942392]">{selectedEmployees.length} selected</span>
                       <Button size="sm" variant="ghost" className="text-[10px] h-6 text-red-500 hover:text-red-600" onClick={() => setSelectedEmployees([])}>Clear All</Button>
                     </div>
                   )}
@@ -1455,7 +1455,7 @@ function CarryForwardLeaveForm({
                   {Array.from({ length: totalPages }, (_, i) => i + 1).filter(p => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1).map((p, i, arr) => (
                     <React.Fragment key={p}>
                       {i > 0 && arr[i - 1] !== p - 1 && <span className="text-muted-foreground px-1">...</span>}
-                      <Button variant={currentPage === p ? "default" : "outline"} size="icon" className={`h-7 w-7 rounded ${currentPage === p ? 'bg-[#7B0099] hover:bg-[#7B0099]/90 text-white' : 'border-gray-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800'}`} onClick={() => setCurrentPage(p)}>
+                      <Button variant={currentPage === p ? "default" : "outline"} size="icon" className={`h-7 w-7 rounded ${currentPage === p ? 'bg-[#942392] hover:bg-[#942392]/90 text-white' : 'border-gray-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800'}`} onClick={() => setCurrentPage(p)}>
                         <span className="text-[10px] font-bold">{p}</span>
                       </Button>
                     </React.Fragment>
@@ -2029,7 +2029,7 @@ function ManualLeaveAdjustmentForm({
                 <span className="text-foreground">Approved Leave Taken</span>
                 <span className="font-medium">{selectedEmp ? `${approvedLeaveTaken} Days` : "-"}</span>
               </div>
-              <div className="border-t border-border/60 my-1 pt-1 flex justify-between font-bold text-[#7B0099] dark:text-purple-400">
+              <div className="border-t border-border/60 my-1 pt-1 flex justify-between font-bold text-[#942392] dark:text-purple-400">
                 <span>Current Balance</span>
                 <span>{selectedEmp ? `${currentBalance} Days` : "-"}</span>
               </div>

@@ -49,7 +49,7 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
         <button
           type="button"
           className={cn(
-            "flex items-center justify-between px-3 py-2 bg-background border border-border rounded-xl text-[13px] sm:text-sm text-foreground focus:outline-none focus:border-[#7B0099] focus:ring-1 focus:ring-[#7B0099] transition-all cursor-pointer h-10 gap-2 font-semibold select-none",
+            "flex items-center justify-between px-3 py-2 bg-background border border-border rounded-xl text-[13px] sm:text-sm text-foreground focus:outline-none focus:border-[#942392] focus:ring-1 focus:ring-[#942392] transition-all cursor-pointer h-10 gap-2 font-semibold select-none",
             className
           )}
         >

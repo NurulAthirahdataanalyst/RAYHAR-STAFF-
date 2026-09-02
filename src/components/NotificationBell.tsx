@@ -268,7 +268,7 @@ export default function NotificationBell() {
         <Button variant="ghost" size="icon" className="relative rounded-md hover:bg-white/10 transition-colors">
           <Bell className="w-5 h-5 text-white/80" />
           {unreadCount > 0 && (
-            <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-md bg-rose-500 text-[9px] font-bold text-white ring-2 ring-[#7B0099]">
+            <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-md bg-rose-500 text-[9px] font-bold text-white ring-2 ring-[#942392]">
               {unreadCount > 99 ? '99+' : unreadCount}
             </span>
           )}
@@ -295,7 +295,7 @@ export default function NotificationBell() {
               {notifications.map((notif) => (
                 <div 
                   key={notif.id} 
-                  className={`p-4 transition-colors cursor-pointer flex gap-3 items-start group ${!notif.is_read ? 'bg-[#7B0099]/10 hover:bg-[#7B0099]/20' : 'hover:bg-white/5'}`}
+                  className={`p-4 transition-colors cursor-pointer flex gap-3 items-start group ${!notif.is_read ? 'bg-[#942392]/10 hover:bg-[#942392]/20' : 'hover:bg-white/5'}`}
                   onClick={() => handleNotificationClick(notif)}
                 >
                   <div className="mt-0.5">

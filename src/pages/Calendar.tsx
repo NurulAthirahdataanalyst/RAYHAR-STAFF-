@@ -641,7 +641,7 @@ export default function Calendar() {
               setEndDate(format(selectedDate, "yyyy-MM-dd"));
               setIsAddEventModalOpen(true);
             }}
-            className="bg-[#FFFE00] hover:bg-[#E6E500] text-[#7B0099] border-2 border-[#7B0099] gap-2 font-bold px-6 shadow-sm shadow-[#FFFE00]/20"
+            className="bg-[#FFFE00] hover:bg-[#E6E500] text-[#942392] border-2 border-[#942392] gap-2 font-bold px-6 shadow-sm shadow-[#FFFE00]/20"
           >
             Create
           </Button>
@@ -682,8 +682,8 @@ export default function Calendar() {
                   row: "flex w-full mt-2 justify-between",
                   cell: "text-center text-sm p-0 relative [&:has([aria-selected])]:bg-[#FFFE00]/10 first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
                   day: "h-9 w-9 p-0 font-medium aria-selected:opacity-100 hover:bg-muted rounded-md transition-all",
-                  day_selected: "bg-[#FFFE00] text-[#7B0099] border-2 border-[#7B0099] hover:bg-[#E6E500] hover:text-[#7B0099] focus:bg-[#FFFE00] focus:text-[#7B0099]",
-                  day_today: "bg-[#7B0099]/10 text-[#7B0099] font-bold",
+                  day_selected: "bg-[#FFFE00] text-[#942392] border-2 border-[#942392] hover:bg-[#E6E500] hover:text-[#942392] focus:bg-[#FFFE00] focus:text-[#942392]",
+                  day_today: "bg-[#942392]/10 text-[#942392] font-bold",
                   day_outside: "text-foreground opacity-50",
                   day_disabled: "text-foreground opacity-50",
                   day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
@@ -702,7 +702,7 @@ export default function Calendar() {
                   {activeFilter && (
                     <button 
                       onClick={() => setActiveFilter(null)}
-                      className="text-[10px] uppercase tracking-wider font-bold text-[#7B0099] bg-[#7B0099]/10 hover:bg-[#7B0099]/20 px-2 py-0.5 rounded-md transition-colors"
+                      className="text-[10px] uppercase tracking-wider font-bold text-[#942392] bg-[#942392]/10 hover:bg-[#942392]/20 px-2 py-0.5 rounded-md transition-colors"
                     >
                       Show All
                     </button>
@@ -805,18 +805,18 @@ export default function Calendar() {
                 {!deletedDefaultCategories.includes('attendance') && (
                   <div 
                     onClick={() => setActiveFilter(activeFilter === 'attendance' ? null : 'attendance')}
-                    className={`group flex items-center justify-between px-4 py-2.5 rounded-lg font-bold text-sm cursor-pointer transition-colors ${activeFilter === 'attendance' ? 'bg-[#7B0099]/20 text-[#7B0099] dark:text-[#a000c7] border border-[#7B0099]/30' : 'bg-[#7B0099]/5 text-[#7B0099] dark:text-[#a000c7] hover:bg-[#7B0099]/10'}`}>
+                    className={`group flex items-center justify-between px-4 py-2.5 rounded-lg font-bold text-sm cursor-pointer transition-colors ${activeFilter === 'attendance' ? 'bg-[#942392]/20 text-[#942392] dark:text-[#a000c7] border border-[#942392]/30' : 'bg-[#942392]/5 text-[#942392] dark:text-[#a000c7] hover:bg-[#942392]/10'}`}>
                     <div className="flex items-center gap-3">
-                      <span className="w-3 h-3 rounded-full bg-[#7B0099] border border-[#7B0099]/20" /> Attendance
+                      <span className="w-3 h-3 rounded-full bg-[#942392] border border-[#942392]/20" /> Attendance
                     </div>
                     <div className="flex items-center gap-1">
                       {activeFilter === 'attendance' && <X className="w-4 h-4 opacity-50 hover:opacity-100" />}
                       <button 
                         onClick={(e) => {
                           e.stopPropagation();
-                          setCategoryToDelete({ id: 'attendance', name: 'Attendance', color: 'bg-[#7B0099]' });
+                          setCategoryToDelete({ id: 'attendance', name: 'Attendance', color: 'bg-[#942392]' });
                         }}
-                        className={`p-1 rounded transition-all ${activeFilter === 'attendance' ? 'text-[#7B0099]/60 hover:text-red-500 hover:bg-[#7B0099]/10' : 'opacity-0 group-hover:opacity-100 text-[#7B0099]/60 hover:text-red-500 hover:bg-[#7B0099]/10'}`}
+                        className={`p-1 rounded transition-all ${activeFilter === 'attendance' ? 'text-[#942392]/60 hover:text-red-500 hover:bg-[#942392]/10' : 'opacity-0 group-hover:opacity-100 text-[#942392]/60 hover:text-red-500 hover:bg-[#942392]/10'}`}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -894,7 +894,7 @@ export default function Calendar() {
                     <input
                       type="text"
                       placeholder="e.g. Project Launch"
-                      className="w-full bg-background border border-border rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:border-[#7B0099] focus:ring-1 focus:ring-[#7B0099] transition-all font-medium"
+                      className="w-full bg-background border border-border rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:border-[#942392] focus:ring-1 focus:ring-[#942392] transition-all font-medium"
                       value={newCategoryName}
                       onChange={e => setNewCategoryName(e.target.value)}
                       autoFocus
@@ -916,7 +916,7 @@ export default function Calendar() {
                               key={colorKey}
                               type="button"
                               onClick={() => setNewCategoryColor(colorKey)}
-                              className={`w-8 h-8 rounded-full cursor-pointer transition-transform hover:scale-110 flex items-center justify-center shadow-xs ${colorKey} ${isSelected ? 'ring-2 ring-offset-2 ring-[#7B0099] scale-105' : 'opacity-85 hover:opacity-100'}`}
+                              className={`w-8 h-8 rounded-full cursor-pointer transition-transform hover:scale-110 flex items-center justify-center shadow-xs ${colorKey} ${isSelected ? 'ring-2 ring-offset-2 ring-[#942392] scale-105' : 'opacity-85 hover:opacity-100'}`}
                               title={colorMeta.hex}
                             >
                               {isSelected && <Check className="w-4 h-4 text-white drop-shadow-sm" />}
@@ -931,7 +931,7 @@ export default function Calendar() {
                       <label className="text-[10px] font-black text-foreground uppercase tracking-wider">Custom & Random Colour</label>
                       <div className="flex items-center gap-3">
                         <ColorPickerPopover
-                          color={newCategoryColor.startsWith('#') ? newCategoryColor : (CATEGORY_COLORS[newCategoryColor]?.hex || '#7B0099')}
+                          color={newCategoryColor.startsWith('#') ? newCategoryColor : (CATEGORY_COLORS[newCategoryColor]?.hex || '#942392')}
                           onChange={(hex) => setNewCategoryColor(hex)}
                         />
                         <button
@@ -940,7 +940,7 @@ export default function Calendar() {
                             const randomHex = '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0').toUpperCase();
                             setNewCategoryColor(randomHex);
                           }}
-                          className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-extrabold text-[#7B0099] dark:text-purple-300 bg-[#7B0099]/10 hover:bg-[#7B0099]/20 rounded-xl border border-[#7B0099]/20 transition-all shadow-2xs cursor-pointer"
+                          className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-extrabold text-[#942392] dark:text-purple-300 bg-[#942392]/10 hover:bg-[#942392]/20 rounded-xl border border-[#942392]/20 transition-all shadow-2xs cursor-pointer"
                         >
                           <Shuffle className="w-3.5 h-3.5" />
                           <span>🎲 Random Colour</span>
@@ -952,7 +952,7 @@ export default function Calendar() {
                     {(() => {
                       const activeHex = newCategoryColor.startsWith('#') 
                         ? newCategoryColor.toUpperCase() 
-                        : (CATEGORY_COLORS[newCategoryColor]?.hex || '#7B0099');
+                        : (CATEGORY_COLORS[newCategoryColor]?.hex || '#942392');
                       
                       const cleanHex = activeHex.replace('#', '');
                       const r = parseInt(cleanHex.slice(0, 2), 16) || 0;
@@ -1011,7 +1011,7 @@ export default function Calendar() {
                           setNewCategoryName("");
                         }
                       }}
-                      className="px-5 py-2 text-xs font-black bg-[#7B0099] text-white rounded-xl shadow-md hover:bg-[#6A0085] transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+                      className="px-5 py-2 text-xs font-black bg-[#942392] text-white rounded-xl shadow-md hover:bg-[#6A0085] transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
                     >
                       Add Category
                     </button>
@@ -1058,17 +1058,17 @@ export default function Calendar() {
             <div className="flex items-center bg-muted/40 rounded-lg p-1 border border-border/50 w-full justify-center sm:w-auto">
               <button 
                 onClick={() => setViewMode('month')}
-                className={`px-5 py-1.5 rounded-md text-sm font-bold shadow-sm transition-colors ${viewMode === 'month' ? 'bg-[#FFFE00] text-[#7B0099] border-2 border-[#7B0099]' : 'text-foreground hover:text-foreground'}`}>Month</button>
+                className={`px-5 py-1.5 rounded-md text-sm font-bold shadow-sm transition-colors ${viewMode === 'month' ? 'bg-[#FFFE00] text-[#942392] border-2 border-[#942392]' : 'text-foreground hover:text-foreground'}`}>Month</button>
               <button 
                 onClick={() => setViewMode('week')}
-                className={`px-5 py-1.5 rounded-md text-sm font-bold shadow-sm transition-colors ${viewMode === 'week' ? 'bg-[#FFFE00] text-[#7B0099] border-2 border-[#7B0099]' : 'text-foreground hover:text-foreground'}`}>Week</button>
+                className={`px-5 py-1.5 rounded-md text-sm font-bold shadow-sm transition-colors ${viewMode === 'week' ? 'bg-[#FFFE00] text-[#942392] border-2 border-[#942392]' : 'text-foreground hover:text-foreground'}`}>Week</button>
               <button className="px-5 py-1.5 rounded-md text-foreground hover:text-foreground text-sm font-bold transition-colors">Day</button>
             </div>
           </div>
           
           {viewMode === 'month' ? (
             <>
-              <div className="grid grid-cols-7 border-b border-border/60 bg-[#7B0099] divide-x divide-white/20">
+              <div className="grid grid-cols-7 border-b border-border/60 bg-[#942392] divide-x divide-white/20">
                 {weekDays.map(day => (
                   <div key={day} className="py-3 text-center text-xs font-bold text-white uppercase tracking-wider">
                     {day}
@@ -1113,7 +1113,7 @@ export default function Calendar() {
                   
                   if (today) {
                     cellBg = "bg-[#DBC5E1]";
-                    textCol = "text-[#7B0099]";
+                    textCol = "text-[#942392]";
                   } else if (!isCurrentMonth) {
                     cellBg = "bg-slate-50/50 dark:bg-slate-900/50";
                     textCol = "text-foreground opacity-50";
@@ -1139,7 +1139,7 @@ export default function Calendar() {
                     <div 
                       key={i} 
                       onClick={handleDayClick}
-                      className={`p-1.5 flex flex-col min-h-0 transition-all cursor-pointer ${cellBg} ${!today && isCurrentMonth ? 'hover:bg-muted/30' : ''} hover:ring-2 hover:ring-inset hover:ring-[#7B0099]/40`}
+                      className={`p-1.5 flex flex-col min-h-0 transition-all cursor-pointer ${cellBg} ${!today && isCurrentMonth ? 'hover:bg-muted/30' : ''} hover:ring-2 hover:ring-inset hover:ring-[#942392]/40`}
                     >
                       <div className={`text-right mb-1.5 p-1 text-[12px] font-bold ${textCol}`}>
                         {format(day, 'd')}
@@ -1201,7 +1201,7 @@ export default function Calendar() {
                             <div
                               key={`att-${idx}`}
                               onClick={(e) => { e.stopPropagation(); setSelectedAttendance(a); }}
-                              className="px-2 py-1 rounded-[4px] bg-[#7B0099]/10 border-l-2 border-[#7B0099] text-[11px] font-bold text-[#7B0099] dark:text-purple-400 truncate shadow-sm cursor-pointer hover:bg-[#7B0099]/20 transition-colors"
+                              className="px-2 py-1 rounded-[4px] bg-[#942392]/10 border-l-2 border-[#942392] text-[11px] font-bold text-[#942392] dark:text-purple-400 truncate shadow-sm cursor-pointer hover:bg-[#942392]/20 transition-colors"
                             >
                               In: {inStr} · Out: {outStr}
                             </div>
@@ -1255,7 +1255,7 @@ export default function Calendar() {
             ) : (
               <div className="flex flex-col flex-1 bg-white dark:bg-card overflow-hidden">
               {/* Week Header */}
-              <div className="flex border-b border-border/60 bg-[#7B0099] text-white">
+              <div className="flex border-b border-border/60 bg-[#942392] text-white">
                 <div className="w-16 flex-shrink-0 border-r border-white/20" />
                 <div className="flex-1 grid grid-cols-7 divide-x divide-white/20">
                   {weekDaysGrid.map(day => (
@@ -1342,7 +1342,7 @@ export default function Calendar() {
                           const isMeeting = note.type === 'meeting';
                           const customCat = customCategories.find(c => c.id === note.type);
                           
-                          let colorClass = 'bg-blue-500/10 border-l-2 border-blue-500 text-blue-[#7B0099] dark:text-blue-400';
+                          let colorClass = 'bg-blue-500/10 border-l-2 border-blue-500 text-blue-[#942392] dark:text-blue-400';
                           let colorStyle: React.CSSProperties | undefined = undefined;
                           if (isReminder) colorClass = 'bg-yellow-500/10 border-l-2 border-yellow-500 text-yellow-700 dark:text-yellow-400';
                           if (isMeeting) colorClass = 'bg-green-500/10 border-l-2 border-green-500 text-green-700 dark:text-green-400';
@@ -1480,16 +1480,16 @@ export default function Calendar() {
                               <div 
                                 key={`att-${idx}`}
                                 onClick={(e) => { e.stopPropagation(); setSelectedAttendance(a); }}
-                                className="absolute left-[2%] right-[2%] rounded-sm bg-[#7B0099]/10 border-l-[3px] border-[#7B0099] shadow-sm cursor-pointer hover:bg-[#7B0099]/20 transition-colors overflow-hidden flex flex-col p-1.5"
+                                className="absolute left-[2%] right-[2%] rounded-sm bg-[#942392]/10 border-l-[3px] border-[#942392] shadow-sm cursor-pointer hover:bg-[#942392]/20 transition-colors overflow-hidden flex flex-col p-1.5"
                                 style={{ top: `${startMins}px`, height: `${blockHeight}px` }}
                               >
-                                <span className="text-[10px] font-bold text-[#7B0099] dark:text-purple-400 leading-tight truncate">🟢 Present</span>
-                                <span className="text-[9px] text-[#7B0099]/80 dark:text-purple-400/80 font-semibold leading-tight truncate">In: {inStr}</span>
+                                <span className="text-[10px] font-bold text-[#942392] dark:text-purple-400 leading-tight truncate">🟢 Present</span>
+                                <span className="text-[9px] text-[#942392]/80 dark:text-purple-400/80 font-semibold leading-tight truncate">In: {inStr}</span>
                                 {outStr && blockHeight >= 60 && (
-                                  <span className="text-[9px] text-[#7B0099]/80 dark:text-purple-400/80 font-semibold leading-tight truncate">Out: {outStr}</span>
+                                  <span className="text-[9px] text-[#942392]/80 dark:text-purple-400/80 font-semibold leading-tight truncate">Out: {outStr}</span>
                                 )}
                                 {workingHrs && blockHeight >= 80 && (
-                                  <span className="text-[9px] text-[#7B0099]/60 dark:text-purple-400/60 font-semibold leading-tight">⏱ {workingHrs}</span>
+                                  <span className="text-[9px] text-[#942392]/60 dark:text-purple-400/60 font-semibold leading-tight">⏱ {workingHrs}</span>
                                 )}
                               </div>
                             );
@@ -1639,7 +1639,7 @@ export default function Calendar() {
                 <Button type="button" variant="ghost" onClick={() => setIsAddEventModalOpen(false)} className="font-bold">
                   Cancel
                 </Button>
-                <Button type="submit" className="bg-[#FFFE00] hover:bg-[#E6E500] text-[#7B0099] border-2 border-[#7B0099] font-bold px-6 shadow-md shadow-[#FFFE00]/20">
+                <Button type="submit" className="bg-[#FFFE00] hover:bg-[#E6E500] text-[#942392] border-2 border-[#942392] font-bold px-6 shadow-md shadow-[#FFFE00]/20">
                   Add Event
                 </Button>
               </div>
@@ -1727,7 +1727,7 @@ export default function Calendar() {
           const parts = text.split(urlRegex);
           return parts.map((part, i) => {
             if (part.match(urlRegex)) {
-              return <a key={i} href={part} target="_blank" rel="noreferrer" className="text-[#7B0099] hover:underline font-medium">{part}</a>;
+              return <a key={i} href={part} target="_blank" rel="noreferrer" className="text-[#942392] hover:underline font-medium">{part}</a>;
             }
             return <span key={i}>{part}</span>;
           });
@@ -1740,7 +1740,7 @@ export default function Calendar() {
         // Fallback for missing custom category
         if (selectedEvent.type.startsWith('custom-') && !customCat) categoryName = 'Note';
 
-        let tagColorClass = "bg-[#7B0099]/10 text-[#7B0099]";
+        let tagColorClass = "bg-[#942392]/10 text-[#942392]";
         if (selectedEvent.type === 'meeting') tagColorClass = "bg-green-500/10 text-green-700";
         else if (selectedEvent.type === 'reminder') tagColorClass = "bg-yellow-500/10 text-yellow-700";
         else if (selectedEvent.type === 'note') tagColorClass = "bg-blue-500/10 text-blue-700";
@@ -1777,7 +1777,7 @@ export default function Calendar() {
                 <div className="flex flex-col">
                   {/* DATE ROW */}
                   <div className="flex gap-4 pb-4">
-                    <CalendarIcon className="w-[18px] h-[18px] mt-0.5 text-[#7B0099]" strokeWidth={2} />
+                    <CalendarIcon className="w-[18px] h-[18px] mt-0.5 text-[#942392]" strokeWidth={2} />
                     <div className="flex flex-col">
                       <span className="text-[11px] text-foreground font-bold uppercase tracking-wider mb-0.5">Date</span>
                       <span className="text-[15px] text-slate-900 dark:text-slate-100 font-semibold">{finalDateDisplay}</span>
@@ -1787,7 +1787,7 @@ export default function Calendar() {
                   {/* TIME ROW */}
                   {finalTimeDisplay && (
                     <div className="flex gap-4 pb-4">
-                      <Clock className="w-[18px] h-[18px] mt-0.5 text-[#7B0099]" strokeWidth={2} />
+                      <Clock className="w-[18px] h-[18px] mt-0.5 text-[#942392]" strokeWidth={2} />
                       <div className="flex flex-col">
                         <span className="text-[11px] text-foreground font-bold uppercase tracking-wider mb-0.5">Time</span>
                         <span className="text-[15px] text-slate-900 dark:text-slate-100 font-semibold">{finalTimeDisplay}</span>
@@ -1799,7 +1799,7 @@ export default function Calendar() {
                   {/* LOCATION ROW */}
                   {modalLocation && (
                     <div className="flex gap-4 pb-4">
-                      <MapPin className="w-[18px] h-[18px] mt-0.5 text-[#7B0099]" strokeWidth={2} />
+                      <MapPin className="w-[18px] h-[18px] mt-0.5 text-[#942392]" strokeWidth={2} />
                       <div className="flex flex-col">
                         <span className="text-[11px] text-foreground font-bold uppercase tracking-wider mb-0.5">Location</span>
                         <div className="text-[15px] text-slate-900 dark:text-slate-100 font-semibold">{renderLocation(modalLocation)}</div>
@@ -1810,7 +1810,7 @@ export default function Calendar() {
                   {/* DESCRIPTION ROW */}
                   {modalDescription && (
                     <div className="flex gap-4 pb-4">
-                      <FileText className="w-[18px] h-[18px] mt-0.5 text-[#7B0099]" strokeWidth={2} />
+                      <FileText className="w-[18px] h-[18px] mt-0.5 text-[#942392]" strokeWidth={2} />
                       <div className="flex flex-col">
                         <span className="text-[11px] text-foreground font-bold uppercase tracking-wider mb-0.5">Description</span>
                         <span className="text-[15px] text-slate-800 dark:text-slate-200 font-medium whitespace-pre-wrap leading-relaxed">{modalDescription}</span>
@@ -1901,7 +1901,7 @@ export default function Calendar() {
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xl transition-all duration-300" onClick={() => setSelectedCompanyLeave(null)}>
           <div className="bg-card rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden" onClick={e => e.stopPropagation()}>
             {/* Header */}
-            <div className="bg-gradient-to-r from-[#5e0080] via-[#7B0099] to-purple-500 px-6 py-5">
+            <div className="bg-gradient-to-r from-[#5e0080] via-[#942392] to-purple-500 px-6 py-5">
               <div className="flex items-start justify-between">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
@@ -2109,7 +2109,7 @@ export default function Calendar() {
       {selectedAttendance && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xl transition-all duration-300" onClick={() => setSelectedAttendance(null)}>
           <div className="bg-card rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden border border-border" onClick={e => e.stopPropagation()}>
-            <div className="bg-gradient-to-r from-[#5e0080] via-[#7B0099] to-purple-600 px-6 py-5 text-white">
+            <div className="bg-gradient-to-r from-[#5e0080] via-[#942392] to-purple-600 px-6 py-5 text-white">
               <div className="flex items-start justify-between">
                 <div>
                   <span className="text-xs font-semibold text-purple-100 uppercase tracking-wide bg-white/20 px-2.5 py-0.5 rounded-full">🟢 Attendance Log</span>
@@ -2151,7 +2151,7 @@ export default function Calendar() {
               </div>
             </div>
             <div className="px-6 pb-5 flex justify-end">
-              <Button onClick={() => setSelectedAttendance(null)} className="bg-[#7B0099] hover:bg-[#5e0080] text-white font-semibold">Close</Button>
+              <Button onClick={() => setSelectedAttendance(null)} className="bg-[#942392] hover:bg-[#5e0080] text-white font-semibold">Close</Button>
             </div>
           </div>
         </div>
@@ -2172,7 +2172,7 @@ export default function Calendar() {
               onClick={e => e.stopPropagation()}
             >
               {/* Header */}
-              <div className="bg-gradient-to-r from-[#5e0080] via-[#7B0099] to-purple-600 px-6 py-5 text-white flex-shrink-0">
+              <div className="bg-gradient-to-r from-[#5e0080] via-[#942392] to-purple-600 px-6 py-5 text-white flex-shrink-0">
                 <div className="flex items-start justify-between">
                   <div>
                     <span className="text-xs font-semibold text-purple-100 uppercase tracking-wide bg-white/20 px-2.5 py-0.5 rounded-full">
@@ -2294,11 +2294,11 @@ export default function Calendar() {
                         const outStr = a.clock_out ? formatTime12(a.clock_out) : null;
                         const workingHrs = getWorkingHours(a.clock_in, a.clock_out);
                         return (
-                          <div key={i} className="flex items-stretch rounded-xl bg-[#7B0099]/5 dark:bg-purple-900/20 border border-[#7B0099]/20 dark:border-purple-800 overflow-hidden">
-                            <div className="w-1 self-stretch bg-[#7B0099] flex-shrink-0" />
+                          <div key={i} className="flex items-stretch rounded-xl bg-[#942392]/5 dark:bg-purple-900/20 border border-[#942392]/20 dark:border-purple-800 overflow-hidden">
+                            <div className="w-1 self-stretch bg-[#942392] flex-shrink-0" />
                             <div className="flex-1 px-3 py-2.5 space-y-2">
                               <div className="flex items-center justify-between">
-                                <span className="text-xs font-bold text-[#7B0099] dark:text-purple-300 uppercase tracking-wide">🟢 Present</span>
+                                <span className="text-xs font-bold text-[#942392] dark:text-purple-300 uppercase tracking-wide">🟢 Present</span>
                                 {workingHrs && (
                                   <span className="text-xs font-bold bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 px-2 py-0.5 rounded-full">⏱ {workingHrs}</span>
                                 )}
@@ -2380,7 +2380,7 @@ export default function Calendar() {
               <div className="px-6 py-4 border-t border-border flex-shrink-0 flex justify-end">
                 <Button
                   onClick={() => setSelectedDaySummary(null)}
-                  className="bg-gradient-to-r from-[#7B0099] to-purple-600 hover:from-[#5e0080] hover:to-purple-700 text-white font-semibold px-6"
+                  className="bg-gradient-to-r from-[#942392] to-purple-600 hover:from-[#5e0080] hover:to-purple-700 text-white font-semibold px-6"
                 >
                   Close
                 </Button>
