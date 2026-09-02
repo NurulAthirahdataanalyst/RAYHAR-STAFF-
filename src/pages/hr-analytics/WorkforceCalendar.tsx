@@ -554,8 +554,8 @@ export default function WorkforceCalendar() {
           
           // Remaining regular attendees
           const regulars = uniqueAtt.filter(a => a.status !== "Outstation" && !a.temp_branch);
-          const presentOnTime = regulars.filter(a => a.status === "Present (On Time)");
-          const presentLate = regulars.filter(a => a.status === "Present (Late)" || a.is_late);
+          const presentOnTime = regulars.filter(a => a.status === "Present (On Time)" || (a.status === "Missing Clock-Out" && !a.is_late));
+          const presentLate = regulars.filter(a => a.status === "Present (Late)" || a.is_late || (a.status === "Missing Clock-Out" && a.is_late));
           
           const rawAbsent = regulars.filter(a => a.status === "Absent");
           const absent = rawAbsent.filter(a => !isWeekend(selectedDay, a.branch, a.zone));
