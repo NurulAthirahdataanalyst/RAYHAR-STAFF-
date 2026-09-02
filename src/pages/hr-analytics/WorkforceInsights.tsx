@@ -2709,7 +2709,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                 </p>
                 <button className="text-xs font-bold text-foreground hover:text-[#942392] transition-colors flex items-center gap-1">See All <ChevronRight className="w-3 h-3" /></button>
               </div>
-            </Card>}
+            </Card>
           </div>
 
          {/* Row 2: 3 Columns */}

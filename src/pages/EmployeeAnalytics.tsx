@@ -235,7 +235,8 @@ const YEARS = ["2027", "2026", "2025", "2024"];
 export default function EmployeeAnalytics() {
   const { role, userId, userName, userBranch, userDepartment } = useRole();
 
-  const isAdminView = ["branch_leader", "managing_director", "finance_manager", "head_of_department"].includes(role);
+  const isAdminView = ["branch_leader", "managing_director", "md", "finance_manager", "head_of_department", "operation_manager", "hr", "hr_admin", "admin"].includes(role?.toLowerCase());
+  const showOvertime = ["hr", "hr_admin", "admin", "finance_manager"].includes(role?.toLowerCase());
 
   const [selectedMonth, setSelectedMonth] = useState((new Date().getMonth() + 1).toString());
   const [selectedYear,  setSelectedYear]  = useState(new Date().getFullYear().toString());
@@ -336,7 +337,7 @@ export default function EmployeeAnalytics() {
 
       // Fetch attendance for each employee
       const metrics: EmployeeMetrics[] = [];
-      await Promise.all(emps.slice(0, 20).map(async (emp) => { // cap at 20 for perf
+      await Promise.all(emps.map(async (emp) => { 
         try {
           const [aRes, lRes] = await Promise.all([
             fetch(`${API_BASE_URL}/api/attendance/history?userId=${emp.user_id}&month=${selectedMonth}&year=${selectedYear}`),
@@ -641,108 +642,109 @@ export default function EmployeeAnalytics() {
           </Card>
 
           {/* ── Overtime Monitoring ── */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
-
-            {/* Employee Overtime Bar */}
-            <Card className="border-2 border-slate-300 dark:border-slate-600 bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20 hover:ring-amber-500/20 shadow-[0_15px_40px_rgba(0,0,0,0.05)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.25)]">
-              <CardHeader className="border-b border-border/40">
-                <CardTitle className="text-sm font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
-                  <div className="p-2 bg-amber-500/10 rounded-xl"><Timer className="w-4 h-4 text-amber-500" /></div>
-                  Overtime by Employee
-                </CardTitle>
-                <CardDescription className="text-[10px] font-bold uppercase tracking-widest opacity-60 ml-11 italic">
-                  Hours beyond standard 8h/day
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pt-5">
-                {loadingTeam ? (
-                  <div className="h-[220px] flex items-center justify-center">
-                    <Loader2 className="animate-spin text-[#942392] opacity-40 w-7 h-7" />
-                  </div>
-                ) : (
-                  <ResponsiveContainer width="100%" height={220}>
-                    <BarChart
-                      data={teamMetrics.filter(m => m.overtimeHours > 0).slice(0, 10).map(m => ({
-                        name: (m.name || "Unknown").split(" ")[0],
-                        overtime: m.overtimeHours,
-                      }))}
-                      margin={{ top: 5, right: 10, left: -20, bottom: 20 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(123,0,153,0.05)" vertical={false} />
-                      <XAxis dataKey="name" tick={{ fontSize: 8, fontWeight: 900, fill: "hsl(var(--muted-foreground))" }}
-                        axisLine={false} tickLine={false} angle={-20} textAnchor="end" />
-                      <YAxis tick={{ fontSize: 8, fontWeight: 900, fill: "hsl(var(--muted-foreground))" }}
-                        axisLine={false} tickLine={false} />
-                      <Tooltip contentStyle={tooltipStyle}
-                        formatter={(v: number) => [`${v}h`, "OT Hours"]}
-                        labelStyle={{ fontWeight: 900, fontSize: 10 }} />
-                      <Bar dataKey="overtime" name="OT Hours" fill="#EAB308" radius={[6, 6, 0, 0]} barSize={20} animationDuration={1200}>
-                        <LabelList dataKey="overtime" position="top" style={{ fontSize: 8, fontWeight: 900, fill: "#EAB308" }}
-                          formatter={(v: number) => `${v}h`} />
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Department Overtime Trend */}
-            <Card className="border-2 border-slate-300 dark:border-slate-600 bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20 hover:ring-blue-500/20 shadow-[0_15px_40px_rgba(0,0,0,0.05)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.25)]">
-              <CardHeader className="border-b border-border/40">
-                <CardTitle className="text-sm font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
-                  <div className="p-2 bg-blue-500/10 rounded-xl"><TrendingUp className="w-4 h-4 text-blue-500" /></div>
-                  Department Overtime Trends
-                </CardTitle>
-                <CardDescription className="text-[10px] font-bold uppercase tracking-widest opacity-60 ml-11 italic">
-                  Average overtime hours per department
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pt-5">
-                {loadingTeam ? (
-                  <div className="h-[220px] flex items-center justify-center">
-                    <Loader2 className="animate-spin text-[#942392] opacity-40 w-7 h-7" />
-                  </div>
-                ) : deptOvertimeData.length === 0 ? (
-                  <div className="h-[220px] flex items-center justify-center text-[10px] font-black text-foreground/30 uppercase tracking-widest">
-                    No overtime data
-                  </div>
-                ) : (
-                  <>
-                    <ResponsiveContainer width="100%" height={180}>
-                      <BarChart data={deptOvertimeData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(59,130,246,0.05)" vertical={false} />
-                        <XAxis dataKey="dept" tick={{ fontSize: 8, fontWeight: 900, fill: "hsl(var(--muted-foreground))" }}
-                          axisLine={false} tickLine={false} />
+          {showOvertime && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
+              {/* Employee Overtime Bar */}
+              <Card className="border-2 border-slate-300 dark:border-slate-600 bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20 hover:ring-amber-500/20 shadow-[0_15px_40px_rgba(0,0,0,0.05)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.25)]">
+                <CardHeader className="border-b border-border/40">
+                  <CardTitle className="text-sm font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
+                    <div className="p-2 bg-amber-500/10 rounded-xl"><Timer className="w-4 h-4 text-amber-500" /></div>
+                    Overtime by Employee
+                  </CardTitle>
+                  <CardDescription className="text-[10px] font-bold uppercase tracking-widest opacity-60 ml-11 italic">
+                    Hours beyond standard 8h/day
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pt-5">
+                  {loadingTeam ? (
+                    <div className="h-[220px] flex items-center justify-center">
+                      <Loader2 className="animate-spin text-[#942392] opacity-40 w-7 h-7" />
+                    </div>
+                  ) : (
+                    <ResponsiveContainer width="100%" height={220}>
+                      <BarChart
+                        data={teamMetrics.filter(m => m.overtimeHours > 0).slice(0, 10).map(m => ({
+                          name: (m.name || "Unknown").split(" ")[0],
+                          overtime: m.overtimeHours,
+                        }))}
+                        margin={{ top: 5, right: 10, left: -20, bottom: 20 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(123,0,153,0.05)" vertical={false} />
+                        <XAxis dataKey="name" tick={{ fontSize: 8, fontWeight: 900, fill: "hsl(var(--muted-foreground))" }}
+                          axisLine={false} tickLine={false} angle={-20} textAnchor="end" />
                         <YAxis tick={{ fontSize: 8, fontWeight: 900, fill: "hsl(var(--muted-foreground))" }}
                           axisLine={false} tickLine={false} />
                         <Tooltip contentStyle={tooltipStyle}
-                          formatter={(v: number) => [`${v}h`, "Avg OT Hours"]}
+                          formatter={(v: number) => [`${v}h`, "OT Hours"]}
                           labelStyle={{ fontWeight: 900, fontSize: 10 }} />
-                        <Bar dataKey="avgOvertime" name="Avg OT" fill="#3b82f6" radius={[6, 6, 0, 0]} barSize={30} animationDuration={1200}>
-                          <LabelList dataKey="avgOvertime" position="top"
-                            style={{ fontSize: 8, fontWeight: 900, fill: "#3b82f6" }}
+                        <Bar dataKey="overtime" name="OT Hours" fill="#EAB308" radius={[6, 6, 0, 0]} barSize={20} animationDuration={1200}>
+                          <LabelList dataKey="overtime" position="top" style={{ fontSize: 8, fontWeight: 900, fill: "#EAB308" }}
                             formatter={(v: number) => `${v}h`} />
                         </Bar>
                       </BarChart>
                     </ResponsiveContainer>
+                  )}
+                </CardContent>
+              </Card>
 
-                    {/* Average OT Hours List */}
-                    <div className="mt-3 space-y-2">
-                      <p className="text-[8px] font-black text-foreground uppercase tracking-[0.2em] opacity-60">
-                        Average OT Hours
-                      </p>
-                      {deptOvertimeData.map(d => (
-                        <div key={d.dept} className="flex items-center justify-between gap-2">
-                          <span className="text-[10px] font-bold text-foreground truncate">{d.dept}</span>
-                          <span className="text-[10px] font-black text-amber-600">{d.avgOvertime.toFixed(1)}h avg</span>
-                        </div>
-                      ))}
+              {/* Department Overtime Trend */}
+              <Card className="border-2 border-slate-300 dark:border-slate-600 bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20 hover:ring-blue-500/20 shadow-[0_15px_40px_rgba(0,0,0,0.05)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.25)]">
+                <CardHeader className="border-b border-border/40">
+                  <CardTitle className="text-sm font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
+                    <div className="p-2 bg-blue-500/10 rounded-xl"><TrendingUp className="w-4 h-4 text-blue-500" /></div>
+                    Department Overtime Trends
+                  </CardTitle>
+                  <CardDescription className="text-[10px] font-bold uppercase tracking-widest opacity-60 ml-11 italic">
+                    Average overtime hours per department
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pt-5">
+                  {loadingTeam ? (
+                    <div className="h-[220px] flex items-center justify-center">
+                      <Loader2 className="animate-spin text-[#942392] opacity-40 w-7 h-7" />
                     </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+                  ) : deptOvertimeData.length === 0 ? (
+                    <div className="h-[220px] flex items-center justify-center text-[10px] font-black text-foreground/30 uppercase tracking-widest">
+                      No overtime data
+                    </div>
+                  ) : (
+                    <>
+                      <ResponsiveContainer width="100%" height={180}>
+                        <BarChart data={deptOvertimeData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="rgba(59,130,246,0.05)" vertical={false} />
+                          <XAxis dataKey="dept" tick={{ fontSize: 8, fontWeight: 900, fill: "hsl(var(--muted-foreground))" }}
+                            axisLine={false} tickLine={false} />
+                          <YAxis tick={{ fontSize: 8, fontWeight: 900, fill: "hsl(var(--muted-foreground))" }}
+                            axisLine={false} tickLine={false} />
+                          <Tooltip contentStyle={tooltipStyle}
+                            formatter={(v: number) => [`${v}h`, "Avg OT Hours"]}
+                            labelStyle={{ fontWeight: 900, fontSize: 10 }} />
+                          <Bar dataKey="avgOvertime" name="Avg OT" fill="#3b82f6" radius={[6, 6, 0, 0]} barSize={30} animationDuration={1200}>
+                            <LabelList dataKey="avgOvertime" position="top"
+                              style={{ fontSize: 8, fontWeight: 900, fill: "#3b82f6" }}
+                              formatter={(v: number) => `${v}h`} />
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+
+                      {/* Average OT Hours List */}
+                      <div className="mt-3 space-y-2">
+                        <p className="text-[8px] font-black text-foreground uppercase tracking-[0.2em] opacity-60">
+                          Average OT Hours
+                        </p>
+                        {deptOvertimeData.map(d => (
+                          <div key={d.dept} className="flex items-center justify-between gap-2">
+                            <span className="text-[10px] font-bold text-foreground truncate">{d.dept}</span>
+                            <span className="text-[10px] font-black text-amber-600">{d.avgOvertime.toFixed(1)}h avg</span>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
           {/* ── Summary Strip ── */}
           {!loadingTeam && teamMetrics.length > 0 && (
