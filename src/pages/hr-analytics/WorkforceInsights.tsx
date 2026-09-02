@@ -1863,12 +1863,15 @@ export default function WorkforceInsights() {
                             Reason: {
                                 (() => {
                                   if (!item.reason) return "-";
-                                  const match = item.reason.match(/\[CUTI_GANTI_DATA:([\s\S]*?)\]/);
-                                  if (match && match[1]) {
+                                  const prefix = "[CUTI_GANTI_DATA:";
+                                  if (item.reason.includes(prefix)) {
                                     try {
-                                      const data = JSON.parse(match[1]);
+                                      const startIndex = item.reason.indexOf(prefix);
+                                      const endIndex = item.reason.lastIndexOf("]");
+                                      const jsonStr = item.reason.substring(startIndex + prefix.length, endIndex);
+                                      const data = JSON.parse(jsonStr);
                                       if (Array.isArray(data) && data.length > 0) {
-                                        let text = item.reason.replace(match[0], "").trim();
+                                        let text = item.reason.substring(0, startIndex).trim();
                                         const details = data.map(d => d.keterangan || "-").filter(Boolean).join(", ");
                                         return "Replacement Leave (" + details + ")" + (text ? " - " + text : "");
                                       }
