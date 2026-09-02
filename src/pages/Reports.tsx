@@ -25,6 +25,7 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { MonthPicker } from "@/components/shared/MonthPicker";
+import { YearPopover } from "@/components/shared/YearPopover";
 
 const fallbackMonthlyData = [
   { month: "Jan", attendance: 94, leave_request: 18 },
@@ -137,6 +138,7 @@ export default function Reports() {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedMonth, setSelectedMonth] = useState((new Date().getMonth() + 1).toString());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
+  const [periodMode, setPeriodMode] = useState<"year" | "month">("month");
   const [selectedBranchFilter, setSelectedBranchFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [anomaliesCurrentPage, setAnomaliesCurrentPage] = useState(1);
@@ -883,16 +885,31 @@ export default function Reports() {
                           )}
 
                           <div className="space-y-1.5">
-                            <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Period</label>
-                            <MonthPicker
-                              monthYear={selectedMonth === 'all' ? `${selectedYear}-all` : `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`}
-                              onSelectMonthYear={(val) => {
-                                const [y, m] = val.split('-');
-                                setSelectedYear(y);
-                                setSelectedMonth(m);
-                              }}
-                              className="w-full h-11 px-3 flex items-center justify-between text-xs font-black uppercase tracking-widest rounded-xl border border-border bg-background/30 text-foreground outline-none cursor-pointer hover:border-[#942392]/40 focus:ring-1 focus:ring-[#942392]"
-                            />
+                            <div className="flex items-center justify-between">
+                              <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Period</label>
+                              <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-900 rounded-lg p-0.5">
+                                <button onClick={() => { setPeriodMode("year"); setSelectedMonth("all"); }} className={`px-2 py-1 rounded-md text-[9px] font-black tracking-widest uppercase transition-colors ${periodMode === 'year' ? 'bg-white dark:bg-slate-800 text-[#942392] shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>Year</button>
+                                <button onClick={() => { setPeriodMode("month"); setSelectedMonth((new Date().getMonth() + 1).toString()); }} className={`px-2 py-1 rounded-md text-[9px] font-black tracking-widest uppercase transition-colors ${periodMode === 'month' ? 'bg-white dark:bg-slate-800 text-[#942392] shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>Month</button>
+                              </div>
+                            </div>
+                            {periodMode === 'year' ? (
+                              <YearPopover
+                                year={selectedYear}
+                                onSelectYear={(y) => { setSelectedYear(y); setSelectedMonth("all"); }}
+                                className="w-full h-11 px-3 flex items-center justify-between text-xs font-black uppercase tracking-widest rounded-xl border border-border bg-background/30 text-foreground outline-none cursor-pointer hover:border-[#942392]/40 focus:ring-1 focus:ring-[#942392]"
+                              />
+                            ) : (
+                              <MonthPicker
+                                hideAllYear={true}
+                                monthYear={selectedMonth === 'all' ? `${selectedYear}-${String(new Date().getMonth()+1).padStart(2, '0')}` : `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`}
+                                onSelectMonthYear={(val) => {
+                                  const [y, m] = val.split('-');
+                                  setSelectedYear(y);
+                                  setSelectedMonth(m);
+                                }}
+                                className="w-full h-11 px-3 flex items-center justify-between text-xs font-black uppercase tracking-widest rounded-xl border border-border bg-background/30 text-foreground outline-none cursor-pointer hover:border-[#942392]/40 focus:ring-1 focus:ring-[#942392]"
+                              />
+                            )}
                           </div>
                         </div>
                       );

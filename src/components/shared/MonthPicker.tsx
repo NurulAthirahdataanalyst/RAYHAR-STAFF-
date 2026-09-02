@@ -7,6 +7,7 @@ interface MonthPickerProps {
   monthYear: string; // "YYYY-MM"
   onSelectMonthYear: (value: string) => void;
   className?: string;
+  hideAllYear?: boolean;
 }
 
 const FULL_MONTHS = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
