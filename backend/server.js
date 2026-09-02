@@ -3743,9 +3743,13 @@ app.get("/api/employees/:userId/analytics", async (req, res) => {
 
     const [companyLeaves] = await pool.query("SELECT * FROM company_leave_calendar WHERE status = 'Active' AND EXTRACT(YEAR FROM start_date) IN (?)", [yearsToFetch]);
     
+    // Fetch earned replacement leaves
+    const [earnedRlRows] = await pool.query(`SELECT SUM(CASE WHEN validation_status = 'Validated' THEN 1 ELSE 0 END) as earned FROM replacement_leave_requests WHERE employee_id = ?`, [userId]);
+    const replacementEarned = parseInt(earnedRlRows[0]?.earned || 0);
+
     // Fetch leave balance adjustments for this employee
     const [adjRows] = await pool.query("SELECT leave_type, SUM(adjustment_days) AS total_adjustment FROM leave_balance_adjustments WHERE employee_id = ? GROUP BY leave_type", [userId]);
-      let totalAdjustment = 0, medicalAdj = 0, replacementAdj = 0;
+      let totalAdjustment = 0, medicalAdj = 0, replacementAdj = replacementEarned;
       adjRows.forEach(row => {
           const t = String(row.leave_type).toUpperCase();
           if (['ANNUAL LEAVE', 'ANNUAL & EMERGENCY LEAVE', 'ANNUAL/EMERGENCY LEAVE', 'CUTI TAHUNAN'].includes(t)) totalAdjustment += parseFloat(row.total_adjustment);

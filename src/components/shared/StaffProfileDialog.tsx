@@ -16,7 +16,10 @@ import {
   X,
   PhoneCall,
   Download,
-  Printer
+  Printer,
+    RefreshCw,
+    Wallet,
+    Stethoscope
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
@@ -1001,7 +1004,7 @@ export function StaffProfileDialog({
                           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
                             {/* REPLACEMENT LEAVE */}
                             <div className="border border-slate-200 dark:border-slate-800/60 bg-white dark:bg-slate-800 rounded-xl p-3 flex flex-col justify-between shadow-sm">
-                              <p className="text-[9px] font-bold uppercase tracking-widest text-foreground dark:text-foreground mb-1">Replacement Leave</p>
+                              <p className="text-[9px] font-bold uppercase tracking-widest text-foreground dark:text-foreground mb-1 flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span><RefreshCw className="w-3 h-3 text-muted-foreground" />Replacement Leave</p>
                               <div className="my-1.5">
                                 <span className="text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tighter">
                                   {analytics.leave?.replacement?.taken || 0}
@@ -1026,7 +1029,7 @@ export function StaffProfileDialog({
 
                             {/* UNPAID LEAVE */}
                             <div className="border border-slate-200 dark:border-slate-800/60 bg-white dark:bg-slate-800 rounded-xl p-3 flex flex-col justify-between shadow-sm">
-                              <p className="text-[9px] font-bold uppercase tracking-widest text-foreground dark:text-foreground mb-1">Unpaid Leave</p>
+                              <p className="text-[9px] font-bold uppercase tracking-widest text-foreground dark:text-foreground mb-1 flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span><Wallet className="w-3 h-3 text-muted-foreground" />Unpaid Leave</p>
                               <div className="my-1.5">
                                 <span className="text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tighter">
                                   {analytics.leave?.unpaid?.taken || 0}
@@ -1049,7 +1052,7 @@ export function StaffProfileDialog({
 
                             {/* MEDICAL LEAVE (SICK LEAVE) */}
                             <div className="border border-slate-200 dark:border-slate-800/60 bg-white dark:bg-slate-800 rounded-xl p-3 flex flex-col justify-between shadow-sm">
-                              <p className="text-[9px] font-bold uppercase tracking-widest text-foreground dark:text-foreground mb-1">Medical Leave (Sick Leave)</p>
+                              <p className="text-[9px] font-bold uppercase tracking-widest text-foreground dark:text-foreground mb-1 flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span><Stethoscope className="w-3 h-3 text-muted-foreground" />Medical Leave (Sick Leave)</p>
                               <div className="my-1.5">
                                 <span className="text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tighter">
                                   {analytics.leave?.sick?.taken || 0}
