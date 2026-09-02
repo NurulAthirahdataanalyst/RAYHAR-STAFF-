@@ -7399,11 +7399,13 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
     const rankings = Object.values(userStats).map(u => ({
       name: u.name,
       attendanceRate: Math.min(100, Math.round((u.presentDays / workingDaysInMonth) * 100)),
-      lateCount: u.lateDays
+      lateCount: u.lateDays,
+      absentCount: Math.max(0, workingDaysInMonth - u.presentDays)
     }));
 
     const topAttendance = [...rankings].sort((a, b) => b.attendanceRate - a.attendanceRate).slice(0, 5);
     const topLate = [...rankings].sort((a, b) => b.lateCount - a.lateCount).filter(u => u.lateCount > 0).slice(0, 5);
+    const topAbsent = [...rankings].sort((a, b) => b.absentCount - a.absentCount).filter(u => u.absentCount > 0).slice(0, 5);
 
     // 6. Trends (Real Data)
     const [trendRows] = await pool.query(
@@ -8000,6 +8002,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       performance: {
         topAttendance,
         topLate,
+        topAbsent,
         allAttendance: rankings,
         attentionEmployees,
         missingPunchEmployees,

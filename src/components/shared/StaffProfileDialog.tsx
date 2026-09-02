@@ -1430,7 +1430,7 @@ export function StaffProfileDialog({
             </div>
           ) : (
             <div className="space-y-4 mt-2">
-              {employeeLeaves.filter(req => {
+              {(Array.isArray(employeeLeaves) ? employeeLeaves : []).filter(req => {
                 const status = (req.status || "").toLowerCase().trim();
                 const viewStatus = (viewLeaveStatus || "").toLowerCase().trim();
                 if (viewStatus === "pending") return status.includes("pending");
@@ -1450,7 +1450,7 @@ export function StaffProfileDialog({
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {employeeLeaves
+                      {(Array.isArray(employeeLeaves) ? employeeLeaves : [])
                         .filter(req => {
                           const status = (req.status || "").toLowerCase().trim();
                           const viewStatus = (viewLeaveStatus || "").toLowerCase().trim();
@@ -1481,7 +1481,7 @@ export function StaffProfileDialog({
                               </TableCell>
                             </TableRow>
                           );
-                        })()}
+                        })}
                     </TableBody>
                   </Table>
                 </div>

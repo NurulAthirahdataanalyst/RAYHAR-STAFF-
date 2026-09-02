@@ -1224,7 +1224,7 @@ export default function WorkforceInsights() {
             <CardHeader className="p-5 border-b border-slate-100 dark:border-slate-800 pb-4">
               <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-200">Employee Performance & Attendance</CardTitle>
             </CardHeader>
-            <CardContent className="p-5 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <CardContent className="p-5 grid grid-cols-1 md:grid-cols-3 gap-6">
               
               <div>
                 <h4 className="text-xs font-bold text-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
@@ -1267,6 +1267,30 @@ export default function WorkforceInsights() {
                     </div>
                   )) : (
                     <p className="text-sm text-foreground">No late arrivals recorded.</p>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-xs font-bold text-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
+                  <XCircle className="w-4 h-4 text-slate-500" /> Highest Absent
+                </h4>
+                <div className="space-y-3">
+                  {data?.performance?.topAbsent?.length > 0 ? (Array.isArray(data.performance.topAbsent) ? data.performance.topAbsent : []).map((emp: any, i: number) => (
+                    <div key={i} className="flex items-center justify-between p-2 hover:bg-slate-50 dark:bg-slate-900/50 rounded-md transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className="w-6 h-6 rounded bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-600">
+                          {i + 1}
+                        </div>
+                        <span className="text-sm font-medium text-slate-800 dark:text-slate-200">{emp.name}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className="text-sm font-bold text-slate-600">{emp.absentCount}</span>
+                        <span className="text-xs text-foreground">days</span>
+                      </div>
+                    </div>
+                  )) : (
+                    <p className="text-sm text-foreground">No absent recorded.</p>
                   )}
                 </div>
               </div>
