@@ -460,7 +460,7 @@ export default function WorkforceCalendar() {
                                   else if (e.source === "outstation") eKey = "Outstation";
                                   return eKey === key;
                                 });
-                                const names = matchingEvts.map(e => (e.employee || 'Unknown').split(' ')[0]);
+                                const names = matchingEvts.map(e => (e.name || e.employee || '').split(' ')[0]).filter(Boolean);
                                 if (names.length > 0) namesStr = `: ${names.join(', ')}`;
                               }
 
@@ -959,7 +959,7 @@ export default function WorkforceCalendar() {
                             <div className={`w-2 h-2 rounded-full shrink-0 ${ec.dot}`} />
                             <div className="min-w-0 flex-1">
                               <p className="text-[11px] font-bold text-gray-800 dark:text-gray-100 truncate">
-                                {e.source === "company_leave" ? (e.name || e.type) : e.employee}
+                                {e.source === "company_leave" ? (e.name || e.type) : (e.name || e.employee || 'Staff')}
                               </p>
                               <p className={`text-[10px] truncate ${ec.text}`}>
                                 {e.type}

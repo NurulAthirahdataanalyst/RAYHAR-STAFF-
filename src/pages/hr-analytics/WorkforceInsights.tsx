@@ -2024,6 +2024,9 @@ export default function WorkforceInsights() {
 function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssignments, pendingApprovalsList, feedConnected, outstationSummary, liveMonthlyComp, liveHrAlerts, liveLeaveTrend, month, year, day, liveWeeklyAttendanceTrend, trendWeekStart, setTrendWeekStart, onEmployeeClick }: any) {
     const [selectedRegion, setSelectedRegion] = useState<string>('All Regions');
   const navigate = useNavigate();
+  const { role: currentRole } = useRole();
+  // HR Alerts and Workforce Movement hidden for HOD, Branch Leader, Operation Manager, Managing Director
+  const isAdminOnly = ['head_of_department', 'hod', 'branch_leader', 'operation_manager', 'managing_director', 'md'].includes((currentRole || '').toLowerCase());
   const topKpi = data.topKpi || {};
   const monthlyComp = data.monthlyComparison || { attendance: {}, lateArrivals: {}, absences: {}, leaveRequests: {}, outstation: {} };
   
@@ -2682,7 +2685,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                 </p>
                 <button className="text-xs font-bold text-foreground hover:text-[#942392] transition-colors flex items-center gap-1">See All <ChevronRight className="w-3 h-3" /></button>
               </div>
-            </Card>
+            </Card>}
           </div>
 
          {/* Row 2: 3 Columns */}
@@ -2842,7 +2845,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
          {/* SUPPORTING SECTION */}
        <div>
          <div className="grid grid-cols-1 gap-6">
-           <Card className="p-4 border-l-4 border-l-[#942392] border-y !border-y-slate-600 border-r !border-r-slate-600 dark:!border-y-slate-500 dark:!border-r-slate-500 hover:border-[#942392] hover: transition-all duration-300 flex flex-col rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
+           {!isAdminOnly && <Card className="p-4 border-l-4 border-l-[#942392] border-y !border-y-slate-600 border-r !border-r-slate-600 dark:!border-y-slate-500 dark:!border-r-slate-500 hover:border-[#942392] hover: transition-all duration-300 flex flex-col rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
              <div className="flex justify-between items-center mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
                <div className="flex items-center gap-2">
                  <AlertCircle className="w-4 h-4 text-[#942392]" />
@@ -2892,18 +2895,9 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
              <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end">
                <button className="text-xs font-bold text-foreground hover:text-[#942392] transition-colors flex items-center gap-1">See All <ChevronRight className="w-3 h-3" /></button>
              </div>
-           </Card>
-         </div>
-       </div>
-    </div>
+            </Card>}
+          </div>
+        </div>
+     </div>
   )
 }
-
-
-
-
-
-
-
-
-
