@@ -250,7 +250,7 @@ export default function EntitlementActivityCard({ onViewHistory }: Props) {
                   <span>Show</span>
                   <Select value={itemsPerPage.toString()} onValueChange={(val) => { setItemsPerPage(Number(val)); setCurrentPage(1); }}>
                     <SelectTrigger className="h-7 text-[10px] font-bold rounded border-border w-[60px]">
-                      <SelectValue />
+                      <SelectValue placeholder={itemsPerPage.toString()}>{itemsPerPage}</SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="10">10</SelectItem>

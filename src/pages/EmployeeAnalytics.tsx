@@ -588,7 +588,7 @@ export default function EmployeeAnalytics() {
                             onValueChange={(val) => { setEntriesPerPage(Number(val)); setCurrentPage(1); }}
                           >
                             <SelectTrigger className="h-7 text-[10px] font-black rounded-lg border-border w-[70px] bg-white dark:bg-card">
-                              <SelectValue />
+                              <SelectValue placeholder={entriesPerPage.toString()}>{entriesPerPage}</SelectValue>
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="5">5</SelectItem>

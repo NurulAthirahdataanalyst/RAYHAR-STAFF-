@@ -394,7 +394,7 @@ const TemporaryAssignments = () => {
                     onValueChange={(val) => { setEntriesPerPage(Number(val)); setCurrentPage(1); }}
                   >
                     <SelectTrigger className="h-7 text-[10px] font-bold rounded border-border w-[60px]">
-                      <SelectValue />
+                      <SelectValue placeholder={entriesPerPage.toString()}>{entriesPerPage}</SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="10">10</SelectItem>

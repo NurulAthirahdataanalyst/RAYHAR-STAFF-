@@ -737,7 +737,7 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
                   }}
                 >
                   <SelectTrigger className="h-7 text-[10px] font-bold rounded border-border/60 w-[65px] bg-background/50">
-                    <SelectValue />
+                    <SelectValue placeholder={entriesPerPage.toString()}>{entriesPerPage}</SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="5">5</SelectItem>

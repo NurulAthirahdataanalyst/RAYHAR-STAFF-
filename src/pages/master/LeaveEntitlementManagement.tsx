@@ -1479,7 +1479,7 @@ function CarryForwardLeaveForm({
               <span>Show</span>
               <Select value={entriesPerPage.toString()} onValueChange={(val) => { setEntriesPerPage(Number(val)); setCurrentPage(1); }}>
                 <SelectTrigger className="h-7 text-[10px] font-bold rounded border-gray-200 dark:border-slate-700 w-[60px]">
-                  <SelectValue />
+                  <SelectValue placeholder={entriesPerPage.toString()}>{entriesPerPage}</SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="5">5</SelectItem>

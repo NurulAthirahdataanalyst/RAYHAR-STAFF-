@@ -1020,7 +1020,7 @@ export default function Employees() {
                         onValueChange={(val) => { setEntriesPerPage(Number(val)); setCurrentPage(1); }}
                       >
                         <SelectTrigger className="h-7 text-xs font-bold rounded-lg border-border w-[70px]">
-                          <SelectValue />
+                          <SelectValue placeholder={entriesPerPage.toString()}>{entriesPerPage}</SelectValue>
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="10">10</SelectItem>

@@ -804,7 +804,7 @@ export default function OutstationDashboard() {
                     onValueChange={(val) => { setPageSize(Number(val)); setPage(1); }}
                   >
                     <SelectTrigger className="h-7 text-[10px] font-bold rounded border-border w-[60px]">
-                      <SelectValue />
+                      <SelectValue placeholder={pageSize.toString()}>{pageSize}</SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="10">10</SelectItem>
@@ -1092,7 +1092,7 @@ export default function OutstationDashboard() {
                     onValueChange={(val) => { setPageSize(Number(val)); setPage(1); }}
                   >
                     <SelectTrigger className="h-7 text-[10px] font-bold rounded border-border w-[60px]">
-                      <SelectValue />
+                      <SelectValue placeholder={pageSize.toString()}>{pageSize}</SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="10">10</SelectItem>

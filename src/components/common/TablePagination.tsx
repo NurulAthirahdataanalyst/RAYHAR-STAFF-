@@ -55,7 +55,7 @@ export const TablePagination: React.FC<TablePaginationProps> = ({
             }}
           >
             <SelectTrigger className="h-7 text-[10px] font-bold rounded border-border w-[65px] bg-white dark:bg-card">
-              <SelectValue placeholder={String(pageSize)} />
+              <SelectValue placeholder={String(pageSize)}>{pageSize}</SelectValue>
             </SelectTrigger>
             <SelectContent>
               {pageSizeOptions.map((opt) => (
