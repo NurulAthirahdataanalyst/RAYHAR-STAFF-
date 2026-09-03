@@ -6559,63 +6559,6 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
 
     const branchZoneMap = await getBranchZoneMap();
 
-    const reportData = clockRows.map(clock => {
-      const emp = allProfiles.find(p => p.user_id === clock.user_id) || {};
-      const userZone = branchZoneMap.get(emp.branch) || 'ZONE_B';
-      const workHours = getWorkHoursForZone(userZone, new Date(clock.clock_in));
-      const [lateH, lateM] = workHours.off ? [23, 59] : getLateThresholdTime().split(':').map(Number);
-      
-      // Shift UTC timestamp to KL timezone (UTC+8) for accurate date & late check
-      const klTimeIn = new Date(new Date(clock.clock_in).getTime() + 8 * 60 * 60 * 1000);
-      const clockInHour = klTimeIn.getUTCHours();
-      const clockInMinute = klTimeIn.getUTCMinutes();
-      const isLate = clockInHour > lateH || (clockInHour === lateH && clockInMinute > lateM);
-      const dateStr = klTimeIn.toISOString().split('T')[0];
-
-      // Check if employee is outstation on this date
-      const isOutstation = outstationRows.some(o => {
-        if (o.user_id !== clock.user_id) return false;
-        const oStart = new Date(o.start_date).toISOString().split('T')[0];
-        const oEnd = new Date(o.end_date).toISOString().split('T')[0];
-        return dateStr >= oStart && dateStr <= oEnd;
-      });
-
-      let status = isLate ? "Present (Late)" : "Present (On Time)";
-      let missingClockOut = false;
-
-      if (isOutstation) {
-        status = "Outstation";
-        missingClockOut = false;
-      } else if (!clock.clock_out) {
-        const nowKl = new Date(Date.now() + 8 * 60 * 60 * 1000);
-        const isPastDate = klTimeIn.getUTCDate() !== nowKl.getUTCDate() || klTimeIn.getUTCMonth() !== nowKl.getUTCMonth() || klTimeIn.getUTCFullYear() !== nowKl.getUTCFullYear();
-        const isPastEndOfWorkTime = !isPastDate && nowKl.getUTCHours() >= 17;
-        
-        if (isPastDate || isPastEndOfWorkTime) {
-          missingClockOut = true;
-          status = "Missing Clock-Out";
-        }
-      }
-
-      return {
-        user_id: clock.user_id,
-        full_name: emp.full_name || 'Unknown',
-        branch: emp.branch || 'HQ',
-        date: dateStr,
-        time_in: clock.time_in,
-        time_out: clock.time_out,
-        clock_in: clock.clock_in,
-        clock_out: clock.clock_out,
-        is_late: isLate,
-        missing_clock_out: missingClockOut,
-        status: status,
-        location: clock.location,
-        distance_meters: clock.distance_meters,
-        latitude: clock.clock_in_latitude,
-        longitude: clock.clock_in_longitude
-      };
-    });
-
     const [leaveRows] = await pool.query(
       `SELECT lr.user_id, lr.leave_type, lr.start_date, lr.end_date
        FROM leave_requests lr
@@ -6669,6 +6612,8 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
       complianceRate: 0
     };
 
+    const reportData = [];
+
     allProfiles.forEach(p => {
       passedWorkingDaysInMonth.forEach(dateStr => {
         // Is Company Leave?
@@ -6692,6 +6637,21 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
 
         if (isCompanyLeave) {
           summary.leave++;
+          reportData.push({
+            user_id: p.user_id,
+            full_name: p.full_name,
+            branch: p.branch || 'HQ',
+            department: p.department || '',
+            date: dateStr,
+            time_in: null,
+            time_out: null,
+            clock_in: null,
+            clock_out: null,
+            is_late: false,
+            missing_clock_out: false,
+            status: "Leave (Company Holiday)",
+            location: p.branch || 'HQ'
+          });
           return;
         }
 
@@ -6703,7 +6663,28 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
         });
 
         if (isApprovedLeave) {
+          const leaveObj = leaveRows.find(lr => {
+            if (lr.user_id !== p.user_id) return false;
+            const lrStart = new Date(lr.start_date).toISOString().split('T')[0];
+            const lrEnd = new Date(lr.end_date).toISOString().split('T')[0];
+            return dateStr >= lrStart && dateStr <= lrEnd;
+          });
           summary.leave++;
+          reportData.push({
+            user_id: p.user_id,
+            full_name: p.full_name,
+            branch: p.branch || 'HQ',
+            department: p.department || '',
+            date: dateStr,
+            time_in: null,
+            time_out: null,
+            clock_in: null,
+            clock_out: null,
+            is_late: false,
+            missing_clock_out: false,
+            status: `Leave (${leaveObj?.leave_type || 'Approved'})`,
+            location: p.branch || 'HQ'
+          });
           return;
         }
 
@@ -6716,6 +6697,21 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
 
         if (isOutstation) {
           summary.outstation++;
+          reportData.push({
+            user_id: p.user_id,
+            full_name: p.full_name,
+            branch: p.branch || 'HQ',
+            department: p.department || '',
+            date: dateStr,
+            time_in: null,
+            time_out: null,
+            clock_in: null,
+            clock_out: null,
+            is_late: false,
+            missing_clock_out: false,
+            status: "Outstation",
+            location: p.branch || 'HQ'
+          });
           return;
         }
 
@@ -6727,38 +6723,68 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
         });
 
         if (clockData) {
+          const userZone = branchZoneMap.get(p.branch) || 'ZONE_B';
+          const klTimeIn = new Date(new Date(clockData.clock_in).getTime() + 8 * 60 * 60 * 1000);
+          const workHours = getWorkHoursForZone(userZone, klTimeIn);
+          const [lH, lM] = workHours.off ? [23, 59] : getLateThresholdTime().split(':').map(Number);
+          const clockInHour = klTimeIn.getUTCHours();
+          const clockInMinute = klTimeIn.getUTCMinutes();
+          const isLate = clockInHour > lH || (clockInHour === lH && clockInMinute > lM);
+          let missingClockOut = false;
+          let status = isLate ? "Present (Late)" : "Present (On Time)";
+
           if (!clockData.clock_out) {
-            const klTimeIn = new Date(new Date(clockData.clock_in).getTime() + 8 * 60 * 60 * 1000);
             const nowKl = new Date(Date.now() + 8 * 60 * 60 * 1000);
             const isPastDate = dateStr !== nowKl.toISOString().split('T')[0];
             const isPastEndOfWorkTime = !isPastDate && nowKl.getUTCHours() >= 17;
             if (isPastDate || isPastEndOfWorkTime) {
+              missingClockOut = true;
+              status = "Missing Clock-Out";
               summary.missingClockOut++;
             } else {
-              const userZone = branchZoneMap.get(p.branch) || 'ZONE_B';
-              const klTimeIn2 = new Date(new Date(clockData.clock_in).getTime() + 8 * 60 * 60 * 1000);
-              const workHours = getWorkHoursForZone(userZone, klTimeIn2);
-              const [lH, lM] = workHours.off ? [23, 59] : getLateThresholdTime().split(':').map(Number);
-              const clockInHour = klTimeIn2.getUTCHours();
-              const clockInMinute = klTimeIn2.getUTCMinutes();
-              const isLate = clockInHour > lH || (clockInHour === lH && clockInMinute > lM);
               if (isLate) summary.late++;
               else summary.present++;
             }
           } else {
-            const userZone = branchZoneMap.get(p.branch) || 'ZONE_B';
-            const klTimeIn2 = new Date(new Date(clockData.clock_in).getTime() + 8 * 60 * 60 * 1000);
-            const workHours = getWorkHoursForZone(userZone, klTimeIn2);
-            const [lH, lM] = workHours.off ? [23, 59] : getLateThresholdTime().split(':').map(Number);
-            const klTimeIn = new Date(new Date(clockData.clock_in).getTime() + 8 * 60 * 60 * 1000);
-            const clockInHour = klTimeIn.getUTCHours();
-            const clockInMinute = klTimeIn.getUTCMinutes();
-            const isLate = clockInHour > lH || (clockInHour === lH && clockInMinute > lM);
             if (isLate) summary.late++;
             else summary.present++;
           }
+
+          reportData.push({
+            user_id: p.user_id,
+            full_name: p.full_name,
+            branch: p.branch || 'HQ',
+            department: p.department || '',
+            date: dateStr,
+            time_in: clockData.time_in,
+            time_out: clockData.time_out,
+            clock_in: clockData.clock_in,
+            clock_out: clockData.clock_out,
+            is_late: isLate,
+            missing_clock_out: missingClockOut,
+            status: status,
+            location: clockData.location || p.branch || 'HQ',
+            distance_meters: clockData.distance_meters,
+            latitude: clockData.clock_in_latitude,
+            longitude: clockData.clock_in_longitude
+          });
         } else {
           summary.absent++;
+          reportData.push({
+            user_id: p.user_id,
+            full_name: p.full_name,
+            branch: p.branch || 'HQ',
+            department: p.department || '',
+            date: dateStr,
+            time_in: null,
+            time_out: null,
+            clock_in: null,
+            clock_out: null,
+            is_late: false,
+            missing_clock_out: false,
+            status: "Absent",
+            location: p.branch || 'HQ'
+          });
         }
       });
     });

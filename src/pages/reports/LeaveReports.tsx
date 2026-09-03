@@ -68,20 +68,15 @@ export default function LeaveReports() {
             const m = parseInt(selectedMonth);
             const y = parseInt(selectedYear);
             
-            const today = new Date();
-            const myTime = new Date(today.getTime() + (8 * 60 * 60 * 1000));
-            const todayStr = myTime.toISOString().slice(0, 10);
-            const isCurrentMonth = (myTime.getMonth() + 1 === m && myTime.getFullYear() === y);
+            const mStartStr = `${y}-${String(m).padStart(2, '0')}-01`;
+            const lastDay = new Date(y, m, 0).getDate();
+            const mEndStr = `${y}-${String(m).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
 
             filtered = filtered.filter((r: any) => {
                 if (!r.start_date) return true;
-                // Parse date parts directly from the string to avoid timezone issues
-                const dateStr = r.start_date.slice(0, 10); // "YYYY-MM-DD"
-                
-                if (isCurrentMonth && dateStr > todayStr) return false;
-                
-                const [dYear, dMonth] = dateStr.split('-').map(Number);
-                return dMonth === m && dYear === y;
+                const startDateStr = r.start_date.slice(0, 10);
+                const endDateStr = (r.end_date || r.start_date).slice(0, 10);
+                return startDateStr <= mEndStr && endDateStr >= mStartStr;
             });
 
             // Sort descending by start_date
