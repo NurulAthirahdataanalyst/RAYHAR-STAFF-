@@ -972,7 +972,7 @@ export default function WorkforceInsights() {
                     <thead>
                       <tr className="border-b border-slate-200 dark:border-slate-700">
                         <th className="pb-3 text-[11px] text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Employee</th>
-                        <th className="pb-3 text-[11px] text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Original Branch</th>
+                        <th className="pb-3 text-[11px] text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Permanent Branch</th>
                         <th className="pb-3 text-[11px] text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Assigned Branch</th>
                         <th className="pb-3 text-[11px] text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Duration</th>
                         <th className="pb-3 text-[11px] text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Status</th>

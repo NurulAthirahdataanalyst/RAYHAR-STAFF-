@@ -799,7 +799,7 @@ export default function Branches() {
                                 <thead>
                                   <tr className="bg-purple-500/10 text-purple-900 dark:text-purple-100 border-b border-purple-500/20">
                                     <th className="text-left py-4 px-6 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Personnel</th>
-                                    <th className="text-left py-4 px-6 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Original Branch</th>
+                                    <th className="text-left py-4 px-6 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Permanent Branch</th>
                                     <th className="text-left py-4 px-6 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Assignment Period</th>
                                   </tr>
                                 </thead>
@@ -812,7 +812,7 @@ export default function Branches() {
                                             {assignment.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
                                           </div>
                                           <div className="min-w-0">
-                                            <p className="font-bold text-foreground">{assignment.name}</p>
+                                            <p className="font-bold text-foreground text-sm">{assignment.name}</p>
                                             <p className="text-[10px] text-foreground truncate font-medium uppercase tracking-widest flex items-center gap-1">
                                               <span className="px-1.5 py-0.5 rounded bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300">TEMP</span>
                                               {assignment.employee}
@@ -820,11 +820,11 @@ export default function Branches() {
                                           </div>
                                         </div>
                                       </td>
-                                      <td className="py-4 px-6 font-medium text-foreground text-xs">
-                                        {assignment.primary_branch} • {assignment.department}
+                                      <td className="py-4 px-6 font-semibold text-foreground text-sm">
+                                        {assignment.primary_branch}{assignment.department ? ` • ${assignment.department}` : ''}
                                       </td>
-                                      <td className="py-4 px-6 text-xs font-semibold text-foreground">
-                                        {new Date(assignment.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })} - {new Date(assignment.end_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                      <td className="py-4 px-6 text-sm font-semibold text-foreground uppercase">
+                                        {new Date(assignment.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()} - {new Date(assignment.end_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()}
                                       </td>
                                     </tr>
                                   ))}
@@ -846,7 +846,7 @@ export default function Branches() {
                               <thead>
                                 <tr className="bg-slate-500/10 text-slate-900 dark:text-slate-100 border-b border-slate-500/20">
                                   <th className="text-left py-4 px-6 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Personnel</th>
-                                  <th className="text-left py-4 px-6 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Original Branch</th>
+                                  <th className="text-left py-4 px-6 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Permanent Branch</th>
                                   <th className="text-left py-4 px-6 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Assignment Period</th>
                                   <th className="text-left py-4 px-6 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Status</th>
                                 </tr>
@@ -862,18 +862,18 @@ export default function Branches() {
                                             {assignment.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
                                           </div>
                                           <div className="min-w-0">
-                                            <p className="font-bold text-foreground">{assignment.name}</p>
+                                            <p className="font-bold text-foreground text-sm">{assignment.name}</p>
                                             <p className="text-[10px] text-foreground truncate font-medium uppercase tracking-widest flex items-center gap-1">
                                               {assignment.employee}
                                             </p>
                                           </div>
                                         </div>
                                       </td>
-                                      <td className="py-4 px-6 font-medium text-foreground text-xs">
-                                        {assignment.primary_branch} • {assignment.department}
+                                      <td className="py-4 px-6 font-semibold text-foreground text-sm">
+                                        {assignment.primary_branch}{assignment.department ? ` • ${assignment.department}` : ''}
                                       </td>
-                                      <td className="py-4 px-6 text-xs font-semibold text-foreground">
-                                        {new Date(assignment.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })} - {new Date(assignment.end_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                      <td className="py-4 px-6 text-sm font-semibold text-foreground uppercase">
+                                        {new Date(assignment.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()} - {new Date(assignment.end_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()}
                                       </td>
                                       <td className="py-4 px-6 text-xs font-semibold">
                                         <span className={`px-2 py-1 rounded-md text-[10px] uppercase tracking-widest font-black ${isActive ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'}`}>
