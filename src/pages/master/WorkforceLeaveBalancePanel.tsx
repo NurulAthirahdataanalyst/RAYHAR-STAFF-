@@ -431,15 +431,15 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
             <table className="w-full text-left text-xs border-collapse">
               <thead className="sticky top-0 z-20 shadow-sm">
                 <tr className="border-b border-border/60">
-                  <th className="p-3 pl-4 bg-slate-100 dark:bg-slate-900 text-[10px] uppercase font-black tracking-wider text-muted-foreground">Employee</th>
-                  <th className="p-3 bg-slate-100 dark:bg-slate-900 text-[10px] uppercase font-black tracking-wider text-muted-foreground">Branch</th>
-                  <th className="p-3 bg-slate-100 dark:bg-slate-900 text-[10px] uppercase font-black tracking-wider text-muted-foreground">Department</th>
-                  <th className="p-3 text-center bg-slate-100 dark:bg-slate-900 text-[10px] uppercase font-black tracking-wider text-muted-foreground">Annual Leave</th>
-                  <th className="p-3 text-center bg-slate-100 dark:bg-slate-900 text-[10px] uppercase font-black tracking-wider text-muted-foreground">Medical Leave</th>
-                  <th className="p-3 text-center bg-slate-100 dark:bg-slate-900 text-[10px] uppercase font-black tracking-wider text-muted-foreground">Unpaid Leave</th>
-                  <th className="p-3 text-center bg-slate-100 dark:bg-slate-900 text-[10px] uppercase font-black tracking-wider text-muted-foreground">Replacement Leave</th>
-                  <th className="p-3 text-center font-black bg-slate-100 dark:bg-slate-900 text-[10px] uppercase tracking-wider text-muted-foreground">Total Balance</th>
-                  <th className="p-3 text-center pr-4 bg-slate-100 dark:bg-slate-900 text-[10px] uppercase font-black tracking-wider text-muted-foreground">Status</th>
+                  <th className="p-3 pl-4 bg-slate-100 dark:bg-slate-900 text-[10px] uppercase font-black tracking-wider text-black dark:text-white">Employee</th>
+                  <th className="p-3 bg-slate-100 dark:bg-slate-900 text-[10px] uppercase font-black tracking-wider text-black dark:text-white">Branch</th>
+                  <th className="p-3 bg-slate-100 dark:bg-slate-900 text-[10px] uppercase font-black tracking-wider text-black dark:text-white">Department</th>
+                  <th className="p-3 text-center bg-slate-100 dark:bg-slate-900 text-[10px] uppercase font-black tracking-wider text-black dark:text-white">Annual Leave</th>
+                  <th className="p-3 text-center bg-slate-100 dark:bg-slate-900 text-[10px] uppercase font-black tracking-wider text-black dark:text-white">Medical Leave</th>
+                  <th className="p-3 text-center bg-slate-100 dark:bg-slate-900 text-[10px] uppercase font-black tracking-wider text-black dark:text-white">Unpaid Leave</th>
+                  <th className="p-3 text-center bg-slate-100 dark:bg-slate-900 text-[10px] uppercase font-black tracking-wider text-black dark:text-white">Replacement Leave</th>
+                  <th className="p-3 text-center font-black bg-slate-100 dark:bg-slate-900 text-[10px] uppercase tracking-wider text-black dark:text-white">Total Balance</th>
+                  <th className="p-3 text-center pr-4 bg-slate-100 dark:bg-slate-900 text-[10px] uppercase font-black tracking-wider text-black dark:text-white">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/30">
@@ -588,7 +588,7 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
             <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Detailed Leave Entitlement Breakdown ({selectedMonthYear})</p>
 
             <table className="w-full text-left text-xs border-collapse">
-              <thead className="border-b border-border/60 text-[10px] uppercase font-black tracking-wider text-muted-foreground">
+              <thead className="border-b border-border/60 text-[10px] uppercase font-black tracking-wider text-black dark:text-white">
                 <tr>
                   <th className="p-2.5 pl-3 bg-slate-100 dark:bg-slate-900">Leave Type</th>
                   <th className="p-2.5 text-center bg-slate-100 dark:bg-slate-900">Entitlement</th>
