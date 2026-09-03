@@ -157,7 +157,7 @@ export default function OutstationCalendar({ onlyMine = false }: { onlyMine?: bo
                 <SelectTrigger className="w-[130px] h-8 text-xs"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {["All","Active","Upcoming","Completed","Cancelled"].map(s => (
-                    <SelectItem key={s} value={s}>{s}</SelectItem>
+                    <SelectItem key={s} value={s}>{s === "All" ? "All Status" : s}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

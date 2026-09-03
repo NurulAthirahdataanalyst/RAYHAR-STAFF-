@@ -401,7 +401,7 @@ export default function OutstationAssignment() {
               <SelectContent>
                 <SelectItem value="none" disabled>Select Status</SelectItem>
                 {["All", "Active", "Upcoming", "Completed", "Cancelled"].map(s => (
-                  <SelectItem key={s} value={s}>{s}</SelectItem>
+                  <SelectItem key={s} value={s}>{s === "All" ? "All Status" : s}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
