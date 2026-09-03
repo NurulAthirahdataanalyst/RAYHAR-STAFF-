@@ -1,5 +1,5 @@
 import { useRole } from "@/contexts/RoleContext";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { API_BASE_URL } from "@/config/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Download, Search, FileText, CalendarDays , X} from 'lucide-react';
@@ -22,6 +22,7 @@ export default function LeaveReports() {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(15);
+  const tableRef = useRef<HTMLTableElement>(null);
   
   // View Toggle State
   const [viewType, setViewType] = useState<"day" | "month" | "year">("month");
@@ -291,7 +292,7 @@ export default function LeaveReports() {
               </div>
             ) : (
               <div className="rounded-md border">
-                <Table>
+                <Table ref={tableRef}>
                   <TableHeader>
                     <TableRow>
                       <TableHead>Employee</TableHead>
@@ -322,7 +323,7 @@ export default function LeaveReports() {
                           <TableCell>{formatDate(req.end_date)}</TableCell>
                           <TableCell>{req.days}</TableCell>
                           <TableCell>
-                            <span className={`px-2 py-1 text-xs font-semibold rounded-full \${
+                            <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
                               req.status === 'Approved' ? 'bg-green-100 text-green-700' :
                               req.status === 'Rejected' ? 'bg-red-100 text-red-700' :
                               'bg-yellow-100 text-yellow-700'
@@ -346,6 +347,7 @@ export default function LeaveReports() {
               pageSize={pageSize}
               onPageChange={setCurrentPage}
               onPageSizeChange={setPageSize}
+              tableRef={tableRef}
             />
           )}
         </Card>

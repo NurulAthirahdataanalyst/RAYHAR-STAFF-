@@ -1505,6 +1505,7 @@ function CarryForwardLeaveForm({
               </div>
             </div>
           </div>
+          <TableScrollTopButton entriesPerPage={entriesPerPage} threshold={50} tableRef={tableRef} />
         </div>
 
         <div className="flex justify-between items-center border-t pt-4">

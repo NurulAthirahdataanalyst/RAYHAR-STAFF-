@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { API_BASE_URL } from "@/config/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -59,6 +59,7 @@ export default function AttendanceReports() {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(15);
+  const tableRef = useRef<HTMLTableElement>(null);
   const [viewType, setViewType] = useState<"day" | "month" | "year">("day");
   const [selectedMonth, setSelectedMonth] = useState((new Date().getMonth() + 1).toString());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
@@ -530,7 +531,7 @@ export default function AttendanceReports() {
               </div>
             ) : (
               <div className="rounded-md border overflow-hidden">
-                <Table className="text-xs">
+                <Table ref={tableRef} className="text-xs">
                   <TableHeader>
                     <TableRow>
                       {viewType !== "day" && <TableHead className="w-[100px]">Date</TableHead>}
@@ -621,6 +622,7 @@ export default function AttendanceReports() {
               pageSize={pageSize}
               onPageChange={setCurrentPage}
               onPageSizeChange={setPageSize}
+              tableRef={tableRef}
             />
           )}
         </Card>

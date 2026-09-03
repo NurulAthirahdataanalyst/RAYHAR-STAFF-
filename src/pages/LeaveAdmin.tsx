@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
+import { TableScrollTopButton } from "@/components/shared/TableScrollTopButton";
 
 import PageActions from "@/components/layout/PageActions";
 import { exportToCSV } from "@/utils/export";
@@ -136,6 +137,7 @@ export default function LeaveAdmin() {
   const canApprove = APPROVER_ROLES.includes(role);
   const [requests, setRequests] = useState<LeaveRequest[]>([]);
   const [loading, setLoading] = useState(true);
+  const tableRef = useRef<HTMLTableElement>(null);
   const [selectedRequest, setSelectedRequest] = useState<LeaveRequest | null>(null);
   const [bakiLayak, setBakiLayak] = useState<number | string>('-');
   const [activeTab, setActiveTab] = useState<TabFilter>("history");
@@ -546,7 +548,7 @@ export default function LeaveAdmin() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <Table>
+              <Table ref={tableRef}>
                 <TableHeader className="bg-muted/20 border-b border-border/40">
                   <TableRow>
                     <TableHead className="px-3 py-4 text-[10px]">Employee</TableHead>
@@ -721,6 +723,7 @@ export default function LeaveAdmin() {
               </div>
             </div>
           )}
+          <TableScrollTopButton entriesPerPage={itemsPerPage} threshold={50} tableRef={tableRef} />
         </CardContent>
       </Card>
 

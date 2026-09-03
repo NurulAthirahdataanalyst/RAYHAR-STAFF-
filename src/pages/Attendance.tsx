@@ -1,4 +1,5 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
+import { TableScrollTopButton } from "@/components/shared/TableScrollTopButton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -91,6 +92,7 @@ export default function Attendance() {
   const [visibleLogsCount, setVisibleLogsCount] = useState(10);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const tableRef = useRef<HTMLTableElement>(null);
   const [fetchingHistory, setFetchingHistory] = useState(false);
   const [tempAssignments, setTempAssignments] = useState<any[]>([]);
   const [locationLastUpdated, setLocationLastUpdated] = useState<string | null>(null);
@@ -1754,7 +1756,7 @@ export default function Attendance() {
           {/* Table Container */}
           <CardContent className="p-0">
             <div className="overflow-x-auto">
-              <Table>
+              <Table ref={tableRef}>
                 <TableHeader className="bg-slate-100 dark:bg-slate-800">
                   <TableRow>
                     <TableHead className="py-4 pl-6">Date</TableHead>
@@ -1892,6 +1894,7 @@ export default function Attendance() {
             </div>
           )}
 
+          <TableScrollTopButton entriesPerPage={pageSize} threshold={50} tableRef={tableRef} />
         </Card>
       </div>
 

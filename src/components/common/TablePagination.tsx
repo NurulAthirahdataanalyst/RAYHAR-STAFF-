@@ -2,6 +2,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { TableScrollTopButton } from '@/components/shared/TableScrollTopButton';
 
 export interface TablePaginationProps {
   currentPage: number;
@@ -11,6 +12,7 @@ export interface TablePaginationProps {
   onPageSizeChange: (pageSize: number) => void;
   pageSizeOptions?: number[];
   className?: string;
+  tableRef?: React.RefObject<HTMLElement | null>;
 }
 
 export const TablePagination: React.FC<TablePaginationProps> = ({
@@ -21,6 +23,7 @@ export const TablePagination: React.FC<TablePaginationProps> = ({
   onPageSizeChange,
   pageSizeOptions = [10, 25, 50, 100],
   className = "",
+  tableRef,
 }) => {
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
   const fromIndex = totalItems === 0 ? 0 : (currentPage - 1) * pageSize + 1;
@@ -40,85 +43,88 @@ export const TablePagination: React.FC<TablePaginationProps> = ({
   };
 
   return (
-    <div className={`flex flex-col sm:flex-row items-center justify-between p-4 border-t border-gray-100 dark:border-slate-800 gap-4 bg-slate-50/50 dark:bg-slate-900/50 ${className}`}>
-      <div className="flex items-center gap-4 text-[10px] font-bold text-foreground uppercase tracking-widest flex-wrap">
-        <span>
-          TOTAL SHOWING {fromIndex} TO {toIndex} OF {totalItems} ENTRIES
-        </span>
-        <div className="flex items-center gap-2">
-          <span>Show</span>
-          <Select
-            value={String(pageSize)}
-            onValueChange={(val) => {
-              onPageSizeChange(Number(val));
-              onPageChange(1);
-            }}
+    <>
+      <div className={`flex flex-col sm:flex-row items-center justify-between p-4 border-t border-gray-100 dark:border-slate-800 gap-4 bg-slate-50/50 dark:bg-slate-900/50 ${className}`}>
+        <div className="flex items-center gap-4 text-[10px] font-bold text-foreground uppercase tracking-widest flex-wrap">
+          <span>
+            TOTAL SHOWING {fromIndex} TO {toIndex} OF {totalItems} ENTRIES
+          </span>
+          <div className="flex items-center gap-2">
+            <span>Show</span>
+            <Select
+              value={String(pageSize)}
+              onValueChange={(val) => {
+                onPageSizeChange(Number(val));
+                onPageChange(1);
+              }}
+            >
+              <SelectTrigger className="h-7 text-[10px] font-bold rounded border-border w-[65px] bg-white dark:bg-card">
+                <SelectValue placeholder={String(pageSize)}>{pageSize}</SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {pageSizeOptions.map((opt) => (
+                  <SelectItem key={opt} value={String(opt)}>
+                    {opt}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-1.5">
+          <Button
+            onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+            disabled={currentPage === 1}
+            variant="outline"
+            size="sm"
+            className="h-7 w-7 p-0 rounded-md border-gray-200 dark:border-slate-800 bg-white dark:bg-card text-foreground hover:bg-[#942392] hover:text-white hover:border-[#942392] focus:bg-[#942392] focus:text-white disabled:opacity-40 transition-colors"
+            title="Previous page"
           >
-            <SelectTrigger className="h-7 text-[10px] font-bold rounded border-border w-[65px] bg-white dark:bg-card">
-              <SelectValue placeholder={String(pageSize)}>{pageSize}</SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {pageSizeOptions.map((opt) => (
-                <SelectItem key={opt} value={String(opt)}>
-                  {opt}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+
+          {getPageNumbers().map((page, idx) => {
+            if (page === '...') {
+              return (
+                <span key={`dots-${idx}`} className="px-1 text-xs text-muted-foreground">
+                  ...
+                </span>
+              );
+            }
+            const pageNum = page as number;
+            const isActive = currentPage === pageNum;
+            return (
+              <Button
+                key={pageNum}
+                onClick={() => onPageChange(pageNum)}
+                variant={isActive ? "default" : "outline"}
+                size="sm"
+                className={`h-7 min-w-[28px] px-2 rounded-md text-[11px] font-bold ${
+                  isActive
+                    ? 'bg-[#942392] hover:bg-[#5e0080] text-white border-[#942392]'
+                    : 'border-gray-200 dark:border-slate-800 bg-white dark:bg-card text-foreground'
+                }`}
+              >
+                {pageNum}
+              </Button>
+            );
+          })}
+
+          <Button
+            onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
+            disabled={currentPage >= totalPages}
+            variant="outline"
+            size="sm"
+            className="h-7 w-7 p-0 rounded-md border-gray-200 dark:border-slate-800 bg-white dark:bg-card text-foreground hover:bg-[#942392] hover:text-white hover:border-[#942392] focus:bg-[#942392] focus:text-white disabled:opacity-40 transition-colors"
+            title="Next page"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
         </div>
       </div>
-
-      <div className="flex items-center gap-1.5">
-        <Button
-          onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-          disabled={currentPage === 1}
-          variant="outline"
-          size="sm"
-          className="h-7 w-7 p-0 rounded-md border-gray-200 dark:border-slate-800 bg-white dark:bg-card text-foreground hover:bg-[#942392] hover:text-white hover:border-[#942392] focus:bg-[#942392] focus:text-white disabled:opacity-40 transition-colors"
-          title="Previous page"
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
-
-        {getPageNumbers().map((page, idx) => {
-          if (page === '...') {
-            return (
-              <span key={`dots-${idx}`} className="px-1 text-xs text-muted-foreground">
-                ...
-              </span>
-            );
-          }
-          const pageNum = page as number;
-          const isActive = currentPage === pageNum;
-          return (
-            <Button
-              key={pageNum}
-              onClick={() => onPageChange(pageNum)}
-              variant={isActive ? "default" : "outline"}
-              size="sm"
-              className={`h-7 min-w-[28px] px-2 rounded-md text-[11px] font-bold ${
-                isActive
-                  ? 'bg-[#942392] hover:bg-[#5e0080] text-white border-[#942392]'
-                  : 'border-gray-200 dark:border-slate-800 bg-white dark:bg-card text-foreground'
-              }`}
-            >
-              {pageNum}
-            </Button>
-          );
-        })}
-
-        <Button
-          onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
-          disabled={currentPage >= totalPages}
-          variant="outline"
-          size="sm"
-          className="h-7 w-7 p-0 rounded-md border-gray-200 dark:border-slate-800 bg-white dark:bg-card text-foreground hover:bg-[#942392] hover:text-white hover:border-[#942392] focus:bg-[#942392] focus:text-white disabled:opacity-40 transition-colors"
-          title="Next page"
-        >
-          <ChevronRight className="h-4 w-4" />
-        </Button>
-      </div>
-    </div>
+      <TableScrollTopButton entriesPerPage={pageSize} threshold={50} tableRef={tableRef} />
+    </>
   );
 };
 
