@@ -374,12 +374,12 @@ export default function OutstationAssignment() {
               <span className="text-[11px] font-black uppercase tracking-widest text-foreground dark:text-foreground">Filters</span>
             </div>
             <div className="relative">
-              <Search className="w-3.5 h-3.5 text-foreground absolute left-2.5 top-1/2 -translate-y-1/2" />
+              <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-2.5 top-1/2 -translate-y-1/2" />
               <Input
                 placeholder="Search employee, destination…"
                 value={filterSearch}
                 onChange={e => setFilterSearch(e.target.value)}
-                className="pl-8 h-8 text-xs w-40 sm:w-48"
+                className="pl-8 h-8 text-xs w-40 sm:w-48 placeholder:text-muted-foreground dark:placeholder:text-slate-400 font-medium"
               />
             </div>
             
@@ -419,9 +419,9 @@ export default function OutstationAssignment() {
           {loading ? (
             <div className="h-48 flex items-center justify-center"><Loader2 className="animate-spin w-7 h-7 text-pink-400" /></div>
           ) : filtered.length === 0 ? (
-            <div className="h-48 flex flex-col items-center justify-center gap-2 text-foreground">
+            <div className="h-48 flex flex-col items-center justify-center gap-2 text-muted-foreground dark:text-slate-400">
               <Plane className="w-10 h-10 opacity-20" />
-              <p className="text-[10px] font-black uppercase tracking-widest">No assignments found</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground dark:text-slate-400">No assignments found</p>
             </div>
           ) : (
             <div className="rounded-md border border-gray-200 dark:border-slate-800 dark:border-gray-500/30/60 bg-white dark:bg-card [&_.overflow-auto::-webkit-scrollbar]:hidden [&_.overflow-auto]:[-ms-overflow-style:none] [&_.overflow-auto]:[scrollbar-width:none]">

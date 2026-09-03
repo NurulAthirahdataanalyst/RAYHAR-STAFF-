@@ -439,7 +439,7 @@ function EmployeeSearchSelector({
           }}
           onClick={() => setOpen(true)}
           className={`pl-9 pr-9 bg-white dark:bg-card h-10 text-xs font-bold transition-all border-border/70 focus-visible:ring-1 focus-visible:ring-[#942392]/50 ${
-            selectedEmployee ? 'border-[#942392]/60 text-[#942392] font-black' : ''
+            selectedEmployee ? 'border-[#942392]/60 text-[#942392] font-black' : 'placeholder:text-muted-foreground dark:placeholder:text-slate-400 font-medium'
           }`}
         />
         {selectedEmployee ? (
