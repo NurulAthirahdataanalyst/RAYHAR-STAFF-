@@ -542,10 +542,10 @@ export default function SettingsPage() {
       {/* HORIZONTAL NAVIGATION TABS - PILL REDESIGN */}
       <div className="flex bg-gradient-to-r from-[#800A7A] via-[#942392] to-[#3d0052] p-2 rounded-xl shadow-inner overflow-x-auto gap-1 scrollbar-none items-center w-full lg:w-fit max-w-full border border-[#942392]/20 relative z-10 mb-6">
         {[
-          { id: "system", label: "System Configuration", icon: SlidersHorizontal },
-          { id: "staff", label: "Personnel Management", icon: UserPlus },
-          { id: "branch", label: "Branch Management", icon: MapPin },
-          { id: "department", label: "Department Management", icon: Layers }
+          { id: "system", label: "SYSTEM CONFIGURATION", icon: SlidersHorizontal },
+          { id: "staff", label: "PERSONNEL MANAGEMENT", icon: UserPlus },
+          { id: "branch", label: "BRANCH MANAGEMENT", icon: MapPin },
+          { id: "department", label: "DEPARTMENT MANAGEMENT", icon: Layers }
         ].map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -553,13 +553,13 @@ export default function SettingsPage() {
             <button
               key={tab.id}
               onClick={() => handleTabChange(tab.id as SettingsTab)}
-              className={`flex items-center gap-2 py-2 px-4 font-semibold text-xs whitespace-nowrap rounded-lg transition-all duration-300 ${
+              className={`flex items-center gap-2 py-2.5 px-4 text-[10px] sm:text-[11px] font-black uppercase tracking-wider whitespace-nowrap rounded-lg transition-all duration-300 ${
                 isActive 
-                  ? "bg-white dark:bg-card text-[#942392] shadow-md" 
-                  : "text-white/80 hover:text-white hover:bg-white/10"
+                  ? "bg-[#ffff00] text-[#942392] shadow-md font-black" 
+                  : "text-white/90 hover:text-white hover:bg-white/10 font-bold"
               }`}
             >
-              <Icon className={`w-4 h-4 shrink-0 transition-colors ${isActive ? "text-[#942392]" : "text-white/80"}`} />
+              <Icon className={`w-4 h-4 shrink-0 transition-colors ${isActive ? "text-[#942392]" : "text-white/90"}`} />
               <span>{tab.label}</span>
             </button>
           );
@@ -600,13 +600,13 @@ export default function SettingsPage() {
                       <BellRing className="w-5 h-5" />
                     </div>
                     <div>
-                      <span className="text-[10px] font-black text-foreground uppercase tracking-wider block">Real-time Notification Alerts</span>
-                      <p className="text-[8px] font-bold text-foreground uppercase tracking-widest mt-0.5 max-w-sm sm:max-w-md normal-case leading-relaxed">
+                      <span className="text-xs font-black text-foreground uppercase tracking-wider block">Real-time Notification Alerts</span>
+                      <p className="text-xs font-medium text-muted-foreground dark:text-slate-400 mt-1 max-w-sm sm:max-w-md normal-case leading-relaxed">
                         Enables WebSocket-driven instantaneous alerts across all admin client instances. Recommended for high-volume environments.
                       </p>
-                      <div className="flex items-center gap-1.5 mt-1">
+                      <div className="flex items-center gap-1.5 mt-1.5">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                        <span className="text-[8px] font-bold text-emerald-500 uppercase tracking-widest">Latency: &lt; 50ms</span>
+                        <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest">Latency: &lt; 50ms</span>
                       </div>
                     </div>
                   </div>
@@ -630,8 +630,8 @@ export default function SettingsPage() {
                       <Calendar className="w-5 h-5" />
                     </div>
                     <div>
-                      <span className="text-[10px] font-black text-foreground uppercase tracking-wider block">Automated Report Scheduling</span>
-                      <p className="text-[8px] font-bold text-foreground uppercase tracking-widest mt-0.5 max-w-sm sm:max-w-md normal-case leading-relaxed">
+                      <span className="text-xs font-black text-foreground uppercase tracking-wider block">Automated Report Scheduling</span>
+                      <p className="text-xs font-medium text-muted-foreground dark:text-slate-400 mt-1 max-w-sm sm:max-w-md normal-case leading-relaxed">
                         Distribute comprehensive analytics PDF and CSV reports to designated department heads automatically based on defined cycle.
                       </p>
                     </div>
@@ -674,8 +674,8 @@ export default function SettingsPage() {
                       <Clock className="w-5 h-5" />
                     </div>
                     <div>
-                      <span className="text-[10px] font-black text-foreground uppercase tracking-wider block">Late Arrivals Window</span>
-                      <p className="text-[8px] font-bold text-foreground uppercase tracking-widest mt-0.5 max-w-sm sm:max-w-md normal-case leading-relaxed">
+                      <span className="text-xs font-black text-foreground uppercase tracking-wider block">Late Arrivals Window</span>
+                      <p className="text-xs font-medium text-muted-foreground dark:text-slate-400 mt-1 max-w-sm sm:max-w-md normal-case leading-relaxed">
                         The grace period duration before a transaction or staff check-in is flagged as 'Delayed' in the global monitor.
                       </p>
                     </div>
