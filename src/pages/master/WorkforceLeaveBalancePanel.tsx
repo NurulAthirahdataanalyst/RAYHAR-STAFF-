@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useRole } from "@/contexts/RoleContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { API_BASE_URL } from "@/config/api";
 import { MonthPicker } from "@/components/shared/MonthPicker";
+import { TableScrollTopButton } from "@/components/shared/TableScrollTopButton";
 import { 
   ArrowLeft, 
   Search, 
@@ -84,6 +85,7 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [entriesPerPage, setEntriesPerPage] = useState(10);
+  const tableRef = useRef<HTMLTableElement>(null);
 
   // Modal detail
   const [selectedEmpDetail, setSelectedEmpDetail] = useState<EmployeeBalance | null>(null);
@@ -653,7 +655,7 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
               No employee leave records found matching your filters.
             </div>
           ) : (
-            <table className="w-full text-left text-xs border-collapse">
+            <table ref={tableRef} className="w-full text-left text-xs border-collapse">
               <thead className="sticky top-0 z-20 shadow-sm">
                 <tr className="border-b border-border/60">
                   <th className="p-3 pl-4 bg-slate-100 dark:bg-slate-900 text-[10px] uppercase font-black tracking-wider text-black dark:text-white">Employee</th>
@@ -883,6 +885,9 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Floating Scroll-to-Top Button for 50+ entries */}
+      <TableScrollTopButton entriesPerPage={entriesPerPage} tableRef={tableRef} />
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import React from 'react';
 import { useState, useEffect, useRef } from "react";
+import { TableScrollTopButton } from "@/components/shared/TableScrollTopButton";
 
 // HR Notification Helper (Mocking DB insertion via localStorage)
 const createHRNotification = (userId: string, title: string, message: string) => {
@@ -1066,6 +1067,7 @@ function CarryForwardLeaveForm({
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [entriesPerPage, setEntriesPerPage] = useState(10);
+    const tableRef = useRef<HTMLDivElement>(null);
 
 
   // Filter Employees dynamically
@@ -1399,7 +1401,7 @@ function CarryForwardLeaveForm({
 
         <div>
           <h4 className="text-xs font-black uppercase tracking-wider text-foreground mb-3 border-b pb-1">Eligible Employees</h4>
-          <div className="border rounded-md max-h-80 overflow-y-auto bg-white dark:bg-card">
+          <div ref={tableRef} className="border rounded-md max-h-80 overflow-y-auto bg-white dark:bg-card">
             <Table className="text-xs">
               <TableHeader className="bg-muted/30">
                 <TableRow>
@@ -2492,6 +2494,7 @@ function ReplacementLeaveValidationForm({ employees, onCancel }: { employees: an
           </div>
         )}
       </CardContent>
+      <TableScrollTopButton entriesPerPage={entriesPerPage} tableRef={tableRef} />
     </Card>
   );
 }

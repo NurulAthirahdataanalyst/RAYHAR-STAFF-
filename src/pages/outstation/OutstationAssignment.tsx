@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { useRole } from "@/contexts/RoleContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import PageActions from "@/components/layout/PageActions";
 import { MonthPicker } from "@/components/shared/MonthPicker";
 import { DatePickerInput } from "@/components/shared/DatePickerInput";
+import { TableScrollTopButton } from "@/components/shared/TableScrollTopButton";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
@@ -133,6 +134,7 @@ export default function OutstationAssignment() {
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [entriesPerPage, setEntriesPerPage] = useState(10);
+  const tableRef = useRef<HTMLTableElement>(null);
 
   useEffect(() => {
     if (!roleLoading && !OUTSTATION_ROLES.includes(role)) navigate("/");
@@ -423,7 +425,7 @@ export default function OutstationAssignment() {
             </div>
           ) : (
             <div className="rounded-md border border-gray-200 dark:border-slate-800 dark:border-gray-500/30/60 bg-white dark:bg-card [&_.overflow-auto::-webkit-scrollbar]:hidden [&_.overflow-auto]:[-ms-overflow-style:none] [&_.overflow-auto]:[scrollbar-width:none]">
-              <Table>
+              <Table ref={tableRef}>
                 <TableHeader>
                   <TableRow className="bg-slate-50/60 hover:bg-slate-50/60">
                     <TableHead className="text-black text-[10px] px-2.5">Employee</TableHead>
@@ -934,8 +936,9 @@ export default function OutstationAssignment() {
           )}
         </DialogContent>
       </Dialog>
-    </div>
 
+      <TableScrollTopButton entriesPerPage={entriesPerPage} tableRef={tableRef} />
+    </div>
   );
 }
 

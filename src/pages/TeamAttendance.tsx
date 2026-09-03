@@ -1,5 +1,6 @@
 import { useRole } from "@/contexts/RoleContext";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { TableScrollTopButton } from "@/components/shared/TableScrollTopButton";
 import { createPortal } from "react-dom";
 import { API_BASE_URL } from "@/config/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,6 +31,7 @@ export default function TeamAttendance() {
 
   const [entriesPerPage, setEntriesPerPage] = useState(25);
   const [currentPage, setCurrentPage] = useState(1);
+  const tableRef = useRef<HTMLTableElement>(null);
 
   // Reset page when filters change
   useEffect(() => {
@@ -496,7 +498,7 @@ export default function TeamAttendance() {
           </CardHeader>
           <CardContent>
             <div className="rounded-md border">
-              <Table>
+              <Table ref={tableRef}>
                 <TableHeader>
                     <TableRow>
                       <TableHead>Date</TableHead>
@@ -711,6 +713,8 @@ export default function TeamAttendance() {
           </div>
         </div>
       )}
+      {/* Floating Scroll-to-Top Button for 50+ entries */}
+      <TableScrollTopButton entriesPerPage={entriesPerPage} tableRef={tableRef} />
     </div>
   );
 }

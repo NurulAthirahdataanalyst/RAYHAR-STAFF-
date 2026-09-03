@@ -1,5 +1,7 @@
 import { useNavigate } from "react-router-dom";
+import { useRef } from "react";
 import { MonthPicker } from '@/components/shared/MonthPicker';
+import { TableScrollTopButton } from '@/components/shared/TableScrollTopButton';
 import { useRole } from "@/contexts/RoleContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -98,6 +100,7 @@ export default function Employees() {
   const [selectedStatus, setSelectedStatus] = useState("Active");
   const [currentPage, setCurrentPage] = useState(1);
   const [entriesPerPage, setEntriesPerPage] = useState(10);
+  const tableRef = useRef<HTMLTableElement>(null);
   const [dbEmployees, setDbEmployees] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedEmployee, setSelectedEmployee] = useState<any | null>(null);
@@ -855,7 +858,7 @@ export default function Employees() {
             <>
               {/* Desktop Table View */}
               <div className="hidden md:block overflow-x-auto">
-                <Table>
+                <Table ref={tableRef}>
                   <TableHeader className="bg-muted/30">
                     <TableRow>
                       <TableHead className="py-4 px-6">Staff Member</TableHead>
@@ -1585,6 +1588,8 @@ export default function Employees() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <TableScrollTopButton entriesPerPage={entriesPerPage} tableRef={tableRef} />
     </div>
   );
 }
