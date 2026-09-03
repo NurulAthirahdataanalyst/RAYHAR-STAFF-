@@ -26,18 +26,27 @@ export function TableScrollTopButton({
     }
     if (tableRef && tableRef.current) {
       const el = tableRef.current;
-      // Scroll nearest overflow container if scrollable
+      
+      // 1. Scroll inner overflow container to top if present
       let parent: HTMLElement | null = el.parentElement;
-      while (parent && parent !== document.body) {
+      while (parent && parent !== document.body && parent !== document.documentElement) {
         const style = window.getComputedStyle(parent);
-        if (style.overflowY === 'auto' || style.overflowY === 'scroll') {
+        if ((style.overflowY === 'auto' || style.overflowY === 'scroll') && parent.scrollHeight > parent.clientHeight) {
           parent.scrollTo({ top: 0, behavior: 'smooth' });
           break;
         }
         parent = parent.parentElement;
       }
-      // Scroll table top into view
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      // 2. Scroll window so table header is positioned below the sticky navbar
+      const rect = el.getBoundingClientRect();
+      const navbarOffset = 140; // Height of sticky top header + page title padding
+      const targetY = rect.top + window.pageYOffset - navbarOffset;
+
+      window.scrollTo({
+        top: Math.max(0, targetY),
+        behavior: 'smooth'
+      });
     } else {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
