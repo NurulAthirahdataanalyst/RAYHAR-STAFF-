@@ -7967,7 +7967,11 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       }),
       leaveAnalytics: realLeaveAnalytics,
       outstationAnalytics: dynamicMetrics.outstationAnalytics,
-      workforceMovement: { newJoiners: parseInt((await pool.query('SELECT COUNT(*) as cnt FROM profiles WHERE EXTRACT(MONTH FROM created_at) = ? AND EXTRACT(YEAR FROM created_at) = ? AND status=\'Active\'', [requestedMonth, requestedYear]))[0][0]?.cnt || 0), resigned: parseInt((await pool.query('SELECT COUNT(*) as cnt FROM profiles WHERE status = \'Inactive\''))[0][0]?.cnt || 0), transferred: parseInt((await pool.query('SELECT COUNT(DISTINCT user_id) as cnt FROM employee_work_assignment WHERE type = \'Temporary Assignment\' AND start_date < ? AND end_date >= ?', [new Date(requestedYear, requestedMonth, 1).toISOString().substring(0, 10), new Date(requestedYear, requestedMonth - 1, 1).toISOString().substring(0, 10)]))[0][0]?.cnt || 0) },
+      workforceMovement: { 
+        newJoiners: parseInt((await pool.query(`SELECT COUNT(*) as cnt FROM profiles p WHERE EXTRACT(MONTH FROM p.created_at) = ? AND EXTRACT(YEAR FROM p.created_at) = ? AND p.status='Active' ${profileFilter}`, [requestedMonth, requestedYear, ...pFilterParams]))[0][0]?.cnt || 0), 
+        resigned: parseInt((await pool.query(`SELECT COUNT(*) as cnt FROM profiles p WHERE p.status = 'Inactive' ${profileFilter}`, [...pFilterParams]))[0][0]?.cnt || 0), 
+        transferred: parseInt((await pool.query(`SELECT COUNT(DISTINCT e.user_id) as cnt FROM employee_work_assignment e JOIN profiles p ON e.user_id = p.user_id WHERE e.type = 'Temporary Assignment' AND e.start_date < ? AND e.end_date >= ? ${profileFilter}`, [new Date(requestedYear, requestedMonth, 1).toISOString().substring(0, 10), new Date(requestedYear, requestedMonth - 1, 1).toISOString().substring(0, 10), ...pFilterParams]))[0][0]?.cnt || 0) 
+      },
       hrAlerts: dynamicMetrics.hrAlerts,
       topKpi: {
         totalHeadcount,
