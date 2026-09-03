@@ -677,17 +677,12 @@ export default function Employees() {
         <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 w-full sm:w-auto flex-1">
            <Popover open={empSearchOpen} onOpenChange={setEmpSearchOpen}>
               <PopoverTrigger asChild>
-                <div 
-                  className="relative w-full sm:max-w-xs cursor-pointer"
-                  onClick={() => setEmpSearchOpen(true)}
-                >
+                <div className="relative w-full sm:max-w-xs cursor-pointer">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/50 z-10 pointer-events-none" />
                   
                   <Input
                     placeholder={checkedEmployees.length > 0 ? `${checkedEmployees.length} employee${checkedEmployees.length > 1 ? 's' : ''} selected` : "Search employees..."}
                     value={empSearchText}
-                    onFocus={() => setEmpSearchOpen(true)}
-                    onClick={() => setEmpSearchOpen(true)}
                     onChange={(e) => {
                         setEmpSearchText(e.target.value);
                         setSearch(e.target.value);

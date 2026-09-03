@@ -462,17 +462,12 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
           {/* Employee Popover Search (Matching Employee Directory) */}
           <Popover open={empSearchOpen} onOpenChange={setEmpSearchOpen}>
             <PopoverTrigger asChild>
-              <div 
-                className="relative flex-1 min-w-[220px] max-w-xs cursor-pointer"
-                onClick={() => setEmpSearchOpen(true)}
-              >
+              <div className="relative flex-1 min-w-[220px] max-w-xs cursor-pointer">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10 pointer-events-none" />
                 
                 <Input
                   placeholder={checkedEmployees.length > 0 ? `${checkedEmployees.length} employee${checkedEmployees.length > 1 ? 's' : ''} selected` : "Search employees..."}
                   value={empSearchText}
-                  onFocus={() => setEmpSearchOpen(true)}
-                  onClick={() => setEmpSearchOpen(true)}
                   onChange={(e) => {
                     setEmpSearchText(e.target.value);
                     setSearch(e.target.value);
