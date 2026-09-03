@@ -8276,21 +8276,53 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
 // ==========================================
 app.get("/api/reports/workforce-leave-balance", async (req, res) => {
   try {
-    const { role, branch, department, year, search } = req.query;
-    const requestedYear = parseInt(year || new Date().getFullYear());
+    const { role, branch, department, year, monthYear, search } = req.query;
+
+    // Support monthYear (e.g., "2026-09" or "2026-all")
+    let requestedYear = parseInt(year || new Date().getFullYear());
+    let yearStartStr = `${requestedYear}-01-01`;
+    let yearEndStr = `${requestedYear}-12-31`;
+
+    if (monthYear) {
+      if (monthYear.endsWith("-all")) {
+        requestedYear = parseInt(monthYear.split("-")[0]);
+        yearStartStr = `${requestedYear}-01-01`;
+        yearEndStr = `${requestedYear}-12-31`;
+      } else if (monthYear.includes("-")) {
+        const [yStr, mStr] = monthYear.split("-");
+        requestedYear = parseInt(yStr);
+        const monthNum = parseInt(mStr);
+        if (!isNaN(requestedYear) && !isNaN(monthNum)) {
+          const lastDay = new Date(requestedYear, monthNum, 0).getDate();
+          yearStartStr = `${requestedYear}-${mStr.padStart(2, '0')}-01`;
+          yearEndStr = `${requestedYear}-${mStr.padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+        }
+      }
+    }
 
     // Role-based Access Control Scope
-    const userRole = (role || "").toLowerCase();
-    const isAllAccessRole = ["hr_admin", "hr", "admin", "managing_director", "md", "operation_manager", "finance_manager"].includes(userRole);
+    const rawRole = (role || "").toLowerCase();
+    const normalizedRole = rawRole.replace(/_/g, " ");
+    const isAllAccessRole = [
+      "hr admin", "hr_admin", "hr", "admin",
+      "managing director", "managing_director", "md",
+      "operation manager", "operation_manager",
+      "finance manager", "finance_manager"
+    ].includes(rawRole) || [
+      "hr admin", "hr_admin", "hr", "admin",
+      "managing director", "managing_director", "md",
+      "operation manager", "operation_manager",
+      "finance manager", "finance_manager"
+    ].includes(normalizedRole);
 
     let profileFilter = " WHERE p.status = 'Active'";
     let pParams = [];
 
     if (!isAllAccessRole) {
-      if (userRole === 'branch_leader' && branch) {
+      if ((rawRole.includes("branch") || rawRole.includes("leader")) && branch && branch !== "All") {
         profileFilter += " AND p.branch = ?";
         pParams.push(branch);
-      } else if (userRole === 'head_of_department' && department) {
+      } else if ((rawRole.includes("department") || rawRole.includes("head") || rawRole.includes("hod")) && department && department !== "All") {
         profileFilter += " AND p.department = ?";
         pParams.push(department);
       }
@@ -8312,17 +8344,17 @@ app.get("/api/reports/workforce-leave-balance", async (req, res) => {
 
     // 1. Fetch Profiles
     const [profiles] = await pool.query(
-      `SELECT p.user_id, p.full_name, p.branch, p.department, p.position,
+      `SELECT p.user_id, p.full_name, p.branch, p.department, p.role as position,
               COALESCE(p.annual_leave_entitlement, 14) as annual_entitlement,
               COALESCE(p.medical_leave_entitlement, 14) as medical_entitlement,
-              COALESCE(p.emergency_leave_entitlement, 5) as emergency_entitlement
+              5 as emergency_entitlement
        FROM profiles p
        ${profileFilter}
        ORDER BY p.full_name ASC`,
       pParams
     );
 
-    if (profiles.length === 0) {
+    if (!profiles || profiles.length === 0) {
       return res.json({
         success: true,
         summary: { totalEmployees: 0, totalEntitlement: 0, totalTaken: 0, totalBalance: 0 },
@@ -8341,9 +8373,7 @@ app.get("/api/reports/workforce-leave-balance", async (req, res) => {
       [userIds]
     );
 
-    // 3. Fetch Leave Requests (Approved & Pending) for target year
-    const yearStartStr = `${requestedYear}-01-01`;
-    const yearEndStr = `${requestedYear}-12-31`;
+    // 3. Fetch Leave Requests (Approved & Pending) for target date window
     const [leaveRequests] = await pool.query(
       `SELECT user_id, leave_type, days, status
        FROM leave_requests
@@ -8355,7 +8385,7 @@ app.get("/api/reports/workforce-leave-balance", async (req, res) => {
 
     // Map adjustments by user_id
     const adjMap = {};
-    adjustments.forEach(r => {
+    (adjustments || []).forEach(r => {
       if (!adjMap[r.employee_id]) adjMap[r.employee_id] = {};
       const lt = (r.leave_type || '').toLowerCase();
       adjMap[r.employee_id][lt] = (adjMap[r.employee_id][lt] || 0) + parseFloat(r.total_adj || 0);
@@ -8363,7 +8393,7 @@ app.get("/api/reports/workforce-leave-balance", async (req, res) => {
 
     // Map leave requests by user_id
     const leaveMap = {};
-    leaveRequests.forEach(r => {
+    (leaveRequests || []).forEach(r => {
       if (!leaveMap[r.user_id]) leaveMap[r.user_id] = [];
       leaveMap[r.user_id].push(r);
     });

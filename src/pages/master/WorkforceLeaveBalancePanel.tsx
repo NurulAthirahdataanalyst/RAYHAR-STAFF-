@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { API_BASE_URL } from "@/config/api";
+import { MonthPicker } from "@/components/shared/MonthPicker";
 import { 
   ArrowLeft, 
   Search, 
@@ -66,14 +67,23 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
   const [search, setSearch] = useState("");
   const [selectedBranch, setSelectedBranch] = useState("All");
   const [selectedDepartment, setSelectedDepartment] = useState("All");
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
+  
+  const currentYearStr = new Date().getFullYear().toString();
+  const [selectedMonthYear, setSelectedMonthYear] = useState(`${currentYearStr}-all`);
+  
   const [selectedLeaveType, setSelectedLeaveType] = useState("All");
   const [sortBy, setSortBy] = useState<"name_asc" | "balance_asc" | "balance_desc">("name_asc");
 
   // Modal detail
   const [selectedEmpDetail, setSelectedEmpDetail] = useState<EmployeeBalance | null>(null);
 
-  const isAllAccessRole = ["hr_admin", "hr", "admin", "managing_director", "md", "operation_manager", "finance_manager"].includes((role || "").toLowerCase());
+  const rawRole = (role || "").toLowerCase();
+  const isAllAccessRole = [
+    "hr admin", "hr_admin", "hr", "admin",
+    "managing director", "managing_director", "md",
+    "operation manager", "operation_manager",
+    "finance manager", "finance_manager"
+  ].includes(rawRole);
 
   const fetchLeaveBalances = async () => {
     setLoading(true);
@@ -85,7 +95,7 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
         role: role || "",
         branch: isFilteredBranch || "All",
         department: isFilteredDept || "All",
-        year: selectedYear,
+        monthYear: selectedMonthYear,
         search: search
       });
 
@@ -105,7 +115,28 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
 
   useEffect(() => {
     fetchLeaveBalances();
-  }, [role, selectedBranch, selectedDepartment, selectedYear, search]);
+
+    // SSE Real-time Updates
+    const es = new EventSource(`${API_BASE_URL}/api/workforce-insights/live-feed`);
+    es.onmessage = (e) => {
+      try {
+        const data = JSON.parse(e.data);
+        if (data && data.type !== 'ping') {
+          fetchLeaveBalances();
+        }
+      } catch (err) {}
+    };
+
+    const handleBroadcast = () => fetchLeaveBalances();
+    window.addEventListener("entitlementHistoryUpdated", handleBroadcast);
+    window.addEventListener("rayhar_leave_refresh", handleBroadcast);
+
+    return () => {
+      es.close();
+      window.removeEventListener("entitlementHistoryUpdated", handleBroadcast);
+      window.removeEventListener("rayhar_leave_refresh", handleBroadcast);
+    };
+  }, [role, selectedBranch, selectedDepartment, selectedMonthYear, search]);
 
   // Unique options for filters
   const uniqueBranches = useMemo(() => {
@@ -147,7 +178,7 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
     setSearch("");
     setSelectedBranch("All");
     setSelectedDepartment("All");
-    setSelectedYear(new Date().getFullYear().toString());
+    setSelectedMonthYear(`${currentYearStr}-all`);
     setSelectedLeaveType("All");
     setSortBy("name_asc");
   };
@@ -219,10 +250,10 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
 
             {/* Export buttons */}
             <div className="flex items-center gap-2 shrink-0 flex-wrap">
-              <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5 font-bold" onClick={() => exportCSV(`Workforce_Leave_Balance_${selectedYear}.csv`)}>
+              <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5 font-bold" onClick={() => exportCSV(`Workforce_Leave_Balance_${selectedMonthYear}.csv`)}>
                 <FileText className="w-3.5 h-3.5" /> CSV
               </Button>
-              <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5 font-bold" onClick={() => exportCSV(`Workforce_Leave_Balance_${selectedYear}.xls`)}>
+              <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5 font-bold" onClick={() => exportCSV(`Workforce_Leave_Balance_${selectedMonthYear}.xls`)}>
                 <Download className="w-3.5 h-3.5" /> Excel
               </Button>
               <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5 font-bold" onClick={() => window.print()}>
@@ -325,17 +356,12 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
             </Select>
           )}
 
-          {/* Year filter */}
-          <Select value={selectedYear} onValueChange={setSelectedYear}>
-            <SelectTrigger className="w-[110px] h-9 text-xs font-bold bg-background/50 border-border/60">
-              <SelectValue placeholder="Year" />
-            </SelectTrigger>
-            <SelectContent>
-              {["2026", "2025", "2024"].map(y => (
-                <SelectItem key={y} value={y} className="text-xs font-bold">{y}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {/* Month / Year Picker */}
+          <MonthPicker
+            monthYear={selectedMonthYear}
+            onSelectMonthYear={setSelectedMonthYear}
+            className="h-9 text-xs font-black uppercase bg-background/50 border-border/60 min-w-[140px]"
+          />
 
           {/* Leave Type filter */}
           <Select value={selectedLeaveType} onValueChange={setSelectedLeaveType}>
@@ -468,7 +494,7 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
           </DialogHeader>
 
           <div className="p-5 space-y-4">
-            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Detailed Leave Entitlement Breakdown ({selectedYear})</p>
+            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Detailed Leave Entitlement Breakdown ({selectedMonthYear})</p>
 
             <table className="w-full text-left text-xs border-collapse">
               <thead className="bg-muted/40 border-b border-border/50 text-[10px] uppercase font-black tracking-wider text-muted-foreground">
