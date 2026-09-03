@@ -374,7 +374,7 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
   };
 
   return (
-    <div className="animate-in slide-in-from-right-4 duration-300 h-full flex flex-col max-h-[85vh] space-y-4">
+    <div className="animate-in slide-in-from-right-4 duration-300 space-y-4 pb-8">
       {/* Header Card */}
       <Card className="border-border/60 shadow-xl overflow-hidden bg-card/77 backdrop-blur-sm shrink-0">
         <CardHeader className="pb-4 border-b border-border/50 bg-muted/20">
@@ -454,7 +454,7 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
       </div>
 
       {/* Main Table Card */}
-      <Card className="border-border/60 shadow-xl overflow-hidden bg-card/77 backdrop-blur-sm flex-1 flex flex-col min-h-0">
+      <Card className="border-border/60 shadow-xl overflow-hidden bg-card/77 backdrop-blur-sm">
         {/* Filters Bar */}
         <div className="p-4 border-b border-border/40 bg-muted/10 flex flex-wrap items-center gap-3 shrink-0">
           {/* Employee Popover Search (Matching Employee Directory) */}
@@ -642,7 +642,7 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
         </div>
 
         {/* Table Content */}
-        <div className="flex-1 overflow-auto custom-scrollbar relative">
+        <div className="overflow-x-auto custom-scrollbar relative">
           {loading ? (
             <div className="flex flex-col items-center justify-center p-12 text-muted-foreground gap-2">
               <Loader2 className="w-6 h-6 animate-spin text-[#942392]" />
