@@ -479,7 +479,7 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
                     if (!empSearchOpen) setEmpSearchOpen(true);
                   }}
                   className={`pl-9 pr-8 h-9 border bg-background/50 rounded-xl font-semibold text-xs focus-visible:ring-1 focus-visible:ring-[#942392]/50 w-full transition-all ${
-                    checkedEmployees.length > 0 ? 'border-[#942392]/50 text-[#942392] placeholder:text-[#942392]/80 placeholder:font-bold' : 'border-border/60'
+                    checkedEmployees.length > 0 ? 'border-[#942392]/50 text-[#942392] placeholder:text-[#942392]/80 placeholder:font-bold' : 'border-border/60 placeholder:text-muted-foreground dark:placeholder:text-slate-400 font-medium'
                   }`}
                 />
                 {(search || checkedEmployees.length > 0) && (

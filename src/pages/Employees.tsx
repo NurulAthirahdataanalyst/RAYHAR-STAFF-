@@ -693,7 +693,7 @@ export default function Employees() {
                         setSearch(e.target.value);
                         if (!empSearchOpen) setEmpSearchOpen(true);
                     }}
-                    className={`pl-9 pr-8 h-11 sm:h-10 border bg-background/50 rounded-xl font-semibold text-xs focus-visible:ring-1 focus-visible:ring-[#942392]/50 w-full transition-all ${checkedEmployees.length > 0 ? 'border-[#942392]/50 text-[#942392] placeholder:text-[#942392]/80 placeholder:font-bold' : 'border-border/60'}`}
+                    className={`pl-9 pr-8 h-11 sm:h-10 border bg-background/50 rounded-xl font-semibold text-xs focus-visible:ring-1 focus-visible:ring-[#942392]/50 w-full transition-all ${checkedEmployees.length > 0 ? 'border-[#942392]/50 text-[#942392] placeholder:text-[#942392]/80 placeholder:font-bold' : 'border-border/60 placeholder:text-muted-foreground dark:placeholder:text-slate-400 font-medium'}`}
                   />
                   {(search || checkedEmployees.length > 0) && (
                     <button 
