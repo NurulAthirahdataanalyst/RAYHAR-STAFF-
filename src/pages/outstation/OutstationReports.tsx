@@ -254,77 +254,101 @@ export default function OutstationReports() {
 
       {/* Global or Event KPIs */}
       {!loading && (
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
           {!selectedEventName ? (
             <>
-                <div className="bg-white dark:bg-card border border-border shadow-sm rounded-lg p-5 flex items-center gap-4 hover:border-purple-300 transition-colors">
+              <Card className="border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm">
+                <CardContent className="p-6 flex items-center gap-4">
                   <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center shrink-0">
                     <FileText className="w-6 h-6 text-purple-600 dark:text-purple-400" />
                   </div>
                   <div>
-                    <p className="text-xs font-medium text-foreground">Total Events</p>
-                    <h3 className="text-2xl font-bold mt-1 text-foreground dark:text-gray-100">{totalEventsCount}</h3>
+                    <p className="text-sm font-medium text-foreground">Total Events</p>
+                    <h3 className="text-3xl font-bold mt-1 text-foreground dark:text-gray-100">{totalEventsCount}</h3>
                   </div>
-                </div>
-                <div className="bg-white dark:bg-card border border-border shadow-sm rounded-lg p-5 flex items-center gap-4 hover:border-purple-300 transition-colors">
+                </CardContent>
+              </Card>
+
+              <Card className="border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm">
+                <CardContent className="p-6 flex items-center gap-4">
                   <div className="w-12 h-12 rounded-xl bg-pink-500/10 flex items-center justify-center shrink-0">
                     <CalendarDays className="w-6 h-6 text-pink-500" />
                   </div>
                   <div>
-                    <p className="text-xs font-medium text-foreground">Total Days</p>
-                    <h3 className="text-2xl font-bold mt-1 text-pink-600">{totalDaysCount}</h3>
+                    <p className="text-sm font-medium text-foreground">Total Days</p>
+                    <h3 className="text-3xl font-bold mt-1 text-pink-600">{totalDaysCount}</h3>
                   </div>
-                </div>
-                <div className="bg-white dark:bg-card border border-border shadow-sm rounded-lg p-5 flex items-center gap-4 hover:border-purple-300 transition-colors">
+                </CardContent>
+              </Card>
+
+              <Card className="border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm">
+                <CardContent className="p-6 flex items-center gap-4">
                   <div className="w-12 h-12 rounded-xl bg-rose-500/10 flex items-center justify-center shrink-0">
                     <Activity className="w-6 h-6 text-rose-500" />
                   </div>
                   <div>
-                    <p className="text-xs font-medium text-foreground">Active Now</p>
-                    <h3 className="text-2xl font-bold mt-1 text-rose-600">{activeEventsCount}</h3>
+                    <p className="text-sm font-medium text-foreground">Active Now</p>
+                    <h3 className="text-3xl font-bold mt-1 text-rose-600">{activeEventsCount}</h3>
                   </div>
-                </div>
-                <div className="bg-white dark:bg-card border border-border shadow-sm rounded-lg p-5 flex items-center gap-4 hover:border-purple-300 transition-colors">
+                </CardContent>
+              </Card>
+
+              <Card className="border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm">
+                <CardContent className="p-6 flex items-center gap-4">
                   <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center shrink-0">
                     <Calendar className="w-6 h-6 text-amber-500" />
                   </div>
                   <div>
-                    <p className="text-xs font-medium text-foreground">Upcoming Events</p>
-                    <h3 className="text-2xl font-bold mt-1 text-amber-500">{upcomingEventsCount}</h3>
+                    <p className="text-sm font-medium text-foreground">Upcoming Events</p>
+                    <h3 className="text-3xl font-bold mt-1 text-amber-500">{upcomingEventsCount}</h3>
                   </div>
-                </div>
-                <div className="bg-white dark:bg-card border border-border shadow-sm rounded-lg p-5 flex items-center gap-4 hover:border-purple-300 transition-colors">
+                </CardContent>
+              </Card>
+
+              <Card className="border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm">
+                <CardContent className="p-6 flex items-center gap-4">
                   <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center shrink-0">
                     <CheckCircle2 className="w-6 h-6 text-blue-500" />
                   </div>
                   <div>
-                    <p className="text-xs font-medium text-foreground">Completed Events</p>
-                    <h3 className="text-2xl font-bold mt-1 text-blue-600">{completedEventsCount}</h3>
+                    <p className="text-sm font-medium text-foreground">Completed Events</p>
+                    <h3 className="text-3xl font-bold mt-1 text-blue-600">{completedEventsCount}</h3>
                   </div>
-                </div>
-              </>
+                </CardContent>
+              </Card>
+            </>
           ) : (
             <>
-              <div className="bg-white dark:bg-card border border-slate-200 dark:border-slate-800 rounded-md p-4 flex flex-col justify-between hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors">
-                <p className="text-[11px] font-black uppercase tracking-widest text-foreground">Event Name</p>
-                <p className="text-xl font-black text-foreground dark:text-gray-100 mt-2 line-clamp-3 leading-tight" title={selectedEvent!.eventName}>{selectedEvent!.eventName}</p>
-              </div>
-              <div className="bg-white dark:bg-card border border-slate-200 dark:border-slate-800 rounded-md p-4 flex flex-col justify-between hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors">
-                <p className="text-[11px] font-black uppercase tracking-widest text-foreground">Total Staff</p>
-                <p className="text-3xl font-black text-foreground dark:text-gray-100 mt-2">{selectedEvent!.assignments.length}</p>
-              </div>
-              <div className="bg-white dark:bg-card border border-slate-200 dark:border-slate-800 rounded-md p-4 flex flex-col justify-between hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors">
-                <p className="text-[11px] font-black uppercase tracking-widest text-foreground">Total Days</p>
-                <p className="text-3xl font-black text-pink-600 mt-2">{selectedEvent!.totalDays}</p>
-              </div>
-              <div className="bg-white dark:bg-card border border-slate-200 dark:border-slate-800 rounded-md p-4 flex flex-col justify-between hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors">
-                <p className="text-[11px] font-black uppercase tracking-widest text-foreground">Status</p>
-                <div className="mt-2">{statusBadge(selectedEvent!.status)}</div>
-              </div>
-              <div className="bg-white dark:bg-card border border-slate-200 dark:border-slate-800 rounded-md p-4 flex flex-col justify-between hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors">
-                <p className="text-[11px] font-black uppercase tracking-widest text-foreground">Destination</p>
-                <p className="text-xl font-bold text-foreground dark:text-gray-300 mt-2 line-clamp-3 leading-tight" title={selectedEvent!.destination}>{selectedEvent!.destination}</p>
-              </div>
+              <Card className="border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm">
+                <CardContent className="p-6 flex flex-col justify-between h-full">
+                  <p className="text-sm font-medium text-foreground">Event Name</p>
+                  <p className="text-xl font-bold text-foreground dark:text-gray-100 mt-2 line-clamp-3 leading-tight" title={selectedEvent!.eventName}>{selectedEvent!.eventName}</p>
+                </CardContent>
+              </Card>
+              <Card className="border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm">
+                <CardContent className="p-6 flex flex-col justify-between h-full">
+                  <p className="text-sm font-medium text-foreground">Total Staff</p>
+                  <p className="text-3xl font-bold text-foreground dark:text-gray-100 mt-2">{selectedEvent!.assignments.length}</p>
+                </CardContent>
+              </Card>
+              <Card className="border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm">
+                <CardContent className="p-6 flex flex-col justify-between h-full">
+                  <p className="text-sm font-medium text-foreground">Total Days</p>
+                  <p className="text-3xl font-bold text-pink-600 mt-2">{selectedEvent!.totalDays}</p>
+                </CardContent>
+              </Card>
+              <Card className="border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm">
+                <CardContent className="p-6 flex flex-col justify-between h-full">
+                  <p className="text-sm font-medium text-foreground">Status</p>
+                  <div className="mt-2">{statusBadge(selectedEvent!.status)}</div>
+                </CardContent>
+              </Card>
+              <Card className="border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm">
+                <CardContent className="p-6 flex flex-col justify-between h-full">
+                  <p className="text-sm font-medium text-foreground">Destination</p>
+                  <p className="text-xl font-bold text-foreground dark:text-gray-300 mt-2 line-clamp-3 leading-tight" title={selectedEvent!.destination}>{selectedEvent!.destination}</p>
+                </CardContent>
+              </Card>
             </>
           )}
         </div>
