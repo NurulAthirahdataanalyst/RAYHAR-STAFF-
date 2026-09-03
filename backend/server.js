@@ -5616,11 +5616,13 @@ app.get("/api/dashboard-stats", async (req, res) => {
       );
 
       const [companyLeaveDays] = await pool.query(
-        `SELECT * FROM company_leave_calendar WHERE status = 'Active' AND (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date`
+        `SELECT * FROM company_leave_calendar WHERE status = 'Active' AND ?::date BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date`,
+        [queryDate]
       );
 
       const [upcomingCompanyLeaveRows] = await pool.query(
-        `SELECT * FROM company_leave_calendar WHERE status = 'Active' AND DATE(end_date) >= CURRENT_DATE ORDER BY start_date ASC LIMIT 1`
+        `SELECT * FROM company_leave_calendar WHERE status = 'Active' AND DATE(end_date) >= ?::date ORDER BY start_date ASC LIMIT 1`,
+        [queryDate]
       );
 
       const [allActiveProfiles] = await pool.query(
@@ -5691,6 +5693,21 @@ app.get("/api/dashboard-stats", async (req, res) => {
         }
       });
 
+      const matchingActiveCompanyLeave = companyLeaveDays.length > 0 ? (
+        companyLeaveDays.find(cl => {
+          if (cl.applies_to === 'all') return true;
+          if (isBranchLeader && branch && cl.applies_to === 'branch' && cl.branch_id) {
+            return cl.branch_id.split(',').map(s => s.trim()).includes(branch);
+          }
+          if (isHOD && department && cl.applies_to === 'department' && cl.department_id) {
+            const depts = cl.department_id.split(',').map(s => s.trim());
+            const normDept = (department || '').toLowerCase().replace(/\bdepartment\b/g, '').trim();
+            return depts.some(d => d.toLowerCase().replace(/\bdepartment\b/g, '').trim() === normDept || department === d);
+          }
+          return cl.applies_to === 'all';
+        }) || companyLeaveDays[0]
+      ) : null;
+
       adminStats = {
         totalEmployees: parseInt(employeeRows[0].total_employees || 0),
         presentToday: presentRows.length,
@@ -5699,7 +5716,8 @@ app.get("/api/dashboard-stats", async (req, res) => {
         lateArrivals: parseInt(lateRows[0].late_arrivals || 0),
         pendingApprovals: parseInt(pendingRows[0].pending_approvals || 0),
         companyLeave: companyLeaveCount,
-        activeCompanyLeave: upcomingCompanyLeaveRows.length > 0 ? upcomingCompanyLeaveRows[0] : null,
+        activeCompanyLeave: matchingActiveCompanyLeave,
+        upcomingCompanyLeave: upcomingCompanyLeaveRows.length > 0 ? upcomingCompanyLeaveRows[0] : null,
         outstationToday: outstationTodayRows.length,
         upcomingOutstation: parseInt(upcomingOutstationRows[0].upcoming_outstation || 0),
         absentToday: absentCount,

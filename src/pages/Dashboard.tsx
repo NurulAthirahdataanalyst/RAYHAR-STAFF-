@@ -552,8 +552,23 @@ export default function Dashboard() {
   const isClockedOut = safeTodayStatus.includes("Clocked Out");
   const isOnLeave = safeTodayStatus === "On Leave";
   const isCompanyLeave = safeTodayStatus === "Company Leave";
-  const isElevatedRole = ["hr_admin", "branch_leader", "managing_director", "operation_manager", "operation_manager", "head_of_department"].includes(role);
-  const canSeeSystem = ["hr_admin", "managing_director", "operation_manager", "operation_manager", "head_of_department"].includes(role);
+  const isCompanyLeaveActiveOnDate = Boolean(
+    stats.activeCompanyLeave &&
+    stats.activeCompanyLeave.start_date &&
+    (() => {
+      const curDateStr = format(selectedDate, "yyyy-MM-dd");
+      const parseDateStr = (d: any) => {
+        if (!d) return "";
+        const dt = new Date(d);
+        return !isNaN(dt.getTime()) ? format(dt, "yyyy-MM-dd") : String(d).slice(0, 10);
+      };
+      const startStr = parseDateStr(stats.activeCompanyLeave.start_date);
+      const endStr = stats.activeCompanyLeave.end_date ? parseDateStr(stats.activeCompanyLeave.end_date) : startStr;
+      return curDateStr >= startStr && curDateStr <= endStr;
+    })()
+  );
+  const isElevatedRole = ["hr_admin", "branch_leader", "managing_director", "operation_manager", "head_of_department"].includes(role);
+  const canSeeSystem = ["hr_admin", "managing_director", "operation_manager", "head_of_department"].includes(role);
   
   const displayStatus = safeTodayStatus
     .replace("Clocked In (Outstation)", "Outstation")
@@ -842,7 +857,7 @@ export default function Dashboard() {
           </>
         ) : (
           <>
-            {isCompanyLeave && stats.activeCompanyLeave && ["managing_director", "head_of_department", "operation_manager", "hr_admin", "branch_leader"].includes(role) ? (
+            {isCompanyLeave && isCompanyLeaveActiveOnDate && ["managing_director", "head_of_department", "operation_manager", "hr_admin", "branch_leader"].includes(role) ? (
               <>
                 {["hr_admin", "managing_director", "operation_manager"].includes(role) ? (
                   <>
@@ -1026,7 +1041,7 @@ export default function Dashboard() {
                     }}
                   />
                 )}
-                {stats.activeCompanyLeave ? (
+                {isCompanyLeaveActiveOnDate ? (
                   <div onClick={() => navigate("/calendar/company-leave")} className="cursor-pointer">
                     <Card className="border-none bg-card overflow-hidden h-[120px] sm:h-[130px] flex flex-col relative group transition-all duration-300 hover: hover:-translate-y-1 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
                       <div className="absolute top-0 right-0 p-3 opacity-10 transition-transform duration-500 group-hover:scale-110 group-hover:opacity-20 text-[#a01497]">
@@ -1077,7 +1092,7 @@ export default function Dashboard() {
                 )}
               </>
             )}
-            {!(isCompanyLeave && stats.activeCompanyLeave && ["hr_admin", "managing_director", "operation_manager"].includes(role)) && (
+            {!(isCompanyLeave && isCompanyLeaveActiveOnDate && ["hr_admin", "managing_director", "operation_manager"].includes(role)) && (
               <>
                 <StatCard
                   icon={CheckCircle2}
@@ -1156,7 +1171,7 @@ export default function Dashboard() {
         )}
       </div>
 
-      {isCompanyLeave && stats.activeCompanyLeave && ["hr_admin", "managing_director", "operation_manager"].includes(role) && (
+      {isCompanyLeave && isCompanyLeaveActiveOnDate && ["hr_admin", "managing_director", "operation_manager"].includes(role) && (
         <Card className="border-none shadow-[0_2px_12px_rgba(0,0,0,0.06)]   overflow-hidden bg-white dark:bg-card mb-6 animate-in fade-in slide-in-from-bottom-2 duration-700 delay-100 fill-mode-both rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
           <CardHeader className="border-b border-border/50 pb-3 px-4 flex flex-col md:flex-row md:items-center justify-between bg-white dark:bg-card gap-4">
             <div className="flex items-center gap-3">
@@ -1363,7 +1378,7 @@ export default function Dashboard() {
               <div className="pt-0.5">
                 <p className="text-xs font-black text-[#1a0029] mb-1">Why the difference?</p>
                 <p className="text-[11px] text-slate-600 font-medium leading-relaxed">
-                  Today's attendance is lower because <span className="font-bold text-[#a01497] bg-white dark:bg-card px-1 py-0.5 rounded shadow-sm border border-slate-100 dark:border-slate-800">{stats.companyLeave || 0} employees</span> are on Company Leave (<span className="font-bold">{stats.activeCompanyLeave.title || "Company Trip"}</span>) which applies to <span className="font-bold text-[#a01497] bg-white dark:bg-card px-1 py-0.5 rounded shadow-sm border border-slate-100 dark:border-slate-800 uppercase">{stats.activeCompanyLeave.applies_to === 'all' ? 'ALL STAFF' : stats.activeCompanyLeave.applies_to === 'branch' ? `BRANCH ${stats.activeCompanyLeave.branch_id}` : `DEPT ${stats.activeCompanyLeave.department_id}`}</span>.
+                  Today's attendance is lower because <span className="font-bold text-[#a01497] bg-white dark:bg-card px-1 py-0.5 rounded shadow-sm border border-slate-100 dark:border-slate-800">{stats.companyLeave || 0} employees</span> are on Company Leave (<span className="font-bold">{stats.activeCompanyLeave?.title || "Company Trip"}</span>) which applies to <span className="font-bold text-[#a01497] bg-white dark:bg-card px-1 py-0.5 rounded shadow-sm border border-slate-100 dark:border-slate-800 uppercase">{stats.activeCompanyLeave?.applies_to === 'all' ? 'ALL STAFF' : stats.activeCompanyLeave?.applies_to === 'branch' ? `BRANCH ${stats.activeCompanyLeave?.branch_id}` : `DEPT ${stats.activeCompanyLeave?.department_id}`}</span>.
                 </p>
               </div>
             </div>
