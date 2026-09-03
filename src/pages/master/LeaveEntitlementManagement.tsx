@@ -428,52 +428,74 @@ function EmployeeSearchSelector({
   return (
     <div className="relative w-full" ref={containerRef}>
       <div className="relative">
-        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-foreground" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
         <Input
           placeholder={placeholder}
-          value={selectedEmployee ? selectedEmployee.full_name : search}
+          value={selectedEmployee ? `${selectedEmployee.full_name} (${selectedEmployee.user_id})` : search}
           onChange={(e) => {
             if (selectedEmployee) onSelect(null);
             setSearch(e.target.value);
             setOpen(true);
           }}
           onClick={() => setOpen(true)}
-          className="pl-8 pr-8 bg-white dark:bg-card h-10 text-sm"
+          className={`pl-9 pr-9 bg-white dark:bg-card h-10 text-xs font-bold transition-all border-border/70 focus-visible:ring-1 focus-visible:ring-[#942392]/50 ${
+            selectedEmployee ? 'border-[#942392]/60 text-[#942392] font-black' : ''
+          }`}
         />
-        {selectedEmployee && (
+        {selectedEmployee ? (
           <button
             onClick={() => {
               onSelect(null);
               setSearch("");
               setOpen(true);
             }}
-            className="absolute right-2.5 top-2.5 text-foreground hover:text-foreground"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-red-500 transition-colors"
             type="button"
           >
             <X className="h-4 w-4" />
           </button>
-        )}
+        ) : search ? (
+          <button
+            onClick={() => setSearch("")}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            type="button"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        ) : null}
       </div>
+
       {open && !selectedEmployee && (
-        <div className="absolute z-50 w-full mt-1 bg-popover text-popover-foreground border rounded-md shadow-lg max-h-60 overflow-y-auto">
+        <div className="absolute z-50 w-full mt-1.5 bg-popover text-popover-foreground border border-border/80 rounded-xl shadow-2xl max-h-64 overflow-y-auto p-1.5 custom-scrollbar">
           {filtered.length === 0 ? (
-            <div className="p-2 text-xs text-foreground">No employees found</div>
+            <div className="p-3 text-center text-xs text-muted-foreground italic font-medium">
+              No employees found matching "{search}"
+            </div>
           ) : (
             filtered.map((emp) => (
               <div
                 key={emp.user_id}
-                onClick={(e) => {
+                onClick={() => {
                   onSelect(emp);
                   setSearch("");
                   setOpen(false);
                 }}
-                className="p-2 text-xs cursor-pointer hover:bg-muted transition-colors flex items-center justify-between"
+                className="group px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-150 hover:bg-[#942392]/10 dark:hover:bg-[#942392]/20 flex items-center justify-between gap-2 border-b border-border/20 last:border-0"
               >
-                <div>
-                  <span className="font-bold">{emp.full_name}</span>
-                  <span className="text-foreground ml-2">({emp.user_id})</span>
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <span className="font-bold text-xs text-foreground group-hover:text-[#942392] truncate transition-colors">
+                    {emp.full_name}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground font-mono group-hover:text-[#942392]/80 shrink-0">
+                    ({emp.user_id})
+                  </span>
                 </div>
-                <span className="text-[10px] text-foreground">{emp.branch}</span>
+
+                {emp.branch && (
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md border border-border/60 bg-muted/40 group-hover:bg-[#942392]/20 group-hover:text-[#942392] group-hover:border-[#942392]/40 shrink-0 transition-colors">
+                    {emp.branch}
+                  </span>
+                )}
               </div>
             ))
           )}
