@@ -1202,7 +1202,7 @@ export default function Branches() {
 
                       {/* Branch Info */}
                       <div className="flex flex-col items-center pt-2 pb-4">
-                        <h3 className="font-black text-slate-900 dark:text-white text-xl sm:text-2xl leading-tight text-center px-4">
+                        <h3 className="font-semibold text-slate-800 dark:text-slate-100 text-lg leading-tight text-center px-4">
                           {branch.name}
                         </h3>
                         <div className="flex items-center justify-center gap-1.5 mt-2 px-6 max-w-full">
