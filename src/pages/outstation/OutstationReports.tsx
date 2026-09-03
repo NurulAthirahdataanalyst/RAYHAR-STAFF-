@@ -87,6 +87,16 @@ export default function OutstationReports() {
   const [viewFormEvent, setViewFormEvent] = useState<EventGroup | null>(null);
 
   useEffect(() => {
+    if (viewType === "year") {
+      setEntriesPerPage(100);
+      setCurrentPage(1);
+    } else {
+      setEntriesPerPage(10);
+      setCurrentPage(1);
+    }
+  }, [viewType]);
+
+  useEffect(() => {
     if (roleLoading) return;
     if (!OUTSTATION_ROLES.includes(role)) return;
     const fetchData = async () => {
@@ -585,10 +595,9 @@ export default function OutstationReports() {
                       <SelectValue placeholder={entriesPerPage.toString()}>{entriesPerPage}</SelectValue>
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="5">5</SelectItem>
-                      <SelectItem value="10">10</SelectItem>
-                      <SelectItem value="25">25</SelectItem>
-                      <SelectItem value="50">50</SelectItem>
+                      {(viewType === "year" ? [100, 300, 500] : [10, 25, 50, 100]).map(opt => (
+                        <SelectItem key={opt} value={String(opt)}>{opt}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>

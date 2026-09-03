@@ -75,6 +75,16 @@ export default function AttendanceReports() {
   ];
 
   useEffect(() => {
+    if (viewType === "year") {
+      setPageSize(100);
+      setCurrentPage(1);
+    } else {
+      setPageSize(15);
+      setCurrentPage(1);
+    }
+  }, [viewType]);
+
+  useEffect(() => {
     fetchData();
   }, [viewType, date, selectedMonth, selectedYear, role, userBranch, userDepartment]);
 
@@ -620,6 +630,7 @@ export default function AttendanceReports() {
               currentPage={currentPage}
               totalItems={filteredList.length}
               pageSize={pageSize}
+              pageSizeOptions={viewType === "year" ? [100, 300, 500] : [10, 25, 50, 100]}
               onPageChange={setCurrentPage}
               onPageSizeChange={setPageSize}
               tableRef={tableRef}

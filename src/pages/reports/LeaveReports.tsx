@@ -40,6 +40,16 @@ export default function LeaveReports() {
   const years = Array.from({ length: 5 }, (_, i) => (new Date().getFullYear() - i).toString());
 
   useEffect(() => {
+    if (viewType === "year") {
+      setPageSize(100);
+      setCurrentPage(1);
+    } else {
+      setPageSize(15);
+      setCurrentPage(1);
+    }
+  }, [viewType]);
+
+  useEffect(() => {
     fetchData();
   }, [role, userBranch, userDepartment, viewType, date, selectedMonth, selectedYear]);
 
@@ -345,6 +355,7 @@ export default function LeaveReports() {
               currentPage={currentPage}
               totalItems={filteredList.length}
               pageSize={pageSize}
+              pageSizeOptions={viewType === "year" ? [100, 300, 500] : [10, 25, 50, 100]}
               onPageChange={setCurrentPage}
               onPageSizeChange={setPageSize}
               tableRef={tableRef}
