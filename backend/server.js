@@ -773,6 +773,7 @@ function sanitizeParams(params) {
   if (!params || params.length === 0) return params;
   return params.map(p => {
     if (p === null || p === undefined) return null;
+    if (Array.isArray(p)) return p;
     if (typeof p === 'boolean') return p; // keep booleans as-is for boolean columns
     return String(p);
   });
@@ -8363,25 +8364,34 @@ app.get("/api/reports/workforce-leave-balance", async (req, res) => {
     }
 
     const userIds = profiles.map(p => p.user_id);
+    const placeholders = userIds.map(() => '?').join(',');
 
     // 2. Fetch Adjustments for target year (or overall)
-    const [adjustments] = await pool.query(
-      `SELECT employee_id, leave_type, SUM(adjustment_days) as total_adj
-       FROM leave_balance_adjustments
-       WHERE employee_id = ANY(?)
-       GROUP BY employee_id, leave_type`,
-      [userIds]
-    );
+    let adjustments = [];
+    if (userIds.length > 0) {
+      const [adjRows] = await pool.query(
+        `SELECT employee_id, leave_type, SUM(adjustment_days) as total_adj
+         FROM leave_balance_adjustments
+         WHERE employee_id IN (${placeholders})
+         GROUP BY employee_id, leave_type`,
+        userIds
+      );
+      adjustments = adjRows;
+    }
 
     // 3. Fetch Leave Requests (Approved & Pending) for target date window
-    const [leaveRequests] = await pool.query(
-      `SELECT user_id, leave_type, days, status
-       FROM leave_requests
-       WHERE user_id = ANY(?)
-         AND status IN ('Approved', 'Pending', 'Pending HOD', 'Pending MD', 'Pending Finance')
-         AND start_date <= ? AND end_date >= ?`,
-      [userIds, yearEndStr, yearStartStr]
-    );
+    let leaveRequests = [];
+    if (userIds.length > 0) {
+      const [reqRows] = await pool.query(
+        `SELECT user_id, leave_type, days, status
+         FROM leave_requests
+         WHERE user_id IN (${placeholders})
+           AND status IN ('Approved', 'Pending', 'Pending HOD', 'Pending MD', 'Pending Finance')
+           AND start_date <= ? AND end_date >= ?`,
+        [...userIds, yearEndStr, yearStartStr]
+      );
+      leaveRequests = reqRows;
+    }
 
     // Map adjustments by user_id
     const adjMap = {};
