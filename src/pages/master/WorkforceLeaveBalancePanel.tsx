@@ -21,6 +21,7 @@ import {
   RotateCcw,
   User,
   Loader2,
+  ChevronLeft,
   ChevronRight,
   ShieldCheck,
   AlertTriangle,
@@ -73,6 +74,10 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
   
   const [selectedLeaveType, setSelectedLeaveType] = useState("All");
   const [sortBy, setSortBy] = useState<"name_asc" | "balance_asc" | "balance_desc">("name_asc");
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [entriesPerPage, setEntriesPerPage] = useState(10);
 
   // Modal detail
   const [selectedEmpDetail, setSelectedEmpDetail] = useState<EmployeeBalance | null>(null);
@@ -138,6 +143,11 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
     };
   }, [role, selectedBranch, selectedDepartment, selectedMonthYear, search]);
 
+  // Reset page to 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, selectedBranch, selectedDepartment, selectedMonthYear, selectedLeaveType, sortBy]);
+
   // Unique options for filters
   const uniqueBranches = useMemo(() => {
     const set = new Set(employees.map(e => e.branch).filter(b => b && b !== '—'));
@@ -174,6 +184,14 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
     return result;
   }, [employees, selectedLeaveType, sortBy]);
 
+  // Pagination Calculations
+  const totalPages = Math.max(1, Math.ceil(processedEmployees.length / entriesPerPage));
+  const indexOfFirstItem = (currentPage - 1) * entriesPerPage;
+  const indexOfLastItem = currentPage * entriesPerPage;
+  const paginatedEmployees = useMemo(() => {
+    return processedEmployees.slice(indexOfFirstItem, indexOfLastItem);
+  }, [processedEmployees, indexOfFirstItem, indexOfLastItem]);
+
   const resetFilters = () => {
     setSearch("");
     setSelectedBranch("All");
@@ -181,6 +199,8 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
     setSelectedMonthYear(`${currentYearStr}-all`);
     setSelectedLeaveType("All");
     setSortBy("name_asc");
+    setCurrentPage(1);
+    setEntriesPerPage(10);
   };
 
   // Export handlers
@@ -398,7 +418,7 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
         </div>
 
         {/* Table Content */}
-        <div className="flex-1 overflow-auto custom-scrollbar">
+        <div className="flex-1 overflow-auto custom-scrollbar relative">
           {loading ? (
             <div className="flex flex-col items-center justify-center p-12 text-muted-foreground gap-2">
               <Loader2 className="w-6 h-6 animate-spin text-[#942392]" />
@@ -410,21 +430,21 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
             </div>
           ) : (
             <table className="w-full text-left text-xs border-collapse">
-              <thead className="bg-slate-100 dark:bg-slate-900 sticky top-0 z-10 border-b border-border/60 text-[10px] uppercase font-black tracking-wider text-muted-foreground shadow-sm">
-                <tr>
-                  <th className="p-3 pl-4">Employee</th>
-                  <th className="p-3">Branch</th>
-                  <th className="p-3">Department</th>
-                  <th className="p-3 text-center">Annual Leave</th>
-                  <th className="p-3 text-center">Medical Leave</th>
-                  <th className="p-3 text-center">Emergency Leave</th>
-                  <th className="p-3 text-center">Replacement Leave</th>
-                  <th className="p-3 text-center font-black">Total Balance</th>
-                  <th className="p-3 text-center pr-4">Status</th>
+              <thead className="sticky top-0 z-20 shadow-sm">
+                <tr className="border-b border-border/60">
+                  <th className="p-3 pl-4 bg-slate-100 dark:bg-slate-900 text-[10px] uppercase font-black tracking-wider text-muted-foreground">Employee</th>
+                  <th className="p-3 bg-slate-100 dark:bg-slate-900 text-[10px] uppercase font-black tracking-wider text-muted-foreground">Branch</th>
+                  <th className="p-3 bg-slate-100 dark:bg-slate-900 text-[10px] uppercase font-black tracking-wider text-muted-foreground">Department</th>
+                  <th className="p-3 text-center bg-slate-100 dark:bg-slate-900 text-[10px] uppercase font-black tracking-wider text-muted-foreground">Annual Leave</th>
+                  <th className="p-3 text-center bg-slate-100 dark:bg-slate-900 text-[10px] uppercase font-black tracking-wider text-muted-foreground">Medical Leave</th>
+                  <th className="p-3 text-center bg-slate-100 dark:bg-slate-900 text-[10px] uppercase font-black tracking-wider text-muted-foreground">Emergency Leave</th>
+                  <th className="p-3 text-center bg-slate-100 dark:bg-slate-900 text-[10px] uppercase font-black tracking-wider text-muted-foreground">Replacement Leave</th>
+                  <th className="p-3 text-center font-black bg-slate-100 dark:bg-slate-900 text-[10px] uppercase tracking-wider text-muted-foreground">Total Balance</th>
+                  <th className="p-3 text-center pr-4 bg-slate-100 dark:bg-slate-900 text-[10px] uppercase font-black tracking-wider text-muted-foreground">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/30">
-                {processedEmployees.map(emp => (
+                {paginatedEmployees.map(emp => (
                   <tr key={emp.user_id} className="hover:bg-muted/30 transition-colors">
                     <td className="p-3 pl-4">
                       <button
@@ -478,6 +498,78 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
             </table>
           )}
         </div>
+
+        {/* Pagination Controls */}
+        {!loading && processedEmployees.length > 0 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-border/40 bg-muted/10 gap-4 shrink-0">
+            <div className="flex flex-wrap items-center gap-4 text-[10px] font-bold text-foreground uppercase tracking-widest">
+              <span>
+                TOTAL SHOWING {indexOfFirstItem + 1} TO {Math.min(indexOfLastItem, processedEmployees.length)} OF {processedEmployees.length} ENTRIES
+              </span>
+              <div className="flex items-center gap-2">
+                <span>SHOW</span>
+                <Select 
+                  value={entriesPerPage.toString()} 
+                  onValueChange={(val) => { 
+                    setEntriesPerPage(Number(val)); 
+                    setCurrentPage(1); 
+                  }}
+                >
+                  <SelectTrigger className="h-7 text-[10px] font-bold rounded border-border/60 w-[65px] bg-background/50">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="5">5</SelectItem>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="25">25</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                    <SelectItem value="100">100</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-1">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="h-7 px-2 text-[10px] font-bold rounded bg-background/50 border-border/60"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" />
+              </Button>
+
+              <div className="flex items-center gap-1 overflow-x-auto max-w-[180px] sm:max-w-none scrollbar-hide">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
+                  <Button
+                    key={pageNum}
+                    variant={currentPage === pageNum ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setCurrentPage(pageNum)}
+                    className={`h-7 w-7 p-0 text-[10px] font-bold rounded ${
+                      currentPage === pageNum 
+                        ? 'bg-[#942392] text-white border-[#942392] hover:bg-[#6c166a]' 
+                        : 'text-foreground bg-background/50 border-border/60'
+                    }`}
+                  >
+                    {pageNum}
+                  </Button>
+                ))}
+              </div>
+
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="h-7 px-2 text-[10px] font-bold rounded bg-background/50 border-border/60"
+              >
+                <ChevronRight className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+          </div>
+        )}
       </Card>
 
       {/* Staff Leave Balance Detail Modal */}
@@ -497,13 +589,13 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
             <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Detailed Leave Entitlement Breakdown ({selectedMonthYear})</p>
 
             <table className="w-full text-left text-xs border-collapse">
-              <thead className="bg-slate-100 dark:bg-slate-900 border-b border-border/60 text-[10px] uppercase font-black tracking-wider text-muted-foreground">
+              <thead className="border-b border-border/60 text-[10px] uppercase font-black tracking-wider text-muted-foreground">
                 <tr>
-                  <th className="p-2.5 pl-3">Leave Type</th>
-                  <th className="p-2.5 text-center">Entitlement</th>
-                  <th className="p-2.5 text-center">Taken</th>
-                  <th className="p-2.5 text-center">Pending</th>
-                  <th className="p-2.5 text-center font-black pr-3">Remaining</th>
+                  <th className="p-2.5 pl-3 bg-slate-100 dark:bg-slate-900">Leave Type</th>
+                  <th className="p-2.5 text-center bg-slate-100 dark:bg-slate-900">Entitlement</th>
+                  <th className="p-2.5 text-center bg-slate-100 dark:bg-slate-900">Taken</th>
+                  <th className="p-2.5 text-center bg-slate-100 dark:bg-slate-900">Pending</th>
+                  <th className="p-2.5 text-center font-black pr-3 bg-slate-100 dark:bg-slate-900">Remaining</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/30">
