@@ -8445,21 +8445,18 @@ app.get("/api/reports/workforce-leave-balance", async (req, res) => {
         const d = parseFloat(lr.days || 0);
         const isApproved = lr.status === 'Approved';
 
-        if (typeLower.includes('annual') && !typeLower.includes('emergency')) {
+        if (typeLower.includes('annual') || typeLower.includes('tahunan')) {
           if (isApproved) annualTaken += d;
           else annualPending += d;
-        } else if (typeLower.includes('medical') || typeLower.includes('sick')) {
+        } else if (typeLower.includes('medical') || typeLower.includes('sick') || typeLower.includes('sakit')) {
           if (isApproved) medicalTaken += d;
           else medicalPending += d;
-        } else if (typeLower.includes('emergency')) {
+        } else if (typeLower.includes('emergency') || typeLower.includes('kecemasan')) {
           if (isApproved) emergencyTaken += d;
           else emergencyPending += d;
         } else if (typeLower.includes('replacement') || typeLower.includes('ganti')) {
           if (isApproved) replacementTaken += d;
           else replacementPending += d;
-        } else if (typeLower.includes('annual & emergency') || typeLower.includes('annual/emergency')) {
-          if (isApproved) annualTaken += d;
-          else annualPending += d;
         }
       });
 
