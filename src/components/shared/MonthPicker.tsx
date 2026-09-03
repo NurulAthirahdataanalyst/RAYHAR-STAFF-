@@ -50,10 +50,10 @@ export function MonthPicker({ monthYear, onSelectMonthYear, className, hideAllYe
       <PopoverTrigger asChild>
         <button
           type="button"
-          className={
-            className ||
-            "appearance-none flex items-center justify-between px-4 py-2 bg-white dark:bg-card border border-slate-200 dark:border-slate-800 text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-9 sm:h-10 gap-3 hover:border-[#942392]/40 min-w-[120px]"
-          }
+          className={cn(
+            "appearance-none flex items-center justify-between px-4 py-2 bg-white dark:bg-card border border-slate-200 dark:border-slate-800 text-foreground text-[11px] font-black rounded-xl shadow-sm outline-none cursor-pointer uppercase tracking-widest h-9 sm:h-10 gap-3 hover:border-[#942392]/40 min-w-[120px] transition-all",
+            className
+          )}
         >
           <span className="font-black text-foreground uppercase tracking-widest">{displayString}</span>
           <CalendarDays className="w-4 h-4 text-foreground opacity-80" />
