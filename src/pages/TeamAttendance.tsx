@@ -27,7 +27,7 @@ export default function TeamAttendance() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [dateViewMode, setDateViewMode] = useState("DAY");
-  const [statusFilter, setStatusFilter] = useState("ALL");
+  const [statusFilter, setStatusFilter] = useState("All Status");
 
   const [entriesPerPage, setEntriesPerPage] = useState(25);
   const [currentPage, setCurrentPage] = useState(1);
@@ -326,11 +326,23 @@ export default function TeamAttendance() {
     e.user_id?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  if (statusFilter === "ON TIME") {
-    filteredList = filteredList.filter(e => e.status === "Present" && e.late === "00:00");
-  } else if (statusFilter === "LATE") {
-    filteredList = filteredList.filter(e => e.status === "Present" && e.late !== "00:00" && e.late !== "--");
-  } else if (statusFilter === "ABSENT") {
+  if (statusFilter === "Present (On Time)" || statusFilter === "ON TIME") {
+    filteredList = filteredList.filter(e => (e.status === "Present" || e.status === "Present (On Time)") && (e.late === "00:00" || e.late === "--" || e.late === "0 Min" || e.late === "0 mins"));
+  } else if (statusFilter === "Present (Late)" || statusFilter === "LATE") {
+    filteredList = filteredList.filter(e => e.status === "Present (Late)" || (e.status === "Present" && e.late !== "00:00" && e.late !== "--"));
+  } else if (statusFilter === "Approved Leave") {
+    filteredList = filteredList.filter(e => e.status === "Approved Leave" || e.status === "Leave");
+  } else if (statusFilter === "Company Leave") {
+    filteredList = filteredList.filter(e => e.status === "Company Leave" || e.status === "Holiday" || e.status === "Leave (Company Holiday)");
+  } else if (statusFilter === "Outstation") {
+    filteredList = filteredList.filter(e => e.status === "Outstation");
+  } else if (statusFilter === "Weekend") {
+    filteredList = filteredList.filter(e => e.status === "Weekend" || e.status === "Rest Day");
+  } else if (statusFilter === "Clocked Out") {
+    filteredList = filteredList.filter(e => e.status === "Clocked Out");
+  } else if (statusFilter === "Temporary Branch") {
+    filteredList = filteredList.filter(e => e.temp_branch || (e as any).temporary_branch);
+  } else if (statusFilter === "Absent" || statusFilter === "ABSENT") {
     filteredList = filteredList.filter(e => e.status === "Absent");
   }
 
@@ -465,18 +477,24 @@ export default function TeamAttendance() {
                   )}
                 </div>
 
-                {/* Status Toggle */}
-                <div className="flex items-center bg-gray-50 dark:bg-slate-900/50 border border-gray-200 dark:border-slate-800 rounded-md p-1 shadow-sm overflow-x-auto">
-                  {["ALL", "ON TIME", "LATE", "ABSENT"].map((status) => (
-                    <button
-                      key={status}
-                      onClick={() => setStatusFilter(status)}
-                      className={`px-4 py-1.5 rounded-md text-xs font-bold transition-colors whitespace-nowrap ${statusFilter === status ? 'bg-white dark:bg-card text-foreground shadow-sm ring-1 ring-[#942392]' : 'text-foreground hover:text-gray-900 dark:text-gray-100'}`}
-                    >
-                      {status}
-                    </button>
-                  ))}
-                </div>
+                {/* Status Dropdown */}
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="h-[34px] text-[11px] font-black rounded-md border border-border w-[160px] bg-white dark:bg-card uppercase tracking-widest hover:border-[#942392]">
+                    <SelectValue placeholder="All Status">{statusFilter || "All Status"}</SelectValue>
+                  </SelectTrigger>
+                  <SelectContent className="bg-white dark:bg-card border-border z-50">
+                    <SelectItem value="All Status">All Status</SelectItem>
+                    <SelectItem value="Present (On Time)">Present (On Time)</SelectItem>
+                    <SelectItem value="Present (Late)">Present (Late)</SelectItem>
+                    <SelectItem value="Approved Leave">Approved Leave</SelectItem>
+                    <SelectItem value="Company Leave">Company Leave</SelectItem>
+                    <SelectItem value="Outstation">Outstation</SelectItem>
+                    <SelectItem value="Weekend">Weekend</SelectItem>
+                    <SelectItem value="Clocked Out">Clocked Out</SelectItem>
+                    <SelectItem value="Temporary Branch">Temporary Branch</SelectItem>
+                    <SelectItem value="Absent">Absent</SelectItem>
+                  </SelectContent>
+                </Select>
 
                 {/* Search */}
                 <div className="flex flex-wrap items-center gap-3">
