@@ -955,7 +955,7 @@ export default function AttendanceDashboard() {
         
         let isLate = false;
         if (r.clock_in) {
-          if (r.is_late || (r as any).status === "Present (Late)" || (r.late_minutes && r.late_minutes > 0)) {
+          if ((r as any).is_late || (r as any).status === "Present (Late)" || ((r as any).late_minutes && (r as any).late_minutes > 0)) {
             isLate = true;
           } else {
             const { hour: threshHour, minute: threshMin } = parseThreshold(workStartTime);
@@ -1361,7 +1361,7 @@ export default function AttendanceDashboard() {
                       
                       let isRecordLate = false;
                       if (record.clock_in) {
-                        if (record.is_late || (record as any).status === "Present (Late)" || (record.late_minutes && record.late_minutes > 0)) {
+                        if ((record as any).is_late || (record as any).status === "Present (Late)" || ((record as any).late_minutes && (record as any).late_minutes > 0)) {
                           isRecordLate = true;
                         } else {
                           const { hour: threshHour, minute: threshMin } = parseThreshold(workStartTime);
