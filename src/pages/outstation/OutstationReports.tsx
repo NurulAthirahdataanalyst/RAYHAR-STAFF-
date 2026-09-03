@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useRole } from "@/contexts/RoleContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Loader2, Plane, Download, Search, MapPin, ArrowLeft, FileText, Calendar, Users, Clock, CalendarDays, Activity, CheckCircle2 } from "lucide-react";
+import { Loader2, Plane, Download, Search, MapPin, ArrowLeft, FileText, Calendar, Users, Clock, CalendarDays, Activity, CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react";
 import { MonthPicker } from "@/components/shared/MonthPicker";
 import { YearPopover } from "@/components/shared/YearPopover";
+import { TableScrollTopButton } from "@/components/shared/TableScrollTopButton";
 import PageHeader from "@/components/layout/PageHeader";
 import PageActions from "@/components/layout/PageActions";
 import { API_BASE_URL } from "../../config/api";
@@ -194,6 +195,27 @@ export default function OutstationReports() {
       return true;
     });
   }, [selectedEvent, filterBranch, filterDept, filterSearch]);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [entriesPerPage, setEntriesPerPage] = useState(10);
+  const tableRef = useRef<HTMLTableElement>(null);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterSearch, filterStatus, filterBranch, filterDept, selectedMonthYear, selectedYear, viewType, selectedEventName, entriesPerPage]);
+
+  const totalItems = selectedEventName ? filteredAssignments.length : filteredEvents.length;
+  const totalPages = Math.ceil(totalItems / entriesPerPage) || 1;
+  const indexOfLastItem = currentPage * entriesPerPage;
+  const indexOfFirstItem = indexOfLastItem - entriesPerPage;
+
+  const pagedEvents = useMemo(() => {
+    return filteredEvents.slice(indexOfFirstItem, indexOfLastItem);
+  }, [filteredEvents, indexOfFirstItem, indexOfLastItem]);
+
+  const pagedAssignments = useMemo(() => {
+    return filteredAssignments.slice(indexOfFirstItem, indexOfLastItem);
+  }, [filteredAssignments, indexOfFirstItem, indexOfLastItem]);
 
   const exportCSV = () => {
     if (selectedEvent) {
@@ -472,7 +494,7 @@ export default function OutstationReports() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-[12px]">
+              <table ref={tableRef} className="w-full text-[12px]">
                 <thead>
                   <tr className="border-b border-gray-100 dark:border-slate-800 bg-white dark:bg-card">
                     {selectedEventName ? (
@@ -488,7 +510,7 @@ export default function OutstationReports() {
                 </thead>
                 <tbody>
                   {!selectedEventName ? (
-                    filteredEvents.map((e, i) => (
+                    pagedEvents.map((e, i) => (
                       <tr
                         key={e.eventName}
                         onClick={() => setSelectedEventName(e.eventName)}
@@ -520,7 +542,7 @@ export default function OutstationReports() {
                       </tr>
                     ))
                   ) : (
-                    filteredAssignments.map((a, i) => (
+                    pagedAssignments.map((a, i) => (
                       <tr key={a.id} className="border-b border-gray-50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
@@ -543,6 +565,68 @@ export default function OutstationReports() {
                   )}
                 </tbody>
               </table>
+            </div>
+          )}
+
+          {/* Pagination Controls — only appear when total items > 5 */}
+          {!loading && totalItems > 5 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-gray-100 dark:border-slate-800 gap-4 bg-slate-50/50 dark:bg-slate-900/50">
+              <div className="flex items-center gap-4 text-[10px] font-bold text-foreground uppercase tracking-widest">
+                <span>
+                  TOTAL SHOWING {indexOfFirstItem + 1} TO {Math.min(indexOfLastItem, totalItems)} OF {totalItems} ENTRIES
+                </span>
+                <div className="flex items-center gap-2">
+                  <span>Show</span>
+                  <Select 
+                    value={entriesPerPage.toString()} 
+                    onValueChange={(val) => { setEntriesPerPage(Number(val)); setCurrentPage(1); }}
+                  >
+                    <SelectTrigger className="h-7 text-[10px] font-bold rounded border-gray-200 dark:border-slate-700 w-[60px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="5">5</SelectItem>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="25">25</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-1">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="h-7 px-2 text-[10px] font-bold rounded"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                </Button>
+                <div className="flex items-center gap-1 overflow-x-auto max-w-[150px] sm:max-w-none scrollbar-hide">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
+                    <Button
+                      key={pageNum}
+                      variant={currentPage === pageNum ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={`h-7 w-7 p-0 text-[10px] font-bold rounded ${currentPage === pageNum ? 'bg-pink-500 text-white border-pink-500 hover:bg-pink-600' : 'text-foreground'}`}
+                    >
+                      {pageNum}
+                    </Button>
+                  ))}
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="h-7 px-2 text-[10px] font-bold rounded"
+                >
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </Button>
+              </div>
             </div>
           )}
         </CardContent>
@@ -653,6 +737,7 @@ export default function OutstationReports() {
           )}
         </DialogContent>
       </Dialog>
+      <TableScrollTopButton entriesPerPage={entriesPerPage} tableRef={tableRef} />
     </div>
   );
 }
