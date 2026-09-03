@@ -9515,7 +9515,15 @@ app.get("/api/company-leaves", async (req, res) => {
     const [rows] = await pool.query(
       `SELECT * FROM company_leave_calendar ORDER BY start_date DESC`
     );
-    res.json({ success: true, leaves: rows });
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const processed = rows.map(r => {
+      const endDateStr = (r.end_date || r.start_date || '').toString().slice(0, 10);
+      if (r.status !== 'Inactive' && endDateStr && endDateStr < todayStr) {
+        return { ...r, status: 'Completed' };
+      }
+      return r;
+    });
+    res.json({ success: true, leaves: processed });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
@@ -9583,6 +9591,16 @@ app.put("/api/company-leaves/:id", async (req, res) => {
   } = req.body;
 
   try {
+    const [existing] = await pool.query(`SELECT * FROM company_leave_calendar WHERE id = ?`, [id]);
+    if (existing && existing.length > 0) {
+      const leave = existing[0];
+      const endDateStr = (leave.end_date || leave.start_date || '').toString().slice(0, 10);
+      const todayStr = new Date().toISOString().slice(0, 10);
+      if (leave.status === 'Completed' || (endDateStr && endDateStr < todayStr)) {
+        return res.status(403).json({ success: false, error: 'Completed company leave records cannot be edited or deleted.' });
+      }
+    }
+
     await pool.query(
       `UPDATE company_leave_calendar SET
         leave_name = ?, leave_type = ?, start_date = ?, end_date = ?, applies_to = ?,
@@ -9610,6 +9628,16 @@ app.put("/api/company-leaves/:id", async (req, res) => {
 app.delete("/api/company-leaves/:id", async (req, res) => {
   const { id } = req.params;
   try {
+    const [existing] = await pool.query(`SELECT * FROM company_leave_calendar WHERE id = ?`, [id]);
+    if (existing && existing.length > 0) {
+      const leave = existing[0];
+      const endDateStr = (leave.end_date || leave.start_date || '').toString().slice(0, 10);
+      const todayStr = new Date().toISOString().slice(0, 10);
+      if (leave.status === 'Completed' || (endDateStr && endDateStr < todayStr)) {
+        return res.status(403).json({ success: false, error: 'Completed company leave records cannot be edited or deleted.' });
+      }
+    }
+
     await pool.query(`DELETE FROM company_leave_calendar WHERE id = ?`, [id]);
     try {
       broadcastPresenceUpdate({ type: 'company_leave', action: 'deleted', id });

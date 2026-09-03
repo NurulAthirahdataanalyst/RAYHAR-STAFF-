@@ -220,48 +220,75 @@ const CompanyLeaveCalendar = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {leaves.slice((page - 1) * limit, page * limit).map((leave) => (
-                    <tr key={leave.id} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
-                      <td className="px-4 py-3 font-medium">{leave.leave_name}</td>
-                      <td className="px-4 py-3 text-foreground whitespace-nowrap">
-                        <div className="flex items-center gap-1.5">
-                          <CalendarIcon className="w-3.5 h-3.5" />
-                          {new Date(leave.start_date).toLocaleDateString()} 
-                          {leave.start_date !== leave.end_date && ` - ${new Date(leave.end_date).toLocaleDateString()}`}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        {leave.applies_to === 'all' && <span className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-xs">All Staff</span>}
-                        {leave.applies_to === 'branch' && <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 px-2 py-1 rounded text-xs">Branch: {leave.branch_id}</span>}
-                        {leave.applies_to === 'department' && <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 px-2 py-1 rounded text-xs">Dept: {leave.department_id}</span>}
-                      </td>
-                      <td className="px-4 py-3">{leave.leave_type}</td>
-                      <td className="px-4 py-3">
-                        {leave.is_paid ? (
-                          <span className="text-green-600 dark:text-green-400 font-medium">Yes</span>
-                        ) : (
-                          <span className="text-red-600 dark:text-red-400 font-medium">No</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className={`px-2 py-1 rounded text-xs ${leave.status === 'Active' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-100 text-gray-800 dark:text-gray-200 dark:bg-gray-800 dark:text-foreground'}`}>
-                          {leave.status}
-                        </span>
-                      </td>
-                      {isHR && (
-                        <td className="px-4 py-3 text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(leave)} className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20">
-                              <Edit2 className="w-4 h-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon" onClick={() => handleDelete(leave.id)} className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20">
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
+                  {leaves.slice((page - 1) * limit, page * limit).map((leave) => {
+                    const endDateStr = (leave.end_date || leave.start_date || '').toString().slice(0, 10);
+                    const todayStr = new Date().toISOString().slice(0, 10);
+                    const isCompleted = leave.status === 'Completed' || (endDateStr && endDateStr < todayStr);
+                    const displayStatus = isCompleted ? 'Completed' : (leave.status || 'Active');
+
+                    return (
+                      <tr key={leave.id} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
+                        <td className="px-4 py-3 font-medium">{leave.leave_name}</td>
+                        <td className="px-4 py-3 text-foreground whitespace-nowrap">
+                          <div className="flex items-center gap-1.5">
+                            <CalendarIcon className="w-3.5 h-3.5" />
+                            {new Date(leave.start_date).toLocaleDateString()} 
+                            {leave.start_date !== leave.end_date && ` - ${new Date(leave.end_date).toLocaleDateString()}`}
                           </div>
                         </td>
-                      )}
-                    </tr>
-                  ))}
+                        <td className="px-4 py-3">
+                          {leave.applies_to === 'all' && <span className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-xs">All Staff</span>}
+                          {leave.applies_to === 'branch' && <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 px-2 py-1 rounded text-xs">Branch: {leave.branch_id}</span>}
+                          {leave.applies_to === 'department' && <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 px-2 py-1 rounded text-xs">Dept: {leave.department_id}</span>}
+                        </td>
+                        <td className="px-4 py-3">{leave.leave_type}</td>
+                        <td className="px-4 py-3">
+                          {leave.is_paid ? (
+                            <span className="text-green-600 dark:text-green-400 font-medium">Yes</span>
+                          ) : (
+                            <span className="text-red-600 dark:text-red-400 font-medium">No</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={`px-2 py-1 rounded text-xs font-bold ${
+                            isCompleted 
+                              ? 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-300 dark:border-slate-700' 
+                              : displayStatus === 'Active' 
+                                ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' 
+                                : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200'
+                          }`}>
+                            {displayStatus}
+                          </span>
+                        </td>
+                        {isHR && (
+                          <td className="px-4 py-3 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                disabled={isCompleted}
+                                onClick={() => !isCompleted && handleOpenDialog(leave)} 
+                                title={isCompleted ? "Completed company leave cannot be edited" : "Edit leave"}
+                                className={`h-8 w-8 ${isCompleted ? 'opacity-30 cursor-not-allowed text-muted-foreground' : 'text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20'}`}
+                              >
+                                <Edit2 className="w-4 h-4" />
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                disabled={isCompleted}
+                                onClick={() => !isCompleted && handleDelete(leave.id)} 
+                                title={isCompleted ? "Completed company leave cannot be deleted" : "Delete leave"}
+                                className={`h-8 w-8 ${isCompleted ? 'opacity-30 cursor-not-allowed text-muted-foreground' : 'text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20'}`}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </td>
+                        )}
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
