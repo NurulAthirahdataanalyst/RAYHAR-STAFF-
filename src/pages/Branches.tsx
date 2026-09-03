@@ -1343,8 +1343,10 @@ export default function Branches() {
                                   <Building2 className="w-4 h-4" />
                                 </div>
                                 <div className="min-w-0">
-                                  <p className="font-medium text-foreground flex items-center gap-2">
-                                    {branch.name}
+                                  <p className="text-foreground flex items-center gap-2">
+                                    <span className="font-black text-slate-900 dark:text-white text-sm tracking-tight">
+                                      {branch.name}
+                                    </span>
                                     <Badge
                                       variant="outline"
                                       className="font-mono text-[9px] h-4 px-1.5 bg-muted/20 border-border/50"
