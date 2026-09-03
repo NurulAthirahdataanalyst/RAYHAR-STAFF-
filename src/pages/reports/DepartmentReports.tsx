@@ -186,68 +186,68 @@ export default function DepartmentReports() {
         {/* KPI Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
           <Card className="border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm">
-            <CardContent className="p-4 flex flex-col justify-center">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <Building2 className="w-4 h-4 text-primary" />
-                </div>
-                <p className="text-xs font-medium text-foreground">Total Department</p>
+            <CardContent className="p-6 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                <Building2 className="w-6 h-6 text-primary" />
               </div>
-              <h3 className="text-2xl font-bold">{new Set(deptArray.filter(d => d.branch === 'HQ').map(d => d.department)).size}</h3>
+              <div>
+                <p className="text-sm font-medium text-foreground">Total Department</p>
+                <h3 className="text-3xl font-bold mt-1">{new Set(deptArray.filter(d => d.branch === 'HQ').map(d => d.department)).size}</h3>
+              </div>
             </CardContent>
           </Card>
           
           <Card className="border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm">
-            <CardContent className="p-4 flex flex-col justify-center">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                  <Building2 className="w-4 h-4 text-blue-500" />
-                </div>
-                <p className="text-xs font-medium text-foreground">Total Branch</p>
+            <CardContent className="p-6 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center shrink-0">
+                <Building2 className="w-6 h-6 text-blue-500" />
               </div>
-              <h3 className="text-2xl font-bold">{new Set(deptArray.filter(d => d.branch !== 'HQ').map(d => d.branch)).size}</h3>
+              <div>
+                <p className="text-sm font-medium text-foreground">Total Branch</p>
+                <h3 className="text-3xl font-bold mt-1">{new Set(deptArray.filter(d => d.branch !== 'HQ').map(d => d.branch)).size}</h3>
+              </div>
             </CardContent>
           </Card>
 
           <Card className="border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm">
-            <CardContent className="p-4 flex flex-col justify-center">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center">
-                  <Users className="w-4 h-4 text-green-500" />
-                </div>
-                <p className="text-xs font-medium text-foreground">Total Employees <br/>(Dept &amp; Branch)</p>
+            <CardContent className="p-6 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center shrink-0">
+                <Users className="w-6 h-6 text-green-500" />
               </div>
-              <h3 className="text-2xl font-bold text-green-600 dark:text-green-400">
-                {filteredEmployees.length}
-              </h3>
+              <div>
+                <p className="text-sm font-medium text-foreground">Total Employees (Dept &amp; Branch)</p>
+                <h3 className="text-3xl font-bold mt-1 text-green-600 dark:text-green-400">
+                  {filteredEmployees.length}
+                </h3>
+              </div>
             </CardContent>
           </Card>
 
           <Card className="border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm">
-            <CardContent className="p-4 flex flex-col justify-center">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center">
-                  <Users className="w-4 h-4 text-purple-500" />
-                </div>
-                <p className="text-xs font-medium text-foreground">Total Employees <br/>(Department)</p>
+            <CardContent className="p-6 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center shrink-0">
+                <Users className="w-6 h-6 text-purple-500" />
               </div>
-              <h3 className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                {deptArray.filter(d => d.branch === 'HQ').reduce((sum, item) => sum + item.headcount, 0)}
-              </h3>
+              <div>
+                <p className="text-sm font-medium text-foreground">Total Employees (Department)</p>
+                <h3 className="text-3xl font-bold mt-1 text-purple-600 dark:text-purple-400">
+                  {deptArray.filter(d => d.branch === 'HQ').reduce((sum, item) => sum + item.headcount, 0)}
+                </h3>
+              </div>
             </CardContent>
           </Card>
 
           <Card className="border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm">
-            <CardContent className="p-4 flex flex-col justify-center">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center">
-                  <Users className="w-4 h-4 text-orange-500" />
-                </div>
-                <p className="text-xs font-medium text-foreground">Total Employees <br/>(All Branch)</p>
+            <CardContent className="p-6 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center shrink-0">
+                <Users className="w-6 h-6 text-orange-500" />
               </div>
-              <h3 className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-                {deptArray.filter(d => d.branch !== 'HQ').reduce((sum, item) => sum + item.headcount, 0)}
-              </h3>
+              <div>
+                <p className="text-sm font-medium text-foreground">Total Employees (All Branch)</p>
+                <h3 className="text-3xl font-bold mt-1 text-orange-600 dark:text-orange-400">
+                  {deptArray.filter(d => d.branch !== 'HQ').reduce((sum, item) => sum + item.headcount, 0)}
+                </h3>
+              </div>
             </CardContent>
           </Card>
         </div>
