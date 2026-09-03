@@ -482,12 +482,12 @@ function EmployeeSearchSelector({
                 }}
                 className="group px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-150 hover:bg-[#942392]/10 dark:hover:bg-[#942392]/20 flex items-center justify-between gap-2 border-b border-border/20 last:border-0"
               >
-                <div className="flex items-center gap-2 min-w-0 flex-1">
+                <div className="flex flex-col min-w-0 flex-1">
                   <span className="font-bold text-xs text-foreground group-hover:text-[#942392] truncate transition-colors">
                     {emp.full_name}
                   </span>
-                  <span className="text-[10px] text-muted-foreground font-mono group-hover:text-[#942392]/80 shrink-0">
-                    ({emp.user_id})
+                  <span className="text-[10px] text-muted-foreground dark:text-slate-400 font-medium truncate mt-0.5">
+                    {emp.user_id}{emp.department ? ` · ${emp.department}` : ''}{emp.position ? ` · ${emp.position}` : ''}
                   </span>
                 </div>
 
