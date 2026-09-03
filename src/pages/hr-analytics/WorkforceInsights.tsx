@@ -174,10 +174,14 @@ export default function WorkforceInsights() {
   // SSE connection for live feed
   useEffect(() => {
     if (!isAdminRole) return;
+    const isAllAccessRole = ["hr_admin", "managing_director", "operation_manager", "finance_manager"].includes(role || "");
+    const queryBranch = isAllAccessRole ? "" : (userBranch || "");
+    const queryDept = isAllAccessRole ? "" : (userDepartment || "");
+
     const params = new URLSearchParams({
       role: role || "",
-      branch: userBranch || "",
-      department: userDepartment || "",
+      branch: queryBranch,
+      department: queryDept,
       month: month.toString(),
       year: year.toString()
     });
@@ -213,7 +217,10 @@ export default function WorkforceInsights() {
   // SSE connection for live stats (to get liveEmployees)
   useEffect(() => {
     if (!isAdminRole) return;
-    const url = `${API_BASE_URL}/api/presence/live-stats?date=${year}-${month}-${day}&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}`;
+    const isAllAccessRole = ["hr_admin", "managing_director", "operation_manager", "finance_manager"].includes(role || "");
+    const queryBranch = isAllAccessRole ? "" : (userBranch || "");
+    const queryDept = isAllAccessRole ? "" : (userDepartment || "");
+    const url = `${API_BASE_URL}/api/presence/live-stats?date=${year}-${month}-${day}&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(queryBranch)}&department=${encodeURIComponent(queryDept)}`;
     const es = new EventSource(url);
     
     es.onmessage = (event) => {
@@ -299,10 +306,14 @@ export default function WorkforceInsights() {
   const fetchInsights = async () => {
     setLoading(true);
     try {
+      const isAllAccessRole = ["hr_admin", "managing_director", "operation_manager", "finance_manager"].includes(role || "");
+      const queryBranch = isAllAccessRole ? "" : (userBranch || "");
+      const queryDept = isAllAccessRole ? "" : (userDepartment || "");
+
       const params = new URLSearchParams({
         role: role || "",
-        branch: userBranch || "",
-        department: userDepartment || "",
+        branch: queryBranch,
+        department: queryDept,
         month: month,
         year: year
       });
@@ -342,10 +353,14 @@ export default function WorkforceInsights() {
 
   const fetchWeeklyTrendOnly = async (weekStart: Date) => {
     try {
+      const isAllAccessRole = ["hr_admin", "managing_director", "operation_manager", "finance_manager"].includes(role || "");
+      const queryBranch = isAllAccessRole ? "" : (userBranch || "");
+      const queryDept = isAllAccessRole ? "" : (userDepartment || "");
+
       const params = new URLSearchParams({
         role: role || "",
-        branch: userBranch || "",
-        department: userDepartment || "",
+        branch: queryBranch,
+        department: queryDept,
         month: month,
         year: year,
         weekStartDate: format(weekStart, 'yyyy-MM-dd'),
@@ -1882,7 +1897,7 @@ export default function WorkforceInsights() {
                         <div>
                           <p className="text-xs font-bold text-slate-800 dark:text-slate-200 leading-tight">{item.name}</p>
                           <p className="text-[10px] text-foreground font-medium mt-1 flex items-center gap-1.5">
-                            <CalendarDays className="w-3 h-3 text-foreground" /> {item.dates} <span className="text-slate-300">|</span> <span className="text-[#ff5b37] font-semibold">{item.days}</span>
+                            <CalendarDays className="w-3 h-3 text-foreground" /> {((item.leave_type === 'Replacement Leave' || item.leave_type === 'Cuti Ganti') && item.dates ? item.dates.replace(' - ', ' and ') : item.dates)} <span className="text-slate-300">|</span> <span className="text-[#ff5b37] font-semibold">{item.days}</span>
                           </p>
                           <p className="text-[10px] text-foreground font-medium mt-0.5">
                             Reason: {

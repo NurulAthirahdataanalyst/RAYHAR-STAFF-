@@ -1257,18 +1257,20 @@ async function getLiveAttendanceStats(queryDate, role, branch, department) {
   try {
     const lateTimeStr = getLateThresholdTime ? getLateThresholdTime() : '09:00:00';
 
+    const normRole = (role || "").toLowerCase().trim().replace(/ /g, "_");
     let filterP = "";
     let paramsTotal = [];
-    if (role === 'branch_leader') {
+    if (normRole === 'branch_leader') {
       const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
-      branch = safeBranch;
       filterP = " AND p.branch = ?";
-      paramsTotal.push(branch);
-    } else if (role === 'head_of_department') {
+      paramsTotal.push(safeBranch);
+    } else if (normRole === 'head_of_department' || normRole === 'hod') {
       const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
-      department = safeDept;
       filterP = " AND p.department = ?";
-      paramsTotal.push(department);
+      paramsTotal.push(safeDept);
+    } else if (['hr_admin', 'hr', 'admin', 'managing_director', 'md', 'operation_manager', 'finance_manager'].includes(normRole)) {
+      filterP = "";
+      paramsTotal = [];
     }
 
     // Total active employees
@@ -1795,18 +1797,20 @@ let workforceFeedClients = [];
 async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMonth, targetYear) {
   const lateTimeStr = getLateThresholdTime ? getLateThresholdTime() : '09:00:00';
 
+  const normRole = (role || "").toLowerCase().trim().replace(/ /g, "_");
   let filterP = "";
   let paramsBase = [];
-  if (role === 'branch_leader') {
-      const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
-      branch = safeBranch;
+  if (normRole === 'branch_leader') {
+    const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
     filterP = " AND p.branch = ?";
-    paramsBase.push(branch);
-  } else if (role === 'head_of_department') {
-      const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
-      department = safeDept;
+    paramsBase.push(safeBranch);
+  } else if (normRole === 'head_of_department' || normRole === 'hod') {
+    const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
     filterP = " AND p.department = ?";
-    paramsBase.push(department);
+    paramsBase.push(safeDept);
+  } else if (['hr_admin', 'hr', 'admin', 'managing_director', 'md', 'operation_manager', 'finance_manager'].includes(normRole)) {
+    filterP = "";
+    paramsBase = [];
   }
 
   // Clock-ins today with role
@@ -1959,17 +1963,64 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
     pendingParams
   );
 
-  const pendingApprovals = pendingRows.map(r => ({
-    id: r.leave_id,
-    user_id: r.user_id,
-    name: r.full_name,
-    initials: (r.full_name || '??').split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase(),
-    leave_type: r.leave_type,
-    dates: `${new Date(r.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${new Date(r.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`,
-    days: `${r.days} day${r.days !== 1 ? 's' : ''}`,
-    reason: r.reason || '',
-    status: r.status
-  }));
+  const pendingApprovals = pendingRows.map(r => {
+    let formattedDates = "";
+    const isReplacement = (r.leave_type === 'Replacement Leave' || r.leave_type === 'Cuti Ganti');
+    
+    // Check if reason contains [CUTI_GANTI_DATA:[...]]
+    let cutiGantiDates = [];
+    if (isReplacement && r.reason && r.reason.includes('[CUTI_GANTI_DATA:')) {
+      try {
+        const prefix = '[CUTI_GANTI_DATA:';
+        const startIdx = r.reason.indexOf(prefix);
+        const endIdx = r.reason.lastIndexOf(']');
+        const jsonStr = r.reason.substring(startIdx + prefix.length, endIdx);
+        const data = JSON.parse(jsonStr);
+        if (Array.isArray(data) && data.length > 0) {
+          cutiGantiDates = data.map(d => d.tarikhCuti).filter(Boolean);
+        }
+      } catch (e) {}
+    }
+
+    if (isReplacement && cutiGantiDates.length > 0) {
+      const formattedList = cutiGantiDates.map(d => {
+        const dt = new Date(d);
+        return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      });
+      if (formattedList.length === 1) {
+        formattedDates = formattedList[0];
+      } else if (formattedList.length === 2) {
+        formattedDates = `${formattedList[0]} and ${formattedList[1]}`;
+      } else {
+        formattedDates = `${formattedList.slice(0, -1).join(', ')} and ${formattedList[formattedList.length - 1]}`;
+      }
+    } else {
+      const sDate = new Date(r.start_date);
+      const eDate = new Date(r.end_date);
+      const sStr = sDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      const eStr = eDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+      if (sStr === eStr) {
+        formattedDates = sStr;
+      } else if (isReplacement) {
+        formattedDates = `${sStr} and ${eStr}`;
+      } else {
+        formattedDates = `${sStr} - ${eStr}`;
+      }
+    }
+
+    return {
+      id: r.leave_id,
+      user_id: r.user_id,
+      name: r.full_name,
+      initials: (r.full_name || '??').split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase(),
+      leave_type: r.leave_type,
+      dates: formattedDates,
+      days: `${r.days} day${r.days !== 1 ? 's' : ''}`,
+      reason: r.reason || '',
+      status: r.status
+    };
+  });
 
   // Upcoming Outstation — role-filtered
   let outstationFilters = ["status != 'Cancelled'", "?::date <= DATE(end_date)"];
@@ -7233,51 +7284,69 @@ app.get("/api/reports/analytics", async (req, res) => {
 app.get("/api/reports/workforce-insights", async (req, res) => {
   try {
     const { role, branch, department } = req.query;
-    const requestedMonth = parseInt(req.query.month) || (new Date().getMonth() + 1);
-    const requestedYear = parseInt(req.query.year) || new Date().getFullYear();
-    const todayStr = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Kuala_Lumpur"})).toISOString().split('T')[0];
-    const isDayView = !!req.query.date;
-    const targetDateStr = req.query.date ? req.query.date : todayStr;
-    const lateTimeStr = getLateThresholdTime();
+    const normRole = (role || "").toLowerCase().trim().replace(/ /g, "_");
 
     let profileFilter = "";
     let pFilterParams = [];
 
-    if (role === 'branch_leader') {
+    if (normRole === 'branch_leader') {
       const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
       profileFilter = " AND p.branch = ?";
       pFilterParams.push(safeBranch);
-    } else if (role === 'head_of_department') {
+    } else if (normRole === 'head_of_department' || normRole === 'hod') {
       const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
       profileFilter = " AND p.department = ?";
       pFilterParams.push(safeDept);
+    } else if (['hr_admin', 'hr', 'admin', 'managing_director', 'md', 'operation_manager', 'finance_manager'].includes(normRole)) {
+      // HR Admin, Managing Director, Operation Manager see ALL employees across all branches and departments
+      profileFilter = "";
+      pFilterParams = [];
     }
 
+    const requestedMonth = parseInt(req.query.month) || (new Date().getMonth() + 1);
+    const requestedYear = parseInt(req.query.year) || new Date().getFullYear();
+    const daysInMonth = new Date(requestedYear, requestedMonth, 0).getDate();
+    const monthStartStr = `${requestedYear}-${String(requestedMonth).padStart(2, '0')}-01`;
+    const monthEndStr = `${requestedYear}-${String(requestedMonth).padStart(2, '0')}-${String(daysInMonth).padStart(2, '0')}`;
+
+    const nowKL = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Kuala_Lumpur"}));
+    const todayStr = `${nowKL.getFullYear()}-${String(nowKL.getMonth() + 1).padStart(2, '0')}-${String(nowKL.getDate()).padStart(2, '0')}`;
+    const isDayView = !!req.query.date;
+    const targetDateStr = req.query.date ? req.query.date : todayStr;
+    const lateTimeStr = getLateThresholdTime ? getLateThresholdTime() : '09:00:00';
+
     // 1. Employees & KPI
-    const [empRows] = await pool.query(`SELECT COUNT(*) as total, SUM(CASE WHEN status = 'Active' THEN 1 ELSE 0 END) as active FROM profiles p WHERE DATE(p.created_at) <= ?::date ${profileFilter}`, [targetDateStr, ...pFilterParams]);
+    const [empRows] = await pool.query(`SELECT COUNT(*) as total, SUM(CASE WHEN status = 'Active' THEN 1 ELSE 0 END) as active FROM profiles p WHERE (p.created_at IS NULL OR DATE(p.created_at) <= ?::date) ${profileFilter}`, [monthEndStr, ...pFilterParams]);
     const totalHeadcount = parseInt(empRows[0].total || 0);
     const activeEmployees = parseInt(empRows[0].active || 0);
 
-    // Fetch active company leaves
-    const [companyLeaveRows] = await pool.query(
-      `SELECT * FROM company_leave_calendar WHERE status = 'Active' AND start_date <= ? AND end_date >= ?`,
-      [targetDateStr, targetDateStr]
+    const [allProfiles] = await pool.query(
+      `SELECT p.user_id, p.full_name, p.branch, p.department, p.created_at, p.status 
+       FROM profiles p 
+       WHERE p.status = 'Active' AND (p.created_at IS NULL OR DATE(p.created_at) <= ?::date) ${profileFilter}`,
+      [monthEndStr, ...pFilterParams]
     );
 
-    // Calculate company leave exactly
-    let companyLeaveCount = 0;
-    const [allProfiles] = await pool.query(
-      `SELECT * FROM profiles p WHERE p.status = 'Active' ${profileFilter}`, pFilterParams
+    // Fetch active company leaves overlapping month
+    const [companyLeaveRows] = await pool.query(
+      `SELECT * FROM company_leave_calendar WHERE status = 'Active' AND DATE(start_date) <= ?::date AND DATE(end_date) >= ?::date`,
+      [monthEndStr, monthStartStr]
     );
-    
+
+    // Calculate company leave for targetDateStr (Day View)
+    let companyLeaveCount = 0;
     let isCompanyLeaveDay = false;
     let companyLeaveEmployees = new Set();
     allProfiles.forEach(emp => {
       let onCL = false;
       for (let cl of companyLeaveRows) {
-        if (cl.applies_to === 'All' || cl.applies_to === 'all') onCL = true;
-        else if ((cl.applies_to === 'Specific Branch' || cl.applies_to === 'branch') && cl.branch_id && cl.branch_id.split(',').includes(emp.branch)) onCL = true;
-        else if ((cl.applies_to === 'Specific Department' || cl.applies_to === 'department') && cl.department_id && cl.department_id.split(',').includes(emp.department)) onCL = true;
+        const s = cl.start_date instanceof Date ? cl.start_date.toISOString().split('T')[0] : String(cl.start_date).split('T')[0];
+        const e = cl.end_date instanceof Date ? cl.end_date.toISOString().split('T')[0] : String(cl.end_date).split('T')[0];
+        if (targetDateStr >= s && targetDateStr <= e) {
+          if (cl.applies_to === 'All' || cl.applies_to === 'all') onCL = true;
+          else if ((cl.applies_to === 'Specific Branch' || cl.applies_to === 'branch') && cl.branch_id && cl.branch_id.split(',').map(x=>x.trim()).includes(emp.branch)) onCL = true;
+          else if ((cl.applies_to === 'Specific Department' || cl.applies_to === 'department') && cl.department_id && cl.department_id.split(',').map(x=>x.trim()).includes(emp.department)) onCL = true;
+        }
       }
       if (onCL) {
         companyLeaveCount++;
@@ -7289,74 +7358,92 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       isCompanyLeaveDay = true;
     }
 
-    const outstationParams = [targetDateStr, ...pFilterParams];
-    const [outstationTodayRows] = await pool.query(
-      `SELECT DISTINCT o.user_id
+    // Outstation assignments overlapping month
+    const [monthOutstationRows] = await pool.query(
+      `SELECT o.user_id, o.destination,
+              (o.start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date as start_date,
+              (o.end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date as end_date
        FROM outstation_assignments o
        JOIN profiles p ON p.user_id = o.user_id
        WHERE o.status != 'Cancelled'
-       AND ?::date BETWEEN (o.start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (o.end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date
-       ${profileFilter}`,
-      outstationParams
+         AND (o.start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date <= ?::date
+         AND (o.end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date >= ?::date
+         ${profileFilter}`,
+      [monthEndStr, monthStartStr, ...pFilterParams]
     );
+
+    const outstationTodayRows = monthOutstationRows.filter(r => {
+      const s = r.start_date instanceof Date ? r.start_date.toISOString().split('T')[0] : String(r.start_date).split('T')[0];
+      const e = r.end_date instanceof Date ? r.end_date.toISOString().split('T')[0] : String(r.end_date).split('T')[0];
+      return targetDateStr >= s && targetDateStr <= e;
+    });
     const outstationTodayCount = outstationTodayRows.length;
     const outstationEmployees = new Set(outstationTodayRows.map(r => r.user_id));
-// 3. Leave Stats
+
+    // Leave requests overlapping month
     const [leaveRows] = await pool.query(
-      `SELECT lr.user_id, lr.status, lr.start_date, lr.end_date, p.full_name as name
+      `SELECT lr.user_id, lr.status, lr.leave_type,
+              (lr.start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date as start_date,
+              (lr.end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date as end_date,
+              p.full_name as name
        FROM leave_requests lr
        JOIN profiles p ON p.user_id = lr.user_id
-       WHERE EXTRACT(MONTH FROM lr.start_date) = ? AND EXTRACT(YEAR FROM lr.start_date) = ? AND p.status = 'Active' ${profileFilter}`,
-      [requestedMonth, requestedYear, ...pFilterParams]
+       WHERE (lr.start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date <= ?::date
+         AND (lr.end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date >= ?::date
+         AND p.status = 'Active' ${profileFilter}`,
+      [monthEndStr, monthStartStr, ...pFilterParams]
     );
 
     let pendingApproval = 0;
     let approvedThisMonth = 0;
     let onLeaveToday = 0;
+    const onLeaveEmployees = new Set();
 
     leaveRows.forEach(lr => {
-      if (lr.status.startsWith('Pending')) pendingApproval++;
-      if (lr.status === 'Approved') approvedThisMonth++;
-      
-      const startObj = new Date(lr.start_date);
-      const endObj = new Date(lr.end_date);
-      const start = new Date(startObj.getTime() + 8*3600*1000).toISOString().split('T')[0];
-      const end = new Date(endObj.getTime() + 8*3600*1000).toISOString().split('T')[0];
-      
-      if (targetDateStr >= start && targetDateStr <= end && lr.status === 'Approved') {
-        onLeaveToday++;
+      if (lr.status && lr.status.startsWith('Pending')) pendingApproval++;
+      if (lr.status === 'Approved') {
+        approvedThisMonth++;
+        const s = lr.start_date instanceof Date ? lr.start_date.toISOString().split('T')[0] : String(lr.start_date).split('T')[0];
+        const e = lr.end_date instanceof Date ? lr.end_date.toISOString().split('T')[0] : String(lr.end_date).split('T')[0];
+        if (targetDateStr >= s && targetDateStr <= e) {
+          onLeaveToday++;
+          onLeaveEmployees.add(lr.user_id);
+        }
       }
     });
 
-    
+    // Temporary branch assignments overlapping month
+    const [tempAssignmentRows] = await pool.query(
+      `SELECT e.user_id, e.location,
+              (e.start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date as start_date,
+              COALESCE((e.end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date, '2099-12-31'::date) as end_date
+       FROM employee_work_assignment e
+       JOIN profiles p ON p.user_id = e.user_id
+       WHERE e.status = 'Active'
+         AND (e.start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date <= ?::date
+         AND (e.end_date IS NULL OR (e.end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date >= ?::date)
+         AND p.status = 'Active' ${profileFilter}`,
+      [monthEndStr, monthStartStr, ...pFilterParams]
+    );
 
-    // 2. Attendance & Lates
+    // Attendances in requested month
     const [attRows] = await pool.query(
       `SELECT 
         a.user_id, p.full_name as name, p.branch, p.department, a.clock_in, a.clock_out,
+        (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::date as att_date,
         CASE WHEN (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::time > ?::time THEN 1 ELSE 0 END as is_late
        FROM attendances a
        JOIN profiles p ON p.user_id = a.user_id
-       WHERE EXTRACT(MONTH FROM a.clock_in) = ? AND EXTRACT(YEAR FROM a.clock_in) = ? AND p.status = 'Active' ${profileFilter}`,
-      [lateTimeStr, requestedMonth, requestedYear, ...pFilterParams]
+       WHERE (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::date >= ?::date
+         AND (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::date <= ?::date
+         AND p.status = 'Active' ${profileFilter}
+       ORDER BY a.clock_in ASC`,
+      [lateTimeStr, monthStartStr, monthEndStr, ...pFilterParams]
     );
 
     let totalLateArrivals = 0;
     let presentToday = 0;
     let lateToday = 0;
-    
-    const userStats = {};
-
-    const onLeaveEmployees = new Set();
-    leaveRows.forEach(lr => {
-      const startObj = new Date(lr.start_date);
-      const endObj = new Date(lr.end_date);
-      const start = new Date(startObj.getTime() + 8*3600*1000).toISOString().split('T')[0];
-      const end = new Date(endObj.getTime() + 8*3600*1000).toISOString().split('T')[0];
-      if (targetDateStr >= start && targetDateStr <= end && lr.status === 'Approved') {
-        onLeaveEmployees.add(lr.user_id);
-      }
-    });
 
     attRows.forEach(att => {
       const isLate = parseInt(att.is_late) === 1;
@@ -7364,8 +7451,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       const dateStr = new Date(dateObj.getTime() + 8*3600*1000).toISOString().split('T')[0];
       const isOutstation = outstationEmployees.has(att.user_id);
       const isOnLeave = onLeaveEmployees.has(att.user_id);
-      
-      // Explicitly ignore users who are Outstation or On Leave from Present/Late counts for today
+
       if (dateStr === targetDateStr) {
         if (!isOutstation && !isOnLeave) {
           presentToday++;
@@ -7374,29 +7460,161 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       }
 
       if (isLate && !isOutstation && !isOnLeave) totalLateArrivals++;
+    });
 
-      if (!userStats[att.user_id]) {
-        userStats[att.user_id] = { name: att.name, department: att.department, branch: att.branch, presentDays: 0, lateDays: 0, missingPunches: 0, lastMissingPunch: null };
-      }
-      
-      if (!isOutstation && !isOnLeave) {
-        userStats[att.user_id].presentDays++;
-        if (isLate) userStats[att.user_id].lateDays++;
-        
-        // Missing Punch Check ignores users on leave/outstation
-        if (!att.clock_out && dateStr < targetDateStr) {
-          userStats[att.user_id].missingPunches++;
-          if (!userStats[att.user_id].lastMissingPunch || dateStr > userStats[att.user_id].lastMissingPunch) {
-            userStats[att.user_id].lastMissingPunch = dateStr;
-          }
-        }
+    const branchZoneMap = await getBranchZoneMap();
+
+    // Map lookups for fast month calculation per employee
+    const userAttMap = new Map();
+    attRows.forEach(a => {
+      const dStr = a.att_date ? (a.att_date instanceof Date ? a.att_date.toISOString().split('T')[0] : String(a.att_date).split('T')[0]) : new Date(new Date(a.clock_in).getTime() + 8*3600*1000).toISOString().split('T')[0];
+      if (!userAttMap.has(a.user_id)) userAttMap.set(a.user_id, new Map());
+      if (!userAttMap.get(a.user_id).has(dStr)) userAttMap.get(a.user_id).set(dStr, a);
+    });
+
+    const userLeavesMap = new Map();
+    leaveRows.forEach(l => {
+      if (l.status === 'Approved') {
+        const s = l.start_date instanceof Date ? l.start_date.toISOString().split('T')[0] : String(l.start_date).split('T')[0];
+        const e = l.end_date instanceof Date ? l.end_date.toISOString().split('T')[0] : String(l.end_date).split('T')[0];
+        if (!userLeavesMap.has(l.user_id)) userLeavesMap.set(l.user_id, []);
+        userLeavesMap.get(l.user_id).push({ start: s, end: e });
       }
     });
 
-    const workingDaysInMonth = 22; 
-    const possibleAttendances = activeEmployees * workingDaysInMonth;
+    const userOutstationMap = new Map();
+    monthOutstationRows.forEach(o => {
+      const s = o.start_date instanceof Date ? o.start_date.toISOString().split('T')[0] : String(o.start_date).split('T')[0];
+      const e = o.end_date instanceof Date ? o.end_date.toISOString().split('T')[0] : String(o.end_date).split('T')[0];
+      if (!userOutstationMap.has(o.user_id)) userOutstationMap.set(o.user_id, []);
+      userOutstationMap.get(o.user_id).push({ start: s, end: e });
+    });
+
+    const userTempMap = new Map();
+    tempAssignmentRows.forEach(t => {
+      const s = t.start_date instanceof Date ? t.start_date.toISOString().split('T')[0] : String(t.start_date).split('T')[0];
+      const e = t.end_date instanceof Date ? t.end_date.toISOString().split('T')[0] : String(t.end_date).split('T')[0];
+      if (!userTempMap.has(t.user_id)) userTempMap.set(t.user_id, []);
+      userTempMap.get(t.user_id).push({ location: t.location, start: s, end: e });
+    });
+
+    // Compute Exact Absent, Attendance Rate & Lates for ALL active employees
+    const empStats = [];
+    allProfiles.forEach(p => {
+      let presentDays = 0;
+      let lateDays = 0;
+      let absentDays = 0;
+      let outstationDays = 0;
+      let leaveDays = 0;
+      let missingPunches = 0;
+      let lastMissingPunch = null;
+      let scheduledPassedBeforeToday = 0;
+      let totalScheduledInMonth = 0;
+      let hasClockInToday = false;
+
+      const pCreatedStr = p.created_at ? new Date(p.created_at).toISOString().split('T')[0] : null;
+
+      for (let dayNum = 1; dayNum <= daysInMonth; dayNum++) {
+        const dateStr = `${requestedYear}-${String(requestedMonth).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
+        const dateObj = new Date(requestedYear, requestedMonth - 1, dayNum);
+
+        // Before employment started
+        if (pCreatedStr && dateStr < pCreatedStr) continue;
+
+        // Effective branch (checks active temporary assignment)
+        const tempAssign = userTempMap.get(p.user_id)?.find(a => dateStr >= a.start && dateStr <= a.end);
+        const effectiveBranch = tempAssign?.location || p.branch || 'HQ';
+        const zone = branchZoneMap.get(effectiveBranch) || 'ZONE_B';
+
+        // Weekend / Scheduled off-day check
+        if (checkIsWeekend(zone, dateObj)) continue;
+
+        // Public holiday check
+        if (malaysiaHolidays.some(h => h.date === dateStr)) continue;
+
+        // Company leave check
+        const isCompLeave = companyLeaveRows.some(cl => {
+          const s = cl.start_date instanceof Date ? cl.start_date.toISOString().split('T')[0] : String(cl.start_date).split('T')[0];
+          const e = cl.end_date instanceof Date ? cl.end_date.toISOString().split('T')[0] : String(cl.end_date).split('T')[0];
+          if (dateStr >= s && dateStr <= e) {
+            if (cl.applies_to === 'All' || cl.applies_to === 'all') return true;
+            if ((cl.applies_to === 'Specific Branch' || cl.applies_to === 'branch') && cl.branch_id && cl.branch_id.split(',').map(x => x.trim()).includes(effectiveBranch)) return true;
+            if ((cl.applies_to === 'Specific Department' || cl.applies_to === 'department') && cl.department_id && cl.department_id.split(',').map(x => x.trim()).includes(p.department)) return true;
+          }
+          return false;
+        });
+        if (isCompLeave) continue;
+
+        // It is a scheduled working day!
+        totalScheduledInMonth++;
+
+        const isBeforeToday = dateStr < todayStr;
+        const isToday = dateStr === todayStr;
+
+        if (isBeforeToday) {
+          scheduledPassedBeforeToday++;
+        }
+
+        const att = userAttMap.get(p.user_id)?.get(dateStr);
+        const hasClockIn = !!att;
+        const isLate = hasClockIn && parseInt(att.is_late) === 1;
+        const isOnLeave = userLeavesMap.get(p.user_id)?.some(l => dateStr >= l.start && dateStr <= l.end);
+        const isOutstation = userOutstationMap.get(p.user_id)?.some(o => dateStr >= o.start && dateStr <= o.end);
+
+        if (hasClockIn) {
+          presentDays++;
+          if (isLate) lateDays++;
+          if (isToday) hasClockInToday = true;
+          if (!att.clock_out && isBeforeToday) {
+            missingPunches++;
+            if (!lastMissingPunch || dateStr > lastMissingPunch) {
+              lastMissingPunch = dateStr;
+            }
+          }
+        } else if (isOnLeave) {
+          leaveDays++;
+        } else if (isOutstation) {
+          outstationDays++;
+        } else {
+          // A day is counted as ABSENT only when:
+          // 1. Date is before today.
+          // 2. Scheduled working day.
+          // 3. Not clocked in.
+          // 4. No approved leave, outstation, or temporary branch attendance.
+          // Do NOT calculate today as absent yet. Future days are NOT absent.
+          if (isBeforeToday) {
+            absentDays++;
+          }
+        }
+      }
+
+      const isCurrentMonth = (requestedYear === nowKL.getFullYear() && requestedMonth === (nowKL.getMonth() + 1));
+      const workingDaysToDate = isCurrentMonth
+        ? (scheduledPassedBeforeToday + (hasClockInToday ? 1 : 0))
+        : totalScheduledInMonth;
+
+      const validCredits = presentDays + outstationDays;
+      const rate = workingDaysToDate > 0
+        ? Math.min(100, Math.round((validCredits / workingDaysToDate) * 100))
+        : (presentDays > 0 ? 100 : 0);
+
+      empStats.push({
+        id: p.user_id,
+        name: p.full_name,
+        branch: p.branch || 'HQ',
+        department: p.department || '—',
+        attendanceRate: rate,
+        lateCount: lateDays,
+        absentCount: absentDays,
+        presentDays: presentDays,
+        outstationDays: outstationDays,
+        workingDaysToDate: workingDaysToDate,
+        missingPunches: missingPunches,
+        lastMissingPunch: lastMissingPunch
+      });
+    });
+
     let averageAttendance = 0;
-    
     if (isDayView) {
       if (isCompanyLeaveDay) {
         averageAttendance = 0;
@@ -7405,25 +7623,39 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
         averageAttendance = expectedToClockIn > 0 ? Math.round((presentToday / expectedToClockIn) * 100) : 0;
       }
     } else {
-      averageAttendance = possibleAttendances > 0 ? Math.round((attRows.length / possibleAttendances) * 100) : 0;
+      const totalPossible = empStats.reduce((sum, e) => sum + (e.workingDaysToDate || 0), 0);
+      const totalValid = empStats.reduce((sum, e) => sum + (e.presentDays || 0) + (e.outstationDays || 0), 0);
+      averageAttendance = totalPossible > 0 ? Math.round((totalValid / totalPossible) * 100) : 0;
     }
 
-    const absences = Math.max(0, possibleAttendances - attRows.length);
-
-    // 4. Team Availability today
+    const absences = empStats.reduce((sum, e) => sum + (e.absentCount || 0), 0);
     let absentToday = Math.max(0, activeEmployees - presentToday - onLeaveToday - companyLeaveCount - outstationTodayCount);
 
-    // 5. Rankings
-    const rankings = Object.values(userStats).map(u => ({
+    // 5. Leaderboard Rankings
+    const rankings = empStats.map(u => ({
+      id: u.id,
       name: u.name,
-      attendanceRate: Math.min(100, Math.round((u.presentDays / workingDaysInMonth) * 100)),
-      lateCount: u.lateDays,
-      absentCount: Math.max(0, workingDaysInMonth - u.presentDays)
+      branch: u.branch,
+      department: u.department,
+      attendanceRate: u.attendanceRate,
+      lateCount: u.lateCount,
+      absentCount: u.absentCount,
+      presentDays: u.presentDays
     }));
 
-    const topAttendance = [...rankings].sort((a, b) => b.attendanceRate - a.attendanceRate).slice(0, 5);
-    const topLate = [...rankings].sort((a, b) => b.lateCount - a.lateCount).filter(u => u.lateCount > 0).slice(0, 5);
-    const topAbsent = [...rankings].sort((a, b) => b.absentCount - a.absentCount).filter(u => u.absentCount > 0).slice(0, 5);
+    const topAttendance = [...rankings]
+      .sort((a, b) => b.attendanceRate - a.attendanceRate || b.presentDays - a.presentDays)
+      .slice(0, 5);
+
+    const topLate = [...rankings]
+      .filter(u => u.lateCount > 0)
+      .sort((a, b) => b.lateCount - a.lateCount)
+      .slice(0, 5);
+
+    const topAbsent = [...rankings]
+      .filter(u => u.absentCount > 0)
+      .sort((a, b) => b.absentCount - a.absentCount)
+      .slice(0, 5);
 
     // 6. Trends (Real Data)
     const [trendRows] = await pool.query(
@@ -7794,7 +8026,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
     }));
 
     // Missing Punches Logic
-    const missingPunchEmployees = Object.values(userStats)
+    const missingPunchEmployees = (empStats || [])
       .filter(u => u.missingPunches >= 2)
       .map(u => ({
         name: u.name,
@@ -7836,14 +8068,13 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       ? `↓ ${Math.abs(diffMissing)} employees compared to last month`
       : `Same as last month`;
 
-    const branchZoneMap = await getBranchZoneMap();
     const dateObj = new Date(targetDateStr);
     
     let finalAbsentList = [];
     allProfiles.forEach(p => {
        const isOnLeave = leaveRows.some(lr => lr.user_id === p.user_id && lr.status === 'Approved' && targetDateStr >= new Date(new Date(lr.start_date).getTime() + 8*3600*1000).toISOString().split('T')[0] && targetDateStr <= new Date(new Date(lr.end_date).getTime() + 8*3600*1000).toISOString().split('T')[0]);
        const isCompanyLeave = companyLeaveEmployees.has(p.user_id);
-       const isOutstation = outstationRows.some(o => o.user_id === p.user_id);
+       const isOutstation = outstationTodayRows.some(o => o.user_id === p.user_id);
        
        const att = attRows.find(a => a.user_id === p.user_id && new Date(new Date(a.clock_in).getTime() + 8*3600*1000).toISOString().split('T')[0] === targetDateStr);
        const isPresent = !!att;
