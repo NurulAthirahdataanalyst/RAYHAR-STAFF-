@@ -1283,16 +1283,19 @@ export default function Attendance() {
                     <MapPin className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
                     <span className="text-[10px] font-bold text-purple-700 dark:text-purple-400 uppercase tracking-wider">Working Location</span>
                   </div>
-                  <select
-                    className="w-full bg-white dark:bg-slate-900 border border-purple-200 dark:border-purple-800 text-sm font-semibold px-3 py-2 focus:ring-1 focus:ring-purple-400 outline-none rounded-lg text-foreground cursor-pointer"
-                    value={selectedLocation}
-                    onChange={(e) => setSelectedLocation(e.target.value)}
-                  >
-                    {allowedLocations.map((loc, i) => (
-                      <option key={i} value={loc}>{loc}</option>
-                    ))}
-                  </select>
-                  <p className="text-[9px] text-purple-500/80 dark:text-purple-400/60 mt-1">Select your working branch before clocking in.</p>
+                  <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+                    <SelectTrigger className="w-full bg-white dark:bg-card h-10 text-xs font-bold border-purple-200 dark:border-purple-800 shadow-xs focus:ring-1 focus:ring-[#942392]">
+                      <SelectValue placeholder="Select working location..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {allowedLocations.map((loc, i) => (
+                        <SelectItem key={i} value={loc} className="text-xs font-bold cursor-pointer">
+                          {loc}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-[9px] text-purple-500/80 dark:text-purple-400/60 mt-1.5 font-medium">Select your working branch before clocking in.</p>
                 </div>
               )}
 
