@@ -74,6 +74,22 @@ const AVATAR_COLORS = [
 ];
 const getAvatarColor = (str: string) => AVATAR_COLORS[(str || '').charCodeAt(0) % AVATAR_COLORS.length];
 
+const formatDeptBranch = (dept?: string, branch?: string) => {
+  const cleanDept = (dept || "").trim();
+  const cleanBranch = (branch || "").trim();
+  const hasDept = cleanDept && cleanDept !== '—' && cleanDept !== '-' && cleanDept !== 'â€”';
+  const hasBranch = cleanBranch && cleanBranch !== '—' && cleanBranch !== '-' && cleanBranch !== 'â€”';
+
+  if (hasDept && hasBranch) {
+    return `${cleanDept} • ${cleanBranch}`;
+  } else if (hasDept) {
+    return cleanDept;
+  } else if (hasBranch) {
+    return cleanBranch;
+  }
+  return '—';
+};
+
 interface LiveEmp {
   user_id: string;
   full_name: string;
@@ -1365,7 +1381,7 @@ export default function WorkforceInsights() {
                                   <span className="px-1 py-0.5 text-[8px] font-bold rounded bg-orange-100 text-orange-600 border border-orange-200">Late</span>
                                 )}
                               </div>
-                              <p className="text-[10px] text-foreground font-medium">{emp.department && emp.department !== '—' ? emp.department : emp.branch}</p>
+                              <p className="text-[10px] text-foreground font-medium">{formatDeptBranch(emp.department, emp.branch)}</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-1.5 shrink-0">
@@ -1425,7 +1441,7 @@ export default function WorkforceInsights() {
                             </div>
                             <div>
                               <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 leading-tight line-clamp-2">{emp.full_name.toUpperCase()}</p>
-                              <p className="text-[10px] text-foreground font-medium">{emp.department && emp.department !== '—' ? emp.department : emp.branch}</p>
+                              <p className="text-[10px] text-foreground font-medium">{formatDeptBranch(emp.department, emp.branch)}</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-1.5 shrink-0">
@@ -1587,7 +1603,7 @@ export default function WorkforceInsights() {
                               <span className="px-1 py-0.5 text-[8px] font-bold rounded bg-orange-100 text-orange-600 border border-orange-200">Late</span>
                             )}
                           </div>
-                          <p className="text-[10px] text-foreground font-medium">{emp.department && emp.department !== '—' && emp.department !== '-' ? emp.department : emp.branch}</p>
+                          <p className="text-[10px] text-foreground font-medium">{formatDeptBranch(emp.department, emp.branch)}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
@@ -1654,7 +1670,7 @@ export default function WorkforceInsights() {
                           {Math.floor(emp.late_minutes / 60)} H {(emp.late_minutes % 60).toString().padStart(2, '0')} Min
                         </span>
                       </div>
-                      <p className="text-[10px] text-foreground font-medium">{emp.department !== 'â€”' ? emp.department : emp.branch}</p>
+                      <p className="text-[10px] text-foreground font-medium">{formatDeptBranch(emp.department, emp.branch)}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0">
@@ -1716,7 +1732,7 @@ export default function WorkforceInsights() {
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 leading-tight line-clamp-2">{emp.full_name.toUpperCase()}</p>
                       </div>
-                      <p className="text-[10px] text-foreground font-medium">{emp.department !== 'â€”' ? emp.department : emp.branch}</p>
+                      <p className="text-[10px] text-foreground font-medium">{formatDeptBranch(emp.department, emp.branch)}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0">

@@ -22,7 +22,8 @@ import {
     Trash2,
     ArrowLeft, Plus,
   Eye,
-  EyeOff
+  EyeOff,
+  RotateCcw
 } from 'lucide-react';
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
@@ -524,7 +525,8 @@ export default function Employees() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           user_id: deleteConfirmEmp.id || deleteConfirmEmp.user_id,
-          status: "Deleted"
+          status: "Deleted",
+          changer_role: role
         })
       });
 
@@ -670,15 +672,19 @@ export default function Employees() {
 
       <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 bg-card/50 backdrop-blur-sm p-3 rounded-2xl border border-border/50">
         <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 w-full sm:w-auto flex-1">
-          <Popover open={empSearchOpen} onOpenChange={setEmpSearchOpen}>
-              <div className="relative w-full sm:max-w-xs">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/50 z-10 pointer-events-none" />
-                
-                <PopoverAnchor asChild>
+           <Popover open={empSearchOpen} onOpenChange={setEmpSearchOpen}>
+              <PopoverTrigger asChild>
+                <div 
+                  className="relative w-full sm:max-w-xs cursor-pointer"
+                  onClick={() => setEmpSearchOpen(true)}
+                >
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/50 z-10 pointer-events-none" />
+                  
                   <Input
                     placeholder={checkedEmployees.length > 0 ? `${checkedEmployees.length} employee${checkedEmployees.length > 1 ? 's' : ''} selected` : "Search employees..."}
                     value={empSearchText}
                     onFocus={() => setEmpSearchOpen(true)}
+                    onClick={() => setEmpSearchOpen(true)}
                     onChange={(e) => {
                         setEmpSearchText(e.target.value);
                         setSearch(e.target.value);
@@ -686,19 +692,16 @@ export default function Employees() {
                     }}
                     className={`pl-9 pr-8 h-11 sm:h-10 border bg-background/50 rounded-xl font-semibold text-xs focus-visible:ring-1 focus-visible:ring-[#942392]/50 w-full transition-all ${checkedEmployees.length > 0 ? 'border-[#942392]/50 text-[#942392] placeholder:text-[#942392]/80 placeholder:font-bold' : 'border-border/60'}`}
                   />
-                </PopoverAnchor>
-                <PopoverTrigger asChild>
-                  <button type="button" className="sr-only" aria-hidden="true" />
-                </PopoverTrigger>
-                {(search || checkedEmployees.length > 0) && (
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); setSearch(''); setCheckedEmployees([]); setEmpSearchText(''); }} 
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground/40 hover:text-foreground z-10 transition-colors"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                )}
-              </div>
+                  {(search || checkedEmployees.length > 0) && (
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); setSearch(''); setCheckedEmployees([]); setEmpSearchText(''); }} 
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground/40 hover:text-foreground z-10 transition-colors"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+              </PopoverTrigger>
               <PopoverContent className="w-[340px] p-0 shadow-xl" align="start" onOpenAutoFocus={(e) => e.preventDefault()}>
                 {checkedEmployees.length > 0 && (
                   <div className="p-3 border-b border-border/50">
@@ -816,6 +819,24 @@ export default function Employees() {
               <SelectItem value="Inactive" className="text-xs font-bold">Inactive Only</SelectItem>
             </SelectContent>
           </Select>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setSearch("");
+              setEmpSearchText("");
+              setCheckedEmployees([]);
+              setSelectedBranch("All");
+              setSelectedPosition("All");
+              setSelectedStatus("All");
+            }}
+            className="h-11 sm:h-10 px-3 border-border/60 bg-background/50 hover:bg-muted font-bold text-xs rounded-xl flex items-center gap-1.5 text-foreground/80 hover:text-foreground transition-all shadow-sm"
+            title="Reset all filters"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span>Reset</span>
+          </Button>
         </div>
         
         <Badge variant="outline" className="px-3 py-1.5 text-xs font-bold whitespace-nowrap bg-muted/30 border-border/60 h-10 sm:h-auto flex items-center justify-center rounded-md">

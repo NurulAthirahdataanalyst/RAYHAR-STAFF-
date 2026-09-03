@@ -4101,9 +4101,11 @@ app.post("/api/employees/status", async (req, res) => {
     return res.status(400).json({ success: false, error: "Missing required fields: user_id or status" });
   }
 
-  // Security check: Only hr_admin and managing_director can modify employee status
-  if (changer_role !== "hr_admin" && changer_role !== "managing_director") {
-    return res.status(403).json({ success: false, error: "Unauthorized: Only HR Admins or Managing Directors can change employee status." });
+  // Security check: Only authorized roles can modify employee status
+  const normalizedRole = (changer_role || "").toLowerCase();
+  const allowedRoles = ["hr_admin", "hr", "admin", "managing_director", "md", "operation_manager"];
+  if (changer_role && !allowedRoles.includes(normalizedRole)) {
+    return res.status(403).json({ success: false, error: "Unauthorized: Only HR Admins, Managing Directors, or Operation Managers can change employee status." });
   }
 
   try {
