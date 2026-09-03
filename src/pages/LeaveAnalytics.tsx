@@ -740,6 +740,45 @@ export default function LeaveAnalytics() {
       ? Math.min(100, Math.round((approvedDays / totalQuota) * 100))
       : 0;
 
+  const getLeaveAnalyticsFilename = () => {
+    const MONTH_NAMES = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ];
+
+    if (viewType === "day") {
+      return `Leave_Analytics_Report_${selectedDate}.csv`;
+    }
+
+    if (viewType === "month") {
+      let monthName = "";
+      let year = selectedYear;
+      if (selectedMonthYear) {
+        const parts = selectedMonthYear.split("-");
+        if (parts.length === 2) {
+          year = parts[0];
+          const mIdx = parseInt(parts[1], 10) - 1;
+          if (mIdx >= 0 && mIdx < 12) {
+            monthName = MONTH_NAMES[mIdx];
+          }
+        }
+      }
+      if (!monthName && selectedMonth && selectedMonth !== "all") {
+        const mIdx = parseInt(selectedMonth, 10) - 1;
+        if (mIdx >= 0 && mIdx < 12) {
+          monthName = MONTH_NAMES[mIdx];
+        }
+      }
+      if (!monthName) {
+        const now = new Date();
+        monthName = MONTH_NAMES[now.getMonth()];
+      }
+      return `Leave_Analytics_Report_${monthName}_${year}.csv`;
+    }
+
+    return `Leave_Analytics_Report_${selectedYear}.csv`;
+  };
+
   // CSV Export
   const handleExport = () => {
     const headers = [
@@ -764,7 +803,7 @@ export default function LeaveAnalytics() {
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = `Leave_Analytics_${selectedYear}.csv`;
+    a.download = getLeaveAnalyticsFilename();
     a.click();
   };
 

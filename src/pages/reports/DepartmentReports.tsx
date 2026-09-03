@@ -116,7 +116,7 @@ export default function DepartmentReports() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", `department_report.csv`);
+    link.setAttribute("download", `department_branch_report.csv`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();

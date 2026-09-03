@@ -227,6 +227,31 @@ export default function OutstationReports() {
     return filteredAssignments.slice(indexOfFirstItem, indexOfLastItem);
   }, [filteredAssignments, indexOfFirstItem, indexOfLastItem]);
 
+  const getOutstationReportFilename = () => {
+    const LOWER_MONTH_NAMES = [
+      "january", "february", "march", "april", "may", "june",
+      "july", "august", "september", "october", "november", "december"
+    ];
+
+    if (viewType === "year") {
+      return `outstation_report_${selectedYear}.csv`;
+    }
+
+    let monthName = "september";
+    let year = selectedYear;
+    if (selectedMonthYear) {
+      const parts = selectedMonthYear.split("-");
+      if (parts.length === 2) {
+        year = parts[0];
+        const mIdx = parseInt(parts[1], 10) - 1;
+        if (mIdx >= 0 && mIdx < 12) {
+          monthName = LOWER_MONTH_NAMES[mIdx];
+        }
+      }
+    }
+    return `outstation_report_${monthName}_${year}.csv`;
+  };
+
   const exportCSV = () => {
     if (selectedEvent) {
       const headers = ["Employee","Department","Branch","Destination","Purpose","Project","Start Date","End Date","Days","Status","Assigned By"];
@@ -242,7 +267,7 @@ export default function OutstationReports() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `event_${selectedEvent.eventName}_${new Date().toISOString().slice(0,10)}.csv`;
+      link.download = `outstation_report_${selectedEvent.eventName.toLowerCase().replace(/\s+/g, '_')}_${getOutstationReportFilename()}`;
       link.click();
       URL.revokeObjectURL(url);
     } else {
@@ -257,7 +282,7 @@ export default function OutstationReports() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `events_report_${new Date().toISOString().slice(0,10)}.csv`;
+      link.download = getOutstationReportFilename();
       link.click();
       URL.revokeObjectURL(url);
     }
