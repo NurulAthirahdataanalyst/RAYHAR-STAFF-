@@ -50,9 +50,13 @@ function CustomDatePicker({ value, onChange, placeholder, className }: { value: 
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="outline" className={`justify-start text-left font-normal ${!value && "text-muted-foreground"} ${className}`}>
-          <CalendarDays className="mr-2 h-4 w-4" />
-          {value ? format(new Date(value), "PPP") : <span>{placeholder}</span>}
+        <Button variant="outline" className={`justify-between text-left font-bold text-xs uppercase border-border/60 bg-white dark:bg-card ${!value && "text-muted-foreground"} ${className}`}>
+          <div className="flex items-center gap-2 overflow-hidden min-w-0">
+            <CalendarDays className="h-4 w-4 shrink-0 text-[#942392]" />
+            <span className="truncate">
+              {value ? format(new Date(value), "d MMMM yyyy").toUpperCase() : placeholder}
+            </span>
+          </div>
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
@@ -347,11 +351,15 @@ export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => 
 
           {/* Custom date range */}
           {dateRange === 'custom' && (
-            <div className="px-4 py-3 bg-slate-50 dark:bg-slate-900/50 border-b border-border/40 flex items-center gap-4 shrink-0">
-              <Label className="text-xs font-bold text-foreground">From</Label>
-              <CustomDatePicker value={customFrom} onChange={setCustomFrom} placeholder="From" className="w-[140px]" />
-              <Label className="text-xs font-bold text-foreground">To</Label>
-              <CustomDatePicker value={customTo} onChange={setCustomTo} placeholder="To" className="w-[140px]" />
+            <div className="px-4 py-3 bg-slate-50 dark:bg-slate-900/50 border-b border-border/40 flex items-center justify-end gap-3 shrink-0">
+              <div className="flex items-center gap-2">
+                <Label className="text-xs font-bold text-foreground">From</Label>
+                <CustomDatePicker value={customFrom} onChange={setCustomFrom} placeholder="FROM DATE" className="w-[190px] h-9" />
+              </div>
+              <div className="flex items-center gap-2">
+                <Label className="text-xs font-bold text-foreground">To</Label>
+                <CustomDatePicker value={customTo} onChange={setCustomTo} placeholder="TO DATE" className="w-[190px] h-9" />
+              </div>
             </div>
           )}
 

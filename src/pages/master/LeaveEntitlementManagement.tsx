@@ -40,6 +40,7 @@ import { ChevronLeft, ChevronRight, Award,
   Clock,
   Loader2,
   Play,
+  Scale
  } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -58,6 +59,7 @@ import { toast, useToast } from "@/hooks/use-toast";
 import { buildHistoryLog, appendHistoryLog } from "@/lib/entitlementHistory";
 import EntitlementActivityCard from "./EntitlementActivityCard";
 import EntitlementHistoryPanel from "./EntitlementHistoryPanel";
+import { WorkforceLeaveBalancePanel } from "./WorkforceLeaveBalancePanel";
 import { YearPopover } from "@/components/shared/YearPopover";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -106,9 +108,15 @@ const modules = [
   },
   {
     title: "Replacement Leave Validation",
-      description: "Validate employee's replacement leave hours (Cuti Ganti) after they have worked on the replacement date.",
-      icon: Clock,
-      tone: "bg-blue-500/10 text-blue-600",
+    description: "Validate employee's replacement leave hours (Cuti Ganti) after they have worked on the replacement date.",
+    icon: Clock,
+    tone: "bg-blue-500/10 text-blue-600",
+  },
+  {
+    title: "Workforce Leave Balance",
+    description: "Centralized view of every staff member's current leave entitlement and remaining balance.",
+    icon: Scale,
+    tone: "bg-emerald-500/10 text-emerald-600",
   },
 ];
 
@@ -366,6 +374,11 @@ export default function LeaveEntitlementManagement() {
           {activeModule === "Replacement Leave Validation" && (
             <ReplacementLeaveValidationForm
               employees={employees}
+              onCancel={() => setActiveModule(null)}
+            />
+          )}
+          {(activeModule === "Workforce Leave Balance" || activeModule === "Workforce-Leave-Balance") && (
+            <WorkforceLeaveBalancePanel
               onCancel={() => setActiveModule(null)}
             />
           )}

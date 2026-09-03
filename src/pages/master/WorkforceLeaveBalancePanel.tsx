@@ -1,0 +1,546 @@
+import React, { useState, useEffect, useMemo } from "react";
+import { useRole } from "@/contexts/RoleContext";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { API_BASE_URL } from "@/config/api";
+import { 
+  ArrowLeft, 
+  Search, 
+  Users, 
+  CalendarCheck, 
+  Clock, 
+  Scale, 
+  FileText, 
+  Download, 
+  Printer, 
+  RotateCcw,
+  User,
+  Loader2,
+  ChevronRight,
+  ShieldCheck,
+  AlertTriangle,
+  XCircle,
+  HelpCircle,
+  ArrowUpDown
+} from "lucide-react";
+
+interface EmployeeBalance {
+  user_id: string;
+  name: string;
+  branch: string;
+  department: string;
+  position: string;
+  annual: { entitlement: number; taken: number; pending: number; remaining: number };
+  medical: { entitlement: number; taken: number; pending: number; remaining: number };
+  emergency: { entitlement: number; taken: number; pending: number; remaining: number };
+  replacement: { entitlement: number; taken: number; pending: number; remaining: number };
+  totalEntitlement: number;
+  totalTaken: number;
+  totalBalance: number;
+  status: 'AVAILABLE' | 'LOW BALANCE' | 'FULLY USED' | 'NO ENTITLEMENT';
+}
+
+interface SummaryData {
+  totalEmployees: number;
+  totalEntitlement: number;
+  totalTaken: number;
+  totalBalance: number;
+}
+
+export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void }) {
+  const { role, userBranch, userDepartment } = useRole();
+  const [employees, setEmployees] = useState<EmployeeBalance[]>([]);
+  const [summary, setSummary] = useState<SummaryData>({
+    totalEmployees: 0,
+    totalEntitlement: 0,
+    totalTaken: 0,
+    totalBalance: 0,
+  });
+  const [loading, setLoading] = useState(true);
+
+  // Filters
+  const [search, setSearch] = useState("");
+  const [selectedBranch, setSelectedBranch] = useState("All");
+  const [selectedDepartment, setSelectedDepartment] = useState("All");
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
+  const [selectedLeaveType, setSelectedLeaveType] = useState("All");
+  const [sortBy, setSortBy] = useState<"name_asc" | "balance_asc" | "balance_desc">("name_asc");
+
+  // Modal detail
+  const [selectedEmpDetail, setSelectedEmpDetail] = useState<EmployeeBalance | null>(null);
+
+  const isAllAccessRole = ["hr_admin", "hr", "admin", "managing_director", "md", "operation_manager", "finance_manager"].includes((role || "").toLowerCase());
+
+  const fetchLeaveBalances = async () => {
+    setLoading(true);
+    try {
+      const isFilteredBranch = isAllAccessRole ? selectedBranch : (userBranch || selectedBranch);
+      const isFilteredDept = isAllAccessRole ? selectedDepartment : (userDepartment || selectedDepartment);
+
+      const params = new URLSearchParams({
+        role: role || "",
+        branch: isFilteredBranch || "All",
+        department: isFilteredDept || "All",
+        year: selectedYear,
+        search: search
+      });
+
+      const res = await fetch(`${API_BASE_URL}/api/reports/workforce-leave-balance?${params.toString()}`);
+      const data = await res.json();
+
+      if (data.success) {
+        setSummary(data.summary || { totalEmployees: 0, totalEntitlement: 0, totalTaken: 0, totalBalance: 0 });
+        setEmployees(data.employees || []);
+      }
+    } catch (err) {
+      console.error("Error fetching workforce leave balance:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLeaveBalances();
+  }, [role, selectedBranch, selectedDepartment, selectedYear, search]);
+
+  // Unique options for filters
+  const uniqueBranches = useMemo(() => {
+    const set = new Set(employees.map(e => e.branch).filter(b => b && b !== '—'));
+    return Array.from(set).sort();
+  }, [employees]);
+
+  const uniqueDepartments = useMemo(() => {
+    const set = new Set(employees.map(e => e.department).filter(d => d && d !== '—'));
+    return Array.from(set).sort();
+  }, [employees]);
+
+  // Client-side filtering & sorting
+  const processedEmployees = useMemo(() => {
+    let result = [...employees];
+
+    if (selectedLeaveType !== "All") {
+      result = result.filter(e => {
+        if (selectedLeaveType === "Annual Leave") return e.annual.entitlement > 0;
+        if (selectedLeaveType === "Medical Leave") return e.medical.entitlement > 0;
+        if (selectedLeaveType === "Emergency Leave") return e.emergency.entitlement > 0;
+        if (selectedLeaveType === "Replacement Leave") return e.replacement.entitlement > 0;
+        return true;
+      });
+    }
+
+    if (sortBy === "balance_asc") {
+      result.sort((a, b) => a.totalBalance - b.totalBalance);
+    } else if (sortBy === "balance_desc") {
+      result.sort((a, b) => b.totalBalance - a.totalBalance);
+    } else {
+      result.sort((a, b) => a.name.localeCompare(b.name));
+    }
+
+    return result;
+  }, [employees, selectedLeaveType, sortBy]);
+
+  const resetFilters = () => {
+    setSearch("");
+    setSelectedBranch("All");
+    setSelectedDepartment("All");
+    setSelectedYear(new Date().getFullYear().toString());
+    setSelectedLeaveType("All");
+    setSortBy("name_asc");
+  };
+
+  // Export handlers
+  const exportCSV = (filename: string) => {
+    const headers = ["Employee ID", "Employee Name", "Branch", "Department", "Position", "Annual Remaining", "Annual Entitlement", "Medical Remaining", "Medical Entitlement", "Emergency Remaining", "Emergency Entitlement", "Replacement Remaining", "Replacement Earned", "Total Remaining Balance", "Status"];
+    const rows = processedEmployees.map(e => [
+      `"${e.user_id}"`,
+      `"${e.name}"`,
+      `"${e.branch}"`,
+      `"${e.department}"`,
+      `"${e.position}"`,
+      e.annual.remaining,
+      e.annual.entitlement,
+      e.medical.remaining,
+      e.medical.entitlement,
+      e.emergency.remaining,
+      e.emergency.entitlement,
+      e.replacement.remaining,
+      e.replacement.entitlement,
+      e.totalBalance,
+      `"${e.status}"`
+    ]);
+
+    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'AVAILABLE':
+        return <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-[10px] font-black tracking-wider uppercase"><ShieldCheck className="w-3 h-3 mr-1" />AVAILABLE</Badge>;
+      case 'LOW BALANCE':
+        return <Badge className="bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 text-[10px] font-black tracking-wider uppercase"><AlertTriangle className="w-3 h-3 mr-1" />LOW BALANCE</Badge>;
+      case 'FULLY USED':
+        return <Badge className="bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 text-[10px] font-black tracking-wider uppercase"><XCircle className="w-3 h-3 mr-1" />FULLY USED</Badge>;
+      default:
+        return <Badge className="bg-slate-500/15 text-slate-600 dark:text-slate-400 border border-slate-500/30 text-[10px] font-black tracking-wider uppercase"><HelpCircle className="w-3 h-3 mr-1" />NO ENTITLEMENT</Badge>;
+    }
+  };
+
+  return (
+    <div className="animate-in slide-in-from-right-4 duration-300 h-full flex flex-col max-h-[85vh] space-y-4">
+      {/* Header Card */}
+      <Card className="border-border/60 shadow-xl overflow-hidden bg-card/77 backdrop-blur-sm shrink-0">
+        <CardHeader className="pb-4 border-b border-border/50 bg-muted/20">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-4">
+              <Button variant="ghost" size="icon" onClick={onCancel} className="mt-1 h-8 w-8 text-foreground hover:bg-muted/50 rounded-full">
+                <ArrowLeft className="w-4 h-4" />
+              </Button>
+              <div>
+                <CardTitle className="flex items-center gap-2 text-xl font-black">
+                  <Scale className="w-5 h-5 text-[#942392]" />
+                  Workforce Leave Balance
+                </CardTitle>
+                <CardDescription className="text-xs mt-1">
+                  Centralized view of every staff member's current leave entitlement and remaining balance.
+                </CardDescription>
+              </div>
+            </div>
+
+            {/* Export buttons */}
+            <div className="flex items-center gap-2 shrink-0 flex-wrap">
+              <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5 font-bold" onClick={() => exportCSV(`Workforce_Leave_Balance_${selectedYear}.csv`)}>
+                <FileText className="w-3.5 h-3.5" /> CSV
+              </Button>
+              <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5 font-bold" onClick={() => exportCSV(`Workforce_Leave_Balance_${selectedYear}.xls`)}>
+                <Download className="w-3.5 h-3.5" /> Excel
+              </Button>
+              <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5 font-bold" onClick={() => window.print()}>
+                <Printer className="w-3.5 h-3.5" /> PDF
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+      </Card>
+
+      {/* KPI Summary Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 shrink-0">
+        <Card className="border-border/60 bg-card/77 backdrop-blur-sm p-4 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-[#942392] flex items-center justify-center font-bold shrink-0">
+            <Users className="w-5 h-5" />
+          </div>
+          <div>
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Total Employees</p>
+            <p className="text-2xl font-black text-foreground mt-0.5">{summary.totalEmployees.toLocaleString()}</p>
+          </div>
+        </Card>
+
+        <Card className="border-border/60 bg-card/77 backdrop-blur-sm p-4 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center font-bold shrink-0">
+            <CalendarCheck className="w-5 h-5" />
+          </div>
+          <div>
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Total Entitlement</p>
+            <p className="text-2xl font-black text-foreground mt-0.5">{summary.totalEntitlement.toLocaleString()} Days</p>
+          </div>
+        </Card>
+
+        <Card className="border-border/60 bg-card/77 backdrop-blur-sm p-4 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-orange-500/10 text-orange-600 flex items-center justify-center font-bold shrink-0">
+            <Clock className="w-5 h-5" />
+          </div>
+          <div>
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Total Leave Taken</p>
+            <p className="text-2xl font-black text-foreground mt-0.5">{summary.totalTaken.toLocaleString()} Days</p>
+          </div>
+        </Card>
+
+        <Card className="border-border/60 bg-card/77 backdrop-blur-sm p-4 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center font-bold shrink-0">
+            <Scale className="w-5 h-5" />
+          </div>
+          <div>
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Total Leave Balance</p>
+            <p className="text-2xl font-black text-foreground mt-0.5">{summary.totalBalance.toLocaleString()} Days</p>
+          </div>
+        </Card>
+      </div>
+
+      {/* Main Table Card */}
+      <Card className="border-border/60 shadow-xl overflow-hidden bg-card/77 backdrop-blur-sm flex-1 flex flex-col min-h-0">
+        {/* Filters Bar */}
+        <div className="p-4 border-b border-border/40 bg-muted/10 flex flex-wrap items-center gap-3 shrink-0">
+          <div className="relative flex-1 min-w-[200px]">
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search employee by name, ID..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="pl-9 h-9 text-xs bg-background/50 border-border/60"
+            />
+            {search && (
+              <button onClick={() => setSearch('')} className="absolute right-2.5 top-2.5 text-muted-foreground hover:text-foreground">
+                <RotateCcw className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+
+          {/* Branch filter */}
+          {(isAllAccessRole || uniqueBranches.length > 1) && (
+            <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+              <SelectTrigger className="w-[140px] h-9 text-xs font-bold bg-background/50 border-border/60">
+                <SelectValue placeholder="Branch: All" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="All" className="text-xs font-bold">All Branches</SelectItem>
+                {uniqueBranches.map(b => (
+                  <SelectItem key={b} value={b} className="text-xs font-bold">{b}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+
+          {/* Department filter */}
+          {(isAllAccessRole || uniqueDepartments.length > 1) && (
+            <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
+              <SelectTrigger className="w-[150px] h-9 text-xs font-bold bg-background/50 border-border/60">
+                <SelectValue placeholder="Department: All" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="All" className="text-xs font-bold">All Departments</SelectItem>
+                {uniqueDepartments.map(d => (
+                  <SelectItem key={d} value={d} className="text-xs font-bold">{d}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+
+          {/* Year filter */}
+          <Select value={selectedYear} onValueChange={setSelectedYear}>
+            <SelectTrigger className="w-[110px] h-9 text-xs font-bold bg-background/50 border-border/60">
+              <SelectValue placeholder="Year" />
+            </SelectTrigger>
+            <SelectContent>
+              {["2026", "2025", "2024"].map(y => (
+                <SelectItem key={y} value={y} className="text-xs font-bold">{y}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {/* Leave Type filter */}
+          <Select value={selectedLeaveType} onValueChange={setSelectedLeaveType}>
+            <SelectTrigger className="w-[150px] h-9 text-xs font-bold bg-background/50 border-border/60">
+              <SelectValue placeholder="Leave Type: All" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="All" className="text-xs font-bold">All Leave Types</SelectItem>
+              <SelectItem value="Annual Leave" className="text-xs font-bold">Annual Leave</SelectItem>
+              <SelectItem value="Medical Leave" className="text-xs font-bold">Medical Leave</SelectItem>
+              <SelectItem value="Emergency Leave" className="text-xs font-bold">Emergency Leave</SelectItem>
+              <SelectItem value="Replacement Leave" className="text-xs font-bold">Replacement Leave</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Sort By */}
+          <Select value={sortBy} onValueChange={(val: any) => setSortBy(val)}>
+            <SelectTrigger className="w-[160px] h-9 text-xs font-bold bg-background/50 border-border/60">
+              <ArrowUpDown className="w-3.5 h-3.5 mr-1" />
+              <SelectValue placeholder="Sort By" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="name_asc" className="text-xs font-bold">Name (A-Z)</SelectItem>
+              <SelectItem value="balance_asc" className="text-xs font-bold">Lowest Balance</SelectItem>
+              <SelectItem value="balance_desc" className="text-xs font-bold">Highest Balance</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Reset Filters */}
+          <Button variant="ghost" size="sm" onClick={resetFilters} className="h-9 px-2 text-xs font-bold text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30">
+            <RotateCcw className="w-3.5 h-3.5 mr-1" />
+            Reset
+          </Button>
+        </div>
+
+        {/* Table Content */}
+        <div className="flex-1 overflow-auto custom-scrollbar">
+          {loading ? (
+            <div className="flex flex-col items-center justify-center p-12 text-muted-foreground gap-2">
+              <Loader2 className="w-6 h-6 animate-spin text-[#942392]" />
+              <p className="text-xs font-bold">Loading workforce leave balances...</p>
+            </div>
+          ) : processedEmployees.length === 0 ? (
+            <div className="p-12 text-center text-muted-foreground italic text-xs font-medium">
+              No employee leave records found matching your filters.
+            </div>
+          ) : (
+            <table className="w-full text-left text-xs border-collapse">
+              <thead className="bg-muted/40 sticky top-0 z-10 border-b border-border/50 text-[10px] uppercase font-black tracking-wider text-muted-foreground">
+                <tr>
+                  <th className="p-3 pl-4">Employee</th>
+                  <th className="p-3">Branch</th>
+                  <th className="p-3">Department</th>
+                  <th className="p-3 text-center">Annual Leave</th>
+                  <th className="p-3 text-center">Medical Leave</th>
+                  <th className="p-3 text-center">Emergency Leave</th>
+                  <th className="p-3 text-center">Replacement Leave</th>
+                  <th className="p-3 text-center font-black">Total Balance</th>
+                  <th className="p-3 text-center pr-4">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/30">
+                {processedEmployees.map(emp => (
+                  <tr key={emp.user_id} className="hover:bg-muted/30 transition-colors">
+                    <td className="p-3 pl-4">
+                      <button
+                        onClick={() => setSelectedEmpDetail(emp)}
+                        className="group text-left font-bold text-[#942392] hover:text-[#6c166a] flex items-center gap-1.5 transition-colors"
+                      >
+                        <span className="underline decoration-[#942392]/30 group-hover:decoration-[#942392]">{emp.name}</span>
+                        <ChevronRight className="w-3.5 h-3.5 opacity-40 group-hover:opacity-100 transition-opacity shrink-0" />
+                      </button>
+                      <p className="text-[10px] text-muted-foreground font-mono mt-0.5">{emp.user_id}</p>
+                    </td>
+
+                    <td className="p-3 font-semibold">
+                      <Badge variant="outline" className="text-[10px] font-bold border-border/60 bg-muted/30">{emp.branch}</Badge>
+                    </td>
+
+                    <td className="p-3 font-medium text-foreground">{emp.department}</td>
+
+                    <td className="p-3 text-center">
+                      <span className="font-black text-foreground">{emp.annual.remaining}</span>
+                      <span className="text-[10px] text-muted-foreground"> / {emp.annual.entitlement}d</span>
+                    </td>
+
+                    <td className="p-3 text-center">
+                      <span className="font-black text-foreground">{emp.medical.remaining}</span>
+                      <span className="text-[10px] text-muted-foreground"> / {emp.medical.entitlement}d</span>
+                    </td>
+
+                    <td className="p-3 text-center">
+                      <span className="font-black text-foreground">{emp.emergency.remaining}</span>
+                      <span className="text-[10px] text-muted-foreground"> / {emp.emergency.entitlement}d</span>
+                    </td>
+
+                    <td className="p-3 text-center">
+                      <span className="font-black text-foreground">{emp.replacement.remaining}</span>
+                      <span className="text-[10px] text-muted-foreground"> / {emp.replacement.entitlement}d</span>
+                    </td>
+
+                    <td className="p-3 text-center font-black">
+                      <span className="px-2.5 py-1 rounded-full bg-[#942392]/10 text-[#942392] text-xs font-black">
+                        {emp.totalBalance} Days
+                      </span>
+                    </td>
+
+                    <td className="p-3 text-center pr-4">
+                      {getStatusBadge(emp.status)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </Card>
+
+      {/* Staff Leave Balance Detail Modal */}
+      <Dialog open={!!selectedEmpDetail} onOpenChange={(open) => !open && setSelectedEmpDetail(null)}>
+        <DialogContent className="sm:max-w-[550px] p-0 overflow-hidden rounded-2xl border-border/60 shadow-2xl">
+          <DialogHeader className="p-5 bg-[#942392] text-white">
+            <DialogTitle className="text-lg font-black text-white flex items-center gap-2">
+              <User className="w-5 h-5" />
+              {selectedEmpDetail?.name}
+            </DialogTitle>
+            <DialogDescription className="text-xs text-white/80 mt-1">
+              Branch: <strong>{selectedEmpDetail?.branch}</strong> • Department: <strong>{selectedEmpDetail?.department}</strong> • Position: <strong>{selectedEmpDetail?.position}</strong>
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="p-5 space-y-4">
+            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Detailed Leave Entitlement Breakdown ({selectedYear})</p>
+
+            <table className="w-full text-left text-xs border-collapse">
+              <thead className="bg-muted/40 border-b border-border/50 text-[10px] uppercase font-black tracking-wider text-muted-foreground">
+                <tr>
+                  <th className="p-2.5 pl-3">Leave Type</th>
+                  <th className="p-2.5 text-center">Entitlement</th>
+                  <th className="p-2.5 text-center">Taken</th>
+                  <th className="p-2.5 text-center">Pending</th>
+                  <th className="p-2.5 text-center font-black pr-3">Remaining</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/30">
+                <tr>
+                  <td className="p-2.5 pl-3 font-bold">Annual Leave</td>
+                  <td className="p-2.5 text-center font-semibold">{selectedEmpDetail?.annual.entitlement}</td>
+                  <td className="p-2.5 text-center text-rose-600 font-semibold">{selectedEmpDetail?.annual.taken}</td>
+                  <td className="p-2.5 text-center text-amber-600 font-semibold">{selectedEmpDetail?.annual.pending}</td>
+                  <td className="p-2.5 text-center font-black text-emerald-600 pr-3">{selectedEmpDetail?.annual.remaining}</td>
+                </tr>
+
+                <tr>
+                  <td className="p-2.5 pl-3 font-bold">Medical Leave</td>
+                  <td className="p-2.5 text-center font-semibold">{selectedEmpDetail?.medical.entitlement}</td>
+                  <td className="p-2.5 text-center text-rose-600 font-semibold">{selectedEmpDetail?.medical.taken}</td>
+                  <td className="p-2.5 text-center text-amber-600 font-semibold">{selectedEmpDetail?.medical.pending}</td>
+                  <td className="p-2.5 text-center font-black text-emerald-600 pr-3">{selectedEmpDetail?.medical.remaining}</td>
+                </tr>
+
+                <tr>
+                  <td className="p-2.5 pl-3 font-bold">Emergency Leave</td>
+                  <td className="p-2.5 text-center font-semibold">{selectedEmpDetail?.emergency.entitlement}</td>
+                  <td className="p-2.5 text-center text-rose-600 font-semibold">{selectedEmpDetail?.emergency.taken}</td>
+                  <td className="p-2.5 text-center text-amber-600 font-semibold">{selectedEmpDetail?.emergency.pending}</td>
+                  <td className="p-2.5 text-center font-black text-emerald-600 pr-3">{selectedEmpDetail?.emergency.remaining}</td>
+                </tr>
+
+                <tr>
+                  <td className="p-2.5 pl-3 font-bold flex items-center gap-1">
+                    Replacement Leave
+                    <span className="text-[9px] text-muted-foreground font-normal">(Earned)</span>
+                  </td>
+                  <td className="p-2.5 text-center font-semibold">{selectedEmpDetail?.replacement.entitlement}</td>
+                  <td className="p-2.5 text-center text-rose-600 font-semibold">{selectedEmpDetail?.replacement.taken}</td>
+                  <td className="p-2.5 text-center text-amber-600 font-semibold">{selectedEmpDetail?.replacement.pending}</td>
+                  <td className="p-2.5 text-center font-black text-emerald-600 pr-3">{selectedEmpDetail?.replacement.remaining}</td>
+                </tr>
+              </tbody>
+              <tfoot className="border-t-2 border-border/60 bg-muted/20 font-black">
+                <tr>
+                  <td className="p-2.5 pl-3">Total Balance</td>
+                  <td className="p-2.5 text-center">{selectedEmpDetail?.totalEntitlement}</td>
+                  <td className="p-2.5 text-center text-rose-600">{selectedEmpDetail?.totalTaken}</td>
+                  <td className="p-2.5 text-center text-amber-600">
+                    {(selectedEmpDetail?.annual.pending || 0) + (selectedEmpDetail?.medical.pending || 0) + (selectedEmpDetail?.emergency.pending || 0) + (selectedEmpDetail?.replacement.pending || 0)}
+                  </td>
+                  <td className="p-2.5 text-center text-[#942392] text-sm pr-3">{selectedEmpDetail?.totalBalance} Days</td>
+                </tr>
+              </tfoot>
+            </table>
+
+            <div className="bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-900/30 rounded-xl p-3 text-[11px] text-purple-700 dark:text-purple-300">
+              💡 <strong>Note:</strong> Replacement Leave comes strictly from earned RL credits and does NOT reduce Annual Leave entitlement.
+            </div>
+          </div>
+
+          <DialogFooter className="p-4 bg-muted/10 border-t border-border/40">
+            <Button variant="outline" onClick={() => setSelectedEmpDetail(null)} className="font-bold text-xs">
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

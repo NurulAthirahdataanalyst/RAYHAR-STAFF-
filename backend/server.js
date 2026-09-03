@@ -8271,6 +8271,222 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
   }
 });
 
+// ==========================================
+// WORKFORCE LEAVE BALANCE REPORT API
+// ==========================================
+app.get("/api/reports/workforce-leave-balance", async (req, res) => {
+  try {
+    const { role, branch, department, year, search } = req.query;
+    const requestedYear = parseInt(year || new Date().getFullYear());
+
+    // Role-based Access Control Scope
+    const userRole = (role || "").toLowerCase();
+    const isAllAccessRole = ["hr_admin", "hr", "admin", "managing_director", "md", "operation_manager", "finance_manager"].includes(userRole);
+
+    let profileFilter = " WHERE p.status = 'Active'";
+    let pParams = [];
+
+    if (!isAllAccessRole) {
+      if (userRole === 'branch_leader' && branch) {
+        profileFilter += " AND p.branch = ?";
+        pParams.push(branch);
+      } else if (userRole === 'head_of_department' && department) {
+        profileFilter += " AND p.department = ?";
+        pParams.push(department);
+      }
+    } else {
+      if (branch && branch !== 'All') {
+        profileFilter += " AND p.branch = ?";
+        pParams.push(branch);
+      }
+      if (department && department !== 'All') {
+        profileFilter += " AND p.department = ?";
+        pParams.push(department);
+      }
+    }
+
+    if (search) {
+      profileFilter += " AND (p.full_name ILIKE ? OR p.user_id ILIKE ?)";
+      pParams.push(`%${search}%`, `%${search}%`);
+    }
+
+    // 1. Fetch Profiles
+    const [profiles] = await pool.query(
+      `SELECT p.user_id, p.full_name, p.branch, p.department, p.position,
+              COALESCE(p.annual_leave_entitlement, 14) as annual_entitlement,
+              COALESCE(p.medical_leave_entitlement, 14) as medical_entitlement,
+              COALESCE(p.emergency_leave_entitlement, 5) as emergency_entitlement
+       FROM profiles p
+       ${profileFilter}
+       ORDER BY p.full_name ASC`,
+      pParams
+    );
+
+    if (profiles.length === 0) {
+      return res.json({
+        success: true,
+        summary: { totalEmployees: 0, totalEntitlement: 0, totalTaken: 0, totalBalance: 0 },
+        employees: []
+      });
+    }
+
+    const userIds = profiles.map(p => p.user_id);
+
+    // 2. Fetch Adjustments for target year (or overall)
+    const [adjustments] = await pool.query(
+      `SELECT employee_id, leave_type, SUM(adjustment_days) as total_adj
+       FROM leave_balance_adjustments
+       WHERE employee_id = ANY(?)
+       GROUP BY employee_id, leave_type`,
+      [userIds]
+    );
+
+    // 3. Fetch Leave Requests (Approved & Pending) for target year
+    const yearStartStr = `${requestedYear}-01-01`;
+    const yearEndStr = `${requestedYear}-12-31`;
+    const [leaveRequests] = await pool.query(
+      `SELECT user_id, leave_type, days, status
+       FROM leave_requests
+       WHERE user_id = ANY(?)
+         AND status IN ('Approved', 'Pending', 'Pending HOD', 'Pending MD', 'Pending Finance')
+         AND start_date <= ? AND end_date >= ?`,
+      [userIds, yearEndStr, yearStartStr]
+    );
+
+    // Map adjustments by user_id
+    const adjMap = {};
+    adjustments.forEach(r => {
+      if (!adjMap[r.employee_id]) adjMap[r.employee_id] = {};
+      const lt = (r.leave_type || '').toLowerCase();
+      adjMap[r.employee_id][lt] = (adjMap[r.employee_id][lt] || 0) + parseFloat(r.total_adj || 0);
+    });
+
+    // Map leave requests by user_id
+    const leaveMap = {};
+    leaveRequests.forEach(r => {
+      if (!leaveMap[r.user_id]) leaveMap[r.user_id] = [];
+      leaveMap[r.user_id].push(r);
+    });
+
+    let overallEntitlement = 0;
+    let overallTaken = 0;
+    let overallBalance = 0;
+
+    const employeeBalances = profiles.map(p => {
+      const uId = p.user_id;
+      const userAdj = adjMap[uId] || {};
+      const userLeaves = leaveMap[uId] || [];
+
+      // Annual
+      const baseAnnual = parseFloat(p.annual_entitlement || 14);
+      const annualAdj = (userAdj['annual leave'] || 0) + (userAdj['annual & emergency leave'] || 0) + (userAdj['annual/emergency leave'] || 0) + (userAdj['cuti tahunan'] || 0);
+      let annualTaken = 0;
+      let annualPending = 0;
+
+      // Medical
+      const baseMedical = parseFloat(p.medical_entitlement || 14);
+      const medicalAdj = (userAdj['sick leave'] || 0) + (userAdj['medical leave'] || 0) + (userAdj['cuti sakit'] || 0);
+      let medicalTaken = 0;
+      let medicalPending = 0;
+
+      // Emergency
+      const baseEmergency = parseFloat(p.emergency_entitlement || 5);
+      const emergencyAdj = (userAdj['emergency leave'] || 0) + (userAdj['cuti kecemasan'] || 0);
+      let emergencyTaken = 0;
+      let emergencyPending = 0;
+
+      // Replacement
+      const replacementAdj = (userAdj['replacement leave'] || 0) + (userAdj['cuti ganti'] || 0);
+      let replacementTaken = 0;
+      let replacementPending = 0;
+
+      userLeaves.forEach(lr => {
+        const typeLower = (lr.leave_type || '').toLowerCase();
+        const d = parseFloat(lr.days || 0);
+        const isApproved = lr.status === 'Approved';
+
+        if (typeLower.includes('annual') && !typeLower.includes('emergency')) {
+          if (isApproved) annualTaken += d;
+          else annualPending += d;
+        } else if (typeLower.includes('medical') || typeLower.includes('sick')) {
+          if (isApproved) medicalTaken += d;
+          else medicalPending += d;
+        } else if (typeLower.includes('emergency')) {
+          if (isApproved) emergencyTaken += d;
+          else emergencyPending += d;
+        } else if (typeLower.includes('replacement') || typeLower.includes('ganti')) {
+          if (isApproved) replacementTaken += d;
+          else replacementPending += d;
+        } else if (typeLower.includes('annual & emergency') || typeLower.includes('annual/emergency')) {
+          if (isApproved) annualTaken += d;
+          else annualPending += d;
+        }
+      });
+
+      const annualEnt = Math.max(0, baseAnnual + annualAdj);
+      const annualBal = Math.max(0, annualEnt - annualTaken);
+
+      const medicalEnt = Math.max(0, baseMedical + medicalAdj);
+      const medicalBal = Math.max(0, medicalEnt - medicalTaken);
+
+      const emergencyEnt = Math.max(0, baseEmergency + emergencyAdj);
+      const emergencyBal = Math.max(0, emergencyEnt - emergencyTaken);
+
+      const replacementEnt = Math.max(0, replacementAdj);
+      const replacementBal = Math.max(0, replacementEnt - replacementTaken);
+
+      const empEntitlement = annualEnt + medicalEnt + emergencyEnt + replacementEnt;
+      const empTaken = annualTaken + medicalTaken + emergencyTaken + replacementTaken;
+      const empTotalBalance = annualBal + medicalBal + emergencyBal + replacementBal;
+
+      overallEntitlement += empEntitlement;
+      overallTaken += empTaken;
+      overallBalance += empTotalBalance;
+
+      // Determine Status Indicator
+      let status = 'AVAILABLE';
+      if (empEntitlement === 0) {
+        status = 'NO ENTITLEMENT';
+      } else if (empTotalBalance === 0) {
+        status = 'FULLY USED';
+      } else if (empTotalBalance <= 5) {
+        status = 'LOW BALANCE';
+      }
+
+      return {
+        user_id: uId,
+        name: p.full_name,
+        branch: p.branch || '—',
+        department: p.department || '—',
+        position: p.position || '—',
+        annual: { entitlement: annualEnt, taken: annualTaken, pending: annualPending, remaining: annualBal },
+        medical: { entitlement: medicalEnt, taken: medicalTaken, pending: medicalPending, remaining: medicalBal },
+        emergency: { entitlement: emergencyEnt, taken: emergencyTaken, pending: emergencyPending, remaining: emergencyBal },
+        replacement: { entitlement: replacementEnt, taken: replacementTaken, pending: replacementPending, remaining: replacementBal },
+        totalEntitlement: empEntitlement,
+        totalTaken: empTaken,
+        totalBalance: empTotalBalance,
+        status
+      };
+    });
+
+    res.json({
+      success: true,
+      summary: {
+        totalEmployees: profiles.length,
+        totalEntitlement: overallEntitlement,
+        totalTaken: overallTaken,
+        totalBalance: overallBalance
+      },
+      employees: employeeBalances
+    });
+
+  } catch (err) {
+    console.error("workforce-leave-balance error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 app.post("/api/outstation/log-location", async (req, res) => {
   try {
     const { employee_id, attendance_id, latitude, longitude, accuracy } = req.body;
