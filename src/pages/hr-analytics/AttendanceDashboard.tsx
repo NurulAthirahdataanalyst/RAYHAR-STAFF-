@@ -955,11 +955,15 @@ export default function AttendanceDashboard() {
         
         let isLate = false;
         if (r.clock_in) {
-          const { hour: threshHour, minute: threshMin } = parseThreshold(workStartTime);
-          const thresholdDate = new Date(r.clock_in);
-          thresholdDate.setHours(threshHour, threshMin, 0, 0);
-          if (new Date(r.clock_in).getTime() > thresholdDate.getTime()) {
+          if (r.is_late || (r as any).status === "Present (Late)" || (r.late_minutes && r.late_minutes > 0)) {
             isLate = true;
+          } else {
+            const { hour: threshHour, minute: threshMin } = parseThreshold(workStartTime);
+            const thresholdDate = new Date(r.clock_in);
+            thresholdDate.setHours(threshHour, threshMin, 0, 0);
+            if (new Date(r.clock_in).getTime() > thresholdDate.getTime()) {
+              isLate = true;
+            }
           }
         }
         
@@ -971,6 +975,8 @@ export default function AttendanceDashboard() {
         );
         if (isOutstation) displayStatus = "Outstation";
 
+        const punctualityStatus = r.clock_in ? (isLate ? "Present (Late)" : "Present (On Time)") : null;
+
         // Exclude Absent/Rest Day employees from Admin Attendance listing (they appear in their respective tables below)
         // Allow Outstation and Leave employees even if they didn't clock in
         // EXCEPT if the user is actively searching for them!
@@ -979,8 +985,8 @@ export default function AttendanceDashboard() {
         }
 
         const matchesStatus = selectedStatusFilter === "all" || 
-          (selectedStatusFilter === "present_on_time" && displayStatus === "Present (On Time)") ||
-          (selectedStatusFilter === "present_late" && displayStatus === "Present (Late)") ||
+          (selectedStatusFilter === "present_on_time" && (punctualityStatus === "Present (On Time)" || displayStatus === "Present (On Time)")) ||
+          (selectedStatusFilter === "present_late" && (punctualityStatus === "Present (Late)" || displayStatus === "Present (Late)")) ||
           (selectedStatusFilter === "approved_leave" && displayStatus === "Approved Leave") ||
           (selectedStatusFilter === "company_leave" && displayStatus === "Company Leave") ||
           (selectedStatusFilter === "outstation" && displayStatus === "Outstation") ||
@@ -1353,9 +1359,26 @@ export default function AttendanceDashboard() {
                       );
                       if (isOutstation) attStatus = "Outstation";
                       
-                      let workStatus = "Checked In";
+                      let isRecordLate = false;
+                      if (record.clock_in) {
+                        if (record.is_late || (record as any).status === "Present (Late)" || (record.late_minutes && record.late_minutes > 0)) {
+                          isRecordLate = true;
+                        } else {
+                          const { hour: threshHour, minute: threshMin } = parseThreshold(workStartTime);
+                          const thresholdDate = new Date(record.clock_in);
+                          thresholdDate.setHours(threshHour, threshMin, 0, 0);
+                          if (new Date(record.clock_in).getTime() > thresholdDate.getTime()) {
+                            isRecordLate = true;
+                          }
+                        }
+                      }
+                      const punctualityTag = isRecordLate ? "Present (Late)" : "Present (On Time)";
+
+                      let workStatus: string | null = null;
                       if (record.clock_out) {
                         workStatus = isGoodHrs ? "Clocked Out" : "Clocked Out Early";
+                      } else if (attStatus === "Missing Clock-Out") {
+                        workStatus = punctualityTag;
                       }
                       
                       const attStatusClass = attStatus === "Present (On Time)" 
@@ -1372,8 +1395,10 @@ export default function AttendanceDashboard() {
                         ? "bg-gray-50 dark:bg-slate-900/50 text-gray-700 border border-gray-100 dark:border-slate-800"
                         : "bg-red-50 text-red-700 border border-red-100";
 
-                      const workStatusClass = workStatus === "Checked In"
-                        ? "bg-blue-50 text-blue-700 border border-blue-100"
+                      const workStatusClass = workStatus === "Present (On Time)"
+                        ? "bg-green-50 text-green-700 border border-green-100"
+                        : workStatus === "Present (Late)"
+                        ? "bg-amber-50 text-amber-700 border border-amber-100"
                         : workStatus === "Clocked Out Early"
                         ? "bg-rose-50 text-rose-700 border border-rose-100"
                         : "bg-gray-50 dark:bg-slate-900/50 text-gray-700 border border-gray-100 dark:border-slate-800";
@@ -1420,7 +1445,7 @@ export default function AttendanceDashboard() {
                                 }`} />
                                 {attStatus}
                               </span>
-                              {record.clock_in && (
+                              {record.clock_in && workStatus && (
                                 <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium ${workStatusClass}`}>
                                   {workStatus}
                                 </span>

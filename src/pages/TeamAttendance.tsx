@@ -228,14 +228,24 @@ export default function TeamAttendance() {
         workingHours = `${hrs}h ${mins}m`;
       }
       
+      let isAttLate = false;
+      if (att && att.clock_in) {
+        if (att.is_late || att.status === "Present (Late)" || (att.late_minutes && att.late_minutes > 0)) {
+          isAttLate = true;
+        }
+      }
+      const punctualityStatus = (att && att.clock_in) ? (isAttLate ? "Present (Late)" : "Present (On Time)") : null;
+
       let statusLabel = "Absent";
       let lateLabel = "--";
 
       if (att) {
-        if (att.status === "Present (On Time)" || att.status === "Present (Late)") {
-          statusLabel = att.clock_out ? "Clocked Out" : "Present";
+        if (att.status === "Missing Clock-Out") {
+          statusLabel = "Missing Clock-Out";
+        } else if (att.status === "Present (On Time)" || att.status === "Present (Late)" || att.status === "Present") {
+          statusLabel = att.clock_out ? "Clocked Out" : (punctualityStatus || "Present (On Time)");
         } else if (att.status === "Approved Leave") {
-          statusLabel = "Leave";
+          statusLabel = "Approved Leave";
         } else {
           statusLabel = att.status || "Absent";
           if (statusLabel === "Missing Clock-Out" && att.clock_out) {
@@ -259,6 +269,7 @@ export default function TeamAttendance() {
         time_in: att?.time_in || "--",
         time_out: att?.time_out || "--",
         status: statusLabel,
+        punctualityStatus,
         late: lateLabel,
         workingHours,
         date: selectedDate,
@@ -281,11 +292,14 @@ export default function TeamAttendance() {
         workingHours = `${hrs}h ${mins}m`;
       }
 
+      let isAttLate = att.is_late || att.status === "Present (Late)" || (att.late_minutes && att.late_minutes > 0);
+      let punctualityStatus = att.clock_in ? (isAttLate ? "Present (Late)" : "Present (On Time)") : null;
+
       let statusLabel = att.status || "Present";
       if (statusLabel.includes('Present')) {
-        statusLabel = att.clock_out ? "Clocked Out" : "Present";
+        statusLabel = att.clock_out ? "Clocked Out" : (punctualityStatus || "Present (On Time)");
       } else if (statusLabel.includes('Leave')) {
-        statusLabel = 'Leave';
+        statusLabel = 'Approved Leave';
       } else if (statusLabel === "Missing Clock-Out" && att.clock_out) {
         statusLabel = "Clocked Out";
       }
@@ -305,6 +319,7 @@ export default function TeamAttendance() {
         time_in: att.time_in || "--",
         time_out: att.time_out || "--",
         status: statusLabel,
+        punctualityStatus,
         late: lateLabel,
         workingHours,
         date: att.date,
@@ -567,17 +582,26 @@ export default function TeamAttendance() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <span className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-semibold rounded-full ${
-                              emp.status === 'Present' || emp.status === 'Present (On Time)' ? 'bg-green-100 text-green-700' :
-                              emp.status === 'Present (Late)' ? 'bg-yellow-100 text-yellow-700' :
-                              emp.status === 'Clocked Out' ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300' :
-                              emp.status === 'Missing Clock-Out' ? 'bg-orange-100 text-orange-700' :
-                              emp.status === 'Outstation' ? 'bg-blue-100 text-blue-700' :
-                              emp.status === 'Approved Leave' || emp.status === 'Company Leave' ? 'bg-blue-100 text-blue-700' :
-                              'bg-red-100 text-red-700'
-                            }`}>
-                              {emp.status}
-                            </span>
+                            <div className="flex flex-col gap-1 items-start">
+                              <span className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-semibold rounded-full ${
+                                emp.status === 'Present' || emp.status === 'Present (On Time)' ? 'bg-green-100 text-green-700' :
+                                emp.status === 'Present (Late)' ? 'bg-yellow-100 text-yellow-700' :
+                                emp.status === 'Clocked Out' ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300' :
+                                emp.status === 'Missing Clock-Out' ? 'bg-orange-100 text-orange-700' :
+                                emp.status === 'Outstation' ? 'bg-blue-100 text-blue-700' :
+                                emp.status === 'Approved Leave' || emp.status === 'Company Leave' ? 'bg-blue-100 text-blue-700' :
+                                'bg-red-100 text-red-700'
+                              }`}>
+                                {emp.status}
+                              </span>
+                              {emp.status === 'Missing Clock-Out' && emp.punctualityStatus && (
+                                <span className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-semibold rounded-full ${
+                                  emp.punctualityStatus === 'Present (Late)' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'
+                                }`}>
+                                  {emp.punctualityStatus}
+                                </span>
+                              )}
+                            </div>
                           </TableCell>
                           <TableCell>{emp.time_in || "-"}</TableCell>
                           <TableCell>{emp.time_out || "-"}</TableCell>
