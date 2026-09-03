@@ -99,7 +99,7 @@ const modules = [
     tone: "bg-pink-500/10 text-pink-600",
   },
   {
-    title: "Leave Balance History",
+    title: "Leave Activity History",
     description: "Track every allocation, deduction, and correction so HR can audit the full entitlement lifecycle.",
     icon: History,
     tone: "bg-slate-500/10 text-slate-600",
@@ -116,7 +116,10 @@ export default function LeaveEntitlementManagement() {
   const { role, loading: roleLoading } = useRole();
   const [searchParams, setSearchParams] = useSearchParams();
   const rawModule = searchParams.get("module");
-  const activeModule = rawModule ? rawModule.replace(/-/g, ' ') : null;
+  let activeModule = rawModule ? rawModule.replace(/-/g, ' ') : null;
+  if (activeModule === "Leave Balance History") {
+    activeModule = "Leave Activity History";
+  }
 
   const setActiveModule = (moduleName: string | null) => {
     if (moduleName) {
@@ -255,7 +258,7 @@ export default function LeaveEntitlementManagement() {
           </Card>
 
           {/* Leave Entitlement Activity KPI Panel */}
-          <EntitlementActivityCard onViewHistory={() => setActiveModule("Leave Balance History")} />
+          <EntitlementActivityCard onViewHistory={() => setActiveModule("Leave Activity History")} />
 
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
             <Card className="xl:col-span-2 border-border/60 bg-card/77 backdrop-blur-sm">
@@ -355,7 +358,7 @@ export default function LeaveEntitlementManagement() {
               onRefresh={fetchEmployees}
             />
           )}
-          {activeModule === "Leave Balance History" && (
+          {(activeModule === "Leave Activity History" || activeModule === "Leave Balance History") && (
             <EntitlementHistoryPanel
               onCancel={() => setActiveModule(null)}
             />

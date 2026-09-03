@@ -270,7 +270,7 @@ export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => 
               <div>
                 <CardTitle className="flex items-center gap-2 text-xl font-black">
                   <History className="w-5 h-5 text-[#942392]" />
-                  Leave Balance History
+                  Leave Activity History
                 </CardTitle>
                 <CardDescription className="text-xs mt-1">
                   Complete audit trail of all leave entitlement changes.
