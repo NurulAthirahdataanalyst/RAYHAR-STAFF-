@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { API_BASE_URL } from "@/config/api";
 import { MonthPicker } from "@/components/shared/MonthPicker";
 import { 
@@ -27,7 +28,8 @@ import {
   AlertTriangle,
   XCircle,
   HelpCircle,
-  ArrowUpDown
+  ArrowUpDown,
+  X
 } from "lucide-react";
 
 interface EmployeeBalance {
@@ -66,6 +68,10 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
 
   // Filters
   const [search, setSearch] = useState("");
+  const [empSearchOpen, setEmpSearchOpen] = useState(false);
+  const [empSearchText, setEmpSearchText] = useState("");
+  const [checkedEmployees, setCheckedEmployees] = useState<string[]>([]);
+
   const [selectedBranch, setSelectedBranch] = useState("All");
   const [selectedDepartment, setSelectedDepartment] = useState("All");
   
@@ -146,7 +152,7 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
   // Reset page to 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [search, selectedBranch, selectedDepartment, selectedMonthYear, selectedLeaveType, sortBy]);
+  }, [search, checkedEmployees, selectedBranch, selectedDepartment, selectedMonthYear, selectedLeaveType, sortBy]);
 
   // Unique options for filters
   const uniqueBranches = useMemo(() => {
@@ -162,6 +168,17 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
   // Client-side filtering & sorting
   const processedEmployees = useMemo(() => {
     let result = [...employees];
+
+    // Checked Employees or Search Input Filter
+    if (checkedEmployees.length > 0) {
+      result = result.filter(e => checkedEmployees.includes(e.user_id));
+    } else if (search.trim()) {
+      const q = search.toLowerCase();
+      result = result.filter(e =>
+        e.name.toLowerCase().includes(q) ||
+        e.user_id.toLowerCase().includes(q)
+      );
+    }
 
     if (selectedLeaveType !== "All") {
       result = result.filter(e => {
@@ -182,7 +199,7 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
     }
 
     return result;
-  }, [employees, selectedLeaveType, sortBy]);
+  }, [employees, checkedEmployees, search, selectedLeaveType, sortBy]);
 
   // Pagination Calculations
   const totalPages = Math.max(1, Math.ceil(processedEmployees.length / entriesPerPage));
@@ -194,6 +211,8 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
 
   const resetFilters = () => {
     setSearch("");
+    setEmpSearchText("");
+    setCheckedEmployees([]);
     setSelectedBranch("All");
     setSelectedDepartment("All");
     setSelectedMonthYear(`${currentYearStr}-all`);
@@ -330,20 +349,118 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
       <Card className="border-border/60 shadow-xl overflow-hidden bg-card/77 backdrop-blur-sm flex-1 flex flex-col min-h-0">
         {/* Filters Bar */}
         <div className="p-4 border-b border-border/40 bg-muted/10 flex flex-wrap items-center gap-3 shrink-0">
-          <div className="relative flex-1 min-w-[200px]">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search employee by name, ID..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="pl-9 h-9 text-xs bg-background/50 border-border/60"
-            />
-            {search && (
-              <button onClick={() => setSearch('')} className="absolute right-2.5 top-2.5 text-muted-foreground hover:text-foreground">
-                <RotateCcw className="w-3.5 h-3.5" />
-              </button>
-            )}
-          </div>
+          {/* Employee Popover Search (Matching Employee Directory) */}
+          <Popover open={empSearchOpen} onOpenChange={setEmpSearchOpen}>
+            <PopoverTrigger asChild>
+              <div 
+                className="relative flex-1 min-w-[220px] max-w-xs cursor-pointer"
+                onClick={() => setEmpSearchOpen(true)}
+              >
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10 pointer-events-none" />
+                
+                <Input
+                  placeholder={checkedEmployees.length > 0 ? `${checkedEmployees.length} employee${checkedEmployees.length > 1 ? 's' : ''} selected` : "Search employees..."}
+                  value={empSearchText}
+                  onFocus={() => setEmpSearchOpen(true)}
+                  onClick={() => setEmpSearchOpen(true)}
+                  onChange={(e) => {
+                    setEmpSearchText(e.target.value);
+                    setSearch(e.target.value);
+                    if (!empSearchOpen) setEmpSearchOpen(true);
+                  }}
+                  className={`pl-9 pr-8 h-9 border bg-background/50 rounded-xl font-semibold text-xs focus-visible:ring-1 focus-visible:ring-[#942392]/50 w-full transition-all ${
+                    checkedEmployees.length > 0 ? 'border-[#942392]/50 text-[#942392] placeholder:text-[#942392]/80 placeholder:font-bold' : 'border-border/60'
+                  }`}
+                />
+                {(search || checkedEmployees.length > 0) && (
+                  <button 
+                    onClick={(e) => { 
+                      e.stopPropagation(); 
+                      setSearch(''); 
+                      setCheckedEmployees([]); 
+                      setEmpSearchText(''); 
+                    }} 
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground z-10 transition-colors"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+            </PopoverTrigger>
+            <PopoverContent className="w-[340px] p-0 shadow-xl" align="start" onOpenAutoFocus={(e) => e.preventDefault()}>
+              {checkedEmployees.length > 0 && (
+                <div className="p-3 border-b border-border/50 bg-muted/20">
+                  <div className="flex flex-wrap gap-1.5">
+                    {checkedEmployees.map(id => {
+                      const emp = employees.find(e => e.user_id === id);
+                      return emp ? (
+                        <span key={id} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#942392]/10 text-[#942392] text-[10px] font-bold">
+                          {emp.name}
+                          <button onClick={() => setCheckedEmployees(prev => prev.filter(x => x !== id))} className="hover:text-red-500">
+                            <X className="w-2.5 h-2.5" />
+                          </button>
+                        </span>
+                      ) : null;
+                    })}
+                  </div>
+                </div>
+              )}
+              <div className="max-h-[260px] overflow-y-auto p-1 custom-scrollbar">
+                {(() => {
+                  const empList = employees
+                    .filter(e => {
+                      const tMatch = !empSearchText || e.name.toLowerCase().includes(empSearchText.toLowerCase()) || e.user_id.toLowerCase().includes(empSearchText.toLowerCase());
+                      return tMatch;
+                    })
+                    .sort((a, b) => {
+                      const aChecked = checkedEmployees.includes(a.user_id) ? 0 : 1;
+                      const bChecked = checkedEmployees.includes(b.user_id) ? 0 : 1;
+                      if (aChecked !== bChecked) return aChecked - bChecked;
+                      return a.name.localeCompare(b.name);
+                    });
+
+                  if (empList.length === 0) {
+                    return (
+                      <div className="p-4 text-center text-xs text-muted-foreground italic">
+                        No employees found.
+                      </div>
+                    );
+                  }
+
+                  return empList.map(emp => {
+                    const empId = emp.user_id;
+                    const isChecked = checkedEmployees.includes(empId);
+                    return (
+                      <div
+                        key={empId}
+                        onClick={() => {
+                          setCheckedEmployees(prev =>
+                            prev.includes(empId) ? prev.filter(x => x !== empId) : [...prev, empId]
+                          );
+                        }}
+                        className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors ${isChecked ? 'bg-[#942392]/5' : 'hover:bg-muted/50'}`}
+                      >
+                        <label className="relative cursor-pointer" style={{ width: 18, height: 18 }} onClick={(e) => e.preventDefault()}>
+                          <input type="checkbox" checked={isChecked} readOnly className="sr-only peer" />
+                          <svg viewBox="0 0 18 18" width="18" height="18" className="relative z-10" style={{ fill: 'none', strokeLinecap: 'round', strokeLinejoin: 'round', stroke: isChecked ? '#942392' : '#c8ccd4', strokeWidth: 1.5, transition: 'all 0.2s ease' }}>
+                            <path d="M1,9 L1,3.5 C1,2 2,1 3.5,1 L14.5,1 C16,1 17,2 17,3.5 L17,14.5 C17,16 16,17 14.5,17 L3.5,17 C2,17 1,16 1,14.5 L1,9 Z"
+                              style={{ strokeDasharray: 60, strokeDashoffset: isChecked ? 60 : 0, transition: 'all 0.3s linear' }} />
+                            <polyline points="1 9 7 14 15 4"
+                              style={{ strokeDasharray: 22, strokeDashoffset: isChecked ? 42 : 66, transition: isChecked ? 'all 0.2s linear 0.15s' : 'all 0.2s linear' }} />
+                          </svg>
+                        </label>
+                        <div className="flex-1 min-w-0">
+                          <p className={`text-xs font-bold truncate ${isChecked ? 'text-[#942392]' : 'text-foreground'}`}>{emp.name}</p>
+                          <p className="text-[10px] text-muted-foreground truncate">{emp.user_id} · {emp.branch}</p>
+                        </div>
+                        {isChecked && <span className="text-[10px] font-bold text-[#942392] bg-[#942392]/10 px-2 py-0.5 rounded-full">Selected</span>}
+                      </div>
+                    );
+                  });
+                })()}
+              </div>
+            </PopoverContent>
+          </Popover>
 
           {/* Branch filter */}
           {(isAllAccessRole || uniqueBranches.length > 1) && (
@@ -450,7 +567,7 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
                         onClick={() => setSelectedEmpDetail(emp)}
                         className="group text-left font-bold text-[#942392] hover:text-[#6c166a] flex items-center gap-1.5 transition-colors"
                       >
-                        <span className="underline decoration-[#942392]/30 group-hover:decoration-[#942392]">{emp.name}</span>
+                        <span className="font-bold text-[#942392] hover:text-[#6c166a]">{emp.name}</span>
                         <ChevronRight className="w-3.5 h-3.5 opacity-40 group-hover:opacity-100 transition-opacity shrink-0" />
                       </button>
                       <p className="text-[10px] text-muted-foreground font-mono mt-0.5">{emp.user_id}</p>
