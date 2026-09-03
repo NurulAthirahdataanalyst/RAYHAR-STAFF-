@@ -1165,7 +1165,7 @@ export default function Branches() {
                 return (
                   <Card
                     key={branch.code}
-                    className="cursor-pointer hover:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.18)] hover:-translate-y-1.5 transition-all duration-300 border border-slate-100 dark:border-slate-800/80 shadow-[0_16px_40px_rgba(0,0,0,0.07),0_4px_12px_rgba(0,0,0,0.03)] dark:shadow-[0_20px_45px_rgba(0,0,0,0.45)] bg-white dark:bg-card overflow-visible group rounded-[32px] relative pt-12"
+                    className="cursor-pointer hover:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.18)] hover:-translate-y-1.5 transition-all duration-300 border border-slate-100 dark:border-slate-800/80 shadow-[0_16px_40px_rgba(0,0,0,0.07),0_4px_12px_rgba(0,0,0,0.03)] dark:shadow-[0_20px_45px_rgba(0,0,0,0.45)] bg-white dark:bg-card overflow-visible group rounded-[32px] relative"
                     onClick={() =>
                       setSelectedBranch({
                         ...branch,
@@ -1178,34 +1178,34 @@ export default function Branches() {
                     }
                   >
                     {/* Floating Icon Circle */}
-                    <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-[82px] h-[82px] rounded-full bg-white dark:bg-card p-1 shadow-[0_8px_25px_rgba(0,0,0,0.12)] border-[3px] border-white dark:border-slate-800 flex items-center justify-center z-20 group-hover:scale-105 transition-transform duration-300">
+                    <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-[80px] h-[80px] rounded-full bg-white dark:bg-card p-1 shadow-[0_8px_25px_rgba(0,0,0,0.12)] border-[3px] border-white dark:border-slate-800 flex items-center justify-center z-20 group-hover:scale-105 transition-transform duration-300">
                       <div className="w-full h-full rounded-full bg-[#EDE4F0] dark:bg-purple-950/60 flex items-center justify-center">
                         <Building2 className="w-8 h-8 text-[#942392]" strokeWidth={2.2} />
                       </div>
                     </div>
 
-                    <CardContent className="p-0 relative">
-                      {/* Top Right Badges */}
-                      <div className="absolute top-4 right-4 flex items-center gap-1.5 z-10">
-                        <div className="font-extrabold text-[11px] h-8 px-3.5 bg-white/95 dark:bg-slate-800/95 border border-slate-200/80 dark:border-slate-700 text-slate-800 dark:text-slate-200 shadow-[0_2px_8px_rgba(0,0,0,0.06)] rounded-xl flex items-center justify-center">
-                          {branch.code}
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="w-8 h-8 bg-white/95 dark:bg-slate-800/95 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-slate-200/80 dark:border-slate-700 flex items-center justify-center"
-                          onClick={(e) => handleDeleteBranch(e, branch.code)}
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </Button>
+                    {/* Top Right Badges */}
+                    <div className="absolute top-4 right-4 flex items-center gap-1.5 z-20">
+                      <div className="font-extrabold text-[11px] h-7 px-2.5 bg-white/95 dark:bg-slate-800/95 border border-slate-200/80 dark:border-slate-700 text-slate-800 dark:text-slate-200 shadow-sm rounded-xl flex items-center justify-center">
+                        {branch.code}
                       </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="w-7 h-7 bg-white/95 dark:bg-slate-800/95 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-xl shadow-sm border border-slate-200/80 dark:border-slate-700 flex items-center justify-center"
+                        onClick={(e) => handleDeleteBranch(e, branch.code)}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
 
+                    <CardContent className="p-0 pt-12 sm:pt-14 relative">
                       {/* Branch Info */}
-                      <div className="flex flex-col items-center pt-2 pb-4">
-                        <h3 className="font-semibold text-slate-800 dark:text-slate-100 text-lg leading-tight text-center px-4">
+                      <div className="flex flex-col items-center px-4 pt-1 pb-4">
+                        <h3 className="font-semibold text-slate-800 dark:text-slate-100 text-lg leading-tight text-center">
                           {branch.name}
                         </h3>
-                        <div className="flex items-center justify-center gap-1.5 mt-2 px-6 max-w-full">
+                        <div className="flex items-center justify-center gap-1.5 mt-2 px-2 max-w-full">
                           <MapPin className="w-3.5 h-3.5 text-[#942392] shrink-0" />
                           <span className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-tight text-center line-clamp-1">
                             {location}
