@@ -148,7 +148,9 @@ const TemporaryAssignments = () => {
       location: assignment.temp_branch,
       start_date: assignment.start_date.split('T')[0],
       end_date: assignment.end_date ? assignment.end_date.split('T')[0] : "",
-      status: assignment.status
+      status: assignment.status,
+      purpose: (assignment as any).purpose || "",
+      remarks: (assignment as any).remarks || ""
     });
     setEditId(assignment.id);
     setShowAssignModal(true);
@@ -217,7 +219,7 @@ const TemporaryAssignments = () => {
           <Button 
             onClick={() => {
               setEditId(null);
-              setAssignForm({ user_id: "", location: "", start_date: "", end_date: "", status: "Active" });
+              setAssignForm({ user_id: "", location: "", start_date: "", end_date: "", status: "Active", purpose: "", remarks: "" });
               setShowAssignModal(true);
             }}
             className="bg-[#a01497] hover:bg-[#850f7c] text-white font-bold whitespace-nowrap"
@@ -524,7 +526,7 @@ const TemporaryAssignments = () => {
               <Button 
                 variant="outline" 
                 className="w-1/3 text-rose-500 border-rose-200 hover:bg-rose-50 dark:hover:bg-rose-950/30"
-                onClick={() => setAssignForm({ user_id: "", location: "", start_date: "", end_date: "", status: "Active" })}
+                onClick={() => setAssignForm({ user_id: "", location: "", start_date: "", end_date: "", status: "Active", purpose: "", remarks: "" })}
               >
                 Reset
               </Button>
