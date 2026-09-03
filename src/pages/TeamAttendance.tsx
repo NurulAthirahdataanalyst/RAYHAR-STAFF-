@@ -262,7 +262,10 @@ export default function TeamAttendance() {
         late: lateLabel,
         workingHours,
         date: selectedDate,
-        clock_in_location: att?.clock_in_location || null
+        clock_in_location: att?.clock_in_location || att?.location || null,
+        latitude: att?.latitude ?? att?.clock_in_latitude ?? att?.lat ?? null,
+        longitude: att?.longitude ?? att?.clock_in_longitude ?? att?.lng ?? null,
+        distance_meters: att?.distance_meters ?? att?.distance ?? null
       };
     });
   } else {
@@ -304,7 +307,11 @@ export default function TeamAttendance() {
         status: statusLabel,
         late: lateLabel,
         workingHours,
-        date: att.date
+        date: att.date,
+        clock_in_location: att.clock_in_location || att.location || null,
+        latitude: att.latitude ?? att.clock_in_latitude ?? att.lat ?? null,
+        longitude: att.longitude ?? att.clock_in_longitude ?? att.lng ?? null,
+        distance_meters: att.distance_meters ?? att.distance ?? null
       };
     });
   }
@@ -557,8 +564,16 @@ export default function TeamAttendance() {
                           <TableCell>{emp.time_in || "-"}</TableCell>
                           <TableCell>{emp.time_out || "-"}</TableCell>
                           <TableCell className="font-medium text-gray-700">{emp.workingHours}</TableCell>
-                  <TableCell>{emp.latitude && emp.longitude ? `${Number(emp.latitude).toFixed(6)}, ${Number(emp.longitude).toFixed(6)}` : (emp.clock_in_location || "N/A")}</TableCell>
-                  <TableCell>{emp.distance_meters != null ? `${Math.round(emp.distance_meters)} m` : "N/A"}</TableCell>
+                  <TableCell className="font-mono text-xs">
+                    {emp.latitude && emp.longitude && !isNaN(Number(emp.latitude)) && Number(emp.latitude) !== 0 
+                      ? `${Number(emp.latitude).toFixed(6)}, ${Number(emp.longitude).toFixed(6)}` 
+                      : (emp.clock_in_location || "N/A")}
+                  </TableCell>
+                  <TableCell className="font-medium text-xs">
+                    {emp.distance_meters != null && !isNaN(Number(emp.distance_meters)) 
+                      ? `${Math.round(Number(emp.distance_meters))} m` 
+                      : "N/A"}
+                  </TableCell>
                           <TableCell>
                             <Button onClick={() => openHistory(emp.user_id)} variant="outline" size="sm">History</Button>
                           </TableCell>
