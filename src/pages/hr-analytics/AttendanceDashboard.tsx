@@ -1314,16 +1314,14 @@ export default function AttendanceDashboard() {
           ) : (
             <div className="relative overflow-x-auto">
               <table className="w-full text-sm text-left">
-                <thead className="bg-gray-50/80 text-foreground uppercase text-[9px] font-bold tracking-wider border-b border-gray-100 dark:border-slate-800">
+                <thead className="bg-gray-50/80 text-foreground uppercase text-[9px] font-bold tracking-wider border-b border-gray-200 dark:border-slate-800">
                   <tr>
-                    
-                    <th className="px-4 py-2 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Employee</th>
-                    <th className="px-4 py-2 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Status</th>
-                    <th className="px-4 py-2 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Time In</th>
-                    <th className="px-4 py-2 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Time Out</th>
-                    <th className="px-4 py-2 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Late</th>
-                    <th className="px-4 py-2 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Working Hours</th>
-                    <th className="px-4 py-2 w-8 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap"></th>
+                    <th className="pl-6 pr-4 py-3.5 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Employee</th>
+                    <th className="px-4 py-3.5 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Status</th>
+                    <th className="px-4 py-3.5 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Time In</th>
+                    <th className="px-4 py-3.5 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Time Out</th>
+                    <th className="px-4 py-3.5 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Late</th>
+                    <th className="px-4 py-3.5 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Working Hours</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -1406,9 +1404,9 @@ export default function AttendanceDashboard() {
                       return (
                         <tr key={`${record.user_id}-${record.clock_in || index}`} className="hover:bg-gray-50/50 transition-colors">
                           
-                          <td className="px-4 py-2">
-                            <div className="flex items-center gap-2">
-                              <div className="w-8 h-8 rounded-md bg-[#942392]/10 text-[#942392] font-bold flex items-center justify-center text-xs uppercase shadow-sm">
+                          <td className="pl-6 pr-4 py-3">
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-8 h-8 rounded-md bg-[#942392]/10 text-[#942392] font-bold flex items-center justify-center text-xs uppercase shadow-sm flex-shrink-0">
                                 {record.full_name.charAt(0)}
                               </div>
                               <div>
@@ -1431,7 +1429,7 @@ export default function AttendanceDashboard() {
                               </div>
                             </div>
                           </td>
-                          <td className="px-4 py-2">
+                          <td className="px-4 py-3">
                             <div className="flex flex-col gap-1 items-start">
                               <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium ${attStatusClass}`}>
                                 <span className={`w-1 h-1 rounded-full mr-1 ${
@@ -1452,27 +1450,20 @@ export default function AttendanceDashboard() {
                               )}
                             </div>
                           </td>
-                          <td className="px-4 py-2 text-[11px] text-gray-600 font-medium">{formatAttendanceTime(record.clock_in)}</td>
-                          <td className="px-4 py-2 text-[11px] text-gray-600 font-medium">{record.clock_out ? formatAttendanceTime(record.clock_out) : "--:--"}</td>
-                          <td className="px-4 py-2 text-[11px] text-foreground font-medium">{lateMinStr}</td>
-                          <td className="px-4 py-2">
+                          <td className="px-4 py-3 text-[11px] text-gray-600 font-medium">{formatAttendanceTime(record.clock_in)}</td>
+                          <td className="px-4 py-3 text-[11px] text-gray-600 font-medium">{record.clock_out ? formatAttendanceTime(record.clock_out) : "--:--"}</td>
+                          <td className="px-4 py-3 text-[11px] text-foreground font-medium">{lateMinStr}</td>
+                          <td className="px-4 py-3">
                             <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold ${isGoodHrs ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                               {workHrsStr === '--' ? '0 H 00 Min' : `${workHrsStr.split('h ')[0]} H ${workHrsStr.split('h ')[1].replace('m', '').padStart(2, '0')} Min`}
                             </span>
-                          </td>
-                          <td className="px-4 py-2 text-right">
-                            <button className="text-foreground hover:text-gray-600 p-1">
-                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
-                              </svg>
-                            </button>
                           </td>
                         </tr>
                       );
                     })
                   ) : (
                     <tr>
-                      <td colSpan={8} className="px-4 py-10 text-center text-xs font-bold text-foreground uppercase tracking-wider italic">
+                      <td colSpan={6} className="px-6 py-10 text-center text-xs font-bold text-foreground uppercase tracking-wider italic">
                         No logs registered on this date
                       </td>
                     </tr>
