@@ -1136,7 +1136,7 @@ export default function Branches() {
               </p>
             </div>
           ) : viewMode === "grid" ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+            <div className="pt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 gap-y-12 sm:gap-y-14">
               {paginatedBranches.map((branch) => {
                 const stat = branchStats.find((s) => s.branch === branch.code);
                 const totalEmployees = stat ? stat.total_employees : 0;
@@ -1165,7 +1165,7 @@ export default function Branches() {
                 return (
                   <Card
                     key={branch.code}
-                    className="cursor-pointer hover:shadow-2xl hover:-translate-y-1 transition-all border border-gray-100 dark:border-slate-800 shadow-[0_8px_30px_rgb(0,0,0,0.04)] bg-white dark:bg-card overflow-hidden group rounded-[24px] relative"
+                    className="cursor-pointer hover:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.18)] hover:-translate-y-1.5 transition-all duration-300 border border-slate-100 dark:border-slate-800/80 shadow-[0_16px_40px_rgba(0,0,0,0.07),0_4px_12px_rgba(0,0,0,0.03)] dark:shadow-[0_20px_45px_rgba(0,0,0,0.45)] bg-white dark:bg-card overflow-visible group rounded-[32px] relative pt-12"
                     onClick={() =>
                       setSelectedBranch({
                         ...branch,
@@ -1177,87 +1177,89 @@ export default function Branches() {
                       })
                     }
                   >
+                    {/* Floating Icon Circle */}
+                    <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-[82px] h-[82px] rounded-full bg-white dark:bg-card p-1 shadow-[0_8px_25px_rgba(0,0,0,0.12)] border-[3px] border-white dark:border-slate-800 flex items-center justify-center z-20 group-hover:scale-105 transition-transform duration-300">
+                      <div className="w-full h-full rounded-full bg-[#EDE4F0] dark:bg-purple-950/60 flex items-center justify-center">
+                        <Building2 className="w-8 h-8 text-[#942392]" strokeWidth={2.2} />
+                      </div>
+                    </div>
+
                     <CardContent className="p-0 relative">
                       {/* Top Right Badges */}
-                      <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
-                        <Badge
-                          variant="outline"
-                          className="font-black text-[11px] h-8 px-3 bg-white border-slate-200 text-slate-800 shadow-sm rounded-md"
-                        >
+                      <div className="absolute top-4 right-4 flex items-center gap-1.5 z-10">
+                        <div className="font-extrabold text-[11px] h-8 px-3.5 bg-white/95 dark:bg-slate-800/95 border border-slate-200/80 dark:border-slate-700 text-slate-800 dark:text-slate-200 shadow-[0_2px_8px_rgba(0,0,0,0.06)] rounded-xl flex items-center justify-center">
                           {branch.code}
-                        </Badge>
+                        </div>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="w-8 h-8 bg-white text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-md shadow-sm border border-slate-200"
+                          className="w-8 h-8 bg-white/95 dark:bg-slate-800/95 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-slate-200/80 dark:border-slate-700 flex items-center justify-center"
                           onClick={(e) => handleDeleteBranch(e, branch.code)}
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-3.5 h-3.5" />
                         </Button>
                       </div>
 
-                      {/* Building Icon centered at top */}
-                      <div className="flex flex-col items-center pt-8 pb-4">
-                        <div className="w-[72px] h-[72px] rounded-full bg-[#EADDED] flex items-center justify-center mb-4">
-                          <Building2 className="w-7 h-7 text-[#942392]" strokeWidth={2.5} />
-                        </div>
-                        {/* Branch Info */}
-                        <h3 className="font-black text-slate-900 dark:text-white text-xl leading-tight text-center px-4">
+                      {/* Branch Info */}
+                      <div className="flex flex-col items-center pt-2 pb-4">
+                        <h3 className="font-black text-slate-900 dark:text-white text-xl sm:text-2xl leading-tight text-center px-4">
                           {branch.name}
                         </h3>
-                        <div className="flex items-start justify-center gap-1 mt-2 px-4 max-w-full">
-                          <MapPin className="w-3.5 h-3.5 text-[#942392] mt-0.5 shrink-0" />
-                          <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest leading-tight text-center">
+                        <div className="flex items-center justify-center gap-1.5 mt-2 px-6 max-w-full">
+                          <MapPin className="w-3.5 h-3.5 text-[#942392] shrink-0" />
+                          <span className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-tight text-center line-clamp-1">
                             {location}
                           </span>
                         </div>
                       </div>
 
                       {/* 4 Stats */}
-                      <div className="flex items-center justify-between border-t border-b border-gray-100 dark:border-slate-800 py-4 mx-4">
+                      <div className="flex items-center justify-between border-t border-b border-slate-100 dark:border-slate-800/80 py-4 mx-4">
                         {/* Present */}
-                        <div className="flex-1 flex flex-col items-center border-r border-gray-200 dark:border-slate-700 last:border-0">
-                          <UserCheck className="w-5 h-5 text-emerald-600 mb-1.5" strokeWidth={2.5} />
-                          <p className="text-xl font-black text-emerald-600 leading-none">{presentToday}</p>
-                          <p className="text-[9px] font-black text-emerald-600 uppercase mt-1 tracking-widest">Present</p>
+                        <div className="flex-1 flex flex-col items-center border-r border-slate-100 dark:border-slate-800 last:border-0">
+                          <UserCheck className="w-5 h-5 text-[#942392] mb-1.5" strokeWidth={2.2} />
+                          <p className="text-xl font-black text-[#942392] leading-none">{presentToday}</p>
+                          <p className="text-[9px] font-black text-[#942392] uppercase mt-1 tracking-widest">Present</p>
                         </div>
                         {/* Leave */}
-                        <div className="flex-1 flex flex-col items-center border-r border-gray-200 dark:border-slate-700 last:border-0">
-                          <Leaf className="w-5 h-5 text-amber-500 mb-1.5" strokeWidth={2.5} />
+                        <div className="flex-1 flex flex-col items-center border-r border-slate-100 dark:border-slate-800 last:border-0">
+                          <Leaf className="w-5 h-5 text-amber-500 mb-1.5" strokeWidth={2.2} />
                           <p className="text-xl font-black text-amber-500 leading-none">{onLeave}</p>
                           <p className="text-[9px] font-black text-amber-500 uppercase mt-1 tracking-widest">Leave</p>
                         </div>
                         {/* Outstation */}
-                        <div className="flex-1 flex flex-col items-center border-r border-gray-200 dark:border-slate-700 last:border-0">
-                          <Briefcase className="w-5 h-5 text-blue-600 mb-1.5" strokeWidth={2.5} />
-                          <p className="text-xl font-black text-blue-600 leading-none">{outstation}</p>
-                          <p className="text-[9px] font-black text-blue-600 uppercase mt-1 tracking-widest">Outstation</p>
+                        <div className="flex-1 flex flex-col items-center border-r border-slate-100 dark:border-slate-800 last:border-0">
+                          <Briefcase className="w-5 h-5 text-[#942392] mb-1.5" strokeWidth={2.2} />
+                          <p className="text-xl font-black text-[#942392] leading-none">{outstation}</p>
+                          <p className="text-[9px] font-black text-[#942392] uppercase mt-1 tracking-widest">Outstation</p>
                         </div>
                         {/* Absent */}
                         <div className="flex-1 flex flex-col items-center">
-                          <UserX className="w-5 h-5 text-red-600 mb-1.5" strokeWidth={2.5} />
-                          <p className="text-xl font-black text-red-600 leading-none">{absent}</p>
-                          <p className="text-[9px] font-black text-red-600 uppercase mt-1 tracking-widest">Absent</p>
+                          <UserX className="w-5 h-5 text-amber-500 mb-1.5" strokeWidth={2.2} />
+                          <p className="text-xl font-black text-amber-500 leading-none">{absent}</p>
+                          <p className="text-[9px] font-black text-amber-500 uppercase mt-1 tracking-widest">Absent</p>
                         </div>
                       </div>
 
                       {/* Bottom Footer */}
                       <div className="px-6 py-4 flex items-center justify-between">
-                        <div className="flex items-center gap-5">
-                          <div className="flex items-center gap-2">
-                            <Users className="w-4 h-4 text-[#942392]" strokeWidth={2.5} />
+                        <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-1.5">
+                            <Users className="w-4 h-4 text-[#942392]" strokeWidth={2.2} />
                             <span className="text-sm font-black text-slate-800 dark:text-slate-200">{totalEmployees}</span>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <TrendingUp className="w-4 h-4" strokeWidth={2.5} />
+                          <div className="h-4 w-px bg-slate-200 dark:bg-slate-700" />
+                          <div className="flex items-center gap-1.5">
+                            <TrendingUp className="w-4 h-4 text-amber-500" strokeWidth={2.2} />
                             <span className="text-sm font-black text-slate-800 dark:text-slate-200">{attendanceRate}%</span>
                           </div>
                         </div>
-                        <div className="text-right min-w-0 ml-4">
-                          <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none">
-                            Leader
+                        <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 mx-2" />
+                        <div className="text-right min-w-0">
+                          <p className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none">
+                            Leader:
                           </p>
-                          <p className="text-[10px] font-black text-slate-800 dark:text-slate-200 mt-1 truncate uppercase">
+                          <p className="text-[10px] font-black text-slate-800 dark:text-slate-200 mt-0.5 truncate uppercase max-w-[160px]">
                             {leader}
                           </p>
                         </div>
