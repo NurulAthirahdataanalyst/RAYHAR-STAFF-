@@ -430,7 +430,7 @@ export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => 
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All {f.label}s</SelectItem>
+                      <SelectItem value="all">All {f.label === 'Branch' ? 'Branches' : f.label === 'Department' ? 'Departments' : f.label + 's'}</SelectItem>
                       {f.options.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
                     </SelectContent>
                   </Select>

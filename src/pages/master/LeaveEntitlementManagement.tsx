@@ -736,7 +736,7 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {uniqueBranches.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
+                      {uniqueBranches.map(b => <SelectItem key={b} value={b}>{b === 'All' ? 'All Branches' : b}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
@@ -747,7 +747,7 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {uniqueDepts.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                      {uniqueDepts.map(d => <SelectItem key={d} value={d}>{d === 'All' ? 'All Departments' : d}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
@@ -1229,7 +1229,7 @@ function CarryForwardLeaveForm({
               <Select value={selectedDept} onValueChange={setSelectedDept}>
                 <SelectTrigger className="bg-white dark:bg-card h-10 text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {uniqueDepts.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                  {uniqueDepts.map(d => <SelectItem key={d} value={d}>{d === 'All' ? 'All Departments' : d}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -1238,7 +1238,7 @@ function CarryForwardLeaveForm({
               <Select value={selectedBranch} onValueChange={setSelectedBranch}>
                 <SelectTrigger className="bg-white dark:bg-card h-10 text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {uniqueBranches.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
+                  {uniqueBranches.map(b => <SelectItem key={b} value={b}>{b === 'All' ? 'All Branches' : b}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>

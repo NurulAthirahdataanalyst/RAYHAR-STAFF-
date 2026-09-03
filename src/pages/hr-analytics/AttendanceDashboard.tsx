@@ -1234,7 +1234,7 @@ export default function AttendanceDashboard() {
                     <SelectValue placeholder="Branch" />
                   </SelectTrigger>
                   <SelectContent className="rounded-md">
-                    <SelectItem value="all">All Branch</SelectItem>
+                    <SelectItem value="all">All Branches</SelectItem>
                     {branches.map((b, idx) => (
                       <SelectItem key={idx} value={b.code}>{b.name}</SelectItem>
                     ))}
