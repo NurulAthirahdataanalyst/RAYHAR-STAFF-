@@ -304,16 +304,16 @@ export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => 
           {/* Search + Filter toggle bar */}
           <div className="p-4 border-b border-border/40 bg-muted/5 flex flex-col sm:flex-row gap-3 shrink-0">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-foreground" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search by employee, reason, history ID, or reference ID..."
                 value={search} onChange={e => setSearch(e.target.value)}
-                className="pl-9 h-9 text-xs bg-white dark:bg-card"
+                className="pl-9 pr-8 h-9 text-xs bg-white dark:bg-card border-border/70 placeholder:text-muted-foreground dark:placeholder:text-slate-400 font-medium"
               />
               {search && (
                 <button onClick={() => setSearch('')}
-                  className="absolute right-2.5 top-2.5 text-foreground hover:text-foreground">
-                  <X className="w-4 h-4" />
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                  <X className="w-3.5 h-3.5" />
                 </button>
               )}
             </div>
