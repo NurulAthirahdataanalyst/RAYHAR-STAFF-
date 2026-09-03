@@ -1256,10 +1256,10 @@ export default function Branches() {
                         </div>
                         <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 mx-2" />
                         <div className="text-right min-w-0">
-                          <p className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none">
-                            Leader:
+                          <p className="text-[9px] font-black text-black dark:text-white uppercase tracking-widest leading-none">
+                            LEADER:
                           </p>
-                          <p className="text-[10px] font-black text-slate-800 dark:text-slate-200 mt-0.5 truncate uppercase max-w-[160px]">
+                          <p className="text-[10px] font-black text-black dark:text-white mt-0.5 truncate uppercase max-w-[160px]">
                             {leader}
                           </p>
                         </div>
