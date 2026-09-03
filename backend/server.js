@@ -8429,11 +8429,9 @@ app.get("/api/reports/workforce-leave-balance", async (req, res) => {
       let medicalTaken = 0;
       let medicalPending = 0;
 
-      // Emergency
-      const baseEmergency = parseFloat(p.emergency_entitlement || 5);
-      const emergencyAdj = (userAdj['emergency leave'] || 0) + (userAdj['cuti kecemasan'] || 0);
-      let emergencyTaken = 0;
-      let emergencyPending = 0;
+      // Unpaid Leave (Cuti Tanpa Gaji)
+      let unpaidTaken = 0;
+      let unpaidPending = 0;
 
       // Replacement
       const replacementAdj = (userAdj['replacement leave'] || 0) + (userAdj['cuti ganti'] || 0);
@@ -8451,12 +8449,15 @@ app.get("/api/reports/workforce-leave-balance", async (req, res) => {
         } else if (typeLower.includes('medical') || typeLower.includes('sick') || typeLower.includes('sakit')) {
           if (isApproved) medicalTaken += d;
           else medicalPending += d;
-        } else if (typeLower.includes('emergency') || typeLower.includes('kecemasan')) {
-          if (isApproved) emergencyTaken += d;
-          else emergencyPending += d;
+        } else if (typeLower.includes('unpaid') || typeLower.includes('tanpa gaji') || typeLower.includes('un-paid')) {
+          if (isApproved) unpaidTaken += d;
+          else unpaidPending += d;
         } else if (typeLower.includes('replacement') || typeLower.includes('ganti')) {
           if (isApproved) replacementTaken += d;
           else replacementPending += d;
+        } else if (typeLower.includes('emergency') || typeLower.includes('kecemasan')) {
+          if (isApproved) annualTaken += d;
+          else annualPending += d;
         }
       });
 
@@ -8466,15 +8467,12 @@ app.get("/api/reports/workforce-leave-balance", async (req, res) => {
       const medicalEnt = Math.max(0, baseMedical + medicalAdj);
       const medicalBal = Math.max(0, medicalEnt - medicalTaken);
 
-      const emergencyEnt = Math.max(0, baseEmergency + emergencyAdj);
-      const emergencyBal = Math.max(0, emergencyEnt - emergencyTaken);
-
       const replacementEnt = Math.max(0, replacementAdj);
       const replacementBal = Math.max(0, replacementEnt - replacementTaken);
 
-      const empEntitlement = annualEnt + medicalEnt + emergencyEnt + replacementEnt;
-      const empTaken = annualTaken + medicalTaken + emergencyTaken + replacementTaken;
-      const empTotalBalance = annualBal + medicalBal + emergencyBal + replacementBal;
+      const empEntitlement = annualEnt + medicalEnt + replacementEnt;
+      const empTaken = annualTaken + medicalTaken + unpaidTaken + replacementTaken;
+      const empTotalBalance = annualBal + medicalBal + replacementBal;
 
       overallEntitlement += empEntitlement;
       overallTaken += empTaken;
@@ -8498,7 +8496,7 @@ app.get("/api/reports/workforce-leave-balance", async (req, res) => {
         position: p.position || '—',
         annual: { entitlement: annualEnt, taken: annualTaken, pending: annualPending, remaining: annualBal },
         medical: { entitlement: medicalEnt, taken: medicalTaken, pending: medicalPending, remaining: medicalBal },
-        emergency: { entitlement: emergencyEnt, taken: emergencyTaken, pending: emergencyPending, remaining: emergencyBal },
+        unpaid: { entitlement: 0, taken: unpaidTaken, pending: unpaidPending, remaining: 0 },
         replacement: { entitlement: replacementEnt, taken: replacementTaken, pending: replacementPending, remaining: replacementBal },
         totalEntitlement: empEntitlement,
         totalTaken: empTaken,
