@@ -2516,7 +2516,6 @@ function ReplacementLeaveValidationForm({ employees, onCancel }: { employees: an
           </div>
         )}
       </CardContent>
-      <TableScrollTopButton entriesPerPage={entriesPerPage} tableRef={tableRef} />
     </Card>
   );
 }
