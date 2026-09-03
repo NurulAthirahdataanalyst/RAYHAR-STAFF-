@@ -410,7 +410,7 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
             </div>
           ) : (
             <table className="w-full text-left text-xs border-collapse">
-              <thead className="bg-muted/40 sticky top-0 z-10 border-b border-border/50 text-[10px] uppercase font-black tracking-wider text-muted-foreground">
+              <thead className="bg-slate-100 dark:bg-slate-900 sticky top-0 z-10 border-b border-border/60 text-[10px] uppercase font-black tracking-wider text-muted-foreground shadow-sm">
                 <tr>
                   <th className="p-3 pl-4">Employee</th>
                   <th className="p-3">Branch</th>
@@ -497,7 +497,7 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
             <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Detailed Leave Entitlement Breakdown ({selectedMonthYear})</p>
 
             <table className="w-full text-left text-xs border-collapse">
-              <thead className="bg-muted/40 border-b border-border/50 text-[10px] uppercase font-black tracking-wider text-muted-foreground">
+              <thead className="bg-slate-100 dark:bg-slate-900 border-b border-border/60 text-[10px] uppercase font-black tracking-wider text-muted-foreground">
                 <tr>
                   <th className="p-2.5 pl-3">Leave Type</th>
                   <th className="p-2.5 text-center">Entitlement</th>
