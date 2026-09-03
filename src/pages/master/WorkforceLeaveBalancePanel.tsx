@@ -222,15 +222,31 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
     setEntriesPerPage(10);
   };
 
-  // Export handlers
+  // Export CSV Handler (with UTF-8 BOM to prevent character corruption in Excel)
   const exportCSV = (filename: string) => {
-    const headers = ["Employee ID", "Employee Name", "Branch", "Department", "Position", "Annual Remaining", "Annual Entitlement", "Medical Remaining", "Medical Entitlement", "Unpaid Days Taken", "Replacement Remaining", "Replacement Earned", "Total Remaining Balance", "Status"];
+    const headers = [
+      "Employee ID", 
+      "Employee Name", 
+      "Branch", 
+      "Department", 
+      "Position", 
+      "Annual Remaining", 
+      "Annual Entitlement", 
+      "Medical Remaining", 
+      "Medical Entitlement", 
+      "Unpaid Days Taken", 
+      "Replacement Remaining", 
+      "Replacement Earned", 
+      "Total Remaining Balance", 
+      "Status"
+    ];
+    
     const rows = processedEmployees.map(e => [
       `"${e.user_id}"`,
-      `"${e.name}"`,
-      `"${e.branch}"`,
-      `"${e.department}"`,
-      `"${e.position}"`,
+      `"${e.name.replace(/"/g, '""')}"`,
+      `"${(e.branch || '—').replace(/"/g, '""')}"`,
+      `"${(e.department || '—').replace(/"/g, '""')}"`,
+      `"${(e.position || '—').replace(/"/g, '""')}"`,
       e.annual.remaining,
       e.annual.entitlement,
       e.medical.remaining,
@@ -242,14 +258,106 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
       `"${e.status}"`
     ]);
 
-    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
-    const encodedUri = encodeURI(csvContent);
+    const csvContent = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+    const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
+    link.setAttribute("href", url);
     link.setAttribute("download", filename);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  // Export Excel Handler (Formatted HTML Table with gridlines and purple header styling)
+  const exportExcel = (filename: string) => {
+    const htmlTable = `
+      <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+        <head>
+          <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+          <!--[if gte mso 9]>
+          <xml>
+            <x:ExcelWorkbook>
+              <x:ExcelWorksheets>
+                <x:ExcelWorksheet>
+                  <x:Name>Workforce Leave Balance</x:Name>
+                  <x:WorksheetOptions>
+                    <x:DisplayGridlines/>
+                  </x:WorksheetOptions>
+                </x:ExcelWorksheet>
+              </x:ExcelWorksheets>
+            </x:ExcelWorkbook>
+          </xml>
+          <![endif]-->
+          <style>
+            table { border-collapse: collapse; width: 100%; font-family: Arial, sans-serif; font-size: 11px; }
+            th { background-color: #942392; color: #FFFFFF; font-weight: bold; text-transform: uppercase; padding: 8px; border: 1px solid #7E1B7C; text-align: center; }
+            td { padding: 6px 8px; border: 1px solid #E2E8F0; text-align: left; vertical-align: middle; }
+            .text-center { text-align: center; }
+            .font-bold { font-weight: bold; }
+            .status-available { background-color: #D1FAE5; color: #065F46; font-weight: bold; text-align: center; }
+            .status-low { background-color: #FEF3C7; color: #92400E; font-weight: bold; text-align: center; }
+            .status-used { background-color: #FEE2E2; color: #991B1B; font-weight: bold; text-align: center; }
+            .status-none { background-color: #F1F5F9; color: #475569; font-weight: bold; text-align: center; }
+          </style>
+        </head>
+        <body>
+          <h2 style="font-family: Arial, sans-serif; color: #942392;">Workforce Leave Balance Report (${selectedMonthYear})</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Employee ID</th>
+                <th>Employee Name</th>
+                <th>Branch</th>
+                <th>Department</th>
+                <th>Position</th>
+                <th>Annual Leave</th>
+                <th>Medical Leave</th>
+                <th>Unpaid Leave</th>
+                <th>Replacement Leave</th>
+                <th>Total Balance</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${processedEmployees.map(e => {
+                let statusClass = "status-available";
+                if (e.status === "LOW BALANCE") statusClass = "status-low";
+                else if (e.status === "FULLY USED") statusClass = "status-used";
+                else if (e.status === "NO ENTITLEMENT") statusClass = "status-none";
+
+                return `
+                  <tr>
+                    <td class="font-bold">${e.user_id}</td>
+                    <td class="font-bold">${e.name}</td>
+                    <td>${e.branch}</td>
+                    <td>${e.department}</td>
+                    <td>${e.position}</td>
+                    <td class="text-center">${e.annual.remaining} / ${e.annual.entitlement}d</td>
+                    <td class="text-center">${e.medical.remaining} / ${e.medical.entitlement}d</td>
+                    <td class="text-center">${e.unpaid.taken} days taken</td>
+                    <td class="text-center">${e.replacement.remaining} / ${e.replacement.entitlement}d</td>
+                    <td class="text-center font-bold" style="color: #942392;">${e.totalBalance} Days</td>
+                    <td class="${statusClass}">${e.status}</td>
+                  </tr>
+                `;
+              }).join("")}
+            </tbody>
+          </table>
+        </body>
+      </html>
+    `;
+
+    const blob = new Blob(["\uFEFF" + htmlTable], { type: "application/vnd.ms-excel;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   const getStatusBadge = (status: string) => {
@@ -291,7 +399,7 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
               <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5 font-bold" onClick={() => exportCSV(`Workforce_Leave_Balance_${selectedMonthYear}.csv`)}>
                 <FileText className="w-3.5 h-3.5" /> CSV
               </Button>
-              <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5 font-bold" onClick={() => exportCSV(`Workforce_Leave_Balance_${selectedMonthYear}.xls`)}>
+              <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5 font-bold" onClick={() => exportExcel(`Workforce_Leave_Balance_${selectedMonthYear}.xls`)}>
                 <Download className="w-3.5 h-3.5" /> Excel
               </Button>
               <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5 font-bold" onClick={() => window.print()}>
