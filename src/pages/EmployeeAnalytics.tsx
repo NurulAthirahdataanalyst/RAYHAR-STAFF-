@@ -237,7 +237,7 @@ export default function EmployeeAnalytics() {
 
   const isAdminView = ["branch_leader", "managing_director", "md", "finance_manager", "head_of_department", "operation_manager", "hr", "hr_admin", "admin"].includes(role?.toLowerCase());
   // User previously asked to hide from MD/OM and HOD/Branch Leader, but now wants them back.
-  const showOvertime = ["hr", "hr_admin", "admin", "finance_manager", "managing_director", "md", "operation_manager", "head_of_department", "hod", "branch_leader"].includes(role?.toLowerCase());
+  const showOvertime = !["hr", "hr_admin"].includes(role?.toLowerCase()) && ["admin", "finance_manager", "managing_director", "md", "operation_manager", "head_of_department", "hod", "branch_leader"].includes(role?.toLowerCase());
   // HOD and Branch Leader only see their own department, so don't show the multi-department trend
   const showDeptOvertime = !["head_of_department", "hod", "branch_leader"].includes(role?.toLowerCase());
 
@@ -752,7 +752,7 @@ export default function EmployeeAnalytics() {
           )}
 
           {/* ── Summary Strip ── */}
-          {!loadingTeam && teamMetrics.length > 0 && (
+          {!loadingTeam && teamMetrics.length > 0 && showOvertime && (
             <Card className="border-2 border-slate-300 dark:border-slate-600 bg-card/80 backdrop-blur-md rounded-[24px] group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20 shadow-[0_8px_30px_rgba(0,0,0,0.03)]">
               <CardContent className="p-5">
                 <div className="flex flex-wrap items-center gap-4 sm:gap-8">
