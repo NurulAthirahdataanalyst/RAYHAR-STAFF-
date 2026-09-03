@@ -185,7 +185,7 @@ export default function DepartmentReports() {
       <div className="w-full py-6">
         {/* KPI Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
-          <Card className="border-border shadow-sm">
+          <Card className="border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm">
             <CardContent className="p-4 flex flex-col justify-center">
               <div className="flex items-center gap-3 mb-2">
                 <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -197,7 +197,7 @@ export default function DepartmentReports() {
             </CardContent>
           </Card>
           
-          <Card className="border-border shadow-sm">
+          <Card className="border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm">
             <CardContent className="p-4 flex flex-col justify-center">
               <div className="flex items-center gap-3 mb-2">
                 <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
@@ -209,7 +209,7 @@ export default function DepartmentReports() {
             </CardContent>
           </Card>
 
-          <Card className="border-border shadow-sm">
+          <Card className="border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm">
             <CardContent className="p-4 flex flex-col justify-center">
               <div className="flex items-center gap-3 mb-2">
                 <div className="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center">
@@ -223,7 +223,7 @@ export default function DepartmentReports() {
             </CardContent>
           </Card>
 
-          <Card className="border-border shadow-sm">
+          <Card className="border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm">
             <CardContent className="p-4 flex flex-col justify-center">
               <div className="flex items-center gap-3 mb-2">
                 <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center">
@@ -237,7 +237,7 @@ export default function DepartmentReports() {
             </CardContent>
           </Card>
 
-          <Card className="border-border shadow-sm">
+          <Card className="border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm">
             <CardContent className="p-4 flex flex-col justify-center">
               <div className="flex items-center gap-3 mb-2">
                 <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center">
@@ -254,7 +254,7 @@ export default function DepartmentReports() {
 
         {/* Tables */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card className="border-border shadow-sm">
+          <Card className="border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm">
             <CardHeader>
               <CardTitle className="text-lg">Department Statistics (HQ)</CardTitle>
             </CardHeader>
@@ -296,7 +296,7 @@ export default function DepartmentReports() {
             </CardContent>
           </Card>
 
-          <Card className="border-border shadow-sm">
+          <Card className="border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm">
             <CardHeader>
               <CardTitle className="text-lg">Branch Statistics</CardTitle>
             </CardHeader>

@@ -221,8 +221,8 @@ export default function LeaveReports() {
             <ExportDropdown onExportCSV={handleExportCSV} />
           </div>
         </div>
-<div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          <Card className="border-border shadow-sm">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <Card className="border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm">
             <CardContent className="p-6 flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
                 <FileText className="w-6 h-6 text-primary" />
@@ -234,7 +234,7 @@ export default function LeaveReports() {
             </CardContent>
           </Card>
           
-          <Card className="border-border shadow-sm">
+          <Card className="border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm">
             <CardContent className="p-6 flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center">
                 <CalendarDays className="w-6 h-6 text-green-500" />
@@ -248,7 +248,7 @@ export default function LeaveReports() {
             </CardContent>
           </Card>
 
-          <Card className="border-border shadow-sm">
+          <Card className="border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm">
             <CardContent className="p-6 flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center">
                 <CalendarDays className="w-6 h-6 text-orange-500" />
@@ -263,7 +263,7 @@ export default function LeaveReports() {
           </Card>
         </div>
 
-        <Card className="border-border shadow-sm">
+        <Card className="border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm">
           <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <CardTitle className="text-lg">Leave Utilisation Log</CardTitle>
             <div className="relative w-full sm:w-64">

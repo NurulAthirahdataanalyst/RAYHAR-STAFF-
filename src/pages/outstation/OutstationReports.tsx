@@ -331,7 +331,7 @@ export default function OutstationReports() {
       )}
 
       {/* Main Table Content */}
-      <Card className="border border-gray-200 dark:border-slate-800 shadow-sm overflow-hidden mt-4">
+      <Card className="border border-gray-200 dark:border-slate-800 shadow-sm overflow-hidden mt-4 rounded-xl">
         <CardHeader className="pb-0 bg-white dark:bg-card space-y-0 pt-4 px-4 sm:px-6">
           {/* Title row — always has Export CSV on the right */}
           <div className="flex items-center justify-between mb-3">

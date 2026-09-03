@@ -381,7 +381,7 @@ export default function AttendanceReports() {
 
         {/* KPI Summary Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-6">
-          <Card className="border-border shadow-sm hover:shadow-md transition-shadow">
+          <Card className="border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md transition-shadow">
             <CardContent className="p-6 flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
                 <Users className="w-6 h-6 text-primary" />
@@ -393,7 +393,7 @@ export default function AttendanceReports() {
             </CardContent>
           </Card>
           <Card
-            className="border-border shadow-sm hover:shadow-md transition-shadow cursor-pointer hover:border-green-500/50"
+            className="border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md transition-shadow cursor-pointer hover:border-green-500/50"
             onClick={() => setStatusFilter("Present (On Time)")}
           >
             <CardContent className="p-6 flex items-center gap-4">
@@ -407,7 +407,7 @@ export default function AttendanceReports() {
             </CardContent>
           </Card>
           <Card
-            className="border-border shadow-sm hover:shadow-md transition-shadow cursor-pointer hover:border-yellow-500/50"
+            className="border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md transition-shadow cursor-pointer hover:border-yellow-500/50"
             onClick={() => setStatusFilter("Present (Late)")}
           >
             <CardContent className="p-6 flex items-center gap-4">
@@ -421,7 +421,7 @@ export default function AttendanceReports() {
             </CardContent>
           </Card>
           <Card
-            className="border-border shadow-sm hover:shadow-md transition-shadow cursor-pointer hover:border-blue-500/50"
+            className="border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md transition-shadow cursor-pointer hover:border-blue-500/50"
             onClick={() => setStatusFilter("Outstation")}
           >
             <CardContent className="p-6 flex items-center gap-4">
@@ -435,7 +435,7 @@ export default function AttendanceReports() {
             </CardContent>
           </Card>
           <Card
-            className="border-border shadow-sm hover:shadow-md transition-shadow cursor-pointer hover:border-purple-500/50"
+            className="border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md transition-shadow cursor-pointer hover:border-purple-500/50"
             onClick={() => setStatusFilter("Approved Leave")}
           >
             <CardContent className="p-6 flex items-center gap-4">
@@ -449,7 +449,7 @@ export default function AttendanceReports() {
             </CardContent>
           </Card>
           <Card
-            className="border-border shadow-sm hover:shadow-md transition-shadow cursor-pointer hover:border-orange-500/50"
+            className="border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md transition-shadow cursor-pointer hover:border-orange-500/50"
             onClick={() => setStatusFilter("Missing Clock-Out")}
           >
             <CardContent className="p-6 flex items-center gap-4">
@@ -463,7 +463,7 @@ export default function AttendanceReports() {
             </CardContent>
           </Card>
           <Card
-            className="border-border shadow-sm hover:shadow-md transition-shadow cursor-pointer hover:border-red-500/50"
+            className="border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md transition-shadow cursor-pointer hover:border-red-500/50"
             onClick={() => setStatusFilter("Absent")}
           >
             <CardContent className="p-6 flex items-center gap-4">
@@ -476,7 +476,7 @@ export default function AttendanceReports() {
               </div>
             </CardContent>
           </Card>
-          <Card className="border-border shadow-sm hover:shadow-md transition-shadow">
+          <Card className="border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md transition-shadow">
             <CardContent className="p-6 flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-teal-500/10 flex items-center justify-center">
                 <Percent className="w-6 h-6 text-teal-500" />
@@ -490,7 +490,7 @@ export default function AttendanceReports() {
         </div>
 
         {/* Table Card — search bar is INSIDE the white card header, same line as title */}
-        <Card className="border-border shadow-sm">
+        <Card className="border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm">
           <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <CardTitle className="text-lg">
               {viewType === "day" ? "Daily Attendance Log" : viewType === "month" ? "Monthly Attendance Log" : "Yearly Attendance Log"}
