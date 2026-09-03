@@ -51,14 +51,14 @@ const BRANCH_NAMES: Record<string, string> = {
 };
 
 const cardHoverEffects: Record<string, string> = {
-  emerald: "cursor-pointer transition-all duration-200 hover:bg-emerald-50/50 dark:hover:bg-slate-900/50 group",
-  orange: "cursor-pointer transition-all duration-200 hover:bg-orange-50/50 dark:hover:bg-slate-900/50 group",
-  purple: "cursor-pointer transition-all duration-200 hover:bg-purple-50/50 dark:hover:bg-slate-900/50 group",
-  red: "cursor-pointer transition-all duration-200 hover:bg-red-50/50 dark:hover:bg-slate-900/50 group",
-  amber: "cursor-pointer transition-all duration-200 hover:bg-amber-50/50 dark:hover:bg-slate-900/50 group",
-  blue: "cursor-pointer transition-all duration-200 hover:bg-blue-50/50 dark:hover:bg-slate-900/50 group",
-  indigo: "cursor-pointer transition-all duration-200 hover:bg-indigo-50/50 dark:hover:bg-slate-900/50 group",
-  slate: "cursor-pointer transition-all duration-200 hover:bg-slate-50/50 dark:hover:bg-slate-900/50 group",
+  emerald: "cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:bg-emerald-50/50 dark:hover:bg-slate-900/50 group",
+  orange: "cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:bg-orange-50/50 dark:hover:bg-slate-900/50 group",
+  purple: "cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:bg-purple-50/50 dark:hover:bg-slate-900/50 group",
+  red: "cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:bg-red-50/50 dark:hover:bg-slate-900/50 group",
+  amber: "cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:bg-amber-50/50 dark:hover:bg-slate-900/50 group",
+  blue: "cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:bg-blue-50/50 dark:hover:bg-slate-900/50 group",
+  indigo: "cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:bg-indigo-50/50 dark:hover:bg-slate-900/50 group",
+  slate: "cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:bg-slate-50/50 dark:hover:bg-slate-900/50 group",
 };
 const cardHoverEffect = cardHoverEffects.purple;
 
@@ -515,11 +515,11 @@ export default function WorkforceInsights() {
           <div className={`col-span-1 ${['head_of_department', 'branch_leader'].includes(role) ? 'xl:col-span-4' : 'xl:col-span-3'} grid grid-cols-2 lg:grid-cols-5 gap-4`}>
             
                         {/* 1. Present Today */}
-            <Card className={`lg:col-span-2 border border-emerald-100 bg-emerald-50/30 p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.emerald} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+            <Card className={`group lg:col-span-2 border border-emerald-100 bg-emerald-50/30 p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.emerald} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
               <div>
                 <div className="flex justify-between items-start mb-2">
-                  <div className="w-10 h-10 rounded-full border border-emerald-200 bg-emerald-50 flex items-center justify-center">
-                    <Users className="w-5 h-5 text-emerald-600" />
+                  <div className="w-10 h-10 rounded-full border border-emerald-200 bg-emerald-50 flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
+                    <Users className="w-5 h-5 text-emerald-600 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
                   </div>
                   {feedConnected && <span className="text-emerald-600 text-[11px] font-bold flex items-center gap-1 bg-white px-2 py-0.5 rounded-full shadow-sm"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />Live</span>}
                 </div>
@@ -561,10 +561,10 @@ export default function WorkforceInsights() {
               }
               
               return (
-            <Card className={`border border-slate-100 bg-white p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.orange} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+            <Card className={`group border border-slate-100 bg-white p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.orange} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
               <div>
-                <div className="w-10 h-10 rounded-full border border-orange-100 bg-orange-50/50 flex items-center justify-center mb-3">
-                  <Clock className="w-5 h-5 text-orange-500" />
+                <div className="w-10 h-10 rounded-full border border-orange-100 bg-orange-50/50 flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110">
+                  <Clock className="w-5 h-5 text-orange-500 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
                 </div>
                 <p className="text-[11px] font-extrabold text-orange-600 uppercase tracking-wider mb-2">Late Arrival</p>
                 <div className="flex flex-col items-start mt-1">
@@ -579,9 +579,9 @@ export default function WorkforceInsights() {
             );})()}
 
             {/* 3. On Leave Today */}
-            <Card className={`border border-slate-100 bg-white p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.purple} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+            <Card className={`group border border-slate-100 bg-white p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.purple} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
               <div>
-                <div className="w-10 h-10 rounded-full border border-purple-100 bg-purple-50/50 flex items-center justify-center mb-3">
+                <div className="w-10 h-10 rounded-full border border-purple-100 bg-purple-50/50 flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110">
                   <CalendarDays className="w-5 h-5 text-purple-600 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
                 </div>
                 <p className="text-[11px] font-extrabold text-purple-600 uppercase tracking-wider mb-2">On Leave Today</p>
@@ -599,10 +599,10 @@ export default function WorkforceInsights() {
             </Card>
 
             {/* 4. Absent Today */}
-            <Card className={`border border-slate-100 bg-white p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.red} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+            <Card className={`group border border-slate-100 bg-white p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.red} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
               <div>
-                <div className="w-10 h-10 rounded-full border border-red-100 bg-red-50/50 flex items-center justify-center mb-3">
-                  <XCircle className="w-5 h-5 text-red-500" />
+                <div className="w-10 h-10 rounded-full border border-red-100 bg-red-50/50 flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110">
+                  <XCircle className="w-5 h-5 text-red-500 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
                 </div>
                 <p className="text-[11px] font-extrabold text-red-500 uppercase tracking-wider mb-2">Absent Today</p>
                 <div className="flex flex-col items-start mt-1">
@@ -616,11 +616,11 @@ export default function WorkforceInsights() {
             </Card>
 
             {/* 5. Missing Punch */}
-            <Card className={`border border-slate-100 bg-white p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.amber} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+            <Card className={`group border border-slate-100 bg-white p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.amber} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
               <div>
                 <div className="flex justify-between items-start mb-2">
-                  <div className="w-10 h-10 rounded-full border border-amber-100 bg-amber-50/50 flex items-center justify-center mb-3">
-                    <AlertTriangle className="w-5 h-5 text-amber-500" />
+                  <div className="w-10 h-10 rounded-full border border-amber-100 bg-amber-50/50 flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110">
+                    <AlertTriangle className="w-5 h-5 text-amber-500 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
                   </div>
                   {feedConnected && <span className="text-amber-500 text-[11px] font-bold flex items-center gap-1 bg-white px-2 py-0.5 rounded-full shadow-sm"><span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />Live</span>}
                 </div>
@@ -643,10 +643,10 @@ export default function WorkforceInsights() {
             </Card>
 
             {/* 6. Outstation */}
-            <Card className={`border border-slate-100 bg-white p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.blue} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+            <Card className={`group border border-slate-100 bg-white p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.blue} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
               <div>
-                <div className="w-10 h-10 rounded-full border border-blue-100 bg-blue-50/50 flex items-center justify-center mb-3">
-                  <Plane className="w-5 h-5 text-blue-500" />
+                <div className="w-10 h-10 rounded-full border border-blue-100 bg-blue-50/50 flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110">
+                  <Plane className="w-5 h-5 text-blue-500 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
                 </div>
                 <p className="text-[11px] font-extrabold text-blue-500 uppercase tracking-wider mb-2">Outstation</p>
                 <div className="flex flex-col items-start mt-1">
@@ -665,10 +665,10 @@ export default function WorkforceInsights() {
             </Card>
 
             {/* 7. Attendance Rate */}
-            <Card className={`border border-slate-100 bg-white p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.indigo} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+            <Card className={`group border border-slate-100 bg-white p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.indigo} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
               <div>
-                <div className="w-10 h-10 rounded-full border border-indigo-100 bg-indigo-50/50 flex items-center justify-center mb-3">
-                  <CheckCircle2 className="w-5 h-5 text-indigo-500" />
+                <div className="w-10 h-10 rounded-full border border-indigo-100 bg-indigo-50/50 flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110">
+                  <CheckCircle2 className="w-5 h-5 text-indigo-500 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
                 </div>
                 <p className="text-[11px] font-extrabold text-indigo-600 uppercase tracking-wider mb-2">Attendance Rate</p>
                 <div className="flex items-baseline gap-2 mt-1">
@@ -682,10 +682,10 @@ export default function WorkforceInsights() {
             </Card>
 
             {/* 8. Active Workforce */}
-            <Card className={`lg:col-span-2 border border-slate-100 bg-white p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.emerald} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+            <Card className={`group lg:col-span-2 border border-slate-100 bg-white p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.emerald} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
               <div>
-                <div className="w-10 h-10 rounded-full border border-emerald-100 bg-emerald-50/50 flex items-center justify-center mb-3">
-                  <Users className="w-5 h-5 text-emerald-500" />
+                <div className="w-10 h-10 rounded-full border border-emerald-100 bg-emerald-50/50 flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110">
+                  <Users className="w-5 h-5 text-emerald-500 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
                 </div>
                 <p className="text-[11px] font-extrabold text-emerald-600 uppercase tracking-wider mb-2">Active Workforce</p>
                 <div className="flex items-baseline gap-2 mt-1">
@@ -720,7 +720,7 @@ export default function WorkforceInsights() {
             const topPerformerCount = topPerformers.length;
 
             return (
-              <Card className={`col-span-1 xl:col-span-1 border border-slate-100 bg-white dark:bg-card p-5 flex flex-col justify-between \${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+              <Card className={`col-span-1 xl:col-span-1 border border-slate-100 bg-white dark:bg-card p-5 flex flex-col justify-between ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
                 <div className="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
                   <span className="text-[12px] font-bold text-slate-800 dark:text-slate-200">Employee Distribution</span>
                 </div>
@@ -756,10 +756,10 @@ export default function WorkforceInsights() {
 
                   <div className="flex flex-col gap-2 mb-6">
                     <span className="text-[12px] font-bold text-slate-800 dark:text-slate-200">Top Performer</span>
-                    <div className="flex items-center justify-between bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-900/30 rounded-xl p-4 mt-1 cursor-default hover:bg-orange-100/50 dark:hover:bg-orange-900/20 transition-colors">
+                    <div className="group flex items-center justify-between bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-900/30 rounded-xl p-4 mt-1 cursor-default hover:bg-orange-100/50 dark:hover:bg-orange-900/20 transition-colors">
                        <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 shadow-sm">
-                             <Award className="w-5 h-5" />
+                          <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 shadow-sm transition-transform duration-300 group-hover:scale-110">
+                             <Award className="w-5 h-5 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
                           </div>
                           <div className="flex flex-col">
                              <span className="text-[14px] font-bold text-slate-800 dark:text-slate-200">{topPerformerCount > 0 ? topPerformerCount : 27} Employees</span>
