@@ -58,8 +58,7 @@ export function getBreadcrumbs(pathname: string, search?: string): BreadcrumbSeg
   if (pathname === "/employees") return [home, { label: "EMPLOYEE MANAGEMENT", path: "/master" }, { label: "EMPLOYEE DIRECTORY" }];
   if (pathname === "/master/department") return [home, { label: "EMPLOYEE MANAGEMENT", path: "/master" }, { label: "DEPARTMENT" }];
   if (pathname.startsWith("/master/department/")) {
-    const deptName = pathname.split("/").pop()?.replace(/-/g, " ").toUpperCase() || "DETAILS";
-    return [home, { label: "EMPLOYEE MANAGEMENT", path: "/master" }, { label: "DEPARTMENT", path: "/master/department" }, { label: deptName }];
+    return [home, { label: "EMPLOYEE MANAGEMENT", path: "/master" }, { label: "DEPARTMENT", path: "/master/department" }, { label: "DEPARTMENT OVERVIEW" }];
   }
   if (pathname === "/master/role") return [home, { label: "EMPLOYEE MANAGEMENT", path: "/master" }, { label: "ROLE" }];
 

@@ -145,9 +145,8 @@ export function getPageTitleInfo(pathname: string, userRole?: string): PageInfo 
     icon: Building2
   };
   if (pathname.startsWith("/master/department/")) {
-    const deptName = pathname.split("/").pop()?.replace(/-/g, " ") || "Department Details";
     return {
-      title: deptName,
+      title: "Department Overview",
       subtitle: "Manage department-specific configurations and employee assignments.",
       icon: Building2
     };
