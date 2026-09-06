@@ -17,6 +17,7 @@ import { FileText, Printer, Loader2, ArrowLeft, PhoneCall, Eye, Calendar, MapPin
 import { useRole } from "@/contexts/RoleContext";
 
 import PageActions from "@/components/layout/PageActions";
+import { MonthPicker } from "@/components/shared/MonthPicker";
 import { API_BASE_URL } from "../config/api";
 import {
   getLeaveFormFileName,
@@ -139,9 +140,44 @@ export default function LeaveFormView() {
   const [loading, setLoading] = useState(true);
   const [selectedForm, setSelectedForm] = useState<LeaveForm | null>(null);
   const [activeTab, setActiveTab] = useState<FormTabFilter>("pending");
+  const [monthYear, setMonthYear] = useState<string>(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  });
+
+  // Filter forms based on selected month/year
+  const monthFilteredForms = forms.filter((form) => {
+    if (!monthYear) return true;
+    if (monthYear.endsWith("-all")) {
+      const year = monthYear.split("-")[0];
+      return (
+        (form.from && form.from.startsWith(year)) ||
+        (form.to && form.to.startsWith(year)) ||
+        (form.appliedAt && form.appliedAt.startsWith(year))
+      );
+    }
+    const [year, month] = monthYear.split("-");
+    const ym = `${year}-${month}`;
+
+    if (
+      (form.from && form.from.startsWith(ym)) ||
+      (form.to && form.to.startsWith(ym)) ||
+      (form.appliedAt && form.appliedAt.startsWith(ym))
+    ) {
+      return true;
+    }
+
+    if (form.from && form.to) {
+      const startYM = form.from.slice(0, 7);
+      const endYM = form.to.slice(0, 7);
+      if (startYM <= ym && endYM >= ym) return true;
+    }
+
+    return false;
+  });
 
   // Filter forms based on active tab
-  const filteredForms = forms.filter((form) => {
+  const filteredForms = monthFilteredForms.filter((form) => {
     switch (activeTab) {
       case "pending":
         return form.status.startsWith("Pending");
@@ -154,9 +190,9 @@ export default function LeaveFormView() {
     }
   });
 
-  const pendingCount = forms.filter((f) => f.status.startsWith("Pending")).length;
-  const approvedCount = forms.filter((f) => f.status === "Approved").length;
-  const rejectedCount = forms.filter((f) => f.status === "Rejected").length;
+  const pendingCount = monthFilteredForms.filter((f) => f.status.startsWith("Pending")).length;
+  const approvedCount = monthFilteredForms.filter((f) => f.status === "Approved").length;
+  const rejectedCount = monthFilteredForms.filter((f) => f.status === "Rejected").length;
 
   useEffect(() => {
     void fetchForms();
@@ -308,6 +344,11 @@ export default function LeaveFormView() {
           </Button>
 
           <div className="flex items-center gap-3">
+            <MonthPicker
+              monthYear={monthYear}
+              onSelectMonthYear={setMonthYear}
+              className="h-9 sm:h-10"
+            />
             <Button
               variant="outline"
               onClick={handleExport}
@@ -331,7 +372,7 @@ export default function LeaveFormView() {
           <div className="px-6 pt-6 border-b border-border/50 bg-muted/10 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
             <div className="flex gap-6 overflow-x-auto w-full sm:w-auto scrollbar-none">
               {([
-                { key: "history" as FormTabFilter, label: "History", count: forms.length },
+                { key: "history" as FormTabFilter, label: "History", count: monthFilteredForms.length },
                 { key: "pending" as FormTabFilter, label: "Pending", count: pendingCount },
                 { key: "approved" as FormTabFilter, label: "Approved", count: approvedCount },
                 { key: "rejected" as FormTabFilter, label: "Rejected", count: rejectedCount }

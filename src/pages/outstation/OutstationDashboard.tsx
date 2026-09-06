@@ -20,6 +20,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 
 import PageHeader from "@/components/layout/PageHeader";
 import PageActions from "@/components/layout/PageActions";
+import { MonthPicker } from "@/components/shared/MonthPicker";
 import { API_BASE_URL } from "../../config/api";
 
 const OUTSTATION_ROLES = ["hr_admin", "managing_director", "operation_manager", "finance_manager", "branch_leader", "head_of_department"];
@@ -73,6 +74,35 @@ export default function OutstationDashboard() {
   const [search, setSearch] = useState("");
   const [pageSize, setPageSize] = useState(10);
   const [page, setPage] = useState(1);
+
+  // Month & Year Filter State
+  const [selectedMonth, setSelectedMonth] = useState<string>("all");
+  const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
+
+  const handleMonthYearChange = (val: string) => {
+    if (val.endsWith("-all")) {
+      setSelectedYear(val.split("-")[0]);
+      setSelectedMonth("all");
+    } else {
+      const [y, m] = val.split("-");
+      setSelectedYear(y);
+      setSelectedMonth((parseInt(m, 10) - 1).toString());
+    }
+  };
+
+  const monthYearVal = selectedMonth === "all" ? `${selectedYear}-all` : `${selectedYear}-${(parseInt(selectedMonth, 10) + 1).toString().padStart(2, '0')}`;
+
+  const filteredAssignments = useMemo(() => {
+    return assignments.filter(a => {
+      if (!a.start_date) return false;
+      if (!a.start_date.startsWith(selectedYear)) return false;
+      if (selectedMonth !== "all") {
+        const m = (parseInt(selectedMonth, 10) + 1).toString().padStart(2, '0');
+        if (!a.start_date.startsWith(`${selectedYear}-${m}`)) return false;
+      }
+      return true;
+    });
+  }, [assignments, selectedYear, selectedMonth]);
 
   useEffect(() => {
     if (!roleLoading && !OUTSTATION_ROLES.includes(role)) navigate("/");
@@ -128,7 +158,7 @@ export default function OutstationDashboard() {
   }, [fetchAll]);
 
   const activeNowGrouped = useMemo(() => {
-    const active = assignments.filter(a => a.status === "Active");
+    const active = filteredAssignments.filter(a => a.status === "Active");
     const groups: Record<string, {
       destination: string; department: string; project: string; purpose?: string; start_date: string; end_date: string; status: string;
       employees: any[];
@@ -151,10 +181,10 @@ export default function OutstationDashboard() {
     });
 
     return Object.values(groups);
-  }, [assignments]);
+  }, [filteredAssignments]);
 
   const upcomingGrouped = useMemo(() => {
-    const upcomingList = assignments.filter(a => a.status === "Upcoming");
+    const upcomingList = filteredAssignments.filter(a => a.status === "Upcoming");
     const groups: Record<string, {
       destination: string; department: string; project: string; purpose?: string; start_date: string; end_date: string; status: string;
       employees: any[];
@@ -177,19 +207,19 @@ export default function OutstationDashboard() {
     });
 
     return Object.values(groups);
-  }, [assignments]);
+  }, [filteredAssignments]);
 
-  const activeNow = useMemo(() => assignments.filter(a => a.status === "Active"), [assignments]);
-  const upcoming = useMemo(() => assignments.filter(a => a.status === "Upcoming"), [assignments]);
+  const activeNow = useMemo(() => filteredAssignments.filter(a => a.status === "Active"), [filteredAssignments]);
+  const upcoming = useMemo(() => filteredAssignments.filter(a => a.status === "Upcoming"), [filteredAssignments]);
   const returns = useMemo(() => {
     const today = new Date().toISOString().slice(0, 10);
-    return assignments.filter(a => a.status === "Active" && a.end_date && a.end_date.startsWith(today));
-  }, [assignments]);
+    return filteredAssignments.filter(a => a.status === "Active" && a.end_date && a.end_date.startsWith(today));
+  }, [filteredAssignments]);
 
-  const activeCount = Number(stats.active || 0);
-  const completedCount = Number(stats.completed || 0);
-  const upcomingCount = Number(stats.upcoming || 0);
-  const cancelledCount = Number(stats.cancelled || 0);
+  const activeCount = useMemo(() => filteredAssignments.filter(a => a.status === "Active").length, [filteredAssignments]);
+  const completedCount = useMemo(() => filteredAssignments.filter(a => a.status === "Completed").length, [filteredAssignments]);
+  const upcomingCount = useMemo(() => filteredAssignments.filter(a => a.status === "Upcoming").length, [filteredAssignments]);
+  const cancelledCount = useMemo(() => filteredAssignments.filter(a => a.status === "Cancelled").length, [filteredAssignments]);
 
   const dynamicTrends = useMemo(() => {
     const today = new Date();
@@ -214,7 +244,7 @@ export default function OutstationDashboard() {
     let thisMonthCancelled = 0;
     let lastMonthCancelled = 0;
 
-    assignments.forEach(a => {
+    filteredAssignments.forEach(a => {
       if (!a.start_date) return;
       const startDate = new Date(a.start_date);
       startDate.setHours(0,0,0,0);
@@ -271,7 +301,7 @@ export default function OutstationDashboard() {
       completionTrend: rateDiff > 0 ? `↑ +${rateDiff}% vs last month` : (rateDiff < 0 ? `↓ ${rateDiff}% vs last month` : `- 0% vs last month`),
       completionColor: rateDiff > 0 ? "text-green-600" : (rateDiff < 0 ? "text-red-500" : "text-foreground")
     };
-  }, [assignments, completedCount, cancelledCount]);
+  }, [filteredAssignments, completedCount, cancelledCount]);
 
   // Derived Analytics Data
   const monthlyTrendData = useMemo(() => [
@@ -296,7 +326,7 @@ export default function OutstationDashboard() {
   const eventGroups = useMemo(() => {
     const today = new Date().toISOString().split('T')[0];
     const groups: Record<string, any> = {};
-    assignments.forEach(a => {
+    filteredAssignments.forEach(a => {
       const eventName = (a.project && a.project !== '-') ? a.project : (a.purpose && a.purpose !== '-') ? a.purpose : 'General';
       if (!groups[eventName]) {
         groups[eventName] = {
@@ -323,23 +353,23 @@ export default function OutstationDashboard() {
       else g.status = "Upcoming";
       return g;
     });
-  }, [assignments]);
+  }, [filteredAssignments]);
 
-  const totalEventsCount = eventGroups.length > 0 ? eventGroups.length : (assignments.length > 0 ? assignments.length : 0);
+  const totalEventsCount = eventGroups.length > 0 ? eventGroups.length : (filteredAssignments.length > 0 ? filteredAssignments.length : 0);
   const completedEventsCount = eventGroups.filter(e => e.status === "Completed").length;
 
   const activeDomestic = activeNow.filter(a => !a.destination.toLowerCase().includes("singapore") && !a.destination.toLowerCase().includes("indonesia") && !a.destination.toLowerCase().includes("overseas")).length;
   const activeInternational = activeCount - activeDomestic;
 
   const todayStr = new Date().toISOString().slice(0, 10);
-  const departingTodayList = assignments.filter(a => a.status === "Upcoming" && a.start_date && a.start_date.startsWith(todayStr));
+  const departingTodayList = filteredAssignments.filter(a => a.status === "Upcoming" && a.start_date && a.start_date.startsWith(todayStr));
   const departingTodayCount = departingTodayList.length;
   const departingDomestic = departingTodayList.filter(a => !a.destination.toLowerCase().includes("singapore") && !a.destination.toLowerCase().includes("indonesia") && !a.destination.toLowerCase().includes("overseas")).length;
   const departingInternational = departingTodayCount - departingDomestic;
 
   const returningTodayCount = returns.length;
 
-  const upcomingNext7Days = assignments.filter(a => {
+  const upcomingNext7Days = filteredAssignments.filter(a => {
     if (a.status !== "Upcoming" || !a.start_date) return false;
     const start = new Date(a.start_date).getTime();
     const now = new Date().getTime();
@@ -367,9 +397,16 @@ export default function OutstationDashboard() {
     <div className="animate-in fade-in duration-500 pb-12">
       <div className="py-2">
         <PageActions>
-          <Button className="h-10 px-5 text-[14px] font-semibold text-white shadow-sm bg-[#942392] hover:bg-[#3b0764] w-full sm:w-auto" onClick={() => navigate("/outstation/assignment", { state: { openNew: true } })}>
-            <Plane className="w-4 h-4 mr-2" /> New Assignment 
-          </Button>
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <MonthPicker
+              monthYear={monthYearVal}
+              onSelectMonthYear={handleMonthYearChange}
+              className="h-10"
+            />
+            <Button className="h-10 px-5 text-[14px] font-semibold text-white shadow-sm bg-[#942392] hover:bg-[#3b0764] w-full sm:w-auto" onClick={() => navigate("/outstation/assignment", { state: { openNew: true } })}>
+              <Plane className="w-4 h-4 mr-2" /> New Assignment 
+            </Button>
+          </div>
         </PageActions>
 
         {/* ROW 1: Enterprise Analytics-Style KPI Cards */}
