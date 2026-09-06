@@ -1415,7 +1415,7 @@ export default function AttendanceDashboard() {
                                   { ((record as any).temp_branch || (record as any).attendance_type === "Temporary Assignment") && (
                                     <span className="bg-amber-100 text-amber-900 dark:bg-amber-950/70 dark:text-amber-300 border border-amber-300 dark:border-amber-700 text-[9px] font-extrabold px-1.5 py-0.5 rounded shadow-xs flex items-center gap-1">
                                       <MapPin className="w-2.5 h-2.5 text-amber-600 dark:text-amber-400" />
-                                      TEMP: {(record as any).temp_branch || "ASSIGNED"}
+                                      TEMP ASSIGNMENT : {(record as any).temp_branch || "HQ"}
                                     </span>
                                   ) }
                                   { !((record as any).temp_branch) && (record as any).attendance_type === "Multi-Location" && multiLocationUsers.includes(record.user_id) && (record as any).clock_in_location && (record as any).clock_in_location !== (record as any).permanent_branch && (
@@ -1425,7 +1425,7 @@ export default function AttendanceDashboard() {
                                     </span>
                                   ) }
                                 </div>
-                                <span className="text-[10px] text-foreground capitalize">{((record as any).role || "").replace(/_/g, ' ')} • {record.branch}{record.branch === "HQ" && record.department ? `, • ${record.department}` : ""}</span>
+                                <span className="text-[10px] text-foreground capitalize">{((record as any).role || "").replace(/_/g, ' ')} • {(record as any).permanent_branch || record.branch}{((record as any).permanent_branch || record.branch) === "HQ" && record.department ? `, • ${record.department}` : ""}</span>
                               </div>
                             </div>
                           </td>

@@ -572,10 +572,10 @@ export default function AttendanceReports() {
                           <TableCell className="max-w-[180px] truncate" title={req.full_name}>{req.full_name}</TableCell>
                           <TableCell>
                             <div className="flex flex-col gap-0.5">
-                              <span className="font-medium text-xs">{req.branch || "-"}</span>
+                              <span className="font-medium text-xs">{req.permanent_branch || req.branch || "-"}</span>
                               {(req.temp_branch || (req as any).temporary_branch) && (
                                 <span className="inline-flex items-center gap-1 text-[9px] font-black text-amber-800 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/70 px-1.5 py-0.5 rounded border border-amber-300 dark:border-amber-700 w-fit shadow-xs">
-                                  <MapPin className="w-2.5 h-2.5 text-amber-600 dark:text-amber-400" /> Temp: {req.temp_branch || (req as any).temporary_branch}
+                                  <MapPin className="w-2.5 h-2.5 text-amber-600 dark:text-amber-400" /> TEMP ASSIGNMENT : {req.temp_branch || (req as any).temporary_branch}
                                 </span>
                               )}
                             </div>
