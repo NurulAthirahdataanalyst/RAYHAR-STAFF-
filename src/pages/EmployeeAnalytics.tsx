@@ -591,14 +591,14 @@ export default function EmployeeAnalytics() {
 
                             {/* Score bars */}
                             <div className="hidden sm:flex items-center gap-4">
-                              <div className="flex flex-col items-end gap-0.5">
-                                <span className="text-[8px] font-black text-foreground uppercase">Punctuality</span>
-                                <div className="flex items-center gap-1.5">
-                                  <div className="w-24 h-1.5 rounded-full bg-muted/40 overflow-hidden">
-                                    <div className="h-full rounded-full bg-[#942392] transition-all"
-                                      style={{ width: `${m.punctualityScore}%` }} />
+                              <div className="flex flex-col items-end gap-1">
+                                <span className="text-[9px] font-black text-black dark:text-white uppercase tracking-wider">Punctuality</span>
+                                <div className="flex items-center gap-2">
+                                  <div className="w-28 h-2.5 rounded-full bg-slate-200 dark:bg-slate-700/80 border border-slate-300/60 dark:border-slate-600/60 overflow-hidden shadow-inner flex-shrink-0">
+                                    <div className="h-full rounded-full bg-[#942392] transition-all duration-500"
+                                      style={{ width: `${Math.min(100, Math.max(0, m.punctualityScore))}%` }} />
                                   </div>
-                                  <span className="text-[10px] font-black text-[#942392] w-8">{m.punctualityScore}%</span>
+                                  <span className="text-[10px] font-black text-[#942392] w-9 text-right">{m.punctualityScore}%</span>
                                 </div>
                               </div>
                               <div className="flex flex-col items-end gap-0.5">
