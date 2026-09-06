@@ -84,6 +84,12 @@ function formatHoursMinutes(decimalHours: number): string {
   return `${h}h ${m.toString().padStart(2, '0')}m`;
 }
 
+function formatShortName(fullName: string): string {
+  if (!fullName) return "Unknown";
+  const parts = fullName.trim().split(/\s+\b(?:bin|binti|binte|a\/l|a\/p)\b/i);
+  return parts[0].trim();
+}
+
 function computeMetrics(
   logs: AttendanceLog[],
   leaveCount: number,
@@ -726,7 +732,7 @@ export default function EmployeeAnalytics() {
                       <ResponsiveContainer width="100%" height={220}>
                         <BarChart
                           data={teamMetrics.filter(m => m.avgWorkHours > 0).slice(0, 10).map(m => ({
-                            name: (m.name || "Unknown").split(" ")[0],
+                            name: formatShortName(m.name),
                             avgWork: m.avgWorkHours,
                             formattedAvgWork: formatHoursMinutes(m.avgWorkHours),
                           }))}
