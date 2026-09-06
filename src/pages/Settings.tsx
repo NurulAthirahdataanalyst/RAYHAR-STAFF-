@@ -1080,13 +1080,13 @@ export default function SettingsPage() {
                               value={branchLat || ""} 
                               onChange={(e) => setBranchLat(e.target.value)}
                               placeholder="Latitude"
-                              className="h-10 rounded-xl text-xs font-bold border-purple-400 focus-visible:ring-purple-400"
+                              className="h-10 rounded-xl text-xs font-bold placeholder:text-slate-400 dark:placeholder:text-slate-500 placeholder:font-normal border-purple-400 focus-visible:ring-purple-400"
                             />
                             <Input 
                               value={branchLng || ""} 
                               onChange={(e) => setBranchLng(e.target.value)}
                               placeholder="Longitude"
-                              className="h-10 rounded-xl text-xs font-bold"
+                              className="h-10 rounded-xl text-xs font-bold placeholder:text-slate-400 dark:placeholder:text-slate-500 placeholder:font-normal"
                             />
                             <Button type="button" variant="outline" className="w-full h-10 rounded-xl text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 border-purple-200">
                               Apply Location
@@ -1095,7 +1095,7 @@ export default function SettingsPage() {
                           
                           <div className="space-y-2 pt-4">
                             <label className="text-[10px] font-black uppercase tracking-widest text-foreground">Address / Display Name</label>
-                            <div className="p-4 bg-white dark:bg-card border rounded-xl shadow-sm text-xs text-foreground leading-relaxed">
+                            <div className={`p-4 bg-white dark:bg-card border rounded-xl shadow-sm text-xs leading-relaxed ${branchAddress ? 'text-foreground font-medium' : 'text-slate-400 dark:text-slate-500'}`}>
                               {branchAddress || "Select a location on the map"}
                             </div>
                           </div>
