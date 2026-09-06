@@ -327,10 +327,10 @@ export default function MyOutstation() {
                   <Plane className="h-10 w-10 text-foreground/30 group-hover:text-[#942392]/30 transition-colors" />
                 </div>
                 <div className="space-y-1">
-                  <p className="text-xs font-black text-foreground uppercase tracking-widest">
+                  <p className="text-xs font-black text-muted-foreground uppercase tracking-widest">
                     No {tab} Outstations
                   </p>
-                  <p className="text-[10px] font-medium text-foreground italic">
+                  <p className="text-[10px] font-medium text-muted-foreground italic">
                     No assignments found for the selected criteria
                   </p>
                 </div>

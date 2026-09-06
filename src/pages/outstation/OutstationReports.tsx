@@ -523,9 +523,9 @@ export default function OutstationReports() {
           {loading ? (
             <div className="h-48 flex items-center justify-center"><Loader2 className="animate-spin w-7 h-7 text-pink-400" /></div>
           ) : (!selectedEventName && filteredEvents.length === 0) || (selectedEventName && filteredAssignments.length === 0) ? (
-            <div className="h-48 flex flex-col items-center justify-center gap-2 text-foreground">
-              <Plane className="w-10 h-10 opacity-20" />
-              <p className="text-[10px] font-black uppercase tracking-widest">No records found</p>
+            <div className="h-48 flex flex-col items-center justify-center gap-2 text-muted-foreground">
+              <Plane className="w-10 h-10 opacity-30" />
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">No records found</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
