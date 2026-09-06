@@ -7002,7 +7002,7 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
       const userZone = branchZoneMap.get(p.branch) || 'ZONE_B';
       const isWeekend = checkIsWeekend(userZone, dateObj);
       const workHours = getWorkHoursForZone(userZone, dateObj);
-      const [lateH, lateM] = workHours.off ? [23, 59] : getLateThresholdTime().split(':').map(Number);
+      const [lateH, lateM] = getLateThresholdTime().split(':').map(Number);
 
       const createRecord = (clockRow) => {
       let status = "Absent";

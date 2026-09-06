@@ -189,32 +189,16 @@ export default function WorkforceCalendar() {
       setLoadingDaily(true);
       try {
         const dateStr = format(selectedDay, 'yyyy-MM-dd');
-        const [dailyRes, absentRes] = await Promise.all([
-          fetch(`${API_BASE_URL}/api/reports/daily-attendance?date=${dateStr}&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}`),
-          fetch(`${API_BASE_URL}/api/reports/absent-employees?date=${dateStr}&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}`)
-        ]);
-        
-        let allAtt: any[] = [];
-        
+        const queryBranch = filterBranch !== "__ALL__" ? filterBranch : (role === "branch_leader" ? (userBranch || "") : "");
+        const queryDept = filterDept !== "__ALL__" ? filterDept : (role === "head_of_department" ? (userDepartment || "") : "");
+
+        const dailyRes = await fetch(`${API_BASE_URL}/api/reports/daily-attendance?date=${dateStr}&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(queryBranch)}&department=${encodeURIComponent(queryDept)}`);
+
         if (dailyRes.ok) {
-           const d = await dailyRes.json();
-           if (d.success && d.report) allAtt = [...d.report];
-        }
-        
-        if (absentRes.ok) {
-           const d = await absentRes.json();
-           const absentData = d.report || d.data;
-             if (d.success && absentData) {
-               const absents = absentData.map((x: any) => ({
-                  ...x,
-                  status: "Absent"
-               }));
-               allAtt = [...allAtt, ...absents];
-           }
-        }
-        
-        if (isMounted.current) {
-           setDailyAttendance(allAtt);
+          const d = await dailyRes.json();
+          if (d.success && d.report && isMounted.current) {
+            setDailyAttendance(d.report);
+          }
         }
       } catch (err) {
         console.error("Failed to fetch daily stats", err);
@@ -224,7 +208,7 @@ export default function WorkforceCalendar() {
     };
     
     fetchDailyData();
-  }, [selectedDay, role, userBranch, userDepartment]);
+  }, [selectedDay, role, userBranch, userDepartment, filterBranch, filterDept]);
 
   // Calendar grid
   const calDays = useMemo(() => {
