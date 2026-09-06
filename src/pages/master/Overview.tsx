@@ -77,7 +77,7 @@ export default function MasterOverview() {
       const deptData = await deptRes.json();
       let deptsList: string[] = [];
       if (deptData.success) {
-        deptsList = [...deptData.departments.map((d: any) => d.name), "HQ General"];
+        deptsList = deptData.departments.map((d: any) => d.name);
         setDepartments(deptsList);
       }
 
@@ -151,9 +151,6 @@ export default function MasterOverview() {
 
   // HOD Assignments check: count of departments that have at least 1 HOD assigned
   const departmentsWithHOD = departments.filter(dept => {
-    if (dept === "HQ General") {
-      return employees.some(e => e.branch === "HQ" && (!e.department || e.department === "") && e.role === "head_of_department" && e.status === "Active");
-    }
     return employees.some(e => e.department === dept && e.role === "head_of_department" && e.status === "Active");
   }).length;
 
@@ -176,12 +173,7 @@ export default function MasterOverview() {
 
   // Department statistics mapping
   const departmentStats = departments.map(dept => {
-    let deptEmployees = [];
-    if (dept === "HQ General") {
-      deptEmployees = employees.filter(e => e.branch === "HQ" && (!e.department || e.department === ""));
-    } else {
-      deptEmployees = employees.filter(e => e.department === dept);
-    }
+    const deptEmployees = employees.filter(e => e.department === dept);
     return {
       name: dept,
       count: deptEmployees.length,

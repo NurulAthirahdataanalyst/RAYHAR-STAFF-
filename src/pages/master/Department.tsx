@@ -34,7 +34,7 @@ export default function Department() {
       const response = await fetch(`${API_BASE_URL}/api/departments`);
       const data = await response.json();
       if (data.success) {
-        setDepartments([...data.departments.map((d: any) => d.name), "HQ General"]);
+        setDepartments(data.departments.map((d: any) => d.name));
       }
     } catch (error) {
       console.error("Error fetching departments:", error);
@@ -43,10 +43,6 @@ export default function Department() {
 
   const handleDeleteDepartment = async (e: React.MouseEvent, deptName: string) => {
     e.stopPropagation();
-    if (deptName === "HQ General") {
-      toast.error("Cannot delete default HQ General department");
-      return;
-    }
     if (!window.confirm(`Are you sure you want to delete the ${deptName} department?`)) return;
     
     try {
@@ -82,17 +78,12 @@ export default function Department() {
   };
 
   const getDepartmentStats = (deptName: string) => {
-    let deptEmployees = [];
-    if (deptName === "HQ General") {
-        deptEmployees = employees.filter(e => e.branch === "HQ" && (!e.department || e.department === ""));
-    } else {
-        deptEmployees = employees.filter(e => {
-          if (!e.department) return false;
-          const normEmpDept = e.department.toLowerCase().replace(/\bdepartment\b/g, '').trim();
-          const normDeptName = deptName.toLowerCase().replace(/\bdepartment\b/g, '').trim();
-          return normEmpDept === normDeptName || e.department === deptName;
-        });
-    }
+    const deptEmployees = employees.filter(e => {
+      if (!e.department) return false;
+      const normEmpDept = e.department.toLowerCase().replace(/\bdepartment\b/g, '').trim();
+      const normDeptName = deptName.toLowerCase().replace(/\bdepartment\b/g, '').trim();
+      return normEmpDept === normDeptName || e.department === deptName;
+    });
     
     return {
       count: deptEmployees.length,
@@ -259,16 +250,14 @@ export default function Department() {
                             </Badge>
                           </TableCell>
                           <TableCell className="text-right pr-6">
-                            {req.department !== "HQ General" && (
-                              <Button 
-                                variant="ghost" 
-                                size="icon" 
-                                className="w-8 h-8 shrink-0 hover:bg-rose-500/10 hover:text-rose-500 text-foreground opacity-0 group-hover:opacity-100 transition-opacity"
-                                onClick={(e) => handleDeleteDepartment(e, req.department)}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            )}
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="w-8 h-8 shrink-0 hover:bg-rose-500/10 hover:text-rose-500 text-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={(e) => handleDeleteDepartment(e, req.department)}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
                           </TableCell>
                         </TableRow>
                       ))
