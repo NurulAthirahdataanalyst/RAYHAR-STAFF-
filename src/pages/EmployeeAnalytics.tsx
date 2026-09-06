@@ -869,11 +869,24 @@ export default function EmployeeAnalytics() {
                           />
                           <YAxis tick={{ fontSize: 8, fontWeight: 900, fill: "hsl(var(--muted-foreground))" }}
                             axisLine={false} tickLine={false} />
-                          <Tooltip contentStyle={tooltipStyle}
-                            formatter={(v: number, name: string, item: any) => [item.payload?.formattedAvgWork || formatHoursMinutes(v), "Avg Working Hour"]}
-                            labelStyle={{ fontWeight: 900, fontSize: 10 }} />
+                          <Tooltip
+                            contentStyle={tooltipStyle}
+                            formatter={(v: number, name: string, item: any) => [
+                              item.payload?.formattedAvgWork || formatHoursMinutes(v),
+                              "Avg Working Hour"
+                            ]}
+                            labelStyle={{ fontWeight: 900, fontSize: 10 }}
+                            itemStyle={{ color: "#EAB308", fontWeight: 900 }}
+                          />
                           <Bar dataKey="avgWork" name="Avg Working Hour" fill="#EAB308" radius={[6, 6, 0, 0]} barSize={20} animationDuration={1200}>
-                            <LabelList dataKey="formattedAvgWork" position="top" style={{ fontSize: 8, fontWeight: 900, fill: "#EAB308" }} />
+                            <LabelList
+                              dataKey="formattedAvgWork"
+                              position="top"
+                              fill="#000000"
+                              className="fill-black dark:fill-white text-black dark:text-white"
+                              style={{ fontSize: 8.5, fontWeight: 900, fill: "#000000" }}
+                              offset={5}
+                            />
                           </Bar>
                         </BarChart>
                       </ResponsiveContainer>
