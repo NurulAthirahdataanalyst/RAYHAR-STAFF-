@@ -106,6 +106,8 @@ export default function Department() {
     e.department.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const totalActiveInDepartments = deptArray.reduce((sum, d) => sum + d.active, 0);
+
   return (
     <div className="space-y-4 sm:space-y-4 animate-in fade-in duration-500">
 
@@ -161,10 +163,13 @@ export default function Department() {
                   <Users className="w-6 h-6 text-green-500" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-foreground">Total Employees</p>
+                  <p className="text-sm font-medium text-foreground">Total Active Employees</p>
                   <h3 className="text-3xl font-bold mt-1 text-green-600 dark:text-green-400">
-                    {employees.length}
+                    {totalActiveInDepartments}
                   </h3>
+                  <p className="text-[10px] font-medium text-muted-foreground mt-0.5">
+                    Active employees in departments
+                  </p>
                 </div>
               </CardContent>
             </Card>
