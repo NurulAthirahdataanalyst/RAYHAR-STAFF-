@@ -322,7 +322,7 @@ export default function WorkforceInsights() {
   const fetchInsights = async () => {
     setLoading(true);
     try {
-      const isAllAccessRole = ["hr_admin", "managing_director", "operation_manager", "finance_manager"].includes(role || "");
+      const isAllAccessRole = ["hr_admin", "hr", "admin", "managing_director", "md", "operation_manager", "finance_manager"].includes((role || "").toLowerCase().trim().replace(/ /g, "_"));
       const queryBranch = isAllAccessRole ? "" : (userBranch || "");
       const queryDept = isAllAccessRole ? "" : (userDepartment || "");
 
@@ -369,7 +369,7 @@ export default function WorkforceInsights() {
 
   const fetchWeeklyTrendOnly = async (weekStart: Date) => {
     try {
-      const isAllAccessRole = ["hr_admin", "managing_director", "operation_manager", "finance_manager"].includes(role || "");
+      const isAllAccessRole = ["hr_admin", "hr", "admin", "managing_director", "md", "operation_manager", "finance_manager"].includes((role || "").toLowerCase().trim().replace(/ /g, "_"));
       const queryBranch = isAllAccessRole ? "" : (userBranch || "");
       const queryDept = isAllAccessRole ? "" : (userDepartment || "");
 

@@ -1704,31 +1704,37 @@ app.get("/api/presence/live-stats", async (req, res) => {
 async function computeDynamicWorkforceMetrics(dateStr, role, branch, department) {
   let profileFilter = "";
   let pFilterParams = [];
-  if (role === 'branch_leader') {
+  const normRole = (role || "").toLowerCase().trim().replace(/ /g, "_");
+
+  if (normRole === 'branch_leader') {
     const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
     profileFilter = " AND p.branch = ?";
     pFilterParams.push(safeBranch);
-  } else if (role === 'head_of_department') {
+  } else if (normRole === 'head_of_department' || normRole === 'hod') {
     const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
     profileFilter = " AND p.department = ?";
     pFilterParams.push(safeDept);
   }
 
-  const targetDateObj = new Date(dateStr);
+  let targetDateObj = (dateStr && dateStr !== "undefined" && dateStr !== "null") ? new Date(dateStr) : new Date();
+  if (isNaN(targetDateObj.getTime())) {
+    targetDateObj = new Date();
+  }
+  
   const targetMonth = targetDateObj.getMonth() + 1;
   const targetYear = targetDateObj.getFullYear();
   
-  const curStart = `${targetYear}-${targetMonth.toString().padStart(2, '0')}-01`;
-  const curEndObj = new Date(targetYear, targetMonth, 0);
-  const curEnd = curEndObj.toISOString().split('T')[0];
-  const curWorkingDays = curEndObj.getDate();
+  const daysInCurMonth = new Date(targetYear, targetMonth, 0).getDate();
+  const curStart = `${targetYear}-${String(targetMonth).padStart(2, '0')}-01`;
+  const curEnd = `${targetYear}-${String(targetMonth).padStart(2, '0')}-${String(daysInCurMonth).padStart(2, '0')}`;
+  const curWorkingDays = daysInCurMonth;
 
   const pMonth = targetMonth === 1 ? 12 : targetMonth - 1;
   const pYear = targetMonth === 1 ? targetYear - 1 : targetYear;
-  const prevStart = `${pYear}-${pMonth.toString().padStart(2, '0')}-01`;
-  const prevEndObj = new Date(pYear, pMonth, 0);
-  const prevEnd = prevEndObj.toISOString().split('T')[0];
-  const prevWorkingDays = prevEndObj.getDate();
+  const daysInPrevMonth = new Date(pYear, pMonth, 0).getDate();
+  const prevStart = `${pYear}-${String(pMonth).padStart(2, '0')}-01`;
+  const prevEnd = `${pYear}-${String(pMonth).padStart(2, '0')}-${String(daysInPrevMonth).padStart(2, '0')}`;
+  const prevWorkingDays = daysInPrevMonth;
 
   const [empRowsCur] = await pool.query(`SELECT COUNT(*) as total FROM profiles p WHERE p.status = 'Active' AND DATE(p.created_at) <= ?::date ${profileFilter}`, [curEnd, ...pFilterParams]);
   const totalEmployeesCur = parseInt(empRowsCur[0].total || 0);
@@ -7434,8 +7440,14 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
 
     const nowKL = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Kuala_Lumpur"}));
     const todayStr = `${nowKL.getFullYear()}-${String(nowKL.getMonth() + 1).padStart(2, '0')}-${String(nowKL.getDate()).padStart(2, '0')}`;
-    const isDayView = !!req.query.date;
-    const targetDateStr = req.query.date ? req.query.date : todayStr;
+    const isDayView = !!req.query.date && req.query.date !== "undefined" && req.query.date !== "null";
+    let targetDateStr;
+    if (isDayView) {
+      targetDateStr = req.query.date;
+    } else {
+      const isCurrentMonth = (requestedYear === nowKL.getFullYear() && requestedMonth === (nowKL.getMonth() + 1));
+      targetDateStr = isCurrentMonth ? todayStr : monthStartStr;
+    }
     const lateTimeStr = getLateThresholdTime ? getLateThresholdTime() : '09:00:00';
 
     // 1. Employees & KPI
