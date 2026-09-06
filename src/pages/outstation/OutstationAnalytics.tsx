@@ -483,8 +483,8 @@ export default function OutstationAnalytics() {
         
         {/* Monthly Outstation Tracker */}
         <div className="lg:col-span-7 flex flex-col">
-          <Card className="border border-slate-200/80 dark:border-slate-800 shadow-sm rounded-[16px] bg-white dark:bg-card h-full flex flex-col justify-between">
-            <CardHeader className="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex flex-row flex-wrap items-center justify-between gap-4">
+          <Card className="border border-slate-200/80 dark:border-slate-800 shadow-sm rounded-[16px] bg-white dark:bg-card h-full flex flex-col">
+            <CardHeader className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex flex-row flex-wrap items-center justify-between gap-4">
               <div>
                 <CardTitle className="text-lg font-bold text-foreground dark:text-slate-100">Monthly Outstation Tracker</CardTitle>
                 <p className="text-xs text-foreground dark:text-foreground mt-0.5">Track total outstation events and completions by month</p>
@@ -506,10 +506,10 @@ export default function OutstationAnalytics() {
               </div>
             </CardHeader>
 
-            <CardContent className="p-6 space-y-6">
+            <CardContent className="p-5 flex-1 flex flex-col justify-between space-y-4">
               {/* Summary Metrics Above Chart */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="p-4 rounded-xl bg-purple-50/80 dark:bg-purple-950/40 border border-purple-100 dark:border-purple-900/50 flex items-center justify-between">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div className="p-3.5 rounded-xl bg-purple-50/80 dark:bg-purple-950/40 border border-purple-100 dark:border-purple-900/50 flex items-center justify-between">
                   <div>
                     <p className="text-[11px] font-bold text-purple-700 dark:text-purple-300 uppercase tracking-wider">Total Events</p>
                     <p className="text-2xl font-black text-purple-950 dark:text-purple-100 mt-1">{trackerSummary.total}</p>
@@ -522,7 +522,7 @@ export default function OutstationAnalytics() {
                   </div>
                 </div>
 
-                <div className="p-4 rounded-xl bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900/50 flex items-center justify-between">
+                <div className="p-3.5 rounded-xl bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900/50 flex items-center justify-between">
                   <div>
                     <p className="text-[11px] font-bold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">Total Completed Events</p>
                     <p className="text-2xl font-black text-emerald-950 dark:text-emerald-100 mt-1">{trackerSummary.completed}</p>
@@ -537,7 +537,7 @@ export default function OutstationAnalytics() {
               </div>
 
               {/* Compact Bar Chart */}
-              <div className="h-[220px] w-full">
+              <div className="flex-1 min-h-[200px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={monthlyTrackerData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
@@ -546,7 +546,7 @@ export default function OutstationAnalytics() {
                       contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.95)', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                       cursor={{ fill: 'rgba(123, 0, 153, 0.05)' }}
                     />
-                    <Legend wrapperStyle={{ paddingTop: '10px', fontSize: '12px' }} />
+                    <Legend wrapperStyle={{ paddingTop: '8px', fontSize: '12px' }} />
                     <Bar dataKey="totalEvents" name="Total Events" fill="#942392" radius={[4, 4, 0, 0]} barSize={14} />
                     <Bar dataKey="completedEvents" name="Total Completed Events" fill="#16a34a" radius={[4, 4, 0, 0]} barSize={14} />
                   </BarChart>
@@ -556,19 +556,19 @@ export default function OutstationAnalytics() {
           </Card>
         </div>
 
-        {/* Outstation Status Card (Redesigned from Mockup) */}
+        {/* Outstation Status Card (Redesigned from Mockup - Compact) */}
         <div className="lg:col-span-5 flex flex-col">
-          <Card className="border border-slate-200/80 dark:border-slate-800 shadow-sm rounded-[20px] bg-white dark:bg-card h-full flex flex-col justify-between p-5">
+          <Card className="border border-slate-200/80 dark:border-slate-800 shadow-sm rounded-[16px] bg-white dark:bg-card h-full flex flex-col justify-between p-4">
             {/* Header */}
-            <div className="flex items-center justify-between pb-2">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-blue-950/50 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0 shadow-2xs">
-                  <MapPin className="w-5 h-5 fill-blue-600/20" />
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/50 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0 shadow-2xs">
+                  <MapPin className="w-4 h-4 fill-blue-600/20" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight">Outstation Status</h3>
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/40">
+                    <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Outstation Status</h3>
+                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/40">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                       Live
                     </span>
@@ -594,25 +594,25 @@ export default function OutstationAnalytics() {
                 </select>
                 <button
                   type="button"
-                  className="w-9 h-9 rounded-xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-center text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 shadow-2xs hover:bg-slate-50 transition-colors"
+                  className="w-8 h-8 rounded-xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-center text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 shadow-2xs hover:bg-slate-50 transition-colors"
                   title="Filter by Month"
                 >
-                  <Filter className="w-4 h-4" />
+                  <Filter className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
 
-            {/* Donut Chart with Center Total & Badge */}
-            <div className="relative w-full flex items-center justify-center my-2">
-              <ResponsiveContainer width="100%" height={205}>
+            {/* Donut Chart with Center Total & Badge (Compact Sizing) */}
+            <div className="relative w-full flex items-center justify-center my-1">
+              <ResponsiveContainer width="100%" height={135}>
                 <PieChart>
                   <Pie
                     data={donutData}
                     dataKey="value"
                     nameKey="name"
-                    innerRadius={65}
-                    outerRadius={90}
-                    paddingAngle={donutData.length > 1 ? 4 : 0}
+                    innerRadius={42}
+                    outerRadius={60}
+                    paddingAngle={donutData.length > 1 ? 3 : 0}
                     stroke="none"
                   >
                     {donutData.map((entry, idx) => (
@@ -630,121 +630,121 @@ export default function OutstationAnalytics() {
                         borderRadius: '12px',
                         border: '1px solid #e2e8f0',
                         boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                        fontSize: '12px'
+                        fontSize: '11px'
                       }}
                     />
                   )}
                 </PieChart>
               </ResponsiveContainer>
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-4xl font-black text-slate-900 dark:text-white tracking-tight leading-none">
+                <span className="text-2xl font-black text-slate-900 dark:text-white tracking-tight leading-none">
                   {statusSummary.total}
                 </span>
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mt-1">
+                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 mt-0.5">
                   TOTAL TRIPS
                 </span>
-                <span className="mt-1.5 inline-flex items-center gap-0.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400">
-                  <ArrowUpRight className="w-3.5 h-3.5 stroke-[2.5]" />
+                <span className="mt-1 inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400">
+                  <ArrowUpRight className="w-3 h-3 stroke-[2.5]" />
                   {statusSummary.completedPct}%
                 </span>
               </div>
             </div>
 
-            {/* 2x2 Grid of 4 Status Cards */}
-            <div className="grid grid-cols-2 gap-3 w-full my-2">
+            {/* 2x2 Grid of 4 Status Cards (Compact) */}
+            <div className="grid grid-cols-2 gap-2.5 w-full my-1">
               {/* Completed */}
-              <div className="bg-[#eff6ff] dark:bg-blue-950/30 border border-blue-100/90 dark:border-blue-900/40 rounded-2xl p-3.5 flex flex-col justify-between">
+              <div className="bg-[#eff6ff] dark:bg-blue-950/30 border border-blue-100/90 dark:border-blue-900/40 rounded-xl p-2.5 flex flex-col justify-between">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-white shadow-2xs shrink-0">
-                      <Check className="w-3.5 h-3.5 stroke-[3]" />
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center text-white shadow-2xs shrink-0">
+                      <Check className="w-3 h-3 stroke-[3]" />
                     </div>
                     <span className="text-xs font-bold text-slate-800 dark:text-slate-100">Completed</span>
                   </div>
                   <span className="text-xs font-bold text-blue-600 dark:text-blue-400">{statusSummary.completedPct}%</span>
                 </div>
-                <div className="flex items-end justify-between mt-2.5">
+                <div className="flex items-end justify-between mt-1.5">
                   <div>
-                    <div className="text-2xl font-black text-slate-900 dark:text-white leading-none">{statusSummary.completed}</div>
-                    <div className="text-[11px] text-slate-400 font-medium mt-1">trips</div>
+                    <div className="text-xl font-black text-slate-900 dark:text-white leading-none">{statusSummary.completed}</div>
+                    <div className="text-[10px] text-slate-400 font-medium mt-0.5">trips</div>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-slate-400 dark:text-slate-500 mb-0.5" />
+                  <ChevronRight className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 mb-0.5" />
                 </div>
               </div>
 
               {/* Ongoing */}
-              <div className="bg-[#ecfeff] dark:bg-cyan-950/30 border border-cyan-100/90 dark:border-cyan-900/40 rounded-2xl p-3.5 flex flex-col justify-between">
+              <div className="bg-[#ecfeff] dark:bg-cyan-950/30 border border-cyan-100/90 dark:border-cyan-900/40 rounded-xl p-2.5 flex flex-col justify-between">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-cyan-500 flex items-center justify-center text-white shadow-2xs shrink-0">
-                      <Clock className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-5 h-5 rounded-full bg-cyan-500 flex items-center justify-center text-white shadow-2xs shrink-0">
+                      <Clock className="w-3 h-3 stroke-[2.5]" />
                     </div>
                     <span className="text-xs font-bold text-slate-800 dark:text-slate-100">Ongoing</span>
                   </div>
                   <span className="text-xs font-bold text-cyan-600 dark:text-cyan-400">{statusSummary.ongoingPct}%</span>
                 </div>
-                <div className="flex items-end justify-between mt-2.5">
+                <div className="flex items-end justify-between mt-1.5">
                   <div>
-                    <div className="text-2xl font-black text-slate-900 dark:text-white leading-none">{statusSummary.ongoing}</div>
-                    <div className="text-[11px] text-slate-400 font-medium mt-1">active</div>
+                    <div className="text-xl font-black text-slate-900 dark:text-white leading-none">{statusSummary.ongoing}</div>
+                    <div className="text-[10px] text-slate-400 font-medium mt-0.5">active</div>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-slate-400 dark:text-slate-500 mb-0.5" />
+                  <ChevronRight className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 mb-0.5" />
                 </div>
               </div>
 
               {/* Pending */}
-              <div className="bg-[#fffbeb] dark:bg-amber-950/30 border border-amber-100/90 dark:border-amber-900/40 rounded-2xl p-3.5 flex flex-col justify-between">
+              <div className="bg-[#fffbeb] dark:bg-amber-950/30 border border-amber-100/90 dark:border-amber-900/40 rounded-xl p-2.5 flex flex-col justify-between">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-amber-500 flex items-center justify-center text-white shadow-2xs shrink-0">
-                      <Hourglass className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-5 h-5 rounded-full bg-amber-500 flex items-center justify-center text-white shadow-2xs shrink-0">
+                      <Hourglass className="w-3 h-3 stroke-[2.5]" />
                     </div>
                     <span className="text-xs font-bold text-slate-800 dark:text-slate-100">Pending</span>
                   </div>
                   <span className="text-xs font-bold text-amber-600 dark:text-amber-400">{statusSummary.pendingPct}%</span>
                 </div>
-                <div className="flex items-end justify-between mt-2.5">
+                <div className="flex items-end justify-between mt-1.5">
                   <div>
-                    <div className="text-2xl font-black text-slate-900 dark:text-white leading-none">{statusSummary.pending}</div>
-                    <div className="text-[11px] text-slate-400 font-medium mt-1">in review</div>
+                    <div className="text-xl font-black text-slate-900 dark:text-white leading-none">{statusSummary.pending}</div>
+                    <div className="text-[10px] text-slate-400 font-medium mt-0.5">in review</div>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-slate-400 dark:text-slate-500 mb-0.5" />
+                  <ChevronRight className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 mb-0.5" />
                 </div>
               </div>
 
               {/* Cancelled */}
-              <div className="bg-[#f8fafc] dark:bg-slate-900/40 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-3.5 flex flex-col justify-between">
+              <div className="bg-[#f8fafc] dark:bg-slate-900/40 border border-slate-200/90 dark:border-slate-800 rounded-xl p-2.5 flex flex-col justify-between">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-slate-400 flex items-center justify-center text-white shadow-2xs shrink-0">
-                      <X className="w-3.5 h-3.5 stroke-[3]" />
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-5 h-5 rounded-full bg-slate-400 flex items-center justify-center text-white shadow-2xs shrink-0">
+                      <X className="w-3 h-3 stroke-[3]" />
                     </div>
                     <span className="text-xs font-bold text-slate-800 dark:text-slate-100">Cancelled</span>
                   </div>
                   <span className="text-xs font-bold text-slate-500 dark:text-slate-400">{statusSummary.cancelledPct}%</span>
                 </div>
-                <div className="flex items-end justify-between mt-2.5">
+                <div className="flex items-end justify-between mt-1.5">
                   <div>
-                    <div className="text-2xl font-black text-slate-900 dark:text-white leading-none">{statusSummary.cancelled}</div>
-                    <div className="text-[11px] text-slate-400 font-medium mt-1">closed</div>
+                    <div className="text-xl font-black text-slate-900 dark:text-white leading-none">{statusSummary.cancelled}</div>
+                    <div className="text-[10px] text-slate-400 font-medium mt-0.5">closed</div>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-slate-400 dark:text-slate-500 mb-0.5" />
+                  <ChevronRight className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 mb-0.5" />
                 </div>
               </div>
             </div>
 
-            {/* Bottom Banner: On-schedule rate & Avg duration */}
-            <div className="bg-[#f0f7ff]/70 dark:bg-blue-950/20 border border-blue-100/90 dark:border-blue-900/30 rounded-2xl p-3 flex items-center justify-between mt-2">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-white shadow-2xs shrink-0">
-                  <TrendingUp className="w-4 h-4 stroke-[2.5]" />
+            {/* Bottom Banner: On-schedule rate & Avg duration (Compact) */}
+            <div className="bg-[#f0f7ff]/70 dark:bg-blue-950/20 border border-blue-100/90 dark:border-blue-900/30 rounded-xl p-2.5 flex items-center justify-between mt-1">
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-full bg-emerald-500 flex items-center justify-center text-white shadow-2xs shrink-0">
+                  <TrendingUp className="w-3.5 h-3.5 stroke-[2.5]" />
                 </div>
                 <div>
                   <div className="text-xs text-slate-800 dark:text-slate-200 leading-tight">
-                    <strong className="text-emerald-600 dark:text-emerald-400 font-bold text-sm">{statusSummary.onScheduleRate}%</strong>{" "}
-                    <span className="text-slate-600 dark:text-slate-400 font-medium">on-schedule rate</span>
+                    <strong className="text-emerald-600 dark:text-emerald-400 font-bold text-xs">{statusSummary.onScheduleRate}%</strong>{" "}
+                    <span className="text-slate-600 dark:text-slate-400 font-medium text-[11px]">on-schedule rate</span>
                   </div>
-                  <div className="text-[11px] text-slate-400 font-normal mt-0.5">
+                  <div className="text-[10px] text-slate-400 font-normal">
                     Avg duration: {statusSummary.avgDuration} days
                   </div>
                 </div>
@@ -752,10 +752,10 @@ export default function OutstationAnalytics() {
               <button
                 type="button"
                 onClick={() => navigate("/outstation/assignment")}
-                className="px-3.5 py-1.5 rounded-full bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-700 text-blue-600 dark:text-blue-400 text-xs font-semibold hover:bg-blue-50 dark:hover:bg-slate-700 flex items-center gap-1 shadow-2xs transition-colors shrink-0"
+                className="px-2.5 py-1 rounded-full bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-700 text-blue-600 dark:text-blue-400 text-[11px] font-semibold hover:bg-blue-50 dark:hover:bg-slate-700 flex items-center gap-1 shadow-2xs transition-colors shrink-0"
               >
                 View Details
-                <ChevronRight className="w-3.5 h-3.5" />
+                <ChevronRight className="w-3 h-3" />
               </button>
             </div>
           </Card>
