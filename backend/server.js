@@ -6503,10 +6503,23 @@ app.get("/api/reports/absent-employees", async (req, res) => {
       ${profileFilter}
       ORDER BY p.full_name ASC
       `,
-      queryParams
-    );
+    const branchZoneMap = await getBranchZoneMap();
+    const dateParts = queryDate.split('-');
+    const queryDateObj = new Date(parseInt(dateParts[0]), parseInt(dateParts[1])-1, parseInt(dateParts[2]));
 
-    res.json({ success: true, data: rows });
+    const mappedRows = rows.map(r => {
+      const userZone = branchZoneMap.get(r.branch) || 'ZONE_B';
+      const isRestDay = checkIsWeekend(userZone, queryDateObj);
+      return {
+        ...r,
+        zone: userZone,
+        operating_zone: userZone,
+        is_rest_day: isRestDay,
+        status: isRestDay ? "Rest Day" : "Absent"
+      };
+    });
+
+    res.json({ success: true, data: mappedRows });
   } catch (err) {
     console.error("Absent Employees Error:", err);
     res.status(500).json({ success: false, error: err.message });
@@ -7081,7 +7094,7 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
           }
         }
       } else if (isWeekend) {
-        status = "Weekend";
+        status = "Rest Day";
       } else if (matchingHoliday) {
         status = "Holiday";
       } else {
@@ -7095,6 +7108,9 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
         branch: tempBranch || p.branch,
         permanent_branch: p.branch,
         temp_branch: tempBranch || null,
+        zone: userZone,
+        operating_zone: userZone,
+        is_rest_day: isWeekend,
         clock_in_location: clockRow ? (clockRow.location || null) : null,
         attendance_type: clockRow ? (clockRow.attendance_type || null) : null,
         location: clockRow ? clockRow.location : null,

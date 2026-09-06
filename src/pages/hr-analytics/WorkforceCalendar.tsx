@@ -527,39 +527,17 @@ export default function WorkforceCalendar() {
           });
           const uniqueAtt = Array.from(uniqueAttMap.values());
 
-          const isWeekend = (dateObj, branchId, zoneObj) => {
-            const day = dateObj.getDay();
-            const dateNum = dateObj.getDate();
-            const isFirstWeek = dateNum <= 7;
-            
-            let isZoneA = false;
-            if (zoneObj === 'ZONE_A' || zoneObj === 'ZONE_B') {
-              isZoneA = (zoneObj === 'ZONE_A');
-            } else {
-              if (!branchId) return day === 0 || (day === 6 && isFirstWeek);
-              const branchUpper = String(branchId).toUpperCase();
-              isZoneA = ['AOR', 'KBR', 'TGG', 'DGN', 'KMM', 'CNH', 'KBG', 'JTH', 'RMP', 'MZM', 'TWU', 'BTM', 'KKS', 'MLK', 'SNS', 'JB', 'BTP', 'JHB', 'JOHOR BAHRU', 'BPT', 'BATU PAHAT', 'JB - JOHOR BHARU', 'KOTA BHARU', 'KTG', 'KUALA TERENGGANU', 'ASR', 'ALOR SETAR', 'SPJ', 'SUNGAI PETANI', 'SOUTHERN'].some(b => branchUpper.includes(b));
-            }
-            
-            if (isZoneA) {
-              return day === 5 || (day === 6 && isFirstWeek);
-            } else {
-              return day === 0 || (day === 6 && isFirstWeek);
-            }
-          };
-          
           // Categorize outstation and temporary first
           const outstation = uniqueAtt.filter(a => a.status === "Outstation");
-          const temporary = uniqueAtt.filter(a => a.temp_branch && a.status !== "Outstation");
+          const temporary = uniqueAtt.filter(a => a.temp_branch && (a.attendance_type === "Temporary Assignment" || a.attendance_type === "Temporary"));
           
           // Remaining regular attendees
-          const regulars = uniqueAtt.filter(a => a.status !== "Outstation" && !a.temp_branch);
+          const regulars = uniqueAtt.filter(a => a.status !== "Outstation" && !(a.temp_branch && (a.attendance_type === "Temporary Assignment" || a.attendance_type === "Temporary")));
           const presentOnTime = regulars.filter(a => a.status === "Present (On Time)" || (a.status === "Missing Clock-Out" && !a.is_late));
           const presentLate = regulars.filter(a => a.status === "Present (Late)" || a.is_late || (a.status === "Missing Clock-Out" && a.is_late));
           
-          const rawAbsent = regulars.filter(a => a.status === "Absent");
-          const absent = rawAbsent.filter(a => !isWeekend(selectedDay, a.branch, a.zone));
-          const restDays = rawAbsent.filter(a => isWeekend(selectedDay, a.branch, a.zone));
+          const absent = regulars.filter(a => a.status === "Absent" && !a.is_rest_day);
+          const restDays = regulars.filter(a => a.status === "Rest Day" || a.status === "Weekend" || a.is_rest_day);
 
 
           return createPortal(
