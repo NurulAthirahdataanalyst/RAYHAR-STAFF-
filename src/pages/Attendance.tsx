@@ -1619,15 +1619,41 @@ export default function Attendance() {
                 const now = new Date();
                 now.setHours(0,0,0,0);
                 
+                const parseLocalDate = (dStr: string) => {
+                  if (!dStr) return new Date();
+                  const dateOnly = dStr.split('T')[0];
+                  const parts = dateOnly.split('-').map(Number);
+                  if (parts.length === 3) {
+                    return new Date(parts[0], parts[1] - 1, parts[2]);
+                  }
+                  const d = new Date(dStr);
+                  d.setHours(0, 0, 0, 0);
+                  return d;
+                };
+
+                const parseLocalEndDate = (dStr?: string) => {
+                  if (!dStr) return new Date(2099, 11, 31, 23, 59, 59);
+                  const dateOnly = dStr.split('T')[0];
+                  const parts = dateOnly.split('-').map(Number);
+                  if (parts.length === 3) {
+                    return new Date(parts[0], parts[1] - 1, parts[2], 23, 59, 59, 999);
+                  }
+                  const d = new Date(dStr);
+                  d.setHours(23, 59, 59, 999);
+                  return d;
+                };
+
                 const activeAssignment = tempAssignments.find(a => {
                   if (a.status !== 'Active') return false;
-                  const startDate = new Date(a.start_date);
-                  const endDate = a.end_date ? new Date(a.end_date) : new Date('2099-12-31');
+                  const startDate = parseLocalDate(a.start_date);
+                  const endDate = parseLocalEndDate(a.end_date);
                   return startDate <= now && endDate >= now;
                 });
 
                 const fmtDate = (dStr: string) => {
-                  const d = new Date(dStr);
+                  if (!dStr) return '';
+                  const p = dStr.split('T')[0].split('-').map(Number);
+                  const d = p.length === 3 ? new Date(p[0], p[1] - 1, p[2]) : new Date(dStr);
                   return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
                 };
 

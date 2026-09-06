@@ -54,9 +54,33 @@ export default function NotificationBell() {
           const now = new Date();
           now.setHours(0,0,0,0);
           
+          const parseLocalDate = (dStr: string) => {
+            if (!dStr) return new Date();
+            const dateOnly = dStr.split('T')[0];
+            const parts = dateOnly.split('-').map(Number);
+            if (parts.length === 3) {
+              return new Date(parts[0], parts[1] - 1, parts[2]);
+            }
+            const d = new Date(dStr);
+            d.setHours(0, 0, 0, 0);
+            return d;
+          };
+
+          const parseLocalEndDate = (dStr?: string) => {
+            if (!dStr) return new Date(2099, 11, 31, 23, 59, 59);
+            const dateOnly = dStr.split('T')[0];
+            const parts = dateOnly.split('-').map(Number);
+            if (parts.length === 3) {
+              return new Date(parts[0], parts[1] - 1, parts[2], 23, 59, 59, 999);
+            }
+            const d = new Date(dStr);
+            d.setHours(23, 59, 59, 999);
+            return d;
+          };
+
           myAssignments.forEach((a: any) => {
-            const startDate = new Date(a.start_date);
-            const endDate = a.end_date ? new Date(a.end_date) : null;
+            const startDate = parseLocalDate(a.start_date);
+            const endDate = a.end_date ? parseLocalEndDate(a.end_date) : null;
             
             let computedStatus = a.status;
             if (a.status === 'Complete') { computedStatus = 'Completed'; }
@@ -67,21 +91,36 @@ export default function NotificationBell() {
             }
             
             if (computedStatus === 'Active' || computedStatus === 'Upcoming') {
-              const diffTime = startDate.getTime() - now.getTime();
-              const startsTomorrow = diffTime > 0 && diffTime <= 86400000;
+              const fmtDate = (d: string) => {
+                if (!d) return '';
+                const p = d.split('T')[0].split('-').map(Number);
+                const dateObj = p.length === 3 ? new Date(p[0], p[1] - 1, p[2]) : new Date(d);
+                return dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
+              };
               
-              const fmtDate = (d: string) => new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
-              
-              const notifId = `temp-${a.id}-${computedStatus}`;
-              tempNotifs.push({
-                id: notifId,
-                title: 'UPCOMING TEMPORARY ASSIGNMENT',
-                message: `You have an upcoming temporary branch assignment at **${a.temp_branch}** from **${fmtDate(a.start_date)} – ${a.end_date ? fmtDate(a.end_date) : 'Ongoing'}** Created By **HR Admin**`,
-                type: 'temporary_assignment',
-                is_read: false,
-                related_leave_id: null,
-                created_at: new Date().toISOString()
-              });
+              if (computedStatus === 'Active') {
+                const notifId = `temp-${a.id}-active`;
+                tempNotifs.push({
+                  id: notifId,
+                  title: '🔔 TEMPORARY ASSIGNMENT',
+                  message: `Your temporary branch assignment at **${a.temp_branch || a.location || 'HQ'}** has started today.\n\n📅 **Start:** ${fmtDate(a.start_date)}\n📅 **End:** ${a.end_date ? fmtDate(a.end_date) : 'Ongoing'}`,
+                  type: 'temporary_assignment',
+                  is_read: false,
+                  related_leave_id: null,
+                  created_at: a.created_at || a.start_date || new Date().toISOString()
+                });
+              } else {
+                const notifId = `temp-${a.id}-upcoming`;
+                tempNotifs.push({
+                  id: notifId,
+                  title: 'UPCOMING TEMPORARY ASSIGNMENT',
+                  message: `You have an upcoming temporary branch assignment at **${a.temp_branch || a.location || 'HQ'}** from **${fmtDate(a.start_date)} – ${a.end_date ? fmtDate(a.end_date) : 'Ongoing'}** Created By **HR Admin**`,
+                  type: 'temporary_assignment',
+                  is_read: false,
+                  related_leave_id: null,
+                  created_at: a.created_at || new Date().toISOString()
+                });
+              }
             }
           });
         }
