@@ -213,7 +213,7 @@ export default function Role() {
           </div>
 
           {/* Sub Filters */}
-          <div className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 dark:border-slate-800 bg-gray-50/30">
+          <div className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 dark:border-slate-800 bg-gray-50/30 dark:bg-slate-900/40">
             <div className="flex items-center gap-2 text-sm text-foreground font-medium">
               <span>Row Per Page</span>
               <Select defaultValue="10">
@@ -241,7 +241,7 @@ export default function Role() {
           {/* Table */}
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left whitespace-nowrap">
-              <thead className="text-gray-700 font-semibold bg-gray-50/80 border-b border-gray-100 dark:border-slate-800">
+              <thead className="text-gray-700 dark:text-gray-200 font-semibold bg-gray-50/80 dark:bg-slate-800/80 border-b border-gray-100 dark:border-slate-800">
                 <tr>
                   <th className="px-6 py-4 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Role</th>
                   <th className="px-6 py-4 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Created Date</th>
@@ -249,7 +249,7 @@ export default function Role() {
                   <th className="px-6 py-4 w-32 text-right text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap"></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-gray-50 dark:divide-slate-800">
                 {loading ? (
                   <tr>
                     <td colSpan={4} className="px-6 py-8 text-center text-foreground">
@@ -265,8 +265,8 @@ export default function Role() {
                   </tr>
                 ) : (
                   roles.map((role) => (
-                    <tr key={role.id} className="hover:bg-gray-50/50 transition-colors bg-white dark:bg-card group">
-                      <td className="px-6 py-4 font-semibold text-gray-700">
+                    <tr key={role.id} className="hover:bg-gray-50/50 dark:hover:bg-slate-800/40 transition-colors bg-white dark:bg-card group">
+                      <td className="px-6 py-4 font-semibold text-gray-700 dark:text-gray-200">
                         {role.name === "Finance Manager" || role.name === "finance_manager" ? "Operation Manager" : role.name}
                       </td>
                       <td className="px-6 py-4 text-foreground font-medium">
@@ -274,12 +274,12 @@ export default function Role() {
                       </td>
                       <td className="px-6 py-4">
                         {role.status === "Active" ? (
-                          <span className="inline-flex items-center px-2 py-1 rounded-md text-[11px] font-bold bg-green-50 text-green-700 border border-green-200">
+                          <span className="inline-flex items-center px-2 py-1 rounded-md text-[11px] font-bold bg-green-50 text-green-700 border border-green-200 dark:bg-green-950/30 dark:text-green-400 dark:border-green-800/50">
                             <span className="w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5"></span>
                             Active
                           </span>
                         ) : (
-                          <span className="inline-flex items-center px-2 py-1 rounded-md text-[11px] font-bold bg-red-50 text-red-700 border border-red-200">
+                          <span className="inline-flex items-center px-2 py-1 rounded-md text-[11px] font-bold bg-red-50 text-red-700 border border-red-200 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800/50">
                             <span className="w-1.5 h-1.5 rounded-full bg-red-500 mr-1.5"></span>
                             Inactive
                           </span>
@@ -287,24 +287,26 @@ export default function Role() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-end gap-1.5 text-foreground opacity-60 group-hover:opacity-100 transition-opacity">
-                          <button className="p-1.5 hover:text-gray-800 dark:text-gray-200 hover:bg-gray-100 rounded-md transition-colors">
+                          <button className="p-1.5 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-md transition-colors">
                             <Shield className="w-4 h-4" />
                           </button>
                           <button 
-                            className="p-1.5 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                            className="p-1.5 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded-md transition-colors"
                             onClick={() => handleEdit(role)}
                           >
                             <Edit className="w-4 h-4" />
                           </button>
                           <button 
-                            className="p-1.5 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                            className="p-1.5 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-md transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                             onClick={() => handleDeleteRole(role)}
                             disabled={deletingId === role.id}
                             title="Delete role"
                           >
-                            {deletingId === role.id
-                              ? <Loader2 className="w-4 h-4 animate-spin" />
-                              : <Trash2 className="w-4 h-4" />}
+                            {deletingId === role.id ? (
+                              <Loader2 className="w-4 h-4 animate-spin text-red-600" />
+                            ) : (
+                              <Trash2 className="w-4 h-4" />
+                            )}
                           </button>
                         </div>
                       </td>
@@ -325,7 +327,7 @@ export default function Role() {
           </DialogHeader>
           <div className="grid gap-5 p-6">
             <div className="space-y-2.5">
-              <Label htmlFor="new-role-name" className="text-sm font-semibold text-gray-700">Role Name</Label>
+              <Label htmlFor="new-role-name" className="text-sm font-semibold text-gray-700 dark:text-gray-200">Role Name</Label>
               <Input 
                 id="new-role-name" 
                 value={newRoleName}
@@ -335,7 +337,7 @@ export default function Role() {
               />
             </div>
             <div className="space-y-2.5">
-              <Label htmlFor="new-status" className="text-sm font-semibold text-gray-700">Status</Label>
+              <Label htmlFor="new-status" className="text-sm font-semibold text-gray-700 dark:text-gray-200">Status</Label>
               <Select value={newRoleStatus} onValueChange={setNewRoleStatus}>
                 <SelectTrigger className="border-gray-200 dark:border-slate-800 focus:ring-[#942392] h-11">
                   <SelectValue />
@@ -347,8 +349,8 @@ export default function Role() {
               </Select>
             </div>
           </div>
-          <DialogFooter className="p-6 pt-4 border-t border-gray-100 dark:border-slate-800 bg-gray-50/50 gap-2 sm:gap-0">
-            <Button variant="outline" onClick={() => setIsAddModalOpen(false)} className="border-gray-200 dark:border-slate-800 text-gray-700 bg-white dark:bg-card">
+          <DialogFooter className="p-6 pt-4 border-t border-gray-100 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-900/50 gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setIsAddModalOpen(false)} className="border-gray-200 dark:border-slate-800 text-gray-700 dark:text-gray-200 bg-white dark:bg-card">
               Cancel
             </Button>
             <Button onClick={handleAddRole} className="bg-[#942392] hover:bg-[#60007A] text-white">
@@ -366,7 +368,7 @@ export default function Role() {
           </DialogHeader>
           <div className="grid gap-5 p-6">
             <div className="space-y-2.5">
-              <Label htmlFor="edit-role-name" className="text-sm font-semibold text-gray-700">Role Name</Label>
+              <Label htmlFor="edit-role-name" className="text-sm font-semibold text-gray-700 dark:text-gray-200">Role Name</Label>
               <Input 
                 id="edit-role-name" 
                 value={editRoleName}
@@ -376,7 +378,7 @@ export default function Role() {
               />
             </div>
             <div className="space-y-2.5">
-              <Label htmlFor="edit-status" className="text-sm font-semibold text-gray-700">Status</Label>
+              <Label htmlFor="edit-status" className="text-sm font-semibold text-gray-700 dark:text-gray-200">Status</Label>
               <Select value={editRoleStatus} onValueChange={setEditRoleStatus}>
                 <SelectTrigger className="border-gray-200 dark:border-slate-800 focus:ring-[#942392] h-11">
                   <SelectValue />
@@ -388,8 +390,8 @@ export default function Role() {
               </Select>
             </div>
           </div>
-          <DialogFooter className="p-6 pt-4 border-t border-gray-100 dark:border-slate-800 bg-gray-50/50 gap-2 sm:gap-0">
-            <Button variant="outline" onClick={() => setIsEditModalOpen(false)} className="border-gray-200 dark:border-slate-800 text-gray-700 bg-white dark:bg-card">
+          <DialogFooter className="p-6 pt-4 border-t border-gray-100 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-900/50 gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setIsEditModalOpen(false)} className="border-gray-200 dark:border-slate-800 text-gray-700 dark:text-gray-200 bg-white dark:bg-card">
               Cancel
             </Button>
             <Button onClick={handleUpdateRole} disabled={isSaving} className="bg-[#942392] hover:bg-[#60007A] text-white">

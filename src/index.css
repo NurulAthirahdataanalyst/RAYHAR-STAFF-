@@ -672,3 +672,39 @@ input[type=range]::-moz-range-thumb {
     background-color: transparent !important;
   }
 }
+
+/* From Uiverse.io by SelfMadeSystem */
+.uiverse-checkbox-container {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.uiverse-checkbox-container input {
+  display: none;
+}
+
+.uiverse-checkbox-container svg {
+  overflow: visible;
+  display: block;
+}
+
+.uiverse-checkbox-container .path {
+  fill: none;
+  stroke: var(--cb-color, #942392);
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: stroke-dasharray 0.5s ease, stroke-dashoffset 0.5s ease;
+  stroke-dasharray: 241 9999999;
+  stroke-dashoffset: 0;
+}
+
+.uiverse-checkbox-container input:checked ~ svg .path {
+  stroke-dasharray: 70.5096664428711 9999999;
+  stroke-dashoffset: -262.2723388671875;
+}

@@ -1422,34 +1422,34 @@ export default function LeaveAnalytics() {
             <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Leave Balance Risk</h3>
           </div>
           <div className="space-y-3 flex-1 flex flex-col justify-center">
-            <div className="flex items-center justify-between p-3 rounded-lg border border-emerald-100 bg-emerald-50">
+            <div className="flex items-center justify-between p-3 rounded-lg border border-emerald-100 dark:border-emerald-900/40 bg-emerald-50 dark:bg-emerald-950/20">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                <span className="text-xs font-bold text-emerald-700">80% - 90% Balance</span>
+                <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300">80% - 90% Balance</span>
               </div>
               <div className="text-right">
-                <p className="text-sm font-black text-emerald-700">{balanceRisk.mediumRisk}</p>
-                <p className="text-[9px] text-emerald-600/70 font-semibold uppercase">Employees</p>
+                <p className="text-sm font-black text-emerald-700 dark:text-emerald-300">{balanceRisk.mediumRisk}</p>
+                <p className="text-[9px] text-emerald-600/70 dark:text-emerald-400/70 font-semibold uppercase">Employees</p>
               </div>
             </div>
-            <div className="flex items-center justify-between p-3 rounded-lg border border-amber-100 bg-amber-50">
+            <div className="flex items-center justify-between p-3 rounded-lg border border-amber-100 dark:border-amber-900/40 bg-amber-50 dark:bg-amber-950/20">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-amber-500" />
-                <span className="text-xs font-bold text-amber-700">90% - 100% Balance</span>
+                <span className="text-xs font-bold text-amber-700 dark:text-amber-300">90% - 100% Balance</span>
               </div>
               <div className="text-right">
-                <p className="text-sm font-black text-amber-700">{balanceRisk.highRisk}</p>
-                <p className="text-[9px] text-amber-600/70 font-semibold uppercase">Employees</p>
+                <p className="text-sm font-black text-amber-700 dark:text-amber-300">{balanceRisk.highRisk}</p>
+                <p className="text-[9px] text-amber-600/70 dark:text-amber-400/70 font-semibold uppercase">Employees</p>
               </div>
             </div>
-            <div className="flex items-center justify-between p-3 rounded-lg border border-rose-100 bg-rose-50">
+            <div className="flex items-center justify-between p-3 rounded-lg border border-rose-100 dark:border-rose-900/40 bg-rose-50 dark:bg-rose-950/20">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-rose-500" />
-                <span className="text-xs font-bold text-rose-700">Over Quota</span>
+                <span className="text-xs font-bold text-rose-700 dark:text-rose-300">Over Quota</span>
               </div>
               <div className="text-right">
-                <p className="text-sm font-black text-rose-700">{balanceRisk.overQuota}</p>
-                <p className="text-[9px] text-rose-600/70 font-semibold uppercase">Employees</p>
+                <p className="text-sm font-black text-rose-700 dark:text-rose-300">{balanceRisk.overQuota}</p>
+                <p className="text-[9px] text-rose-600/70 dark:text-rose-400/70 font-semibold uppercase">Employees</p>
               </div>
             </div>
           </div>
@@ -1476,21 +1476,21 @@ export default function LeaveAnalytics() {
           <div className="space-y-4 flex-1">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-blue-50 text-blue-600"><CalendarIcon className="w-4 h-4"/></div>
+                <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400"><CalendarIcon className="w-4 h-4"/></div>
                 <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Tomorrow</span>
               </div>
               <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{upcomingLeaves.tomorrow} Employees</span>
             </div>
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-purple-50 text-purple-600"><CalendarIcon className="w-4 h-4"/></div>
+                <div className="p-2 rounded-lg bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400"><CalendarIcon className="w-4 h-4"/></div>
                 <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Next 7 Days</span>
               </div>
               <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{upcomingLeaves.nextWeek} Employees</span>
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-indigo-50 text-indigo-600"><CalendarIcon className="w-4 h-4"/></div>
+                <div className="p-2 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400"><CalendarIcon className="w-4 h-4"/></div>
                 <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Next 30 Days</span>
               </div>
               <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{upcomingLeaves.nextMonth} Employees</span>
@@ -1506,7 +1506,7 @@ export default function LeaveAnalytics() {
             <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Approval Performance <span className="text-[9px] font-normal text-foreground">(Avg. Time)</span></h3>
           </div>
           <div className="flex-1 flex flex-col justify-center items-center min-h-[160px]">
-            <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-3">
+            <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-3">
               <Loader2 className="w-5 h-5 text-foreground animate-spin" />
             </div>
             <p className="text-xs font-bold text-slate-600 dark:text-foreground">Coming Soon</p>
@@ -1521,19 +1521,19 @@ export default function LeaveAnalytics() {
           </div>
           <div className="space-y-3 flex-1 flex flex-col justify-center">
             <div 
-              className="flex items-center justify-between p-3 rounded-lg bg-amber-50 cursor-pointer hover:bg-amber-100 transition-colors border border-amber-100"
+              className="flex items-center justify-between p-3 rounded-lg bg-amber-50 dark:bg-amber-950/20 cursor-pointer hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors border border-amber-100 dark:border-amber-900/40"
               onClick={() => navigate("/leave/admin?tab=pending")}
             >
-              <span className="text-xs font-semibold text-amber-800">Pending Approval</span>
-              <span className="text-sm font-black text-amber-700">{pending}</span>
+              <span className="text-xs font-semibold text-amber-800 dark:text-amber-300">Pending Approval</span>
+              <span className="text-sm font-black text-amber-700 dark:text-amber-300">{pending}</span>
             </div>
-            <div className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-900 cursor-pointer hover:bg-slate-100 transition-colors border border-slate-200 dark:border-slate-800">
+            <div className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-900 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border border-slate-200 dark:border-slate-800">
               <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Expiring Leave</span>
               <span className="text-sm font-black text-slate-800 dark:text-slate-200">0</span>
             </div>
-            <div className="flex items-center justify-between p-3 rounded-lg bg-blue-50 cursor-pointer hover:bg-blue-100 transition-colors border border-blue-100">
-              <span className="text-xs font-semibold text-blue-800">MC Verify</span>
-              <span className="text-sm font-black text-blue-700">0</span>
+            <div className="flex items-center justify-between p-3 rounded-lg bg-blue-50 dark:bg-blue-950/20 cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors border border-blue-100 dark:border-blue-900/40">
+              <span className="text-xs font-semibold text-blue-800 dark:text-blue-300">MC Verify</span>
+              <span className="text-sm font-black text-blue-700 dark:text-blue-300">0</span>
             </div>
           </div>
         </Card>
@@ -1548,30 +1548,30 @@ export default function LeaveAnalytics() {
             {records.length > 0 ? (
               <>
                 {(Array.isArray(aiInsights) ? aiInsights : []).map((insight, i) => (
-                  <div key={i} className="flex items-start gap-2 p-2.5 rounded-lg bg-purple-50 border border-purple-100">
+                  <div key={i} className="flex items-start gap-2 p-2.5 rounded-lg bg-purple-50 dark:bg-purple-950/20 border border-purple-100 dark:border-purple-900/40">
                     <div className="w-1.5 h-1.5 rounded-full bg-purple-500 mt-1.5 shrink-0" />
-                    <p className="text-xs text-purple-800 font-medium leading-relaxed">{insight}</p>
+                    <p className="text-xs text-purple-800 dark:text-purple-300 font-medium leading-relaxed">{insight}</p>
                   </div>
                 ))}
-                <div className="flex items-start gap-2 p-2.5 rounded-lg bg-blue-50 border border-blue-100">
+                <div className="flex items-start gap-2 p-2.5 rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/40">
                   <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5 shrink-0" />
-                  <p className="text-xs text-blue-800 font-medium leading-relaxed">
+                  <p className="text-xs text-blue-800 dark:text-blue-300 font-medium leading-relaxed">
                     Total <span className="font-black">{totalDays} leave days</span> recorded across <span className="font-black">{uniqueEmployees}</span> employee(s).
                   </p>
                 </div>
-                <div className="flex items-start gap-2 p-2.5 rounded-lg bg-emerald-50 border border-emerald-100">
+                <div className="flex items-start gap-2 p-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/40">
                   <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
-                  <p className="text-xs text-emerald-800 font-medium leading-relaxed">
+                  <p className="text-xs text-emerald-800 dark:text-emerald-300 font-medium leading-relaxed">
                     Approval rate: <span className="font-black">{total > 0 ? Math.round((approved / total) * 100) : 0}%</span> — {approved} approved out of {total} applications.
                   </p>
                 </div>
                 {pending > 0 && (
                   <div 
-                    className="flex items-start gap-2 p-2.5 rounded-lg bg-amber-50 border border-amber-100 cursor-pointer hover:bg-amber-100 transition-colors"
+                    className="flex items-start gap-2 p-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900/40 cursor-pointer hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors"
                     onClick={() => navigate("/leave/admin?tab=pending")}
                   >
                     <div className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 shrink-0" />
-                    <p className="text-xs text-amber-800 font-medium leading-relaxed">
+                    <p className="text-xs text-amber-800 dark:text-amber-300 font-medium leading-relaxed">
                       <span className="font-black">{pending}</span> application(s) still pending approval — action required.
                     </p>
                   </div>

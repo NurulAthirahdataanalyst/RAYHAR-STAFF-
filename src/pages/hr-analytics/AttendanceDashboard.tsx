@@ -1289,17 +1289,17 @@ export default function AttendanceDashboard() {
                 <span className="text-[10px] font-bold text-red-500 uppercase tracking-wider">Total Absent</span>
                 <span className="text-[13px] font-black text-red-700">{liveStats.absent || 0}</span>
               </div>
-              <div className="bg-blue-50/80 border border-blue-100 px-3 py-1.5 rounded-md flex items-center gap-2">
-                <span className="text-[10px] font-bold text-blue-500 uppercase tracking-wider">Total On Leave</span>
-                <span className="text-[13px] font-black text-blue-700">{liveStats.onLeave || 0}</span>
+              <div className="bg-blue-50/80 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/50 px-3 py-1.5 rounded-md flex items-center gap-2">
+                <span className="text-[10px] font-bold text-blue-500 dark:text-blue-400 uppercase tracking-wider">Total On Leave</span>
+                <span className="text-[13px] font-black text-blue-700 dark:text-blue-300">{liveStats.onLeave || 0}</span>
               </div>
-              <div className="bg-purple-50/80 border border-purple-100 px-3 py-1.5 rounded-md flex items-center gap-2">
-                <span className="text-[10px] font-bold text-purple-500 uppercase tracking-wider">Total Temporary</span>
-                <span className="text-[13px] font-black text-purple-700">{Object.keys(activeTempUsers).length}</span>
+              <div className="bg-purple-50/80 dark:bg-purple-950/30 border border-purple-100 dark:border-purple-900/50 px-3 py-1.5 rounded-md flex items-center gap-2">
+                <span className="text-[10px] font-bold text-purple-500 dark:text-purple-400 uppercase tracking-wider">Total Temporary</span>
+                <span className="text-[13px] font-black text-purple-700 dark:text-purple-300">{Object.keys(activeTempUsers).length}</span>
               </div>
-              <div className="bg-slate-50/80 border border-slate-200 px-3 py-1.5 rounded-md flex items-center gap-2">
+              <div className="bg-slate-50/80 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 px-3 py-1.5 rounded-md flex items-center gap-2">
                 <span className="text-[10px] font-bold text-foreground uppercase tracking-wider">Multi Location</span>
-                <span className="text-[13px] font-black text-slate-700">{multiLocationUsers.length}</span>
+                <span className="text-[13px] font-black text-slate-700 dark:text-slate-200">{multiLocationUsers.length}</span>
               </div>
             </div>
           </div>
@@ -1314,7 +1314,7 @@ export default function AttendanceDashboard() {
           ) : (
             <div className="relative overflow-x-auto">
               <table className="w-full text-sm text-left">
-                <thead className="bg-gray-50/80 text-foreground uppercase text-[9px] font-bold tracking-wider border-b border-gray-200 dark:border-slate-800">
+                <thead className="bg-gray-50/80 dark:bg-slate-800/80 text-foreground uppercase text-[9px] font-bold tracking-wider border-b border-gray-200 dark:border-slate-800">
                   <tr>
                     <th className="pl-6 pr-4 py-3.5 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Employee</th>
                     <th className="px-4 py-3.5 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Status</th>
@@ -1324,7 +1324,7 @@ export default function AttendanceDashboard() {
                     <th className="px-4 py-3.5 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Working Hours</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
                   {filteredDailyAttendance.length > 0 ? (
                     filteredDailyAttendance.slice((currentPage - 1) * parseInt(limit), currentPage * parseInt(limit)).map((record, index) => {
                       const clockInDate = record.clock_in ? new Date(record.clock_in) : null;
@@ -1351,9 +1351,9 @@ export default function AttendanceDashboard() {
                       let attStatus = (record as any).status || "Absent";
                       
                       const isOutstation = outstationRecords.some((o: any) => 
-                        o.user_id === record.user_id && 
-                        o.start_date.slice(0,10) <= selectedDate && 
-                        o.end_date.slice(0,10) >= selectedDate
+                          o.user_id === record.user_id && 
+                          o.start_date.slice(0,10) <= selectedDate && 
+                          o.end_date.slice(0,10) >= selectedDate
                       );
                       if (isOutstation) attStatus = "Outstation";
                       
@@ -1380,29 +1380,29 @@ export default function AttendanceDashboard() {
                       }
                       
                       const attStatusClass = attStatus === "Present (On Time)" 
-                        ? "bg-green-50 text-green-700 border border-green-100"
+                        ? "bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-400 border border-green-100 dark:border-green-800/50"
                         : attStatus === "Present (Late)"
-                        ? "bg-amber-50 text-amber-700 border border-amber-100"
+                        ? "bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 border border-amber-100 dark:border-amber-800/50"
                         : attStatus === "Company Leave"
-                        ? "bg-purple-50 text-purple-700 border border-purple-100"
+                        ? "bg-purple-50 dark:bg-purple-950/30 text-purple-700 dark:text-purple-400 border border-purple-100 dark:border-purple-800/50"
                         : attStatus === "Approved Leave"
-                        ? "bg-blue-50 text-blue-700 border border-blue-100"
+                        ? "bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-400 border border-blue-100 dark:border-blue-800/50"
                         : attStatus === "Outstation"
-                        ? "bg-pink-50 text-pink-700 border border-pink-200 shadow-sm"
+                        ? "bg-pink-50 dark:bg-pink-950/30 text-pink-700 dark:text-pink-400 border border-pink-200 dark:border-pink-800/50 shadow-sm"
                         : attStatus === "Weekend"
-                        ? "bg-gray-50 dark:bg-slate-900/50 text-gray-700 border border-gray-100 dark:border-slate-800"
-                        : "bg-red-50 text-red-700 border border-red-100";
+                        ? "bg-gray-50 dark:bg-slate-900/50 text-gray-700 dark:text-gray-300 border border-gray-100 dark:border-slate-800"
+                        : "bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-400 border border-red-100 dark:border-red-800/50";
 
                       const workStatusClass = workStatus === "Present (On Time)"
-                        ? "bg-green-50 text-green-700 border border-green-100"
+                        ? "bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-400 border border-green-100 dark:border-green-800/50"
                         : workStatus === "Present (Late)"
-                        ? "bg-amber-50 text-amber-700 border border-amber-100"
+                        ? "bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 border border-amber-100 dark:border-amber-800/50"
                         : workStatus === "Clocked Out Early"
-                        ? "bg-rose-50 text-rose-700 border border-rose-100"
-                        : "bg-gray-50 dark:bg-slate-900/50 text-gray-700 border border-gray-100 dark:border-slate-800";
+                        ? "bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400 border border-rose-100 dark:border-rose-800/50"
+                        : "bg-gray-50 dark:bg-slate-900/50 text-gray-700 dark:text-gray-300 border border-gray-100 dark:border-slate-800";
 
                       return (
-                        <tr key={`${record.user_id}-${record.clock_in || index}`} className="hover:bg-gray-50/50 transition-colors">
+                        <tr key={`${record.user_id}-${record.clock_in || index}`} className="hover:bg-gray-50/50 dark:hover:bg-slate-800/40 transition-colors">
                           
                           <td className="pl-6 pr-4 py-3">
                             <div className="flex items-center gap-2.5">

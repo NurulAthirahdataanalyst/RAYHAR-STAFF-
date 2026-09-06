@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { API_BASE_URL } from "@/config/api";
 import {
   Loader2, RefreshCw, MapPin, Users, Briefcase, Calendar, CheckCircle2, Clock, Filter,
-  Check, X, Hourglass, ChevronRight, TrendingUp, ArrowUpRight
+  Check, X, Hourglass, ChevronRight, TrendingUp, ArrowUpRight, ArrowRight
 } from "lucide-react";
 import {
   PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip,
@@ -732,30 +732,56 @@ export default function OutstationAnalytics() {
               <option value={50}>50</option>
             </select>
           </CardHeader>
-          <CardContent className="p-4 flex-1 flex flex-col justify-between">
+          <CardContent className="p-4 sm:p-5 flex-1 flex flex-col justify-between gap-4">
             {destinationData.length === 0 ? (
-              <div className="py-4 text-center text-foreground text-xs">No destinations available.</div>
+              <div className="py-6 text-center text-muted-foreground text-xs">No destinations available.</div>
             ) : (
               <>
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {destinationData.slice(0, destinationLimit).map((item, index) => (
-                    <div key={index} className="flex items-center justify-between gap-3 text-xs">
-                      <div className="w-32 font-medium text-foreground dark:text-slate-300 truncate">{item.destination}</div>
-                      <div className="flex-1 bg-slate-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
-                        <div className="h-2.5 rounded-full bg-[#942392]" style={{ width: `${Math.min(100, (item.count / (destinationData[0]?.count || 1)) * 100)}%` }} />
+                    <div key={index} className="flex items-center justify-between gap-3 sm:gap-4 text-xs">
+                      <div className="w-36 sm:w-44 font-bold text-slate-800 dark:text-slate-200 text-xs truncate uppercase tracking-tight">
+                        {item.destination}
                       </div>
-                      <div className="w-16 text-right font-bold text-foreground dark:text-slate-300">{item.count} Staff</div>
+                      <div className="flex-1 bg-slate-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
+                        <div
+                          className="h-2.5 rounded-full bg-[#942392] transition-all duration-500"
+                          style={{ width: `${Math.min(100, (item.count / (destinationData[0]?.count || 1)) * 100)}%` }}
+                        />
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0 min-w-[70px] justify-end">
+                        <Users className="w-3.5 h-3.5 text-[#942392] dark:text-purple-400" />
+                        <span className="font-bold text-xs text-slate-800 dark:text-slate-200">{item.count} Staff</span>
+                      </div>
                     </div>
                   ))}
                 </div>
                 
-                <div className="flex justify-between items-center mt-auto pt-4 border-t border-slate-100 dark:border-slate-800">
-                  <div className="text-[11px] text-yellow-600 dark:text-yellow-500 font-bold uppercase tracking-wider">
-                    TOTAL DESTINATION - {destinationData.length}
+                <div className="mt-auto pt-2">
+                  <div className="rounded-2xl bg-slate-50/80 dark:bg-slate-900/60 p-2.5 sm:p-3 flex items-center justify-between border border-slate-100 dark:border-slate-800/80">
+                    <div className="flex items-center">
+                      <div className="w-9 h-9 rounded-xl bg-purple-100/60 dark:bg-purple-950/50 flex items-center justify-center text-[#942392] dark:text-purple-400 shrink-0">
+                        <MapPin className="w-4 h-4 text-[#942392] dark:text-purple-400" />
+                      </div>
+                      <div className="h-7 w-[1px] bg-slate-200 dark:bg-slate-700 mx-3 shrink-0" />
+                      <div className="flex flex-col">
+                        <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 tracking-wider uppercase">
+                          TOTAL DESTINATION
+                        </span>
+                        <span className="text-base sm:text-lg font-extrabold text-[#942392] dark:text-purple-300 leading-none mt-0.5">
+                          {destinationData.length}
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => navigate(`/outstation/assignment?month=${selectedMonth}&year=${selectedYear}`)}
+                      className="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold text-[#942392] dark:text-purple-400 hover:text-[#7b1d79] dark:hover:text-purple-300 transition-colors uppercase tracking-wider group cursor-pointer pr-1"
+                    >
+                      <span>VIEW ALL OUTSTATION</span>
+                      <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
+                    </button>
                   </div>
-                  <Button variant="link" className="text-[11px] h-auto p-0 text-[#942392] dark:text-purple-400 font-bold hover:no-underline" onClick={() => navigate(`/outstation/assignment?month=${selectedMonth}&year=${selectedYear}`)}>
-                    VIEW ALL OUTSTATION
-                  </Button>
                 </div>
               </>
             )}

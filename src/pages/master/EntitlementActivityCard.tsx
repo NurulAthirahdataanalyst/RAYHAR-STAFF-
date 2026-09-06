@@ -9,18 +9,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 // ——— Badge config ———
 export const ACTION_BADGE: Record<string, { bg: string; text: string; dot: string; label: string; border: string }> = {
-  'Initial Allocation':    { bg: 'bg-emerald-50', text: 'text-emerald-700', dot: 'bg-emerald-500', label: 'Initial Allocation', border: 'border-emerald-200' },
-  'Carry Forward':         { bg: 'bg-blue-50',    text: 'text-blue-700',    dot: 'bg-blue-500',    label: 'Carry Forward',       border: 'border-blue-200'    },
-  'Manual Adjustment':     { bg: 'bg-purple-50',  text: 'text-purple-700',  dot: 'bg-purple-500',  label: 'Manual Adjustment',   border: 'border-purple-200'  },
-  'Additional Allocation': { bg: 'bg-orange-50',  text: 'text-orange-700',  dot: 'bg-orange-500',  label: 'Additional',          border: 'border-orange-200'  },
-  'Deduction':             { bg: 'bg-rose-50',    text: 'text-rose-700',    dot: 'bg-rose-500',    label: 'Deduction',           border: 'border-rose-200'    },
-  'Rollback':              { bg: 'bg-slate-100',  text: 'text-slate-600',   dot: 'bg-slate-400',   label: 'Rollback',            border: 'border-slate-200'   },
-  'Special Leave':         { bg: 'bg-pink-50',    text: 'text-pink-700',    dot: 'bg-pink-500',    label: 'Special Leave',       border: 'border-pink-200'    },
-  'Maternity Leave':       { bg: 'bg-fuchsia-50', text: 'text-fuchsia-700', dot: 'bg-fuchsia-500', label: 'Maternity',           border: 'border-fuchsia-200' },
-  'OT Conversion':         { bg: 'bg-teal-50',    text: 'text-teal-700',    dot: 'bg-teal-500',    label: 'OT Conversion',       border: 'border-teal-200'    },
-  'Policy Update':         { bg: 'bg-indigo-50',  text: 'text-indigo-700',  dot: 'bg-indigo-500',  label: 'Policy Update',       border: 'border-indigo-200'  },
+  'Initial Allocation':    { bg: 'bg-emerald-50 dark:bg-emerald-950/30', text: 'text-emerald-700 dark:text-emerald-400', dot: 'bg-emerald-500', label: 'Initial Allocation', border: 'border-emerald-200 dark:border-emerald-900/40' },
+  'Carry Forward':         { bg: 'bg-blue-50 dark:bg-blue-950/30',    text: 'text-blue-700 dark:text-blue-400',    dot: 'bg-blue-500',    label: 'Carry Forward',       border: 'border-blue-200 dark:border-blue-900/40'    },
+  'Manual Adjustment':     { bg: 'bg-purple-50 dark:bg-purple-950/30',  text: 'text-purple-700 dark:text-purple-400',  dot: 'bg-purple-500',  label: 'Manual Adjustment',   border: 'border-purple-200 dark:border-purple-900/40'  },
+  'Additional Allocation': { bg: 'bg-orange-50 dark:bg-orange-950/30',  text: 'text-orange-700 dark:text-orange-400',  dot: 'bg-orange-500',  label: 'Additional',          border: 'border-orange-200 dark:border-orange-900/40'  },
+  'Deduction':             { bg: 'bg-rose-50 dark:bg-rose-950/30',    text: 'text-rose-700 dark:text-rose-400',    dot: 'bg-rose-500',    label: 'Deduction',           border: 'border-rose-200 dark:border-rose-900/40'    },
+  'Rollback':              { bg: 'bg-slate-100 dark:bg-slate-800',  text: 'text-slate-600 dark:text-slate-400',   dot: 'bg-slate-400',   label: 'Rollback',            border: 'border-slate-200 dark:border-slate-700'   },
+  'Special Leave':         { bg: 'bg-pink-50 dark:bg-pink-950/30',    text: 'text-pink-700 dark:text-pink-400',    dot: 'bg-pink-500',    label: 'Special Leave',       border: 'border-pink-200 dark:border-pink-900/40'    },
+  'Maternity Leave':       { bg: 'bg-fuchsia-50 dark:bg-fuchsia-950/30', text: 'text-fuchsia-700 dark:text-fuchsia-400', dot: 'bg-fuchsia-500', label: 'Maternity',           border: 'border-fuchsia-200 dark:border-fuchsia-900/40' },
+  'OT Conversion':         { bg: 'bg-teal-50 dark:bg-teal-950/30',    text: 'text-teal-700 dark:text-teal-400',    dot: 'bg-teal-500',    label: 'OT Conversion',       border: 'border-teal-200 dark:border-teal-900/40'    },
+  'Policy Update':         { bg: 'bg-indigo-50 dark:bg-indigo-950/30',  text: 'text-indigo-700 dark:text-indigo-400',  dot: 'bg-indigo-500',  label: 'Policy Update',       border: 'border-indigo-200 dark:border-indigo-900/40'  },
 };
-const DEFAULT_BADGE = { bg: 'bg-slate-50', text: 'text-slate-600', dot: 'bg-slate-400', label: 'Other', border: 'border-slate-200' };
+const DEFAULT_BADGE = { bg: 'bg-slate-50 dark:bg-slate-800', text: 'text-slate-600 dark:text-slate-400', dot: 'bg-slate-400', label: 'Other', border: 'border-slate-200 dark:border-slate-700' };
 
 export function getBadge(actionType: string) {
   return ACTION_BADGE[actionType] || DEFAULT_BADGE;
@@ -101,25 +101,25 @@ export default function EntitlementActivityCard({ onViewHistory }: Props) {
       label: 'Manual Adjustments', icon: ClipboardEdit,
       val:   count(thisMonthLogs, 'Manual Adjustment'),
       trend: trend(count(thisMonthLogs, 'Manual Adjustment'), count(prevMonthLogs, 'Manual Adjustment')),
-      color: 'text-purple-600', bg: 'bg-purple-50', dot: 'bg-purple-500', border: 'border-purple-100',
+      color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-50 dark:bg-purple-950/20', dot: 'bg-purple-500', border: 'border-purple-100 dark:border-purple-900/40',
     },
     {
       label: 'Carry Forward', icon: RotateCcw,
       val:   count(thisMonthLogs, 'Carry Forward'),
       trend: trend(count(thisMonthLogs, 'Carry Forward'), count(prevMonthLogs, 'Carry Forward')),
-      color: 'text-blue-600', bg: 'bg-blue-50', dot: 'bg-blue-500', border: 'border-blue-100',
+      color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-950/20', dot: 'bg-blue-500', border: 'border-blue-100 dark:border-blue-900/40',
     },
     {
       label: 'Additional Allocation', icon: BadgePlus,
       val:   count(thisMonthLogs, 'Additional Allocation'),
       trend: trend(count(thisMonthLogs, 'Additional Allocation'), count(prevMonthLogs, 'Additional Allocation')),
-      color: 'text-orange-600', bg: 'bg-orange-50', dot: 'bg-orange-500', border: 'border-orange-100',
+      color: 'text-orange-600 dark:text-orange-400', bg: 'bg-orange-50 dark:bg-orange-950/20', dot: 'bg-orange-500', border: 'border-orange-100 dark:border-orange-900/40',
     },
     {
       label: 'Deductions', icon: MinusCircle,
       val:   count(thisMonthLogs, 'Deduction'),
       trend: trend(count(thisMonthLogs, 'Deduction'), count(prevMonthLogs, 'Deduction')),
-      color: 'text-rose-600', bg: 'bg-rose-50', dot: 'bg-rose-500', border: 'border-rose-100',
+      color: 'text-rose-600 dark:text-rose-400', bg: 'bg-rose-50 dark:bg-rose-950/20', dot: 'bg-rose-500', border: 'border-rose-100 dark:border-rose-900/40',
     },
   ];
 

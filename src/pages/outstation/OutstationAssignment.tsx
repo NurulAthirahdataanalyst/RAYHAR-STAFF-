@@ -23,10 +23,11 @@ import {
   Plane, Plus, Filter, Loader2, MapPin, Edit2, XCircle, Trash2,
   Users, Search, Calendar, CheckCircle2, X, ChevronLeft, ChevronRight, CalendarDays, ArrowLeft
 } from "lucide-react";
+import { AnimatedCheckbox } from "@/components/ui/animated-checkbox";
 import { API_BASE_URL } from "../../config/api";
 
 const OUTSTATION_ROLES = ["hr_admin", "managing_director", "operation_manager", "finance_manager", "branch_leader", "head_of_department"];
-const PINK = "#942392]";
+const PINK = "#942392";
 
 const BRANCHES = ["HQ","KMM","TGG","CNH","KBG","DGN","JTH","KBR","RMP","MZM","TWU","AOR","BTM","KKS","SHA","BBB","KUL","IPH","MJG","MLK","SNS","JB","BTP"];
 
@@ -637,7 +638,7 @@ export default function OutstationAssignment() {
                 </div>
 
                 {/* Employee List */}
-                <div className="max-h-40 overflow-y-auto border border-gray-200 dark:border-slate-800 dark:border-gray-500/30 rounded-lg divide-y divide-gray-50">
+                <div className="max-h-40 overflow-y-auto border border-gray-200 dark:border-slate-800 rounded-lg divide-y divide-gray-100 dark:divide-slate-800">
                   {filteredEmps.length === 0 ? (
                     <div className="py-4 text-center text-[10px] text-foreground font-bold uppercase">No employees found</div>
                   ) : (
@@ -646,10 +647,15 @@ export default function OutstationAssignment() {
                       return (
                         <div key={e.user_id}
                           onClick={() => toggleEmp(e)}
-                          className={`flex items-center justify-between px-3 py-2 cursor-pointer transition-colors ${isSelected ? "bg-pink-50" : "hover:bg-gray-50 dark:bg-slate-900/50"}`}>
+                          className={`flex items-center justify-between px-3 py-2 cursor-pointer transition-colors ${isSelected ? "bg-pink-50 dark:bg-pink-950/40" : "hover:bg-gray-50 dark:hover:bg-slate-800/60"}`}>
                           <div className="flex items-center gap-2.5">
-                            <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${isSelected ? "bg-pink-500 border-pink-500" : "border-gray-300"}`}>
-                              {isSelected && <CheckCircle2 className="w-3 h-3 text-white" />}
+                            <div className="pointer-events-none flex items-center justify-center shrink-0">
+                              <AnimatedCheckbox
+                                checked={isSelected}
+                                readOnly
+                                color="#ec4899"
+                                size={18}
+                              />
                             </div>
                             <div>
                               <p className="text-[11px] font-bold text-foreground dark:text-gray-100">{e.full_name}</p>

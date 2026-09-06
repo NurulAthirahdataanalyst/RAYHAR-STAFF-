@@ -768,24 +768,32 @@ const pgPool = connectionString ? new Pool({
   max: 10
 }) : new Pool(dbConfig);
 
-// Helper: convert all params to strings so PostgreSQL never sees integer vs varchar mismatch
-function sanitizeParams(params) {
-  if (!params || params.length === 0) return params;
-  return params.map(p => {
-    if (p === null || p === undefined) return null;
-    if (Array.isArray(p)) return p;
-    if (typeof p === 'boolean') return p; // keep booleans as-is for boolean columns
-    return String(p);
-  });
-}
-
-// Helper: replace ? placeholders with $1, $2, ... for PostgreSQL
+// Helper: replace ? placeholders with $1, $2, ... for PostgreSQL and expand array params for IN (?)
 function mysqlToPostgres(sql, params) {
-  if (params && params.length > 0) {
-    let i = 1;
-    sql = sql.replace(/\?/g, () => `$${i++}`);
-  }
-  return sql;
+  if (!params || params.length === 0) return { sql, params: [] };
+  let flatParams = [];
+  let i = 1;
+  let paramIdx = 0;
+
+  sql = sql.replace(/\?/g, () => {
+    const currentParam = params[paramIdx++];
+    if (Array.isArray(currentParam)) {
+      if (currentParam.length === 0) {
+        flatParams.push(null);
+        return `$${i++}`;
+      }
+      const placeholders = currentParam.map(item => {
+        flatParams.push(typeof item === 'boolean' ? item : item === null || item === undefined ? null : String(item));
+        return `$${i++}`;
+      });
+      return placeholders.join(', ');
+    } else {
+      flatParams.push(typeof currentParam === 'boolean' ? currentParam : currentParam === null || currentParam === undefined ? null : String(currentParam));
+      return `$${i++}`;
+    }
+  });
+
+  return { sql, params: flatParams };
 }
 
 const pool = {
@@ -794,8 +802,9 @@ const pool = {
     const client = await pgPool.connect();
     return {
       query: async (sql, params) => {
-        params = sanitizeParams(params);
-        sql = mysqlToPostgres(sql, params);
+        const converted = mysqlToPostgres(sql, params);
+        sql = converted.sql;
+        params = converted.params;
         // Handle RETURNING for INSERT
         let isInsert = /^\s*INSERT\s+/i.test(sql);
         if (isInsert && !/RETURNING/i.test(sql)) {
@@ -823,8 +832,9 @@ const pool = {
     };
   },
   query: async (sql, params) => {
-    params = sanitizeParams(params);
-    sql = mysqlToPostgres(sql, params);
+    const converted = mysqlToPostgres(sql, params);
+    sql = converted.sql;
+    params = converted.params;
     // Handle returning insert id automatically if it's an INSERT query without RETURNING
     let isInsert = /^\s*INSERT\s+/i.test(sql);
     if (isInsert && !/RETURNING/i.test(sql)) {
@@ -3868,8 +3878,9 @@ app.get("/api/employees/:userId/analytics", async (req, res) => {
 
     // Fetch data for the requested years
     const yearsToFetch = Array.from(new Set([monthDate.getFullYear(), yearNum]));
+    const yearPlaceholders = yearsToFetch.map(() => '?').join(',');
 
-    const [companyLeaves] = await pool.query("SELECT * FROM company_leave_calendar WHERE status = 'Active' AND EXTRACT(YEAR FROM start_date) IN (?)", [yearsToFetch]);
+    const [companyLeaves] = await pool.query(`SELECT * FROM company_leave_calendar WHERE status = 'Active' AND EXTRACT(YEAR FROM start_date) IN (${yearPlaceholders})`, yearsToFetch);
     
     // Fetch earned replacement leaves
     const [earnedRlRows] = await pool.query(`SELECT SUM(CASE WHEN validation_status = 'Validated' THEN 1 ELSE 0 END) as earned FROM replacement_leave_requests WHERE employee_id = ?`, [userId]);
@@ -3885,10 +3896,10 @@ app.get("/api/employees/:userId/analytics", async (req, res) => {
           else if (['REPLACEMENT LEAVE', 'CUTI GANTI'].includes(t)) replacementAdj += parseFloat(row.total_adjustment);
       });
 
-    const [allLeaves] = await pool.query("SELECT * FROM leave_requests WHERE user_id = ? AND EXTRACT(YEAR FROM start_date) IN (?)", [userId, yearsToFetch]);
+    const [allLeaves] = await pool.query(`SELECT * FROM leave_requests WHERE user_id = ? AND EXTRACT(YEAR FROM start_date) IN (${yearPlaceholders})`, [userId, ...yearsToFetch]);
     const userLeaves = allLeaves.filter(l => l.status === 'Approved');
 
-    const [attendances] = await pool.query("SELECT clock_in, clock_out FROM attendances WHERE user_id = ? AND EXTRACT(YEAR FROM clock_in) IN (?)", [userId, yearsToFetch]);
+    const [attendances] = await pool.query(`SELECT clock_in, clock_out FROM attendances WHERE user_id = ? AND EXTRACT(YEAR FROM clock_in) IN (${yearPlaceholders})`, [userId, ...yearsToFetch]);
 
     const isCurrentMonth = monthDate.getMonth() === now.getMonth() && monthDate.getFullYear() === now.getFullYear();
     const isCurrentYear = yearNum === now.getFullYear();
@@ -9120,8 +9131,9 @@ app.get("/api/reports/generator", async (req, res) => {
       const targetUserIds = targetProfiles.map(p => p.user_id);
 
       // 2. Fetch existing attendances for target employees
-      let attFilters = ["a.user_id IN (?)"];
-      let attParams = [targetUserIds];
+      const idPlaceholders = targetUserIds.length > 0 ? targetUserIds.map(() => '?').join(',') : 'NULL';
+      let attFilters = [`a.user_id IN (${idPlaceholders})`];
+      let attParams = [...targetUserIds];
 
       if (month && month !== 'all') {
         attFilters.push("EXTRACT(MONTH FROM a.clock_in) = ?");

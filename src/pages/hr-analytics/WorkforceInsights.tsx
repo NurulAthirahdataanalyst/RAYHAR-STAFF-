@@ -546,30 +546,30 @@ export default function WorkforceInsights() {
           <div className={`col-span-1 ${['head_of_department', 'branch_leader'].includes(role) ? 'xl:col-span-4' : 'xl:col-span-3'} grid grid-cols-2 lg:grid-cols-5 gap-4`}>
             
                         {/* 1. Present Today */}
-            <Card className={`group lg:col-span-2 border border-emerald-100 bg-emerald-50/30 p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.emerald} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+            <Card className={`group lg:col-span-2 border border-emerald-100 dark:border-emerald-900/40 bg-emerald-50/30 dark:bg-card p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.emerald} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
               <div>
                 <div className="flex justify-between items-start mb-2">
-                  <div className="w-10 h-10 rounded-full border border-emerald-200 bg-emerald-50 flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
-                    <Users className="w-5 h-5 text-emerald-600 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
+                  <div className="w-10 h-10 rounded-full border border-emerald-200 dark:border-emerald-800/60 bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
+                    <Users className="w-5 h-5 text-emerald-600 dark:text-emerald-400 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
                   </div>
-                  {feedConnected && <span className="text-emerald-600 text-[11px] font-bold flex items-center gap-1 bg-white px-2 py-0.5 rounded-full shadow-sm"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />Live</span>}
+                  {feedConnected && <span className="text-emerald-600 dark:text-emerald-400 text-[11px] font-bold flex items-center gap-1 bg-white dark:bg-slate-800 px-2 py-0.5 rounded-full shadow-sm"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />Live</span>}
                 </div>
-                <p className="text-[11px] font-extrabold text-emerald-700 uppercase tracking-wider mb-2 mt-2">Present Today</p>
+                <p className="text-[11px] font-extrabold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider mb-2 mt-2">Present Today</p>
                 <div className="flex flex-col items-center justify-center mt-2">
-                  <h3 className="text-5xl font-black text-slate-800 leading-none tracking-tight">{feedConnected && clockInOut.length > 0 ? clockInOut.length : data.teamAvailability.present}</h3>
+                  <h3 className="text-5xl font-black text-slate-800 dark:text-white leading-none tracking-tight">{feedConnected && clockInOut.length > 0 ? clockInOut.length : data.teamAvailability.present}</h3>
                   <p className="text-[12px] font-semibold text-foreground mt-1">Employees</p>
                 </div>
               </div>
               <div className="mt-4">
                 <div className="flex justify-between items-end mb-2 relative">
-                  <p className="text-[11px] font-bold text-emerald-600 flex items-center gap-0.5"><TrendingUp className="w-3 h-3" /> 2 vs Yesterday</p>
-                  <p className="text-[11px] font-bold text-emerald-700">{(feedConnected && clockInOut.length > 0 ? clockInOut.length : data.teamAvailability.present) === data.topKpi.activeEmployees ? "100%" : `${Math.round(((feedConnected && clockInOut.length > 0 ? clockInOut.length : data.teamAvailability.present) / (data.topKpi.activeEmployees || 1)) * 100)}%`} of Workforce</p>
+                  <p className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-0.5"><TrendingUp className="w-3 h-3" /> 2 vs Yesterday</p>
+                  <p className="text-[11px] font-bold text-emerald-700 dark:text-emerald-400">{(feedConnected && clockInOut.length > 0 ? clockInOut.length : data.teamAvailability.present) === data.topKpi.activeEmployees ? "100%" : `${Math.round(((feedConnected && clockInOut.length > 0 ? clockInOut.length : data.teamAvailability.present) / (data.topKpi.activeEmployees || 1)) * 100)}%`} of Workforce</p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="w-full bg-emerald-200/50 rounded-full h-2.5 overflow-hidden">
+                  <div className="w-full bg-emerald-200/50 dark:bg-emerald-950/50 rounded-full h-2.5 overflow-hidden">
                     <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${Math.min(100, ((feedConnected && clockInOut.length > 0 ? clockInOut.length : data.teamAvailability.present) / (data.topKpi.activeEmployees || 1)) * 100)}%` }}></div>
                   </div>
-                  <div className="text-[12px] font-extrabold text-slate-800 whitespace-nowrap">
+                  <div className="text-[12px] font-extrabold text-slate-800 dark:text-slate-100 whitespace-nowrap">
                      {feedConnected && clockInOut.length > 0 ? clockInOut.length : data.teamAvailability.present} <span className="text-foreground font-bold">/ {data.topKpi.activeEmployees}</span>
                   </div>
                 </div>
@@ -592,72 +592,72 @@ export default function WorkforceInsights() {
               }
               
               return (
-            <Card className={`group border border-slate-100 bg-white p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.orange} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+            <Card className={`group border border-slate-100 dark:border-slate-800 bg-white dark:bg-card p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.orange} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
               <div>
-                <div className="w-10 h-10 rounded-full border border-orange-100 bg-orange-50/50 flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110">
-                  <Clock className="w-5 h-5 text-orange-500 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
+                <div className="w-10 h-10 rounded-full border border-orange-100 dark:border-orange-800/60 bg-orange-50/50 dark:bg-orange-950/40 flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110">
+                  <Clock className="w-5 h-5 text-orange-500 dark:text-orange-400 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
                 </div>
-                <p className="text-[11px] font-extrabold text-orange-600 uppercase tracking-wider mb-2">Late Arrival</p>
+                <p className="text-[11px] font-extrabold text-orange-600 dark:text-orange-400 uppercase tracking-wider mb-2">Late Arrival</p>
                 <div className="flex flex-col items-start mt-1">
-                  <h3 className="text-4xl font-black text-slate-800 leading-none">{feedConnected && lateList.length > 0 ? lateList.length : data.teamAvailability.late}</h3>
+                  <h3 className="text-4xl font-black text-slate-800 dark:text-white leading-none">{feedConnected && lateList.length > 0 ? lateList.length : data.teamAvailability.late}</h3>
                   <p className="text-[12px] font-semibold text-foreground mt-1">Employees</p>
                 </div>
               </div>
               <div className="mt-2">
-                <p className="text-[11px] font-bold text-foreground mb-3">Highest: <span className="text-orange-500">{highestLateTime}</span></p>
+                <p className="text-[11px] font-bold text-foreground mb-3">Highest: <span className="text-orange-500 dark:text-orange-400">{highestLateTime}</span></p>
               </div>
             </Card>
             );})()}
 
             {/* 3. On Leave Today */}
-            <Card className={`group border border-slate-100 bg-white p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.purple} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+            <Card className={`group border border-slate-100 dark:border-slate-800 bg-white dark:bg-card p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.purple} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
               <div>
-                <div className="w-10 h-10 rounded-full border border-purple-100 bg-purple-50/50 flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110">
-                  <CalendarDays className="w-5 h-5 text-purple-600 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
+                <div className="w-10 h-10 rounded-full border border-purple-100 dark:border-purple-800/60 bg-purple-50/50 dark:bg-purple-950/40 flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110">
+                  <CalendarDays className="w-5 h-5 text-purple-600 dark:text-purple-400 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
                 </div>
-                <p className="text-[11px] font-extrabold text-purple-600 uppercase tracking-wider mb-2">On Leave Today</p>
+                <p className="text-[11px] font-extrabold text-purple-600 dark:text-purple-400 uppercase tracking-wider mb-2">On Leave Today</p>
                 <div className="flex flex-col items-start mt-1">
-                  <h3 className="text-4xl font-black text-slate-800 leading-none">{data.topKpi.onLeaveToday}</h3>
+                  <h3 className="text-4xl font-black text-slate-800 dark:text-white leading-none">{data.topKpi.onLeaveToday}</h3>
                   <p className="text-[12px] font-semibold text-foreground mt-1">Employees</p>
                 </div>
               </div>
                 <div className="flex items-center gap-1 flex-wrap">
-                  <span className="bg-orange-50 text-orange-600 text-[9px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap">AL {data.leave?.annual || 0}</span>
-                  <span className="bg-purple-50 text-purple-600 text-[9px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap">MC {data.leave?.medical || 0}</span>
-                  <span className="bg-blue-50 text-blue-600 text-[9px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap">RL {data.leave?.replacement || 0}</span>
-                  <span className="bg-slate-100 text-slate-600 text-[9px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap">UL {data.leave?.unpaid || 0}</span>
+                  <span className="bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 text-[9px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap">AL {data.leave?.annual || 0}</span>
+                  <span className="bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 text-[9px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap">MC {data.leave?.medical || 0}</span>
+                  <span className="bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 text-[9px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap">RL {data.leave?.replacement || 0}</span>
+                  <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[9px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap">UL {data.leave?.unpaid || 0}</span>
                 </div>
             </Card>
 
             {/* 4. Absent Today */}
-            <Card className={`group border border-slate-100 bg-white p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.red} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+            <Card className={`group border border-slate-100 dark:border-slate-800 bg-white dark:bg-card p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.red} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
               <div>
-                <div className="w-10 h-10 rounded-full border border-red-100 bg-red-50/50 flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110">
-                  <XCircle className="w-5 h-5 text-red-500 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
+                <div className="w-10 h-10 rounded-full border border-red-100 dark:border-red-800/60 bg-red-50/50 dark:bg-red-950/40 flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110">
+                  <XCircle className="w-5 h-5 text-red-500 dark:text-red-400 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
                 </div>
-                <p className="text-[11px] font-extrabold text-red-500 uppercase tracking-wider mb-2">Absent Today</p>
+                <p className="text-[11px] font-extrabold text-red-500 dark:text-red-400 uppercase tracking-wider mb-2">Absent Today</p>
                 <div className="flex flex-col items-start mt-1">
-                  <h3 className="text-4xl font-black text-slate-800 leading-none">{feedConnected && absentList.length > 0 ? absentList.filter(a => (a as any).status === 'absent').length : data.teamAvailability.absent}</h3>
+                  <h3 className="text-4xl font-black text-slate-800 dark:text-white leading-none">{feedConnected && absentList.length > 0 ? absentList.filter(a => (a as any).status === 'absent').length : data.teamAvailability.absent}</h3>
                   <p className="text-[12px] font-semibold text-foreground mt-1">Employees</p>
                 </div>
               </div>
               <div className="mt-2">
-                <p className="text-[11px] font-bold text-red-500 mb-3">Needs Attention</p>
+                <p className="text-[11px] font-bold text-red-500 dark:text-red-400 mb-3">Needs Attention</p>
               </div>
             </Card>
 
             {/* 5. Missing Punch */}
-            <Card className={`group border border-slate-100 bg-white p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.amber} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+            <Card className={`group border border-slate-100 dark:border-slate-800 bg-white dark:bg-card p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.amber} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
               <div>
                 <div className="flex justify-between items-start mb-2">
-                  <div className="w-10 h-10 rounded-full border border-amber-100 bg-amber-50/50 flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110">
-                    <AlertTriangle className="w-5 h-5 text-amber-500 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
+                  <div className="w-10 h-10 rounded-full border border-amber-100 dark:border-amber-800/60 bg-amber-50/50 dark:bg-amber-950/40 flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110">
+                    <AlertTriangle className="w-5 h-5 text-amber-500 dark:text-amber-400 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
                   </div>
-                  {feedConnected && <span className="text-amber-500 text-[11px] font-bold flex items-center gap-1 bg-white px-2 py-0.5 rounded-full shadow-sm"><span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />Live</span>}
+                  {feedConnected && <span className="text-amber-500 dark:text-amber-400 text-[11px] font-bold flex items-center gap-1 bg-white dark:bg-slate-800 px-2 py-0.5 rounded-full shadow-sm"><span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />Live</span>}
                 </div>
-                <p className="text-[11px] font-extrabold text-amber-500 uppercase tracking-wider mb-2">Missing Punch</p>
+                <p className="text-[11px] font-extrabold text-amber-500 dark:text-amber-400 uppercase tracking-wider mb-2">Missing Punch</p>
                 <div className="flex flex-col items-start mt-1">
-                  <h3 className="text-4xl font-black text-slate-800 leading-none">
+                  <h3 className="text-4xl font-black text-slate-800 dark:text-white leading-none">
                     {feedConnected && missingPunchYesterdayLive !== null 
                       ? missingPunchYesterdayLive 
                       : (data.topKpi?.missingPunchYesterday || 0)}
@@ -666,29 +666,29 @@ export default function WorkforceInsights() {
                 </div>
               </div>
               <div className="mt-2">
-                <p className="text-[11px] font-bold text-amber-500 mb-3 flex items-center gap-1">Yesterday's Records</p>
-                <div className="w-full bg-amber-100 rounded-full h-1.5 overflow-hidden">
+                <p className="text-[11px] font-bold text-amber-500 dark:text-amber-400 mb-3 flex items-center gap-1">Yesterday's Records</p>
+                <div className="w-full bg-amber-100 dark:bg-amber-950/50 rounded-full h-1.5 overflow-hidden">
                   <div className="h-full bg-amber-500 rounded-full w-[100%]"></div>
                 </div>
               </div>
             </Card>
 
             {/* 6. Outstation */}
-            <Card className={`group border border-slate-100 bg-white p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.blue} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+            <Card className={`group border border-slate-100 dark:border-slate-800 bg-white dark:bg-card p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.blue} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
               <div>
-                <div className="w-10 h-10 rounded-full border border-blue-100 bg-blue-50/50 flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110">
-                  <Plane className="w-5 h-5 text-blue-500 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
+                <div className="w-10 h-10 rounded-full border border-blue-100 dark:border-blue-800/60 bg-blue-50/50 dark:bg-blue-950/40 flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110">
+                  <Plane className="w-5 h-5 text-blue-500 dark:text-blue-400 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
                 </div>
-                <p className="text-[11px] font-extrabold text-blue-500 uppercase tracking-wider mb-2">Outstation</p>
+                <p className="text-[11px] font-extrabold text-blue-500 dark:text-blue-400 uppercase tracking-wider mb-2">Outstation</p>
                 <div className="flex flex-col items-start mt-1">
-                  <h3 className="text-4xl font-black text-slate-800 leading-none">{activeOutstationList.length > 0 ? activeOutstationList.length : (data.topKpi.outstationToday || 0)}</h3>
+                  <h3 className="text-4xl font-black text-slate-800 dark:text-white leading-none">{activeOutstationList.length > 0 ? activeOutstationList.length : (data.topKpi.outstationToday || 0)}</h3>
                   <p className="text-[12px] font-semibold text-foreground mt-1">Employees</p>
                 </div>
               </div>
               <div className="mt-2">
-                <p className="text-[11px] font-bold text-blue-500 mb-3">{(activeOutstationList.length > 0 || (data.topKpi.outstationToday || 0) > 0) ? "Away on duty" : "None Today"}</p>
-                <div className="flex items-center border-t border-slate-100 pt-3">
-                  <div className="w-12 bg-slate-100 rounded-full h-1.5 overflow-hidden ml-auto shrink-0">
+                <p className="text-[11px] font-bold text-blue-500 dark:text-blue-400 mb-3">{(activeOutstationList.length > 0 || (data.topKpi.outstationToday || 0) > 0) ? "Away on duty" : "None Today"}</p>
+                <div className="flex items-center border-t border-slate-100 dark:border-slate-800 pt-3">
+                  <div className="w-12 bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden ml-auto shrink-0">
                     <div className="h-full bg-blue-300 rounded-full w-[30%]"></div>
                   </div>
                 </div>
@@ -696,39 +696,39 @@ export default function WorkforceInsights() {
             </Card>
 
             {/* 7. Attendance Rate */}
-            <Card className={`group border border-slate-100 bg-white p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.indigo} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+            <Card className={`group border border-slate-100 dark:border-slate-800 bg-white dark:bg-card p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.indigo} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
               <div>
-                <div className="w-10 h-10 rounded-full border border-indigo-100 bg-indigo-50/50 flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110">
-                  <CheckCircle2 className="w-5 h-5 text-indigo-500 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
+                <div className="w-10 h-10 rounded-full border border-indigo-100 dark:border-indigo-800/60 bg-indigo-50/50 dark:bg-indigo-950/40 flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110">
+                  <CheckCircle2 className="w-5 h-5 text-indigo-500 dark:text-indigo-400 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
                 </div>
-                <p className="text-[11px] font-extrabold text-indigo-600 uppercase tracking-wider mb-2">Attendance Rate</p>
+                <p className="text-[11px] font-extrabold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mb-2">Attendance Rate</p>
                 <div className="flex items-baseline gap-2 mt-1">
-                  <h3 className="text-4xl font-black text-slate-800 leading-none">{data.topKpi.attendanceRate}%</h3>
+                  <h3 className="text-4xl font-black text-slate-800 dark:text-white leading-none">{data.topKpi.attendanceRate}%</h3>
                 </div>
                 <p className="text-[11px] font-bold text-foreground mt-1">Target 95%</p>
               </div>
               <div className="mt-1 flex flex-col items-start w-full relative">
-                <p className="text-[11px] font-bold text-emerald-600 flex items-center gap-0.5"><TrendingUp className="w-3 h-3" /> 2% vs Yesterday</p>
+                <p className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-0.5"><TrendingUp className="w-3 h-3" /> 2% vs Yesterday</p>
               </div>
             </Card>
 
             {/* 8. Active Workforce */}
-            <Card className={`group lg:col-span-2 border border-slate-100 bg-white p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.emerald} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+            <Card className={`group lg:col-span-2 border border-slate-100 dark:border-slate-800 bg-white dark:bg-card p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.emerald} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
               <div>
-                <div className="w-10 h-10 rounded-full border border-emerald-100 bg-emerald-50/50 flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110">
-                  <Users className="w-5 h-5 text-emerald-500 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
+                <div className="w-10 h-10 rounded-full border border-emerald-100 dark:border-emerald-800/60 bg-emerald-50/50 dark:bg-emerald-950/40 flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110">
+                  <Users className="w-5 h-5 text-emerald-500 dark:text-emerald-400 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
                 </div>
-                <p className="text-[11px] font-extrabold text-emerald-600 uppercase tracking-wider mb-2">Active Workforce</p>
+                <p className="text-[11px] font-extrabold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-2">Active Workforce</p>
                 <div className="flex items-baseline gap-2 mt-1">
-                  <h3 className="text-4xl font-black text-slate-800 leading-none">
+                  <h3 className="text-4xl font-black text-slate-800 dark:text-white leading-none">
                     {data.topKpi.activeEmployees} <span className="text-[18px] font-bold text-foreground">/ {data.topKpi.totalHeadcount}</span>
                   </h3>
                 </div>
-                <p className="text-[12px] font-semibold text-emerald-600 mt-1">Active</p>
+                <p className="text-[12px] font-semibold text-emerald-600 dark:text-emerald-400 mt-1">Active</p>
               </div>
-              <div className="mt-4 flex items-center gap-3 border-t border-slate-100 pt-3">
-                <span className="text-[11px] font-bold text-emerald-600 whitespace-nowrap">{Math.round((data.topKpi.activeEmployees / (data.topKpi.totalHeadcount || 1)) * 100)}%</span>
-                <div className="w-full bg-emerald-100 rounded-full h-1.5 overflow-hidden">
+              <div className="mt-4 flex items-center gap-3 border-t border-slate-100 dark:border-slate-800 pt-3">
+                <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">{Math.round((data.topKpi.activeEmployees / (data.topKpi.totalHeadcount || 1)) * 100)}%</span>
+                <div className="w-full bg-emerald-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
                   <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${Math.min(100, (data.topKpi.activeEmployees / (data.topKpi.totalHeadcount || 1)) * 100)}%` }}></div>
                 </div>
               </div>
@@ -1191,11 +1191,11 @@ export default function WorkforceInsights() {
               <div className="flex flex-col gap-3">
                 <div 
                   onClick={() => navigate("/leave/admin?tab=pending")}
-                  className="flex items-center justify-between p-4 bg-slate-50/80 hover:bg-[#942392]/5 border border-transparent hover:border-[#942392]/20 rounded-lg transition-all duration-300 cursor-pointer group"
+                  className="flex items-center justify-between p-4 bg-slate-50/80 dark:bg-slate-800/60 hover:bg-[#942392]/5 border border-transparent hover:border-[#942392]/20 rounded-lg transition-all duration-300 cursor-pointer group"
                 >
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-yellow-100/50 flex items-center justify-center transition-transform group-hover:scale-110 duration-300">
-                      <Clock className="w-5 h-5 text-yellow-600" />
+                    <div className="w-10 h-10 rounded-lg bg-yellow-100/50 dark:bg-yellow-950/40 flex items-center justify-center transition-transform group-hover:scale-110 duration-300">
+                      <Clock className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
                     </div>
                     <div>
                       <p className="text-sm font-bold text-slate-800 dark:text-slate-200 group-hover:text-[#942392] transition-colors">Pending Requests</p>
@@ -1203,18 +1203,18 @@ export default function WorkforceInsights() {
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
-                    <span className="text-2xl font-bold text-slate-700">{data.leaveMonitoring.pendingApproval}</span>
+                    <span className="text-2xl font-bold text-slate-700 dark:text-slate-100">{data.leaveMonitoring.pendingApproval}</span>
                     <ChevronRight className="w-5 h-5 text-foreground group-hover:text-[#942392] group-hover:translate-x-1 transition-all duration-300" />
                   </div>
                 </div>
 
                 <div 
                   onClick={() => navigate("/leave/admin?tab=approved")}
-                  className="flex items-center justify-between p-4 bg-slate-50/80 hover:bg-[#942392]/5 border border-transparent hover:border-[#942392]/20 rounded-lg transition-all duration-300 cursor-pointer group"
+                  className="flex items-center justify-between p-4 bg-slate-50/80 dark:bg-slate-800/60 hover:bg-[#942392]/5 border border-transparent hover:border-[#942392]/20 rounded-lg transition-all duration-300 cursor-pointer group"
                 >
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-emerald-100/50 flex items-center justify-center transition-transform group-hover:scale-110 duration-300">
-                      <FileCheck className="w-5 h-5 text-emerald-600" />
+                    <div className="w-10 h-10 rounded-lg bg-emerald-100/50 dark:bg-emerald-950/40 flex items-center justify-center transition-transform group-hover:scale-110 duration-300">
+                      <FileCheck className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                     </div>
                     <div>
                       <p className="text-sm font-bold text-slate-800 dark:text-slate-200 group-hover:text-[#942392] transition-colors">Approved Leave</p>
@@ -1222,18 +1222,18 @@ export default function WorkforceInsights() {
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
-                    <span className="text-2xl font-bold text-slate-700">{data.leaveMonitoring.approvedThisMonth}</span>
+                    <span className="text-2xl font-bold text-slate-700 dark:text-slate-100">{data.leaveMonitoring.approvedThisMonth}</span>
                     <ChevronRight className="w-5 h-5 text-foreground group-hover:text-[#942392] group-hover:translate-x-1 transition-all duration-300" />
                   </div>
                 </div>
 
                 <div 
                   onClick={() => navigate("/leave/admin?tab=approved")}
-                  className="flex items-center justify-between p-4 bg-slate-50/80 hover:bg-[#942392]/5 border border-transparent hover:border-[#942392]/20 rounded-lg transition-all duration-300 cursor-pointer group"
+                  className="flex items-center justify-between p-4 bg-slate-50/80 dark:bg-slate-800/60 hover:bg-[#942392]/5 border border-transparent hover:border-[#942392]/20 rounded-lg transition-all duration-300 cursor-pointer group"
                 >
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-blue-100/50 flex items-center justify-center transition-transform group-hover:scale-110 duration-300">
-                      <Users className="w-5 h-5 text-blue-600" />
+                    <div className="w-10 h-10 rounded-lg bg-blue-100/50 dark:bg-blue-950/40 flex items-center justify-center transition-transform group-hover:scale-110 duration-300">
+                      <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                     </div>
                     <div>
                       <p className="text-sm font-bold text-slate-800 dark:text-slate-200 group-hover:text-[#942392] transition-colors">Staff on Leave</p>
@@ -1241,7 +1241,7 @@ export default function WorkforceInsights() {
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
-                    <span className="text-2xl font-bold text-slate-700">{data.leaveMonitoring.staffOnLeaveToday}</span>
+                    <span className="text-2xl font-bold text-slate-700 dark:text-slate-100">{data.leaveMonitoring.staffOnLeaveToday}</span>
                     <ChevronRight className="w-5 h-5 text-foreground group-hover:text-[#942392] group-hover:translate-x-1 transition-all duration-300" />
                   </div>
                 </div>
@@ -1488,11 +1488,11 @@ export default function WorkforceInsights() {
               <div className="flex flex-col gap-3">
                 <div 
                   onClick={() => navigate("/leave/admin?tab=pending")}
-                  className="flex items-center justify-between p-4 bg-slate-50/80 hover:bg-[#942392]/5 border border-transparent hover:border-[#942392]/20 rounded-lg transition-all duration-300 cursor-pointer group"
+                  className="flex items-center justify-between p-4 bg-slate-50/80 dark:bg-slate-800/60 hover:bg-[#942392]/5 border border-transparent hover:border-[#942392]/20 rounded-lg transition-all duration-300 cursor-pointer group"
                 >
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-yellow-100/50 flex items-center justify-center transition-transform group-hover:scale-110 duration-300">
-                      <Clock className="w-5 h-5 text-yellow-600" />
+                    <div className="w-10 h-10 rounded-lg bg-yellow-100/50 dark:bg-yellow-950/40 flex items-center justify-center transition-transform group-hover:scale-110 duration-300">
+                      <Clock className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
                     </div>
                     <div>
                       <p className="text-sm font-bold text-slate-800 dark:text-slate-200 group-hover:text-[#942392] transition-colors">Pending Requests</p>
@@ -1500,18 +1500,18 @@ export default function WorkforceInsights() {
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
-                    <span className="text-2xl font-bold text-slate-700">{data.leaveMonitoring.pendingApproval}</span>
+                    <span className="text-2xl font-bold text-slate-700 dark:text-slate-100">{data.leaveMonitoring.pendingApproval}</span>
                     <ChevronRight className="w-5 h-5 text-foreground group-hover:text-[#942392] group-hover:translate-x-1 transition-all duration-300" />
                   </div>
                 </div>
 
                 <div 
                   onClick={() => navigate("/leave/admin?tab=approved")}
-                  className="flex items-center justify-between p-4 bg-slate-50/80 hover:bg-[#942392]/5 border border-transparent hover:border-[#942392]/20 rounded-lg transition-all duration-300 cursor-pointer group"
+                  className="flex items-center justify-between p-4 bg-slate-50/80 dark:bg-slate-800/60 hover:bg-[#942392]/5 border border-transparent hover:border-[#942392]/20 rounded-lg transition-all duration-300 cursor-pointer group"
                 >
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-emerald-100/50 flex items-center justify-center transition-transform group-hover:scale-110 duration-300">
-                      <FileCheck className="w-5 h-5 text-emerald-600" />
+                    <div className="w-10 h-10 rounded-lg bg-emerald-100/50 dark:bg-emerald-950/40 flex items-center justify-center transition-transform group-hover:scale-110 duration-300">
+                      <FileCheck className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                     </div>
                     <div>
                       <p className="text-sm font-bold text-slate-800 dark:text-slate-200 group-hover:text-[#942392] transition-colors">Approved Leave</p>
@@ -1519,18 +1519,18 @@ export default function WorkforceInsights() {
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
-                    <span className="text-2xl font-bold text-slate-700">{data.leaveMonitoring.approvedThisMonth}</span>
+                    <span className="text-2xl font-bold text-slate-700 dark:text-slate-100">{data.leaveMonitoring.approvedThisMonth}</span>
                     <ChevronRight className="w-5 h-5 text-foreground group-hover:text-[#942392] group-hover:translate-x-1 transition-all duration-300" />
                   </div>
                 </div>
 
                 <div 
                   onClick={() => navigate("/leave/admin?tab=approved")}
-                  className="flex items-center justify-between p-4 bg-slate-50/80 hover:bg-[#942392]/5 border border-transparent hover:border-[#942392]/20 rounded-lg transition-all duration-300 cursor-pointer group"
+                  className="flex items-center justify-between p-4 bg-slate-50/80 dark:bg-slate-800/60 hover:bg-[#942392]/5 border border-transparent hover:border-[#942392]/20 rounded-lg transition-all duration-300 cursor-pointer group"
                 >
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-blue-100/50 flex items-center justify-center transition-transform group-hover:scale-110 duration-300">
-                      <Users className="w-5 h-5 text-blue-600" />
+                    <div className="w-10 h-10 rounded-lg bg-blue-100/50 dark:bg-blue-950/40 flex items-center justify-center transition-transform group-hover:scale-110 duration-300">
+                      <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                     </div>
                     <div>
                       <p className="text-sm font-bold text-slate-800 dark:text-slate-200 group-hover:text-[#942392] transition-colors">Staff on Leave</p>
@@ -1538,7 +1538,7 @@ export default function WorkforceInsights() {
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
-                    <span className="text-2xl font-bold text-slate-700">{data.leaveMonitoring.staffOnLeaveToday}</span>
+                    <span className="text-2xl font-bold text-slate-700 dark:text-slate-100">{data.leaveMonitoring.staffOnLeaveToday}</span>
                     <ChevronRight className="w-5 h-5 text-foreground group-hover:text-[#942392] group-hover:translate-x-1 transition-all duration-300" />
                   </div>
                 </div>

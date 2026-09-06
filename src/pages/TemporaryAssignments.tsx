@@ -550,54 +550,54 @@ const TemporaryAssignments = () => {
             <div className="space-y-6 pt-4">
               {/* Employee Information */}
               <div>
-                <h3 className="text-sm font-bold text-slate-800 border-b pb-2 mb-3">Employee Information</h3>
+                <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 border-b border-slate-100 dark:border-slate-800 pb-2 mb-3">Employee Information</h3>
                 <div className="grid grid-cols-2 gap-x-4 gap-y-3">
                   <div>
                     <p className="text-xs text-foreground font-medium">Employee Name</p>
-                    <p className="text-sm font-semibold text-slate-800">{selectedAssignment.name}</p>
+                    <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{selectedAssignment.name}</p>
                   </div>
                   <div>
                     <p className="text-xs text-foreground font-medium">Employee ID</p>
-                    <p className="text-sm font-semibold text-slate-800">{selectedAssignment.user_id}</p>
+                    <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{selectedAssignment.user_id}</p>
                   </div>
                   <div>
                     <p className="text-xs text-foreground font-medium">Branch</p>
-                    <p className="text-sm font-semibold text-slate-800">{(selectedAssignment as any).primary_branch || 'HQ'}</p>
+                    <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{(selectedAssignment as any).primary_branch || 'HQ'}</p>
                   </div>
                   <div>
                     <p className="text-xs text-foreground font-medium">Department</p>
-                    <p className="text-sm font-semibold text-slate-800">{selectedAssignment.department}</p>
+                    <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{selectedAssignment.department}</p>
                   </div>
                   <div className="col-span-2">
                     <p className="text-xs text-foreground font-medium">Position</p>
-                    <p className="text-sm font-semibold text-slate-800">{(selectedAssignment.role === "finance_manager" || selectedAssignment.role === "Finance Manager" || selectedAssignment.role === "operation_manager" ? "Operation Manager" : selectedAssignment.role === "hr_admin" ? "HR Admin" : selectedAssignment.role.replace(/_/g, ' ')).toUpperCase()}</p>
+                    <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{(selectedAssignment.role === "finance_manager" || selectedAssignment.role === "Finance Manager" || selectedAssignment.role === "operation_manager" ? "Operation Manager" : selectedAssignment.role === "hr_admin" ? "HR Admin" : selectedAssignment.role.replace(/_/g, ' ')).toUpperCase()}</p>
                   </div>
                 </div>
               </div>
 
               {/* Assignment Information */}
               <div>
-                <h3 className="text-sm font-bold text-slate-800 border-b pb-2 mb-3">Assignment Information</h3>
+                <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 border-b border-slate-100 dark:border-slate-800 pb-2 mb-3">Assignment Information</h3>
                 <div className="grid grid-cols-2 gap-x-4 gap-y-3">
                   <div className="col-span-2">
                     <p className="text-xs text-foreground font-medium">Assignment Title</p>
-                    <p className="text-sm font-semibold text-slate-800">Temporary Branch Reassignment</p>
+                    <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">Temporary Branch Reassignment</p>
                   </div>
                   <div className="col-span-2">
                     <p className="text-xs text-foreground font-medium">Assignment Location</p>
-                    <p className="text-sm font-semibold text-slate-800">{selectedAssignment.temp_branch}</p>
+                    <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{selectedAssignment.temp_branch}</p>
                   </div>
                   <div>
                     <p className="text-xs text-foreground font-medium">Start Date</p>
-                    <p className="text-sm font-semibold text-slate-800">{format(new Date(selectedAssignment.start_date), "dd/MM/yyyy")}</p>
+                    <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{format(new Date(selectedAssignment.start_date), "dd/MM/yyyy")}</p>
                   </div>
                   <div>
                     <p className="text-xs text-foreground font-medium">End Date</p>
-                    <p className="text-sm font-semibold text-slate-800">{selectedAssignment.end_date ? format(new Date(selectedAssignment.end_date), "dd/MM/yyyy") : "Ongoing"}</p>
+                    <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{selectedAssignment.end_date ? format(new Date(selectedAssignment.end_date), "dd/MM/yyyy") : "Ongoing"}</p>
                   </div>
                   <div className="col-span-2">
                     <p className="text-xs text-foreground font-medium">Duration</p>
-                    <p className="text-sm font-semibold text-slate-800">
+                    <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">
                       {selectedAssignment.end_date 
                         ? `${Math.ceil((new Date(selectedAssignment.end_date).getTime() - new Date(selectedAssignment.start_date).getTime()) / (1000 * 3600 * 24))} Days`
                         : "Ongoing"}
@@ -608,17 +608,17 @@ const TemporaryAssignments = () => {
 
               {/* Purpose & Details */}
               <div>
-                <h3 className="text-sm font-bold text-slate-800 border-b pb-2 mb-3">Purpose & Details</h3>
+                <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 border-b border-slate-100 dark:border-slate-800 pb-2 mb-3">Purpose & Details</h3>
                 <div className="space-y-3">
                   <div>
                     <p className="text-xs text-foreground font-medium mb-1">Reason for Assignment</p>
-                    <div className="p-3 bg-slate-50 rounded border border-slate-100 text-sm text-slate-600">
+                    <div className="p-3 bg-slate-50 dark:bg-slate-900 rounded border border-slate-100 dark:border-slate-800 text-sm text-slate-600 dark:text-slate-300">
                       Not provided
                     </div>
                   </div>
                   <div>
                     <p className="text-xs text-foreground font-medium mb-1">Remarks</p>
-                    <div className="p-3 bg-slate-50 rounded border border-slate-100 text-sm text-slate-600 min-h-[60px]">
+                    <div className="p-3 bg-slate-50 dark:bg-slate-900 rounded border border-slate-100 dark:border-slate-800 text-sm text-slate-600 dark:text-slate-300 min-h-[60px]">
                       Not provided
                     </div>
                   </div>
@@ -627,15 +627,15 @@ const TemporaryAssignments = () => {
 
               {/* Approval Information */}
               <div>
-                <h3 className="text-sm font-bold text-slate-800 border-b pb-2 mb-3">Approval Information</h3>
+                <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 border-b border-slate-100 dark:border-slate-800 pb-2 mb-3">Approval Information</h3>
                 <div className="grid grid-cols-3 gap-x-4 gap-y-3">
                   <div>
                     <p className="text-xs text-foreground font-medium">Assigned By</p>
-                    <p className="text-sm font-semibold text-slate-800">HR Admin</p>
+                    <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">HR Admin</p>
                   </div>
                   <div>
                     <p className="text-xs text-foreground font-medium">Date</p>
-                    <p className="text-sm font-semibold text-slate-800">{format(new Date(selectedAssignment.start_date), "dd/MM/yyyy")}</p>
+                    <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{format(new Date(selectedAssignment.start_date), "dd/MM/yyyy")}</p>
                   </div>
                   <div>
                     <p className="text-xs text-foreground font-medium">Status</p>
@@ -671,7 +671,7 @@ const TemporaryAssignments = () => {
           <DialogHeader>
             <DialogTitle>Delete Temporary Assignment</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete the temporary assignment for <span className="font-bold text-slate-800">{deletingAssignment?.name}</span> to <span className="font-bold text-slate-800">{deletingAssignment?.temp_branch}</span>?
+              Are you sure you want to delete the temporary assignment for <span className="font-bold text-slate-800 dark:text-slate-100">{deletingAssignment?.name}</span> to <span className="font-bold text-slate-800 dark:text-slate-100">{deletingAssignment?.temp_branch}</span>?
               <br/><br/>
               This action cannot be undone.
             </DialogDescription>

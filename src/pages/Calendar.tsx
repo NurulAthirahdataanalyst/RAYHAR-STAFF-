@@ -9,6 +9,7 @@ import { useRole } from "@/contexts/RoleContext";
 import { useLocation } from "react-router-dom";
 import { API_BASE_URL } from "@/config/api";
 import ColorPickerPopover from "@/components/ColorPickerPopover";
+import { AnimatedCheckbox } from "@/components/ui/animated-checkbox";
 
 import PageActions from "@/components/layout/PageActions";
 import { 
@@ -1567,15 +1568,15 @@ export default function Calendar() {
                 />
               </div>
 
-              <div className="flex items-center gap-2">
-                <input 
-                  type="checkbox" 
+              <div className="flex items-center gap-2.5">
+                <AnimatedCheckbox 
                   id="allDay" 
                   checked={isAllDay} 
                   onChange={e => setIsAllDay(e.target.checked)} 
-                  className="rounded border-border text-[#FFFE00] focus:ring-[#FFFE00] w-4 h-4 cursor-pointer"
+                  color="#942392"
+                  size={18}
                 />
-                <label htmlFor="allDay" className="text-sm font-semibold text-slate-700 cursor-pointer select-none">All day</label>
+                <label htmlFor="allDay" className="text-sm font-semibold text-slate-700 dark:text-slate-200 cursor-pointer select-none">All day</label>
               </div>
 
               <div className="space-y-3">
