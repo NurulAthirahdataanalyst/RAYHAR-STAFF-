@@ -619,21 +619,6 @@ export default function OutstationAnalytics() {
                       <Cell key={`cell-${idx}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  {statusSummary.total > 0 && (
-                    <RechartsTooltip
-                      formatter={(value: number, name: string) => [
-                        `${value} Trip${value > 1 ? "s" : ""} (${Math.round((value / statusSummary.total) * 100)}%)`,
-                        name
-                      ]}
-                      contentStyle={{
-                        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                        borderRadius: '12px',
-                        border: '1px solid #e2e8f0',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                        fontSize: '11px'
-                      }}
-                    />
-                  )}
                 </PieChart>
               </ResponsiveContainer>
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
@@ -663,12 +648,9 @@ export default function OutstationAnalytics() {
                   </div>
                   <span className="text-xs font-bold text-blue-600 dark:text-blue-400">{statusSummary.completedPct}%</span>
                 </div>
-                <div className="flex items-end justify-between mt-1.5">
-                  <div>
-                    <div className="text-xl font-black text-slate-900 dark:text-white leading-none">{statusSummary.completed}</div>
-                    <div className="text-[10px] text-slate-400 font-medium mt-0.5">trips</div>
-                  </div>
-                  <ChevronRight className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 mb-0.5" />
+                <div className="flex items-baseline gap-1.5 mt-2">
+                  <span className="text-xl font-black text-slate-900 dark:text-white leading-none">{statusSummary.completed}</span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Trips</span>
                 </div>
               </div>
 
@@ -683,12 +665,9 @@ export default function OutstationAnalytics() {
                   </div>
                   <span className="text-xs font-bold text-cyan-600 dark:text-cyan-400">{statusSummary.ongoingPct}%</span>
                 </div>
-                <div className="flex items-end justify-between mt-1.5">
-                  <div>
-                    <div className="text-xl font-black text-slate-900 dark:text-white leading-none">{statusSummary.ongoing}</div>
-                    <div className="text-[10px] text-slate-400 font-medium mt-0.5">active</div>
-                  </div>
-                  <ChevronRight className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 mb-0.5" />
+                <div className="flex items-baseline gap-1.5 mt-2">
+                  <span className="text-xl font-black text-slate-900 dark:text-white leading-none">{statusSummary.ongoing}</span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Active</span>
                 </div>
               </div>
 
@@ -703,12 +682,9 @@ export default function OutstationAnalytics() {
                   </div>
                   <span className="text-xs font-bold text-amber-600 dark:text-amber-400">{statusSummary.pendingPct}%</span>
                 </div>
-                <div className="flex items-end justify-between mt-1.5">
-                  <div>
-                    <div className="text-xl font-black text-slate-900 dark:text-white leading-none">{statusSummary.pending}</div>
-                    <div className="text-[10px] text-slate-400 font-medium mt-0.5">in review</div>
-                  </div>
-                  <ChevronRight className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 mb-0.5" />
+                <div className="flex items-baseline gap-1.5 mt-2">
+                  <span className="text-xl font-black text-slate-900 dark:text-white leading-none">{statusSummary.pending}</span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">In Review</span>
                 </div>
               </div>
 
@@ -723,12 +699,9 @@ export default function OutstationAnalytics() {
                   </div>
                   <span className="text-xs font-bold text-slate-500 dark:text-slate-400">{statusSummary.cancelledPct}%</span>
                 </div>
-                <div className="flex items-end justify-between mt-1.5">
-                  <div>
-                    <div className="text-xl font-black text-slate-900 dark:text-white leading-none">{statusSummary.cancelled}</div>
-                    <div className="text-[10px] text-slate-400 font-medium mt-0.5">closed</div>
-                  </div>
-                  <ChevronRight className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 mb-0.5" />
+                <div className="flex items-baseline gap-1.5 mt-2">
+                  <span className="text-xl font-black text-slate-900 dark:text-white leading-none">{statusSummary.cancelled}</span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Closed</span>
                 </div>
               </div>
             </div>
