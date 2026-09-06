@@ -206,7 +206,7 @@ function computeMetrics(
 
   return {
     userId, name, branch, department: dept,
-    totalDays: total, onTimeDays: onTime, lateDays,
+    totalDays: totalValidDays, onTimeDays: onTime, lateDays,
     punctualityScore: punctuality,
     consistencyScore: consistency,
     overtimeHours: Math.round(overtime * 10) / 10,
