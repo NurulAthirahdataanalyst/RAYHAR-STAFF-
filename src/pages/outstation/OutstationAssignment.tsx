@@ -228,6 +228,10 @@ export default function OutstationAssignment() {
   }, [location.state, location.pathname, navigate]);
 
   const openEdit = (a: Assignment) => {
+    if ((a.status || "").toLowerCase() === "completed") {
+      toast.error("Completed outstation assignments cannot be edited.");
+      return;
+    }
     setEditTarget(a);
     setForm({
       destination: a.destination || "",
@@ -308,6 +312,13 @@ export default function OutstationAssignment() {
 
   const confirmDelete = async () => {
     if (!deleteTarget) return;
+    const target = assignments.find(a => a.id === deleteTarget);
+    if (target && (target.status || "").toLowerCase() === "completed") {
+      toast.error("Completed outstation assignments cannot be deleted.");
+      setDeleteDialogOpen(false);
+      setDeleteTarget(null);
+      return;
+    }
     setDeleting(true);
     try {
       const res = await fetch(`${API_BASE_URL}/api/outstation/${deleteTarget}?userId=${encodeURIComponent(userId || "")}`, { 
@@ -466,11 +477,37 @@ export default function OutstationAssignment() {
                       <TableCell className="px-2.5" onClick={(e) => e.stopPropagation()}>{statusBadge(a.status)}</TableCell>
                       <TableCell className="px-2.5" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center gap-1">
-                          <button onClick={() => openEdit(a)} className="p-1.5 rounded-lg hover:bg-blue-50 text-blue-500 transition-colors" title="Edit"><Edit2 className="w-3.5 h-3.5" /></button>
+                          {(a.status || "").toLowerCase() === "completed" ? (
+                            <button
+                              disabled
+                              className="p-1.5 rounded-lg text-gray-300 dark:text-gray-600 cursor-not-allowed opacity-40"
+                              title="Completed assignments cannot be edited"
+                            >
+                              <Edit2 className="w-3.5 h-3.5" />
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => openEdit(a)}
+                              className="p-1.5 rounded-lg hover:bg-blue-50 text-blue-500 transition-colors"
+                              title="Edit"
+                            >
+                              <Edit2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+
                           {a.status !== "Cancelled" && a.status !== "Completed" && (
                             <button onClick={() => handleCancel(a.id)} className="p-1.5 rounded-lg hover:bg-amber-50 text-amber-500 transition-colors" title="Cancel"><XCircle className="w-3.5 h-3.5" /></button>
                           )}
-                          {String(a.assigned_by) === String(userId) ? (
+
+                          {(a.status || "").toLowerCase() === "completed" ? (
+                            <button
+                              disabled
+                              className="p-1.5 rounded-lg text-gray-300 dark:text-gray-600 cursor-not-allowed opacity-40"
+                              title="Completed assignments cannot be deleted"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          ) : String(a.assigned_by) === String(userId) ? (
                             <button 
                               onClick={() => {
                                 setDeleteTarget(a.id);
@@ -484,7 +521,7 @@ export default function OutstationAssignment() {
                           ) : (
                             <button 
                               disabled 
-                              className="p-1.5 rounded-lg text-gray-300 dark:text-foreground cursor-not-allowed" 
+                              className="p-1.5 rounded-lg text-gray-300 dark:text-gray-600 cursor-not-allowed opacity-40" 
                               title="Only the user who created this assignment can delete it."
                             >
                               <Trash2 className="w-3.5 h-3.5" />

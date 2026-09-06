@@ -10056,6 +10056,13 @@ app.post('/api/outstation', async (req, res) => {
 app.put('/api/outstation/:id', async (req, res) => {
   try {
     const { id } = req.params;
+
+    const [checkRows] = await pool.query('SELECT status FROM outstation_assignments WHERE id = $1', [id]);
+    if (checkRows.length === 0) return res.status(404).json({ success: false, error: 'Assignment not found' });
+    if ((checkRows[0].status || '').toLowerCase() === 'completed') {
+      return res.status(400).json({ success: false, message: 'Completed outstation assignments cannot be edited.' });
+    }
+
     const {
       destination, client_company, purpose, project, meeting_title,
       start_date, start_time, end_date, end_time, total_days, status
@@ -10111,6 +10118,14 @@ app.delete('/api/outstation/:id', async (req, res) => {
       return res.status(404).json({ success: false, error: 'Assignment not found' });
     }
     const assignment = assignments[0];
+
+    // Check if assignment is completed
+    if ((assignment.status || '').toLowerCase() === 'completed') {
+      return res.status(400).json({
+        success: false,
+        message: 'Completed outstation assignments cannot be deleted.'
+      });
+    }
 
     // 2. Verify creator matches authenticated user
     req.user = req.user || {};
