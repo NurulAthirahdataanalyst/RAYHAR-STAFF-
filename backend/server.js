@@ -3733,14 +3733,67 @@ app.get("/api/notifications", async (req, res) => {
       };
     });
 
-    // 5. Fetch db notifications
+    // 5. Fetch Replacement Leave notifications active today
+    const fmtTodayMY = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
+    
+    let replacementNotifs = [];
+    try {
+      const [repRequests] = await pool.query(
+        `SELECT * FROM replacement_leave_requests 
+         WHERE employee_id = ? 
+           AND (replacement_date::date = CURRENT_DATE OR leave_date::date = CURRENT_DATE)
+           AND validation_status NOT IN ('Failed', 'Cancelled')`,
+        [user_id]
+      );
+
+      const [repLeaves] = await pool.query(
+        `SELECT * FROM leave_applications 
+         WHERE employee_id = ? 
+           AND UPPER(leave_type) IN ('REPLACEMENT LEAVE', 'CUTI GANTI')
+           AND status = 'Approved'
+           AND (start_date::date <= CURRENT_DATE AND end_date::date >= CURRENT_DATE)`,
+        [user_id]
+      );
+
+      repRequests.forEach(r => {
+        replacementNotifs.push({
+          id: `rep-req-${r.id}`,
+          user_id: user_id,
+          title: '🔔 REPLACEMENT LEAVE',
+          message: `Your Replacement Leave date is today, **${fmtTodayMY}**.\n\n⏰ Please clock in before your scheduled clock-in time ends.`,
+          type: 'replacement_leave',
+          is_read: false,
+          related_leave_id: r.leave_request_id || r.id,
+          created_at: r.created_at || new Date().toISOString()
+        });
+      });
+
+      repLeaves.forEach(l => {
+        if (!replacementNotifs.some(n => n.related_leave_id === l.id)) {
+          replacementNotifs.push({
+            id: `rep-leave-${l.id}`,
+            user_id: user_id,
+            title: '🔔 REPLACEMENT LEAVE',
+            message: `Your Replacement Leave date is today, **${fmtTodayMY}**.\n\n⏰ Please clock in before your scheduled clock-in time ends.`,
+            type: 'replacement_leave',
+            is_read: false,
+            related_leave_id: l.id,
+            created_at: l.created_at || new Date().toISOString()
+          });
+        }
+      });
+    } catch (repErr) {
+      console.error("Fetch Replacement Leave Notifs Error:", repErr);
+    }
+
+    // 6. Fetch db notifications
     const [dbRows] = await pool.query(
       `SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 50`,
       [user_id]
     );
 
-    // 6. Combine and sort
-    const combined = [...companyLeaveNotifs, ...dbRows].sort((a, b) => {
+    // 7. Combine and sort
+    const combined = [...companyLeaveNotifs, ...replacementNotifs, ...dbRows].sort((a, b) => {
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     });
 

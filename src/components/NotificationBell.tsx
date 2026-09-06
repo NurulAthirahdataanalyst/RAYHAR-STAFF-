@@ -41,6 +41,8 @@ export default function NotificationBell() {
 
       const readCompanyLeaves = JSON.parse(localStorage.getItem('readCompanyLeaves') || '[]');
       const deletedCompanyLeaves = JSON.parse(localStorage.getItem('deletedCompanyLeaves') || '[]');
+      const readTempAssignments = JSON.parse(localStorage.getItem('readTempAssignments') || '[]');
+      const readRepLeaves = JSON.parse(localStorage.getItem('readRepLeaves') || '[]');
       
       const resolvedUserId = user?.user_id || user?.id || user?.employee_id;
       const hrNotifs = JSON.parse(localStorage.getItem('hrNotifications') || '[]').filter((n: any) => String(n.user_id) === String(resolvedUserId) || String(n.user_id) === String(user?.user_id) || String(n.user_id) === String(user?.employee_id));
@@ -127,17 +129,19 @@ export default function NotificationBell() {
       } catch(e) {}
 
       const allNotifs = [...apiNotifs, ...hrNotifs, ...tempNotifs].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-      const readTempAssignments = JSON.parse(localStorage.getItem('readTempAssignments') || '[]');
       
       const mapped = allNotifs
         .filter((n: any) => !(typeof n.id === 'string' && n.id.startsWith('cl-') && deletedCompanyLeaves.includes(n.id)))
         .map((n: any) => {
           if (typeof n.id === 'string' && n.id.startsWith('cl-') && readCompanyLeaves.includes(n.id)) {
-              return { ...n, is_read: true };
-            }
-            if (typeof n.id === 'string' && n.id.startsWith('temp-') && readTempAssignments.includes(n.id)) {
-              return { ...n, is_read: true };
-            }
+            return { ...n, is_read: true };
+          }
+          if (typeof n.id === 'string' && n.id.startsWith('temp-') && readTempAssignments.includes(n.id)) {
+            return { ...n, is_read: true };
+          }
+          if (typeof n.id === 'string' && n.id.startsWith('rep-') && readRepLeaves.includes(n.id)) {
+            return { ...n, is_read: true };
+          }
           return n;
         });
       setNotifications(mapped);
@@ -183,6 +187,8 @@ export default function NotificationBell() {
       localStorage.setItem('hrNotifications', JSON.stringify(updatedHr));
 
       const readList = JSON.parse(localStorage.getItem('readCompanyLeaves') || '[]');
+      if (typeof id === 'string' && id.startsWith('cl-')) {
+        const readList = JSON.parse(localStorage.getItem('readCompanyLeaves') || '[]');
         if (!readList.includes(id)) {
           readList.push(id);
           localStorage.setItem('readCompanyLeaves', JSON.stringify(readList));
@@ -195,6 +201,15 @@ export default function NotificationBell() {
         if (!readList.includes(id)) {
           readList.push(id);
           localStorage.setItem('readTempAssignments', JSON.stringify(readList));
+        }
+        setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
+        setUnreadCount(prev => Math.max(0, prev - 1));
+        return;
+      } else if (typeof id === 'string' && id.startsWith('rep-')) {
+        const readList = JSON.parse(localStorage.getItem('readRepLeaves') || '[]');
+        if (!readList.includes(id)) {
+          readList.push(id);
+          localStorage.setItem('readRepLeaves', JSON.stringify(readList));
         }
         setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
         setUnreadCount(prev => Math.max(0, prev - 1));
@@ -217,14 +232,21 @@ export default function NotificationBell() {
         body: JSON.stringify({ user_id: user.user_id })
       });
 
-      // Mark all dynamic company leave notifications as read in localStorage
-      const readList = JSON.parse(localStorage.getItem('readCompanyLeaves') || '[]');
+      const clReadList = JSON.parse(localStorage.getItem('readCompanyLeaves') || '[]');
+      const tempReadList = JSON.parse(localStorage.getItem('readTempAssignments') || '[]');
+      const repReadList = JSON.parse(localStorage.getItem('readRepLeaves') || '[]');
+
       notifications.forEach(n => {
-        if (typeof n.id === 'string' && n.id.startsWith('cl-') && !readList.includes(n.id)) {
-          readList.push(n.id);
+        if (typeof n.id === 'string') {
+          if (n.id.startsWith('cl-') && !clReadList.includes(n.id)) clReadList.push(n.id);
+          if (n.id.startsWith('temp-') && !tempReadList.includes(n.id)) tempReadList.push(n.id);
+          if (n.id.startsWith('rep-') && !repReadList.includes(n.id)) repReadList.push(n.id);
         }
       });
-      localStorage.setItem('readCompanyLeaves', JSON.stringify(readList));
+
+      localStorage.setItem('readCompanyLeaves', JSON.stringify(clReadList));
+      localStorage.setItem('readTempAssignments', JSON.stringify(tempReadList));
+      localStorage.setItem('readRepLeaves', JSON.stringify(repReadList));
 
       setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
       setUnreadCount(0);
