@@ -536,8 +536,8 @@ export default function EmployeeAnalytics() {
   const deptOvertimeData = useMemo(() => {
     const map: Record<string, { dept: string; overtime: number; count: number }> = {};
     teamMetrics.forEach(m => {
-      const upperDept = (m.department || "OTHER").toUpperCase();
-      if (!map[upperDept]) map[upperDept] = { dept: upperDept.length > 12 ? upperDept.slice(0, 10) + "…" : upperDept, overtime: 0, count: 0 };
+      const upperDept = (m.department || "OTHER").toUpperCase().trim();
+      if (!map[upperDept]) map[upperDept] = { dept: upperDept, overtime: 0, count: 0 };
       map[upperDept].overtime += m.overtimeHours;
       map[upperDept].count++;
     });
@@ -918,11 +918,16 @@ export default function EmployeeAnalytics() {
                     </div>
                   ) : (
                     <>
-                      <ResponsiveContainer width="100%" height={180}>
-                        <BarChart data={deptOvertimeData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                      <ResponsiveContainer width="100%" height={220}>
+                        <BarChart data={deptOvertimeData} margin={{ top: 15, right: 10, left: -10, bottom: 32 }}>
                           <CartesianGrid strokeDasharray="3 3" stroke="rgba(59,130,246,0.05)" vertical={false} />
-                          <XAxis dataKey="dept" tick={{ fontSize: 8, fontWeight: 900, fill: "hsl(var(--muted-foreground))" }}
-                            axisLine={false} tickLine={false} />
+                          <XAxis
+                            dataKey="dept"
+                            interval={0}
+                            tick={(props: any) => <CustomXAxisTick {...props} angleMode="180" />}
+                            axisLine={false}
+                            tickLine={false}
+                          />
                           <YAxis tick={{ fontSize: 8, fontWeight: 900, fill: "hsl(var(--muted-foreground))" }}
                             axisLine={false} tickLine={false} />
                           <Tooltip contentStyle={tooltipStyle}
@@ -937,16 +942,22 @@ export default function EmployeeAnalytics() {
                       </ResponsiveContainer>
 
                       {/* Average OT Hours List */}
-                      <div className="mt-3 space-y-2">
-                        <p className="text-[8px] font-black text-foreground uppercase tracking-[0.2em] opacity-60">
+                      <div className="mt-4 space-y-2.5 pt-3 border-t border-border/40">
+                        <p className="text-[9px] font-black text-black dark:text-white uppercase tracking-widest">
                           Average OT Hours
                         </p>
-                        {deptOvertimeData.map(d => (
-                          <div key={d.dept} className="flex items-center justify-between gap-2">
-                            <span className="text-[10px] font-bold text-foreground truncate uppercase">{d.dept}</span>
-                            <span className="text-[10px] font-black text-amber-600">{d.avgOvertime.toFixed(1)}h avg</span>
-                          </div>
-                        ))}
+                        <div className="space-y-1.5">
+                          {deptOvertimeData.map(d => (
+                            <div key={d.dept} className="flex items-center justify-between gap-3 p-1 rounded-lg hover:bg-muted/30 transition-colors">
+                              <span className="text-[10px] font-black text-black dark:text-white uppercase">
+                                {d.dept}
+                              </span>
+                              <span className="text-[10px] font-black text-amber-600 dark:text-amber-400 shrink-0">
+                                {d.avgOvertime.toFixed(1)}h avg
+                              </span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </>
                   )}
