@@ -291,12 +291,13 @@ const YEARS = ["2027", "2026", "2025", "2024"];
 export default function EmployeeAnalytics() {
   const { role, userId, userName, userBranch, userDepartment } = useRole();
 
-  const isAdminView = ["branch_leader", "managing_director", "md", "finance_manager", "head_of_department", "operation_manager", "hr", "hr_admin", "admin"].includes(role?.toLowerCase());
-  const showOvertime = !["hr", "hr_admin"].includes(role?.toLowerCase()) && ["admin", "finance_manager", "managing_director", "md", "operation_manager", "head_of_department", "hod", "branch_leader"].includes(role?.toLowerCase());
+  const normRole = (role || "").toLowerCase().trim().replace(/ /g, "_");
+  const isAdminView = ["branch_leader", "managing_director", "md", "finance_manager", "head_of_department", "hod", "operation_manager", "hr", "hr_admin", "admin"].includes(normRole);
+  const showOvertime = !["hr", "hr_admin"].includes(normRole) && ["admin", "finance_manager", "managing_director", "md", "operation_manager", "head_of_department", "hod", "branch_leader"].includes(normRole);
   // Managing Director and Operation Manager do not want "Overtime by Employee" card
-  const showEmpOvertime = !["managing_director", "md", "operation_manager"].includes(role?.toLowerCase());
+  const showEmpOvertime = !["managing_director", "md", "operation_manager"].includes(normRole);
   // HOD and Branch Leader only see their own department, so don't show the multi-department trend
-  const showDeptOvertime = !["head_of_department", "hod", "branch_leader"].includes(role?.toLowerCase());
+  const showDeptOvertime = !["head_of_department", "hod", "branch_leader"].includes(normRole);
 
   const [selectedMonth, setSelectedMonth] = useState((new Date().getMonth() + 1).toString());
   const [selectedYear,  setSelectedYear]  = useState(new Date().getFullYear().toString());
@@ -830,7 +831,7 @@ export default function EmployeeAnalytics() {
                   ))}
                   <div className="ml-auto flex items-center gap-1.5 text-[9px] font-black text-[#942392] uppercase tracking-wider bg-[#942392]/10 px-3 py-1.5 rounded-xl font-bold">
                     <ArrowUpRight className="w-3.5 h-3.5 text-[#942392]" />
-                    Team Average OT: {(teamMetrics.reduce((s, m) => s + m.overtimeHours, 0) / teamMetrics.length).toFixed(1)}h
+                    Team Average OT: {teamMetrics.length > 0 ? (teamMetrics.reduce((s, m) => s + (m.overtimeHours || 0), 0) / teamMetrics.length).toFixed(1) : "0.0"}h
                   </div>
                 </div>
               </CardContent>

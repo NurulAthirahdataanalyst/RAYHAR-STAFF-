@@ -7224,7 +7224,7 @@ app.get("/api/reports/employee-rank", async (req, res) => {
 
     if (!isAllMonth) {
       query += ` AND EXTRACT(MONTH FROM a.clock_in) = ?`;
-      params = [lateTimeStr, requestedMonth, requestedYear];
+      params = [lateTimeStr, requestedYear, requestedMonth];
     }
 
     query += ` GROUP BY a.user_id`;

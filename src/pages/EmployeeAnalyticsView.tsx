@@ -39,13 +39,14 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
 
   const [companyLeaves, setCompanyLeaves] = useState<any[]>([]);
   const [outstations, setOutstations] = useState<any[]>([]);
-  const leaveRequests = propLeaveRequests;
+  const leaveRequests = Array.isArray(propLeaveRequests) ? propLeaveRequests : [];
   const [replacementLeaves, setReplacementLeaves] = useState<any[]>([]);
   const [temporaryAssignments, setTemporaryAssignments] = useState<any[]>([]);
 
   // Filter out any logs that were recorded on a Company Leave date
   const myLogs = useMemo(() => {
-    return rawMyLogs.filter(log => {
+    const logsArr = Array.isArray(rawMyLogs) ? rawMyLogs : [];
+    return logsArr.filter(log => {
       if (!log.clock_in) return true;
       const dateStr = getLocalDateString(log.clock_in);
       const isCompanyLeave = companyLeaves.some((cl: any) => {
