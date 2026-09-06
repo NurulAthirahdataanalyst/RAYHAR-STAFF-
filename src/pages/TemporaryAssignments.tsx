@@ -543,7 +543,7 @@ const TemporaryAssignments = () => {
       <Dialog open={showDetailsModal} onOpenChange={setShowDetailsModal}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold border-b pb-4">Temporary Assignment Details</DialogTitle>
+            <DialogTitle className="text-xl font-bold border-b border-slate-100 dark:border-slate-800 pb-4 text-slate-900 dark:text-slate-100">Temporary Assignment Details</DialogTitle>
           </DialogHeader>
 
           {selectedAssignment && (

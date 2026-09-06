@@ -28,25 +28,25 @@ const getInitials = (name: string) => {
 
 const getColors = (percent: number, idx: number) => {
   let progressColor = 'bg-emerald-500';
-  let badgeColor = 'bg-emerald-50 text-emerald-600';
-  let takenColor = 'text-emerald-600';
+  let badgeColor = 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border dark:border-emerald-800/40';
+  let takenColor = 'text-emerald-600 dark:text-emerald-400';
   
   if (percent >= 90) {
     progressColor = 'bg-red-600';
-    badgeColor = 'bg-red-50 text-red-600';
-    takenColor = 'text-red-600';
+    badgeColor = 'bg-red-50 text-red-600 dark:bg-red-950/50 dark:text-red-400 dark:border dark:border-red-800/40';
+    takenColor = 'text-red-600 dark:text-red-400';
   } else if (percent >= 75) {
     progressColor = 'bg-amber-500';
-    badgeColor = 'bg-orange-50 text-orange-600';
-    takenColor = 'text-orange-500';
+    badgeColor = 'bg-orange-50 text-orange-600 dark:bg-orange-950/50 dark:text-orange-400 dark:border dark:border-orange-800/40';
+    takenColor = 'text-orange-500 dark:text-orange-400';
   }
 
   const avatarColors = [
-    'bg-red-100 text-red-600',
-    'bg-amber-100 text-amber-600',
-    'bg-purple-100 text-purple-600',
-    'bg-emerald-100 text-emerald-600',
-    'bg-blue-100 text-blue-600',
+    'bg-red-100 text-red-600 dark:bg-red-950/60 dark:text-red-300',
+    'bg-amber-100 text-amber-600 dark:bg-amber-950/60 dark:text-amber-300',
+    'bg-purple-100 text-purple-600 dark:bg-purple-950/60 dark:text-purple-300',
+    'bg-emerald-100 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-300',
+    'bg-blue-100 text-blue-600 dark:bg-blue-950/60 dark:text-blue-300',
   ];
   const iconColors = [
     'text-purple-400',
@@ -98,7 +98,7 @@ export const EmployeesRequiringAttentionCard = ({ data = [], variant = 'grid', o
   const navigate = useNavigate();
   
   return (
-    <Card className="bg-white dark:bg-card border border-slate-200 dark:border-slate-800 rounded-[24px] shadow-sm overflow-hidden flex flex-col w-full">
+    <Card className="bg-card border border-border/80 rounded-[24px] shadow-sm overflow-hidden flex flex-col w-full">
       <div className="p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
@@ -217,7 +217,7 @@ export const EmployeesRequiringAttentionCard = ({ data = [], variant = 'grid', o
               const { progressColor, badgeColor, takenColor, avatarColor, iconColor } = getColors(percent, idx);
 
               return (
-                <div key={emp.id || idx} onClick={() => onEmployeeClick ? onEmployeeClick(emp.id) : navigate('/employees')} className="border border-slate-300 dark:border-slate-800 rounded-2xl p-4 hover:border-slate-400 dark:hover:border-slate-700 hover:shadow-md transition-all group flex flex-col bg-slate-50/30 dark:bg-slate-900/40 cursor-pointer">
+                <div key={emp.id || idx} onClick={() => onEmployeeClick ? onEmployeeClick(emp.id) : navigate('/employees')} className="border border-slate-200 dark:border-slate-800 rounded-2xl p-4 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md transition-all group flex flex-col bg-slate-50/60 dark:bg-slate-900/60 cursor-pointer">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3 min-w-0">
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 ${avatarColor}`}>

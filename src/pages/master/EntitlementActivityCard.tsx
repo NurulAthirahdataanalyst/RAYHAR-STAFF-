@@ -101,25 +101,25 @@ export default function EntitlementActivityCard({ onViewHistory }: Props) {
       label: 'Manual Adjustments', icon: ClipboardEdit,
       val:   count(thisMonthLogs, 'Manual Adjustment'),
       trend: trend(count(thisMonthLogs, 'Manual Adjustment'), count(prevMonthLogs, 'Manual Adjustment')),
-      color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-50 dark:bg-purple-950/20', dot: 'bg-purple-500', border: 'border-purple-100 dark:border-purple-900/40',
+      color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-50 dark:bg-purple-950/40', dot: 'bg-purple-500', border: 'border-purple-200 dark:border-purple-800/40',
     },
     {
       label: 'Carry Forward', icon: RotateCcw,
       val:   count(thisMonthLogs, 'Carry Forward'),
       trend: trend(count(thisMonthLogs, 'Carry Forward'), count(prevMonthLogs, 'Carry Forward')),
-      color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-950/20', dot: 'bg-blue-500', border: 'border-blue-100 dark:border-blue-900/40',
+      color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-950/40', dot: 'bg-blue-500', border: 'border-blue-200 dark:border-blue-800/40',
     },
     {
       label: 'Additional Allocation', icon: BadgePlus,
       val:   count(thisMonthLogs, 'Additional Allocation'),
       trend: trend(count(thisMonthLogs, 'Additional Allocation'), count(prevMonthLogs, 'Additional Allocation')),
-      color: 'text-orange-600 dark:text-orange-400', bg: 'bg-orange-50 dark:bg-orange-950/20', dot: 'bg-orange-500', border: 'border-orange-100 dark:border-orange-900/40',
+      color: 'text-orange-600 dark:text-orange-400', bg: 'bg-orange-50 dark:bg-orange-950/40', dot: 'bg-orange-500', border: 'border-orange-200 dark:border-orange-800/40',
     },
     {
       label: 'Deductions', icon: MinusCircle,
       val:   count(thisMonthLogs, 'Deduction'),
       trend: trend(count(thisMonthLogs, 'Deduction'), count(prevMonthLogs, 'Deduction')),
-      color: 'text-rose-600 dark:text-rose-400', bg: 'bg-rose-50 dark:bg-rose-950/20', dot: 'bg-rose-500', border: 'border-rose-100 dark:border-rose-900/40',
+      color: 'text-rose-600 dark:text-rose-400', bg: 'bg-rose-50 dark:bg-rose-950/40', dot: 'bg-rose-500', border: 'border-rose-200 dark:border-rose-800/40',
     },
   ];
 

@@ -241,12 +241,12 @@ export default function Role() {
           {/* Table */}
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left whitespace-nowrap">
-              <thead className="text-gray-700 dark:text-gray-200 font-semibold bg-gray-50/80 dark:bg-slate-800/80 border-b border-gray-100 dark:border-slate-800">
+              <thead className="text-gray-700 dark:text-gray-200 font-semibold bg-gray-50/80 dark:bg-slate-900 border-b border-gray-100 dark:border-slate-800">
                 <tr>
-                  <th className="px-6 py-4 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Role</th>
-                  <th className="px-6 py-4 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Created Date</th>
-                  <th className="px-6 py-4 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Status</th>
-                  <th className="px-6 py-4 w-32 text-right text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap"></th>
+                  <th className="px-6 py-4 text-[10px] font-black text-slate-900 dark:text-slate-200 uppercase tracking-widest whitespace-nowrap">Role</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-slate-900 dark:text-slate-200 uppercase tracking-widest whitespace-nowrap">Created Date</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-slate-900 dark:text-slate-200 uppercase tracking-widest whitespace-nowrap">Status</th>
+                  <th className="px-6 py-4 w-32 text-right text-[10px] font-black text-slate-900 dark:text-slate-200 uppercase tracking-widest whitespace-nowrap"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50 dark:divide-slate-800">
