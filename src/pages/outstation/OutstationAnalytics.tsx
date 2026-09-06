@@ -573,8 +573,8 @@ export default function OutstationAnalytics() {
                       Live
                     </span>
                   </div>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-medium">
-                    {statusDateSubtitle}
+                  <p className="text-xs text-foreground dark:text-foreground mt-0.5">
+                    Monitor the current status of all outstation assignments
                   </p>
                 </div>
               </div>
@@ -768,7 +768,10 @@ export default function OutstationAnalytics() {
         {/* Top Destinations */}
         <Card className="border border-slate-200/80 dark:border-slate-800 shadow-sm rounded-[16px] bg-white dark:bg-card flex flex-col h-full">
           <CardHeader className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex flex-row items-center justify-between">
-            <CardTitle className="text-base font-bold text-foreground dark:text-slate-100">Top Destinations</CardTitle>
+            <div>
+              <CardTitle className="text-base font-bold text-foreground dark:text-slate-100">Top Destinations</CardTitle>
+              <p className="text-xs text-foreground dark:text-foreground mt-0.5">View the most visited outstation destinations by staff</p>
+            </div>
             <select
               value={destinationLimit}
               onChange={e => setDestinationLimit(Number(e.target.value))}
@@ -814,6 +817,7 @@ export default function OutstationAnalytics() {
         <Card className="border border-slate-200/80 dark:border-slate-800 shadow-sm rounded-[16px] bg-white dark:bg-card flex flex-col h-full">
           <CardHeader className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
             <CardTitle className="text-base font-bold text-foreground dark:text-slate-100">Quick Summary</CardTitle>
+            <p className="text-xs text-foreground dark:text-foreground mt-0.5">Get a quick overview of today’s and upcoming outstation activity</p>
           </CardHeader>
           <CardContent className="p-4 grid gap-3">
             <div className="rounded-xl bg-slate-50 dark:bg-slate-800/50 p-3 text-xs flex justify-between items-center">
@@ -839,6 +843,7 @@ export default function OutstationAnalytics() {
           <Card className="border border-slate-200/80 dark:border-slate-800 shadow-sm rounded-[16px] bg-white dark:bg-card">
             <CardHeader className="px-6 py-4 border-b border-slate-100 dark:border-slate-800">
               <CardTitle className="text-base font-bold text-foreground dark:text-slate-100">Recent Outstation</CardTitle>
+              <p className="text-xs text-foreground dark:text-foreground mt-0.5">View the latest outstation assignments and their status</p>
             </CardHeader>
             <CardContent className="p-0">
               {loading ? (
@@ -892,6 +897,7 @@ export default function OutstationAnalytics() {
           <Card className="border border-slate-200/80 dark:border-slate-800 shadow-sm rounded-[16px] bg-white dark:bg-card">
             <CardHeader className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
               <CardTitle className="text-base font-bold text-foreground dark:text-slate-100">Upcoming Outstation</CardTitle>
+              <p className="text-xs text-foreground dark:text-foreground mt-0.5">Monitor upcoming outstation assignments and scheduled trips</p>
             </CardHeader>
             <CardContent className="p-4 space-y-3">
               {upcomingGroups.length === 0 ? (
