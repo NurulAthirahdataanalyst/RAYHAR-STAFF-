@@ -253,6 +253,91 @@ function ScoreRing({ score, color, size = 80 }: { score: number; color: string; 
   );
 }
 
+// Split name into 1 or 2 lines for chart XAxis
+function splitNameToLines(name: string): string[] {
+  if (!name) return [""];
+  const trimmed = name.trim();
+
+  // If 11 chars or less, keep on 1 line (e.g. "NUR SYUHADA", "MD KHAN")
+  if (trimmed.length <= 11) {
+    return [trimmed];
+  }
+
+  const words = trimmed.split(/\s+/);
+  if (words.length <= 1) {
+    return [trimmed];
+  }
+
+  if (words.length === 2) {
+    return [words[0], words[1]];
+  }
+
+  // 3 or more words: find best split point closest to middle length
+  let bestIdx = 1;
+  let minDiff = Infinity;
+  for (let i = 1; i < words.length; i++) {
+    const l1 = words.slice(0, i).join(" ");
+    const l2 = words.slice(i).join(" ");
+    const diff = Math.abs(l1.length - l2.length);
+    if (diff < minDiff) {
+      minDiff = diff;
+      bestIdx = i;
+    }
+  }
+
+  return [
+    words.slice(0, bestIdx).join(" "),
+    words.slice(bestIdx).join(" ")
+  ];
+}
+
+function CustomXAxisTick({ x, y, payload, angleMode }: any) {
+  const name = payload?.value || "";
+  const lines = splitNameToLines(name);
+
+  if (angleMode === "90") {
+    return (
+      <g transform={`translate(${x},${y + 6}) rotate(-90)`}>
+        <text
+          x={0}
+          y={0}
+          textAnchor="end"
+          fill="currentColor"
+          className="text-[8.5px] font-black text-black dark:text-white uppercase tracking-tight"
+        >
+          {lines.length === 1 ? (
+            <tspan x={-4} dy={3}>{lines[0]}</tspan>
+          ) : (
+            <>
+              <tspan x={-4} dy={-3}>{lines[0]}</tspan>
+              <tspan x={-4} dy={9}>{lines[1]}</tspan>
+            </>
+          )}
+        </text>
+      </g>
+    );
+  }
+
+  // Default: 180° Horizontal (1 or 2 lines flat straight)
+  return (
+    <g transform={`translate(${x},${y + 2})`}>
+      <text
+        x={0}
+        y={0}
+        textAnchor="middle"
+        fill="currentColor"
+        className="text-[8.5px] font-black text-black dark:text-white uppercase tracking-tight"
+      >
+        {lines.map((line, idx) => (
+          <tspan key={idx} x={0} dy={idx === 0 ? (lines.length === 1 ? 12 : 7) : 10}>
+            {line}
+          </tspan>
+        ))}
+      </text>
+    </g>
+  );
+}
+
 // ─── Metric Card ──────────────────────────────────────────────────────────────
 function MetricCard({ label, value, sub, icon: Icon, accent, trend }: {
   label: string; value: string | number; sub?: string;
@@ -320,6 +405,7 @@ export default function EmployeeAnalytics() {
   const [selectedEmpId, setSelectedEmpId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [entriesPerPage, setEntriesPerPage] = useState(5);
+  const [chartLabelAngle, setChartLabelAngle] = useState<'180' | '90'>('180');
 
   const tooltipStyle = {
     borderRadius: "16px", border: "none",
@@ -714,33 +800,73 @@ export default function EmployeeAnalytics() {
               {/* Employee Average Working Hours Bar */}
               {showEmpOvertime && (
                 <Card className="border-2 border-slate-300 dark:border-slate-600 bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20 hover:ring-amber-500/20 shadow-[0_15px_40px_rgba(0,0,0,0.05)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.25)]">
-                  <CardHeader className="border-b border-border/40">
-                    <CardTitle className="text-sm font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
-                      <div className="p-2 bg-amber-500/10 rounded-xl"><Timer className="w-4 h-4 text-amber-500" /></div>
-                      Average Working Hour By Employee
-                    </CardTitle>
-                    <CardDescription className="text-[10px] font-bold uppercase tracking-widest opacity-60 ml-11 italic">
-                      Average working hours per valid day
-                    </CardDescription>
+                  <CardHeader className="border-b border-border/40 pb-3">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div>
+                        <CardTitle className="text-sm font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
+                          <div className="p-2 bg-amber-500/10 rounded-xl"><Timer className="w-4 h-4 text-amber-500" /></div>
+                          Average Working Hour By Employee
+                        </CardTitle>
+                        <CardDescription className="text-[10px] font-bold uppercase tracking-widest opacity-60 ml-11 italic">
+                          Average working hours per valid day
+                        </CardDescription>
+                      </div>
+
+                      {/* Orientation Angle Toggle */}
+                      <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                        <button
+                          type="button"
+                          onClick={() => setChartLabelAngle('180')}
+                          className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all duration-200 ${
+                            chartLabelAngle === '180'
+                              ? 'bg-amber-500 text-white shadow-sm'
+                              : 'text-muted-foreground hover:text-foreground'
+                          }`}
+                        >
+                          180° Horizontal (1-2 Line)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setChartLabelAngle('90')}
+                          className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all duration-200 ${
+                            chartLabelAngle === '90'
+                              ? 'bg-amber-500 text-white shadow-sm'
+                              : 'text-muted-foreground hover:text-foreground'
+                          }`}
+                        >
+                          90° Vertical
+                        </button>
+                      </div>
+                    </div>
                   </CardHeader>
                   <CardContent className="pt-5">
                     {loadingTeam ? (
-                      <div className="h-[220px] flex items-center justify-center">
+                      <div className="h-[235px] flex items-center justify-center">
                         <Loader2 className="animate-spin text-[#942392] opacity-40 w-7 h-7" />
                       </div>
                     ) : (
-                      <ResponsiveContainer width="100%" height={220}>
+                      <ResponsiveContainer width="100%" height={chartLabelAngle === '90' ? 260 : 235}>
                         <BarChart
                           data={teamMetrics.filter(m => m.avgWorkHours > 0).slice(0, 10).map(m => ({
                             name: formatShortName(m.name),
                             avgWork: m.avgWorkHours,
                             formattedAvgWork: formatHoursMinutes(m.avgWorkHours),
                           }))}
-                          margin={{ top: 15, right: 10, left: -20, bottom: 20 }}
+                          margin={{
+                            top: 15,
+                            right: 15,
+                            left: -10,
+                            bottom: chartLabelAngle === '90' ? 55 : 32
+                          }}
                         >
                           <CartesianGrid strokeDasharray="3 3" stroke="rgba(123,0,153,0.05)" vertical={false} />
-                          <XAxis dataKey="name" tick={{ fontSize: 8, fontWeight: 900, fill: "hsl(var(--muted-foreground))" }}
-                            axisLine={false} tickLine={false} angle={-20} textAnchor="end" />
+                          <XAxis
+                            dataKey="name"
+                            interval={0}
+                            tick={(props: any) => <CustomXAxisTick {...props} angleMode={chartLabelAngle} />}
+                            axisLine={false}
+                            tickLine={false}
+                          />
                           <YAxis tick={{ fontSize: 8, fontWeight: 900, fill: "hsl(var(--muted-foreground))" }}
                             axisLine={false} tickLine={false} />
                           <Tooltip contentStyle={tooltipStyle}
