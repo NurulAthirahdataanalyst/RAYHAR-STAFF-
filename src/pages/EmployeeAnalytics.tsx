@@ -76,6 +76,14 @@ function parseHours(duration: string): number {
   return 0;
 }
 
+function formatHoursMinutes(decimalHours: number): string {
+  if (!decimalHours || isNaN(decimalHours) || decimalHours <= 0) return "0h 00m";
+  const totalMinutes = Math.round(decimalHours * 60);
+  const h = Math.floor(totalMinutes / 60);
+  const m = totalMinutes % 60;
+  return `${h}h ${m.toString().padStart(2, '0')}m`;
+}
+
 function computeMetrics(
   logs: AttendanceLog[],
   leaveCount: number,
@@ -86,22 +94,59 @@ function computeMetrics(
   isAllMonths?: boolean,
   selectedYear?: number
 ): EmployeeMetrics {
-  // Only count days where employee actually clocked in
-  const presentLogs = logs.filter(l => l.clock_in != null && (l.status === 'Present' || l.status === 'LATE' || l.status === 'Late' || (!l.status && l.clock_in)));
-  const total     = presentLogs.length;
-  const lateDays  = presentLogs.filter(l => Number(l.is_late) === 1 || l.is_late === true || l.status === "LATE" || l.status === "Late").length;
-  const onTime    = total - lateDays;
-  const punctuality = total > 0 ? Math.round((onTime / total) * 100) : 0;
-
-  // Overtime: hours > STANDARD_HOURS per day
-  let overtime = 0;
-  let totalHrs = 0;
-  presentLogs.forEach(l => {
+  // Exclude Leave, Absent, and incomplete days (must have valid Clock-In + Clock-Out)
+  const validLogs = logs.filter(l => {
+    if (!l.clock_in) return false;
+    // Must have a valid clock_out or time_out
+    if (!l.clock_out && !l.time_out) return false;
+    
+    // Check status for leave/absent/off/holiday
+    const st = (l.status || "").toUpperCase();
+    if (st.includes("LEAVE") || st.includes("ABSENT") || st.includes("OFF") || st.includes("HOLIDAY")) {
+      return false;
+    }
+    
     const h = parseHours(l.duration);
-    totalHrs += h;
-    if (h > STANDARD_HOURS) overtime += h - STANDARD_HOURS;
+    if (h > 0) return true;
+    
+    if (l.clock_in && (l.clock_out || l.time_out)) {
+      const inTime = new Date(l.clock_in).getTime();
+      const outTime = new Date(l.clock_out || l.time_out).getTime();
+      if (!isNaN(inTime) && !isNaN(outTime) && outTime > inTime) {
+        return true;
+      }
+    }
+    return false;
   });
-  const avgWork = total > 0 ? Math.round((totalHrs / total) * 10) / 10 : 0;
+
+  const totalValidDays = validLogs.length;
+  const lateDays = validLogs.filter(l => Number(l.is_late) === 1 || l.is_late === true || l.status === "LATE" || l.status === "Late").length;
+  const onTime = totalValidDays - lateDays;
+  const punctuality = totalValidDays > 0 ? Math.round((onTime / totalValidDays) * 100) : 0;
+
+  // Working Hours per attendance day: Clock-Out Time − Clock-In Time
+  let totalWorkingHours = 0;
+  let overtime = 0;
+
+  validLogs.forEach(l => {
+    let h = parseHours(l.duration);
+    if (h <= 0 && l.clock_in && (l.clock_out || l.time_out)) {
+      const inTime = new Date(l.clock_in).getTime();
+      const outTime = new Date(l.clock_out || l.time_out).getTime();
+      if (!isNaN(inTime) && !isNaN(outTime) && outTime > inTime) {
+        h = (outTime - inTime) / (1000 * 60 * 60);
+      }
+    }
+    if (h > 0) {
+      totalWorkingHours += h;
+      if (h > STANDARD_HOURS) {
+        overtime += (h - STANDARD_HOURS);
+      }
+    }
+  });
+
+  // Average Working Hour = Total Working Hours ÷ Total Valid Working Days
+  const avgWork = totalValidDays > 0 ? totalWorkingHours / totalValidDays : 0;
 
   // Absenteeism: rough estimate
   let monthsCount = 1;
@@ -114,11 +159,22 @@ function computeMetrics(
     }
   }
   const WORKING_DAYS = 22 * monthsCount;
-  const absent = Math.max(0, WORKING_DAYS - total);
+  const absent = Math.max(0, WORKING_DAYS - totalValidDays);
   const absenteeism = Math.round((absent / WORKING_DAYS) * 100);
 
   // Consistency: reward low variance in hours
-  const hourList = presentLogs.map(l => parseHours(l.duration)).filter(h => h > 0);
+  const hourList = validLogs.map(l => {
+    let h = parseHours(l.duration);
+    if (h <= 0 && l.clock_in && (l.clock_out || l.time_out)) {
+      const inTime = new Date(l.clock_in).getTime();
+      const outTime = new Date(l.clock_out || l.time_out).getTime();
+      if (!isNaN(inTime) && !isNaN(outTime) && outTime > inTime) {
+        h = (outTime - inTime) / (1000 * 60 * 60);
+      }
+    }
+    return h;
+  }).filter(h => h > 0);
+
   let consistency = 100;
   if (hourList.length > 1) {
     const mean = hourList.reduce((s, h) => s + h, 0) / hourList.length;
@@ -131,7 +187,7 @@ function computeMetrics(
   let streak = 0;
   let longestStreak = 0;
   let cur = 0;
-  for (const log of [...presentLogs].reverse()) {
+  for (const log of [...validLogs].reverse()) {
     if (!log.is_late && log.status !== "LATE") {
       cur++;
       longestStreak = Math.max(longestStreak, cur);
@@ -560,7 +616,7 @@ export default function EmployeeAnalytics() {
                                 { label: "Streak",        value: `${m.streak}d 🔥`,             color: "text-amber-600"    },
                                 { label: "Overtime",      value: `${m.overtimeHours}h`,         color: "text-amber-500"    },
                                 { label: "Consistency",   value: `${m.consistencyScore}%`,      color: "text-blue-600"     },
-                                { label: "Avg Hours",     value: `${m.avgWorkHours}h`,          color: "text-foreground"   },
+                                { label: "Avg Hours",     value: formatHoursMinutes(m.avgWorkHours), color: "text-foreground"   },
                                 { label: "Leave Taken",   value: `${m.leaveCount}`,             color: "text-[#942392]"    },
                               ].map(s => (
                                 <div key={s.label} className="bg-muted/20 p-3 rounded-2xl">
@@ -648,16 +704,16 @@ export default function EmployeeAnalytics() {
           {/* ── Overtime Monitoring ── */}
           {showOvertime && (showEmpOvertime || showDeptOvertime) && (
             <div className={`grid grid-cols-1 ${showEmpOvertime && showDeptOvertime ? 'lg:grid-cols-2' : ''} gap-4 sm:gap-5`}>
-              {/* Employee Overtime Bar */}
+              {/* Employee Average Working Hours Bar */}
               {showEmpOvertime && (
                 <Card className="border-2 border-slate-300 dark:border-slate-600 bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20 hover:ring-amber-500/20 shadow-[0_15px_40px_rgba(0,0,0,0.05)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.25)]">
                   <CardHeader className="border-b border-border/40">
                     <CardTitle className="text-sm font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
                       <div className="p-2 bg-amber-500/10 rounded-xl"><Timer className="w-4 h-4 text-amber-500" /></div>
-                      Overtime by Employee
+                      Average Working Hour By Employee
                     </CardTitle>
                     <CardDescription className="text-[10px] font-bold uppercase tracking-widest opacity-60 ml-11 italic">
-                      Hours beyond standard 8h/day
+                      Average working hours per valid day
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="pt-5">
@@ -668,11 +724,12 @@ export default function EmployeeAnalytics() {
                     ) : (
                       <ResponsiveContainer width="100%" height={220}>
                         <BarChart
-                          data={teamMetrics.filter(m => m.overtimeHours > 0).slice(0, 10).map(m => ({
+                          data={teamMetrics.filter(m => m.avgWorkHours > 0).slice(0, 10).map(m => ({
                             name: (m.name || "Unknown").split(" ")[0],
-                            overtime: m.overtimeHours,
+                            avgWork: m.avgWorkHours,
+                            formattedAvgWork: formatHoursMinutes(m.avgWorkHours),
                           }))}
-                          margin={{ top: 5, right: 10, left: -20, bottom: 20 }}
+                          margin={{ top: 15, right: 10, left: -20, bottom: 20 }}
                         >
                           <CartesianGrid strokeDasharray="3 3" stroke="rgba(123,0,153,0.05)" vertical={false} />
                           <XAxis dataKey="name" tick={{ fontSize: 8, fontWeight: 900, fill: "hsl(var(--muted-foreground))" }}
@@ -680,11 +737,10 @@ export default function EmployeeAnalytics() {
                           <YAxis tick={{ fontSize: 8, fontWeight: 900, fill: "hsl(var(--muted-foreground))" }}
                             axisLine={false} tickLine={false} />
                           <Tooltip contentStyle={tooltipStyle}
-                            formatter={(v: number) => [`${v}h`, "OT Hours"]}
+                            formatter={(v: number, name: string, item: any) => [item.payload?.formattedAvgWork || formatHoursMinutes(v), "Avg Working Hour"]}
                             labelStyle={{ fontWeight: 900, fontSize: 10 }} />
-                          <Bar dataKey="overtime" name="OT Hours" fill="#EAB308" radius={[6, 6, 0, 0]} barSize={20} animationDuration={1200}>
-                            <LabelList dataKey="overtime" position="top" style={{ fontSize: 8, fontWeight: 900, fill: "#EAB308" }}
-                              formatter={(v: number) => `${v}h`} />
+                          <Bar dataKey="avgWork" name="Avg Working Hour" fill="#EAB308" radius={[6, 6, 0, 0]} barSize={20} animationDuration={1200}>
+                            <LabelList dataKey="formattedAvgWork" position="top" style={{ fontSize: 8, fontWeight: 900, fill: "#EAB308" }} />
                           </Bar>
                         </BarChart>
                       </ResponsiveContainer>
