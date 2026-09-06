@@ -205,7 +205,7 @@ function computeMetrics(
   else if (punctuality >= 70) badge = "IMPROVING";
 
   return {
-    userId, name, branch, department: dept,
+    userId, name, branch, department: (dept || "").toUpperCase(),
     totalDays: totalValidDays, onTimeDays: onTime, lateDays,
     punctualityScore: punctuality,
     consistencyScore: consistency,
@@ -443,10 +443,10 @@ export default function EmployeeAnalytics() {
   const deptOvertimeData = useMemo(() => {
     const map: Record<string, { dept: string; overtime: number; count: number }> = {};
     teamMetrics.forEach(m => {
-      const key = m.department || "Other";
-      if (!map[key]) map[key] = { dept: key.length > 12 ? key.slice(0, 10) + "…" : key, overtime: 0, count: 0 };
-      map[key].overtime += m.overtimeHours;
-      map[key].count++;
+      const upperDept = (m.department || "OTHER").toUpperCase();
+      if (!map[upperDept]) map[upperDept] = { dept: upperDept.length > 12 ? upperDept.slice(0, 10) + "…" : upperDept, overtime: 0, count: 0 };
+      map[upperDept].overtime += m.overtimeHours;
+      map[upperDept].count++;
     });
     return Object.values(map).map(d => ({ ...d, avgOvertime: Math.round((d.overtime / d.count) * 10) / 10 }));
   }, [teamMetrics]);
@@ -797,7 +797,7 @@ export default function EmployeeAnalytics() {
                         </p>
                         {deptOvertimeData.map(d => (
                           <div key={d.dept} className="flex items-center justify-between gap-2">
-                            <span className="text-[10px] font-bold text-foreground truncate">{d.dept}</span>
+                            <span className="text-[10px] font-bold text-foreground truncate uppercase">{d.dept}</span>
                             <span className="text-[10px] font-black text-amber-600">{d.avgOvertime.toFixed(1)}h avg</span>
                           </div>
                         ))}
