@@ -823,7 +823,7 @@ export default function EmployeeAnalytics() {
                               : 'text-muted-foreground hover:text-foreground'
                           }`}
                         >
-                          180° Horizontal (1-2 Line)
+                          180° Horizontal
                         </button>
                         <button
                           type="button"
