@@ -295,9 +295,9 @@ function CustomXAxisTick({ x, y, payload, angleMode }: any) {
   const name = payload?.value || "";
   const lines = splitNameToLines(name);
 
-  if (angleMode === "90") {
+  if (angleMode === "135") {
     return (
-      <g transform={`translate(${x},${y + 6}) rotate(-90)`}>
+      <g transform={`translate(${x},${y + 6}) rotate(-45)`}>
         <text
           x={0}
           y={0}
@@ -309,8 +309,8 @@ function CustomXAxisTick({ x, y, payload, angleMode }: any) {
             <tspan x={-4} dy={3}>{lines[0]}</tspan>
           ) : (
             <>
-              <tspan x={-4} dy={-3}>{lines[0]}</tspan>
-              <tspan x={-4} dy={9}>{lines[1]}</tspan>
+              <tspan x={-4} dy={-2}>{lines[0]}</tspan>
+              <tspan x={-4} dy={10}>{lines[1]}</tspan>
             </>
           )}
         </text>
@@ -405,7 +405,7 @@ export default function EmployeeAnalytics() {
   const [selectedEmpId, setSelectedEmpId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [entriesPerPage, setEntriesPerPage] = useState(5);
-  const [chartLabelAngle, setChartLabelAngle] = useState<'180' | '90'>('180');
+  const [chartLabelAngle, setChartLabelAngle] = useState<'180' | '135'>('180');
 
   const tooltipStyle = {
     borderRadius: "16px", border: "none",
@@ -827,14 +827,14 @@ export default function EmployeeAnalytics() {
                         </button>
                         <button
                           type="button"
-                          onClick={() => setChartLabelAngle('90')}
+                          onClick={() => setChartLabelAngle('135')}
                           className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all duration-200 ${
-                            chartLabelAngle === '90'
+                            chartLabelAngle === '135'
                               ? 'bg-amber-500 text-white shadow-sm'
                               : 'text-muted-foreground hover:text-foreground'
                           }`}
                         >
-                          90° Vertical
+                          135° Vertical
                         </button>
                       </div>
                     </div>
@@ -845,7 +845,7 @@ export default function EmployeeAnalytics() {
                         <Loader2 className="animate-spin text-[#942392] opacity-40 w-7 h-7" />
                       </div>
                     ) : (
-                      <ResponsiveContainer width="100%" height={chartLabelAngle === '90' ? 260 : 235}>
+                      <ResponsiveContainer width="100%" height={chartLabelAngle === '135' ? 255 : 235}>
                         <BarChart
                           data={teamMetrics.filter(m => m.avgWorkHours > 0).slice(0, 10).map(m => ({
                             name: formatShortName(m.name),
@@ -855,8 +855,8 @@ export default function EmployeeAnalytics() {
                           margin={{
                             top: 15,
                             right: 15,
-                            left: -10,
-                            bottom: chartLabelAngle === '90' ? 55 : 32
+                            left: chartLabelAngle === '135' ? 10 : -10,
+                            bottom: chartLabelAngle === '135' ? 48 : 32
                           }}
                         >
                           <CartesianGrid strokeDasharray="3 3" stroke="rgba(123,0,153,0.05)" vertical={false} />
