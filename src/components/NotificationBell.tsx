@@ -177,16 +177,7 @@ export default function NotificationBell() {
         setUnreadCount(prev => Math.max(0, prev - 1));
         return;
       }
-      if (typeof id === 'string' && id.startsWith('hr-notif-')) {
-        const allHr = JSON.parse(localStorage.getItem('hrNotifications') || '[]');
-        const updated = allHr.filter((n: any) => n.id !== id);
-        localStorage.setItem('hrNotifications', JSON.stringify(updated));
-      } else if (typeof id === 'string' && id.startsWith('cl-')) {
-        const allHr = JSON.parse(localStorage.getItem('hrNotifications') || '[]');
-      const updatedHr = allHr.map((n: any) => n.user_id === user.user_id ? { ...n, is_read: true } : n);
-      localStorage.setItem('hrNotifications', JSON.stringify(updatedHr));
-
-      const readList = JSON.parse(localStorage.getItem('readCompanyLeaves') || '[]');
+      
       if (typeof id === 'string' && id.startsWith('cl-')) {
         const readList = JSON.parse(localStorage.getItem('readCompanyLeaves') || '[]');
         if (!readList.includes(id)) {
@@ -196,7 +187,9 @@ export default function NotificationBell() {
         setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
         setUnreadCount(prev => Math.max(0, prev - 1));
         return;
-      } else if (typeof id === 'string' && id.startsWith('temp-')) {
+      }
+
+      if (typeof id === 'string' && id.startsWith('temp-')) {
         const readList = JSON.parse(localStorage.getItem('readTempAssignments') || '[]');
         if (!readList.includes(id)) {
           readList.push(id);
@@ -205,7 +198,9 @@ export default function NotificationBell() {
         setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
         setUnreadCount(prev => Math.max(0, prev - 1));
         return;
-      } else if (typeof id === 'string' && id.startsWith('rep-')) {
+      }
+
+      if (typeof id === 'string' && id.startsWith('rep-')) {
         const readList = JSON.parse(localStorage.getItem('readRepLeaves') || '[]');
         if (!readList.includes(id)) {
           readList.push(id);
@@ -215,6 +210,7 @@ export default function NotificationBell() {
         setUnreadCount(prev => Math.max(0, prev - 1));
         return;
       }
+
       await fetch(`${API_BASE_URL}/api/notifications/${id}/read`, { method: "PATCH" });
       setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
       setUnreadCount(prev => Math.max(0, prev - 1));
