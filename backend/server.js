@@ -3702,9 +3702,25 @@ app.get("/api/notifications", async (req, res) => {
 
     // 4. Map to notification-like objects in-memory
     const companyLeaveNotifs = relevantLeaves.map(cl => {
-      const dateRange = cl.start_date === cl.end_date
-        ? new Date(cl.start_date).toLocaleDateString('en-MY', { day: 'numeric', month: 'long', year: 'numeric' })
-        : `${new Date(cl.start_date).toLocaleDateString('en-MY', { day: 'numeric', month: 'short' })} – ${new Date(cl.end_date).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })}`;
+      const formatDateStr = (dInput, options) => {
+        if (!dInput) return '';
+        const dStr = typeof dInput === 'string' ? dInput.split('T')[0] : new Date(dInput).toISOString().split('T')[0];
+        const parts = dStr.split('-').map(Number);
+        if (parts.length === 3) {
+          const dObj = new Date(parts[0], parts[1] - 1, parts[2]);
+          return dObj.toLocaleDateString('en-GB', options);
+        }
+        return new Date(dInput).toLocaleDateString('en-GB', options);
+      };
+
+      const sStr = cl.start_date ? (typeof cl.start_date === 'string' ? cl.start_date.split('T')[0] : new Date(cl.start_date).toISOString().split('T')[0]) : '';
+      const eStr = cl.end_date ? (typeof cl.end_date === 'string' ? cl.end_date.split('T')[0] : new Date(cl.end_date).toISOString().split('T')[0]) : sStr;
+
+      const isSingleDay = !eStr || sStr === eStr;
+      const dateRange = isSingleDay
+        ? formatDateStr(cl.start_date, { day: 'numeric', month: 'short', year: 'numeric' })
+        : `${formatDateStr(cl.start_date, { day: 'numeric', month: 'short' })} – ${formatDateStr(cl.end_date, { day: 'numeric', month: 'short', year: 'numeric' })}`;
+
       return {
         id: `cl-${cl.id}`,
         user_id: user_id,
