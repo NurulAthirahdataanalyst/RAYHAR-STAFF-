@@ -6503,6 +6503,8 @@ app.get("/api/reports/absent-employees", async (req, res) => {
       ${profileFilter}
       ORDER BY p.full_name ASC
       `,
+      queryParams
+    );
     const branchZoneMap = await getBranchZoneMap();
     const dateParts = queryDate.split('-');
     const queryDateObj = new Date(parseInt(dateParts[0]), parseInt(dateParts[1])-1, parseInt(dateParts[2]));
