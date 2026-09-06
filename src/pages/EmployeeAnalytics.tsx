@@ -627,7 +627,7 @@ export default function EmployeeAnalytics() {
                                 { label: "Leave Taken",   value: `${m.leaveCount}`,             color: "text-[#942392]"    },
                               ].map(s => (
                                 <div key={s.label} className="bg-muted/20 p-3 rounded-2xl">
-                                  <p className="text-[8px] font-black text-foreground uppercase opacity-60">{s.label}</p>
+                                  <p className="text-[9px] font-black text-black dark:text-white uppercase">{s.label}</p>
                                   <p className={`text-sm font-black mt-0.5 ${s.color}`}>{s.value}</p>
                                 </div>
                               ))}
