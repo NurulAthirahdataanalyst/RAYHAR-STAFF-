@@ -230,7 +230,6 @@ export default function OutstationAnalytics() {
   const statusSummary = useMemo(() => {
     let completed = 0;
     let ongoing = 0;
-    let pending = 0;
     let cancelled = 0;
 
     const items = eventGroups.length > 0 ? eventGroups : filteredAssignments;
@@ -239,10 +238,8 @@ export default function OutstationAnalytics() {
       const st = (item.status || "").toLowerCase();
       if (st === "completed") {
         completed += 1;
-      } else if (st === "active" || st === "ongoing") {
+      } else if (st === "active" || st === "ongoing" || st === "upcoming" || st === "pending") {
         ongoing += 1;
-      } else if (st === "upcoming" || st === "pending") {
-        pending += 1;
       } else if (st === "cancelled" || st === "canceled") {
         cancelled += 1;
       } else {
@@ -250,10 +247,9 @@ export default function OutstationAnalytics() {
       }
     });
 
-    const total = completed + ongoing + pending + cancelled;
+    const total = completed + ongoing + cancelled;
     const completedPct = total > 0 ? Math.round((completed / total) * 100) : 0;
     const ongoingPct = total > 0 ? Math.round((ongoing / total) * 100) : 0;
-    const pendingPct = total > 0 ? Math.round((pending / total) * 100) : 0;
     const cancelledPct = total > 0 ? Math.round((cancelled / total) * 100) : 0;
 
     let totalDays = 0;
@@ -276,12 +272,10 @@ export default function OutstationAnalytics() {
     return {
       completed,
       ongoing,
-      pending,
       cancelled,
       total,
       completedPct,
       ongoingPct,
-      pendingPct,
       cancelledPct,
       avgDuration,
       onScheduleRate,
@@ -292,7 +286,6 @@ export default function OutstationAnalytics() {
     const list = [
       { name: "Completed", value: statusSummary.completed, color: "#2563eb" },
       { name: "Ongoing", value: statusSummary.ongoing, color: "#06b6d4" },
-      { name: "Pending", value: statusSummary.pending, color: "#f59e0b" },
       { name: "Cancelled", value: statusSummary.cancelled, color: "#94a3b8" },
     ].filter(item => item.value > 0);
 
@@ -635,18 +628,18 @@ export default function OutstationAnalytics() {
               </div>
             </div>
 
-            {/* 2x2 Grid of 4 Status Cards (Compact) */}
-            <div className="grid grid-cols-2 gap-2.5 w-full my-1">
+            {/* Status Cards (3 columns: Completed, Ongoing, Cancelled) */}
+            <div className="grid grid-cols-3 gap-2.5 w-full my-1">
               {/* Completed */}
               <div className="bg-[#eff6ff] dark:bg-blue-950/30 border border-blue-100/90 dark:border-blue-900/40 rounded-xl p-2.5 flex flex-col justify-between">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 min-w-0">
                     <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center text-white shadow-2xs shrink-0">
                       <Check className="w-3 h-3 stroke-[3]" />
                     </div>
-                    <span className="text-xs font-bold text-slate-800 dark:text-slate-100">Completed</span>
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">Completed</span>
                   </div>
-                  <span className="text-xs font-bold text-blue-600 dark:text-blue-400">{statusSummary.completedPct}%</span>
+                  <span className="text-xs font-bold text-blue-600 dark:text-blue-400 shrink-0 ml-1">{statusSummary.completedPct}%</span>
                 </div>
                 <div className="flex items-baseline gap-1.5 mt-2">
                   <span className="text-xl font-black text-slate-900 dark:text-white leading-none">{statusSummary.completed}</span>
@@ -657,13 +650,13 @@ export default function OutstationAnalytics() {
               {/* Ongoing */}
               <div className="bg-[#ecfeff] dark:bg-cyan-950/30 border border-cyan-100/90 dark:border-cyan-900/40 rounded-xl p-2.5 flex flex-col justify-between">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 min-w-0">
                     <div className="w-5 h-5 rounded-full bg-cyan-500 flex items-center justify-center text-white shadow-2xs shrink-0">
                       <Clock className="w-3 h-3 stroke-[2.5]" />
                     </div>
-                    <span className="text-xs font-bold text-slate-800 dark:text-slate-100">Ongoing</span>
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">Ongoing</span>
                   </div>
-                  <span className="text-xs font-bold text-cyan-600 dark:text-cyan-400">{statusSummary.ongoingPct}%</span>
+                  <span className="text-xs font-bold text-cyan-600 dark:text-cyan-400 shrink-0 ml-1">{statusSummary.ongoingPct}%</span>
                 </div>
                 <div className="flex items-baseline gap-1.5 mt-2">
                   <span className="text-xl font-black text-slate-900 dark:text-white leading-none">{statusSummary.ongoing}</span>
@@ -671,33 +664,16 @@ export default function OutstationAnalytics() {
                 </div>
               </div>
 
-              {/* Pending */}
-              <div className="bg-[#fffbeb] dark:bg-amber-950/30 border border-amber-100/90 dark:border-amber-900/40 rounded-xl p-2.5 flex flex-col justify-between">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-5 h-5 rounded-full bg-amber-500 flex items-center justify-center text-white shadow-2xs shrink-0">
-                      <Hourglass className="w-3 h-3 stroke-[2.5]" />
-                    </div>
-                    <span className="text-xs font-bold text-slate-800 dark:text-slate-100">Pending</span>
-                  </div>
-                  <span className="text-xs font-bold text-amber-600 dark:text-amber-400">{statusSummary.pendingPct}%</span>
-                </div>
-                <div className="flex items-baseline gap-1.5 mt-2">
-                  <span className="text-xl font-black text-slate-900 dark:text-white leading-none">{statusSummary.pending}</span>
-                  <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">In Review</span>
-                </div>
-              </div>
-
               {/* Cancelled */}
               <div className="bg-[#f8fafc] dark:bg-slate-900/40 border border-slate-200/90 dark:border-slate-800 rounded-xl p-2.5 flex flex-col justify-between">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 min-w-0">
                     <div className="w-5 h-5 rounded-full bg-slate-400 flex items-center justify-center text-white shadow-2xs shrink-0">
                       <X className="w-3 h-3 stroke-[3]" />
                     </div>
-                    <span className="text-xs font-bold text-slate-800 dark:text-slate-100">Cancelled</span>
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">Cancelled</span>
                   </div>
-                  <span className="text-xs font-bold text-slate-500 dark:text-slate-400">{statusSummary.cancelledPct}%</span>
+                  <span className="text-xs font-bold text-slate-500 dark:text-slate-400 shrink-0 ml-1">{statusSummary.cancelledPct}%</span>
                 </div>
                 <div className="flex items-baseline gap-1.5 mt-2">
                   <span className="text-xl font-black text-slate-900 dark:text-white leading-none">{statusSummary.cancelled}</span>
