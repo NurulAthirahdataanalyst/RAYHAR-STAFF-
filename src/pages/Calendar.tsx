@@ -71,6 +71,27 @@ type CustomCategory = {
   color: string;
 };
 
+export const getCutiGantiDates = (reason?: string, fallbackTarikh?: string): string[] | null => {
+  if (!reason && !fallbackTarikh) return null;
+  let dates: string[] = [];
+  if (reason) {
+    const match = reason.match(/\[CUTI_GANTI_DATA:([\s\S]*?)\]\]/);
+    if (match) {
+      try {
+        const rawJson = reason.substring(reason.indexOf('[CUTI_GANTI_DATA:') + 17, reason.lastIndexOf(']]') + 1);
+        const rows = JSON.parse(rawJson);
+        if (Array.isArray(rows)) {
+          dates = rows.map((r: any) => r.tarikhCuti || r.tarikh || r.cutiDate || r.date).filter(Boolean);
+        }
+      } catch (e) {}
+    }
+  }
+  if (dates.length === 0 && fallbackTarikh) {
+    dates = [String(fallbackTarikh).substring(0, 10)];
+  }
+  return dates.length > 0 ? dates.map(d => String(d).substring(0, 10)) : null;
+};
+
 type LeaveRequest = {
   id: number;
   user_id: string;
@@ -79,6 +100,7 @@ type LeaveRequest = {
   end_date: string;
   reason?: string;
   status: string;
+  cuti_ganti_tarikh?: string;
 };
 
 type OutstationItem = {
@@ -1097,6 +1119,13 @@ export default function Calendar() {
                   const dayApprovedLeaves = leaveRequests.filter(l => {
                     const start = l.start_date?.split('T')[0] || l.start_date;
                     const end = l.end_date?.split('T')[0] || l.end_date;
+                    const isReplacement = l.leave_type && (l.leave_type.toUpperCase().includes('REPLACEMENT') || l.leave_type.toUpperCase().includes('GANTI'));
+                    if (isReplacement) {
+                      const cgDates = getCutiGantiDates(l.reason, l.cuti_ganti_tarikh);
+                      if (cgDates && cgDates.length > 0) {
+                        return cgDates.includes(dayStr) && (!activeFilter || activeFilter === 'leave');
+                      }
+                    }
                     return dayStr >= start && dayStr <= end && (!activeFilter || activeFilter === 'leave');
                   });
                   const dayOutstations = outstations.filter(o => {

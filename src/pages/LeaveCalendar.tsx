@@ -25,6 +25,27 @@ function statusColor(status: string) {
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const DAYS = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 
+export const getCutiGantiDates = (reason?: string, fallbackTarikh?: string): string[] | null => {
+  if (!reason && !fallbackTarikh) return null;
+  let dates: string[] = [];
+  if (reason) {
+    const match = reason.match(/\[CUTI_GANTI_DATA:([\s\S]*?)\]\]/);
+    if (match) {
+      try {
+        const rawJson = reason.substring(reason.indexOf('[CUTI_GANTI_DATA:') + 17, reason.lastIndexOf(']]') + 1);
+        const rows = JSON.parse(rawJson);
+        if (Array.isArray(rows)) {
+          dates = rows.map((r: any) => r.tarikhCuti || r.tarikh || r.cutiDate || r.date).filter(Boolean);
+        }
+      } catch (e) {}
+    }
+  }
+  if (dates.length === 0 && fallbackTarikh) {
+    dates = [String(fallbackTarikh).substring(0, 10)];
+  }
+  return dates.length > 0 ? dates.map(d => String(d).substring(0, 10)) : null;
+};
+
 type LeaveRequest = {
   leave_id: number;
   user_id: string;
@@ -36,6 +57,8 @@ type LeaveRequest = {
   end_date: string;
   status: string;
   days: number;
+  reason?: string;
+  cuti_ganti_tarikh?: string;
 };
 
 export default function LeaveCalendar() {
@@ -91,6 +114,15 @@ export default function LeaveCalendar() {
       else isMatchStatus = a.status === filterStatus;
       
       if (!isMatchStatus) return false;
+
+      const isReplacement = a.leave_type && (a.leave_type.toUpperCase().includes('REPLACEMENT') || a.leave_type.toUpperCase().includes('GANTI'));
+      if (isReplacement) {
+        const cgDates = getCutiGantiDates(a.reason, a.cuti_ganti_tarikh);
+        if (cgDates && cgDates.length > 0) {
+          return cgDates.includes(dateStr);
+        }
+      }
+
       return a.start_date.slice(0, 10) <= dateStr && a.end_date.slice(0, 10) >= dateStr;
     });
   };
@@ -306,7 +338,18 @@ function LeaveDetailPopup({ selectedEvent, requests, filterStatus, onClose }: { 
               <Calendar className="w-3.5 h-3.5 text-[#942392] shrink-0" />
               <div>
                 <p className="text-[9px] font-black uppercase text-foreground">Duration ({selectedEvent.days} {selectedEvent.days > 1 ? 'Days' : 'Day'})</p>
-                <p className="text-[12px] font-bold text-gray-800 dark:text-gray-100">{fmtDate(selectedEvent.start_date)} → {fmtDate(selectedEvent.end_date)}</p>
+                <p className="text-[12px] font-bold text-gray-800 dark:text-gray-100">
+                  {(() => {
+                    const isReplacement = selectedEvent.leave_type && (selectedEvent.leave_type.toUpperCase().includes('REPLACEMENT') || selectedEvent.leave_type.toUpperCase().includes('GANTI'));
+                    if (isReplacement) {
+                      const cgDates = getCutiGantiDates(selectedEvent.reason, selectedEvent.cuti_ganti_tarikh);
+                      if (cgDates && cgDates.length > 0) {
+                        return cgDates.map(d => fmtDate(d)).join(" , ");
+                      }
+                    }
+                    return `${fmtDate(selectedEvent.start_date)} → ${fmtDate(selectedEvent.end_date)}`;
+                  })()}
+                </p>
               </div>
             </div>
 

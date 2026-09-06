@@ -6940,7 +6940,7 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
 
     // 3. Fetch approved leaves for that date
     const [leaveRows] = await pool.query(
-      `SELECT DISTINCT lr.user_id, lr.leave_type
+      `SELECT DISTINCT lr.user_id, lr.leave_type, lr.reason, lr.cuti_ganti_tarikh
        FROM leave_requests lr
        JOIN profiles p ON p.user_id = lr.user_id
        WHERE lr.status = 'Approved' AND ?::date BETWEEN lr.start_date AND lr.end_date ${profileFilter}`,
@@ -6948,6 +6948,13 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
     );
     const leaveMap = {};
     for (const row of leaveRows) {
+      const isRepLeave = row.leave_type && (row.leave_type.toUpperCase().includes('REPLACEMENT') || row.leave_type.toUpperCase().includes('GANTI'));
+      if (isRepLeave) {
+        const cgDates = getCutiGantiDates(row.reason, row.cuti_ganti_tarikh);
+        if (cgDates && cgDates.length > 0 && !cgDates.includes(queryDate)) {
+          continue;
+        }
+      }
       leaveMap[row.user_id] = row;
     }
 
@@ -10168,6 +10175,27 @@ function broadcastWorkforceCalendarUpdate(payload = { type: 'refresh' }) {
 }
 
 // Helper to compute workforce calendar data for a given role/branch/dept
+function getCutiGantiDates(reason, fallbackTarikh) {
+  if (!reason && !fallbackTarikh) return null;
+  let dates = [];
+  if (reason) {
+    const match = reason.match(/\[CUTI_GANTI_DATA:([\s\S]*?)\]\]/);
+    if (match) {
+      try {
+        const rawJson = reason.substring(reason.indexOf('[CUTI_GANTI_DATA:') + 17, reason.lastIndexOf(']]') + 1);
+        const rows = JSON.parse(rawJson);
+        if (Array.isArray(rows)) {
+          dates = rows.map(r => r.tarikhCuti || r.tarikh || r.cutiDate || r.date).filter(Boolean);
+        }
+      } catch (e) {}
+    }
+  }
+  if (dates.length === 0 && fallbackTarikh) {
+    dates = [String(fallbackTarikh).substring(0, 10)];
+  }
+  return dates.length > 0 ? dates.map(d => String(d).substring(0, 10)) : null;
+}
+
 async function getWorkforceCalendarData(role, branch, department, month, year) {
   const params = [];
   let leaveWhere = '';
@@ -10192,7 +10220,8 @@ async function getWorkforceCalendarData(role, branch, department, month, year) {
     const leaveParamsCopy = [...params];
     const [leaveRows] = await pool.query(
       `SELECT lr.leave_id AS id, lr.user_id, p.full_name, p.branch, p.department,
-              lr.leave_type, lr.start_date, lr.end_date, lr.days, lr.status, lr.reason
+              lr.leave_type, lr.start_date, lr.end_date, lr.days, lr.status, lr.reason,
+              lr.cuti_ganti_tarikh
        FROM leave_requests lr
        JOIN profiles p ON p.user_id = lr.user_id
        WHERE lr.status IN ('Approved')
@@ -10213,6 +10242,8 @@ async function getWorkforceCalendarData(role, branch, department, month, year) {
         end_time: null,
         status: r.status,
         days: r.days,
+        reason: r.reason,
+        cuti_ganti_tarikh: r.cuti_ganti_tarikh,
       });
     }
   } catch (e) { console.error('workforce-calendar leave fetch error:', e); }

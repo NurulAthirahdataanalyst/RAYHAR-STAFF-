@@ -52,6 +52,27 @@ const MONTHS = ["January","February","March","April","May","June","July","August
 const DAYS   = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 const PRIMARY = "#942392";
 
+export const getCutiGantiDates = (reason?: string, fallbackTarikh?: string): string[] | null => {
+  if (!reason && !fallbackTarikh) return null;
+  let dates: string[] = [];
+  if (reason) {
+    const match = reason.match(/\[CUTI_GANTI_DATA:([\s\S]*?)\]\]/);
+    if (match) {
+      try {
+        const rawJson = reason.substring(reason.indexOf('[CUTI_GANTI_DATA:') + 17, reason.lastIndexOf(']]') + 1);
+        const rows = JSON.parse(rawJson);
+        if (Array.isArray(rows)) {
+          dates = rows.map((r: any) => r.tarikhCuti || r.tarikh || r.cutiDate || r.date).filter(Boolean);
+        }
+      } catch (e) {}
+    }
+  }
+  if (dates.length === 0 && fallbackTarikh) {
+    dates = [String(fallbackTarikh).substring(0, 10)];
+  }
+  return dates.length > 0 ? dates.map(d => String(d).substring(0, 10)) : null;
+};
+
 type WorkforceEvent = {
   id: string;
   source: "leave" | "outstation" | "company_leave";
@@ -71,6 +92,8 @@ type WorkforceEvent = {
   meeting_title?: string;
   client_company?: string;
   applies_to?: string;
+  reason?: string;
+  cuti_ganti_tarikh?: string;
 };
 
 const SOURCE_LABELS: Record<string, string> = {
@@ -249,6 +272,14 @@ export default function WorkforceCalendar() {
         if (filterBranch !== "__ALL__" && e.branch !== filterBranch) return false;
         if (filterDept !== "__ALL__" && e.department !== filterDept) return false;
         
+        const isReplacement = e.source === "leave" && e.type && (e.type.toUpperCase().includes('REPLACEMENT') || e.type.toUpperCase().includes('GANTI'));
+        if (isReplacement) {
+          const cgDates = getCutiGantiDates(e.reason, e.cuti_ganti_tarikh);
+          if (cgDates && cgDates.length > 0) {
+            return cgDates.includes(dateStr);
+          }
+        }
+
         const evStart = e.start_date.substring(0, 10);
         const evEnd = e.end_date.substring(0, 10);
         return evStart <= dateStr && evEnd >= dateStr;
