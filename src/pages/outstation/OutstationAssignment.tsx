@@ -379,11 +379,6 @@ export default function OutstationAssignment() {
             Outstation Assignments
           </CardTitle>
           <div className="flex items-center gap-3 flex-wrap">
-          
-            <div className="flex items-center gap-2">
-              <Filter className="w-4 h-4 text-foreground" />
-              <span className="text-[11px] font-black uppercase tracking-widest text-foreground dark:text-foreground">Filters</span>
-            </div>
             <div className="relative">
               <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-2.5 top-1/2 -translate-y-1/2" />
               <Input
