@@ -174,6 +174,11 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
   useEffect(() => {
     fetchEmployeesAndLeaves();
 
+    const handleAppRefresh = () => {
+      fetchEmployeesAndLeaves();
+    };
+    window.addEventListener("app:refresh", handleAppRefresh);
+
     // Establish real-time EventSource connection
     const streamUrl = `${API_BASE_URL}/api/presence/stream`;
     console.log("🔌 Connecting to Presence Stream:", streamUrl);
@@ -209,6 +214,7 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
     const interval = setInterval(fetchEmployeesAndLeaves, 30000); // refresh fallback every 30s
 
     return () => {
+      window.removeEventListener("app:refresh", handleAppRefresh);
       eventSource.close();
       clearInterval(interval);
     };

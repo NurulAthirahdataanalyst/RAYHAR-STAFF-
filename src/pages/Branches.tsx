@@ -43,7 +43,7 @@ import {
   Search,
   UserCheck, Leaf, Briefcase, UserX } from 'lucide-react';
 import { useEffect, useMemo, useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { API_BASE_URL } from "../config/api";
 import Map, { Marker as MapMarker, NavigationControl, useMap as useMapLibre } from 'react-map-gl/maplibre';
@@ -278,6 +278,19 @@ export default function Branches() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [selectedBranch, setSelectedBranch] = useState<any | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const branchParam = searchParams.get("branch");
+
+  const handleSelectBranch = (branchData: any) => {
+    setSearchParams({ branch: branchData.code });
+    setSelectedBranch(branchData);
+  };
+
+  const handleBackToBranches = () => {
+    setSearchParams({});
+    setSelectedBranch(null);
+  };
+
   const [employees, setEmployees] = useState<BranchEmployee[]>([]);
   const [temporaryStaff, setTemporaryStaff] = useState<any[]>([]);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
@@ -460,6 +473,51 @@ export default function Branches() {
     fetchBranchEmployees();
   }, [selectedBranch]);
 
+  useEffect(() => {
+    if (branchParam && allBranches.length > 0) {
+      if (!selectedBranch || selectedBranch.code !== branchParam) {
+        const found = allBranches.find((b) => b.code === branchParam);
+        if (found) {
+          const staticInfo = branches.find((sb) => sb.code === found.code);
+          const stat = branchStats.find((s) => s.branch === found.code);
+          const totalEmployees = stat ? stat.total_employees : 0;
+          const attendanceRate = stat ? stat.attendance_rate : 0;
+          const location =
+            found.location &&
+            found.location !== "Rayhar Branch" &&
+            found.location !== "RAYHAR BRANCH" &&
+            found.location !== ""
+              ? found.location
+              : staticInfo?.location || "Rayhar Branch";
+          const leader = found.leader_name || staticInfo?.leader || "Branch Leader";
+
+          setSelectedBranch({
+            ...found,
+            location,
+            leader,
+            employees: totalEmployees,
+            attendance: attendanceRate,
+            operating_zone: found.operating_zone || "ZONE_B",
+          });
+        }
+      }
+    } else if (!branchParam && selectedBranch) {
+      setSelectedBranch(null);
+    }
+  }, [branchParam, allBranches, branchStats]);
+
+  useEffect(() => {
+    const handleAppRefresh = () => {
+      fetchBranchesList();
+      fetchTemporaryStaff();
+      if (selectedBranch?.code) {
+        setSelectedBranch((prev: any) => (prev ? { ...prev } : null));
+      }
+    };
+    window.addEventListener("app:refresh", handleAppRefresh);
+    return () => window.removeEventListener("app:refresh", handleAppRefresh);
+  }, [selectedBranch?.code]);
+
   const handleDeleteBranch = async (e: React.MouseEvent, code: string) => {
     e.stopPropagation();
     if (code === "HQ") {
@@ -547,7 +605,7 @@ export default function Branches() {
                 type="button"
                 variant="ghost"
                 className="mb-1 gap-2 px-0 text-foreground hover:bg-transparent hover:text-[#942392] transition-colors touch-target no-global-hover"
-                onClick={() => setSelectedBranch(null)}
+                onClick={handleBackToBranches}
               >
                 <ArrowLeft className="h-4 w-4" />
                 <span className="text-[10px] font-black uppercase tracking-widest">
@@ -1167,7 +1225,7 @@ export default function Branches() {
                     key={branch.code}
                     className="cursor-pointer hover:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.18)] hover:-translate-y-1.5 transition-all duration-300 border border-slate-100 dark:border-slate-800/80 shadow-[0_16px_40px_rgba(0,0,0,0.07),0_4px_12px_rgba(0,0,0,0.03)] dark:shadow-[0_20px_45px_rgba(0,0,0,0.45)] bg-card overflow-visible group rounded-[32px] relative"
                     onClick={() =>
-                      setSelectedBranch({
+                      handleSelectBranch({
                         ...branch,
                         location,
                         leader,
@@ -1328,7 +1386,7 @@ export default function Branches() {
                             key={branch.code}
                             className="cursor-pointer hover:bg-muted/50 transition-colors group"
                             onClick={() =>
-                              setSelectedBranch({
+                              handleSelectBranch({
                                 ...branch,
                                 location,
                                 leader,

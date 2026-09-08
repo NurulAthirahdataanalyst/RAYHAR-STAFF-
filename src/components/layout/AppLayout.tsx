@@ -21,6 +21,8 @@ import { useShiftNotifications } from "@/hooks/useShiftNotifications";
 import { useBackgroundLocation } from "@/hooks/useBackgroundLocation";
 import { getBreadcrumbs } from "@/utils/breadcrumbs";
 import PageHeader from "./PageHeader";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, signOut } = useAuth();
@@ -36,6 +38,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   const [pendingApprovals, setPendingApprovals] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const queryClient = useQueryClient();
+
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     if (typeof window !== "undefined") {
       return localStorage.getItem("presenceSidebarCollapsed") === "true";
@@ -48,34 +54,62 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     window.dispatchEvent(new Event("presenceSidebarCollapsedChanged"));
   }, [sidebarCollapsed]);
 
-  useEffect(() => {
+  const fetchPendingApprovals = async () => {
     const dashboardUserId = user?.user_id || user?.id;
     if (!dashboardUserId) return;
 
-    const fetchPendingApprovals = async () => {
-      try {
-        const params = new URLSearchParams({
-          userId: dashboardUserId,
-          role: resolvedRole,
-          branch: userBranch || "",
-          department: userDepartment || "",
-        });
+    try {
+      const params = new URLSearchParams({
+        userId: dashboardUserId,
+        role: resolvedRole,
+        branch: userBranch || "",
+        department: userDepartment || "",
+      });
 
-        const response = await fetch(
-          `${API_BASE_URL}/api/dashboard-stats?${params}`
+      const response = await fetch(
+        `${API_BASE_URL}/api/dashboard-stats?${params}`
+      );
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        setPendingApprovals(
+          Number(data.stats?.pendingApprovals ?? data.stats?.pendingLeaves ?? 0)
         );
-        const data = await response.json();
-
-        if (response.ok && data.success) {
-          setPendingApprovals(
-            Number(data.stats?.pendingApprovals ?? data.stats?.pendingLeaves ?? 0)
-          );
-        }
-      } catch (error) {
-        console.error("Quick Management sync error:", error);
       }
-    };
+    } catch (error) {
+      console.error("Quick Management sync error:", error);
+    }
+  };
 
+  const handleRefresh = async () => {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+
+    try {
+      // 1. Dispatch in-app refresh event for active views to re-fetch their data
+      window.dispatchEvent(new CustomEvent("app:refresh"));
+
+      // 2. Invalidate and refetch all active TanStack queries
+      await queryClient.invalidateQueries();
+
+      // 3. Re-fetch pending approvals count in the layout
+      await fetchPendingApprovals();
+
+      // 4. Update key to smoothly remount/re-render the active page content
+      setRefreshKey((prev) => prev + 1);
+
+      toast.success("Page refreshed successfully", { duration: 1500 });
+    } catch (error) {
+      console.error("Refresh layout error:", error);
+      setRefreshKey((prev) => prev + 1);
+    } finally {
+      setTimeout(() => {
+        setIsRefreshing(false);
+      }, 600);
+    }
+  };
+
+  useEffect(() => {
     void fetchPendingApprovals();
     const interval = setInterval(fetchPendingApprovals, 10000);
 
@@ -242,9 +276,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </div>
             
             <div className="flex items-center gap-4 relative z-10 ml-auto shrink-0">
-              <button onClick={() => window.location.reload()} className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl hover:bg-white/10 transition-colors text-white font-semibold text-xs border border-white/20 bg-white/5">
-                <RefreshCw className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Refresh</span>
+              <button 
+                onClick={handleRefresh} 
+                disabled={isRefreshing}
+                className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl hover:bg-white/10 transition-all text-white font-semibold text-xs border border-white/20 bg-white/5 active:scale-95 disabled:opacity-75 cursor-pointer"
+                title="Kemaskini Halaman / Refresh Page"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin text-purple-300" : ""}`} />
+                <span className="hidden sm:inline">{isRefreshing ? "Refreshing..." : "Refresh"}</span>
               </button>
               <button 
                 onClick={toggleTheme} 
@@ -316,8 +355,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </div>
 
             <div className="flex items-center gap-2">
-              <button onClick={() => window.location.reload()} className="p-1.5 rounded-md hover:bg-white/10 transition-colors">
-                <RefreshCw className="w-4 h-4 text-white/80" />
+              <button 
+                onClick={handleRefresh} 
+                disabled={isRefreshing}
+                className="p-1.5 rounded-md hover:bg-white/10 transition-all text-white/80 active:scale-95 disabled:opacity-75 cursor-pointer"
+                title="Kemaskini Halaman / Refresh Page"
+              >
+                <RefreshCw className={`w-4 h-4 text-white/80 ${isRefreshing ? "animate-spin text-purple-300" : ""}`} />
               </button>
               <button 
                 onClick={toggleTheme} 
@@ -369,7 +413,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             {/* Ruang Kerja Utama (70% - 90%) */}
             <div className="flex-1 min-w-0 space-y-2.5 sm:space-y-3 transition-all duration-500 ease-in-out w-full">
               {location.pathname !== "/" && location.pathname !== "/analytics" && location.pathname !== "/settings" && <PageHeader />}
-              <div className="w-full">
+              <div key={refreshKey} className="w-full">
                 {children}
               </div>
             </div>
