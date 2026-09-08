@@ -49,21 +49,37 @@ export default function DepartmentReports() {
     }
   };
 
+  const isInvalidDepartment = (dept?: string | null) => {
+    if (!dept) return true;
+    const trimmed = dept.trim();
+    return (
+      trimmed === "" ||
+      trimmed === "--" ||
+      trimmed === "-" ||
+      trimmed.toLowerCase() === "general" ||
+      trimmed.toLowerCase() === "null" ||
+      trimmed.toLowerCase() === "undefined"
+    );
+  };
+
   // Get unique branches and departments for dropdown filters
   const branches = ["All", ...new Set(employees.map(e => e.branch || 'HQ').filter(Boolean))];
-  const departments = ["All", ...new Set(employees.map(e => e.department || '--').filter(Boolean))];
+  const departments = ["All", ...new Set(employees.map(e => (e.department || '').trim()).filter(d => !isInvalidDepartment(d)))];
 
   // Filter employees based on selected dropdown options
   const filteredEmployees = employees.filter(e => {
     const matchesBranch = selectedBranch === "All" || (e.branch || 'HQ') === selectedBranch;
-    const matchesDept = selectedDept === "All" || (e.department || '--') === selectedDept;
+    const matchesDept = selectedDept === "All" || (e.department || '').trim() === selectedDept;
     return matchesBranch && matchesDept;
   });
 
-  // Group by department using filtered employees list
+  // Group by department using filtered employees list (exclude invalid department like '--')
   const deptMap: Record<string, { branch: string, headcount: number, active: number }> = {};
   filteredEmployees.forEach(e => {
-    const key = `${e.department || '--'} - ${e.branch || 'HQ'}`;
+    const deptName = (e.department || '').trim();
+    if (isInvalidDepartment(deptName)) return;
+
+    const key = `${deptName} - ${e.branch || 'HQ'}`;
     if (!deptMap[key]) {
       deptMap[key] = { branch: e.branch || 'HQ', headcount: 0, active: 0 };
     }
@@ -84,12 +100,15 @@ export default function DepartmentReports() {
     
   // Aggregate branch list by branch
   const branchMap: Record<string, { headcount: number, active: number }> = {};
-  deptArray.filter(e => e.branch !== 'HQ').forEach(e => {
-    if (!branchMap[e.branch]) {
-      branchMap[e.branch] = { headcount: 0, active: 0 };
+  filteredEmployees.filter(e => (e.branch || 'HQ') !== 'HQ').forEach(e => {
+    const b = e.branch || 'HQ';
+    if (!branchMap[b]) {
+      branchMap[b] = { headcount: 0, active: 0 };
     }
-    branchMap[e.branch].headcount += e.headcount;
-    branchMap[e.branch].active += e.active;
+    branchMap[b].headcount += 1;
+    if (e.status !== 'Inactive') {
+      branchMap[b].active += 1;
+    }
   });
   
   const branchList = Object.entries(branchMap).map(([branch, stats]) => ({
@@ -100,12 +119,20 @@ export default function DepartmentReports() {
 
   const handleExportCSV = () => {
     const headers = ["Department", "Branch", "Total Headcount", "Active Employees"];
-    const rows = deptArray.map(a => [
-      `"${(a.department || '').replace(/"/g, '""')}"`,
-      `"${(a.branch || '').replace(/"/g, '""')}"`,
-      a.headcount,
-      a.active
-    ]);
+    const rows = [
+      ...hqList.map(a => [
+        `"${(a.department || '').replace(/"/g, '""')}"`,
+        `"HQ"`,
+        a.headcount,
+        a.active
+      ]),
+      ...branchList.map(b => [
+        `"-"`,
+        `"${(b.branch || '').replace(/"/g, '""')}"`,
+        b.headcount,
+        b.active
+      ])
+    ];
 
     const csvContent = "\ufeff" + [
       headers.join(","),
@@ -192,7 +219,7 @@ export default function DepartmentReports() {
               </div>
               <div>
                 <p className="text-sm font-medium text-foreground">Total Department</p>
-                <h3 className="text-3xl font-bold mt-1">{new Set(deptArray.filter(d => d.branch === 'HQ').map(d => d.department)).size}</h3>
+                <h3 className="text-3xl font-bold mt-1">{hqList.length}</h3>
               </div>
             </CardContent>
           </Card>
@@ -204,7 +231,7 @@ export default function DepartmentReports() {
               </div>
               <div>
                 <p className="text-sm font-medium text-foreground">Total Branch</p>
-                <h3 className="text-3xl font-bold mt-1">{new Set(deptArray.filter(d => d.branch !== 'HQ').map(d => d.branch)).size}</h3>
+                <h3 className="text-3xl font-bold mt-1">{branchList.length}</h3>
               </div>
             </CardContent>
           </Card>
@@ -231,7 +258,7 @@ export default function DepartmentReports() {
               <div>
                 <p className="text-sm font-medium text-foreground">Total Employees (Department)</p>
                 <h3 className="text-3xl font-bold mt-1 text-purple-600 dark:text-purple-400">
-                  {deptArray.filter(d => d.branch === 'HQ').reduce((sum, item) => sum + item.headcount, 0)}
+                  {hqList.reduce((sum, item) => sum + item.headcount, 0)}
                 </h3>
               </div>
             </CardContent>
@@ -245,7 +272,7 @@ export default function DepartmentReports() {
               <div>
                 <p className="text-sm font-medium text-foreground">Total Employees (All Branch)</p>
                 <h3 className="text-3xl font-bold mt-1 text-orange-600 dark:text-orange-400">
-                  {deptArray.filter(d => d.branch !== 'HQ').reduce((sum, item) => sum + item.headcount, 0)}
+                  {branchList.reduce((sum, item) => sum + item.headcount, 0)}
                 </h3>
               </div>
             </CardContent>
