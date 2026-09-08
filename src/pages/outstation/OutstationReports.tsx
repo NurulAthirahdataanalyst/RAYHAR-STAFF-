@@ -469,24 +469,24 @@ export default function OutstationReports() {
                     <MonthPicker
                       monthYear={selectedMonthYear}
                       onSelectMonthYear={setSelectedMonthYear}
-                      className="appearance-none flex items-center justify-between px-3 py-1.5 bg-gray-50 dark:bg-card border border-slate-200 dark:border-slate-800 text-foreground dark:text-slate-100 text-xs font-black rounded-md shadow-sm outline-none cursor-pointer h-8 gap-2 hover:border-[#942392]/40"
+                      className="appearance-none flex items-center justify-between px-3 py-1.5 bg-gray-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-foreground dark:text-slate-100 text-xs font-black rounded-md shadow-sm outline-none cursor-pointer h-8 gap-2 hover:border-[#942392]/40"
                     />
                   ) : (
                     <YearPopover
                       year={selectedYear}
                       onSelectYear={setSelectedYear}
-                      className="appearance-none flex items-center justify-between px-3 py-1.5 bg-gray-50 dark:bg-card border border-slate-200 dark:border-slate-800 text-foreground dark:text-slate-100 text-xs font-black rounded-md shadow-sm outline-none cursor-pointer h-8 gap-2 hover:border-yellow-500/40"
+                      className="appearance-none flex items-center justify-between px-3 py-1.5 bg-gray-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-foreground dark:text-slate-100 text-xs font-black rounded-md shadow-sm outline-none cursor-pointer h-8 gap-2 hover:border-yellow-500/40"
                     />
                   )}
                   <div className="relative">
                     <Search className="w-3.5 h-3.5 text-foreground absolute left-2.5 top-1/2 -translate-y-1/2" />
-                    <Input placeholder="Search event..." value={filterSearch} onChange={e => setFilterSearch(e.target.value)} className="pl-8 h-8 text-xs w-44 bg-gray-50 dark:bg-card dark:border-slate-800 dark:text-slate-100" />
+                    <Input placeholder="Search event..." value={filterSearch} onChange={e => setFilterSearch(e.target.value)} className="pl-8 h-8 text-xs w-44 bg-gray-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-foreground dark:text-slate-100" />
                   </div>
                   <Select value={filterStatus} onValueChange={setFilterStatus}>
-                    <SelectTrigger className="w-[130px] h-8 text-xs bg-gray-50 dark:bg-card dark:border-slate-800 dark:text-slate-100">
+                    <SelectTrigger className="w-[130px] h-8 text-xs bg-gray-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-foreground dark:text-slate-100">
                       <SelectValue placeholder="Status">{filterStatus === "All" ? "All Status" : filterStatus}</SelectValue>
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-foreground dark:text-slate-100">
                       {["All","Active","Upcoming","Completed","Cancelled"].map(s => <SelectItem key={s} value={s}>{s === "All" ? "All Status" : s}</SelectItem>)}
                     </SelectContent>
                   </Select>
@@ -495,24 +495,24 @@ export default function OutstationReports() {
                 /* Event Details filters: Branch → Dept → Search (far right) */
                 <>
                   <Select value={filterBranch} onValueChange={setFilterBranch}>
-                    <SelectTrigger className="w-[140px] h-8 text-xs bg-gray-50 dark:bg-card dark:border-slate-800 dark:text-slate-100">
+                    <SelectTrigger className="w-[140px] h-8 text-xs bg-gray-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-foreground dark:text-slate-100">
                       <SelectValue placeholder="Branch">{filterBranch === "All" ? "All Branch" : filterBranch}</SelectValue>
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-foreground dark:text-slate-100">
                       {branches.map(b => <SelectItem key={b} value={b}>{b === "All" ? "All Branch" : b}</SelectItem>)}
                     </SelectContent>
                   </Select>
                   <Select value={filterDept} onValueChange={setFilterDept}>
-                    <SelectTrigger className="w-[140px] h-8 text-xs bg-gray-50 dark:bg-card dark:border-slate-800 dark:text-slate-100">
+                    <SelectTrigger className="w-[140px] h-8 text-xs bg-gray-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-foreground dark:text-slate-100">
                       <SelectValue placeholder="Department">{filterDept === "All" ? "All Department" : filterDept}</SelectValue>
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-foreground dark:text-slate-100">
                       {departments.map(d => <SelectItem key={d} value={d}>{d === "All" ? "All Department" : d}</SelectItem>)}
                     </SelectContent>
                   </Select>
                   <div className="relative">
                     <Search className="w-3.5 h-3.5 text-foreground absolute left-2.5 top-1/2 -translate-y-1/2" />
-                    <Input placeholder="Search employee..." value={filterSearch} onChange={e => setFilterSearch(e.target.value)} className="pl-8 h-8 text-xs w-44 bg-gray-50 dark:bg-card dark:border-slate-800 dark:text-slate-100" />
+                    <Input placeholder="Search employee..." value={filterSearch} onChange={e => setFilterSearch(e.target.value)} className="pl-8 h-8 text-xs w-44 bg-gray-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-foreground dark:text-slate-100" />
                   </div>
                 </>
               )}
