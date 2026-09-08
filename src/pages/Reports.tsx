@@ -714,12 +714,23 @@ export default function Reports() {
     });
   }, [filteredDailyAttendance]);
 
-  // Late check count (arrived past dynamic threshold)
-  const lateArrivalsCount = filteredDailyAttendance.filter(r => (r as any).is_late).length;
+  // Deduplicate daily attendance by user_id to count each employee once based on first punch
+  const uniqueDailyAttendance = useMemo(() => {
+    const map = new Map<number | string, any>();
+    filteredDailyAttendance.forEach(r => {
+      if (!map.has(r.user_id)) {
+        map.set(r.user_id, r);
+      }
+    });
+    return Array.from(map.values());
+  }, [filteredDailyAttendance]);
 
-  const lateRate = filteredDailyAttendance.length > 0 
-    ? Math.round((lateArrivalsCount / filteredDailyAttendance.length) * 100) 
-    : 4;
+  // Late check count (arrived past dynamic threshold) based on unique employees
+  const lateArrivalsCount = uniqueDailyAttendance.filter(r => (r as any).is_late).length;
+
+  const lateRate = uniqueDailyAttendance.length > 0 
+    ? Math.round((lateArrivalsCount / uniqueDailyAttendance.length) * 100) 
+    : 0;
 
   // Leave analytics processors
   const rawUtilizationData = leaveUtilization?.departmentUtilization || [];

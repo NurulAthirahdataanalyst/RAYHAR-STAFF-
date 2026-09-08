@@ -219,10 +219,16 @@ export default function TeamAttendance() {
   
   if (dateViewMode === 'DAY') {
     mergedList = employees.map(emp => {
-      const att = attendanceData.find(a => a.user_id === emp.user_id);
+      const userAtts = attendanceData.filter(a => a.user_id === emp.user_id);
+      userAtts.sort((a, b) => new Date(a.clock_in || 0).getTime() - new Date(b.clock_in || 0).getTime());
+      const att = userAtts.length > 0 ? userAtts[0] : null;
+      const latestWithOut = userAtts.slice().reverse().find(a => a.clock_out);
+      const effectiveClockOut = latestWithOut?.clock_out || att?.clock_out;
+      const effectiveTimeOut = latestWithOut?.time_out || att?.time_out || "--";
+
       let workingHours = "--";
-      if (att && att.clock_in && att.clock_out) {
-        const diffMs = new Date(att.clock_out).getTime() - new Date(att.clock_in).getTime();
+      if (att && att.clock_in && effectiveClockOut) {
+        const diffMs = new Date(effectiveClockOut).getTime() - new Date(att.clock_in).getTime();
         const hrs = Math.floor(diffMs / (1000 * 60 * 60));
         const mins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
         workingHours = `${hrs}h ${mins}m`;
@@ -267,7 +273,7 @@ export default function TeamAttendance() {
       return {
         ...emp,
         time_in: att?.time_in || "--",
-        time_out: att?.time_out || "--",
+        time_out: effectiveTimeOut,
         status: statusLabel,
         punctualityStatus,
         late: lateLabel,
