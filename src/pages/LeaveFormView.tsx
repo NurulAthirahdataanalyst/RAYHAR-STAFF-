@@ -822,6 +822,10 @@ export default function LeaveFormView() {
                     </p>
                   </div>
 
+                  <p className="text-[10px] text-center italic text-muted-foreground pt-4 print:hidden">
+                    Borang ini sah digunakan sebagai bukti rasmi cuti kakitangan setelah mendapat kelulusan pihak pengurusan.
+                  </p>
+
                   <div className="pt-4 flex justify-end gap-3 print:hidden">
                     <Button
                       type="button"

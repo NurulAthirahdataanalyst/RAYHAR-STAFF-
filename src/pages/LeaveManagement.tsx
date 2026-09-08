@@ -1003,6 +1003,9 @@ export default function LeaveManagement() {
                       DENGAN MENEKAN BUTANG <strong>HANTAR</strong>, SAYA MENGESAHKAN BAHAWA MAKLUMAT YANG DIBERIKAN ADALAH BENAR.
                     </p>
                   </div>
+                  <p className="text-[10px] text-center italic text-muted-foreground pt-1">
+                    * Borang ini sah digunakan sebagai bukti rasmi cuti kakitangan setelah mendapat kelulusan pihak pengurusan.
+                  </p>
                 </div>
               )}
 
