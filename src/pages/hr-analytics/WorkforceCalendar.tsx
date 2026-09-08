@@ -528,15 +528,22 @@ export default function WorkforceCalendar() {
             return hours * 60 + parseInt(m);
           };
 
-          // Deduplicate: Keep only the latest clock in
+          // Deduplicate: Keep only the earliest clock in
           const uniqueAttMap = new Map();
           filteredAtt.forEach(a => {
             if (!uniqueAttMap.has(a.user_id)) {
               uniqueAttMap.set(a.user_id, a);
             } else {
               const existing = uniqueAttMap.get(a.user_id);
-              if (timeToMinutes(a.time_in) > timeToMinutes(existing.time_in)) {
-                uniqueAttMap.set(a.user_id, a);
+              const aMin = timeToMinutes(a.time_in);
+              const exMin = timeToMinutes(existing.time_in);
+              if (aMin > 0 && (exMin <= 0 || aMin < exMin)) {
+                const latestOut = (existing.time_out && existing.time_out !== "-") ? existing.time_out : a.time_out;
+                uniqueAttMap.set(a.user_id, { ...a, time_out: latestOut });
+              } else {
+                if ((!existing.time_out || existing.time_out === "-") && a.time_out && a.time_out !== "-") {
+                  existing.time_out = a.time_out;
+                }
               }
             }
           });

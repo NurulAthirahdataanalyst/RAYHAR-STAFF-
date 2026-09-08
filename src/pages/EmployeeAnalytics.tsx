@@ -125,16 +125,36 @@ function computeMetrics(
     return false;
   });
 
-  const totalValidDays = validLogs.length;
-  const lateDays = validLogs.filter(l => Number(l.is_late) === 1 || l.is_late === true || l.status === "LATE" || l.status === "Late").length;
-  const onTime = totalValidDays - lateDays;
+  // Group validLogs by date to strictly use the earliest clock-in of the day for daily metrics
+  const dayLogsMap = new Map<string, AttendanceLog>();
+  const sortedValidLogs = [...validLogs].sort((a, b) => new Date(a.clock_in).getTime() - new Date(b.clock_in).getTime());
+  sortedValidLogs.forEach(l => {
+    const dStr = (l as any).date || (l.clock_in ? new Date(new Date(l.clock_in).getTime() + 8 * 3600 * 1000).toISOString().split('T')[0] : '');
+    if (!dStr) return;
+    if (!dayLogsMap.has(dStr)) {
+      dayLogsMap.set(dStr, { ...l });
+    } else {
+      const existing = dayLogsMap.get(dStr)!;
+      if (!existing.clock_out && l.clock_out) {
+        existing.clock_out = l.clock_out;
+      }
+      if (!existing.time_out && l.time_out) {
+        existing.time_out = l.time_out;
+      }
+    }
+  });
+
+  const dailyUniqueLogs = Array.from(dayLogsMap.values());
+  const totalValidDays = dailyUniqueLogs.length;
+  const lateDays = dailyUniqueLogs.filter(l => Number(l.is_late) === 1 || l.is_late === true || l.status === "LATE" || l.status === "Late" || l.status === "Present (Late)").length;
+  const onTime = Math.max(0, totalValidDays - lateDays);
   const punctuality = totalValidDays > 0 ? Math.round((onTime / totalValidDays) * 100) : 0;
 
   // Working Hours per attendance day: Clock-Out Time − Clock-In Time
   let totalWorkingHours = 0;
   let overtime = 0;
 
-  validLogs.forEach(l => {
+  dailyUniqueLogs.forEach(l => {
     let h = parseHours(l.duration);
     if (h <= 0 && l.clock_in && (l.clock_out || l.time_out)) {
       const inTime = new Date(l.clock_in).getTime();

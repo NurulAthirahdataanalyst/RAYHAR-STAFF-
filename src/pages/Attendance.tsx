@@ -85,7 +85,14 @@ export default function Attendance() {
   const [loading, setLoading] = useState(false);
   const [initialFetch, setInitialFetch] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [activeSession, setActiveSession] = useState<any>(null);
+  const [activeSession, setActiveSession] = useState<any>(() => {
+    try {
+      const saved = sessionStorage.getItem("activeAttendanceSession");
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
+  });
   const { user } = useAuth();
   const [workingHrs, setWorkingHrs] = useState("--:--");
   const [historyLogs, setHistoryLogs] = useState<any[]>([]);
@@ -304,6 +311,9 @@ export default function Attendance() {
 
       if (data.active && data.record) {
         setActiveSession(data.record);
+        try {
+          sessionStorage.setItem("activeAttendanceSession", JSON.stringify(data.record));
+        } catch (e) {}
         const storedUser = JSON.parse(sessionStorage.getItem("user") || "{}");
         const clockInTime = formatAttendanceTime(data.record.clock_in);
 
@@ -321,6 +331,9 @@ export default function Attendance() {
         sessionStorage.setItem("dashboardRefresh", Date.now().toString());
       } else {
         setActiveSession(null);
+        try {
+          sessionStorage.removeItem("activeAttendanceSession");
+        } catch (e) {}
       }
     } catch (err) {
       console.error("Fetch status error:", err);
@@ -818,8 +831,14 @@ export default function Attendance() {
         // Immediately update activeSession from the response (don't wait for fetchStatus)
         if (isClockOut) {
           setActiveSession(null);
+          try {
+            sessionStorage.removeItem("activeAttendanceSession");
+          } catch (e) {}
         } else if (result.record) {
           setActiveSession(result.record);
+          try {
+            sessionStorage.setItem("activeAttendanceSession", JSON.stringify(result.record));
+          } catch (e) {}
         }
 
         await fetchStatus(employeeId);

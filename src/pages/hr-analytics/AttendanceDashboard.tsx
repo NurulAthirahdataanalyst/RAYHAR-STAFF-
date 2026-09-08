@@ -849,15 +849,24 @@ export default function AttendanceDashboard() {
         const expectedWorkforce = Math.max(0, permanentStaffCount - temporaryOut) + temporaryIn;
 
         const validBranches = new Set(listSource.map(bs => bs.branch));
+
+        // Deduplicate dailyAttendance by user_id so multiple clock-ins never inflate branch headcounts
+        const uniqueDailyAttendanceMap = new Map<string, any>();
+        dailyAttendance.forEach(emp => {
+          if (!uniqueDailyAttendanceMap.has(emp.user_id)) {
+            uniqueDailyAttendanceMap.set(emp.user_id, emp);
+          }
+        });
+        const uniqueDailyAttendance = Array.from(uniqueDailyAttendanceMap.values());
         
-        const activePermanent = dailyAttendance.filter(emp => {
+        const activePermanent = uniqueDailyAttendance.filter(emp => {
           if (emp.branch !== b.branch) return false;
           // If they have a temp branch but it's not in our branch list (e.g. a department name), ignore it
           const hasValidTempBranch = emp.temp_branch && validBranches.has(emp.temp_branch);
           return !hasValidTempBranch || emp.temp_branch === b.branch;
         });
         
-        const activeTemporary = dailyAttendance.filter(emp => {
+        const activeTemporary = uniqueDailyAttendance.filter(emp => {
           return emp.branch !== b.branch && emp.temp_branch === b.branch;
         });
         const presentOnTime = activePermanent.filter(emp => emp.status === 'Present (On Time)' || emp.status === 'Present').length;

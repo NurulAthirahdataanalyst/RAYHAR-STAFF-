@@ -771,6 +771,12 @@ const pgPool = connectionString ? new Pool({
 // Helper: replace ? placeholders with $1, $2, ... for PostgreSQL and expand array params for IN (?)
 function mysqlToPostgres(sql, params) {
   if (!params || params.length === 0) return { sql, params: [] };
+
+  // If the query was written directly in PostgreSQL $1, $2 syntax without ? placeholders, preserve params
+  if (!sql.includes('?') && /\$\d+/.test(sql)) {
+    return { sql, params };
+  }
+
   let flatParams = [];
   let i = 1;
   let paramIdx = 0;
@@ -795,6 +801,7 @@ function mysqlToPostgres(sql, params) {
 
   return { sql, params: flatParams };
 }
+
 
 const pool = {
   pool: pgPool, // for pool.pool.on
@@ -1337,11 +1344,17 @@ async function getLiveAttendanceStats(queryDate, role, branch, department) {
       clockParams
     );
 
-    // Deduplicate by user_id (latest record per user)
+    // Deduplicate by user_id: keep FIRST (earliest) clock-in record per user
     const clockMap = {};
     for (const row of clockRows) {
-      clockMap[row.user_id] = row;
+      if (!clockMap[row.user_id]) {
+        clockMap[row.user_id] = { ...row };
+      } else if (row.clock_out) {
+        // Keep latest clock_out if available
+        clockMap[row.user_id].clock_out = row.clock_out;
+      }
     }
+
 
     const branchZoneMap = await getBranchZoneMap();
     const dateObj = new Date(dateStr);
@@ -1754,9 +1767,24 @@ async function computeDynamicWorkforceMetrics(dateStr, role, branch, department)
   const totalEmployees = totalEmployeesCur;
 
   const lateTimeStr = typeof getLateThresholdTime === 'function' ? getLateThresholdTime() : "09:00:00";
-  const attQuery = `SELECT COUNT(*) as total, SUM(CASE WHEN (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::time > ?::time THEN 1 ELSE 0 END) as lates FROM attendances a JOIN profiles p ON p.user_id = a.user_id WHERE DATE(a.clock_in) BETWEEN ? AND ? AND p.status = 'Active' ${profileFilter}`;
-  const [attRowsCur] = await pool.query(attQuery, [lateTimeStr, curStart, curEnd, ...pFilterParams]);
-  const [attRowsPrev] = await pool.query(attQuery, [lateTimeStr, prevStart, prevEnd, ...pFilterParams]);
+  const attQuery = `
+    WITH daily_first_att AS (
+      SELECT 
+        a.user_id,
+        DATE(a.clock_in) as att_date,
+        MIN(a.clock_in) as first_clock_in
+      FROM attendances a
+      JOIN profiles p ON p.user_id = a.user_id
+      WHERE DATE(a.clock_in) BETWEEN ? AND ? AND p.status = 'Active' ${profileFilter}
+      GROUP BY a.user_id, DATE(a.clock_in)
+    )
+    SELECT 
+      COUNT(*) as total, 
+      SUM(CASE WHEN (first_clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::time > ?::time THEN 1 ELSE 0 END) as lates 
+    FROM daily_first_att
+  `;
+  const [attRowsCur] = await pool.query(attQuery, [curStart, curEnd, ...pFilterParams, lateTimeStr]);
+  const [attRowsPrev] = await pool.query(attQuery, [prevStart, prevEnd, ...pFilterParams, lateTimeStr]);
 
   const leaveQuery = `SELECT COUNT(*) as total FROM leave_requests lr JOIN profiles p ON p.user_id = lr.user_id WHERE lr.status = 'Approved' AND (DATE(lr.start_date) BETWEEN ? AND ? OR DATE(lr.end_date) BETWEEN ? AND ?) AND p.status = 'Active' ${profileFilter}`;
   const [leaveCur] = await pool.query(leaveQuery, [curStart, curEnd, curStart, curEnd, ...pFilterParams]);
@@ -2605,14 +2633,13 @@ app.get("/api/branch-employees", async (req, res) => {
         GROUP BY user_id
       ) att ON att.user_id = p.user_id
       LEFT JOIN (
-        SELECT a.user_id, a.clock_in, a.clock_out
-        FROM attendances a
-        INNER JOIN (
-          SELECT user_id, MAX(attendance_id) AS latest_attendance_id
-          FROM attendances
-          WHERE DATE(clock_in) = CURRENT_DATE
-          GROUP BY user_id
-        ) latest ON latest.latest_attendance_id = a.attendance_id
+        SELECT 
+          user_id,
+          MIN(clock_in) AS clock_in,
+          MAX(clock_out) AS clock_out
+        FROM attendances
+        WHERE (clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date
+        GROUP BY user_id
       ) today ON today.user_id = p.user_id
       LEFT JOIN (
         SELECT user_id, COUNT(*) as leave_count
@@ -4100,14 +4127,15 @@ app.get("/api/employees", async (req, res) => {
         GROUP BY user_id
       ) att ON att.user_id = p.user_id
       LEFT JOIN (
-        SELECT a.user_id, a.clock_in, a.clock_out, a.attendance_type, a.location
-        FROM attendances a
-        INNER JOIN (
-          SELECT user_id, MAX(attendance_id) AS latest_attendance_id
-          FROM attendances
-          WHERE DATE(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur') = ${date ? '?::date' : 'CURRENT_DATE'}
-          GROUP BY user_id
-        ) latest ON latest.latest_attendance_id = a.attendance_id
+        SELECT 
+          user_id,
+          MIN(clock_in) AS clock_in,
+          MAX(clock_out) AS clock_out,
+          (ARRAY_AGG(attendance_type ORDER BY clock_in ASC))[1] AS attendance_type,
+          (ARRAY_AGG(location ORDER BY clock_in ASC))[1] AS location
+        FROM attendances
+        WHERE DATE(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur') = ${date ? '?::date' : '(CURRENT_TIMESTAMP AT TIME ZONE \'Asia/Kuala_Lumpur\')::date'}
+        GROUP BY user_id
       ) today ON today.user_id = p.user_id
       LEFT JOIN (
         SELECT user_id, 1 AS is_on_leave_today
@@ -4482,8 +4510,8 @@ app.get("/api/attendance-status", async (req, res) => {
 
     const [rows] = await pool.query(`
       SELECT * FROM attendances
-      WHERE user_id = $1
-      AND clock_in::date = CURRENT_DATE
+      WHERE user_id = ?
+      AND (clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date
       AND clock_out IS NULL
       ORDER BY clock_in DESC
       LIMIT 1
@@ -5076,6 +5104,30 @@ app.post("/api/attendance", async (req, res) => {
       }
     }
 
+    // Check if user already has an active clock-in session today (clock_out IS NULL)
+    const [existingActive] = await pool.query(
+      `SELECT * FROM attendances 
+       WHERE user_id = ? 
+       AND (clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date
+       AND clock_out IS NULL
+       ORDER BY clock_in DESC 
+       LIMIT 1`,
+      [user_id]
+    );
+
+    if (existingActive && existingActive.length > 0) {
+      const [outstationRows] = await pool.query(
+        `SELECT destination FROM outstation_assignments WHERE user_id = ? AND status != 'Cancelled' AND (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date`,
+        [user_id]
+      );
+      return res.json({ 
+        success: true, 
+        record: existingActive[0], 
+        isOnOutstation: outstationRows.length > 0,
+        message: "Already clocked in." 
+      });
+    }
+
     const [result] = await pool.query(
       `INSERT INTO attendances (user_id, clock_in, location, attendance_type, distance_meters, clock_in_latitude, clock_in_longitude, clock_in_accuracy) VALUES (?, NOW(), ?, ?, ?, ?, ?, ?)`,
         [user_id, finalLocation, finalType, distance || null, latitude || null, longitude || null, accuracy || null]
@@ -5137,10 +5189,10 @@ app.post("/api/clock-out", async (req, res) => {
     // Build the SET clause dynamically to include coordinates if provided
     const coordUpdates = [];
     const coordValues = [];
-    if (latitude !== undefined && latitude !== null) { coordUpdates.push(`clock_out_latitude = $${coordValues.length + 2}`); coordValues.push(latitude); }
-    if (longitude !== undefined && longitude !== null) { coordUpdates.push(`clock_out_longitude = $${coordValues.length + 2}`); coordValues.push(longitude); }
-    if (accuracy !== undefined && accuracy !== null) { coordUpdates.push(`clock_out_accuracy = $${coordValues.length + 2}`); coordValues.push(accuracy); }
-    if (distance !== undefined && distance !== null) { coordUpdates.push(`clock_out_distance_meters = $${coordValues.length + 2}`); coordValues.push(distance); }
+    if (latitude !== undefined && latitude !== null) { coordUpdates.push(`clock_out_latitude = ?`); coordValues.push(latitude); }
+    if (longitude !== undefined && longitude !== null) { coordUpdates.push(`clock_out_longitude = ?`); coordValues.push(longitude); }
+    if (accuracy !== undefined && accuracy !== null) { coordUpdates.push(`clock_out_accuracy = ?`); coordValues.push(accuracy); }
+    if (distance !== undefined && distance !== null) { coordUpdates.push(`clock_out_distance_meters = ?`); coordValues.push(distance); }
 
     const setClause = coordUpdates.length > 0
       ? `clock_out = NOW(), ${coordUpdates.join(", ")}`
@@ -5149,16 +5201,16 @@ app.post("/api/clock-out", async (req, res) => {
     await pool.query(
       `UPDATE attendances
        SET ${setClause}
-       WHERE user_id = $1
-       AND clock_in::date = CURRENT_DATE
+       WHERE user_id = ?
+       AND (clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date
        AND clock_out IS NULL`,
-      [user_id, ...coordValues]
+      [...coordValues, user_id]
     );
 
     const [rows] = await pool.query(`
       SELECT * FROM attendances
-      WHERE user_id = $1
-      AND clock_in::date = CURRENT_DATE
+      WHERE user_id = ?
+      AND (clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date
       ORDER BY clock_in DESC
       LIMIT 1
       `,
@@ -5173,7 +5225,9 @@ app.post("/api/clock-out", async (req, res) => {
       const [allToday] = await pool.query(`
         SELECT clock_in, clock_out 
         FROM attendances 
-        WHERE user_id = $1 AND clock_in::date = CURRENT_DATE AND clock_out IS NOT NULL
+        WHERE user_id = ? 
+        AND (clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date 
+        AND clock_out IS NOT NULL
       `, [user_id]);
       
       let totalMs = 0;
@@ -5186,8 +5240,8 @@ app.post("/api/clock-out", async (req, res) => {
       const [pendingReps] = await pool.query(`
         SELECT id, required_hours 
         FROM replacement_leave_requests 
-        WHERE employee_id = $1 
-        AND replacement_date = CURRENT_DATE 
+        WHERE employee_id = ? 
+        AND replacement_date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date 
         AND validation_status IN ('Pending', 'Failed')
       `, [user_id]);
 
@@ -5195,16 +5249,14 @@ app.post("/api/clock-out", async (req, res) => {
         if (totalHours >= parseFloat(rep.required_hours || 4)) {
           await pool.query(`
             UPDATE replacement_leave_requests 
-            SET validation_status = 'Validated', actual_hours = $1, validated_at = CURRENT_TIMESTAMP 
-            WHERE id = $2
+            SET validation_status = 'Validated', actual_hours = ?, validated_at = CURRENT_TIMESTAMP 
+            WHERE id = ?
           `, [totalHours, rep.id]);
         } else {
-          // Note: If they clock out but < 4 hours, we mark it Failed. 
-          // If they clock back in later, the NEXT clock out will re-evaluate and might flip it to Validated.
           await pool.query(`
             UPDATE replacement_leave_requests 
-            SET validation_status = 'Failed', actual_hours = $1, validated_at = CURRENT_TIMESTAMP 
-            WHERE id = $2
+            SET validation_status = 'Failed', actual_hours = ?, validated_at = CURRENT_TIMESTAMP 
+            WHERE id = ?
           `, [totalHours, rep.id]);
         }
       }
@@ -5389,8 +5441,35 @@ app.get("/api/attendance/history", async (req, res) => {
 
     const formattedHistory = dateStrings.flatMap(dateStr => {
       const clockRowsForDate = clockMap[dateStr] || [];
+      const dateObj = new Date(dateStr);
+      const isWeekend = checkIsWeekend(userZone, dateObj);
+      const workHours = getWorkHoursForZone(userZone, dateObj);
+      const [lateH, lateM] = workHours.off ? [23, 59] : getLateThresholdTime().split(':').map(Number);
       
-      const createRecord = (clockRow) => {
+      // First clock-in of the date determines the official attendance status and lateness
+      let dayIsLate = false;
+      let dayLateFormatted = "00h 00m";
+      if (clockRowsForDate.length > 0) {
+        clockRowsForDate.sort((a, b) => new Date(a.clock_in).getTime() - new Date(b.clock_in).getTime());
+        if (clockRowsForDate[0].clock_in) {
+          const firstInDate = new Date(clockRowsForDate[0].clock_in);
+          const firstKlTime = new Date(firstInDate.getTime() + 8 * 60 * 60 * 1000);
+          const firstHour = firstKlTime.getUTCHours();
+          const firstMin = firstKlTime.getUTCMinutes();
+          dayIsLate = (firstHour > lateH || (firstHour === lateH && firstMin > lateM)) && !workHours.off;
+          if (dayIsLate) {
+            const firstMins = firstHour * 60 + firstMin;
+            const thresholdMins = lateH * 60 + lateM;
+            const diff = firstMins - thresholdMins;
+            const diffH = Math.floor(diff / 60);
+            const diffM = diff % 60;
+            dayLateFormatted = `${diffH.toString().padStart(2, '0')}h ${diffM.toString().padStart(2, '0')}m`;
+          }
+        }
+      }
+      const dayOfficialStatus = dayIsLate ? "LATE" : "Present";
+
+      const createRecord = (clockRow, idx = 0) => {
       let status = "Absent";
       let time_in = "--";
       let time_out = "--";
@@ -5433,12 +5512,6 @@ app.get("/api/attendance/history", async (req, res) => {
       // Match holiday
       const matchingHoliday = malaysiaHolidays.find(h => h.date === dateStr);
 
-      // Match weekend
-      const dateObj = new Date(dateStr);
-      const isWeekend = checkIsWeekend(userZone, dateObj);
-      const workHours = getWorkHoursForZone(userZone, dateObj);
-      const [lateH, lateM] = workHours.off ? [23, 59] : getLateThresholdTime().split(':').map(Number);
-
       // Match outstation assignment (has highest priority after company leave)
       const matchingOutstation = outstationRows.find(o => {
         const startStr = new Date(o.start_date).toISOString().split('T')[0];
@@ -5462,32 +5535,22 @@ app.get("/api/attendance/history", async (req, res) => {
         clock_out = clockRow.clock_out;
         time_in = clockRow.time_in || "--";
         time_out = clockRow.time_out || "--";
-        status = "Present";
-
-        // Calculate late minutes
-        const clockInDate = new Date(clock_in);
-        const klTime = new Date(clockInDate.getTime() + 8 * 60 * 60 * 1000);
-        const clockInHour = klTime.getUTCHours();
-        const clockInMinute = klTime.getUTCMinutes();
-        const isLate = clockInHour > lateH || (clockInHour === lateH && clockInMinute > lateM);
-        is_late = isLate;
-
-                  if (isLate && !workHours.off) {
-            const clockInMins = clockInHour * 60 + clockInMinute;
-            const thresholdMins = lateH * 60 + lateM;
-            const diff = clockInMins - thresholdMins;
-            const diffH = Math.floor(diff / 60);
-            const diffM = diff % 60;
-            late = `${diffH.toString().padStart(2, '0')}h ${diffM.toString().padStart(2, '0')}m`;
-            status = "LATE";
-          } else {
-            late = "00h 00m";
-          }
+        
+        // Status is always governed by the day's first clock-in
+        status = dayOfficialStatus;
+        if (idx === 0) {
+          is_late = dayIsLate;
+          late = dayIsLate ? dayLateFormatted : "00h 00m";
+        } else {
+          // Subsequent clock-ins on the same date do not alter status and do not add late counts
+          is_late = false;
+          late = "--";
+        }
 
         // Calculate Working Hours = Time Out - Time In
         if (clock_out) {
           const clockOutDate = new Date(clock_out);
-          const diffMs = clockOutDate.getTime() - clockInDate.getTime();
+          const diffMs = clockOutDate.getTime() - new Date(clock_in).getTime();
           const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
           const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
           duration = `${diffHrs}h ${diffMins}m`;
@@ -5564,18 +5627,22 @@ app.get("/api/attendance/history", async (req, res) => {
         is_late: is_late ? 1 : 0,
         late: late,
         duration: duration,
-          location_type: location_type,
-          location_name: location_name,
-          distance: clockRow ? clockRow.distance_meters : null,
+        location_type: location_type,
+        location_name: location_name,
+        distance: clockRow ? clockRow.distance_meters : null,
         clock_in_location: clockRow ? (clockRow.location || null) : null,
-        attendance_type: clockRow ? (clockRow.attendance_type || null) : null
+        attendance_type: clockRow ? (clockRow.attendance_type || null) : null,
+        is_first_clock_in: idx === 0,
+        is_subsequent: idx > 0
       };
       };
 
       if (clockRowsForDate.length === 0) {
-        return [createRecord(null)];
+        return [createRecord(null, 0)];
       } else {
-        return clockRowsForDate.map(row => createRecord(row));
+        // Display newest punch first in history logs table while preserving index relative to first clock-in
+        const records = clockRowsForDate.map((row, idx) => createRecord(row, idx));
+        return records.reverse();
       }
     });
 
@@ -5690,20 +5757,28 @@ app.get("/api/dashboard-stats", async (req, res) => {
       );
 
       const lateTimeStr = getLateThresholdTime();
-      const lateParams = [queryDate, queryDate, queryDate, ...queryParams];
+      const lateFilter = attendanceFilter ? attendanceFilter.replace(/\buser_id\b/g, 'fc.user_id') : "";
       const [lateRows] = await pool.query(
-        `SELECT COUNT(DISTINCT user_id) AS late_arrivals FROM attendances WHERE DATE(clock_in) = ${dateCondition} AND (clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::time > '${lateTimeStr}' 
+        `WITH first_clocks AS (
+           SELECT user_id, MIN(clock_in) AS first_clock_in
+           FROM attendances
+           WHERE DATE(clock_in) = ${dateCondition}
+           GROUP BY user_id
+         )
+         SELECT COUNT(DISTINCT fc.user_id) AS late_arrivals 
+         FROM first_clocks fc
+         WHERE (fc.first_clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::time > '${lateTimeStr}' 
          AND NOT EXISTS (
            SELECT 1 FROM leave_requests lr 
-           WHERE lr.user_id = attendances.user_id AND lr.status = 'Approved' 
+           WHERE lr.user_id = fc.user_id AND lr.status = 'Approved' 
            AND ${dateCondition} BETWEEN lr.start_date AND lr.end_date
          )
          AND NOT EXISTS (
            SELECT 1 FROM outstation_assignments oa 
-           WHERE oa.user_id = attendances.user_id AND oa.status != 'Cancelled' 
+           WHERE oa.user_id = fc.user_id AND oa.status != 'Cancelled' 
            AND ${dateCondition} BETWEEN (oa.start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (oa.end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date
          )
-         ${attendanceFilter}`,
+         ${lateFilter}`,
         lateParams
       );
 
@@ -6818,10 +6893,14 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
 
         // Check if clocked in
         const clockDataList = clockRows.filter(c => c.user_id === p.user_id);
-        const clockData = clockDataList.find(c => {
-          const klTimeIn = new Date(new Date(c.clock_in).getTime() + 8 * 60 * 60 * 1000);
-          return klTimeIn.toISOString().split('T')[0] === dateStr;
-        });
+        const matchingClocks = clockDataList
+          .filter(c => {
+            const klTimeIn = new Date(new Date(c.clock_in).getTime() + 8 * 60 * 60 * 1000);
+            return klTimeIn.toISOString().split('T')[0] === dateStr;
+          })
+          .sort((a, b) => new Date(a.clock_in).getTime() - new Date(b.clock_in).getTime());
+
+        const clockData = matchingClocks[0];
 
         if (clockData) {
           const userZone = branchZoneMap.get(p.branch) || 'ZONE_B';
@@ -6834,7 +6913,12 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
           let missingClockOut = false;
           let status = isLate ? "Present (Late)" : "Present (On Time)";
 
-          if (!clockData.clock_out) {
+          // Check if any punch on this date has a clock-out
+          const latestPunchWithOut = matchingClocks.filter(c => !!c.clock_out).pop();
+          const effectiveClockOut = latestPunchWithOut ? latestPunchWithOut.clock_out : clockData.clock_out;
+          const effectiveTimeOut = latestPunchWithOut ? latestPunchWithOut.time_out : clockData.time_out;
+
+          if (!effectiveClockOut) {
             const nowKl = new Date(Date.now() + 8 * 60 * 60 * 1000);
             const isPastDate = dateStr !== nowKl.toISOString().split('T')[0];
             const isPastEndOfWorkTime = !isPastDate && nowKl.getUTCHours() >= 17;
@@ -6858,9 +6942,9 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
             department: p.department || '',
             date: dateStr,
             time_in: clockData.time_in,
-            time_out: clockData.time_out,
+            time_out: effectiveTimeOut,
             clock_in: clockData.clock_in,
-            clock_out: clockData.clock_out,
+            clock_out: effectiveClockOut,
             is_late: isLate,
             missing_clock_out: missingClockOut,
             status: status,
@@ -7023,7 +7107,25 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
       const workHours = getWorkHoursForZone(userZone, dateObj);
       const [lateH, lateM] = getLateThresholdTime().split(':').map(Number);
 
-      const createRecord = (clockRow) => {
+      // Sort user's clock rows ascending by clock_in
+      if (clockRowsForUser.length > 0) {
+        clockRowsForUser.sort((a, b) => new Date(a.clock_in).getTime() - new Date(b.clock_in).getTime());
+      }
+
+      // First clock-in of the day determines whether the employee was late or on time
+      let dayIsLate = false;
+      if (clockRowsForUser.length > 0 && clockRowsForUser[0].clock_in) {
+        const firstIn = new Date(clockRowsForUser[0].clock_in);
+        const klFirstIn = new Date(firstIn.getTime() + 8 * 60 * 60 * 1000);
+        const fH = klFirstIn.getUTCHours();
+        const fM = klFirstIn.getUTCMinutes();
+        dayIsLate = (fH > lateH || (fH === lateH && fM > lateM));
+      }
+
+      // Check if user has ANY clock-out on this date
+      const hasAnyClockOut = clockRowsForUser.some(r => !!r.clock_out);
+
+      const createRecord = (clockRow, idx = 0) => {
       let status = "Absent";
       let clock_in = null;
       let clock_out = null;
@@ -7085,11 +7187,10 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
         time_out = clockRow.time_out;
 
         const klTimeIn = new Date(new Date(clock_in).getTime() + 8 * 60 * 60 * 1000);
-        const clockInHour = klTimeIn.getUTCHours();
-        const clockInMinute = klTimeIn.getUTCMinutes();
-        isLate = clockInHour > lateH || (clockInHour === lateH && clockInMinute > lateM);
+        // Only the first clock-in of the day carries the is_late flag for KPIs
+        isLate = (idx === 0) ? dayIsLate : false;
 
-        if (!clock_out) {
+        if (!clock_out && !hasAnyClockOut) {
           const nowKl = new Date(Date.now() + 8 * 60 * 60 * 1000);
           const isPastDate = klTimeIn.getUTCDate() !== nowKl.getUTCDate() || klTimeIn.getUTCMonth() !== nowKl.getUTCMonth() || klTimeIn.getUTCFullYear() !== nowKl.getUTCFullYear();
           const isPastEndOfWorkTime = !isPastDate && nowKl.getUTCHours() >= 17;
@@ -7098,25 +7199,27 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
             missingClockOut = true;
             status = "Missing Clock-Out";
           } else {
-            status = isLate ? "Present (Late)" : "Present (On Time)";
+            status = dayIsLate ? "Present (Late)" : "Present (On Time)";
           }
         } else {
-          status = isLate ? "Present (Late)" : "Present (On Time)";
+          status = dayIsLate ? "Present (Late)" : "Present (On Time)";
           
-          const klTimeOut = new Date(new Date(clock_out).getTime() + 8 * 60 * 60 * 1000);
-          const clockOutHour = klTimeOut.getUTCHours();
-          
-          let earlyLeaverThreshold = 17;
-          if (workHours.halfDay) {
-            earlyLeaverThreshold = 13;
-          }
-          if (!workHours.off && clockOutHour < earlyLeaverThreshold) {
-            isEarlyLeaver = true;
-          }
-          
-          const diffMs = new Date(clock_out).getTime() - new Date(clock_in).getTime();
-          if (diffMs > 9 * 60 * 60 * 1000) {
-            isOvertime = true;
+          if (clock_out) {
+            const klTimeOut = new Date(new Date(clock_out).getTime() + 8 * 60 * 60 * 1000);
+            const clockOutHour = klTimeOut.getUTCHours();
+            
+            let earlyLeaverThreshold = 17;
+            if (workHours.halfDay) {
+              earlyLeaverThreshold = 13;
+            }
+            if (!workHours.off && clockOutHour < earlyLeaverThreshold) {
+              isEarlyLeaver = true;
+            }
+            
+            const diffMs = new Date(clock_out).getTime() - new Date(clock_in).getTime();
+            if (diffMs > 9 * 60 * 60 * 1000) {
+              isOvertime = true;
+            }
           }
         }
       } else if (isWeekend) {
@@ -7154,14 +7257,16 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
         is_late: isLate,
         missing_clock_out: missingClockOut,
         is_early_leaver: isEarlyLeaver,
-        is_overtime: isOvertime
+        is_overtime: isOvertime,
+        is_first_clock_in: idx === 0,
+        is_subsequent: idx > 0
       };
       };
 
       if (clockRowsForUser.length === 0) {
-        return [createRecord(null)];
+        return [createRecord(null, 0)];
       } else {
-        return clockRowsForUser.map(row => createRecord(row));
+        return clockRowsForUser.map((row, idx) => createRecord(row, idx));
       }
     });
 
@@ -7222,23 +7327,26 @@ app.get("/api/reports/employee-rank", async (req, res) => {
     const lateTimeStr = getLateThresholdTime();
     
     let query = `
+      WITH daily_first AS (
+        SELECT 
+          a.user_id,
+          (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::date AS att_date,
+          MIN(a.clock_in) AS first_clock_in
+        FROM attendances a
+        JOIN profiles p ON p.user_id = a.user_id
+        WHERE EXTRACT(YEAR FROM (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')) = ?
+          AND p.status = 'Active'
+          ${!isAllMonth ? `AND EXTRACT(MONTH FROM (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')) = ?` : ''}
+        GROUP BY a.user_id, (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::date
+      )
       SELECT 
-        a.user_id,
-        COUNT(a.attendance_id) AS total_days,
-        SUM(CASE WHEN (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::time > ?::time THEN 1 ELSE 0 END) AS late_days
-      FROM attendances a
-      JOIN profiles p ON p.user_id = a.user_id
-      WHERE EXTRACT(YEAR FROM a.clock_in) = ?
-        AND p.status = 'Active'
+        user_id,
+        COUNT(att_date) AS total_days,
+        SUM(CASE WHEN (first_clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::time > ?::time THEN 1 ELSE 0 END) AS late_days
+      FROM daily_first
+      GROUP BY user_id
     `;
-    let params = [lateTimeStr, requestedYear];
-
-    if (!isAllMonth) {
-      query += ` AND EXTRACT(MONTH FROM a.clock_in) = ?`;
-      params = [lateTimeStr, requestedYear, requestedMonth];
-    }
-
-    query += ` GROUP BY a.user_id`;
+    let params = !isAllMonth ? [requestedYear, requestedMonth, lateTimeStr] : [requestedYear, lateTimeStr];
 
     // Fetch all active employees attendance for the month/year
     const [rows] = await pool.query(query, params);
@@ -7587,14 +7695,29 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       [lateTimeStr, monthStartStr, monthEndStr, ...pFilterParams]
     );
 
+    // Deduplicate attRows per user per date: keep ONLY the earliest clock-in for daily status and lateness
+    const dailyAttMap = new Map();
+    attRows.forEach(att => {
+      const dStr = att.att_date ? (att.att_date instanceof Date ? att.att_date.toISOString().split('T')[0] : String(att.att_date).split('T')[0]) : new Date(new Date(att.clock_in).getTime() + 8*3600*1000).toISOString().split('T')[0];
+      const key = `${att.user_id}_${dStr}`;
+      if (!dailyAttMap.has(key)) {
+        dailyAttMap.set(key, { ...att, dStr });
+      } else {
+        const existing = dailyAttMap.get(key);
+        if (!existing.clock_out && att.clock_out) {
+          existing.clock_out = att.clock_out;
+        }
+      }
+    });
+    const uniqueAttRows = Array.from(dailyAttMap.values());
+
     let totalLateArrivals = 0;
     let presentToday = 0;
     let lateToday = 0;
 
-    attRows.forEach(att => {
+    uniqueAttRows.forEach(att => {
       const isLate = parseInt(att.is_late) === 1;
-      const dateObj = new Date(att.clock_in);
-      const dateStr = new Date(dateObj.getTime() + 8*3600*1000).toISOString().split('T')[0];
+      const dateStr = att.dStr;
       const isOutstation = outstationEmployees.has(att.user_id);
       const isOnLeave = onLeaveEmployees.has(att.user_id);
 
@@ -7612,8 +7735,8 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
 
     // Map lookups for fast month calculation per employee
     const userAttMap = new Map();
-    attRows.forEach(a => {
-      const dStr = a.att_date ? (a.att_date instanceof Date ? a.att_date.toISOString().split('T')[0] : String(a.att_date).split('T')[0]) : new Date(new Date(a.clock_in).getTime() + 8*3600*1000).toISOString().split('T')[0];
+    uniqueAttRows.forEach(a => {
+      const dStr = a.dStr;
       if (!userAttMap.has(a.user_id)) userAttMap.set(a.user_id, new Map());
       if (!userAttMap.get(a.user_id).has(dStr)) userAttMap.get(a.user_id).set(dStr, a);
     });
@@ -7805,9 +7928,9 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
 
     // 6. Trends (Real Data)
     const [trendRows] = await pool.query(
-      `SELECT EXTRACT(MONTH FROM clock_in) as m, EXTRACT(YEAR FROM clock_in) as y, COUNT(*) as total_att
+      `SELECT EXTRACT(MONTH FROM (clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')) as m, EXTRACT(YEAR FROM (clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')) as y, COUNT(DISTINCT (user_id, (clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::date)) as total_att
        FROM attendances
-       WHERE clock_in >= (DATE_TRUNC('month', ?::date) - INTERVAL '5 months')
+       WHERE (clock_in AT TIME ZONE 'Asia/Kuala_Lumpur') >= (DATE_TRUNC('month', ?::date) - INTERVAL '5 months')
        GROUP BY y, m
        ORDER BY y, m`,
        [targetDateStr]
@@ -7837,11 +7960,9 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
     }
     
     const dailyMap = {};
-    attRows.forEach(att => {
-      const dateObj = new Date(att.clock_in);
-      const dateStr = new Date(dateObj.getTime() + 8*3600*1000).toISOString().split('T')[0];
-      const d = dateStr.slice(8, 10); 
-      if (!dailyMap[d]) dailyMap[d] = { rate: 0, lates: 0, count: 0, dateStr: dateStr };
+    uniqueAttRows.forEach(att => {
+      const d = att.dStr.slice(8, 10); 
+      if (!dailyMap[d]) dailyMap[d] = { rate: 0, lates: 0, count: 0, dateStr: att.dStr };
       dailyMap[d].count++;
       if (parseInt(att.is_late) === 1) dailyMap[d].lates++;
     });
@@ -7922,17 +8043,29 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
         CASE WHEN (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::time > ?::time THEN 1 ELSE 0 END as is_late
        FROM attendances a
        JOIN profiles p ON p.user_id = a.user_id
-       WHERE a.clock_in >= ? AND a.clock_in <= ? AND p.status = 'Active' ${profileFilter}`,
+       WHERE a.clock_in >= ? AND a.clock_in <= ? AND p.status = 'Active' ${profileFilter}
+       ORDER BY a.clock_in ASC`,
       [lateTimeStr, weekStartD.toISOString(), weekEndD.toISOString(), ...pFilterParams]
     );
 
-    // Add Present and Late from weekAttRows (ONLY for current week)
+    // Deduplicate weekAttRows: keep only earliest clock-in per user per day
+    const weekAttMap = new Map();
     weekAttRows.forEach(att => {
       const dateObj = new Date(att.clock_in);
+      const dateStr = new Date(dateObj.getTime() + 8*3600*1000).toISOString().split('T')[0];
+      const key = `${att.user_id}_${dateStr}`;
+      if (!weekAttMap.has(key)) {
+        weekAttMap.set(key, { ...att, dateStr, dateObj });
+      }
+    });
+
+    // Add Present and Late from weekAttRows (ONLY for current week)
+    Array.from(weekAttMap.values()).forEach(att => {
+      const dateObj = att.dateObj;
       const isOutstation = outstationEmployees.has(att.user_id);
+      const dateStr = att.dateStr;
       
       // Check if user is on leave on this specific date
-      const dateStr = new Date(dateObj.getTime() + 8*3600*1000).toISOString().split('T')[0];
       const isOnLeave = leaveRows.some(lr => {
         if (lr.status !== 'Approved') return false;
         const s = new Date(new Date(lr.start_date).getTime() + 8*3600*1000).toISOString().split('T')[0];
@@ -8039,7 +8172,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
     // 1. Process Attendances (Monthly computation)
     const branchMonthlyAttendance = {};
     const departmentMonthlyAttendance = {};
-    attRows.forEach(a => {
+    uniqueAttRows.forEach(a => {
       const b = a.branch || 'HQ';
       const d = a.department || 'Unassigned';
       if (!branchMonthlyAttendance[b]) branchMonthlyAttendance[b] = 0;
@@ -8269,26 +8402,18 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
     const dynamicMetrics = await computeDynamicWorkforceMetrics(targetDateStr, role, branch, department);
 
     const sseInitialPayload = {
-      attendance: attRows.filter(a => {
-        const dateObj = new Date(a.clock_in);
-        const dateStr = new Date(dateObj.getTime() + 8*3600*1000).toISOString().split('T')[0];
-        return dateStr === targetDateStr;
-      }).map(a => ({
+      attendance: uniqueAttRows.filter(a => a.dStr === targetDateStr).map(a => ({
         user_id: a.user_id,
         full_name: a.name,
-        initials: a.name.split(' ').map(n=>n[0]).join('').substring(0,2),
+        initials: (a.name || '').split(' ').map(n=>n[0]).join('').substring(0,2),
         department: a.department || '—',
         branch: a.branch || '—',
         clock_in: a.clock_in
       })).slice(0, 5),
-      late: attRows.filter(a => {
-        const dateObj = new Date(a.clock_in);
-        const dateStr = new Date(dateObj.getTime() + 8*3600*1000).toISOString().split('T')[0];
-        return dateStr === targetDateStr && parseInt(a.is_late) === 1 && !outstationRows.some(o => o.user_id === a.user_id);
-      }).map(a => ({
+      late: uniqueAttRows.filter(a => a.dStr === targetDateStr && parseInt(a.is_late) === 1 && !outstationRows.some(o => o.user_id === a.user_id)).map(a => ({
         user_id: a.user_id,
         full_name: a.name,
-        initials: a.name.split(' ').map(n=>n[0]).join('').substring(0,2),
+        initials: (a.name || '').split(' ').map(n=>n[0]).join('').substring(0,2),
         department: a.department || '—',
         branch: a.branch || '—',
         clock_in: a.clock_in
@@ -8333,11 +8458,12 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
         if (isDayView) {
           rate = total > 0 ? Math.round(((s.onTime + s.late + s.outstation) / total) * 100) : 0;
         } else {
-          const monthlyPresent = departmentMonthlyAttendance[dName] || 0;
-          const possibleAttendances = total * workingDaysInMonth;
-          rate = possibleAttendances > 0 ? Math.round((monthlyPresent / possibleAttendances) * 100) : 0;
+          const deptEmps = empStats.filter(e => e.department === dName);
+          const totalPossible = deptEmps.reduce((sum, e) => sum + (e.workingDaysToDate || 0), 0);
+          const totalValid = deptEmps.reduce((sum, e) => sum + (e.presentDays || 0) + (e.outstationDays || 0), 0);
+          rate = totalPossible > 0 ? Math.round((totalValid / totalPossible) * 100) : 0;
         }
-        return { name: dName, value: total, count: total, attendanceRate: rate, ...s };
+        return { name: dName, value: total, count: total, attendanceRate: Math.min(100, rate), ...s };
       }),
       monthlyComparison: dynamicMetrics.monthlyComparison,
       branchMetrics: Object.keys(branchStats).map(b => {
@@ -8347,11 +8473,10 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
         if (isDayView) {
           rate = total > 0 ? Math.round(((s.onTime + s.late + s.outstation) / total) * 100) : 0;
         } else {
-          const monthlyPresent = branchMonthlyAttendance[b] || 0;
-          const possibleBranchAttendances = total * workingDaysInMonth;
-          rate = possibleBranchAttendances > 0 
-            ? Math.round((monthlyPresent / possibleBranchAttendances) * 100) 
-            : 0;
+          const branchEmps = empStats.filter(e => e.branch === b);
+          const totalPossible = branchEmps.reduce((sum, e) => sum + (e.workingDaysToDate || 0), 0);
+          const totalValid = branchEmps.reduce((sum, e) => sum + (e.presentDays || 0) + (e.outstationDays || 0), 0);
+          rate = totalPossible > 0 ? Math.round((totalValid / totalPossible) * 100) : 0;
         }
         return {
           name: b, 
@@ -10369,10 +10494,27 @@ async function getWorkforceCalendarData(role, branch, department, month, year) {
          WHERE EXTRACT(MONTH FROM a.clock_in) = $2 
            AND EXTRACT(YEAR FROM a.clock_in) = $3
            AND p.status = 'Active'
-           ${attWhere}`,
+           ${attWhere}
+         ORDER BY a.clock_in ASC`,
         attParams
       );
+
+      // Deduplicate: Keep only the earliest clock-in per user per date for calendar events
+      const dayAttMap = new Map();
       for (const r of attRows) {
+        const dStr = new Date(new Date(r.clock_in).getTime() + 8 * 3600 * 1000).toISOString().split('T')[0];
+        const key = `${r.user_id}_${dStr}`;
+        if (!dayAttMap.has(key)) {
+          dayAttMap.set(key, { ...r });
+        } else {
+          const existing = dayAttMap.get(key);
+          if (!existing.clock_out && r.clock_out) {
+            existing.clock_out = r.clock_out;
+          }
+        }
+      }
+
+      for (const r of dayAttMap.values()) {
         events.push({
           id: `att-${r.user_id}-${new Date(r.clock_in).getTime()}`,
           user_id: r.user_id,

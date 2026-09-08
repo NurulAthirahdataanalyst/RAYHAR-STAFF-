@@ -273,11 +273,35 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
   const totalEntitlement = baseEntitlement + totalAdjustment;
   const leaveBalanceRemaining = Math.max(totalEntitlement - quotaLeavesUsed, 0);
 
-  // Streak
+  // Group myLogs by date and keep only the first clock-in per date
+  const dailyUniqueLogs = useMemo(() => {
+    const map = new Map<string, any>();
+    const sorted = [...myLogs].sort((a, b) => new Date(a.clock_in).getTime() - new Date(b.clock_in).getTime());
+    sorted.forEach(log => {
+      if (!log.clock_in) return;
+      const dStr = log.date || getLocalDateString(log.clock_in);
+      if (!map.has(dStr)) {
+        map.set(dStr, { ...log, date: dStr });
+      } else {
+        const existing = map.get(dStr);
+        // Preserve latest clock_out if available
+        if (!existing.clock_out && log.clock_out) {
+          existing.clock_out = log.clock_out;
+        }
+        if ((!existing.duration || existing.duration === "--h --m") && log.duration && log.duration !== "--h --m") {
+          existing.duration = log.duration;
+        }
+      }
+    });
+    return Array.from(map.values()).sort((a, b) => new Date(a.clock_in).getTime() - new Date(b.clock_in).getTime());
+  }, [myLogs]);
+
+  // Streak - based on distinct attendance days using first clock-in
   let streak = 0;
   let cur = 0;
-  for (const log of [...myLogs].reverse()) {
-    if (!log.is_late && log.status !== "LATE") {
+  for (const log of [...dailyUniqueLogs].reverse()) {
+    const isLate = log.is_late === 1 || log.is_late === true || log.status === "LATE" || log.status === "Late" || log.status === "Present (Late)";
+    if (!isLate && (log.status === "Present" || log.status === "Present (On Time)")) {
       cur++;
     } else {
       if (streak === 0) streak = cur;
@@ -316,18 +340,12 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
 
   // Monthly summary — count DISTINCT days where the employee is marked Present or LATE
   // Backend now returns status="Outstation" for outstation days, so they won't appear here
-  const presentLogs = myLogs.filter(l => 
-    l.status === 'Present' || l.status === 'LATE' || l.status === 'Late'
+  const presentDaysLogs = dailyUniqueLogs.filter(l => 
+    l.status === 'Present' || l.status === 'LATE' || l.status === 'Late' || l.status === 'Present (On Time)' || l.status === 'Present (Late)'
   );
-
-  // Deduplicate by date string so multiple clock-ins on the same day count as 1
-  const presentDaySet = new Set(presentLogs.map(l => {
-    if (l.date) return l.date;
-    const d = new Date(l.clock_in);
-    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-  }));
-  const presentDays = presentDaySet.size;
-  const lateArrivals = presentLogs.filter(l => l.is_late === 1 || l.is_late === true || l.status === 'LATE' || l.status === 'Late').length;
+  const presentDays = presentDaysLogs.length;
+  // Use strictly the first clock-in of each day to count late arrivals
+  const lateArrivals = presentDaysLogs.filter(l => l.is_late === 1 || l.is_late === true || l.status === 'LATE' || l.status === 'Late' || l.status === 'Present (Late)').length;
   
   let daysInMonth = 0;
   let absentDays = 0;
@@ -500,8 +518,10 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
           heatmapData[d] = 'Outstation';
         } else if (logsOnDay.length > 0) {
           if (isPastOrToday) totalWorkingDaysPassed++;
-          const att = logsOnDay[0];
-          const isLateLog = att.is_late === 1 || att.is_late === true || att.status === "LATE";
+          // Sort by clock_in ascending to strictly evaluate earliest clock-in
+          const sortedOnDay = [...logsOnDay].sort((a, b) => new Date(a.clock_in).getTime() - new Date(b.clock_in).getTime());
+          const att = sortedOnDay[0];
+          const isLateLog = att.is_late === 1 || att.is_late === true || att.status === "LATE" || att.status === "Late" || att.status === "Present (Late)";
           if (isLateLog) {
             heatmapData[d] = 'Present (Late)';
           } else {
@@ -617,7 +637,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
   
   let validClockIns = 0;
 
-  myLogs.forEach(l => {
+  dailyUniqueLogs.forEach(l => {
     if (l.clock_in) {
        const origTime = new Date(l.clock_in);
        if (isNaN(origTime.getTime())) return;
