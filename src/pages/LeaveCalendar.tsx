@@ -236,7 +236,7 @@ export default function LeaveCalendar() {
                 const today = isToday(day);
                 const isPast = isBefore(day, startOfDay(new Date())) && !today;
 
-                let cellBg = "bg-white dark:bg-card";
+                let cellBg = "bg-card";
                 let textCol = "text-foreground";
                 
                 if (today) {
@@ -246,7 +246,7 @@ export default function LeaveCalendar() {
                   cellBg = "bg-slate-50/50 dark:bg-slate-900/50";
                   textCol = "text-foreground opacity-50";
                 } else if (isPast) {
-                  cellBg = "bg-white dark:bg-card opacity-80";
+                  cellBg = "bg-card opacity-80";
                   textCol = "text-foreground dark:text-foreground";
                 }
 
@@ -308,7 +308,7 @@ function LeaveDetailPopup({ selectedEvent, requests, filterStatus, onClose }: { 
 
   return ReactDOM.createPortal(
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-xl p-4 transition-all duration-300" onClick={onClose}>
-      <div className="bg-white dark:bg-card rounded-2xl shadow-2xl overflow-hidden max-w-sm w-full flex flex-col relative" onClick={e => e.stopPropagation()}>
+      <div className="bg-card rounded-2xl shadow-2xl overflow-hidden max-w-sm w-full flex flex-col relative" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between bg-blue-500 text-white p-4">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-lg bg-white/20">

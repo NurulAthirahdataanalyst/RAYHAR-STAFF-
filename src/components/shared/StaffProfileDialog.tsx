@@ -1433,7 +1433,7 @@ export function StaffProfileDialog({
                               disabled={loadingMoreLocationHistory}
                               variant="outline"
                               size="sm"
-                              className="text-xs font-bold uppercase tracking-widest gap-2 bg-white dark:bg-card border-[#942392]/30 text-[#942392] hover:bg-[#942392]/10"
+                              className="text-xs font-bold uppercase tracking-widest gap-2 bg-card border-[#942392]/30 text-[#942392] hover:bg-[#942392]/10"
                             >
                               {loadingMoreLocationHistory ? (
                                 <>

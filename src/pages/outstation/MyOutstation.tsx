@@ -266,10 +266,10 @@ export default function MyOutstation() {
                       setSelectedMonth(parseInt(m).toString());
                     }
                   }}
-                  className="flex items-center justify-between h-9 px-3 text-[10px] font-black uppercase tracking-widest text-foreground dark:text-slate-100 bg-white dark:bg-card border border-slate-200 dark:border-slate-700 rounded-md shadow-sm min-w-[140px]"
+                  className="flex items-center justify-between h-9 px-3 text-[10px] font-black uppercase tracking-widest text-foreground dark:text-slate-100 bg-card border border-slate-200 dark:border-slate-700 rounded-md shadow-sm min-w-[140px]"
                 />
               ) : (
-                <YearPopover year={selectedYear} onSelectYear={setSelectedYear} className="flex items-center justify-between h-9 px-3 text-[10px] font-black uppercase tracking-widest text-foreground dark:text-slate-100 bg-white dark:bg-card border border-slate-200 dark:border-slate-700 rounded-md shadow-sm min-w-[140px]" />
+                <YearPopover year={selectedYear} onSelectYear={setSelectedYear} className="flex items-center justify-between h-9 px-3 text-[10px] font-black uppercase tracking-widest text-foreground dark:text-slate-100 bg-card border border-slate-200 dark:border-slate-700 rounded-md shadow-sm min-w-[140px]" />
               )}
             </div>
           </div>

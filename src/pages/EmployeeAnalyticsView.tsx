@@ -991,7 +991,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
         
         {/* Attendance Summary */}
-        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card h-full flex flex-col group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-2 ring-slate-300 dark:ring-slate-600 hover:ring-[#942392]/40">
+        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-card h-full flex flex-col group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-2 ring-slate-300 dark:ring-slate-600 hover:ring-[#942392]/40">
           <CardContent className="p-4 flex-1 flex flex-col">
             <h3 className="text-[11px] font-bold uppercase tracking-wider text-foreground pb-3 border-b mb-3">ATTENDANCE SUMMARY ({monthNameFull})</h3>
             
@@ -1047,7 +1047,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
         </Card>
 
         {/* Leave Utilization (PIE CHART - AS REQUESTED) */}
-        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card h-full flex flex-col group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20 hover:ring-blue-500/20">
+        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-card h-full flex flex-col group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20 hover:ring-blue-500/20">
           <CardContent className="p-4 flex-1 flex flex-col">
             <h3 className="text-[11px] font-bold uppercase tracking-wider text-foreground pb-3 border-b mb-3">LEAVE UTILIZATION ({monthNameFull})</h3>
             
@@ -1107,7 +1107,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
         </Card>
 
         {/* Attendance Calendar */}
-        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-2 ring-slate-300 dark:ring-slate-600 hover:ring-[#942392]/40">
+        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-card group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-2 ring-slate-300 dark:ring-slate-600 hover:ring-[#942392]/40">
           <CardContent className="p-5 h-full flex flex-col">
              <div className="flex items-center justify-between pb-3 border-b mb-4">
                 <h3 className="text-[11px] font-bold uppercase tracking-wider text-foreground">ATTENDANCE CALENDAR ({monthNameFull} {year})</h3>
@@ -1190,7 +1190,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
         
         {/* Clock In Analysis */}
-        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-2 ring-slate-300 dark:ring-slate-600 hover:ring-[#942392]/40">
+        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-card group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-2 ring-slate-300 dark:ring-slate-600 hover:ring-[#942392]/40">
           <CardContent className="p-5 h-full flex flex-col">
             <h3 className="text-[11px] font-bold uppercase tracking-wider text-foreground flex items-center gap-1.5 pb-3 border-b mb-4">
               <Clock className="w-3.5 h-3.5 text-[#942392]" /> CLOCK-IN ANALYSIS
@@ -1235,7 +1235,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
         </Card>
 
         {/* Punctuality Trend Line Chart */}
-        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20 hover:ring-amber-500/20">
+        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-card group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20 hover:ring-amber-500/20">
           <CardContent className="p-5 h-full flex flex-col">
             <h3 className="text-[11px] font-bold uppercase tracking-wider text-foreground pb-3 border-b mb-6">PUNCTUALITY TREND ({monthNameFull})</h3>
             
@@ -1297,7 +1297,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
         </Card>
 
         {/* Attendance Score Breakdown */}
-        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-2 ring-slate-300 dark:ring-slate-600 hover:ring-[#942392]/40">
+        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-card group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-2 ring-slate-300 dark:ring-slate-600 hover:ring-[#942392]/40">
           <CardContent className="p-5 h-full flex flex-col">
             <h3 className="text-[11px] font-bold uppercase tracking-wider text-foreground pb-3 border-b mb-4">ATTENDANCE SCORE BREAKDOWN</h3>
             
@@ -1354,7 +1354,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
       {/* ROW 4: Upcoming Events and Personal Insights */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 mt-3">
         
-          <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card lg:col-span-1 group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20">
+          <Card className="rounded-[20px] border border-border/50 shadow-sm bg-card lg:col-span-1 group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20">
 
           <CardContent className="p-5 h-full flex flex-col">
             <h3 className="text-[11px] font-bold uppercase tracking-wider text-foreground flex items-center gap-1.5 pb-3 border-b mb-4">
@@ -1388,7 +1388,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
         </Card>
 
         
-          <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card lg:col-span-1 group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20">
+          <Card className="rounded-[20px] border border-border/50 shadow-sm bg-card lg:col-span-1 group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20">
             <CardContent className="p-5 h-full flex flex-col">
               <h3 className="text-[11px] font-bold uppercase tracking-wider text-foreground flex items-center gap-1.5 pb-3 border-b mb-4">
                 <Calendar className="w-3.5 h-3.5 text-indigo-500" /> LEAVE BREAKDOWN
@@ -1458,7 +1458,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
             </CardContent>
           </Card>
 
-          <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20">
+          <Card className="rounded-[20px] border border-border/50 shadow-sm bg-card group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20">
             <CardContent className="p-5 h-full flex flex-col">
               <h3 className="text-[11px] font-bold uppercase tracking-wider text-foreground flex items-center gap-1.5 pb-3 border-b mb-4">
                 <Zap className="w-3.5 h-3.5 text-amber-500" /> PERSONAL INSIGHTS
@@ -1477,7 +1477,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
       {/* ROW 5: Replacement Leaves Table */}
       {replacementLeaves.length > 0 && (
         <div className="mt-3">
-          <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card">
+          <Card className="rounded-[20px] border border-border/50 shadow-sm bg-card">
             <CardContent className="p-5">
               <h3 className="text-[11px] font-bold uppercase tracking-wider text-foreground pb-3 border-b mb-4">EARNED REPLACEMENT LEAVES</h3>
               <div className="overflow-x-auto">

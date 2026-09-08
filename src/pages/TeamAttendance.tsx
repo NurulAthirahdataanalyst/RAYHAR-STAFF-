@@ -428,7 +428,7 @@ export default function TeamAttendance() {
 
         {/* Table */}
         <Card className="border-border shadow-sm">
-          <CardHeader className="flex flex-col gap-4 bg-white dark:bg-card">
+          <CardHeader className="flex flex-col gap-4 bg-card">
             {/* Row 1: Title and Export Button */}
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg whitespace-nowrap text-slate-800 dark:text-slate-100 font-black">
@@ -466,7 +466,7 @@ export default function TeamAttendance() {
                   {dateViewMode === "DAY" ? (
                     <Popover>
                       <PopoverTrigger asChild>
-                        <button className="appearance-none flex items-center justify-center px-4 py-2 bg-white dark:bg-card border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-[34px] gap-2 hover:border-[#942392] hover:ring-1 hover:ring-[#942392] transition-all">
+                        <button className="appearance-none flex items-center justify-center px-4 py-2 bg-card border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-[34px] gap-2 hover:border-[#942392] hover:ring-1 hover:ring-[#942392] transition-all">
                           {new Date(selectedDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()} <CalendarDays className="w-4 h-4 text-foreground" />
                         </button>
                       </PopoverTrigger>
@@ -487,17 +487,17 @@ export default function TeamAttendance() {
                       onSelectMonthYear={(val) => {
                         setSelectedDate(`${val}-01`);
                       }}
-                      className="appearance-none flex items-center justify-between gap-3 min-w-[140px] px-4 py-2 bg-white dark:bg-card border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none focus:border-[#942392] focus:ring-1 focus:ring-[#942392] uppercase tracking-widest h-[34px]"
+                      className="appearance-none flex items-center justify-between gap-3 min-w-[140px] px-4 py-2 bg-card border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none focus:border-[#942392] focus:ring-1 focus:ring-[#942392] uppercase tracking-widest h-[34px]"
                     />
                   )}
                 </div>
 
                 {/* Status Dropdown */}
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="h-[34px] text-[11px] font-black rounded-md border border-border w-[160px] bg-white dark:bg-card uppercase tracking-widest hover:border-[#942392]">
+                  <SelectTrigger className="h-[34px] text-[11px] font-black rounded-md border border-border w-[160px] bg-card uppercase tracking-widest hover:border-[#942392]">
                     <SelectValue placeholder="All Status">{statusFilter || "All Status"}</SelectValue>
                   </SelectTrigger>
-                  <SelectContent className="bg-white dark:bg-card border-border z-50">
+                  <SelectContent className="bg-card border-border z-50">
                     <SelectItem value="All Status">All Status</SelectItem>
                     <SelectItem value="Present (On Time)">Present (On Time)</SelectItem>
                     <SelectItem value="Present (Late)">Present (Late)</SelectItem>
@@ -519,7 +519,7 @@ export default function TeamAttendance() {
                     <Search className="w-4 h-4 absolute left-3 text-foreground" />
                     <Input
                       placeholder="Search Employee..."
-                      className="pl-9 h-[34px] w-[200px] text-xs bg-white dark:bg-card"
+                      className="pl-9 h-[34px] w-[200px] text-xs bg-card"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                     />

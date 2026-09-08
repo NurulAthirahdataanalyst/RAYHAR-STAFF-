@@ -142,7 +142,7 @@ export default function OutstationCalendar({ onlyMine = false }: { onlyMine?: bo
         </div>
 
       {/* Calendar Card */}
-      <Card className="border border-slate-100 dark:border-slate-700 bg-white dark:bg-card shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] rounded-[24px] overflow-hidden">
+      <Card className="border border-slate-100 dark:border-slate-700 bg-card shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] rounded-[24px] overflow-hidden">
         <CardHeader className="flex flex-col gap-4 border-b border-border/50 p-4 sm:p-5">
           {/* Controls */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 w-full">
@@ -201,7 +201,7 @@ export default function OutstationCalendar({ onlyMine = false }: { onlyMine?: bo
                 const today = isToday(day);
                 const isPast = isBefore(day, startOfDay(new Date())) && !today;
 
-                let cellBg = "bg-white dark:bg-card";
+                let cellBg = "bg-card";
                 let textCol = "text-foreground";
                 
                 if (today) {
@@ -211,7 +211,7 @@ export default function OutstationCalendar({ onlyMine = false }: { onlyMine?: bo
                   cellBg = "bg-slate-50/50 dark:bg-slate-900/50";
                   textCol = "text-foreground opacity-50";
                 } else if (isPast) {
-                  cellBg = "bg-white dark:bg-card opacity-80";
+                  cellBg = "bg-card opacity-80";
                   textCol = "text-foreground dark:text-foreground";
                 }
 
@@ -258,7 +258,7 @@ export default function OutstationCalendar({ onlyMine = false }: { onlyMine?: bo
         );
         return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-xl p-4 transition-all duration-300" onClick={() => setSelectedEvent(null)}>
-          <div className="bg-white dark:bg-card rounded-2xl shadow-2xl overflow-hidden max-w-md w-full flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
+          <div className="bg-card rounded-2xl shadow-2xl overflow-hidden max-w-md w-full flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between bg-pink-500 text-white p-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-white/20">

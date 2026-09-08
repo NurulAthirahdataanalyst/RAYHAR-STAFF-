@@ -51,7 +51,7 @@ export function MonthPicker({ monthYear, onSelectMonthYear, className, hideAllYe
         <button
           type="button"
           className={cn(
-            "appearance-none flex items-center justify-between px-4 py-2 bg-white dark:bg-card border border-slate-200 dark:border-slate-800 text-foreground text-[11px] font-black rounded-xl shadow-sm outline-none cursor-pointer uppercase tracking-widest h-9 sm:h-10 gap-3 hover:border-[#942392]/40 min-w-[120px] transition-all",
+            "appearance-none flex items-center justify-between px-4 py-2 bg-card border border-slate-200 dark:border-slate-800 text-foreground text-[11px] font-black rounded-xl shadow-sm outline-none cursor-pointer uppercase tracking-widest h-9 sm:h-10 gap-3 hover:border-[#942392]/40 min-w-[120px] transition-all",
             className
           )}
         >
@@ -60,7 +60,7 @@ export function MonthPicker({ monthYear, onSelectMonthYear, className, hideAllYe
         </button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-64 p-0 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl bg-white dark:bg-card z-50 overflow-hidden"
+        className="w-64 p-0 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl bg-card z-50 overflow-hidden"
         align="start"
       >
         {/* Purple Header */}

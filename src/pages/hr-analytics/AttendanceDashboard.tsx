@@ -1126,27 +1126,27 @@ export default function AttendanceDashboard() {
                 ? liveStats.expectedWorking
                 : (liveStats.total || 1);
               const card6 = liveStats.hasCompanyLeave
-                ? { label: "Company Leave", val: `${liveStats.total > 0 ? Math.round(((liveStats.companyLeave || 0) / liveStats.total) * 100) : 0}%`, sub: `${liveStats.companyLeave || 0} / ${liveStats.total} Employees`, color: "text-indigo-600", bg: "bg-indigo-50", icon: <Building2 className="w-5 h-5"/>, trend: "—" }
-                : { label: "Weekend", val: `${liveStats.total > 0 ? Math.round(((liveStats.weekend || 0) / liveStats.total) * 100) : 0}%`, sub: `${liveStats.weekend || 0} / ${liveStats.total} Employees`, color: "text-foreground", bg: "bg-slate-100", icon: <CalendarDays className="w-5 h-5"/>, trend: "—" };
+                ? { label: "Company Leave", val: `${liveStats.total > 0 ? Math.round(((liveStats.companyLeave || 0) / liveStats.total) * 100) : 0}%`, sub: `${liveStats.companyLeave || 0} / ${liveStats.total} Employees`, color: "text-indigo-600", bg: "bg-indigo-50 dark:bg-indigo-950/50", icon: <Building2 className="w-5 h-5"/>, trend: "—" }
+                : { label: "Weekend", val: `${liveStats.total > 0 ? Math.round(((liveStats.weekend || 0) / liveStats.total) * 100) : 0}%`, sub: `${liveStats.weekend || 0} / ${liveStats.total} Employees`, color: "text-foreground", bg: "bg-slate-100 dark:bg-slate-800", icon: <CalendarDays className="w-5 h-5"/>, trend: "—" };
               return [
-                { label: "Present Today", val: `${denom > 0 ? Math.round((liveStats.present / denom) * 100) : 0}%`, sub: `${liveStats.present} / ${denom} Employees`, color: "text-[#942392]", bg: "bg-[#942392]/10", icon: <CheckCircle2 className="w-5 h-5"/>, trend: "↑ 5% vs Yesterday" },
-                { label: "On Time", val: `${denom > 0 ? Math.round(((liveStats.present - liveStats.late) / denom) * 100) : 0}%`, sub: `${Math.max(0, liveStats.present - liveStats.late)} / ${denom} Employees`, color: "text-emerald-600", bg: "bg-emerald-50", icon: <Clock className="w-5 h-5"/>, trend: "—" },
-                { label: "Late", val: `${denom > 0 ? Math.round((liveStats.late / denom) * 100) : 0}%`, sub: `${liveStats.late} / ${denom} Employees`, color: "text-amber-600", bg: "bg-amber-50", icon: <AlertCircle className="w-5 h-5"/>, trend: "—" },
+                { label: "Present Today", val: `${denom > 0 ? Math.round((liveStats.present / denom) * 100) : 0}%`, sub: `${liveStats.present} / ${denom} Employees`, color: "text-[#942392]", bg: "bg-[#942392]/10 dark:bg-[#942392]/25", icon: <CheckCircle2 className="w-5 h-5"/>, trend: "↑ 5% vs Yesterday" },
+                { label: "On Time", val: `${denom > 0 ? Math.round(((liveStats.present - liveStats.late) / denom) * 100) : 0}%`, sub: `${Math.max(0, liveStats.present - liveStats.late)} / ${denom} Employees`, color: "text-emerald-600", bg: "bg-emerald-50 dark:bg-emerald-950/50", icon: <Clock className="w-5 h-5"/>, trend: "—" },
+                { label: "Late", val: `${denom > 0 ? Math.round((liveStats.late / denom) * 100) : 0}%`, sub: `${liveStats.late} / ${denom} Employees`, color: "text-amber-600", bg: "bg-amber-50 dark:bg-amber-950/50", icon: <AlertCircle className="w-5 h-5"/>, trend: "—" },
                 { 
                   label: "Absent", 
                   val: `${denom > 0 ? Math.round((liveStats.absent / denom) * 100) : 0}%`, 
                   sub: `${liveStats.absent} / ${denom} Employees`, 
                   color: "text-rose-600", 
-                  bg: "bg-rose-50", 
+                  bg: "bg-rose-50 dark:bg-rose-950/50", 
                   icon: <ShieldAlert className="w-5 h-5"/>, 
                   trend: "—"
                 },
-                { label: "Leave", val: `${denom > 0 ? Math.round((liveStats.onLeave / denom) * 100) : 0}%`, sub: `${liveStats.onLeave} / ${denom} Employees`, color: "text-blue-600", bg: "bg-blue-50", icon: <CalendarIcon className="w-5 h-5"/>, trend: "—" },
+                { label: "Leave", val: `${denom > 0 ? Math.round((liveStats.onLeave / denom) * 100) : 0}%`, sub: `${liveStats.onLeave} / ${denom} Employees`, color: "text-blue-600", bg: "bg-blue-50 dark:bg-blue-950/50", icon: <CalendarIcon className="w-5 h-5"/>, trend: "—" },
                 card6,
-                { label: "Outstation", val: `${liveStats.total > 0 ? Math.round(((liveStats.outstation || 0) / liveStats.total) * 100) : 0}%`, sub: `${liveStats.outstation || 0} / ${liveStats.total} Employees`, color: "text-pink-600", bg: "bg-pink-50", icon: <MapPin className="w-5 h-5"/>, trend: "—" },
+                { label: "Outstation", val: `${liveStats.total > 0 ? Math.round(((liveStats.outstation || 0) / liveStats.total) * 100) : 0}%`, sub: `${liveStats.outstation || 0} / ${liveStats.total} Employees`, color: "text-pink-600", bg: "bg-pink-50 dark:bg-pink-950/50", icon: <MapPin className="w-5 h-5"/>, trend: "—" },
               ];
             })().map((k, i) => (
-                <div key={i} className={`relative overflow-hidden border border-gray-200 dark:border-slate-800/80 shadow-sm border-l-4 ${k.color.replace('text-', 'border-l-')} bg-white dark:bg-card rounded-md p-4 flex flex-col justify-between h-[150px] transition-all duration-300 cursor-pointer hover:shadow-lg hover:-translate-y-1 ${k.color.includes('emerald') ? 'hover:border-emerald-500 hover:ring-1 hover:ring-emerald-500 hover:bg-emerald-50/50 dark:hover:bg-emerald-900/20' : k.color.includes('amber') ? 'hover:border-amber-500 hover:ring-1 hover:ring-amber-500 hover:bg-amber-50/50 dark:hover:bg-amber-900/20' : k.color.includes('rose') ? 'hover:border-rose-500 hover:ring-1 hover:ring-rose-500 hover:bg-rose-50/50 dark:hover:bg-rose-900/20' : k.color.includes('blue') ? 'hover:border-blue-500 hover:ring-1 hover:ring-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-900/20' : k.color.includes('indigo') ? 'hover:border-indigo-500 hover:ring-1 hover:ring-indigo-500 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/20' : k.color.includes('pink') ? 'hover:border-pink-500 hover:ring-1 hover:ring-pink-500 hover:bg-pink-50/50 dark:hover:bg-pink-900/20' : k.color.includes('foreground') ? 'hover:border-slate-400 hover:ring-1 hover:ring-slate-400 hover:bg-slate-50/50 dark:hover:bg-slate-800/50' : 'hover:border-[#942392] hover:ring-1 hover:ring-[#942392] hover:bg-[#942392]/10'}`}>
+                <div key={i} className={`relative overflow-hidden border border-gray-200 dark:border-slate-800/80 shadow-sm border-l-4 ${k.color.replace('text-', 'border-l-')} bg-card rounded-md p-4 flex flex-col justify-between h-[150px] transition-all duration-300 cursor-pointer hover:shadow-lg hover:-translate-y-1 ${k.color.includes('emerald') ? 'hover:border-emerald-500 hover:ring-1 hover:ring-emerald-500 hover:bg-emerald-50/50 dark:hover:bg-emerald-900/20' : k.color.includes('amber') ? 'hover:border-amber-500 hover:ring-1 hover:ring-amber-500 hover:bg-amber-50/50 dark:hover:bg-amber-900/20' : k.color.includes('rose') ? 'hover:border-rose-500 hover:ring-1 hover:ring-rose-500 hover:bg-rose-50/50 dark:hover:bg-rose-900/20' : k.color.includes('blue') ? 'hover:border-blue-500 hover:ring-1 hover:ring-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-900/20' : k.color.includes('indigo') ? 'hover:border-indigo-500 hover:ring-1 hover:ring-indigo-500 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/20' : k.color.includes('pink') ? 'hover:border-pink-500 hover:ring-1 hover:ring-pink-500 hover:bg-pink-50/50 dark:hover:bg-pink-900/20' : k.color.includes('foreground') ? 'hover:border-slate-400 hover:ring-1 hover:ring-slate-400 hover:bg-slate-50/50 dark:hover:bg-slate-800/50' : 'hover:border-[#942392] hover:ring-1 hover:ring-[#942392] hover:bg-[#942392]/10'}`}>
                 <div className="flex items-start justify-between">
                   <div className={`p-2 rounded-lg ${k.bg} ${k.color}`}>
                     {k.icon}
@@ -1157,7 +1157,7 @@ export default function AttendanceDashboard() {
                   <p className="text-[10px] font-semibold text-foreground uppercase tracking-wide mt-1 line-clamp-1">{k.label}</p>
                   <div className="flex flex-col mt-1 space-y-1 mb-2">
                     <p className={`text-[9px] font-medium ${k.trend.includes('↑') ? 'text-emerald-600' : 'text-foreground'}`}>{k.trend}</p>
-                    <p className="text-[10px] text-slate-700 font-bold whitespace-nowrap">{k.sub}</p>
+                    <p className="text-[10px] text-slate-700 dark:text-slate-300 font-bold whitespace-nowrap">{k.sub}</p>
                   </div>
                   {/* Pill-shaped Progress Bar */}
                   <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden flex items-center">
@@ -1173,7 +1173,7 @@ export default function AttendanceDashboard() {
       </div>
 
       {/* FILTER BAR SECTION */}
-      <Card className="border border-slate-100 dark:border-slate-800/80 bg-white dark:bg-card overflow-hidden mb-6 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
+      <Card className="border border-slate-100 dark:border-slate-800/80 bg-card overflow-hidden mb-6 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
         <div className="p-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
             <h2 className="text-base font-bold text-gray-800 dark:text-gray-200 flex items-center gap-2">
@@ -1201,11 +1201,11 @@ export default function AttendanceDashboard() {
               <div className="relative">
                 <Popover>
                   <PopoverTrigger asChild>
-                    <button className="appearance-none flex items-center justify-between px-4 py-2 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer tracking-widest h-10 gap-3 hover:border-[#942392]/40 min-w-[140px]">
+                    <button className="appearance-none flex items-center justify-between px-4 py-2 bg-card border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer tracking-widest h-10 gap-3 hover:border-[#942392]/40 min-w-[140px]">
                       {new Date(selectedDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })} <CalendarDays className="w-4 h-4 text-foreground" />
                     </button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl bg-white dark:bg-card z-50" align="start">
+                  <PopoverContent className="w-auto p-0 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl bg-card z-50" align="start">
                     <Calendar
                       mode="single"
                       selected={new Date(selectedDate)}
@@ -1224,7 +1224,7 @@ export default function AttendanceDashboard() {
                   <SelectTrigger className="w-[140px] h-9 text-[11px] font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-none outline-none hover:border-[#942392]/40 hover:ring-1 hover:ring-[#942392]/40 hover:bg-[#942392]/5 dark:hover:border-[#942392]/60 dark:hover:ring-[#942392]/60 dark:hover:bg-[#942392]/20 transition-all duration-200 focus:ring-1 focus:ring-[#942392]">
                     <SelectValue placeholder="Department" />
                   </SelectTrigger>
-                  <SelectContent className="rounded-md">
+                  <SelectContent>
                     <SelectItem value="all">All Departments</SelectItem>
                     {departments.map((dept, idx) => (
                       <SelectItem key={idx} value={dept}>{dept}</SelectItem>
@@ -1239,7 +1239,7 @@ export default function AttendanceDashboard() {
                   <SelectTrigger className="w-[130px] h-9 text-[11px] font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-none outline-none hover:border-[#942392]/40 hover:ring-1 hover:ring-[#942392]/40 hover:bg-[#942392]/5 dark:hover:border-[#942392]/60 dark:hover:ring-[#942392]/60 dark:hover:bg-[#942392]/20 transition-all duration-200 focus:ring-1 focus:ring-[#942392]">
                     <SelectValue placeholder="Branch" />
                   </SelectTrigger>
-                  <SelectContent className="rounded-md">
+                  <SelectContent>
                     <SelectItem value="all">All Branches</SelectItem>
                     {branches.map((b, idx) => (
                       <SelectItem key={idx} value={b.code}>{b.name}</SelectItem>
@@ -1253,7 +1253,7 @@ export default function AttendanceDashboard() {
                 <SelectTrigger className="w-[130px] h-9 text-[11px] font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-none outline-none hover:border-[#942392]/40 hover:ring-1 hover:ring-[#942392]/40 hover:bg-[#942392]/5 dark:hover:border-[#942392]/60 dark:hover:ring-[#942392]/60 dark:hover:bg-[#942392]/20 transition-all duration-200 focus:ring-1 focus:ring-[#942392]">
                   <SelectValue placeholder="Select Status" />
                 </SelectTrigger>
-                <SelectContent className="rounded-md">
+                <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
                   <SelectItem value="present_on_time">Present (On Time)</SelectItem>
                   <SelectItem value="present_late">Present (Late)</SelectItem>
@@ -1266,13 +1266,27 @@ export default function AttendanceDashboard() {
                   <SelectItem value="multi_location">Multi-Location</SelectItem>
                 </SelectContent>
               </Select>
+              
+              <button
+                onClick={() => {
+                  setSearchTerm("");
+                  setSelectedDepartmentFilter("all");
+                  setSelectedBranchFilter("all");
+                  setSelectedStatusFilter("all");
+                }}
+                className="h-9 px-3 text-[11px] font-bold text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 flex items-center gap-1.5 transition-colors"
+                title="Reset Filters"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span>Reset</span>
+              </button>
 
             </div>
           </div>
       </Card>
 
       {/* ADMIN ATTENDANCE TABLE */}
-      <Card id="admin-attendance" className="border border-slate-100 dark:border-slate-800/80 bg-white dark:bg-card overflow-hidden mb-6 scroll-mt-24 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
+      <Card id="admin-attendance" className="border border-slate-100 dark:border-slate-800/80 bg-card overflow-hidden mb-6 scroll-mt-24 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
         <div className="p-4 border-b border-gray-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2">
@@ -1281,13 +1295,13 @@ export default function AttendanceDashboard() {
             </div>
             
             <div className="flex flex-wrap items-center gap-3 mt-1">
-              <div className="bg-pink-50/80 border border-pink-100 px-3 py-1.5 rounded-md flex items-center gap-2">
-                <span className="text-[10px] font-bold text-pink-500 uppercase tracking-wider">Total Outstation</span>
-                <span className="text-[13px] font-black text-pink-700">{liveStats.outstation || 0}</span>
+              <div className="bg-pink-50/80 dark:bg-pink-950/40 border border-pink-100 dark:border-pink-900/50 px-3 py-1.5 rounded-md flex items-center gap-2">
+                <span className="text-[10px] font-bold text-pink-500 dark:text-pink-400 uppercase tracking-wider">Total Outstation</span>
+                <span className="text-[13px] font-black text-pink-700 dark:text-pink-300">{liveStats.outstation || 0}</span>
               </div>
-              <div className="bg-red-50/80 border border-red-100 px-3 py-1.5 rounded-md flex items-center gap-2">
-                <span className="text-[10px] font-bold text-red-500 uppercase tracking-wider">Total Absent</span>
-                <span className="text-[13px] font-black text-red-700">{liveStats.absent || 0}</span>
+              <div className="bg-red-50/80 dark:bg-red-950/40 border border-red-100 dark:border-red-900/50 px-3 py-1.5 rounded-md flex items-center gap-2">
+                <span className="text-[10px] font-bold text-red-500 dark:text-red-400 uppercase tracking-wider">Total Absent</span>
+                <span className="text-[13px] font-black text-red-700 dark:text-red-300">{liveStats.absent || 0}</span>
               </div>
               <div className="bg-blue-50/80 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/50 px-3 py-1.5 rounded-md flex items-center gap-2">
                 <span className="text-[10px] font-bold text-blue-500 dark:text-blue-400 uppercase tracking-wider">Total On Leave</span>
@@ -1314,7 +1328,7 @@ export default function AttendanceDashboard() {
           ) : (
             <div className="relative overflow-x-auto">
               <table className="w-full text-sm text-left">
-                <thead className="bg-gray-50/80 dark:bg-slate-800/80 text-foreground uppercase text-[9px] font-bold tracking-wider border-b border-gray-200 dark:border-slate-800">
+                <thead className="bg-gray-50/80 dark:bg-slate-900 text-foreground uppercase text-[9px] font-bold tracking-wider border-b border-gray-200 dark:border-slate-800">
                   <tr>
                     <th className="pl-6 pr-4 py-3.5 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Employee</th>
                     <th className="px-4 py-3.5 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Status</th>
@@ -1486,11 +1500,11 @@ export default function AttendanceDashboard() {
       </Card>
 
       {/* EMPLOYEE ABSENTEEISM TABLE */}
-      <Card id="employee-absenteeism" className="border border-slate-100 dark:border-slate-800/80 bg-white dark:bg-card overflow-hidden mb-6 scroll-mt-24 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
+      <Card id="employee-absenteeism" className="border border-slate-100 dark:border-slate-800/80 bg-card overflow-hidden mb-6 scroll-mt-24 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
         <div className="p-4 border-b border-gray-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-3">
             <h2 className="text-base font-bold text-gray-800 dark:text-gray-200">Employee Absenteeism & On Leave</h2>
-            <span className="px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider rounded bg-red-50 text-red-600 border border-red-100">
+            <span className="px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider rounded bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 border border-red-100 dark:border-red-900/50">
               {filteredAbsentEmployees.length} Employees
             </span>
           </div>
@@ -1503,7 +1517,7 @@ export default function AttendanceDashboard() {
                 placeholder="Search..."
                 value={absentSearchTerm}
                 onChange={(e) => setAbsentSearchTerm(e.target.value)}
-                className="pl-8 pr-3 py-1 w-full text-[11px] border border-gray-200 dark:border-slate-800 rounded-md focus:outline-none focus:ring-1 focus:ring-[#942392] h-7 shadow-sm"
+                className="pl-8 pr-3 py-1 w-full text-[11px] bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 border border-gray-200 dark:border-slate-800 rounded-md focus:outline-none focus:ring-1 focus:ring-[#942392] h-7 shadow-sm placeholder:text-muted-foreground"
               />
             </div>
           </div>
@@ -1519,7 +1533,7 @@ export default function AttendanceDashboard() {
             <>
               <div className="relative overflow-x-auto">
                 <table className="w-full text-sm text-left">
-                  <thead className="bg-gray-50/80 text-foreground uppercase text-[9px] font-bold tracking-wider border-b border-gray-100 dark:border-slate-800">
+                  <thead className="bg-gray-50/80 dark:bg-slate-900 text-foreground uppercase text-[9px] font-bold tracking-wider border-b border-gray-100 dark:border-slate-800">
                     <tr>
                       <th className="px-4 py-2 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Employee</th>
                       <th className="px-4 py-2 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Branch</th>
@@ -1528,7 +1542,7 @@ export default function AttendanceDashboard() {
                       <th className="px-4 py-2 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Status</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100">
+                  <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
                     {filteredAbsentEmployees.length > 0 ? (
                       filteredAbsentEmployees.slice((absentCurrentPage - 1) * parseInt(absentLimit), absentCurrentPage * parseInt(absentLimit)).map((emp) => {
                         let displayStatus = (emp as any).status || "Absent";
@@ -1540,10 +1554,10 @@ export default function AttendanceDashboard() {
                         if (isOutstation) displayStatus = "Outstation";
 
                         return (
-                        <tr key={emp.user_id} className="hover:bg-gray-50/50 transition-colors">
+                        <tr key={emp.user_id} className="hover:bg-gray-50/50 dark:hover:bg-slate-800/40 transition-colors">
                           <td className="px-4 py-2">
                             <div className="flex items-center gap-2">
-                              <div className={`w-8 h-8 rounded-md font-bold flex items-center justify-center text-xs uppercase shadow-sm ${displayStatus === 'Outstation' ? 'bg-pink-100 text-pink-700' : displayStatus === 'Company Leave' ? 'bg-purple-100 text-purple-700' : (displayStatus === 'On Leave' || displayStatus === 'Approved Leave') ? 'bg-blue-100 text-blue-700' : 'bg-red-500/10 text-red-600'}`}>
+                              <div className={`w-8 h-8 rounded-md font-bold flex items-center justify-center text-xs uppercase shadow-sm ${displayStatus === 'Outstation' ? 'bg-pink-100 dark:bg-pink-950/50 text-pink-700 dark:text-pink-300' : displayStatus === 'Company Leave' ? 'bg-purple-100 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300' : (displayStatus === 'On Leave' || displayStatus === 'Approved Leave') ? 'bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300' : 'bg-red-500/10 dark:bg-red-950/50 text-red-600 dark:text-red-400'}`}>
                                 {emp.full_name.charAt(0)}
                               </div>
                               <div>
@@ -1552,29 +1566,29 @@ export default function AttendanceDashboard() {
                               </div>
                             </div>
                           </td>
-                          <td className="px-4 py-2 text-[11px] text-gray-600 font-medium">{emp.branch || "HQ"}</td>
-                          <td className="px-4 py-2 text-[11px] text-gray-600 font-medium">{emp.department || "—"}</td>
-                          <td className="px-4 py-2 text-[11px] text-gray-600 font-medium capitalize">
+                          <td className="px-4 py-2 text-[11px] text-gray-600 dark:text-slate-300 font-medium">{emp.branch || "HQ"}</td>
+                          <td className="px-4 py-2 text-[11px] text-gray-600 dark:text-slate-300 font-medium">{emp.department || "—"}</td>
+                          <td className="px-4 py-2 text-[11px] text-gray-600 dark:text-slate-300 font-medium capitalize">
                             {(emp as any).role?.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())}
                           </td>
                           <td className="px-4 py-2">
                             {displayStatus === 'Outstation' ? (
-                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium bg-pink-50 text-pink-700 border border-pink-200 shadow-sm">
+                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium bg-pink-50 dark:bg-pink-950/40 text-pink-700 dark:text-pink-300 border border-pink-200 dark:border-pink-900/50 shadow-sm">
                                 <span className="w-1 h-1 rounded-full mr-1 bg-[#f746b9] animate-pulse" />
                                 Outstation
                               </span>
                             ) : displayStatus === 'Company Leave' ? (
-                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium bg-purple-50 text-purple-700 border border-purple-200 shadow-sm">
+                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-900/50 shadow-sm">
                                 <span className="w-1 h-1 rounded-full mr-1 bg-purple-500 animate-pulse" />
                                 Company Leave
                               </span>
                             ) : (displayStatus === 'On Leave' || displayStatus === 'Approved Leave') ? (
-                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium bg-blue-50 text-blue-700 border border-blue-200 shadow-sm">
+                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-900/50 shadow-sm">
                                 <span className="w-1 h-1 rounded-full mr-1 bg-blue-500 animate-pulse" />
                                 On Leave
                               </span>
                             ) : (
-                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium bg-red-50 text-red-700 border border-red-100">
+                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 border border-red-100 dark:border-red-900/50">
                                 <span className="w-1 h-1 rounded-full mr-1 bg-red-500" />
                                 Absent
                               </span>
@@ -1610,7 +1624,7 @@ export default function AttendanceDashboard() {
       {/* REST DAY EMPLOYEES GRID */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         {/* ZONE A */}
-        <Card className="border border-slate-100 dark:border-slate-800/80 bg-white dark:bg-card overflow-hidden rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
+        <Card className="border border-slate-100 dark:border-slate-800/80 bg-card overflow-hidden rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
           <div className="p-4 border-b border-gray-100 dark:border-slate-800 flex items-center justify-between">
             <h2 className="text-sm font-bold text-gray-800 dark:text-gray-200">Employees on Rest Day (Zone A)</h2>
             <span className="px-2 py-0.5 text-[10px] font-black uppercase tracking-wider rounded bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-slate-700">
@@ -1651,7 +1665,7 @@ export default function AttendanceDashboard() {
         </Card>
 
         {/* ZONE B */}
-        <Card className="border border-slate-100 dark:border-slate-800/80 bg-white dark:bg-card overflow-hidden rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
+        <Card className="border border-slate-100 dark:border-slate-800/80 bg-card overflow-hidden rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
           <div className="p-4 border-b border-gray-100 dark:border-slate-800 flex items-center justify-between">
             <h2 className="text-sm font-bold text-gray-800 dark:text-gray-200">Employees on Rest Day (Zone B)</h2>
             <span className="px-2 py-0.5 text-[10px] font-black uppercase tracking-wider rounded bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-slate-700">
@@ -1696,12 +1710,12 @@ export default function AttendanceDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
         
         {/* Branch Workforce Distribution */}
-        <Card className="border border-slate-100 dark:border-slate-800/80 bg-white dark:bg-card overflow-hidden lg:col-span-6 flex flex-col h-fit rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
+        <Card className="border border-slate-100 dark:border-slate-800/80 bg-card overflow-hidden lg:col-span-6 flex flex-col h-fit rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
           <CardHeader className="pb-4 pt-5 px-6 border-b border-gray-100 dark:border-slate-800 flex flex-row items-start justify-between">
             <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-200">Branch Workforce Distribution</CardTitle>
             <div className="flex items-center gap-2 flex-wrap justify-end">
               <Select value={liveRegion} onValueChange={setLiveRegion}>
-                <SelectTrigger className="w-[160px] h-8 text-[11px] font-bold border-gray-200 dark:border-slate-800 bg-white dark:bg-card shadow-none focus:ring-0">
+                <SelectTrigger className="w-[160px] h-8 text-[11px] font-bold border-gray-200 dark:border-slate-800 bg-card shadow-none focus:ring-0">
                   <SelectValue placeholder="All Regions" />
                 </SelectTrigger>
                 <SelectContent>
@@ -1725,7 +1739,7 @@ export default function AttendanceDashboard() {
                     <div key={idx} className="flex flex-col gap-1">
                       <div className="flex justify-between items-end">
                         <div className="flex flex-col">
-                          <span className="text-[11px] font-bold text-[#1A1F36]">{FULL_BRANCH_NAMES[branch.branch] || branch.branch}</span>
+                          <span className="text-[11px] font-bold text-slate-800 dark:text-slate-100">{FULL_BRANCH_NAMES[branch.branch] || branch.branch}</span>
                           <div className="flex items-center gap-1.5 mt-0.5">
                             <span className="text-[9px] font-semibold text-foreground flex items-center gap-1">
                               👥 {branch.permanentStaffCount} Staff
@@ -1745,9 +1759,9 @@ export default function AttendanceDashboard() {
                       </div>
                       <UITooltip delayDuration={100}>
                         <TooltipTrigger asChild>
-                      <div className="cursor-pointer w-full bg-slate-100 rounded-full h-2 flex overflow-hidden">
+                      <div className="cursor-pointer w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 flex overflow-hidden">
                             {branch.isWeekend ? (
-                              <div className="h-full w-full bg-slate-300 rounded-full"></div>
+                              <div className="h-full w-full bg-slate-300 dark:bg-slate-600 rounded-full"></div>
                             ) : branch.totalEmployees > 0 ? (
                               <>
                                 {branch.presentOnTime > 0 && <div className="h-full bg-[#10b981]" style={{ width: `${(branch.presentOnTime / branch.totalEmployees) * 100}%` }}></div>}
@@ -1759,11 +1773,11 @@ export default function AttendanceDashboard() {
                                 {branch.absent > 0 && <div className="h-full bg-red-500" style={{ width: `${(branch.absent / branch.totalEmployees) * 100}%` }}></div>}
                               </>
                             ) : (
-                              <div className="h-full w-full bg-slate-200"></div>
+                              <div className="h-full w-full bg-slate-200 dark:bg-slate-700"></div>
                             )}
                           </div>
                         </TooltipTrigger>
-                        <TooltipContent side="top" align="center" className="bg-white dark:bg-card border border-slate-200 dark:border-slate-800 shadow-xl rounded p-3 z-50 w-max whitespace-nowrap text-left min-w-[200px]">
+                        <TooltipContent side="top" align="center" className="bg-card border border-slate-200 dark:border-slate-800 shadow-xl rounded p-3 z-50 w-max whitespace-nowrap text-left min-w-[200px]">
                           <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 mb-2 border-b border-slate-100 dark:border-slate-800 pb-1">{FULL_BRANCH_NAMES[branch.branch] || branch.branch}</p>
                           <div className="flex flex-col gap-1 text-[9px] text-slate-600 mb-2 border-b border-slate-100 dark:border-slate-800 pb-2">
                             <p className="flex justify-between items-center gap-4"><span>Permanent Staff:</span> <span className="font-bold text-slate-700 dark:text-slate-300">{branch.permanentStaffCount}</span></p>
@@ -1820,7 +1834,7 @@ export default function AttendanceDashboard() {
         </Card>
 
         {/* Attendance Overview */}
-        <Card className="border border-slate-100 dark:border-slate-800/80 bg-white dark:bg-card overflow-hidden lg:col-span-6 flex flex-col h-fit rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
+        <Card className="border border-slate-100 dark:border-slate-800/80 bg-card overflow-hidden lg:col-span-6 flex flex-col h-fit rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
           <CardHeader className="pb-4 pt-5 px-6 border-b border-gray-100 dark:border-slate-800 flex flex-row items-start justify-between">
             <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-200">Attendance Overview</CardTitle>
           </CardHeader>
@@ -1931,7 +1945,7 @@ export default function AttendanceDashboard() {
                           className="w-3 h-3 rounded-full shrink-0 shadow-sm"
                           style={{ backgroundColor: entry.color }}
                         />
-                        <span className="text-[12px] font-bold text-gray-700 truncate">
+                        <span className="text-[12px] font-bold text-gray-700 dark:text-slate-300 truncate">
                           {entry.name}
                         </span>
                       </div>
@@ -1950,19 +1964,19 @@ export default function AttendanceDashboard() {
 
               {/* Anomaly Insight Section */}
               {((liveStats.absent || 0) / (liveStats.total || 1)) > 0.2 && (
-                <div className="bg-amber-50 border border-amber-100 rounded-lg p-4 flex flex-col gap-2">
-                  <div className="flex items-center gap-2 text-amber-800">
+                <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-900/40 rounded-lg p-4 flex flex-col gap-2">
+                  <div className="flex items-center gap-2 text-amber-800 dark:text-amber-300">
                     <AlertCircle className="w-4 h-4 shrink-0" />
                     <span className="text-[13px] font-semibold">Attendance dropped {Math.min(Math.round(((liveStats.absent || 0)/(liveStats.total || 1))*100), 100)}% this month.</span>
                   </div>
-                  <p className="text-[12px] text-amber-700 pl-6">
+                  <p className="text-[12px] text-amber-700 dark:text-amber-400 pl-6">
                     Primary cause:<br />
-                    <span className="font-medium text-amber-900">{liveStats.absent || 0} employees currently absent.</span>
+                    <span className="font-medium text-amber-900 dark:text-amber-200">{liveStats.absent || 0} employees currently absent.</span>
                   </p>
                   <div className="pl-6 pt-1">
                     <button
                       onClick={() => navigate((role === "head_of_department" || role === "hod" || role === "branch_leader") ? "/employees" : "/branches")}
-                      className="text-[12px] font-semibold text-amber-700 hover:text-amber-900 flex items-center gap-1"
+                      className="text-[12px] font-semibold text-amber-700 dark:text-amber-400 hover:text-amber-900 dark:hover:text-amber-200 flex items-center gap-1"
                     >
                       View Employees <ChevronDown className="w-3 h-3 -rotate-90" />
                     </button>

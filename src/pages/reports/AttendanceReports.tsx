@@ -348,7 +348,7 @@ export default function AttendanceReports() {
                 value={date}
                 onChange={setDate}
                 displayFormat="DD/MM/YYYY"
-                className="h-10 min-w-[140px] px-4 font-black uppercase text-[11px] tracking-widest bg-white dark:bg-card border-slate-300 dark:border-slate-700"
+                className="h-10 min-w-[140px] px-4 font-black uppercase text-[11px] tracking-widest bg-card border-slate-300 dark:border-slate-700"
               />
             ) : viewType === "month" ? (
               <MonthPicker
@@ -362,14 +362,14 @@ export default function AttendanceReports() {
                     setSelectedMonth(parseInt(m).toString());
                   }
                 }}
-                className="flex items-center justify-between h-10 px-4 text-[11px] font-black uppercase tracking-widest text-slate-900 dark:text-slate-100 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 rounded-md shadow-sm min-w-[140px]"
+                className="flex items-center justify-between h-10 px-4 text-[11px] font-black uppercase tracking-widest text-slate-900 dark:text-slate-100 bg-card border border-slate-300 dark:border-slate-700 rounded-md shadow-sm min-w-[140px]"
               />
             ) : (
-              <YearPopover year={selectedYear} onSelectYear={setSelectedYear} className="flex items-center justify-between h-10 px-4 text-[11px] font-black uppercase tracking-widest text-slate-900 dark:text-slate-100 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 rounded-md shadow-sm min-w-[140px]" />
+              <YearPopover year={selectedYear} onSelectYear={setSelectedYear} className="flex items-center justify-between h-10 px-4 text-[11px] font-black uppercase tracking-widest text-slate-900 dark:text-slate-100 bg-card border border-slate-300 dark:border-slate-700 rounded-md shadow-sm min-w-[140px]" />
             )}
 
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[160px] h-10 bg-white dark:bg-card">
+              <SelectTrigger className="w-[160px] h-10 bg-card">
                 <SelectValue placeholder="Select Status" />
               </SelectTrigger>
               <SelectContent>

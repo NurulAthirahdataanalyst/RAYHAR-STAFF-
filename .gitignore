@@ -5,3 +5,4 @@ scratch/
 backups/
 backend/backups/
 backend/uploads/
+dist/

@@ -246,7 +246,7 @@ export default function Login() {
                               placeholder="you@rayhar.com"
                               value={resetEmail}
                               onChange={(e) => setResetEmail(e.target.value)}
-                              className="h-8 text-xs bg-white dark:bg-card border-[#942392]/20 focus-visible:ring-[#942392]"
+                              className="h-8 text-xs bg-card border-[#942392]/20 focus-visible:ring-[#942392]"
                             />
                             <Button
                               type="button"

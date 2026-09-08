@@ -344,7 +344,7 @@ function MetricCard({ label, value, sub, icon: Icon, accent, trend }: {
   icon: React.ElementType; accent: string; trend?: { value: string; positive: boolean; isGood: boolean };
 }) {
   return (
-    <div className="bg-white dark:bg-card border border-border/50 shadow-sm rounded-2xl p-5 flex flex-col justify-between min-h-[130px] transition-all hover:shadow-md">
+    <div className="bg-card border border-border/50 shadow-sm rounded-2xl p-5 flex flex-col justify-between min-h-[130px] transition-all hover:shadow-md">
       <div className="flex justify-between items-start mb-4">
         <div className={`p-2.5 rounded-xl ${accent.replace("bg-", "bg-").concat("/10")} ${accent.replace("bg-", "text-")}`}>
           <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -594,7 +594,7 @@ export default function EmployeeAnalytics() {
                 setSelectedMonth("all");
               }
             }}
-            className="appearance-none flex items-center justify-between px-4 py-2 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-[11px] font-black uppercase tracking-widest rounded-md shadow-sm outline-none cursor-pointer h-10 gap-3 hover:border-[#942392]/40 min-w-[140px]"
+            className="appearance-none flex items-center justify-between px-4 py-2 bg-card border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-[11px] font-black uppercase tracking-widest rounded-md shadow-sm outline-none cursor-pointer h-10 gap-3 hover:border-[#942392]/40 min-w-[140px]"
           />
         </div>
       </div>
@@ -737,7 +737,7 @@ export default function EmployeeAnalytics() {
                             value={entriesPerPage.toString()} 
                             onValueChange={(val) => { setEntriesPerPage(Number(val)); setCurrentPage(1); }}
                           >
-                            <SelectTrigger className="h-7 text-[10px] font-black rounded-lg border-border w-[70px] bg-white dark:bg-card">
+                            <SelectTrigger className="h-7 text-[10px] font-black rounded-lg border-border w-[70px] bg-card">
                               <SelectValue placeholder={entriesPerPage.toString()}>{entriesPerPage}</SelectValue>
                             </SelectTrigger>
                             <SelectContent>
@@ -756,7 +756,7 @@ export default function EmployeeAnalytics() {
                           size="sm" 
                           onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                           disabled={currentPage === 1}
-                          className="h-8 px-3 text-xs font-bold border-border bg-white dark:bg-card"
+                          className="h-8 px-3 text-xs font-bold border-border bg-card"
                         >
                           «
                         </Button>
@@ -770,7 +770,7 @@ export default function EmployeeAnalytics() {
                               className={`h-8 w-8 p-0 text-xs font-bold ${
                                 currentPage === pageNum 
                                   ? 'bg-[#942392] text-white hover:bg-[#942392]/90' 
-                                  : 'border-border bg-white dark:bg-card'
+                                  : 'border-border bg-card'
                               }`}
                             >
                               {pageNum}
@@ -782,7 +782,7 @@ export default function EmployeeAnalytics() {
                           size="sm" 
                           onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                           disabled={currentPage === totalPages}
-                          className="h-8 px-3 text-xs font-bold border-border bg-white dark:bg-card"
+                          className="h-8 px-3 text-xs font-bold border-border bg-card"
                         >
                           »
                         </Button>

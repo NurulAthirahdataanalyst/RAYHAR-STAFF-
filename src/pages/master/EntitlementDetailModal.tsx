@@ -38,7 +38,7 @@ export function EntitlementDetailModal({ log, onClose }: { log: EntitlementHisto
         {/* Overlay */}
         <div className="absolute inset-0 bg-black/50 pointer-events-auto" onClick={onClose} />
         {/* Modal */}
-        <div className="relative w-full max-w-md max-h-[90vh] bg-white dark:bg-card rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 pointer-events-auto">
+        <div className="relative w-full max-w-md max-h-[90vh] bg-card rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 pointer-events-auto">
           {/* Modal header */}
           <div className="flex items-center justify-between p-5 border-b border-[#942392] bg-[#942392]">
             <div>
@@ -66,7 +66,7 @@ export function EntitlementDetailModal({ log, onClose }: { log: EntitlementHisto
           </div>
 
           {/* Modal body (will be captured for PDF) */}
-          <div id="entitlement-record-content" className="flex-1 overflow-y-auto p-5 space-y-5 bg-white dark:bg-card">
+          <div id="entitlement-record-content" className="flex-1 overflow-y-auto p-5 space-y-5 bg-card">
             {/* Action badge */}
             <div className="flex items-center gap-2">
               <span className={`text-xs font-black px-2.5 py-1 rounded-lg border ${badge.bg} ${badge.text} ${badge.border}`}>

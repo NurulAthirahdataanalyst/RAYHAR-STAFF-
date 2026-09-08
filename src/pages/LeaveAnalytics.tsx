@@ -1132,11 +1132,11 @@ export default function LeaveAnalytics() {
             <div className="relative">
               <Popover>
                 <PopoverTrigger asChild>
-                  <button className="appearance-none flex items-center justify-between px-4 py-2 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer tracking-widest h-10 gap-3 hover:border-[#942392]/40 min-w-[140px]">
+                  <button className="appearance-none flex items-center justify-between px-4 py-2 bg-card border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer tracking-widest h-10 gap-3 hover:border-[#942392]/40 min-w-[140px]">
                     {new Date(selectedDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })} <CalendarDays className="w-4 h-4 text-foreground" />
                   </button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl bg-white dark:bg-card z-50" align="start">
+                <PopoverContent className="w-auto p-0 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl bg-card z-50" align="start">
                   <Calendar
                     mode="single"
                     selected={new Date(selectedDate)}
@@ -1153,14 +1153,14 @@ export default function LeaveAnalytics() {
             <MonthPicker
               monthYear={selectedMonthYear}
               onSelectMonthYear={setSelectedMonthYear}
-              className="appearance-none flex items-center justify-between px-4 py-2 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer tracking-widest h-10 gap-3 hover:border-[#942392]/40 min-w-[140px]"
+              className="appearance-none flex items-center justify-between px-4 py-2 bg-card border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer tracking-widest h-10 gap-3 hover:border-[#942392]/40 min-w-[140px]"
             />
           )}
           {viewType === "year" && (
             <YearPopover
               year={selectedYear}
               onSelectYear={setSelectedYear}
-              className="appearance-none flex items-center justify-between px-4 py-2 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-[11px] font-black uppercase tracking-widest rounded-md shadow-sm outline-none cursor-pointer h-10 gap-3 hover:border-[#942392]/40 min-w-[110px]"
+              className="appearance-none flex items-center justify-between px-4 py-2 bg-card border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-[11px] font-black uppercase tracking-widest rounded-md shadow-sm outline-none cursor-pointer h-10 gap-3 hover:border-[#942392]/40 min-w-[110px]"
             />
           )}
           {!isScopedRole && (
@@ -1196,7 +1196,7 @@ export default function LeaveAnalytics() {
           { label: "Avg Leave Days / Employee", val: avgLeaveDays, color: "text-indigo-600", bg: "bg-indigo-50", icon: <CalendarIcon className="w-5 h-5"/>, trend: "↓ 0.5 vs last month" },
           { label: "Sick Leave Rate", val: `${sickLeaveRate}%`, color: "text-pink-600", bg: "bg-pink-50", icon: <BriefcaseMedical className="w-5 h-5"/>, trend: "↑ 2% vs last month" },
         ].map((k, i) => (
-          <Card key={i} className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-card rounded-xl shadow-sm p-4 flex flex-col justify-between ">
+          <Card key={i} className="border border-slate-200 dark:border-slate-800 bg-card rounded-xl shadow-sm p-4 flex flex-col justify-between ">
             <div className="flex items-start justify-between">
               <div className={`p-2 rounded-lg ${k.bg} ${k.color}`}>
                 {k.icon}
@@ -1217,7 +1217,7 @@ export default function LeaveAnalytics() {
 {/* 3. Workforce Trends (Row 2) */}
       
         {/* Trend */}
-        <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
+        <Card className="border border-slate-200 dark:border-slate-800 bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
           <div className="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
             <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Leave Trend Over Time ({monthLabel})</h3>
           </div>
@@ -1232,7 +1232,7 @@ export default function LeaveAnalytics() {
                   content={({ active, payload, label }) => {
                     if (active && payload && payload.length) {
                       return (
-                        <div className="bg-white dark:bg-card p-3 rounded-xl shadow-lg border border-slate-100 dark:border-slate-800">
+                        <div className="bg-card p-3 rounded-xl shadow-lg border border-slate-100 dark:border-slate-800">
                           <p className="font-bold text-slate-800 dark:text-slate-200 text-xs mb-2">{label}</p>
                           {(Array.isArray(payload) ? payload : []).map((entry: any, index: number) => (
                             <div key={index} className="flex justify-between items-center gap-4 text-xs font-semibold mb-1">
@@ -1253,7 +1253,7 @@ export default function LeaveAnalytics() {
           </div>
         </Card>
         {/* Seasonality */}
-        <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
+        <Card className="border border-slate-200 dark:border-slate-800 bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
           <div className="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
             <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Leave Seasonality (by Month)</h3>
           </div>
@@ -1268,7 +1268,7 @@ export default function LeaveAnalytics() {
                   content={({ active, payload, label }) => {
                     if (active && payload && payload.length && hoveredSeason === label) {
                       return (
-                        <div className="bg-white dark:bg-card p-3 rounded-xl shadow-lg border border-slate-100 dark:border-slate-800 text-xs">
+                        <div className="bg-card p-3 rounded-xl shadow-lg border border-slate-100 dark:border-slate-800 text-xs">
                           <p className="font-bold text-slate-800 dark:text-slate-200 mb-2">{label}</p>
                           {(Array.isArray(payload) ? payload : []).map((entry: any, index: number) => (
                             <div key={index} className="flex justify-between items-center gap-4 font-semibold mb-1">
@@ -1295,7 +1295,7 @@ export default function LeaveAnalytics() {
       {/* 4. Leave Distribution (Row 3) */}
       
         {/* Type Breakdown */}
-        <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
+        <Card className="border border-slate-200 dark:border-slate-800 bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
           <div className="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
             <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Leave Type Breakdown</h3>
           </div>
@@ -1325,7 +1325,7 @@ export default function LeaveAnalytics() {
         </Card>
         {/* Dept Compare */}
         {selectedBranch === "HQ" && (
-        <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
+        <Card className="border border-slate-200 dark:border-slate-800 bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
           <div className="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
             <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Department Comparison</h3>
           </div>
@@ -1339,7 +1339,7 @@ export default function LeaveAnalytics() {
                   content={({ active, payload, label }) => {
                     if (active && payload && payload.length && hoveredDept === label) {
                       return (
-                        <div className="bg-white dark:bg-card p-3 rounded-xl shadow-lg border border-slate-100 dark:border-slate-800 text-xs">
+                        <div className="bg-card p-3 rounded-xl shadow-lg border border-slate-100 dark:border-slate-800 text-xs">
                           <p className="font-bold text-slate-800 dark:text-slate-200 mb-2">{label}</p>
                           {(Array.isArray(payload) ? payload : []).map((entry: any, index: number) => (
                             <div key={index} className="flex justify-between items-center gap-4 font-semibold mb-1">
@@ -1370,7 +1370,7 @@ export default function LeaveAnalytics() {
         </Card>
         )}
         {/* Branch Compare */}
-        <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-card rounded-xl shadow-sm p-4 flex flex-col w-full lg:col-span-2 xl:col-span-1">
+        <Card className="border border-slate-200 dark:border-slate-800 bg-card rounded-xl shadow-sm p-4 flex flex-col w-full lg:col-span-2 xl:col-span-1">
           <div className="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
             <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Branch Comparison</h3>
           </div>
@@ -1384,7 +1384,7 @@ export default function LeaveAnalytics() {
                   content={({ active, payload, label }) => {
                     if (active && payload && payload.length && hoveredBranch === label) {
                       return (
-                        <div className="bg-white dark:bg-card p-3 rounded-xl shadow-lg border border-slate-100 dark:border-slate-800 text-xs">
+                        <div className="bg-card p-3 rounded-xl shadow-lg border border-slate-100 dark:border-slate-800 text-xs">
                           <p className="font-bold text-slate-800 dark:text-slate-200 mb-2">{label}</p>
                           {(Array.isArray(payload) ? payload : []).map((entry: any, index: number) => (
                             <div key={index} className="flex justify-between items-center gap-4 font-semibold mb-1">
@@ -1417,7 +1417,7 @@ export default function LeaveAnalytics() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
         {/* Balance Risk */}
-        <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
+        <Card className="border border-slate-200 dark:border-slate-800 bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
           <div className="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
             <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Leave Balance Risk</h3>
           </div>
@@ -1456,7 +1456,7 @@ export default function LeaveAnalytics() {
         </Card>
 
         {/* Leave Calendar */}
-        <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
+        <Card className="border border-slate-200 dark:border-slate-800 bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
           <div className="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
             <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Leave Calendar <span className="text-[9px] font-normal text-foreground">(This Month)</span></h3>
           </div>
@@ -1469,7 +1469,7 @@ export default function LeaveAnalytics() {
         </Card>
 
         {/* Upcoming */}
-        <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
+        <Card className="border border-slate-200 dark:border-slate-800 bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
           <div className="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
             <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Upcoming Approved Leave <span className="text-[9px] font-normal text-foreground">(Forecast)</span></h3>
           </div>
@@ -1501,7 +1501,7 @@ export default function LeaveAnalytics() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
         {/* Approval Perf */}
-        <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
+        <Card className="border border-slate-200 dark:border-slate-800 bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
           <div className="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
             <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Approval Performance <span className="text-[9px] font-normal text-foreground">(Avg. Time)</span></h3>
           </div>
@@ -1515,7 +1515,7 @@ export default function LeaveAnalytics() {
         </Card>
 
         {/* Action Center */}
-        <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
+        <Card className="border border-slate-200 dark:border-slate-800 bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
           <div className="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
             <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Action Center</h3>
           </div>
@@ -1539,7 +1539,7 @@ export default function LeaveAnalytics() {
         </Card>
 
         {/* HR Insights */}
-        <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
+        <Card className="border border-slate-200 dark:border-slate-800 bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
           <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-3 flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-purple-500" />
             HR Insights

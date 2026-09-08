@@ -1057,14 +1057,14 @@ export default function Calendar() {
                 setCalendarMonth(today);
               }}>Today</Button>
               <div className="flex items-center gap-1 bg-muted/30 rounded-lg p-0.5 border border-border/50">
-                <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-white dark:bg-card dark:hover:bg-card" onClick={() => {
+                <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-card dark:hover:bg-card" onClick={() => {
                   const newD = viewMode === 'week' ? new Date(selectedDate.getTime() - 7 * 24 * 60 * 60 * 1000) : subMonths(selectedDate, 1);
                   setSelectedDate(newD);
                   setCalendarMonth(newD);
                 }}>
                   <ChevronLeft className="w-4 h-4" />
                 </Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-white dark:bg-card dark:hover:bg-card" onClick={() => {
+                <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-card dark:hover:bg-card" onClick={() => {
                   const newD = viewMode === 'week' ? new Date(selectedDate.getTime() + 7 * 24 * 60 * 60 * 1000) : addMonths(selectedDate, 1);
                   setSelectedDate(newD);
                   setCalendarMonth(newD);
@@ -1138,7 +1138,7 @@ export default function Calendar() {
                   const today = isSameDay(day, new Date());
                   const isPast = isBefore(day, startOfDay(new Date())) && !today;
 
-                  let cellBg = "bg-white dark:bg-card";
+                  let cellBg = "bg-card";
                   let textCol = "text-foreground";
                   
                   if (today) {
@@ -1148,7 +1148,7 @@ export default function Calendar() {
                     cellBg = "bg-slate-50/50 dark:bg-slate-900/50";
                     textCol = "text-foreground opacity-50";
                   } else if (isPast) {
-                    cellBg = "bg-white dark:bg-card opacity-80";
+                    cellBg = "bg-card opacity-80";
                     textCol = "text-foreground dark:text-foreground";
                   }
 
@@ -1283,7 +1283,7 @@ export default function Calendar() {
               </div>
               </>
             ) : (
-              <div className="flex flex-col flex-1 bg-white dark:bg-card overflow-hidden">
+              <div className="flex flex-col flex-1 bg-card overflow-hidden">
               {/* Week Header */}
               <div className="flex border-b border-border/60 bg-[#942392] text-white">
                 <div className="w-16 flex-shrink-0 border-r border-white/20" />
@@ -1411,7 +1411,7 @@ export default function Calendar() {
               <div className="flex-1 overflow-y-auto">
                 <div className="flex relative" style={{ height: `${24 * 60}px` }}>
                   {/* Time Labels */}
-                  <div className="w-16 flex-shrink-0 border-r border-border/60 bg-white dark:bg-card z-10 relative">
+                  <div className="w-16 flex-shrink-0 border-r border-border/60 bg-card z-10 relative">
                     {Array.from({ length: 24 }).map((_, i) => (
                       <div key={i} className="h-[60px] relative border-b border-border/30">
                         {i > 0 && (
@@ -1782,7 +1782,7 @@ export default function Calendar() {
         return (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xl animate-in fade-in transition-all duration-300" onClick={() => setSelectedEvent(null)}>
             <div 
-              className="w-full max-w-[420px] rounded-2xl shadow-2xl border border-border overflow-hidden animate-in zoom-in-95 duration-200 bg-white dark:bg-card"
+              className="w-full max-w-[420px] rounded-2xl shadow-2xl border border-border overflow-hidden animate-in zoom-in-95 duration-200 bg-card"
               onClick={e => e.stopPropagation()}
             >
               <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-800">
@@ -1876,7 +1876,7 @@ export default function Calendar() {
       {categoryToDelete && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xl animate-in fade-in transition-all duration-300" onClick={() => setCategoryToDelete(null)}>
           <div 
-            className="w-full max-w-sm rounded-2xl shadow-xl border border-border bg-white dark:bg-card overflow-hidden animate-in zoom-in-95 duration-200"
+            className="w-full max-w-sm rounded-2xl shadow-xl border border-border bg-card overflow-hidden animate-in zoom-in-95 duration-200"
             onClick={e => e.stopPropagation()}
           >
             <div className="p-6">

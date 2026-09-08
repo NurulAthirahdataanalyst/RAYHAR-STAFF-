@@ -1095,7 +1095,7 @@ export default function SettingsPage() {
                           
                           <div className="space-y-2 pt-4">
                             <label className="text-[10px] font-black uppercase tracking-widest text-foreground">Address / Display Name</label>
-                            <div className={`p-4 bg-white dark:bg-card border rounded-xl shadow-sm text-xs leading-relaxed ${branchAddress ? 'text-foreground font-medium' : 'text-slate-400 dark:text-slate-500'}`}>
+                            <div className={`p-4 bg-card border rounded-xl shadow-sm text-xs leading-relaxed ${branchAddress ? 'text-foreground font-medium' : 'text-slate-400 dark:text-slate-500'}`}>
                               {branchAddress || "Select a location on the map"}
                             </div>
                           </div>

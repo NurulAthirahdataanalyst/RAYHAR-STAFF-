@@ -413,7 +413,7 @@ export default function OutstationReports() {
 
       {/* Main Table Content */}
       <Card className="border border-gray-200 dark:border-slate-800 shadow-sm overflow-hidden mt-4 rounded-xl">
-        <CardHeader className="pb-0 bg-white dark:bg-card space-y-0 pt-4 px-4 sm:px-6">
+        <CardHeader className="pb-0 bg-card space-y-0 pt-4 px-4 sm:px-6">
           {/* Title row — always has Export CSV on the right */}
           <div className="flex items-center justify-between mb-3">
             <CardTitle className="text-sm font-black uppercase tracking-wide flex items-center gap-2">
@@ -531,7 +531,7 @@ export default function OutstationReports() {
             <div className="overflow-x-auto">
               <table ref={tableRef} className="w-full text-[12px]">
                 <thead>
-                  <tr className="border-b border-gray-100 dark:border-slate-800 bg-white dark:bg-card">
+                  <tr className="border-b border-gray-100 dark:border-slate-800 bg-card">
                     {selectedEventName ? (
                       ["Employee","Department","Branch","Destination","Start","End","Days","Status","Assigned By"].map(h => (
                         <th key={h} className="px-4 py-3 text-left text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">{h}</th>

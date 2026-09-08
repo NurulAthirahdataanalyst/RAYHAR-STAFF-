@@ -373,7 +373,7 @@ export default function OutstationAssignment() {
       </PageActions>
 
       {/* Table */}
-      <Card className="border border-slate-100 dark:border-slate-700 bg-white dark:bg-card shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] rounded-[24px] overflow-hidden">
+      <Card className="border border-slate-100 dark:border-slate-700 bg-card shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] rounded-[24px] overflow-hidden">
         <CardHeader className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 dark:border-slate-800">
           <CardTitle className="text-sm font-black uppercase tracking-wide flex items-center gap-2">
             <Plane className="w-4 h-4 text-pink-500" />
@@ -431,7 +431,7 @@ export default function OutstationAssignment() {
               <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground dark:text-slate-400">No assignments found</p>
             </div>
           ) : (
-            <div className="rounded-md border border-gray-200 dark:border-slate-800 dark:border-gray-500/30/60 bg-white dark:bg-card [&_.overflow-auto::-webkit-scrollbar]:hidden [&_.overflow-auto]:[-ms-overflow-style:none] [&_.overflow-auto]:[scrollbar-width:none]">
+            <div className="rounded-md border border-gray-200 dark:border-slate-800 dark:border-gray-500/30/60 bg-card [&_.overflow-auto::-webkit-scrollbar]:hidden [&_.overflow-auto]:[-ms-overflow-style:none] [&_.overflow-auto]:[scrollbar-width:none]">
               <Table ref={tableRef}>
                 <TableHeader>
                   <TableRow className="bg-slate-50/60 hover:bg-slate-50/60">
@@ -622,7 +622,7 @@ export default function OutstationAssignment() {
                 {selectedEmps.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 p-2 bg-pink-50 rounded-lg border border-pink-100">
                     {selectedEmps.map(e => (
-                      <span key={e.user_id} className="inline-flex items-center gap-1 bg-white dark:bg-card border border-pink-200 dark:border-pink-500/30 text-pink-700 dark:text-pink-300 text-[10px] font-bold px-2 py-1 rounded-md">
+                      <span key={e.user_id} className="inline-flex items-center gap-1 bg-card border border-pink-200 dark:border-pink-500/30 text-pink-700 dark:text-pink-300 text-[10px] font-bold px-2 py-1 rounded-md">
                         {e.full_name}
                         <button onClick={() => toggleEmp(e)} className="hover:text-red-500 transition-colors"><X className="w-2.5 h-2.5" /></button>
                       </span>

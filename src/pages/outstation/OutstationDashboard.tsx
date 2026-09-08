@@ -581,8 +581,8 @@ export default function OutstationDashboard() {
           <div className="lg:col-span-8 flex flex-col gap-6">
             
             {/* Active Outstations Table */}
-            <Card className="border-0 bg-white dark:bg-card overflow-hidden flex flex-col rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
-              <CardHeader className="px-6 py-5 border-b border-gray-100 dark:border-slate-800 bg-white dark:bg-card flex flex-row flex-wrap items-center justify-between gap-4 sticky top-0 z-10">
+            <Card className="border-0 bg-card overflow-hidden flex flex-col rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
+              <CardHeader className="px-6 py-5 border-b border-gray-100 dark:border-slate-800 bg-card flex flex-row flex-wrap items-center justify-between gap-4 sticky top-0 z-10">
               <div>
                 <CardTitle className="text-base font-bold text-foreground dark:text-slate-200">Active Outstations</CardTitle>
                 <p className="text-[13px] text-foreground dark:text-foreground font-medium mt-0.5">Real-time status of employees currently on assignment</p>
@@ -831,7 +831,7 @@ export default function OutstationDashboard() {
                     })}
                   </tbody>
                 </table>
-                <div className="px-6 py-4 border-t border-gray-100 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-card">
+                <div className="px-6 py-4 border-t border-gray-100 dark:border-slate-800 flex items-center justify-between bg-card">
                   <div className="flex items-center gap-4 text-[10px] font-bold text-foreground uppercase tracking-widest">
                       <span>TOTAL SHOWING {activeNowGrouped.length > 0 ? 1 : 0} TO {activeNowGrouped.length} OF {activeNowGrouped.length} ENTRIES</span>
                 <div className="flex items-center gap-2">
@@ -871,8 +871,8 @@ export default function OutstationDashboard() {
             </Card>
 
             {/* Upcoming Outstations Table */}
-            <Card className="border-0 bg-white dark:bg-card overflow-hidden flex flex-col rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
-              <CardHeader className="px-6 py-5 border-b border-gray-100 dark:border-slate-800 bg-white dark:bg-card flex flex-row flex-wrap items-center justify-between gap-4 sticky top-0 z-10">
+            <Card className="border-0 bg-card overflow-hidden flex flex-col rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
+              <CardHeader className="px-6 py-5 border-b border-gray-100 dark:border-slate-800 bg-card flex flex-row flex-wrap items-center justify-between gap-4 sticky top-0 z-10">
                 <div>
                   <CardTitle className="text-base font-bold text-foreground dark:text-slate-200">Upcoming Outstations</CardTitle>
                   <p className="text-[13px] text-foreground dark:text-foreground font-medium mt-0.5">Scheduled travels and assignments</p>
@@ -1119,7 +1119,7 @@ export default function OutstationDashboard() {
                       })}
                     </tbody>
                   </table>
-                  <div className="px-6 py-4 border-t border-gray-100 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-card">
+                  <div className="px-6 py-4 border-t border-gray-100 dark:border-slate-800 flex items-center justify-between bg-card">
                     <div className="flex items-center gap-4 text-[10px] font-bold text-foreground uppercase tracking-widest">
                       <span>TOTAL SHOWING {upcomingGrouped.length > 0 ? 1 : 0} TO {upcomingGrouped.length} OF {upcomingGrouped.length} ENTRIES</span>
                 <div className="flex items-center gap-2">
@@ -1152,7 +1152,7 @@ export default function OutstationDashboard() {
           <div className="lg:col-span-4 flex flex-col gap-6">
             
             {/* Alerts & Upcoming List */}
-            <Card className="border-0 bg-white dark:bg-card overflow-hidden flex-1 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
+            <Card className="border-0 bg-card overflow-hidden flex-1 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
               <CardHeader className="px-5 py-4 border-b border-gray-50">
                 <CardTitle className="text-base font-bold text-foreground dark:text-slate-200 flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 text-orange-500" /> Alerts & Upcoming
@@ -1191,7 +1191,7 @@ export default function OutstationDashboard() {
             </Card>
 
             {/* Quick Actions */}
-            <Card className="border border-slate-100 dark:border-slate-800 bg-white dark:bg-card overflow-hidden rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
+            <Card className="border border-slate-100 dark:border-slate-800 bg-card overflow-hidden rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
               <CardHeader className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex flex-row items-center gap-2">
                 <Zap className="w-4 h-4 text-[#942392]" />
                 <CardTitle className="text-[11px] font-bold text-foreground dark:text-slate-100 uppercase tracking-widest">

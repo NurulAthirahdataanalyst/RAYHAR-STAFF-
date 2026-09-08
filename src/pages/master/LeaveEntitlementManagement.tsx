@@ -438,7 +438,7 @@ function EmployeeSearchSelector({
             setOpen(true);
           }}
           onClick={() => setOpen(true)}
-          className={`pl-9 pr-9 bg-white dark:bg-card h-10 text-xs font-bold transition-all border-border/70 focus-visible:ring-1 focus-visible:ring-[#942392]/50 ${
+          className={`pl-9 pr-9 bg-card h-10 text-xs font-bold transition-all border-border/70 focus-visible:ring-1 focus-visible:ring-[#942392]/50 ${
             selectedEmployee ? 'border-[#942392]/60 text-[#942392] font-black' : 'placeholder:text-muted-foreground dark:placeholder:text-slate-400 font-medium'
           }`}
         />
@@ -513,7 +513,7 @@ function CustomDatePicker({ value, onChange, placeholder, disabled }: { value: s
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <button type="button" disabled={disabled} className="appearance-none flex items-center justify-between w-full px-3 h-9 bg-white dark:bg-card border border-input text-foreground text-xs font-bold rounded-md shadow-sm outline-none cursor-pointer tracking-wider hover:border-[#942392]/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+        <button type="button" disabled={disabled} className="appearance-none flex items-center justify-between w-full px-3 h-9 bg-card border border-input text-foreground text-xs font-bold rounded-md shadow-sm outline-none cursor-pointer tracking-wider hover:border-[#942392]/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
           <span className="font-bold text-foreground">
             {value ? format(new Date(value), "dd MMM yyyy").toUpperCase() : (placeholder || "Select Date")}
           </span>
@@ -738,12 +738,12 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
                       if (newY === carryToYear) setCarryToYear(String(Number(newY) + 1));
                     }}
                     minYear={new Date().getFullYear()}
-                      className="w-full h-8 px-3 appearance-none flex items-center justify-between bg-white dark:bg-card border border-input text-foreground text-xs font-bold rounded-md shadow-sm outline-none cursor-pointer tracking-wider"
+                      className="w-full h-8 px-3 appearance-none flex items-center justify-between bg-card border border-input text-foreground text-xs font-bold rounded-md shadow-sm outline-none cursor-pointer tracking-wider"
                     />
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-sm font-bold">Base Entitlement (Days)</Label>
-                  <Input type="number" value={leaveDays} onChange={(e) => setLeaveDays(Number(e.target.value))} className="bg-white dark:bg-card text-xs h-9" />
+                  <Input type="number" value={leaveDays} onChange={(e) => setLeaveDays(Number(e.target.value))} className="bg-card text-xs h-9" />
                 </div>
               </div>
             </div>
@@ -754,7 +754,7 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
                 <div className="space-y-1.5">
                   <Label className="text-sm font-bold">Branch</Label>
                   <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-                    <SelectTrigger className="bg-white dark:bg-card h-10 text-sm">
+                    <SelectTrigger className="bg-card h-10 text-sm">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -765,7 +765,7 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
                 <div className="space-y-1.5">
                   <Label className="text-sm font-bold">Department</Label>
                   <Select value={selectedDept} onValueChange={setSelectedDept}>
-                    <SelectTrigger className="bg-white dark:bg-card h-10 text-sm">
+                    <SelectTrigger className="bg-card h-10 text-sm">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -778,7 +778,7 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
                   <Popover open={empSearchOpen} onOpenChange={setEmpSearchOpen}>
                     <PopoverTrigger asChild>
                       <div className="relative w-full cursor-pointer">
-                        <div className="pl-3 pr-8 h-9 border border-border/60 bg-white dark:bg-card rounded-md flex items-center gap-1 overflow-hidden">
+                        <div className="pl-3 pr-8 h-9 border border-border/60 bg-card rounded-md flex items-center gap-1 overflow-hidden">
                           {checkedEmployees.length > 0 ? (
                             <span className="text-xs font-bold text-[#942392] truncate">{checkedEmployees.length} employee{checkedEmployees.length > 1 ? 's' : ''} selected</span>
                           ) : (
@@ -923,7 +923,7 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
               <div className="flex justify-between items-center mb-3">
                 <h4 className="text-xs font-black uppercase tracking-wider text-foreground">Matching Employees ({filtered.length})</h4>
               </div>
-              <div className="border rounded-md max-h-60 overflow-y-auto bg-white dark:bg-card">
+              <div className="border rounded-md max-h-60 overflow-y-auto bg-card">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -971,7 +971,7 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
               <>
                 <div>
                   <h4 className="text-xs font-black uppercase tracking-wider text-foreground mb-3 border-b pb-1">Approved Overtime Records</h4>
-                  <div className="border rounded-md bg-white dark:bg-card text-xs divide-y">
+                  <div className="border rounded-md bg-card text-xs divide-y">
                     {mockOTs.map((ot) => {
                       const isChecked = selectedOTs.includes(ot.id);
                       return (
@@ -1007,7 +1007,7 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
                   <div className="space-y-1.5">
                     <Label className="text-sm font-bold">Leave Type Allocation</Label>
                     <Select value={targetLeaveType} onValueChange={setTargetLeaveType}>
-                      <SelectTrigger className="bg-white dark:bg-card h-10 text-sm"><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="bg-card h-10 text-sm"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="Annual & Emergency Leave">Annual & Emergency Leave</SelectItem>
                         <SelectItem value="Replacement Leave">Replacement Leave</SelectItem>
@@ -1017,7 +1017,7 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
                   <div className="space-y-1.5">
                     <Label className="text-sm font-bold">OT Hours Per 1 Day Leave</Label>
                     <Select value={otHoursLimit.toString()} onValueChange={(val) => setOtHoursLimit(Number(val))}>
-                      <SelectTrigger className="bg-white dark:bg-card h-10 text-sm"><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="bg-card h-10 text-sm"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="8">8 Hours Overtime</SelectItem>
                         <SelectItem value="4">4 Hours Overtime</SelectItem>
@@ -1204,7 +1204,7 @@ function CarryForwardLeaveForm({
             <div className="space-y-1.5">
               <Label className="text-sm font-bold">Leave Type</Label>
               <Select value={leaveType} onValueChange={setLeaveType}>
-                <SelectTrigger className="bg-white dark:bg-card h-10 text-sm"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="bg-card h-10 text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Annual/Emergency Leave">Annual/Emergency Leave</SelectItem>
                   <SelectItem value="Replacement Leave">Replacement Leave</SelectItem>
@@ -1219,7 +1219,7 @@ function CarryForwardLeaveForm({
                   year={leaveYear} 
                   onSelectYear={(y) => setLeaveYear(y || new Date().getFullYear().toString())}
                   minYear={new Date().getFullYear()}
-                  className="w-full h-10 px-3 appearance-none flex items-center justify-between bg-white dark:bg-card border border-input text-foreground text-xs font-bold rounded-md shadow-sm outline-none cursor-pointer tracking-wider"
+                  className="w-full h-10 px-3 appearance-none flex items-center justify-between bg-card border border-input text-foreground text-xs font-bold rounded-md shadow-sm outline-none cursor-pointer tracking-wider"
                 />
             </div>
             <div className="space-y-1.5">
@@ -1229,12 +1229,12 @@ function CarryForwardLeaveForm({
                     onSelectYear={(y) => setCarryToYear(y || String(new Date().getFullYear() + 1))}
                     minYear={new Date().getFullYear()}
                     excludeYear={leaveYear}
-                    className="w-full h-10 px-3 appearance-none flex items-center justify-between bg-white dark:bg-card border border-input text-foreground text-xs font-bold rounded-md shadow-sm outline-none cursor-pointer tracking-wider"
+                    className="w-full h-10 px-3 appearance-none flex items-center justify-between bg-card border border-input text-foreground text-xs font-bold rounded-md shadow-sm outline-none cursor-pointer tracking-wider"
                   />
             </div>
             <div className="space-y-1.5">
               <Label className="text-sm font-bold">Max Carry Forward (Days)</Label>
-              <Input type="number" value={maxCarry} onChange={(e) => setMaxCarry(Number(e.target.value))} className="bg-white dark:bg-card h-10 text-sm" />
+              <Input type="number" value={maxCarry} onChange={(e) => setMaxCarry(Number(e.target.value))} className="bg-card h-10 text-sm" />
             </div>
             <div className="space-y-1.5">
               <Label className="text-sm font-bold">Expiry Date</Label>
@@ -1249,7 +1249,7 @@ function CarryForwardLeaveForm({
             <div className="space-y-1.5">
               <Label className="text-sm font-bold">Department</Label>
               <Select value={selectedDept} onValueChange={setSelectedDept}>
-                <SelectTrigger className="bg-white dark:bg-card h-10 text-sm"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="bg-card h-10 text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {uniqueDepts.map(d => <SelectItem key={d} value={d}>{d === 'All' ? 'All Departments' : d}</SelectItem>)}
                 </SelectContent>
@@ -1258,7 +1258,7 @@ function CarryForwardLeaveForm({
             <div className="space-y-1.5">
               <Label className="text-sm font-bold">Branch</Label>
               <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-                <SelectTrigger className="bg-white dark:bg-card h-10 text-sm"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="bg-card h-10 text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {uniqueBranches.map(b => <SelectItem key={b} value={b}>{b === 'All' ? 'All Branches' : b}</SelectItem>)}
                 </SelectContent>
@@ -1267,7 +1267,7 @@ function CarryForwardLeaveForm({
             <div className="space-y-1.5">
               <Label className="text-sm font-bold">Employment Type</Label>
               <Select value={empType} onValueChange={setEmpType}>
-                <SelectTrigger className="bg-white dark:bg-card h-10 text-sm"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="bg-card h-10 text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Permanent">Permanent</SelectItem>
                   <SelectItem value="Contract">Contract</SelectItem>
@@ -1280,7 +1280,7 @@ function CarryForwardLeaveForm({
               <Popover open={empSearchOpen} onOpenChange={setEmpSearchOpen}>
                 <PopoverTrigger asChild>
                   <div className="relative w-full cursor-pointer">
-                    <div className="pl-3 pr-8 h-10 border border-border/60 bg-white dark:bg-card rounded-md flex items-center gap-1 overflow-hidden text-sm">
+                    <div className="pl-3 pr-8 h-10 border border-border/60 bg-card rounded-md flex items-center gap-1 overflow-hidden text-sm">
                       {selectedEmployees.length > 0 ? (
                         <span className="font-bold text-[#942392] truncate">{selectedEmployees.length} employee{selectedEmployees.length > 1 ? 's' : ''} selected</span>
                       ) : (
@@ -1423,7 +1423,7 @@ function CarryForwardLeaveForm({
 
         <div>
           <h4 className="text-xs font-black uppercase tracking-wider text-foreground mb-3 border-b pb-1">Eligible Employees</h4>
-          <div ref={tableRef} className="border rounded-md max-h-80 overflow-y-auto bg-white dark:bg-card">
+          <div ref={tableRef} className="border rounded-md max-h-80 overflow-y-auto bg-card">
             <Table className="text-xs">
               <TableHeader className="bg-muted/30">
                 <TableRow>
@@ -1645,7 +1645,7 @@ function AdditionalLeaveAllocationForm({ employees, onCancel, onRefresh }: { emp
             <div className="space-y-1.5">
               <Label className="text-sm font-bold">Leave Type</Label>
               <Select value={leaveType} onValueChange={setLeaveType}>
-                <SelectTrigger className="bg-white dark:bg-card h-10 text-sm"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="bg-card h-10 text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Annual/Emergency Leave">Annual/Emergency Leave</SelectItem>
                   <SelectItem value="Replacement Leave">Replacement Leave</SelectItem>
@@ -1656,7 +1656,7 @@ function AdditionalLeaveAllocationForm({ employees, onCancel, onRefresh }: { emp
             </div>
             <div className="space-y-1.5">
               <Label className="text-sm font-bold">Additional Days</Label>
-              <div className="flex items-center border rounded-md px-3 bg-white dark:bg-card h-9">
+              <div className="flex items-center border rounded-md px-3 bg-card h-9">
                 <span className="text-xs font-bold text-foreground mr-2">+</span>
                 <input
                   type="number"
@@ -1677,7 +1677,7 @@ function AdditionalLeaveAllocationForm({ employees, onCancel, onRefresh }: { emp
             <div className="space-y-1.5 sm:col-span-2">
               <Label className="text-sm font-bold">Reason Category</Label>
               <Select value={reasonCat} onValueChange={setReasonCat}>
-                <SelectTrigger className="bg-white dark:bg-card h-10 text-sm"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="bg-card h-10 text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Performance Reward">Performance Reward</SelectItem>
                   <SelectItem value="Birthday Credit">Birthday Credit</SelectItem>
@@ -1692,7 +1692,7 @@ function AdditionalLeaveAllocationForm({ employees, onCancel, onRefresh }: { emp
                 placeholder="Enter remarks/reason context..."
                 value={remarks}
                 onChange={(e) => setRemarks(e.target.value)}
-                className="bg-white dark:bg-card text-xs"
+                className="bg-card text-xs"
               />
             </div>
           </div>
@@ -1921,7 +1921,7 @@ function ManualLeaveAdjustmentForm({
   };
 
   return (
-    <Card className="border-border/60 bg-white dark:bg-card shadow-lg max-w-4xl mx-auto rounded-xl overflow-visible">
+    <Card className="border-border/60 bg-card shadow-lg max-w-4xl mx-auto rounded-xl overflow-visible">
         <CardHeader className="flex flex-row items-center gap-3 space-y-0 border-b pb-4 bg-amber-500/10 rounded-t-xl">
         <Button variant="ghost" size="icon" onClick={onCancel} className="h-8 w-8 rounded-full hover:bg-amber-500/10 hover:text-amber-600 transition-colors">
           <ArrowLeft className="w-4 h-4" />
@@ -1972,7 +1972,7 @@ function ManualLeaveAdjustmentForm({
           <div className="space-y-1.5">
             <Label className="text-sm font-bold flex items-center">Leave Type <span className="text-red-500 ml-1">*</span></Label>
             <Select value={leaveType} onValueChange={setLeaveType}>
-              <SelectTrigger className="bg-white dark:bg-card h-10 text-sm"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="bg-card h-10 text-sm"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="Annual/Emergency Leave">Annual/Emergency Leave</SelectItem>
                   <SelectItem value="Replacement Leave">Replacement Leave</SelectItem>
@@ -2011,7 +2011,7 @@ function ManualLeaveAdjustmentForm({
           <div className="space-y-1.5">
             <Label className="text-sm font-bold flex items-center">Adjustment Amount <span className="text-red-500 ml-1">*</span></Label>
             <div className="relative">
-              <Input type="number" value={adjDays} onChange={(e) => setAdjDays(Number(e.target.value))} className="bg-white dark:bg-card h-10 text-sm pr-12 font-bold" min={1} />
+              <Input type="number" value={adjDays} onChange={(e) => setAdjDays(Number(e.target.value))} className="bg-card h-10 text-sm pr-12 font-bold" min={1} />
               <span className="absolute right-3 top-2.5 text-xs text-foreground font-medium">Days</span>
             </div>
           </div>
@@ -2024,7 +2024,7 @@ function ManualLeaveAdjustmentForm({
           <div className="space-y-1.5 md:col-span-2">
             <Label className="text-sm font-bold flex items-center">Reason Category <span className="text-red-500 ml-1">*</span></Label>
             <Select value={reasonCategory} onValueChange={setReasonCategory}>
-              <SelectTrigger className="bg-white dark:bg-card h-10 text-sm"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="bg-card h-10 text-sm"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="Performance Reward">Performance Reward</SelectItem>
                 <SelectItem value="Carry Forward">Carry Forward</SelectItem>
@@ -2046,7 +2046,7 @@ function ManualLeaveAdjustmentForm({
               placeholder="Enter detailed reason for this adjustment..."
               value={reasonDetails}
               onChange={(e) => setReasonDetails(e.target.value)}
-              className="bg-white dark:bg-card text-xs resize-none"
+              className="bg-card text-xs resize-none"
             />
           </div>
         </div>
@@ -2188,7 +2188,7 @@ function SpecialLeaveCreditsForm({ employees, onCancel }: any) {
   };
 
   return (
-    <Card className="border-border/60 bg-white dark:bg-card shadow-lg max-w-2xl mx-auto rounded-xl overflow-visible">
+    <Card className="border-border/60 bg-card shadow-lg max-w-2xl mx-auto rounded-xl overflow-visible">
       <CardHeader className="flex flex-row items-center gap-3 space-y-0 border-b pb-4 bg-rose-500/10 rounded-t-xl">
         <Button variant="ghost" size="icon" onClick={onCancel} className="h-8 w-8 rounded-full hover:bg-rose-500/10 hover:text-rose-600 transition-colors">
           <ArrowLeft className="w-4 h-4" />
@@ -2229,7 +2229,7 @@ function SpecialLeaveCreditsForm({ employees, onCancel }: any) {
               <div className="space-y-1.5">
                 <Label className="text-sm font-bold flex items-center">Leave Category <span className="text-red-500 ml-1">*</span></Label>
                 <Select value={leaveCategory} onValueChange={setLeaveCategory}>
-                  <SelectTrigger className="bg-white dark:bg-card h-10 text-sm"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="bg-card h-10 text-sm"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Compassionate Leave">Compassionate Leave</SelectItem>
                     <SelectItem value="Marriage Leave">Marriage Leave</SelectItem>
@@ -2242,7 +2242,7 @@ function SpecialLeaveCreditsForm({ employees, onCancel }: any) {
               <div className="space-y-1.5">
                 <Label className="text-sm font-bold flex items-center">Credit Amount <span className="text-red-500 ml-1">*</span></Label>
                 <div className="relative">
-                  <Input type="number" value={adjDays} onChange={(e) => setAdjDays(Number(e.target.value))} className="bg-white dark:bg-card h-10 text-sm pr-12 font-bold" min={1} />
+                  <Input type="number" value={adjDays} onChange={(e) => setAdjDays(Number(e.target.value))} className="bg-card h-10 text-sm pr-12 font-bold" min={1} />
                   <span className="absolute right-3 top-2.5 text-xs text-foreground font-medium">Days</span>
                 </div>
               </div>
@@ -2252,7 +2252,7 @@ function SpecialLeaveCreditsForm({ employees, onCancel }: any) {
               </div>
               <div className="space-y-1.5 md:col-span-2">
                 <Label className="text-sm font-bold">Reason Details & Comments</Label>
-                <Textarea rows={3} placeholder="Optional details..." value={reasonDetails} onChange={(e) => setReasonDetails(e.target.value)} className="bg-white dark:bg-card text-xs resize-none" />
+                <Textarea rows={3} placeholder="Optional details..." value={reasonDetails} onChange={(e) => setReasonDetails(e.target.value)} className="bg-card text-xs resize-none" />
               </div>
             </div>
             
@@ -2325,7 +2325,7 @@ function MaternityLeaveForm({ employees, onCancel }: any) {
   };
 
   return (
-    <Card className="border-border/60 bg-white dark:bg-card shadow-lg max-w-2xl mx-auto rounded-xl overflow-visible">
+    <Card className="border-border/60 bg-card shadow-lg max-w-2xl mx-auto rounded-xl overflow-visible">
       <CardHeader className="flex flex-row items-center gap-3 space-y-0 border-b pb-4 bg-pink-500/10 rounded-t-xl">
         <Button variant="ghost" size="icon" onClick={onCancel} className="h-8 w-8 rounded-full hover:bg-pink-500/10 hover:text-pink-600 transition-colors">
           <ArrowLeft className="w-4 h-4" />
@@ -2369,7 +2369,7 @@ function MaternityLeaveForm({ employees, onCancel }: any) {
               </div>
               <div className="space-y-1.5">
                 <Label className="text-sm font-bold">Total Entitlement (Days) <span className="text-red-500 ml-1">*</span></Label>
-                <Input type="number" value={totalDays} onChange={(e) => setTotalDays(Number(e.target.value))} className="bg-white dark:bg-card h-10 text-sm font-bold" min={1} />
+                <Input type="number" value={totalDays} onChange={(e) => setTotalDays(Number(e.target.value))} className="bg-card h-10 text-sm font-bold" min={1} />
               </div>
               <div className="space-y-1.5">
                 <Label className="text-sm font-bold">Leave Start Date <span className="text-red-500 ml-1">*</span></Label>
@@ -2457,7 +2457,7 @@ function ReplacementLeaveValidationForm({ employees, onCancel }: { employees: an
   };
 
   return (
-    <Card className="border-border/60 bg-white dark:bg-card shadow-lg max-w-4xl mx-auto rounded-xl overflow-visible">
+    <Card className="border-border/60 bg-card shadow-lg max-w-4xl mx-auto rounded-xl overflow-visible">
       <CardHeader className="flex flex-row items-center justify-between gap-3 space-y-0 border-b pb-4 bg-blue-500/10 rounded-t-xl">
         <div className="flex flex-row items-center gap-3">
           <Button variant="ghost" size="icon" onClick={onCancel} className="h-8 w-8 rounded-full hover:bg-blue-500/10 hover:text-blue-600 transition-colors">

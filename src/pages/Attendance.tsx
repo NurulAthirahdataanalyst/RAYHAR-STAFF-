@@ -616,7 +616,7 @@ export default function Attendance() {
           {/* Month-only KPI Cards */}
           {viewMode === "month" && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 mt-2">
-              <div className="border border-slate-100 dark:border-slate-700 bg-white dark:bg-card shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] rounded-[24px] p-4 flex flex-col items-center justify-center relative overflow-hidden">
+              <div className="border border-slate-100 dark:border-slate-700 bg-card shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] rounded-[24px] p-4 flex flex-col items-center justify-center relative overflow-hidden">
                 <div className="w-8 h-8 rounded-full bg-violet-50 dark:bg-violet-900/30 flex items-center justify-center mb-2 shadow-sm">
                   <CalendarDays className="w-4 h-4 text-violet-700" />
                 </div>
@@ -624,7 +624,7 @@ export default function Attendance() {
                 <div className="text-[10px] sm:text-xs font-bold text-foreground uppercase tracking-widest mt-1">Company Leave</div>
               </div>
 
-              <div className="border border-slate-100 dark:border-slate-700 bg-white dark:bg-card shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] rounded-[24px] p-4 flex flex-col items-center justify-center relative overflow-hidden">
+              <div className="border border-slate-100 dark:border-slate-700 bg-card shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] rounded-[24px] p-4 flex flex-col items-center justify-center relative overflow-hidden">
                 <div className="w-8 h-8 rounded-full bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center mb-2 shadow-sm">
                   <FileText className="w-4 h-4 text-amber-700" />
                 </div>
@@ -632,7 +632,7 @@ export default function Attendance() {
                 <div className="text-[10px] sm:text-xs font-bold text-foreground uppercase tracking-widest mt-1">Approved Leave KPI</div>
               </div>
 
-              <div className="border border-slate-100 dark:border-slate-700 bg-white dark:bg-card shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] rounded-[24px] p-4 flex flex-col items-center justify-center relative overflow-hidden">
+              <div className="border border-slate-100 dark:border-slate-700 bg-card shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] rounded-[24px] p-4 flex flex-col items-center justify-center relative overflow-hidden">
                 <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center mb-2 shadow-sm">
                   <Timer className="w-4 h-4 text-blue-600" />
                 </div>
@@ -1177,7 +1177,7 @@ export default function Attendance() {
       <div className="relative z-10 flex-1 flex flex-col lg:flex-row items-center lg:items-stretch justify-center gap-5 lg:gap-6 pb-6 w-full w-full">
 
         {/* Main Clocking Card */}
-        <div className="border border-slate-100 dark:border-slate-700 bg-white dark:bg-card shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] rounded-[24px] w-full max-w-[340px] sm:max-w-md lg:flex-1 hover:shadow-lg transition-shadow duration-300 p-4 sm:p-5 md:p-6 flex flex-col items-center relative overflow-hidden lg:self-start">
+        <div className="border border-slate-100 dark:border-slate-700 bg-card shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] rounded-[24px] w-full max-w-[340px] sm:max-w-md lg:flex-1 hover:shadow-lg transition-shadow duration-300 p-4 sm:p-5 md:p-6 flex flex-col items-center relative overflow-hidden lg:self-start">
 
           {user ? (
             <div className="flex-1 flex flex-col items-center justify-between w-full h-full">
@@ -1286,7 +1286,7 @@ export default function Attendance() {
                     <span className="text-[10px] font-bold text-purple-700 dark:text-purple-400 uppercase tracking-wider">Working Location</span>
                   </div>
                   <Select value={selectedLocation} onValueChange={setSelectedLocation}>
-                    <SelectTrigger className="w-full bg-white dark:bg-card h-10 text-xs font-bold border-purple-200 dark:border-purple-800 shadow-xs focus:ring-1 focus:ring-[#942392]">
+                    <SelectTrigger className="w-full bg-card h-10 text-xs font-bold border-purple-200 dark:border-purple-800 shadow-xs focus:ring-1 focus:ring-[#942392]">
                       <SelectValue placeholder="Select working location..." />
                     </SelectTrigger>
                     <SelectContent>
@@ -1424,7 +1424,7 @@ export default function Attendance() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
             
             {/* Stat Card 1: Total Hours Today */}
-            <div className="border border-slate-100 dark:border-slate-700 bg-white dark:bg-card shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] rounded-[24px] hover:border-purple-300 dark:hover:border-purple-700 transition-colors p-4 flex flex-col items-center justify-center relative overflow-hidden group">
+            <div className="border border-slate-100 dark:border-slate-700 bg-card shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] rounded-[24px] hover:border-purple-300 dark:hover:border-purple-700 transition-colors p-4 flex flex-col items-center justify-center relative overflow-hidden group">
               <div className="absolute top-0 right-0 p-2 opacity-10">
                 <Clock className="w-10 h-10 text-[#942392]" />
               </div>
@@ -1440,7 +1440,7 @@ export default function Attendance() {
             </div>
 
             {/* Stat Card 2: Total Hours Week */}
-            <div className="border border-slate-100 dark:border-slate-700 bg-white dark:bg-card shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] rounded-[24px] hover:border-purple-300 dark:hover:border-purple-700 transition-colors p-4 flex flex-col items-center justify-center relative overflow-hidden group">
+            <div className="border border-slate-100 dark:border-slate-700 bg-card shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] rounded-[24px] hover:border-purple-300 dark:hover:border-purple-700 transition-colors p-4 flex flex-col items-center justify-center relative overflow-hidden group">
               <div className="absolute top-0 right-0 p-2 opacity-10">
                 <Timer className="w-10 h-10 text-[#942392]" />
               </div>
@@ -1456,7 +1456,7 @@ export default function Attendance() {
             </div>
 
             {/* Stat Card 3: Total Hours Month */}
-            <div className="border border-slate-100 dark:border-slate-700 bg-white dark:bg-card shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] rounded-[24px] hover:border-purple-300 dark:hover:border-purple-700 transition-colors p-4 flex flex-col items-center justify-center relative overflow-hidden group">
+            <div className="border border-slate-100 dark:border-slate-700 bg-card shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] rounded-[24px] hover:border-purple-300 dark:hover:border-purple-700 transition-colors p-4 flex flex-col items-center justify-center relative overflow-hidden group">
               <div className="absolute top-0 right-0 p-2 opacity-10">
                 <FileText className="w-10 h-10 text-[#942392]" />
               </div>
@@ -1472,7 +1472,7 @@ export default function Attendance() {
             </div>
 
             {/* Stat Card 4: Overtime This Month */}
-            <div className="border border-slate-100 dark:border-slate-700 bg-white dark:bg-card shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] rounded-[24px] hover:border-purple-300 dark:hover:border-purple-700 transition-colors p-4 flex flex-col items-center justify-center relative overflow-hidden group">
+            <div className="border border-slate-100 dark:border-slate-700 bg-card shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] rounded-[24px] hover:border-purple-300 dark:hover:border-purple-700 transition-colors p-4 flex flex-col items-center justify-center relative overflow-hidden group">
               <div className="absolute top-0 right-0 p-2 opacity-10">
                 <Fingerprint className="w-10 h-10 text-[#942392]" />
               </div>
@@ -1490,7 +1490,7 @@ export default function Attendance() {
           </div>
 
           {/* Timeline Bar Card */}
-          <div className="border border-slate-100 dark:border-slate-700 bg-white dark:bg-card shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] rounded-[24px] hover:shadow-lg transition-shadow duration-300 p-5 sm:p-6 flex flex-col relative overflow-hidden min-h-[220px]">
+          <div className="border border-slate-100 dark:border-slate-700 bg-card shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] rounded-[24px] hover:shadow-lg transition-shadow duration-300 p-5 sm:p-6 flex flex-col relative overflow-hidden min-h-[220px]">
             <h3 className="text-xs font-black text-foreground uppercase tracking-widest mb-6">
               Monthly Attendance Breakdown
             </h3>
@@ -1608,7 +1608,7 @@ export default function Attendance() {
             </div>
 
                         {/* Active Temporary Assignment Card */}
-            <div className="border border-slate-100 dark:border-slate-700 bg-white dark:bg-card shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] rounded-[24px] hover:shadow-lg transition-shadow duration-300 p-5 sm:p-6 flex flex-col relative overflow-hidden">
+            <div className="border border-slate-100 dark:border-slate-700 bg-card shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] rounded-[24px] hover:shadow-lg transition-shadow duration-300 p-5 sm:p-6 flex flex-col relative overflow-hidden">
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-xs font-black text-foreground uppercase tracking-widest">
                   Active Temporary Assignment
@@ -1699,7 +1699,7 @@ export default function Attendance() {
 
       {/* BOTTOM PANEL: Employee Attendance Data Table */}
       <div className="relative z-10 w-full w-full pb-8">
-        <Card className="border border-slate-100 dark:border-slate-700 bg-white dark:bg-card shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] rounded-[24px] overflow-hidden backdrop-blur-md ">
+        <Card className="border border-slate-100 dark:border-slate-700 bg-card shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] rounded-[24px] overflow-hidden backdrop-blur-md ">
           {/* Header Row */}
           <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/50 bg-muted/20 pb-4">
             <div>
@@ -1927,7 +1927,7 @@ export default function Attendance() {
       
       {/* Temporary History Box */}
       <div className="w-full pb-8">
-        <Card className="border border-slate-100 dark:border-slate-700 bg-white dark:bg-card shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] rounded-[24px] overflow-hidden backdrop-blur-md">
+        <Card className="border border-slate-100 dark:border-slate-700 bg-card shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] rounded-[24px] overflow-hidden backdrop-blur-md">
           <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/50 bg-muted/20 pb-4">
             <div>
               <CardTitle className="text-lg font-bold">Temporary History</CardTitle>

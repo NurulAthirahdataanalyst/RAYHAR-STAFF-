@@ -210,7 +210,7 @@ export default function LeaveReports() {
                 value={date}
                 onChange={setDate}
                 displayFormat="DD/MM/YYYY"
-                className="h-10 min-w-[140px] px-4 font-black uppercase text-[11px] tracking-widest bg-white dark:bg-card border-slate-300 dark:border-slate-700"
+                className="h-10 min-w-[140px] px-4 font-black uppercase text-[11px] tracking-widest bg-card border-slate-300 dark:border-slate-700"
               />
             ) : viewType === "month" ? (
               <MonthPicker
@@ -224,10 +224,10 @@ export default function LeaveReports() {
                     setSelectedMonth(parseInt(mm).toString());
                   }
                 }}
-                className="appearance-none flex items-center justify-between px-4 py-2 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-10 min-w-[140px]"
+                className="appearance-none flex items-center justify-between px-4 py-2 bg-card border border-slate-300 dark:border-slate-700 text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-10 min-w-[140px]"
               />
             ) : (
-              <YearPopover year={selectedYear} onSelectYear={setSelectedYear} className="flex items-center justify-between h-10 px-4 text-[11px] font-black uppercase tracking-widest text-slate-900 dark:text-slate-100 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 rounded-md shadow-sm min-w-[140px]" />
+              <YearPopover year={selectedYear} onSelectYear={setSelectedYear} className="flex items-center justify-between h-10 px-4 text-[11px] font-black uppercase tracking-widest text-slate-900 dark:text-slate-100 bg-card border border-slate-300 dark:border-slate-700 rounded-md shadow-sm min-w-[140px]" />
             )}
             <ExportDropdown onExportCSV={handleExportCSV} />
           </div>

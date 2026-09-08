@@ -476,7 +476,7 @@ export default function OutstationAnalytics() {
         
         {/* Monthly Outstation Tracker */}
         <div className="lg:col-span-7 flex flex-col">
-          <Card className="border border-slate-200/80 dark:border-slate-800 shadow-sm rounded-[16px] bg-white dark:bg-card h-full flex flex-col">
+          <Card className="border border-slate-200/80 dark:border-slate-800 shadow-sm rounded-[16px] bg-card h-full flex flex-col">
             <CardHeader className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex flex-row flex-wrap items-center justify-between gap-4">
               <div>
                 <CardTitle className="text-lg font-bold text-foreground dark:text-slate-100">Monthly Outstation Tracker</CardTitle>
@@ -551,7 +551,7 @@ export default function OutstationAnalytics() {
 
         {/* Outstation Status Card (Redesigned from Mockup - Compact) */}
         <div className="lg:col-span-5 flex flex-col">
-          <Card className="border border-slate-200/80 dark:border-slate-800 shadow-sm rounded-[16px] bg-white dark:bg-card h-full flex flex-col justify-between p-4">
+          <Card className="border border-slate-200/80 dark:border-slate-800 shadow-sm rounded-[16px] bg-card h-full flex flex-col justify-between p-4">
             {/* Header */}
             <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-2.5">
@@ -715,7 +715,7 @@ export default function OutstationAnalytics() {
       {/* ROW 2: Top Destinations (6 cols) & Quick Summary (6 cols) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         {/* Top Destinations */}
-        <Card className="border border-slate-200/80 dark:border-slate-800 shadow-sm rounded-[16px] bg-white dark:bg-card flex flex-col h-full">
+        <Card className="border border-slate-200/80 dark:border-slate-800 shadow-sm rounded-[16px] bg-card flex flex-col h-full">
           <CardHeader className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex flex-row items-center justify-between">
             <div>
               <CardTitle className="text-base font-bold text-foreground dark:text-slate-100">Top Destinations</CardTitle>
@@ -789,7 +789,7 @@ export default function OutstationAnalytics() {
         </Card>
 
         {/* Quick Summary */}
-        <Card className="border border-slate-200/80 dark:border-slate-800 shadow-sm rounded-[16px] bg-white dark:bg-card flex flex-col h-full">
+        <Card className="border border-slate-200/80 dark:border-slate-800 shadow-sm rounded-[16px] bg-card flex flex-col h-full">
           <CardHeader className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
             <CardTitle className="text-base font-bold text-foreground dark:text-slate-100">Quick Summary</CardTitle>
             <p className="text-xs text-foreground dark:text-foreground mt-0.5">Get a quick overview of today’s and upcoming outstation activity</p>
@@ -815,7 +815,7 @@ export default function OutstationAnalytics() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Recent Outstation */}
         <div className="lg:col-span-8">
-          <Card className="border border-slate-200/80 dark:border-slate-800 shadow-sm rounded-[16px] bg-white dark:bg-card">
+          <Card className="border border-slate-200/80 dark:border-slate-800 shadow-sm rounded-[16px] bg-card">
             <CardHeader className="px-6 py-4 border-b border-slate-100 dark:border-slate-800">
               <CardTitle className="text-base font-bold text-foreground dark:text-slate-100">Recent Outstation</CardTitle>
               <p className="text-xs text-foreground dark:text-foreground mt-0.5">View the latest outstation assignments and their status</p>
@@ -869,7 +869,7 @@ export default function OutstationAnalytics() {
 
         {/* Upcoming Outstation */}
         <div className="lg:col-span-4">
-          <Card className="border border-slate-200/80 dark:border-slate-800 shadow-sm rounded-[16px] bg-white dark:bg-card">
+          <Card className="border border-slate-200/80 dark:border-slate-800 shadow-sm rounded-[16px] bg-card">
             <CardHeader className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
               <CardTitle className="text-base font-bold text-foreground dark:text-slate-100">Upcoming Outstation</CardTitle>
               <p className="text-xs text-foreground dark:text-foreground mt-0.5">Monitor upcoming outstation assignments and scheduled trips</p>

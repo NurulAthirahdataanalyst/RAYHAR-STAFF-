@@ -50,7 +50,7 @@ function CustomDatePicker({ value, onChange, placeholder, className }: { value: 
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="outline" className={`justify-between text-left font-bold text-xs uppercase border-border/60 bg-white dark:bg-card ${!value && "text-muted-foreground"} ${className}`}>
+        <Button variant="outline" className={`justify-between text-left font-bold text-xs uppercase border-border/60 bg-card ${!value && "text-muted-foreground"} ${className}`}>
           <div className="flex items-center gap-2 overflow-hidden min-w-0">
             <CalendarDays className="h-4 w-4 shrink-0 text-[#942392]" />
             <span className="truncate">
@@ -308,7 +308,7 @@ export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => 
               <Input
                 placeholder="Search by employee, reason, history ID, or reference ID..."
                 value={search} onChange={e => setSearch(e.target.value)}
-                className="pl-9 pr-8 h-9 text-xs bg-white dark:bg-card border-border/70 placeholder:text-muted-foreground dark:placeholder:text-slate-400 font-medium"
+                className="pl-9 pr-8 h-9 text-xs bg-card border-border/70 placeholder:text-muted-foreground dark:placeholder:text-slate-400 font-medium"
               />
               {search && (
                 <button onClick={() => setSearch('')}
@@ -320,7 +320,7 @@ export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => 
             
             <div className="flex items-center gap-2 shrink-0">
               <Select value={dateRange} onValueChange={(v: DateRange) => setDateRange(v)}>
-                <SelectTrigger className="w-[160px] h-9 text-xs bg-white dark:bg-card">
+                <SelectTrigger className="w-[160px] h-9 text-xs bg-card">
                   <SelectValue placeholder="Date Range" />
                 </SelectTrigger>
                 <SelectContent>
@@ -371,7 +371,7 @@ export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => 
                 <Label className="text-[10px] font-black uppercase tracking-wider text-foreground">Employee</Label>
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-full h-8 px-3 text-xs justify-between font-normal bg-white dark:bg-card">
+                    <Button variant="outline" className="w-full h-8 px-3 text-xs justify-between font-normal bg-card">
                       <span className="truncate">
                         {filterEmployee.length === 0 ? 'All Employees' : `${filterEmployee.length} Selected`}
                       </span>
@@ -426,7 +426,7 @@ export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => 
                 <div key={f.label} className="space-y-1">
                   <Label className="text-[10px] font-black uppercase tracking-wider text-foreground">{f.label}</Label>
                   <Select value={f.value} onValueChange={f.set}>
-                    <SelectTrigger className="h-8 text-xs bg-white dark:bg-card">
+                    <SelectTrigger className="h-8 text-xs bg-card">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>

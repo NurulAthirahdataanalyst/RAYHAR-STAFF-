@@ -580,19 +580,28 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
           variant="ghost"
           onClick={toggleTheme}
           title={effectiveCollapsed && !isMobile ? `Switch to ${theme === 'light' ? 'Dark' : 'Light'} Mode` : ""}
-          className={`group flex w-full justify-start gap-2.5 rounded-[16px] px-2.5 sm:px-2.5 py-2.5 text-sidebar-foreground/85 transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground touch-target ${
+          className={`group flex w-full justify-start items-center gap-2.5 rounded-[16px] px-2.5 sm:px-2.5 py-2.5 text-sidebar-foreground/85 transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground touch-target ${
             effectiveCollapsed && !isMobile ? "justify-center px-0 w-11 h-11 mx-auto" : ""
           }`}
         >
           {theme === "light" ? (
-            <Moon className="h-4 w-4 shrink-0" />
+            <Moon className="h-4 w-4 shrink-0 text-purple-200/70" />
           ) : (
-            <Sun className="h-4 w-4 shrink-0" />
+            <Sun className="h-4 w-4 shrink-0 text-yellow-300" />
           )}
           {(!effectiveCollapsed || isMobile) && (
-            <span className="text-xs font-bold whitespace-nowrap animate-in fade-in duration-300">
-              {theme === "light" ? "Dark Mode" : "Light Mode"}
-            </span>
+            <div className="flex items-center justify-between flex-1 min-w-0">
+              <span className="text-xs font-bold whitespace-nowrap animate-in fade-in duration-300">
+                Dark Mode
+              </span>
+              <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full transition-colors ${
+                theme === "dark" 
+                  ? "bg-[#942392] text-white shadow-xs" 
+                  : "bg-white/10 text-white/50 border border-white/10"
+              }`}>
+                {theme === "dark" ? "ON" : "OFF"}
+              </span>
+            </div>
           )}
         </Button>
 

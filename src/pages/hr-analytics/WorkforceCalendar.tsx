@@ -403,7 +403,7 @@ export default function WorkforceCalendar() {
                 const today = isToday(day);
                 const isPast = isBefore(day, startOfDay(new Date())) && !today;
 
-                let cellBg = "bg-white dark:bg-card";
+                let cellBg = "bg-card";
                 let textCol = "text-foreground";
                 
                 if (today) {
@@ -413,7 +413,7 @@ export default function WorkforceCalendar() {
                   cellBg = "bg-slate-50/50 dark:bg-slate-900/50";
                   textCol = "text-foreground opacity-50";
                 } else if (isPast) {
-                  cellBg = "bg-white dark:bg-card opacity-80";
+                  cellBg = "bg-card opacity-80";
                   textCol = "text-foreground dark:text-foreground";
                 }
 
@@ -557,7 +557,7 @@ export default function WorkforceCalendar() {
 
           return createPortal(
             <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-all duration-300" onClick={() => setSelectedDay(null)}>
-              <div className="bg-white dark:bg-card rounded-2xl shadow-2xl overflow-hidden max-w-lg w-full flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
+              <div className="bg-card rounded-2xl shadow-2xl overflow-hidden max-w-lg w-full flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
                 {/* Header */}
                 <div className="flex items-center justify-between bg-[#a01497] text-white p-4">
                   <div className="flex flex-col gap-1">
@@ -867,7 +867,7 @@ export default function WorkforceCalendar() {
         const title = selectedEvent.source === "outstation" ? "Outstation" : selectedEvent.source === "company_leave" ? "Company Leave" : "Leave Request";
         return createPortal(
           <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-xl p-4 transition-all duration-300" onClick={() => setSelectedEventInfo(null)}>
-            <div className="bg-white dark:bg-card rounded-2xl shadow-2xl overflow-hidden max-w-md w-full flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
+            <div className="bg-card rounded-2xl shadow-2xl overflow-hidden max-w-md w-full flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
               {/* Header */}
               <div className={`flex items-center justify-between ${c.dot} text-white p-4`}>
                 <div className="flex items-center gap-3">

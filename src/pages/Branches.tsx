@@ -572,7 +572,7 @@ export default function Branches() {
             </div>
             
             {selectedBranch.operating_zone && (
-              <div className="flex-shrink-0 bg-white dark:bg-card border-2 border-slate-200 dark:border-slate-700 rounded-xl p-3 shadow-md self-start">
+              <div className="flex-shrink-0 bg-card border-2 border-slate-200 dark:border-slate-700 rounded-xl p-3 shadow-md self-start">
                 <p className="mb-2"><span className="text-[10px] font-bold text-foreground uppercase tracking-wider">Operating Hours ({selectedBranch.operating_zone === 'ZONE_A' ? 'Zone A' : 'Zone B'})</span></p>
                 <div className="flex flex-wrap sm:flex-nowrap gap-4 sm:gap-6 text-[11px] text-foreground">
                   {selectedBranch.operating_zone === 'ZONE_A' ? (
@@ -1165,7 +1165,7 @@ export default function Branches() {
                 return (
                   <Card
                     key={branch.code}
-                    className="cursor-pointer hover:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.18)] hover:-translate-y-1.5 transition-all duration-300 border border-slate-100 dark:border-slate-800/80 shadow-[0_16px_40px_rgba(0,0,0,0.07),0_4px_12px_rgba(0,0,0,0.03)] dark:shadow-[0_20px_45px_rgba(0,0,0,0.45)] bg-white dark:bg-card overflow-visible group rounded-[32px] relative"
+                    className="cursor-pointer hover:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.18)] hover:-translate-y-1.5 transition-all duration-300 border border-slate-100 dark:border-slate-800/80 shadow-[0_16px_40px_rgba(0,0,0,0.07),0_4px_12px_rgba(0,0,0,0.03)] dark:shadow-[0_20px_45px_rgba(0,0,0,0.45)] bg-card overflow-visible group rounded-[32px] relative"
                     onClick={() =>
                       setSelectedBranch({
                         ...branch,
@@ -1178,7 +1178,7 @@ export default function Branches() {
                     }
                   >
                     {/* Floating Icon Circle */}
-                    <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-[80px] h-[80px] rounded-full bg-white dark:bg-card p-1 shadow-[0_8px_25px_rgba(0,0,0,0.12)] border-[3px] border-white dark:border-slate-800 flex items-center justify-center z-20 group-hover:scale-105 transition-transform duration-300">
+                    <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-[80px] h-[80px] rounded-full bg-card p-1 shadow-[0_8px_25px_rgba(0,0,0,0.12)] border-[3px] border-white dark:border-slate-800 flex items-center justify-center z-20 group-hover:scale-105 transition-transform duration-300">
                       <div className="w-full h-full rounded-full bg-[#EDE4F0] dark:bg-purple-950/60 flex items-center justify-center">
                         <Building2 className="w-8 h-8 text-[#942392]" strokeWidth={2.2} />
                       </div>
@@ -1794,7 +1794,7 @@ export default function Branches() {
               </div>
             </div>
           </div>
-          <form onSubmit={handleEditBranch} className="p-8 space-y-6 bg-white dark:bg-card">
+          <form onSubmit={handleEditBranch} className="p-8 space-y-6 bg-card">
             <div className="grid grid-cols-2 gap-6">
               <div className="space-y-1.5">
                 <label className="text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest">BRANCH CODE</label>
@@ -2022,7 +2022,7 @@ export default function Branches() {
                 
                 <div className="space-y-2 pt-4">
                   <label className="text-[10px] font-black uppercase tracking-widest text-foreground">Address / Display Name</label>
-                  <div className={`p-4 bg-white dark:bg-card border rounded-xl shadow-sm text-xs leading-relaxed ${editBranchData.location ? 'text-foreground font-medium' : 'text-slate-400 dark:text-slate-500'}`}>
+                  <div className={`p-4 bg-card border rounded-xl shadow-sm text-xs leading-relaxed ${editBranchData.location ? 'text-foreground font-medium' : 'text-slate-400 dark:text-slate-500'}`}>
                     {editBranchData.location || "Select a location on the map"}
                   </div>
                 </div>
