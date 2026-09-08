@@ -480,10 +480,10 @@ export default function OutstationReports() {
                   )}
                   <div className="relative">
                     <Search className="w-3.5 h-3.5 text-foreground absolute left-2.5 top-1/2 -translate-y-1/2" />
-                    <Input placeholder="Search event..." value={filterSearch} onChange={e => setFilterSearch(e.target.value)} className="pl-8 h-8 text-xs w-44 bg-gray-50" />
+                    <Input placeholder="Search event..." value={filterSearch} onChange={e => setFilterSearch(e.target.value)} className="pl-8 h-8 text-xs w-44 bg-gray-50 dark:bg-card dark:border-slate-800 dark:text-slate-100" />
                   </div>
                   <Select value={filterStatus} onValueChange={setFilterStatus}>
-                    <SelectTrigger className="w-[130px] h-8 text-xs bg-gray-50">
+                    <SelectTrigger className="w-[130px] h-8 text-xs bg-gray-50 dark:bg-card dark:border-slate-800 dark:text-slate-100">
                       <SelectValue placeholder="Status">{filterStatus === "All" ? "All Status" : filterStatus}</SelectValue>
                     </SelectTrigger>
                     <SelectContent>
@@ -495,7 +495,7 @@ export default function OutstationReports() {
                 /* Event Details filters: Branch → Dept → Search (far right) */
                 <>
                   <Select value={filterBranch} onValueChange={setFilterBranch}>
-                    <SelectTrigger className="w-[140px] h-8 text-xs bg-gray-50">
+                    <SelectTrigger className="w-[140px] h-8 text-xs bg-gray-50 dark:bg-card dark:border-slate-800 dark:text-slate-100">
                       <SelectValue placeholder="Branch">{filterBranch === "All" ? "All Branch" : filterBranch}</SelectValue>
                     </SelectTrigger>
                     <SelectContent>
@@ -503,7 +503,7 @@ export default function OutstationReports() {
                     </SelectContent>
                   </Select>
                   <Select value={filterDept} onValueChange={setFilterDept}>
-                    <SelectTrigger className="w-[140px] h-8 text-xs bg-gray-50">
+                    <SelectTrigger className="w-[140px] h-8 text-xs bg-gray-50 dark:bg-card dark:border-slate-800 dark:text-slate-100">
                       <SelectValue placeholder="Department">{filterDept === "All" ? "All Department" : filterDept}</SelectValue>
                     </SelectTrigger>
                     <SelectContent>
@@ -512,7 +512,7 @@ export default function OutstationReports() {
                   </Select>
                   <div className="relative">
                     <Search className="w-3.5 h-3.5 text-foreground absolute left-2.5 top-1/2 -translate-y-1/2" />
-                    <Input placeholder="Search employee..." value={filterSearch} onChange={e => setFilterSearch(e.target.value)} className="pl-8 h-8 text-xs w-44 bg-gray-50" />
+                    <Input placeholder="Search employee..." value={filterSearch} onChange={e => setFilterSearch(e.target.value)} className="pl-8 h-8 text-xs w-44 bg-gray-50 dark:bg-card dark:border-slate-800 dark:text-slate-100" />
                   </div>
                 </>
               )}

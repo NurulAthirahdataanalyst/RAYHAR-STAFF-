@@ -1142,8 +1142,8 @@ export default function Calendar() {
                   let textCol = "text-foreground";
                   
                   if (today) {
-                    cellBg = "bg-[#DBC5E1]";
-                    textCol = "text-[#942392]";
+                    cellBg = "bg-[#DBC5E1] dark:bg-[#942392]/20 dark:ring-1 dark:ring-[#942392]";
+                    textCol = "text-[#942392] dark:text-purple-300 font-bold";
                   } else if (!isCurrentMonth) {
                     cellBg = "bg-slate-50/50 dark:bg-slate-900/50";
                     textCol = "text-foreground opacity-50";

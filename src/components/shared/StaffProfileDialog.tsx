@@ -822,20 +822,33 @@ export function StaffProfileDialog({
                   <div className="lg:col-span-8 space-y-5">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-0 gap-3">
                       <div className="flex items-center gap-2">
-                        <div className="p-1 bg-blue-50 text-blue-600 rounded">
-                          <TrendingUp className="h-3 w-3" />
+                        <div className="p-1 bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 rounded">
+                          <BarChart3 className="h-3.5 w-3.5" />
                         </div>
-                        <h3 className="text-xs font-black text-slate-800 dark:text-slate-100 uppercase tracking-wider">Attendance Performance</h3>
+                        <h3 className="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-200">
+                          {selectedYear} Performance Analytics
+                        </h3>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <MonthPicker monthYear={analyticsDate} onSelectMonthYear={setAnalyticsDate} className="flex items-center justify-between gap-2 h-8 px-3 text-[10px] font-bold uppercase tracking-widest bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full cursor-pointer hover:bg-slate-50 transition-colors focus:outline-none focus:ring-1 focus:ring-[#942392]" />
-                      </div>
+                      
+                      {/* Year Selector */}
+                      <Select value={selectedYear.toString()} onValueChange={(v) => setSelectedYear(parseInt(v))}>
+                        <SelectTrigger className="w-[90px] h-7 text-xs font-bold bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700">
+                          <SelectValue placeholder={selectedYear.toString()} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availableYears.map(y => (
+                            <SelectItem key={y} value={y.toString()} className="text-xs font-bold">
+                              {y}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
 
-                    {loadingAnalytics ? (
-                      <div className="flex flex-col items-center justify-center py-20 text-foreground bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-800/60 dark:border-slate-700 shadow-sm">
-                        <Loader2 className="w-8 h-8 animate-spin mb-3 text-[#942392]" />
-                        <p className="text-xs font-bold tracking-wide">Loading enterprise analytics...</p>
+                    {analyticsLoading ? (
+                      <div className="flex flex-col items-center justify-center p-12 bg-slate-50/50 dark:bg-slate-900/50 rounded-xl border border-dashed border-slate-200 dark:border-slate-800">
+                        <Loader2 className="w-6 h-6 animate-spin text-purple-600 mb-2" />
+                        <p className="text-xs font-bold text-foreground">Calculating statistics...</p>
                       </div>
                     ) : analytics ? (
                       <>
@@ -859,9 +872,9 @@ export function StaffProfileDialog({
                                     </Tooltip>
                                   </div>
                                   <Badge variant="secondary" className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 border ${
-                                    analytics.attendance.monthly.rate >= 95 ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 
-                                    analytics.attendance.monthly.rate >= 85 ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 
-                                    analytics.attendance.monthly.rate >= 70 ? 'text-amber-700 bg-amber-50 border-amber-200' : 
+                                    analytics.attendance.monthly.rate >= 95 ? 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800' : 
+                                    analytics.attendance.monthly.rate >= 85 ? 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800' : 
+                                    analytics.attendance.monthly.rate >= 70 ? 'text-amber-700 bg-amber-50 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800' : 
                                     'text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-800'
                                   }`}>
                                     {analytics.attendance.monthly.rate >= 95 ? 'Excellent' : analytics.attendance.monthly.rate >= 85 ? 'Good' : analytics.attendance.monthly.rate >= 70 ? 'Warning' : 'Review'}
@@ -870,8 +883,8 @@ export function StaffProfileDialog({
                                 
                                 <div className="flex items-baseline gap-1 mb-3">
                                   <span className={`text-3xl font-black tracking-tighter ${
-                                    analytics.attendance.monthly.rate >= 85 ? 'text-emerald-600' : 
-                                    analytics.attendance.monthly.rate >= 70 ? 'text-amber-500' : 
+                                    analytics.attendance.monthly.rate >= 85 ? 'text-emerald-600 dark:text-emerald-400' : 
+                                    analytics.attendance.monthly.rate >= 70 ? 'text-amber-500 dark:text-amber-400' : 
                                     analytics.attendance.monthly.rate === 0 ? 'text-slate-300' : 'text-slate-700 dark:text-slate-200'
                                   }`}>
                                     {analytics.attendance.monthly.rate}
@@ -880,17 +893,17 @@ export function StaffProfileDialog({
                                 </div>
                                 
                                 <div className="grid grid-cols-3 gap-2">
-                                  <div className="bg-emerald-50/50 border border-emerald-100/50 rounded-lg p-2 text-center">
-                                    <p className="text-lg font-black text-emerald-600 leading-none mb-1">{analytics.attendance.monthly.present}</p>
-                                    <p className="text-[8px] font-bold text-emerald-600/70 uppercase tracking-wider">Present</p>
+                                  <div className="bg-emerald-50/50 dark:bg-emerald-950/40 border border-emerald-100/50 dark:border-emerald-800/60 rounded-lg p-2 text-center">
+                                    <p className="text-lg font-black text-emerald-600 dark:text-emerald-400 leading-none mb-1">{analytics.attendance.monthly.present}</p>
+                                    <p className="text-[8px] font-bold text-emerald-600/70 dark:text-emerald-400/80 uppercase tracking-wider">Present</p>
                                   </div>
-                                  <div className="bg-amber-50/50 border border-amber-100/50 rounded-lg p-2 text-center">
-                                    <p className="text-lg font-black text-amber-600 leading-none mb-1">{analytics.attendance.monthly.late}</p>
-                                    <p className="text-[8px] font-bold text-amber-600/70 uppercase tracking-wider">Late</p>
+                                  <div className="bg-amber-50/50 dark:bg-amber-950/40 border border-amber-100/50 dark:border-amber-800/60 rounded-lg p-2 text-center">
+                                    <p className="text-lg font-black text-amber-600 dark:text-amber-400 leading-none mb-1">{analytics.attendance.monthly.late}</p>
+                                    <p className="text-[8px] font-bold text-amber-600/70 dark:text-amber-400/80 uppercase tracking-wider">Late</p>
                                   </div>
                                   <div className="bg-slate-50/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-800/60 rounded-lg p-2 text-center">
                                     <p className="text-lg font-black text-slate-600 dark:text-slate-300 leading-none mb-1">{analytics.attendance.monthly.absent}</p>
-                                    <p className="text-[8px] font-bold text-foreground dark:text-foreground uppercase tracking-wider">Absent</p>
+                                    <p className="text-[8px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Absent</p>
                                   </div>
                                 </div>
                               </CardContent>
@@ -904,9 +917,9 @@ export function StaffProfileDialog({
                                     <p className="text-[10px] font-bold uppercase tracking-widest text-foreground dark:text-foreground">Yearly Rate</p>
                                   </div>
                                   <Badge variant="secondary" className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 border ${
-                                    analytics.attendance.yearly.rate >= 95 ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 
-                                    analytics.attendance.yearly.rate >= 85 ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 
-                                    analytics.attendance.yearly.rate >= 70 ? 'text-amber-700 bg-amber-50 border-amber-200' : 
+                                    analytics.attendance.yearly.rate >= 95 ? 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800' : 
+                                    analytics.attendance.yearly.rate >= 85 ? 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800' : 
+                                    analytics.attendance.yearly.rate >= 70 ? 'text-amber-700 bg-amber-50 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800' : 
                                     'text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-800'
                                   }`}>
                                     {analytics.attendance.yearly.rate >= 95 ? 'Excellent' : analytics.attendance.yearly.rate >= 85 ? 'Good' : analytics.attendance.yearly.rate >= 70 ? 'Warning' : 'Review'}
@@ -915,8 +928,8 @@ export function StaffProfileDialog({
                                 
                                 <div className="flex items-baseline gap-1 mb-3">
                                   <span className={`text-3xl font-black tracking-tighter ${
-                                    analytics.attendance.yearly.rate >= 85 ? 'text-emerald-600' : 
-                                    analytics.attendance.yearly.rate >= 70 ? 'text-amber-500' : 
+                                    analytics.attendance.yearly.rate >= 85 ? 'text-emerald-600 dark:text-emerald-400' : 
+                                    analytics.attendance.yearly.rate >= 70 ? 'text-amber-500 dark:text-amber-400' : 
                                     analytics.attendance.yearly.rate === 0 ? 'text-slate-300' : 'text-slate-700 dark:text-slate-200'
                                   }`}>
                                     {analytics.attendance.yearly.rate}
@@ -925,17 +938,17 @@ export function StaffProfileDialog({
                                 </div>
                                 
                                 <div className="grid grid-cols-3 gap-2">
-                                  <div className="bg-emerald-50/50 border border-emerald-100/50 rounded-lg p-2 text-center">
-                                    <p className="text-lg font-black text-emerald-600 leading-none mb-1">{analytics.attendance.yearly.present}</p>
-                                    <p className="text-[8px] font-bold text-emerald-600/70 uppercase tracking-wider">Present</p>
+                                  <div className="bg-emerald-50/50 dark:bg-emerald-950/40 border border-emerald-100/50 dark:border-emerald-800/60 rounded-lg p-2 text-center">
+                                    <p className="text-lg font-black text-emerald-600 dark:text-emerald-400 leading-none mb-1">{analytics.attendance.yearly.present}</p>
+                                    <p className="text-[8px] font-bold text-emerald-600/70 dark:text-emerald-400/80 uppercase tracking-wider">Present</p>
                                   </div>
-                                  <div className="bg-amber-50/50 border border-amber-100/50 rounded-lg p-2 text-center">
-                                    <p className="text-lg font-black text-amber-600 leading-none mb-1">{analytics.attendance.yearly.late}</p>
-                                    <p className="text-[8px] font-bold text-amber-600/70 uppercase tracking-wider">Late</p>
+                                  <div className="bg-amber-50/50 dark:bg-amber-950/40 border border-amber-100/50 dark:border-amber-800/60 rounded-lg p-2 text-center">
+                                    <p className="text-lg font-black text-amber-600 dark:text-amber-400 leading-none mb-1">{analytics.attendance.yearly.late}</p>
+                                    <p className="text-[8px] font-bold text-amber-600/70 dark:text-amber-400/80 uppercase tracking-wider">Late</p>
                                   </div>
                                   <div className="bg-slate-50/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-800/60 rounded-lg p-2 text-center">
                                     <p className="text-lg font-black text-slate-600 dark:text-slate-300 leading-none mb-1">{analytics.attendance.yearly.absent}</p>
-                                    <p className="text-[8px] font-bold text-foreground dark:text-foreground uppercase tracking-wider">Absent</p>
+                                    <p className="text-[8px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Absent</p>
                                   </div>
                                 </div>
                               </CardContent>
@@ -947,7 +960,7 @@ export function StaffProfileDialog({
                         <section>
                           <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-2">
-                              <div className="p-1 bg-purple-50 text-purple-600 rounded">
+                              <div className="p-1 bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 rounded">
                                 <Briefcase className="h-3 w-3" />
                               </div>
                               <h3 className="text-xs font-black text-slate-800 dark:text-slate-200 uppercase tracking-wider">Leave Utilization</h3>
@@ -963,9 +976,9 @@ export function StaffProfileDialog({
                               <p className="text-[9px] font-bold uppercase tracking-widest text-foreground dark:text-foreground mb-1.5">Approved Taken</p>
                               <p className="text-2xl font-black text-slate-800 dark:text-slate-200 tracking-tighter">{analytics.leave.used}</p>
                             </div>
-                            <div className="rounded-xl border-2 border-emerald-500/20 p-3 bg-emerald-50/30 shadow-sm flex flex-col justify-between">
-                              <p className="text-[9px] font-bold uppercase tracking-widest text-emerald-600 mb-1.5">Remaining Balance</p>
-                              <p className="text-2xl font-black text-emerald-600 tracking-tighter">{analytics.leave.remaining}</p>
+                            <div className="rounded-xl border-2 border-emerald-500/20 dark:border-emerald-700/50 p-3 bg-emerald-50/30 dark:bg-emerald-950/40 shadow-sm flex flex-col justify-between">
+                              <p className="text-[9px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 mb-1.5">Remaining Balance</p>
+                              <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400 tracking-tighter">{analytics.leave.remaining}</p>
                             </div>
                             <div className="rounded-xl border border-slate-200 dark:border-slate-800/60 p-3 bg-white dark:bg-slate-800 shadow-sm flex flex-col justify-between">
                               <Tooltip>
@@ -987,29 +1000,29 @@ export function StaffProfileDialog({
 
                           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                             <button 
-                              className="group flex flex-col items-start p-3 rounded-xl bg-amber-50/50 border border-amber-200/50 hover:bg-amber-50 hover:border-amber-300 transition-all duration-200"
+                              className="group flex flex-col items-start p-3 rounded-xl bg-amber-50/50 dark:bg-amber-950/30 border border-amber-200/50 dark:border-amber-800/50 hover:bg-amber-50 dark:hover:bg-amber-900/40 hover:border-amber-300 dark:hover:border-amber-700 transition-all duration-200"
                               onClick={() => setViewLeaveStatus("Pending")}
                             >
                               <div className="flex justify-between items-center w-full mb-2">
-                                <div className="p-1.5 bg-amber-100 rounded-lg text-amber-600 group-hover:scale-110 transition-transform">
+                                <div className="p-1.5 bg-amber-100 dark:bg-amber-900/60 rounded-lg text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform">
                                   <Clock className="w-3 h-3" />
                                 </div>
-                                <span className="text-lg font-black text-amber-600">{analytics.leave.pending}</span>
+                                <span className="text-lg font-black text-amber-600 dark:text-amber-400">{analytics.leave.pending}</span>
                               </div>
-                              <span className="text-[9px] font-bold text-amber-700/80 uppercase tracking-widest">Pending Requests</span>
+                              <span className="text-[9px] font-bold text-amber-700/80 dark:text-amber-300/80 uppercase tracking-widest">Pending Requests</span>
                             </button>
                             
                             <button 
-                              className="group flex flex-col items-start p-3 rounded-xl bg-emerald-50/50 border border-emerald-200/50 hover:bg-emerald-50 hover:border-emerald-300 transition-all duration-200"
+                              className="group flex flex-col items-start p-3 rounded-xl bg-emerald-50/50 dark:bg-emerald-950/30 border border-emerald-200/50 dark:border-emerald-800/50 hover:bg-emerald-50 dark:hover:bg-emerald-900/40 hover:border-emerald-300 dark:hover:border-emerald-700 transition-all duration-200"
                               onClick={() => setViewLeaveStatus("Approved")}
                             >
                               <div className="flex justify-between items-center w-full mb-2">
-                                <div className="p-1.5 bg-emerald-100 rounded-lg text-emerald-600 group-hover:scale-110 transition-transform">
+                                <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/60 rounded-lg text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform">
                                   <Briefcase className="w-3 h-3" />
                                 </div>
-                                <span className="text-lg font-black text-emerald-600">{analytics.leave.approvedApplications ?? analytics.leave.totalTaken}</span>
+                                <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">{analytics.leave.approvedApplications ?? analytics.leave.totalTaken}</span>
                               </div>
-                              <span className="text-[9px] font-bold text-emerald-700/80 uppercase tracking-widest">Approved Leave</span>
+                              <span className="text-[9px] font-bold text-emerald-700/80 dark:text-emerald-300/80 uppercase tracking-widest">Approved Leave</span>
                             </button>
 
                             <button 
