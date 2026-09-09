@@ -1189,7 +1189,7 @@ export default function Calendar() {
                           <div
                             key={`cl-${idx}`}
                             onClick={(e) => { e.stopPropagation(); setSelectedCompanyLeave(cl); }}
-                            className="px-2 py-1 rounded-[4px] bg-purple-500/10 border-l-2 border-purple-500 text-[11px] font-bold text-purple-700 dark:text-purple-400 truncate shadow-sm cursor-pointer hover:bg-purple-500/20 transition-colors"
+                            className="px-2 py-1 rounded-[4px] bg-purple-500/10 border-l-2 border-purple-500 text-[11px] font-bold text-purple-700 dark:text-purple-400 truncate shadow-sm cursor-pointer hover:bg-purple-500/20 transition-colors uppercase"
                             title={`${cl.leave_name} (${cl.leave_type})`}
                           >
                             🟣 {cl.leave_name}
@@ -1338,7 +1338,7 @@ export default function Calendar() {
                           <div
                             key={`cl-${idx}`}
                             onClick={() => setSelectedCompanyLeave(cl)}
-                            className="px-1.5 py-0.5 rounded-[4px] bg-purple-500/10 border-l-2 border-purple-500 text-[10px] font-bold text-purple-700 dark:text-purple-400 truncate shadow-sm cursor-pointer hover:bg-purple-500/20 transition-colors leading-tight"
+                            className="px-1.5 py-0.5 rounded-[4px] bg-purple-500/10 border-l-2 border-purple-500 text-[10px] font-bold text-purple-700 dark:text-purple-400 truncate shadow-sm cursor-pointer hover:bg-purple-500/20 transition-colors leading-tight uppercase"
                             title={`${cl.leave_name} (${cl.leave_type})`}
                           >
                             🏢 {cl.leave_name}
@@ -1940,7 +1940,7 @@ export default function Calendar() {
                       {selectedCompanyLeave.leave_type || 'Company Leave'}
                     </span>
                   </div>
-                  <h2 className="text-xl font-bold text-white">{selectedCompanyLeave.leave_name}</h2>
+                  <h2 className="text-xl font-bold text-white uppercase">{selectedCompanyLeave.leave_name}</h2>
                 </div>
                 <button onClick={() => setSelectedCompanyLeave(null)} className="text-white/70 hover:text-white transition-colors mt-1">
                   <X className="w-5 h-5" />
@@ -2257,7 +2257,7 @@ export default function Calendar() {
                         <div key={i} className="flex items-start rounded-xl bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 overflow-hidden">
                           <div className="w-1 self-stretch bg-purple-500 flex-shrink-0" />
                           <div className="px-3 py-2.5">
-                            <p className="font-semibold text-purple-700 dark:text-purple-300 text-sm">{cl.leave_name}</p>
+                            <p className="font-semibold text-purple-700 dark:text-purple-300 text-sm uppercase">{cl.leave_name}</p>
                             <p className="text-xs text-purple-500 dark:text-purple-400">{cl.leave_type} · {fmtDate(cl.start_date)} – {fmtDate(cl.end_date)}</p>
                           </div>
                         </div>

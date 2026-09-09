@@ -9792,10 +9792,12 @@ app.get("/api/company-leaves", async (req, res) => {
     const todayStr = new Date().toISOString().slice(0, 10);
     const processed = rows.map(r => {
       const endDateStr = (r.end_date || r.start_date || '').toString().slice(0, 10);
-      if (r.status !== 'Inactive' && endDateStr && endDateStr < todayStr) {
-        return { ...r, status: 'Completed' };
-      }
-      return r;
+      const isCompleted = r.status !== 'Inactive' && endDateStr && endDateStr < todayStr;
+      return {
+        ...r,
+        leave_name: (r.leave_name || '').toUpperCase().trim(),
+        status: isCompleted ? 'Completed' : r.status
+      };
     });
     res.json({ success: true, leaves: processed });
   } catch (err) {
@@ -9819,6 +9821,8 @@ app.post("/api/company-leaves", async (req, res) => {
     created_by
   } = req.body;
 
+  const formattedLeaveName = (leave_name || '').toUpperCase().trim();
+
   try {
     const [result] = await pool.query(
       `INSERT INTO company_leave_calendar (
@@ -9827,7 +9831,7 @@ app.post("/api/company-leaves", async (req, res) => {
         remarks, created_by
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        leave_name, leave_type, start_date, end_date, applies_to,
+        formattedLeaveName, leave_type, start_date, end_date, applies_to,
         branch_id || null, department_id || null, is_paid ?? true, attendance_required ?? false, status || 'Active',
         remarks || '', created_by || 'HR'
       ]
@@ -9864,6 +9868,8 @@ app.put("/api/company-leaves/:id", async (req, res) => {
     remarks
   } = req.body;
 
+  const formattedLeaveName = (leave_name || '').toUpperCase().trim();
+
   try {
     const [existing] = await pool.query(`SELECT * FROM company_leave_calendar WHERE id = ?`, [id]);
     if (existing && existing.length > 0) {
@@ -9882,7 +9888,7 @@ app.put("/api/company-leaves/:id", async (req, res) => {
         remarks = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ?`,
       [
-        leave_name, leave_type, start_date, end_date, applies_to,
+        formattedLeaveName, leave_type, start_date, end_date, applies_to,
         branch_id || null, department_id || null, is_paid ?? true, attendance_required ?? false, status || 'Active',
         remarks || '', id
       ]

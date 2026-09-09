@@ -145,7 +145,7 @@ const CompanyLeaveCalendar = () => {
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...formData, created_by: user?.full_name || 'HR' })
+        body: JSON.stringify({ ...formData, leave_name: formData.leave_name?.toUpperCase().trim(), created_by: user?.full_name || 'HR' })
       });
       const data = await res.json();
       if (data.success) {
@@ -228,7 +228,7 @@ const CompanyLeaveCalendar = () => {
 
                     return (
                       <tr key={leave.id} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
-                        <td className="px-4 py-3 font-medium">{leave.leave_name}</td>
+                        <td className="px-4 py-3 font-medium uppercase">{leave.leave_name}</td>
                         <td className="px-4 py-3 text-foreground whitespace-nowrap">
                           <div className="flex items-center gap-1.5">
                             <CalendarIcon className="w-3.5 h-3.5" />
@@ -317,8 +317,9 @@ const CompanyLeaveCalendar = () => {
               <Label>Leave Name (e.g. Hari Raya, Company Trip)</Label>
               <Input 
                 value={formData.leave_name} 
-                onChange={(e) => setFormData({ ...formData, leave_name: e.target.value })} 
-                placeholder="Holiday Name"
+                onChange={(e) => setFormData({ ...formData, leave_name: e.target.value.toUpperCase() })} 
+                placeholder="HOLIDAY NAME"
+                className="uppercase"
               />
             </div>
             
