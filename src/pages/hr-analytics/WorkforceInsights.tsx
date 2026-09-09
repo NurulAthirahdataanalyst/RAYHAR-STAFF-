@@ -2801,43 +2801,35 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
              </div>
              
              {totalLeaveCount > 0 ? (
-               <div className="flex items-center flex-1 h-[140px]">
-                 <div className="w-[140px] h-[140px] relative">
-                   <ResponsiveContainer width="100%" height="100%">
-                     <PieChart>
-                       <RechartsTooltip 
-                          content={({ active, payload }) => {
-                            if (!active || !payload || !payload.length) return null;
-                            const data = payload[0];
-                            return (
-                              <div className="bg-card/95 backdrop-blur-md border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl p-2.5 text-foreground text-xs font-bold flex items-center gap-2">
-                                <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: data.payload?.color }} />
-                                <span className="text-slate-700 dark:text-slate-200">{data.name}:</span>
-                                <span className="font-extrabold text-foreground">{data.value}</span>
-                              </div>
-                            );
-                          }}
-                        />
-                       <Pie
-                         data={leaveData}
-                         innerRadius={45}
-                         outerRadius={65}
-                         paddingAngle={2}
-                         dataKey="value"
-                         stroke="none"
-                       >
-                         {(Array.isArray(leaveData) ? leaveData : []).map((entry, index) => (
-                           <Cell key={`cell-${index}`} fill={entry.color} />
-                         ))}
-                       </Pie>
-                     </PieChart>
-                   </ResponsiveContainer>
-                   <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                     <span className="text-lg font-black text-slate-800 dark:text-slate-100 leading-none">{totalLeaveCount || 0}</span>
-                     <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total</span>
-                   </div>
-                 </div>
-                 <div className="flex-1 pl-4 space-y-2">
+                <div className="flex items-center flex-1 h-[140px]">
+                  {(() => {
+                    const pieSlices = (Array.isArray(leaveData) ? leaveData : []).filter(item => item.value > 0);
+                    return (
+                      <div className="w-[140px] h-[140px] relative">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie
+                              data={pieSlices}
+                              innerRadius={45}
+                              outerRadius={65}
+                              paddingAngle={0}
+                              dataKey="value"
+                              stroke="none"
+                            >
+                              {pieSlices.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={entry.color} />
+                              ))}
+                            </Pie>
+                          </PieChart>
+                        </ResponsiveContainer>
+                        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                          <span className="text-lg font-black text-slate-800 dark:text-slate-100 leading-none">{totalLeaveCount || 0}</span>
+                          <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total</span>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                  <div className="flex-1 pl-4 space-y-2">
                    {(Array.isArray(leaveData) ? leaveData : []).map((entry, idx) => (
                      <div key={idx} className="flex justify-between items-center">
                        <div className="flex items-center gap-1.5">
