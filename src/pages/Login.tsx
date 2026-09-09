@@ -181,12 +181,12 @@ export default function Login() {
         <div className="flex flex-col items-center justify-center gap-2 sm:gap-3 mb-6 sm:mb-8">
           <img src={rayharLogo} alt="Rayhar Logo" className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl shadow-xl" />
           <div className="text-center">
-            <h1 className="font-heading font-black text-slate-900 dark:text-slate-100 text-xl sm:text-2xl tracking-tight">Rayhar Group</h1>
+            <h1 className="font-heading font-black text-slate-900 text-xl sm:text-2xl tracking-tight">Rayhar Group</h1>
             <p className="text-[10px] sm:text-xs font-extrabold text-[#942392] uppercase tracking-widest">Staff Admin Panel</p>
           </div>
         </div>
 
-        <Card className="border-white/40 shadow-2xl bg-white/80 backdrop-blur-xl rounded-[20px] sm:rounded-[30px] overflow-hidden">
+        <Card className="border-white/60 shadow-2xl bg-white/95 backdrop-blur-xl rounded-[20px] sm:rounded-[30px] overflow-hidden">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
 
 
@@ -194,12 +194,27 @@ export default function Login() {
               <form onSubmit={handleLogin}>
                 <CardContent className="space-y-4 pt-4">
                   <div className="space-y-2">
-                    <Label htmlFor="login-email">Email</Label>
-                    <Input id="login-email" type="email" placeholder="you@rayhar.com" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} required />
+                    <Label htmlFor="login-email" className="text-slate-800 font-bold text-xs">Email</Label>
+                    <Input 
+                      id="login-email" 
+                      type="email" 
+                      placeholder="you@rayhar.com" 
+                      value={loginEmail} 
+                      onChange={(e) => setLoginEmail(e.target.value)} 
+                      className="!bg-white !text-slate-900 !border-slate-200 placeholder:!text-slate-400 focus-visible:!ring-[#942392] shadow-sm"
+                      required 
+                    />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="login-password">Password</Label>
-                    <PasswordInput id="login-password" placeholder="••••••••" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} required />
+                    <Label htmlFor="login-password" className="text-slate-800 font-bold text-xs">Password</Label>
+                    <PasswordInput 
+                      id="login-password" 
+                      placeholder="••••••••" 
+                      value={loginPassword} 
+                      onChange={(e) => setLoginPassword(e.target.value)} 
+                      className="!bg-white !text-slate-900 !border-slate-200 placeholder:!text-slate-400 focus-visible:!ring-[#942392] shadow-sm"
+                      required 
+                    />
                   </div>
                 </CardContent>
                 <CardFooter className="flex flex-col gap-4">
@@ -237,7 +252,7 @@ export default function Login() {
 
                       {showResetBox && (
                         <div className="pt-2 border-t border-[#942392]/10 animate-in fade-in slide-in-from-top-2 duration-300">
-                          <p className="text-[10px] text-foreground mb-2 font-medium">
+                          <p className="text-[10px] text-slate-600 mb-2 font-medium">
                             Enter your email to receive a secure password reset link.
                           </p>
                           <div className="flex gap-2">
@@ -246,7 +261,7 @@ export default function Login() {
                               placeholder="you@rayhar.com"
                               value={resetEmail}
                               onChange={(e) => setResetEmail(e.target.value)}
-                              className="h-8 text-xs bg-card border-[#942392]/20 focus-visible:ring-[#942392]"
+                              className="h-8 text-xs !bg-white !text-slate-900 border-[#942392]/30 placeholder:!text-slate-400 focus-visible:!ring-[#942392]"
                             />
                             <Button
                               type="button"
@@ -268,7 +283,7 @@ export default function Login() {
 
 
                     {/* Secure Footer */}
-                    <div className="flex items-center justify-center gap-1.5 text-[10px] text-foreground font-extrabold uppercase tracking-wider pt-2 border-t border-slate-100 dark:border-slate-800/50">
+                    <div className="flex items-center justify-center gap-1.5 text-[10px] text-slate-500 font-extrabold uppercase tracking-wider pt-2 border-t border-slate-100">
                       <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
                       <span>Secure Password Login</span>
                     </div>
@@ -281,17 +296,33 @@ export default function Login() {
               <form onSubmit={handleSignup}>
                 <CardContent className="space-y-4 pt-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signup-name">Full Name</Label>
-                    <Input id="signup-name" type="text" placeholder="Full Name" value={signupName} onChange={(e) => setSignupName(e.target.value)} required />
+                    <Label htmlFor="signup-name" className="text-slate-800 font-bold text-xs">Full Name</Label>
+                    <Input 
+                      id="signup-name" 
+                      type="text" 
+                      placeholder="Full Name" 
+                      value={signupName} 
+                      onChange={(e) => setSignupName(e.target.value)} 
+                      className="!bg-white !text-slate-900 !border-slate-200 placeholder:!text-slate-400 focus-visible:!ring-[#942392] shadow-sm"
+                      required 
+                    />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
-                    <Input id="signup-email" type="email" placeholder="you@rayhar.com" value={signupEmail} onChange={(e) => setSignupEmail(e.target.value)} required />
+                    <Label htmlFor="signup-email" className="text-slate-800 font-bold text-xs">Email</Label>
+                    <Input 
+                      id="signup-email" 
+                      type="email" 
+                      placeholder="you@rayhar.com" 
+                      value={signupEmail} 
+                      onChange={(e) => setSignupEmail(e.target.value)} 
+                      className="!bg-white !text-slate-900 !border-slate-200 placeholder:!text-slate-400 focus-visible:!ring-[#942392] shadow-sm"
+                      required 
+                    />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="signup-branch">Branch</Label>
+                    <Label htmlFor="signup-branch" className="text-slate-800 font-bold text-xs">Branch</Label>
                     <Select value={signupBranch} onValueChange={setSignupBranch}>
-                      <SelectTrigger className="rounded-md">
+                      <SelectTrigger className="rounded-md !bg-white !text-slate-900 !border-slate-200 shadow-sm">
                         <SelectValue placeholder="Select Branch" />
                       </SelectTrigger>
                       <SelectContent>
@@ -324,9 +355,9 @@ export default function Login() {
 
                   {signupBranch === "HQ" && (
                     <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
-                      <Label htmlFor="signup-department">Department</Label>
+                      <Label htmlFor="signup-department" className="text-slate-800 font-bold text-xs">Department</Label>
                       <Select value={signupDepartment} onValueChange={setSignupDepartment} required>
-                        <SelectTrigger className="rounded-md">
+                        <SelectTrigger className="rounded-md !bg-white !text-slate-900 !border-slate-200 shadow-sm">
                           <SelectValue placeholder="Select Department" />
                         </SelectTrigger>
                         <SelectContent>
@@ -342,12 +373,26 @@ export default function Login() {
                   )}
 
                   <div className="space-y-2">
-                    <Label htmlFor="signup-password">Password</Label>
-                    <PasswordInput id="signup-password" placeholder="Min. 6 characters" value={signupPassword} onChange={(e) => setSignupPassword(e.target.value)} required />
+                    <Label htmlFor="signup-password" className="text-slate-800 font-bold text-xs">Password</Label>
+                    <PasswordInput 
+                      id="signup-password" 
+                      placeholder="Min. 6 characters" 
+                      value={signupPassword} 
+                      onChange={(e) => setSignupPassword(e.target.value)} 
+                      className="!bg-white !text-slate-900 !border-slate-200 placeholder:!text-slate-400 focus-visible:!ring-[#942392] shadow-sm"
+                      required 
+                    />
                   </div>
                   <div className="space-y-2 animate-in fade-in duration-300">
-                    <Label htmlFor="signup-confirm-password">Confirm Password</Label>
-                    <PasswordInput id="signup-confirm-password" placeholder="Confirm your password" value={signupConfirmPassword} onChange={(e) => setSignupConfirmPassword(e.target.value)} required />
+                    <Label htmlFor="signup-confirm-password" className="text-slate-800 font-bold text-xs">Confirm Password</Label>
+                    <PasswordInput 
+                      id="signup-confirm-password" 
+                      placeholder="Confirm your password" 
+                      value={signupConfirmPassword} 
+                      onChange={(e) => setSignupConfirmPassword(e.target.value)} 
+                      className="!bg-white !text-slate-900 !border-slate-200 placeholder:!text-slate-400 focus-visible:!ring-[#942392] shadow-sm"
+                      required 
+                    />
                     {signupConfirmPassword && (
                       <div className={`text-[10px] sm:text-xs font-bold flex items-center gap-1 mt-1.5 transition-all ${signupPassword === signupConfirmPassword ? 'text-emerald-600' : 'text-rose-500'}`}>
                         {signupPassword === signupConfirmPassword ? (
@@ -372,7 +417,7 @@ export default function Login() {
                   </Button>
 
                   {/* Centered Switch Link */}
-                  <div className="text-center text-xs text-foreground font-bold pt-2">
+                  <div className="text-center text-xs text-slate-600 font-bold pt-2">
                     Already have an account?{" "}
                     <button
                       type="button"

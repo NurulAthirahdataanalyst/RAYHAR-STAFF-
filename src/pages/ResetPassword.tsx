@@ -94,12 +94,12 @@ export default function ResetPassword() {
         <div className="flex flex-col items-center justify-center gap-2 sm:gap-3 mb-6 sm:mb-8">
           <img src={rayharLogo} alt="Rayhar Logo" className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl shadow-xl" />
           <div className="text-center">
-            <h1 className="font-heading font-black text-slate-900 dark:text-slate-100 text-xl sm:text-2xl tracking-tight">Rayhar Group</h1>
+            <h1 className="font-heading font-black text-slate-900 text-xl sm:text-2xl tracking-tight">Rayhar Group</h1>
             <p className="text-[10px] sm:text-xs font-extrabold text-[#942392] uppercase tracking-widest">Password Reset</p>
           </div>
         </div>
 
-        <Card className="border-white/40 shadow-2xl bg-white/80 backdrop-blur-xl rounded-[20px] sm:rounded-[30px] overflow-hidden">
+        <Card className="border-white/60 shadow-2xl bg-white/95 backdrop-blur-xl rounded-[20px] sm:rounded-[30px] overflow-hidden">
           {isSessionChecking ? (
             <CardContent className="py-12 flex flex-col items-center justify-center">
               <Loader2 className="h-8 w-8 animate-spin text-[#942392] mb-4" />
@@ -141,26 +141,30 @@ export default function ResetPassword() {
             <>
               <CardHeader className="pb-2 bg-white/50 text-center">
                 <h2 className="text-lg font-bold text-[#942392]">Create New Password</h2>
-                <p className="text-xs text-foreground">Enter your new secure password below.</p>
+                <p className="text-xs text-slate-600">Enter your new secure password below.</p>
               </CardHeader>
               
               <form onSubmit={handleResetPassword}>
                 <CardContent className="space-y-4 pt-4">
                   <div className="space-y-2">
-                    <Label htmlFor="new-password">New Password</Label>
+                    <Label htmlFor="new-password" className="text-slate-800 font-bold text-xs">New Password</Label>
                     <PasswordInput
+                      id="new-password"
                       placeholder="••••••••"
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
+                      className="!bg-white !text-slate-900 !border-slate-200 placeholder:!text-slate-400 focus-visible:!ring-[#942392] shadow-sm"
                       required
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="confirm-password">Confirm Password</Label>
+                    <Label htmlFor="confirm-password" className="text-slate-800 font-bold text-xs">Confirm Password</Label>
                     <PasswordInput
+                      id="confirm-password"
                       placeholder="••••••••"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="!bg-white !text-slate-900 !border-slate-200 placeholder:!text-slate-400 focus-visible:!ring-[#942392] shadow-sm"
                       required
                     />
                   </div>
@@ -180,13 +184,13 @@ export default function ResetPassword() {
                     <button
                       type="button"
                       onClick={() => navigate("/login")}
-                      className="text-xs text-foreground font-bold hover:text-[#942392] hover:underline transition-colors uppercase"
+                      className="text-xs text-slate-600 font-bold hover:text-[#942392] hover:underline transition-colors uppercase"
                     >
                       Back to Sign In
                     </button>
                   </div>
 
-                  <div className="flex items-center justify-center gap-1.5 text-[10px] text-foreground font-extrabold uppercase tracking-wider pt-2 border-t border-slate-100 dark:border-slate-800/50 w-full">
+                  <div className="flex items-center justify-center gap-1.5 text-[10px] text-slate-500 font-extrabold uppercase tracking-wider pt-2 border-t border-slate-100 w-full">
                     <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
                     <span>Secure Password Setup</span>
                   </div>

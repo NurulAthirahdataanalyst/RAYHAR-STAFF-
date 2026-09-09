@@ -116,6 +116,39 @@
     --border: 214.3 31.8% 91.4%;
     --input: 270 20% 90%;
     --ring: 289 100% 30%;
+    color-scheme: light !important;
+  }
+
+  .force-light,
+  .force-light * {
+    color-scheme: light !important;
+  }
+
+  .force-light input,
+  .force-light select,
+  .force-light textarea,
+  .force-light [role="combobox"],
+  .force-light [data-radix-select-trigger] {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    border-color: #e2e8f0 !important;
+  }
+
+  .force-light input::placeholder,
+  .force-light textarea::placeholder {
+    color: #94a3b8 !important;
+  }
+
+  .force-light label {
+    color: #1e293b !important;
+  }
+
+  .force-light .text-foreground {
+    color: #0f172a !important;
+  }
+
+  .force-light .text-muted-foreground {
+    color: #64748b !important;
   }
 }
 
