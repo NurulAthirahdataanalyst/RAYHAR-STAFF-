@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { TableScrollTopButton } from "@/components/shared/TableScrollTopButton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -168,6 +168,44 @@ export default function Attendance() {
   const [allowedLocations, setAllowedLocations] = useState<string[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<string>("");
   const [attendanceMode, setAttendanceMode] = useState<"permanent" | "temporary" | "multi">("permanent");
+
+  const activeTempAssignment = useMemo(() => {
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+
+    const parseLocalDate = (dStr: string) => {
+      if (!dStr) return new Date();
+      const dateOnly = dStr.split('T')[0];
+      const parts = dateOnly.split('-').map(Number);
+      if (parts.length === 3) {
+        return new Date(parts[0], parts[1] - 1, parts[2]);
+      }
+      const d = new Date(dStr);
+      d.setHours(0, 0, 0, 0);
+      return d;
+    };
+
+    const parseLocalEndDate = (dStr?: string) => {
+      if (!dStr) return new Date(2099, 11, 31, 23, 59, 59);
+      const dateOnly = dStr.split('T')[0];
+      const parts = dateOnly.split('-').map(Number);
+      if (parts.length === 3) {
+        return new Date(parts[0], parts[1] - 1, parts[2], 23, 59, 59, 999);
+      }
+      const d = new Date(dStr);
+      d.setHours(23, 59, 59, 999);
+      return d;
+    };
+
+    return tempAssignments.find(a => {
+      if (a.status !== 'Active') return false;
+      const startDate = parseLocalDate(a.start_date);
+      const endDate = parseLocalEndDate(a.end_date);
+      return startDate <= now && endDate >= now;
+    }) || null;
+  }, [tempAssignments]);
+
+  const isTemporaryAssignmentPeriod = Boolean(activeTempAssignment || attendanceMode === "temporary");
 
   const { toast } = useToast();
 
@@ -1300,9 +1338,17 @@ export default function Attendance() {
               {/* Working Location Selector — shown before clock-in for multi-location employees */}
               {!activeSession && attendanceMode === 'multi' && allowedLocations.length > 1 && (
                 <div className="w-full mb-3 bg-purple-50/60 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-900/50 rounded-xl p-3">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <MapPin className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
-                    <span className="text-[10px] font-bold text-purple-700 dark:text-purple-400 uppercase tracking-wider">Working Location</span>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <div className="flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                      <span className="text-[10px] font-bold text-purple-700 dark:text-purple-400 uppercase tracking-wider">Working Location</span>
+                    </div>
+                    {isTemporaryAssignmentPeriod && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-purple-100 text-[#942392] dark:bg-purple-900/50 dark:text-purple-300 border border-purple-200 dark:border-purple-800 shadow-xs">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#942392] dark:bg-purple-400 animate-pulse" />
+                        (TEMPORARY BRANCH)
+                      </span>
+                    )}
                   </div>
                   <Select value={selectedLocation} onValueChange={setSelectedLocation}>
                     <SelectTrigger className="w-full bg-card h-10 text-xs font-bold border-purple-200 dark:border-purple-800 shadow-xs focus:ring-1 focus:ring-[#942392]">
@@ -1311,7 +1357,12 @@ export default function Attendance() {
                     <SelectContent>
                       {allowedLocations.map((loc, i) => (
                         <SelectItem key={i} value={loc} className="text-xs font-bold cursor-pointer">
-                          {loc}
+                          <div className="flex items-center gap-2">
+                            <span>{loc}</span>
+                            {activeTempAssignment && (activeTempAssignment.location === loc || activeTempAssignment.temp_branch === loc) && (
+                              <span className="text-[9px] font-extrabold text-[#942392] dark:text-purple-400">(TEMPORARY BRANCH)</span>
+                            )}
+                          </div>
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -1322,11 +1373,42 @@ export default function Attendance() {
 
               {/* Single location display when NOT multi-mode */}
               {!activeSession && attendanceMode !== 'multi' && selectedLocation && (
-                <div className="w-full mb-3 flex items-center gap-2 bg-muted/30 px-3 py-2 rounded-xl border border-border/50">
-                  <MapPin className="w-3.5 h-3.5 text-foreground flex-shrink-0" />
-                  <div className="flex flex-col">
-                    <span className="text-[9px] font-bold text-foreground uppercase tracking-wider">Working Location</span>
-                    <span className="text-xs font-bold text-foreground">{selectedLocation}</span>
+                <div className="w-full mb-3 flex items-center justify-between bg-muted/30 px-3 py-2 rounded-xl border border-border/50">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-3.5 h-3.5 text-foreground flex-shrink-0" />
+                    <div className="flex flex-col">
+                      <span className="text-[9px] font-bold text-foreground uppercase tracking-wider">Working Location</span>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs font-bold text-foreground">{selectedLocation}</span>
+                        {isTemporaryAssignmentPeriod && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-purple-100 text-[#942392] dark:bg-purple-900/50 dark:text-purple-300 border border-purple-200 dark:border-purple-800 shadow-xs">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#942392] dark:bg-purple-400 animate-pulse" />
+                            (TEMPORARY BRANCH)
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Location display during active session */}
+              {activeSession && (activeSession.location || selectedLocation) && (
+                <div className="w-full mb-3 flex items-center justify-between bg-muted/30 px-3 py-2 rounded-xl border border-border/50">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
+                    <div className="flex flex-col">
+                      <span className="text-[9px] font-bold text-foreground uppercase tracking-wider">Working Location</span>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs font-bold text-foreground">{activeSession.location || selectedLocation}</span>
+                        {isTemporaryAssignmentPeriod && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-purple-100 text-[#942392] dark:bg-purple-900/50 dark:text-purple-300 border border-purple-200 dark:border-purple-800 shadow-xs">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#942392] dark:bg-purple-400 animate-pulse" />
+                            (TEMPORARY BRANCH)
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
@@ -1692,7 +1774,14 @@ export default function Attendance() {
                           </thead>
                           <tbody className="divide-y divide-border/50">
                             <tr className="bg-emerald-500/5">
-                              <td className="px-3 py-2 font-medium">{activeAssignment.temp_branch || activeAssignment.location || 'N/A'}</td>
+                              <td className="px-3 py-2 font-medium">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <span>{activeAssignment.temp_branch || activeAssignment.location || 'N/A'}</span>
+                                  <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider bg-purple-100 text-[#942392] dark:bg-purple-900/50 dark:text-purple-300 border border-purple-200 dark:border-purple-800 shadow-xs">
+                                    (TEMPORARY BRANCH)
+                                  </span>
+                                </div>
+                              </td>
                               <td className="px-3 py-2 font-medium">-</td>
                               <td className="px-3 py-2 font-medium text-slate-600 dark:text-slate-300">{fmtDate(activeAssignment.start_date)}</td>
                               <td className="px-3 py-2 font-medium text-slate-600 dark:text-slate-300">{activeAssignment.end_date ? fmtDate(activeAssignment.end_date) : '-'}</td>

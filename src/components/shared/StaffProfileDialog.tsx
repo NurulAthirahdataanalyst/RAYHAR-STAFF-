@@ -803,8 +803,8 @@ export function StaffProfileDialog({
                             Outstation
                           </Badge>
                         ) : todayStats?.activeTemporaryAssignment ? (
-                          <Badge className="bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 text-[9px] font-bold">
-                            Temporary
+                          <Badge className="bg-purple-100 text-[#942392] border border-purple-200 dark:bg-purple-900/40 dark:text-purple-300 dark:border-purple-800 text-[9px] font-bold">
+                            (TEMPORARY BRANCH)
                           </Badge>
                         ) : todayStats?.isMultiLocation ? (
                           <Badge className="bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-300 text-[9px] font-bold">
