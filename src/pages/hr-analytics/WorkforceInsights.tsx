@@ -1094,7 +1094,7 @@ export default function WorkforceInsights() {
           </div>
 
 
-          <Card className={`col-span-1 border border-slate-200 dark:border-slate-800 bg-card flex flex-col ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+          <Card className={`col-span-1 h-fit border border-slate-200 dark:border-slate-800 bg-card flex flex-col ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
             <CardHeader className="p-4 border-b border-slate-100 dark:border-slate-800 pb-3">
               <div className="flex flex-row items-start justify-between">
                 <div>
@@ -1104,7 +1104,7 @@ export default function WorkforceInsights() {
                 <span className="bg-indigo-100 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 text-[10px] font-semibold px-2 py-0.5 rounded-md">Live</span>
               </div>
             </CardHeader>
-            <CardContent className="p-4 flex-1 flex flex-col">
+            <CardContent className="p-4 flex flex-col">
               
               {/* Chart Section */}
               <div className="w-full relative h-[130px] flex items-center justify-center mt-1 mb-2">
@@ -1136,36 +1136,82 @@ export default function WorkforceInsights() {
               </div>
 
               {/* Text Summary */}
-              <div className="text-center mb-4">
+              <div className="text-center mb-3">
                 <h3 className="text-lg font-bold text-indigo-600 leading-tight">{availableToday} Available Today</h3>
                 <p className="text-[11px] text-foreground mt-0.5">
                   {availableToday === totalTeam ? "All team members are accounted for." : `${totalTeam - availableToday} team members are not available.`}
                 </p>
               </div>
 
-              {/* 6-Shape Compact Legend */}
-              <div className="grid grid-cols-2 gap-2 w-full mt-auto mb-4">
-                {(Array.isArray(donutData) ? donutData : []).map((entry, index) => (
-                  <div key={entry.name} className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg border ${index === 0 ? 'bg-indigo-50/70 border-indigo-100' : 'bg-slate-50 dark:bg-slate-900/50 border-slate-100 dark:border-slate-800'} transition-colors`}>
-                    <div className="flex items-center gap-1 mb-1">
-                      <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
-                      <span className="text-[10px] font-bold text-foreground uppercase tracking-wider truncate">{entry.name}</span>
-                    </div>
-                    <span className="text-lg font-bold text-slate-800 dark:text-slate-200 leading-none">{entry.value}</span>
-                  </div>
-                ))}
+              {/* Continuous Proportional Distribution Bar */}
+              <div className="w-full mb-3">
+                <div className="h-2 w-full rounded-full overflow-hidden flex bg-slate-100 dark:bg-slate-800/80 p-0.5 gap-0.5 shadow-inner">
+                  {(Array.isArray(donutData) ? donutData : []).map((entry, index) => {
+                    const pct = totalTeam > 0 ? (entry.value / totalTeam) * 100 : 0;
+                    if (pct <= 0) return null;
+                    return (
+                      <div
+                        key={entry.name}
+                        style={{ width: `${pct}%`, backgroundColor: COLORS[index % COLORS.length] }}
+                        className="h-full rounded-full transition-all duration-500"
+                        title={`${entry.name}: ${entry.value} (${Math.round(pct)}%)`}
+                      />
+                    );
+                  })}
+                </div>
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex flex-col gap-2 mt-auto">
-                <Button className="w-full bg-[#4f46e5] hover:bg-[#4338ca] text-white h-9">
-                  <CalendarDays className="w-4 h-4 mr-2" /> Plan Shift
-                </Button>
-                <Button variant="outline" className="w-full bg-indigo-50/50 hover:bg-indigo-50 border-transparent text-[#4f46e5] font-medium h-9">
-                  <Users className="w-4 h-4 mr-2" /> Manage Team
-                </Button>
+              {/* Flexible Status Distribution List (natural sizing, avoids rigid equal-size grid) */}
+              <div className="flex flex-col gap-1.5 w-full">
+                {(Array.isArray(donutData) ? donutData : []).map((entry, index) => {
+                  const pct = totalTeam > 0 ? Math.round((entry.value / totalTeam) * 100) : 0;
+                  const color = COLORS[index % COLORS.length];
+                  const hasCount = entry.value > 0;
+
+                  return (
+                    <div
+                      key={entry.name}
+                      className={`flex items-center justify-between px-3 py-2 rounded-xl transition-all ${
+                        hasCount
+                          ? 'bg-slate-50/80 dark:bg-slate-900/60 border border-slate-200/70 dark:border-slate-800'
+                          : 'bg-transparent border border-transparent opacity-60 hover:opacity-100'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div
+                          className="w-2 h-2 rounded-full shrink-0"
+                          style={{ backgroundColor: color }}
+                        />
+                        <span className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wide truncate">
+                          {entry.name}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        {hasCount && (
+                          <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 tabular-nums">
+                            {pct}%
+                          </span>
+                        )}
+                        <span
+                          className={`min-w-[28px] text-center px-2 py-0.5 rounded-full text-xs font-black tabular-nums ${
+                            hasCount
+                              ? 'bg-slate-200/70 dark:bg-slate-800 text-slate-900 dark:text-slate-100'
+                              : 'text-slate-400 dark:text-slate-600 font-medium'
+                          }`}
+                        >
+                          {entry.value}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Footer View All Link */}
+              <div className="pt-3 mt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-end">
                 <p 
-                  className="text-[10px] font-bold text-[#942392] cursor-pointer hover:underline flex items-center gap-1 justify-end mt-1"
+                  className="text-[11px] font-bold text-[#942392] cursor-pointer hover:underline flex items-center gap-1"
                   onClick={() => {
                     navigate('/hr-analytics/attendance');
                     setTimeout(() => {
@@ -1174,7 +1220,7 @@ export default function WorkforceInsights() {
                     }, 100);
                   }}
                 >
-                  View All <ChevronRight className="w-3 h-3" />
+                  View Attendance Details <ChevronRight className="w-3.5 h-3.5" />
                 </p>
               </div>
             </CardContent>
