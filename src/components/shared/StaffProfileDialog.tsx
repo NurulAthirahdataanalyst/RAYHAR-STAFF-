@@ -153,8 +153,12 @@ export function StaffProfileDialog({
       onClose();
     }
   }, [isModalOpen]);
-  const [loadingAnalytics, setLoadingAnalytics] = useState(false);
+  const currentYear = new Date().getFullYear();
+  const [selectedYear, setSelectedYear] = useState<number>(currentYear);
+  const availableYears = [currentYear - 2, currentYear - 1, currentYear, currentYear + 1];
+  const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [analyticsDate, setAnalyticsDate] = useState<string>(new Date().toISOString().substring(0, 7));
+
   const fetchTodayStats = async (uid: string) => {
     try {
       const dStr = new Date().toLocaleDateString("en-CA");
@@ -170,22 +174,12 @@ export function StaffProfileDialog({
     }
   };
 
-
-  const fetchAnalytics = async (userId: string, dateStr = analyticsDate) => {
-    setLoadingAnalytics(true);
+  const fetchAnalytics = async (userId: string, year = selectedYear) => {
+    setAnalyticsLoading(true);
     try {
       const params = new URLSearchParams();
-      if (dateStr) {
-        if (dateStr.endsWith('-all')) {
-          params.append('month', 'all');
-          params.append('year', dateStr.substring(0, 4));
-        } else {
-          const monthStr = dateStr.substring(0, 7); // YYYY-MM
-          const yearStr = dateStr.substring(0, 4);  // YYYY
-          params.append('month', monthStr);
-          params.append('year', yearStr);
-        }
-      }
+      params.append('month', 'all');
+      params.append('year', year.toString());
       
       const res = await fetch(`${API_BASE_URL}/api/employees/${userId}/analytics?${params}`);
       const data = await res.json();
@@ -193,19 +187,21 @@ export function StaffProfileDialog({
         setAnalytics(data.analytics);
       }
     } catch (e) {
-      console.error(e);
+      console.error("Error fetching analytics:", e);
+    } finally {
+      setAnalyticsLoading(false);
     }
-    setLoadingAnalytics(false);
   };
 
   useEffect(() => {
     if (selectedEmployee && isModalOpen) {
-      fetchAnalytics(selectedEmployee.user_id, analyticsDate);
+      fetchAnalytics(selectedEmployee.user_id, selectedYear);
+      fetchTodayStats(selectedEmployee.user_id);
       fetchAttendanceSettings(selectedEmployee.user_id);
     } else {
       setAnalytics(null);
     }
-  }, [selectedEmployee, isModalOpen, analyticsDate]);
+  }, [selectedEmployee, isModalOpen, selectedYear]);
 
     const [tempAssignmentsHistory, setTempAssignmentsHistory] = useState<any[]>([]);
   const [locationHistory, setLocationHistory] = useState<any[]>([]);
