@@ -2484,11 +2484,11 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                   </div>
                 </div>
                   <div className="flex gap-4">
-                  <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-[#2D9B2B]"></div><span className="text-xs font-bold text-slate-600">Present (On Time)</span></div>
-                  <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-[#FFD700]"></div><span className="text-xs font-bold text-slate-600">Present (Late)</span></div>
-                  <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-[#E12C2C]"></div><span className="text-xs font-bold text-slate-600">Absent</span></div>
-                  <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-[#3B82F6]"></div><span className="text-xs font-bold text-slate-600">Leave</span></div>
-                  <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-[#9ca3af]"></div><span className="text-xs font-bold text-slate-600">Weekend</span></div>
+                  <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-[#2D9B2B]"></div><span className="text-xs font-bold text-slate-600 dark:text-slate-300">Present (On Time)</span></div>
+                  <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-[#FFD700]"></div><span className="text-xs font-bold text-slate-600 dark:text-slate-300">Present (Late)</span></div>
+                  <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-[#E12C2C]"></div><span className="text-xs font-bold text-slate-600 dark:text-slate-300">Absent</span></div>
+                  <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-[#3B82F6]"></div><span className="text-xs font-bold text-slate-600 dark:text-slate-300">Leave</span></div>
+                  <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-[#9ca3af]"></div><span className="text-xs font-bold text-slate-600 dark:text-slate-300">Weekend</span></div>
                 </div>
               </div>
 
@@ -2561,54 +2561,54 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
            </div>
            
            
-           <div className="lg:col-span-1 flex flex-col gap-6">
-             <Card className="p-5 border border-slate-100 dark:border-slate-700 hover:border-[#942392] hover: transition-all duration-300 flex flex-col rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
-             <div className="flex justify-between items-center mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
-               <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-200">Monthly Comparison</CardTitle>
-             </div>
-             <div className="overflow-x-auto flex-1">
-               <table className="w-full text-sm text-left">
-                 <thead className="text-xs text-foreground bg-slate-50/50 uppercase">
-                   <tr className="border-b border-slate-200 dark:border-slate-700">
-                     <th className="px-4 py-3 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Metric</th>
-                     <th className="px-4 py-3 text-right border-l border-slate-200 dark:border-slate-700 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">This Month {feedConnected && <span className="ml-1 text-[8px] bg-red-500 text-white px-1 rounded animate-pulse">LIVE</span>}</th>
-                     <th className="px-4 py-3 text-right text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Last Month</th>
-                     <th className="px-4 py-3 text-right text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Change</th>
-                   </tr>
-                 </thead>
-                 <tbody className="divide-y divide-slate-100">
-                   {[
-                     { label: 'Attendance Rate', cur: `${(liveMonthlyComp || monthlyComp).attendance?.current || 0}%`, prev: `${(liveMonthlyComp || monthlyComp).attendance?.previous || 0}%`, diff: ((liveMonthlyComp || monthlyComp).attendance?.current || 0) - ((liveMonthlyComp || monthlyComp).attendance?.previous || 0) },
-                     { label: 'Late Arrivals', cur: (liveMonthlyComp || monthlyComp).lateArrivals?.current || 0, prev: (liveMonthlyComp || monthlyComp).lateArrivals?.previous || 0, diff: ((liveMonthlyComp || monthlyComp).lateArrivals?.current || 0) - ((liveMonthlyComp || monthlyComp).lateArrivals?.previous || 0), invert: true },
-                     { label: 'Absences', cur: (liveMonthlyComp || monthlyComp).absences?.current || 0, prev: (liveMonthlyComp || monthlyComp).absences?.previous || 0, diff: ((liveMonthlyComp || monthlyComp).absences?.current || 0) - ((liveMonthlyComp || monthlyComp).absences?.previous || 0), invert: true },
-                     { label: 'Leave Requests', cur: (liveMonthlyComp || monthlyComp).leaveRequests?.current || 0, prev: (liveMonthlyComp || monthlyComp).leaveRequests?.previous || 0, diff: ((liveMonthlyComp || monthlyComp).leaveRequests?.current || 0) - ((liveMonthlyComp || monthlyComp).leaveRequests?.previous || 0), invert: true },
-                     { 
-                       label: 'Outstation Trip', 
-                       cur: outstationSummary ? ((outstationSummary.completed || 0) + (outstationSummary.upcoming || 0)) : ((liveMonthlyComp || monthlyComp).outstation?.current || 0), 
-                       prev: 0, 
-                       diff: outstationSummary ? ((outstationSummary.completed || 0) + (outstationSummary.upcoming || 0)) : (((liveMonthlyComp || monthlyComp).outstation?.current || 0) - ((liveMonthlyComp || monthlyComp).outstation?.previous || 0)) 
-                     },
+            <div className="lg:col-span-1 flex flex-col gap-6">
+              <Card className="p-5 border border-slate-100 dark:border-slate-700 bg-card hover:border-[#942392] hover: transition-all duration-300 flex flex-col rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
+              <div className="flex justify-between items-center mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
+                <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-200">Monthly Comparison</CardTitle>
+              </div>
+              <div className="overflow-x-auto flex-1">
+                <table className="w-full text-sm text-left">
+                  <thead className="text-xs text-foreground bg-slate-100 dark:bg-slate-800/80 uppercase">
+                    <tr className="border-b border-slate-200 dark:border-slate-700">
+                      <th className="px-4 py-3 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Metric</th>
+                      <th className="px-4 py-3 text-right border-l border-slate-200 dark:border-slate-700 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">This Month {feedConnected && <span className="ml-1 text-[8px] bg-red-500 text-white px-1 rounded animate-pulse">LIVE</span>}</th>
+                      <th className="px-4 py-3 text-right text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Last Month</th>
+                      <th className="px-4 py-3 text-right text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Change</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {[
+                      { label: 'Attendance Rate', cur: `${(liveMonthlyComp || monthlyComp).attendance?.current || 0}%`, prev: `${(liveMonthlyComp || monthlyComp).attendance?.previous || 0}%`, diff: ((liveMonthlyComp || monthlyComp).attendance?.current || 0) - ((liveMonthlyComp || monthlyComp).attendance?.previous || 0) },
+                      { label: 'Late Arrivals', cur: (liveMonthlyComp || monthlyComp).lateArrivals?.current || 0, prev: (liveMonthlyComp || monthlyComp).lateArrivals?.previous || 0, diff: ((liveMonthlyComp || monthlyComp).lateArrivals?.current || 0) - ((liveMonthlyComp || monthlyComp).lateArrivals?.previous || 0), invert: true },
+                      { label: 'Absences', cur: (liveMonthlyComp || monthlyComp).absences?.current || 0, prev: (liveMonthlyComp || monthlyComp).absences?.previous || 0, diff: ((liveMonthlyComp || monthlyComp).absences?.current || 0) - ((liveMonthlyComp || monthlyComp).absences?.previous || 0), invert: true },
+                      { label: 'Leave Requests', cur: (liveMonthlyComp || monthlyComp).leaveRequests?.current || 0, prev: (liveMonthlyComp || monthlyComp).leaveRequests?.previous || 0, diff: ((liveMonthlyComp || monthlyComp).leaveRequests?.current || 0) - ((liveMonthlyComp || monthlyComp).leaveRequests?.previous || 0), invert: true },
+                      { 
+                        label: 'Outstation Trip', 
+                        cur: outstationSummary ? ((outstationSummary.completed || 0) + (outstationSummary.upcoming || 0)) : ((liveMonthlyComp || monthlyComp).outstation?.current || 0), 
+                        prev: 0, 
+                        diff: outstationSummary ? ((outstationSummary.completed || 0) + (outstationSummary.upcoming || 0)) : (((liveMonthlyComp || monthlyComp).outstation?.current || 0) - ((liveMonthlyComp || monthlyComp).outstation?.previous || 0)) 
+                      },
 
-                   ].map((row, idx) => {
-                     let isPositive = row.diff > 0;
-                     if (row.invert) isPositive = row.diff < 0;
-                     const isNeutral = row.diff === 0;
-                     const diffFormatted = Math.abs(row.diff).toFixed(row.label.includes('Rate') ? 1 : 0);
-                     return (
-                       <tr key={idx} className="hover:bg-slate-50 dark:bg-slate-900/50 transition-colors">
-                         <td className="px-4 py-3 font-medium text-slate-800 dark:text-slate-200">{row.label}</td>
-                         <td className="px-4 py-3 text-slate-600 font-semibold text-right border-l border-slate-200 dark:border-slate-700">{row.cur}</td>
-                         <td className="px-4 py-3 text-foreground text-right">{row.prev}</td>
-                         <td className="px-4 py-3 text-right">
-                           {isNeutral ? <span className="text-foreground font-bold inline-block">-</span> : 
-                            <span className={`inline-flex items-center gap-1 font-bold text-[11px] ${isPositive ? 'text-emerald-500' : 'text-red-500'}`}>
-                              {row.diff > 0 ? '↑' : '↓'} {diffFormatted}{row.label.includes('Rate') ? '%' : ''}
-                            </span>}
-                         </td>
-                       </tr>
-                     )
-                   })}
-                 </tbody>
+                    ].map((row, idx) => {
+                      let isPositive = row.diff > 0;
+                      if (row.invert) isPositive = row.diff < 0;
+                      const isNeutral = row.diff === 0;
+                      const diffFormatted = Math.abs(row.diff).toFixed(row.label.includes('Rate') ? 1 : 0);
+                      return (
+                        <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors">
+                          <td className="px-4 py-3 font-medium text-slate-800 dark:text-slate-200">{row.label}</td>
+                          <td className="px-4 py-3 text-slate-900 dark:text-slate-100 font-bold text-right border-l border-slate-200 dark:border-slate-700">{row.cur}</td>
+                          <td className="px-4 py-3 text-slate-600 dark:text-slate-300 font-medium text-right">{row.prev}</td>
+                          <td className="px-4 py-3 text-right">
+                            {isNeutral ? <span className="text-foreground font-bold inline-block">-</span> : 
+                             <span className={`inline-flex items-center gap-1 font-bold text-[11px] ${isPositive ? 'text-emerald-500' : 'text-red-500'}`}>
+                               {row.diff > 0 ? '↑' : '↓'} {diffFormatted}{row.label.includes('Rate') ? '%' : ''}
+                             </span>}
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
                </table>
              </div>
              <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end">
@@ -2633,11 +2633,11 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
          {/* Row 1: 2 Columns */}
          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
            {/* Department Workforce Distribution */}
-           <Card className="lg:col-span-5 p-4 border border-slate-100 dark:border-slate-700 hover:border-[#942392] hover: transition-all duration-300 flex flex-col rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
+           <Card className="lg:col-span-5 p-4 border border-slate-100 dark:border-slate-700 bg-card hover:border-[#942392] hover: transition-all duration-300 flex flex-col rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
              <div className="flex justify-between items-center mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
                <div className="flex items-center gap-2">
                  <Building2 className="w-4 h-4 text-foreground" />
-                 <h3 className="text-sm font-bold text-[#1A1F36]">Department Workforce Distribution</h3>
+                 <h3 className="text-sm font-bold text-[#1A1F36] dark:text-slate-100">Department Workforce Distribution</h3>
                </div>
                <div className="text-[10px] font-bold border border border-slate-300 dark:border-slate-700 rounded px-2 py-1 flex items-center gap-1 text-foreground cursor-pointer hover:bg-slate-50 dark:bg-slate-900/50">
                  This Month <ChevronDown className="w-3 h-3" />

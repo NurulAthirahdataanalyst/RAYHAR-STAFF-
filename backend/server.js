@@ -4359,11 +4359,19 @@ app.post("/api/login", async (req, res) => {
 
     // get role
     const [roleRows] = await pool.query(
-      "SELECT role FROM user_role WHERE user_id = ?",
-      [user.user_id]
+      "SELECT role FROM user_role WHERE user_id = ? OR user_id = ?",
+      [user.user_id, user.email]
     );
 
-    const role = roleRows[0]?.role || "employee";
+    let cleanRole = roleRows[0]?.role ? String(roleRows[0].role).trim().toLowerCase() : "employee";
+    if (cleanRole === 'hr' || cleanRole === 'hr admin' || cleanRole === 'hr_admin' || cleanRole === 'admin') cleanRole = 'hr_admin';
+    if (cleanRole === 'md' || cleanRole === 'managing director' || cleanRole === 'managing_director') cleanRole = 'managing_director';
+    if (cleanRole === 'branch leader' || cleanRole === 'branch_leader') cleanRole = 'branch_leader';
+    if (cleanRole === 'branch officer' || cleanRole === 'branch_officer') cleanRole = 'branch_officer';
+    if (cleanRole === 'finance manager' || cleanRole === 'finance_manager' || cleanRole === 'operation manager' || cleanRole === 'operations manager' || cleanRole === 'operation_manager') cleanRole = 'operation_manager';
+    if (cleanRole === 'head of department' || cleanRole === 'hod' || cleanRole === 'head_of_department') cleanRole = 'head_of_department';
+
+    const role = cleanRole;
 
     // create token
     if (!jwtSecret) {
