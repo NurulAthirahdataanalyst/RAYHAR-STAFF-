@@ -1106,7 +1106,19 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
-                      <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }} />
+                      <Tooltip 
+                        content={({ active, payload }) => {
+                          if (!active || !payload || !payload.length) return null;
+                          const data = payload[0];
+                          return (
+                            <div className="bg-card/95 backdrop-blur-md border border-border rounded-xl shadow-xl p-2.5 text-foreground text-xs font-bold flex items-center gap-2">
+                              <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: data.payload?.color }} />
+                              <span>{data.name}:</span>
+                              <span className="font-extrabold">{data.value} {data.value === 1 ? 'Request' : 'Requests'}</span>
+                            </div>
+                          );
+                        }}
+                      />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
@@ -1284,9 +1296,33 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                       tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} 
                     />
                     <Tooltip 
-                      formatter={(value: number, name: string) => [formatYAxis(value), name === 'clockOutValue' ? 'Clock Out' : 'Clock In']}
-                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}
-                      labelStyle={{ fontSize: 10, fontWeight: 'bold' }}
+                      content={({ active, payload, label }) => {
+                        if (!active || !payload || !payload.length) return null;
+                        return (
+                          <div className="bg-card/95 backdrop-blur-md border border-border rounded-xl shadow-xl p-3 text-foreground min-w-[120px]">
+                            <p className="text-[11px] font-black uppercase tracking-wider text-foreground mb-1.5 border-b border-border/40 pb-1">
+                              {label}
+                            </p>
+                            <div className="space-y-1">
+                              {payload.map((entry, idx) => {
+                                const isClockOut = entry.name === 'clockOutValue' || entry.dataKey === 'clockOutValue';
+                                const labelName = isClockOut ? 'Clock Out' : 'Clock In';
+                                const val = typeof entry.value === 'number' ? formatYAxis(entry.value) : entry.value;
+                                const color = entry.color || (isClockOut ? '#ef4444' : '#8b5cf6');
+                                return (
+                                  <div key={idx} className="flex items-center justify-between gap-3 text-xs font-bold" style={{ color }}>
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: color }} />
+                                      <span className="font-semibold">{labelName} :</span>
+                                    </div>
+                                    <span className="font-extrabold">{val}</span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      }}
                     />
                     {/* Average Reference Line */}
                     <ReferenceLine y={avgDecimal} stroke="#8b5cf6" strokeDasharray="3 3" opacity={0.5} label={{ position: 'right', value: 'Avg', fill: '#8b5cf6', fontSize: 10 }} />

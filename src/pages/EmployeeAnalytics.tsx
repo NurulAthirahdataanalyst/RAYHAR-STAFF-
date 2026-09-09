@@ -428,10 +428,13 @@ export default function EmployeeAnalytics() {
   const [chartLabelAngle, setChartLabelAngle] = useState<'180' | '135'>('180');
 
   const tooltipStyle = {
-    borderRadius: "16px", border: "none",
-    boxShadow: "0 10px 30px rgba(0,0,0,0.12)",
-    backgroundColor: "rgba(255,255,255,0.97)",
-    backdropFilter: "blur(10px)", padding: "12px",
+    borderRadius: "16px",
+    border: "1px solid hsl(var(--border))",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.15)",
+    backgroundColor: "hsl(var(--card))",
+    color: "hsl(var(--foreground))",
+    backdropFilter: "blur(10px)",
+    padding: "12px",
   };
 
   // ── Fetch my own attendance ───────────────────────────────────────────────

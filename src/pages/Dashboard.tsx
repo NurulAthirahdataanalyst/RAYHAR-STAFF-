@@ -1625,16 +1625,16 @@ export default function Dashboard() {
                       </div>
                       {feedItems.slice((activityPage - 1) * activityPageSize, activityPage * activityPageSize).map((item, i) => {
                         const badgeColor: Record<string, string> = {
-                          Present: "text-[#a01497] border-purple-200",
-                          "Clocked Out": "text-slate-600 border-slate-200 dark:border-slate-800",
-                          Approved: "text-emerald-700 border-emerald-200",
-                          Rejected: "text-red-700 border-red-200",
-                          Late: "text-rose-700 border-rose-200",
-                          Active: "text-violet-700 border-violet-200",
-                          System: "text-blue-700 border-blue-200",
-                          Reminder: "text-yellow-700 border-yellow-200",
-                          Note: "text-slate-600 border-slate-200 dark:border-slate-800",
-                          Assigned: "text-pink-700 border-pink-200 bg-pink-50/50",
+                          Present: "text-[#a01497] border-purple-200 bg-purple-50 dark:text-purple-300 dark:border-purple-800/60 dark:bg-purple-950/40",
+                          "Clocked Out": "text-slate-600 border-slate-200 bg-slate-50 dark:text-slate-300 dark:border-slate-700 dark:bg-slate-800/40",
+                          Approved: "text-emerald-700 border-emerald-200 bg-emerald-50 dark:text-emerald-300 dark:border-emerald-800/60 dark:bg-emerald-950/40",
+                          Rejected: "text-red-700 border-red-200 bg-red-50 dark:text-red-300 dark:border-red-800/60 dark:bg-red-950/40",
+                          Late: "text-rose-700 border-rose-200 bg-rose-50 dark:text-rose-300 dark:border-rose-800/60 dark:bg-rose-950/40",
+                          Active: "text-violet-700 border-violet-200 bg-violet-50 dark:text-violet-300 dark:border-violet-800/60 dark:bg-violet-950/40",
+                          System: "text-blue-700 border-blue-200 bg-blue-50 dark:text-blue-300 dark:border-blue-800/60 dark:bg-blue-950/40",
+                          Reminder: "text-yellow-700 border-yellow-200 bg-yellow-50 dark:text-yellow-300 dark:border-yellow-800/60 dark:bg-yellow-950/40",
+                          Note: "text-slate-600 border-slate-200 bg-slate-50 dark:text-slate-300 dark:border-slate-700 dark:bg-slate-800/40",
+                          Assigned: "text-pink-700 border-pink-200 bg-pink-50/50 dark:text-pink-300 dark:border-pink-800/60 dark:bg-pink-950/40",
                         };
                         const badgeCls = badgeColor[item.badge] || "text-foreground border-slate-200 dark:border-slate-800";
                         
@@ -1649,18 +1649,18 @@ export default function Dashboard() {
                         return (
                           <div
                             key={i}
-                            className="grid grid-cols-12 px-4 py-3 border-b border-slate-50 items-center hover:bg-slate-50 dark:bg-slate-900/50 transition-colors"
+                            className="grid grid-cols-12 px-4 py-3 border-b border-slate-100 dark:border-slate-800/60 items-center hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors"
                           >
-                            <div className="col-span-2 flex items-center gap-2 text-xs font-bold text-slate-700 capitalize">
+                            <div className="col-span-2 flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-200 capitalize">
                               <div className={`w-1.5 h-1.5 rounded-full bg-current ${typeIcon[item.type] || 'text-foreground'}`}></div>
                               {item.type}
                             </div>
-                            <div className="col-span-2 text-[11px] text-slate-600">
+                            <div className="col-span-2 text-[11px] text-slate-600 dark:text-slate-400">
                               {item.time}
                             </div>
                             <div className="col-span-6 text-[11px] text-slate-800 dark:text-slate-100 pr-4 break-words leading-normal">
                               <span className="font-bold">{item.actor}</span> {item.action} {item.target && item.target}
-                              {item.context && <span className="block text-foreground mt-0.5 break-words font-normal leading-normal">{item.context}</span>}
+                              {item.context && <span className="block text-slate-600 dark:text-slate-400 mt-0.5 break-words font-normal leading-normal">{item.context}</span>}
                             </div>
                             <div className="col-span-2 text-right">
                               <span className={`inline-block px-2 py-0.5 text-[9px] font-bold uppercase rounded border ${badgeCls}`}>
@@ -1671,7 +1671,7 @@ export default function Dashboard() {
                         );
                       })}
                     </div>
-                    <div className="p-4 border-t border-slate-100 dark:border-slate-800 flex justify-end bg-card">
+                    <div className="border-t border-slate-100 dark:border-slate-800">
                       <TablePagination
                         currentPage={activityPage}
                         totalItems={feedItems.length}
@@ -1681,6 +1681,7 @@ export default function Dashboard() {
                           setActivityPageSize(size);
                           setActivityPage(1);
                         }}
+                        className="border-t-0 bg-transparent px-4 py-3"
                       />
                     </div>
                   </>

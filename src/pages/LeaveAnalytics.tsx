@@ -934,9 +934,10 @@ export default function LeaveAnalytics() {
   // Tooltip style (shared)
   const tooltipStyle = {
     borderRadius: "16px",
-    border: "none",
-    boxShadow: "0 10px 30px rgba(0,0,0,0.12)",
-    backgroundColor: "rgba(255,255,255,0.97)",
+    border: "1px solid hsl(var(--border))",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.15)",
+    backgroundColor: "hsl(var(--card))",
+    color: "hsl(var(--foreground))",
     backdropFilter: "blur(10px)",
     padding: "12px",
   };
