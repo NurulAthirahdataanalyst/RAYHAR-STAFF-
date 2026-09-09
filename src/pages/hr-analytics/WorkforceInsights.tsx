@@ -2792,11 +2792,11 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
          {/* Row 2: 3 Columns */}
          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
            {/* Leave Distribution (Donut Chart) */}
-           <Card className="p-4 border border-slate-100 dark:border-slate-700 hover:border-[#942392] hover: transition-all duration-300 flex flex-col rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
+           <Card className="p-4 border border-slate-100 dark:border-slate-700 bg-card hover:border-[#942392] hover: transition-all duration-300 flex flex-col rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
              <div className="flex justify-between items-center mb-2 border-b border-slate-100 dark:border-slate-800 pb-3">
                <div className="flex items-center gap-2">
                  <FileText className="w-4 h-4 text-foreground" />
-                 <h3 className="text-sm font-bold text-[#1A1F36]">Leave Distribution</h3>
+                 <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">Leave Distribution</h3>
                </div>
              </div>
              
@@ -2806,8 +2806,17 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                    <ResponsiveContainer width="100%" height="100%">
                      <PieChart>
                        <RechartsTooltip 
-                          contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 8px 30px rgba(0,0,0,0.12)' }} 
-                          itemStyle={{ fontSize: '11px', fontWeight: 'bold' }} 
+                          content={({ active, payload }) => {
+                            if (!active || !payload || !payload.length) return null;
+                            const data = payload[0];
+                            return (
+                              <div className="bg-card/95 backdrop-blur-md border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl p-2.5 text-foreground text-xs font-bold flex items-center gap-2">
+                                <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: data.payload?.color }} />
+                                <span className="text-slate-700 dark:text-slate-200">{data.name}:</span>
+                                <span className="font-extrabold text-foreground">{data.value}</span>
+                              </div>
+                            );
+                          }}
                         />
                        <Pie
                          data={leaveData}
@@ -2824,8 +2833,8 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                      </PieChart>
                    </ResponsiveContainer>
                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                     <span className="text-lg font-black text-slate-800 dark:text-slate-200 leading-none">{totalLeaveCount || 0}</span>
-                     <span className="text-[9px] font-bold text-foreground uppercase tracking-wider">Total</span>
+                     <span className="text-lg font-black text-slate-800 dark:text-slate-100 leading-none">{totalLeaveCount || 0}</span>
+                     <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total</span>
                    </div>
                  </div>
                  <div className="flex-1 pl-4 space-y-2">
@@ -2833,21 +2842,21 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                      <div key={idx} className="flex justify-between items-center">
                        <div className="flex items-center gap-1.5">
                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }}></span>
-                         <span className="text-[10px] font-semibold text-slate-700">{entry.name}</span>
+                         <span className="text-[10px] font-semibold text-slate-700 dark:text-slate-200">{entry.name}</span>
                        </div>
-                       <span className="text-[10px] font-black text-slate-800 dark:text-slate-200">{entry.value || 0}</span>
+                       <span className="text-[10px] font-black text-slate-800 dark:text-slate-100">{entry.value || 0}</span>
                      </div>
                    ))}
                  </div>
                </div>
              ) : (
-               <div className="flex items-center justify-center flex-1 h-[140px] text-foreground text-xs italic bg-slate-50/50 rounded-lg border border-slate-300 dark:border-slate-700 border-dashed">
+               <div className="flex items-center justify-center flex-1 h-[140px] text-foreground text-xs italic bg-slate-50/50 dark:bg-slate-900/50 rounded-lg border border-slate-300 dark:border-slate-700 border-dashed">
                  No Leave Request History Available
                </div>
              )}
 
              <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end">
-               <button className="text-xs font-bold text-foreground hover:text-[#942392] transition-colors flex items-center gap-1">View Details <ChevronRight className="w-3 h-3" /></button>
+               <button className="text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-[#942392] dark:hover:text-purple-300 transition-colors flex items-center gap-1">View Details <ChevronRight className="w-3 h-3" /></button>
              </div>
            </Card>
 

@@ -760,6 +760,13 @@ input[type=range]::-moz-range-thumb {
   margin-bottom: 4px !important;
 }
 
+.recharts-tooltip-item,
+.recharts-tooltip-item-name,
+.recharts-tooltip-item-separator,
+.recharts-tooltip-item-value {
+  color: hsl(var(--foreground)) !important;
+}
+
 .recharts-tooltip-cursor {
   fill: rgba(148, 163, 184, 0.1) !important;
   stroke: rgba(148, 163, 184, 0.25) !important;
