@@ -78,6 +78,7 @@ export default function Dashboard() {
   });
 
   const [temporaryStaff, setTemporaryStaff] = useState<any[]>([]);
+  const [syncError, setSyncError] = useState<string | null>(null);
 
   useEffect(() => {
     const handleSidebarChange = () => {
@@ -178,11 +179,15 @@ export default function Dashboard() {
           `${API_BASE_URL}/api/dashboard-stats?userId=${dashboardUserId}&role=${role}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}&date=${dateStr}`
         );
 
-        if (!response.ok) throw new Error("Sync failed");
+        if (!response.ok) {
+          const errData = await response.json().catch(() => null);
+          throw new Error(errData?.error || `Server responded with status ${response.status}`);
+        }
 
         const data = await response.json();
 
         if (data.success) {
+          setSyncError(null);
           const latestUpdate = sessionStorage.getItem("latestAttendanceUpdate");
           let localUpdate = null;
 
@@ -217,9 +222,15 @@ export default function Dashboard() {
             }
             setLastUpdated("Updated a few seconds ago");
           }
+        } else {
+          throw new Error(data.error || "Failed to load dashboard data");
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error("Dashboard Sync Error:", error);
+        setSyncError(error?.message || "Failed to load dashboard statistics from server.");
+        if (!silent) {
+          toast.error("Dashboard Sync Error: " + (error?.message || "Failed to load stats"));
+        }
       } finally {
         setLoading(false);
         setIsRefreshing(false);
@@ -656,6 +667,23 @@ export default function Dashboard() {
           )}
         </div>
       </div>
+
+      {syncError && (
+        <div className="flex items-center justify-between gap-3 p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 dark:text-red-400 text-sm font-medium animate-in fade-in duration-300">
+          <div className="flex items-center gap-2.5">
+            <AlertTriangle className="h-4 w-4 shrink-0 text-red-500 dark:text-red-400" />
+            <span>Unable to sync live dashboard data: {syncError}</span>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => fetchDashboardData()}
+            className="h-8 px-3 text-xs font-bold border-red-500/30 hover:bg-red-500/10 text-red-500 dark:text-red-400 shrink-0"
+          >
+            Retry
+          </Button>
+        </div>
+      )}
 
       {showEmptyState ? (
         <Card className="border border-slate-100 dark:border-slate-800   p-12 flex flex-col items-center justify-center text-center gap-4 bg-card rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">

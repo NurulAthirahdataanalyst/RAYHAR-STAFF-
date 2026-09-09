@@ -5688,7 +5688,8 @@ app.get("/api/dashboard-stats", async (req, res) => {
     let globalRecentActivities = null;
 
     if (["hr_admin", "branch_leader", "managing_director", "operation_manager", "finance_manager", "head_of_department"].includes(role)) {
-      const isBranchLeader = role === "branch_leader";
+      try {
+        const isBranchLeader = role === "branch_leader";
       const isHOD = role === "head_of_department";
       const department = req.query.department;
 
@@ -5758,6 +5759,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
 
       const lateTimeStr = getLateThresholdTime();
       const lateFilter = attendanceFilter ? attendanceFilter.replace(/\buser_id\b/g, 'fc.user_id') : "";
+      const lateParams = [queryDate, queryDate, queryDate, ...queryParams];
       const [lateRows] = await pool.query(
         `WITH first_clocks AS (
            SELECT user_id, MIN(clock_in) AS first_clock_in
@@ -5942,6 +5944,9 @@ app.get("/api/dashboard-stats", async (req, res) => {
         totalMultiLocation: parseInt(multiLocationRows[0].total_multi_location || 0),
       };
       globalRecentActivities = recentRows;
+      } catch (adminErr) {
+        console.error("Dashboard Admin Stats Error:", adminErr);
+      }
     }
 
     // 1. TODAY ATTENDANCE STATUS
