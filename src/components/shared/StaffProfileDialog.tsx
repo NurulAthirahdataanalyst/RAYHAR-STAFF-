@@ -1,4 +1,5 @@
 import { MonthPicker } from '@/components/shared/MonthPicker';
+import { YearPopover } from '@/components/shared/YearPopover';
 import { useRole } from "@/contexts/RoleContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -828,18 +829,13 @@ export function StaffProfileDialog({
                       </div>
                       
                       {/* Year Selector */}
-                      <Select value={selectedYear.toString()} onValueChange={(v) => setSelectedYear(parseInt(v))}>
-                        <SelectTrigger className="w-[90px] h-7 text-xs font-bold bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700">
-                          <SelectValue placeholder={selectedYear.toString()} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {availableYears.map(y => (
-                            <SelectItem key={y} value={y.toString()} className="text-xs font-bold">
-                              {y}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <YearPopover
+                        year={selectedYear.toString()}
+                        onSelectYear={(y) => {
+                          setSelectedYear(y ? parseInt(y) : new Date().getFullYear());
+                        }}
+                        className="appearance-none flex items-center justify-between px-3 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold rounded-md shadow-sm outline-none cursor-pointer h-7 gap-2 hover:border-[#942392]/40 min-w-[95px]"
+                      />
                     </div>
 
                     {analyticsLoading ? (

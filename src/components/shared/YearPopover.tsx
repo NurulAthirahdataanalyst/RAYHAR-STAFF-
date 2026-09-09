@@ -40,7 +40,7 @@ export function YearPopover({ year, onSelectYear, className, minYear, excludeYea
         </button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-64 p-0 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl bg-card z-50 overflow-hidden"
+        className="w-64 p-0 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl bg-card z-[100] overflow-hidden"
         align="end"
       >
         {/* Header with Decade Navigation (< 2020 - 2029 >) */}
