@@ -429,27 +429,27 @@ export default function OutstationReports() {
           </div>
 
           {/* Filter row */}
-          <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between w-full gap-3 border-b border-gray-100 dark:border-gray-800 pb-3">
+          <div className="flex flex-col xl:flex-row items-start xl:items-end justify-between w-full gap-3 border-b border-gray-100 dark:border-slate-800">
 
             {/* LEFT: Month/Year tabs — only in Events Overview (not in Event Details) */}
             {!selectedEventName ? (
-              <div className="flex items-center gap-6">
+              <div className="flex items-center gap-6 -mb-[1px]">
                 <button
                   onClick={() => setViewType("month")}
-                  className={`text-sm font-medium pb-2 -mb-[13px] transition-colors border-b-[3px] ${
+                  className={`text-sm font-bold pb-2.5 transition-colors border-b-[3px] ${
                     viewType === "month"
                       ? "text-[#942392] border-[#942392]"
-                      : "text-foreground hover:text-yellow-500 border-transparent hover:border-yellow-500"
+                      : "text-foreground/70 hover:text-foreground border-transparent hover:border-muted-foreground/40"
                   }`}
                 >
                   Month View
                 </button>
                 <button
                   onClick={() => setViewType("year")}
-                  className={`text-sm font-medium pb-2 -mb-[13px] transition-colors border-b-[3px] ${
+                  className={`text-sm font-bold pb-2.5 transition-colors border-b-[3px] ${
                     viewType === "year"
                       ? "text-yellow-500 border-yellow-500"
-                      : "text-foreground hover:text-yellow-500 border-transparent hover:border-yellow-500"
+                      : "text-foreground/70 hover:text-foreground border-transparent hover:border-muted-foreground/40"
                   }`}
                 >
                   Year View
@@ -460,7 +460,7 @@ export default function OutstationReports() {
             )}
 
             {/* RIGHT: Filters */}
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-2 flex-wrap pb-2.5">
 
               {/* Events Overview filters: Calendar → Search → Status */}
               {!selectedEventName ? (
