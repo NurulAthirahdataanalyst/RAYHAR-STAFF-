@@ -152,7 +152,8 @@ function computeMetrics(
 
   // Working Hours per attendance day: Clock-Out Time − Clock-In Time
   let totalWorkingHours = 0;
-  let overtime = 0;
+  // Overtime is not implemented at Rayhar — strictly 0
+  const overtime = 0;
 
   dailyUniqueLogs.forEach(l => {
     let h = parseHours(l.duration);
@@ -165,9 +166,6 @@ function computeMetrics(
     }
     if (h > 0) {
       totalWorkingHours += h;
-      if (h > STANDARD_HOURS) {
-        overtime += (h - STANDARD_HOURS);
-      }
     }
   });
 
@@ -224,18 +222,19 @@ function computeMetrics(
   }
   if (streak === 0) streak = cur;
 
-  // Badge
+  // Badge: Minimum 3 attended days required for Champion/Reliable status
   let badge: EmployeeMetrics["badge"] = "AT RISK";
-  if (punctuality >= 95 && consistency >= 80) badge = "CHAMPION";
-  else if (punctuality >= 85) badge = "RELIABLE";
-  else if (punctuality >= 70) badge = "IMPROVING";
+  if (totalValidDays >= 3 && punctuality >= 95 && consistency >= 80) badge = "CHAMPION";
+  else if (totalValidDays >= 3 && punctuality >= 85) badge = "RELIABLE";
+  else if (totalValidDays >= 1 && punctuality >= 70) badge = "IMPROVING";
+  else badge = "AT RISK";
 
   return {
     userId, name, branch, department: (dept || "").toUpperCase(),
     totalDays: totalValidDays, onTimeDays: onTime, lateDays,
     punctualityScore: punctuality,
     consistencyScore: consistency,
-    overtimeHours: Math.round(overtime * 10) / 10,
+    overtimeHours: 0,
     absenteeismRate: absenteeism,
     leaveCount, avgWorkHours: avgWork,
     streak, longestStreak, badge,
@@ -534,7 +533,25 @@ export default function EmployeeAnalytics() {
           metrics.push(computeMetrics(logs, leaves, emp.user_id, emp.full_name, emp.branch, emp.department || "", selectedMonth === "all", parseInt(selectedYear)));
         } catch { /* skip */ }
       }));
-      setTeamMetrics(metrics.sort((a, b) => b.punctualityScore - a.punctualityScore));
+      const maxAttended = Math.max(...metrics.map(m => m.totalDays), 1);
+      const minThreshold = Math.min(3, maxAttended);
+
+      setTeamMetrics(metrics.sort((a, b) => {
+        const aQualified = a.totalDays >= minThreshold;
+        const bQualified = b.totalDays >= minThreshold;
+
+        // Qualified attendees (meeting the minimum days threshold) rank above employees with only 1-2 days
+        if (aQualified && !bQualified) return -1;
+        if (!aQualified && bQualified) return 1;
+
+        if (b.punctualityScore !== a.punctualityScore) {
+          return b.punctualityScore - a.punctualityScore;
+        }
+        if (b.onTimeDays !== a.onTimeDays) {
+          return b.onTimeDays - a.onTimeDays;
+        }
+        return b.totalDays - a.totalDays;
+      }));
     } catch (err) {
       console.error("EmployeeAnalytics: fetchTeam error", err);
     } finally {
@@ -726,7 +743,7 @@ export default function EmployeeAnalytics() {
                           {isSelected && (
                             <div className="mt-4 pt-4 border-t border-border/40 grid grid-cols-2 sm:grid-cols-4 gap-3 animate-in fade-in duration-200">
                               {[
-                                { label: "Total Days",    value: m.totalDays,                  color: "text-foreground"   },
+                                { label: "Attended Days", value: `${m.totalDays}d`,           color: "text-foreground"   },
                                 { label: "On Time",       value: `${m.onTimeDays}d`,            color: "text-emerald-600"  },
                                 { label: "Late",          value: `${m.lateDays}d`,              color: "text-rose-600"     },
                                 { label: "Streak",        value: `${m.streak}d 🔥`,             color: "text-amber-600"    },
