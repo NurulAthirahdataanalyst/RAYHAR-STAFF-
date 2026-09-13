@@ -4717,22 +4717,36 @@ app.post('/api/employee-location-update', async (req, res) => {
        return res.json({ success: true, message: 'No active shift' });
     }
 
-    // Insert into employee_location_logs (both user_id and employee_id)
+    // Insert into employee_location_logs (throttled to at most once every ~25-30 minutes per employee)
     try {
-      await pool.query(
-        `INSERT INTO employee_location_logs (user_id, employee_id, latitude, longitude, accuracy, recorded_at)
-         VALUES (?, ?, ?, ?, ?, ?)`,
-        [uid, uid, latitude, longitude, accuracy || null, timestamp || new Date()]
+      const [lastLogRows] = await pool.query(
+        `SELECT recorded_at FROM employee_location_logs 
+         WHERE (user_id = ? OR employee_id = ?) 
+         ORDER BY recorded_at DESC, id DESC LIMIT 1`,
+        [uid, uid]
       );
+      const lastLogTime = lastLogRows && lastLogRows[0] && lastLogRows[0].recorded_at 
+        ? new Date(lastLogRows[0].recorded_at).getTime() 
+        : 0;
+      const timeSinceLastLog = Date.now() - lastLogTime;
+      // 25 minutes buffer (25 * 60 * 1000) to avoid sub-minute drift
+      const THIRTY_MIN_MS = 25 * 60 * 1000;
+      if (timeSinceLastLog >= THIRTY_MIN_MS) {
+        await pool.query(
+          `INSERT INTO employee_location_logs (user_id, employee_id, latitude, longitude, accuracy, recorded_at)
+           VALUES (?, ?, ?, ?, ?, ?)`,
+          [uid, uid, latitude, longitude, accuracy || null, timestamp || new Date()]
+        );
+      }
     } catch (e) {
       console.warn('employee_location_logs insert failed', e.message);
     }
 
-    // Optionally update today's latest attendance record's clock_in_* fields
+    // Optionally update today's latest attendance record's clock_in_* fields if not already populated
     try {
-      const [rows] = await pool.query(`SELECT user_id, clock_in FROM attendances WHERE user_id = ? AND (clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date ORDER BY clock_in DESC LIMIT 1`, [uid]);
+      const [rows] = await pool.query(`SELECT user_id, clock_in, clock_in_latitude FROM attendances WHERE user_id = ? AND (clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date ORDER BY clock_in DESC LIMIT 1`, [uid]);
       const rec = Array.isArray(rows) && rows[0];
-      if (rec && rec.user_id && rec.clock_in) {
+      if (rec && rec.user_id && rec.clock_in && !rec.clock_in_latitude) {
         await pool.query(`UPDATE attendances SET clock_in_latitude = ?, clock_in_longitude = ?, clock_in_accuracy = ? WHERE user_id = ? AND clock_in = ?`, [latitude, longitude, accuracy || null, rec.user_id, rec.clock_in]);
       }
     } catch (e) {
