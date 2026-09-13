@@ -5778,12 +5778,13 @@ app.get("/api/dashboard-stats", async (req, res) => {
       const presentParams = [queryDate, queryDate, queryDate, ...queryParams];
       const onLeaveParams = [queryDate, ...queryParams];
 
+      const leaveAttendanceFilter = attendanceFilter ? attendanceFilter.replace(/\buser_id\b/g, 'lr.user_id') : "";
       // Fetch leave candidates overlapping date, then accurately verify leave dates
       const [rawLeaveRows] = await pool.query(
         `SELECT lr.user_id, lr.leave_type, lr.reason, lr.cuti_ganti_tarikh, lr.start_date, lr.end_date
          FROM leave_requests lr
          JOIN profiles p ON p.user_id = lr.user_id
-         WHERE lr.status = 'Approved' AND ${dateCondition} BETWEEN DATE(lr.start_date) AND DATE(lr.end_date) ${attendanceFilter}`,
+         WHERE lr.status = 'Approved' AND ${dateCondition} BETWEEN DATE(lr.start_date) AND DATE(lr.end_date) ${leaveAttendanceFilter}`,
         onLeaveParams
       );
 
