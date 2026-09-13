@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef, useMemo } from "react";
-import Map, { Marker, NavigationControl, Source, Layer } from 'react-map-gl/maplibre';
+import Map, { Marker, Popup, NavigationControl, Source, Layer } from 'react-map-gl/maplibre';
+import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -7,10 +8,26 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { API_BASE_URL } from "../config/api";
 import { RefreshCw, MapPin , X} from 'lucide-react';
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRole } from "@/contexts/RoleContext";
 import { useToast } from "@/hooks/use-toast";
+
+const MAPLIBRE_STYLE = {
+  version: 8 as const,
+  sources: {
+    "osm": {
+      type: "raster" as const,
+      tiles: [
+        "https://a.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "https://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "https://c.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      ],
+      tileSize: 256,
+      attribution: "&copy; OpenStreetMap contributors"
+    }
+  },
+  layers: [{ id: "osm-layer", type: "raster" as const, source: "osm", minzoom: 0, maxzoom: 19 }]
+};
 
 type Employee = {
   user_id: string;
@@ -34,9 +51,10 @@ type EmpLocation = {
 };
 
 const getMarkerHTML = (loc: EmpLocation, isSelected: boolean) => {
-  const isOnline = loc.lat && loc.lng;
+  const isOnline = !!(loc.lat && loc.lng);
   const statusColor = isSelected ? 'bg-amber-500' : (isOnline ? 'bg-emerald-500' : 'bg-rose-500');
-  const avatarText = (loc.full_name || loc.user_id).substring(0, 2).toUpperCase();
+  const name = (loc.full_name || loc.user_id || "U").trim();
+  const avatarText = (name || "U").substring(0, 2).toUpperCase();
   const timeText = loc.last_updated ? new Date(loc.last_updated).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Unknown';
   
   return (
@@ -47,8 +65,8 @@ const getMarkerHTML = (loc: EmpLocation, isSelected: boolean) => {
            <div className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full ${statusColor} border-2 border-card`}></div>
         </div>
         <div className="flex flex-col">
-          <span className="text-xs font-bold whitespace-nowrap text-foreground leading-none">{loc.full_name || loc.user_id}</span>
-          <span className="text-[10px] text-foreground whitespace-nowrap mt-1 leading-none">Updated {timeText}</span>
+          <span className="text-xs font-bold whitespace-nowrap text-foreground leading-none">{name}</span>
+          <span className="text-[10px] text-muted-foreground whitespace-nowrap mt-1 leading-none">Updated {timeText}</span>
         </div>
       </div>
       <div className={`w-0.5 h-6 ${isSelected ? 'bg-amber-500' : 'bg-emerald-500/50'} z-0 -mt-1`}></div>
@@ -97,6 +115,13 @@ export default function GPSLocationTracker() {
   const [statusFilter, setStatusFilter] = useState<string>("All");
   const mapRef = useRef<any | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
+  const [mapLoaded, setMapLoaded] = useState(false);
+  const [activeCluster, setActiveCluster] = useState<EmpLocation[] | null>(null);
+
+  // Admin alerts (arrival/departure/breach) - hoisted before useEffect
+  const [alerts, setAlerts] = useState<any[]>([]);
+  const pushAlert = (a: any) => setAlerts((s) => [{ ...a }, ...s].slice(0, 20));
+  const dismissAlert = (id: string) => setAlerts((s) => s.filter((x) => x.id !== id));
 
   useEffect(() => {
     void fetchData();
@@ -259,6 +284,21 @@ export default function GPSLocationTracker() {
     });
   }, [visibleEmployees, branchFilter, query, statusFilter, locations]);
 
+  const validGroups = useMemo(() => {
+    const groups: Record<string, EmpLocation[]> = {};
+    filtered.forEach((emp) => {
+      const loc = locations[emp.user_id];
+      if (!loc || loc.lat == null || loc.lng == null) return;
+      const lat = Number(loc.lat);
+      const lng = Number(loc.lng);
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+      const key = emp.user_id === selected ? `selected-${emp.user_id}` : `${lat.toFixed(5)},${lng.toFixed(5)}`;
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(loc);
+    });
+    return Object.values(groups);
+  }, [filtered, locations, selected]);
+
   const focusOn = (empId: string) => {
     const loc = locations[empId];
     if (!loc || loc.lat == null || loc.lng == null || isNaN(Number(loc.lat)) || isNaN(Number(loc.lng))) { toast({ title: "No Location Data", description: "This employee hasn't submitted their GPS location yet or it is invalid.", variant: "default" }); return; } if (!mapRef.current) return;
@@ -339,11 +379,6 @@ export default function GPSLocationTracker() {
 
   const closeHistory = () => { setHistoryFor(null); setHistory([]); setHistoryTotal(0); setHistoryHasMore(false); };
 
-  // Admin alerts (arrival/departure/breach)
-  const [alerts, setAlerts] = useState<any[]>([]);
-  const pushAlert = (a: any) => setAlerts((s) => [{ ...a }, ...s].slice(0, 20));
-  const dismissAlert = (id: string) => setAlerts((s) => s.filter((x) => x.id !== id));
-
   // Replay state for history modal
   const [replayIndex, setReplayIndex] = useState(0);
   const [replayPlaying, setReplayPlaying] = useState(false);
@@ -416,7 +451,9 @@ export default function GPSLocationTracker() {
 
       <div className="flex flex-col gap-4">
         <div className="h-[520px] bg-card rounded-lg overflow-hidden">
-          <Map reuseMaps id="gps-map"
+          <Map
+            id="gps-map"
+            mapLib={maplibregl}
             ref={mapRef}
             initialViewState={{
               longitude: 103.4194,
@@ -424,92 +461,101 @@ export default function GPSLocationTracker() {
               zoom: 7
             }}
             style={{ width: "100%", height: "100%" }}
-            mapStyle={{
-              version: 8,
-              sources: {
-                "osm": {
-                  type: "raster",
-                  tiles: ["https://a.tile.openstreetmap.org/{z}/{x}/{y}.png", "https://b.tile.openstreetmap.org/{z}/{x}/{y}.png", "https://c.tile.openstreetmap.org/{z}/{x}/{y}.png"],
-                  tileSize: 256,
-                  attribution: "&copy; OpenStreetMap contributors"
-                }
-              },
-              layers: [{ id: "osm-layer", type: "raster", source: "osm", minzoom: 0, maxzoom: 19 }]
-            }}
+            mapStyle={MAPLIBRE_STYLE}
+            onLoad={() => setMapLoaded(true)}
           >
             <NavigationControl position="top-left" />
 
-            {Object.values(
-              filtered.reduce((acc, emp) => {
-                const loc = locations[emp.user_id];
-                if (!loc || loc.lat == null || loc.lng == null || isNaN(Number(loc.lat)) || isNaN(Number(loc.lng))) return acc;
-                // Separate the selected user so they get their own marker tooltip
-                const key = emp.user_id === selected ? `selected-${emp.user_id}` : `${Number(loc.lat).toFixed(5)},${Number(loc.lng).toFixed(5)}`;
-                if (!acc[key]) acc[key] = [];
-                acc[key].push(loc);
-                return acc;
-              }, {} as Record<string, EmpLocation[]>)
-            ).map((group, idx) => {
+            {mapLoaded && validGroups.map((group) => {
               const first = group[0];
               if (!first) return null;
+              const lat = Number(first.lat);
+              const lng = Number(first.lng);
+              if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+
               const isSelected = group.some((l) => selected === l.user_id);
-              const isOnline = first.lat && first.lng;
+              const isOnline = !!(first.lat && first.lng);
               const statusColor = isSelected ? 'bg-amber-500' : (isOnline ? 'bg-emerald-500' : 'bg-rose-500');
-              
+              const groupKey = `marker-${group.map(g => g.user_id).sort().join('-')}`;
+
               return (
                 <Marker 
-                  key={`group-${idx}`}
-                  longitude={Number(first.lng)} 
-                  latitude={Number(first.lat)} 
+                  key={groupKey}
+                  longitude={lng} 
+                  latitude={lat} 
                   anchor="bottom"
                   onClick={(e) => { 
                     e.originalEvent.stopPropagation(); 
-                    if (group.length === 1) focusOn(first.user_id); 
+                    if (group.length === 1) {
+                      focusOn(first.user_id); 
+                    } else {
+                      setActiveCluster(group);
+                    }
                   }}
                   style={{ zIndex: isSelected ? 50 : 10 }}
                 >
                   {group.length > 1 ? (
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <div className="flex flex-col items-center justify-end w-full h-full group pb-1 cursor-pointer">
-                          <div className={`bg-card rounded-full shadow-lg p-1 pr-3 flex items-center gap-2 border ${isSelected ? 'border-amber-500 ring-2 ring-amber-500/20' : 'border-border'} transition-all hover:scale-105 z-10`}>
-                            <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-bold text-foreground relative">
-                               +{group.length}
-                               <div className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full ${statusColor} border-2 border-card`}></div>
-                            </div>
-                            <div className="flex flex-col">
-                              <span className="text-xs font-bold whitespace-nowrap text-foreground leading-none">
-                                {group.length} Employees Here
-                              </span>
-                              <span className="text-[10px] text-foreground whitespace-nowrap mt-1 leading-none">
-                                Click to view list
-                              </span>
-                            </div>
-                          </div>
-                          <div className={`w-0.5 h-6 ${isSelected ? 'bg-amber-500' : 'bg-emerald-500/50'} z-0 -mt-1`}></div>
-                          <div className={`w-3 h-3 rounded-full ${statusColor} border-[2.5px] border-white shadow-sm shadow-black/20 z-10 -mt-1 relative`}></div>
+                    <div className="flex flex-col items-center justify-end w-full h-full group pb-1 cursor-pointer">
+                      <div className={`bg-card rounded-full shadow-lg p-1 pr-3 flex items-center gap-2 border ${isSelected ? 'border-amber-500 ring-2 ring-amber-500/20' : 'border-border'} transition-all hover:scale-105 z-10`}>
+                        <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-bold text-foreground relative">
+                          +{group.length}
+                          <div className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full ${statusColor} border-2 border-card`} />
                         </div>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-64 p-3 z-[100] mb-2" side="top" sideOffset={10}>
-                        <div className="space-y-2">
-                          <h4 className="font-bold text-sm border-b pb-1">Employees at this location</h4>
-                          <div className="max-h-48 overflow-y-auto space-y-2">
-                            {group.map(emp => (
-                              <div key={emp.user_id} className="flex flex-col cursor-pointer hover:bg-muted p-2 rounded border border-transparent hover:border-border transition-colors" onClick={() => focusOn(emp.user_id)}>
-                                <span className="font-semibold text-sm">{emp.full_name || emp.user_id}</span>
-                                <span className="text-xs text-foreground">{emp.last_updated ? new Date(emp.last_updated).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}</span>
-                              </div>
-                            ))}
-                          </div>
+                        <div className="flex flex-col">
+                          <span className="text-xs font-bold whitespace-nowrap text-foreground leading-none">
+                            {group.length} Employees Here
+                          </span>
+                          <span className="text-[10px] text-muted-foreground whitespace-nowrap mt-1 leading-none">
+                            Click to view list
+                          </span>
                         </div>
-                      </PopoverContent>
-                    </Popover>
+                      </div>
+                      <div className={`w-0.5 h-6 ${isSelected ? 'bg-amber-500' : 'bg-emerald-500/50'} z-0 -mt-1`} />
+                      <div className={`w-3 h-3 rounded-full ${statusColor} border-[2.5px] border-white shadow-sm shadow-black/20 z-10 -mt-1 relative`} />
+                    </div>
                   ) : (
                     getMarkerHTML(first, isSelected)
                   )}
                 </Marker>
               );
             })}
+
+            {mapLoaded && activeCluster && activeCluster.length > 0 && Number.isFinite(Number(activeCluster[0].lat)) && Number.isFinite(Number(activeCluster[0].lng)) && (
+              <Popup
+                longitude={Number(activeCluster[0].lng)}
+                latitude={Number(activeCluster[0].lat)}
+                anchor="top"
+                onClose={() => setActiveCluster(null)}
+                closeOnClick={false}
+                className="z-50"
+              >
+                <div className="p-2 space-y-2 min-w-[220px]">
+                  <div className="flex items-center justify-between border-b pb-1">
+                    <h4 className="font-bold text-xs">Employees at this location ({activeCluster.length})</h4>
+                  </div>
+                  <div className="max-h-48 overflow-y-auto space-y-1">
+                    {activeCluster.map((emp) => (
+                      <div
+                        key={emp.user_id}
+                        className="flex items-center justify-between p-1.5 hover:bg-muted rounded cursor-pointer transition-colors text-xs"
+                        onClick={() => {
+                          focusOn(emp.user_id);
+                          setActiveCluster(null);
+                        }}
+                      >
+                        <div className="flex flex-col">
+                          <span className="font-semibold">{emp.full_name || emp.user_id}</span>
+                          <span className="text-[10px] text-muted-foreground">{emp.branch || 'No branch'}</span>
+                        </div>
+                        <span className="text-[10px] text-muted-foreground">
+                          {emp.last_updated ? new Date(emp.last_updated).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </Popup>
+            )}
           </Map>
         </div>
 

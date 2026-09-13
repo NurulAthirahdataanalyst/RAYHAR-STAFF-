@@ -224,6 +224,11 @@ export function getPageTitleInfo(pathname: string, userRole?: string): PageInfo 
     subtitle: "Manage your personal information and account settings.",
     icon: User
   };
+  if (pathname === "/gps-location-tracker") return {
+    title: "GPS Location Tracker",
+    subtitle: "Monitor live workforce field locations, outstation tracking, and attendance coordinates.",
+    icon: MapPinned
+  };
 
   const last = pathname.split("/").filter(Boolean).pop() || "Page";
   const fallbackTitle = last.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
