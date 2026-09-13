@@ -168,10 +168,19 @@ export default function LeaveAdmin() {
 
   const uniqueLeaveTypes = Array.from(new Set(requests.map(r => r.type))).filter(Boolean).sort();
 
-  // First, filter by month
+  // First, filter by year and month
   const requestsByMonth = requests.filter((req) => {
-    if (selectedMonth === "all") return true;
-    return req.from.substring(5, 7) === selectedMonth;
+    if (!req.from) return false;
+    const reqYear = req.from.substring(0, 4);
+    const reqMonth = req.from.substring(5, 7);
+
+    if (selectedYear && selectedYear !== "all" && reqYear !== selectedYear) {
+      return false;
+    }
+    if (selectedMonth && selectedMonth !== "all" && reqMonth !== selectedMonth) {
+      return false;
+    }
+    return true;
   });
 
   // Then, filter by active tab
@@ -201,7 +210,7 @@ export default function LeaveAdmin() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedMonth, selectedLeaveType, activeTab]);
+  }, [selectedMonth, selectedYear, selectedLeaveType, activeTab]);
 
   const currentData = filteredRequests.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
@@ -227,19 +236,55 @@ export default function LeaveAdmin() {
     return () => sse.close();
   }, [role, userBranch, userDepartment]);
 
-  // Handle URL query parameters (tab and leaveId)
+  // Handle URL query parameters (tab, month, year, leaveId)
   useEffect(() => {
     let updated = false;
     const newParams = new URLSearchParams(searchParams);
 
     const tabParam = searchParams.get("tab");
+    const monthParam = searchParams.get("month");
+    const yearParam = searchParams.get("year");
+
     if (tabParam) {
       const cleanTab = tabParam.toLowerCase() as TabFilter;
       if (["pending", "approved", "rejected", "history"].includes(cleanTab)) {
         setActiveTab(cleanTab);
+        if (cleanTab === "approved" && !monthParam && selectedMonth === "all") {
+          const curM = (new Date().getMonth() + 1).toString().padStart(2, "0");
+          setSelectedMonth(curM);
+        }
         newParams.delete("tab");
         updated = true;
       }
+    }
+
+    if (monthParam) {
+      if (monthParam === "all") {
+        setSelectedMonth("all");
+      } else if (monthParam === "current") {
+        const curM = (new Date().getMonth() + 1).toString().padStart(2, "0");
+        setSelectedMonth(curM);
+      } else {
+        const parsed = parseInt(monthParam, 10);
+        if (!isNaN(parsed) && parsed >= 1 && parsed <= 12) {
+          setSelectedMonth(parsed.toString().padStart(2, "0"));
+        }
+      }
+      newParams.delete("month");
+      updated = true;
+    }
+
+    if (yearParam) {
+      if (yearParam === "all") {
+        setSelectedYear("all");
+      } else {
+        const parsed = parseInt(yearParam, 10);
+        if (!isNaN(parsed) && parsed >= 2000 && parsed <= 2100) {
+          setSelectedYear(parsed.toString());
+        }
+      }
+      newParams.delete("year");
+      updated = true;
     }
 
     const leaveId = searchParams.get("leaveId");

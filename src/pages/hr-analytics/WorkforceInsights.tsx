@@ -1278,7 +1278,7 @@ export default function WorkforceInsights() {
                 </div>
 
                 <div 
-                  onClick={() => navigate("/leave/admin?tab=approved")}
+                  onClick={() => navigate(`/leave/admin?tab=approved&month=${month}&year=${year}`)}
                   className="flex items-center justify-between p-4 bg-slate-50/80 dark:bg-slate-900/60 hover:bg-[#942392]/5 border border-slate-100 dark:border-slate-800/80 hover:border-[#942392]/20 rounded-lg transition-all duration-300 cursor-pointer group"
                 >
                   <div className="flex items-center gap-4">
@@ -1297,7 +1297,7 @@ export default function WorkforceInsights() {
                 </div>
 
                 <div 
-                  onClick={() => navigate("/leave/admin?tab=approved")}
+                  onClick={() => navigate(`/leave/admin?tab=approved&month=${month}&year=${year}`)}
                   className="flex items-center justify-between p-4 bg-slate-50/80 dark:bg-slate-900/60 hover:bg-[#942392]/5 border border-slate-100 dark:border-slate-800/80 hover:border-[#942392]/20 rounded-lg transition-all duration-300 cursor-pointer group"
                 >
                   <div className="flex items-center gap-4">
@@ -1575,7 +1575,7 @@ export default function WorkforceInsights() {
                 </div>
 
                 <div 
-                  onClick={() => navigate("/leave/admin?tab=approved")}
+                  onClick={() => navigate(`/leave/admin?tab=approved&month=${month}&year=${year}`)}
                   className="flex items-center justify-between p-4 bg-slate-50/80 dark:bg-slate-900/60 hover:bg-[#942392]/5 border border-slate-100 dark:border-slate-800/80 hover:border-[#942392]/20 rounded-lg transition-all duration-300 cursor-pointer group"
                 >
                   <div className="flex items-center gap-4">
@@ -1594,7 +1594,7 @@ export default function WorkforceInsights() {
                 </div>
 
                 <div 
-                  onClick={() => navigate("/leave/admin?tab=approved")}
+                  onClick={() => navigate(`/leave/admin?tab=approved&month=${month}&year=${year}`)}
                   className="flex items-center justify-between p-4 bg-slate-50/80 dark:bg-slate-900/60 hover:bg-[#942392]/5 border border-slate-100 dark:border-slate-800/80 hover:border-[#942392]/20 rounded-lg transition-all duration-300 cursor-pointer group"
                 >
                   <div className="flex items-center gap-4">
