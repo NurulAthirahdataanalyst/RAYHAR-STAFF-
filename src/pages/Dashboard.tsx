@@ -175,9 +175,16 @@ export default function Dashboard() {
 
       try {
         const dateStr = selectedDate.toLocaleDateString("en-CA");
-        const response = await fetch(
-          `${API_BASE_URL}/api/dashboard-stats?userId=${dashboardUserId}&role=${role}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}&date=${dateStr}`
-        );
+        const url = `${API_BASE_URL}/api/dashboard-stats?userId=${dashboardUserId}&role=${role}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}&date=${dateStr}`;
+
+        let response: Response;
+        try {
+          response = await fetch(url);
+        } catch (fetchErr: any) {
+          // If server was restarting or waking up from sleep, auto-retry once after 1.5s
+          await new Promise((res) => setTimeout(res, 1500));
+          response = await fetch(url);
+        }
 
         if (!response.ok) {
           const errData = await response.json().catch(() => null);
@@ -227,16 +234,26 @@ export default function Dashboard() {
         }
       } catch (error: any) {
         console.error("Dashboard Sync Error:", error);
-        setSyncError(error?.message || "Failed to load dashboard statistics from server.");
-        if (!silent) {
+        const isNetworkErr = error?.message?.includes("Failed to fetch") || error?.name === "TypeError";
+        setSyncError(
+          isNetworkErr
+            ? "Server is currently reconnecting... Auto-syncing live data"
+            : (error?.message || "Failed to load dashboard statistics from server.")
+        );
+        if (!silent && !isNetworkErr) {
           toast.error("Dashboard Sync Error: " + (error?.message || "Failed to load stats"));
+        }
+        if (isNetworkErr) {
+          setTimeout(() => {
+            fetchDashboardData(true);
+          }, 4000);
         }
       } finally {
         setLoading(false);
         setIsRefreshing(false);
       }
     },
-    [applyAttendanceUpdate, dashboardUserId, role, selectedDate]
+    [applyAttendanceUpdate, dashboardUserId, role, userBranch, userDepartment, selectedDate]
   );
 
   const fetchWhoOutToday = useCallback(async () => {
@@ -669,16 +686,16 @@ export default function Dashboard() {
       </div>
 
       {syncError && (
-        <div className="flex items-center justify-between gap-3 p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 dark:text-red-400 text-sm font-medium animate-in fade-in duration-300">
+        <div className="flex items-center justify-between gap-3 p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-sm font-medium animate-in fade-in duration-300">
           <div className="flex items-center gap-2.5">
-            <AlertTriangle className="h-4 w-4 shrink-0 text-red-500 dark:text-red-400" />
-            <span>Unable to sync live dashboard data: {syncError}</span>
+            <AlertTriangle className="h-4 w-4 shrink-0 text-amber-500 dark:text-amber-400" />
+            <span>{syncError.includes("Server is currently reconnecting") ? syncError : `Unable to sync live dashboard data: ${syncError}`}</span>
           </div>
           <Button
             variant="outline"
             size="sm"
             onClick={() => fetchDashboardData()}
-            className="h-8 px-3 text-xs font-bold border-red-500/30 hover:bg-red-500/10 text-red-500 dark:text-red-400 shrink-0"
+            className="h-8 px-3 text-xs font-bold border-amber-500/30 hover:bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0"
           >
             Retry
           </Button>

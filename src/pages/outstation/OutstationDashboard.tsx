@@ -85,16 +85,20 @@ export default function OutstationDashboard() {
   });
 
   const hasLoadedRef = useRef(false);
-  const [loading, setLoading] = useState(() => {
+  const [initialLoaded, setInitialLoaded] = useState(() => {
     try {
       const cached = sessionStorage.getItem("outstation_dashboard_stats");
       if (cached) {
         hasLoadedRef.current = true;
-        return false;
+        return true;
       }
     } catch {}
-    return true;
+    return false;
   });
+  const [loading, setLoading] = useState(!initialLoaded);
+
+  // One-way latch: skeleton ONLY shows on initial cold load before data arrives
+  const showSkeleton = !initialLoaded;
 
   // Table state
   const [search, setSearch] = useState("");
@@ -157,6 +161,7 @@ export default function OutstationDashboard() {
         try { sessionStorage.setItem("outstation_dashboard_assignments", JSON.stringify(list)); } catch {}
       }
       hasLoadedRef.current = true;
+      setInitialLoaded(true);
     } catch (err) {
       console.error("Fetch error:", err);
     } finally {
@@ -429,8 +434,6 @@ export default function OutstationDashboard() {
   const employeesScheduledCount = upcomingNext7Days.length;
   const approvalPendingCount = 8; // mock
 
-  if (roleLoading) return <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-900/50"><Loader2 className="animate-spin w-8 h-8 text-purple-900" /></div>;
-
   return (
     <div className="animate-in fade-in duration-500 pb-12">
       <div className="py-2">
@@ -460,7 +463,7 @@ export default function OutstationDashboard() {
                     <div className="w-2.5 h-2.5 shrink-0 rounded-full bg-[#942392] shadow-xs"></div>
                     <span className="text-[11px] font-extrabold text-foreground dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Total Outstation</span>
                   </div>
-                  {loading ? (
+                  {showSkeleton ? (
                     <Skeleton className="h-[36px] w-16 my-2" />
                   ) : (
                     <div className="my-1">
@@ -487,7 +490,7 @@ export default function OutstationDashboard() {
                     <div className="w-2.5 h-2.5 shrink-0 rounded-full bg-emerald-500 shadow-xs"></div>
                     <span className="text-[11px] font-extrabold text-foreground dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Active Outstation</span>
                   </div>
-                  {loading ? (
+                  {showSkeleton ? (
                     <Skeleton className="h-[36px] w-16 my-2" />
                   ) : (
                     <div className="my-1">
@@ -514,7 +517,7 @@ export default function OutstationDashboard() {
                     <div className="w-2.5 h-2.5 shrink-0 rounded-full bg-orange-500 shadow-xs"></div>
                     <span className="text-[11px] font-extrabold text-foreground dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Departing Today</span>
                   </div>
-                  {loading ? (
+                  {showSkeleton ? (
                     <Skeleton className="h-[36px] w-16 my-2" />
                   ) : (
                     <div className="my-1">
@@ -541,7 +544,7 @@ export default function OutstationDashboard() {
                     <div className="w-2.5 h-2.5 shrink-0 rounded-full bg-blue-500 shadow-xs"></div>
                     <span className="text-[11px] font-extrabold text-foreground dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Returning Today</span>
                   </div>
-                  {loading ? (
+                  {showSkeleton ? (
                     <Skeleton className="h-[36px] w-16 my-2" />
                   ) : (
                     <div className="my-1">
@@ -568,7 +571,7 @@ export default function OutstationDashboard() {
                     <div className="w-2.5 h-2.5 shrink-0 rounded-full bg-purple-500 shadow-xs"></div>
                     <span className="text-[11px] font-extrabold text-foreground dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Upcoming Events</span>
                   </div>
-                  {loading ? (
+                  {showSkeleton ? (
                     <Skeleton className="h-[36px] w-16 my-2" />
                   ) : (
                     <div className="my-1">
@@ -595,7 +598,7 @@ export default function OutstationDashboard() {
                     <div className="w-2.5 h-2.5 shrink-0 rounded-full bg-amber-500 shadow-xs"></div>
                     <span className="text-[11px] font-extrabold text-foreground dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Employees Scheduled</span>
                   </div>
-                  {loading ? (
+                  {showSkeleton ? (
                     <Skeleton className="h-[36px] w-16 my-2" />
                   ) : (
                     <div className="my-1">
@@ -628,7 +631,7 @@ export default function OutstationDashboard() {
 
             </CardHeader>
             <CardContent className="p-0 flex-1 overflow-x-auto">
-              {loading ? (
+              {showSkeleton ? (
                 <div className="p-6 space-y-4">
                   {[1,2,3,4].map(n => <Skeleton key={n} className="h-12 w-full rounded-[8px]" />)}
                 </div>
@@ -917,7 +920,7 @@ export default function OutstationDashboard() {
                 </div>
               </CardHeader>
               <CardContent className="p-0 flex-1 overflow-x-auto">
-                {loading ? (
+                {showSkeleton ? (
                   <div className="p-6 space-y-4">
                     {[1,2,3,4].map(n => <Skeleton key={n} className="h-12 w-full rounded-[8px]" />)}
                   </div>
@@ -1199,7 +1202,7 @@ export default function OutstationDashboard() {
               <CardContent className="p-0 flex flex-col divide-y divide-gray-50">
                 <div className="p-5">
                   <h4 className="text-[10px] font-bold text-foreground uppercase tracking-widest mb-3">Departing Soon</h4>
-                  {loading ? <Skeleton className="h-10 w-full rounded" /> : upcoming.length === 0 ? <p className="text-[12px] text-muted-foreground">No upcoming departures</p> : upcoming.slice(0, 3).map((a, i) => (
+                  {showSkeleton ? <Skeleton className="h-10 w-full rounded" /> : upcoming.length === 0 ? <p className="text-[12px] text-muted-foreground">No upcoming departures</p> : upcoming.slice(0, 3).map((a, i) => (
                     <div key={i} className="flex items-center gap-3 mb-3 last:mb-0">
                       <div className="w-8 h-8 rounded-md bg-orange-50 flex items-center justify-center flex-shrink-0 border border-orange-100">
                         <Plane className="w-4 h-4 text-orange-600 transform rotate-45" />
@@ -1213,7 +1216,7 @@ export default function OutstationDashboard() {
                 </div>
                 <div className="p-5">
                   <h4 className="text-[10px] font-bold text-foreground uppercase tracking-widest mb-3">Returning Today</h4>
-                  {loading ? <Skeleton className="h-10 w-full rounded" /> : returns.length === 0 ? <p className="text-[12px] text-muted-foreground">No returns expected today</p> : returns.slice(0, 3).map((a, i) => (
+                  {showSkeleton ? <Skeleton className="h-10 w-full rounded" /> : returns.length === 0 ? <p className="text-[12px] text-muted-foreground">No returns expected today</p> : returns.slice(0, 3).map((a, i) => (
                     <div key={i} className="flex items-center gap-3 mb-3 last:mb-0">
                       <div className="w-8 h-8 rounded-md bg-blue-50 flex items-center justify-center flex-shrink-0 border border-blue-100">
                         <Plane className="w-4 h-4 text-blue-600 transform -rotate-45" />

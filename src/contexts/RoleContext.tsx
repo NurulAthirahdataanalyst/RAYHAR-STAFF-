@@ -125,35 +125,43 @@ export const RoleProvider: React.FC<{ children: React.ReactNode }> = ({ children
           } catch {}
 
           if (updateUserLocal) {
-            updateUserLocal({
-              full_name: fetchedName,
-              name: fetchedName,
-              branch: fetchedBranch,
-              department: fetchedDept,
-              role: parsedRole
-            });
+            const hasChanged = 
+              (user?.full_name || user?.name) !== fetchedName ||
+              user?.branch !== fetchedBranch ||
+              user?.department !== fetchedDept ||
+              normalizeRole(user?.role) !== parsedRole;
+
+            if (hasChanged) {
+              updateUserLocal({
+                full_name: fetchedName,
+                name: fetchedName,
+                branch: fetchedBranch,
+                department: fetchedDept,
+                role: parsedRole
+              });
+            }
           }
         } else {
-          setUserName(user.full_name || user.name || user.email || "User");
-          setUserBranch(user.branch || "HQ");
-          setUserDepartment(user.department || "");
-          if (user.role) {
+          setUserName(user?.full_name || user?.name || user?.email || "User");
+          setUserBranch(user?.branch || "HQ");
+          setUserDepartment(user?.department || "");
+          if (user?.role) {
             setRole(normalizeRole(user.role));
           }
         }
       } catch (error) {
         console.error("Role fetch error:", error);
-        setUserName(user.full_name || user.name || user.email || "User");
-        if (user.branch) setUserBranch(user.branch);
-        if (user.department) setUserDepartment(user.department);
-        if (user.role) setRole(normalizeRole(user.role));
+        setUserName(user?.full_name || user?.name || user?.email || "User");
+        if (user?.branch) setUserBranch(user.branch);
+        if (user?.department) setUserDepartment(user.department);
+        if (user?.role) setRole(normalizeRole(user.role));
       } finally {
         setLoading(false);
       }
     };
 
     fetchUserData();
-  }, [user, resolvedUserId]);
+  }, [resolvedUserId, user?.email]);
 
   return (
     <RoleContext.Provider value={{ role, setRole, userName, userBranch, userDepartment, userId: resolvedUserId, loading }}>

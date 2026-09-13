@@ -56,7 +56,9 @@ export default function OutstationAnalytics() {
   const [assignments, setAssignments] = useState<any[]>([]);
   const [stats, setStats] = useState<any>({});
   const hasLoadedRef = useRef(false);
+  const [initialLoaded, setInitialLoaded] = useState(false);
   const [loading, setLoading] = useState(true);
+  const showSkeleton = !initialLoaded;
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
   const [recentPage, setRecentPage] = useState(1);
@@ -95,6 +97,7 @@ export default function OutstationAnalytics() {
       if (statsData.success) setStats(statsData.stats || {});
       if (assignmentsData.success) setAssignments(assignmentsData.assignments || []);
       hasLoadedRef.current = true;
+      setInitialLoaded(true);
     } catch (e) {
       console.error("fetch outstation analytics", e);
     } finally {
@@ -825,7 +828,7 @@ export default function OutstationAnalytics() {
               <p className="text-xs text-foreground dark:text-foreground mt-0.5">View the latest outstation assignments and their status</p>
             </CardHeader>
             <CardContent className="p-0">
-              {loading ? (
+              {showSkeleton ? (
                 <div className="p-6 flex items-center justify-center"><Loader2 className="animate-spin w-6 h-6 text-[#942392]" /></div>
               ) : allRecentAssignments.length === 0 ? (
                 <div className="p-6 text-center text-foreground text-xs">No recent outstations found.</div>
