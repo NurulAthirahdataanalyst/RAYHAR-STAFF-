@@ -206,24 +206,24 @@ const CompanyLeaveCalendar = () => {
               No company leaves found. {isHR && "Click 'Add Company Leave' to create one."}
             </div>
           ) : (
-            <div className="relative overflow-x-auto">
+            <div className="relative overflow-x-auto rounded-xl">
               <table className="w-full text-sm text-left">
-                <thead className="text-xs text-foreground uppercase bg-muted/50">
+                <thead className="text-xs uppercase bg-[#942392] text-white shadow-xs">
                   <tr>
-                    <th className="px-4 py-3 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Leave Name</th>
-                    <th className="px-4 py-3 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Date Range</th>
-                    <th className="px-4 py-3 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Applies To</th>
-                    <th className="px-4 py-3 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Type</th>
-                    <th className="px-4 py-3 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Paid?</th>
-                    <th className="px-4 py-3 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Status</th>
-                    {isHR && <th className="px-4 py-3 text-right text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Actions</th>}
+                    <th className="px-4 py-3 text-[10px] font-black text-white uppercase tracking-widest whitespace-nowrap first:rounded-l-lg">Leave Name</th>
+                    <th className="px-4 py-3 text-[10px] font-black text-white uppercase tracking-widest whitespace-nowrap">Date Range</th>
+                    <th className="px-4 py-3 text-[10px] font-black text-white uppercase tracking-widest whitespace-nowrap">Applies To</th>
+                    <th className="px-4 py-3 text-[10px] font-black text-white uppercase tracking-widest whitespace-nowrap">Type</th>
+                    <th className="px-4 py-3 text-[10px] font-black text-white uppercase tracking-widest whitespace-nowrap">Paid?</th>
+                    <th className="px-4 py-3 text-[10px] font-black text-white uppercase tracking-widest whitespace-nowrap last:rounded-r-lg">Status</th>
+                    {isHR && <th className="px-4 py-3 text-right text-[10px] font-black text-white uppercase tracking-widest whitespace-nowrap last:rounded-r-lg">Actions</th>}
                   </tr>
                 </thead>
                 <tbody>
                   {leaves.slice((page - 1) * limit, page * limit).map((leave) => {
                     const endDateStr = (leave.end_date || leave.start_date || '').toString().slice(0, 10);
                     const todayStr = new Date().toISOString().slice(0, 10);
-                    const isCompleted = leave.status === 'Completed' || (endDateStr && endDateStr < todayStr);
+                    const isCompleted = leave.status === 'Completed' || Boolean(endDateStr && endDateStr < todayStr);
                     const displayStatus = isCompleted ? 'Completed' : (leave.status || 'Active');
 
                     return (
