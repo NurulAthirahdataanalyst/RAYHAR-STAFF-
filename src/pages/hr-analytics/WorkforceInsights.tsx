@@ -2224,12 +2224,12 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
         const tempOutstation = activeTemporary.filter((emp:any) => emp.status === 'Outstation').length;
 
         const isWeekend = activePermanent.length > 0
-          ? activePermanent.every((r:any) => r.status === "Weekend")
+          ? activePermanent.every((r:any) => r.status === "Weekend" || r.status === "Rest Day" || Boolean(r.is_rest_day))
           : (function() {
               const dateObj = new Date(year || new Date().getFullYear(), (month || new Date().getMonth() + 1) - 1, day || new Date().getDate());
               const dayOfWeek = dateObj.getDay();
               const isFirstWeek = (day || new Date().getDate()) <= 7;
-              const zone = (['AOR', 'KBR', 'TGG', 'DGN', 'KMM', 'CNH', 'KBG', 'JTH', 'RMP', 'MZM', 'TWU', 'BTM', 'KKS', 'MLK', 'SNS', 'JB', 'BTP'].includes(b.branch) ? 'ZONE_A' : 'ZONE_B');
+              const zone = (b as any).operating_zone || (b as any).zone || (['AOR', 'KBR', 'TGG', 'DGN', 'KMM', 'CNH', 'KBG', 'JTH', 'HQ'].includes(b.branch) ? 'ZONE_A' : 'ZONE_B');
               if (zone === "ZONE_A") {
                 return dayOfWeek === 5 || (dayOfWeek === 6 && isFirstWeek);
               } else {

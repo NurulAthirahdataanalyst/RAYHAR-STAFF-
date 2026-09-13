@@ -1938,7 +1938,7 @@ export default function Attendance() {
                       statusBadge = "bg-amber-100/50 text-amber-700 border-amber-200/50 dark:bg-amber-900/20 dark:text-amber-400";
                     } else if (log.status === "Holiday") {
                       statusBadge = "bg-blue-100/50 text-blue-700 border-blue-200/50 dark:bg-blue-900/20 dark:text-blue-400";
-                    } else if (log.status === "Weekend") {
+                    } else if (log.status === "Weekend" || log.status === "Rest Day") {
                       statusBadge = "bg-slate-100/50 text-slate-700 border-slate-200 dark:border-slate-800/50 dark:bg-slate-900/20 dark:text-foreground";
                     } else if (log.status === "N/A") {
                       statusBadge = "bg-slate-100/50 text-foreground border-slate-200 dark:border-slate-800/50 dark:bg-slate-900/20 dark:text-foreground";

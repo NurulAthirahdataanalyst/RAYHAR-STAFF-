@@ -660,7 +660,7 @@ export default function AttendanceDashboard() {
         ? "badge-company"
         : attStatus.includes("Leave")
         ? "badge-leave"
-        : attStatus.includes("Weekend")
+        : (attStatus.includes("Weekend") || attStatus.includes("Rest Day"))
         ? "badge-weekend"
         : "badge-absent";
 
@@ -920,7 +920,7 @@ export default function AttendanceDashboard() {
         const tempOutstation = activeTemporary.filter(emp => emp.status === 'Outstation').length;
 
         const isWeekend = activePermanent.length > 0
-          ? activePermanent.every(r => r.status === "Weekend")
+          ? activePermanent.every(r => r.status === "Weekend" || r.status === "Rest Day" || Boolean(r.is_rest_day))
           : (function() {
               const parts = (selectedDate || '').split('-').map(Number);
               if (parts.length < 3) return false;
@@ -928,7 +928,8 @@ export default function AttendanceDashboard() {
               const dateObj = new Date(y, m - 1, d);
               const dayOfWeek = dateObj.getDay();
               const isFirstWeek = d <= 7;
-              const zone = (b as any).zone || (['AOR', 'KBR', 'TGG', 'DGN', 'KMM', 'CNH', 'KBG', 'JTH', 'RMP', 'MZM', 'TWU', 'BTM', 'KKS', 'MLK', 'SNS', 'JB', 'BTP'].includes(b.branch) ? 'ZONE_A' : 'ZONE_B');
+              const branchObj = branches.find(br => br.code === b.branch || br.name === b.branch);
+              const zone = branchObj?.operating_zone || (b as any).zone || (['AOR', 'KBR', 'TGG', 'DGN', 'KMM', 'CNH', 'KBG', 'JTH', 'HQ'].includes(b.branch) ? 'ZONE_A' : 'ZONE_B');
               if (zone === "ZONE_A") {
                 return dayOfWeek === 5 || (dayOfWeek === 6 && isFirstWeek);
               } else {
@@ -1028,7 +1029,7 @@ export default function AttendanceDashboard() {
         // Allow Outstation and Leave employees even if they didn't clock in
         // EXCEPT if the user is actively searching for them!
         if (!r.clock_in && displayStatus !== 'Outstation' && displayStatus !== 'Approved Leave' && displayStatus !== 'Company Leave') {
-          if (searchTerm.trim() === '') return false;
+          if (searchTerm.trim() === '' && selectedStatusFilter !== 'weekend' && selectedStatusFilter !== 'absent') return false;
         }
 
         const matchesStatus = selectedStatusFilter === "all" || 
@@ -1037,7 +1038,7 @@ export default function AttendanceDashboard() {
           (selectedStatusFilter === "approved_leave" && displayStatus === "Approved Leave") ||
           (selectedStatusFilter === "company_leave" && displayStatus === "Company Leave") ||
           (selectedStatusFilter === "outstation" && displayStatus === "Outstation") ||
-          (selectedStatusFilter === "weekend" && displayStatus === "Weekend") ||
+          (selectedStatusFilter === "weekend" && (displayStatus === "Weekend" || displayStatus === "Rest Day" || Boolean(r.is_rest_day))) ||
           (selectedStatusFilter === "absent" && displayStatus === "Absent") ||
           (selectedStatusFilter === "clocked_out" && r.clock_out != null) ||
           (selectedStatusFilter === "temporary_branch" && !!activeTempUsers[r.user_id]) ||
@@ -1076,9 +1077,11 @@ export default function AttendanceDashboard() {
 
   const zoneARestEmployees = useMemo(() => {
     return dailyAttendance.filter((r: any) => {
-      let displayStatus = r.status;
-      if (displayStatus !== "Weekend" && displayStatus !== "Holiday") return false;
-      if (r.zone !== 'ZONE_A') return false;
+      const displayStatus = r.status;
+      const isRest = displayStatus === "Weekend" || displayStatus === "Rest Day" || displayStatus === "Holiday" || Boolean(r.is_rest_day);
+      if (!isRest) return false;
+      const empZone = r.zone || r.operating_zone || (['AOR', 'CNH', 'DGN', 'HQ', 'JTH', 'KBG', 'KBR', 'KMM', 'TGG'].includes((r.branch || '').toUpperCase()) ? 'ZONE_A' : 'ZONE_B');
+      if (empZone !== 'ZONE_A') return false;
       
       const matchesBranch = selectedBranchFilter === "all" || r.branch === selectedBranchFilter;
       const matchesDept = selectedDepartmentFilter === "all" || r.department === selectedDepartmentFilter;
@@ -1091,9 +1094,11 @@ export default function AttendanceDashboard() {
 
   const zoneBRestEmployees = useMemo(() => {
     return dailyAttendance.filter((r: any) => {
-      let displayStatus = r.status;
-      if (displayStatus !== "Weekend" && displayStatus !== "Holiday") return false;
-      if (r.zone !== 'ZONE_B') return false;
+      const displayStatus = r.status;
+      const isRest = displayStatus === "Weekend" || displayStatus === "Rest Day" || displayStatus === "Holiday" || Boolean(r.is_rest_day);
+      if (!isRest) return false;
+      const empZone = r.zone || r.operating_zone || (['AOR', 'CNH', 'DGN', 'HQ', 'JTH', 'KBG', 'KBR', 'KMM', 'TGG'].includes((r.branch || '').toUpperCase()) ? 'ZONE_A' : 'ZONE_B');
+      if (empZone !== 'ZONE_B') return false;
       
       const matchesBranch = selectedBranchFilter === "all" || r.branch === selectedBranchFilter;
       const matchesDept = selectedDepartmentFilter === "all" || r.department === selectedDepartmentFilter;
@@ -1174,7 +1179,7 @@ export default function AttendanceDashboard() {
                 : (liveStats.total || 1);
               const card6 = liveStats.hasCompanyLeave
                 ? { label: "Company Leave", val: `${liveStats.total > 0 ? Math.round(((liveStats.companyLeave || 0) / liveStats.total) * 100) : 0}%`, sub: `${liveStats.companyLeave || 0} / ${liveStats.total} Employees`, color: "text-indigo-600", bg: "bg-indigo-50 dark:bg-indigo-950/50", icon: <Building2 className="w-5 h-5"/>, trend: "—" }
-                : { label: "Weekend", val: `${liveStats.total > 0 ? Math.round(((liveStats.weekend || 0) / liveStats.total) * 100) : 0}%`, sub: `${liveStats.weekend || 0} / ${liveStats.total} Employees`, color: "text-foreground", bg: "bg-slate-100 dark:bg-slate-800", icon: <CalendarDays className="w-5 h-5"/>, trend: "—" };
+                : { label: "Weekend / Rest Day", val: `${liveStats.total > 0 ? Math.round(((liveStats.weekend || 0) / liveStats.total) * 100) : 0}%`, sub: `${liveStats.weekend || 0} / ${liveStats.total} Employees`, color: "text-foreground", bg: "bg-slate-100 dark:bg-slate-800", icon: <CalendarDays className="w-5 h-5"/>, trend: "—" };
               return [
                 { label: "Present Today", val: `${denom > 0 ? Math.round((liveStats.present / denom) * 100) : 0}%`, sub: `${liveStats.present} / ${denom} Employees`, color: "text-[#942392]", bg: "bg-[#942392]/10 dark:bg-[#942392]/25", icon: <CheckCircle2 className="w-5 h-5"/>, trend: "↑ 5% vs Yesterday" },
                 { label: "On Time", val: `${denom > 0 ? Math.round(((liveStats.present - liveStats.late) / denom) * 100) : 0}%`, sub: `${Math.max(0, liveStats.present - liveStats.late)} / ${denom} Employees`, color: "text-emerald-600", bg: "bg-emerald-50 dark:bg-emerald-950/50", icon: <Clock className="w-5 h-5"/>, trend: "—" },
@@ -1307,7 +1312,7 @@ export default function AttendanceDashboard() {
                   <SelectItem value="approved_leave">Approved Leave</SelectItem>
                   <SelectItem value="company_leave">Company Leave</SelectItem>
                   <SelectItem value="outstation">Outstation</SelectItem>
-                  <SelectItem value="weekend">Weekend</SelectItem>
+                  <SelectItem value="weekend">Weekend / Rest Day</SelectItem>
                   <SelectItem value="clocked_out">Clocked Out</SelectItem>
                   <SelectItem value="temporary_branch">Temporary Branch</SelectItem>
                   <SelectItem value="multi_location">Multi-Location</SelectItem>
@@ -1450,7 +1455,7 @@ export default function AttendanceDashboard() {
                         ? "bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-400 border border-blue-100 dark:border-blue-800/50"
                         : attStatus === "Outstation"
                         ? "bg-pink-50 dark:bg-pink-950/30 text-pink-700 dark:text-pink-400 border border-pink-200 dark:border-pink-800/50 shadow-sm"
-                        : attStatus === "Weekend"
+                        : (attStatus === "Weekend" || attStatus === "Rest Day")
                         ? "bg-gray-50 dark:bg-slate-900/50 text-gray-700 dark:text-gray-300 border border-gray-100 dark:border-slate-800"
                         : "bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-400 border border-red-100 dark:border-red-800/50";
 
@@ -1499,7 +1504,7 @@ export default function AttendanceDashboard() {
                                   attStatus === 'Company Leave' ? 'bg-purple-500' :
                                   attStatus === 'Approved Leave' ? 'bg-blue-500' :
                                   attStatus === 'Outstation' ? 'bg-[#f746b9] animate-pulse' :
-                                  attStatus === 'Weekend' ? 'bg-gray-500' :
+                                  (attStatus === 'Weekend' || attStatus === 'Rest Day') ? 'bg-gray-500' :
                                   'bg-red-500'
                                 }`} />
                                 {attStatus}
@@ -1929,85 +1934,77 @@ export default function AttendanceDashboard() {
               )}
               
               {/* Top: Donut Chart & Breakdown */}
-              <div className="flex flex-row items-center gap-8">
-                <div className="relative h-[160px] w-[160px] shrink-0">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <RechartsPieChart>
-                      <Pie
-                        data={[
-                          { name: 'Present (On Time)', value: Math.max(0, (liveStats.present || 0) - (liveStats.late || 0)), color: '#16A34A' },
-                          { name: 'Present (Late)', value: liveStats.late || 0, color: '#EAB308' },
-                          { name: 'Outstation', value: liveStats.outstation || 0, color: '#f746b9' },
-                          { name: 'Approved Leave', value: liveStats.onLeave || 0, color: '#3B82F6' },
-                          { name: 'Company Leave', value: liveStats.companyLeave || 0, color: '#8B5CF6' },
-                          { name: 'Absent', value: liveStats.absent || 0, color: '#DC2626' },
-                        ]}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={50}
-                        outerRadius={75}
-                        paddingAngle={3}
-                        dataKey="value"
-                        stroke="none"
-                        cornerRadius={6}
-                        onMouseEnter={(entry) => setHoveredSlice(entry)}
-                        onMouseLeave={() => setHoveredSlice(null)}
-                      >
-                        {[
-                          { name: 'Present (On Time)', value: Math.max(0, (liveStats.present || 0) - (liveStats.late || 0)), color: '#16A34A' },
-                          { name: 'Present (Late)', value: liveStats.late || 0, color: '#EAB308' },
-                          { name: 'Outstation', value: liveStats.outstation || 0, color: '#f746b9' },
-                          { name: 'Approved Leave', value: liveStats.onLeave || 0, color: '#3B82F6' },
-                          { name: 'Company Leave', value: liveStats.companyLeave || 0, color: '#8B5CF6' },
-                          { name: 'Absent', value: liveStats.absent || 0, color: '#DC2626' },
-                        ].map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                    </RechartsPieChart>
-                  </ResponsiveContainer>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                    <span className="text-[28px] font-black text-gray-900 dark:text-gray-100 leading-none">
-                      {hoveredSlice ? hoveredSlice.value : Math.max(0, (liveStats.present || 0) - (liveStats.late || 0))}
-                    </span>
-                    <span className="text-[9px] font-bold uppercase tracking-wider text-foreground mt-1 text-center max-w-[110px] truncate">
-                      {hoveredSlice ? hoveredSlice.name : "PRESENT (ON TIME)"}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Status Legend */}
-                <div className="flex-1 flex flex-col justify-center space-y-2">
-                  {[
-                    { name: 'Present (On Time)', value: Math.max(0, (liveStats.present || 0) - (liveStats.late || 0)), color: '#16A34A' },
-                    { name: 'Present (Late)', value: liveStats.late || 0, color: '#EAB308' },
-                    { name: 'Outstation', value: liveStats.outstation || 0, color: '#f746b9' },
-                    { name: 'Approved Leave', value: liveStats.onLeave || 0, color: '#3B82F6' },
-                    { name: 'Company Leave', value: liveStats.companyLeave || 0, color: '#8B5CF6' },
-                    { name: 'Absent', value: liveStats.absent || 0, color: '#DC2626' },
-                  ].map((entry, idx) => (
-                    <div key={idx} className="flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div
-                          className="w-3 h-3 rounded-full shrink-0 shadow-sm"
-                          style={{ backgroundColor: entry.color }}
-                        />
-                        <span className="text-[12px] font-bold text-gray-700 dark:text-slate-300 truncate">
-                          {entry.name}
+              {(() => {
+                const donutData = [
+                  { name: 'Present (On Time)', value: Math.max(0, (liveStats.present || 0) - (liveStats.late || 0)), color: '#16A34A' },
+                  { name: 'Present (Late)', value: liveStats.late || 0, color: '#EAB308' },
+                  { name: 'Outstation', value: liveStats.outstation || 0, color: '#f746b9' },
+                  { name: 'Approved Leave', value: liveStats.onLeave || 0, color: '#3B82F6' },
+                  { name: 'Company Leave', value: liveStats.companyLeave || 0, color: '#8B5CF6' },
+                  ...(liveStats.weekend ? [{ name: 'Weekend / Rest Day', value: liveStats.weekend, color: '#64748B' }] : []),
+                  { name: 'Absent', value: liveStats.absent || 0, color: '#DC2626' },
+                ];
+                return (
+                  <div className="flex flex-row items-center gap-8">
+                    <div className="relative h-[160px] w-[160px] shrink-0">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <RechartsPieChart>
+                          <Pie
+                            data={donutData}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={50}
+                            outerRadius={75}
+                            paddingAngle={3}
+                            dataKey="value"
+                            stroke="none"
+                            cornerRadius={6}
+                            onMouseEnter={(entry) => setHoveredSlice(entry)}
+                            onMouseLeave={() => setHoveredSlice(null)}
+                          >
+                            {donutData.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={entry.color} />
+                            ))}
+                          </Pie>
+                        </RechartsPieChart>
+                      </ResponsiveContainer>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                        <span className="text-[28px] font-black text-gray-900 dark:text-gray-100 leading-none">
+                          {hoveredSlice ? hoveredSlice.value : Math.max(0, (liveStats.present || 0) - (liveStats.late || 0))}
                         </span>
-                      </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <span className="text-[13px] font-black text-gray-900 dark:text-gray-100">
-                          {entry.value}
-                        </span>
-                        <span className="text-[11px] font-bold text-foreground min-w-[32px] text-right">
-                          ({liveStats.total > 0 ? Math.round((entry.value / liveStats.total) * 100) : 0}%)
+                        <span className="text-[9px] font-bold uppercase tracking-wider text-foreground mt-1 text-center max-w-[110px] truncate">
+                          {hoveredSlice ? hoveredSlice.name : "PRESENT (ON TIME)"}
                         </span>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </div>
+
+                    {/* Status Legend */}
+                    <div className="flex-1 flex flex-col justify-center space-y-2">
+                      {donutData.map((entry, idx) => (
+                        <div key={idx} className="flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div
+                              className="w-3 h-3 rounded-full shrink-0 shadow-sm"
+                              style={{ backgroundColor: entry.color }}
+                            />
+                            <span className="text-[12px] font-bold text-gray-700 dark:text-slate-300 truncate">
+                              {entry.name}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span className="text-[13px] font-black text-gray-900 dark:text-gray-100">
+                              {entry.value}
+                            </span>
+                            <span className="text-[11px] font-bold text-foreground min-w-[32px] text-right">
+                              ({liveStats.total > 0 ? Math.round((entry.value / liveStats.total) * 100) : 0}%)
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Anomaly Insight Section */}
               {((liveStats.absent || 0) / (liveStats.total || 1)) > 0.2 && (
