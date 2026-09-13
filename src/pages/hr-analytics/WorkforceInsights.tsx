@@ -1110,6 +1110,30 @@ export default function WorkforceInsights() {
               <div className="w-full relative h-[130px] flex items-center justify-center mt-1 mb-2">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
+                    <RechartsTooltip
+                      wrapperStyle={{ zIndex: 100 }}
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          const slice = payload[0].payload;
+                          const count = slice.value;
+                          const total = totalTeam || 1;
+                          const pct = Math.round((count / total) * 100);
+                          return (
+                            <div className="bg-slate-900/95 dark:bg-slate-800/95 text-white px-2.5 py-1.5 rounded-lg shadow-xl border border-slate-700/60 backdrop-blur-sm text-xs z-50 pointer-events-none">
+                              <div className="flex items-center gap-1.5 mb-0.5">
+                                <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: slice.color || COLORS[0] }} />
+                                <span className="font-bold text-slate-100">{slice.name}</span>
+                              </div>
+                              <div className="flex items-center justify-between gap-3 text-slate-300 text-[10px] font-medium">
+                                <span>Members: <b className="text-white font-black">{count}</b></span>
+                                <span className="text-emerald-400 font-bold">{pct}%</span>
+                              </div>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
                     <Pie
                       data={donutData}
                       cx="50%"
@@ -1121,10 +1145,9 @@ export default function WorkforceInsights() {
                       stroke="none"
                     >
                       {(Array.isArray(donutData) ? donutData : []).map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} className="cursor-pointer outline-none hover:opacity-80 transition-opacity" />
                       ))}
                     </Pie>
-
                   </PieChart>
                 </ResponsiveContainer>
                 
@@ -2805,6 +2828,29 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                       <div className="w-[140px] h-[140px] relative">
                         <ResponsiveContainer width="100%" height="100%">
                           <PieChart>
+                            <RechartsTooltip
+                              wrapperStyle={{ zIndex: 100 }}
+                              content={({ active, payload }) => {
+                                if (active && payload && payload.length) {
+                                  const slice = payload[0].payload;
+                                  const count = slice.value;
+                                  const pct = totalLeaveCount > 0 ? Math.round((count / totalLeaveCount) * 100) : 0;
+                                  return (
+                                    <div className="bg-slate-900/95 dark:bg-slate-800/95 text-white px-2.5 py-1.5 rounded-lg shadow-xl border border-slate-700/60 backdrop-blur-sm text-xs z-50 pointer-events-none">
+                                      <div className="flex items-center gap-1.5 mb-0.5">
+                                        <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: slice.color }} />
+                                        <span className="font-bold text-slate-100">{slice.name}</span>
+                                      </div>
+                                      <div className="flex items-center justify-between gap-3 text-slate-300 text-[10px] font-medium">
+                                        <span>Total: <b className="text-white font-black">{count}</b></span>
+                                        <span className="text-emerald-400 font-bold">{pct}%</span>
+                                      </div>
+                                    </div>
+                                  );
+                                }
+                                return null;
+                              }}
+                            />
                             <Pie
                               data={pieSlices}
                               innerRadius={45}
@@ -2814,7 +2860,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                               stroke="none"
                             >
                               {pieSlices.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={entry.color} />
+                                <Cell key={`cell-${index}`} fill={entry.color} className="cursor-pointer outline-none hover:opacity-80 transition-opacity" />
                               ))}
                             </Pie>
                           </PieChart>

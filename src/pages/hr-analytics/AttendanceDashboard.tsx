@@ -1949,6 +1949,30 @@ export default function AttendanceDashboard() {
                     <div className="relative h-[160px] w-[160px] shrink-0">
                       <ResponsiveContainer width="100%" height="100%">
                         <RechartsPieChart>
+                          <Tooltip
+                            wrapperStyle={{ zIndex: 100 }}
+                            content={({ active, payload }) => {
+                              if (active && payload && payload.length) {
+                                const slice = payload[0].payload;
+                                const count = slice.value;
+                                const total = liveStats.total || 1;
+                                const pct = Math.round((count / total) * 100);
+                                return (
+                                  <div className="bg-slate-900/95 dark:bg-slate-800/95 text-white px-2.5 py-1.5 rounded-lg shadow-xl border border-slate-700/60 backdrop-blur-sm text-xs z-50 pointer-events-none">
+                                    <div className="flex items-center gap-1.5 mb-0.5">
+                                      <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: slice.color }} />
+                                      <span className="font-bold text-slate-100">{slice.name}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between gap-3 text-slate-300 text-[10px] font-medium">
+                                      <span>Count: <b className="text-white font-black">{count}</b></span>
+                                      <span className="text-emerald-400 font-bold">{pct}%</span>
+                                    </div>
+                                  </div>
+                                );
+                              }
+                              return null;
+                            }}
+                          />
                           <Pie
                             data={donutData}
                             cx="50%"
@@ -1963,7 +1987,7 @@ export default function AttendanceDashboard() {
                             onMouseLeave={() => setHoveredSlice(null)}
                           >
                             {donutData.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={entry.color} />
+                              <Cell key={`cell-${index}`} fill={entry.color} className="cursor-pointer outline-none hover:opacity-80 transition-opacity" />
                             ))}
                           </Pie>
                         </RechartsPieChart>
