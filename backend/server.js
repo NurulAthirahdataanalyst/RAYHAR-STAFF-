@@ -153,6 +153,63 @@ function checkIsWeekend(zone, dateObj) {
   }
 }
 
+function toDateStr(d) {
+  if (!d) return null;
+  if (typeof d === 'string') return d.slice(0, 10);
+  if (d instanceof Date) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+  return String(d).slice(0, 10);
+}
+
+function getCutiGantiDates(reason, fallbackTarikh) {
+  if (!reason && !fallbackTarikh) return null;
+  let dates = [];
+  if (reason) {
+    const match = reason.match(/\[CUTI_GANTI_DATA:([\s\S]*?)\]\]/);
+    if (match) {
+      try {
+        const rawJson = reason.substring(reason.indexOf('[CUTI_GANTI_DATA:') + 17, reason.lastIndexOf(']]') + 1);
+        const rows = JSON.parse(rawJson);
+        if (Array.isArray(rows)) {
+          dates = rows.map(r => r.tarikhCuti || r.tarikh || r.cutiDate || r.date).filter(Boolean);
+        }
+      } catch (e) {}
+    }
+  }
+  if (dates.length === 0 && fallbackTarikh) {
+    dates = [String(fallbackTarikh).substring(0, 10)];
+  }
+  return dates.length > 0 ? dates.map(d => String(d).substring(0, 10)) : null;
+}
+
+function isEmployeeOnLeaveOnDate(leaveRow, targetDateStr) {
+  if (!leaveRow || !targetDateStr) return false;
+  const target = toDateStr(targetDateStr);
+  const isRepLeave = leaveRow.leave_type && (
+    leaveRow.leave_type.toUpperCase().includes('REPLACEMENT') || 
+    leaveRow.leave_type.toUpperCase().includes('GANTI')
+  );
+
+  if (isRepLeave) {
+    const cgDates = getCutiGantiDates(leaveRow.reason, leaveRow.cuti_ganti_tarikh);
+    if (cgDates && cgDates.length > 0) {
+      return cgDates.includes(target);
+    }
+    const s = toDateStr(leaveRow.start_date);
+    const e = toDateStr(leaveRow.end_date);
+    return target === s || target === e;
+  }
+
+  const s = toDateStr(leaveRow.start_date);
+  const e = toDateStr(leaveRow.end_date);
+  if (!s || !e) return false;
+  return target >= s && target <= e;
+}
+
 function getWorkHoursForZone(zone, dateObj) {
   const day = dateObj.getDay();
   const dateNum = dateObj.getDate();
@@ -1307,7 +1364,7 @@ async function getLiveAttendanceStats(queryDate, role, branch, department) {
     // On leave today
     const leaveParams = [dateStr, ...paramsTotal];
     const [leaveRows] = await pool.query(
-      `SELECT DISTINCT lr.user_id, lr.leave_type, p.full_name, p.branch, p.department
+      `SELECT DISTINCT lr.user_id, lr.leave_type, lr.reason, lr.cuti_ganti_tarikh, lr.start_date, lr.end_date, p.full_name, p.branch, p.department
        FROM leave_requests lr
        JOIN profiles p ON p.user_id = lr.user_id
        WHERE lr.status = 'Approved' AND ? BETWEEN lr.start_date AND lr.end_date
@@ -1315,7 +1372,8 @@ async function getLiveAttendanceStats(queryDate, role, branch, department) {
       leaveParams
     );
 
-    const onLeaveIds = new Set(leaveRows.map(r => r.user_id));
+    const activeLeaveRows = leaveRows.filter(r => isEmployeeOnLeaveOnDate(r, dateStr));
+    const onLeaveIds = new Set(activeLeaveRows.map(r => r.user_id));
 
     // Outstation today
     const outstationParams = [dateStr, ...paramsTotal];
@@ -1434,13 +1492,7 @@ async function getLiveAttendanceStats(queryDate, role, branch, department) {
       }
       // 3. On Approved Personal Leave
       else if (onLeaveIds.has(uid)) {
-        const leaveRow = leaveRows.find(lr => lr.user_id === uid);
-        const isRepLeave = leaveRow && leaveRow.leave_type && (leaveRow.leave_type.toUpperCase().includes('REPLACEMENT') || leaveRow.leave_type.toUpperCase().includes('GANTI'));
-        if (isRepLeave) {
-          weekendList.push({ user_id: uid, full_name: p.full_name, branch: p.branch || 'HQ', department: p.department || '—', clock_in: null, clock_out: null, status: 'weekend' });
-        } else {
-          leaveList.push({ user_id: uid, full_name: p.full_name, branch: p.branch || 'HQ', department: p.department || '—', clock_in: null, clock_out: null, status: 'onLeave' });
-        }
+        leaveList.push({ user_id: uid, full_name: p.full_name, branch: p.branch || 'HQ', department: p.department || '—', clock_in: null, clock_out: null, status: 'onLeave' });
       }
       // 4. Clocked In
       else if (clockMap[uid]) {
@@ -1871,13 +1923,13 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
 
   // On leave today
   const [leaveRows] = await pool.query(
-    `SELECT DISTINCT lr.user_id FROM leave_requests lr
+    `SELECT DISTINCT lr.user_id, lr.leave_type, lr.reason, lr.cuti_ganti_tarikh, lr.start_date, lr.end_date FROM leave_requests lr
      JOIN profiles p ON p.user_id = lr.user_id
      WHERE lr.status = 'Approved' AND ? BETWEEN lr.start_date AND lr.end_date
      AND p.status = 'Active' ${filterP}`,
     [dateStr, ...paramsBase]
   );
-  const onLeaveIds = new Set(leaveRows.map(r => r.user_id));
+  const onLeaveIds = new Set(leaveRows.filter(r => isEmployeeOnLeaveOnDate(r, dateStr)).map(r => r.user_id));
 
   // Deduplicate by user_id (first clock-in per user)
   const clockMap = {};
@@ -5726,19 +5778,27 @@ app.get("/api/dashboard-stats", async (req, res) => {
       const presentParams = [queryDate, queryDate, queryDate, ...queryParams];
       const onLeaveParams = [queryDate, ...queryParams];
 
-      const [presentRows] = await pool.query(
+      // Fetch leave candidates overlapping date, then accurately verify leave dates
+      const [rawLeaveRows] = await pool.query(
+        `SELECT lr.user_id, lr.leave_type, lr.reason, lr.cuti_ganti_tarikh, lr.start_date, lr.end_date
+         FROM leave_requests lr
+         JOIN profiles p ON p.user_id = lr.user_id
+         WHERE lr.status = 'Approved' AND ${dateCondition} BETWEEN DATE(lr.start_date) AND DATE(lr.end_date) ${attendanceFilter}`,
+        onLeaveParams
+      );
+
+      const activeOnLeaveUsers = rawLeaveRows.filter(lr => isEmployeeOnLeaveOnDate(lr, queryDate));
+      const onLeaveUserIdsSet = new Set(activeOnLeaveUsers.map(lr => lr.user_id));
+      const onLeaveRows = Array.from(onLeaveUserIdsSet).map(uid => ({ user_id: uid }));
+
+      const [rawPresentRows] = await pool.query(
         `SELECT DISTINCT user_id FROM attendances 
          WHERE DATE(clock_in) = ${dateCondition} 
-         AND user_id NOT IN (SELECT user_id FROM leave_requests WHERE status = 'Approved' AND ${dateCondition} BETWEEN DATE(start_date) AND DATE(end_date))
          AND user_id NOT IN (SELECT user_id FROM outstation_assignments WHERE status != 'Cancelled' AND ${dateCondition} BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date)
          ${attendanceFilter}`,
         presentParams
       );
-
-      const [onLeaveRows] = await pool.query(
-        `SELECT DISTINCT user_id FROM leave_requests WHERE status = 'Approved' AND ${dateCondition} BETWEEN DATE(start_date) AND DATE(end_date) ${attendanceFilter}`,
-        onLeaveParams
-      );
+      const presentRows = rawPresentRows.filter(r => !onLeaveUserIdsSet.has(r.user_id));
 
       const [outstationRows] = await pool.query(
         `SELECT COUNT(DISTINCT user_id) AS outstation FROM outstation_assignments WHERE status != 'Cancelled' AND ${dateCondition} BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date ${attendanceFilter}`,
@@ -5748,21 +5808,16 @@ app.get("/api/dashboard-stats", async (req, res) => {
       const lateTimeStr = getLateThresholdTime();
       const lateFilter = attendanceFilter ? attendanceFilter.replace(/\buser_id\b/g, 'fc.user_id') : "";
       const lateParams = [queryDate, queryDate, queryDate, ...queryParams];
-      const [lateRows] = await pool.query(
+      const [rawLateRows] = await pool.query(
         `WITH first_clocks AS (
            SELECT user_id, MIN(clock_in) AS first_clock_in
            FROM attendances
            WHERE DATE(clock_in) = ${dateCondition}
            GROUP BY user_id
          )
-         SELECT COUNT(DISTINCT fc.user_id) AS late_arrivals 
+         SELECT DISTINCT fc.user_id 
          FROM first_clocks fc
          WHERE (fc.first_clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::time > '${lateTimeStr}' 
-         AND NOT EXISTS (
-           SELECT 1 FROM leave_requests lr 
-           WHERE lr.user_id = fc.user_id AND lr.status = 'Approved' 
-           AND ${dateCondition} BETWEEN lr.start_date AND lr.end_date
-         )
          AND NOT EXISTS (
            SELECT 1 FROM outstation_assignments oa 
            WHERE oa.user_id = fc.user_id AND oa.status != 'Cancelled' 
@@ -5771,6 +5826,8 @@ app.get("/api/dashboard-stats", async (req, res) => {
          ${lateFilter}`,
         lateParams
       );
+      const lateArrivalsCount = rawLateRows.filter(r => !onLeaveUserIdsSet.has(r.user_id)).length;
+      const lateRows = [{ late_arrivals: lateArrivalsCount }];
 
       let statusToCount = "Pending%";
       if (role === "head_of_department") {
@@ -5841,11 +5898,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
       );
       const clockedInSet = new Set(clockedInRows.map(r => r.user_id));
 
-      const [personalLeaveRows] = await pool.query(
-        `SELECT DISTINCT user_id FROM leave_requests WHERE status = 'Approved' AND ${dateCondition} BETWEEN DATE(start_date) AND DATE(end_date) ${attendanceFilter}`,
-        onLeaveParams
-      );
-      const personalLeaveSet = new Set(personalLeaveRows.map(r => r.user_id));
+      const personalLeaveSet = onLeaveUserIdsSet;
 
       const outstationSet = new Set(outstationTodayRows.map(r => r.user_id));
 
@@ -6013,10 +6066,11 @@ app.get("/api/dashboard-stats", async (req, res) => {
     const isMultiLocation = allowedLocationsRows.length > 0;
 
     // OVERRIDE IF ON LEAVE TODAY
-    const [onLeaveTodayRows] = await pool.query(
-      `SELECT status, leave_type FROM leave_requests WHERE user_id = ? AND status = 'Approved' AND ?::date BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date LIMIT 1`,
+    const [rawOnLeaveTodayRows] = await pool.query(
+      `SELECT status, leave_type, reason, cuti_ganti_tarikh, start_date, end_date FROM leave_requests WHERE user_id = ? AND status = 'Approved' AND ?::date BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date`,
       [userId, queryDate]
     );
+    const onLeaveTodayRows = rawOnLeaveTodayRows.filter(lr => isEmployeeOnLeaveOnDate(lr, queryDate));
 
     let onLeaveType = null;
     if (onLeaveTodayRows.length > 0) {
@@ -6531,8 +6585,18 @@ app.get("/api/reports/absent-employees", async (req, res) => {
   const queryDate = date ? date : new Date().toISOString().split('T')[0];
 
   try {
+    const [leaveCandRows] = await pool.query(
+      `SELECT lr.user_id, lr.leave_type, lr.reason, lr.cuti_ganti_tarikh, lr.start_date, lr.end_date
+       FROM leave_requests lr
+       WHERE lr.status = 'Approved' AND ?::date BETWEEN lr.start_date AND lr.end_date`,
+      [queryDate]
+    );
+    const activeLeaveUserIds = new Set(
+      leaveCandRows.filter(lr => isEmployeeOnLeaveOnDate(lr, queryDate)).map(lr => lr.user_id)
+    );
+
     let profileFilter = "";
-    let queryParams = [queryDate, queryDate, queryDate, queryDate, queryDate];
+    let queryParams = [queryDate, queryDate, queryDate, queryDate];
 
     if (role === 'branch_leader') {
       const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
@@ -6568,13 +6632,7 @@ app.get("/api/reports/absent-employees", async (req, res) => {
         WHERE a.user_id = p.user_id 
         AND DATE(a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
       )
-      -- 2. Not on approved leave today
-      AND NOT EXISTS (
-        SELECT 1 FROM leave_requests lr 
-        WHERE lr.user_id = p.user_id AND lr.status = 'Approved' 
-        AND ? BETWEEN lr.start_date AND lr.end_date
-      )
-      -- 3. Not on company holiday today
+      -- 2. Not on company holiday today
       AND NOT EXISTS (
         SELECT 1 FROM company_leave_calendar cl
         WHERE cl.status = 'Active'
@@ -6594,7 +6652,9 @@ app.get("/api/reports/absent-employees", async (req, res) => {
     const dateParts = queryDate.split('-');
     const queryDateObj = new Date(parseInt(dateParts[0]), parseInt(dateParts[1])-1, parseInt(dateParts[2]));
 
-    const mappedRows = rows.map(r => {
+    const filteredRows = rows.filter(r => !activeLeaveUserIds.has(r.user_id));
+
+    const mappedRows = filteredRows.map(r => {
       const userZone = branchZoneMap.get(r.branch) || 'ZONE_B';
       const isRestDay = checkIsWeekend(userZone, queryDateObj);
       return {
@@ -6636,7 +6696,7 @@ app.get("/api/reports/on-leave-employees", async (req, res) => {
       queryParams.push(department);
     }
 
-    const [rows] = await pool.query(
+    const [rawRows] = await pool.query(
       `
       SELECT 
         p.user_id,
@@ -6645,7 +6705,11 @@ app.get("/api/reports/on-leave-employees", async (req, res) => {
         p.department,
         COALESCE(ur.role, 'employee') AS role,
         'On Leave' AS status,
-        lr.leave_type
+        lr.leave_type,
+        lr.reason,
+        lr.cuti_ganti_tarikh,
+        lr.start_date,
+        lr.end_date
       FROM profiles p
       LEFT JOIN user_role ur ON ur.user_id = p.user_id
       INNER JOIN leave_requests lr ON lr.user_id = p.user_id 
@@ -6657,6 +6721,8 @@ app.get("/api/reports/on-leave-employees", async (req, res) => {
       `,
       queryParams
     );
+
+    const rows = rawRows.filter(lr => isEmployeeOnLeaveOnDate(lr, queryDate));
 
     res.json({ success: true, data: rows });
   } catch (err) {
@@ -7629,7 +7695,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
 
     // Leave requests overlapping month
     const [leaveRows] = await pool.query(
-      `SELECT lr.user_id, lr.status, lr.leave_type,
+      `SELECT lr.user_id, lr.status, lr.leave_type, lr.reason, lr.cuti_ganti_tarikh,
               (lr.start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date as start_date,
               (lr.end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date as end_date,
               p.full_name as name
@@ -7650,9 +7716,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       if (lr.status && lr.status.startsWith('Pending')) pendingApproval++;
       if (lr.status === 'Approved') {
         approvedThisMonth++;
-        const s = lr.start_date instanceof Date ? lr.start_date.toISOString().split('T')[0] : String(lr.start_date).split('T')[0];
-        const e = lr.end_date instanceof Date ? lr.end_date.toISOString().split('T')[0] : String(lr.end_date).split('T')[0];
-        if (targetDateStr >= s && targetDateStr <= e) {
+        if (isEmployeeOnLeaveOnDate(lr, targetDateStr)) {
           onLeaveToday++;
           onLeaveEmployees.add(lr.user_id);
         }
@@ -8059,12 +8123,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       const dateStr = att.dateStr;
       
       // Check if user is on leave on this specific date
-      const isOnLeave = leaveRows.some(lr => {
-        if (lr.status !== 'Approved') return false;
-        const s = new Date(new Date(lr.start_date).getTime() + 8*3600*1000).toISOString().split('T')[0];
-        const e = new Date(new Date(lr.end_date).getTime() + 8*3600*1000).toISOString().split('T')[0];
-        return dateStr >= s && dateStr <= e && lr.user_id === att.user_id;
-      });
+      const isOnLeave = leaveRows.some(lr => lr.status === 'Approved' && lr.user_id === att.user_id && isEmployeeOnLeaveOnDate(lr, dateStr));
 
       if (dateObj >= weekStartD && dateObj <= weekEndD) {
         if (!isOutstation && !isOnLeave) {
@@ -8188,7 +8247,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
     allProfiles.forEach(p => {
       const b = p.branch;
       if (b && branchStats[b]) {
-         const isOnLeave = leaveRows.some(lr => lr.user_id === p.user_id && lr.status === 'Approved' && targetDateStr >= new Date(new Date(lr.start_date).getTime() + 8*3600*1000).toISOString().split('T')[0] && targetDateStr <= new Date(new Date(lr.end_date).getTime() + 8*3600*1000).toISOString().split('T')[0]);
+         const isOnLeave = leaveRows.some(lr => lr.user_id === p.user_id && lr.status === 'Approved' && isEmployeeOnLeaveOnDate(lr, targetDateStr));
          const isCompanyLeave = companyLeaveEmployees.has(p.user_id);
          
          const att = attRows.find(a => a.user_id === p.user_id && new Date(new Date(a.clock_in).getTime() + 8*3600*1000).toISOString().split('T')[0] === targetDateStr);
@@ -8218,7 +8277,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       }
       const d = p.department;
       if (d && departmentStats[d]) {
-         const isOnLeave = leaveRows.some(lr => lr.user_id === p.user_id && lr.status === 'Approved' && targetDateStr >= new Date(new Date(lr.start_date).getTime() + 8*3600*1000).toISOString().split('T')[0] && targetDateStr <= new Date(new Date(lr.end_date).getTime() + 8*3600*1000).toISOString().split('T')[0]);
+         const isOnLeave = leaveRows.some(lr => lr.user_id === p.user_id && lr.status === 'Approved' && isEmployeeOnLeaveOnDate(lr, targetDateStr));
          const isCompanyLeave = companyLeaveEmployees.has(p.user_id);
          const att = attRows.find(a => a.user_id === p.user_id && new Date(new Date(a.clock_in).getTime() + 8*3600*1000).toISOString().split('T')[0] === targetDateStr);
          const isPresent = !!att;
@@ -8344,7 +8403,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
     
     let finalAbsentList = [];
     allProfiles.forEach(p => {
-       const isOnLeave = leaveRows.some(lr => lr.user_id === p.user_id && lr.status === 'Approved' && targetDateStr >= new Date(new Date(lr.start_date).getTime() + 8*3600*1000).toISOString().split('T')[0] && targetDateStr <= new Date(new Date(lr.end_date).getTime() + 8*3600*1000).toISOString().split('T')[0]);
+       const isOnLeave = leaveRows.some(lr => lr.user_id === p.user_id && lr.status === 'Approved' && isEmployeeOnLeaveOnDate(lr, targetDateStr));
        const isCompanyLeave = companyLeaveEmployees.has(p.user_id);
        const isOutstation = outstationTodayRows.some(o => o.user_id === p.user_id);
        
@@ -9006,30 +9065,48 @@ app.delete("/api/branches/:id", async (req, res) => {
 // ===============================
 app.get("/api/branches-stats", async (req, res) => {
   try {
-    const [rows] = await pool.query(`
-      SELECT 
-        b.code AS branch,
-        COUNT(DISTINCT p.user_id) AS total_employees,
-        COUNT(DISTINCT CASE WHEN att.user_id IS NOT NULL AND oa.id IS NULL AND lr.leave_id IS NULL THEN att.user_id END) AS present_today,
-        COUNT(DISTINCT lr.leave_id) AS on_leave,
-        COUNT(DISTINCT oa.id) AS outstation
-      FROM branches b
-      LEFT JOIN profiles p 
-        ON p.branch = b.code AND p.status = 'Active'
-      LEFT JOIN attendances att 
-        ON att.user_id = p.user_id 
-        AND DATE(att.clock_in) = CURRENT_DATE
-      LEFT JOIN leave_requests lr
-        ON lr.user_id = p.user_id
-        AND lr.status = 'Approved'
-        AND CURRENT_DATE BETWEEN lr.start_date AND lr.end_date
-      LEFT JOIN outstation_assignments oa
-        ON oa.user_id = p.user_id
-        AND oa.status != 'Cancelled'
-        AND CURRENT_DATE BETWEEN oa.start_date AND oa.end_date
-      GROUP BY b.code
+    const todayStr = new Date().toLocaleDateString('en-CA');
+    const [branchRows] = await pool.query(`SELECT code FROM branches ORDER BY code ASC`);
+    const [allProfiles] = await pool.query(`SELECT user_id, branch FROM profiles WHERE status = 'Active'`);
+    const [attRows] = await pool.query(`SELECT DISTINCT user_id FROM attendances WHERE DATE(clock_in) = CURRENT_DATE`);
+    const [rawLeaveRows] = await pool.query(`
+      SELECT lr.user_id, lr.leave_type, lr.reason, lr.cuti_ganti_tarikh, lr.start_date, lr.end_date, p.branch
+      FROM leave_requests lr
+      JOIN profiles p ON p.user_id = lr.user_id
+      WHERE lr.status = 'Approved' AND CURRENT_DATE BETWEEN lr.start_date AND lr.end_date AND p.status = 'Active'
     `);
-    res.json({ success: true, stats: rows });
+    const [oaRows] = await pool.query(`
+      SELECT DISTINCT user_id FROM outstation_assignments WHERE status != 'Cancelled' AND CURRENT_DATE BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date
+    `);
+    
+    const activeLeaves = rawLeaveRows.filter(lr => isEmployeeOnLeaveOnDate(lr, todayStr));
+    const onLeaveUserIds = new Set(activeLeaves.map(lr => lr.user_id));
+    const oaUserIds = new Set(oaRows.map(o => o.user_id));
+    const attUserIds = new Set(attRows.map(a => a.user_id));
+
+    const stats = branchRows.map(b => {
+      const branchProfiles = allProfiles.filter(p => p.branch === b.code);
+      const totalEmployees = branchProfiles.length;
+      let presentCount = 0;
+      let onLeaveCount = 0;
+      let outstationCount = 0;
+
+      branchProfiles.forEach(p => {
+        if (oaUserIds.has(p.user_id)) outstationCount++;
+        else if (onLeaveUserIds.has(p.user_id)) onLeaveCount++;
+        else if (attUserIds.has(p.user_id)) presentCount++;
+      });
+
+      return {
+        branch: b.code,
+        total_employees: totalEmployees,
+        present_today: presentCount,
+        on_leave: onLeaveCount,
+        outstation: outstationCount
+      };
+    });
+
+    res.json({ success: true, stats });
   } catch (err) {
     console.error("Error fetching branches stats:", err);
     res.status(500).json({ success: false, error: err.message });
@@ -9130,8 +9207,7 @@ app.get("/api/who-out-today", async (req, res) => {
 
     const whereClause = filters.length ? `AND ${filters.join(" AND ")}` : "";
 
-    const [rows] = await pool.query(`
-      SELECT * FROM (
+    const [leaveRows] = await pool.query(`
       SELECT
         lr.leave_id,
         lr.user_id,
@@ -9140,6 +9216,7 @@ app.get("/api/who-out-today", async (req, res) => {
         lr.end_date,
         lr.days,
         lr.reason,
+        lr.cuti_ganti_tarikh,
         p.full_name,
         p.branch
       FROM leave_requests lr
@@ -9147,7 +9224,24 @@ app.get("/api/who-out-today", async (req, res) => {
       WHERE lr.status = 'Approved'
         AND ?::date BETWEEN lr.start_date AND lr.end_date
         ${whereClause}
-      UNION ALL
+    `, [targetDate, ...params]);
+
+    const activeLeaves = [];
+    for (const lr of leaveRows) {
+      if (isEmployeeOnLeaveOnDate(lr, targetDate)) {
+        const isRepLeave = lr.leave_type && (
+          lr.leave_type.toUpperCase().includes('REPLACEMENT') || 
+          lr.leave_type.toUpperCase().includes('GANTI')
+        );
+        activeLeaves.push({
+          ...lr,
+          start_date: isRepLeave ? targetDate : lr.start_date,
+          end_date: isRepLeave ? targetDate : lr.end_date,
+        });
+      }
+    }
+
+    const [outstationRows] = await pool.query(`
       SELECT 
         o.id as leave_id,
         o.user_id,
@@ -9163,11 +9257,11 @@ app.get("/api/who-out-today", async (req, res) => {
       WHERE o.status != 'Cancelled'
         AND ?::date BETWEEN o.start_date AND o.end_date
         ${whereClause}
-      ) combined
-      ORDER BY end_date ASC
-    `, [targetDate, ...params, targetDate, ...params]);
+    `, [targetDate, ...params]);
 
-    res.json({ success: true, employees: rows });
+    const combined = [...activeLeaves, ...outstationRows].sort((a, b) => new Date(a.end_date).getTime() - new Date(b.end_date).getTime());
+
+    res.json({ success: true, employees: combined });
   } catch (err) {
     console.error("Who Out Today Error:", err);
     res.status(500).json({ success: false, error: err.message });
@@ -10362,27 +10456,6 @@ function broadcastWorkforceCalendarUpdate(payload = { type: 'refresh' }) {
 }
 
 // Helper to compute workforce calendar data for a given role/branch/dept
-function getCutiGantiDates(reason, fallbackTarikh) {
-  if (!reason && !fallbackTarikh) return null;
-  let dates = [];
-  if (reason) {
-    const match = reason.match(/\[CUTI_GANTI_DATA:([\s\S]*?)\]\]/);
-    if (match) {
-      try {
-        const rawJson = reason.substring(reason.indexOf('[CUTI_GANTI_DATA:') + 17, reason.lastIndexOf(']]') + 1);
-        const rows = JSON.parse(rawJson);
-        if (Array.isArray(rows)) {
-          dates = rows.map(r => r.tarikhCuti || r.tarikh || r.cutiDate || r.date).filter(Boolean);
-        }
-      } catch (e) {}
-    }
-  }
-  if (dates.length === 0 && fallbackTarikh) {
-    dates = [String(fallbackTarikh).substring(0, 10)];
-  }
-  return dates.length > 0 ? dates.map(d => String(d).substring(0, 10)) : null;
-}
-
 async function getWorkforceCalendarData(role, branch, department, month, year) {
   const params = [];
   let leaveWhere = '';

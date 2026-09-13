@@ -36,8 +36,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import PageHeader from "@/components/layout/PageHeader";
-import PageActions from "@/components/layout/PageActions";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "../config/api";
@@ -621,6 +620,35 @@ export default function Dashboard() {
 
   const isTodayDate = isToday(selectedDate);
   const showEmptyState = !isTodayDate && isElevatedRole && stats.hasRecords === false && !isCompanyLeave && (stats.companyLeave || 0) === 0 && (stats.onLeave || 0) === 0 && (stats.outstationToday || 0) === 0;
+
+  const filteredWhoOutToday = useMemo(() => {
+    const selectedDateStr = selectedDate.toLocaleDateString("en-CA");
+    return whoOutToday.filter((emp) => {
+      const isReplacement = emp.leave_type?.toLowerCase().includes("replacement") || emp.leave_type?.toLowerCase().includes("ganti");
+      if (isReplacement) {
+        if (emp.reason) {
+          const match = emp.reason.match(/\[CUTI_GANTI_DATA:([\s\S]*?)\]\]/);
+          if (match) {
+            try {
+              const rawJson = emp.reason.substring(emp.reason.indexOf('[CUTI_GANTI_DATA:') + 17, emp.reason.lastIndexOf(']]') + 1);
+              const rows = JSON.parse(rawJson);
+              if (Array.isArray(rows) && rows.length > 0) {
+                const dates = rows.map((r: any) => String(r.tarikhCuti || r.tarikh || r.cutiDate || r.date || "").slice(0, 10)).filter(Boolean);
+                if (dates.length > 0) {
+                  return dates.includes(selectedDateStr);
+                }
+              }
+            } catch (e) {}
+          }
+        }
+        if (emp.cuti_ganti_tarikh) {
+          const fallbackDate = String(emp.cuti_ganti_tarikh).slice(0, 10);
+          return fallbackDate === selectedDateStr;
+        }
+      }
+      return true;
+    });
+  }, [whoOutToday, selectedDate]);
 
   return (
     <div className="space-y-3 animate-in fade-in duration-500">
@@ -1446,7 +1474,7 @@ export default function Dashboard() {
                         Who's Out Today
                       </CardTitle>
                       <p className="text-xs text-foreground mt-0.5">
-                        {whoOutToday.length} employee{whoOutToday.length !== 1 ? "s" : ""} currently on leave / outstation
+                        {filteredWhoOutToday.length} employee{filteredWhoOutToday.length !== 1 ? "s" : ""} currently on leave / outstation
                       </p>
                     </div>
                   </div>
@@ -1461,15 +1489,16 @@ export default function Dashboard() {
                 </div>
               </CardHeader>
               <CardContent className="p-4">
-                {whoOutToday.length > 0 ? (
+                {filteredWhoOutToday.length > 0 ? (
                   <div className={`grid grid-cols-1 sm:grid-cols-2 gap-3`}>
-                    {whoOutToday.map((emp) => {
+                    {filteredWhoOutToday.map((emp) => {
                       const endDate = new Date(emp.end_date);
-                      const today = new Date();
-                      today.setHours(0,0,0,0);
-                      endDate.setHours(0,0,0,0);
-                      const isSameDay = endDate.getTime() === today.getTime();
-                      const endLabel = isSameDay
+                      const selectedDateStr = selectedDate.toLocaleDateString("en-CA");
+                      const sStr = String(emp.start_date || "").slice(0, 10);
+                      const eStr = String(emp.end_date || "").slice(0, 10);
+                      const isSameDay = sStr === eStr || (sStr === selectedDateStr && eStr === selectedDateStr);
+                      const isReplacement = emp.leave_type?.toLowerCase().includes("replacement") || emp.leave_type?.toLowerCase().includes("ganti");
+                      const endLabel = (isSameDay || isReplacement)
                         ? `${endDate.toLocaleDateString('en-MY', { month: 'short', day: '2-digit' })} Only`
                         : `Until ${endDate.toLocaleDateString('en-MY', { month: 'short', day: '2-digit' })}`;
 
