@@ -52,6 +52,7 @@ export default function OutstationCalendar({ onlyMine = false }: { onlyMine?: bo
   const location = useLocation();
   const isMyCalendar = onlyMine || location.pathname.includes("my-calendar") || location.pathname.includes("my_calendar");
   const { role, userBranch, userDepartment, userId, loading: roleLoading } = useRole();
+  const hasLoadedRef = useRef(false);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedEvent, setSelectedEvent] = useState<Assignment | null>(null);
@@ -63,7 +64,7 @@ export default function OutstationCalendar({ onlyMine = false }: { onlyMine?: bo
 
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true);
+      if (!hasLoadedRef.current) setLoading(true);
       try {
         const isEmployee = !["hr_admin", "managing_director", "finance_manager", "branch_leader", "head_of_department"].includes(role);
         const shouldFilterMine = isMyCalendar || isEmployee;
@@ -82,6 +83,7 @@ export default function OutstationCalendar({ onlyMine = false }: { onlyMine?: bo
             list = list.filter((a) => a.user_id === userId || (a as any).userId === userId);
           }
           setAssignments(list);
+          hasLoadedRef.current = true;
         }
       } catch { /* swallow */ } finally {
         setLoading(false);

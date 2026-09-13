@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
 import { useRole } from "@/contexts/RoleContext";
@@ -66,9 +66,35 @@ const Skeleton = ({ className }: { className?: string }) => (
 export default function OutstationDashboard() {
   const { role, userBranch, userDepartment, loading: roleLoading } = useRole();
   const navigate = useNavigate();
-  const [stats, setStats] = useState<any>({ active: 0, upcoming: 0, completed: 0, cancelled: 0, todayDepartures: 0, todayReturns: 0 });
-  const [assignments, setAssignments] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  
+  // Cache-first initialization to prevent any repeated skeleton shimmer
+  const [stats, setStats] = useState<any>(() => {
+    try {
+      const cached = sessionStorage.getItem("outstation_dashboard_stats");
+      if (cached) return JSON.parse(cached);
+    } catch {}
+    return { active: 0, upcoming: 0, completed: 0, cancelled: 0, todayDepartures: 0, todayReturns: 0 };
+  });
+
+  const [assignments, setAssignments] = useState<any[]>(() => {
+    try {
+      const cached = sessionStorage.getItem("outstation_dashboard_assignments");
+      if (cached) return JSON.parse(cached);
+    } catch {}
+    return [];
+  });
+
+  const hasLoadedRef = useRef(false);
+  const [loading, setLoading] = useState(() => {
+    try {
+      const cached = sessionStorage.getItem("outstation_dashboard_stats");
+      if (cached) {
+        hasLoadedRef.current = true;
+        return false;
+      }
+    } catch {}
+    return true;
+  });
 
   // Table state
   const [search, setSearch] = useState("");
@@ -108,8 +134,11 @@ export default function OutstationDashboard() {
     if (!roleLoading && !OUTSTATION_ROLES.includes(role)) navigate("/");
   }, [role, roleLoading, navigate]);
 
-  const fetchAll = useCallback(async () => {
-    setLoading(true);
+  const fetchAll = useCallback(async (isInitial = false) => {
+    // Only show skeleton on initial load if we don't have cached data
+    if (isInitial && !hasLoadedRef.current) {
+      setLoading(true);
+    }
     try {
       const scopeParams = new URLSearchParams({ role, branch: userBranch || "", department: userDepartment || "" });
       const [statsRes, listRes] = await Promise.all([
@@ -118,8 +147,16 @@ export default function OutstationDashboard() {
       ]);
       const statsData = await statsRes.json();
       const listData = await listRes.json();
-      if (statsData.success && statsData.stats) setStats((prev: any) => ({ ...prev, ...statsData.stats }));
-      if (listData.success) setAssignments(listData.assignments || []);
+      if (statsData.success && statsData.stats) {
+        setStats((prev: any) => ({ ...prev, ...statsData.stats }));
+        try { sessionStorage.setItem("outstation_dashboard_stats", JSON.stringify(statsData.stats)); } catch {}
+      }
+      if (listData.success) {
+        const list = listData.assignments || [];
+        setAssignments(list);
+        try { sessionStorage.setItem("outstation_dashboard_assignments", JSON.stringify(list)); } catch {}
+      }
+      hasLoadedRef.current = true;
     } catch (err) {
       console.error("Fetch error:", err);
     } finally {
@@ -128,18 +165,19 @@ export default function OutstationDashboard() {
   }, [role, userBranch, userDepartment]);
 
   useEffect(() => { 
-    void fetchAll(); 
+    // Initial fetch - only show skeleton if not already loaded from cache
+    void fetchAll(!hasLoadedRef.current); 
 
     // Establish real-time EventSource connection
     const streamUrl = `${API_BASE_URL}/api/presence/stream`;
     const eventSource = new EventSource(streamUrl);
 
-    eventSource.onmessage = (event) => {
+    eventSource.onmessage = () => {
       try {
-        // Refetch on any event to keep outstation status in sync
-        void fetchAll();
+        // Refetch silently in background without resetting loading/skeleton
+        void fetchAll(false);
       } catch (err) {
-        void fetchAll();
+        void fetchAll(false);
       }
     };
 
@@ -148,7 +186,7 @@ export default function OutstationDashboard() {
     };
 
     const interval = setInterval(() => {
-      void fetchAll();
+      void fetchAll(false);
     }, 5 * 60 * 1000); // 5 min fallback polling
 
     return () => {

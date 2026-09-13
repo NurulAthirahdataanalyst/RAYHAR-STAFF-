@@ -12,9 +12,12 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const getInitialUser = () => {
   try {
-    const savedLocalUser = sessionStorage.getItem("user") || localStorage.getItem("presence_user");
+    const savedLocalUser = sessionStorage.getItem("user") || localStorage.getItem("presence_user") || localStorage.getItem("user");
     if (savedLocalUser) {
-      return JSON.parse(savedLocalUser);
+      const parsed = JSON.parse(savedLocalUser);
+      if (parsed && (parsed.id || parsed.user_id || parsed.email)) {
+        return parsed;
+      }
     }
   } catch (e) {
     console.error("Failed to parse stored user", e);
@@ -27,30 +30,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const savedLocalUser = sessionStorage.getItem("user") || localStorage.getItem("presence_user");
+    const savedLocalUser = sessionStorage.getItem("user") || localStorage.getItem("presence_user") || localStorage.getItem("user");
     if (savedLocalUser && !user) {
       try {
         const parsedUser = JSON.parse(savedLocalUser);
-        setUser(parsedUser);
+        if (parsedUser && (parsedUser.id || parsedUser.user_id || parsedUser.email)) {
+          setUser(parsedUser);
+        }
       } catch (e) {
         console.error("Failed to parse local user", e);
-        sessionStorage.removeItem("user");
-        localStorage.removeItem("presence_user");
       }
     }
     setLoading(false);
 
     // Sync user state if changed in another tab/window
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === "user" || e.key === "presence_user") {
+      if (e.key === "presence_user" || e.key === "user") {
         if (e.newValue) {
           try {
-            setUser(JSON.parse(e.newValue));
-          } catch {
+            const parsed = JSON.parse(e.newValue);
+            if (parsed && (parsed.id || parsed.user_id || parsed.email)) {
+              setUser(parsed);
+            }
+          } catch {}
+        } else {
+          // If key was removed, verify storage before logging out
+          const remaining = sessionStorage.getItem("user") || localStorage.getItem("presence_user") || localStorage.getItem("user");
+          if (!remaining) {
             setUser(null);
           }
-        } else {
-          setUser(null);
         }
       }
     };
@@ -59,9 +67,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const loginLocal = (userData: any) => {
-    sessionStorage.setItem("user", JSON.stringify(userData));
     try {
+      sessionStorage.setItem("user", JSON.stringify(userData));
       localStorage.setItem("presence_user", JSON.stringify(userData));
+      localStorage.setItem("user", JSON.stringify(userData));
       if (userData?.role) localStorage.setItem("presence_cached_role", userData.role);
       if (userData?.branch) localStorage.setItem("presence_cached_branch", userData.branch);
       if (userData?.department) localStorage.setItem("presence_cached_department", userData.department);
@@ -74,9 +83,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser((prev: any) => {
       if (!prev) return prev;
       const updated = { ...prev, ...updatedFields };
-      sessionStorage.setItem("user", JSON.stringify(updated));
       try {
+        sessionStorage.setItem("user", JSON.stringify(updated));
         localStorage.setItem("presence_user", JSON.stringify(updated));
+        localStorage.setItem("user", JSON.stringify(updated));
         if (updated?.role) localStorage.setItem("presence_cached_role", updated.role);
         if (updated?.branch) localStorage.setItem("presence_cached_branch", updated.branch);
         if (updated?.department) localStorage.setItem("presence_cached_department", updated.department);
@@ -87,8 +97,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signOut = async () => {
-    sessionStorage.removeItem("user");
     try {
+      sessionStorage.removeItem("user");
+      localStorage.removeItem("user");
       localStorage.removeItem("presence_user");
       localStorage.removeItem("presence_cached_role");
       localStorage.removeItem("presence_cached_branch");

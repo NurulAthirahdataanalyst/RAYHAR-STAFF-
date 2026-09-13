@@ -68,6 +68,7 @@ const formatShortDate = (dString: string) => {
 
 export default function OutstationReports() {
   const { role, userBranch, userDepartment, loading: roleLoading } = useRole();
+  const hasLoadedRef = useRef(false);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -100,12 +101,13 @@ export default function OutstationReports() {
     if (roleLoading) return;
     if (!OUTSTATION_ROLES.includes(role)) return;
     const fetchData = async () => {
-      setLoading(true);
+      if (!hasLoadedRef.current) setLoading(true);
       try {
         const params = new URLSearchParams({ role, branch: userBranch || "", department: userDepartment || "" });
         const res = await fetch(`${API_BASE_URL}/api/outstation?${params}`);
         const data = await res.json();
         if (data.success) setAssignments(data.assignments || []);
+        hasLoadedRef.current = true;
       } catch { /* */ } finally { setLoading(false); }
     };
     void fetchData();

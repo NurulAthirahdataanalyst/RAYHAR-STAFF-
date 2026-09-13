@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import Map, { Marker, Popup, NavigationControl, Source, Layer } from 'react-map-gl/maplibre';
-import maplibregl from 'maplibre-gl';
+import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -239,12 +239,13 @@ export default function GPSLocationTracker() {
 
   const visibleEmployees = useMemo(() => {
     let list = employees;
+    const currentUserId = user?.user_id || user?.id;
     if (role === 'employee' || role === 'branch_officer') {
-      list = list.filter(e => e.user_id === user?.user_id);
+      list = list.filter(e => e.user_id === currentUserId);
     } else if (role === 'branch_leader') {
-      list = list.filter(e => (e.branch || '') === (user?.branch || ''));
+      list = list.filter(e => (e.branch || '').trim().toLowerCase() === (user?.branch || '').trim().toLowerCase());
     } else if (role === 'head_of_department') {
-      list = list.filter(e => (e.department || '') === (user?.department || ''));
+      list = list.filter(e => (e.department || '').trim().toLowerCase() === (user?.department || '').trim().toLowerCase());
     }
     return list;
   }, [employees, role, user]);
@@ -298,6 +299,29 @@ export default function GPSLocationTracker() {
     });
     return Object.values(groups);
   }, [filtered, locations, selected]);
+
+  // Auto-focus on active employee location when map and data load
+  const hasAutoCentered = useRef(false);
+  useEffect(() => {
+    if (!mapLoaded || hasAutoCentered.current || !mapRef.current) return;
+    const currentUserId = user?.user_id || user?.id;
+    const myLoc = currentUserId ? locations[currentUserId] : null;
+    const targetLoc = (myLoc && myLoc.lat != null && myLoc.lng != null && !isNaN(Number(myLoc.lat)) && !isNaN(Number(myLoc.lng)))
+      ? myLoc 
+      : Object.values(locations).find(l => l.lat != null && l.lng != null && !isNaN(Number(l.lat)) && !isNaN(Number(l.lng)));
+
+    if (targetLoc && targetLoc.lat != null && targetLoc.lng != null) {
+      try {
+        const mapObj = mapRef.current.getMap ? mapRef.current.getMap() : mapRef.current;
+        mapObj.flyTo({
+          center: [Number(targetLoc.lng), Number(targetLoc.lat)],
+          zoom: 15,
+          duration: 1200
+        });
+        hasAutoCentered.current = true;
+      } catch {}
+    }
+  }, [mapLoaded, locations, user]);
 
   const focusOn = (empId: string) => {
     const loc = locations[empId];

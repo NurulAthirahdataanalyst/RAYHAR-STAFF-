@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useRole } from "@/contexts/RoleContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -55,6 +55,7 @@ export default function OutstationAnalytics() {
   const { role, userBranch, userDepartment } = useRole();
   const [assignments, setAssignments] = useState<any[]>([]);
   const [stats, setStats] = useState<any>({});
+  const hasLoadedRef = useRef(false);
   const [loading, setLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
@@ -69,8 +70,10 @@ export default function OutstationAnalytics() {
     }
   }, [role, navigate]);
 
-  const fetchData = useCallback(async () => {
-    setLoading(true);
+  const fetchData = useCallback(async (isInitial = false) => {
+    if (isInitial && !hasLoadedRef.current) {
+      setLoading(true);
+    }
     try {
       const params = new URLSearchParams();
       if (role === "branch_leader") {
@@ -91,6 +94,7 @@ export default function OutstationAnalytics() {
       const assignmentsData = await assignmentsRes.json();
       if (statsData.success) setStats(statsData.stats || {});
       if (assignmentsData.success) setAssignments(assignmentsData.assignments || []);
+      hasLoadedRef.current = true;
     } catch (e) {
       console.error("fetch outstation analytics", e);
     } finally {
@@ -99,17 +103,17 @@ export default function OutstationAnalytics() {
   }, [role, userBranch, userDepartment]);
 
   useEffect(() => {
-    void fetchData();
+    void fetchData(!hasLoadedRef.current);
 
     const es = new EventSource(`${API_BASE_URL}/api/presence/stream`);
     es.onmessage = (ev) => {
       try {
         const payload = JSON.parse(ev.data);
         if (payload && (payload.type === "outstation" || payload.type === "company_leave" || payload.type === "refresh")) {
-          void fetchData();
+          void fetchData(false);
         }
       } catch (e) {
-        void fetchData();
+        void fetchData(false);
       }
     };
     es.onerror = (err) => { console.error("SSE error", err); };

@@ -1199,7 +1199,7 @@ async function getEmployeeLocations(branch) {
       params.push(branch);
     }
     const sql = `
-      SELECT a.user_id, p.full_name, p.branch,
+      SELECT a.user_id, p.full_name, p.branch, p.department,
              COALESCE(el.recorded_at, a.clock_in) AS last_updated,
              COALESCE(el.latitude, a.clock_in_latitude) AS latitude,
              COALESCE(el.longitude, a.clock_in_longitude) AS longitude,
@@ -1210,15 +1210,15 @@ async function getEmployeeLocations(branch) {
       JOIN (
         SELECT user_id, MAX(clock_in) AS max_in
         FROM attendances
-        WHERE DATE(clock_in) = CURRENT_DATE
+        WHERE (clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date
         GROUP BY user_id
       ) m ON a.user_id = m.user_id AND a.clock_in = m.max_in
       LEFT JOIN (
-        SELECT el1.employee_id, el1.latitude, el1.longitude, el1.accuracy, el1.recorded_at
+        SELECT COALESCE(el1.user_id, el1.employee_id) as user_id, el1.latitude, el1.longitude, el1.accuracy, el1.recorded_at
         FROM employee_location_logs el1
-        JOIN (SELECT employee_id, MAX(id) as max_id FROM employee_location_logs GROUP BY employee_id) el2
+        JOIN (SELECT COALESCE(user_id, employee_id) as uid, MAX(id) as max_id FROM employee_location_logs GROUP BY COALESCE(user_id, employee_id)) el2
           ON el1.id = el2.max_id
-      ) el ON el.employee_id = a.user_id
+      ) el ON el.user_id = a.user_id
       LEFT JOIN profiles p ON p.user_id = a.user_id
       LEFT JOIN outstation_assignments oa ON oa.user_id = a.user_id 
            AND oa.status != 'Cancelled' 
@@ -4628,11 +4628,11 @@ app.get("/api/employee-locations", async (req, res) => {
         GROUP BY user_id
       ) m ON a.user_id = m.user_id AND a.clock_in = m.max_in
       LEFT JOIN (
-        SELECT el1.employee_id, el1.latitude, el1.longitude, el1.accuracy, el1.recorded_at
+        SELECT COALESCE(el1.user_id, el1.employee_id) as user_id, el1.latitude, el1.longitude, el1.accuracy, el1.recorded_at
         FROM employee_location_logs el1
-        JOIN (SELECT employee_id, MAX(id) as max_id FROM employee_location_logs GROUP BY employee_id) el2
+        JOIN (SELECT COALESCE(user_id, employee_id) as uid, MAX(id) as max_id FROM employee_location_logs GROUP BY COALESCE(user_id, employee_id)) el2
           ON el1.id = el2.max_id
-      ) el ON el.employee_id = a.user_id
+      ) el ON el.user_id = a.user_id
       LEFT JOIN profiles p ON p.user_id = a.user_id
       LEFT JOIN outstation_assignments oa ON oa.user_id = a.user_id 
         AND oa.status != 'Cancelled'
@@ -4657,7 +4657,7 @@ app.post('/api/employee-location-update', async (req, res) => {
 
     const [att] = await pool.query(
       `SELECT clock_in, clock_out FROM attendances 
-       WHERE user_id = ? AND DATE(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur') = CURRENT_DATE 
+       WHERE user_id = ? AND (clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date 
        ORDER BY clock_in DESC LIMIT 1`,
       [uid]
     );
@@ -4665,40 +4665,20 @@ app.post('/api/employee-location-update', async (req, res) => {
        return res.json({ success: true, message: 'No active shift' });
     }
 
-    // Insert into employee_location_logs (create table if not present in DB schema migration)
+    // Insert into employee_location_logs (both user_id and employee_id)
     try {
       await pool.query(
-        `INSERT INTO employee_location_logs (employee_id, latitude, longitude, accuracy, recorded_at)
-         VALUES (?, ?, ?, ?, ?)`,
-        [uid, latitude, longitude, accuracy || null, timestamp || new Date()]
+        `INSERT INTO employee_location_logs (user_id, employee_id, latitude, longitude, accuracy, recorded_at)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [uid, uid, latitude, longitude, accuracy || null, timestamp || new Date()]
       );
     } catch (e) {
-      // If table doesn't exist, try to create a minimal table and retry
-      console.warn('employee_location_logs insert failed, attempting to create table', e.message);
-      try {
-        await pool.query(`
-          CREATE TABLE IF NOT EXISTS employee_location_logs (
-            id SERIAL PRIMARY KEY,
-            employee_id VARCHAR(64),
-            latitude DOUBLE PRECISION,
-            longitude DOUBLE PRECISION,
-            accuracy DOUBLE PRECISION,
-            recorded_at TIMESTAMP
-          );
-        `);
-        await pool.query(
-          `INSERT INTO employee_location_logs (employee_id, latitude, longitude, accuracy, recorded_at)
-           VALUES (?, ?, ?, ?, ?)`,
-          [uid, latitude, longitude, accuracy || null, timestamp || new Date()]
-        );
-      } catch (e2) {
-        console.error('Failed to create or insert employee_location_logs', e2);
-      }
+      console.warn('employee_location_logs insert failed', e.message);
     }
 
     // Optionally update today's latest attendance record's clock_in_* fields
     try {
-      const [rows] = await pool.query(`SELECT user_id, clock_in FROM attendances WHERE user_id = ? AND DATE(clock_in) = CURRENT_DATE ORDER BY clock_in DESC LIMIT 1`, [uid]);
+      const [rows] = await pool.query(`SELECT user_id, clock_in FROM attendances WHERE user_id = ? AND (clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date ORDER BY clock_in DESC LIMIT 1`, [uid]);
       const rec = Array.isArray(rows) && rows[0];
       if (rec && rec.user_id && rec.clock_in) {
         await pool.query(`UPDATE attendances SET clock_in_latitude = ?, clock_in_longitude = ?, clock_in_accuracy = ? WHERE user_id = ? AND clock_in = ?`, [latitude, longitude, accuracy || null, rec.user_id, rec.clock_in]);
@@ -4879,8 +4859,8 @@ try {
 
   // 7. Count total records for pagination (location logs + clock in + clock out)
   const [[{ total_logs }]] = await pool.query(
-    `SELECT COUNT(*) as total_logs FROM employee_location_logs WHERE employee_id = ?`,
-    [String(userId)]
+    `SELECT COUNT(*) as total_logs FROM employee_location_logs WHERE (user_id = ? OR employee_id = ?)`,
+    [String(userId), String(userId)]
   );
   const [[{ total_clock_in }]] = await pool.query(
     `SELECT COUNT(*) as total_clock_in FROM attendances WHERE user_id = ? AND clock_in IS NOT NULL`,
@@ -4899,13 +4879,13 @@ try {
   
   // Fetch ALL timestamps for counting & deduplication
   const [allLogTs] = await pool.query(
-    `SELECT recorded_at as ts, 'log' as source FROM employee_location_logs WHERE employee_id = ? 
+    `SELECT recorded_at as ts, 'log' as source FROM employee_location_logs WHERE (user_id = ? OR employee_id = ?) 
      UNION ALL
      SELECT clock_in as ts, 'clock_in' as source FROM attendances WHERE user_id = ? AND clock_in IS NOT NULL
      UNION ALL
      SELECT clock_out as ts, 'clock_out' as source FROM attendances WHERE user_id = ? AND clock_out IS NOT NULL AND clock_out_latitude IS NOT NULL
      ORDER BY ts DESC`,
-    [String(userId), String(userId), String(userId)]
+    [String(userId), String(userId), String(userId), String(userId)]
   );
   
   // Deduplicate by minute
@@ -4935,9 +4915,9 @@ try {
   const [logsRows] = await pool.query(
     `SELECT latitude, longitude, accuracy, recorded_at as timestamp, 'update' as event_type 
      FROM employee_location_logs 
-     WHERE employee_id = ? AND recorded_at BETWEEN ? AND ?
+     WHERE (user_id = ? OR employee_id = ?) AND recorded_at BETWEEN ? AND ?
      ORDER BY recorded_at DESC, id DESC`,
-    [String(userId), minTs, maxTs]
+    [String(userId), String(userId), minTs, maxTs]
   );
   
   // Fetch clock ins for this window
@@ -5146,8 +5126,8 @@ app.post("/api/attendance", async (req, res) => {
     if (latitude && longitude) {
       try {
         await pool.query(
-          `INSERT INTO employee_location_logs (employee_id, attendance_id, latitude, longitude, accuracy, location_type, recorded_at) VALUES (?, ?, ?, ?, ?, 'CLOCK_IN', NOW())`,
-          [user_id, insertedId || null, latitude, longitude, accuracy || null]
+          `INSERT INTO employee_location_logs (user_id, employee_id, attendance_id, latitude, longitude, accuracy, location_type, recorded_at) VALUES (?, ?, ?, ?, ?, ?, 'CLOCK_IN', NOW())`,
+          [user_id, user_id, insertedId || null, latitude, longitude, accuracy || null]
         );
       } catch (logErr) {
         console.error('Failed to log initial clock_in location:', logErr);
@@ -8805,11 +8785,33 @@ app.get("/api/reports/workforce-leave-balance", async (req, res) => {
 
 app.post("/api/outstation/log-location", async (req, res) => {
   try {
-    const { employee_id, attendance_id, latitude, longitude, accuracy } = req.body;
+    const { employee_id, user_id, attendance_id, latitude, longitude, accuracy, distance } = req.body;
+    const uid = user_id || employee_id;
     await pool.query(
-        `INSERT INTO employee_location_logs (employee_id, attendance_id, latitude, longitude, accuracy, location_type, ip_address) VALUES (?, ?, ?, ?, ?, 'UPDATE', ?)`,
-        [employee_id, attendance_id || null, latitude, longitude, accuracy, req.ip || req.connection.remoteAddress]
+        `INSERT INTO employee_location_logs (user_id, employee_id, attendance_id, latitude, longitude, accuracy, location_type, ip_address) VALUES (?, ?, ?, ?, ?, ?, 'UPDATE', ?)`,
+        [uid, uid, attendance_id || null, latitude, longitude, accuracy, req.ip || req.connection.remoteAddress]
     );
+
+    // Also update today's attendance distance and coordinates if attendance_id or active attendance exists
+    if (attendance_id) {
+      await pool.query(
+        `UPDATE attendances SET clock_in_latitude = COALESCE(?, clock_in_latitude), clock_in_longitude = COALESCE(?, clock_in_longitude), distance_meters = COALESCE(?, distance_meters) WHERE attendance_id = ?`,
+        [latitude, longitude, distance !== undefined ? distance : null, attendance_id]
+      );
+    } else if (uid) {
+      await pool.query(
+        `UPDATE attendances SET clock_in_latitude = COALESCE(?, clock_in_latitude), clock_in_longitude = COALESCE(?, clock_in_longitude), distance_meters = COALESCE(?, distance_meters) 
+         WHERE user_id = ? AND (clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND clock_out IS NULL`,
+        [latitude, longitude, distance !== undefined ? distance : null, uid]
+      );
+    }
+
+    try {
+      broadcastPresenceUpdate({ type: 'location-update', userId: uid, latitude, longitude, accuracy });
+    } catch (err) {
+      console.warn('broadcastPresenceUpdate failed:', err.message);
+    }
+
     res.json({ success: true });
   } catch(e) {
     console.error(e);
@@ -8823,15 +8825,15 @@ app.get("/api/outstation/today", async (req, res) => {
       SELECT a.attendance_id, a.user_id, p.full_name, p.department, a.clock_in, a.clock_out, a.attendance_type
       FROM attendances a
       JOIN profiles p ON p.user_id = a.user_id
-      WHERE DATE(a.clock_in) = CURRENT_DATE AND a.attendance_type = 'OUTSTATION'
+      WHERE (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND a.attendance_type = 'OUTSTATION'
     `);
     
-    // Postgres specific: getting latest row per employee_id
+    // Postgres specific: getting latest row per user
     const [logs] = await pool.query(`
-      SELECT DISTINCT ON (employee_id) employee_id, latitude, longitude, accuracy, recorded_at, location_type
+      SELECT DISTINCT ON (COALESCE(user_id, employee_id)) COALESCE(user_id, employee_id) as employee_id, latitude, longitude, accuracy, recorded_at, location_type
       FROM employee_location_logs
-      WHERE DATE(recorded_at) = CURRENT_DATE
-      ORDER BY employee_id, recorded_at DESC
+      WHERE (recorded_at AT TIME ZONE 'Asia/Kuala_Lumpur')::date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date
+      ORDER BY COALESCE(user_id, employee_id), recorded_at DESC
     `);
     
     res.json({ success: true, attendances: rows, latest_locations: logs });
@@ -8845,9 +8847,9 @@ app.get("/api/outstation/history/:user_id", async (req, res) => {
   try {
     const [logs] = await pool.query(`
       SELECT * FROM employee_location_logs
-      WHERE employee_id = ? AND DATE(recorded_at) = CURRENT_DATE
+      WHERE (user_id = ? OR employee_id = ?) AND (recorded_at AT TIME ZONE 'Asia/Kuala_Lumpur')::date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date
       ORDER BY recorded_at ASC
-    `, [req.params.user_id]);
+    `, [req.params.user_id, req.params.user_id]);
     res.json({ success: true, history: logs });
   } catch(e) {
     console.error(e);

@@ -16,6 +16,15 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
-    chunkSizeWarningLimit: 5000,
+    chunkSizeWarningLimit: 2000,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ["react", "react-dom", "react-router-dom"],
+          recharts: ["recharts"],
+          maplibre: ["maplibre-gl"],
+        },
+      },
+    },
   },
 }));

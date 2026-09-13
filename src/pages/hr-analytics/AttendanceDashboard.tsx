@@ -174,21 +174,46 @@ export default function AttendanceDashboard() {
   const liveEsRef = useRef<EventSource | null>(null);
 
   // Attendance & Punctuality State
-  const [dailyAttendance, setDailyAttendance] = useState<AttendanceRecord[]>([]);
-  const [loadingDaily, setLoadingDaily] = useState(false);
-  const [absentEmployees, setAbsentEmployees] = useState<any[]>([]);
-  const [loadingAbsent, setLoadingAbsent] = useState(false);
+  const hasLoadedRef = useRef(false);
+
+  const [dailyAttendance, setDailyAttendance] = useState<AttendanceRecord[]>(() => {
+    try {
+      const cached = sessionStorage.getItem("attendance_dashboard_daily");
+      if (cached) {
+        hasLoadedRef.current = true;
+        return JSON.parse(cached);
+      }
+    } catch {}
+    return [];
+  });
+  const [loadingDaily, setLoadingDaily] = useState(() => !hasLoadedRef.current);
+
+  const [absentEmployees, setAbsentEmployees] = useState<any[]>(() => {
+    try {
+      const cached = sessionStorage.getItem("attendance_dashboard_absent");
+      if (cached) return JSON.parse(cached);
+    } catch {}
+    return [];
+  });
+  const [loadingAbsent, setLoadingAbsent] = useState(() => !hasLoadedRef.current);
+
   const [outstationRecords, setOutstationRecords] = useState<any[]>([]);
   const [activeTempUsers, setActiveTempUsers] = useState<Record<string, string>>({});
   const [activeAssignments, setActiveAssignments] = useState<any[]>([]);
   const [multiLocationUsers, setMultiLocationUsers] = useState<string[]>([]);
 
-  const [attendanceStats, setAttendanceStats] = useState({
-    presentToday: 0,
-    lateArrivals: 0,
-    absentToday: 0,
-    attendanceRate: 0,
-    restDayToday: 0,
+  const [attendanceStats, setAttendanceStats] = useState(() => {
+    try {
+      const cached = sessionStorage.getItem("attendance_dashboard_stats");
+      if (cached) return JSON.parse(cached);
+    } catch {}
+    return {
+      presentToday: 0,
+      lateArrivals: 0,
+      absentToday: 0,
+      attendanceRate: 0,
+      restDayToday: 0,
+    };
   });
   const [monthlyData, setMonthlyData] = useState<any[]>([]);
   const [branchComparison, setBranchComparison] = useState<any[]>([]);
@@ -293,9 +318,11 @@ export default function AttendanceDashboard() {
   }, [fetchLists]);
 
   // Fetch Attendance Data
-  const fetchDailyAttendance = async () => {
-    setLoadingDaily(true);
-    setLoadingAbsent(true);
+  const fetchDailyAttendance = async (isInitial = false) => {
+    if (isInitial && !hasLoadedRef.current) {
+      setLoadingDaily(true);
+      setLoadingAbsent(true);
+    }
     try {
       const [resDaily, resStats, resAbsent, resOutstation, resLeave, resWorkAssign, resMultiLoc] = await Promise.all([
         fetch(`${API_BASE_URL}/api/reports/daily-attendance?date=${encodeURIComponent(selectedDate)}&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}`),
@@ -347,6 +374,9 @@ export default function AttendanceDashboard() {
           temp_branch: tempMap[r.user_id] || null
         }));
         setDailyAttendance(enrichedReport);
+        try {
+          sessionStorage.setItem("attendance_dashboard_daily", JSON.stringify(enrichedReport));
+        } catch {}
       }
 
       let combinedAbsentees: any[] = [];
@@ -361,6 +391,9 @@ export default function AttendanceDashboard() {
         temp_branch: tempMap[e.user_id] || null
       }));
       setAbsentEmployees(enrichedAbsentees);
+      try {
+        sessionStorage.setItem("attendance_dashboard_absent", JSON.stringify(enrichedAbsentees));
+      } catch {}
       
       if (outstationData.success) {
         setOutstationRecords(outstationData.assignments.filter((a: any) => a.status !== "Cancelled"));
@@ -374,14 +407,19 @@ export default function AttendanceDashboard() {
         const onLeave = s.onLeave || 0;
         const rate = (total - onLeave) > 0 ? Math.round((present / (total - onLeave)) * 100) : 0;
 
-        setAttendanceStats({
+        const newStats = {
           presentToday: present,
           lateArrivals: late,
           absentToday: s.absentToday || 0,
           attendanceRate: rate,
           restDayToday: s.restDayToday || 0,
-        });
+        };
+        setAttendanceStats(newStats);
+        try {
+          sessionStorage.setItem("attendance_dashboard_stats", JSON.stringify(newStats));
+        } catch {}
       }
+      hasLoadedRef.current = true;
     } catch (error) {
       console.error("Error fetching daily attendance & stats:", error);
     } finally {
@@ -461,7 +499,7 @@ export default function AttendanceDashboard() {
   useEffect(() => {
     if (loading) return;
     if (activeTab === "attendance") {
-      fetchDailyAttendance();
+      void fetchDailyAttendance(!hasLoadedRef.current);
       fetchAnalytics();
       fetchTotalLeaveRequests();
 
@@ -511,7 +549,7 @@ export default function AttendanceDashboard() {
     eventSource.onmessage = () => {
       try {
         if (activeTab === "attendance") {
-          fetchDailyAttendance();
+          void fetchDailyAttendance(false);
           fetchAnalytics();
         } else if (activeTab === "leave") {
           fetchLeaveUtilization();
