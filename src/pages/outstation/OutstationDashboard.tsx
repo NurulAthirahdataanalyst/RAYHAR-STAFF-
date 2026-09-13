@@ -63,42 +63,54 @@ const Skeleton = ({ className }: { className?: string }) => (
   <div className={`animate-pulse bg-gray-200 rounded ${className}`} />
 );
 
+// Global module cache & latch to guarantee skeleton shimmer NEVER repeats
+let globalOutstationLoaded = false;
+let globalCachedStats: any = null;
+let globalCachedAssignments: any[] = [];
+
+try {
+  const s = localStorage.getItem("outstation_dashboard_stats") || sessionStorage.getItem("outstation_dashboard_stats");
+  if (s) {
+    globalCachedStats = JSON.parse(s);
+    globalOutstationLoaded = true;
+  }
+  const a = localStorage.getItem("outstation_dashboard_assignments") || sessionStorage.getItem("outstation_dashboard_assignments");
+  if (a) {
+    globalCachedAssignments = JSON.parse(a);
+    globalOutstationLoaded = true;
+  }
+} catch {}
+
 export default function OutstationDashboard() {
   const { role, userBranch, userDepartment, loading: roleLoading } = useRole();
   const navigate = useNavigate();
   
   // Cache-first initialization to prevent any repeated skeleton shimmer
   const [stats, setStats] = useState<any>(() => {
+    if (globalCachedStats) return globalCachedStats;
     try {
-      const cached = sessionStorage.getItem("outstation_dashboard_stats");
+      const cached = localStorage.getItem("outstation_dashboard_stats") || sessionStorage.getItem("outstation_dashboard_stats");
       if (cached) return JSON.parse(cached);
     } catch {}
     return { active: 0, upcoming: 0, completed: 0, cancelled: 0, todayDepartures: 0, todayReturns: 0 };
   });
 
   const [assignments, setAssignments] = useState<any[]>(() => {
+    if (globalCachedAssignments && globalCachedAssignments.length > 0) return globalCachedAssignments;
     try {
-      const cached = sessionStorage.getItem("outstation_dashboard_assignments");
+      const cached = localStorage.getItem("outstation_dashboard_assignments") || sessionStorage.getItem("outstation_dashboard_assignments");
       if (cached) return JSON.parse(cached);
     } catch {}
     return [];
   });
 
-  const hasLoadedRef = useRef(false);
-  const [initialLoaded, setInitialLoaded] = useState(() => {
-    try {
-      const cached = sessionStorage.getItem("outstation_dashboard_stats");
-      if (cached) {
-        hasLoadedRef.current = true;
-        return true;
-      }
-    } catch {}
-    return false;
-  });
-  const [loading, setLoading] = useState(!initialLoaded);
+  const hasLoadedRef = useRef(globalOutstationLoaded);
+  const [initialLoaded, setInitialLoaded] = useState(() => globalOutstationLoaded);
+  const [loading, setLoading] = useState(!globalOutstationLoaded);
 
   // One-way latch: skeleton ONLY shows on initial cold load before data arrives
-  const showSkeleton = !initialLoaded;
+  const hasData = globalOutstationLoaded || initialLoaded || Boolean(globalCachedStats) || assignments.length > 0;
+  const showSkeleton = !hasData;
 
   // Table state
   const [search, setSearch] = useState("");
@@ -139,8 +151,8 @@ export default function OutstationDashboard() {
   }, [role, roleLoading, navigate]);
 
   const fetchAll = useCallback(async (isInitial = false) => {
-    // Only show skeleton on initial load if we don't have cached data
-    if (isInitial && !hasLoadedRef.current) {
+    // Only show skeleton on initial load if we don't have cached or loaded data
+    if (isInitial && !globalOutstationLoaded && !hasLoadedRef.current) {
       setLoading(true);
     }
     try {
@@ -153,13 +165,22 @@ export default function OutstationDashboard() {
       const listData = await listRes.json();
       if (statsData.success && statsData.stats) {
         setStats((prev: any) => ({ ...prev, ...statsData.stats }));
-        try { sessionStorage.setItem("outstation_dashboard_stats", JSON.stringify(statsData.stats)); } catch {}
+        globalCachedStats = statsData.stats;
+        try {
+          localStorage.setItem("outstation_dashboard_stats", JSON.stringify(statsData.stats));
+          sessionStorage.setItem("outstation_dashboard_stats", JSON.stringify(statsData.stats));
+        } catch {}
       }
       if (listData.success) {
         const list = listData.assignments || [];
         setAssignments(list);
-        try { sessionStorage.setItem("outstation_dashboard_assignments", JSON.stringify(list)); } catch {}
+        globalCachedAssignments = list;
+        try {
+          localStorage.setItem("outstation_dashboard_assignments", JSON.stringify(list));
+          sessionStorage.setItem("outstation_dashboard_assignments", JSON.stringify(list));
+        } catch {}
       }
+      globalOutstationLoaded = true;
       hasLoadedRef.current = true;
       setInitialLoaded(true);
     } catch (err) {

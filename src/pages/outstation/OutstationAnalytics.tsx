@@ -50,15 +50,48 @@ function statusBadge(status: string) {
   );
 }
 
+// Global module cache & latch to guarantee skeleton shimmer NEVER repeats
+let globalOutstationAnalyticsLoaded = false;
+let globalCachedAnalyticsStats: any = null;
+let globalCachedAnalyticsAssignments: any[] = [];
+
+try {
+  const s = localStorage.getItem("outstation_analytics_stats") || sessionStorage.getItem("outstation_analytics_stats");
+  if (s) {
+    globalCachedAnalyticsStats = JSON.parse(s);
+    globalOutstationAnalyticsLoaded = true;
+  }
+  const a = localStorage.getItem("outstation_analytics_assignments") || sessionStorage.getItem("outstation_analytics_assignments");
+  if (a) {
+    globalCachedAnalyticsAssignments = JSON.parse(a);
+    globalOutstationAnalyticsLoaded = true;
+  }
+} catch {}
+
 export default function OutstationAnalytics() {
   const navigate = useNavigate();
   const { role, userBranch, userDepartment } = useRole();
-  const [assignments, setAssignments] = useState<any[]>([]);
-  const [stats, setStats] = useState<any>({});
-  const hasLoadedRef = useRef(false);
-  const [initialLoaded, setInitialLoaded] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const showSkeleton = !initialLoaded;
+  const [assignments, setAssignments] = useState<any[]>(() => {
+    if (globalCachedAnalyticsAssignments && globalCachedAnalyticsAssignments.length > 0) return globalCachedAnalyticsAssignments;
+    try {
+      const cached = localStorage.getItem("outstation_analytics_assignments") || sessionStorage.getItem("outstation_analytics_assignments");
+      if (cached) return JSON.parse(cached);
+    } catch {}
+    return [];
+  });
+  const [stats, setStats] = useState<any>(() => {
+    if (globalCachedAnalyticsStats) return globalCachedAnalyticsStats;
+    try {
+      const cached = localStorage.getItem("outstation_analytics_stats") || sessionStorage.getItem("outstation_analytics_stats");
+      if (cached) return JSON.parse(cached);
+    } catch {}
+    return {};
+  });
+  const hasLoadedRef = useRef(globalOutstationAnalyticsLoaded);
+  const [initialLoaded, setInitialLoaded] = useState(() => globalOutstationAnalyticsLoaded);
+  const [loading, setLoading] = useState(!globalOutstationAnalyticsLoaded);
+  const hasData = globalOutstationAnalyticsLoaded || initialLoaded || Boolean(globalCachedAnalyticsStats) || assignments.length > 0;
+  const showSkeleton = !hasData;
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
   const [recentPage, setRecentPage] = useState(1);
@@ -73,7 +106,7 @@ export default function OutstationAnalytics() {
   }, [role, navigate]);
 
   const fetchData = useCallback(async (isInitial = false) => {
-    if (isInitial && !hasLoadedRef.current) {
+    if (isInitial && !globalOutstationAnalyticsLoaded && !hasLoadedRef.current) {
       setLoading(true);
     }
     try {
@@ -94,8 +127,25 @@ export default function OutstationAnalytics() {
       ]);
       const statsData = await statsRes.json();
       const assignmentsData = await assignmentsRes.json();
-      if (statsData.success) setStats(statsData.stats || {});
-      if (assignmentsData.success) setAssignments(assignmentsData.assignments || []);
+      if (statsData.success) {
+        const sData = statsData.stats || {};
+        setStats(sData);
+        globalCachedAnalyticsStats = sData;
+        try {
+          localStorage.setItem("outstation_analytics_stats", JSON.stringify(sData));
+          sessionStorage.setItem("outstation_analytics_stats", JSON.stringify(sData));
+        } catch {}
+      }
+      if (assignmentsData.success) {
+        const aList = assignmentsData.assignments || [];
+        setAssignments(aList);
+        globalCachedAnalyticsAssignments = aList;
+        try {
+          localStorage.setItem("outstation_analytics_assignments", JSON.stringify(aList));
+          sessionStorage.setItem("outstation_analytics_assignments", JSON.stringify(aList));
+        } catch {}
+      }
+      globalOutstationAnalyticsLoaded = true;
       hasLoadedRef.current = true;
       setInitialLoaded(true);
     } catch (e) {
