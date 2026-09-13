@@ -9,7 +9,7 @@ import { MonthPicker } from "@/components/shared/MonthPicker";
 import { exportToCSV } from "@/utils/export";
 import { API_BASE_URL } from "@/config/api";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Loader2, Users, UserCheck, CalendarDays, Calendar as CalendarIcon, Clock, FileCheck, CheckCircle2, XCircle, AlertTriangle, Building2, Download, ChevronRight, ChevronDown, Wifi, WifiOff, TrendingUp, MapPin, Plane, FileText, AlertCircle, Award, ChevronLeft } from "lucide-react";
+import { Loader2, Users, UserCheck, CalendarDays, Calendar as CalendarIcon, Clock, FileCheck, CheckCircle2, XCircle, AlertTriangle, Building2, Download, ChevronRight, Wifi, WifiOff, TrendingUp, MapPin, Plane, FileText, AlertCircle, Award, ChevronLeft } from "lucide-react";
 import { getCleanReason } from "@/lib/leaveStorage";
 import { format, subDays, addDays, startOfWeek, endOfWeek } from "date-fns";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend, Sector, AreaChart, Area, ReferenceArea } from "recharts";
@@ -2638,9 +2638,6 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                <div className="flex items-center gap-2">
                  <Building2 className="w-4 h-4 text-foreground" />
                  <h3 className="text-sm font-bold text-[#1A1F36] dark:text-slate-100">Department Workforce Distribution</h3>
-               </div>
-               <div className="text-[10px] font-bold border border border-slate-300 dark:border-slate-700 rounded px-2 py-1 flex items-center gap-1 text-foreground cursor-pointer hover:bg-slate-50 dark:bg-slate-900/50">
-                 This Month <ChevronDown className="w-3 h-3" />
                </div>
              </div>
              
