@@ -296,7 +296,7 @@ export default function ResetPassword() {
             </div>
           ) : (
             <>
-              <CardHeader className="pb-2 bg-white/50 text-center">
+              <CardHeader className="pb-4 bg-white/50 text-center border-b border-slate-100">
                 <h2 className="text-lg font-bold text-[#942392]">Create New Password</h2>
                 <p className="text-xs text-slate-600">Enter your new secure password below.</p>
               </CardHeader>
