@@ -222,7 +222,7 @@ export default function Login() {
                       placeholder="••••••••" 
                       value={loginPassword} 
                       onChange={(e) => setLoginPassword(e.target.value)} 
-                      className="!bg-white !text-slate-900 !border-slate-200 placeholder:!text-slate-400 focus-visible:!ring-[#942392] shadow-sm"
+                      className="!bg-white !text-slate-900 !border-slate-200 placeholder:!text-slate-400 placeholder:!text-gray-400 placeholder:!font-normal focus-visible:!ring-[#942392] shadow-sm"
                       required 
                     />
                   </div>
@@ -389,7 +389,7 @@ export default function Login() {
                       placeholder="Min. 6 characters" 
                       value={signupPassword} 
                       onChange={(e) => setSignupPassword(e.target.value)} 
-                      className="!bg-white !text-slate-900 !border-slate-200 placeholder:!text-slate-400 focus-visible:!ring-[#942392] shadow-sm"
+                      className="!bg-white !text-slate-900 !border-slate-200 placeholder:!text-slate-400 placeholder:!text-gray-400 placeholder:!font-normal focus-visible:!ring-[#942392] shadow-sm"
                       required 
                     />
                   </div>
@@ -400,7 +400,7 @@ export default function Login() {
                       placeholder="Confirm your password" 
                       value={signupConfirmPassword} 
                       onChange={(e) => setSignupConfirmPassword(e.target.value)} 
-                      className="!bg-white !text-slate-900 !border-slate-200 placeholder:!text-slate-400 focus-visible:!ring-[#942392] shadow-sm"
+                      className="!bg-white !text-slate-900 !border-slate-200 placeholder:!text-slate-400 placeholder:!text-gray-400 placeholder:!font-normal focus-visible:!ring-[#942392] shadow-sm"
                       required 
                     />
                     {signupConfirmPassword && (

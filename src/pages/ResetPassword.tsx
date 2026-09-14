@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input"
-import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
-import { Loader2, ShieldCheck } from "lucide-react";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import { Loader2, ShieldCheck, Check, Eye, EyeOff, Info, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,9 +13,66 @@ import { API_BASE_URL } from "@/config/api";
 import watercolorBg from "@/assets/watercolor-bg.png";
 import rayharLogo from "@/assets/favicon.png";
 
+// Password Requirements & Strength Configuration
+const PASSWORD_REQUIREMENTS = [
+  { regex: /.{8,}/, text: "At least 8 characters" },
+  { regex: /[0-9]/, text: "At least 1 number" },
+  { regex: /[a-z]/, text: "At least 1 lowercase letter" },
+  { regex: /[A-Z]/, text: "At least 1 uppercase letter" },
+  { regex: /[!-/:-@[-`{-~]/, text: "At least 1 special character" },
+] as const;
+
+type StrengthScore = 0 | 1 | 2 | 3 | 4 | 5;
+
+const STRENGTH_CONFIG = {
+  colors: {
+    0: "border-slate-200",
+    1: "border-red-500",
+    2: "border-orange-500",
+    3: "border-amber-500",
+    4: "border-emerald-400",
+    5: "border-emerald-500",
+  } satisfies Record<StrengthScore, string>,
+  iconColors: {
+    0: "text-slate-400",
+    1: "text-red-500",
+    2: "text-orange-500",
+    3: "text-amber-500",
+    4: "text-emerald-500",
+    5: "text-emerald-500",
+  } satisfies Record<StrengthScore, string>,
+  barColors: {
+    0: "bg-slate-200",
+    1: "bg-red-500",
+    2: "bg-orange-500",
+    3: "bg-amber-500",
+    4: "bg-emerald-400",
+    5: "bg-emerald-500",
+  } satisfies Record<StrengthScore, string>,
+  texts: {
+    0: "Enter a password",
+    1: "Weak password",
+    2: "Medium password!",
+    3: "Strong password!!",
+    4: "Very Strong password!!!",
+  } satisfies Record<Exclude<StrengthScore, 5>, string>,
+} as const;
+
+type Requirement = {
+  met: boolean;
+  text: string;
+};
+
+type PasswordStrength = {
+  score: StrengthScore;
+  requirements: Requirement[];
+};
+
 export default function ResetPassword() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [isVisible, setIsVisible] = useState(false);
+  const [isConfirmVisible, setIsConfirmVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -23,6 +80,23 @@ export default function ResetPassword() {
   const [tokenParam, setTokenParam] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  const calculateStrength = useMemo((): PasswordStrength => {
+    const requirements = PASSWORD_REQUIREMENTS.map((req) => ({
+      met: req.regex.test(newPassword),
+      text: req.text,
+    }));
+
+    return {
+      score: requirements.filter((req) => req.met).length as StrengthScore,
+      requirements,
+    };
+  }, [newPassword]);
+
+  const isMatch = useMemo(() => {
+    if (confirmPassword === "") return null;
+    return newPassword !== "" && confirmPassword === newPassword;
+  }, [newPassword, confirmPassword]);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -60,8 +134,12 @@ export default function ResetPassword() {
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (newPassword.length < 6) {
-      toast({ title: "Password too short", description: "Password must be at least 6 characters.", variant: "destructive" });
+    if (newPassword.length < 8) {
+      toast({ title: "Password too short", description: "Password must be at least 8 characters.", variant: "destructive" });
+      return;
+    }
+    if (calculateStrength.score < 3) {
+      toast({ title: "Weak Password", description: "Please fulfill more password requirements (at least 3 met).", variant: "destructive" });
       return;
     }
     if (newPassword !== confirmPassword) {
@@ -170,27 +248,140 @@ export default function ResetPassword() {
               
               <form onSubmit={handleResetPassword}>
                 <CardContent className="space-y-4 pt-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="new-password" className="text-slate-800 font-bold text-xs">New Password</Label>
-                    <PasswordInput
-                      id="new-password"
-                      placeholder="••••••••"
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      className="!bg-white !text-slate-900 !border-slate-200 placeholder:!text-slate-400 focus-visible:!ring-[#942392] shadow-sm"
-                      required
-                    />
+                  {/* New Password */}
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="new-password" className="text-slate-800 font-bold text-xs">
+                        New Password
+                      </Label>
+                      <HoverCard openDelay={150}>
+                        <HoverCardTrigger asChild>
+                          <button
+                            type="button"
+                            className="inline-flex items-center justify-center p-0.5 rounded-full hover:bg-slate-100 transition-colors cursor-pointer"
+                            aria-label="Password requirements info"
+                          >
+                            <Info
+                              size={17}
+                              className={`${
+                                STRENGTH_CONFIG.iconColors[calculateStrength.score]
+                              } transition-colors`}
+                            />
+                          </button>
+                        </HoverCardTrigger>
+                        <HoverCardContent className="w-64 bg-white/95 backdrop-blur-md p-3.5 rounded-xl shadow-xl border border-slate-200">
+                          <p className="text-xs font-bold text-slate-800 mb-2">Password Requirements</p>
+                          <ul className="space-y-1.5" aria-label="Password requirements">
+                            {calculateStrength.requirements.map((req) => (
+                              <li key={req.text} className="flex items-center space-x-2">
+                                {req.met ? (
+                                  <Check size={14} className="text-emerald-500 shrink-0" />
+                                ) : (
+                                  <X size={14} className="text-slate-400 shrink-0" />
+                                )}
+                                <span
+                                  className={`text-xs ${
+                                    req.met ? "text-emerald-600 font-bold" : "text-slate-500"
+                                  }`}
+                                >
+                                  {req.text}
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
+                        </HoverCardContent>
+                      </HoverCard>
+                    </div>
+
+                    <div className="relative">
+                      <Input
+                        id="new-password"
+                        type={isVisible ? "text" : "password"}
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        placeholder="••••••••"
+                        aria-invalid={calculateStrength.score < 4}
+                        aria-describedby="password-strength"
+                        className={`w-full pr-10 border-2 rounded-md !bg-white !text-slate-900 placeholder:!text-slate-400 placeholder:!text-gray-400 placeholder:!font-normal transition-all shadow-sm ${
+                          newPassword === ""
+                            ? "!border-slate-200 focus-visible:!ring-[#942392]"
+                            : STRENGTH_CONFIG.colors[calculateStrength.score]
+                        }`}
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setIsVisible((prev) => !prev)}
+                        aria-label={isVisible ? "Hide password" : "Show password"}
+                        className="absolute inset-y-0 right-0 flex items-center justify-center w-10 text-slate-400 hover:text-slate-600 transition-colors"
+                      >
+                        {isVisible ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+
+                    {/* Animated Strength Progress Bar */}
+                    <div
+                      className="mt-2 mb-1.5 h-1 rounded-full bg-slate-100 overflow-hidden"
+                      role="progressbar"
+                      aria-valuenow={calculateStrength.score}
+                      aria-valuemin={0}
+                      aria-valuemax={5}
+                    >
+                      <div
+                        className={`h-full ${
+                          STRENGTH_CONFIG.barColors[calculateStrength.score]
+                        } transition-all duration-500`}
+                        style={{ width: `${(calculateStrength.score / 5) * 100}%` }}
+                      />
+                    </div>
+
+                    {newPassword !== "" && (
+                      <div className="flex justify-between items-center text-[10px] font-bold text-slate-500">
+                        <span>Must contain:</span>
+                        <span className={calculateStrength.score >= 4 ? "text-emerald-600 font-bold" : calculateStrength.score >= 2 ? "text-amber-500 font-bold" : "text-red-500 font-bold"}>
+                          {STRENGTH_CONFIG.texts[Math.min(calculateStrength.score, 4) as keyof typeof STRENGTH_CONFIG.texts]}
+                        </span>
+                      </div>
+                    )}
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="confirm-password" className="text-slate-800 font-bold text-xs">Confirm Password</Label>
-                    <PasswordInput
-                      id="confirm-password"
-                      placeholder="••••••••"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="!bg-white !text-slate-900 !border-slate-200 placeholder:!text-slate-400 focus-visible:!ring-[#942392] shadow-sm"
-                      required
-                    />
+
+                  {/* Confirm Password */}
+                  <div className="space-y-1.5 pt-1">
+                    <Label htmlFor="confirm-password" className="text-slate-800 font-bold text-xs">
+                      Confirm Password
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="confirm-password"
+                        type={isConfirmVisible ? "text" : "password"}
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        placeholder="••••••••"
+                        aria-invalid={confirmPassword !== "" ? isMatch === false : undefined}
+                        className={`w-full pr-10 border-2 rounded-md !bg-white !text-slate-900 placeholder:!text-slate-400 placeholder:!text-gray-400 placeholder:!font-normal transition-all shadow-sm ${
+                          confirmPassword === ""
+                            ? "!border-slate-200 focus-visible:!ring-[#942392]"
+                            : isMatch
+                            ? "border-emerald-500"
+                            : "border-red-500"
+                        }`}
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setIsConfirmVisible((prev) => !prev)}
+                        aria-label={isConfirmVisible ? "Hide password" : "Show password"}
+                        className="absolute inset-y-0 right-0 flex items-center justify-center w-10 text-slate-400 hover:text-slate-600 transition-colors"
+                      >
+                        {isConfirmVisible ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                    {confirmPassword !== "" && isMatch === false && (
+                      <p className="text-red-500 text-[11px] font-bold mt-1">Passwords do not match</p>
+                    )}
+                    {confirmPassword !== "" && isMatch === true && (
+                      <p className="text-emerald-600 text-[11px] font-bold mt-1">✓ Passwords match</p>
+                    )}
                   </div>
                 </CardContent>
                 

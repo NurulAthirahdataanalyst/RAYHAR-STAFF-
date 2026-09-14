@@ -23,6 +23,7 @@ export default defineConfig(({ mode }) => ({
           vendor: ["react", "react-dom", "react-router-dom"],
           recharts: ["recharts"],
           maplibre: ["maplibre-gl"],
+          lucide: ["lucide-react"],
         },
       },
     },
