@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
-import { User, LogOut, ChevronRight, ChevronLeft, Settings, Menu, ClipboardCheck, Calendar, Sparkles, RefreshCw, Sun, Moon, Home } from "lucide-react";
+import { User, LogOut, ChevronRight, ChevronLeft, Settings, Menu, ClipboardCheck, Calendar, Sparkles, RefreshCw, Sun, Moon, Home, Bell } from "lucide-react";
 import { useRole } from "@/contexts/RoleContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { API_BASE_URL } from "../../config/api";
@@ -323,9 +323,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     <User className="mr-2 h-4 w-4" />
                     <span>My Profile</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/profile")} className="rounded-xl px-3 py-2.5 focus:bg-white/10 focus:text-white cursor-pointer transition-colors text-white/90">
-                    <Settings className="mr-2 h-4 w-4" />
-                    <span>Account Settings</span>
+                  <DropdownMenuItem onClick={() => navigate("/notifications")} className="rounded-xl px-3 py-2.5 focus:bg-white/10 focus:text-white cursor-pointer transition-colors text-white/90">
+                    <Bell className="mr-2 h-4 w-4" />
+                    <span>Notifications</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator className="bg-white/5" />
                   <DropdownMenuItem onClick={() => signOut()} className="rounded-xl px-3 py-2.5 focus:bg-red-500/20 focus:text-red-400 cursor-pointer text-red-400 font-bold transition-colors">
@@ -393,6 +393,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 <DropdownMenuItem onClick={() => navigate("/profile")} className="rounded-xl px-3 py-2.5 focus:bg-white/10 focus:text-white cursor-pointer text-white/90">
                   <User className="mr-2 h-4 w-4" />
                   <span>My Profile</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/notifications")} className="rounded-xl px-3 py-2.5 focus:bg-white/10 focus:text-white cursor-pointer text-white/90">
+                  <Bell className="mr-2 h-4 w-4" />
+                  <span>Notifications</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator className="bg-white/5" />
                 <DropdownMenuItem onClick={() => signOut()} className="rounded-xl px-3 py-2.5 focus:bg-red-500/20 focus:text-red-400 cursor-pointer text-red-400 font-bold">

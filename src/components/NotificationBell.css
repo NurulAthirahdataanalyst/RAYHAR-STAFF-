@@ -1,7 +1,7 @@
 ﻿/* From Uiverse.io by vinodjangid07 */ 
 .uiverse-notification-btn {
-  width: 50px;
-  height: 50px;
+  width: 34px;
+  height: 34px;
   position: relative;
   display: flex;
   align-items: center;
@@ -18,7 +18,7 @@
 }
 
 .uiverse-notification-btn .bell {
-  width: 18px;
+  width: 15px;
   height: auto;
   transform-origin: top;
   /* Plays ringing animation periodically even without hover */
@@ -95,10 +95,10 @@
 /* Responsive adjustment for compact mobile view */
 @media (max-width: 480px) {
   .uiverse-notification-btn {
-    width: 40px;
-    height: 40px;
+    width: 32px;
+    height: 32px;
   }
   .uiverse-notification-btn .bell {
-    width: 16px;
+    width: 14px;
   }
 }
