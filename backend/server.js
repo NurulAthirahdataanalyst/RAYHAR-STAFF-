@@ -1213,39 +1213,6 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
 let sseClients = [];
 let liveStatsClients = [];
 let employeeLocationsClients = [];
-let alertsClients = [];
-
-async function saveAlert(alert) {
-  try {
-    // Try inserting into alerts table
-    await pool.query(`INSERT INTO alerts (type, user_id, payload, created_at) VALUES (?, ?, ?, ?)` , [alert.type || null, alert.userId || alert.user_id || null, JSON.stringify(alert), new Date()]);
-  } catch (e) {
-    // If table doesn't exist, create and retry
-    try {
-      await pool.query(`
-        CREATE TABLE IF NOT EXISTS alerts (
-          id SERIAL PRIMARY KEY,
-          type VARCHAR(128),
-          user_id VARCHAR(64),
-          payload JSON,
-          acknowledged BOOLEAN DEFAULT FALSE,
-          ack_by VARCHAR(64),
-          ack_at TIMESTAMP,
-          created_at TIMESTAMP
-        );
-      `);
-      await pool.query(`INSERT INTO alerts (type, user_id, payload, created_at) VALUES (?, ?, ?, ?)` , [alert.type || null, alert.userId || alert.user_id || null, JSON.stringify(alert), new Date()]);
-    } catch (e2) {
-      console.error('Failed to save alert', e2.message || e2);
-    }
-  }
-
-  // push to connected alert SSE clients
-  const payload = { type: alert.type || 'alert', timestamp: new Date().toISOString(), alert };
-  alertsClients.forEach(c => {
-    try { c.write(`data: ${JSON.stringify(payload)}\n\n`); } catch (e) {}
-  });
-}
 
 async function getEmployeeLocations(branch) {
   try {
@@ -1587,14 +1554,7 @@ function broadcastPresenceUpdate(payload = { type: 'refresh' }) {
       }
     })();
   }
-  // Also forward as stored alerts when payload signals arrival/breach
-  try {
-    if (payload && payload.type && (payload.type === 'outstation-arrival' || payload.type === 'outstation' || payload.type === 'outstation-arrival' || payload.type === 'location-update')) {
-      // persist the event as an alert
-      saveAlert(payload).catch(console.error);
-    }
-  } catch (e) { /* ignore */ }
-  // Also refresh live stats clients
+  // Refresh live stats clients
   if (liveStatsClients.length > 0) {
     const today = new Date().toISOString().split('T')[0];
     liveStatsClients.forEach(c => {
@@ -1668,67 +1628,6 @@ app.get('/api/employee-locations/stream', async (req, res) => {
   });
 });
 
-// Alerts endpoints
-app.get('/api/alerts', async (req, res) => {
-  try {
-    const limit = parseInt(String(req.query.limit || '50'), 10) || 50;
-    // Optional: allow filtering unacknowledged only
-    const onlyUnacked = req.query.unacked === '1' || req.query.unacked === 'true';
-    let sql = 'SELECT id, type, user_id, payload, acknowledged, created_at FROM alerts';
-    if (onlyUnacked) sql += ' WHERE acknowledged = FALSE';
-    sql += ' ORDER BY created_at DESC LIMIT ?';
-    const [rows] = await pool.query(sql, [limit]);
-    return res.json({ success: true, alerts: rows });
-  } catch (e) {
-    console.error('/api/alerts error', e.message || e);
-    return res.json({ success: false, error: e.message || String(e) });
-  }
-});
-
-// Acknowledge alert (mark acknowledged=true)
-app.post('/api/alerts/:id/ack', async (req, res) => {
-  try {
-    const id = req.params.id;
-    // Basic RBAC: allow only admin roles
-    const userRole = (req.user && req.user.role) || req.headers['x-user-role'] || '';
-    const ALLOWED = ['hr_admin', 'managing_director', 'operation_manager', 'finance_manager', 'head_of_department', 'branch_leader'];
-    if (!ALLOWED.includes(String(userRole))) return res.status(403).json({ success: false, error: 'Forbidden' });
-
-    const ackBy = (req.user && (req.user.userId || req.user.user_id)) || req.headers['x-user-id'] || req.body.userId || null;
-    await pool.query('UPDATE alerts SET acknowledged = TRUE, ack_by = ?, ack_at = NOW() WHERE id = ?', [ackBy, id]);
-    // return updated row
-    const [rows] = await pool.query('SELECT id, type, user_id, payload, acknowledged, ack_by, ack_at, created_at FROM alerts WHERE id = ?', [id]);
-    const alertRow = rows[0];
-
-    // Broadcast ack update to SSE clients
-    const payload = { type: 'alert-ack', timestamp: new Date().toISOString(), alert: alertRow };
-    alertsClients.forEach(c => {
-      try { c.write(`data: ${JSON.stringify(payload)}\n\n`); } catch (e) {}
-    });
-
-    res.json({ success: true, alert: alertRow });
-  } catch (e) {
-    console.error('/api/alerts/:id/ack error', e.message || e);
-    res.status(500).json({ success: false, error: e.message || String(e) });
-  }
-});
-
-app.get('/api/alerts/stream', (req, res) => {
-  res.setHeader('Content-Type', 'text/event-stream');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Connection', 'keep-alive');
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.flushHeaders();
-
-  res.write(': connected\n\n');
-  alertsClients.push(res);
-  console.log(`🔔 Alerts SSE client connected. Total: ${alertsClients.length}`);
-
-  req.on('close', () => {
-    alertsClients = alertsClients.filter(c => c !== res);
-    console.log(`🔔 Alerts SSE client disconnected. Total: ${alertsClients.length}`);
-  });
-});
 
 // LIVE STATS SSE â€” streams enriched presence data (present/late/absent/on-leave counts + employee list)
 app.get("/api/presence/live-stats", async (req, res) => {
