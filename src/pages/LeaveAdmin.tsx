@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
 import { TableScrollTopButton } from "@/components/shared/TableScrollTopButton";
