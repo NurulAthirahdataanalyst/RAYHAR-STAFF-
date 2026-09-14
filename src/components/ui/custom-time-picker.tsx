@@ -321,8 +321,12 @@ export const CustomTimePicker: React.FC<CustomTimePickerProps> = ({
         {/* Wheel Spinner Section (Desktop / Wheel mode) */}
         {mode === "wheel" && (
           <div className="relative mt-4 mb-2 flex items-center justify-around h-[180px] overflow-hidden select-none">
-            {/* Active middle highlight capsule */}
-            <div className="absolute inset-x-2 top-[72px] h-[36px] bg-[#fce7f3]/80 dark:bg-[#942392]/25 rounded-xl border border-pink-200 dark:border-[#942392]/40 pointer-events-none" />
+            {/* Top and bottom subtle fade masks */}
+            <div className="absolute inset-x-0 top-0 h-10 bg-gradient-to-b from-card to-transparent pointer-events-none z-20" />
+            <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-card to-transparent pointer-events-none z-20" />
+
+            {/* Active middle highlight capsule across both columns */}
+            <div className="absolute inset-x-4 top-[72px] h-[36px] bg-[#ede9fe]/90 dark:bg-[#942392]/25 rounded-xl border border-purple-200/80 dark:border-[#942392]/40 pointer-events-none" />
 
             {/* Hours Column */}
             <div
@@ -393,7 +397,7 @@ export const CustomTimePicker: React.FC<CustomTimePickerProps> = ({
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="text-xs sm:text-sm font-bold text-muted-foreground hover:text-foreground px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+              className="text-xs sm:text-sm font-bold text-[#942392] hover:text-[#5e0080] hover:bg-purple-50 dark:hover:bg-purple-950/40 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
             >
               Cancel
             </button>
