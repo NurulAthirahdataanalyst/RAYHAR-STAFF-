@@ -7,6 +7,17 @@
 @tailwind utilities;
 
 @layer base {
+  /* Hide native browser password reveal & clear icons (Microsoft Edge / IE) to prevent duplicate eye icons */
+  input[type="password"]::-ms-reveal,
+  input[type="password"]::-ms-clear,
+  input::-ms-reveal,
+  input::-ms-clear {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    pointer-events: none !important;
+  }
+
   html {
     font-size: 80%;
     -webkit-tap-highlight-color: transparent;

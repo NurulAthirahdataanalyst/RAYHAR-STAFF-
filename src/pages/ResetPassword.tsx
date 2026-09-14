@@ -282,7 +282,13 @@ export default function ResetPassword() {
                             />
                           </button>
                         </HoverCardTrigger>
-                        <HoverCardContent className="w-64 bg-white/95 backdrop-blur-md p-3.5 rounded-xl shadow-xl border border-slate-200">
+                        <HoverCardContent 
+                          align="end" 
+                          side="bottom" 
+                          sideOffset={6} 
+                          collisionPadding={16}
+                          className="w-72 bg-white/98 backdrop-blur-md p-3.5 rounded-xl shadow-2xl border border-slate-200"
+                        >
                           <p className="text-xs font-bold text-slate-800 mb-2">Password Requirements</p>
                           <ul className="space-y-1.5" aria-label="Password requirements">
                             {calculateStrength.requirements.map((req) => (
@@ -326,7 +332,7 @@ export default function ResetPassword() {
                         type="button"
                         onClick={() => setIsVisible((prev) => !prev)}
                         aria-label={isVisible ? "Hide password" : "Show password"}
-                        className="absolute inset-y-0 right-0 flex items-center justify-center w-10 text-slate-400 hover:text-slate-600 transition-colors"
+                        className="absolute inset-y-0 right-0 flex items-center justify-center w-10 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
                       >
                         {isVisible ? <EyeOff size={16} /> : <Eye size={16} />}
                       </button>
@@ -384,7 +390,7 @@ export default function ResetPassword() {
                         type="button"
                         onClick={() => setIsConfirmVisible((prev) => !prev)}
                         aria-label={isConfirmVisible ? "Hide password" : "Show password"}
-                        className="absolute inset-y-0 right-0 flex items-center justify-center w-10 text-slate-400 hover:text-slate-600 transition-colors"
+                        className="absolute inset-y-0 right-0 flex items-center justify-center w-10 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
                       >
                         {isConfirmVisible ? <EyeOff size={16} /> : <Eye size={16} />}
                       </button>
