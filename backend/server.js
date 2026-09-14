@@ -4360,7 +4360,7 @@ app.post("/api/login", async (req, res) => {
 
   try {
     const [rows] = await pool.query(
-      "SELECT * FROM profiles WHERE email = ?",
+      "SELECT * FROM profiles WHERE LOWER(TRIM(email)) = LOWER(TRIM(?))",
       [email]
     );
 
