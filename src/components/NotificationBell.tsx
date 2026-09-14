@@ -161,18 +161,9 @@ export default function NotificationBell() {
           className="uiverse-notification-btn no-global-hover"
           aria-label="Notifications"
         >
-          <svg
-            className="bell"
-            viewBox="0 0 448 512"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              fill="white"
-              d="M224 0c-17.7 0-32 14.3-32 32v19.2C119 63.8 64 127.8 64 208v18.8c0 47-17.3 92.4-48.5 127.6l-7.4 8.3c-8.4 9.4-10.4 22.9-5.3 34.4S19.4 416 32 416H416c12.6 0 24-7.4 29.2-18.9s3.1-25-5.3-34.4l-7.4-8.3C401.3 319.2 384 273.9 384 226.8V208c0-80.2-55-144.2-128-156.8V32c0-17.7-14.3-32-32-32zm45.3 464c-6.8 16.7-23.2 28-42.3 28s-35.5-11.3-42.3-28h84.6z"
-            />
-          </svg>
+          <Bell className="bell" strokeWidth={2.2} />
           {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 flex h-4 min-w-4 px-1 items-center justify-center rounded-full bg-rose-600 text-[9px] font-bold text-white shadow-sm ring-2 ring-[rgb(44,44,44)] pointer-events-none animate-in zoom-in">
+            <span className="absolute -top-1 -right-1 flex h-4 min-w-4 px-1 items-center justify-center rounded-full bg-rose-600 text-[9px] font-bold text-white shadow-sm ring-2 ring-white pointer-events-none animate-in zoom-in">
               {unreadCount > 9 ? "9+" : unreadCount}
             </span>
           )}

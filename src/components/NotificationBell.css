@@ -1,37 +1,36 @@
-﻿/* From Uiverse.io by vinodjangid07 */ 
+/* Notification Bell Button */ 
 .uiverse-notification-btn {
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: rgb(44, 44, 44);
-  border-radius: 50%;
+  background-color: #f3e8f9;
+  border-radius: 10px;
   cursor: pointer;
   transition: all 0.3s ease, transform 0.3s ease !important;
-  transition-duration: .3s;
-  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.13);
-  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(148, 35, 146, 0.25);
   outline: none;
   flex-shrink: 0;
 }
 
 .uiverse-notification-btn .bell {
-  width: 15px;
-  height: auto;
+  width: 18px;
+  height: 18px;
+  color: #942392;
+  stroke: #942392;
+  fill: none;
   transform-origin: top;
   /* Plays ringing animation periodically even without hover */
   animation: bellRingPeriodic 4s infinite ease-in-out;
 }
 
-.uiverse-notification-btn .bell path {
-  fill: white;
-}
-
 .uiverse-notification-btn:hover,
 .uiverse-notification-btn[data-state="open"] {
-  background-color: rgb(56, 56, 56);
+  background-color: #ebd3f5;
+  border-color: rgba(148, 35, 146, 0.45);
 }
 
 .uiverse-notification-btn:hover .bell {
@@ -65,6 +64,7 @@
   0%,
   100% {
     transform-origin: top;
+    transform: rotateZ(0deg);
   }
 
   15% {
@@ -89,7 +89,7 @@
 }
 
 .uiverse-notification-btn:active {
-  transform: scale(0.8) !important;
+  transform: scale(0.92) !important;
 }
 
 /* Responsive adjustment for compact mobile view */
@@ -97,8 +97,10 @@
   .uiverse-notification-btn {
     width: 32px;
     height: 32px;
+    border-radius: 8px;
   }
   .uiverse-notification-btn .bell {
-    width: 14px;
+    width: 16px;
+    height: 16px;
   }
 }
