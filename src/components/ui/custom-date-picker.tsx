@@ -53,11 +53,13 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
             className
           )}
         >
-          <span className="font-semibold uppercase tracking-wide truncate">{formattedText}</span>
-          <CalendarDays className="w-4 h-4 text-foreground shrink-0" />
+          <span className={cn("truncate", !parsedDate ? "text-muted-foreground font-normal normal-case" : "font-semibold uppercase tracking-wide")}>
+            {formattedText}
+          </span>
+          <CalendarDays className="w-4 h-4 text-muted-foreground shrink-0" />
         </button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0 overflow-hidden border-none shadow-2xl rounded-xl bg-card" align="start">
+      <PopoverContent className="w-auto p-0 overflow-hidden border-none shadow-2xl rounded-xl bg-card z-[200]" align="start">
         <Calendar
           mode="single"
           selected={parsedDate}

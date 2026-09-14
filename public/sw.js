@@ -1,7 +1,6 @@
 // Rayhar Staff Portal - Service Worker
-const CACHE_NAME = 'rayhar-staff-v1';
+const CACHE_NAME = 'rayhar-staff-v2';
 const STATIC_ASSETS = [
-  '/',
   '/favicon.png',
 ];
 
@@ -29,7 +28,7 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch event - network-first strategy for API, cache-first for static
+// Fetch event - network-first strategy for API and HTML navigations, cache-first for static assets
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
@@ -39,6 +38,24 @@ self.addEventListener('fetch', (event) => {
 
   // Network-first for API calls
   if (url.pathname.startsWith('/api') || url.hostname !== self.location.hostname) {
+    return;
+  }
+
+  // Network-first for navigation (HTML page requests) to prevent stale JS bundles
+  if (request.mode === 'navigate' || url.pathname === '/' || url.pathname.endsWith('.html')) {
+    event.respondWith(
+      fetch(request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const responseClone = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(request, responseClone);
+            });
+          }
+          return networkResponse;
+        })
+        .catch(() => caches.match(request))
+    );
     return;
   }
 

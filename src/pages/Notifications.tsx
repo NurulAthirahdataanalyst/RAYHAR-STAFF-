@@ -24,6 +24,7 @@ import { useRole } from "@/contexts/RoleContext";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import PageActions from "@/components/layout/PageActions";
 import { useNotifications, type NotificationItem } from "@/contexts/NotificationContext";
 
 type FilterTab = "all" | "unread" | "leave" | "attendance" | "assignment" | "announcement";
@@ -274,32 +275,24 @@ export default function Notifications() {
   });
 
   return (
-    <div className="max-w-5xl mx-auto p-4 sm:p-6 space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">Notifications</h1>
-            {unreadCount > 0 && (
-              <Badge className="bg-rose-600 hover:bg-rose-700 text-white font-bold">
-                {unreadCount} unread
-              </Badge>
-            )}
-          </div>
-          <p className="text-sm text-muted-foreground mt-1">
-            Stay updated with leave approvals, attendance updates, assignments, and announcements.
-          </p>
-        </div>
-
+    <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-500">
+      {/* Header Actions via PageActions portal */}
+      <PageActions>
         <div className="flex items-center gap-2">
+          {unreadCount > 0 && (
+            <Badge className="bg-rose-600 hover:bg-rose-700 text-white font-bold">
+              {unreadCount} unread
+            </Badge>
+          )}
+
           <Button
             variant="outline"
             size="sm"
             onClick={fetchNotifications}
             disabled={loading}
-            className="gap-1.5"
+            className="gap-1.5 cursor-pointer"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin text-[#942392]" : ""}`} />
             Refresh
           </Button>
 
@@ -308,14 +301,14 @@ export default function Notifications() {
               variant="default"
               size="sm"
               onClick={handleMarkAllRead}
-              className="bg-teal-600 hover:bg-teal-700 text-white gap-1.5"
+              className="bg-teal-600 hover:bg-teal-700 text-white gap-1.5 cursor-pointer"
             >
               <Check className="w-3.5 h-3.5" />
               Mark all as read
             </Button>
           )}
         </div>
-      </div>
+      </PageActions>
 
       {/* Tabs and Search Bar */}
       <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-card p-2 rounded-xl border border-border shadow-xs">

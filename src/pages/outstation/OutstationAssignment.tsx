@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import PageActions from "@/components/layout/PageActions";
 import { MonthPicker } from "@/components/shared/MonthPicker";
 import { DatePickerInput } from "@/components/shared/DatePickerInput";
+import { CustomDatePicker, CustomTimePicker } from "@/components/common/TablePagination";
 import { TableScrollTopButton } from "@/components/shared/TableScrollTopButton";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
@@ -717,20 +718,20 @@ export default function OutstationAssignment() {
                   <label className="text-[10px] font-bold text-foreground block sm:hidden">STARTS</label>
                   <div className="flex-1 flex gap-2">
                     <div className="relative flex-1">
-                      <input
-                        type="date"
-                        required
-                        className="w-full bg-background border border-border rounded-xl px-3 py-2 text-[13px] sm:text-sm text-foreground focus:outline-none focus:border-[#FFFE00] focus:ring-1 focus:ring-[#FFFE00] transition-all h-[38px]"
+                      <CustomDatePicker
                         value={form.start_date}
-                        onChange={e => setForm(f => ({ ...f, start_date: e.target.value }))}
+                        onChange={(d) => setForm(f => ({ ...f, start_date: d }))}
+                        placeholder="dd/mm/yyyy"
+                        displayFormat="DD/MM/YYYY"
+                        className="w-full"
                       />
                     </div>
                     <div className="relative flex-1">
-                      <input
-                        type="time"
-                        className="w-full bg-background border border-border rounded-xl px-3 py-2 text-[13px] sm:text-sm text-foreground focus:outline-none focus:border-[#FFFE00] focus:ring-1 focus:ring-[#FFFE00] transition-all h-[38px]"
+                      <CustomTimePicker
                         value={form.start_time}
-                        onChange={e => setForm(f => ({ ...f, start_time: e.target.value }))}
+                        onChange={(t) => setForm(f => ({ ...f, start_time: t }))}
+                        placeholder="--:-- --"
+                        className="w-full"
                       />
                     </div>
                   </div>
@@ -741,20 +742,20 @@ export default function OutstationAssignment() {
                   <label className="text-[10px] font-bold text-foreground block sm:hidden">ENDS</label>
                   <div className="flex-1 flex gap-2">
                     <div className="relative flex-1">
-                      <input
-                        type="date"
-                        required
-                        className="w-full bg-background border border-border rounded-xl px-3 py-2 text-[13px] sm:text-sm text-foreground focus:outline-none focus:border-[#FFFE00] focus:ring-1 focus:ring-[#FFFE00] transition-all h-[38px]"
+                      <CustomDatePicker
                         value={form.end_date}
-                        onChange={e => setForm(f => ({ ...f, end_date: e.target.value }))}
+                        onChange={(d) => setForm(f => ({ ...f, end_date: d }))}
+                        placeholder="dd/mm/yyyy"
+                        displayFormat="DD/MM/YYYY"
+                        className="w-full"
                       />
                     </div>
                     <div className="relative flex-1">
-                      <input
-                        type="time"
-                        className="w-full bg-background border border-border rounded-xl px-3 py-2 text-[13px] sm:text-sm text-foreground focus:outline-none focus:border-[#FFFE00] focus:ring-1 focus:ring-[#FFFE00] transition-all h-[38px]"
+                      <CustomTimePicker
                         value={form.end_time}
-                        onChange={e => setForm(f => ({ ...f, end_time: e.target.value }))}
+                        onChange={(t) => setForm(f => ({ ...f, end_time: t }))}
+                        placeholder="--:-- --"
+                        className="w-full"
                       />
                     </div>
                   </div>

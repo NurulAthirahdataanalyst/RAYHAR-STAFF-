@@ -77,12 +77,14 @@ export const CustomTimePicker: React.FC<CustomTimePickerProps> = ({
             className
           )}
         >
-          <span className="font-semibold uppercase tracking-wide truncate">{display12Hr}</span>
-          <Clock className="w-4 h-4 text-foreground shrink-0" />
+          <span className={cn("truncate", !value ? "text-muted-foreground font-normal normal-case" : "font-semibold uppercase tracking-wide")}>
+            {display12Hr}
+          </span>
+          <Clock className="w-4 h-4 text-muted-foreground shrink-0" />
         </button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-auto p-0 overflow-hidden border-border/80 shadow-2xl rounded-xl bg-card z-[150]"
+        className="w-auto p-0 overflow-hidden border-border/80 shadow-2xl rounded-xl bg-card z-[200]"
         align="start"
       >
         {/* Header */}

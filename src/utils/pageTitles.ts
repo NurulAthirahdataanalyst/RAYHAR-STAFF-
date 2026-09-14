@@ -4,7 +4,8 @@ import {
   ClipboardList, FilePenLine, NotebookPen, Users, ChartPie, BadgeCheck,
   CalendarCheck2, WalletCards, ShieldEllipsis, ContactRound, Building2, UserCog,
   Building, ArrowRightLeft, MonitorSmartphone, ChartNoAxesCombined, ScanSearch,
-  CalendarClock, FileClock, FileCheck2, FileBarChart2, Settings, User, LucideIcon
+  CalendarClock, FileClock, FileCheck2, FileBarChart2, Settings, User, LucideIcon,
+  Bell
 } from "lucide-react";
 
 export interface PageInfo {
@@ -228,6 +229,13 @@ export function getPageTitleInfo(pathname: string, userRole?: string): PageInfo 
     title: "GPS Location Tracker",
     subtitle: "Monitor live workforce field locations, outstation tracking, and attendance coordinates.",
     icon: MapPinned
+  };
+
+  // Notifications
+  if (pathname === "/notifications") return {
+    title: "Notifications",
+    subtitle: "Stay updated with leave approvals, attendance updates, assignments, and announcements.",
+    icon: Bell
   };
 
   const last = pathname.split("/").filter(Boolean).pop() || "Page";
