@@ -7,6 +7,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { RoleProvider } from "@/contexts/RoleContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { NotificationProvider } from "@/contexts/NotificationContext";
 import AppLayout from "@/components/layout/AppLayout";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 
@@ -71,8 +72,9 @@ function ProtectedRoutes() {
 
   return (
     <RoleProvider>
-      <ErrorBoundary>
-        <AppLayout>
+      <NotificationProvider>
+        <ErrorBoundary>
+          <AppLayout>
           <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/attendance" element={<Attendance />} />
@@ -132,6 +134,7 @@ function ProtectedRoutes() {
         </Routes>
       </AppLayout>
       </ErrorBoundary>
+      </NotificationProvider>
     </RoleProvider>
   );
 }

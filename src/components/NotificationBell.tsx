@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { 
   Bell, 
   Check, 
@@ -14,162 +14,44 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { API_BASE_URL } from "@/config/api";
-import { useAuth } from "@/contexts/AuthContext";
 import { useRole } from "@/contexts/RoleContext";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/lib/supabase";
-import { initializePushNotifications } from "@/lib/pushNotifications";
-import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
+import { useNotifications, type NotificationItem } from "@/contexts/NotificationContext";
 
-export interface NotificationItem {
-  id: number;
-  user_id: string;
-  title: string;
-  message: string;
-  type: string;
-  is_read: boolean;
-  related_leave_id: number | null;
-  created_at: string;
-}
+export type { NotificationItem };
 
 export default function NotificationBell() {
-  const { user } = useAuth();
   const { role } = useRole();
   const navigate = useNavigate();
 
-  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
-  const [unreadCount, setUnreadCount] = useState<number>(0);
+  const {
+    notifications,
+    unreadCount,
+    markAsRead,
+    markAllAsRead,
+    deleteNotification,
+  } = useNotifications();
+
   const [isOpen, setIsOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
 
-  const resolvedUserId = user?.user_id || user?.id || user?.employee_id;
-
-  // 1. Fetch initial notifications
-  const fetchNotifications = async () => {
-    if (!resolvedUserId) return;
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/notifications?user_id=${encodeURIComponent(resolvedUserId)}&limit=15`);
-      const data = await res.json();
-      if (data.success) {
-        setNotifications(data.notifications || []);
-        setUnreadCount(typeof data.unreadCount === "number" ? data.unreadCount : (data.notifications || []).filter((n: NotificationItem) => !n.is_read).length);
-      }
-    } catch (err) {
-      console.error("Error fetching notifications:", err);
-    }
-  };
-
-  // 2. Initial load and Supabase Realtime subscription
-  useEffect(() => {
-    if (!resolvedUserId) return;
-
-    void fetchNotifications();
-    void initializePushNotifications(resolvedUserId);
-
-    // Subscribe to Supabase Realtime postgres_changes
-    const channel = supabase
-      .channel(`user-notifications-${resolvedUserId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "notifications",
-          filter: `user_id=eq.${resolvedUserId}`,
-        },
-        (payload) => {
-          const newNotif = payload.new as NotificationItem;
-          setNotifications((prev) => [newNotif, ...prev.filter((n) => n.id !== newNotif.id)].slice(0, 15));
-          setUnreadCount((c) => c + 1);
-          toast.info(newNotif.title, {
-            description: newNotif.message ? newNotif.message.slice(0, 75) + "..." : undefined,
-            action: {
-              label: "View",
-              onClick: () => handleNotificationClick(newNotif),
-            },
-          });
-        }
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "notifications",
-          filter: `user_id=eq.${resolvedUserId}`,
-        },
-        (payload) => {
-          const updated = payload.new as NotificationItem;
-          setNotifications((prev) => prev.map((n) => (n.id === updated.id ? updated : n)));
-          if (updated.is_read) {
-            setUnreadCount((c) => Math.max(0, c - 1));
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [resolvedUserId]);
-
-  // 3. Mark single notification as read
-  const markAsRead = async (id: number) => {
-    try {
-      await fetch(`${API_BASE_URL}/api/notifications/${id}/read`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: resolvedUserId }),
-      });
-      setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)));
-      setUnreadCount((c) => Math.max(0, c - 1));
-    } catch (e) {
-      console.error("Failed to mark notification read:", e);
-    }
-  };
-
-  // 4. Mark all as read
-  const handleMarkAllAsRead = async () => {
-    if (!resolvedUserId) return;
-    try {
-      await fetch(`${API_BASE_URL}/api/notifications/read-all`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: resolvedUserId }),
-      });
-      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
-      setUnreadCount(0);
-      toast.success("All notifications marked as read");
-    } catch (e) {
-      console.error("Failed to mark all as read:", e);
-    }
-  };
-
-  // 5. Delete notification
+  // 1. Delete notification
   const handleDeleteNotification = async (e: React.MouseEvent, id: number) => {
     e.stopPropagation();
-    try {
-      await fetch(`${API_BASE_URL}/api/notifications/${id}?user_id=${encodeURIComponent(resolvedUserId)}`, {
-        method: "DELETE",
-      });
-      const wasUnread = notifications.find((n) => n.id === id && !n.is_read);
-      setNotifications((prev) => prev.filter((n) => n.id !== id));
-      if (wasUnread) {
-        setUnreadCount((c) => Math.max(0, c - 1));
-      }
-    } catch (e) {
-      console.error("Failed to delete notification:", e);
-    }
+    await deleteNotification(id);
   };
 
-  // 6. Navigate on click
+  // 2. Navigate on click
   const handleNotificationClick = async (notif: NotificationItem) => {
     if (!notif.is_read) {
       void markAsRead(notif.id);
     }
     setIsOpen(false);
+
+    if (notif.action_url) {
+      navigate(notif.action_url);
+      return;
+    }
 
     const isApprover = ["hr_admin", "managing_director", "operation_manager", "finance_manager", "head_of_department", "branch_leader"].includes(role);
 
@@ -256,7 +138,7 @@ export default function NotificationBell() {
           </div>
           {unreadCount > 0 && (
             <button
-              onClick={handleMarkAllAsRead}
+              onClick={markAllAsRead}
               className="text-xs font-semibold text-white/90 hover:text-white hover:underline transition-colors flex items-center gap-1"
             >
               <Check className="w-3.5 h-3.5" /> Mark all read

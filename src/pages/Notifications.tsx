@@ -25,7 +25,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { formatDistanceToNow, format } from "date-fns";
-import type { NotificationItem } from "@/components/NotificationBell";
+import { useNotifications, type NotificationItem } from "@/contexts/NotificationContext";
 
 type FilterTab = "all" | "unread" | "leave" | "attendance" | "assignment" | "announcement";
 
@@ -33,6 +33,8 @@ export default function Notifications() {
   const { user } = useAuth();
   const { role } = useRole();
   const navigate = useNavigate();
+
+  const { fetchNotifications: refreshBell } = useNotifications();
 
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -70,26 +72,44 @@ export default function Notifications() {
   useEffect(() => {
     if (!resolvedUserId) return;
 
-    const channel = supabase
-      .channel(`page-notifications-${resolvedUserId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "notifications",
-          filter: `user_id=eq.${resolvedUserId}`,
-        },
-        () => {
-          void fetchNotifications();
-        }
-      )
-      .subscribe();
+    const channelTopic = `page-notif-${resolvedUserId}-${Date.now()}`;
+    let channel: any = null;
+
+    try {
+      channel = supabase
+        .channel(channelTopic)
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "notifications",
+            filter: `user_id=eq.${resolvedUserId}`,
+          },
+          () => {
+            void fetchNotifications();
+            void refreshBell();
+          }
+        )
+        .subscribe((status, err) => {
+          if (err) {
+            console.warn("Realtime subscription notice (Notifications page):", status, err);
+          }
+        });
+    } catch (err) {
+      console.error("Realtime subscription error in Notifications page:", err);
+    }
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channel) {
+        try {
+          supabase.removeChannel(channel);
+        } catch (err) {
+          console.error("Error removing channel:", err);
+        }
+      }
     };
-  }, [resolvedUserId, activeTab]);
+  }, [resolvedUserId, refreshBell]);
 
   const markAsRead = async (id: number) => {
     try {
@@ -100,6 +120,7 @@ export default function Notifications() {
       });
       setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)));
       setUnreadCount((c) => Math.max(0, c - 1));
+      void refreshBell();
     } catch (e) {
       console.error("Failed to mark as read:", e);
     }
@@ -116,6 +137,7 @@ export default function Notifications() {
       setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
       setUnreadCount(0);
       toast.success("All notifications marked as read");
+      void refreshBell();
     } catch (e) {
       console.error("Failed to mark all read:", e);
     }
@@ -133,6 +155,7 @@ export default function Notifications() {
         setUnreadCount((c) => Math.max(0, c - 1));
       }
       toast.success("Notification deleted");
+      void refreshBell();
     } catch (e) {
       console.error("Failed to delete notification:", e);
     }
@@ -141,6 +164,11 @@ export default function Notifications() {
   const handleNotificationClick = async (notif: NotificationItem) => {
     if (!notif.is_read) {
       void markAsRead(notif.id);
+    }
+
+    if (notif.action_url) {
+      navigate(notif.action_url);
+      return;
     }
 
     const isApprover = ["hr_admin", "managing_director", "operation_manager", "finance_manager", "head_of_department", "branch_leader"].includes(role);
