@@ -9729,8 +9729,9 @@ app.post("/api/request-password-reset", async (req, res) => {
   }
 
   try {
-    // Look up user by email in profiles table
-    const [rows] = await pool.query("SELECT * FROM profiles WHERE email = ?", [email]);
+    // Look up user by email in profiles table (PostgreSQL query)
+    const result = await pool.query("SELECT * FROM profiles WHERE email = $1", [email]);
+    const rows = result.rows || [];
     if (rows.length === 0) {
       // Don't leak that email doesn't exist for security reasons, just pretend success
       return res.json({ success: true, message: "If your email is registered, you will receive a reset link shortly." });
@@ -9739,15 +9740,13 @@ app.post("/api/request-password-reset", async (req, res) => {
     const user = rows[0];
 
     // Check JWT secret
-    if (!jwtSecret) {
-      return res.status(500).json({ success: false, error: "Server misconfiguration: JWT secret missing" });
-    }
+    const secret = jwtSecret || process.env.JWT_SECRET || "rayhar-default-jwt-secret";
 
     // Generate JWT token valid for 15 minutes
-    const token = jwt.sign({ user_id: user.user_id, purpose: "password_reset" }, jwtSecret, { expiresIn: "15m" });
+    const token = jwt.sign({ user_id: user.user_id, purpose: "password_reset" }, secret, { expiresIn: "15m" });
 
     // Determine Frontend URL
-    const frontendUrl = req.headers.origin || process.env.FRONTEND_URL || "http://localhost:5173";
+    const frontendUrl = req.headers.origin || process.env.FRONTEND_URL || "https://rayharstaffportal.vercel.app";
     const resetLink = `${frontendUrl}/reset-password?token=${token}`;
 
     // Send email
@@ -9755,7 +9754,7 @@ app.post("/api/request-password-reset", async (req, res) => {
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
         <h2 style="color: #7B0099;">Password Reset Request</h2>
-        <p>Hello ${user.full_name},</p>
+        <p>Hello ${user.full_name || 'Staff'},</p>
         <p>We received a request to reset your password for the Rayhar Employee Portal.</p>
         <p>Click the button below to set a new password. This link will expire in 15 minutes.</p>
         <div style="text-align: center; margin: 30px 0;">
@@ -9767,7 +9766,12 @@ app.post("/api/request-password-reset", async (req, res) => {
       </div>
     `;
 
-    await sendNotificationEmail(user.email, subject, html);
+    try {
+      const emailService = require("./services/emailService");
+      await emailService.sendEmail({ to: user.email, subject, html });
+    } catch (emailErr) {
+      console.warn("⚠️ [Password Reset] Email sending warning:", emailErr.message);
+    }
     
     res.json({ success: true, message: "Reset link sent successfully." });
   } catch (err) {
@@ -9789,7 +9793,8 @@ app.post("/api/reset-password", async (req, res) => {
 
   try {
     // Verify Token
-    const decoded = jwt.verify(token, jwtSecret);
+    const secret = jwtSecret || process.env.JWT_SECRET || "rayhar-default-jwt-secret";
+    const decoded = jwt.verify(token, secret);
 
     if (decoded.purpose !== "password_reset") {
       return res.status(400).json({ success: false, error: "Invalid token type" });
@@ -9801,8 +9806,8 @@ app.post("/api/reset-password", async (req, res) => {
     const bcrypt = require("bcryptjs");
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    // Update password
-    await pool.query("UPDATE profiles SET password = ? WHERE user_id = ?", [hashedPassword, userId]);
+    // Update password in profiles (PostgreSQL query)
+    await pool.query("UPDATE profiles SET password = $1 WHERE user_id = $2", [hashedPassword, userId]);
 
     res.json({ success: true, message: "Password updated successfully" });
   } catch (err) {

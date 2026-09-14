@@ -8,6 +8,7 @@ import { Loader2, ShieldCheck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { API_BASE_URL } from "@/config/api";
 
 import watercolorBg from "@/assets/watercolor-bg.png";
 import rayharLogo from "@/assets/favicon.png";
@@ -19,10 +20,19 @@ export default function ResetPassword() {
   const [error, setError] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
   const [isSessionChecking, setIsSessionChecking] = useState(true);
+  const [tokenParam, setTokenParam] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get("token");
+    if (token) {
+      setTokenParam(token);
+      setIsSessionChecking(false);
+      return;
+    }
+
     const checkSession = async () => {
       const { data: { session }, error } = await supabase.auth.getSession();
       
@@ -61,12 +71,26 @@ export default function ResetPassword() {
 
     setLoading(true);
     try {
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword,
-      });
+      if (tokenParam) {
+        // Reset password via backend token
+        const response = await fetch(`${API_BASE_URL}/api/reset-password`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token: tokenParam, newPassword }),
+        });
+        const data = await response.json();
+        if (!response.ok || !data.success) {
+          throw new Error(data.error || "Failed to update password.");
+        }
+      } else {
+        // Reset password via Supabase Auth session
+        const { error } = await supabase.auth.updateUser({
+          password: newPassword,
+        });
 
-      if (error) {
-        throw error;
+        if (error) {
+          throw error;
+        }
       }
 
       setIsSuccess(true);

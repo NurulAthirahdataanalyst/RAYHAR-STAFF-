@@ -268,10 +268,10 @@ export default function Login() {
                           <div className="flex gap-2">
                             <Input
                               type="email"
-                              placeholder="you@rayhar.com"
+                              placeholder="you@company.com"
                               value={resetEmail}
                               onChange={(e) => setResetEmail(e.target.value)}
-                              className="h-8 text-xs !bg-white !text-slate-900 border-[#942392]/30 placeholder:!text-slate-400 focus-visible:!ring-[#942392]"
+                              className="h-8 text-xs !bg-white !text-slate-900 border-[#942392]/30 placeholder:!text-slate-400 placeholder:!text-gray-400 placeholder:!font-normal focus-visible:!ring-[#942392]"
                             />
                             <Button
                               type="button"

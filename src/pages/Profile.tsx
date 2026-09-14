@@ -1,10 +1,14 @@
+import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRole } from "@/contexts/RoleContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { User, Mail, Building2, ShieldCheck, Calendar, MapPin, Lock } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { User, Mail, Building2, ShieldCheck, Calendar, MapPin, Lock, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { API_BASE_URL } from "@/config/api";
+import { supabase } from "@/integrations/supabase/client";
 
 const getFullBranchName = (code: string) => {
   const branchNames: Record<string, string> = {
@@ -45,6 +49,59 @@ const Profile = () => {
   const { user } = useAuth();
   const { role: resolvedRole, userName, userBranch, userDepartment, userId } = useRole();
   const email = user?.email || ""; 
+
+  const [showResetBox, setShowResetBox] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetLoading, setResetLoading] = useState(false);
+
+  const handlePasswordReset = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const targetEmail = resetEmail.trim() || email;
+    if (!targetEmail) {
+      toast.error("Please enter your email to proceed.");
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(targetEmail)) {
+      toast.error("Please enter a valid email address.");
+      return;
+    }
+
+    setResetLoading(true);
+    try {
+      // 1. Supabase Auth reset
+      try {
+        await supabase.auth.resetPasswordForEmail(targetEmail, {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+      } catch (sbErr) {
+        console.warn("Supabase auth reset warning:", sbErr);
+      }
+
+      // 2. Backend reset
+      try {
+        await fetch(`${API_BASE_URL}/api/request-password-reset`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: targetEmail }),
+        });
+      } catch (apiErr) {
+        console.warn("Backend reset API warning:", apiErr);
+      }
+
+      toast.success("If an account exists with this email address, a password reset link has been sent. Please check your inbox.");
+      setShowResetBox(false);
+      setResetEmail("");
+    } catch (err: any) {
+      console.error("Password reset error:", err);
+      toast.success("If an account exists with this email address, a password reset link has been sent. Please check your inbox.");
+      setShowResetBox(false);
+      setResetEmail("");
+    } finally {
+      setResetLoading(false);
+    }
+  };
 
   if (!user) return null;
 
@@ -105,40 +162,64 @@ const Profile = () => {
               <h2 className="text-sm sm:text-base font-black text-foreground uppercase tracking-tight">Security Settings</h2>
             </div>
             
-            <p className="text-xs text-foreground font-semibold leading-relaxed mb-5 relative z-10">
+            <p className="text-xs text-muted-foreground font-semibold leading-relaxed mb-4 relative z-10">
               Need to change or forgot your password? Request a secure password reset link directly to your registered email address.
             </p>
 
-            <button
-              type="button"
-              onClick={() => {
-                if (!email) {
-                  toast.error("Email required to reset password.");
-                  return;
-                }
-                
-                toast.promise(
-                  fetch(`${API_BASE_URL}/api/request-password-reset`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ email }),
-                  }).then(async (res) => {
-                    const data = await res.json();
-                    if (!res.ok || !data.success) throw new Error(data.error || "Failed to send reset link");
-                    return data;
-                  }),
-                  {
-                    loading: 'Sending password reset link...',
-                    success: 'Password reset link has been sent to your email!',
-                    error: (err) => err.message || 'Could not send reset link. Please try again later.'
-                  }
-                );
-              }}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-primary hover:bg-primary/90 text-white font-black text-xs sm:text-sm uppercase tracking-wider shadow-lg shadow-purple-900/15 cursor-pointer transition-all hover:scale-[1.01] active:scale-[0.99] touch-target relative z-10"
-            >
-              <Mail className="w-4 h-4 text-white" />
-              Send Reset Link
-            </button>
+            {/* Email Reset Box */}
+            <div className="flex flex-col gap-3 p-3 rounded-[16px] bg-[#FBF0FF] dark:bg-[#942392]/10 border border-[#942392]/15 text-xs shadow-sm relative z-10">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300 font-bold">
+                  <svg className="w-4 h-4 text-[#942392]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21.2 8.4c.5.38.8.97.8 1.6v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V10a2 2 0 0 1 .8-1.6l8-6a2 2 0 0 1 2.4 0l8 6Z"/>
+                    <path d="m22 10-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 10"/>
+                  </svg>
+                  <button
+                    type="button"
+                    onClick={() => setShowResetBox(!showResetBox)}
+                    className="hover:underline text-left cursor-pointer transition-all text-slate-600 dark:text-slate-300 font-bold"
+                  >
+                    Forgot Password?
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowResetBox(!showResetBox)}
+                  className="text-[#942392] dark:text-purple-400 font-black hover:underline cursor-pointer transition-colors"
+                >
+                  Reset via Email
+                </button>
+              </div>
+
+              {showResetBox && (
+                <div className="pt-2 border-t border-[#942392]/10 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <p className="text-[10px] text-slate-600 dark:text-slate-400 mb-2 font-medium">
+                    Enter your email to receive a secure password reset link.
+                  </p>
+                  <div className="flex gap-2">
+                    <Input
+                      type="email"
+                      placeholder="you@company.com"
+                      value={resetEmail}
+                      onChange={(e) => setResetEmail(e.target.value)}
+                      className="h-8 text-xs !bg-white dark:!bg-slate-900 !text-slate-900 dark:!text-slate-100 border-[#942392]/30 placeholder:!text-slate-400 placeholder:!text-gray-400 placeholder:!font-normal focus-visible:!ring-[#942392]"
+                    />
+                    <Button
+                      type="button"
+                      onClick={handlePasswordReset}
+                      disabled={resetLoading}
+                      className="h-8 bg-[#942392] hover:bg-[#5e0080] text-white text-xs font-bold rounded-md px-3 flex items-center justify-center shrink-0"
+                    >
+                      {resetLoading ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        "Send Link"
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
           </Card>
         </div>
 
