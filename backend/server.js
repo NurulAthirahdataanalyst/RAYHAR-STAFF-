@@ -165,6 +165,21 @@ function toDateStr(d) {
   return String(d).slice(0, 10);
 }
 
+function getEmpCreatedDateStr(createdAt) {
+  if (!createdAt) return null;
+  try {
+    const timeMs = new Date(createdAt).getTime();
+    if (isNaN(timeMs)) return null;
+    const d = new Date(timeMs + 8 * 60 * 60 * 1000);
+    const yyyy = d.getUTCFullYear();
+    const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
+    const dd = String(d.getUTCDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  } catch (e) {
+    return null;
+  }
+}
+
 function getCutiGantiDates(reason, fallbackTarikh) {
   if (!reason && !fallbackTarikh) return null;
   let dates = [];
@@ -1320,7 +1335,7 @@ async function getLiveAttendanceStats(queryDate, role, branch, department) {
 
     // Total active employees
     const [allProfiles] = await pool.query(
-      `SELECT user_id, full_name, branch, department, role FROM profiles p WHERE status = 'Active' AND (created_at IS NULL OR DATE(created_at) <= ?::date) ${filterP}`,
+      `SELECT user_id, full_name, branch, department, role FROM profiles p WHERE status = 'Active' AND (created_at IS NULL OR (created_at AT TIME ZONE 'Asia/Kuala_Lumpur')::date <= ?::date) ${filterP}`,
       [dateStr, ...paramsTotal]
     );
     const total = allProfiles.length;
@@ -1713,10 +1728,10 @@ async function computeDynamicWorkforceMetrics(dateStr, role, branch, department)
   const prevEnd = `${pYear}-${String(pMonth).padStart(2, '0')}-${String(daysInPrevMonth).padStart(2, '0')}`;
   const prevWorkingDays = daysInPrevMonth;
 
-  const [empRowsCur] = await pool.query(`SELECT COUNT(*) as total FROM profiles p WHERE p.status = 'Active' AND DATE(p.created_at) <= ?::date ${profileFilter}`, [curEnd, ...pFilterParams]);
+  const [empRowsCur] = await pool.query(`SELECT COUNT(*) as total FROM profiles p WHERE p.status = 'Active' AND (p.created_at IS NULL OR (p.created_at AT TIME ZONE 'Asia/Kuala_Lumpur')::date <= ?::date) ${profileFilter}`, [curEnd, ...pFilterParams]);
   const totalEmployeesCur = parseInt(empRowsCur[0].total || 0);
 
-  const [empRowsPrev] = await pool.query(`SELECT COUNT(*) as total FROM profiles p WHERE p.status = 'Active' AND DATE(p.created_at) <= ?::date ${profileFilter}`, [prevEnd, ...pFilterParams]);
+  const [empRowsPrev] = await pool.query(`SELECT COUNT(*) as total FROM profiles p WHERE p.status = 'Active' AND (p.created_at IS NULL OR (p.created_at AT TIME ZONE 'Asia/Kuala_Lumpur')::date <= ?::date) ${profileFilter}`, [prevEnd, ...pFilterParams]);
   const totalEmployeesPrev = parseInt(empRowsPrev[0].total || 0);
   const totalEmployees = totalEmployeesCur;
 
@@ -5479,9 +5494,10 @@ app.get("/api/attendance/history", async (req, res) => {
 
     const branchZoneMap = await getBranchZoneMap();
     const userZone = branchZoneMap.get(userProfile.branch) || 'ZONE_B';
-    const empCreatedAtStr = userProfile.created_at ? new Date(userProfile.created_at).toISOString().split('T')[0] : null;
+    const empCreatedAtStr = getEmpCreatedDateStr(userProfile.created_at);
+    const activeDateStrings = empCreatedAtStr ? dateStrings.filter(d => d >= empCreatedAtStr) : dateStrings;
 
-    const formattedHistory = dateStrings.flatMap(dateStr => {
+    const formattedHistory = activeDateStrings.flatMap(dateStr => {
       const clockRowsForDate = clockMap[dateStr] || [];
       const dateObj = new Date(dateStr);
       const isWeekend = checkIsWeekend(userZone, dateObj);
@@ -5649,10 +5665,10 @@ app.get("/api/attendance/history", async (req, res) => {
         status = "Leave";
       } else if (matchingHoliday) {
         status = "Holiday";
-      } else if (isWeekend) {
-        status = "Weekend";
       } else if (empCreatedAtStr && dateStr < empCreatedAtStr) {
         status = "N/A";
+      } else if (isWeekend) {
+        status = "Weekend";
       } else {
         status = "Absent";
       }
@@ -5773,7 +5789,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
       const hasRecords = totalDayAttendances > 0;
 
       const [employeeRows] = await pool.query(
-        `SELECT COUNT(*) AS total_employees FROM profiles WHERE status = 'Active' AND (created_at IS NULL OR DATE(created_at) <= ${dateCondition}::date) ${profileFilter}`,
+        `SELECT COUNT(*) AS total_employees FROM profiles WHERE status = 'Active' AND (created_at IS NULL OR (created_at AT TIME ZONE 'Asia/Kuala_Lumpur')::date <= ${dateCondition}::date) ${profileFilter}`,
         profileQueryParams
       );
 
@@ -5891,7 +5907,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
       );
 
       const [allActiveProfiles] = await pool.query(
-        `SELECT user_id, branch, department FROM profiles WHERE status = 'Active' AND (created_at IS NULL OR DATE(created_at) <= ${dateCondition}::date) ${profileFilter}`,
+        `SELECT user_id, branch, department FROM profiles WHERE status = 'Active' AND (created_at IS NULL OR (created_at AT TIME ZONE 'Asia/Kuala_Lumpur')::date <= ${dateCondition}::date) ${profileFilter}`,
         profileQueryParams
       );
 
@@ -6087,6 +6103,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
       `SELECT 
          p.branch, 
          p.department,
+         p.created_at,
          p.annual_leave_entitlement,
          COALESCE((SELECT SUM(adjustment_days) FROM leave_balance_adjustments WHERE employee_id = p.user_id AND UPPER(leave_type) IN ('ANNUAL LEAVE', 'ANNUAL & EMERGENCY LEAVE', 'ANNUAL/EMERGENCY LEAVE', 'CUTI TAHUNAN')), 0)::int AS annual_adjustment
        FROM profiles p WHERE p.user_id = ?`,
@@ -6214,7 +6231,18 @@ app.get("/api/dashboard-stats", async (req, res) => {
     const branchZoneMap = await getBranchZoneMap();
     const userZone = branchZoneMap.get(branch) || 'ZONE_B';
 
-    for (let d = 1; d <= todayDayNum; d++) {
+    const empCreatedDate = getEmpCreatedDateStr(empProfile[0]?.created_at);
+    let startDayNum = 1;
+    if (empCreatedDate) {
+      const [cYear, cMonth, cDay] = empCreatedDate.split('-').map(Number);
+      if (currentYearNum === cYear && (currentMonthNum + 1) === cMonth) {
+        startDayNum = Math.max(1, cDay);
+      } else if (currentYearNum < cYear || (currentYearNum === cYear && (currentMonthNum + 1) < cMonth)) {
+        startDayNum = todayDayNum + 1; // Created in future month
+      }
+    }
+
+    for (let d = startDayNum; d <= todayDayNum; d++) {
       const checkDate = new Date(currentYearNum, currentMonthNum, d);
       const isWeekendDay = checkIsWeekend(userZone, checkDate);
       if (!isWeekendDay) {
@@ -6628,7 +6656,7 @@ app.get("/api/reports/absent-employees", async (req, res) => {
         AND ewa.status = 'Active' 
         AND ?::date BETWEEN (ewa.start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND COALESCE((ewa.end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date, '2099-12-31'::date)
       WHERE p.status = 'Active'
-      AND DATE(p.created_at) <= ?
+      AND (p.created_at IS NULL OR (p.created_at AT TIME ZONE 'Asia/Kuala_Lumpur')::date <= ?::date)
       -- 1. No attendance record today
       AND NOT EXISTS (
         SELECT 1 FROM attendances a 
@@ -6685,7 +6713,7 @@ app.get("/api/reports/on-leave-employees", async (req, res) => {
 
   try {
     let profileFilter = "";
-    let queryParams = [queryDate];
+    let queryParams = [queryDate, queryDate];
 
     if (role === 'branch_leader') {
       const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
@@ -6719,6 +6747,7 @@ app.get("/api/reports/on-leave-employees", async (req, res) => {
         AND lr.status = 'Approved' 
         AND ? BETWEEN lr.start_date AND lr.end_date
       WHERE p.status = 'Active'
+      AND (p.created_at IS NULL OR (p.created_at AT TIME ZONE 'Asia/Kuala_Lumpur')::date <= ?::date)
       ${profileFilter}
       ORDER BY p.full_name ASC
       `,
@@ -6766,10 +6795,10 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
     queryParams.unshift(startDate);
 
     const [allProfiles] = await pool.query(
-      `SELECT p.user_id, p.full_name, p.branch, p.department, COALESCE(ur.role, 'employee') AS role
+      `SELECT p.user_id, p.full_name, p.branch, p.department, p.created_at, COALESCE(ur.role, 'employee') AS role
        FROM profiles p
        LEFT JOIN user_role ur ON ur.user_id = p.user_id
-       WHERE p.status = 'Active' AND DATE(p.created_at) <= ?::date ${profileFilter}
+       WHERE p.status = 'Active' AND (p.created_at IS NULL OR (p.created_at AT TIME ZONE 'Asia/Kuala_Lumpur')::date <= ?::date) ${profileFilter}
        ORDER BY p.full_name ASC`,
       [endDate, ...queryParams.slice(2)]
     );
@@ -6840,7 +6869,7 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
     let summary = {
       totalEmployees: allProfiles.length,
       workingDays: passedWorkingDaysInMonth.length,
-      expectedAttendance: allProfiles.length * passedWorkingDaysInMonth.length,
+      expectedAttendance: 0,
       present: 0,
       late: 0,
       outstation: 0,
@@ -6853,7 +6882,12 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
     const reportData = [];
 
     allProfiles.forEach(p => {
+      const empCreatedDate = getEmpCreatedDateStr(p.created_at);
       passedWorkingDaysInMonth.forEach(dateStr => {
+        if (empCreatedDate && dateStr < empCreatedDate) {
+          return; // Skip dates before employee was created
+        }
+        summary.expectedAttendance++;
         // Is Company Leave?
         const isCompanyLeave = companyLeaves.some(cl => {
           const clStart = new Date(cl.start_date).toISOString().split('T')[0];
@@ -7076,10 +7110,10 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
 
     // 1. Fetch all active employees matching filters
     const [allProfiles] = await pool.query(
-      `SELECT p.user_id, p.full_name, p.branch, p.department, COALESCE(ur.role, 'employee') AS role
+      `SELECT p.user_id, p.full_name, p.branch, p.department, p.created_at, COALESCE(ur.role, 'employee') AS role
        FROM profiles p
        LEFT JOIN user_role ur ON ur.user_id = p.user_id
-       WHERE p.status = 'Active' AND DATE(p.created_at) <= ?::date ${profileFilter}
+       WHERE p.status = 'Active' AND (p.created_at IS NULL OR (p.created_at AT TIME ZONE 'Asia/Kuala_Lumpur')::date <= ?::date) ${profileFilter}
        ORDER BY p.full_name ASC`,
       [queryDate, ...queryParams]
     );
@@ -7487,7 +7521,7 @@ app.get("/api/reports/analytics", async (req, res) => {
       LEFT JOIN attendances a ON p.user_id = a.user_id 
         AND EXTRACT(MONTH FROM a.clock_in) = ? 
         AND EXTRACT(YEAR FROM a.clock_in) = ?
-      WHERE p.status = 'Active' AND DATE(p.created_at) <= ?::date ${profileFilter}
+      WHERE p.status = 'Active' AND (p.created_at IS NULL OR (p.created_at AT TIME ZONE 'Asia/Kuala_Lumpur')::date <= ?::date) ${profileFilter}
       GROUP BY p.branch
       `,
       [requestedDateStr, requestedMonth, requestedYear, requestedDateStr, ...pFilterParams]
@@ -7632,15 +7666,16 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
     const lateTimeStr = getLateThresholdTime ? getLateThresholdTime() : '09:00:00';
 
     // 1. Employees & KPI
-    const [empRows] = await pool.query(`SELECT COUNT(*) as total, SUM(CASE WHEN status = 'Active' THEN 1 ELSE 0 END) as active FROM profiles p WHERE (p.created_at IS NULL OR DATE(p.created_at) <= ?::date) ${profileFilter}`, [monthEndStr, ...pFilterParams]);
+    const maxDateToCheck = isDayView ? targetDateStr : monthEndStr;
+    const [empRows] = await pool.query(`SELECT COUNT(*) as total, SUM(CASE WHEN status = 'Active' THEN 1 ELSE 0 END) as active FROM profiles p WHERE (p.created_at IS NULL OR (p.created_at AT TIME ZONE 'Asia/Kuala_Lumpur')::date <= ?::date) ${profileFilter}`, [maxDateToCheck, ...pFilterParams]);
     const totalHeadcount = parseInt(empRows[0].total || 0);
     const activeEmployees = parseInt(empRows[0].active || 0);
 
     const [allProfiles] = await pool.query(
       `SELECT p.user_id, p.full_name, p.branch, p.department, p.created_at, p.status 
        FROM profiles p 
-       WHERE p.status = 'Active' AND (p.created_at IS NULL OR DATE(p.created_at) <= ?::date) ${profileFilter}`,
-      [monthEndStr, ...pFilterParams]
+       WHERE p.status = 'Active' AND (p.created_at IS NULL OR (p.created_at AT TIME ZONE 'Asia/Kuala_Lumpur')::date <= ?::date) ${profileFilter}`,
+      [maxDateToCheck, ...pFilterParams]
     );
 
     // Fetch active company leaves overlapping month
@@ -7841,7 +7876,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       let totalScheduledInMonth = 0;
       let hasClockInToday = false;
 
-      const pCreatedStr = p.created_at ? new Date(p.created_at).toISOString().split('T')[0] : null;
+      const pCreatedStr = getEmpCreatedDateStr(p.created_at);
 
       for (let dayNum = 1; dayNum <= daysInMonth; dayNum++) {
         const dateStr = `${requestedYear}-${String(requestedMonth).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
@@ -8003,11 +8038,11 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       const m = d.getMonth() + 1;
       const y = d.getFullYear();
       const lastDayOfMonth = new Date(y, m, 0);
+      const lastDayStr = `${y}-${String(m).padStart(2, '0')}-${String(lastDayOfMonth.getDate()).padStart(2, '0')}`;
       let historicalCount = 0;
       allProfiles.forEach(p => {
-        const pCreated = new Date(p.created_at);
-        pCreated.setHours(0,0,0,0);
-        if (pCreated <= lastDayOfMonth) historicalCount++;
+        const pCreatedStr = getEmpCreatedDateStr(p.created_at);
+        if (!pCreatedStr || pCreatedStr <= lastDayStr) historicalCount++;
       });
       const row = trendRows.find(r => parseInt(r.m) === m && parseInt(r.y) === y);
       const atts = row ? parseInt(row.total_att) : 0;
@@ -8028,12 +8063,11 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
     });
     
     const dailyTrend = Object.keys(dailyMap).sort().map(d => {
-      const dIter = new Date(dailyMap[d].dateStr);
+      const targetDateKey = dailyMap[d].dateStr;
       let historicalCount = 0;
       allProfiles.forEach(p => {
-        const pCreated = new Date(p.created_at);
-        pCreated.setHours(0,0,0,0);
-        if (pCreated <= dIter) historicalCount++;
+        const pCreatedStr = getEmpCreatedDateStr(p.created_at);
+        if (!pCreatedStr || pCreatedStr <= targetDateKey) historicalCount++;
       });
       return {
         date: d,
@@ -8074,13 +8108,13 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
     while (dIter <= weekEndD) {
       const dayOfWeekNum = dIter.getDay();
       const dayName = dayNames[dayOfWeekNum];
+      const dIterStr = `${dIter.getFullYear()}-${String(dIter.getMonth() + 1).padStart(2, '0')}-${String(dIter.getDate()).padStart(2, '0')}`;
       
       let expectedForDay = 0;
       let totalEmployeesForDay = 0;
       allProfiles.forEach(p => {
-        const pCreated = new Date(p.created_at);
-        pCreated.setHours(0,0,0,0);
-        if (pCreated <= dIter) {
+        const pCreatedStr = getEmpCreatedDateStr(p.created_at);
+        if (!pCreatedStr || pCreatedStr <= dIterStr) {
           totalEmployeesForDay++;
           const userZone = branchZoneMapW.get(p.branch) || 'ZONE_B';
           const isFirstSaturday = dayOfWeekNum === 6 && dIter.getDate() <= 7;
@@ -9070,7 +9104,7 @@ app.get("/api/branches-stats", async (req, res) => {
   try {
     const todayStr = new Date().toLocaleDateString('en-CA');
     const [branchRows] = await pool.query(`SELECT code FROM branches ORDER BY code ASC`);
-    const [allProfiles] = await pool.query(`SELECT user_id, branch FROM profiles WHERE status = 'Active'`);
+    const [allProfiles] = await pool.query(`SELECT user_id, branch FROM profiles WHERE status = 'Active' AND (created_at IS NULL OR (created_at AT TIME ZONE 'Asia/Kuala_Lumpur')::date <= CURRENT_DATE)`);
     const [attRows] = await pool.query(`SELECT DISTINCT user_id FROM attendances WHERE DATE(clock_in) = CURRENT_DATE`);
     const [rawLeaveRows] = await pool.query(`
       SELECT lr.user_id, lr.leave_type, lr.reason, lr.cuti_ganti_tarikh, lr.start_date, lr.end_date, p.branch
@@ -9348,7 +9382,7 @@ app.get("/api/reports/generator", async (req, res) => {
       let profWhere = profFilters.length > 0 ? "WHERE " + profFilters.join(" AND ") : "";
       // Fetch profiles with permanent branch only; temp branch resolved per-row below
       const [targetProfiles] = await pool.query(`
-        SELECT p.user_id, p.full_name, p.branch AS permanent_branch, p.department
+        SELECT p.user_id, p.full_name, p.branch AS permanent_branch, p.department, p.created_at
         FROM profiles p
         ${profWhere}
         ORDER BY p.full_name ASC
@@ -9449,6 +9483,11 @@ app.get("/api/reports/generator", async (req, res) => {
         const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
 
         for (const prof of targetProfiles) {
+          const empCreatedDate = getEmpCreatedDateStr(prof.created_at);
+          if (empCreatedDate && isoDateStr < empCreatedDate) {
+            continue; // Employee was not yet created/employed on this date
+          }
+
           const key = `${prof.user_id}_${isoDateStr}`;
           const att = attendanceMap.get(key);
 

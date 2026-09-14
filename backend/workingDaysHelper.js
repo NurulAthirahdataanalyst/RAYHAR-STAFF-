@@ -11,9 +11,14 @@ function calculateExpectedWorkingDays(startDate, endDate, employee, companyLeave
     
     // Check if before employment
     if (employee && employee.created_at) {
-      const empStart = employee.created_at instanceof Date 
-        ? format(employee.created_at, 'yyyy-MM-dd') 
-        : (employee.created_at.split && employee.created_at.split('T')[0]);
+      let empStart = null;
+      try {
+        const timeMs = new Date(employee.created_at).getTime();
+        if (!isNaN(timeMs)) {
+          const d = new Date(timeMs + 8 * 60 * 60 * 1000);
+          empStart = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
+        }
+      } catch (e) {}
       if (empStart && dateStr < empStart) continue;
     }
 
