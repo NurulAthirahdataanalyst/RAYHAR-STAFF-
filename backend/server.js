@@ -922,6 +922,9 @@ const pool = {
   }
 };
 
+// Initialize Notification Service
+const notificationService = require("./services/notificationService");
+notificationService.initNotificationService(pool);
 
 // Set timezone to Malaysia (UTC+8) for PostgreSQL globally
 process.env.PGTZ = 'Asia/Kuala_Lumpur';
@@ -2973,6 +2976,49 @@ cron.schedule('0 0 * * *', async () => {
   await autoRejectPendingLeaves();
 });
 
+// Missing clock-in reminder: Runs at 09:15 AM Monday to Friday
+cron.schedule('15 9 * * 1-5', async () => {
+  try {
+    const todayStr = new Date().toISOString().split('T')[0];
+
+    // Check if today is an all-company holiday
+    const [holidays] = await pool.query(
+      `SELECT * FROM company_leave_calendar WHERE status = 'Active' AND ?::date BETWEEN start_date::date AND end_date::date`,
+      [todayStr]
+    );
+    if (holidays.length > 0 && holidays.some(h => h.applies_to === 'all')) {
+      return;
+    }
+
+    // Find active employees who have not clocked in today and are not on approved leave today
+    const [missingEmps] = await pool.query(`
+      SELECT p.user_id, p.full_name
+      FROM profiles p
+      WHERE p.status = 'Active'
+        AND p.user_id NOT IN (
+          SELECT DISTINCT user_id FROM attendances WHERE clock_in::date = CURRENT_DATE
+        )
+        AND p.user_id NOT IN (
+          SELECT DISTINCT user_id FROM leave_requests 
+          WHERE status = 'Approved' 
+            AND CURRENT_DATE BETWEEN start_date::date AND end_date::date
+        )
+    `);
+
+    for (const emp of missingEmps) {
+      await notificationService.createNotification({
+        userId: emp.user_id,
+        title: 'Missing Clock-in Reminder',
+        message: `Hi ${emp.full_name}, you haven't clocked in for today yet. Please remember to clock in if you are on duty.`,
+        type: 'attendance',
+        sendPush: true,
+      });
+    }
+  } catch (err) {
+    console.error('Missing clock-in reminder cron error:', err);
+  }
+});
+
 
 app.get("/api/leave-requests", async (req, res) => {
   const userId = req.query.userId;
@@ -3423,30 +3469,45 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
         }
 
         if (approverUserId) {
-          await pool.query(
-            `INSERT INTO notifications (user_id, title, message, type, related_leave_id) VALUES (?, ?, ?, ?, ?)`,
-            [approverUserId, `${leaveData.full_name} submitted a Leave Request and Need Your Approval`, `${leaveData.leave_type} • ${new Date(leaveData.start_date).getTime() === new Date(leaveData.end_date).getTime() ? require('date-fns').format(new Date(leaveData.start_date), 'dd/MM/yyyy') : (leaveData.leave_type === 'Replacement Leave' || leaveData.leave_type === 'Cuti Ganti' ? require('date-fns').format(new Date(leaveData.start_date), 'dd/MM/yyyy') + ' and ' + require('date-fns').format(new Date(leaveData.end_date), 'dd/MM/yyyy') : require('date-fns').format(new Date(leaveData.start_date), 'dd/MM/yyyy') + ' - ' + require('date-fns').format(new Date(leaveData.end_date), 'dd/MM/yyyy'))} • ${leaveData.days} Days`, 'leave_approval', result.insertId]
-          );
+          await notificationService.createNotification({
+            userId: approverUserId,
+            title: `New Leave Request: ${leaveData.full_name}`,
+            message: `${leaveData.leave_type} (${leaveData.days} day(s)) from ${new Date(leaveData.start_date).toLocaleDateString()} to ${new Date(leaveData.end_date).toLocaleDateString()} requires your approval.`,
+            type: 'leave_approval',
+            relatedLeaveId: result.insertId,
+            sendEmail: !!approverEmail,
+            emailData: {
+              type: 'leave_request',
+              approverEmail,
+              approverName: approverTitle,
+              employeeName: leaveData.full_name,
+              leaveType: leaveData.leave_type,
+              startDate: new Date(leaveData.start_date).toLocaleDateString(),
+              endDate: new Date(leaveData.end_date).toLocaleDateString(),
+              days: leaveData.days,
+              reason: leaveData.reason,
+              leaveId: result.insertId,
+            },
+            sendPush: true,
+          });
         }
 
         // Notify employee of their leave progress
         const targetApprover = isHQ ? "HOD" : "Branch Leader";
-        await pool.query(
-          `INSERT INTO notifications (user_id, title, message, type, related_leave_id) VALUES (?, ?, ?, ?, ?)`,
-          [
-            leaveData.user_id, 
-            `LEAVE APPROVAL PROGRESS`, 
-            `**Your leave application needs approval.**\n\nCurrently waiting for **${targetApprover}**.\n\n**Status:** 🟡 Pending Approval by **${targetApprover}**`, 
-            'status_update', 
-            result.insertId
-          ]
-        );
+        await notificationService.createNotification({
+          userId: leaveData.user_id, 
+          title: `Leave Application Submitted`, 
+          message: `Your application for ${leaveData.leave_type} was submitted. Currently awaiting approval by ${targetApprover}.`, 
+          type: 'status_update', 
+          relatedLeaveId: result.insertId,
+          sendPush: true,
+        });
 
         // Notify HR
         const [hrRows] = await pool.query(
           `SELECT p.email FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'hr_admin' AND p.status = 'Active' LIMIT 1`
         );
-        if (hrRows.length > 0) {
+        if (hrRows.length > 0 && hrRows[0].email) {
           sendNotificationEmail(hrRows[0].email, `FYI - New Leave Application: ${leaveData.full_name}`, html).catch(err => {
             console.error("Failed to send HR notification email:", err);
           });
@@ -3613,34 +3674,73 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
           }
         }
 
-        if (targetEmail && subject) {
-          sendNotificationEmail(targetEmail, subject, html).catch(err => {
-            console.error("Failed to send status update email asynchronously:", err);
+        // 1. If next stage is Pending (HOD -> OM -> MD), notify next approver
+        if (targetUserId && nextStatus.startsWith("Pending ")) {
+          await notificationService.createNotification({
+            userId: targetUserId,
+            title: notificationTitle,
+            message: notificationMessage,
+            type: 'leave_approval',
+            relatedLeaveId: leaveId,
+            sendEmail: !!targetEmail,
+            emailData: { to: targetEmail, subject, html },
+            sendPush: true,
+          });
+
+          // Also notify employee of intermediate progress
+          const waitingFor = nextStatus.replace("Pending ", "");
+          await notificationService.createNotification({
+            userId: leaveData.user_id,
+            title: `Leave Approval Progress`,
+            message: `Your leave application is currently waiting for ${waitingFor}.`,
+            type: 'status_update',
+            relatedLeaveId: leaveId,
+            sendPush: true,
+          });
+        } 
+        // 2. If final status is Approved
+        else if (nextStatus === "Approved") {
+          await notificationService.createNotification({
+            userId: leaveData.user_id,
+            title: `Leave Approved`,
+            message: `Your request for ${leaveData.leave_type} (${leaveData.days} day(s)) has been approved.`,
+            type: 'approval',
+            relatedLeaveId: leaveId,
+            sendEmail: !!leaveData.employee_email,
+            emailData: {
+              type: 'leave_approved',
+              employeeEmail: leaveData.employee_email,
+              employeeName: leaveData.employee_name,
+              leaveType: leaveData.leave_type,
+              startDate: new Date(leaveData.start_date).toLocaleDateString(),
+              endDate: new Date(leaveData.end_date).toLocaleDateString(),
+              days: leaveData.days,
+              approverName: approver_id || 'Management',
+            },
+            sendPush: true,
           });
         }
-
-        if (targetUserId && notificationTitle) {
-          await pool.query(
-            `INSERT INTO notifications (user_id, title, message, type, related_leave_id) VALUES (?, ?, ?, ?, ?)`,
-            [targetUserId, notificationTitle, notificationMessage, 'status_update', leaveId]
-          );
-        }
-
-        // Notify employee of intermediate status updates
-        if (nextStatus.startsWith("Pending ")) {
-          const waitingFor = nextStatus.replace("Pending ", "");
-          const msg = `**Your leave application needs approval.**\n\nCurrently waiting for **${waitingFor}**.\n\n**Status:** 🟡 Pending Approval by **${waitingFor}**`;
-          await pool.query(
-            `INSERT INTO notifications (user_id, title, message, type, related_leave_id) VALUES (?, ?, ?, ?, ?)`,
-            [leaveData.user_id, `LEAVE APPROVAL PROGRESS`, msg, 'status_update', leaveId]
-          );
-        } else if (nextStatus === "Approved" || nextStatus === "Rejected") {
-          const icon = nextStatus === "Approved" ? "🟢" : "🔴";
-          const msg = `**Your leave application has been ${nextStatus}.**\n\n**Status:** ${icon} ${nextStatus} by **${approverRole}**`;
-          await pool.query(
-            `INSERT INTO notifications (user_id, title, message, type, related_leave_id) VALUES (?, ?, ?, ?, ?)`,
-            [leaveData.user_id, `LEAVE ${nextStatus.toUpperCase()}`, msg, 'status_update', leaveId]
-          );
+        // 3. If status is Rejected
+        else if (nextStatus === "Rejected") {
+          await notificationService.createNotification({
+            userId: leaveData.user_id,
+            title: `Leave Rejected`,
+            message: `Your request for ${leaveData.leave_type} was not approved.${remarks ? ' Reason: ' + remarks : ''}`,
+            type: 'leave',
+            relatedLeaveId: leaveId,
+            sendEmail: !!leaveData.employee_email,
+            emailData: {
+              type: 'leave_rejected',
+              employeeEmail: leaveData.employee_email,
+              employeeName: leaveData.employee_name,
+              leaveType: leaveData.leave_type,
+              startDate: new Date(leaveData.start_date).toLocaleDateString(),
+              endDate: new Date(leaveData.end_date).toLocaleDateString(),
+              approverName: approver_id || 'Management',
+              remarks: remarks || approver_note || '',
+            },
+            sendPush: true,
+          });
         }
       }
     } catch (mailErr) {
@@ -3660,148 +3760,73 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
 
 app.get("/api/notifications", async (req, res) => {
   const { user_id } = req.query;
+  const limit = parseInt(String(req.query.limit || "50"), 10) || 50;
+  const offset = parseInt(String(req.query.offset || "0"), 10) || 0;
+  const type = req.query.type ? String(req.query.type) : null;
+  const unreadOnly = req.query.unreadOnly === "true" || req.query.unread === "1";
+
   if (!user_id) return res.status(400).json({ success: false, error: "user_id required" });
 
   try {
-    // 1. Get user profile details
-    const [profiles] = await pool.query(
-      `SELECT branch, department FROM profiles WHERE user_id = ?`,
-      [user_id]
-    );
-    const userProfile = profiles[0] || {};
-    const userBranch = userProfile.branch || "";
-    const userDept = userProfile.department || "";
-
-    // 2. Fetch active company leaves
-    const [leaves] = await pool.query(
-      `SELECT * FROM company_leave_calendar WHERE status = 'Active' ORDER BY start_date DESC LIMIT 50`
-    );
-
-    // 3. Filter relevant company leaves
-    const relevantLeaves = leaves.filter(cl => {
-      if (cl.applies_to === 'all') return true;
-      if (cl.applies_to === 'branch' && cl.branch_id) {
-        return cl.branch_id.split(',').map(s => s.trim()).includes(userBranch);
-      }
-      if (cl.applies_to === 'department' && cl.department_id) {
-        const depts = cl.department_id.split(',').map(s => s.trim());
-        const normEmp = userDept.toLowerCase().replace(/\bdepartment\b/g, '').trim();
-        return depts.some(d => {
-          const normD = d.toLowerCase().replace(/\bdepartment\b/g, '').trim();
-          return normEmp === normD || userDept === d;
-        });
-      }
-      return false;
+    const notifications = await notificationService.getNotifications(user_id, {
+      limit,
+      offset,
+      type,
+      unreadOnly,
     });
+    const unreadCount = await notificationService.getUnreadCount(user_id);
 
-    // 4. Map to notification-like objects in-memory
-    const companyLeaveNotifs = relevantLeaves.map(cl => {
-      const formatDateStr = (dInput, options) => {
-        if (!dInput) return '';
-        const dStr = typeof dInput === 'string' ? dInput.split('T')[0] : new Date(dInput).toISOString().split('T')[0];
-        const parts = dStr.split('-').map(Number);
-        if (parts.length === 3) {
-          const dObj = new Date(parts[0], parts[1] - 1, parts[2]);
-          return dObj.toLocaleDateString('en-GB', options);
-        }
-        return new Date(dInput).toLocaleDateString('en-GB', options);
-      };
-
-      const sStr = cl.start_date ? (typeof cl.start_date === 'string' ? cl.start_date.split('T')[0] : new Date(cl.start_date).toISOString().split('T')[0]) : '';
-      const eStr = cl.end_date ? (typeof cl.end_date === 'string' ? cl.end_date.split('T')[0] : new Date(cl.end_date).toISOString().split('T')[0]) : sStr;
-
-      const isSingleDay = !eStr || sStr === eStr;
-      const dateRange = isSingleDay
-        ? formatDateStr(cl.start_date, { day: 'numeric', month: 'short', year: 'numeric' })
-        : `${formatDateStr(cl.start_date, { day: 'numeric', month: 'short' })} – ${formatDateStr(cl.end_date, { day: 'numeric', month: 'short', year: 'numeric' })}`;
-
-      return {
-        id: `cl-${cl.id}`,
-        user_id: user_id,
-        title: `🏢 Company Leave: ${cl.leave_name}`,
-        message: `${cl.leave_type || 'Company Leave'} on ${dateRange}. This is a ${cl.is_paid ? 'paid' : 'unpaid'} leave day.`,
-        type: 'company_leave',
-        is_read: false,
-        related_leave_id: cl.id,
-        created_at: cl.created_at || cl.updated_at
-      };
-    });
-
-    // 5. Fetch Replacement Leave notifications active today
-    const fmtTodayMY = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
-    
-    let replacementNotifs = [];
-    try {
-      const [repRequests] = await pool.query(
-        `SELECT * FROM replacement_leave_requests 
-         WHERE employee_id = ? 
-           AND (replacement_date::date = CURRENT_DATE OR leave_date::date = CURRENT_DATE)
-           AND validation_status NOT IN ('Failed', 'Cancelled')`,
-        [user_id]
-      );
-
-      const [repLeaves] = await pool.query(
-        `SELECT * FROM leave_applications 
-         WHERE employee_id = ? 
-           AND UPPER(leave_type) IN ('REPLACEMENT LEAVE', 'CUTI GANTI')
-           AND status = 'Approved'
-           AND (start_date::date <= CURRENT_DATE AND end_date::date >= CURRENT_DATE)`,
-        [user_id]
-      );
-
-      repRequests.forEach(r => {
-        replacementNotifs.push({
-          id: `rep-req-${r.id}`,
-          user_id: user_id,
-          title: '🔔 REPLACEMENT LEAVE',
-          message: `Your Replacement Leave date is today, **${fmtTodayMY}**.\n\n⏰ Please clock in before your scheduled clock-in time ends.`,
-          type: 'replacement_leave',
-          is_read: false,
-          related_leave_id: r.leave_request_id || r.id,
-          created_at: r.created_at || new Date().toISOString()
-        });
-      });
-
-      repLeaves.forEach(l => {
-        if (!replacementNotifs.some(n => n.related_leave_id === l.id)) {
-          replacementNotifs.push({
-            id: `rep-leave-${l.id}`,
-            user_id: user_id,
-            title: '🔔 REPLACEMENT LEAVE',
-            message: `Your Replacement Leave date is today, **${fmtTodayMY}**.\n\n⏰ Please clock in before your scheduled clock-in time ends.`,
-            type: 'replacement_leave',
-            is_read: false,
-            related_leave_id: l.id,
-            created_at: l.created_at || new Date().toISOString()
-          });
-        }
-      });
-    } catch (repErr) {
-      console.error("Fetch Replacement Leave Notifs Error:", repErr);
-    }
-
-    // 6. Fetch db notifications
-    const [dbRows] = await pool.query(
-      `SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 50`,
-      [user_id]
-    );
-
-    // 7. Combine and sort
-    const combined = [...companyLeaveNotifs, ...replacementNotifs, ...dbRows].sort((a, b) => {
-      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-    });
-
-    res.json({ success: true, notifications: combined });
+    res.json({ success: true, notifications, unreadCount });
   } catch (err) {
     console.error("Fetch Notifications Error:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
+app.get("/api/notifications/unread-count", async (req, res) => {
+  const { user_id } = req.query;
+  if (!user_id) return res.status(400).json({ success: false, error: "user_id required" });
+
+  try {
+    const count = await notificationService.getUnreadCount(user_id);
+    res.json({ success: true, unreadCount: count });
+  } catch (err) {
+    console.error("Get Unread Count Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post("/api/notifications", async (req, res) => {
+  const { userId, user_id, title, message, type, relatedLeaveId, related_leave_id, sendEmail, emailData, sendPush } = req.body;
+  const targetUser = userId || user_id;
+
+  if (!targetUser || !title || !message) {
+    return res.status(400).json({ success: false, error: "user_id, title, and message are required" });
+  }
+
+  try {
+    const created = await notificationService.createNotification({
+      userId: targetUser,
+      title,
+      message,
+      type: type || 'system',
+      relatedLeaveId: relatedLeaveId || related_leave_id || null,
+      sendEmail: !!sendEmail,
+      emailData: emailData || null,
+      sendPush: sendPush !== false,
+    });
+    res.json({ success: true, notification: created });
+  } catch (err) {
+    console.error("Create Notification Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 app.patch("/api/notifications/:id/read", async (req, res) => {
   const { id } = req.params;
+  const userId = req.body.user_id || req.body.userId || req.query.user_id;
   try {
-    await pool.query(`UPDATE notifications SET is_read = TRUE WHERE id = ?`, [id]);
+    await notificationService.markAsRead(id, userId);
     res.json({ success: true });
   } catch (err) {
     console.error("Mark Notification Read Error:", err);
@@ -3810,10 +3835,10 @@ app.patch("/api/notifications/:id/read", async (req, res) => {
 });
 
 app.patch("/api/notifications/read-all", async (req, res) => {
-  const { user_id } = req.body;
-  if (!user_id) return res.status(400).json({ success: false, error: "user_id required" });
+  const userId = req.body.user_id || req.body.userId;
+  if (!userId) return res.status(400).json({ success: false, error: "user_id required" });
   try {
-    await pool.query(`UPDATE notifications SET is_read = TRUE WHERE user_id = ?`, [user_id]);
+    await notificationService.markAllAsRead(userId);
     res.json({ success: true });
   } catch (err) {
     console.error("Mark All Notifications Read Error:", err);
@@ -3823,11 +3848,69 @@ app.patch("/api/notifications/read-all", async (req, res) => {
 
 app.delete("/api/notifications/:id", async (req, res) => {
   const { id } = req.params;
+  const userId = req.query.user_id || req.body.user_id || req.body.userId;
   try {
-    await pool.query(`DELETE FROM notifications WHERE id = ?`, [id]);
+    await notificationService.deleteNotification(id, userId);
     res.json({ success: true });
   } catch (err) {
     console.error("Delete Notification Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Register FCM Push Token
+app.post("/api/notifications/fcm-token", async (req, res) => {
+  const { userId, user_id, token, platform } = req.body;
+  const targetUser = userId || user_id;
+  if (!targetUser || !token) {
+    return res.status(400).json({ success: false, error: "user_id and token are required" });
+  }
+
+  try {
+    const pushService = require("./services/pushService");
+    await pushService.registerPushToken(targetUser, token, platform || 'web');
+    res.json({ success: true, message: "Push token registered" });
+  } catch (err) {
+    console.error("Register Push Token Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// HR Adjust Attendance & Notify Employee
+app.patch("/api/attendances/:id/adjust", async (req, res) => {
+  const { id } = req.params;
+  const { clock_in, clock_out, attendance_type, remarks } = req.body;
+
+  try {
+    const [attRows] = await pool.query("SELECT * FROM attendances WHERE attendance_id = ?", [id]);
+    if (attRows.length === 0) {
+      return res.status(404).json({ success: false, error: "Attendance record not found" });
+    }
+    const att = attRows[0];
+
+    await pool.query(
+      `UPDATE attendances 
+       SET clock_in = COALESCE(?, clock_in),
+           clock_out = COALESCE(?, clock_out),
+           attendance_type = COALESCE(?, attendance_type)
+       WHERE attendance_id = ?`,
+      [clock_in || null, clock_out || null, attendance_type || null, id]
+    );
+
+    const attDate = att.clock_in ? new Date(att.clock_in).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'today';
+
+    // Notify employee of HR attendance edit
+    await notificationService.createNotification({
+      userId: att.user_id,
+      title: 'Attendance Record Updated',
+      message: `Your attendance record for ${attDate} was updated by HR.${remarks ? ' Note: ' + remarks : ''}`,
+      type: 'attendance',
+      sendPush: true,
+    });
+
+    res.json({ success: true, message: "Attendance record updated and employee notified" });
+  } catch (err) {
+    console.error("Adjust Attendance Error:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 });
@@ -9856,7 +9939,39 @@ app.post("/api/company-leaves", async (req, res) => {
     );
     const newLeaveId = result.insertId;
 
-    // Dynamically generated notification will be served via GET /api/notifications
+    // Automatically notify affected employees of company leave announcement
+    try {
+      let targetUserQuery = "SELECT user_id FROM profiles WHERE status = 'Active'";
+      const targetParams = [];
+      if (applies_to === 'branch' && branch_id) {
+        const branches = branch_id.split(',').map(s => s.trim());
+        targetUserQuery += " AND branch IN (?)";
+        targetParams.push(branches);
+      } else if (applies_to === 'department' && department_id) {
+        const depts = department_id.split(',').map(s => s.trim());
+        targetUserQuery += " AND department IN (?)";
+        targetParams.push(depts);
+      }
+      const [affectedRows] = await pool.query(targetUserQuery, targetParams);
+      if (affectedRows && affectedRows.length > 0) {
+        const dateRange = start_date === end_date || !end_date
+          ? new Date(start_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+          : `${new Date(start_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })} - ${new Date(end_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`;
+
+        const bulkList = affectedRows.map(u => ({
+          userId: u.user_id,
+          title: `🏢 Company Leave: ${formattedLeaveName}`,
+          message: `${leave_type || 'Company Leave'} on ${dateRange}. This is a ${is_paid ?? true ? 'paid' : 'unpaid'} company leave.`,
+          type: 'announcement',
+          relatedLeaveId: newLeaveId,
+          sendPush: true,
+        }));
+        await notificationService.createBulkNotification(bulkList);
+      }
+    } catch (notifErr) {
+      console.error('Failed to dispatch company leave notifications:', notifErr);
+    }
+
     // Broadcast SSE so clients pick up the new company leave and refresh their views
     try {
       broadcastPresenceUpdate({ type: 'company_leave', action: 'created', id: newLeaveId });
@@ -10885,7 +11000,24 @@ app.post("/api/work-assignments", async (req, res) => {
       `INSERT INTO employee_work_assignment (user_id, location, start_date, end_date, status, purpose, remarks) VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [user_id, location, start_date, end_date || null, status || 'Active', purpose || null, remarks || null]
     );
-    res.json({ success: true, insertedId: result.insertId || (result.rows && result.rows.length ? result.rows[0].id : null) });
+    const insertedId = result.insertId || (result.rows && result.rows.length ? result.rows[0].id : null);
+
+    // Automatically notify employee of temporary branch assignment
+    try {
+      const sDate = start_date ? new Date(start_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
+      const eDate = end_date ? new Date(end_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'ongoing';
+      await notificationService.createNotification({
+        userId: user_id,
+        title: 'New Branch Assignment',
+        message: `You have been temporarily assigned to ${location} from ${sDate} to ${eDate}.${purpose ? ' Purpose: ' + purpose : ''}`,
+        type: 'assignment',
+        sendPush: true,
+      });
+    } catch (notifErr) {
+      console.error('Failed to notify employee of work assignment:', notifErr);
+    }
+
+    res.json({ success: true, insertedId });
   } catch(e) {
     res.status(500).json({ success: false, error: e.message });
   }
