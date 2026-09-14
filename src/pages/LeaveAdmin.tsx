@@ -13,6 +13,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { AnimatedCheckbox } from "@/components/ui/animated-checkbox";
 import {
   Dialog,
   DialogContent,
@@ -21,7 +24,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Check, X, Users, MapPin, Info, Loader2, FileText, Printer, PhoneCall, Clock, CheckCircle2, XCircle, ChevronRight, ChevronLeft, ClipboardList, Download, RotateCcw } from "lucide-react";
+import { Check, X, Users, MapPin, Info, Loader2, FileText, Printer, PhoneCall, Clock, CheckCircle2, XCircle, ChevronRight, ChevronLeft, ClipboardList, Download, RotateCcw, Search } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useRole } from "@/contexts/RoleContext";
 import { parseCutiGantiRows, getCleanReason } from "@/lib/leaveStorage";
@@ -45,10 +48,19 @@ const getDisplayStatus = (status: string) => {
   }
 };
 
+type Employee = {
+  user_id: string;
+  full_name: string;
+  branch?: string;
+  department?: string;
+};
+
 type LeaveRequest = {
   id: number;
+  userId?: string;
   employee: string;
   branch: string;
+  department?: string;
   type: string;
   from: string;
   to: string;
@@ -145,6 +157,97 @@ export default function LeaveAdmin() {
   const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
   const [selectedLeaveType, setSelectedLeaveType] = useState<string>("all");
 
+  // Employee Multi-Select & Search Filter
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [selectedEmps, setSelectedEmps] = useState<Employee[]>([]);
+  const [empSearch, setEmpSearch] = useState("");
+  const [empSearchOpen, setEmpSearchOpen] = useState(false);
+
+  const fetchEmployees = async () => {
+    try {
+      const scopeParams = new URLSearchParams({
+        role: role || "",
+        branch: userBranch || "",
+        department: userDepartment || "",
+      });
+      const response = await fetch(`${API_BASE_URL}/api/employees?${scopeParams}`);
+      const data = await response.json();
+      if (data.success && Array.isArray(data.employees)) {
+        setEmployees(data.employees);
+      } else if (data.success && Array.isArray(data.data)) {
+        setEmployees(data.data);
+      }
+    } catch (err) {
+      console.error("Error fetching employees for filter:", err);
+    }
+  };
+
+  // Merge any employees from requests into employees list if not present
+  const allEmployees = useMemo(() => {
+    const map = new Map<string, Employee>();
+    employees.forEach((e) => {
+      const key = e.user_id || e.full_name;
+      if (key) map.set(key, e);
+    });
+    requests.forEach((r) => {
+      const key = r.userId || r.employee;
+      if (key && !map.has(key)) {
+        map.set(key, {
+          user_id: r.userId || key,
+          full_name: r.employee,
+          branch: r.branch || "HQ",
+          department: r.department || "—",
+        });
+      }
+    });
+    return Array.from(map.values()).sort((a, b) =>
+      (a.full_name || "").localeCompare(b.full_name || "")
+    );
+  }, [employees, requests]);
+
+  const filteredEmps = useMemo(() => {
+    const q = empSearch.toLowerCase().trim();
+    const list = allEmployees.filter((e) => {
+      if (!q) return true;
+      return (
+        (e.full_name && e.full_name.toLowerCase().includes(q)) ||
+        (e.user_id && e.user_id.toLowerCase().includes(q)) ||
+        (e.department && e.department.toLowerCase().includes(q)) ||
+        (e.branch && e.branch.toLowerCase().includes(q))
+      );
+    });
+
+    return list.sort((a, b) => {
+      const aSelected = selectedEmps.some(
+        (s) => s.user_id === a.user_id || s.full_name === a.full_name
+      )
+        ? 0
+        : 1;
+      const bSelected = selectedEmps.some(
+        (s) => s.user_id === b.user_id || s.full_name === b.full_name
+      )
+        ? 0
+        : 1;
+      if (aSelected !== bSelected) return aSelected - bSelected;
+      return (a.full_name || "").localeCompare(b.full_name || "");
+    });
+  }, [allEmployees, empSearch, selectedEmps]);
+
+  const toggleEmp = (emp: Employee) => {
+    setSelectedEmps((prev) => {
+      const exists = prev.find(
+        (e) => e.user_id === emp.user_id || e.full_name === emp.full_name
+      );
+      if (exists) {
+        return prev.filter(
+          (e) => e.user_id !== emp.user_id && e.full_name !== emp.full_name
+        );
+      } else {
+        return [...prev, emp];
+      }
+    });
+  };
+
   const months = [
     { value: "01", label: "January" },
     { value: "02", label: "February" },
@@ -168,7 +271,7 @@ export default function LeaveAdmin() {
 
   const uniqueLeaveTypes = Array.from(new Set(requests.map(r => r.type))).filter(Boolean).sort();
 
-  // First, filter by year and month
+  // First, filter by year, month, and employee
   const requestsByMonth = requests.filter((req) => {
     if (!req.from) return false;
     const reqYear = req.from.substring(0, 4);
@@ -180,6 +283,22 @@ export default function LeaveAdmin() {
     if (selectedMonth && selectedMonth !== "all" && reqMonth !== selectedMonth) {
       return false;
     }
+
+    if (selectedEmps.length > 0) {
+      const empIds = new Set(selectedEmps.map((e) => (e.user_id || "").toLowerCase()));
+      const empNames = new Set(selectedEmps.map((e) => (e.full_name || "").toLowerCase().trim()));
+      const reqUserId = (req.userId || "").toLowerCase();
+      const reqEmpName = (req.employee || "").toLowerCase().trim();
+      const matchId = reqUserId && empIds.has(reqUserId);
+      const matchName = reqEmpName && empNames.has(reqEmpName);
+      if (!matchId && !matchName) return false;
+    } else if (empSearch.trim()) {
+      const q = empSearch.toLowerCase().trim();
+      const matchName = req.employee && req.employee.toLowerCase().includes(q);
+      const matchId = req.userId && req.userId.toLowerCase().includes(q);
+      if (!matchName && !matchId) return false;
+    }
+
     return true;
   });
 
@@ -210,7 +329,7 @@ export default function LeaveAdmin() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedMonth, selectedYear, selectedLeaveType, activeTab]);
+  }, [selectedMonth, selectedYear, selectedLeaveType, activeTab, selectedEmps, empSearch]);
 
   const currentData = filteredRequests.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
@@ -222,6 +341,7 @@ export default function LeaveAdmin() {
 
   useEffect(() => {
     void fetchRequests();
+    void fetchEmployees();
 
     const sse = new EventSource(`${API_BASE_URL}/api/presence/stream`);
     sse.onmessage = (event) => {
@@ -300,6 +420,8 @@ export default function LeaveAdmin() {
         } else {
           setActiveTab("history");
         }
+        setSelectedYear("all");
+        setSelectedMonth("all");
         setSelectedRequest(match);
         newParams.delete("leaveId");
         updated = true;
@@ -386,6 +508,7 @@ export default function LeaveAdmin() {
         userId: request.user_id,
         employee: request.full_name || request.user_id,
         branch: request.branch || "HQ",
+        department: request.department || "—",
         type: request.leave_type,
         from: formatDate(request.start_date),
         to: formatDate(request.end_date),
@@ -516,9 +639,188 @@ export default function LeaveAdmin() {
       </div>
 
       {/* Main Content Area */}
-      <div className="mb-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div className="flex-1"></div>
-        <div className="flex flex-wrap items-center justify-end gap-2.5">
+      <div className="mb-4 space-y-2.5">
+        <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-3">
+          {/* Employee Search Filter */}
+          <div className="w-full md:w-auto md:min-w-[280px] md:max-w-xs">
+            <Popover open={empSearchOpen} onOpenChange={setEmpSearchOpen}>
+              <PopoverTrigger asChild>
+                <div className="relative w-full cursor-pointer">
+                  <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <Input
+                    readOnly={selectedEmps.length > 0}
+                    value={
+                      selectedEmps.length > 0
+                        ? `${selectedEmps.length} employee${selectedEmps.length > 1 ? "s" : ""} selected`
+                        : empSearch
+                    }
+                    onChange={(e) => {
+                      setEmpSearch(e.target.value);
+                      if (!empSearchOpen) setEmpSearchOpen(true);
+                    }}
+                    onClick={() => setEmpSearchOpen(true)}
+                    placeholder="Search employees..."
+                    className={`pl-9 pr-9 h-10 text-xs rounded-md bg-card cursor-pointer transition-all ${
+                      selectedEmps.length > 0
+                        ? "border-[#942392] text-[#942392] font-bold bg-[#942392]/5 focus-visible:ring-[#942392]"
+                        : "border-slate-300 dark:border-slate-700 hover:border-[#942392]/50 text-foreground focus-visible:ring-[#942392]"
+                    }`}
+                  />
+                  {selectedEmps.length > 0 ? (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedEmps([]);
+                      }}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-[#942392]/15 text-[#942392] transition-colors cursor-pointer"
+                      title="Clear selected employees"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  ) : empSearch ? (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEmpSearch("");
+                      }}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-muted text-muted-foreground transition-colors cursor-pointer"
+                      title="Clear search"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  ) : (
+                    <Users className="w-4 h-4 text-muted-foreground absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  )}
+                </div>
+              </PopoverTrigger>
+              <PopoverContent
+                className="w-[340px] sm:w-[380px] p-3 shadow-xl border border-slate-200 dark:border-slate-800 rounded-xl bg-card z-50"
+                align="start"
+                onOpenAutoFocus={(e) => e.preventDefault()}
+              >
+                <div className="space-y-3">
+                  {/* Popover Header */}
+                  <div className="flex items-center justify-between pb-2 border-b border-border/60">
+                    <div className="flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider text-[#942392]">
+                      <Users className="w-3.5 h-3.5" />
+                      <span>Select Employees</span>
+                    </div>
+                    {selectedEmps.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedEmps([])}
+                        className="text-[10px] font-bold text-muted-foreground hover:text-red-500 transition-colors cursor-pointer"
+                      >
+                        Clear all
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Selected Tags in Popover */}
+                  {selectedEmps.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 p-2 bg-[#942392]/5 rounded-lg border border-[#942392]/20 max-h-24 overflow-y-auto">
+                      {selectedEmps.map((e) => (
+                        <span
+                          key={e.user_id}
+                          className="inline-flex items-center gap-1 bg-card border border-[#942392]/30 text-[#942392] dark:text-purple-300 text-[10px] font-bold px-2 py-0.5 rounded-md shadow-2xs"
+                        >
+                          <span className="truncate max-w-[170px]">{e.full_name}</span>
+                          <button
+                            type="button"
+                            onClick={(ev) => {
+                              ev.stopPropagation();
+                              toggleEmp(e);
+                            }}
+                            className="hover:text-red-500 transition-colors shrink-0 cursor-pointer"
+                          >
+                            <X className="w-2.5 h-2.5" />
+                          </button>
+                        </span>
+                      ))}
+                      <span className="text-[10px] text-[#942392] font-bold self-center ml-1">
+                        {selectedEmps.length} selected
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Search Input in Popover */}
+                  <div className="relative">
+                    <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-2.5 top-1/2 -translate-y-1/2" />
+                    <Input
+                      placeholder="Search employees..."
+                      value={empSearch}
+                      onChange={(e) => setEmpSearch(e.target.value)}
+                      className="pl-8 pr-7 h-8 text-xs focus-visible:ring-1 focus-visible:ring-[#942392] focus-visible:border-[#942392]"
+                      autoFocus
+                    />
+                    {empSearch && (
+                      <button
+                        type="button"
+                        onClick={() => setEmpSearch("")}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Employee List */}
+                  <div className="max-h-48 overflow-y-auto border border-gray-200 dark:border-slate-800 rounded-lg divide-y divide-gray-100 dark:divide-slate-800">
+                    {filteredEmps.length === 0 ? (
+                      <div className="py-5 text-center text-[10px] text-muted-foreground font-bold uppercase tracking-wider">
+                        No employees found
+                      </div>
+                    ) : (
+                      filteredEmps.map((e) => {
+                        const isSelected = !!selectedEmps.find(
+                          (s) => s.user_id === e.user_id || s.full_name === e.full_name
+                        );
+                        return (
+                          <div
+                            key={e.user_id}
+                            onClick={() => toggleEmp(e)}
+                            className={`flex items-center justify-between px-3 py-2 cursor-pointer transition-colors ${
+                              isSelected
+                                ? "bg-[#942392]/10 dark:bg-[#942392]/20"
+                                : "hover:bg-gray-50 dark:hover:bg-slate-800/60"
+                            }`}
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                              <div className="pointer-events-none flex items-center justify-center shrink-0">
+                                <AnimatedCheckbox
+                                  checked={isSelected}
+                                  readOnly
+                                  color="#942392"
+                                  size={18}
+                                />
+                              </div>
+                              <div className="min-w-0 text-left">
+                                <p className="text-[11px] font-bold text-foreground dark:text-gray-100 truncate">
+                                  {e.full_name}
+                                </p>
+                                <p className="text-[9px] text-muted-foreground truncate">
+                                  {e.department && e.department !== "—" ? e.department : "General"} · {e.branch || "HQ"}
+                                </p>
+                              </div>
+                            </div>
+                            {isSelected && (
+                              <Badge className="bg-[#942392]/15 text-[#942392] border border-[#942392]/30 text-[9px] font-bold shrink-0">
+                                Selected
+                              </Badge>
+                            )}
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-end gap-2.5">
             <MonthPicker
               monthYear={selectedMonth === "all" ? `${selectedYear}-all` : `${selectedYear}-${selectedMonth}`}
               onSelectMonthYear={(val) => {
@@ -564,12 +866,14 @@ export default function LeaveAdmin() {
             <Button 
               variant="outline" 
               size="sm" 
-              className="h-9 px-3 border-dashed text-xs"
+              className="h-9 px-3 border-dashed text-xs cursor-pointer"
               onClick={() => {
                 setSelectedMonth("all");
                 setSelectedYear(new Date().getFullYear().toString());
                 setSelectedLeaveType("all");
                 setActiveTab("history");
+                setSelectedEmps([]);
+                setEmpSearch("");
               }}
             >
               <RotateCcw className="w-3.5 h-3.5 mr-2" />
@@ -581,6 +885,39 @@ export default function LeaveAdmin() {
               onExportPDF={() => window.print()} 
             />
           </div>
+        </div>
+
+        {/* Selected Badges directly visible on the page below filter row */}
+        {selectedEmps.length > 0 && (
+          <div className="flex flex-wrap items-center gap-1.5 pt-1">
+            <span className="text-[11px] font-bold text-[#942392] flex items-center gap-1">
+              <Users className="w-3 h-3" /> Filtered by:
+            </span>
+            {selectedEmps.map((e) => (
+              <span
+                key={e.user_id}
+                className="inline-flex items-center gap-1 bg-card border border-[#942392]/30 text-[#942392] dark:text-[#f3a8f1] text-[10px] font-bold px-2 py-0.5 rounded-md shadow-2xs"
+              >
+                <span className="truncate max-w-[160px]">{e.full_name}</span>
+                <button
+                  type="button"
+                  onClick={() => toggleEmp(e)}
+                  className="hover:text-red-500 transition-colors ml-0.5 cursor-pointer"
+                  title="Remove filter"
+                >
+                  <X className="w-2.5 h-2.5" />
+                </button>
+              </span>
+            ))}
+            <button
+              type="button"
+              onClick={() => setSelectedEmps([])}
+              className="text-[10px] text-muted-foreground hover:text-red-500 font-bold ml-1 cursor-pointer underline"
+            >
+              Clear all
+            </button>
+          </div>
+        )}
       </div>
 
       <Card className="border border-slate-100 dark:border-slate-700 bg-card shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] rounded-[24px] overflow-hidden">

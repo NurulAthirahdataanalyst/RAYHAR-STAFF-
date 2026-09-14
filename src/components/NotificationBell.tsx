@@ -48,20 +48,42 @@ export default function NotificationBell() {
     }
     setIsOpen(false);
 
+    const isApprover = ["hr_admin", "managing_director", "operation_manager", "finance_manager", "head_of_department", "branch_leader"].includes(role);
+    const title = (notif.title || "").toLowerCase();
+    const message = (notif.message || "").toLowerCase();
+
+    // Check if this is a leave-related notification
+    const isLeaveNotification = notif.type === "leave_approval" || 
+                                notif.type === "leave" || 
+                                notif.type === "approval" || 
+                                notif.type === "status_update" || 
+                                title.includes("leave");
+
+    if (isLeaveNotification) {
+      // It's the user's own leave if the message directly addresses them ("your request", "your leave", "your application")
+      // AND the title does NOT specify another staff's name (e.g. doesn't have a colon like "Leave Approved: Name")
+      const isOwnLeave = (
+        (message.includes("your request") || message.includes("your application") || message.includes("your leave")) &&
+        !notif.title.includes(":")
+      );
+
+      const isOtherStaff = isApprover && (notif.type === "leave_approval" || !isOwnLeave || notif.title.includes(":"));
+
+      if (isOtherStaff) {
+        navigate(notif.related_leave_id ? `/leave/admin?leaveId=${notif.related_leave_id}` : `/leave/admin`);
+        return;
+      } else {
+        navigate(notif.related_leave_id ? `/leave?leaveId=${notif.related_leave_id}` : `/leave`);
+        return;
+      }
+    }
+
     if (notif.action_url) {
       navigate(notif.action_url);
       return;
     }
 
-    const isApprover = ["hr_admin", "managing_director", "operation_manager", "finance_manager", "head_of_department", "branch_leader"].includes(role);
-
-    if (notif.type === "leave_approval" || notif.type === "leave" || notif.type === "approval" || notif.type === "status_update") {
-      if (isApprover && notif.type === "leave_approval") {
-        navigate(notif.related_leave_id ? `/leave/admin?leaveId=${notif.related_leave_id}` : `/leave/admin`);
-      } else {
-        navigate(notif.related_leave_id ? `/leave?leaveId=${notif.related_leave_id}` : `/leave`);
-      }
-    } else if (notif.type === "attendance") {
+    if (notif.type === "attendance") {
       navigate("/attendance");
     } else if (notif.type === "assignment") {
       navigate("/branches/temporary-assignments");
