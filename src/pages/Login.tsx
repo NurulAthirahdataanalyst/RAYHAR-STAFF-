@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input"
 import { PasswordInput } from "@/components/ui/password-input";
@@ -24,6 +24,11 @@ export default function Login() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { loginLocal } = useAuth();
+
+  useEffect(() => {
+    // Pre-warm backend cloud instance in the background immediately
+    fetch(`${API_BASE_URL}/api/health`).catch(() => {});
+  }, []);
 
   // Login state
   const [loginEmail, setLoginEmail] = useState("");
@@ -116,8 +121,13 @@ export default function Login() {
       } else {
         toast({ title: "Login failed", description: data.error || data.message || "Invalid credentials", variant: "destructive" });
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Login connection error:", err);
+      toast({
+        title: "Connection Timeout / Server Busy",
+        description: "The cloud server may have been sleeping or took too long to respond. Please try clicking 'Sign In' again now.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }

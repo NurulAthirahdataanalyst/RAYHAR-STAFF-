@@ -35,7 +35,7 @@ export const RoleProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const getInitialRole = (): UserRole => {
     if (user?.role) return normalizeRole(user.role);
     try {
-      const cached = localStorage.getItem("presence_cached_role");
+      const cached = sessionStorage.getItem("presence_cached_role");
       if (cached) return normalizeRole(cached);
     } catch {}
     return "employee";
@@ -44,7 +44,7 @@ export const RoleProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const getInitialBranch = (): string => {
     if (user?.branch) return user.branch;
     try {
-      return localStorage.getItem("presence_cached_branch") || "HQ";
+      return sessionStorage.getItem("presence_cached_branch") || "HQ";
     } catch {}
     return "HQ";
   };
@@ -52,7 +52,7 @@ export const RoleProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const getInitialDept = (): string => {
     if (user?.department) return user.department;
     try {
-      return localStorage.getItem("presence_cached_department") || "";
+      return sessionStorage.getItem("presence_cached_department") || "";
     } catch {}
     return "";
   };
@@ -60,7 +60,7 @@ export const RoleProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const getInitialName = (): string => {
     if (user?.full_name || user?.name || user?.email) return user.full_name || user.name || user.email;
     try {
-      return localStorage.getItem("presence_cached_name") || "";
+      return sessionStorage.getItem("presence_cached_name") || "";
     } catch {}
     return "";
   };
@@ -85,20 +85,20 @@ export const RoleProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (user.role) {
       const norm = normalizeRole(user.role);
       setRole(norm);
-      try { localStorage.setItem("presence_cached_role", norm); } catch {}
+      try { sessionStorage.setItem("presence_cached_role", norm); } catch {}
     }
     if (user.branch) {
       setUserBranch(user.branch);
-      try { localStorage.setItem("presence_cached_branch", user.branch); } catch {}
+      try { sessionStorage.setItem("presence_cached_branch", user.branch); } catch {}
     }
     if (user.department) {
       setUserDepartment(user.department);
-      try { localStorage.setItem("presence_cached_department", user.department); } catch {}
+      try { sessionStorage.setItem("presence_cached_department", user.department); } catch {}
     }
     if (user.full_name || user.name || user.email) {
       const name = user.full_name || user.name || user.email;
       setUserName(name);
-      try { localStorage.setItem("presence_cached_name", name); } catch {}
+      try { sessionStorage.setItem("presence_cached_name", name); } catch {}
     }
 
     const fetchUserData = async () => {
@@ -118,10 +118,10 @@ export const RoleProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setRole(parsedRole);
 
           try {
-            localStorage.setItem("presence_cached_role", parsedRole);
-            localStorage.setItem("presence_cached_branch", fetchedBranch);
-            localStorage.setItem("presence_cached_department", fetchedDept);
-            localStorage.setItem("presence_cached_name", fetchedName);
+            sessionStorage.setItem("presence_cached_role", parsedRole);
+            sessionStorage.setItem("presence_cached_branch", fetchedBranch);
+            sessionStorage.setItem("presence_cached_department", fetchedDept);
+            sessionStorage.setItem("presence_cached_name", fetchedName);
           } catch {}
 
           if (updateUserLocal) {

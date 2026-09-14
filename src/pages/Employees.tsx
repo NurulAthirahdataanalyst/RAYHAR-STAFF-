@@ -463,13 +463,20 @@ export default function Employees() {
   };
 
   const sorted = [...filtered].sort((a, b) => {
+    // 1. Any Deleted staff is ALWAYS placed at the very bottom, never in between active staff
+    const isDeletedA = a.status === 'Deleted';
+    const isDeletedB = b.status === 'Deleted';
+    if (isDeletedA && !isDeletedB) return 1;
+    if (!isDeletedA && isDeletedB) return -1;
+
+    // 2. Sort by role hierarchy
     const priorityA = getRolePriority(a.role);
     const priorityB = getRolePriority(b.role);
     
     if (priorityA !== priorityB) {
       return priorityA - priorityB;
     }
-    // Secondary sort: alphabetical by name
+    // 3. Secondary sort: alphabetical by name
     return a.name.localeCompare(b.name);
   });
 
@@ -728,6 +735,11 @@ export default function Employees() {
                         return bMatch && pMatch && sMatch && tMatch;
                       })
                       .sort((a, b) => {
+                        const isDeletedA = a.status === 'Deleted';
+                        const isDeletedB = b.status === 'Deleted';
+                        if (isDeletedA && !isDeletedB) return 1;
+                        if (!isDeletedA && isDeletedB) return -1;
+
                         const aId = a.id?.toString() || a.user_id || a.name;
                         const bId = b.id?.toString() || b.user_id || b.name;
                         const aChecked = checkedEmployees.includes(aId) ? 0 : 1;
@@ -814,6 +826,7 @@ export default function Employees() {
               <SelectItem value="All" className="text-xs font-bold">All Statuses</SelectItem>
               <SelectItem value="Active" className="text-xs font-bold">Active Only</SelectItem>
               <SelectItem value="Inactive" className="text-xs font-bold">Inactive Only</SelectItem>
+              <SelectItem value="Deleted" className="text-xs font-bold">Deleted Only</SelectItem>
             </SelectContent>
           </Select>
 

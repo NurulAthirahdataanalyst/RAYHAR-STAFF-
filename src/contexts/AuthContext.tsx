@@ -12,7 +12,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const getInitialUser = () => {
   try {
-    const savedLocalUser = sessionStorage.getItem("user") || localStorage.getItem("presence_user") || localStorage.getItem("user");
+    const savedLocalUser = sessionStorage.getItem("user");
     if (savedLocalUser) {
       const parsed = JSON.parse(savedLocalUser);
       if (parsed && (parsed.id || parsed.user_id || parsed.email)) {
@@ -30,7 +30,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const savedLocalUser = sessionStorage.getItem("user") || localStorage.getItem("presence_user") || localStorage.getItem("user");
+    const savedLocalUser = sessionStorage.getItem("user");
     if (savedLocalUser && !user) {
       try {
         const parsedUser = JSON.parse(savedLocalUser);
@@ -42,39 +42,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     }
     setLoading(false);
-
-    // Sync user state if changed in another tab/window
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === "presence_user" || e.key === "user") {
-        if (e.newValue) {
-          try {
-            const parsed = JSON.parse(e.newValue);
-            if (parsed && (parsed.id || parsed.user_id || parsed.email)) {
-              setUser(parsed);
-            }
-          } catch {}
-        } else {
-          // If key was removed, verify storage before logging out
-          const remaining = sessionStorage.getItem("user") || localStorage.getItem("presence_user") || localStorage.getItem("user");
-          if (!remaining) {
-            setUser(null);
-          }
-        }
-      }
-    };
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
   const loginLocal = (userData: any) => {
     try {
       sessionStorage.setItem("user", JSON.stringify(userData));
-      localStorage.setItem("presence_user", JSON.stringify(userData));
-      localStorage.setItem("user", JSON.stringify(userData));
-      if (userData?.role) localStorage.setItem("presence_cached_role", userData.role);
-      if (userData?.branch) localStorage.setItem("presence_cached_branch", userData.branch);
-      if (userData?.department) localStorage.setItem("presence_cached_department", userData.department);
-      if (userData?.full_name || userData?.name) localStorage.setItem("presence_cached_name", userData.full_name || userData.name);
+      if (userData?.role) sessionStorage.setItem("presence_cached_role", userData.role);
+      if (userData?.branch) sessionStorage.setItem("presence_cached_branch", userData.branch);
+      if (userData?.department) sessionStorage.setItem("presence_cached_department", userData.department);
+      if (userData?.full_name || userData?.name) sessionStorage.setItem("presence_cached_name", userData.full_name || userData.name);
     } catch {}
     setUser(userData);
   };
@@ -85,12 +61,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const updated = { ...prev, ...updatedFields };
       try {
         sessionStorage.setItem("user", JSON.stringify(updated));
-        localStorage.setItem("presence_user", JSON.stringify(updated));
-        localStorage.setItem("user", JSON.stringify(updated));
-        if (updated?.role) localStorage.setItem("presence_cached_role", updated.role);
-        if (updated?.branch) localStorage.setItem("presence_cached_branch", updated.branch);
-        if (updated?.department) localStorage.setItem("presence_cached_department", updated.department);
-        if (updated?.full_name || updated?.name) localStorage.setItem("presence_cached_name", updated.full_name || updated.name);
+        if (updated?.role) sessionStorage.setItem("presence_cached_role", updated.role);
+        if (updated?.branch) sessionStorage.setItem("presence_cached_branch", updated.branch);
+        if (updated?.department) sessionStorage.setItem("presence_cached_department", updated.department);
+        if (updated?.full_name || updated?.name) sessionStorage.setItem("presence_cached_name", updated.full_name || updated.name);
       } catch {}
       return updated;
     });
@@ -99,12 +73,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signOut = async () => {
     try {
       sessionStorage.removeItem("user");
-      localStorage.removeItem("user");
-      localStorage.removeItem("presence_user");
-      localStorage.removeItem("presence_cached_role");
-      localStorage.removeItem("presence_cached_branch");
-      localStorage.removeItem("presence_cached_department");
-      localStorage.removeItem("presence_cached_name");
+      sessionStorage.removeItem("presence_cached_role");
+      sessionStorage.removeItem("presence_cached_branch");
+      sessionStorage.removeItem("presence_cached_department");
+      sessionStorage.removeItem("presence_cached_name");
+      sessionStorage.removeItem("activeAttendanceSession");
+      sessionStorage.removeItem("latestAttendanceUpdate");
     } catch {}
     setUser(null);
   };
