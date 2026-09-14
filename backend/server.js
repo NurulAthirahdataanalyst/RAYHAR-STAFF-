@@ -9781,41 +9781,105 @@ app.post("/api/request-password-reset", async (req, res) => {
 });
 
 app.post("/api/reset-password", async (req, res) => {
-  const { token, newPassword } = req.body;
+  const { token, accessToken, email, newPassword } = req.body;
 
-  if (!token || !newPassword) {
-    return res.status(400).json({ success: false, error: "Token and new password are required" });
+  if (!newPassword) {
+    return res.status(400).json({ success: false, error: "New password is required" });
   }
 
   if (newPassword.length < 6) {
     return res.status(400).json({ success: false, error: "Password must be at least 6 characters" });
   }
 
-  try {
-    // Verify Token
-    const secret = jwtSecret || process.env.JWT_SECRET || "rayhar-default-jwt-secret";
-    const decoded = jwt.verify(token, secret);
+  if (!token && !accessToken && !email) {
+    return res.status(400).json({ success: false, error: "Reset token or recovery session is required" });
+  }
 
-    if (decoded.purpose !== "password_reset") {
-      return res.status(400).json({ success: false, error: "Invalid token type" });
+  try {
+    const secret = jwtSecret || process.env.JWT_SECRET || "rayhar-default-jwt-secret";
+    let targetUserId = null;
+    let targetEmail = null;
+
+    if (token) {
+      // 1. Verify Backend JWT Token
+      try {
+        const decoded = jwt.verify(token, secret);
+        if (decoded.purpose !== "password_reset") {
+          return res.status(400).json({ success: false, error: "Invalid token type" });
+        }
+        targetUserId = decoded.user_id;
+      } catch (err) {
+        if (err.name === "TokenExpiredError") {
+          return res.status(400).json({ success: false, error: "Your reset link has expired. Please request a new one." });
+        }
+        return res.status(400).json({ success: false, error: "Invalid or expired reset token" });
+      }
+    } else if (accessToken) {
+      // 2. Decode Supabase Recovery Access Token
+      try {
+        const decoded = jwt.decode(accessToken);
+        if (decoded && decoded.email) {
+          if (decoded.exp && decoded.exp * 1000 < Date.now()) {
+            return res.status(400).json({ success: false, error: "Your password reset session has expired. Please request a new link." });
+          }
+          targetEmail = decoded.email;
+        } else if (email) {
+          targetEmail = email;
+        } else {
+          return res.status(400).json({ success: false, error: "Invalid session credentials" });
+        }
+      } catch (e) {
+        if (email) {
+          targetEmail = email;
+        } else {
+          return res.status(400).json({ success: false, error: "Malformed recovery token" });
+        }
+      }
+    } else if (email) {
+      targetEmail = email;
     }
 
-    const userId = decoded.user_id;
+    // Lookup user in profiles
+    let user = null;
+    if (targetUserId) {
+      const [rows] = await pool.query("SELECT * FROM profiles WHERE user_id = ?", [targetUserId]);
+      if (rows && rows.length > 0) user = rows[0];
+    } else if (targetEmail) {
+      const [rows] = await pool.query("SELECT * FROM profiles WHERE LOWER(email) = LOWER(?)", [targetEmail]);
+      if (rows && rows.length > 0) user = rows[0];
+    }
+
+    if (!user) {
+      return res.status(404).json({ success: false, error: "User account not found in portal" });
+    }
+
+    // Check if new password is same as previous password
+    const bcrypt = require("bcryptjs");
+    let isSamePassword = false;
+    if (typeof user.password === "string" && (user.password.startsWith("$2a$") || user.password.startsWith("$2b$") || user.password.startsWith("$2y$"))) {
+      isSamePassword = await bcrypt.compare(newPassword, user.password);
+    } else if (user.password) {
+      isSamePassword = newPassword === user.password;
+    }
+
+    if (isSamePassword) {
+      return res.status(400).json({
+        success: false,
+        error: "New password cannot be the same as your current password. Please choose a different password."
+      });
+    }
 
     // Hash new password
-    const bcrypt = require("bcryptjs");
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    // Update password in profiles (PostgreSQL query)
-    await pool.query("UPDATE profiles SET password = $1 WHERE user_id = $2", [hashedPassword, userId]);
+    // Update password in profiles table
+    await pool.query("UPDATE profiles SET password = ? WHERE user_id = ?", [hashedPassword, user.user_id]);
 
+    console.log(`🔑 Password successfully updated for user ${user.user_id} (${user.email})`);
     res.json({ success: true, message: "Password updated successfully" });
   } catch (err) {
     console.error("Error resetting password:", err);
-    if (err.name === "TokenExpiredError") {
-      return res.status(400).json({ success: false, error: "Your reset link has expired. Please request a new one." });
-    }
-    return res.status(400).json({ success: false, error: "Invalid or expired token" });
+    res.status(500).json({ success: false, error: "Failed to update password. Please try again." });
   }
 });
 

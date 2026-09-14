@@ -149,27 +149,40 @@ export default function ResetPassword() {
 
     setLoading(true);
     try {
-      if (tokenParam) {
-        // Reset password via backend token
-        const response = await fetch(`${API_BASE_URL}/api/reset-password`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ token: tokenParam, newPassword }),
-        });
-        const data = await response.json();
-        if (!response.ok || !data.success) {
-          throw new Error(data.error || "Failed to update password.");
-        }
-      } else {
-        // Reset password via Supabase Auth session
-        const { error } = await supabase.auth.updateUser({
+      // 1. Get current Supabase session (contains access_token and user email if recovery link was clicked)
+      const { data: { session } } = await supabase.auth.getSession();
+      const accessToken = session?.access_token || "";
+      const sessionEmail = session?.user?.email || "";
+
+      // 2. Update Supabase Auth if session exists
+      if (session) {
+        const { error: sbError } = await supabase.auth.updateUser({
           password: newPassword,
         });
-
-        if (error) {
-          throw error;
+        if (sbError) {
+          console.warn("Supabase auth updateUser warning:", sbError);
         }
       }
+
+      // 3. ALWAYS update the primary database profiles table via backend API
+      const response = await fetch(`${API_BASE_URL}/api/reset-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          token: tokenParam,
+          accessToken: accessToken,
+          email: sessionEmail,
+          newPassword: newPassword,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || "Failed to update password in system.");
+      }
+
+      // 4. Sign out from temporary recovery session so next login is clean
+      await supabase.auth.signOut().catch(() => {});
 
       setIsSuccess(true);
       toast({ title: "Password Updated", description: "Your password has been successfully updated." });
