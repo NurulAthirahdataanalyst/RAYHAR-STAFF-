@@ -898,7 +898,7 @@ export default function Dashboard() {
             <Card 
               onClick={() => {
                 if (role === "employee") {
-                  navigate("/leave/admin");
+                  navigate("/leave");
                 } else if (role === "branch_leader" || role === "branch_officer" || role === "head_of_department") {
                   navigate("/leave/team");
                 } else {
