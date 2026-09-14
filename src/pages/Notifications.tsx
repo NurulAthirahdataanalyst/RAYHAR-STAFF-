@@ -24,7 +24,6 @@ import { useRole } from "@/contexts/RoleContext";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import { formatDistanceToNow, format } from "date-fns";
 import { useNotifications, type NotificationItem } from "@/contexts/NotificationContext";
 
 type FilterTab = "all" | "unread" | "leave" | "attendance" | "assignment" | "announcement";
@@ -210,6 +209,42 @@ export default function Notifications() {
     return <Calendar className="w-5 h-5 text-teal-600" />;
   };
 
+  const formatTime = (dateStr: string) => {
+    if (!dateStr) return "";
+    try {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+
+      const now = new Date();
+      const diffMs = now.getTime() - d.getTime();
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+      if (d.toDateString() === now.toDateString()) {
+        const diffMins = Math.floor(diffMs / (1000 * 60));
+        if (diffMins < 1) return "Just now";
+        if (diffMins < 60) return `${diffMins}m ago`;
+        return `${Math.floor(diffMins / 60)}h ago`;
+      }
+
+      const yesterday = new Date(now);
+      yesterday.setDate(now.getDate() - 1);
+      if (d.toDateString() === yesterday.toDateString()) {
+        const timeStr = d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit", hour12: true });
+        return `Yesterday at ${timeStr}`;
+      }
+
+      if (diffDays > 0 && diffDays < 7) {
+        return `${diffDays}d ago`;
+      }
+
+      const datePart = d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+      const timePart = d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit", hour12: true });
+      return `${datePart}, ${timePart}`;
+    } catch {
+      return "just now";
+    }
+  };
+
   const filteredNotifications = notifications.filter((notif) => {
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();
@@ -339,7 +374,7 @@ export default function Notifications() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2 mb-1">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm font-bold text-foreground">
+                    <span className="text-sm font-bold text-slate-900 dark:text-white">
                       {notif.title}
                     </span>
                     {!notif.is_read && (
@@ -353,9 +388,9 @@ export default function Notifications() {
                   </div>
                   <span
                     className="text-xs text-muted-foreground whitespace-nowrap"
-                    title={notif.created_at ? format(new Date(notif.created_at), "PPpp") : ""}
+                    title={notif.created_at ? new Date(notif.created_at).toLocaleString() : ""}
                   >
-                    {notif.created_at ? formatDistanceToNow(new Date(notif.created_at), { addSuffix: true }) : ""}
+                    {notif.created_at ? formatTime(notif.created_at) : ""}
                   </span>
                 </div>
 

@@ -3503,14 +3503,16 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
           sendPush: true,
         });
 
-        // Notify HR
+        // Notify all HR Admins
         const [hrRows] = await pool.query(
-          `SELECT p.email FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'hr_admin' AND p.status = 'Active' LIMIT 1`
+          `SELECT p.email FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'hr_admin' AND p.status = 'Active'`
         );
-        if (hrRows.length > 0 && hrRows[0].email) {
-          sendNotificationEmail(hrRows[0].email, `FYI - New Leave Application: ${leaveData.full_name}`, html).catch(err => {
-            console.error("Failed to send HR notification email:", err);
-          });
+        for (const hr of (hrRows || [])) {
+          if (hr.email) {
+            sendNotificationEmail(hr.email, `FYI - New Leave Application: ${leaveData.full_name}`, html).catch(err => {
+              console.error("Failed to send HR notification email:", err);
+            });
+          }
         }
 
       } catch (mailErr) {
@@ -3661,16 +3663,20 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
           notificationTitle = `Leave Request ${nextStatus}`;
           notificationMessage = `Your request for ${leaveData.leave_type} has been ${nextStatus.toLowerCase()}.`;
 
-          // Notify HR
+          // Notify all HR Admins
           const [hrRows] = await pool.query(
-            `SELECT p.email, p.user_id FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'hr_admin' AND p.status = 'Active' LIMIT 1`
+            `SELECT p.email, p.user_id FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'hr_admin' AND p.status = 'Active'`
           );
-          if (hrRows.length > 0) {
-            sendNotificationEmail(hrRows[0].email, `Leave Request ${nextStatus}: ${leaveData.employee_name}`, `<p>The leave request for <strong>${leaveData.employee_name}</strong> has been <strong>${nextStatus}</strong>.</p>`).catch(console.error);
-            pool.query(
-              `INSERT INTO notifications (user_id, title, message, type, related_leave_id) VALUES (?, ?, ?, ?, ?)`,
-              [hrRows[0].user_id, `Leave ${nextStatus}: ${leaveData.employee_name}`, `${leaveData.employee_name}'s request for ${leaveData.leave_type} is now ${nextStatus.toLowerCase()}.`, 'status_update', leaveId]
-            ).catch(console.error);
+          for (const hr of (hrRows || [])) {
+            if (hr.email) {
+              sendNotificationEmail(hr.email, `Leave Request ${nextStatus}: ${leaveData.employee_name}`, `<p>The leave request for <strong>${leaveData.employee_name}</strong> has been <strong>${nextStatus}</strong>.</p>`).catch(console.error);
+            }
+            if (hr.user_id) {
+              pool.query(
+                `INSERT INTO notifications (user_id, title, message, type, related_leave_id) VALUES (?, ?, ?, ?, ?)`,
+                [hr.user_id, `Leave ${nextStatus}: ${leaveData.employee_name}`, `${leaveData.employee_name}'s request for ${leaveData.leave_type} is now ${nextStatus.toLowerCase()}.`, 'status_update', leaveId]
+              ).catch(console.error);
+            }
           }
         }
 

@@ -1,5 +1,6 @@
+import { useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,6 +11,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import AppLayout from "@/components/layout/AppLayout";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { supabase } from "@/integrations/supabase/client";
 
 import Dashboard from "./pages/Dashboard";
 import Attendance from "./pages/Attendance";
@@ -59,6 +61,18 @@ const queryClient = new QueryClient();
 
 function ProtectedRoutes() {
   const { user, loading } = useAuth();
+
+  // If arriving from Supabase reset-password email (via Site URL fallback to /),
+  // redirect immediately to /reset-password preserving hash/search instead of kicking to /login
+  const hash = window.location.hash || "";
+  const search = window.location.search || "";
+  if (
+    hash.includes("type=recovery") ||
+    hash.includes("access_token=") ||
+    search.includes("type=recovery")
+  ) {
+    return <Navigate to={`/reset-password${search}${hash}`} replace />;
+  }
 
   if (loading) {
     return (
@@ -139,8 +153,53 @@ function ProtectedRoutes() {
   );
 }
 
+function AuthRecoveryListener() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    // Check if URL has password recovery hash or search params
+    const hash = window.location.hash || "";
+    const search = window.location.search || "";
+    const isRecovery =
+      hash.includes("type=recovery") ||
+      (hash.includes("access_token=") && hash.includes("type=recovery")) ||
+      search.includes("type=recovery");
+
+    if (isRecovery && location.pathname !== "/reset-password") {
+      navigate(`/reset-password${search}${hash}`, { replace: true });
+      return;
+    }
+
+    // Also listen to Supabase auth events
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") {
+        if (window.location.pathname !== "/reset-password") {
+          navigate("/reset-password", { replace: true });
+        }
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [navigate, location]);
+
+  return null;
+}
+
 function AuthRoute() {
   const { user, loading } = useAuth();
+  const hash = window.location.hash || "";
+  const search = window.location.search || "";
+
+  if (
+    hash.includes("type=recovery") ||
+    hash.includes("access_token=") ||
+    search.includes("type=recovery")
+  ) {
+    return <Navigate to={`/reset-password${search}${hash}`} replace />;
+  }
 
   if (loading) {
     return (
@@ -162,6 +221,7 @@ const App = () => (
         <Sonner />
         <Analytics />
         <BrowserRouter>
+          <AuthRecoveryListener />
           <AuthProvider>
             <Routes>
               <Route path="/login" element={<AuthRoute />} />

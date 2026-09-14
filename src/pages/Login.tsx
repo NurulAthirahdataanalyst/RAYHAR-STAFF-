@@ -26,9 +26,21 @@ export default function Login() {
   const { loginLocal } = useAuth();
 
   useEffect(() => {
+    // Check if recovery link was opened directly on /login
+    const hash = window.location.hash || "";
+    const search = window.location.search || "";
+    if (
+      hash.includes("type=recovery") ||
+      hash.includes("access_token=") ||
+      search.includes("type=recovery")
+    ) {
+      navigate(`/reset-password${search}${hash}`, { replace: true });
+      return;
+    }
+
     // Pre-warm backend cloud instance in the background immediately
     fetch(`${API_BASE_URL}/api/health`).catch(() => {});
-  }, []);
+  }, [navigate]);
 
   // Login state
   const [loginEmail, setLoginEmail] = useState("");
@@ -211,7 +223,7 @@ export default function Login() {
                       placeholder="you@rayhar.com" 
                       value={loginEmail} 
                       onChange={(e) => setLoginEmail(e.target.value)} 
-                      className="!bg-white !text-slate-900 !border-slate-200 placeholder:!text-slate-400 focus-visible:!ring-[#942392] shadow-sm"
+                      className="!bg-white !text-slate-900 !border-slate-200 placeholder:!text-slate-400 focus:!border-[#942392] focus-visible:!border-[#942392] focus-visible:!ring-1 focus-visible:!ring-[#942392] focus-visible:!ring-offset-0 focus:!ring-offset-0 shadow-sm"
                       required 
                     />
                   </div>
@@ -222,7 +234,7 @@ export default function Login() {
                       placeholder="••••••••" 
                       value={loginPassword} 
                       onChange={(e) => setLoginPassword(e.target.value)} 
-                      className="!bg-white !text-slate-900 !border-slate-200 placeholder:!text-slate-400 placeholder:!text-gray-400 placeholder:!font-normal focus-visible:!ring-[#942392] shadow-sm"
+                      className="!bg-white !text-slate-900 !border-slate-200 placeholder:!text-slate-400 placeholder:!text-gray-400 placeholder:!font-normal focus:!border-[#942392] focus-visible:!border-[#942392] focus-visible:!ring-1 focus-visible:!ring-[#942392] focus-visible:!ring-offset-0 focus:!ring-offset-0 shadow-sm"
                       required 
                     />
                   </div>
@@ -389,7 +401,7 @@ export default function Login() {
                       placeholder="Min. 6 characters" 
                       value={signupPassword} 
                       onChange={(e) => setSignupPassword(e.target.value)} 
-                      className="!bg-white !text-slate-900 !border-slate-200 placeholder:!text-slate-400 placeholder:!text-gray-400 placeholder:!font-normal focus-visible:!ring-[#942392] shadow-sm"
+                      className="!bg-white !text-slate-900 !border-slate-200 placeholder:!text-slate-400 placeholder:!text-gray-400 placeholder:!font-normal focus:!border-[#942392] focus-visible:!border-[#942392] focus-visible:!ring-1 focus-visible:!ring-[#942392] focus-visible:!ring-offset-0 focus:!ring-offset-0 shadow-sm"
                       required 
                     />
                   </div>
@@ -400,7 +412,7 @@ export default function Login() {
                       placeholder="Confirm your password" 
                       value={signupConfirmPassword} 
                       onChange={(e) => setSignupConfirmPassword(e.target.value)} 
-                      className="!bg-white !text-slate-900 !border-slate-200 placeholder:!text-slate-400 placeholder:!text-gray-400 placeholder:!font-normal focus-visible:!ring-[#942392] shadow-sm"
+                      className="!bg-white !text-slate-900 !border-slate-200 placeholder:!text-slate-400 placeholder:!text-gray-400 placeholder:!font-normal focus:!border-[#942392] focus-visible:!border-[#942392] focus-visible:!ring-1 focus-visible:!ring-[#942392] focus-visible:!ring-offset-0 focus:!ring-offset-0 shadow-sm"
                       required 
                     />
                     {signupConfirmPassword && (

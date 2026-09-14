@@ -100,6 +100,21 @@ export default function ResetPassword() {
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
+    const hash = window.location.hash || "";
+    const hashParams = new URLSearchParams(hash.replace(/^#/, ""));
+
+    // Check for error parameters from Supabase (e.g. otp_expired, access_denied)
+    const errorParam = urlParams.get("error") || hashParams.get("error");
+    const errorDesc = urlParams.get("error_description") || hashParams.get("error_description");
+    if (errorParam || errorDesc) {
+      const msg = errorDesc
+        ? decodeURIComponent(errorDesc.replace(/\+/g, " "))
+        : "This password reset link has expired or is invalid. Please request a new link.";
+      setError(msg);
+      setIsSessionChecking(false);
+      return;
+    }
+
     const token = urlParams.get("token");
     if (token) {
       setTokenParam(token);
@@ -107,19 +122,45 @@ export default function ResetPassword() {
       return;
     }
 
+    let isMounted = true;
+
     const checkSession = async () => {
       const { data: { session }, error } = await supabase.auth.getSession();
-      
-      if (error || !session) {
-        setError("This password reset link is no longer valid. Please request a new password reset link.");
+      if (!isMounted) return;
+
+      if (session) {
+        setError(null);
+        setIsSessionChecking(false);
+        return;
       }
-      setIsSessionChecking(false);
+
+      // If hash contains tokens, Supabase may take a brief moment to process the hash
+      if (hash.includes("access_token") || hash.includes("type=recovery")) {
+        setTimeout(async () => {
+          if (!isMounted) return;
+          const { data: { session: delayedSession } } = await supabase.auth.getSession();
+          if (delayedSession) {
+            setError(null);
+          } else {
+            setError("This password reset link is no longer valid or has expired. Please request a new link.");
+          }
+          setIsSessionChecking(false);
+        }, 1200);
+      } else {
+        if (!error) {
+          setError("This password reset link is no longer valid. Please request a new password reset link.");
+        } else {
+          setError(error.message || "Failed to verify password reset link.");
+        }
+        setIsSessionChecking(false);
+      }
     };
 
     checkSession();
-    
+
     // Also listen for auth state change in case the hash is processed slightly after mount
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!isMounted) return;
       if (event === "PASSWORD_RECOVERY" || session) {
         setError(null);
         setIsSessionChecking(false);
@@ -127,6 +168,7 @@ export default function ResetPassword() {
     });
 
     return () => {
+      isMounted = false;
       authListener.subscription.unsubscribe();
     };
   }, []);
@@ -321,9 +363,9 @@ export default function ResetPassword() {
                         placeholder="••••••••"
                         aria-invalid={calculateStrength.score < 4}
                         aria-describedby="password-strength"
-                        className={`w-full pr-10 border-2 rounded-md !bg-white !text-slate-900 placeholder:!text-slate-400 placeholder:!text-gray-400 placeholder:!font-normal transition-all shadow-sm ${
+                        className={`w-full pr-10 border-2 rounded-md !bg-white !text-slate-900 placeholder:!text-slate-400 placeholder:!text-gray-400 placeholder:!font-normal transition-all shadow-sm focus:!border-[#942392] focus-visible:!border-[#942392] focus-visible:!ring-1 focus-visible:!ring-[#942392] focus-visible:!ring-offset-0 focus:!ring-offset-0 ${
                           newPassword === ""
-                            ? "!border-slate-200 focus-visible:!ring-[#942392]"
+                            ? "!border-slate-200"
                             : STRENGTH_CONFIG.colors[calculateStrength.score]
                         }`}
                         required
@@ -377,9 +419,9 @@ export default function ResetPassword() {
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         placeholder="••••••••"
                         aria-invalid={confirmPassword !== "" ? isMatch === false : undefined}
-                        className={`w-full pr-10 border-2 rounded-md !bg-white !text-slate-900 placeholder:!text-slate-400 placeholder:!text-gray-400 placeholder:!font-normal transition-all shadow-sm ${
+                        className={`w-full pr-10 border-2 rounded-md !bg-white !text-slate-900 placeholder:!text-slate-400 placeholder:!text-gray-400 placeholder:!font-normal transition-all shadow-sm focus:!border-[#942392] focus-visible:!border-[#942392] focus-visible:!ring-1 focus-visible:!ring-[#942392] focus-visible:!ring-offset-0 focus:!ring-offset-0 ${
                           confirmPassword === ""
-                            ? "!border-slate-200 focus-visible:!ring-[#942392]"
+                            ? "!border-slate-200"
                             : isMatch
                             ? "border-emerald-500"
                             : "border-red-500"

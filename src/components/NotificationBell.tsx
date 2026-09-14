@@ -16,7 +16,6 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useRole } from "@/contexts/RoleContext";
 import { useNavigate } from "react-router-dom";
-import { formatDistanceToNow } from "date-fns";
 import { useNotifications, type NotificationItem } from "@/contexts/NotificationContext";
 
 export type { NotificationItem };
@@ -96,8 +95,36 @@ export default function NotificationBell() {
   };
 
   const formatTime = (dateStr: string) => {
+    if (!dateStr) return "";
     try {
-      return formatDistanceToNow(new Date(dateStr), { addSuffix: true });
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+
+      const now = new Date();
+      const diffMs = now.getTime() - d.getTime();
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+      if (d.toDateString() === now.toDateString()) {
+        const diffMins = Math.floor(diffMs / (1000 * 60));
+        if (diffMins < 1) return "Just now";
+        if (diffMins < 60) return `${diffMins}m ago`;
+        return `${Math.floor(diffMins / 60)}h ago`;
+      }
+
+      const yesterday = new Date(now);
+      yesterday.setDate(now.getDate() - 1);
+      if (d.toDateString() === yesterday.toDateString()) {
+        const timeStr = d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit", hour12: true });
+        return `Yesterday at ${timeStr}`;
+      }
+
+      if (diffDays > 0 && diffDays < 7) {
+        return `${diffDays}d ago`;
+      }
+
+      const datePart = d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+      const timePart = d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit", hour12: true });
+      return `${datePart}, ${timePart}`;
     } catch {
       return "just now";
     }
@@ -173,7 +200,7 @@ export default function NotificationBell() {
                 {/* Content */}
                 <div className="flex-1 min-w-0 pr-6">
                   <div className="flex items-center gap-1.5 mb-0.5">
-                    <p className={`text-xs font-bold truncate ${!notif.is_read ? "text-foreground" : "text-muted-foreground"}`}>
+                    <p className="text-xs font-bold truncate text-slate-900 dark:text-white">
                       {notif.title}
                     </p>
                     {!notif.is_read && (
@@ -183,7 +210,10 @@ export default function NotificationBell() {
                   <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed whitespace-pre-line">
                     {notif.message.replace(/[*_#]/g, "")}
                   </p>
-                  <p className="text-[10px] text-muted-foreground/70 mt-1 font-medium">
+                  <p 
+                    className="text-[10px] text-muted-foreground/80 mt-1 font-medium"
+                    title={notif.created_at ? new Date(notif.created_at).toLocaleString() : ""}
+                  >
                     {formatTime(notif.created_at)}
                   </p>
                 </div>
