@@ -12,6 +12,7 @@ import {
   Building2, 
   MapPin, 
   ArrowRight,
+  ArrowLeft,
   RefreshCw
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -309,6 +310,21 @@ export default function Notifications() {
           )}
         </div>
       </PageActions>
+
+      {/* Back to Dashboard */}
+      <div className="flex items-center justify-between">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="mb-1 gap-2 px-0 text-[#942392] hover:bg-transparent hover:text-[#5e0080] transition-colors touch-target no-global-hover cursor-pointer"
+          onClick={() => navigate("/")}
+        >
+          <ArrowLeft className="h-4 w-4" />
+          <span className="text-[10px] font-black uppercase tracking-widest">
+            Back to Dashboard
+          </span>
+        </Button>
+      </div>
 
       {/* Tabs and Search Bar */}
       <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-card p-2 rounded-xl border border-border shadow-xs">

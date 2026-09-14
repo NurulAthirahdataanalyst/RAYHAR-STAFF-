@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { User, Mail, Building2, ShieldCheck, Calendar, MapPin, Lock, Loader2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { User, Mail, Building2, ShieldCheck, Calendar, MapPin, Lock, Loader2, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { API_BASE_URL } from "@/config/api";
 import { supabase } from "@/integrations/supabase/client";
@@ -46,6 +47,7 @@ const getFullBranchName = (code: string) => {
 };
 
 const Profile = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { role: resolvedRole, userName, userBranch, userDepartment, userId } = useRole();
   const email = user?.email || ""; 
@@ -116,7 +118,20 @@ const Profile = () => {
 
   return (
     <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-500">
-
+      {/* Back to Dashboard */}
+      <div className="flex items-center justify-between">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="mb-1 gap-2 px-0 text-[#942392] hover:bg-transparent hover:text-[#5e0080] transition-colors touch-target no-global-hover cursor-pointer"
+          onClick={() => navigate("/")}
+        >
+          <ArrowLeft className="h-4 w-4" />
+          <span className="text-[10px] font-black uppercase tracking-widest">
+            Back to Dashboard
+          </span>
+        </Button>
+      </div>
 
       <div className="flex flex-col lg:flex-row gap-3 sm:gap-4 lg:gap-6 items-start">
         {/* Left Column (Profile Info & Security Card) */}
