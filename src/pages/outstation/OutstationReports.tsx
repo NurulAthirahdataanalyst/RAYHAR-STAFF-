@@ -66,6 +66,40 @@ const formatShortDate = (dString: string) => {
   return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).toUpperCase();
 };
 
+const BRANCH_NAMES: Record<string, string> = {
+  HQ: "Rayhar HQ",
+  KMM: "Kemaman",
+  TGG: "Kuala Terengganu",
+  CNH: "Cheneh",
+  KBG: "Kuala Berang",
+  DGN: "Dungun",
+  JTH: "Jertih",
+  KBR: "Kota Bharu",
+  RMP: "Rompin",
+  MZM: "Muadzam Shah",
+  SHA: "Shah Alam",
+  BBB: "Bandar Baru Bangi",
+  KUL: "Kuala Lumpur",
+  IPH: "Ipoh",
+  MJG: "Manjung",
+  MLK: "Melaka",
+  KKS: "Kuala Kangsar",
+  TWU: "Tawau",
+  SNS: "Seremban",
+  AOR: "Alor Setar",
+  BTM: "Bertam",
+  BTP: "Batu Pahat",
+  JB: "Johor Bharu",
+  JHB: "Johor Bharu",
+  SEP: "Sepang",
+  KUA: "Kuantan",
+};
+
+function toProperCase(str: string): string {
+  if (!str) return str;
+  return str.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
 export default function OutstationReports() {
   const { role, userBranch, userDepartment, loading: roleLoading } = useRole();
   const hasLoadedRef = useRef(false);
@@ -76,6 +110,22 @@ export default function OutstationReports() {
   const [filterStatus, setFilterStatus] = useState("All");
   const [filterBranch, setFilterBranch] = useState("All");
   const [filterDept, setFilterDept] = useState("All");
+  const [branchMap, setBranchMap] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/api/branches`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && Array.isArray(data.branches)) {
+          const map: Record<string, string> = {};
+          data.branches.forEach((b: any) => {
+            if (b.code && b.name) map[b.code] = b.name;
+          });
+          setBranchMap(map);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const [viewType, setViewType] = useState<"month" | "year">("month");
   const [selectedMonthYear, setSelectedMonthYear] = useState(() => {
@@ -497,19 +547,37 @@ export default function OutstationReports() {
                 /* Event Details filters: Branch → Dept → Search (far right) */
                 <>
                   <Select value={filterBranch} onValueChange={setFilterBranch}>
-                    <SelectTrigger className="w-[140px] h-8 text-xs bg-gray-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-foreground dark:text-slate-100">
-                      <SelectValue placeholder="Branch">{filterBranch === "All" ? "All Branch" : filterBranch}</SelectValue>
+                    <SelectTrigger className="w-[160px] sm:w-[210px] h-8 text-xs bg-gray-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-foreground dark:text-slate-100">
+                      <SelectValue placeholder="Branch">
+                        {filterBranch === "All"
+                          ? "All Branches"
+                          : (branchMap[filterBranch] || BRANCH_NAMES[filterBranch])
+                          ? `${filterBranch} - ${toProperCase(branchMap[filterBranch] || BRANCH_NAMES[filterBranch])}`
+                          : filterBranch}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-foreground dark:text-slate-100">
-                      {branches.map(b => <SelectItem key={b} value={b}>{b === "All" ? "All Branch" : b}</SelectItem>)}
+                      {branches.map(b => (
+                        <SelectItem key={b} value={b}>
+                          {b === "All"
+                            ? "All Branches"
+                            : (branchMap[b] || BRANCH_NAMES[b])
+                            ? `${b} - ${toProperCase(branchMap[b] || BRANCH_NAMES[b])}`
+                            : b}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   <Select value={filterDept} onValueChange={setFilterDept}>
-                    <SelectTrigger className="w-[140px] h-8 text-xs bg-gray-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-foreground dark:text-slate-100">
-                      <SelectValue placeholder="Department">{filterDept === "All" ? "All Department" : filterDept}</SelectValue>
+                    <SelectTrigger className="w-[140px] sm:w-[190px] h-8 text-xs bg-gray-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-foreground dark:text-slate-100">
+                      <SelectValue placeholder="Department">{filterDept === "All" ? "All Departments" : toProperCase(filterDept)}</SelectValue>
                     </SelectTrigger>
                     <SelectContent className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-foreground dark:text-slate-100">
-                      {departments.map(d => <SelectItem key={d} value={d}>{d === "All" ? "All Department" : d}</SelectItem>)}
+                      {departments.map(d => (
+                        <SelectItem key={d} value={d}>
+                          {d === "All" ? "All Departments" : toProperCase(d)}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   <div className="relative">

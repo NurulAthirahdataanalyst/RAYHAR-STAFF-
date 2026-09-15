@@ -81,6 +81,40 @@ const formatFullDateTime = (value: unknown) => {
   }
 };
 
+const BRANCH_NAMES: Record<string, string> = {
+  HQ: "Rayhar HQ",
+  KMM: "Kemaman",
+  TGG: "Kuala Terengganu",
+  CNH: "Cheneh",
+  KBG: "Kuala Berang",
+  DGN: "Dungun",
+  JTH: "Jertih",
+  KBR: "Kota Bharu",
+  RMP: "Rompin",
+  MZM: "Muadzam Shah",
+  SHA: "Shah Alam",
+  BBB: "Bandar Baru Bangi",
+  KUL: "Kuala Lumpur",
+  IPH: "Ipoh",
+  MJG: "Manjung",
+  MLK: "Melaka",
+  KKS: "Kuala Kangsar",
+  TWU: "Tawau",
+  SNS: "Seremban",
+  AOR: "Alor Setar",
+  BTM: "Bertam",
+  BTP: "Batu Pahat",
+  JB: "Johor Bharu",
+  JHB: "Johor Bharu",
+  SEP: "Sepang",
+  KUA: "Kuantan",
+};
+
+function toProperCase(str: string): string {
+  if (!str) return str;
+  return str.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
 export default function Attendance() {
   const [loading, setLoading] = useState(false);
   const [initialFetch, setInitialFetch] = useState(true);
@@ -1358,7 +1392,7 @@ export default function Attendance() {
                       {allowedLocations.map((loc, i) => (
                         <SelectItem key={i} value={loc} className="text-xs font-bold cursor-pointer">
                           <div className="flex items-center gap-2">
-                            <span>{loc}</span>
+                            <span>{BRANCH_NAMES[loc] ? `${loc} - ${toProperCase(BRANCH_NAMES[loc])}` : loc}</span>
                             {activeTempAssignment && (activeTempAssignment.location === loc || activeTempAssignment.temp_branch === loc) && (
                               <span className="text-[9px] font-extrabold text-[#942392] dark:text-purple-400">(TEMPORARY BRANCH)</span>
                             )}

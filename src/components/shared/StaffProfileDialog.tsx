@@ -1863,7 +1863,7 @@ export function StaffProfileDialog({
                 <SelectContent>
                   {(Array.isArray(branchesList) ? branchesList : []).map((b) => (
                     <SelectItem key={b.code} value={b.code}>
-                      {b.name}
+                      {b.code} - {toProperCase(b.name)}
                     </SelectItem>
                   ))}
                   {branchesList.length === 0 && (

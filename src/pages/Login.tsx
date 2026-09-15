@@ -17,6 +17,39 @@ import { supabase } from "@/integrations/supabase/client";
 import watercolorBg from "@/assets/watercolor-bg.png";
 import rayharLogo from "@/assets/favicon.png";
 
+const BRANCHES = [
+  { code: "HQ", name: "Rayhar HQ" },
+  { code: "KMM", name: "Kemaman" },
+  { code: "TGG", name: "Kuala Terengganu" },
+  { code: "CNH", name: "Cheneh" },
+  { code: "KBG", name: "Kuala Berang" },
+  { code: "DGN", name: "Dungun" },
+  { code: "JTH", name: "Jertih" },
+  { code: "KBR", name: "Kota Bharu" },
+  { code: "RMP", name: "Rompin" },
+  { code: "MZM", name: "Muadzam Shah" },
+  { code: "SHA", name: "Shah Alam" },
+  { code: "BBB", name: "Bandar Baru Bangi" },
+  { code: "KUL", name: "Kuala Lumpur" },
+  { code: "IPH", name: "Ipoh" },
+  { code: "MJG", name: "Manjung" },
+  { code: "MLK", name: "Melaka" },
+  { code: "KKS", name: "Kuala Kangsar" },
+  { code: "TWU", name: "Tawau" },
+  { code: "SNS", name: "Seremban" },
+  { code: "AOR", name: "Alor Setar" },
+  { code: "BTM", name: "Bertam" },
+  { code: "BTP", name: "Batu Pahat" },
+  { code: "JB", name: "Johor Bharu" },
+  { code: "SEP", name: "Sepang" },
+  { code: "KUA", name: "Kuantan" },
+];
+
+function toProperCase(str: string): string {
+  if (!str) return str;
+  return str.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
 export default function Login() {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("login"); // Controlled tab state
@@ -24,6 +57,21 @@ export default function Login() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { loginLocal } = useAuth();
+  const [branchesList, setBranchesList] = useState(BRANCHES);
+
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/api/branches`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && Array.isArray(data.branches) && data.branches.length > 0) {
+          setBranchesList(data.branches.map((b: any) => ({
+            code: b.code,
+            name: b.name ? toProperCase(b.name) : b.code
+          })));
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     // Check if recovery link was opened directly on /login
@@ -348,29 +396,11 @@ export default function Login() {
                         <SelectValue placeholder="Select Branch" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="HQ">Rayhar HQ</SelectItem>
-                        <SelectItem value="KMM">Kemaman</SelectItem>
-                        <SelectItem value="TGG">Kuala Terengganu</SelectItem>
-                        <SelectItem value="CNH">Cheneh</SelectItem>
-                        <SelectItem value="KBG">Kuala Berang</SelectItem>
-                        <SelectItem value="DGN">Dungun</SelectItem>
-                        <SelectItem value="JTH">Jertih</SelectItem>
-                        <SelectItem value="KBR">Kota Baru</SelectItem>
-                        <SelectItem value="RMP">Rompin</SelectItem>
-                        <SelectItem value="MZM">Muadzam Shah</SelectItem>
-                        <SelectItem value="SHA">Shah Alam</SelectItem>
-                        <SelectItem value="BBB">Bandar Baru Bangi</SelectItem>
-                        <SelectItem value="KUL">Kuala Lumpur</SelectItem>
-                        <SelectItem value="IPH">Ipoh</SelectItem>
-                        <SelectItem value="MJG">Manjung</SelectItem>
-                        <SelectItem value="MLK">Melaka</SelectItem>
-                        <SelectItem value="KKS">Kuala Kangsar</SelectItem>
-                        <SelectItem value="TWU">Tawau</SelectItem>
-                        <SelectItem value="SNS">Seremban</SelectItem>
-                        <SelectItem value="AOR">Alor Setar</SelectItem>
-                        <SelectItem value="BTM">Bertam</SelectItem>
-                        <SelectItem value="BTP">Batu Pahat</SelectItem>
-                        <SelectItem value="JB">Johor Bharu</SelectItem>                        
+                        {branchesList.map((b) => (
+                          <SelectItem key={b.code} value={b.code}>
+                            {b.code} - {toProperCase(b.name)}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>

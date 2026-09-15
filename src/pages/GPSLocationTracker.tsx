@@ -489,13 +489,19 @@ export default function GPSLocationTracker() {
                     <X className="w-3.5 h-3.5" />
                   </button>
                 )}
-            <Select onValueChange={(v) => setBranchFilter(v)}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Branch" />
+            <Select value={branchFilter} onValueChange={(v) => setBranchFilter(v)}>
+              <SelectTrigger className="w-40 sm:w-56">
+                <SelectValue placeholder="Branch">
+                  {branchFilter === "All"
+                    ? "All Branches"
+                    : (BRANCH_NAMES[branchFilter] ? `${branchFilter} - ${toProperCase(BRANCH_NAMES[branchFilter])}` : branchFilter)}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {branches.map((b) => (
-                  <SelectItem key={b} value={b}>{b}</SelectItem>
+                  <SelectItem key={b} value={b}>
+                    {b === "All" ? "All Branches" : (BRANCH_NAMES[b] ? `${b} - ${toProperCase(BRANCH_NAMES[b])}` : b)}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>

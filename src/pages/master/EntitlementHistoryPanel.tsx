@@ -20,6 +20,40 @@ import { Calendar as CalendarWidget } from "@/components/ui/calendar";
 import { CalendarDays } from "lucide-react";
 import { format } from "date-fns";
 
+const BRANCH_NAMES: Record<string, string> = {
+  HQ: "Rayhar HQ",
+  KMM: "Kemaman",
+  TGG: "Kuala Terengganu",
+  CNH: "Cheneh",
+  KBG: "Kuala Berang",
+  DGN: "Dungun",
+  JTH: "Jertih",
+  KBR: "Kota Bharu",
+  RMP: "Rompin",
+  MZM: "Muadzam Shah",
+  SHA: "Shah Alam",
+  BBB: "Bandar Baru Bangi",
+  KUL: "Kuala Lumpur",
+  IPH: "Ipoh",
+  MJG: "Manjung",
+  MLK: "Melaka",
+  KKS: "Kuala Kangsar",
+  TWU: "Tawau",
+  SNS: "Seremban",
+  AOR: "Alor Setar",
+  BTM: "Bertam",
+  BTP: "Batu Pahat",
+  JB: "Johor Bharu",
+  JHB: "Johor Bharu",
+  SEP: "Sepang",
+  KUA: "Kuantan",
+};
+
+function toProperCase(str: string): string {
+  if (!str) return str;
+  return str.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
 // ——— Date range helpers ———
 type DateRange = 'all' | 'today' | 'yesterday' | '7days' | 'thismonth' | 'lastmonth' | 'thisyear' | 'custom';
 
@@ -426,12 +460,28 @@ export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => 
                 <div key={f.label} className="space-y-1">
                   <Label className="text-[10px] font-black uppercase tracking-wider text-foreground">{f.label}</Label>
                   <Select value={f.value} onValueChange={f.set}>
-                    <SelectTrigger className="h-8 text-xs bg-card">
-                      <SelectValue />
+                    <SelectTrigger className="h-8 text-xs bg-card min-w-[140px]">
+                      <SelectValue>
+                        {f.value === 'all'
+                          ? `All ${f.label === 'Branch' ? 'Branches' : f.label === 'Department' ? 'Departments' : f.label + 's'}`
+                          : f.label === 'Branch'
+                          ? (BRANCH_NAMES[f.value] ? `${f.value} - ${toProperCase(BRANCH_NAMES[f.value])}` : f.value)
+                          : f.label === 'Department'
+                          ? toProperCase(f.value)
+                          : f.value}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All {f.label === 'Branch' ? 'Branches' : f.label === 'Department' ? 'Departments' : f.label + 's'}</SelectItem>
-                      {f.options.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+                      {f.options.map(o => (
+                        <SelectItem key={o} value={o}>
+                          {f.label === 'Branch'
+                            ? (BRANCH_NAMES[o] ? `${o} - ${toProperCase(BRANCH_NAMES[o])}` : o)
+                            : f.label === 'Department'
+                            ? toProperCase(o)
+                            : o}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
