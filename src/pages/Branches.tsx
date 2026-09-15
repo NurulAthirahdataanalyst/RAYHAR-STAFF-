@@ -104,6 +104,13 @@ async function smartGeocode(address: string): Promise<{lat: string, lon: string}
   return null;
 }
 
+// Convert any string to Proper Case (title case), e.g. "SEPANG" -> "Sepang"
+function toProperCase(str: string): string {
+  if (!str) return str;
+  return str
+    .toLowerCase()
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
 
 function MapController({ lat, lng }: { lat: number, lng: number }) {
   const { current: map } = useMapLibre();
@@ -614,7 +621,7 @@ export default function Branches() {
               </Button>
               <div className="flex items-center gap-3">
                 <h1 className="text-responsive-xl font-black text-foreground tracking-tight truncate">
-                  {selectedBranch.name}
+                  {toProperCase(selectedBranch.name)}
                 </h1>
                 <Badge
                   variant="outline"
@@ -1003,7 +1010,7 @@ export default function Branches() {
                               Branch
                             </span>
                             <span className="font-black text-foreground">
-                              {selectedBranch?.name || "BRANCH"}
+                              {toProperCase(selectedBranch?.name) || "Branch"}
                             </span>
                           </div>
                           <div className="flex justify-between items-center text-xs">
@@ -1261,7 +1268,7 @@ export default function Branches() {
                       {/* Branch Info */}
                       <div className="flex flex-col items-center px-4 pt-1 pb-4">
                         <h3 className="font-semibold text-slate-800 dark:text-slate-100 text-lg leading-tight text-center">
-                          {branch.name}
+                          {toProperCase(branch.name)}
                         </h3>
                         <div className="flex items-center justify-center gap-1.5 mt-2 px-2 max-w-full">
                           <MapPin className="w-3.5 h-3.5 text-[#942392] shrink-0" />
@@ -1403,8 +1410,8 @@ export default function Branches() {
                                 <div className="min-w-0">
                                   <p className="text-foreground flex items-center gap-2">
                                     <span className="font-black text-slate-900 dark:text-white text-sm tracking-tight">
-                                      {branch.name}
-                                    </span>
+                                    {toProperCase(branch.name)}
+                                  </span>
                                     <Badge
                                       variant="outline"
                                       className="font-mono text-[9px] h-4 px-1.5 bg-muted/20 border-border/50"
