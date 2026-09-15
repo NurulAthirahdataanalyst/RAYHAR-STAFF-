@@ -319,19 +319,21 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                       <p className="text-[9px] text-purple-300 font-medium truncate opacity-60">{user?.email}</p>
                     </div>
                   </DropdownMenuLabel>
-                  <DropdownMenuItem onClick={() => navigate("/profile")} className="rounded-xl px-3 py-2.5 focus:bg-white/10 focus:text-white cursor-pointer transition-colors text-white/90">
-                    <User className="mr-2 h-4 w-4" />
-                    <span>My Profile</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/notifications")} className="rounded-xl px-3 py-2.5 focus:bg-white/10 focus:text-white cursor-pointer transition-colors text-white/90">
-                    <Bell className="mr-2 h-4 w-4" />
-                    <span>Notifications</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator className="bg-white/5" />
-                  <DropdownMenuItem onClick={() => signOut()} className="rounded-xl px-3 py-2.5 focus:bg-red-500/20 focus:text-red-400 cursor-pointer text-red-400 font-bold transition-colors">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Sign Out</span>
-                  </DropdownMenuItem>
+                  <div className="profile-menu-nav pt-1.5 pb-0.5">
+                    <DropdownMenuItem onClick={() => navigate("/profile")} className="profile-nav-item rounded-xl pl-4 pr-3 py-2.5 cursor-pointer text-white/90">
+                      <User className="mr-2.5 h-4 w-4 shrink-0 text-white/80" />
+                      <span>My Profile</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/notifications")} className="profile-nav-item rounded-xl pl-4 pr-3 py-2.5 cursor-pointer text-white/90">
+                      <Bell className="mr-2.5 h-4 w-4 shrink-0 text-white/80" />
+                      <span>Notifications</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator className="bg-white/5 my-1" />
+                    <DropdownMenuItem onClick={() => signOut()} className="profile-nav-item rounded-xl pl-4 pr-3 py-2.5 cursor-pointer text-red-400 font-bold">
+                      <LogOut className="mr-2.5 h-4 w-4 shrink-0 text-red-400" />
+                      <span>Sign Out</span>
+                    </DropdownMenuItem>
+                  </div>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -389,20 +391,21 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     <p className="text-[9px] text-purple-300 font-medium truncate opacity-60">{user?.email}</p>
                   </div>
                 </DropdownMenuLabel>
-                <DropdownMenuSeparator className="bg-white/5" />
-                <DropdownMenuItem onClick={() => navigate("/profile")} className="rounded-xl px-3 py-2.5 focus:bg-white/10 focus:text-white cursor-pointer text-white/90">
-                  <User className="mr-2 h-4 w-4" />
-                  <span>My Profile</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/notifications")} className="rounded-xl px-3 py-2.5 focus:bg-white/10 focus:text-white cursor-pointer text-white/90">
-                  <Bell className="mr-2 h-4 w-4" />
-                  <span>Notifications</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator className="bg-white/5" />
-                <DropdownMenuItem onClick={() => signOut()} className="rounded-xl px-3 py-2.5 focus:bg-red-500/20 focus:text-red-400 cursor-pointer text-red-400 font-bold">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Sign Out</span>
-                </DropdownMenuItem>
+                <div className="profile-menu-nav pt-1.5 pb-0.5">
+                  <DropdownMenuItem onClick={() => navigate("/profile")} className="profile-nav-item rounded-xl pl-4 pr-3 py-2.5 cursor-pointer text-white/90">
+                    <User className="mr-2.5 h-4 w-4 shrink-0 text-white/80" />
+                    <span>My Profile</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/notifications")} className="profile-nav-item rounded-xl pl-4 pr-3 py-2.5 cursor-pointer text-white/90">
+                    <Bell className="mr-2.5 h-4 w-4 shrink-0 text-white/80" />
+                    <span>Notifications</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="bg-white/5 my-1" />
+                  <DropdownMenuItem onClick={() => signOut()} className="profile-nav-item rounded-xl pl-4 pr-3 py-2.5 cursor-pointer text-red-400 font-bold">
+                    <LogOut className="mr-2.5 h-4 w-4 shrink-0 text-red-400" />
+                    <span>Sign Out</span>
+                  </DropdownMenuItem>
+                </div>
               </DropdownMenuContent>
             </DropdownMenu>
             </div>

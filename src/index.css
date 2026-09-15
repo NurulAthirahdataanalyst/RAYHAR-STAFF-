@@ -781,4 +781,79 @@ input[type=range]::-moz-range-thumb {
 .recharts-tooltip-cursor {
   fill: rgba(148, 163, 184, 0.1) !important;
   stroke: rgba(148, 163, 184, 0.25) !important;
+}
+
+/* ════════════════════════════════════════════════════════════════════ */
+/* 5. PROFILE AVATAR MENU - GITHUB-INSPIRED MODERN INTERACTION STYLES   */
+/* ════════════════════════════════════════════════════════════════════ */
+.profile-menu-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Non-hovered items gently scale down to 95% and apply light blur (1px) */
+.profile-menu-nav:hover > .profile-nav-item:not(:hover) {
+  transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1),
+              filter 300ms cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  filter: blur(1px);
+  transform: scale(0.95, 0.95);
+  opacity: 0.75;
+}
+
+.profile-nav-item {
+  position: relative;
+  transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1),
+              background-color 300ms cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1),
+              filter 300ms cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center center;
+  cursor: pointer;
+  outline: none !important;
+}
+
+/* Active menu item softly lifts with subtle dark background transition (300ms ease) */
+.profile-nav-item:hover {
+  transform: translateY(-1.5px) scale(1.01);
+  background-color: #21262C !important;
+  box-shadow: 0 4px 14px -2px rgba(0, 0, 0, 0.4);
+  filter: none !important;
+  opacity: 1 !important;
+  z-index: 10;
+}
+
+/* When selected / active / focused: darker active background */
+.profile-nav-item:focus,
+.profile-nav-item:active,
+.profile-nav-item[data-highlighted] {
+  background-color: #1A1F24 !important;
+  outline: none !important;
+}
+
+/* Thin blue vertical accent bar */
+.profile-nav-item::before {
+  content: "";
+  position: absolute;
+  top: 15%;
+  left: 4px;
+  width: 3.5px;
+  height: 70%;
+  background-color: #2F81F7;
+  border-radius: 4px;
+  opacity: 0;
+  transform: scaleY(0.3);
+  transition: opacity 250ms cubic-bezier(0.4, 0, 0.2, 1),
+              transform 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+
+/* Blue vertical bar smoothly fades in from the left when focused/active/highlighted/hovered */
+.profile-nav-item:focus::before,
+.profile-nav-item:active::before,
+.profile-nav-item[data-highlighted]::before,
+.profile-nav-item:hover::before {
+  opacity: 1;
+  transform: scaleY(1);
 }
