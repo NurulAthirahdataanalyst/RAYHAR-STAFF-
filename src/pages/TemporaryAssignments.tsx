@@ -32,6 +32,12 @@ interface TemporaryAssignment {
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "https://attendance-system-gamma-jade.vercel.app";
 
+// Convert any string to Proper Case (title case), e.g. "SEPANG" -> "Sepang"
+function toProperCase(str: string): string {
+  if (!str) return str;
+  return str.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
 const TemporaryAssignments = () => {
   const { role, userBranch, userDepartment } = useRole();
   const isHRAdmin = role === "hr_admin";
@@ -507,7 +513,7 @@ const TemporaryAssignments = () => {
                 </SelectTrigger>
                 <SelectContent className="max-h-[200px]">
                   {branches.map(b => (
-                    <SelectItem key={b.code} value={b.code}>{b.code} - {b.name}</SelectItem>
+                    <SelectItem key={b.code} value={b.code}>{b.code} - {toProperCase(b.name)}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

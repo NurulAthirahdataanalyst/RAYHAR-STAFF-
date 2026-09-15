@@ -16,6 +16,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import PageActions from "@/components/layout/PageActions";
 
+// Convert any string to Proper Case (title case), e.g. "SEPANG" -> "Sepang"
+function toProperCase(str: string): string {
+  if (!str) return str;
+  return str.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
 interface Employee {
   user_id: string;
   full_name: string;
@@ -604,7 +610,7 @@ export default function MasterOverview() {
                 </SelectTrigger>
                 <SelectContent>
                   {branches.map(b => (
-                    <SelectItem key={b.code} value={b.code}>{b.code} - {b.name}</SelectItem>
+                    <SelectItem key={b.code} value={b.code}>{b.code} - {toProperCase(b.name)}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

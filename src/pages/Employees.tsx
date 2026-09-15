@@ -1581,7 +1581,7 @@ export default function Employees() {
                 <SelectContent>
                   {(Array.isArray(branchesList) ? branchesList : []).map((b) => (
                     <SelectItem key={b.code} value={b.code}>
-                      {b.name}
+                      {toProperCase(b.name)}
                     </SelectItem>
                   ))}
                   {branchesList.length === 0 && (
@@ -1603,7 +1603,7 @@ export default function Employees() {
                       const dName = d.name || d.department_name || d;
                       return (
                         <SelectItem key={dName} value={dName}>
-                          {dName}
+                          {toProperCase(dName)}
                         </SelectItem>
                       );
                     })}
