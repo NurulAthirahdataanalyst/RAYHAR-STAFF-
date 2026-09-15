@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRole } from "@/contexts/RoleContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,10 +6,12 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { User, Mail, Building2, ShieldCheck, Calendar, MapPin, Lock, Loader2, ArrowLeft } from "lucide-react";
+import { User, Mail, Building2, ShieldCheck, Calendar, MapPin, Lock, Loader2, ArrowLeft, Plus, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { API_BASE_URL } from "@/config/api";
 import { supabase } from "@/integrations/supabase/client";
+import { UserAvatar, getSavedAvatar } from "@/utils/avatarUtils";
+import { AvatarPickerModal } from "@/components/profile/AvatarPickerModal";
 
 const getFullBranchName = (code: string) => {
   const branchNames: Record<string, string> = {
@@ -55,6 +57,18 @@ const Profile = () => {
   const [showResetBox, setShowResetBox] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
   const [resetLoading, setResetLoading] = useState(false);
+
+  const [avatarModalOpen, setAvatarModalOpen] = useState(false);
+  const [avatarId, setAvatarId] = useState<string>(() => getSavedAvatar(userId || user?.id));
+
+  useEffect(() => {
+    const handleAvatarUpdate = (e: any) => {
+      if (e?.detail) setAvatarId(e.detail);
+      else setAvatarId(getSavedAvatar(userId || user?.id));
+    };
+    window.addEventListener("avatarChanged", handleAvatarUpdate);
+    return () => window.removeEventListener("avatarChanged", handleAvatarUpdate);
+  }, [userId, user?.id]);
 
   const handlePasswordReset = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -136,35 +150,100 @@ const Profile = () => {
       <div className="flex flex-col lg:flex-row gap-3 sm:gap-4 lg:gap-6 items-start">
         {/* Left Column (Profile Info & Security Card) */}
         <div className="w-full lg:w-1/3 flex flex-col gap-3 sm:gap-4">
-          {/* Profile Info Card */}
-          <Card className="border-none shadow-[0_20px_50px_rgba(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.2)] bg-card/80 backdrop-blur-md rounded-[24px] sm:rounded-[32px] overflow-hidden">
-            <CardHeader className="text-center pt-8 sm:pt-10 pb-4 sm:pb-6">
-              <div className="mx-auto w-20 h-20 sm:w-28 sm:h-28 rounded-[20px] sm:rounded-[32px] bg-gradient-to-br from-primary to-[#a855f7] flex items-center justify-center text-white text-3xl sm:text-5xl font-black shadow-2xl mb-4 sm:mb-6 border-4 border-white/50 dark:border-slate-800/50">
-                {(userName || "U")[0].toUpperCase()}
+          {/* Profile Info Card - Modern Sky Banner with Overlapping Avatar & Rainbow Ring (like Screenshot 1) */}
+          <Card className="border-none shadow-[0_20px_50px_rgba(0,0,0,0.06)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] bg-card/90 backdrop-blur-md rounded-[32px] overflow-hidden transition-all">
+            {/* 1. Sky Banner with soft clouds and '+' button */}
+            <div className="relative h-36 sm:h-40 w-full overflow-hidden bg-gradient-to-b from-[#8fc1e8] via-[#b6d6ee] to-[#e4eff8] dark:from-slate-800 dark:via-slate-900 dark:to-slate-950">
+              {/* Soft decorative cloud elements */}
+              <div className="absolute inset-0 pointer-events-none opacity-50">
+                <div className="absolute -left-6 bottom-0 w-36 h-20 bg-white rounded-full blur-xs" />
+                <div className="absolute left-14 bottom-4 w-44 h-24 bg-white/90 rounded-full blur-sm" />
+                <div className="absolute right-2 bottom-0 w-44 h-22 bg-white rounded-full blur-xs" />
+                <div className="absolute right-16 top-2 w-32 h-16 bg-white/70 rounded-full blur-sm" />
               </div>
-              <CardTitle className="text-xl sm:text-2xl font-black text-foreground tracking-tight">
+
+              {/* Circular plus (+) button in top right of banner */}
+              <button
+                type="button"
+                onClick={() => setAvatarModalOpen(true)}
+                className="absolute top-3.5 right-3.5 w-9 h-9 rounded-full bg-white/90 dark:bg-slate-800/90 text-slate-800 dark:text-slate-100 shadow-md backdrop-blur-sm flex items-center justify-center hover:scale-110 active:scale-95 transition-all cursor-pointer border border-white/50 dark:border-slate-700 hover:bg-white z-10 group"
+                title="Change Avatar"
+              >
+                <Plus className="w-5 h-5 stroke-[2.5] group-hover:rotate-90 transition-transform duration-300" />
+              </button>
+            </div>
+
+            {/* 2. Overlapping Avatar with Rainbow Ring */}
+            <div className="relative -mt-14 sm:-mt-16 flex justify-center mb-2.5">
+              <button
+                type="button"
+                onClick={() => setAvatarModalOpen(true)}
+                className="relative group cursor-pointer outline-none"
+                title="Click to change profile avatar"
+              >
+                {/* Rainbow Gradient Ring (like Instagram/Story border in Screenshot 1) */}
+                <div className="p-[3.5px] rounded-full bg-gradient-to-tr from-[#ec4899] via-[#a855f7] via-[#3b82f6] via-[#10b981] to-[#eab308] shadow-2xl group-hover:scale-105 transition-transform duration-300">
+                  <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-card p-1 overflow-hidden flex items-center justify-center border-2 border-white dark:border-slate-900">
+                    <UserAvatar avatarId={avatarId} name={userName} className="w-full h-full" />
+                  </div>
+                </div>
+
+                {/* Edit badge */}
+                <div className="absolute bottom-1 right-1 w-7 h-7 rounded-full bg-[#942392] text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform border-2 border-white dark:border-slate-900">
+                  <Sparkles className="w-3.5 h-3.5" />
+                </div>
+              </button>
+            </div>
+
+            {/* 3. User Details */}
+            <div className="text-center px-4 space-y-1">
+              <h2 className="text-xl sm:text-2xl font-black text-foreground tracking-tight">
                 {userName || "User"}
-              </CardTitle>
-              <div className="flex items-center justify-center gap-2 mt-2">
-                <Badge variant="secondary" className="text-[10px] uppercase font-black px-3 py-1 bg-primary/10 dark:bg-primary/20 text-primary dark:text-purple-400 border-none">
+              </h2>
+              <div className="flex items-center justify-center gap-2 pt-0.5">
+                <Badge variant="secondary" className="text-[10px] uppercase font-black px-3 py-1 bg-[#942392]/10 text-[#942392] dark:bg-[#942392]/20 dark:text-purple-300 border-none">
                   {resolvedRole?.replace(/_/g, ' ') || "Employee"}
                 </Badge>
               </div>
-            </CardHeader>
-            <CardContent className="space-y-4 pb-6 sm:pb-8">
-              <div className="pt-4 sm:pt-6 border-t border-border/50">
-                <div className="grid grid-cols-2 gap-3 sm:gap-4 text-center">
-                  <div className="p-3 sm:p-4 rounded-2xl bg-muted/30">
-                    <p className="text-[10px] font-black uppercase text-slate-950 dark:text-slate-50 mb-1">Branch</p>
-                    <p className="text-xs sm:text-sm font-black text-foreground break-words">{getFullBranchName(userBranch || "HQ")}</p>
+              <p className="text-xs text-muted-foreground font-medium pt-0.5">
+                {userDepartment ? `${userDepartment} · ` : ""}{getFullBranchName(userBranch || "HQ")}
+              </p>
+            </div>
+
+            {/* 4. Stats Summary Pill Box (matching Screenshot 1) */}
+            <div className="mt-4 mx-4 p-3.5 rounded-2xl bg-muted/40 dark:bg-muted/20 border border-border/50">
+              <div className="grid grid-cols-3 divide-x divide-border/60 text-center">
+                <div className="px-1.5">
+                  <p className="text-xs sm:text-sm font-black text-foreground truncate">{userBranch || "HQ"}</p>
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mt-0.5">Branch</p>
+                </div>
+                <div className="px-1.5">
+                  <p className="text-xs sm:text-sm font-black text-foreground truncate">{userId || "E001"}</p>
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mt-0.5">User ID</p>
+                </div>
+                <div className="px-1.5">
+                  <div className="flex items-center justify-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <p className="text-xs sm:text-sm font-black text-emerald-600 dark:text-emerald-400">Active</p>
                   </div>
-                  <div className="p-3 sm:p-4 rounded-2xl bg-muted/30">
-                    <p className="text-[10px] font-black uppercase text-slate-950 dark:text-slate-50 mb-1">Status</p>
-                    <Badge className="bg-emerald-500 text-white font-black text-[9px] h-5">Active</Badge>
-                  </div>
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mt-0.5">Status</p>
                 </div>
               </div>
-            </CardContent>
+            </div>
+
+            {/* 5. Change Avatar Button */}
+            <div className="mt-3.5 px-4 pb-5">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setAvatarModalOpen(true)}
+                className="w-full rounded-xl text-xs font-bold border-[#942392]/30 text-[#942392] hover:bg-[#942392]/10 dark:text-purple-300 dark:border-purple-500/30 transition-colors h-9 cursor-pointer"
+              >
+                <Sparkles className="w-3.5 h-3.5 mr-2 text-[#942392] dark:text-purple-300" />
+                Change Profile Avatar
+              </Button>
+            </div>
           </Card>
 
           {/* Security & Password Reset Card */}
@@ -261,6 +340,16 @@ const Profile = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Avatar Selection Modal */}
+      <AvatarPickerModal
+        open={avatarModalOpen}
+        onOpenChange={setAvatarModalOpen}
+        currentAvatarId={avatarId}
+        userName={userName || "User"}
+        userId={userId || user?.id}
+        onAvatarSaved={(newId) => setAvatarId(newId)}
+      />
     </div>
   );
 };

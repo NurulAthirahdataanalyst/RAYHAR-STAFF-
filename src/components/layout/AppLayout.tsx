@@ -23,6 +23,7 @@ import { getBreadcrumbs } from "@/utils/breadcrumbs";
 import PageHeader from "./PageHeader";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { UserAvatar, getSavedAvatar } from "@/utils/avatarUtils";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, signOut } = useAuth();
@@ -35,6 +36,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   const displayName = userName || user?.full_name || user?.name || "Employee";
   const displayAvatar = (displayName || "E")[0].toUpperCase();
+
+  const [avatarId, setAvatarId] = useState<string>(() => getSavedAvatar(user?.id || user?.user_id));
+
+  useEffect(() => {
+    const handleAvatarUpdate = (e: any) => {
+      if (e?.detail) setAvatarId(e.detail);
+      else setAvatarId(getSavedAvatar(user?.id || user?.user_id));
+    };
+    window.addEventListener("avatarChanged", handleAvatarUpdate);
+    return () => window.removeEventListener("avatarChanged", handleAvatarUpdate);
+  }, [user?.id, user?.user_id]);
 
   const [pendingApprovals, setPendingApprovals] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -306,8 +318,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                         {formattedRole}
                       </p>
                     </div>
-                    <div className="h-9 w-9 rounded-xl bg-card text-[#942392] flex items-center justify-center font-black text-xs shadow-lg shadow-purple-950/40 group-hover:scale-105 transition-transform border border-white/20">
-                      {displayAvatar}
+                    <div className="h-9 w-9 rounded-xl bg-card text-[#942392] flex items-center justify-center font-black text-xs shadow-lg shadow-purple-950/40 group-hover:scale-105 transition-transform border border-white/20 overflow-hidden p-0.5">
+                      <UserAvatar avatarId={avatarId} name={displayName} className="w-full h-full" />
                     </div>
                   </div>
                 </DropdownMenuTrigger>
@@ -379,8 +391,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <NotificationBell />
               <DropdownMenu>
                 <DropdownMenuTrigger className="outline-none">
-                <div className="h-8 w-8 rounded-lg bg-card text-[#942392] flex items-center justify-center font-black text-xs shadow-md hover:scale-105 active:scale-95 transition-transform border border-white/20">
-                  {displayAvatar}
+                <div className="h-8 w-8 rounded-lg bg-card text-[#942392] flex items-center justify-center font-black text-xs shadow-md hover:scale-105 active:scale-95 transition-transform border border-white/20 overflow-hidden p-0.5">
+                  <UserAvatar avatarId={avatarId} name={displayName} className="w-full h-full" />
                 </div>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 mt-3 rounded-2xl p-2 border border-white/10 bg-slate-950/95 backdrop-blur-xl shadow-2xl text-white">
