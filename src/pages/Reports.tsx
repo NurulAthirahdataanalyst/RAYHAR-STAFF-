@@ -887,9 +887,9 @@ export default function Reports() {
                                 </SelectTrigger>
                                 <SelectContent className="rounded-xl">
                                   <SelectItem value="all" className="text-[10px] font-black uppercase tracking-widest">All Departments</SelectItem>
-                                  {departments.map(d => (
-                                    <SelectItem key={d} value={d} className="text-[10px] font-black uppercase tracking-widest">{d}</SelectItem>
-                                  ))}
+                                   {departments.map(d => (
+                                     <SelectItem key={d} value={d} className="text-[10px] font-black uppercase tracking-widest">{d ? d.toLowerCase().replace(/\b\w/g, (c: string) => c.toUpperCase()) : d}</SelectItem>
+                                   ))}
                                 </SelectContent>
                               </Select>
                             </div>

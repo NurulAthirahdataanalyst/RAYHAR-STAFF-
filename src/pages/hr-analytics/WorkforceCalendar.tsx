@@ -12,6 +12,12 @@ import {
 } from "lucide-react";
 import { API_BASE_URL } from "@/config/api";
 
+// Convert any string to Proper Case (title case), e.g. "SEPANG" -> "Sepang"
+function toProperCase(str: string): string {
+  if (!str) return str;
+  return str.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
 // ── Color Config ──────────────────────────────────────────────────────────────
 const EVENT_COLORS: Record<string, { bg: string; text: string; border: string; dot: string; label: string }> = {
   "Present (On Time)":   { bg: "bg-emerald-100 dark:bg-emerald-500/20", text: "text-emerald-700 dark:text-emerald-300", border: "border-emerald-200 dark:border-emerald-500/30", dot: "bg-emerald-500", label: "Present" },
@@ -141,9 +147,24 @@ export default function WorkforceCalendar() {
       if (data.success && isMounted.current) {
         setEvents(data.events || []);
         setLastRefresh(new Date());
-        // Derive unique branches and departments for filters
-        const uniqueBranches = Array.from(new Set(data.events.map((e: WorkforceEvent) => e.branch).filter(Boolean))) as string[];
-        const uniqueDepts = Array.from(new Set(data.events.map((e: WorkforceEvent) => e.department).filter(Boolean))) as string[];
+        // Derive unique branches and departments for filters (merging with system master branches/departments)
+        let bCodes: string[] = [];
+        let dNames: string[] = [];
+        try {
+          const [sysBranches, sysDepts] = await Promise.all([
+            fetch(`${API_BASE_URL}/api/branches`).then(r => r.json()).catch(() => ({})),
+            fetch(`${API_BASE_URL}/api/departments`).then(r => r.json()).catch(() => ({}))
+          ]);
+          if (sysBranches?.success && Array.isArray(sysBranches.branches)) {
+            bCodes = sysBranches.branches.map((b: any) => b.code);
+          }
+          if (sysDepts?.success && Array.isArray(sysDepts.departments)) {
+            dNames = sysDepts.departments.map((d: any) => d.name);
+          }
+        } catch {}
+
+        const uniqueBranches = Array.from(new Set([...bCodes, ...data.events.map((e: WorkforceEvent) => e.branch).filter(Boolean)])) as string[];
+        const uniqueDepts = Array.from(new Set([...dNames, ...data.events.map((e: WorkforceEvent) => e.department).filter(Boolean)])) as string[];
         setBranches(uniqueBranches.sort());
         setDepartments(uniqueDepts.sort());
       }
@@ -336,7 +357,7 @@ export default function WorkforceCalendar() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="__ALL__" className="text-xs">All Branches</SelectItem>
-                    {branches.map(b => <SelectItem key={b} value={b} className="text-xs">{b}</SelectItem>)}
+                    {branches.map(b => <SelectItem key={b} value={b} className="text-xs">{toProperCase(b)}</SelectItem>)}
                   </SelectContent>
                 </Select>
                 <Select value={filterDept} onValueChange={setFilterDept}>
@@ -345,7 +366,7 @@ export default function WorkforceCalendar() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="__ALL__" className="text-xs">All Departments</SelectItem>
-                    {departments.map(d => <SelectItem key={d} value={d} className="text-xs">{d}</SelectItem>)}
+                    {departments.map(d => <SelectItem key={d} value={d} className="text-xs">{toProperCase(d)}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </>

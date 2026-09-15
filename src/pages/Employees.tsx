@@ -68,7 +68,14 @@ const BRANCH_NAMES: Record<string, string> = {
   BTM: "Bertam",
   BTP: "Batu Pahat",
   JB: "Johor Bharu",
+  SEP: "Sepang",
 };
+
+// Convert any string to Proper Case (title case), e.g. "SEPANG" -> "Sepang"
+function toProperCase(str: string): string {
+  if (!str) return str;
+  return str.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
+}
 
 function getDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
   const R = 6371e3;
@@ -95,6 +102,7 @@ export default function Employees() {
   const [empSearchText, setEmpSearchText] = useState("");
   const [checkedEmployees, setCheckedEmployees] = useState<string[]>([]);
   const [selectedBranch, setSelectedBranch] = useState("All");
+  const [selectedDepartment, setSelectedDepartment] = useState("All");
   const [selectedPosition, setSelectedPosition] = useState("All");
   const [selectedStatus, setSelectedStatus] = useState("Active");
   const [currentPage, setCurrentPage] = useState(1);
@@ -426,12 +434,24 @@ export default function Employees() {
   }, [viewLeaveStatus, selectedEmployee]);
 
   const uniqueBranches = Array.from(
-    new Set((Array.isArray(dbEmployees) ? dbEmployees : []).map((emp) => emp.branch).filter(Boolean))
+    new Set([
+      ...branchesList.map((b: any) => b.code),
+      ...(Array.isArray(dbEmployees) ? dbEmployees : []).map((emp) => emp.branch)
+    ].filter(Boolean))
   ).sort((a, b) => {
     if (a === "Rayhar HQ" || a === "HQ") return -1;
     if (b === "Rayhar HQ" || b === "HQ") return 1;
-    return (a as string).localeCompare(b as string);
+    const nameA = branchMap[a] || a;
+    const nameB = branchMap[b] || b;
+    return nameA.localeCompare(nameB);
   }) as string[];
+
+  const uniqueDepartments = Array.from(
+    new Set([
+      ...departmentsList.map((d: any) => d.name || d),
+      ...(Array.isArray(dbEmployees) ? dbEmployees : []).map((emp) => emp.department)
+    ].filter(Boolean))
+  ).sort((a, b) => (a as string).localeCompare(b as string)) as string[];
 
   const uniquePositions = Array.from(
     new Set((Array.isArray(dbEmployees) ? dbEmployees : []).map((emp) => emp.position).filter(Boolean))
@@ -442,9 +462,10 @@ export default function Employees() {
         ? checkedEmployees.includes(e.id?.toString() || e.user_id || e.name)
         : (!search || e.name.toLowerCase().includes(search.toLowerCase()) || e.position.toLowerCase().includes(search.toLowerCase()));
     const matchesBranch = selectedBranch === "All" || e.branch === selectedBranch;
+    const matchesDepartment = selectedDepartment === "All" || e.department === selectedDepartment;
     const matchesPosition = selectedPosition === "All" || e.position === selectedPosition;
     const matchesStatus = selectedStatus === "All" || e.status === selectedStatus;
-    return matchesSearch && matchesBranch && matchesPosition && matchesStatus;
+    return matchesSearch && matchesBranch && matchesDepartment && matchesPosition && matchesStatus;
   });
 
   // Sort priority for roles: Head of Department at position 4, Branch Leader at position 5
@@ -513,7 +534,7 @@ export default function Employees() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [search, selectedBranch, selectedPosition, selectedStatus]);
+  }, [search, selectedBranch, selectedDepartment, selectedPosition, selectedStatus]);
 
   const indexOfLastItem = currentPage * entriesPerPage;
   const indexOfFirstItem = indexOfLastItem - entriesPerPage;
@@ -797,7 +818,23 @@ export default function Employees() {
                 <SelectItem value="All" className="text-xs font-bold">All Branches</SelectItem>
                 {(Array.isArray(uniqueBranches) ? uniqueBranches : []).map((br) => (
                   <SelectItem key={br} value={br} className="text-xs font-bold">
-                    {branchMap[br] || br}
+                    {toProperCase(branchMap[br] || br)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+
+          {(["hr_admin", "managing_director", "operation_manager", "finance_manager"].includes(role) || uniqueDepartments.length > 1) && (
+            <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
+              <SelectTrigger className="w-full sm:w-[180px] h-11 sm:h-10 border-border/60 bg-background/50 focus:ring-[#942392]/20 font-bold text-xs rounded-xl">
+                <SelectValue placeholder="All Departments" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl">
+                <SelectItem value="All" className="text-xs font-bold">All Departments</SelectItem>
+                {(Array.isArray(uniqueDepartments) ? uniqueDepartments : []).map((dept) => (
+                  <SelectItem key={dept} value={dept} className="text-xs font-bold">
+                    {toProperCase(dept)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -838,6 +875,7 @@ export default function Employees() {
               setEmpSearchText("");
               setCheckedEmployees([]);
               setSelectedBranch("All");
+              setSelectedDepartment("All");
               setSelectedPosition("All");
               setSelectedStatus("All");
             }}

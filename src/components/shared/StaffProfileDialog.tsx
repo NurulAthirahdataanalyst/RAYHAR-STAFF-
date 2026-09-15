@@ -63,8 +63,14 @@ const BRANCH_NAMES: Record<string, string> = {
   BTM: "Bertam",
   BTP: "Batu Pahat",
   JB: "Johor Bharu",
+  SEP: "Sepang",
 };
 
+// Convert any string to Proper Case (title case), e.g. "SEPANG" -> "Sepang"
+function toProperCase(str: string): string {
+  if (!str) return str;
+  return str.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
+}
 
 // Haversine formula
 function getDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
@@ -196,6 +202,7 @@ export function StaffProfileDialog({
 
   useEffect(() => {
     if (selectedEmployee && isModalOpen) {
+      fetchBranchesAndDepartments();
       fetchAnalytics(selectedEmployee.user_id, selectedYear);
       fetchTodayStats(selectedEmployee.user_id);
       fetchAttendanceSettings(selectedEmployee.user_id);
@@ -1126,7 +1133,7 @@ export function StaffProfileDialog({
                           <CardContent className="p-4 space-y-4">
                             <h3 className="font-bold text-lg border-b pb-2">Primary Branch</h3>
                             <div className="bg-slate-100 dark:bg-slate-800 p-3 rounded text-sm font-semibold">
-                              {selectedEmployee.branch} - {BRANCH_NAMES[selectedEmployee.branch as keyof typeof BRANCH_NAMES] || "Unknown"}
+                              {selectedEmployee.branch} - {toProperCase(branchMap[selectedEmployee.branch] || BRANCH_NAMES[selectedEmployee.branch as keyof typeof BRANCH_NAMES] || selectedEmployee.branch || "Unknown")}
                             </div>
                           </CardContent>
                         </Card>
@@ -1143,8 +1150,13 @@ export function StaffProfileDialog({
                                     <SelectValue placeholder="Select Branch" />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    {Object.entries(BRANCH_NAMES).map(([code, name]) => (
-                                      <SelectItem key={code} value={code}>{code} - {name}</SelectItem>
+                                    {(branchesList.length > 0
+                                      ? branchesList
+                                      : Object.entries(branchMap).map(([code, name]) => ({ code, name }))
+                                    ).map((b: any) => (
+                                      <SelectItem key={b.code} value={b.code}>
+                                        {b.code} - {toProperCase(b.name || branchMap[b.code] || b.code)}
+                                      </SelectItem>
                                     ))}
                                   </SelectContent>
                                 </Select>
@@ -1190,21 +1202,28 @@ export function StaffProfileDialog({
                               </div>
                               <div className="text-xs text-foreground mb-2">Select the branches this employee is permitted to clock into.</div>
                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[300px] overflow-y-auto pr-2">
-                                {Object.entries(BRANCH_NAMES).map(([code, name]) => (
-                                  <div key={code} className="flex items-center space-x-2 border p-2 rounded hover:bg-slate-50 dark:hover:bg-slate-800">
-                                    <Checkbox 
-                                      id={`branch-${code}`} 
-                                      checked={allowedLocations.includes(code)}
-                                      onCheckedChange={(checked) => {
-                                        if (checked) setAllowedLocations([...allowedLocations, code]);
-                                        else setAllowedLocations(allowedLocations.filter(c => c !== code));
-                                      }}
-                                    />
-                                    <Label htmlFor={`branch-${code}`} className="text-sm cursor-pointer flex-1">
-                                      {code} - {name}
-                                    </Label>
-                                  </div>
-                                ))}
+                                {(branchesList.length > 0
+                                  ? branchesList
+                                  : Object.entries(branchMap).map(([code, name]) => ({ code, name }))
+                                ).map((b: any) => {
+                                  const code = b.code;
+                                  const name = toProperCase(b.name || branchMap[code] || code);
+                                  return (
+                                    <div key={code} className="flex items-center space-x-2 border p-2 rounded hover:bg-slate-50 dark:hover:bg-slate-800">
+                                      <Checkbox 
+                                        id={`branch-${code}`} 
+                                        checked={allowedLocations.includes(code)}
+                                        onCheckedChange={(checked) => {
+                                          if (checked) setAllowedLocations([...allowedLocations, code]);
+                                          else setAllowedLocations(allowedLocations.filter(c => c !== code));
+                                        }}
+                                      />
+                                      <Label htmlFor={`branch-${code}`} className="text-sm cursor-pointer flex-1">
+                                        {code} - {name}
+                                      </Label>
+                                    </div>
+                                  );
+                                })}
                               </div>
                               <Button className="w-full mt-4 bg-[#a01497] hover:bg-[#850f7c] text-white" onClick={saveAllowedLocations}>Save Allowed Branches</Button>
                             </CardContent>
@@ -1243,7 +1262,7 @@ export function StaffProfileDialog({
                                   {(Array.isArray(tempAssignmentsHistory) ? tempAssignmentsHistory : []).map((ta, idx) => (
                                     <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/50">
                                       <td className="px-4 py-3 font-bold text-slate-800 dark:text-slate-200">{ta.location}</td>
-                                      <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{BRANCH_NAMES[ta.location as keyof typeof BRANCH_NAMES] || ta.location}</td>
+                                      <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{toProperCase(branchMap[ta.location] || BRANCH_NAMES[ta.location as keyof typeof BRANCH_NAMES] || ta.location)}</td>
                                       <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{ta.start_date ? new Date(ta.start_date).toLocaleDateString('en-GB') : '-'}</td>
                                       <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{ta.end_date ? new Date(ta.end_date).toLocaleDateString('en-GB') : '-'}</td>
                                       <td className="px-4 py-3">
@@ -1284,7 +1303,7 @@ export function StaffProfileDialog({
                               <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
                                 <tr className="hover:bg-slate-50/50 dark:hover:bg-slate-900/50">
                                   <td className="px-4 py-3 font-bold text-slate-800 dark:text-slate-200 whitespace-nowrap uppercase">Permanent Branch</td>
-                                  <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{selectedEmployee?.branch ? (BRANCH_NAMES[selectedEmployee.branch as keyof typeof BRANCH_NAMES] || selectedEmployee.branch) : '-'}</td>
+                                  <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{selectedEmployee?.branch ? toProperCase(branchMap[selectedEmployee.branch] || BRANCH_NAMES[selectedEmployee.branch as keyof typeof BRANCH_NAMES] || selectedEmployee.branch) : '-'}</td>
                                   <td className="px-4 py-3 font-bold text-slate-800 dark:text-slate-200">{selectedEmployee?.branch || '-'}</td>
                                   <td className="px-4 py-3">
                                     <span className="px-2 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400">
@@ -1295,7 +1314,7 @@ export function StaffProfileDialog({
                                 {(Array.isArray(allowedLocations) ? allowedLocations : []).filter(c => c !== selectedEmployee?.branch).map((loc, idx) => (
                                   <tr key={loc} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/50">
                                     <td className="px-4 py-3 font-bold text-slate-800 dark:text-slate-200 whitespace-nowrap uppercase">Branch {idx + 2}</td>
-                                    <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{BRANCH_NAMES[loc as keyof typeof BRANCH_NAMES] || loc}</td>
+                                    <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{toProperCase(branchMap[loc] || BRANCH_NAMES[loc as keyof typeof BRANCH_NAMES] || loc)}</td>
                                     <td className="px-4 py-3 font-bold text-slate-800 dark:text-slate-200">{loc}</td>
                                     <td className="px-4 py-3">
                                       <span className="px-2 py-1 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400">

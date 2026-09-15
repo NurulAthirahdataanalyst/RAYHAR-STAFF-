@@ -173,6 +173,7 @@ export default function AttendanceDashboard() {
     "KKS": "KKS - Kuala Kangsar", "MJG": "MJG - Manjung", "MLK": "MLK - Melaka",
     "SNS": "SNS - Seremban", "JHB": "JHB - Johor Bahru", "BPT": "BPT - Batu Pahat",
     "BBB": "BBB - Bandar Baru Bangi", "SHA": "SHA - Shah Alam", "KUL": "KUL - Kuala Lumpur",
+    "SEP": "SEP - Sepang",
     "HQ": "HQ"
   };
 
@@ -1796,7 +1797,7 @@ export default function AttendanceDashboard() {
                     <div key={idx} className="flex flex-col gap-1">
                       <div className="flex justify-between items-end">
                         <div className="flex flex-col">
-                          <span className="text-[11px] font-bold text-slate-800 dark:text-slate-100">{FULL_BRANCH_NAMES[branch.branch] || branch.branch}</span>
+                          <span className="text-[11px] font-bold text-slate-800 dark:text-slate-100">{FULL_BRANCH_NAMES[branch.branch] || (branches.find(b => b.code === branch.branch)?.name ? `${branch.branch} - ${toProperCase(branches.find(b => b.code === branch.branch)?.name)}` : branch.branch)}</span>
                           <div className="flex items-center gap-1.5 mt-0.5">
                             <span className="text-[9px] font-semibold text-foreground flex items-center gap-1">
                               👥 {branch.permanentStaffCount} Staff
@@ -1835,7 +1836,7 @@ export default function AttendanceDashboard() {
                           </div>
                         </TooltipTrigger>
                         <TooltipContent side="top" align="center" className="bg-card border border-slate-200 dark:border-slate-800 shadow-xl rounded p-3 z-50 w-max whitespace-nowrap text-left min-w-[200px]">
-                          <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 mb-2 border-b border-slate-100 dark:border-slate-800 pb-1">{FULL_BRANCH_NAMES[branch.branch] || branch.branch}</p>
+                          <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 mb-2 border-b border-slate-100 dark:border-slate-800 pb-1">{FULL_BRANCH_NAMES[branch.branch] || (branches.find(b => b.code === branch.branch)?.name ? `${branch.branch} - ${toProperCase(branches.find(b => b.code === branch.branch)?.name)}` : branch.branch)}</p>
                           <div className="flex flex-col gap-1 text-[9px] text-slate-600 mb-2 border-b border-slate-100 dark:border-slate-800 pb-2">
                             <p className="flex justify-between items-center gap-4"><span>Permanent Staff:</span> <span className="font-bold text-slate-700 dark:text-slate-300">{branch.permanentStaffCount}</span></p>
                             <p className="flex justify-between items-center gap-4"><span>Temporary In:</span> <span className="font-bold text-slate-700 dark:text-slate-300">{branch.temporaryIn}</span></p>
