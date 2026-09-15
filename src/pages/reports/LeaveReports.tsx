@@ -2,7 +2,8 @@ import { useRole } from "@/contexts/RoleContext";
 import { useState, useEffect, useRef } from "react";
 import { API_BASE_URL } from "@/config/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Download, Search, FileText, CalendarDays , X} from 'lucide-react';
+import { Loader2, Download, Search, FileText, CalendarDays, X, XCircle, RotateCcw, CheckCircle } from 'lucide-react';
+import { Button } from "@/components/ui/button";
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
@@ -24,6 +25,10 @@ export default function LeaveReports() {
   const [pageSize, setPageSize] = useState(15);
   const tableRef = useRef<HTMLTableElement>(null);
   
+  // Filter States
+  const [statusFilter, setStatusFilter] = useState("All Status");
+  const [leaveTypeFilter, setLeaveTypeFilter] = useState("All Leave Types");
+
   // View Toggle State
   const [viewType, setViewType] = useState<"day" | "month" | "year">("month");
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
@@ -122,18 +127,93 @@ export default function LeaveReports() {
     }
   };
 
-  const filteredList = leaveData.filter(e => 
-    (e.full_name || e.user_id)?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    e.user_id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    e.branch?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredList = leaveData.filter(e => {
+    const matchesSearch =
+      (e.full_name || e.user_id)?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      e.user_id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      e.branch?.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesStatus = (() => {
+      if (statusFilter === "All Status" || statusFilter === "All" || !statusFilter) return true;
+      const s = (e.status || "").toLowerCase();
+      if (statusFilter === "Pending") return s.includes("pending");
+      if (statusFilter === "Approved") return s === "approved";
+      if (statusFilter === "Rejected") return s === "rejected";
+      return s === statusFilter.toLowerCase();
+    })();
+
+    const matchesLeaveType = (() => {
+      if (leaveTypeFilter === "All Leave Types" || leaveTypeFilter === "All" || !leaveTypeFilter) return true;
+      const lt = (e.leave_type || "").toLowerCase();
+      const filter = leaveTypeFilter.toLowerCase();
+      if (filter.includes("annual") || filter.includes("emergency")) {
+        return lt.includes("annual") || lt.includes("emergency") || lt.includes("tahunan") || lt.includes("kecemasan");
+      }
+      if (filter.includes("replacement")) {
+        return lt.includes("replacement") || lt.includes("ganti");
+      }
+      if (filter.includes("sick")) {
+        return lt.includes("sick") || lt.includes("medical") || lt.includes("mc") || lt.includes("sakit");
+      }
+      if (filter.includes("unpaid")) {
+        return lt.includes("unpaid") || lt.includes("tanpa gaji");
+      }
+      return lt === filter;
+    })();
+
+    return matchesSearch && matchesStatus && matchesLeaveType;
+  });
+
+  // Base list for current time period and search to compute KPI statistics
+  const baseListForKpi = leaveData.filter(e => {
+    const matchesSearch =
+      (e.full_name || e.user_id)?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      e.user_id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      e.branch?.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesLeaveType = (() => {
+      if (leaveTypeFilter === "All Leave Types" || leaveTypeFilter === "All" || !leaveTypeFilter) return true;
+      const lt = (e.leave_type || "").toLowerCase();
+      const filter = leaveTypeFilter.toLowerCase();
+      if (filter.includes("annual") || filter.includes("emergency")) {
+        return lt.includes("annual") || lt.includes("emergency") || lt.includes("tahunan") || lt.includes("kecemasan");
+      }
+      if (filter.includes("replacement")) {
+        return lt.includes("replacement") || lt.includes("ganti");
+      }
+      if (filter.includes("sick")) {
+        return lt.includes("sick") || lt.includes("medical") || lt.includes("mc") || lt.includes("sakit");
+      }
+      if (filter.includes("unpaid")) {
+        return lt.includes("unpaid") || lt.includes("tanpa gaji");
+      }
+      return lt === filter;
+    })();
+
+    return matchesSearch && matchesLeaveType;
+  });
+
+  const totalRequestsCount = baseListForKpi.length;
+  const approvedCount = baseListForKpi.filter(a => a.status === 'Approved').length;
+  const rejectedCount = baseListForKpi.filter(a => a.status === 'Rejected').length;
+  const totalLeaveDays = baseListForKpi.filter(a => a.status === 'Approved').reduce((acc, curr) => acc + Number(curr.days || 0), 0);
+
+  const handleResetFilters = () => {
+    setStatusFilter("All Status");
+    setLeaveTypeFilter("All Leave Types");
+    setSearchQuery("");
+    setDate(new Date().toISOString().split('T')[0]);
+    setSelectedMonth((new Date().getMonth() + 1).toString());
+    setSelectedYear(new Date().getFullYear().toString());
+    setCurrentPage(1);
+  };
 
   const pageCount = Math.max(1, Math.ceil(filteredList.length / pageSize));
   const pagedList = filteredList.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, viewType, date, selectedMonth, selectedYear, pageSize]);
+  }, [searchQuery, statusFilter, leaveTypeFilter, viewType, date, selectedMonth, selectedYear, pageSize]);
 
   const handleExportCSV = () => {
     const headers = ["Employee", "Branch", "Leave Type", "Start Date", "End Date", "Days", "Status"];
@@ -203,8 +283,8 @@ export default function LeaveReports() {
             </button>
           </div>
 
-          {/* RIGHT: Active Filter Controls (Date/Month Picker, Export Button) */}
-          <div className="flex flex-wrap gap-2 items-center sm:justify-end">
+          {/* RIGHT: Active Filter Controls (Date/Month Picker, Leave Type, Status, Reset, Export) */}
+          <div className="flex flex-wrap gap-2.5 items-center sm:justify-end">
             {viewType === "day" ? (
               <CustomDatePicker
                 value={date}
@@ -214,7 +294,7 @@ export default function LeaveReports() {
               />
             ) : viewType === "month" ? (
               <MonthPicker
-                monthYear={`${selectedYear}-${String(selectedMonth).padStart(2, '0')}`}
+                monthYear={selectedMonth === 'all' ? `${selectedYear}-all` : `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`}
                 onSelectMonthYear={(val) => {
                   const [yyyy, mm] = val.split('-');
                   setSelectedYear(yyyy);
@@ -229,23 +309,71 @@ export default function LeaveReports() {
             ) : (
               <YearPopover year={selectedYear} onSelectYear={setSelectedYear} className="flex items-center justify-between h-10 px-4 text-[11px] font-black uppercase tracking-widest text-slate-900 dark:text-slate-100 bg-card border border-slate-300 dark:border-slate-700 rounded-md shadow-sm min-w-[140px]" />
             )}
+
+            {/* Leave Type Filter Dropdown */}
+            <Select value={leaveTypeFilter} onValueChange={setLeaveTypeFilter}>
+              <SelectTrigger className="w-[185px] h-10 bg-card text-xs font-semibold">
+                <SelectValue placeholder="All Leave Types" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="All Leave Types">All Leave Types</SelectItem>
+                <SelectItem value="Annual/Emergency Leave">Annual/Emergency Leave</SelectItem>
+                <SelectItem value="Replacement Leave">Replacement Leave</SelectItem>
+                <SelectItem value="Sick Leave">Sick Leave</SelectItem>
+                <SelectItem value="Unpaid Leave">Unpaid Leave</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Status Filter Dropdown */}
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[145px] h-10 bg-card text-xs font-semibold">
+                <SelectValue placeholder="All Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="All Status">All Status</SelectItem>
+                <SelectItem value="Pending">Pending</SelectItem>
+                <SelectItem value="Approved">Approved</SelectItem>
+                <SelectItem value="Rejected">Rejected</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Reset Button */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleResetFilters}
+              className="h-10 px-3 text-[11px] font-black uppercase tracking-widest text-foreground border-slate-300 dark:border-slate-700 bg-card hover:bg-muted hover:text-[#942392] hover:border-[#942392] transition-all rounded-md flex items-center gap-1.5 shadow-xs cursor-pointer group"
+              title="Reset all filters to ALL"
+            >
+              <RotateCcw className="w-3.5 h-3.5 text-muted-foreground group-hover:text-[#942392] group-hover:-rotate-90 transition-transform duration-200" />
+              <span>Reset</span>
+            </Button>
+
             <ExportDropdown onExportCSV={handleExportCSV} />
           </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          <Card className="border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm">
+
+        {/* 4 KPI Summary Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+          <Card 
+            className="border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md transition-shadow cursor-pointer hover:border-primary/50"
+            onClick={() => setStatusFilter("All Status")}
+          >
             <CardContent className="p-6 flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
                 <FileText className="w-6 h-6 text-primary" />
               </div>
               <div>
                 <p className="text-sm font-medium text-foreground">Total Requests</p>
-                <h3 className="text-3xl font-bold mt-1">{filteredList.length}</h3>
+                <h3 className="text-3xl font-bold mt-1">{totalRequestsCount}</h3>
               </div>
             </CardContent>
           </Card>
           
-          <Card className="border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm">
+          <Card 
+            className="border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md transition-shadow cursor-pointer hover:border-green-500/50"
+            onClick={() => setStatusFilter("Approved")}
+          >
             <CardContent className="p-6 flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center">
                 <CalendarDays className="w-6 h-6 text-green-500" />
@@ -253,7 +381,24 @@ export default function LeaveReports() {
               <div>
                 <p className="text-sm font-medium text-foreground">Approved</p>
                 <h3 className="text-3xl font-bold mt-1 text-green-600 dark:text-green-400">
-                  {filteredList.filter(a => a.status === 'Approved').length}
+                  {approvedCount}
+                </h3>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card 
+            className="border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md transition-shadow cursor-pointer hover:border-red-500/50"
+            onClick={() => setStatusFilter("Rejected")}
+          >
+            <CardContent className="p-6 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-red-500/10 flex items-center justify-center">
+                <XCircle className="w-6 h-6 text-red-500" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-foreground">Rejected</p>
+                <h3 className="text-3xl font-bold mt-1 text-red-600 dark:text-red-400">
+                  {rejectedCount}
                 </h3>
               </div>
             </CardContent>
@@ -267,7 +412,7 @@ export default function LeaveReports() {
               <div>
                 <p className="text-sm font-medium text-foreground">Total Leave Days</p>
                 <h3 className="text-3xl font-bold mt-1 text-orange-600 dark:text-orange-400">
-                  {filteredList.filter(a => a.status === 'Approved').reduce((acc, curr) => acc + Number(curr.days || 0), 0)}
+                  {totalLeaveDays}
                 </h3>
               </div>
             </CardContent>

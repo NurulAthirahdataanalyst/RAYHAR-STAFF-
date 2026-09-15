@@ -41,7 +41,24 @@ export default function NotificationBell() {
   const isElevatedRole = ["hr_admin", "superadmin", "managing_director", "operation_manager", "finance_manager", "head_of_department", "branch_leader"].includes((role || "").toLowerCase());
 
   const displayedNotifications = isElevatedRole
-    ? notifications.filter((n) => (activeScope === "team" ? n.scope === "team" : n.scope !== "team"))
+    ? notifications.filter((n) => {
+        const isTeam = n.scope === "team" || 
+          n.type === "leave_approval" || 
+          (n.title && (
+            n.title.includes("Leave Approved:") || 
+            n.title.includes("Leave Rejected:") || 
+            n.title.includes("New Leave Request") || 
+            n.title.includes("Need Your Approval") ||
+            n.title.startsWith("Leave Request:") ||
+            n.title.startsWith("Irregular Clock-In")
+          )) ||
+          (n.message && (
+            n.message.includes("'s request for") || 
+            (n.message.includes("request for") && n.message.includes("is now")) ||
+            n.message.toLowerCase().includes("requires your approval")
+          ));
+        return activeScope === "team" ? isTeam : !isTeam;
+      })
     : notifications;
 
   const currentScopeUnread = isElevatedRole

@@ -29,8 +29,97 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { useNotifications, type NotificationItem } from "@/contexts/NotificationContext";
 
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription,
+  DialogFooter
+} from "@/components/ui/dialog";
+
 type FilterTab = "all" | "unread" | "leave" | "attendance" | "assignment" | "announcement";
 type ScopeTab = "my" | "team";
+
+function formatNotificationDisplayDate(dateStr: string): string {
+  if (!dateStr) return "";
+  const clean = dateStr.trim().replace(/[(),]/g, "");
+  // match DD.MM.YYYY or DD/MM/YYYY
+  const ddmmyyyy = clean.match(/^(\d{1,2})[./](\d{1,2})[./](\d{4})$/);
+  if (ddmmyyyy) {
+    const day = parseInt(ddmmyyyy[1], 10);
+    const monthIdx = parseInt(ddmmyyyy[2], 10) - 1;
+    const year = parseInt(ddmmyyyy[3], 10);
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    return `${day} ${months[monthIdx]} ${year}`;
+  }
+  // match YYYY-MM-DD
+  const yyyymmdd = clean.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (yyyymmdd) {
+    const day = parseInt(yyyymmdd[3], 10);
+    const monthIdx = parseInt(yyyymmdd[2], 10) - 1;
+    const year = parseInt(yyyymmdd[1], 10);
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    return `${day} ${months[monthIdx]} ${year}`;
+  }
+  // match "25 Sep 2026" or "25 September 2026"
+  const textDate = clean.match(/^(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})$/);
+  if (textDate) {
+    const day = textDate[1];
+    let month = textDate[2].slice(0, 3);
+    month = month.charAt(0).toUpperCase() + month.slice(1).toLowerCase();
+    return `${day} ${month} ${textDate[3]}`;
+  }
+  return clean;
+}
+
+function getNotificationDialogLabel(notif: NotificationItem): string {
+  if (!notif) return "Notification";
+  const rawTitle = (notif.title || "")
+    .replace(/[\u{1F300}-\u{1F6FF}\u{1F900}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, "")
+    .replace(/\*\*/g, "")
+    .replace(/^🔔\s*/, "")
+    .trim();
+  const type = (notif.type || "").toLowerCase();
+  const lowerTitle = rawTitle.toLowerCase();
+  const msg = (notif.message || "").replace(/\*\*/g, "").trim();
+
+  // Outstation Assignment
+  if (type === "outstation" || lowerTitle.includes("outstation") || msg.toLowerCase().includes("outstation")) {
+    const dateRegex = "(?:\\d{1,2}[./-]\\d{1,2}[./-]\\d{2,4}|\\d{1,2}\\s+[A-Za-z]+\\s+\\d{4}|\\d{4}-\\d{1,2}-\\d{1,2})";
+    const pattern = new RegExp(`for you(?::\\s*|\\s+)(.+?)\\s+from\\s+(${dateRegex})\\s*(?:-|to)\\s*(${dateRegex})`, "i");
+    const match = msg.match(pattern);
+    if (match) {
+      const eventAndDest = match[1].replace(/,\s*$/, "").trim();
+      const start = formatNotificationDisplayDate(match[2]);
+      const end = formatNotificationDisplayDate(match[3]);
+      return `Outstation Assignment: ${eventAndDest} (${start} - ${end})`;
+    }
+    const simpleMatch = msg.match(/for you(?::\s*|\\s+)(.+?)(?:,\s*from|\.|$)/i);
+    if (simpleMatch && simpleMatch[1].trim().length > 2) {
+      return `Outstation Assignment: ${simpleMatch[1].replace(/,\s*$/, "").trim()}`;
+    }
+    return "Outstation Assignment";
+  }
+
+  // Attendance Alert
+  if (type === "attendance" || lowerTitle.includes("clock-in") || lowerTitle.includes("attendance")) {
+    let dateStr = "";
+    if (notif.created_at) {
+      const d = new Date(notif.created_at);
+      if (!isNaN(d.getTime())) {
+        dateStr = d.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+      }
+    }
+    const base = rawTitle || "Attendance Alert";
+    if (dateStr && !base.toLowerCase().includes(" on ") && !base.toLowerCase().includes(dateStr.toLowerCase())) {
+      return `${base} on ${dateStr}`;
+    }
+    return base;
+  }
+
+  return rawTitle || "Notification";
+}
 
 export default function Notifications() {
   const { user } = useAuth();
@@ -47,6 +136,8 @@ export default function Notifications() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [myUnreadCount, setMyUnreadCount] = useState(0);
   const [teamUnreadCount, setTeamUnreadCount] = useState(0);
+  const [notificationToDelete, setNotificationToDelete] = useState<NotificationItem | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const resolvedUserId = user?.user_id || user?.id || user?.employee_id;
   const isElevatedRole = ["hr_admin", "superadmin", "managing_director", "operation_manager", "finance_manager", "head_of_department", "branch_leader"].includes((role || "").toLowerCase());
@@ -160,17 +251,19 @@ export default function Notifications() {
     }
   };
 
-  const handleDelete = async (e: React.MouseEvent, id: number) => {
-    e.stopPropagation();
+  const confirmDelete = async () => {
+    if (!notificationToDelete || !resolvedUserId) return;
+    setIsDeleting(true);
     try {
+      const id = notificationToDelete.id;
       await fetch(`${API_BASE_URL}/api/notifications/${id}?user_id=${encodeURIComponent(resolvedUserId)}`, {
         method: "DELETE",
       });
-      const wasUnread = notifications.find((n) => n.id === id && !n.is_read);
+      const wasUnread = !notificationToDelete.is_read;
       setNotifications((prev) => prev.filter((n) => n.id !== id));
       if (wasUnread) {
         setUnreadCount((c) => Math.max(0, c - 1));
-        if (wasUnread.scope === 'team') {
+        if (notificationToDelete.scope === "team") {
           setTeamUnreadCount((c) => Math.max(0, c - 1));
         } else {
           setMyUnreadCount((c) => Math.max(0, c - 1));
@@ -178,8 +271,12 @@ export default function Notifications() {
       }
       toast.success("Notification deleted");
       void refreshBell();
+      setNotificationToDelete(null);
     } catch (e) {
       console.error("Failed to delete notification:", e);
+      toast.error("Failed to delete notification");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -305,7 +402,33 @@ export default function Notifications() {
     }
   };
 
+  function isTeamNotification(notif: NotificationItem): boolean {
+    if (notif.scope === "team") return true;
+    if (notif.type === "leave_approval") return true;
+    const title = notif.title || "";
+    const msg = notif.message || "";
+    if (
+      title.includes("Leave Approved:") ||
+      title.includes("Leave Rejected:") ||
+      title.includes("New Leave Request") ||
+      title.includes("Need Your Approval") ||
+      title.startsWith("Leave Request:") ||
+      title.startsWith("Irregular Clock-In") ||
+      msg.includes("'s request for") ||
+      (msg.includes("request for") && msg.includes("is now")) ||
+      msg.toLowerCase().includes("requires your approval")
+    ) {
+      return true;
+    }
+    return false;
+  }
+
   const filteredNotifications = notifications.filter((notif) => {
+    if (isElevatedRole) {
+      const isTeam = isTeamNotification(notif);
+      if (activeScope === "my" && isTeam) return false;
+      if (activeScope === "team" && !isTeam) return false;
+    }
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();
     return notif.title.toLowerCase().includes(q) || notif.message.toLowerCase().includes(q);
@@ -522,8 +645,11 @@ export default function Notifications() {
                       </button>
                     )}
                     <button
-                      onClick={(e) => handleDelete(e, notif.id)}
-                      className="text-muted-foreground/60 hover:text-rose-600 p-1 rounded transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setNotificationToDelete(notif);
+                      }}
+                      className="text-muted-foreground/60 hover:text-rose-600 p-1 rounded transition-colors cursor-pointer"
                       title="Delete"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -535,6 +661,64 @@ export default function Notifications() {
           ))
         )}
       </div>
+
+      {/* Delete Notification Dialog */}
+      <Dialog 
+        open={!!notificationToDelete} 
+        onOpenChange={(open) => {
+          if (!open && !isDeleting) {
+            setNotificationToDelete(null);
+          }
+        }}
+      >
+        <DialogContent className="max-w-md w-[95vw] sm:w-full rounded-2xl p-6 bg-card border border-border shadow-xl">
+          <DialogHeader className="space-y-3">
+            <div className="w-10 h-10 rounded-full bg-rose-100 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 flex items-center justify-center">
+              <Trash2 className="w-5 h-5" />
+            </div>
+            <DialogTitle className="text-lg font-bold text-foreground">
+              Delete Notification?
+            </DialogTitle>
+            <DialogDescription className="text-sm text-muted-foreground space-y-2.5 pt-1 block text-left">
+              <span className="block">Are you sure you want to delete this notification?</span>
+              <span className="block p-3 rounded-lg bg-muted/60 dark:bg-muted/30 border border-border/80 font-semibold text-slate-900 dark:text-white text-sm break-words">
+                &ldquo;{notificationToDelete ? getNotificationDialogLabel(notificationToDelete) : ""}&rdquo;
+              </span>
+              <span className="block text-xs text-rose-600 dark:text-rose-400 font-medium">
+                This action cannot be undone.
+              </span>
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter className="flex flex-row justify-end gap-2.5 pt-4 border-t border-border/40 mt-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setNotificationToDelete(null)}
+              disabled={isDeleting}
+              className="text-xs font-semibold px-4 h-9 cursor-pointer"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={confirmDelete}
+              disabled={isDeleting}
+              className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold px-4 h-9 cursor-pointer flex items-center gap-1.5 shadow-xs"
+            >
+              {isDeleting ? (
+                <>
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                  <span>Deleting...</span>
+                </>
+              ) : (
+                <span>Delete Notification</span>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

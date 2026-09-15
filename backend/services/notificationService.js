@@ -29,15 +29,23 @@ async function createNotification({
     throw new Error('createNotification missing required fields: userId, title, message');
   }
 
-  const finalScope = scope || (
+  const isTeam = scope === 'team' || (
     type === 'leave_approval' || 
     (type === 'status_update' && title.includes(':')) || 
+    title.startsWith('Leave Approved:') ||
+    title.startsWith('Leave Rejected:') ||
+    title.startsWith('New Leave Request') ||
+    title.startsWith('Leave Request:') ||
     title.startsWith('Irregular Clock-In') || 
     title.toLowerCase().includes('anomaly') ||
-    title.toLowerCase().includes('requires your approval')
-      ? 'team'
-      : 'personal'
+    title.toLowerCase().includes('requires your approval') ||
+    title.toLowerCase().includes('need your approval') ||
+    message.includes("'s request for") ||
+    message.includes("submitted a Leave Request") ||
+    message.toLowerCase().includes("requires your approval")
   );
+
+  const finalScope = scope || (isTeam ? 'team' : 'personal');
 
   const [result] = await poolInstance.query(
     `INSERT INTO notifications (user_id, title, message, type, is_read, related_leave_id, scope, created_at)
@@ -131,6 +139,32 @@ async function markAsRead(notificationId, userId) {
   return { success: true };
 }
 
+const TEAM_SCOPE_CLAUSE = `(
+  scope = 'team' 
+  OR type = 'leave_approval' 
+  OR title LIKE 'Leave Approved:%' 
+  OR title LIKE 'Leave Rejected:%' 
+  OR title LIKE 'New Leave Request%' 
+  OR title LIKE 'Leave Request:%' 
+  OR title LIKE '%Need Your Approval%' 
+  OR title LIKE 'Irregular Clock-In%'
+  OR message LIKE '%''s request for%' 
+  OR message LIKE '% request for % is now %'
+)`;
+
+const MY_SCOPE_CLAUSE = `(
+  (scope = 'personal' OR scope IS NULL)
+  AND type != 'leave_approval'
+  AND title NOT LIKE 'Leave Approved:%'
+  AND title NOT LIKE 'Leave Rejected:%'
+  AND title NOT LIKE 'New Leave Request%'
+  AND title NOT LIKE 'Leave Request:%'
+  AND title NOT LIKE '%Need Your Approval%'
+  AND title NOT LIKE 'Irregular Clock-In%'
+  AND message NOT LIKE '%''s request for%'
+  AND message NOT LIKE '% request for % is now %'
+)`;
+
 /**
  * 4. markAllAsRead
  */
@@ -142,9 +176,9 @@ async function markAllAsRead(userId, scope = null) {
   const params = [userId];
 
   if (scope === 'my' || scope === 'personal') {
-    query += ` AND (scope = 'personal' OR scope IS NULL)`;
+    query += ` AND ${MY_SCOPE_CLAUSE}`;
   } else if (scope === 'team') {
-    query += ` AND scope = 'team'`;
+    query += ` AND ${TEAM_SCOPE_CLAUSE}`;
   }
 
   await poolInstance.query(query, params);
@@ -161,8 +195,8 @@ async function getUnreadCount(userId) {
   const [rows] = await poolInstance.query(
     `SELECT 
        COUNT(*)::int as total,
-       COUNT(*) FILTER (WHERE scope = 'personal' OR scope IS NULL)::int as my,
-       COUNT(*) FILTER (WHERE scope = 'team')::int as team
+       COUNT(*) FILTER (WHERE ${MY_SCOPE_CLAUSE})::int as my,
+       COUNT(*) FILTER (WHERE ${TEAM_SCOPE_CLAUSE})::int as team
      FROM notifications 
      WHERE user_id = ? AND is_read = FALSE`,
     [userId]
@@ -184,9 +218,9 @@ async function getNotifications(userId, { limit = 50, offset = 0, type = null, u
   const params = [userId];
 
   if (scope === 'my' || scope === 'personal') {
-    query += ` AND (scope = 'personal' OR scope IS NULL)`;
+    query += ` AND ${MY_SCOPE_CLAUSE}`;
   } else if (scope === 'team') {
-    query += ` AND scope = 'team'`;
+    query += ` AND ${TEAM_SCOPE_CLAUSE}`;
   }
 
   if (unreadOnly) {

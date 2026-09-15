@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { API_BASE_URL } from "@/config/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, Search, X, Users, CheckCircle, Briefcase, CalendarOff, AlertCircle, XCircle, Percent, Clock, MapPin } from "lucide-react";
+import { Loader2, Search, X, Users, CheckCircle, Briefcase, CalendarOff, AlertCircle, XCircle, Percent, Clock, MapPin, RotateCcw } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -249,6 +249,15 @@ export default function AttendanceReports() {
   const absentCount = viewType === "day" ? absentCountDay : (monthlySummary?.absent || 0);
   const attendanceRate = viewType === "day" ? attendanceRateDay : (monthlySummary?.complianceRate || 0);
 
+  const handleResetFilters = () => {
+    setStatusFilter("All");
+    setSearchQuery("");
+    setDate(new Date().toISOString().split('T')[0]);
+    setSelectedMonth((new Date().getMonth() + 1).toString());
+    setSelectedYear(new Date().getFullYear().toString());
+    setCurrentPage(1);
+  };
+
   const handleExportCSV = () => {
     const headers = viewType === "day"
       ? ["Employee ID", "Name", "Branch", "Clock In", "Clock Out", "Status", "Working Hours", "Coordinate (Latitude, Longitude)", "Distance", "Location Status"]
@@ -373,7 +382,7 @@ export default function AttendanceReports() {
                 <SelectValue placeholder="Select Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="All">Select Status</SelectItem>
+                <SelectItem value="All">All</SelectItem>
                 <SelectItem value="Present (On Time)">Present (On Time)</SelectItem>
                 <SelectItem value="Present (Late)">Present (Late)</SelectItem>
                 <SelectItem value="Approved Leave">Approved Leave</SelectItem>
@@ -385,6 +394,17 @@ export default function AttendanceReports() {
                 <SelectItem value="Clocked Out">Clocked Out</SelectItem>
               </SelectContent>
             </Select>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleResetFilters}
+              className="h-10 px-3 text-[11px] font-black uppercase tracking-widest text-foreground border-slate-300 dark:border-slate-700 bg-card hover:bg-muted hover:text-[#942392] hover:border-[#942392] transition-all rounded-md flex items-center gap-1.5 shadow-xs cursor-pointer group"
+              title="Reset all filters to ALL"
+            >
+              <RotateCcw className="w-3.5 h-3.5 text-muted-foreground group-hover:text-[#942392] group-hover:-rotate-90 transition-transform duration-200" />
+              <span>Reset</span>
+            </Button>
 
             <ExportDropdown onExportCSV={handleExportCSV} />
           </div>
