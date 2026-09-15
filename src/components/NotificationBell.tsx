@@ -256,7 +256,7 @@ export default function NotificationBell() {
         className="w-80 sm:w-96 p-0 shadow-xl border-border bg-card overflow-hidden z-50 rounded-xl"
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-teal-600 to-emerald-600 text-white">
+        <div className="flex items-center justify-between px-4 py-3 bg-[#942392] text-white">
           <div className="flex items-center gap-2">
             <Bell className="w-4 h-4" />
             <span className="text-sm font-bold tracking-wide">Notifications</span>
@@ -278,33 +278,41 @@ export default function NotificationBell() {
 
         {/* Scope Pill Toggle (Elevated Roles only) */}
         {isElevatedRole && (
-          <div className="flex items-center p-1.5 bg-muted/60 border-b border-border/60 gap-1.5">
+          <div className="flex items-center p-2 bg-slate-50/80 dark:bg-slate-900/60 border-b border-border/60 gap-2">
             <button
               onClick={() => setActiveScope("my")}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-1 px-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 text-xs rounded-lg transition-all cursor-pointer ${
                 activeScope === "my"
-                  ? "bg-background text-[#a01497] shadow-xs border border-border/40"
-                  : "text-muted-foreground hover:text-foreground"
+                  ? "bg-card text-[#942392] ring-1 ring-[#942392] border border-[#942392]/40 shadow-xs font-bold"
+                  : "bg-background/60 text-muted-foreground hover:text-[#942392] hover:border-[#942392]/30 border border-border/50 font-medium"
               }`}
             >
               <span>My</span>
               {myUnreadCount > 0 && (
-                <span className="px-1.5 py-0.2 text-[10px] font-black rounded-full bg-[#a01497]/10 text-[#a01497]">
+                <span className={`px-1.5 py-0.2 text-[10px] font-black rounded-full transition-colors ${
+                  activeScope === "my"
+                    ? "bg-[#942392]/10 text-[#942392]"
+                    : "bg-muted text-muted-foreground"
+                }`}>
                   {myUnreadCount}
                 </span>
               )}
             </button>
             <button
               onClick={() => setActiveScope("team")}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-1 px-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 text-xs rounded-lg transition-all cursor-pointer ${
                 activeScope === "team"
-                  ? "bg-background text-rose-600 shadow-xs border border-border/40"
-                  : "text-muted-foreground hover:text-foreground"
+                  ? "bg-card text-[#942392] ring-1 ring-[#942392] border border-[#942392]/40 shadow-xs font-bold"
+                  : "bg-background/60 text-muted-foreground hover:text-[#942392] hover:border-[#942392]/30 border border-border/50 font-medium"
               }`}
             >
               <span>Team</span>
               {teamUnreadCount > 0 && (
-                <span className="px-1.5 py-0.2 text-[10px] font-black rounded-full bg-rose-500/10 text-rose-600">
+                <span className={`px-1.5 py-0.2 text-[10px] font-black rounded-full transition-colors ${
+                  activeScope === "team"
+                    ? "bg-[#942392]/10 text-[#942392]"
+                    : "bg-muted text-muted-foreground"
+                }`}>
                   {teamUnreadCount}
                 </span>
               )}
@@ -328,7 +336,7 @@ export default function NotificationBell() {
                 key={notif.id}
                 onClick={() => handleNotificationClick(notif)}
                 className={`group relative flex items-start gap-3 p-3.5 cursor-pointer transition-colors hover:bg-muted/60 ${
-                  !notif.is_read ? "bg-teal-500/5 dark:bg-teal-500/10" : ""
+                  !notif.is_read ? "bg-[#942392]/5 dark:bg-[#942392]/10" : ""
                 }`}
               >
                 {/* Icon */}
@@ -343,7 +351,7 @@ export default function NotificationBell() {
                       {(notif.title || "").replace(/\*\*/g, "")}
                     </p>
                     {!notif.is_read && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-teal-600 flex-shrink-0" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#942392] flex-shrink-0" />
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed whitespace-pre-line">
@@ -381,7 +389,7 @@ export default function NotificationBell() {
               setIsOpen(false);
               navigate("/notifications");
             }}
-            className="w-full text-xs font-bold text-teal-600 dark:text-teal-400 hover:text-teal-700 hover:bg-teal-50 dark:hover:bg-teal-950/30 justify-center gap-1 h-8"
+            className="w-full text-xs font-bold text-[#942392] hover:text-[#801e7e] hover:bg-[#942392]/10 justify-center gap-1 h-8 cursor-pointer"
           >
             View all notifications <ArrowRight className="w-3.5 h-3.5" />
           </Button>

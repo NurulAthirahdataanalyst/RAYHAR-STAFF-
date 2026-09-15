@@ -528,13 +528,13 @@ export default function Notifications() {
             onClick={() => setActiveScope("my")}
             className={`pb-2.5 text-sm font-bold transition-all duration-200 border-b-2 flex items-center gap-2 ${
               activeScope === "my"
-                ? "border-[#a01497] text-[#a01497]"
+                ? "border-[#942392] text-[#942392]"
                 : "border-transparent text-muted-foreground hover:text-foreground"
             }`}
           >
             <span>My Notifications</span>
             {myUnreadCount > 0 && (
-              <span className="px-1.5 py-0.5 text-[10px] font-black rounded-full bg-[#a01497]/10 text-[#a01497] border border-[#a01497]/20">
+              <span className="px-1.5 py-0.5 text-[10px] font-black rounded-full bg-[#942392]/10 text-[#942392] border border-[#942392]/20">
                 {myUnreadCount}
               </span>
             )}
@@ -544,13 +544,13 @@ export default function Notifications() {
             onClick={() => setActiveScope("team")}
             className={`pb-2.5 text-sm font-bold transition-all duration-200 border-b-2 flex items-center gap-2 ${
               activeScope === "team"
-                ? "border-[#a01497] text-[#a01497]"
+                ? "border-[#942392] text-[#942392]"
                 : "border-transparent text-muted-foreground hover:text-foreground"
             }`}
           >
             <span>Team Notifications</span>
             {teamUnreadCount > 0 && (
-              <span className="px-1.5 py-0.5 text-[10px] font-black rounded-full bg-rose-500/10 text-rose-600 border border-rose-200">
+              <span className="px-1.5 py-0.5 text-[10px] font-black rounded-full bg-[#942392]/10 text-[#942392] border border-[#942392]/20">
                 {teamUnreadCount}
               </span>
             )}
