@@ -5307,6 +5307,69 @@ app.post("/api/attendance", async (req, res) => {
     res.json({ success: true, record: rows[0], isOnOutstation: outstationRows.length > 0 });
     broadcastPresenceUpdate({ type: 'clock-in', userId: user_id });
 
+    // --- IRREGULAR CLOCK-IN LOCATION: Notify elevated roles when staff clocks in under Temporary Assignment ---
+    if (finalType === 'Temporary Assignment') {
+      try {
+        const employeeName = empProfile[0]?.name || user_id;
+        const irregTitle = `Irregular Clock-In Location`;
+        const irregMsg = `${employeeName} clocked in at ${finalLocation} under Temporary Assignment assignment.`;
+
+        // Fetch HR Admins, MDs, and Operation Managers
+        const [elevatedRows] = await pool.query(
+          `SELECT p.user_id FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id 
+           WHERE ur.role IN ('hr_admin', 'managing_director', 'operation_manager', 'finance_manager') 
+           AND p.status = 'Active'`
+        );
+
+        for (const elevated of (elevatedRows || [])) {
+          if (elevated.user_id && elevated.user_id !== user_id) {
+            notificationService.createNotification({
+              userId: elevated.user_id,
+              title: irregTitle,
+              message: irregMsg,
+              type: 'attendance',
+              scope: 'team',
+              sendPush: true,
+            }).catch(err => console.error(`Failed to send Irregular Clock-In notif to ${elevated.user_id}:`, err));
+          }
+        }
+
+        // Also notify employee's HOD or Branch Leader
+        const empBranch = empProfile[0]?.branch || 'HQ';
+        const empDept = empProfile[0]?.department || '';
+        const isHQ = empBranch === 'HQ';
+        let supervisorRows = [];
+        if (isHQ) {
+          const [hRows] = await pool.query(
+            `SELECT p.user_id FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id 
+             WHERE ur.role = 'head_of_department' AND p.department = ? AND p.branch = 'HQ' AND p.status = 'Active' LIMIT 1`,
+            [empDept]
+          );
+          supervisorRows = hRows;
+        } else {
+          const [bRows] = await pool.query(
+            `SELECT p.user_id FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id 
+             WHERE ur.role = 'branch_leader' AND p.branch = ? AND p.status = 'Active' LIMIT 1`,
+            [empBranch]
+          );
+          supervisorRows = bRows;
+        }
+        for (const sup of (supervisorRows || [])) {
+          if (sup.user_id && sup.user_id !== user_id) {
+            notificationService.createNotification({
+              userId: sup.user_id,
+              title: irregTitle,
+              message: irregMsg,
+              type: 'attendance',
+              scope: 'team',
+              sendPush: true,
+            }).catch(err => console.error(`Failed to send Irregular Clock-In notif to supervisor ${sup.user_id}:`, err));
+          }
+        }
+      } catch (irregErr) {
+        console.error('Error sending Irregular Clock-In notifications:', irregErr);
+      }
+    }
 
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
