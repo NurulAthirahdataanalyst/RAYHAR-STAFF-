@@ -3687,10 +3687,15 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
               sendNotificationEmail(hr.email, `Leave Request ${nextStatus}: ${leaveData.employee_name}`, `<p>The leave request for <strong>${leaveData.employee_name}</strong> has been <strong>${nextStatus}</strong>.</p>`).catch(console.error);
             }
             if (hr.user_id) {
-              pool.query(
-                `INSERT INTO notifications (user_id, title, message, type, related_leave_id) VALUES (?, ?, ?, ?, ?)`,
-                [hr.user_id, `Leave ${nextStatus}: ${leaveData.employee_name}`, `${leaveData.employee_name}'s request for ${leaveData.leave_type} is now ${nextStatus.toLowerCase()}.`, 'status_update', leaveId]
-              ).catch(console.error);
+              notificationService.createNotification({
+                userId: hr.user_id,
+                title: `Leave ${nextStatus}: ${leaveData.employee_name}`,
+                message: `${leaveData.employee_name}'s request for ${leaveData.leave_type} is now ${nextStatus.toLowerCase()}.`,
+                type: 'status_update',
+                scope: 'team',
+                relatedLeaveId: leaveId,
+                sendPush: true,
+              }).catch(console.error);
             }
           }
         }
@@ -3702,6 +3707,7 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
             title: notificationTitle,
             message: notificationMessage,
             type: 'leave_approval',
+            scope: 'team',
             relatedLeaveId: leaveId,
             sendEmail: !!targetEmail,
             emailData: { to: targetEmail, subject, html },
@@ -3715,6 +3721,7 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
             title: `Leave Approval Progress`,
             message: `Your leave application is currently waiting for ${waitingFor}.`,
             type: 'status_update',
+            scope: 'personal',
             relatedLeaveId: leaveId,
             sendPush: true,
           });
@@ -3726,6 +3733,7 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
             title: `Leave Approved`,
             message: `Your request for ${leaveData.leave_type} (${leaveData.days} day(s)) has been approved.`,
             type: 'approval',
+            scope: 'personal',
             relatedLeaveId: leaveId,
             sendEmail: !!leaveData.employee_email,
             emailData: {
@@ -3740,7 +3748,7 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
             },
             sendPush: true,
           });
-        }
+        } 
         // 3. If status is Rejected
         else if (nextStatus === "Rejected") {
           await notificationService.createNotification({
@@ -3748,6 +3756,7 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
             title: `Leave Rejected`,
             message: `Your request for ${leaveData.leave_type} was not approved.${remarks ? ' Reason: ' + remarks : ''}`,
             type: 'leave',
+            scope: 'personal',
             relatedLeaveId: leaveId,
             sendEmail: !!leaveData.employee_email,
             emailData: {
@@ -3785,6 +3794,7 @@ app.get("/api/notifications", async (req, res) => {
   const offset = parseInt(String(req.query.offset || "0"), 10) || 0;
   const type = req.query.type ? String(req.query.type) : null;
   const unreadOnly = req.query.unreadOnly === "true" || req.query.unread === "1";
+  const scope = req.query.scope ? String(req.query.scope) : null;
 
   if (!user_id) return res.status(400).json({ success: false, error: "user_id required" });
 
@@ -3794,10 +3804,17 @@ app.get("/api/notifications", async (req, res) => {
       offset,
       type,
       unreadOnly,
+      scope,
     });
-    const unreadCount = await notificationService.getUnreadCount(user_id);
+    const unreadData = await notificationService.getUnreadCount(user_id);
 
-    res.json({ success: true, notifications, unreadCount });
+    res.json({
+      success: true,
+      notifications,
+      unreadCount: unreadData.total,
+      myUnreadCount: unreadData.my,
+      teamUnreadCount: unreadData.team,
+    });
   } catch (err) {
     console.error("Fetch Notifications Error:", err);
     res.status(500).json({ success: false, error: err.message });
@@ -3809,8 +3826,13 @@ app.get("/api/notifications/unread-count", async (req, res) => {
   if (!user_id) return res.status(400).json({ success: false, error: "user_id required" });
 
   try {
-    const count = await notificationService.getUnreadCount(user_id);
-    res.json({ success: true, unreadCount: count });
+    const unreadData = await notificationService.getUnreadCount(user_id);
+    res.json({
+      success: true,
+      unreadCount: unreadData.total,
+      myUnreadCount: unreadData.my,
+      teamUnreadCount: unreadData.team,
+    });
   } catch (err) {
     console.error("Get Unread Count Error:", err);
     res.status(500).json({ success: false, error: err.message });
@@ -3818,7 +3840,7 @@ app.get("/api/notifications/unread-count", async (req, res) => {
 });
 
 app.post("/api/notifications", async (req, res) => {
-  const { userId, user_id, title, message, type, relatedLeaveId, related_leave_id, sendEmail, emailData, sendPush } = req.body;
+  const { userId, user_id, title, message, type, scope, relatedLeaveId, related_leave_id, sendEmail, emailData, sendPush } = req.body;
   const targetUser = userId || user_id;
 
   if (!targetUser || !title || !message) {
@@ -3831,6 +3853,7 @@ app.post("/api/notifications", async (req, res) => {
       title,
       message,
       type: type || 'system',
+      scope: scope || null,
       relatedLeaveId: relatedLeaveId || related_leave_id || null,
       sendEmail: !!sendEmail,
       emailData: emailData || null,
@@ -3857,9 +3880,10 @@ app.patch("/api/notifications/:id/read", async (req, res) => {
 
 app.patch("/api/notifications/read-all", async (req, res) => {
   const userId = req.body.user_id || req.body.userId;
+  const scope = req.body.scope || req.query.scope || null;
   if (!userId) return res.status(400).json({ success: false, error: "user_id required" });
   try {
-    await notificationService.markAllAsRead(userId);
+    await notificationService.markAllAsRead(userId, scope);
     res.json({ success: true });
   } catch (err) {
     console.error("Mark All Notifications Read Error:", err);
@@ -10418,16 +10442,54 @@ app.post('/api/outstation', async (req, res) => {
 
       // Insert in-app notification for the employee
       try {
-        const formattedRole = formatApproverRole(assigned_by_role);
-        await pool.query(
-          `INSERT INTO notifications (user_id, title, message, type) VALUES ($1, $2, $3, $4)`,
-          [
-            emp.user_id,
-            '🔔 **UPCOMING OUTSTATION ASSIGNMENT**',
-            `${formattedRole} created an upcoming outstation assignment for you: ${purpose} at ${destination} from ${start_date} - ${end_date}.`,
-            'outstation'
-          ]
-        );
+        const formattedRole = formatApproverRole(assigned_by_role) || 'HR';
+
+        // Format dates cleanly: e.g. "25.09.2026"
+        const formatDMY = (d) => {
+          if (!d) return '';
+          const dt = new Date(d);
+          if (isNaN(dt.getTime())) {
+            const m = String(d).match(/^(\d{4})-(\d{2})-(\d{2})/);
+            if (m) return `${m[3]}.${m[2]}.${m[1]}`;
+            return String(d);
+          }
+          const dd = String(dt.getDate()).padStart(2, '0');
+          const mm = String(dt.getMonth() + 1).padStart(2, '0');
+          const yyyy = dt.getFullYear();
+          return `${dd}.${mm}.${yyyy}`;
+        };
+
+        const fmtStart = formatDMY(start_date);
+        const fmtEnd = formatDMY(end_date);
+        const dateRangeStr = (fmtStart && fmtEnd && fmtStart !== fmtEnd)
+          ? `from ${fmtStart} - ${fmtEnd}`
+          : (fmtStart ? `on ${fmtStart}` : '');
+
+        const eventName = (project && String(project).trim() !== '-' && String(project).trim() !== '')
+          ? String(project).trim()
+          : (meeting_title && String(meeting_title).trim() !== '-' && String(meeting_title).trim() !== '')
+          ? String(meeting_title).trim()
+          : (purpose && String(purpose).trim() !== '-' && String(purpose).trim() !== '')
+          ? String(purpose).trim()
+          : '';
+
+        const daysNum = parseFloat(total_days) || 1;
+        const daysStr = daysNum === 1 ? '1 Day' : `${daysNum % 1 === 0 ? Math.round(daysNum) : daysNum} Days`;
+
+        const eventPart = eventName ? `: ${eventName}` : '';
+        const cleanDest = (destination || '').trim();
+        const destPart = cleanDest ? ` at ${cleanDest}` : '';
+        const outstationMsg = `${formattedRole} created an upcoming outstation assignment for you${eventPart}${destPart} ${dateRangeStr} , ${daysStr}.`.replace(/\s+/g, ' ');
+
+        await notificationService.createNotification({
+          userId: emp.user_id,
+          title: '🔔UPCOMING OUTSTATION ASSIGNMENT',
+          message: outstationMsg,
+          type: 'outstation',
+          scope: 'personal',
+          action_url: '/outstation/my',
+          sendPush: true,
+        });
       } catch (notifErr) {
         console.error('Error inserting outstation notification:', notifErr);
       }
@@ -11125,6 +11187,7 @@ app.post("/api/work-assignments", async (req, res) => {
         title: 'New Branch Assignment',
         message: `You have been temporarily assigned to ${location} from ${sDate} to ${eDate}.${purpose ? ' Purpose: ' + purpose : ''}`,
         type: 'assignment',
+        scope: 'personal',
         sendPush: true,
       });
     } catch (notifErr) {

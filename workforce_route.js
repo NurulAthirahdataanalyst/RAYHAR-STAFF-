@@ -2135,14 +2135,52 @@ app.post('/api/outstation', async (req, res) => {
 
       // Insert in-app notification for the employee
       try {
-        const formattedRole = formatApproverRole(assigned_by_role);
+        const formattedRole = formatApproverRole(assigned_by_role) || 'HR';
+
+        const formatDMY = (d) => {
+          if (!d) return '';
+          const dt = new Date(d);
+          if (isNaN(dt.getTime())) {
+            const m = String(d).match(/^(\d{4})-(\d{2})-(\d{2})/);
+            if (m) return `${m[3]}.${m[2]}.${m[1]}`;
+            return String(d);
+          }
+          const dd = String(dt.getDate()).padStart(2, '0');
+          const mm = String(dt.getMonth() + 1).padStart(2, '0');
+          const yyyy = dt.getFullYear();
+          return `${dd}.${mm}.${yyyy}`;
+        };
+
+        const fmtStart = formatDMY(start_date);
+        const fmtEnd = formatDMY(end_date);
+        const dateRangeStr = (fmtStart && fmtEnd && fmtStart !== fmtEnd)
+          ? `from ${fmtStart} - ${fmtEnd}`
+          : (fmtStart ? `on ${fmtStart}` : '');
+
+        const eventName = (project && String(project).trim() !== '-' && String(project).trim() !== '')
+          ? String(project).trim()
+          : (meeting_title && String(meeting_title).trim() !== '-' && String(meeting_title).trim() !== '')
+          ? String(meeting_title).trim()
+          : (purpose && String(purpose).trim() !== '-' && String(purpose).trim() !== '')
+          ? String(purpose).trim()
+          : '';
+
+        const daysNum = parseFloat(total_days) || 1;
+        const daysStr = daysNum === 1 ? '1 Day' : `${daysNum % 1 === 0 ? Math.round(daysNum) : daysNum} Days`;
+
+        const eventPart = eventName ? `: ${eventName}` : '';
+        const cleanDest = (destination || '').trim();
+        const destPart = cleanDest ? ` at ${cleanDest}` : '';
+        const outstationMsg = `${formattedRole} created an upcoming outstation assignment for you${eventPart}${destPart} ${dateRangeStr} , ${daysStr}.`.replace(/\s+/g, ' ');
+
         await pool.query(
-          `INSERT INTO notifications (user_id, title, message, type) VALUES ($1, $2, $3, $4)`,
+          `INSERT INTO notifications (user_id, title, message, type, scope) VALUES ($1, $2, $3, $4, $5)`,
           [
             emp.user_id,
-            '🔔 **UPCOMING OUTSTATION ASSIGNMENT**',
-            `${formattedRole} created an upcoming outstation assignment for you: ${purpose} at ${destination} from ${start_date} - ${end_date}.`,
-            'outstation'
+            '🔔UPCOMING OUTSTATION ASSIGNMENT',
+            outstationMsg,
+            'outstation',
+            'personal'
           ]
         );
       } catch (notifErr) {

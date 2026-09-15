@@ -22,16 +22,27 @@ async function createNotification({
   emailData = null,
   sendPush = true,
   pushData = null,
+  scope = null,
 }) {
   if (!poolInstance) throw new Error('NotificationService not initialized with database pool.');
   if (!userId || !title || !message) {
     throw new Error('createNotification missing required fields: userId, title, message');
   }
 
+  const finalScope = scope || (
+    type === 'leave_approval' || 
+    (type === 'status_update' && title.includes(':')) || 
+    title.startsWith('Irregular Clock-In') || 
+    title.toLowerCase().includes('anomaly') ||
+    title.toLowerCase().includes('requires your approval')
+      ? 'team'
+      : 'personal'
+  );
+
   const [result] = await poolInstance.query(
-    `INSERT INTO notifications (user_id, title, message, type, is_read, related_leave_id, created_at)
-     VALUES (?, ?, ?, ?, FALSE, ?, NOW())`,
-    [userId, title, message, type, relatedLeaveId || null]
+    `INSERT INTO notifications (user_id, title, message, type, is_read, related_leave_id, scope, created_at)
+     VALUES (?, ?, ?, ?, FALSE, ?, ?, NOW())`,
+    [userId, title, message, type, relatedLeaveId || null, finalScope]
   );
 
   const insertedId = result?.insertId || (Array.isArray(result) && result[0]?.id) || (result?.rows && result.rows[0]?.id) || null;
@@ -62,7 +73,7 @@ async function createNotification({
         await pushService.sendPushNotification(userId, {
           title,
           body: message.replace(/[*_#]/g, ''), // Strip markdown for plain notification body
-          data: pushData || { type, relatedLeaveId: relatedLeaveId ? String(relatedLeaveId) : '' },
+          data: pushData || { type, scope: finalScope, relatedLeaveId: relatedLeaveId ? String(relatedLeaveId) : '' },
         });
       } catch (err) {
         console.error(`Error sending push for notification ${insertedId}:`, err.message);
@@ -76,6 +87,7 @@ async function createNotification({
     title,
     message,
     type,
+    scope: finalScope,
     is_read: false,
     related_leave_id: relatedLeaveId,
     created_at: new Date().toISOString(),
@@ -122,14 +134,20 @@ async function markAsRead(notificationId, userId) {
 /**
  * 4. markAllAsRead
  */
-async function markAllAsRead(userId) {
+async function markAllAsRead(userId, scope = null) {
   if (!poolInstance) throw new Error('NotificationService not initialized with database pool.');
   if (!userId) throw new Error('userId is required for markAllAsRead');
 
-  await poolInstance.query(
-    `UPDATE notifications SET is_read = TRUE WHERE user_id = ? AND is_read = FALSE`,
-    [userId]
-  );
+  let query = `UPDATE notifications SET is_read = TRUE WHERE user_id = ? AND is_read = FALSE`;
+  const params = [userId];
+
+  if (scope === 'my' || scope === 'personal') {
+    query += ` AND (scope = 'personal' OR scope IS NULL)`;
+  } else if (scope === 'team') {
+    query += ` AND scope = 'team'`;
+  }
+
+  await poolInstance.query(query, params);
   return { success: true };
 }
 
@@ -138,24 +156,38 @@ async function markAllAsRead(userId) {
  */
 async function getUnreadCount(userId) {
   if (!poolInstance) throw new Error('NotificationService not initialized with database pool.');
-  if (!userId) return 0;
+  if (!userId) return { count: 0, total: 0, my: 0, team: 0 };
 
   const [rows] = await poolInstance.query(
-    `SELECT COUNT(*)::int as count FROM notifications WHERE user_id = ? AND is_read = FALSE`,
+    `SELECT 
+       COUNT(*)::int as total,
+       COUNT(*) FILTER (WHERE scope = 'personal' OR scope IS NULL)::int as my,
+       COUNT(*) FILTER (WHERE scope = 'team')::int as team
+     FROM notifications 
+     WHERE user_id = ? AND is_read = FALSE`,
     [userId]
   );
-  return rows[0]?.count || 0;
+  const total = rows[0]?.total || 0;
+  const my = rows[0]?.my || 0;
+  const team = rows[0]?.team || 0;
+  return { count: total, total, my, team };
 }
 
 /**
- * 6. getNotifications (Paginated with filtering)
+ * 6. getNotifications (Paginated with filtering and scoping)
  */
-async function getNotifications(userId, { limit = 50, offset = 0, type = null, unreadOnly = false } = {}) {
+async function getNotifications(userId, { limit = 50, offset = 0, type = null, unreadOnly = false, scope = null } = {}) {
   if (!poolInstance) throw new Error('NotificationService not initialized with database pool.');
   if (!userId) return [];
 
   let query = `SELECT * FROM notifications WHERE user_id = ?`;
   const params = [userId];
+
+  if (scope === 'my' || scope === 'personal') {
+    query += ` AND (scope = 'personal' OR scope IS NULL)`;
+  } else if (scope === 'team') {
+    query += ` AND scope = 'team'`;
+  }
 
   if (unreadOnly) {
     query += ` AND is_read = FALSE`;
@@ -164,6 +196,8 @@ async function getNotifications(userId, { limit = 50, offset = 0, type = null, u
   if (type && type !== 'all') {
     if (type === 'leave') {
       query += ` AND type IN ('leave', 'approval', 'leave_approval', 'status_update')`;
+    } else if (type === 'assignment') {
+      query += ` AND type IN ('assignment', 'outstation')`;
     } else {
       query += ` AND type = ?`;
       params.push(type);

@@ -12,6 +12,7 @@ export interface NotificationItem {
   title: string;
   message: string;
   type: string;
+  scope?: "personal" | "team" | string;
   priority?: "low" | "medium" | "high" | string;
   is_read: boolean;
   related_leave_id: number | null;
@@ -24,10 +25,12 @@ export interface NotificationItem {
 interface NotificationContextType {
   notifications: NotificationItem[];
   unreadCount: number;
+  myUnreadCount: number;
+  teamUnreadCount: number;
   loading: boolean;
-  fetchNotifications: () => Promise<void>;
+  fetchNotifications: (scope?: string) => Promise<void>;
   markAsRead: (id: number) => Promise<void>;
-  markAllAsRead: () => Promise<void>;
+  markAllAsRead: (scope?: string) => Promise<void>;
   deleteNotification: (id: number) => Promise<void>;
 }
 
@@ -39,17 +42,20 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [unreadCount, setUnreadCount] = useState<number>(0);
+  const [myUnreadCount, setMyUnreadCount] = useState<number>(0);
+  const [teamUnreadCount, setTeamUnreadCount] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(false);
 
   const resolvedUserId = user?.user_id || user?.id || user?.employee_id;
   const channelRef = useRef<any>(null);
 
-  const fetchNotifications = useCallback(async () => {
+  const fetchNotifications = useCallback(async (scope?: string) => {
     if (!resolvedUserId) return;
     try {
       setLoading(true);
+      const scopeParam = scope ? `&scope=${scope}` : "";
       const res = await fetch(
-        `${API_BASE_URL}/api/notifications?user_id=${encodeURIComponent(resolvedUserId)}&limit=15`
+        `${API_BASE_URL}/api/notifications?user_id=${encodeURIComponent(resolvedUserId)}&limit=30${scopeParam}`
       );
       const data = await res.json();
       if (data.success) {
@@ -59,6 +65,8 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
             ? data.unreadCount
             : (data.notifications || []).filter((n: NotificationItem) => !n.is_read).length
         );
+        if (typeof data.myUnreadCount === "number") setMyUnreadCount(data.myUnreadCount);
+        if (typeof data.teamUnreadCount === "number") setTeamUnreadCount(data.teamUnreadCount);
       }
     } catch (err) {
       console.error("Error fetching notifications:", err);
@@ -76,30 +84,51 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ user_id: resolvedUserId }),
         });
+        const target = notifications.find(n => n.id === id);
         setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)));
         setUnreadCount((c) => Math.max(0, c - 1));
+        if (target?.scope === 'team') {
+          setTeamUnreadCount((c) => Math.max(0, c - 1));
+        } else {
+          setMyUnreadCount((c) => Math.max(0, c - 1));
+        }
       } catch (e) {
         console.error("Failed to mark notification read:", e);
       }
     },
-    [resolvedUserId]
+    [resolvedUserId, notifications]
   );
 
-  const markAllAsRead = useCallback(async () => {
+  const markAllAsRead = useCallback(async (scope?: string) => {
     if (!resolvedUserId) return;
     try {
       await fetch(`${API_BASE_URL}/api/notifications/read-all`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: resolvedUserId }),
+        body: JSON.stringify({ user_id: resolvedUserId, scope: scope || undefined }),
       });
-      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
-      setUnreadCount(0);
+      setNotifications((prev) => prev.map((n) => {
+        if (!scope || (scope === 'team' && n.scope === 'team') || (scope === 'my' && n.scope !== 'team')) {
+          return { ...n, is_read: true };
+        }
+        return n;
+      }));
+      if (!scope) {
+        setUnreadCount(0);
+        setMyUnreadCount(0);
+        setTeamUnreadCount(0);
+      } else if (scope === 'team') {
+        setUnreadCount((c) => Math.max(0, c - teamUnreadCount));
+        setTeamUnreadCount(0);
+      } else {
+        setUnreadCount((c) => Math.max(0, c - myUnreadCount));
+        setMyUnreadCount(0);
+      }
       toast.success("All notifications marked as read");
     } catch (e) {
       console.error("Failed to mark all as read:", e);
     }
-  }, [resolvedUserId]);
+  }, [resolvedUserId, myUnreadCount, teamUnreadCount]);
 
   const deleteNotification = useCallback(
     async (id: number) => {
@@ -212,6 +241,8 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       value={{
         notifications,
         unreadCount,
+        myUnreadCount,
+        teamUnreadCount,
         loading,
         fetchNotifications,
         markAsRead,

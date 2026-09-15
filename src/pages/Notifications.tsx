@@ -13,7 +13,9 @@ import {
   MapPin, 
   ArrowRight,
   ArrowLeft,
-  RefreshCw
+  RefreshCw,
+  Users,
+  UserCheck
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,10 +27,10 @@ import { useRole } from "@/contexts/RoleContext";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import PageActions from "@/components/layout/PageActions";
 import { useNotifications, type NotificationItem } from "@/contexts/NotificationContext";
 
 type FilterTab = "all" | "unread" | "leave" | "attendance" | "assignment" | "announcement";
+type ScopeTab = "my" | "team";
 
 export default function Notifications() {
   const { user } = useAuth();
@@ -39,11 +41,15 @@ export default function Notifications() {
 
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeScope, setActiveScope] = useState<ScopeTab>("my");
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [unreadCount, setUnreadCount] = useState(0);
+  const [myUnreadCount, setMyUnreadCount] = useState(0);
+  const [teamUnreadCount, setTeamUnreadCount] = useState(0);
 
   const resolvedUserId = user?.user_id || user?.id || user?.employee_id;
+  const isElevatedRole = ["hr_admin", "superadmin", "managing_director", "operation_manager", "finance_manager", "head_of_department", "branch_leader"].includes((role || "").toLowerCase());
 
   const fetchNotifications = async () => {
     if (!resolvedUserId) return;
@@ -51,11 +57,14 @@ export default function Notifications() {
     try {
       const typeParam = activeTab !== "all" && activeTab !== "unread" ? `&type=${activeTab}` : "";
       const unreadParam = activeTab === "unread" ? "&unreadOnly=true" : "";
-      const res = await fetch(`${API_BASE_URL}/api/notifications?user_id=${encodeURIComponent(resolvedUserId)}&limit=100${typeParam}${unreadParam}`);
+      const scopeParam = isElevatedRole ? `&scope=${activeScope}` : "&scope=personal";
+      const res = await fetch(`${API_BASE_URL}/api/notifications?user_id=${encodeURIComponent(resolvedUserId)}&limit=100${typeParam}${unreadParam}${scopeParam}`);
       const data = await res.json();
       if (data.success) {
         setNotifications(data.notifications || []);
-        setUnreadCount(typeof data.unreadCount === "number" ? data.unreadCount : (data.notifications || []).filter((n: NotificationItem) => !n.is_read).length);
+        setUnreadCount(typeof data.unreadCount === "number" ? data.unreadCount : 0);
+        if (typeof data.myUnreadCount === "number") setMyUnreadCount(data.myUnreadCount);
+        if (typeof data.teamUnreadCount === "number") setTeamUnreadCount(data.teamUnreadCount);
       }
     } catch (err) {
       console.error("Error loading notifications:", err);
@@ -67,7 +76,7 @@ export default function Notifications() {
 
   useEffect(() => {
     void fetchNotifications();
-  }, [resolvedUserId, activeTab]);
+  }, [resolvedUserId, activeTab, activeScope]);
 
   // Realtime updates
   useEffect(() => {
@@ -130,13 +139,20 @@ export default function Notifications() {
   const handleMarkAllRead = async () => {
     if (!resolvedUserId) return;
     try {
+      const scopeParam = isElevatedRole ? activeScope : undefined;
       await fetch(`${API_BASE_URL}/api/notifications/read-all`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: resolvedUserId }),
+        body: JSON.stringify({ user_id: resolvedUserId, scope: scopeParam }),
       });
       setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
-      setUnreadCount(0);
+      if (activeScope === "team") {
+        setTeamUnreadCount(0);
+        setUnreadCount((c) => Math.max(0, c - teamUnreadCount));
+      } else {
+        setMyUnreadCount(0);
+        setUnreadCount((c) => Math.max(0, c - myUnreadCount));
+      }
       toast.success("All notifications marked as read");
       void refreshBell();
     } catch (e) {
@@ -154,6 +170,11 @@ export default function Notifications() {
       setNotifications((prev) => prev.filter((n) => n.id !== id));
       if (wasUnread) {
         setUnreadCount((c) => Math.max(0, c - 1));
+        if (wasUnread.scope === 'team') {
+          setTeamUnreadCount((c) => Math.max(0, c - 1));
+        } else {
+          setMyUnreadCount((c) => Math.max(0, c - 1));
+        }
       }
       toast.success("Notification deleted");
       void refreshBell();
@@ -197,6 +218,18 @@ export default function Notifications() {
       }
     }
 
+    // Outstation routing: employee role or personal assignment goes to My Outstation (/outstation/my)
+    const isOutstation = notif.type === "outstation" || title.includes("outstation");
+    if (isOutstation) {
+      const isPersonal = notif.scope === "personal" || title.includes("upcoming outstation assignment") || message.includes("for you");
+      if (role === "employee" || role === "intern" || !isApprover || isPersonal) {
+        navigate("/outstation/my");
+      } else {
+        navigate(notif.action_url || "/outstation");
+      }
+      return;
+    }
+
     if (notif.action_url) {
       navigate(notif.action_url);
       return;
@@ -226,6 +259,9 @@ export default function Notifications() {
     }
     if (type === "assignment") {
       return <MapPin className="w-5 h-5 text-blue-500" />;
+    }
+    if (type === "outstation") {
+      return <MapPin className="w-5 h-5 text-indigo-500" />;
     }
     if (type === "announcement" || type === "company_leave") {
       return <Building2 className="w-5 h-5 text-purple-500" />;
@@ -275,14 +311,30 @@ export default function Notifications() {
     return notif.title.toLowerCase().includes(q) || notif.message.toLowerCase().includes(q);
   });
 
+  const currentScopeUnread = isElevatedRole
+    ? (activeScope === "team" ? teamUnreadCount : myUnreadCount)
+    : unreadCount;
+
   return (
-    <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-500">
-      {/* Header Actions via PageActions portal */}
-      <PageActions>
+    <div className="space-y-4 sm:space-y-5 animate-in fade-in duration-500">
+      {/* Top Header Row: Back to Dashboard on Left, Refresh & Actions on Right (Single Line) */}
+      <div className="flex items-center justify-between gap-3 pb-1">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="gap-2 px-0 text-[#942392] hover:bg-transparent hover:text-[#5e0080] transition-colors touch-target no-global-hover cursor-pointer"
+          onClick={() => navigate("/")}
+        >
+          <ArrowLeft className="h-4 w-4" />
+          <span className="text-[10px] font-black uppercase tracking-widest">
+            Back to Dashboard
+          </span>
+        </Button>
+
         <div className="flex items-center gap-2">
-          {unreadCount > 0 && (
-            <Badge className="bg-rose-600 hover:bg-rose-700 text-white font-bold">
-              {unreadCount} unread
+          {currentScopeUnread > 0 && (
+            <Badge className="bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-xs">
+              {currentScopeUnread} unread
             </Badge>
           )}
 
@@ -291,40 +343,62 @@ export default function Notifications() {
             size="sm"
             onClick={fetchNotifications}
             disabled={loading}
-            className="gap-1.5 cursor-pointer"
+            className="gap-1.5 cursor-pointer text-xs h-8 border-border"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin text-[#942392]" : ""}`} />
             Refresh
           </Button>
 
-          {unreadCount > 0 && (
+          {currentScopeUnread > 0 && (
             <Button
               variant="default"
               size="sm"
               onClick={handleMarkAllRead}
-              className="bg-teal-600 hover:bg-teal-700 text-white gap-1.5 cursor-pointer"
+              className="bg-teal-600 hover:bg-teal-700 text-white gap-1.5 cursor-pointer text-xs h-8 shadow-xs"
             >
               <Check className="w-3.5 h-3.5" />
               Mark all as read
             </Button>
           )}
         </div>
-      </PageActions>
-
-      {/* Back to Dashboard */}
-      <div className="flex items-center justify-between">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="mb-1 gap-2 px-0 text-[#942392] hover:bg-transparent hover:text-[#5e0080] transition-colors touch-target no-global-hover cursor-pointer"
-          onClick={() => navigate("/")}
-        >
-          <ArrowLeft className="h-4 w-4" />
-          <span className="text-[10px] font-black uppercase tracking-widest">
-            Back to Dashboard
-          </span>
-        </Button>
       </div>
+
+      {/* Primary Scope Tabs: My Notifications vs Team Notifications (matching Recent Activity) */}
+      {isElevatedRole && (
+        <div className="flex items-center gap-6 border-b border-slate-200 dark:border-slate-800 pb-0">
+          <button
+            onClick={() => setActiveScope("my")}
+            className={`pb-2.5 text-sm font-bold transition-all duration-200 border-b-2 flex items-center gap-2 ${
+              activeScope === "my"
+                ? "border-[#a01497] text-[#a01497]"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <span>My Notifications</span>
+            {myUnreadCount > 0 && (
+              <span className="px-1.5 py-0.5 text-[10px] font-black rounded-full bg-[#a01497]/10 text-[#a01497] border border-[#a01497]/20">
+                {myUnreadCount}
+              </span>
+            )}
+          </button>
+
+          <button
+            onClick={() => setActiveScope("team")}
+            className={`pb-2.5 text-sm font-bold transition-all duration-200 border-b-2 flex items-center gap-2 ${
+              activeScope === "team"
+                ? "border-[#a01497] text-[#a01497]"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <span>Team Notifications</span>
+            {teamUnreadCount > 0 && (
+              <span className="px-1.5 py-0.5 text-[10px] font-black rounded-full bg-rose-500/10 text-rose-600 border border-rose-200">
+                {teamUnreadCount}
+              </span>
+            )}
+          </button>
+        </div>
+      )}
 
       {/* Tabs and Search Bar */}
       <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-card p-2 rounded-xl border border-border shadow-xs">
@@ -406,7 +480,7 @@ export default function Notifications() {
                 <div className="flex items-center justify-between gap-2 mb-1">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-sm font-bold text-slate-900 dark:text-white">
-                      {notif.title}
+                      {(notif.title || "").replace(/\*\*/g, "")}
                     </span>
                     {!notif.is_read && (
                       <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-teal-600 text-white">

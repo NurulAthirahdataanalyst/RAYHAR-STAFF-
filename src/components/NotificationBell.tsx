@@ -28,12 +28,25 @@ export default function NotificationBell() {
   const {
     notifications,
     unreadCount,
+    myUnreadCount,
+    teamUnreadCount,
     markAsRead,
     markAllAsRead,
     deleteNotification,
   } = useNotifications();
 
   const [isOpen, setIsOpen] = useState(false);
+  const [activeScope, setActiveScope] = useState<"my" | "team">("my");
+
+  const isElevatedRole = ["hr_admin", "superadmin", "managing_director", "operation_manager", "finance_manager", "head_of_department", "branch_leader"].includes((role || "").toLowerCase());
+
+  const displayedNotifications = isElevatedRole
+    ? notifications.filter((n) => (activeScope === "team" ? n.scope === "team" : n.scope !== "team"))
+    : notifications;
+
+  const currentScopeUnread = isElevatedRole
+    ? (activeScope === "team" ? teamUnreadCount : myUnreadCount)
+    : unreadCount;
 
   // 1. Delete notification
   const handleDeleteNotification = async (e: React.MouseEvent, id: number) => {
@@ -78,6 +91,19 @@ export default function NotificationBell() {
       }
     }
 
+    // Outstation routing: employee role or personal assignment goes to My Outstation (/outstation/my)
+    const isOutstation = notif.type === "outstation" || title.includes("outstation");
+    if (isOutstation) {
+      const isPersonal = notif.scope === "personal" || title.includes("upcoming outstation assignment") || message.includes("for you");
+      const userRole = (role || "").toLowerCase();
+      if (userRole === "employee" || userRole === "intern" || !isApprover || isPersonal) {
+        navigate("/outstation/my");
+      } else {
+        navigate(notif.action_url || "/outstation");
+      }
+      return;
+    }
+
     if (notif.action_url) {
       navigate(notif.action_url);
       return;
@@ -110,6 +136,9 @@ export default function NotificationBell() {
     }
     if (type === "assignment") {
       return <MapPin className="w-4 h-4 text-blue-500" />;
+    }
+    if (type === "outstation") {
+      return <MapPin className="w-4 h-4 text-indigo-500" />;
     }
     if (type === "announcement" || type === "company_leave") {
       return <Building2 className="w-4 h-4 text-purple-500" />;
@@ -179,34 +208,70 @@ export default function NotificationBell() {
           <div className="flex items-center gap-2">
             <Bell className="w-4 h-4" />
             <span className="text-sm font-bold tracking-wide">Notifications</span>
-            {unreadCount > 0 && (
+            {currentScopeUnread > 0 && (
               <span className="px-2 py-0.5 text-[11px] font-bold bg-white/20 rounded-full">
-                {unreadCount} new
+                {currentScopeUnread} new
               </span>
             )}
           </div>
-          {unreadCount > 0 && (
+          {currentScopeUnread > 0 && (
             <button
-              onClick={markAllAsRead}
-              className="text-xs font-semibold text-white/90 hover:text-white hover:underline transition-colors flex items-center gap-1"
+              onClick={() => markAllAsRead(isElevatedRole ? activeScope : undefined)}
+              className="text-xs font-semibold text-white/90 hover:text-white hover:underline transition-colors flex items-center gap-1 cursor-pointer"
             >
               <Check className="w-3.5 h-3.5" /> Mark all read
             </button>
           )}
         </div>
 
+        {/* Scope Pill Toggle (Elevated Roles only) */}
+        {isElevatedRole && (
+          <div className="flex items-center p-1.5 bg-muted/60 border-b border-border/60 gap-1.5">
+            <button
+              onClick={() => setActiveScope("my")}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-1 px-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                activeScope === "my"
+                  ? "bg-background text-[#a01497] shadow-xs border border-border/40"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <span>My</span>
+              {myUnreadCount > 0 && (
+                <span className="px-1.5 py-0.2 text-[10px] font-black rounded-full bg-[#a01497]/10 text-[#a01497]">
+                  {myUnreadCount}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => setActiveScope("team")}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-1 px-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                activeScope === "team"
+                  ? "bg-background text-rose-600 shadow-xs border border-border/40"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <span>Team</span>
+              {teamUnreadCount > 0 && (
+                <span className="px-1.5 py-0.2 text-[10px] font-black rounded-full bg-rose-500/10 text-rose-600">
+                  {teamUnreadCount}
+                </span>
+              )}
+            </button>
+          </div>
+        )}
+
         {/* Notifications List */}
         <div className="max-h-[360px] overflow-y-auto divide-y divide-border/60">
-          {notifications.length === 0 ? (
+          {displayedNotifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
               <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center mb-2">
                 <Bell className="w-5 h-5 text-muted-foreground/60" />
               </div>
-              <p className="text-sm font-semibold text-foreground">No notifications</p>
+              <p className="text-sm font-semibold text-foreground">No {isElevatedRole ? (activeScope === 'team' ? 'team' : 'personal') : ''} notifications</p>
               <p className="text-xs text-muted-foreground mt-0.5">You're all caught up!</p>
             </div>
           ) : (
-            notifications.map((notif) => (
+            displayedNotifications.map((notif) => (
               <div
                 key={notif.id}
                 onClick={() => handleNotificationClick(notif)}
@@ -223,7 +288,7 @@ export default function NotificationBell() {
                 <div className="flex-1 min-w-0 pr-6">
                   <div className="flex items-center gap-1.5 mb-0.5">
                     <p className="text-xs font-bold truncate text-slate-900 dark:text-white">
-                      {notif.title}
+                      {(notif.title || "").replace(/\*\*/g, "")}
                     </p>
                     {!notif.is_read && (
                       <span className="w-1.5 h-1.5 rounded-full bg-teal-600 flex-shrink-0" />
