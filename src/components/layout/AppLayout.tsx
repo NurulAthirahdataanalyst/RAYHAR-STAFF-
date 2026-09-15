@@ -332,16 +332,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     </div>
                   </DropdownMenuLabel>
                   <div className="profile-menu-nav pt-1.5 pb-0.5">
-                    <DropdownMenuItem onClick={() => navigate("/profile")} className="profile-nav-item rounded-xl pl-4 pr-3 py-2.5 cursor-pointer text-white/90">
-                      <User className="mr-2.5 h-4 w-4 shrink-0 text-white/80" />
-                      <span>My Profile</span>
+                    <DropdownMenuItem onClick={() => navigate("/profile")} className="profile-nav-item rounded-xl pl-4 pr-3 py-2.5 cursor-pointer text-white hover:text-white focus:text-white data-[highlighted]:text-white font-medium">
+                      <User className="mr-2.5 h-4 w-4 shrink-0 text-white" />
+                      <span className="text-white font-medium">My Profile</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate("/notifications")} className="profile-nav-item rounded-xl pl-4 pr-3 py-2.5 cursor-pointer text-white/90">
-                      <Bell className="mr-2.5 h-4 w-4 shrink-0 text-white/80" />
-                      <span>Notifications</span>
+                    <DropdownMenuItem onClick={() => navigate("/notifications")} className="profile-nav-item rounded-xl pl-4 pr-3 py-2.5 cursor-pointer text-white hover:text-white focus:text-white data-[highlighted]:text-white font-medium">
+                      <Bell className="mr-2.5 h-4 w-4 shrink-0 text-white" />
+                      <span className="text-white font-medium">Notifications</span>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator className="bg-white/5 my-1" />
-                    <DropdownMenuItem onClick={() => signOut()} className="profile-nav-item rounded-xl pl-4 pr-3 py-2.5 cursor-pointer text-red-400 font-bold">
+                    <DropdownMenuItem onClick={() => signOut()} className="profile-nav-item profile-nav-signout rounded-xl pl-4 pr-3 py-2.5 cursor-pointer text-red-400 font-bold hover:text-red-400 focus:text-red-400 data-[highlighted]:text-red-400">
                       <LogOut className="mr-2.5 h-4 w-4 shrink-0 text-red-400" />
                       <span>Sign Out</span>
                     </DropdownMenuItem>
@@ -404,16 +404,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   </div>
                 </DropdownMenuLabel>
                 <div className="profile-menu-nav pt-1.5 pb-0.5">
-                  <DropdownMenuItem onClick={() => navigate("/profile")} className="profile-nav-item rounded-xl pl-4 pr-3 py-2.5 cursor-pointer text-white/90">
-                    <User className="mr-2.5 h-4 w-4 shrink-0 text-white/80" />
-                    <span>My Profile</span>
+                  <DropdownMenuItem onClick={() => navigate("/profile")} className="profile-nav-item rounded-xl pl-4 pr-3 py-2.5 cursor-pointer text-white hover:text-white focus:text-white data-[highlighted]:text-white font-medium">
+                    <User className="mr-2.5 h-4 w-4 shrink-0 text-white" />
+                    <span className="text-white font-medium">My Profile</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/notifications")} className="profile-nav-item rounded-xl pl-4 pr-3 py-2.5 cursor-pointer text-white/90">
-                    <Bell className="mr-2.5 h-4 w-4 shrink-0 text-white/80" />
-                    <span>Notifications</span>
+                  <DropdownMenuItem onClick={() => navigate("/notifications")} className="profile-nav-item rounded-xl pl-4 pr-3 py-2.5 cursor-pointer text-white hover:text-white focus:text-white data-[highlighted]:text-white font-medium">
+                    <Bell className="mr-2.5 h-4 w-4 shrink-0 text-white" />
+                    <span className="text-white font-medium">Notifications</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator className="bg-white/5 my-1" />
-                  <DropdownMenuItem onClick={() => signOut()} className="profile-nav-item rounded-xl pl-4 pr-3 py-2.5 cursor-pointer text-red-400 font-bold">
+                  <DropdownMenuItem onClick={() => signOut()} className="profile-nav-item profile-nav-signout rounded-xl pl-4 pr-3 py-2.5 cursor-pointer text-red-400 font-bold hover:text-red-400 focus:text-red-400 data-[highlighted]:text-red-400">
                     <LogOut className="mr-2.5 h-4 w-4 shrink-0 text-red-400" />
                     <span>Sign Out</span>
                   </DropdownMenuItem>

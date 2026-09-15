@@ -808,31 +808,63 @@ input[type=range]::-moz-range-thumb {
               background-color 300ms cubic-bezier(0.4, 0, 0.2, 1),
               box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1),
               filter 300ms cubic-bezier(0.4, 0, 0.2, 1),
-              opacity 300ms cubic-bezier(0.4, 0, 0.2, 1);
+              opacity 300ms cubic-bezier(0.4, 0, 0.2, 1),
+              color 200ms ease;
   transform-origin: center center;
   cursor: pointer;
   outline: none !important;
+  color: #FFFFFF !important;
+}
+
+.profile-nav-item span,
+.profile-nav-item svg {
+  color: #FFFFFF !important;
 }
 
 /* Active menu item softly lifts with subtle dark background transition (300ms ease) */
-.profile-nav-item:hover {
+.profile-nav-item:hover,
+.profile-nav-item:focus,
+.profile-nav-item:active,
+.profile-nav-item[data-highlighted] {
   transform: translateY(-1.5px) scale(1.01);
   background-color: #21262C !important;
   box-shadow: 0 4px 14px -2px rgba(0, 0, 0, 0.4);
   filter: none !important;
   opacity: 1 !important;
   z-index: 10;
+  color: #FFFFFF !important;
 }
 
-/* When selected / active / focused: darker active background */
-.profile-nav-item:focus,
-.profile-nav-item:active,
-.profile-nav-item[data-highlighted] {
-  background-color: #1A1F24 !important;
-  outline: none !important;
+/* Ensure font color remains pure white on hover/focus/active */
+.profile-nav-item:hover *,
+.profile-nav-item:focus *,
+.profile-nav-item:active *,
+.profile-nav-item[data-highlighted] * {
+  color: #FFFFFF !important;
 }
 
-/* Thin blue vertical accent bar */
+/* Sign out item exception - maintain red styling */
+.profile-nav-item.profile-nav-signout,
+.profile-nav-item.profile-nav-signout span,
+.profile-nav-item.profile-nav-signout svg {
+  color: #F87171 !important;
+}
+
+.profile-nav-item.profile-nav-signout:hover,
+.profile-nav-item.profile-nav-signout:focus,
+.profile-nav-item.profile-nav-signout:active,
+.profile-nav-item.profile-nav-signout[data-highlighted] {
+  color: #F87171 !important;
+}
+
+.profile-nav-item.profile-nav-signout:hover *,
+.profile-nav-item.profile-nav-signout:focus *,
+.profile-nav-item.profile-nav-signout:active *,
+.profile-nav-item.profile-nav-signout[data-highlighted] * {
+  color: #F87171 !important;
+}
+
+/* Thin yellow vertical accent bar (#ffff00) */
 .profile-nav-item::before {
   content: "";
   position: absolute;
@@ -840,7 +872,8 @@ input[type=range]::-moz-range-thumb {
   left: 4px;
   width: 3.5px;
   height: 70%;
-  background-color: #2F81F7;
+  background-color: #ffff00 !important;
+  box-shadow: 0 0 8px rgba(255, 255, 0, 0.7);
   border-radius: 4px;
   opacity: 0;
   transform: scaleY(0.3);
@@ -849,11 +882,11 @@ input[type=range]::-moz-range-thumb {
   pointer-events: none;
 }
 
-/* Blue vertical bar smoothly fades in from the left when focused/active/highlighted/hovered */
+/* Yellow vertical bar smoothly fades in from the left when focused/active/highlighted/hovered */
 .profile-nav-item:focus::before,
 .profile-nav-item:active::before,
 .profile-nav-item[data-highlighted]::before,
 .profile-nav-item:hover::before {
-  opacity: 1;
+  opacity: 1 !important;
   transform: scaleY(1);
 }
