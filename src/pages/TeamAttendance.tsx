@@ -387,7 +387,7 @@ export default function TeamAttendance() {
   } else if (statusFilter === "Clocked Out") {
     filteredList = filteredList.filter(e => e.status === "Clocked Out");
   } else if (statusFilter === "Temporary Branch") {
-    filteredList = filteredList.filter(e => e.temp_branch || (e as any).temporary_branch);
+    filteredList = filteredList.filter(e => !!getTempBranchForDate(e.user_id, e.date || selectedDate));
   } else if (statusFilter === "Absent" || statusFilter === "ABSENT") {
     filteredList = filteredList.filter(e => e.status === "Absent");
   }
@@ -605,11 +605,15 @@ export default function TeamAttendance() {
                           <TableCell>
                             <div className="flex flex-col">
                               <span className="font-medium text-xs">{emp.permanent_branch || emp.branch || "-"}</span>
-                              {(emp.temp_branch || (emp as any).temporary_branch) && (
-                                <span className="inline-flex items-center gap-1 text-[9px] font-black text-amber-800 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/70 px-1.5 py-0.5 rounded border border-amber-300 dark:border-amber-700 w-fit shadow-xs mt-0.5">
-                                  <MapPin className="w-2.5 h-2.5 text-amber-600 dark:text-amber-400" /> TEMP ASSIGNMENT : {emp.temp_branch || (emp as any).temporary_branch}
-                                </span>
-                              )}
+                              {(() => {
+                                const activeTemp = getTempBranchForDate(emp.user_id, emp.date || selectedDate);
+                                if (!activeTemp) return null;
+                                return (
+                                  <span className="inline-flex items-center gap-1 text-[9px] font-black text-amber-800 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/70 px-1.5 py-0.5 rounded border border-amber-300 dark:border-amber-700 w-fit shadow-xs mt-0.5">
+                                    <MapPin className="w-2.5 h-2.5 text-amber-600 dark:text-amber-400" /> TEMP ASSIGNMENT : {activeTemp}
+                                  </span>
+                                );
+                              })()}
                             </div>
                           </TableCell>
                           <TableCell>

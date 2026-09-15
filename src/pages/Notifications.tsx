@@ -363,7 +363,7 @@ export default function Notifications() {
     if (type === "announcement" || type === "company_leave") {
       return <Building2 className="w-5 h-5 text-purple-500" />;
     }
-    return <Calendar className="w-5 h-5 text-teal-600" />;
+    return <Calendar className="w-5 h-5 text-[#942392]" />;
   };
 
   const formatTime = (dateStr: string) => {
@@ -477,7 +477,7 @@ export default function Notifications() {
               variant="default"
               size="sm"
               onClick={handleMarkAllRead}
-              className="bg-teal-600 hover:bg-teal-700 text-white gap-1.5 cursor-pointer text-xs h-8 shadow-xs"
+              className="bg-[#942392] hover:bg-[#801e7e] text-white gap-1.5 cursor-pointer text-xs h-8 shadow-xs"
             >
               <Check className="w-3.5 h-3.5" />
               Mark all as read
@@ -539,7 +539,7 @@ export default function Notifications() {
               onClick={() => setActiveTab(tab.id as FilterTab)}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all ${
                 activeTab === tab.id
-                  ? "bg-teal-600 text-white shadow-xs"
+                  ? "bg-[#942392] text-white shadow-xs"
                   : "text-muted-foreground hover:text-foreground hover:bg-muted"
               }`}
             >
@@ -563,7 +563,7 @@ export default function Notifications() {
       <div className="space-y-2.5">
         {loading ? (
           <div className="py-16 text-center text-muted-foreground">
-            <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-teal-600" />
+            <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-[#942392]" />
             <p className="text-sm">Loading notifications...</p>
           </div>
         ) : filteredNotifications.length === 0 ? (
@@ -587,9 +587,9 @@ export default function Notifications() {
             <div
               key={notif.id}
               onClick={() => handleNotificationClick(notif)}
-              className={`group flex items-start gap-4 p-4 rounded-xl border transition-all cursor-pointer hover:shadow-xs hover:border-teal-500/40 ${
+              className={`group flex items-start gap-4 p-4 rounded-xl border transition-all cursor-pointer hover:shadow-xs hover:border-[#942392]/40 ${
                 !notif.is_read
-                  ? "bg-teal-50/40 dark:bg-teal-950/20 border-teal-200 dark:border-teal-800/40"
+                  ? "bg-[#942392]/5 dark:bg-[#942392]/10 border-[#942392]/20 dark:border-[#942392]/30"
                   : "bg-card border-border hover:bg-muted/40"
               }`}
             >
@@ -606,7 +606,7 @@ export default function Notifications() {
                       {(notif.title || "").replace(/\*\*/g, "")}
                     </span>
                     {!notif.is_read && (
-                      <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-teal-600 text-white">
+                      <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-[#942392] text-white">
                         NEW
                       </span>
                     )}
@@ -628,7 +628,7 @@ export default function Notifications() {
 
                 {/* Footer Action Hint */}
                 <div className="flex items-center justify-between mt-3 pt-2 border-t border-border/40">
-                  <span className="text-[11px] font-bold text-teal-600 dark:text-teal-400 flex items-center gap-1 group-hover:underline">
+                  <span className="text-[11px] font-bold text-[#942392] dark:text-[#d15fd0] flex items-center gap-1 group-hover:underline">
                     View details <ArrowRight className="w-3 h-3 transition-transform group-hover:translate-x-0.5" />
                   </span>
 
@@ -671,26 +671,36 @@ export default function Notifications() {
           }
         }}
       >
-        <DialogContent className="max-w-md w-[95vw] sm:w-full rounded-2xl p-6 bg-card border border-border shadow-xl">
-          <DialogHeader className="space-y-3">
-            <div className="w-10 h-10 rounded-full bg-rose-100 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 flex items-center justify-center">
-              <Trash2 className="w-5 h-5" />
-            </div>
-            <DialogTitle className="text-lg font-bold text-foreground">
-              Delete Notification?
-            </DialogTitle>
-            <DialogDescription className="text-sm text-muted-foreground space-y-2.5 pt-1 block text-left">
+        <DialogContent className="max-w-md w-[95vw] sm:w-full rounded-2xl p-0 overflow-hidden bg-card border border-border shadow-xl [&>button]:text-rose-600 [&>button]:hover:text-rose-700">
+          {/* Header: soft red background with icon beside title and separator line */}
+          <div className="bg-rose-50 dark:bg-rose-950/40 px-6 py-4 border-b border-rose-200/80 dark:border-rose-900/40">
+            <DialogHeader className="p-0 space-y-0 text-left">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-rose-100 dark:bg-rose-900/60 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0 shadow-2xs">
+                  <Trash2 className="w-5 h-5" />
+                </div>
+                <DialogTitle className="text-lg font-bold text-slate-900 dark:text-white">
+                  Delete Notification?
+                </DialogTitle>
+              </div>
+            </DialogHeader>
+          </div>
+
+          {/* Body */}
+          <div className="p-6 space-y-3">
+            <DialogDescription className="text-sm text-muted-foreground space-y-2.5 block text-left">
               <span className="block">Are you sure you want to delete this notification?</span>
-              <span className="block p-3 rounded-lg bg-muted/60 dark:bg-muted/30 border border-border/80 font-semibold text-slate-900 dark:text-white text-sm break-words">
+              <span className="block p-3.5 rounded-xl bg-muted/60 dark:bg-muted/30 border border-border/80 font-semibold text-slate-900 dark:text-white text-sm break-words shadow-2xs">
                 &ldquo;{notificationToDelete ? getNotificationDialogLabel(notificationToDelete) : ""}&rdquo;
               </span>
-              <span className="block text-xs text-rose-600 dark:text-rose-400 font-medium">
+              <span className="block text-xs text-rose-600 dark:text-rose-400 font-semibold">
                 This action cannot be undone.
               </span>
             </DialogDescription>
-          </DialogHeader>
+          </div>
 
-          <DialogFooter className="flex flex-row justify-end gap-2.5 pt-4 border-t border-border/40 mt-2">
+          {/* Footer with identical separator line above */}
+          <DialogFooter className="flex flex-row justify-end gap-2.5 px-6 py-4 border-t border-border/60 bg-muted/10">
             <Button
               type="button"
               variant="outline"

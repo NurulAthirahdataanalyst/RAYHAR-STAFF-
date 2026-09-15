@@ -216,6 +216,25 @@ export const CustomTimePicker: React.FC<CustomTimePickerProps> = ({
     setOpen(false);
   };
 
+  // Set to current time now
+  const handleSetTimeNow = () => {
+    const now = new Date();
+    let hours = now.getHours();
+    const minutes = now.getMinutes();
+    const period: "AM" | "PM" = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12;
+    if (hours === 0) hours = 12;
+
+    setSelectedHour(hours);
+    setSelectedMinute(minutes);
+    setSelectedPeriod(period);
+    setHourInput(String(hours).padStart(2, "0"));
+    setMinuteInput(String(minutes).padStart(2, "0"));
+    if (mode === "wheel") {
+      scrollToTime(hours, minutes, true);
+    }
+  };
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -384,14 +403,23 @@ export const CustomTimePicker: React.FC<CustomTimePickerProps> = ({
 
         {/* Footer / Actions */}
         <div className="flex items-center justify-between mt-4 pt-2 border-t border-border/40 select-none">
-          <button
-            type="button"
-            onClick={() => setMode((m) => (m === "wheel" ? "keypad" : "wheel"))}
-            className="p-1.5 rounded-xl text-muted-foreground hover:text-[#942392] hover:bg-purple-50 dark:hover:bg-purple-950/40 transition-colors cursor-pointer"
-            title={mode === "wheel" ? "Switch to keypad input" : "Switch to wheel spinner"}
-          >
-            {mode === "wheel" ? <Keyboard className="w-5 h-5" /> : <Clock className="w-5 h-5" />}
-          </button>
+          <div className="flex items-center gap-1 sm:gap-1.5">
+            <button
+              type="button"
+              onClick={() => setMode((m) => (m === "wheel" ? "keypad" : "wheel"))}
+              className="p-1.5 rounded-xl text-muted-foreground hover:text-[#942392] hover:bg-purple-50 dark:hover:bg-purple-950/40 transition-colors cursor-pointer"
+              title={mode === "wheel" ? "Switch to keypad input" : "Switch to wheel spinner"}
+            >
+              {mode === "wheel" ? <Keyboard className="w-5 h-5" /> : <Clock className="w-5 h-5" />}
+            </button>
+            <button
+              type="button"
+              onClick={handleSetTimeNow}
+              className="text-[11px] sm:text-xs font-bold text-[#942392] hover:text-[#5e0080] hover:bg-purple-50 dark:hover:bg-[#942392]/20 px-2.5 py-1 rounded-lg transition-colors cursor-pointer border border-[#942392]/30 active:scale-95 whitespace-nowrap shadow-2xs"
+            >
+              Time Now
+            </button>
+          </div>
 
           <div className="flex items-center gap-1 sm:gap-2">
             <button
