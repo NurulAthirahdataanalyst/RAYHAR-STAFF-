@@ -414,7 +414,10 @@ export default function Notifications() {
       title.includes("Need Your Approval") ||
       title.startsWith("Leave Request:") ||
       title.startsWith("Irregular Clock-In") ||
+      title.startsWith("Leave Final Approval Required") ||
+      title.startsWith("Leave Approval Required") ||
       msg.includes("'s request for") ||
+      msg.includes("submitted a Leave Request") ||
       (msg.includes("request for") && msg.includes("is now")) ||
       msg.toLowerCase().includes("requires your approval")
     ) {

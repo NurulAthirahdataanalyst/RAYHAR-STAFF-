@@ -50,10 +50,13 @@ export default function NotificationBell() {
             n.title.includes("New Leave Request") || 
             n.title.includes("Need Your Approval") ||
             n.title.startsWith("Leave Request:") ||
-            n.title.startsWith("Irregular Clock-In")
+            n.title.startsWith("Irregular Clock-In") ||
+            n.title.startsWith("Leave Final Approval Required") ||
+            n.title.startsWith("Leave Approval Required")
           )) ||
           (n.message && (
             n.message.includes("'s request for") || 
+            n.message.includes("submitted a Leave Request") ||
             (n.message.includes("request for") && n.message.includes("is now")) ||
             n.message.toLowerCase().includes("requires your approval")
           ));

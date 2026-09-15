@@ -3514,7 +3514,7 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
         }
 
         // Notify employee of their leave progress
-        const targetApprover = isHQ ? "HOD" : "Branch Leader";
+        const targetApprover = (employeeBranch === 'HQ') ? "HOD" : "Branch Leader";
         await notificationService.createNotification({
           userId: leaveData.user_id, 
           title: `Leave Application Submitted`, 
@@ -3524,15 +3524,65 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
           sendPush: true,
         });
 
-        // Notify all HR Admins
+        const leaveNotifTitle = `New Leave Request: ${leaveData.full_name}`;
+        const leaveNotifMessage = `${leaveData.full_name} submitted a Leave Request for ${leaveData.leave_type} (${leaveData.days} day(s)) from ${new Date(leaveData.start_date).toLocaleDateString()} to ${new Date(leaveData.end_date).toLocaleDateString()}.`;
+
+        // Notify all HR Admins (email + in-app)
         const [hrRows] = await pool.query(
-          `SELECT p.email FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'hr_admin' AND p.status = 'Active'`
+          `SELECT p.email, p.user_id FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'hr_admin' AND p.status = 'Active'`
         );
         for (const hr of (hrRows || [])) {
           if (hr.email) {
             sendNotificationEmail(hr.email, `FYI - New Leave Application: ${leaveData.full_name}`, html).catch(err => {
               console.error("Failed to send HR notification email:", err);
             });
+          }
+          if (hr.user_id) {
+            notificationService.createNotification({
+              userId: hr.user_id,
+              title: leaveNotifTitle,
+              message: leaveNotifMessage,
+              type: 'leave_approval',
+              scope: 'team',
+              relatedLeaveId: result.insertId,
+              sendPush: true,
+            }).catch(err => console.error("Failed to send HR in-app notification:", err));
+          }
+        }
+
+        // Notify all Managing Directors (in-app)
+        const [mdRows] = await pool.query(
+          `SELECT p.user_id FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'managing_director' AND p.status = 'Active'`
+        );
+        for (const md of (mdRows || [])) {
+          if (md.user_id) {
+            notificationService.createNotification({
+              userId: md.user_id,
+              title: leaveNotifTitle,
+              message: leaveNotifMessage,
+              type: 'leave_approval',
+              scope: 'team',
+              relatedLeaveId: result.insertId,
+              sendPush: true,
+            }).catch(err => console.error("Failed to send MD in-app notification:", err));
+          }
+        }
+
+        // Notify all Operation Managers (in-app)
+        const [omRows] = await pool.query(
+          `SELECT p.user_id FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role IN ('operation_manager', 'finance_manager') AND p.status = 'Active'`
+        );
+        for (const om of (omRows || [])) {
+          if (om.user_id) {
+            notificationService.createNotification({
+              userId: om.user_id,
+              title: leaveNotifTitle,
+              message: leaveNotifMessage,
+              type: 'leave_approval',
+              scope: 'team',
+              relatedLeaveId: result.insertId,
+              sendPush: true,
+            }).catch(err => console.error("Failed to send OM in-app notification:", err));
           }
         }
 
