@@ -17,6 +17,11 @@ import {
 } from "recharts";
 import { useLocation, useNavigate } from "react-router-dom";
 
+// Convert any string to Proper Case (title case), e.g. "SEPANG" -> "Sepang"
+function toProperCase(str: string): string {
+  if (!str) return str;
+  return str.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
+}
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 
@@ -1279,7 +1284,7 @@ export default function AttendanceDashboard() {
                   <SelectContent>
                     <SelectItem value="all">All Departments</SelectItem>
                     {departments.map((dept, idx) => (
-                      <SelectItem key={idx} value={dept}>{dept}</SelectItem>
+                      <SelectItem key={idx} value={dept}>{toProperCase(dept)}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -1294,7 +1299,7 @@ export default function AttendanceDashboard() {
                   <SelectContent>
                     <SelectItem value="all">All Branches</SelectItem>
                     {branches.map((b, idx) => (
-                      <SelectItem key={idx} value={b.code}>{b.name}</SelectItem>
+                      <SelectItem key={idx} value={b.code}>{toProperCase(b.name)}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
