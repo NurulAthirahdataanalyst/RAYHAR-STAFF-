@@ -24,10 +24,32 @@ export default function TeamAttendance() {
   const [loading, setLoading] = useState(true);
   const [employees, setEmployees] = useState<any[]>([]);
   const [attendanceData, setAttendanceData] = useState<any[]>([]);
+  const [workAssignments, setWorkAssignments] = useState<any[]>([]);
+  const workAssignmentsRef = useRef<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [dateViewMode, setDateViewMode] = useState("DAY");
   const [statusFilter, setStatusFilter] = useState("All Status");
+
+  const getTempBranchForDate = (userId: string, dateStr?: string | null) => {
+    const list = workAssignmentsRef.current.length > 0 ? workAssignmentsRef.current : workAssignments;
+    if (!userId || !dateStr || list.length === 0) return null;
+    try {
+      const targetTime = new Date(dateStr).setHours(0, 0, 0, 0);
+      const match = list.find((a: any) => {
+        if (a.user_id !== userId) return false;
+        if (a.status === 'Cancelled') return false;
+        const start = new Date(a.start_date).setHours(0, 0, 0, 0);
+        const end = a.end_date 
+          ? new Date(a.end_date).setHours(23, 59, 59, 999) 
+          : new Date('2099-12-31').getTime();
+        return targetTime >= start && targetTime <= end;
+      });
+      return match ? (match.temp_branch || match.location) : null;
+    } catch {
+      return null;
+    }
+  };
 
   const [entriesPerPage, setEntriesPerPage] = useState(25);
   const [currentPage, setCurrentPage] = useState(1);
@@ -142,6 +164,7 @@ export default function TeamAttendance() {
           role: role || "",
           branch: userBranch || "",
           department: userDepartment || "",
+          date: selectedDate,
         });
         const [empRes, workAssignRes] = await Promise.all([
           fetch(`${API_BASE_URL}/api/employees?${empParams}`),
@@ -150,18 +173,16 @@ export default function TeamAttendance() {
         const empData = await empRes.json();
         const workAssignData = await workAssignRes.json();
         
-        const tempMap: Record<string, string> = {};
-        if (workAssignData.success && Array.isArray(workAssignData.assignments)) {
-          workAssignData.assignments.forEach((a: any) => {
-            if (a.status === 'Active') {
-              tempMap[a.user_id] = a.temp_branch;
-            }
-          });
-        }
+        const assignmentsList = (workAssignData.success && Array.isArray(workAssignData.assignments))
+          ? workAssignData.assignments
+          : [];
+        workAssignmentsRef.current = assignmentsList;
+        setWorkAssignments(assignmentsList);
         
         let teamEmployees = empData.success ? empData.employees.map((e: any) => ({
           ...e,
-          temp_branch: e.temp_branch || tempMap[e.user_id] || null
+          temp_branch: getTempBranchForDate(e.user_id, selectedDate),
+          temporary_branch: null
         })) : [];
         if (role === 'head_of_department') {
           teamEmployees = teamEmployees.filter((e: any) => e.department === userDepartment && e.branch === userBranch);
@@ -272,6 +293,8 @@ export default function TeamAttendance() {
 
       return {
         ...emp,
+        temp_branch: getTempBranchForDate(emp.user_id, selectedDate),
+        temporary_branch: null,
         time_in: att?.time_in || "--",
         time_out: effectiveTimeOut,
         status: statusLabel,
@@ -322,6 +345,8 @@ export default function TeamAttendance() {
         user_id: att.user_id,
         full_name: att.full_name || emp.full_name,
         department: emp.department || att.department,
+        temp_branch: getTempBranchForDate(att.user_id, att.date),
+        temporary_branch: null,
         time_in: att.time_in || "--",
         time_out: att.time_out || "--",
         status: statusLabel,

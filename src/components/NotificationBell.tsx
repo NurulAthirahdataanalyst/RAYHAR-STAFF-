@@ -204,10 +204,10 @@ export default function NotificationBell() {
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="uiverse-notification-btn no-global-hover"
+          className="h-8 w-8 lg:h-9 lg:w-9 rounded-lg lg:rounded-xl bg-card text-[#942392] flex items-center justify-center shadow-md lg:shadow-lg lg:shadow-purple-950/40 hover:scale-105 active:scale-95 transition-transform border border-white/20 relative outline-none cursor-pointer shrink-0 no-global-hover"
           aria-label="Notifications"
         >
-          <Bell className="bell" strokeWidth={2.2} />
+          <Bell className="w-4 h-4 text-[#942392] bell" strokeWidth={2.2} />
           {unreadCount > 0 && (
             <span className="absolute -top-1 -right-1 flex h-4 min-w-4 px-1 items-center justify-center rounded-full bg-rose-600 text-[9px] font-bold text-white shadow-sm ring-2 ring-white pointer-events-none animate-in zoom-in">
               {unreadCount > 9 ? "9+" : unreadCount}

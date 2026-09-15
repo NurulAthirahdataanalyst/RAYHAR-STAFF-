@@ -1088,6 +1088,12 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
       );
     `);
     console.log('✅ Auto-migration for employee_work_assignment completed.');
+    await connection.query(`
+      UPDATE employee_work_assignment 
+      SET status = 'Completed' 
+      WHERE status = 'Active' 
+      AND end_date <= CURRENT_TIMESTAMP
+    `);
 
     // Auto-migrate employee_allowed_locations table
     await connection.query(`
@@ -11121,6 +11127,13 @@ app.get("/api/attendance/allowed-locations/:user_id", async (req, res) => {
 
 app.get("/api/work-assignments-all", async (req, res) => {
     try {
+      await pool.query(`
+        UPDATE employee_work_assignment 
+        SET status = 'Completed' 
+        WHERE status = 'Active' 
+        AND end_date <= CURRENT_TIMESTAMP
+      `);
+
       const { role, branch, department } = req.query;
       let filterP = "";
       let paramsTotal = [];
@@ -11160,6 +11173,12 @@ app.get("/api/work-assignments-all", async (req, res) => {
 
 app.get("/api/work-assignments/:user_id", async (req, res) => {
   try {
+    await pool.query(`
+      UPDATE employee_work_assignment 
+      SET status = 'Completed' 
+      WHERE status = 'Active' 
+      AND end_date <= CURRENT_TIMESTAMP
+    `);
     const [rows] = await pool.query(`SELECT * FROM employee_work_assignment WHERE user_id = ? ORDER BY created_at DESC`, [req.params.user_id]);
     res.json({ success: true, assignments: rows });
   } catch(e) {

@@ -1,24 +1,5 @@
-/* Notification Bell Button - Matches the (N) Profile Avatar Styling */ 
-.uiverse-notification-btn {
-  width: 36px;
-  height: 36px;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #ffffff;
-  border-radius: 0.75rem; /* rounded-xl (identical to (N) avatar) */
-  cursor: pointer;
-  transition: all 0.2s ease, transform 0.2s ease !important;
-  box-shadow: 0 10px 15px -3px rgba(59, 7, 60, 0.4); /* shadow-lg shadow-purple-950/40 */
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  outline: none;
-  flex-shrink: 0;
-}
-
-.uiverse-notification-btn .bell {
-  width: 18px;
-  height: 18px;
+/* Notification Bell Animation & Styles - Matches Profile Avatar Styling */ 
+.bell {
   color: #942392;
   stroke: #942392;
   fill: none;
@@ -27,14 +8,7 @@
   animation: bellRingPeriodic 4s infinite ease-in-out;
 }
 
-.uiverse-notification-btn:hover,
-.uiverse-notification-btn[data-state="open"] {
-  background-color: #ffffff;
-  transform: scale(1.05);
-  box-shadow: 0 12px 20px -3px rgba(59, 7, 60, 0.5);
-}
-
-.uiverse-notification-btn:hover .bell {
+button:hover .bell {
   animation: bellRing 0.9s both;
 }
 
@@ -86,22 +60,5 @@
 
   75% {
     transform: rotateZ(2deg);
-  }
-}
-
-.uiverse-notification-btn:active {
-  transform: scale(0.95) !important;
-}
-
-/* Responsive adjustment for compact mobile view */
-@media (max-width: 480px) {
-  .uiverse-notification-btn {
-    width: 32px;
-    height: 32px;
-    border-radius: 0.5rem; /* rounded-lg */
-  }
-  .uiverse-notification-btn .bell {
-    width: 16px;
-    height: 16px;
   }
 }
