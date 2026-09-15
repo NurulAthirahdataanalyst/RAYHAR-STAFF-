@@ -1294,13 +1294,13 @@ export default function AttendanceDashboard() {
               {/* Branch Filter */}
               {role !== "branch_leader" && (
                 <Select value={selectedBranchFilter} onValueChange={setSelectedBranchFilter}>
-                  <SelectTrigger className="w-[130px] h-9 text-[11px] font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-none outline-none hover:border-[#942392]/40 hover:ring-1 hover:ring-[#942392]/40 hover:bg-[#942392]/5 dark:hover:border-[#942392]/60 dark:hover:ring-[#942392]/60 dark:hover:bg-[#942392]/20 transition-all duration-200 focus:ring-1 focus:ring-[#942392]">
-                    <SelectValue placeholder="Branch" />
+                  <SelectTrigger className="w-[170px] sm:w-[190px] h-9 text-[11px] font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-none outline-none hover:border-[#942392]/40 hover:ring-1 hover:ring-[#942392]/40 hover:bg-[#942392]/5 dark:hover:border-[#942392]/60 dark:hover:ring-[#942392]/60 dark:hover:bg-[#942392]/20 transition-all duration-200 focus:ring-1 focus:ring-[#942392]">
+                    <SelectValue placeholder="All Branches" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Branches</SelectItem>
                     {branches.map((b, idx) => (
-                      <SelectItem key={idx} value={b.code}>{toProperCase(b.name)}</SelectItem>
+                      <SelectItem key={idx} value={b.code}>{b.code} - {toProperCase(b.name)}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>

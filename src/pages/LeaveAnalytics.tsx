@@ -193,6 +193,41 @@ const MONTHS = [
 
 const YEARS = ["2027", "2026", "2025", "2024"];
 
+const BRANCH_NAMES: Record<string, string> = {
+  HQ: "Rayhar HQ",
+  KMM: "Kemaman",
+  TGG: "Kuala Terengganu",
+  CNH: "Cheneh",
+  KBG: "Kuala Berang",
+  DGN: "Dungun",
+  JTH: "Jertih",
+  KBR: "Kota Bharu",
+  RMP: "Rompin",
+  MZM: "Muadzam Shah",
+  SHA: "Shah Alam",
+  BBB: "Bandar Baru Bangi",
+  KUL: "Kuala Lumpur",
+  IPH: "Ipoh",
+  MJG: "Manjung",
+  MLK: "Melaka",
+  KKS: "Kuala Kangsar",
+  TWU: "Tawau",
+  SNS: "Seremban",
+  AOR: "Alor Setar",
+  BTM: "Bertam",
+  BTP: "Batu Pahat",
+  JB: "Johor Bharu",
+  JHB: "Johor Bharu",
+  SEP: "Sepang",
+  KUA: "Kuantan",
+};
+
+// Convert any string to Proper Case (title case), e.g. "SEPANG" -> "Sepang"
+function toProperCase(str: string): string {
+  if (!str) return str;
+  return str.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
 const BRANCHES = [
   "All Branches",
   "HQ",
@@ -384,6 +419,22 @@ export default function LeaveAnalytics() {
   const [selectedBranch, setSelectedBranch] = useState("All Branches");
   const [selectedType, setSelectedType] = useState("All Types");
   const [selectedStatus, setSelectedStatus] = useState("All");
+  const [branchMap, setBranchMap] = useState<Record<string, string>>(BRANCH_NAMES);
+
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/api/branches`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.success && Array.isArray(d.branches)) {
+          const map = { ...BRANCH_NAMES };
+          d.branches.forEach((b: any) => {
+            map[b.code] = b.name;
+          });
+          setBranchMap(map);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
 
   const monthLabel = selectedMonth === "all" ? "Monthly" : MONTHS.find((m) => m.value === selectedMonth)?.label || "Monthly";
@@ -1167,11 +1218,19 @@ export default function LeaveAnalytics() {
           )}
           {!isScopedRole && (
             <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-              <SelectTrigger className="w-[140px] h-9 text-[11px] font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-none outline-none hover:border-[#942392]/40 hover:ring-1 hover:ring-[#942392]/40 hover:bg-[#942392]/5 dark:hover:border-[#942392]/60 dark:hover:ring-[#942392]/60 dark:hover:bg-[#942392]/20 transition-all duration-200 focus:ring-1 focus:ring-[#942392]">
-                <SelectValue placeholder="Branch" />
+              <SelectTrigger className="w-[180px] sm:w-[200px] h-9 text-[11px] font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-none outline-none hover:border-[#942392]/40 hover:ring-1 hover:ring-[#942392]/40 hover:bg-[#942392]/5 dark:hover:border-[#942392]/60 dark:hover:ring-[#942392]/60 dark:hover:bg-[#942392]/20 transition-all duration-200 focus:ring-1 focus:ring-[#942392]">
+                <SelectValue placeholder="All Branches" />
               </SelectTrigger>
               <SelectContent>
-                {BRANCHES.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
+                {BRANCHES.map(b => (
+                  <SelectItem key={b} value={b}>
+                    {b === "All Branches" || b === "All"
+                      ? "All Branches"
+                      : (branchMap[b] || BRANCH_NAMES[b])
+                      ? `${b} - ${toProperCase(branchMap[b] || BRANCH_NAMES[b])}`
+                      : b}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           )}

@@ -129,10 +129,42 @@ export default function NotificationBell() {
       return;
     }
 
+    // Temporary Assignment routing: keyword check for all roles with access
+    const isTempAssignment =
+      notif.type === "assignment" ||
+      title.includes("temporary assignment") ||
+      title.includes("tempoarary assignment") ||
+      title.includes("temporary branch") ||
+      message.includes("temporary assignment") ||
+      message.includes("tempoarary assignment") ||
+      message.includes("temporary branch");
+
+    if (isTempAssignment) {
+      const normalizedRole = (role || "").toLowerCase().trim().replace(/ /g, "_");
+      const canAccessTempAssignment = [
+        "hr_admin",
+        "hr",
+        "admin",
+        "superadmin",
+        "managing_director",
+        "md",
+        "operation_manager",
+        "finance_manager",
+        "branch_leader",
+        "head_of_department",
+        "hod"
+      ].includes(normalizedRole);
+
+      if (canAccessTempAssignment) {
+        navigate("/branches/temporary-assignments");
+      } else {
+        navigate("/attendance");
+      }
+      return;
+    }
+
     if (notif.type === "attendance") {
       navigate("/attendance");
-    } else if (notif.type === "assignment") {
-      navigate("/branches/temporary-assignments");
     } else if (notif.type === "announcement" || notif.type === "company_leave") {
       navigate("/calendar/company-leave");
     } else {
@@ -315,7 +347,9 @@ export default function NotificationBell() {
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed whitespace-pre-line">
-                    {notif.message.replace(/[*_#]/g, "")}
+                    {(notif.message || "")
+                      .replace(/under Temporary Assignment assignment\.?/gi, "under Temporary Branch Assignment")
+                      .replace(/[*_#]/g, "")}
                   </p>
                   <p 
                     className="text-[10px] text-muted-foreground/80 mt-1 font-medium"

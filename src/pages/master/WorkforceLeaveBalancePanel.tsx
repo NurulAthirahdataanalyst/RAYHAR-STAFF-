@@ -33,6 +33,41 @@ import {
   X
 } from "lucide-react";
 
+const BRANCH_NAMES: Record<string, string> = {
+  HQ: "Rayhar HQ",
+  KMM: "Kemaman",
+  TGG: "Kuala Terengganu",
+  CNH: "Cheneh",
+  KBG: "Kuala Berang",
+  DGN: "Dungun",
+  JTH: "Jertih",
+  KBR: "Kota Bharu",
+  RMP: "Rompin",
+  MZM: "Muadzam Shah",
+  SHA: "Shah Alam",
+  BBB: "Bandar Baru Bangi",
+  KUL: "Kuala Lumpur",
+  IPH: "Ipoh",
+  MJG: "Manjung",
+  MLK: "Melaka",
+  KKS: "Kuala Kangsar",
+  TWU: "Tawau",
+  SNS: "Seremban",
+  AOR: "Alor Setar",
+  BTM: "Bertam",
+  BTP: "Batu Pahat",
+  JB: "Johor Bharu",
+  JHB: "Johor Bharu",
+  SEP: "Sepang",
+  KUA: "Kuantan",
+};
+
+// Convert any string to Proper Case (title case), e.g. "SEPANG" -> "Sepang"
+function toProperCase(str: string): string {
+  if (!str) return str;
+  return str.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
 interface EmployeeBalance {
   user_id: string;
   name: string;
@@ -75,6 +110,24 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
 
   const [selectedBranch, setSelectedBranch] = useState("All");
   const [selectedDepartment, setSelectedDepartment] = useState("All");
+  const [branchMap, setBranchMap] = useState<Record<string, string>>(BRANCH_NAMES);
+
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/api/branches`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          const map = { ...BRANCH_NAMES };
+          data.forEach((b: any) => {
+            if (b.code && b.name) {
+              map[b.code] = b.name;
+            }
+          });
+          setBranchMap(map);
+        }
+      })
+      .catch((err) => console.error("Error fetching branches:", err));
+  }, []);
   
   const currentYearStr = new Date().getFullYear().toString();
   const [selectedMonthYear, setSelectedMonthYear] = useState(`${currentYearStr}-all`);
@@ -570,13 +623,15 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
           {/* Branch filter */}
           {(isAllAccessRole || uniqueBranches.length > 1) && (
             <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-              <SelectTrigger className="w-[140px] h-9 text-xs font-bold bg-background/50 border-border/60">
+              <SelectTrigger className="w-[140px] sm:w-[190px] h-9 text-xs font-bold bg-background/50 border-border/60">
                 <SelectValue placeholder="Branch: All" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="All" className="text-xs font-bold">All Branches</SelectItem>
                 {uniqueBranches.map(b => (
-                  <SelectItem key={b} value={b} className="text-xs font-bold">{b}</SelectItem>
+                  <SelectItem key={b} value={b} className="text-xs font-bold">
+                    {b === "All" ? "All Branches" : (branchMap[b] || BRANCH_NAMES[b]) ? `${b} - ${toProperCase(branchMap[b] || BRANCH_NAMES[b])}` : b}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>

@@ -5312,7 +5312,7 @@ app.post("/api/attendance", async (req, res) => {
       try {
         const employeeName = empProfile[0]?.name || user_id;
         const irregTitle = `Irregular Clock-In Location`;
-        const irregMsg = `${employeeName} clocked in at ${finalLocation} under Temporary Assignment assignment.`;
+        const irregMsg = `${employeeName} clocked in at ${finalLocation} under Temporary Branch Assignment`;
 
         // Fetch HR Admins, MDs, and Operation Managers
         const [elevatedRows] = await pool.query(

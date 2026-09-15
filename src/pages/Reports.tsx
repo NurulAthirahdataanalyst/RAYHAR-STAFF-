@@ -870,9 +870,11 @@ export default function Reports() {
                                 </SelectTrigger>
                                 <SelectContent className="rounded-xl">
                                   <SelectItem value="all" className="text-[10px] font-black uppercase tracking-widest">All Branches</SelectItem>
-                                  {branches.map(b => (
-                                    <SelectItem key={b.code} value={b.code} className="text-[10px] font-black uppercase tracking-widest">{b.name ? b.name.toLowerCase().replace(/\b\w/g, (c: string) => c.toUpperCase()) : b.name}</SelectItem>
-                                  ))}
+                                   {branches.map(b => (
+                                     <SelectItem key={b.code} value={b.code} className="text-[10px] font-black uppercase tracking-widest">
+                                       {b.code} - {b.name ? b.name.toLowerCase().replace(/\b\w/g, (c: string) => c.toUpperCase()) : b.name}
+                                     </SelectItem>
+                                   ))}
                                 </SelectContent>
                               </Select>
                             </div>

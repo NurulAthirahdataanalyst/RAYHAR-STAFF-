@@ -67,7 +67,39 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar as CalendarWidget } from "@/components/ui/calendar";
 import { CalendarDays } from "lucide-react";
 import { format } from "date-fns";
+const BRANCH_NAMES: Record<string, string> = {
+  HQ: "Rayhar HQ",
+  KMM: "Kemaman",
+  TGG: "Kuala Terengganu",
+  CNH: "Cheneh",
+  KBG: "Kuala Berang",
+  DGN: "Dungun",
+  JTH: "Jertih",
+  KBR: "Kota Bharu",
+  RMP: "Rompin",
+  MZM: "Muadzam Shah",
+  SHA: "Shah Alam",
+  BBB: "Bandar Baru Bangi",
+  KUL: "Kuala Lumpur",
+  IPH: "Ipoh",
+  MJG: "Manjung",
+  MLK: "Melaka",
+  KKS: "Kuala Kangsar",
+  TWU: "Tawau",
+  SNS: "Seremban",
+  AOR: "Alor Setar",
+  BTM: "Bertam",
+  BTP: "Batu Pahat",
+  JB: "Johor Bharu",
+  JHB: "Johor Bharu",
+  SEP: "Sepang",
+  KUA: "Kuantan",
+};
 
+function toProperCase(str: string): string {
+  if (!str) return str;
+  return str.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
+}
 
 const modules = [
   {
@@ -758,7 +790,11 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {uniqueBranches.map(b => <SelectItem key={b} value={b}>{b === 'All' ? 'All Branches' : b}</SelectItem>)}
+                      {uniqueBranches.map(b => (
+                        <SelectItem key={b} value={b}>
+                          {b === 'All' ? 'All Branches' : (BRANCH_NAMES[b] ? `${b} - ${toProperCase(BRANCH_NAMES[b])}` : b)}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -1260,7 +1296,11 @@ function CarryForwardLeaveForm({
               <Select value={selectedBranch} onValueChange={setSelectedBranch}>
                 <SelectTrigger className="bg-card h-10 text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {uniqueBranches.map(b => <SelectItem key={b} value={b}>{b === 'All' ? 'All Branches' : b}</SelectItem>)}
+                  {uniqueBranches.map(b => (
+                    <SelectItem key={b} value={b}>
+                      {b === 'All' ? 'All Branches' : (BRANCH_NAMES[b] ? `${b} - ${toProperCase(BRANCH_NAMES[b])}` : b)}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

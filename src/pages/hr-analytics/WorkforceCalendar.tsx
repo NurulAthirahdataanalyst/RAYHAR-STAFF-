@@ -18,6 +18,35 @@ function toProperCase(str: string): string {
   return str.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
+const BRANCH_NAMES: Record<string, string> = {
+  HQ: "Rayhar HQ",
+  KMM: "Kemaman",
+  TGG: "Kuala Terengganu",
+  CNH: "Cheneh",
+  KBG: "Kuala Berang",
+  DGN: "Dungun",
+  JTH: "Jertih",
+  KBR: "Kota Bharu",
+  RMP: "Rompin",
+  MZM: "Muadzam Shah",
+  SHA: "Shah Alam",
+  BBB: "Bandar Baru Bangi",
+  KUL: "Kuala Lumpur",
+  IPH: "Ipoh",
+  MJG: "Manjung",
+  MLK: "Melaka",
+  KKS: "Kuala Kangsar",
+  TWU: "Tawau",
+  SNS: "Seremban",
+  AOR: "Alor Setar",
+  BTM: "Bertam",
+  BTP: "Batu Pahat",
+  JB: "Johor Bharu",
+  JHB: "Johor Bharu",
+  SEP: "Sepang",
+  KUA: "Kuantan",
+};
+
 // ── Color Config ──────────────────────────────────────────────────────────────
 const EVENT_COLORS: Record<string, { bg: string; text: string; border: string; dot: string; label: string }> = {
   "Present (On Time)":   { bg: "bg-emerald-100 dark:bg-emerald-500/20", text: "text-emerald-700 dark:text-emerald-300", border: "border-emerald-200 dark:border-emerald-500/30", dot: "bg-emerald-500", label: "Present" },
@@ -127,6 +156,7 @@ export default function WorkforceCalendar() {
   const [filterDept, setFilterDept] = useState("__ALL__");
   const [branches, setBranches] = useState<string[]>([]);
   const [departments, setDepartments] = useState<string[]>([]);
+  const [branchMap, setBranchMap] = useState<Record<string, string>>(BRANCH_NAMES);
   const [connected, setConnected] = useState(false);
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
 
@@ -157,6 +187,9 @@ export default function WorkforceCalendar() {
           ]);
           if (sysBranches?.success && Array.isArray(sysBranches.branches)) {
             bCodes = sysBranches.branches.map((b: any) => b.code);
+            const map = { ...BRANCH_NAMES };
+            sysBranches.branches.forEach((b: any) => { map[b.code] = b.name; });
+            setBranchMap(map);
           }
           if (sysDepts?.success && Array.isArray(sysDepts.departments)) {
             dNames = sysDepts.departments.map((d: any) => d.name);
@@ -352,12 +385,16 @@ export default function WorkforceCalendar() {
             {canFilterBranchDept && (
               <>
                 <Select value={filterBranch} onValueChange={setFilterBranch}>
-                  <SelectTrigger className="w-[140px] h-8 text-xs">
+                  <SelectTrigger className="w-[170px] sm:w-[190px] h-8 text-xs">
                     <SelectValue placeholder="All Branches" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="__ALL__" className="text-xs">All Branches</SelectItem>
-                    {branches.map(b => <SelectItem key={b} value={b} className="text-xs">{toProperCase(b)}</SelectItem>)}
+                    {branches.map(b => (
+                      <SelectItem key={b} value={b} className="text-xs">
+                        {b === '__ALL__' ? 'All Branches' : (branchMap[b] || BRANCH_NAMES[b]) ? `${b} - ${toProperCase(branchMap[b] || BRANCH_NAMES[b])}` : b}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 <Select value={filterDept} onValueChange={setFilterDept}>

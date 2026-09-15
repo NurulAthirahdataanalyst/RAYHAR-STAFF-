@@ -29,6 +29,40 @@ const MAPLIBRE_STYLE = {
   layers: [{ id: "osm-layer", type: "raster" as const, source: "osm", minzoom: 0, maxzoom: 19 }]
 };
 
+const BRANCH_NAMES: Record<string, string> = {
+  HQ: "Rayhar HQ",
+  KMM: "Kemaman",
+  TGG: "Kuala Terengganu",
+  CNH: "Cheneh",
+  KBG: "Kuala Berang",
+  DGN: "Dungun",
+  JTH: "Jertih",
+  KBR: "Kota Bharu",
+  RMP: "Rompin",
+  MZM: "Muadzam Shah",
+  SHA: "Shah Alam",
+  BBB: "Bandar Baru Bangi",
+  KUL: "Kuala Lumpur",
+  IPH: "Ipoh",
+  MJG: "Manjung",
+  MLK: "Melaka",
+  KKS: "Kuala Kangsar",
+  TWU: "Tawau",
+  SNS: "Seremban",
+  AOR: "Alor Setar",
+  BTM: "Bertam",
+  BTP: "Batu Pahat",
+  JB: "Johor Bharu",
+  JHB: "Johor Bharu",
+  SEP: "Sepang",
+  KUA: "Kuantan",
+};
+
+function toProperCase(str: string): string {
+  if (!str) return str;
+  return str.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
 type Employee = {
   user_id: string;
   full_name?: string;
@@ -606,12 +640,14 @@ export default function GPSLocationTracker() {
                 )}
                 {branches.length > 1 && (
                   <Select value={branchFilter} onValueChange={setBranchFilter}>
-                    <SelectTrigger className="w-32 h-8 text-xs">
+                    <SelectTrigger className="w-32 sm:w-44 h-8 text-xs">
                       <SelectValue placeholder="Branch" />
                     </SelectTrigger>
                     <SelectContent>
                       {branches.map((b) => (
-                        <SelectItem key={b} value={b} className="text-xs">{b === "All" ? "All Branches" : b}</SelectItem>
+                        <SelectItem key={b} value={b} className="text-xs">
+                          {b === "All" ? "All Branches" : (BRANCH_NAMES[b] ? `${b} - ${toProperCase(BRANCH_NAMES[b])}` : b)}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>

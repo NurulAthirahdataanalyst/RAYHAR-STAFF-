@@ -764,7 +764,9 @@ export default function SettingsPage() {
                       </SelectTrigger>
                       <SelectContent className="rounded-xl">
                         {branches.map(b => (
-                          <SelectItem key={b.code} value={b.code} className="text-[10px] font-black uppercase tracking-widest">{b.name ? b.name.toLowerCase().replace(/\b\w/g, (c: string) => c.toUpperCase()) : b.name}</SelectItem>
+                          <SelectItem key={b.code} value={b.code} className="text-[10px] font-black uppercase tracking-widest">
+                            {b.code} - {b.name ? b.name.toLowerCase().replace(/\b\w/g, (c: string) => c.toUpperCase()) : b.code}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>

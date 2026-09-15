@@ -811,14 +811,14 @@ export default function Employees() {
 
           {(["hr_admin", "managing_director", "operation_manager", "finance_manager"].includes(role) || uniqueBranches.length > 1) && (
             <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-              <SelectTrigger className="w-full sm:w-[180px] h-11 sm:h-10 border-border/60 bg-background/50 focus:ring-[#942392]/20 font-bold text-xs rounded-xl">
+              <SelectTrigger className="w-full sm:w-[200px] h-11 sm:h-10 border-border/60 bg-background/50 focus:ring-[#942392]/20 font-bold text-xs rounded-xl">
                 <SelectValue placeholder="All Branches" />
               </SelectTrigger>
               <SelectContent className="rounded-xl">
                 <SelectItem value="All" className="text-xs font-bold">All Branches</SelectItem>
                 {(Array.isArray(uniqueBranches) ? uniqueBranches : []).map((br) => (
                   <SelectItem key={br} value={br} className="text-xs font-bold">
-                    {toProperCase(branchMap[br] || br)}
+                    {br === "All" ? "All Branches" : `${br} - ${toProperCase(branchMap[br] || br)}`}
                   </SelectItem>
                 ))}
               </SelectContent>

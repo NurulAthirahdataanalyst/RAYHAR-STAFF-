@@ -186,6 +186,22 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
               action: {
                 label: "View",
                 onClick: () => {
+                  const title = (newNotif.title || "").toLowerCase();
+                  const message = (newNotif.message || "").toLowerCase();
+                  const isTempAssignment =
+                    newNotif.type === "assignment" ||
+                    title.includes("temporary assignment") ||
+                    title.includes("tempoarary assignment") ||
+                    title.includes("temporary branch") ||
+                    message.includes("temporary assignment") ||
+                    message.includes("tempoarary assignment") ||
+                    message.includes("temporary branch");
+
+                  if (isTempAssignment) {
+                    navigate("/branches/temporary-assignments");
+                    return;
+                  }
+
                   if (newNotif.action_url) {
                     navigate(newNotif.action_url);
                   } else {

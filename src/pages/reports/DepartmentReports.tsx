@@ -8,6 +8,40 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
 import PageActions from "@/components/layout/PageActions";
 
+const BRANCH_NAMES: Record<string, string> = {
+  HQ: "Rayhar HQ",
+  KMM: "Kemaman",
+  TGG: "Kuala Terengganu",
+  CNH: "Cheneh",
+  KBG: "Kuala Berang",
+  DGN: "Dungun",
+  JTH: "Jertih",
+  KBR: "Kota Bharu",
+  RMP: "Rompin",
+  MZM: "Muadzam Shah",
+  SHA: "Shah Alam",
+  BBB: "Bandar Baru Bangi",
+  KUL: "Kuala Lumpur",
+  IPH: "Ipoh",
+  MJG: "Manjung",
+  MLK: "Melaka",
+  KKS: "Kuala Kangsar",
+  TWU: "Tawau",
+  SNS: "Seremban",
+  AOR: "Alor Setar",
+  BTM: "Bertam",
+  BTP: "Batu Pahat",
+  JB: "Johor Bharu",
+  JHB: "Johor Bharu",
+  SEP: "Sepang",
+  KUA: "Kuantan",
+};
+
+function toProperCase(str: string): string {
+  if (!str) return str;
+  return str.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
 export default function DepartmentReports() {
   const { role, userBranch, userDepartment } = useRole();
   const [loading, setLoading] = useState(true);
@@ -165,13 +199,13 @@ export default function DepartmentReports() {
               </div>
             ) : (
               <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-                <SelectTrigger className="w-[140px] h-9 bg-white dark:bg-slate-950">
+                <SelectTrigger className="w-[140px] sm:w-[190px] h-9 bg-white dark:bg-slate-950">
                   <SelectValue placeholder="All Branches" />
                 </SelectTrigger>
                 <SelectContent>
                   {branches.map(b => (
-                    <SelectItem key={b} value={b} className="uppercase text-xs">
-                      {b === "All" ? "All Branches" : b}
+                    <SelectItem key={b} value={b} className="text-xs">
+                      {b === "All" ? "All Branches" : (BRANCH_NAMES[b] ? `${b} - ${toProperCase(BRANCH_NAMES[b])}` : b)}
                     </SelectItem>
                   ))}
                 </SelectContent>
