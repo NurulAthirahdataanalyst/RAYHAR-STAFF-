@@ -75,13 +75,8 @@ export const AvatarPickerModal: React.FC<AvatarPickerModalProps> = ({
             </div>
           </div>
           <div className="text-center sm:text-left flex-1 min-w-0">
-            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Preview</p>
+            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Selected Avatar</p>
             <p className="text-base sm:text-lg font-black text-foreground truncate">{userName}</p>
-            <div className="flex items-center justify-center sm:justify-start gap-2 mt-1">
-              <Badge variant="outline" className="text-[10px] font-bold border-[#942392]/30 text-[#942392] bg-[#942392]/5">
-                {selectedOpt.name}
-              </Badge>
-            </div>
           </div>
         </div>
 
@@ -98,13 +93,13 @@ export const AvatarPickerModal: React.FC<AvatarPickerModalProps> = ({
                   : "bg-muted/50 text-muted-foreground hover:bg-muted"
               }`}
             >
-              {filterKey === "all" ? "All Avatars" : filterKey === "female" ? "Women / Hijab" : "Men"}
+              {filterKey === "all" ? "All" : filterKey === "female" ? "Women / Hijab" : "Men"}
             </button>
           ))}
         </div>
 
-        {/* Avatars Grid */}
-        <div className="max-h-[300px] overflow-y-auto pr-1 py-1 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 sm:gap-4">
+        {/* Avatars Grid - Clean icons without names */}
+        <div className="max-h-[320px] overflow-y-auto pr-1 py-1 grid grid-cols-4 sm:grid-cols-5 gap-3">
           {filteredAvatars.map((opt) => {
             const isSelected = selectedId === opt.id;
             return (
@@ -112,15 +107,16 @@ export const AvatarPickerModal: React.FC<AvatarPickerModalProps> = ({
                 key={opt.id}
                 type="button"
                 onClick={() => setSelectedId(opt.id)}
-                className={`relative group p-2.5 rounded-2xl flex flex-col items-center gap-2 transition-all cursor-pointer text-center outline-none border ${
+                className={`relative group p-2 rounded-2xl flex items-center justify-center transition-all cursor-pointer outline-none border ${
                   isSelected
-                    ? "bg-[#942392]/10 border-[#942392] ring-2 ring-[#942392]/50 shadow-md scale-102"
-                    : "bg-card hover:bg-muted/40 border-border/40 hover:border-border hover:scale-105"
+                    ? "bg-[#942392]/10 border-[#942392] ring-2 ring-[#942392]/50 shadow-md scale-105"
+                    : "bg-card hover:bg-muted/50 border-border/40 hover:border-border hover:scale-105"
                 }`}
+                title={opt.name}
               >
                 {/* Avatar circle */}
-                <div className={`w-14 h-14 rounded-full overflow-hidden p-0.5 relative transition-transform ${
-                  isSelected ? "ring-2 ring-[#942392]" : "group-hover:ring-2 group-hover:ring-purple-400/40"
+                <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden p-0.5 relative transition-transform ${
+                  isSelected ? "ring-2 ring-[#942392]" : "group-hover:ring-2 group-hover:ring-[#942392]/40"
                 }`}>
                   {opt.id === "initials" ? (
                     <UserAvatar avatarId="initials" name={userName} className="w-full h-full" />
@@ -135,10 +131,6 @@ export const AvatarPickerModal: React.FC<AvatarPickerModalProps> = ({
                     <Check className="w-3 h-3 stroke-[3]" />
                   </span>
                 )}
-
-                <span className="text-[10px] font-bold text-foreground truncate w-full px-1">
-                  {opt.name.split(" ")[0]}
-                </span>
               </button>
             );
           })}
