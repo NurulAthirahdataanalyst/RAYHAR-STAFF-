@@ -3571,62 +3571,34 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
         const leaveNotifTitle = `New Leave Request: ${leaveData.full_name}`;
         const leaveNotifMessage = `${leaveData.full_name} submitted a Leave Request for ${leaveData.leave_type} (${leaveData.days} day(s)) from ${new Date(leaveData.start_date).toLocaleDateString()} to ${new Date(leaveData.end_date).toLocaleDateString()}.`;
 
-        // Notify all HR Admins (email + in-app)
-        const [hrRows] = await pool.query(
-          `SELECT p.email, p.user_id FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'hr_admin' AND p.status = 'Active'`
+        // Notify all elevated roles (HR Admins, Managing Director, Operation Manager)
+        const [elevatedRows] = await pool.query(
+          `SELECT DISTINCT p.email, p.user_id, ur.role 
+           FROM profiles p 
+           JOIN user_role ur ON p.user_id = ur.user_id 
+           WHERE ur.role IN ('hr_admin', 'managing_director', 'operation_manager', 'finance_manager') 
+             AND p.status = 'Active' 
+             AND p.user_id != ?`,
+          [leaveData.user_id]
         );
-        for (const hr of (hrRows || [])) {
-          if (hr.email) {
-            sendNotificationEmail(hr.email, `FYI - New Leave Application: ${leaveData.full_name}`, html).catch(err => {
+        for (const el of (elevatedRows || [])) {
+          if (el.user_id === approverUserId) continue; // Already received direct approval action notification
+
+          if (el.email && el.role === 'hr_admin') {
+            sendNotificationEmail(el.email, `FYI - New Leave Application: ${leaveData.full_name}`, html).catch(err => {
               console.error("Failed to send HR notification email:", err);
             });
           }
-          if (hr.user_id) {
+          if (el.user_id) {
             notificationService.createNotification({
-              userId: hr.user_id,
+              userId: el.user_id,
               title: leaveNotifTitle,
               message: leaveNotifMessage,
               type: 'leave_approval',
               scope: 'team',
               relatedLeaveId: result.insertId,
               sendPush: true,
-            }).catch(err => console.error("Failed to send HR in-app notification:", err));
-          }
-        }
-
-        // Notify all Managing Directors (in-app)
-        const [mdRows] = await pool.query(
-          `SELECT p.user_id FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'managing_director' AND p.status = 'Active'`
-        );
-        for (const md of (mdRows || [])) {
-          if (md.user_id) {
-            notificationService.createNotification({
-              userId: md.user_id,
-              title: leaveNotifTitle,
-              message: leaveNotifMessage,
-              type: 'leave_approval',
-              scope: 'team',
-              relatedLeaveId: result.insertId,
-              sendPush: true,
-            }).catch(err => console.error("Failed to send MD in-app notification:", err));
-          }
-        }
-
-        // Notify all Operation Managers (in-app)
-        const [omRows] = await pool.query(
-          `SELECT p.user_id FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role IN ('operation_manager', 'finance_manager') AND p.status = 'Active'`
-        );
-        for (const om of (omRows || [])) {
-          if (om.user_id) {
-            notificationService.createNotification({
-              userId: om.user_id,
-              title: leaveNotifTitle,
-              message: leaveNotifMessage,
-              type: 'leave_approval',
-              scope: 'team',
-              relatedLeaveId: result.insertId,
-              sendPush: true,
-            }).catch(err => console.error("Failed to send OM in-app notification:", err));
+            }).catch(err => console.error("Failed to send elevated in-app notification:", err));
           }
         }
 
@@ -3778,19 +3750,26 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
           notificationTitle = `Leave Request ${nextStatus}`;
           notificationMessage = `Your request for ${leaveData.leave_type} has been ${nextStatus.toLowerCase()}.`;
 
-          // Notify all HR Admins
-          const [hrRows] = await pool.query(
-            `SELECT p.email, p.user_id FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'hr_admin' AND p.status = 'Active'`
+          // Notify all elevated roles (HR Admins, Managing Director, Operation Manager)
+          const [elevatedFinalRows] = await pool.query(
+            `SELECT DISTINCT p.email, p.user_id, ur.role 
+             FROM profiles p 
+             JOIN user_role ur ON p.user_id = ur.user_id 
+             WHERE ur.role IN ('hr_admin', 'managing_director', 'operation_manager', 'finance_manager') 
+               AND p.status = 'Active' 
+               AND p.user_id != ?`,
+            [leaveData.user_id]
           );
-          for (const hr of (hrRows || [])) {
-            if (hr.email) {
-              sendNotificationEmail(hr.email, `Leave Request ${nextStatus}: ${leaveData.employee_name}`, `<p>The leave request for <strong>${leaveData.employee_name}</strong> has been <strong>${nextStatus}</strong>.</p>`).catch(console.error);
+          for (const member of (elevatedFinalRows || [])) {
+            if (member.user_id === approver_id) continue;
+            if (member.email && member.role === 'hr_admin') {
+              sendNotificationEmail(member.email, `Leave Request ${nextStatus}: ${leaveData.employee_name}`, `<p>The leave request for <strong>${leaveData.employee_name}</strong> has been <strong>${nextStatus}</strong>.</p>`).catch(console.error);
             }
-            if (hr.user_id) {
+            if (member.user_id) {
               notificationService.createNotification({
-                userId: hr.user_id,
+                userId: member.user_id,
                 title: `Leave ${nextStatus}: ${leaveData.employee_name}`,
-                message: `${leaveData.employee_name}'s request for ${leaveData.leave_type} is now ${nextStatus.toLowerCase()}.`,
+                message: `${leaveData.employee_name}'s request for ${leaveData.leave_type} (${leaveData.days} day(s)) is now ${nextStatus.toLowerCase()}.`,
                 type: 'status_update',
                 scope: 'team',
                 relatedLeaveId: leaveId,
@@ -3854,6 +3833,36 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
             relatedLeaveId: leaveId,
             sendPush: true,
           });
+
+          // Also notify HR Admins, Managing Director, and Operation Manager of approval progress
+          const targetWaitingTitle = sUpper.includes("MD") || sUpper.includes("MANAGING DIRECTOR") 
+            ? "Managing Director" 
+            : (sUpper.includes("OPERATION") || sUpper.includes("FINANCE") ? "Operation Manager" : (sUpper.includes("HOD") ? "Head of Department" : "Branch Leader"));
+          const teamProgressTitle = `Leave Approval Progress: ${leaveData.employee_name}`;
+          const teamProgressMsg = `${leaveData.employee_name}'s leave application for ${leaveData.leave_type} (${leaveData.days} day(s)) is currently waiting for ${targetWaitingTitle}.`;
+
+          const [elevatedProgRows] = await pool.query(
+            `SELECT DISTINCT p.user_id, ur.role 
+             FROM profiles p 
+             JOIN user_role ur ON p.user_id = ur.user_id 
+             WHERE ur.role IN ('hr_admin', 'managing_director', 'operation_manager', 'finance_manager') 
+               AND p.status = 'Active' 
+               AND p.user_id != ?`,
+            [leaveData.user_id]
+          );
+          for (const el of (elevatedProgRows || [])) {
+            if (el.user_id === targetUserId || el.user_id === approver_id) continue;
+
+            notificationService.createNotification({
+              userId: el.user_id,
+              title: teamProgressTitle,
+              message: teamProgressMsg,
+              type: 'leave_approval',
+              scope: 'team',
+              relatedLeaveId: leaveId,
+              sendPush: true,
+            }).catch(err => console.error("Failed to send intermediate progress notification to elevated role:", err));
+          }
         } 
         // 2. If final status is Approved
         else if (nextStatus === "Approved") {

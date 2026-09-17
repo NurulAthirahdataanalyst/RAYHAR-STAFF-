@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Loader2, ChevronLeft, ChevronRight, X, Calendar, User, FileText, Activity, AlertCircle, RefreshCw } from "lucide-react";
+import { ReplacementLeaveIcon, UnpaidLeaveIcon } from "@/components/icons/LeaveIcons";
 import { API_BASE_URL } from "../config/api";
 
 const PRIMARY_COLOR = "#942392";
@@ -178,14 +179,14 @@ export default function LeaveCalendar() {
             value: kpiReplacement, 
             color: "#3b82f6", 
             textColor: "text-blue-500",
-            icon: RefreshCw 
+            icon: ReplacementLeaveIcon 
           },
           { 
             label: "Unpaid Leave", 
             value: kpiUnpaid, 
             color: "#64748b", 
             textColor: "text-slate-500",
-            icon: AlertCircle 
+            icon: UnpaidLeaveIcon 
           },
         ].map((kpi) => {
           const Icon = kpi.icon;

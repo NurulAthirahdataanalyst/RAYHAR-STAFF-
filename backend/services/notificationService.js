@@ -39,12 +39,14 @@ async function createNotification({
     title.startsWith('Irregular Clock-In') || 
     title.startsWith('Leave Final Approval Required') ||
     title.startsWith('Leave Approval Required') ||
+    title.startsWith('Leave Approval Progress:') ||
     title.toLowerCase().includes('anomaly') ||
     title.toLowerCase().includes('requires your approval') ||
     title.toLowerCase().includes('need your approval') ||
     message.includes("'s request for") ||
     message.includes("submitted a Leave Request") ||
-    message.toLowerCase().includes("requires your approval")
+    message.toLowerCase().includes("requires your approval") ||
+    message.toLowerCase().includes("is currently waiting for")
   );
 
   const finalScope = scope || (isTeam ? 'team' : 'personal');
@@ -152,9 +154,11 @@ const TEAM_SCOPE_CLAUSE = `(
   OR title LIKE 'Irregular Clock-In%'
   OR title LIKE 'Leave Final Approval Required%'
   OR title LIKE 'Leave Approval Required%'
+  OR title LIKE 'Leave Approval Progress:%'
   OR message LIKE '%''s request for%' 
   OR message LIKE '% request for % is now %'
   OR message LIKE '%submitted a Leave Request%'
+  OR message LIKE '%is currently waiting for%'
 )`;
 
 const MY_SCOPE_CLAUSE = `(
@@ -168,9 +172,11 @@ const MY_SCOPE_CLAUSE = `(
   AND title NOT LIKE 'Irregular Clock-In%'
   AND title NOT LIKE 'Leave Final Approval Required%'
   AND title NOT LIKE 'Leave Approval Required%'
+  AND title NOT LIKE 'Leave Approval Progress:%'
   AND message NOT LIKE '%''s request for%'
   AND message NOT LIKE '% request for % is now %'
   AND message NOT LIKE '%submitted a Leave Request%'
+  AND message NOT LIKE '%is currently waiting for%'
 )`;
 
 /**
