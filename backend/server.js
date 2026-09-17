@@ -3059,9 +3059,6 @@ app.get("/api/leave-requests", async (req, res) => {
   const date = req.query.date;
 
   try {
-    // Proactively auto-reject leaves before fetching
-    await autoRejectPendingLeaves();
-
     const params = [];
     const filters = [];
 
