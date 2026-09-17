@@ -1585,11 +1585,9 @@ export default function Dashboard() {
               {/* Tab Strip */}
               <div className="flex gap-4 border-b border-slate-200 dark:border-slate-800">
                 {([
-                  { key: "my", label: "My Activity" },
-                  ...(isElevatedRole ? [{ key: "team", label: "Team" }] : []),
-                  ...(canSeeSystem ? [{ key: "system", label: "System" }] : []),
-                  ...((role === "hr_admin" || role === "managing_director") ? [{ key: "all", label: "All" }] : []),
-                ] as { key: "my" | "team" | "system" | "all"; label: string }[]).map(tab => (
+                  { key: "my", label: "Personal" },
+                  ...(isElevatedRole ? [{ key: "team", label: "Management" }] : []),
+                ] as { key: "my" | "team"; label: string }[]).map(tab => (
                   <button
                     key={tab.key}
                     onClick={() => { setActiveTab(tab.key); setActivityPage(1); }}

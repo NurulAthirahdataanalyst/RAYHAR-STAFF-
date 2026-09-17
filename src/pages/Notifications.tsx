@@ -523,7 +523,7 @@ export default function Notifications() {
         </div>
       </div>
 
-      {/* Primary Scope Tabs: My Notifications vs Team Notifications (matching Recent Activity) */}
+      {/* Primary Scope Tabs: Personal vs Management (matching Recent Activity) */}
       {isElevatedRole && (
         <div className="flex items-center gap-6 border-b border-slate-200 dark:border-slate-800 pb-0">
           <button
@@ -534,7 +534,7 @@ export default function Notifications() {
                 : "border-transparent text-muted-foreground hover:text-foreground"
             }`}
           >
-            <span>My Notifications</span>
+            <span>Personal</span>
             {myUnreadCount > 0 && (
               <span className="px-1.5 py-0.5 text-[10px] font-black rounded-full bg-[#942392]/10 text-[#942392] border border-[#942392]/20">
                 {myUnreadCount}
@@ -550,7 +550,7 @@ export default function Notifications() {
                 : "border-transparent text-muted-foreground hover:text-foreground"
             }`}
           >
-            <span>Team Notifications</span>
+            <span>Management</span>
             {teamUnreadCount > 0 && (
               <span className="px-1.5 py-0.5 text-[10px] font-black rounded-full bg-[#942392]/10 text-[#942392] border border-[#942392]/20">
                 {teamUnreadCount}
