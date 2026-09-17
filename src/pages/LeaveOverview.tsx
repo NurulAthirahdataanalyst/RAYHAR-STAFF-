@@ -96,6 +96,8 @@ export default function LeaveOverview() {
   const { userId, userName } = useRole();
   const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([]);
   const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
+  const [leaveTypeFilter, setLeaveTypeFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [refreshKey, setRefreshKey] = useState(0);
   const [recentPage, setRecentPage] = useState(1);
   const [recentLimit, setRecentLimit] = useState(10);
@@ -105,6 +107,10 @@ export default function LeaveOverview() {
     used: 0,
     latestEarned: null,
   });
+
+  useEffect(() => {
+    setRecentPage(1);
+  }, [selectedYear, leaveTypeFilter, statusFilter]);
 
   useEffect(() => {
     if (!userId) return;
@@ -137,10 +143,46 @@ export default function LeaveOverview() {
     });
   }, [leaveRequests, selectedYear]);
 
+  const tableLeaveRequests = useMemo(() => {
+    return filteredLeaveRequests.filter((req) => {
+      // Leave Type Filter
+      if (leaveTypeFilter !== "all") {
+        const typeLabel = leaveTypeLabels[req.type] || "";
+        if (leaveTypeFilter === "Annual/Emergency Leave" && typeLabel !== "ANNUAL/EMERGENCY LEAVE") {
+          return false;
+        }
+        if (leaveTypeFilter === "Sick Leave" && typeLabel !== "SICK LEAVE") {
+          return false;
+        }
+        if (leaveTypeFilter === "Replacement Leave" && typeLabel !== "REPLACEMENT LEAVE") {
+          return false;
+        }
+        if (leaveTypeFilter === "Unpaid Leave" && typeLabel !== "UNPAID LEAVE") {
+          return false;
+        }
+      }
+
+      // Status Filter
+      if (statusFilter !== "all") {
+        if (statusFilter === "Approved" && req.status !== "Approved") {
+          return false;
+        }
+        if (statusFilter === "Rejected" && req.status !== "Rejected") {
+          return false;
+        }
+        if (statusFilter === "Pending" && (req.status === "Approved" || req.status === "Rejected")) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [filteredLeaveRequests, leaveTypeFilter, statusFilter]);
+
   const paginatedLeaveRequests = useMemo(() => {
     const start = (recentPage - 1) * recentLimit;
-    return filteredLeaveRequests.slice(start, start + recentLimit);
-  }, [filteredLeaveRequests, recentPage, recentLimit]);
+    return tableLeaveRequests.slice(start, start + recentLimit);
+  }, [tableLeaveRequests, recentPage, recentLimit]);
 
   useEffect(() => {
     const fetchLeaveRequests = async () => {
@@ -403,7 +445,32 @@ export default function LeaveOverview() {
       <Card className="border-none shadow-[0_18px_42px_rgba(0,0,0,0.04)] dark:shadow-[0_18px_42px_rgba(0,0,0,0.18)] bg-card/80 backdrop-blur-md rounded-[24px] sm:rounded-[28px] overflow-hidden">
         <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/50 pb-3 px-4 sm:px-5">
           <CardTitle className="text-base sm:text-lg font-black text-foreground">Recent Applications</CardTitle>
-          <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <Select value={leaveTypeFilter} onValueChange={setLeaveTypeFilter}>
+              <SelectTrigger className="h-10 px-3 min-w-[155px] bg-card border border-[#942392]/20 text-foreground text-xs font-bold rounded-xl shadow-sm outline-none cursor-pointer">
+                <SelectValue placeholder="All Leave Type" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl border border-border/80 shadow-lg">
+                <SelectItem value="all" className="text-xs font-semibold">All Leave Type</SelectItem>
+                <SelectItem value="Annual/Emergency Leave" className="text-xs font-semibold">Annual/Emergency Leave</SelectItem>
+                <SelectItem value="Sick Leave" className="text-xs font-semibold">Sick Leave</SelectItem>
+                <SelectItem value="Replacement Leave" className="text-xs font-semibold">Replacement Leave</SelectItem>
+                <SelectItem value="Unpaid Leave" className="text-xs font-semibold">Unpaid Leave</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="h-10 px-3 min-w-[125px] bg-card border border-[#942392]/20 text-foreground text-xs font-bold rounded-xl shadow-sm outline-none cursor-pointer">
+                <SelectValue placeholder="All Status" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl border border-border/80 shadow-lg">
+                <SelectItem value="all" className="text-xs font-semibold">All Status</SelectItem>
+                <SelectItem value="Pending" className="text-xs font-semibold">Pending</SelectItem>
+                <SelectItem value="Approved" className="text-xs font-semibold">Approved</SelectItem>
+                <SelectItem value="Rejected" className="text-xs font-semibold">Rejected</SelectItem>
+              </SelectContent>
+            </Select>
+
             <YearPopover 
               year={selectedYear} 
               onSelectYear={setSelectedYear} 
@@ -494,7 +561,7 @@ export default function LeaveOverview() {
 
           <TablePagination
             currentPage={recentPage}
-            totalItems={filteredLeaveRequests.length}
+            totalItems={tableLeaveRequests.length}
             pageSize={recentLimit}
             onPageChange={setRecentPage}
             onPageSizeChange={setRecentLimit}

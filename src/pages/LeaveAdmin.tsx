@@ -622,19 +622,58 @@ export default function LeaveAdmin() {
       {/* 4 Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6">
         {[
-          { title: "Total Leaves", count: requestsByMonth.length, bg: "bg-emerald-500", icon: CheckCircle2 },
-          { title: "Approved Leaves", count: approvedCount, bg: "bg-pink-500", icon: FileText },
-          { title: "Rejected Leaves", count: rejectedCount, bg: "bg-amber-500", icon: XCircle },
-          { title: "Pending Requests", count: pendingCount, bg: "bg-cyan-500", icon: Clock },
+          { 
+            title: "Total Leaves", 
+            count: requestsByMonth.length, 
+            barBg: "bg-emerald-500", 
+            iconColor: "text-emerald-500", 
+            icon: CheckCircle2 
+          },
+          { 
+            title: "Approved Leaves", 
+            count: approvedCount, 
+            barBg: "bg-pink-500", 
+            iconColor: "text-pink-500", 
+            icon: FileText 
+          },
+          { 
+            title: "Rejected Leaves", 
+            count: rejectedCount, 
+            barBg: "bg-amber-500", 
+            iconColor: "text-amber-500", 
+            icon: XCircle 
+          },
+          { 
+            title: "Pending Requests", 
+            count: pendingCount, 
+            barBg: "bg-cyan-500", 
+            iconColor: "text-cyan-500", 
+            icon: Clock 
+          },
         ].map((stat, i) => (
-          <div key={i} className={`bg-card border border-gray-200 dark:border-slate-800/80 shadow-sm hover:-translate-y-1 hover:shadow-lg${stat.bg.replace('bg-', 'border-l-')} rounded-lg overflow-hidden flex relative h-[100px] hover:shadow-md transition-shadow`}>
-            <div className={`w-[85px] ${stat.bg} flex items-center justify-center relative shrink-0`}>
-              <stat.icon className="text-white w-8 h-8 z-10" />
-              <div className="absolute -right-[20px] top-0 bottom-0 w-[40px] bg-card transform skew-x-[-20deg]" />
+          <div 
+            key={i} 
+            className="relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm p-4 sm:p-6 flex items-center hover:shadow-md transition-all"
+          >
+            {/* Left vertical colored accent bar */}
+            <div className={`absolute left-0 top-0 bottom-0 w-2 ${stat.barBg} rounded-l-2xl`} />
+
+            {/* Icon on left */}
+            <div className="pl-3 pr-4 sm:pr-6 flex items-center justify-center shrink-0">
+              <stat.icon className={`w-10 h-10 sm:w-11 sm:h-11 ${stat.iconColor}`} strokeWidth={2.2} />
             </div>
-            <div className="flex-1 flex flex-col justify-center items-end pr-3 sm:pr-5 relative z-10 min-w-0">
-              <div className="text-[12px] sm:text-[13px] font-medium text-foreground text-right leading-tight break-words">{stat.title}</div>
-              <div className="text-2xl sm:text-3xl font-bold mt-0.5 tracking-tight">{stat.count}</div>
+
+            {/* Vertical divider */}
+            <div className="h-11 sm:h-12 w-[1px] bg-slate-200 dark:bg-slate-700 mr-5 sm:mr-6 shrink-0" />
+
+            {/* Right: Label & Number */}
+            <div className="flex flex-col min-w-0">
+              <span className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate">
+                {stat.title}
+              </span>
+              <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight mt-0.5">
+                {stat.count}
+              </span>
             </div>
           </div>
         ))}
