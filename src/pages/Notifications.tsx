@@ -531,7 +531,7 @@ export default function Notifications() {
             className={`pb-2.5 text-sm font-bold transition-all duration-200 border-b-2 flex items-center gap-2 ${
               activeScope === "my"
                 ? "border-[#942392] text-[#942392]"
-                : "border-transparent text-muted-foreground hover:text-foreground"
+                : "border-transparent text-muted-foreground dark:text-white/70 hover:text-foreground dark:hover:text-white"
             }`}
           >
             <span>Personal</span>
@@ -547,10 +547,10 @@ export default function Notifications() {
             className={`pb-2.5 text-sm font-bold transition-all duration-200 border-b-2 flex items-center gap-2 ${
               activeScope === "team"
                 ? "border-[#942392] text-[#942392]"
-                : "border-transparent text-muted-foreground hover:text-foreground"
+                : "border-transparent text-muted-foreground dark:text-white/70 hover:text-foreground dark:hover:text-white"
             }`}
           >
-            <span>Management</span>
+            <span>Team Management</span>
             {teamUnreadCount > 0 && (
               <span className="px-1.5 py-0.5 text-[10px] font-black rounded-full bg-[#942392]/10 text-[#942392] border border-[#942392]/20">
                 {teamUnreadCount}

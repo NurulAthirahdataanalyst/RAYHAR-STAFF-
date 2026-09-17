@@ -1264,19 +1264,19 @@ export default function OutstationDashboard() {
                 <div className="grid grid-cols-2 gap-3">
                   <div onClick={() => navigate("/outstation/assignment")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-purple-500 hover:ring-1 hover:ring-purple-500 hover:bg-purple-50/50 dark:hover:bg-slate-900/50 transition-all duration-200">
                     <Plane className="w-6 h-6 text-[#942392] mb-2" />
-                    <span className="text-[10px] font-bold text-foreground dark:text-slate-300 uppercase text-center">New Assignment</span>
+                    <span className="text-[10px] font-bold text-foreground dark:text-white uppercase text-center">New Assignment</span>
                   </div>
                   <div onClick={() => navigate("/outstation/calendar")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-purple-500 hover:ring-1 hover:ring-purple-500 hover:bg-purple-50/50 dark:hover:bg-slate-900/50 transition-all duration-200">
                     <Calendar className="w-6 h-6 text-[#942392] mb-2" />
-                    <span className="text-[10px] font-bold text-foreground dark:text-slate-300 uppercase text-center">Calendar View</span>
+                    <span className="text-[10px] font-bold text-foreground dark:text-white uppercase text-center">Calendar View</span>
                   </div>
                   <div onClick={() => navigate("/outstation/analytics")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-purple-500 hover:ring-1 hover:ring-purple-500 hover:bg-purple-50/50 dark:hover:bg-slate-900/50 transition-all duration-200">
                     <Activity className="w-6 h-6 text-[#942392] mb-2" />
-                    <span className="text-[10px] font-bold text-foreground dark:text-slate-300 uppercase text-center">Analytics</span>
+                    <span className="text-[10px] font-bold text-foreground dark:text-white uppercase text-center">Analytics</span>
                   </div>
                   <div onClick={() => navigate("/outstation/reports")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-purple-500 hover:ring-1 hover:ring-purple-500 hover:bg-purple-50/50 dark:hover:bg-slate-900/50 transition-all duration-200">
                     <Map className="w-6 h-6 text-[#942392] mb-2" />
-                    <span className="text-[10px] font-bold text-foreground dark:text-slate-300 uppercase text-center">Reports</span>
+                    <span className="text-[10px] font-bold text-foreground dark:text-white uppercase text-center">Reports</span>
                   </div>
                 </div>
               </CardContent>

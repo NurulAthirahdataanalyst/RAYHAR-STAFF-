@@ -299,10 +299,10 @@ export default function NotificationBell() {
               className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 text-xs rounded-lg transition-all cursor-pointer ${
                 activeScope === "my"
                   ? "bg-card text-[#942392] ring-1 ring-[#942392] border border-[#942392]/40 shadow-xs font-bold"
-                  : "bg-background/60 text-muted-foreground hover:text-[#942392] hover:border-[#942392]/30 border border-border/50 font-medium"
+                  : "bg-background/60 text-muted-foreground dark:text-slate-200 hover:text-[#942392] hover:border-[#942392]/30 border border-border/50 font-medium"
               }`}
             >
-              <span>My</span>
+              <span>Personal</span>
               {myUnreadCount > 0 && (
                 <span className={`px-1.5 py-0.2 text-[10px] font-black rounded-full transition-colors ${
                   activeScope === "my"
@@ -321,10 +321,10 @@ export default function NotificationBell() {
               className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 text-xs rounded-lg transition-all cursor-pointer ${
                 activeScope === "team"
                   ? "bg-card text-[#942392] ring-1 ring-[#942392] border border-[#942392]/40 shadow-xs font-bold"
-                  : "bg-background/60 text-muted-foreground hover:text-[#942392] hover:border-[#942392]/30 border border-border/50 font-medium"
+                  : "bg-background/60 text-muted-foreground dark:text-slate-200 hover:text-[#942392] hover:border-[#942392]/30 border border-border/50 font-medium"
               }`}
             >
-              <span>Team</span>
+              <span>Team Management</span>
               {teamUnreadCount > 0 && (
                 <span className={`px-1.5 py-0.2 text-[10px] font-black rounded-full transition-colors ${
                   activeScope === "team"

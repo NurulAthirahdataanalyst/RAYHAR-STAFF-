@@ -1450,7 +1450,7 @@ export default function Dashboard() {
               </div>
               <div className="pt-0.5">
                 <p className="text-xs font-black text-[#1a0029] mb-1">Why the difference?</p>
-                <p className="text-[11px] text-slate-600 font-medium leading-relaxed">
+                <p className="text-[11px] text-slate-600 dark:text-slate-200 font-medium leading-relaxed">
                   Today's attendance is lower because <span className="font-bold text-[#a01497] bg-card px-1 py-0.5 rounded shadow-sm border border-slate-100 dark:border-slate-800">{stats.companyLeave || 0} employees</span> are on Company Leave (<span className="font-bold">{stats.activeCompanyLeave?.title || "Company Trip"}</span>) which applies to <span className="font-bold text-[#a01497] bg-card px-1 py-0.5 rounded shadow-sm border border-slate-100 dark:border-slate-800 uppercase">{stats.activeCompanyLeave?.applies_to === 'all' ? 'ALL STAFF' : stats.activeCompanyLeave?.applies_to === 'branch' ? `BRANCH ${stats.activeCompanyLeave?.branch_id}` : `DEPT ${stats.activeCompanyLeave?.department_id}`}</span>.
                 </p>
               </div>
@@ -1554,7 +1554,7 @@ export default function Dashboard() {
                 ) : (
                   <div className="py-6 text-center flex flex-col items-center justify-center gap-2">
                     <CheckCircle2 className="w-6 h-6 text-emerald-500" />
-                    <p className="text-sm font-bold text-slate-700">All Hands on Deck!</p>
+                    <p className="text-sm font-bold text-slate-700 dark:text-white">All Hands on Deck!</p>
                     <p className="text-xs text-foreground">No employees are on leave today.</p>
                   </div>
                 )}
@@ -1576,7 +1576,7 @@ export default function Dashboard() {
                   {lastUpdated && (
                     <span className="text-xs italic text-foreground">Updated a few seconds ago</span>
                   )}
-                  <div className="border border-slate-200 dark:border-slate-800 rounded px-2 py-1 text-[10px] font-bold text-slate-600">
+                  <div className="border border-slate-200 dark:border-slate-800 rounded px-2 py-1 text-[10px] font-bold text-slate-600 dark:text-white">
                     Recent Activities
                   </div>
                 </div>
@@ -1586,7 +1586,7 @@ export default function Dashboard() {
               <div className="flex gap-4 border-b border-slate-200 dark:border-slate-800">
                 {([
                   { key: "my", label: "Personal" },
-                  ...(isElevatedRole ? [{ key: "team", label: "Management" }] : []),
+                  ...(isElevatedRole ? [{ key: "team", label: "Team Management" }] : []),
                 ] as { key: "my" | "team"; label: string }[]).map(tab => (
                   <button
                     key={tab.key}
@@ -1618,7 +1618,7 @@ export default function Dashboard() {
                     className={`px-5 py-2.5 rounded-full text-[10px] font-black tracking-widest transition-all duration-300 active:scale-95 ${
                       activityFilter === chip.key
                         ? "bg-slate-100 dark:bg-slate-800 text-[#a01497] shadow-[inset_4px_4px_8px_rgba(0,0,0,0.1),inset_-4px_-4px_8px_rgba(255,255,255,0.9)] dark:shadow-[inset_4px_4px_8px_rgba(0,0,0,0.5),inset_-4px_-4px_8px_rgba(255,255,255,0.05)]"
-                        : "bg-slate-100 dark:bg-slate-800 text-slate-500 shadow-[4px_4px_10px_rgba(0,0,0,0.1),-4px_-4px_10px_rgba(255,255,255,0.9)] dark:shadow-[4px_4px_10px_rgba(0,0,0,0.4),-4px_-4px_10px_rgba(255,255,255,0.02)] hover:text-slate-700 dark:hover:text-slate-300"
+                        : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-white shadow-[4px_4px_10px_rgba(0,0,0,0.1),-4px_-4px_10px_rgba(255,255,255,0.9)] dark:shadow-[4px_4px_10px_rgba(0,0,0,0.4),-4px_-4px_10px_rgba(255,255,255,0.02)] hover:text-slate-700 dark:hover:text-white"
                     }`}
                   >
                     {chip.label}
@@ -1752,16 +1752,16 @@ export default function Dashboard() {
               <div className="grid grid-cols-2 gap-3">
                 <div onClick={() => navigate("/attendance")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-500 hover:ring-1 hover:ring-purple-500 hover:bg-purple-50/50 dark:hover:bg-slate-900/50 transition-all duration-200">
                   <Clock className="w-6 h-6 text-[#a01497] mb-2" />
-                  <span className="text-[10px] font-bold text-slate-600 uppercase text-center">Clock In/Out</span>
+                  <span className="text-[10px] font-bold text-slate-600 dark:text-white uppercase text-center">Clock In/Out</span>
                 </div>
                 <div onClick={() => navigate("/leave/apply")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-500 hover:ring-1 hover:ring-purple-500 hover:bg-purple-50/50 dark:hover:bg-slate-900/50 transition-all duration-200">
                   <CalendarCheck className="w-6 h-6 text-[#a01497] mb-2" />
-                  <span className="text-[10px] font-bold text-slate-600 uppercase text-center">Apply Leave</span>
+                  <span className="text-[10px] font-bold text-slate-600 dark:text-white uppercase text-center">Apply Leave</span>
                 </div>
                 {["hr_admin", "managing_director", "operation_manager", "head_of_department", "branch_leader"].includes(role) && (
                   <div onClick={() => navigate("/outstation/my?tab=active")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-500 hover:ring-1 hover:ring-purple-500 hover:bg-purple-50/50 dark:hover:bg-slate-900/50 transition-all duration-200 col-span-2">
                     <MapPin className="w-6 h-6 text-[#a01497] mb-2" />
-                    <span className="text-[10px] font-bold text-slate-600 uppercase text-center">Outstation</span>
+                    <span className="text-[10px] font-bold text-slate-600 dark:text-white uppercase text-center">Outstation</span>
                   </div>
                 )}
               </div>
