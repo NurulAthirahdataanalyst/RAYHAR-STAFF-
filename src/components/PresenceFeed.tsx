@@ -412,7 +412,7 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
                   </div>
                   
                   {/* Custom CSS Tooltip */}
-                  <div className="absolute right-full mr-3 px-3 py-2 bg-slate-900 dark:bg-slate-950 text-white text-xs rounded-xl shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 whitespace-nowrap z-50 transform -translate-x-2 group-hover:translate-x-0 border border-slate-800 flex flex-col gap-0.5 animate-in fade-in slide-in-from-right-2">
+                  <div className="absolute right-full mr-3 px-3 py-2 bg-slate-900 dark:bg-slate-950 text-white text-xs rounded-xl shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 whitespace-nowrap z-[9999] transform -translate-x-2 group-hover:translate-x-0 border border-slate-800 flex flex-col gap-0.5 animate-in fade-in slide-in-from-right-2">
                     <p className="font-bold text-slate-100">
                       {emp.is_outstation_assignment 
                         ? `${emp.assigned_by_name} (${formatRole(emp.assigned_by_role)})` 
