@@ -627,6 +627,9 @@ export default function LeaveAdmin() {
             count: requestsByMonth.length, 
             barBg: "bg-emerald-500", 
             iconColor: "text-emerald-500", 
+            cardBg: "bg-emerald-50/70 dark:bg-emerald-950/20",
+            borderColor: "border-emerald-200/80 dark:border-emerald-800/40",
+            dividerColor: "bg-emerald-200/70 dark:bg-emerald-800/40",
             icon: CheckCircle2 
           },
           { 
@@ -634,6 +637,9 @@ export default function LeaveAdmin() {
             count: approvedCount, 
             barBg: "bg-pink-500", 
             iconColor: "text-pink-500", 
+            cardBg: "bg-pink-50/70 dark:bg-pink-950/20",
+            borderColor: "border-pink-200/80 dark:border-pink-800/40",
+            dividerColor: "bg-pink-200/70 dark:bg-pink-800/40",
             icon: FileText 
           },
           { 
@@ -641,6 +647,9 @@ export default function LeaveAdmin() {
             count: rejectedCount, 
             barBg: "bg-amber-500", 
             iconColor: "text-amber-500", 
+            cardBg: "bg-amber-50/70 dark:bg-amber-950/20",
+            borderColor: "border-amber-200/80 dark:border-amber-800/40",
+            dividerColor: "bg-amber-200/70 dark:bg-amber-800/40",
             icon: XCircle 
           },
           { 
@@ -648,12 +657,15 @@ export default function LeaveAdmin() {
             count: pendingCount, 
             barBg: "bg-cyan-500", 
             iconColor: "text-cyan-500", 
+            cardBg: "bg-cyan-50/70 dark:bg-cyan-950/20",
+            borderColor: "border-cyan-200/80 dark:border-cyan-800/40",
+            dividerColor: "bg-cyan-200/70 dark:bg-cyan-800/40",
             icon: Clock 
           },
         ].map((stat, i) => (
           <div 
             key={i} 
-            className="relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm p-4 sm:p-6 flex items-center hover:shadow-md transition-all"
+            className={`relative overflow-hidden rounded-2xl ${stat.cardBg} border ${stat.borderColor} shadow-sm p-4 sm:p-6 flex items-center hover:shadow-md transition-all`}
           >
             {/* Left vertical colored accent bar */}
             <div className={`absolute left-0 top-0 bottom-0 w-2 ${stat.barBg} rounded-l-2xl`} />
@@ -664,7 +676,7 @@ export default function LeaveAdmin() {
             </div>
 
             {/* Vertical divider */}
-            <div className="h-11 sm:h-12 w-[1px] bg-slate-200 dark:bg-slate-700 mr-5 sm:mr-6 shrink-0" />
+            <div className={`h-11 sm:h-12 w-[1px] ${stat.dividerColor} mr-5 sm:mr-6 shrink-0`} />
 
             {/* Right: Label & Number */}
             <div className="flex flex-col min-w-0">

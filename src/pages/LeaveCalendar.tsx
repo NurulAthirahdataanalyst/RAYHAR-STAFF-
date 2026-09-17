@@ -165,6 +165,9 @@ export default function LeaveCalendar() {
             value: kpiAnnual, 
             color: "#10b981", 
             textColor: "text-emerald-500",
+            cardBg: "bg-emerald-50/70 dark:bg-emerald-950/20",
+            borderColor: "border-emerald-200/80 dark:border-emerald-800/40",
+            dividerColor: "bg-emerald-200/70 dark:bg-emerald-800/40",
             icon: Calendar 
           },
           { 
@@ -172,6 +175,9 @@ export default function LeaveCalendar() {
             value: kpiSick, 
             color: "#ef4444", 
             textColor: "text-red-500",
+            cardBg: "bg-red-50/70 dark:bg-red-950/20",
+            borderColor: "border-red-200/80 dark:border-red-800/40",
+            dividerColor: "bg-red-200/70 dark:bg-red-800/40",
             icon: Activity 
           },
           { 
@@ -179,6 +185,9 @@ export default function LeaveCalendar() {
             value: kpiReplacement, 
             color: "#3b82f6", 
             textColor: "text-blue-500",
+            cardBg: "bg-blue-50/70 dark:bg-blue-950/20",
+            borderColor: "border-blue-200/80 dark:border-blue-800/40",
+            dividerColor: "bg-blue-200/70 dark:bg-blue-800/40",
             icon: ReplacementLeaveIcon 
           },
           { 
@@ -186,6 +195,9 @@ export default function LeaveCalendar() {
             value: kpiUnpaid, 
             color: "#64748b", 
             textColor: "text-slate-500",
+            cardBg: "bg-slate-50/80 dark:bg-slate-800/20",
+            borderColor: "border-slate-200/80 dark:border-slate-700/50",
+            dividerColor: "bg-slate-200/70 dark:bg-slate-700/50",
             icon: UnpaidLeaveIcon 
           },
         ].map((kpi) => {
@@ -193,7 +205,7 @@ export default function LeaveCalendar() {
           return (
             <div 
               key={kpi.label} 
-              className="relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm p-4 sm:p-5 flex items-center hover:shadow-md transition-all"
+              className={`relative overflow-hidden rounded-2xl ${kpi.cardBg} border ${kpi.borderColor} shadow-sm p-4 sm:p-5 flex items-center hover:shadow-md transition-all`}
             >
               {/* Left vertical colored accent bar */}
               <div 
@@ -207,11 +219,11 @@ export default function LeaveCalendar() {
               </div>
 
               {/* Vertical divider */}
-              <div className="h-10 sm:h-11 w-[1px] bg-slate-200 dark:bg-slate-700 mr-4 sm:mr-5 shrink-0" />
+              <div className={`h-10 sm:h-11 w-[1px] ${kpi.dividerColor} mr-4 sm:mr-5 shrink-0`} />
 
               {/* Right: Label & Number */}
               <div className="flex flex-col min-w-0">
-                <span className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 truncate">
+                <span className="text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-300 truncate">
                   {kpi.label}
                 </span>
                 <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight mt-0.5">
