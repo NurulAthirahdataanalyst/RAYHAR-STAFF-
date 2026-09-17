@@ -144,35 +144,59 @@ export default function Department() {
         </Card>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <Card className="border-border shadow-sm">
-              <CardContent className="p-6 flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <Building2 className="w-6 h-6 text-primary" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-foreground">Total Departments</p>
-                  <h3 className="text-3xl font-bold mt-1">{departments.length}</h3>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="border-border shadow-sm">
-              <CardContent className="p-6 flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center">
-                  <Users className="w-6 h-6 text-green-500" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-foreground">Total Active Employees</p>
-                  <h3 className="text-3xl font-bold mt-1 text-green-600 dark:text-green-400">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6">
+            {/* KPI Card 1: Total Departments */}
+            <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm p-4 sm:p-5 flex items-center hover:shadow-md transition-shadow">
+              {/* Left vertical colored accent bar */}
+              <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#942392]" />
+
+              {/* Icon on left */}
+              <div className="pl-3 pr-4 flex items-center justify-center shrink-0">
+                <Building2 className="w-8 h-8 sm:w-9 sm:h-9 text-[#942392]" strokeWidth={2.2} />
+              </div>
+
+              {/* Vertical divider */}
+              <div className="h-10 w-[1px] bg-slate-200 dark:bg-slate-800 mr-5 shrink-0" />
+
+              {/* Right: Label & Number */}
+              <div className="flex flex-col min-w-0">
+                <span className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 truncate">
+                  Total Departments
+                </span>
+                <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight mt-0.5">
+                  {departments.length}
+                </span>
+              </div>
+            </div>
+
+            {/* KPI Card 2: Total Active Employees */}
+            <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm p-4 sm:p-5 flex items-center hover:shadow-md transition-shadow">
+              {/* Left vertical colored accent bar */}
+              <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-emerald-500" />
+
+              {/* Icon on left */}
+              <div className="pl-3 pr-4 flex items-center justify-center shrink-0">
+                <Users className="w-8 h-8 sm:w-9 sm:h-9 text-emerald-500" strokeWidth={2.2} />
+              </div>
+
+              {/* Vertical divider */}
+              <div className="h-10 w-[1px] bg-slate-200 dark:bg-slate-800 mr-5 shrink-0" />
+
+              {/* Right: Label & Number */}
+              <div className="flex flex-col min-w-0">
+                <span className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 truncate">
+                  Total Active Employees
+                </span>
+                <div className="flex items-baseline gap-2 mt-0.5">
+                  <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
                     {totalActiveInDepartments}
-                  </h3>
-                  <p className="text-[10px] font-medium text-muted-foreground mt-0.5">
-                    Active employees in departments
-                  </p>
+                  </span>
+                  <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
+                    in departments
+                  </span>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
 
           <Card className="border-border shadow-sm overflow-hidden bg-card/60 backdrop-blur-md">

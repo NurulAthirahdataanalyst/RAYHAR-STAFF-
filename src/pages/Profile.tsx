@@ -12,6 +12,7 @@ import { API_BASE_URL } from "@/config/api";
 import { supabase } from "@/integrations/supabase/client";
 import { UserAvatar, getSavedAvatar } from "@/utils/avatarUtils";
 import { AvatarPickerModal } from "@/components/profile/AvatarPickerModal";
+import profileSkyBanner from "@/assets/profile-sky-banner.png";
 
 const getFullBranchName = (code: string) => {
   const branchNames: Record<string, string> = {
@@ -152,21 +153,21 @@ const Profile = () => {
         <div className="w-full lg:w-1/3 flex flex-col gap-3 sm:gap-4">
           {/* Profile Info Card - Modern Sky Banner with Overlapping Avatar & Rainbow Ring (like Screenshot 1) */}
           <Card className="border-none shadow-[0_20px_50px_rgba(0,0,0,0.06)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] bg-card/90 backdrop-blur-md rounded-[32px] overflow-hidden transition-all">
-            {/* 1. Sky Banner with soft clouds and '+' button */}
-            <div className="relative h-36 sm:h-40 w-full overflow-hidden bg-gradient-to-b from-[#8fc1e8] via-[#b6d6ee] to-[#e4eff8] dark:from-slate-800 dark:via-slate-900 dark:to-slate-950">
-              {/* Soft decorative cloud elements */}
-              <div className="absolute inset-0 pointer-events-none opacity-50">
-                <div className="absolute -left-6 bottom-0 w-36 h-20 bg-white rounded-full blur-xs" />
-                <div className="absolute left-14 bottom-4 w-44 h-24 bg-white/90 rounded-full blur-sm" />
-                <div className="absolute right-2 bottom-0 w-44 h-22 bg-white rounded-full blur-xs" />
-                <div className="absolute right-16 top-2 w-32 h-16 bg-white/70 rounded-full blur-sm" />
-              </div>
+            {/* 1. Sky Banner with realistic clouds wallpaper and '+' button (matching Screenshot 2) */}
+            <div className="relative h-36 sm:h-44 w-full overflow-hidden bg-sky-200 dark:bg-slate-900">
+              <img 
+                src={profileSkyBanner} 
+                alt="Sky Clouds Banner" 
+                className="absolute inset-0 w-full h-full object-cover object-center pointer-events-none select-none" 
+              />
+              {/* Subtle top gradient vignette for depth */}
+              <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/10 dark:from-black/30 dark:to-black/30 pointer-events-none" />
 
               {/* Circular plus (+) button in top right of banner */}
               <button
                 type="button"
                 onClick={() => setAvatarModalOpen(true)}
-                className="absolute top-3.5 right-3.5 w-9 h-9 rounded-full bg-white/90 dark:bg-slate-800/90 text-slate-800 dark:text-slate-100 shadow-md backdrop-blur-sm flex items-center justify-center hover:scale-110 active:scale-95 transition-all cursor-pointer border border-white/50 dark:border-slate-700 hover:bg-white z-10 group"
+                className="absolute top-3.5 right-3.5 w-9 h-9 rounded-full bg-white/90 dark:bg-slate-900/90 text-slate-800 dark:text-slate-100 shadow-md backdrop-blur-md flex items-center justify-center hover:scale-110 active:scale-95 transition-all cursor-pointer border border-white/60 dark:border-slate-700 hover:bg-white z-10 group"
                 title="Change Avatar"
               >
                 <Plus className="w-5 h-5 stroke-[2.5] group-hover:rotate-90 transition-transform duration-300" />

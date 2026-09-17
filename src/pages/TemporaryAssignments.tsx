@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { MapPin, Calendar, CheckCircle2, XCircle, Search, Loader2, Plus, Edit, Trash2, Clock, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { MapPin, Calendar, CheckCircle2, XCircle, Search, Loader2, Plus, Edit, Trash2, Clock, X, ChevronLeft, ChevronRight, Briefcase } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -237,17 +237,76 @@ const TemporaryAssignments = () => {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 rounded-md p-4 flex flex-col justify-between">
-          <div className="text-sm font-semibold text-foreground">Active Assignments</div>
-          <div className="text-3xl font-black text-[#a01497] mt-2">{activeCount}</div>
+        {/* KPI Card 1: Active Assignments */}
+        <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm p-4 sm:p-5 flex items-center hover:shadow-md transition-shadow">
+          {/* Left vertical colored accent bar */}
+          <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#942392]" />
+
+          {/* Icon on left */}
+          <div className="pl-3 pr-4 flex items-center justify-center shrink-0">
+            <Briefcase className="w-8 h-8 sm:w-9 sm:h-9 text-[#942392]" strokeWidth={2.2} />
+          </div>
+
+          {/* Vertical divider */}
+          <div className="h-10 w-[1px] bg-slate-200 dark:bg-slate-800 mr-5 shrink-0" />
+
+          {/* Right: Label & Number */}
+          <div className="flex flex-col min-w-0">
+            <span className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 truncate">
+              Active Assignments
+            </span>
+            <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight mt-0.5">
+              {activeCount}
+            </span>
+          </div>
         </div>
-        <div className="border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 rounded-md p-4 flex flex-col justify-between">
-          <div className="text-sm font-semibold text-foreground">Upcoming Assignments</div>
-          <div className="text-3xl font-black text-amber-600 mt-2">{upcomingCount}</div>
+
+        {/* KPI Card 2: Upcoming Assignments */}
+        <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm p-4 sm:p-5 flex items-center hover:shadow-md transition-shadow">
+          {/* Left vertical colored accent bar */}
+          <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-amber-500" />
+
+          {/* Icon on left */}
+          <div className="pl-3 pr-4 flex items-center justify-center shrink-0">
+            <Clock className="w-8 h-8 sm:w-9 sm:h-9 text-amber-500" strokeWidth={2.2} />
+          </div>
+
+          {/* Vertical divider */}
+          <div className="h-10 w-[1px] bg-slate-200 dark:bg-slate-800 mr-5 shrink-0" />
+
+          {/* Right: Label & Number */}
+          <div className="flex flex-col min-w-0">
+            <span className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 truncate">
+              Upcoming Assignments
+            </span>
+            <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight mt-0.5">
+              {upcomingCount}
+            </span>
+          </div>
         </div>
-        <div className="border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 rounded-md p-4 flex flex-col justify-between">
-          <div className="text-sm font-semibold text-foreground">Completed Assignments</div>
-          <div className="text-3xl font-black text-emerald-600 mt-2">{completedCount}</div>
+
+        {/* KPI Card 3: Completed Assignments */}
+        <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm p-4 sm:p-5 flex items-center hover:shadow-md transition-shadow">
+          {/* Left vertical colored accent bar */}
+          <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-emerald-500" />
+
+          {/* Icon on left */}
+          <div className="pl-3 pr-4 flex items-center justify-center shrink-0">
+            <CheckCircle2 className="w-8 h-8 sm:w-9 sm:h-9 text-emerald-500" strokeWidth={2.2} />
+          </div>
+
+          {/* Vertical divider */}
+          <div className="h-10 w-[1px] bg-slate-200 dark:bg-slate-800 mr-5 shrink-0" />
+
+          {/* Right: Label & Number */}
+          <div className="flex flex-col min-w-0">
+            <span className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 truncate">
+              Completed Assignments
+            </span>
+            <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight mt-0.5">
+              {completedCount}
+            </span>
+          </div>
         </div>
       </div>
 
