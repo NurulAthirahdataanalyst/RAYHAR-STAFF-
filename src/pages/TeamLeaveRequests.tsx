@@ -41,14 +41,16 @@ export default function TeamLeaveRequests() {
   const getDisplayStatus = (status: string) => {
     switch (status) {
       case "Pending HOD":
-        return "Awaiting HOD Approval";
+      case "Pending Head of Department":
+        return "Awaiting Head of Department Approval";
       case "Pending Operation":
       case "Pending Operation Manager":
       case "Pending Finance":
       case "Pending Finance Manager":
         return "Awaiting Operation Manager Approval";
       case "Pending MD":
-        return "Awaiting MD Approval";
+      case "Pending Managing Director":
+        return "Awaiting Managing Director Approval";
       case "Pending Branch Leader":
         return "Awaiting Branch Leader Approval";
       default:

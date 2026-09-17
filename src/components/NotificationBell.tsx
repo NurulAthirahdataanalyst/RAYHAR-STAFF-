@@ -375,6 +375,7 @@ export default function NotificationBell() {
                   <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed whitespace-pre-line">
                     {(notif.message || "")
                       .replace(/under Temporary Assignment assignment\.?/gi, "under Temporary Branch Assignment")
+                      .replace(/waiting for MD\.?/gi, "waiting for Managing Director.")
                       .replace(/[*_#]/g, "")}
                   </p>
                   <p 

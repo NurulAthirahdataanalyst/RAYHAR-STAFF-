@@ -660,6 +660,7 @@ export default function Notifications() {
                 <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-line mt-1">
                   {(notif.message || "")
                     .replace(/under Temporary Assignment assignment\.?/gi, "under Temporary Branch Assignment")
+                    .replace(/waiting for MD\.?/gi, "waiting for Managing Director.")
                     .replace(/[*_#]/g, "")}
                 </p>
 

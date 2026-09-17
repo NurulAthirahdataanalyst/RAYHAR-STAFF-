@@ -41,14 +41,16 @@ const statusVariant = (status: string) => {
 const getDisplayStatus = (status: string) => {
   switch (status) {
     case "Pending HOD":
-      return "Awaiting HOD Approval";
+    case "Pending Head of Department":
+      return "Awaiting Head of Department Approval";
     case "Pending Operation":
-      case "Pending Operation Manager":
+    case "Pending Operation Manager":
     case "Pending Finance":
     case "Pending Finance Manager":
       return "Awaiting Operation Manager Approval";
     case "Pending MD":
-      return "Awaiting MD Approval";
+    case "Pending Managing Director":
+      return "Awaiting Managing Director Approval";
     case "Pending Branch Leader":
       return "Awaiting Branch Leader Approval";
     default:
@@ -166,12 +168,16 @@ export default function LeaveOverview() {
             to: formatDate(request.end_date),
             days: Number(request.days || 0),
             branch: request.branch || "HQ",
+            department: request.department || "",
             status: request.status || "Pending HOD",
             approverRole: request.approver_role,
             reason: request.reason || "",
             appliedAt,
             formFileName: getLeaveFormFileName(appliedAt, type, request.full_name || userName),
             replacement_validations: request.replacement_validations || [],
+            approvalHistory: request.approval_history || [],
+            pendingApproverName: request.pending_approver_name || "",
+            pendingApproverContext: request.pending_approver_context || "",
           };
         });
 
@@ -543,6 +549,9 @@ export default function LeaveOverview() {
       approverRole={req.approverRole || ""} 
       approvalHistory={(req as any).approvalHistory || []}
       branch={(req as any).branch || "HQ"} 
+      department={(req as any).department || ""}
+      pendingApproverName={(req as any).pendingApproverName || ""}
+      pendingApproverContext={(req as any).pendingApproverContext || ""}
     />
   </div>
 

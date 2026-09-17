@@ -5,17 +5,21 @@ interface ApprovalHistoryItem {
   approver_id?: string;
   approver_role?: string;
   approver_name?: string;
+  approver_department?: string;
+  approver_branch?: string;
   status: string;
   created_at?: string;
-  approver_branch?: string;
 }
 
 interface ApprovalStatusTrackerProps {
   variant?: 'horizontal' | 'linear' | 'staggered';
-  status: string; // "Pending", "Approved", "Rejected"
-  approverRole: string; // The role that is currently pending or the role that rejected it
+  status: string; // "Pending", "Pending HOD", "Approved", "Rejected"
+  approverRole?: string; // The role that is currently pending or the role that rejected it
   approvalHistory?: ApprovalHistoryItem[]; // Passed from parent
   branch?: string; // Employee branch
+  department?: string;
+  pendingApproverName?: string;
+  pendingApproverContext?: string;
 }
 
 const formatRoleName = (r?: string) => {
@@ -34,94 +38,133 @@ const formatRoleName = (r?: string) => {
   return map[key] || r.replace(/_/g, ' ').toUpperCase();
 };
 
-export function ApprovalStatusTracker({ status, approverRole, approvalHistory = [], branch = "" }: ApprovalStatusTrackerProps) {
-  const isHQ = String(branch).toUpperCase() === 'HQ';
-  const role = String(approverRole || "").toLowerCase();
-
-  // Define standard steps based on branch
-  const defaultStepLabels = isHQ 
-    ? ["Submit", "HOD", "Operation Manager"] 
-    : ["Submit", "Branch Leader", "Managing Director"];
-
-  let currentStepIndex = 0;
-  const sUpper = status.toUpperCase();
-  if (isHQ) {
-    if (role.includes("hod") || sUpper.includes("HOD")) currentStepIndex = 1;
-    else if (role.includes("operation") || role.includes("finance") || sUpper.includes("OPERATION") || sUpper.includes("FINANCE")) currentStepIndex = 2;
-  } else {
-    if (role.includes("branch") || role.includes("leader") || sUpper.includes("BRANCH LEADER")) currentStepIndex = 1;
-    else if (role.includes("md") || role.includes("managing") || role.includes("director") || sUpper.includes("MD")) currentStepIndex = 2;
+const formatDept = (dept?: string) => {
+  if (!dept) return "HQ";
+  let d = String(dept).trim();
+  if (d.toLowerCase() === 'information technology') d = 'IT';
+  if (/^it$/i.test(d)) d = 'IT';
+  if (!d.toUpperCase().includes('HQ')) {
+    return `${d} (HQ)`;
   }
-  if (status === 'Approved') currentStepIndex = defaultStepLabels.length;
+  return d;
+};
 
-  // Build unified items to display in horizontal line
-  let items: Array<{
+export function ApprovalStatusTracker({ 
+  status, 
+  approverRole, 
+  approvalHistory = [], 
+  branch = "",
+  department = "",
+  pendingApproverName = "",
+  pendingApproverContext = "",
+}: ApprovalStatusTrackerProps) {
+  const isHQ = String(branch).toUpperCase() === 'HQ';
+  const sUpper = String(status || "").toUpperCase();
+
+  // Find approval records in history
+  const lvl1History = (approvalHistory || []).find(h => {
+    const r = String(h.approver_role || "").toLowerCase();
+    return r.includes("hod") || r.includes("department") || r.includes("branch");
+  });
+
+  const lvl2History = (approvalHistory || []).find(h => {
+    const r = String(h.approver_role || "").toLowerCase();
+    return r.includes("operation") || r.includes("finance") || r.includes("managing") || r.includes("director") || r.includes("md");
+  });
+
+  // Determine stage flags
+  const isApproved = sUpper === 'APPROVED';
+  const isRejected = sUpper === 'REJECTED';
+
+  const isLvl1Pending = sUpper.includes('HOD') || sUpper.includes('BRANCH') || sUpper === 'PENDING';
+  const isLvl2Pending = sUpper.includes('OPERATION') || sUpper.includes('FINANCE') || sUpper.includes('MD') || sUpper.includes('MANAGING');
+
+  // Step 1 status & details
+  let step1Status: 'Approved' | 'Rejected' | 'Pending' | 'Future' = 'Future';
+  let step1Subtitle: string | undefined = undefined;
+  let step1Date: string | undefined = undefined;
+
+  const lvl1RoleTitle = isHQ ? "HEAD OF DEPARTMENT" : "BRANCH LEADER";
+  const lvl1Context = isHQ 
+    ? formatDept(lvl1History?.approver_department || pendingApproverContext || department) 
+    : (lvl1History?.approver_branch || pendingApproverContext || branch || "HQ");
+
+  if (lvl1History) {
+    const isL1Approved = String(lvl1History.status).toLowerCase() === 'approved';
+    step1Status = isL1Approved ? 'Approved' : 'Rejected';
+    step1Subtitle = lvl1History.approver_name 
+      ? `${lvl1History.approver_name} • ${lvl1Context}` 
+      : `Approved • ${lvl1Context}`;
+    if (lvl1History.created_at) {
+      step1Date = new Date(lvl1History.created_at).toLocaleDateString('en-GB');
+    }
+  } else if (isApproved || isLvl2Pending) {
+    step1Status = 'Approved';
+    step1Subtitle = `Approved • ${lvl1Context}`;
+  } else if (isRejected && !lvl2History) {
+    step1Status = 'Rejected';
+    step1Subtitle = pendingApproverName ? `${pendingApproverName} • ${lvl1Context}` : `Rejected • ${lvl1Context}`;
+  } else if (isLvl1Pending) {
+    step1Status = 'Pending';
+    step1Subtitle = pendingApproverName 
+      ? `${pendingApproverName} • ${lvl1Context}` 
+      : 'Awaiting Approval';
+  }
+
+  // Step 2 status & details
+  let step2Status: 'Approved' | 'Rejected' | 'Pending' | 'Future' = 'Future';
+  let step2Subtitle: string | undefined = undefined;
+  let step2Date: string | undefined = undefined;
+
+  const lvl2RoleTitle = isHQ ? "OPERATION MANAGER" : "MANAGING DIRECTOR";
+  const lvl2Context = lvl2History?.approver_branch || pendingApproverContext || 'HQ';
+
+  if (lvl2History) {
+    const isL2Approved = String(lvl2History.status).toLowerCase() === 'approved';
+    step2Status = isL2Approved ? 'Approved' : 'Rejected';
+    step2Subtitle = lvl2History.approver_name 
+      ? `${lvl2History.approver_name} • ${lvl2Context}` 
+      : `Approved • ${lvl2Context}`;
+    if (lvl2History.created_at) {
+      step2Date = new Date(lvl2History.created_at).toLocaleDateString('en-GB');
+    }
+  } else if (isApproved) {
+    step2Status = 'Approved';
+    step2Subtitle = pendingApproverName ? `${pendingApproverName} • ${lvl2Context}` : `Approved • ${lvl2Context}`;
+  } else if (isRejected && (lvl2History || isLvl2Pending)) {
+    step2Status = 'Rejected';
+    step2Subtitle = pendingApproverName ? `${pendingApproverName} • ${lvl2Context}` : `Rejected • ${lvl2Context}`;
+  } else if (isLvl2Pending) {
+    step2Status = 'Pending';
+    step2Subtitle = pendingApproverName 
+      ? `${pendingApproverName} • ${lvl2Context}` 
+      : 'Awaiting Approval';
+  }
+
+  const items: Array<{
     title: string;
     subtitle?: string;
     status: 'Approved' | 'Rejected' | 'Pending' | 'Future';
     date?: string;
-  }> = [];
-
-  if (approvalHistory && approvalHistory.length > 0) {
-    // We have actual history items
-    items = approvalHistory.map((h) => {
-      const isApproved = String(h.status).toLowerCase() === 'approved';
-      const isRejected = String(h.status).toLowerCase() === 'rejected';
-      const dateStr = h.created_at ? new Date(h.created_at).toLocaleDateString('en-GB') : "";
-      
-      const roleStr = formatRoleName(h.approver_role);
-      const branchStr = h.approver_branch ? ` [${h.approver_branch}]` : '';
-      const nameStr = h.approver_name || h.approver_id || "";
-
-      return {
-        title: roleStr,
-        subtitle: nameStr ? `by ${nameStr}${branchStr}` : undefined,
-        status: isRejected ? 'Rejected' : (isApproved ? 'Approved' : 'Pending'),
-        date: dateStr,
-      };
-    });
-
-    if (status && status.toLowerCase().startsWith("rejected")) {
-      const hasRejected = items.some(i => i.status === 'Rejected');
-      if (!hasRejected && items.length > 0) {
-        items[items.length - 1].status = 'Rejected';
-      }
+  }> = [
+    {
+      title: "SUBMIT",
+      subtitle: "Application Submitted",
+      status: "Approved",
+    },
+    {
+      title: lvl1RoleTitle,
+      subtitle: step1Subtitle,
+      status: step1Status,
+      date: step1Date,
+    },
+    {
+      title: lvl2RoleTitle,
+      subtitle: step2Subtitle,
+      status: step2Status,
+      date: step2Date,
     }
-
-    // If still pending, append the pending stage
-    if (status && status.toLowerCase().startsWith('pending')) {
-      const pendingRole = approverRole ? formatRoleName(approverRole) : "MANAGEMENT";
-      items.push({
-        title: pendingRole,
-        subtitle: `Awaiting Approval`,
-        status: 'Pending',
-      });
-    }
-  } else {
-    // Fallback: 3 default steps
-    items = defaultStepLabels.map((label, idx) => {
-      let stepStatus: 'Approved' | 'Rejected' | 'Pending' | 'Future' = 'Future';
-      if (idx === 0) {
-        stepStatus = 'Approved';
-      } else if (status === 'Approved') {
-        stepStatus = 'Approved';
-      } else if (status === 'Rejected') {
-        if (idx < currentStepIndex) stepStatus = 'Approved';
-        else if (idx === currentStepIndex) stepStatus = 'Rejected';
-        else stepStatus = 'Future';
-      } else {
-        if (idx < currentStepIndex) stepStatus = 'Approved';
-        else if (idx === currentStepIndex) stepStatus = 'Pending';
-        else stepStatus = 'Future';
-      }
-
-      return {
-        title: label.toUpperCase(),
-        subtitle: idx === 0 ? "Application Submitted" : undefined,
-        status: stepStatus,
-      };
-    });
-  }
+  ];
 
   return (
     <div className="w-full py-2">

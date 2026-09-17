@@ -3041,6 +3041,17 @@ cron.schedule('15 9 * * 1-5', async () => {
 });
 
 
+function formatDeptForApprover(dept) {
+  if (!dept) return "HQ";
+  let d = String(dept).trim();
+  if (d.toLowerCase() === 'information technology') d = 'IT';
+  if (/^it$/i.test(d)) d = 'IT';
+  if (!d.toUpperCase().includes('HQ')) {
+    return `${d} (HQ)`;
+  }
+  return d;
+}
+
 app.get("/api/leave-requests", async (req, res) => {
   const userId = req.query.userId;
   const role = req.query.role ? req.query.role.toString().trim() : "";
@@ -3151,14 +3162,22 @@ app.get("/api/leave-requests", async (req, res) => {
         ) as approval_history,
         (
           CASE 
-            WHEN lr.status = 'Pending Branch Leader' THEN (SELECT UPPER(full_name) FROM profiles p2 WHERE p2.role IN ('Branch Leader', 'branch_leader') AND p2.branch = p.branch AND p2.status = 'Active' LIMIT 1)
-            WHEN lr.status = 'Pending HOD' THEN (SELECT UPPER(full_name) FROM profiles p2 WHERE p2.role IN ('Head of Department', 'HOD', 'head_of_department') AND p2.department = p.department AND p2.branch = p.branch AND p2.status = 'Active' LIMIT 1)
-            WHEN lr.status = 'Pending Operation Manager' THEN (SELECT UPPER(full_name) FROM profiles p2 WHERE p2.role IN ('Operation Manager', 'Operations Manager', 'Operation', 'Operations', 'operation_manager') AND p2.status = 'Active' LIMIT 1)
-            WHEN lr.status = 'Pending MD' THEN (SELECT UPPER(full_name) FROM profiles p2 WHERE p2.role IN ('Managing Director', 'MD', 'managing_director') AND p2.status = 'Active' LIMIT 1)
-            WHEN lr.status = 'Pending HR' THEN (SELECT UPPER(full_name) FROM profiles p2 WHERE p2.role IN ('HR Admin', 'hr_admin', 'HR') AND p2.status = 'Active' LIMIT 1)
+            WHEN lr.status = 'Pending Branch Leader' THEN (SELECT UPPER(full_name) FROM profiles p2 JOIN user_role ur2 ON p2.user_id = ur2.user_id WHERE ur2.role = 'branch_leader' AND p2.branch = p.branch AND p2.status = 'Active' LIMIT 1)
+            WHEN lr.status = 'Pending HOD' THEN (SELECT UPPER(full_name) FROM profiles p2 JOIN user_role ur2 ON p2.user_id = ur2.user_id WHERE ur2.role = 'head_of_department' AND p2.department = p.department AND p2.status = 'Active' LIMIT 1)
+            WHEN lr.status IN ('Pending Operation Manager', 'Pending Operation', 'Pending Finance', 'Pending Finance Manager') THEN (SELECT UPPER(full_name) FROM profiles p2 JOIN user_role ur2 ON p2.user_id = ur2.user_id WHERE ur2.role IN ('operation_manager', 'finance_manager') AND p2.status = 'Active' LIMIT 1)
+            WHEN lr.status IN ('Pending MD', 'Pending Managing Director') THEN (SELECT UPPER(full_name) FROM profiles p2 JOIN user_role ur2 ON p2.user_id = ur2.user_id WHERE ur2.role = 'managing_director' AND p2.status = 'Active' LIMIT 1)
+            WHEN lr.status = 'Pending HR' THEN (SELECT UPPER(full_name) FROM profiles p2 JOIN user_role ur2 ON p2.user_id = ur2.user_id WHERE ur2.role = 'hr_admin' AND p2.status = 'Active' LIMIT 1)
             ELSE NULL
           END
-        ) AS pending_approver_name
+        ) AS pending_approver_name,
+        (
+          CASE 
+            WHEN lr.status = 'Pending Branch Leader' THEN p.branch
+            WHEN lr.status = 'Pending HOD' THEN p.department
+            WHEN lr.status IN ('Pending MD', 'Pending Managing Director', 'Pending Operation Manager', 'Pending Operation') THEN 'HQ'
+            ELSE NULL
+          END
+        ) AS pending_approver_context
       FROM leave_requests lr
       JOIN profiles p ON p.user_id = lr.user_id
       LEFT JOIN user_role ur_approver ON ur_approver.user_id = lr.approver_id
@@ -3514,11 +3533,36 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
         }
 
         // Notify employee of their leave progress
-        const targetApprover = (employeeBranch === 'HQ') ? "HOD" : "Branch Leader";
+        let employeeMsg = `Your application for ${leaveData.leave_type} was submitted.`;
+        if (employeeBranch === 'HQ') {
+          const [hodRows] = await pool.query(
+            `SELECT UPPER(p.full_name) AS full_name, p.department FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'head_of_department' AND (p.department = ? OR ? IS NULL) AND p.status = 'Active' LIMIT 1`,
+            [leaveData.department, leaveData.department]
+          );
+          const hodName = (hodRows && hodRows.length > 0 && hodRows[0].full_name) ? hodRows[0].full_name : "";
+          const dCode = formatDeptForApprover((hodRows && hodRows.length > 0 && hodRows[0].department) ? hodRows[0].department : leaveData.department);
+          if (hodName) {
+            employeeMsg = `Your leave application is currently waiting for Head of Department (${hodName} • ${dCode}).`;
+          } else {
+            employeeMsg = `Your leave application is currently waiting for Head of Department (${dCode}).`;
+          }
+        } else {
+          const [blRows] = await pool.query(
+            `SELECT UPPER(p.full_name) AS full_name FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'branch_leader' AND p.branch = ? AND p.status = 'Active' LIMIT 1`,
+            [employeeBranch]
+          );
+          const blName = (blRows && blRows.length > 0 && blRows[0].full_name) ? blRows[0].full_name : "";
+          if (blName) {
+            employeeMsg = `Your leave application is currently waiting for Branch Leader (${blName} • ${employeeBranch}).`;
+          } else {
+            employeeMsg = `Your leave application is currently waiting for Branch Leader (${employeeBranch}).`;
+          }
+        }
+
         await notificationService.createNotification({
           userId: leaveData.user_id, 
           title: `Leave Application Submitted`, 
-          message: `Your application for ${leaveData.leave_type} was submitted. Currently awaiting approval by ${targetApprover}.`, 
+          message: employeeMsg, 
           type: 'status_update', 
           relatedLeaveId: result.insertId,
           sendPush: true,
@@ -3690,7 +3734,7 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
     // --- SEND EMAIL NOTIFICATION ON STATUS CHANGE ---
     try {
       const [fullLeaveRows] = await pool.query(
-        `SELECT lr.*, p.full_name as employee_name, p.email as employee_email, p.branch 
+        `SELECT lr.*, p.full_name as employee_name, p.email as employee_email, p.branch, p.department 
          FROM leave_requests lr 
          JOIN profiles p ON p.user_id = lr.user_id 
          WHERE lr.leave_id = ?`,
@@ -3716,15 +3760,15 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
             notificationTitle = `Leave Approval Required`;
             notificationMessage = `${leaveData.employee_name} requires your Operation Manager approval for a leave request.`;
           }
-        } else if (nextStatus === "Pending MD") {
+        } else if (nextStatus === "Pending MD" || nextStatus === "Pending Managing Director") {
           const [mdRows] = await pool.query(`SELECT p.email, p.user_id FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'managing_director' AND p.status = 'Active' LIMIT 1`);
           if (mdRows.length > 0) {
             targetEmail = mdRows[0].email;
             targetUserId = mdRows[0].user_id;
-            subject = `Leave Request Pending MD Approval: ${leaveData.employee_name}`;
-            html = `<p>Finance Manager has approved a leave request for <strong>${leaveData.employee_name}</strong>. It is now pending your final MD approval.</p>`;
+            subject = `Leave Request Pending Managing Director Approval: ${leaveData.employee_name}`;
+            html = `<p>Branch Leader has approved a leave request for <strong>${leaveData.employee_name}</strong>. It is now pending your final Managing Director approval.</p>`;
             notificationTitle = `Leave Final Approval Required`;
-            notificationMessage = `${leaveData.employee_name} requires your MD approval for a leave request.`;
+            notificationMessage = `${leaveData.employee_name} requires your Managing Director approval for a leave request.`;
           }
         } else if (nextStatus === "Approved" || nextStatus === "Rejected") {
           targetEmail = leaveData.employee_email;
@@ -3771,11 +3815,40 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
           });
 
           // Also notify employee of intermediate progress
-          const waitingFor = nextStatus.replace("Pending ", "");
+          let progressMsg = "";
+          const sUpper = nextStatus.toUpperCase();
+          if (sUpper.includes("MD") || sUpper.includes("MANAGING DIRECTOR")) {
+            progressMsg = "Your leave application is currently waiting for Managing Director.";
+          } else if (sUpper.includes("OPERATION") || sUpper.includes("FINANCE")) {
+            progressMsg = "Your leave application is currently waiting for Operation Manager.";
+          } else if (sUpper.includes("HOD") || sUpper.includes("HEAD OF DEPARTMENT")) {
+            const [hodRows] = await pool.query(
+              `SELECT UPPER(p.full_name) AS full_name, p.department FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'head_of_department' AND (p.department = ? OR ? IS NULL) AND p.status = 'Active' LIMIT 1`,
+              [leaveData.department, leaveData.department]
+            );
+            const hName = (hodRows && hodRows.length > 0 && hodRows[0].full_name) ? hodRows[0].full_name : "";
+            const dCode = formatDeptForApprover((hodRows && hodRows.length > 0 && hodRows[0].department) ? hodRows[0].department : leaveData.department);
+            progressMsg = hName 
+              ? `Your leave application is currently waiting for Head of Department (${hName} • ${dCode}).`
+              : `Your leave application is currently waiting for Head of Department (${dCode}).`;
+          } else if (sUpper.includes("BRANCH LEADER")) {
+            const [blRows] = await pool.query(
+              `SELECT UPPER(p.full_name) AS full_name FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'branch_leader' AND p.branch = ? AND p.status = 'Active' LIMIT 1`,
+              [leaveData.branch]
+            );
+            const bName = (blRows && blRows.length > 0 && blRows[0].full_name) ? blRows[0].full_name : "";
+            progressMsg = bName
+              ? `Your leave application is currently waiting for Branch Leader (${bName} • ${leaveData.branch}).`
+              : `Your leave application is currently waiting for Branch Leader (${leaveData.branch}).`;
+          } else {
+            const waitingFor = nextStatus.replace("Pending ", "");
+            progressMsg = `Your leave application is currently waiting for ${waitingFor}.`;
+          }
+
           await notificationService.createNotification({
             userId: leaveData.user_id,
             title: `Leave Approval Progress`,
-            message: `Your leave application is currently waiting for ${waitingFor}.`,
+            message: progressMsg,
             type: 'status_update',
             scope: 'personal',
             relatedLeaveId: leaveId,
