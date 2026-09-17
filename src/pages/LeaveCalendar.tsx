@@ -67,7 +67,7 @@ export default function LeaveCalendar() {
   const [requests, setRequests] = useState<LeaveRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedEvent, setSelectedEvent] = useState<LeaveRequest | null>(null);
-  const [filterStatus, setFilterStatus] = useState("Approved"); // Default to showing approved leaves
+  const [filterStatus, setFilterStatus] = useState("All"); // Show all statuses by default so pending leaves are always visible
 
   const today = new Date();
   const [viewYear, setViewYear] = useState(today.getFullYear());
@@ -223,7 +223,7 @@ export default function LeaveCalendar() {
 
               {/* Right: Label & Number */}
               <div className="flex flex-col min-w-0">
-                <span className="text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-300 truncate">
+                <span className="text-[11px] sm:text-xs font-medium text-slate-600 dark:text-slate-300 leading-tight">
                   {kpi.label}
                 </span>
                 <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight mt-0.5">
