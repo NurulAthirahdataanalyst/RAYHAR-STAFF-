@@ -882,7 +882,13 @@ input[type=range]::-moz-range-thumb {
   pointer-events: none;
 }
 
-/* Yellow vertical bar smoothly fades in from the left when focused/active/highlighted/hovered */
+/* Red vertical accent bar for Sign Out matching its font color (#F87171) */
+.profile-nav-item.profile-nav-signout::before {
+  background-color: #F87171 !important;
+  box-shadow: 0 0 8px rgba(248, 113, 113, 0.7) !important;
+}
+
+/* Vertical bar smoothly fades in from the left when focused/active/highlighted/hovered */
 .profile-nav-item:focus::before,
 .profile-nav-item:active::before,
 .profile-nav-item[data-highlighted]::before,
