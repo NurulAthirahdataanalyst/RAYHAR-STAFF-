@@ -5305,7 +5305,7 @@ app.post("/api/attendance", async (req, res) => {
     );
 
     res.json({ success: true, record: rows[0], isOnOutstation: outstationRows.length > 0 });
-    broadcastPresenceUpdate({ type: 'clock-in', userId: user_id });
+    broadcastPresenceUpdate({ type: 'clock-in', userId: user_id, attendanceType: finalType, location: finalLocation });
 
     // --- IRREGULAR CLOCK-IN LOCATION: Notify elevated roles when staff clocks in under Temporary Assignment ---
     if (finalType === 'Temporary Assignment') {
@@ -5314,10 +5314,10 @@ app.post("/api/attendance", async (req, res) => {
         const irregTitle = `Irregular Clock-In Location`;
         const irregMsg = `${employeeName} clocked in at ${finalLocation} under Temporary Branch Assignment`;
 
-        // Fetch HR Admins, MDs, and Operation Managers
+        // Fetch HR Admins, MDs, Operation Managers, Finance Managers, and Superadmins
         const [elevatedRows] = await pool.query(
           `SELECT p.user_id FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id 
-           WHERE ur.role IN ('hr_admin', 'managing_director', 'operation_manager', 'finance_manager') 
+           WHERE ur.role IN ('hr_admin', 'managing_director', 'operation_manager', 'finance_manager', 'superadmin') 
            AND p.status = 'Active'`
         );
 
@@ -5334,7 +5334,7 @@ app.post("/api/attendance", async (req, res) => {
           }
         }
 
-        // Also notify employee's HOD or Branch Leader
+        // Also notify employee's HOD or Permanent Branch Leader
         const empBranch = empProfile[0]?.branch || 'HQ';
         const empDept = empProfile[0]?.department || '';
         const isHQ = empBranch === 'HQ';
@@ -5364,6 +5364,27 @@ app.post("/api/attendance", async (req, res) => {
               scope: 'team',
               sendPush: true,
             }).catch(err => console.error(`Failed to send Irregular Clock-In notif to supervisor ${sup.user_id}:`, err));
+          }
+        }
+
+        // Also notify destination branch leader if different from permanent branch and not HQ
+        if (finalLocation && finalLocation !== empBranch && finalLocation !== 'HQ') {
+          const [destBRows] = await pool.query(
+            `SELECT p.user_id FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id 
+             WHERE ur.role = 'branch_leader' AND p.branch = ? AND p.status = 'Active' LIMIT 1`,
+            [finalLocation]
+          );
+          for (const destSup of (destBRows || [])) {
+            if (destSup.user_id && destSup.user_id !== user_id) {
+              notificationService.createNotification({
+                userId: destSup.user_id,
+                title: irregTitle,
+                message: irregMsg,
+                type: 'attendance',
+                scope: 'team',
+                sendPush: true,
+              }).catch(err => console.error(`Failed to send Irregular Clock-In notif to dest branch leader ${destSup.user_id}:`, err));
+            }
           }
         }
       } catch (irregErr) {

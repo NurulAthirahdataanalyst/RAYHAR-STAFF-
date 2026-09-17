@@ -106,11 +106,14 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
           const leaveData = await leaveResponse.json();
           if (leaveData.success) {
             leaveData.leaveRequests.forEach((lr: any) => {
+              const matchedEmp = empData.employees?.find((e: any) => e.user_id === lr.user_id);
               activeList.push({
                 user_id: lr.user_id,
                 full_name: lr.full_name,
                 branch: lr.branch,
-                department: lr.department, // the join might not return this, but let's just push it
+                permanent_branch: matchedEmp?.permanent_branch || lr.branch,
+                temp_branch: matchedEmp?.temp_branch,
+                department: lr.department || matchedEmp?.department,
                 id: `leave-${lr.leave_id}`,
                 is_leave_submission: true,
                 today_status: "Leave Submitted",
@@ -135,11 +138,14 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
             outstationData.assignments.forEach((oa: any) => {
               const createdDate = new Date(oa.created_at).toLocaleDateString("en-CA");
               if (createdDate === dateStr) {
+                const matchedEmp = empData.employees?.find((e: any) => e.user_id === oa.user_id);
                 activeList.push({
                   user_id: oa.user_id,
                   full_name: oa.full_name,
                   branch: oa.branch,
-                  department: oa.department,
+                  permanent_branch: matchedEmp?.permanent_branch || oa.branch,
+                  temp_branch: matchedEmp?.temp_branch,
+                  department: oa.department || matchedEmp?.department,
                   id: `outstation-${oa.id}`,
                   is_outstation_assignment: true,
                   today_status: "Outstation Assigned",
@@ -361,6 +367,19 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
   };
 
+  const getBranchTags = (emp: any) => {
+    const permBranch = emp.permanent_branch || emp.branch;
+    const deptCode = getDeptShortCode(emp.department, permBranch);
+    const tempBranch = emp.temp_branch || (emp.today_attendance_type === "Temporary Assignment" ? emp.today_location : null);
+    const isTemp = !!tempBranch && tempBranch.toUpperCase() !== (permBranch || "").toUpperCase();
+
+    return {
+      permTag: deptCode,
+      tempTag: isTemp ? `(TEMP :${tempBranch})` : null,
+      combinedTooltip: isTemp ? `${deptCode} (TEMP :${tempBranch})` : deptCode
+    };
+  };
+
   if (isCollapsed) {
     return (
       <div className="flex flex-col items-center py-4 w-full">
@@ -384,6 +403,7 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
               if (isAbsent && search === "") return null;
 
               const activityTime = formatTime(emp.today_clock_out || emp.today_clock_in);
+              const { combinedTooltip } = getBranchTags(emp);
 
               return (
                 <div key={emp.id} className="relative group flex items-center justify-center">
@@ -425,7 +445,7 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
                       </span>
                     )}
                     <span className="text-[9px] font-black text-purple-400 mt-1 uppercase tracking-wider">
-                      {getDeptShortCode(emp.department, emp.branch)}
+                      {combinedTooltip}
                     </span>
                   </div>
                 </div>
@@ -502,6 +522,7 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
               if (isAbsent && search === "") return null;
 
               const activityTime = formatTime(emp.today_clock_out || emp.today_clock_in);
+              const { permTag, tempTag } = getBranchTags(emp);
 
               return (
                 <div key={emp.id} className="relative p-4 flex gap-4 hover:bg-muted/10 transition-colors">
@@ -531,8 +552,13 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
                             📍 {emp.destination}
                           </span>
                           <span className="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded bg-purple-50 dark:bg-purple-950/40 text-[#942392] border border-purple-100 dark:border-purple-900/40 shrink-0">
-                            {getDeptShortCode(emp.department, emp.branch)}
+                            {permTag}
                           </span>
+                          {tempTag && (
+                            <span className="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 shrink-0 shadow-sm flex items-center gap-1">
+                              {tempTag}
+                            </span>
+                          )}
                         </div>
                       </>
                     ) : (
@@ -559,11 +585,11 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
 
                         <div className="mt-2.5 flex items-center gap-2">
                           <span className="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded bg-purple-50 dark:bg-purple-950/40 text-[#942392] border border-purple-100 dark:border-purple-900/40 shrink-0">
-                            {getDeptShortCode(emp.department, emp.branch)}
+                            {permTag}
                           </span>
-                          {emp.today_attendance_type === "Temporary Assignment" && (
-                            <span className="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded bg-purple-500/10 text-purple-700 border border-purple-200 shrink-0 shadow-sm flex items-center gap-1">
-                              TEMP: {emp.today_location}
+                          {tempTag && (
+                            <span className="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 shrink-0 shadow-sm flex items-center gap-1">
+                              {tempTag}
                             </span>
                           )}
                         </div>

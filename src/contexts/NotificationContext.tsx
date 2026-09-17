@@ -55,7 +55,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       setLoading(true);
       const scopeParam = scope ? `&scope=${scope}` : "";
       const res = await fetch(
-        `${API_BASE_URL}/api/notifications?user_id=${encodeURIComponent(resolvedUserId)}&limit=30${scopeParam}`
+        `${API_BASE_URL}/api/notifications?user_id=${encodeURIComponent(resolvedUserId)}&limit=50${scopeParam}`
       );
       const data = await res.json();
       if (data.success) {
@@ -151,18 +151,20 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     [resolvedUserId]
   );
 
-  // Realtime subscription + Push initialization (executed ONCE per logged-in user)
+  // Realtime subscription + Push initialization + Polling & SSE sync
   useEffect(() => {
     if (!resolvedUserId) {
       setNotifications([]);
       setUnreadCount(0);
+      setMyUnreadCount(0);
+      setTeamUnreadCount(0);
       return;
     }
 
     void fetchNotifications();
     void initializePushNotifications(resolvedUserId);
 
-    // Generate a unique channel name with timestamp + random string to guarantee no topic collision
+    // 1. Generate a unique channel name for Supabase Realtime
     const channelTopic = `notif-${resolvedUserId}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
 
     try {
@@ -178,8 +180,15 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
           },
           (payload) => {
             const newNotif = payload.new as NotificationItem;
-            setNotifications((prev) => [newNotif, ...prev.filter((n) => n.id !== newNotif.id)].slice(0, 15));
+            setNotifications((prev) => [newNotif, ...prev.filter((n) => n.id !== newNotif.id)].slice(0, 50));
             setUnreadCount((c) => c + 1);
+            if (newNotif.scope === "team") {
+              setTeamUnreadCount((c) => c + 1);
+            } else {
+              setMyUnreadCount((c) => c + 1);
+            }
+            // Re-fetch to guarantee counts & items are fully in sync
+            void fetchNotifications();
 
             toast.info(newNotif.title, {
               description: newNotif.message ? newNotif.message.slice(0, 75) + "..." : undefined,
@@ -223,9 +232,19 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
           (payload) => {
             const updated = payload.new as NotificationItem;
             setNotifications((prev) => prev.map((n) => (n.id === updated.id ? updated : n)));
-            if (updated.is_read) {
-              setUnreadCount((c) => Math.max(0, c - 1));
-            }
+            void fetchNotifications();
+          }
+        )
+        .on(
+          "postgres_changes",
+          {
+            event: "DELETE",
+            schema: "public",
+            table: "notifications",
+            filter: `user_id=eq.${resolvedUserId}`,
+          },
+          () => {
+            void fetchNotifications();
           }
         );
 
@@ -240,7 +259,61 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       console.error("Realtime subscription setup failed:", err);
     }
 
+    // 2. Periodic polling fallback (every 25 seconds)
+    const pollInterval = setInterval(() => {
+      void fetchNotifications();
+    }, 25000);
+
+    // 3. Tab visibility & focus change listener (immediate refresh when user switches back)
+    const handleRefresh = () => {
+      void fetchNotifications();
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        void fetchNotifications();
+      }
+    };
+
+    window.addEventListener("app:refresh", handleRefresh);
+    window.addEventListener("attendanceUpdated", handleRefresh);
+    window.addEventListener("focus", handleRefresh);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    // 4. SSE stream connection to /api/presence/stream
+    let eventSource: EventSource | null = null;
+    try {
+      eventSource = new EventSource(`${API_BASE_URL}/api/presence/stream`);
+      eventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (["clock-in", "clock-out", "leave-status", "refresh", "presence_update", "notification"].includes(data.type)) {
+            void fetchNotifications();
+          }
+        } catch {
+          void fetchNotifications();
+        }
+      };
+      eventSource.onerror = () => {
+        // SSE temporary failure; fallback polling handles updates
+      };
+    } catch (sseErr) {
+      console.warn("NotificationContext SSE initialization notice:", sseErr);
+    }
+
     return () => {
+      clearInterval(pollInterval);
+      window.removeEventListener("app:refresh", handleRefresh);
+      window.removeEventListener("attendanceUpdated", handleRefresh);
+      window.removeEventListener("focus", handleRefresh);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+
+      if (eventSource) {
+        try {
+          eventSource.close();
+        } catch {}
+      }
+
       if (channelRef.current) {
         try {
           supabase.removeChannel(channelRef.current);

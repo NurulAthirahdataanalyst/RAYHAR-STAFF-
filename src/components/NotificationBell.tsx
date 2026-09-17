@@ -30,6 +30,7 @@ export default function NotificationBell() {
     unreadCount,
     myUnreadCount,
     teamUnreadCount,
+    fetchNotifications,
     markAsRead,
     markAllAsRead,
     deleteNotification,
@@ -235,7 +236,18 @@ export default function NotificationBell() {
   };
 
   return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
+    <Popover
+      open={isOpen}
+      onOpenChange={(open) => {
+        setIsOpen(open);
+        if (open) {
+          if (isElevatedRole && teamUnreadCount > 0 && myUnreadCount === 0) {
+            setActiveScope("team");
+          }
+          void fetchNotifications();
+        }
+      }}
+    >
       <PopoverTrigger asChild>
         <button
           type="button"
@@ -280,7 +292,10 @@ export default function NotificationBell() {
         {isElevatedRole && (
           <div className="flex items-center p-2 bg-slate-50/80 dark:bg-slate-900/60 border-b border-border/60 gap-2">
             <button
-              onClick={() => setActiveScope("my")}
+              onClick={() => {
+                setActiveScope("my");
+                void fetchNotifications();
+              }}
               className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 text-xs rounded-lg transition-all cursor-pointer ${
                 activeScope === "my"
                   ? "bg-card text-[#942392] ring-1 ring-[#942392] border border-[#942392]/40 shadow-xs font-bold"
@@ -299,7 +314,10 @@ export default function NotificationBell() {
               )}
             </button>
             <button
-              onClick={() => setActiveScope("team")}
+              onClick={() => {
+                setActiveScope("team");
+                void fetchNotifications();
+              }}
               className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 text-xs rounded-lg transition-all cursor-pointer ${
                 activeScope === "team"
                   ? "bg-card text-[#942392] ring-1 ring-[#942392] border border-[#942392]/40 shadow-xs font-bold"
