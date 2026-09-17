@@ -238,17 +238,17 @@ const TemporaryAssignments = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         {/* KPI Card 1: Active Assignments */}
-        <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm p-4 sm:p-5 flex items-center hover:shadow-md transition-shadow">
+        <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm p-4 sm:p-6 flex items-center hover:shadow-md transition-all">
           {/* Left vertical colored accent bar */}
-          <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#942392]" />
+          <div className="absolute left-0 top-0 bottom-0 w-2 bg-[#942392] rounded-l-2xl" />
 
           {/* Icon on left */}
-          <div className="pl-3 pr-4 flex items-center justify-center shrink-0">
-            <Briefcase className="w-8 h-8 sm:w-9 sm:h-9 text-[#942392]" strokeWidth={2.2} />
+          <div className="pl-3 pr-4 sm:pr-6 flex items-center justify-center shrink-0">
+            <Briefcase className="w-10 h-10 sm:w-11 sm:h-11 text-[#942392]" strokeWidth={2.2} />
           </div>
 
           {/* Vertical divider */}
-          <div className="h-10 w-[1px] bg-slate-200 dark:bg-slate-800 mr-5 shrink-0" />
+          <div className="h-11 sm:h-12 w-[1px] bg-slate-200 dark:bg-slate-700 mr-5 sm:mr-6 shrink-0" />
 
           {/* Right: Label & Number */}
           <div className="flex flex-col min-w-0">
@@ -262,17 +262,17 @@ const TemporaryAssignments = () => {
         </div>
 
         {/* KPI Card 2: Upcoming Assignments */}
-        <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm p-4 sm:p-5 flex items-center hover:shadow-md transition-shadow">
+        <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm p-4 sm:p-6 flex items-center hover:shadow-md transition-all">
           {/* Left vertical colored accent bar */}
-          <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-amber-500" />
+          <div className="absolute left-0 top-0 bottom-0 w-2 bg-amber-500 rounded-l-2xl" />
 
           {/* Icon on left */}
-          <div className="pl-3 pr-4 flex items-center justify-center shrink-0">
-            <Clock className="w-8 h-8 sm:w-9 sm:h-9 text-amber-500" strokeWidth={2.2} />
+          <div className="pl-3 pr-4 sm:pr-6 flex items-center justify-center shrink-0">
+            <Clock className="w-10 h-10 sm:w-11 sm:h-11 text-amber-500" strokeWidth={2.2} />
           </div>
 
           {/* Vertical divider */}
-          <div className="h-10 w-[1px] bg-slate-200 dark:bg-slate-800 mr-5 shrink-0" />
+          <div className="h-11 sm:h-12 w-[1px] bg-slate-200 dark:bg-slate-700 mr-5 sm:mr-6 shrink-0" />
 
           {/* Right: Label & Number */}
           <div className="flex flex-col min-w-0">
@@ -286,17 +286,17 @@ const TemporaryAssignments = () => {
         </div>
 
         {/* KPI Card 3: Completed Assignments */}
-        <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm p-4 sm:p-5 flex items-center hover:shadow-md transition-shadow">
+        <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm p-4 sm:p-6 flex items-center hover:shadow-md transition-all">
           {/* Left vertical colored accent bar */}
-          <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-emerald-500" />
+          <div className="absolute left-0 top-0 bottom-0 w-2 bg-emerald-500 rounded-l-2xl" />
 
           {/* Icon on left */}
-          <div className="pl-3 pr-4 flex items-center justify-center shrink-0">
-            <CheckCircle2 className="w-8 h-8 sm:w-9 sm:h-9 text-emerald-500" strokeWidth={2.2} />
+          <div className="pl-3 pr-4 sm:pr-6 flex items-center justify-center shrink-0">
+            <CheckCircle2 className="w-10 h-10 sm:w-11 sm:h-11 text-emerald-500" strokeWidth={2.2} />
           </div>
 
           {/* Vertical divider */}
-          <div className="h-10 w-[1px] bg-slate-200 dark:bg-slate-800 mr-5 shrink-0" />
+          <div className="h-11 sm:h-12 w-[1px] bg-slate-200 dark:bg-slate-700 mr-5 sm:mr-6 shrink-0" />
 
           {/* Right: Label & Number */}
           <div className="flex flex-col min-w-0">
