@@ -668,20 +668,20 @@ export default function OutstationDashboard() {
               ) : (
                 <>
                 <table className="w-full text-left border-collapse">
-                  <thead className="bg-gray-50/80 sticky top-0 z-0">
+                  <thead className="bg-gray-50/80 dark:bg-slate-900 sticky top-0 z-0 border-b border-gray-100 dark:border-slate-800">
                     <tr>
-                      <th className="px-4 py-3 text-[11px] dark: border-b border-gray-100 dark:border-slate-800 text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Event Name</th>
-                      <th className="px-4 py-3 text-[11px] dark: border-b border-gray-100 dark:border-slate-800 text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Status</th>
-                      <th className="px-4 py-3 text-[11px] dark: border-b border-gray-100 dark:border-slate-800 text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Employee</th>
-                      <th className="px-4 py-3 text-[11px] dark: border-b border-gray-100 dark:border-slate-800 text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Duration</th>
-                      <th className="px-4 py-3 text-[11px] dark: border-b border-gray-100 dark:border-slate-800 text-right text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Actions</th>
+                      <th className="px-4 py-3 text-[10px] font-black text-foreground dark:text-white uppercase tracking-widest whitespace-nowrap border-b border-gray-100 dark:border-slate-800">Event Name</th>
+                      <th className="px-4 py-3 text-[10px] font-black text-foreground dark:text-white uppercase tracking-widest whitespace-nowrap border-b border-gray-100 dark:border-slate-800">Status</th>
+                      <th className="px-4 py-3 text-[10px] font-black text-foreground dark:text-white uppercase tracking-widest whitespace-nowrap border-b border-gray-100 dark:border-slate-800">Employee</th>
+                      <th className="px-4 py-3 text-[10px] font-black text-foreground dark:text-white uppercase tracking-widest whitespace-nowrap border-b border-gray-100 dark:border-slate-800">Duration</th>
+                      <th className="px-4 py-3 text-right text-[10px] font-black text-foreground dark:text-white uppercase tracking-widest whitespace-nowrap border-b border-gray-100 dark:border-slate-800">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100">
+                  <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
                     {activeNowGrouped.filter(g => g.destination.toLowerCase().includes(search.toLowerCase()) || g.employees.some(e => (e.full_name || "").toLowerCase().includes(search.toLowerCase()))).map((g, i) => {
                       const totalDays = Math.round((new Date(g.end_date).getTime() - new Date(g.start_date).getTime()) / (1000 * 3600 * 24)) + 1;
                       return (
-                        <tr key={i} className="hover:bg-gray-50/50 transition-colors group border-b border-gray-50 last:border-0">
+                        <tr key={i} className="hover:bg-gray-50/50 dark:hover:bg-slate-800/40 transition-colors group border-b border-gray-50 dark:border-slate-800 last:border-0">
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-3">
                               <div className="w-8 h-8 rounded-lg bg-purple-100/50 text-purple-700 flex items-center justify-center shadow-sm">
@@ -956,20 +956,20 @@ export default function OutstationDashboard() {
                 ) : (
                   <>
                   <table className="w-full text-left border-collapse">
-                    <thead className="bg-gray-50/80 sticky top-0 z-0">
+                    <thead className="bg-gray-50/80 dark:bg-slate-900 sticky top-0 z-0 border-b border-gray-100 dark:border-slate-800">
                       <tr>
-                        <th className="px-4 py-3 text-[11px] dark: border-b border-gray-100 dark:border-slate-800 text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Event Name</th>
-                        <th className="px-4 py-3 text-[11px] dark: border-b border-gray-100 dark:border-slate-800 text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Status</th>
-                        <th className="px-4 py-3 text-[11px] dark: border-b border-gray-100 dark:border-slate-800 text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Employee</th>
-                        <th className="px-4 py-3 text-[11px] dark: border-b border-gray-100 dark:border-slate-800 text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Duration</th>
-                        <th className="px-4 py-3 text-[11px] dark: border-b border-gray-100 dark:border-slate-800 text-right text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Actions</th>
+                        <th className="px-4 py-3 text-[10px] font-black text-foreground dark:text-white uppercase tracking-widest whitespace-nowrap border-b border-gray-100 dark:border-slate-800">Event Name</th>
+                        <th className="px-4 py-3 text-[10px] font-black text-foreground dark:text-white uppercase tracking-widest whitespace-nowrap border-b border-gray-100 dark:border-slate-800">Status</th>
+                        <th className="px-4 py-3 text-[10px] font-black text-foreground dark:text-white uppercase tracking-widest whitespace-nowrap border-b border-gray-100 dark:border-slate-800">Employee</th>
+                        <th className="px-4 py-3 text-[10px] font-black text-foreground dark:text-white uppercase tracking-widest whitespace-nowrap border-b border-gray-100 dark:border-slate-800">Duration</th>
+                        <th className="px-4 py-3 text-right text-[10px] font-black text-foreground dark:text-white uppercase tracking-widest whitespace-nowrap border-b border-gray-100 dark:border-slate-800">Actions</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100">
+                    <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
                       {upcomingGrouped.filter(g => g.destination.toLowerCase().includes(search.toLowerCase()) || g.employees.some(e => (e.full_name || "").toLowerCase().includes(search.toLowerCase()))).map((g, i) => {
                         const totalDays = Math.round((new Date(g.end_date).getTime() - new Date(g.start_date).getTime()) / (1000 * 3600 * 24)) + 1;
                         return (
-                          <tr key={i} className="hover:bg-gray-50/50 transition-colors group border-b border-gray-50 last:border-0">
+                          <tr key={i} className="hover:bg-gray-50/50 dark:hover:bg-slate-800/40 transition-colors group border-b border-gray-50 dark:border-slate-800 last:border-0">
                             <td className="px-4 py-3">
                               <div className="flex items-center gap-3">
                                 <div className="w-8 h-8 rounded-lg bg-orange-100/50 text-orange-700 flex items-center justify-center shadow-sm">
@@ -1214,13 +1214,13 @@ export default function OutstationDashboard() {
           <div className="lg:col-span-4 flex flex-col gap-6">
             
             {/* Alerts & Upcoming List */}
-            <Card className="border-0 bg-card overflow-hidden flex-1 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
-              <CardHeader className="px-5 py-4 border-b border-gray-50">
+            <Card className="border border-slate-100 dark:border-slate-800 bg-card overflow-hidden flex-1 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
+              <CardHeader className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
                 <CardTitle className="text-base font-bold text-foreground dark:text-slate-200 flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 text-orange-500" /> Alerts & Upcoming
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-0 flex flex-col divide-y divide-gray-50">
+              <CardContent className="p-0 flex flex-col divide-y divide-slate-100 dark:divide-slate-800">
                 <div className="p-5">
                   <h4 className="text-[10px] font-bold text-foreground uppercase tracking-widest mb-3">Departing Soon</h4>
                   {showSkeleton ? <Skeleton className="h-10 w-full rounded" /> : upcoming.length === 0 ? <p className="text-[12px] text-muted-foreground">No upcoming departures</p> : upcoming.slice(0, 3).map((a, i) => (

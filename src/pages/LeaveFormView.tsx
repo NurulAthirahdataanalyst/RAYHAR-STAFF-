@@ -371,7 +371,7 @@ export default function LeaveFormView() {
 
       <Card className="border-none shadow-[0_20px_50px_rgba(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.2)] bg-card/80 backdrop-blur-md rounded-[24px] sm:rounded-[32px] overflow-hidden">
         <CardContent className="p-0">
-          <div className="px-6 pt-6 border-b border-border/50 bg-muted/10 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
+          <div className="px-6 pt-6 border-b border-slate-200 dark:border-slate-800 bg-muted/10 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
             <div className="flex gap-6 overflow-x-auto w-full sm:w-auto scrollbar-none">
               {([
                 { key: "history" as FormTabFilter, label: "History", count: monthFilteredForms.length },
@@ -383,13 +383,13 @@ export default function LeaveFormView() {
                   key={tab.key}
                   role="tab"
                   onClick={() => setActiveTab(tab.key)}
-                  className={`text-sm font-black uppercase tracking-widest pb-3 -mb-[1px] transition-colors border-b-[3px] whitespace-nowrap ${
+                  className={`text-sm font-black uppercase tracking-widest pb-3 -mb-px transition-colors border-b-2 whitespace-nowrap ${
                     activeTab === tab.key 
                       ? (tab.key === "history" ? "text-[#942392] border-[#942392]" :
                          tab.key === "pending" ? "text-amber-500 border-amber-500" :
                          tab.key === "approved" ? "text-emerald-500 border-emerald-500" :
                          "text-red-500 border-red-500")
-                      : "text-foreground border-slate-200 dark:border-slate-700 hover:text-yellow-500 hover:border-yellow-500"
+                      : "text-muted-foreground dark:text-slate-400 border-transparent hover:text-foreground dark:hover:text-white"
                   }`}
                 >
                   {tab.label}
