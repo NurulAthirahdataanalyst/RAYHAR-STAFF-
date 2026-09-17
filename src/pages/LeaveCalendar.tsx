@@ -5,7 +5,7 @@ import { useRole } from "@/contexts/RoleContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Loader2, ChevronLeft, ChevronRight, X, Calendar, User, FileText, Activity, AlertCircle } from "lucide-react";
+import { Loader2, ChevronLeft, ChevronRight, X, Calendar, User, FileText, Activity, AlertCircle, RefreshCw } from "lucide-react";
 import { API_BASE_URL } from "../config/api";
 
 const PRIMARY_COLOR = "#942392";
@@ -157,23 +157,69 @@ export default function LeaveCalendar() {
 
       
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {[
-          { label: "Annual Leave", value: kpiAnnual, dot: "bg-emerald-500", border: "border-l-emerald-500", icon: Calendar },
-          { label: "Sick Leave", value: kpiSick, dot: "bg-red-500", border: "border-l-red-500", icon: Activity },
-          { label: "Replacement Leave", value: kpiReplacement, dot: "bg-blue-500", border: "border-l-blue-500", icon: Calendar },
-          { label: "Unpaid Leave", value: kpiUnpaid, dot: "bg-gray-500", border: "border-l-gray-500", icon: AlertCircle },
-        ].map(kpi => (
-          <Card key={kpi.label} className={`border border-gray-200 dark:border-slate-800/80 shadow-sm border-l-4 ${kpi.border}`}>
-            <CardContent className="p-4 flex items-center gap-3">
-              <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${kpi.dot}`} />
-              <div className="min-w-0">
-                <p className="text-[10px] font-black uppercase tracking-wider text-black dark:text-white leading-tight">{kpi.label}</p>
-                <p className="text-2xl font-black text-gray-800 dark:text-gray-100 leading-tight">{kpi.value}</p>
+          { 
+            label: "Annual Leave", 
+            value: kpiAnnual, 
+            color: "#10b981", 
+            textColor: "text-emerald-500",
+            icon: Calendar 
+          },
+          { 
+            label: "Sick Leave", 
+            value: kpiSick, 
+            color: "#ef4444", 
+            textColor: "text-red-500",
+            icon: Activity 
+          },
+          { 
+            label: "Replacement Leave", 
+            value: kpiReplacement, 
+            color: "#3b82f6", 
+            textColor: "text-blue-500",
+            icon: RefreshCw 
+          },
+          { 
+            label: "Unpaid Leave", 
+            value: kpiUnpaid, 
+            color: "#64748b", 
+            textColor: "text-slate-500",
+            icon: AlertCircle 
+          },
+        ].map((kpi) => {
+          const Icon = kpi.icon;
+          return (
+            <div 
+              key={kpi.label} 
+              className="relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm p-4 sm:p-5 flex items-center hover:shadow-md transition-all"
+            >
+              {/* Left vertical colored accent bar */}
+              <div 
+                className="absolute left-0 top-0 bottom-0 w-2 rounded-l-2xl" 
+                style={{ backgroundColor: kpi.color }} 
+              />
+
+              {/* Icon on left */}
+              <div className="pl-2 pr-3.5 sm:pr-4 flex items-center justify-center shrink-0">
+                <Icon className={`w-9 h-9 sm:w-10 sm:h-10 ${kpi.textColor}`} strokeWidth={2.2} />
               </div>
-            </CardContent>
-          </Card>
-        ))}
+
+              {/* Vertical divider */}
+              <div className="h-10 sm:h-11 w-[1px] bg-slate-200 dark:bg-slate-700 mr-4 sm:mr-5 shrink-0" />
+
+              {/* Right: Label & Number */}
+              <div className="flex flex-col min-w-0">
+                <span className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 truncate">
+                  {kpi.label}
+                </span>
+                <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight mt-0.5">
+                  {kpi.value}
+                </span>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       {/* Controls */}
