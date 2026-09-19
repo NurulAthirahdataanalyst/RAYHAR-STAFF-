@@ -921,7 +921,7 @@ export default function WorkforceInsights() {
                       <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
                       <span className="text-[10px] font-semibold text-foreground">Showing all {filteredBranches.length} locations</span>
                     </div>
-                    <Link to="/branches" className="text-[11px] font-bold text-[#4f46e5] hover:text-[#4338ca] transition-colors flex items-center group/link">
+                    <Link to="/branches" className="text-[11px] font-bold text-[#942392] hover:text-[#7a1d78] transition-colors flex items-center group/link">
                       View all
                       <ChevronRight className="w-3 h-3 ml-0.5 group-hover/link:translate-x-0.5 transition-transform" />
                     </Link>
@@ -936,7 +936,7 @@ export default function WorkforceInsights() {
             <CardHeader className="p-5 border-b border-slate-100 dark:border-slate-800 pb-4">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-200">Temporary Branch Assignment</CardTitle>
-                <Link to="/branches/temporary-assignments" className="text-[11px] font-bold text-[#4f46e5] hover:text-[#4338ca] transition-colors flex items-center group/link">
+                <Link to="/branches/temporary-assignments" className="text-[11px] font-bold text-[#942392] hover:text-[#7a1d78] transition-colors flex items-center group/link">
                   View All Assignments
                   <ChevronRight className="w-3 h-3 ml-0.5 group-hover/link:translate-x-0.5 transition-transform" />
                 </Link>

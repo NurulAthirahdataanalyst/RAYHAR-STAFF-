@@ -283,7 +283,7 @@ export const EmployeesRequiringAttentionCard = ({ data = [], variant = 'grid', o
           </div>
           <button 
             onClick={() => navigate('/employees')}
-            className="flex items-center gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 text-blue-600 dark:text-blue-400 font-bold text-sm px-4 py-2.5 rounded-xl transition-colors"
+            className="flex items-center gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 text-[#942392] hover:text-[#7a1d78] font-bold text-sm px-4 py-2.5 rounded-xl transition-colors"
           >
             <Users className="w-4 h-4" />
             View All Employees
