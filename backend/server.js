@@ -10,6 +10,7 @@ const fs = require("fs");
 const { sendNotificationEmail } = require("./mailer");
 const { calculateExpectedWorkingDays } = require("./workingDaysHelper");
 const { startOfMonth, endOfMonth, startOfYear, endOfYear, format, isBefore } = require("date-fns");
+const emailService = require("./emailService");
 
 const jwtSecret = process.env.JWT_SECRET;
 console.log('ðŸ” JWT_SECRET loaded?', !!jwtSecret);
@@ -3468,44 +3469,48 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
       try {
         let approverEmail = "";
         let approverTitle = "HOD";
-        let approverUserId = "";
+        let approverName = "Approver";
 
         // Find approver
         if (initialStatus === "Pending Branch Leader") {
           const [blRows] = await pool.query(
-            `SELECT p.email, p.user_id FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'branch_leader' AND p.branch = ? AND p.status = 'Active' LIMIT 1`,
+            `SELECT p.email, p.user_id, p.full_name FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'branch_leader' AND p.branch = ? AND p.status = 'Active' LIMIT 1`,
             [leaveData.branch]
           );
           if (blRows.length > 0) {
             approverEmail = blRows[0].email;
             approverUserId = blRows[0].user_id;
+            approverName = blRows[0].full_name || "Branch Leader";
             approverTitle = "Branch Leader";
           }
         } else {
           const [hodRows] = await pool.query(
-            `SELECT p.email, p.user_id FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'head_of_department' AND p.department = ? AND p.branch = ? AND p.status = 'Active' LIMIT 1`,
+            `SELECT p.email, p.user_id, p.full_name FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'head_of_department' AND p.department = ? AND p.branch = ? AND p.status = 'Active' LIMIT 1`,
             [employeeDept, employeeBranch]
           );
           if (hodRows.length > 0) {
             approverEmail = hodRows[0].email;
             approverUserId = hodRows[0].user_id;
+            approverName = hodRows[0].full_name || "Head of Department";
           }
         }
 
-        const subject = `New Leave Request Pending Approval: ${leaveData.full_name}`;
-        const html = `
-          <h2>New Leave Request Requires Your Approval</h2>
-          <p><strong>Employee:</strong> ${leaveData.full_name}</p>
-          <p><strong>Leave Type:</strong> ${leaveData.leave_type}</p>
-          <p><strong>Dates:</strong> ${new Date(leaveData.start_date).toLocaleDateString()} to ${new Date(leaveData.end_date).toLocaleDateString()}</p>
-          <p><strong>Total Days:</strong> ${leaveData.days}</p>
-          <br/>
-          <p>Please log in to the Employee Portal to review and approve/reject this request as <strong>${approverTitle}</strong>.</p>
-        `;
-
         if (approverEmail) {
-          sendNotificationEmail(approverEmail, subject, html).catch(err => {
-            console.error("Failed to send HOD notification email:", err);
+          emailService.sendLeaveApprovalEmail({
+            approverEmail: approverEmail,
+            approverName: approverName,
+            employeeName: leaveData.full_name,
+            employeeId: leaveData.user_id,
+            department: leaveData.department || employeeDept,
+            branch: leaveData.branch || employeeBranch,
+            leaveType: leaveData.leave_type,
+            startDate: new Date(leaveData.start_date).toLocaleDateString(),
+            endDate: new Date(leaveData.end_date).toLocaleDateString(),
+            totalDays: leaveData.days,
+            leaveReason: leaveData.reason,
+            approvalUrl: `https://rayharstaffportal.vercel.app/leave/approvals?id=${result.insertId}`
+          }).catch(err => {
+            console.error("Failed to send Brevo HOD notification email:", err);
           });
         }
 
@@ -3748,6 +3753,25 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
           targetUserId = leaveData.user_id;
           subject = `Leave Request ${nextStatus}: ${leaveData.leave_type}`;
           html = `<p>Hello ${leaveData.employee_name},</p><p>Your leave request for <strong>${leaveData.leave_type}</strong> has been <strong>${nextStatus}</strong>.</p>`;
+          notificationTitle = `Leave Request ${nextStatus}`;
+          notificationMessage = `Your request for ${leaveData.leave_type} has been ${nextStatus.toLowerCase()}.`;
+
+          if (targetEmail) {
+            const payload = {
+              employeeEmail: targetEmail,
+              employeeName: leaveData.employee_name,
+              leaveType: leaveData.leave_type,
+              startDate: new Date(leaveData.start_date).toLocaleDateString(),
+              endDate: new Date(leaveData.end_date).toLocaleDateString(),
+              rejectionReason: remarks || approver_note || "No reason provided."
+            };
+            if (nextStatus === "Approved") {
+              emailService.sendLeaveApprovedEmail(payload).catch(console.error);
+            } else {
+              emailService.sendLeaveRejectedEmail(payload).catch(console.error);
+            }
+            targetEmail = null; // Clear targetEmail so we don't send duplicate fallback email
+          }
           notificationTitle = `Leave Request ${nextStatus}`;
           notificationMessage = `Your request for ${leaveData.leave_type} has been ${nextStatus.toLowerCase()}.`;
 
@@ -5285,7 +5309,7 @@ app.post("/api/attendance", async (req, res) => {
 
   try {
     const [empProfile] = await pool.query(
-      `SELECT branch, department, full_name as name FROM profiles WHERE user_id = ?`,
+      `SELECT email, branch, department, full_name as name FROM profiles WHERE user_id = ?`,
       [user_id]
     );
 
@@ -5394,6 +5418,25 @@ app.post("/api/attendance", async (req, res) => {
 
     res.json({ success: true, record: rows[0], isOnOutstation: outstationRows.length > 0 });
     broadcastPresenceUpdate({ type: 'clock-in', userId: user_id, attendanceType: finalType, location: finalLocation });
+
+    // --- SEND LATE EMAIL ---
+    try {
+      if (empProfile.length > 0 && empProfile[0].email && rows.length > 0) {
+        const clockInDate = new Date(rows[0].clock_in);
+        // Format to HH:MM:SS in KL time
+        const klTimeStr = clockInDate.toLocaleString('en-US', { timeZone: 'Asia/Kuala_Lumpur', hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        // If > 08:30 (and allowing say up to 12:00 for morning clock in checks, but simple string compare works here if format is exactly HH:MM:SS)
+        if (klTimeStr > "08:30:00") {
+          emailService.sendLateEmail({
+            employeeEmail: empProfile[0].email,
+            employeeName: empProfile[0].name || user_id,
+            clockInTime: klTimeStr
+          }).catch(console.error);
+        }
+      }
+    } catch (lateEmailErr) {
+      console.error("Failed to send late email:", lateEmailErr);
+    }
 
     // --- IRREGULAR CLOCK-IN LOCATION: Notify elevated roles when staff clocks in under Temporary Assignment ---
     if (finalType === 'Temporary Assignment') {
@@ -10061,25 +10104,12 @@ app.post("/api/request-password-reset", async (req, res) => {
     const resetLink = `${frontendUrl}/reset-password?token=${token}`;
 
     // Send email
-    const subject = "Rayhar Staff Portal - Password Reset";
-    const html = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
-        <h2 style="color: #7B0099;">Password Reset Request</h2>
-        <p>Hello ${user.full_name || 'Staff'},</p>
-        <p>We received a request to reset your password for the Rayhar Employee Portal.</p>
-        <p>Click the button below to set a new password. This link will expire in 15 minutes.</p>
-        <div style="text-align: center; margin: 30px 0;">
-          <a href="${resetLink}" style="background-color: #7B0099; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Reset Password</a>
-        </div>
-        <p>If you did not request a password reset, please ignore this email or contact HR if you have concerns.</p>
-        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
-        <p style="font-size: 12px; color: #888; text-align: center;">Rayhar Staff Portal</p>
-      </div>
-    `;
-
     try {
-      const emailService = require("./services/emailService");
-      await emailService.sendEmail({ to: user.email, subject, html });
+      await emailService.sendPasswordResetEmail({
+        employeeEmail: user.email,
+        employeeName: user.full_name || 'Staff',
+        resetLink: resetLink
+      });
     } catch (emailErr) {
       console.warn("⚠️ [Password Reset] Email sending warning:", emailErr.message);
     }
