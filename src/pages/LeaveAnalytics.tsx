@@ -453,6 +453,7 @@ export default function LeaveAnalytics() {
   const [hoveredSeason, setHoveredSeason] = useState<string | null>(null);
   const [hoveredDept, setHoveredDept] = useState<string | null>(null);
   const [hoveredBranch, setHoveredBranch] = useState<string | null>(null);
+  const [hoveredLeaveType, setHoveredLeaveType] = useState<any | null>(null);
 
   const [attendanceStats, setAttendanceStats] = useState({
     presentToday: 0,
@@ -1362,18 +1363,60 @@ export default function LeaveAnalytics() {
           <div className="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
             <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Leave Type Breakdown</h3>
           </div>
-          <div className="flex-1 min-relative w-full min-h-[250px]">
+          <div className="relative flex-1 w-full min-h-[250px] flex items-center justify-center">
             <ResponsiveContainer width="100%" height={250}>
-              <PieChart>
-                <Pie data={typeDistribution} cx="50%" cy="50%" innerRadius={60} outerRadius={80} dataKey="value" stroke="none">
+              <PieChart onMouseLeave={() => setHoveredLeaveType(null)}>
+                <Pie 
+                  data={typeDistribution} 
+                  cx="50%" 
+                  cy="45%" 
+                  innerRadius={58} 
+                  outerRadius={82} 
+                  paddingAngle={typeDistribution.length > 1 ? 3 : 0} 
+                  dataKey="value" 
+                  stroke="none"
+                  onMouseEnter={(entry: any) => setHoveredLeaveType(entry)}
+                  onMouseLeave={() => setHoveredLeaveType(null)}
+                >
                   {typeDistribution.map((entry, idx) => (
-                    <Cell key={`cell-${idx}`} fill={PIE_COLORS[entry.name] || FALLBACK_COLORS[idx % FALLBACK_COLORS.length]} />
+                    <Cell key={`cell-${idx}`} fill={PIE_COLORS[entry.name] || FALLBACK_COLORS[idx % FALLBACK_COLORS.length]} className="cursor-pointer outline-none hover:opacity-85 transition-opacity" />
                   ))}
                 </Pie>
-                <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} itemStyle={{ fontSize: 12, fontWeight: 'bold' }} />
-                <Legend iconType="circle" wrapperStyle={{ fontSize: '10px' }} layout="horizontal" verticalAlign="bottom" />
+                <Tooltip 
+                  cursor={false}
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length && hoveredLeaveType) {
+                      const entry = payload[0].payload;
+                      const total = typeDistribution.reduce((sum, d) => sum + (d.value || 0), 0);
+                      const pct = total > 0 ? Math.round((entry.value / total) * 100) : 0;
+                      return (
+                        <div className="bg-slate-900/95 dark:bg-slate-800/95 text-white px-2.5 py-1.5 rounded-lg shadow-xl border border-slate-700/60 backdrop-blur-sm text-xs pointer-events-none">
+                          <div className="flex items-center gap-1.5 mb-0.5">
+                            <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[entry.name] || '#8B5CF6' }} />
+                            <span className="font-bold text-slate-100">{entry.name}</span>
+                          </div>
+                          <div className="flex items-center justify-between gap-3 text-slate-300 text-[10px] font-medium">
+                            <span>Count: <b className="text-white font-black">{entry.value}</b></span>
+                            <span className="text-emerald-400 font-bold">{pct}%</span>
+                          </div>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <Legend iconType="circle" wrapperStyle={{ fontSize: '10px', paddingTop: '8px' }} layout="horizontal" verticalAlign="bottom" />
               </PieChart>
             </ResponsiveContainer>
+            {/* Center stat showing total applications like in Attendance Overview */}
+            <div className="absolute inset-0 pb-7 flex flex-col items-center justify-center pointer-events-none">
+              <span className="text-[28px] font-black text-slate-900 dark:text-slate-100 leading-none">
+                {hoveredLeaveType ? hoveredLeaveType.value : typeDistribution.reduce((acc, curr) => acc + (curr.value || 0), 0)}
+              </span>
+              <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-1 text-center max-w-[110px] truncate">
+                {hoveredLeaveType ? hoveredLeaveType.name : "TOTAL APPLICATIONS"}
+              </span>
+            </div>
           </div>
           <div className="mt-2 p-3 bg-slate-50 dark:bg-slate-900 rounded-lg flex items-center justify-between">
             <div>

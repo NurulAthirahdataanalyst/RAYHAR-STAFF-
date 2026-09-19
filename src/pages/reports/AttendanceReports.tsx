@@ -146,39 +146,52 @@ export default function AttendanceReports() {
         if (monthsWithData > 0) aggSummary.complianceRate = Math.round(sumCompliance / monthsWithData);
         data = { success: true, data: allData, summary: aggSummary };
       }
-      const tempMap: Record<string, string> = {};
-      if (workAssignData.success && Array.isArray(workAssignData.assignments)) {
-        workAssignData.assignments.forEach((a: any) => {
-          if (a.status === 'Active') {
-            if (viewType === 'day') {
-              const reportDate = new Date(date).setHours(0,0,0,0);
-              const startDate = new Date(a.start_date).setHours(0,0,0,0);
-              const endDate = new Date(a.end_date).setHours(0,0,0,0);
-              if (reportDate >= startDate && reportDate <= endDate) {
-                tempMap[a.user_id] = a.temp_branch;
-              }
-            } else {
-              // For month view, just check if it overlaps with the month
-              // Or default to true if they just want it loosely for the month
-              const assignStart = new Date(a.start_date);
-              const assignEnd = new Date(a.end_date);
-              const reportMonthStr = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`;
-              const startMonthStr = `${assignStart.getFullYear()}-${String(assignStart.getMonth() + 1).padStart(2, '0')}`;
-              const endMonthStr = `${assignEnd.getFullYear()}-${String(assignEnd.getMonth() + 1).padStart(2, '0')}`;
-              
-              if (reportMonthStr >= startMonthStr && reportMonthStr <= endMonthStr) {
-                 tempMap[a.user_id] = a.temp_branch;
-              }
-            }
-          }
+      const assignments = (workAssignData.success && Array.isArray(workAssignData.assignments)) 
+        ? workAssignData.assignments 
+        : [];
+
+      const toDateOnly = (val: any): string => {
+        if (!val) return "";
+        if (typeof val === "string") {
+          return val.includes("T") ? val.split("T")[0] : val.slice(0, 10);
+        }
+        if (val instanceof Date) {
+          const y = val.getFullYear();
+          const m = String(val.getMonth() + 1).padStart(2, "0");
+          const d = String(val.getDate()).padStart(2, "0");
+          return `${y}-${m}-${d}`;
+        }
+        return "";
+      };
+
+      const getTempBranchForRecord = (userId: string, recordDateStr: string) => {
+        if (!userId || !recordDateStr || assignments.length === 0) return null;
+        const targetDate = toDateOnly(recordDateStr);
+        if (!targetDate) return null;
+
+        const match = assignments.find((a: any) => {
+          if (a.user_id !== userId) return false;
+          if (a.status === "Cancelled" || a.status === "Rejected") return false;
+
+          const start = toDateOnly(a.start_date);
+          const end = a.end_date ? toDateOnly(a.end_date) : "2099-12-31";
+          if (!start) return false;
+
+          return targetDate >= start && targetDate <= end;
         });
-      }
+
+        return match ? (match.temp_branch || match.temporary_branch || match.location || null) : null;
+      };
+
       if (data.success) {
-        let processedData = data.data.map((r: any) => ({
-          ...r,
-          status: r.status || "Unknown",
-          temp_branch: tempMap[r.user_id] || null
-        }));
+        let processedData = data.data.map((r: any) => {
+          const recDate = r.date || (viewType === "day" ? date : r.clock_in);
+          return {
+            ...r,
+            status: r.status || "Unknown",
+            temp_branch: getTempBranchForRecord(r.user_id, recDate)
+          };
+        });
 
         if (viewType === "month") {
           const today = new Date();

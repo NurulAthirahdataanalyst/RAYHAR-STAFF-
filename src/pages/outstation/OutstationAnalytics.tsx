@@ -98,6 +98,8 @@ export default function OutstationAnalytics() {
   const [recentPage, setRecentPage] = useState(1);
   const [recentLimit, setRecentLimit] = useState(10);
   const [destinationLimit, setDestinationLimit] = useState(5);
+  const [hoveredMonth, setHoveredMonth] = useState<string | null>(null);
+  const [hoveredDonutSlice, setHoveredDonutSlice] = useState<any | null>(null);
 
   // Role authorization check
   useEffect(() => {
@@ -574,15 +576,15 @@ export default function OutstationAnalytics() {
                   </div>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900/50 flex items-center justify-between">
+                <div className="p-3.5 rounded-xl bg-[#66b032]/10 dark:bg-[#66b032]/20 border border-[#66b032]/30 dark:border-[#66b032]/40 flex items-center justify-between">
                   <div>
-                    <p className="text-[11px] font-bold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">Total Completed Events</p>
-                    <p className="text-2xl font-black text-emerald-950 dark:text-emerald-100 mt-1">{trackerSummary.completed}</p>
-                    <p className="text-[10px] text-emerald-600/80 dark:text-emerald-400 mt-0.5">
+                    <p className="text-[11px] font-bold text-[#66b032] uppercase tracking-wider">Total Completed Events</p>
+                    <p className="text-2xl font-black text-slate-900 dark:text-white mt-1">{trackerSummary.completed}</p>
+                    <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
                       {selectedMonth === "all" ? `Across ${selectedYear}` : `For ${MONTH_NAMES[parseInt(selectedMonth, 10)]}`}
                     </p>
                   </div>
-                  <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/60 flex items-center justify-center text-emerald-600 dark:text-emerald-300 shadow-xs">
+                  <div className="w-10 h-10 rounded-xl bg-[#66b032]/20 dark:bg-[#66b032]/30 flex items-center justify-center text-[#66b032] shadow-xs">
                     <CheckCircle2 className="w-5 h-5" />
                   </div>
                 </div>
@@ -591,16 +593,55 @@ export default function OutstationAnalytics() {
               {/* Compact Bar Chart */}
               <div className="flex-1 min-h-[200px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={monthlyTrackerData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <BarChart data={monthlyTrackerData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} onMouseLeave={() => setHoveredMonth(null)}>
                     <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
                     <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
                     <RechartsTooltip 
-                      contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.95)', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                      cursor={{ fill: 'rgba(123, 0, 153, 0.05)' }}
+                      cursor={false}
+                      content={({ active, payload, label }) => {
+                        if (active && payload && payload.length && hoveredMonth === label) {
+                          const totalVal = payload.find(p => p.dataKey === "totalEvents")?.value ?? payload[0]?.value ?? 0;
+                          const compVal = payload.find(p => p.dataKey === "completedEvents")?.value ?? payload[1]?.value ?? 0;
+                          return (
+                            <div className="bg-white dark:bg-slate-900 p-3 rounded-xl shadow-lg border border-slate-200 dark:border-slate-800 text-xs pointer-events-none">
+                              <p className="font-bold text-slate-800 dark:text-slate-200 mb-1.5">{label}</p>
+                              <div className="flex items-center justify-between gap-4 mb-1">
+                                <span className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300 font-medium">
+                                  <span className="w-2 h-2 rounded-full bg-[#942392]" /> Total Events:
+                                </span>
+                                <span className="font-black text-[#942392]">{totalVal}</span>
+                              </div>
+                              <div className="flex items-center justify-between gap-4">
+                                <span className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300 font-medium">
+                                  <span className="w-2 h-2 rounded-full bg-[#66b032]" /> Total Completed Events:
+                                </span>
+                                <span className="font-black text-[#66b032]">{compVal}</span>
+                              </div>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
                     />
                     <Legend wrapperStyle={{ paddingTop: '8px', fontSize: '12px' }} />
-                    <Bar dataKey="totalEvents" name="Total Events" fill="#942392" radius={[4, 4, 0, 0]} barSize={14} />
-                    <Bar dataKey="completedEvents" name="Total Completed Events" fill="#16a34a" radius={[4, 4, 0, 0]} barSize={14} />
+                    <Bar 
+                      dataKey="totalEvents" 
+                      name="Total Events" 
+                      fill="#942392" 
+                      radius={[4, 4, 0, 0]} 
+                      barSize={14} 
+                      onMouseEnter={(entry: any) => setHoveredMonth(entry.name)}
+                      onMouseLeave={() => setHoveredMonth(null)}
+                    />
+                    <Bar 
+                      dataKey="completedEvents" 
+                      name="Total Completed Events" 
+                      fill="#66b032" 
+                      radius={[4, 4, 0, 0]} 
+                      barSize={14} 
+                      onMouseEnter={(entry: any) => setHoveredMonth(entry.name)}
+                      onMouseLeave={() => setHoveredMonth(null)}
+                    />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -608,7 +649,7 @@ export default function OutstationAnalytics() {
               {/* Footer percentage */}
               <div className="rounded-xl bg-slate-50 dark:bg-slate-900/60 p-3 flex items-center justify-between border border-slate-100 dark:border-slate-800/80">
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                  <div className="w-2 h-2 rounded-full bg-[#66b032]" />
                   <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
                     {trackerSummary.total > 0
                       ? `${Math.round((trackerSummary.completed / trackerSummary.total) * 100)}% overall completion rate`
@@ -666,7 +707,7 @@ export default function OutstationAnalytics() {
             {/* Donut Chart with Center Total & Badge (Compact Sizing) */}
             <div className="relative w-full flex items-center justify-center my-1">
               <ResponsiveContainer width="100%" height={135}>
-                <PieChart>
+                <PieChart onMouseLeave={() => setHoveredDonutSlice(null)}>
                   <Pie
                     data={donutData}
                     dataKey="value"
@@ -675,24 +716,51 @@ export default function OutstationAnalytics() {
                     outerRadius={60}
                     paddingAngle={donutData.length > 1 ? 3 : 0}
                     stroke="none"
+                    onMouseEnter={(entry: any) => setHoveredDonutSlice(entry)}
+                    onMouseLeave={() => setHoveredDonutSlice(null)}
                   >
                     {donutData.map((entry, idx) => (
-                      <Cell key={`cell-${idx}`} fill={entry.color} />
+                      <Cell key={`cell-${idx}`} fill={entry.color} className="cursor-pointer outline-none hover:opacity-85 transition-opacity" />
                     ))}
                   </Pie>
+                  <RechartsTooltip
+                    cursor={false}
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length && hoveredDonutSlice) {
+                        const entry = payload[0].payload;
+                        const total = donutData.reduce((sum, d) => sum + (d.value || 0), 0);
+                        const pct = total > 0 ? Math.round((entry.value / total) * 100) : 0;
+                        return (
+                          <div className="bg-slate-900/95 dark:bg-slate-800/95 text-white px-2.5 py-1.5 rounded-lg shadow-xl border border-slate-700/60 backdrop-blur-sm text-xs pointer-events-none">
+                            <div className="flex items-center gap-1.5 mb-0.5">
+                              <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: entry.color }} />
+                              <span className="font-bold text-slate-100">{entry.name}</span>
+                            </div>
+                            <div className="flex items-center justify-between gap-3 text-slate-300 text-[10px] font-medium">
+                              <span>Trips: <b className="text-white font-black">{entry.value}</b></span>
+                              <span className="text-emerald-400 font-bold">{pct}%</span>
+                            </div>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
                 </PieChart>
               </ResponsiveContainer>
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                 <span className="text-2xl font-black text-slate-900 dark:text-white tracking-tight leading-none">
-                  {statusSummary.total}
+                  {hoveredDonutSlice ? hoveredDonutSlice.value : statusSummary.total}
                 </span>
-                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 mt-0.5">
-                  TOTAL TRIPS
+                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 mt-0.5 max-w-[90px] truncate text-center">
+                  {hoveredDonutSlice ? hoveredDonutSlice.name : "TOTAL TRIPS"}
                 </span>
-                <span className="mt-1 inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400">
-                  <ArrowUpRight className="w-3 h-3 stroke-[2.5]" />
-                  {statusSummary.completedPct}%
-                </span>
+                {!hoveredDonutSlice && (
+                  <span className="mt-1 inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400">
+                    <ArrowUpRight className="w-3 h-3 stroke-[2.5]" />
+                    {statusSummary.completedPct}%
+                  </span>
+                )}
               </div>
             </div>
 
