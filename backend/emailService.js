@@ -356,7 +356,33 @@ async function sendOutstationUpdatedEmail(data) {
   }
 }
 
+async function sendLeaveSubmittedEmailToUser(data) {
+  if (!process.env.BREVO_API_KEY) return;
+  const email = {
+    sender: { name: "Rayhar Staff Portal", email: "noreply@rayhar.com" },
+    to: [{ email: data.employeeEmail, name: data.employeeName }],
+    subject: `Leave Request Submitted: ${data.leaveType}`,
+    htmlContent: `
+      <div style="font-family: sans-serif; color: #333;">
+        <h2 style="color: #7B0099;">Rayhar Staff Portal</h2>
+        <p>Hello ${data.employeeName},</p>
+        <p>Your leave request has been successfully submitted and is pending approval.</p>
+        <p><strong>Leave Type:</strong> ${data.leaveType}</p>
+        <p><strong>Date:</strong> ${data.startDate} to ${data.endDate}</p>
+        <p>You can check the status of your request in the Staff Portal dashboard.</p>
+        <p style="font-size: 12px; color: #888; margin-top: 20px;">This is an automated notification. Please do not reply.</p>
+      </div>
+    `
+  };
+  try {
+    await apiInstance.transactionalEmails.sendTransacEmail(email);
+  } catch (err) {
+    console.error("Error sending leave submitted email to user:", err);
+  }
+}
+
 module.exports = {
+  sendLeaveSubmittedEmailToUser,
   sendLeaveApprovalEmail,
   sendLateEmail,
   sendLeaveApprovedEmail,

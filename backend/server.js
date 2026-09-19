@@ -3435,7 +3435,7 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
     }
 
     const [rows] = await pool.query(
-      `SELECT lr.*, p.full_name, p.branch, COALESCE(lr.phone, p.phone, '') AS phone FROM leave_requests lr JOIN profiles p ON p.user_id = lr.user_id WHERE lr.leave_id = ?`,
+      `SELECT lr.*, p.full_name, p.branch, p.department, p.email, COALESCE(lr.phone, p.phone, '') AS phone FROM leave_requests lr JOIN profiles p ON p.user_id = lr.user_id WHERE lr.leave_id = ?`,
       [result.insertId]
     );
 
@@ -3458,6 +3458,19 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
     
     // Generate and save the leave form PDF locally and on Supabase Storage
     generateAndSaveLeaveFormPDF(result.insertId);
+
+    // --- SEND EMAIL NOTIFICATION TO USER ---
+    if (leaveData && leaveData.email) {
+      emailService.sendLeaveSubmittedEmailToUser({
+        employeeEmail: leaveData.email,
+        employeeName: leaveData.full_name,
+        leaveType: leaveData.leave_type,
+        startDate: new Date(leaveData.start_date).toLocaleDateString(),
+        endDate: new Date(leaveData.end_date).toLocaleDateString()
+      }).catch(err => {
+        console.error("Failed to send leave submitted email to user:", err);
+      });
+    }
 
     // --- SEND EMAIL NOTIFICATION TO HOD / BRANCH LEADER & HR ---
     if (initialStatus !== "Approved" && leaveData) {
