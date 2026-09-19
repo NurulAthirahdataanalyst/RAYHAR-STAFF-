@@ -1244,7 +1244,7 @@ async function getEmployeeLocations(branch) {
     let params = [];
     let branchFilter = "";
     if (branch && branch !== "All") {
-      branchFilter = "AND p.branch = ?";
+      branchFilter = "AND LOWER(p.branch) = LOWER(?)";
       params.push(branch);
     }
     const sql = `
@@ -1329,11 +1329,11 @@ async function getLiveAttendanceStats(queryDate, role, branch, department) {
     let paramsTotal = [];
     if (normRole === 'branch_leader') {
       const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
-      filterP = " AND p.branch = ?";
+      filterP = " AND LOWER(p.branch) = LOWER(?)";
       paramsTotal.push(safeBranch);
     } else if (normRole === 'head_of_department' || normRole === 'hod') {
       const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
-      filterP = " AND p.department = ?";
+      filterP = " AND LOWER(p.department) = LOWER(?)";
       paramsTotal.push(safeDept);
     } else if (['hr_admin', 'hr', 'admin', 'managing_director', 'md', 'operation_manager', 'finance_manager'].includes(normRole)) {
       filterP = "";
@@ -1707,11 +1707,11 @@ async function computeDynamicWorkforceMetrics(dateStr, role, branch, department)
 
   if (normRole === 'branch_leader') {
     const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
-    profileFilter = " AND p.branch = ?";
+    profileFilter = " AND LOWER(p.branch) = LOWER(?)";
     pFilterParams.push(safeBranch);
   } else if (normRole === 'head_of_department' || normRole === 'hod') {
     const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
-    profileFilter = " AND p.department = ?";
+    profileFilter = " AND LOWER(p.department) = LOWER(?)";
     pFilterParams.push(safeDept);
   }
 
@@ -1823,11 +1823,11 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
   let paramsBase = [];
   if (normRole === 'branch_leader') {
     const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
-    filterP = " AND p.branch = ?";
+    filterP = " AND LOWER(p.branch) = LOWER(?)";
     paramsBase.push(safeBranch);
   } else if (normRole === 'head_of_department' || normRole === 'hod') {
     const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
-    filterP = " AND p.department = ?";
+    filterP = " AND LOWER(p.department) = LOWER(?)";
     paramsBase.push(safeDept);
   } else if (['hr_admin', 'hr', 'admin', 'managing_director', 'md', 'operation_manager', 'finance_manager'].includes(normRole)) {
     filterP = "";
@@ -1969,8 +1969,8 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
   let pendingFilters = ["lr.status IN ('Pending', 'Pending Finance', 'Pending MD', 'Pending HOD')"];
   let pendingParams = [];
   if (!['hr_admin', 'managing_director', 'operation_manager', 'finance_manager'].includes(role)) {
-    if (branch) { pendingFilters.push("p.branch = ?"); pendingParams.push(branch); }
-    if (department) { pendingFilters.push("p.department = ?"); pendingParams.push(department); }
+    if (branch) { pendingFilters.push("LOWER(p.branch) = LOWER(?)"); pendingParams.push(branch); }
+    if (department) { pendingFilters.push("LOWER(p.department) = LOWER(?)"); pendingParams.push(department); }
   }
   const pendingWhere = pendingFilters.length ? `WHERE ${pendingFilters.join(' AND ')}` : '';
   const [pendingRows] = await pool.query(
@@ -2180,10 +2180,10 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
   let leaveTrendFilterClauses = [];
   let leaveTrendFilterParams = [];
   if (role === 'branch_leader' && branch && branch !== 'All') {
-    leaveTrendFilterClauses.push('AND p.branch = ?');
+    leaveTrendFilterClauses.push('AND LOWER(p.branch) = LOWER(?)');
     leaveTrendFilterParams.push(branch);
   } else if (role === 'head_of_department' && department && department !== 'All') {
-    leaveTrendFilterClauses.push('AND p.department = ?');
+    leaveTrendFilterClauses.push('AND LOWER(p.department) = LOWER(?)');
     leaveTrendFilterParams.push(department);
   }
   const leaveTrendRoleFilter = leaveTrendFilterClauses.join(' ');
@@ -2635,7 +2635,7 @@ app.get("/api/branch-employees", async (req, res) => {
         AND (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date
         GROUP BY user_id
       ) outstation_today ON outstation_today.user_id = p.user_id
-      WHERE p.branch = ? AND p.status = 'Active'
+      WHERE LOWER(p.branch) = LOWER(?) AND p.status = 'Active'
       ORDER BY 
         CASE 
           WHEN ur.role = 'managing_director' THEN 1
@@ -2709,12 +2709,12 @@ app.get("/api/leave-entitlements", async (req, res) => {
     const filters = ["p.status = 'Active'"];
 
     if (branch) {
-      filters.push("p.branch = ?");
+      filters.push("LOWER(p.branch) = LOWER(?)");
       params.push(branch);
     }
 
     if (department) {
-      filters.push("p.department = ?");
+      filters.push("LOWER(p.department) = LOWER(?)");
       params.push(department);
     }
 
@@ -3072,16 +3072,16 @@ app.get("/api/leave-requests", async (req, res) => {
       params.push(userId);
     } else {
       if (role === "branch_leader" && branch) {
-        filters.push("p.branch = ?");
+        filters.push("LOWER(p.branch) = LOWER(?)");
         params.push(branch);
       } else if (role === "head_of_department" && req.query.department) {
-        filters.push("p.department = ?");
+        filters.push("LOWER(p.department) = LOWER(?)");
         params.push(req.query.department);
       } else if (role === "head_of_department") {
         // Safety: HOD must have a department to see anything
         filters.push("1 = 0");
       } else if (!["hr_admin", "managing_director", "finance_manager", "operation_manager"].includes(role) && branch) {
-        filters.push("p.branch = ?");
+        filters.push("LOWER(p.branch) = LOWER(?)");
         params.push(branch);
       }
     }
@@ -3469,7 +3469,7 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
         // Find approver
         if (initialStatus === "Pending Branch Leader") {
           const [blRows] = await pool.query(
-            `SELECT p.email, p.user_id, p.full_name FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'branch_leader' AND p.branch = ? AND p.status = 'Active' LIMIT 1`,
+            `SELECT p.email, p.user_id, p.full_name FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'branch_leader' AND LOWER(p.branch) = LOWER(?) AND p.status = 'Active' LIMIT 1`,
             [leaveData.branch]
           );
           if (blRows.length > 0) {
@@ -3480,7 +3480,7 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
           }
         } else {
           const [hodRows] = await pool.query(
-            `SELECT p.email, p.user_id, p.full_name FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'head_of_department' AND p.department = ? AND p.branch = ? AND p.status = 'Active' LIMIT 1`,
+            `SELECT p.email, p.user_id, p.full_name FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'head_of_department' AND LOWER(p.department) = LOWER(?) AND LOWER(p.branch) = LOWER(?) AND p.status = 'Active' LIMIT 1`,
             [employeeDept, employeeBranch]
           );
           if (hodRows.length > 0) {
@@ -3537,7 +3537,7 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
         let employeeMsg = `Your application for ${leaveData.leave_type} was submitted.`;
         if (employeeBranch === 'HQ') {
           const [hodRows] = await pool.query(
-            `SELECT UPPER(p.full_name) AS full_name, p.department FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'head_of_department' AND (p.department = ? OR ? IS NULL) AND p.status = 'Active' LIMIT 1`,
+            `SELECT UPPER(p.full_name) AS full_name, p.department FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'head_of_department' AND (LOWER(p.department) = LOWER(?) OR ? IS NULL) AND p.status = 'Active' LIMIT 1`,
             [leaveData.department, leaveData.department]
           );
           const hodName = (hodRows && hodRows.length > 0 && hodRows[0].full_name) ? hodRows[0].full_name : "";
@@ -3549,7 +3549,7 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
           }
         } else {
           const [blRows] = await pool.query(
-            `SELECT UPPER(p.full_name) AS full_name FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'branch_leader' AND p.branch = ? AND p.status = 'Active' LIMIT 1`,
+            `SELECT UPPER(p.full_name) AS full_name FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'branch_leader' AND LOWER(p.branch) = LOWER(?) AND p.status = 'Active' LIMIT 1`,
             [employeeBranch]
           );
           const blName = (blRows && blRows.length > 0 && blRows[0].full_name) ? blRows[0].full_name : "";
@@ -3822,7 +3822,7 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
             progressMsg = "Your leave application is currently waiting for Operation Manager.";
           } else if (sUpper.includes("HOD") || sUpper.includes("HEAD OF DEPARTMENT")) {
             const [hodRows] = await pool.query(
-              `SELECT UPPER(p.full_name) AS full_name, p.department FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'head_of_department' AND (p.department = ? OR ? IS NULL) AND p.status = 'Active' LIMIT 1`,
+              `SELECT UPPER(p.full_name) AS full_name, p.department FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'head_of_department' AND (LOWER(p.department) = LOWER(?) OR ? IS NULL) AND p.status = 'Active' LIMIT 1`,
               [leaveData.department, leaveData.department]
             );
             const hName = (hodRows && hodRows.length > 0 && hodRows[0].full_name) ? hodRows[0].full_name : "";
@@ -3832,7 +3832,7 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
               : `Your leave application is currently waiting for Head of Department (${dCode}).`;
           } else if (sUpper.includes("BRANCH LEADER")) {
             const [blRows] = await pool.query(
-              `SELECT UPPER(p.full_name) AS full_name FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'branch_leader' AND p.branch = ? AND p.status = 'Active' LIMIT 1`,
+              `SELECT UPPER(p.full_name) AS full_name FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'branch_leader' AND LOWER(p.branch) = LOWER(?) AND p.status = 'Active' LIMIT 1`,
               [leaveData.branch]
             );
             const bName = (blRows && blRows.length > 0 && blRows[0].full_name) ? blRows[0].full_name : "";
@@ -4285,13 +4285,13 @@ app.get("/api/employees", async (req, res) => {
     const filters = [];
 
     if (role === "branch_leader" && branch) {
-      filters.push("p.branch = ?");
+      filters.push("LOWER(p.branch) = LOWER(?)");
       params.push(branch);
     } else if (role === "head_of_department" && req.query.department) {
-      filters.push("p.department = ?");
+      filters.push("LOWER(p.department) = LOWER(?)");
       params.push(req.query.department);
     } else if (!["hr_admin", "admin", "hr", "managing_director", "md", "finance_manager", "operation_manager"].includes(role) && branch) {
-      filters.push("p.branch = ?");
+      filters.push("LOWER(p.branch) = LOWER(?)");
       params.push(branch);
     }
 
@@ -4510,8 +4510,8 @@ app.post("/api/departments/hod-transfer", async (req, res) => {
        FROM user_role ur 
        JOIN profiles p ON p.user_id = ur.user_id 
        WHERE ur.role = 'head_of_department' 
-       AND p.department = ? 
-       AND p.branch = ?`,
+       AND LOWER(p.department) = LOWER(?) 
+       AND LOWER(p.branch) = LOWER(?)`,
       [departmentName, branch || 'HQ']
     );
 
@@ -4843,14 +4843,14 @@ app.get("/api/employee-locations", async (req, res) => {
 
     if (role === 'branch_leader') {
         const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
-        filter = "AND p.branch = ?";
+        filter = "AND LOWER(p.branch) = LOWER(?)";
         params.push(safeBranch);
     } else if (role === 'head_of_department') {
         const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
-        filter = "AND p.department = ?";
+        filter = "AND LOWER(p.department) = LOWER(?)";
         params.push(safeDept);
     } else if (branch && branch !== "All") {
-        filter = "AND p.branch = ?";
+        filter = "AND LOWER(p.branch) = LOWER(?)";
         params.push(branch);
     }
 
@@ -5468,14 +5468,14 @@ app.post("/api/attendance", async (req, res) => {
         if (isHQ) {
           const [hRows] = await pool.query(
             `SELECT p.user_id FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id 
-             WHERE ur.role = 'head_of_department' AND p.department = ? AND p.branch = 'HQ' AND p.status = 'Active' LIMIT 1`,
+             WHERE ur.role = 'head_of_department' AND LOWER(p.department) = LOWER(?) AND p.branch = 'HQ' AND p.status = 'Active' LIMIT 1`,
             [empDept]
           );
           supervisorRows = hRows;
         } else {
           const [bRows] = await pool.query(
             `SELECT p.user_id FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id 
-             WHERE ur.role = 'branch_leader' AND p.branch = ? AND p.status = 'Active' LIMIT 1`,
+             WHERE ur.role = 'branch_leader' AND LOWER(p.branch) = LOWER(?) AND p.status = 'Active' LIMIT 1`,
             [empBranch]
           );
           supervisorRows = bRows;
@@ -5497,7 +5497,7 @@ app.post("/api/attendance", async (req, res) => {
         if (finalLocation && finalLocation !== empBranch && finalLocation !== 'HQ') {
           const [destBRows] = await pool.query(
             `SELECT p.user_id FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id 
-             WHERE ur.role = 'branch_leader' AND p.branch = ? AND p.status = 'Active' LIMIT 1`,
+             WHERE ur.role = 'branch_leader' AND LOWER(p.branch) = LOWER(?) AND p.status = 'Active' LIMIT 1`,
             [finalLocation]
           );
           for (const destSup of (destBRows || [])) {
@@ -6678,13 +6678,13 @@ app.get("/api/dashboard-stats", async (req, res) => {
 
       if (role === "branch_leader" || role === "head_of_department") {
         if (branch && department) {
-          teamFilter = "AND p.branch = ? AND p.department = ?";
+          teamFilter = "AND LOWER(p.branch) = LOWER(?) AND LOWER(p.department) = LOWER(?)";
           teamParams = [branch, department];
         } else if (branch) {
-          teamFilter = "AND p.branch = ?";
+          teamFilter = "AND LOWER(p.branch) = LOWER(?)";
           teamParams = [branch];
         } else if (department) {
-          teamFilter = "AND p.department = ?";
+          teamFilter = "AND LOWER(p.department) = LOWER(?)";
           teamParams = [department];
         }
       }
@@ -6922,12 +6922,12 @@ app.get("/api/reports/absent-employees", async (req, res) => {
     if (role === 'branch_leader') {
       const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
       branch = safeBranch;
-      profileFilter = " AND p.branch = ?";
+      profileFilter = " AND LOWER(p.branch) = LOWER(?)";
       queryParams.push(branch);
     } else if (role === 'head_of_department') {
       const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
       department = safeDept;
-      profileFilter = " AND p.department = ?";
+      profileFilter = " AND LOWER(p.department) = LOWER(?)";
       queryParams.push(department);
     }
 
@@ -7008,12 +7008,12 @@ app.get("/api/reports/on-leave-employees", async (req, res) => {
     if (role === 'branch_leader') {
       const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
       branch = safeBranch;
-      profileFilter = " AND p.branch = ?";
+      profileFilter = " AND LOWER(p.branch) = LOWER(?)";
       queryParams.push(branch);
     } else if (role === 'head_of_department') {
       const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
       department = safeDept;
-      profileFilter = " AND p.department = ?";
+      profileFilter = " AND LOWER(p.department) = LOWER(?)";
       queryParams.push(department);
     }
 
@@ -7070,11 +7070,11 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
 
     if (role === 'branch_leader') {
       const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
-      profileFilter = " AND p.branch = ?";
+      profileFilter = " AND LOWER(p.branch) = LOWER(?)";
       queryParams.push(safeBranch);
     } else if (role === 'head_of_department') {
       const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
-      profileFilter = " AND p.department = ?";
+      profileFilter = " AND LOWER(p.department) = LOWER(?)";
       queryParams.push(safeDept);
     }
 
@@ -7389,12 +7389,12 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
     if (role === 'branch_leader') {
       const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
       branch = safeBranch;
-      profileFilter = " AND p.branch = ?";
+      profileFilter = " AND LOWER(p.branch) = LOWER(?)";
       queryParams.push(branch);
     } else if (role === 'head_of_department') {
       const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
       department = safeDept;
-      profileFilter = " AND p.department = ?";
+      profileFilter = " AND LOWER(p.department) = LOWER(?)";
       queryParams.push(department);
     }
 
@@ -7674,12 +7674,12 @@ app.get("/api/reports/total-leave-requests", async (req, res) => {
     if (role === 'branch_leader') {
       const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
       branch = safeBranch;
-      filter = " AND p.branch = ?";
+      filter = " AND LOWER(p.branch) = LOWER(?)";
       params.push(branch);
     } else if (role === 'head_of_department') {
       const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
       department = safeDept;
-      filter = " AND p.department = ?";
+      filter = " AND LOWER(p.department) = LOWER(?)";
       params.push(department);
     }
 
@@ -7786,12 +7786,12 @@ app.get("/api/reports/analytics", async (req, res) => {
     if (role === 'branch_leader') {
       const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
       branch = safeBranch;
-      profileFilter = " AND p.branch = ?";
+      profileFilter = " AND LOWER(p.branch) = LOWER(?)";
       pFilterParams.push(branch);
     } else if (role === 'head_of_department') {
       const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
       department = safeDept;
-      profileFilter = " AND p.department = ?";
+      profileFilter = " AND LOWER(p.department) = LOWER(?)";
       pFilterParams.push(department);
     }
     
@@ -7925,11 +7925,11 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
 
     if (normRole === 'branch_leader') {
       const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
-      profileFilter = " AND p.branch = ?";
+      profileFilter = " AND LOWER(p.branch) = LOWER(?)";
       pFilterParams.push(safeBranch);
     } else if (normRole === 'head_of_department' || normRole === 'hod') {
       const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
-      profileFilter = " AND p.department = ?";
+      profileFilter = " AND LOWER(p.department) = LOWER(?)";
       pFilterParams.push(safeDept);
     } else if (['hr_admin', 'hr', 'admin', 'managing_director', 'md', 'operation_manager', 'finance_manager'].includes(normRole)) {
       // HR Admin, Managing Director, Operation Manager see ALL employees across all branches and departments
@@ -8982,19 +8982,19 @@ app.get("/api/reports/workforce-leave-balance", async (req, res) => {
 
     if (!isAllAccessRole) {
       if ((rawRole.includes("branch") || rawRole.includes("leader")) && branch && branch !== "All") {
-        profileFilter += " AND p.branch = ?";
+        profileFilter += " AND LOWER(p.branch) = LOWER(?)";
         pParams.push(branch);
       } else if ((rawRole.includes("department") || rawRole.includes("head") || rawRole.includes("hod")) && department && department !== "All") {
-        profileFilter += " AND p.department = ?";
+        profileFilter += " AND LOWER(p.department) = LOWER(?)";
         pParams.push(department);
       }
     } else {
       if (branch && branch !== 'All') {
-        profileFilter += " AND p.branch = ?";
+        profileFilter += " AND LOWER(p.branch) = LOWER(?)";
         pParams.push(branch);
       }
       if (department && department !== 'All') {
-        profileFilter += " AND p.department = ?";
+        profileFilter += " AND LOWER(p.department) = LOWER(?)";
         pParams.push(department);
       }
     }
@@ -9534,15 +9534,15 @@ app.get("/api/who-out-today", async (req, res) => {
     const params = [];
 
     if (role === "branch_leader" && branch) {
-      filters.push("p.branch = ?");
+      filters.push("LOWER(p.branch) = LOWER(?)");
       params.push(branch);
     } else if (role === "head_of_department" && department) {
-      filters.push("p.department = ?");
+      filters.push("LOWER(p.department) = LOWER(?)");
       params.push(department);
     } else if (role === "head_of_department") {
       filters.push("1 = 0");
     } else if (!["hr_admin", "admin", "hr", "managing_director", "md", "finance_manager", "operation_manager"].includes(role) && branch) {
-      filters.push("p.branch = ?");
+      filters.push("LOWER(p.branch) = LOWER(?)");
       params.push(branch);
     }
 
@@ -9639,12 +9639,12 @@ app.get("/api/reports/generator", async (req, res) => {
     let params = [];
     
     if (branch && branch !== 'all') {
-      filters.push("p.branch = ?");
+      filters.push("LOWER(p.branch) = LOWER(?)");
       params.push(branch);
     }
     
     if (department && department !== 'all') {
-      filters.push("p.department = ?");
+      filters.push("LOWER(p.department) = LOWER(?)");
       params.push(department);
     }
     
@@ -9671,11 +9671,11 @@ app.get("/api/reports/generator", async (req, res) => {
       let profParams = [];
       
       if (branch && branch !== 'all') {
-        profFilters.push("p.branch = ?");
+        profFilters.push("LOWER(p.branch) = LOWER(?)");
         profParams.push(branch);
       }
       if (department && department !== 'all') {
-        profFilters.push("p.department = ?");
+        profFilters.push("LOWER(p.department) = LOWER(?)");
         profParams.push(department);
       }
       if (requesterRole === 'employee' && requesterId) {
@@ -9856,11 +9856,11 @@ app.get("/api/reports/generator", async (req, res) => {
       let outParams = [];
       
       if (branch && branch !== 'all') {
-         outFilters.push("p.branch = ?");
+         outFilters.push("LOWER(p.branch) = LOWER(?)");
          outParams.push(branch);
       }
       if (department && department !== 'all') {
-         outFilters.push("p.department = ?");
+         outFilters.push("LOWER(p.department) = LOWER(?)");
          outParams.push(department);
       }
       if (month && month !== 'all') {
@@ -9939,12 +9939,12 @@ app.get("/api/reports/generator", async (req, res) => {
       let leaveParams = [];
       
       if (branch && branch !== 'all') {
-         leaveFilters.push("p.branch = ?");
+         leaveFilters.push("LOWER(p.branch) = LOWER(?)");
          leaveParams.push(branch);
       }
       
       if (department && department !== 'all') {
-         leaveFilters.push("p.department = ?");
+         leaveFilters.push("LOWER(p.department) = LOWER(?)");
          leaveParams.push(department);
       }
       
@@ -10004,12 +10004,12 @@ app.get("/api/reports/leave-utilization", async (req, res) => {
     if (role === 'branch_leader') {
       const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
       branch = safeBranch;
-      filter = " AND p.branch = ?";
+      filter = " AND LOWER(p.branch) = LOWER(?)";
       params.push(branch);
     } else if (role === 'head_of_department') {
       const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
       department = safeDept;
-      filter = " AND p.department = ?";
+      filter = " AND LOWER(p.department) = LOWER(?)";
       params.push(department);
     }
 
@@ -11437,11 +11437,11 @@ app.get("/api/work-assignments-all", async (req, res) => {
 
       if (role === 'branch_leader') {
         const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
-        filterP = " WHERE p.branch = ?";
+        filterP = " WHERE LOWER(p.branch) = LOWER(?)";
         paramsTotal.push(safeBranch);
       } else if (role === 'head_of_department') {
         const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
-        filterP = " WHERE p.department = ?";
+        filterP = " WHERE LOWER(p.department) = LOWER(?)";
         paramsTotal.push(safeDept);
       }
 
