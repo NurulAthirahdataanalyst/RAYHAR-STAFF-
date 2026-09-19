@@ -1,5 +1,5 @@
 // Rayhar Staff Portal - Service Worker
-const CACHE_NAME = 'rayhar-staff-v2';
+const CACHE_NAME = 'rayhar-staff-v3';
 const STATIC_ASSETS = [
   '/favicon.png',
 ];

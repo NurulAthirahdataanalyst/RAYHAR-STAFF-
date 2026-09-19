@@ -194,7 +194,7 @@ export default function LeaveCalendar() {
             label: "Unpaid Leave", 
             value: kpiUnpaid, 
             color: "#64748b", 
-            textColor: "text-slate-500",
+            textColor: "text-slate-500 dark:text-slate-400",
             cardBg: "bg-slate-50/80 dark:bg-slate-800/20",
             borderColor: "border-slate-200/80 dark:border-slate-700/50",
             dividerColor: "bg-slate-200/70 dark:bg-slate-700/50",

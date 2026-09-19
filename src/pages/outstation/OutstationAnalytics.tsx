@@ -16,6 +16,7 @@ import {
 import { TablePagination } from "@/components/common/TablePagination";
 import { MonthPicker } from "@/components/shared/MonthPicker";
 import PageActions from "@/components/layout/PageActions";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const ALLOWED_ROLES = ["hr_admin", "managing_director", "operation_manager", "finance_manager", "branch_leader", "head_of_department"];
 const STATUS_COLORS: Record<string, string> = {
@@ -543,16 +544,17 @@ export default function OutstationAnalytics() {
               {/* Month Filter Selector */}
               <div className="flex items-center gap-2">
                 <Filter className="w-4 h-4 text-foreground" />
-                <select
-                  value={selectedMonth}
-                  onChange={(e) => setSelectedMonth(e.target.value)}
-                  className="h-9 px-3 text-xs font-bold rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-foreground dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#942392] cursor-pointer shadow-xs"
-                >
-                  <option value="all">All Months (Jan - Dec)</option>
-                  {MONTH_NAMES.map((name, idx) => (
-                    <option key={idx} value={idx.toString()}>{name}</option>
-                  ))}
-                </select>
+                <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                  <SelectTrigger className="h-9 px-3 text-xs font-bold rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-foreground dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#942392] cursor-pointer shadow-xs w-[180px]">
+                    <SelectValue placeholder="All Months" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl">
+                    <SelectItem value="all" className="text-xs font-semibold">All Months (Jan - Dec)</SelectItem>
+                    {MONTH_NAMES.map((name, idx) => (
+                      <SelectItem key={idx} value={idx.toString()} className="text-xs font-semibold">{name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </CardHeader>
 
@@ -602,6 +604,24 @@ export default function OutstationAnalytics() {
                   </BarChart>
                 </ResponsiveContainer>
               </div>
+
+              {/* Footer percentage */}
+              <div className="rounded-xl bg-slate-50 dark:bg-slate-900/60 p-3 flex items-center justify-between border border-slate-100 dark:border-slate-800/80">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                    {trackerSummary.total > 0
+                      ? `${Math.round((trackerSummary.completed / trackerSummary.total) * 100)}% overall completion rate`
+                      : "No events recorded"}
+                  </span>
+                </div>
+                <button
+                  onClick={() => navigate("/outstation/assignment")}
+                  className="text-xs font-bold text-[#942392] dark:text-purple-400 hover:underline flex items-center gap-1"
+                >
+                  View Details <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -629,27 +649,18 @@ export default function OutstationAnalytics() {
                 </div>
               </div>
 
-              {/* Filter Button (Opens native month selector) */}
-              <div className="relative">
-                <select
-                  value={selectedMonth}
-                  onChange={(e) => setSelectedMonth(e.target.value)}
-                  aria-label="Filter Outstation Status by month"
-                  className="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10"
-                >
-                  <option value="all">All Months (Jan - Dec)</option>
-                  {MONTH_NAMES.map((name, idx) => (
-                    <option key={idx} value={idx.toString()}>{name}</option>
-                  ))}
-                </select>
-                <button
-                  type="button"
-                  className="w-8 h-8 rounded-xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-center text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 shadow-2xs hover:bg-slate-50 transition-colors"
-                  title="Filter by Month"
-                >
+              {/* Filter Button (Opens month selector) */}
+              <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                <SelectTrigger className="w-8 h-8 p-0 rounded-xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-center text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 shadow-2xs hover:bg-slate-50 transition-colors [&>svg]:hidden" title="Filter by Month">
                   <Filter className="w-3.5 h-3.5" />
-                </button>
-              </div>
+                </SelectTrigger>
+                <SelectContent align="end" className="rounded-xl">
+                  <SelectItem value="all" className="text-xs font-semibold">All Months (Jan - Dec)</SelectItem>
+                  {MONTH_NAMES.map((name, idx) => (
+                    <SelectItem key={idx} value={idx.toString()} className="text-xs font-semibold">{name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Donut Chart with Center Total & Badge (Compact Sizing) */}
@@ -778,16 +789,20 @@ export default function OutstationAnalytics() {
               <CardTitle className="text-base font-bold text-foreground dark:text-slate-100">Top Destinations</CardTitle>
               <p className="text-xs text-foreground dark:text-foreground mt-0.5">View the most visited outstation destinations by staff</p>
             </div>
-            <select
-              value={destinationLimit}
-              onChange={e => setDestinationLimit(Number(e.target.value))}
-              className="h-8 px-2 text-xs font-bold rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-foreground dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#942392] cursor-pointer shadow-xs"
+            <Select
+              value={destinationLimit.toString()}
+              onValueChange={(v) => setDestinationLimit(Number(v))}
             >
-              <option value={5}>5</option>
-              <option value={10}>10</option>
-              <option value={25}>25</option>
-              <option value={50}>50</option>
-            </select>
+              <SelectTrigger className="h-8 w-[72px] px-2 text-xs font-bold rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-foreground dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#942392] cursor-pointer shadow-xs">
+                <SelectValue placeholder="5" />
+              </SelectTrigger>
+              <SelectContent className="min-w-[72px] rounded-lg">
+                <SelectItem value="5" className="text-xs font-bold">5</SelectItem>
+                <SelectItem value="10" className="text-xs font-bold">10</SelectItem>
+                <SelectItem value="25" className="text-xs font-bold">25</SelectItem>
+                <SelectItem value="50" className="text-xs font-bold">50</SelectItem>
+              </SelectContent>
+            </Select>
           </CardHeader>
           <CardContent className="p-4 sm:p-5 flex-1 flex flex-col justify-between gap-4">
             {destinationData.length === 0 ? (

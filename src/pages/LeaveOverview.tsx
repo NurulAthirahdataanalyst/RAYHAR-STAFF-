@@ -443,11 +443,11 @@ export default function LeaveOverview() {
 
       {/* Leave Requests Table */}
       <Card className="border-none shadow-[0_18px_42px_rgba(0,0,0,0.04)] dark:shadow-[0_18px_42px_rgba(0,0,0,0.18)] bg-card/80 backdrop-blur-md rounded-[24px] sm:rounded-[28px] overflow-hidden">
-        <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/50 pb-3 px-4 sm:px-5">
-          <CardTitle className="text-base sm:text-lg font-black text-foreground">Recent Applications</CardTitle>
-          <div className="flex items-center gap-2.5 flex-wrap">
+        <CardHeader className="space-y-0 flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-border/50 pb-3 px-4 sm:px-5">
+          <CardTitle className="text-base sm:text-lg font-black text-foreground whitespace-nowrap">Recent Applications</CardTitle>
+          <div className="flex items-center gap-2.5 flex-nowrap shrink-0 overflow-x-auto sm:overflow-visible">
             <Select value={leaveTypeFilter} onValueChange={setLeaveTypeFilter}>
-              <SelectTrigger className="h-10 px-3 min-w-[155px] bg-card border border-[#942392]/20 text-foreground text-xs font-bold rounded-xl shadow-sm outline-none cursor-pointer">
+              <SelectTrigger className="h-10 px-3 w-[165px] shrink-0 bg-card border border-[#942392]/20 text-foreground text-xs font-bold rounded-xl shadow-sm outline-none cursor-pointer">
                 <SelectValue placeholder="All Leave Type" />
               </SelectTrigger>
               <SelectContent className="rounded-xl border border-border/80 shadow-lg">
@@ -460,7 +460,7 @@ export default function LeaveOverview() {
             </Select>
 
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="h-10 px-3 min-w-[125px] bg-card border border-[#942392]/20 text-foreground text-xs font-bold rounded-xl shadow-sm outline-none cursor-pointer">
+              <SelectTrigger className="h-10 px-3 w-[130px] shrink-0 bg-card border border-[#942392]/20 text-foreground text-xs font-bold rounded-xl shadow-sm outline-none cursor-pointer">
                 <SelectValue placeholder="All Status" />
               </SelectTrigger>
               <SelectContent className="rounded-xl border border-border/80 shadow-lg">
@@ -474,7 +474,7 @@ export default function LeaveOverview() {
             <YearPopover 
               year={selectedYear} 
               onSelectYear={setSelectedYear} 
-              className="appearance-none flex items-center justify-between px-3 py-1.5 h-10 w-[90px] bg-card border border-[#942392]/20 text-foreground text-[10px] font-black rounded-xl shadow-sm outline-none cursor-pointer uppercase tracking-widest gap-2"
+              className="appearance-none flex items-center justify-between px-3 py-1.5 h-10 w-[95px] shrink-0 bg-card border border-[#942392]/20 text-foreground text-[10px] font-black rounded-xl shadow-sm outline-none cursor-pointer uppercase tracking-widest gap-2"
             />
           </div>
         </CardHeader>

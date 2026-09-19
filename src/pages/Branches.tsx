@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TablePagination } from "@/components/common/TablePagination";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -1937,14 +1938,18 @@ export default function Branches() {
             <div className="grid grid-cols-2 gap-6">
               <div className="space-y-1.5">
                 <label className="text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest">OPERATING ZONE</label>
-                <select 
-                  className="w-full h-11 px-4 rounded-xl border border-input bg-transparent text-xs font-bold shadow-sm"
+                <Select
                   value={editBranchData.operating_zone || "ZONE_B"}
-                  onChange={(e) => setEditBranchData({...editBranchData, operating_zone: e.target.value})}
+                  onValueChange={(val) => setEditBranchData({ ...editBranchData, operating_zone: val })}
                 >
-                  <option value="ZONE_A">ZONE A (Fri/Sat Weekend)</option>
-                  <option value="ZONE_B">ZONE B (Sat/Sun Weekend)</option>
-                </select>
+                  <SelectTrigger className="w-full h-11 px-4 rounded-xl border border-input bg-transparent text-xs font-bold shadow-sm">
+                    <SelectValue placeholder="Select Zone" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl">
+                    <SelectItem value="ZONE_A" className="text-xs font-bold uppercase">ZONE A (Fri/Sat Weekend)</SelectItem>
+                    <SelectItem value="ZONE_B" className="text-xs font-bold uppercase">ZONE B (Sat/Sun Weekend)</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-1.5 cursor-pointer" onClick={() => setIsMapModalOpen(true)}>
                 <label className="text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest">COORDINATES</label>

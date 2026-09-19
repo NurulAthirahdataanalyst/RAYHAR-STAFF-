@@ -967,14 +967,18 @@ export default function SettingsPage() {
                   <label className="text-[10px] font-black text-foreground/70 uppercase tracking-widest ml-1">
                     Operating Zone
                   </label>
-                  <select
+                  <Select
                     value={branchZoneInput}
-                    onChange={(e) => setBranchZoneInput(e.target.value)}
-                    className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#942392] focus:ring-2 focus:ring-[#942392]/10 rounded-xl text-xs font-bold uppercase outline-none"
+                    onValueChange={(val) => setBranchZoneInput(val)}
                   >
-                    <option value="ZONE_B">ZONE B (West Coast - Sat/Sun Off)</option>
-                    <option value="ZONE_A">ZONE A (East Coast - Fri/Sat Off)</option>
-                  </select>
+                    <SelectTrigger className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#942392] focus:ring-2 focus:ring-[#942392]/10 rounded-xl text-xs font-bold uppercase outline-none">
+                      <SelectValue placeholder="Operating Zone" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      <SelectItem value="ZONE_B" className="text-xs font-bold uppercase">ZONE B (West Coast - Sat/Sun Off)</SelectItem>
+                      <SelectItem value="ZONE_A" className="text-xs font-bold uppercase">ZONE A (East Coast - Fri/Sat Off)</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -44,9 +44,8 @@ export function ReplacementLeaveIcon({
 
 /**
  * UnpaidLeaveIcon
- * Matches the user-provided design (3rd screenshot):
- * Unpaid statement / receipt bill with dollar sign, text lines, and a circular cross (X) badge.
- * 100% SVG vector component matching Lucide icon styling and currentColor.
+ * Matches the user-provided design (statement bill with dollar sign, fold curl, lines, and circular cross badge).
+ * 100% SVG vector component matching Lucide icon styling, strokeWidth, and currentColor.
  */
 export function UnpaidLeaveIcon({
   className = "w-9 h-9 sm:w-10 sm:h-10 text-slate-500",
@@ -67,32 +66,32 @@ export function UnpaidLeaveIcon({
       role="img"
       {...props}
     >
-      {/* Back Document Outline */}
-      <path d="M 4 3 h 10 a 2 2 0 0 1 2 2 v 4" />
+      {/* Back document outline with receipt fold curl */}
+      <path d="M 15 9.5 V 3.5 A 1.5 1.5 0 0 0 13.5 2 H 3.5 A 1.5 1.5 0 0 0 2 3.5 V 15.5 C 2 18 4.2 18.5 6 18.5 C 7.2 18.5 7.8 17.5 7.8 15.5 V 10.5 C 7.8 9.2 8.8 8.5 10 8.5 H 17.5 A 1.5 1.5 0 0 1 19 10 V 15" />
 
-      {/* Dollar sign on back document */}
-      <path d="M 7.5 4.5 v 4" strokeWidth={strokeWidth * 0.8} />
+      {/* Front sheet left edge and bottom edge */}
+      <path d="M 7.8 11.5 V 21 A 1 1 0 0 0 8.8 22 H 14.5" />
+
+      {/* Currency / dollar symbol on back sheet */}
+      <path d="M 5.2 3.5 v 3.8" strokeWidth={strokeWidth * 0.8} />
       <path
-        d="M 8.8 5.3 C 8.8 4.7 8 4.7 7.5 4.7 S 6.3 4.7 6.3 5.4 c 0 .7 2.4 .5 2.4 1.5 c 0 .7 -.7 .8 -1.2 .8 s -1.2 -.1 -1.2 -.8"
+        d="M 6.4 4.1 C 6.4 3.5 5.8 3.5 5.2 3.5 S 4.2 3.5 4.2 4.2 c 0 .8 2.2 .6 2.2 1.5 c 0 .6 -.6 .7 -1.2 .7 s -1 -.1 -1 -.6"
         strokeWidth={strokeWidth * 0.8}
       />
 
-      {/* Horizontal text lines next to dollar sign */}
-      <line x1="11.5" y1="5.3" x2="14.5" y2="5.3" strokeWidth={strokeWidth} />
-      <line x1="11.5" y1="7.5" x2="14.5" y2="7.5" strokeWidth={strokeWidth} />
+      {/* Back document text lines */}
+      <line x1="8.5" y1="4.3" x2="12.5" y2="4.3" strokeWidth={strokeWidth * 0.9} />
+      <line x1="8.5" y1="6.5" x2="12.5" y2="6.5" strokeWidth={strokeWidth * 0.9} />
 
-      {/* Front Document with left curl / fold */}
-      <path d="M 4 3 v 7 a 2.5 2.5 0 0 0 5 0 v -1 a 2.2 2.2 0 0 1 4.4 0 v 6 a 2 2 0 0 1 -2 2 H 7 a 2 2 0 0 1 -2 -2 V 11" />
-
-      {/* Front Document horizontal content lines */}
-      <line x1="8.5" y1="11.5" x2="14" y2="11.5" strokeWidth={strokeWidth} />
-      <line x1="8.5" y1="14" x2="14" y2="14" strokeWidth={strokeWidth} />
-      <line x1="8.5" y1="16.5" x2="12.5" y2="16.5" strokeWidth={strokeWidth} />
+      {/* Front document statement lines */}
+      <line x1="10.8" y1="11.8" x2="15.8" y2="11.8" strokeWidth={strokeWidth * 0.9} />
+      <line x1="10.8" y1="14.8" x2="15.8" y2="14.8" strokeWidth={strokeWidth * 0.9} />
+      <line x1="10.8" y1="17.8" x2="13.8" y2="17.8" strokeWidth={strokeWidth * 0.9} />
 
       {/* Cross Badge Circle at bottom-right */}
-      <circle cx="18" cy="18" r="3.8" strokeWidth={strokeWidth} />
-      <line x1="16.3" y1="16.3" x2="19.7" y2="19.7" strokeWidth={strokeWidth} />
-      <line x1="19.7" y1="16.3" x2="16.3" y2="19.7" strokeWidth={strokeWidth} />
+      <circle cx="18.5" cy="18.5" r="3.5" strokeWidth={strokeWidth} />
+      <line x1="16.8" y1="16.8" x2="20.2" y2="20.2" strokeWidth={strokeWidth * 0.9} />
+      <line x1="20.2" y1="16.8" x2="16.8" y2="20.2" strokeWidth={strokeWidth * 0.9} />
     </svg>
   );
 }
