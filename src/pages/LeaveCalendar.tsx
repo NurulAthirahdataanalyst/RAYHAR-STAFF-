@@ -246,11 +246,14 @@ export default function LeaveCalendar() {
           </div>
           <div className="flex items-center gap-3">
             <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-[130px] h-8 text-xs"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-[130px] h-8 text-xs font-medium">
+                <SelectValue placeholder="All Status" />
+              </SelectTrigger>
               <SelectContent>
-                {["All","Approved","Pending","Rejected"].map(s => (
-                  <SelectItem key={s} value={s}>{s}</SelectItem>
-                ))}
+                <SelectItem value="All">All Status</SelectItem>
+                <SelectItem value="Approved">Approved</SelectItem>
+                <SelectItem value="Pending">Pending</SelectItem>
+                <SelectItem value="Rejected">Rejected</SelectItem>
               </SelectContent>
             </Select>
           </div>
