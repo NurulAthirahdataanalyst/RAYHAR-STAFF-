@@ -49,7 +49,7 @@ export function ReplacementLeaveIcon({
  */
 export function UnpaidLeaveIcon({
   className = "w-9 h-9 sm:w-10 sm:h-10 text-slate-500",
-  strokeWidth = 2.2,
+  strokeWidth = 1.5,
   ...props
 }: React.SVGProps<SVGSVGElement> & { strokeWidth?: number }) {
   return (
