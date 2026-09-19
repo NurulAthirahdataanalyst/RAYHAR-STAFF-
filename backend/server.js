@@ -3228,12 +3228,7 @@ app.get("/api/calculate-leave-days", async (req, res) => {
     let days = 0;
 
     for (let d = new Date(d1); d <= d2; d.setDate(d.getDate() + 1)) {
-      const isWeekend = checkIsWeekend(userZone, d);
-      const isHoliday = malaysiaHolidays.some(h => h.date === d.toISOString().split('T')[0]);
-      
-      if (!isWeekend && !isHoliday) {
-        days++;
-      }
+      days++;
     }
 
     res.json({ success: true, days });

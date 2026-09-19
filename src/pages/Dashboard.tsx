@@ -1781,7 +1781,7 @@ export default function Dashboard() {
                   const displayEmps = g.employees.slice(0, 3);
                   const extraCount = Math.max(0, g.employees.length - 3);
 
-                  const days = Math.max(1, Math.ceil((new Date(g.end_date).getTime() - new Date(g.start_date).getTime()) / (1000 * 3600 * 24)));
+                  const days = Math.ceil((new Date(g.end_date).getTime() - new Date(g.start_date).getTime()) / (1000 * 3600 * 24)) + 1;
 
                   return (
                     <div key={i} onClick={() => navigate("/outstation/my?tab=active")} className="flex items-start gap-3 p-4 border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors cursor-pointer">
@@ -1863,7 +1863,10 @@ export default function Dashboard() {
                             <CalendarDays className="w-3.5 h-3.5 text-foreground shrink-0" /> {new Date(g.start_date).toLocaleDateString("en-MY", { weekday: "short", day: "2-digit", month: "short", year: "numeric" })} - {new Date(g.end_date).toLocaleDateString("en-MY", { weekday: "short", day: "2-digit", month: "short", year: "numeric" })}
                           </p>
                           <p className="text-[11px] text-foreground font-medium flex items-center gap-1.5">
-                            <Clock className="w-3.5 h-3.5 text-foreground shrink-0" /> {Math.max(1, Math.ceil((new Date(g.end_date).getTime() - new Date(g.start_date).getTime()) / (1000 * 3600 * 24)))} Day{Math.max(1, Math.ceil((new Date(g.end_date).getTime() - new Date(g.start_date).getTime()) / (1000 * 3600 * 24))) === 1 ? '' : 's'} Total
+                            <Clock className="w-3.5 h-3.5 text-foreground shrink-0" /> {(() => {
+                              const days = Math.ceil((new Date(g.end_date).getTime() - new Date(g.start_date).getTime()) / (1000 * 3600 * 24)) + 1;
+                              return `${days} Day${days === 1 ? '' : 's'} Total`;
+                            })()}
                           </p>
                           {g.destination && g.title !== g.destination && (
                             <p className="text-[11px] text-foreground font-medium flex items-center gap-1.5 truncate">

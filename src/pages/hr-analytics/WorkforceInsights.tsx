@@ -1890,7 +1890,7 @@ export default function WorkforceInsights() {
                       dateDisplay = sd === ed ? sd : `${sd} - ${ed}`;
                     }
 
-                    const days = Math.max(1, Math.ceil((new Date(item.endDate || item.startDate).getTime() - new Date(item.startDate).getTime()) / (1000 * 3600 * 24)));
+                    const days = Math.ceil((new Date(item.endDate || item.startDate).getTime() - new Date(item.startDate).getTime()) / (1000 * 3600 * 24)) + 1;
 
                     return (
                       <div key={item.id} onClick={() => navigate("/outstation")} className={`border-l-4 ${borderColor} pl-3 py-1 space-y-2 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-900/50 rounded-r-lg transition-colors`}>

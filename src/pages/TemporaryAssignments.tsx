@@ -664,7 +664,7 @@ const TemporaryAssignments = () => {
                     <p className="text-xs text-foreground font-medium">Duration</p>
                     <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">
                       {selectedAssignment.end_date 
-                        ? `${Math.ceil((new Date(selectedAssignment.end_date).getTime() - new Date(selectedAssignment.start_date).getTime()) / (1000 * 3600 * 24))} Days`
+                        ? `${Math.ceil((new Date(selectedAssignment.end_date).getTime() - new Date(selectedAssignment.start_date).getTime()) / (1000 * 3600 * 24)) + 1} Day${(Math.ceil((new Date(selectedAssignment.end_date).getTime() - new Date(selectedAssignment.start_date).getTime()) / (1000 * 3600 * 24)) + 1) === 1 ? '' : 's'}`
                         : "Ongoing"}
                     </p>
                   </div>
