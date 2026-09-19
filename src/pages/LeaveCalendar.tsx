@@ -226,7 +226,7 @@ export default function LeaveCalendar() {
                 <span className="text-[11px] sm:text-xs font-medium text-slate-600 dark:text-slate-300 leading-tight">
                   {kpi.label}
                 </span>
-                <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight mt-0.5">
+                <span className={`text-2xl sm:text-3xl font-black tracking-tight mt-0.5 ${kpi.textColor}`}>
                   {kpi.value}
                 </span>
               </div>

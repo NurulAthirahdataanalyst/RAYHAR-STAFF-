@@ -680,10 +680,10 @@ export default function LeaveAdmin() {
 
             {/* Right: Label & Number */}
             <div className="flex flex-col min-w-0">
-              <span className="text-[11px] sm:text-xs font-bold text-black dark:text-white leading-tight">
+              <span className="text-[11px] sm:text-xs font-medium text-slate-600 dark:text-slate-300 leading-tight">
                 {stat.title}
               </span>
-              <span className="text-2xl sm:text-3xl font-black text-black dark:text-white tracking-tight mt-0.5">
+              <span className={`text-2xl sm:text-3xl font-black tracking-tight mt-0.5 ${stat.iconColor}`}>
                 {stat.count}
               </span>
             </div>
