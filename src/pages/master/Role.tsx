@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { API_BASE_URL } from "@/config/api";
 import { useRole } from "@/contexts/RoleContext";
+import { MonthPicker } from "@/components/shared/MonthPicker";
 
 export default function Role() {
   const navigate = useNavigate();
@@ -33,6 +34,10 @@ export default function Role() {
   const [editRoleStatus, setEditRoleStatus] = useState("Active");
   const [isSaving, setIsSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  
+  const [selectedMonthYear, setSelectedMonthYear] = useState<string>(
+    `${new Date().getFullYear()}-${(new Date().getMonth() + 1).toString().padStart(2, '0')}`
+  );
 
   const fetchRoles = async () => {
     setLoading(true);
@@ -184,10 +189,11 @@ export default function Role() {
             <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200">Roles List</h2>
             
             <div className="flex flex-wrap items-center gap-3">
-              <div className="flex items-center gap-2 bg-card border border-gray-200 dark:border-slate-800 rounded-md px-3 h-10 text-sm text-gray-600 shadow-sm">
-                <Calendar className="w-4 h-4 text-foreground" />
-                <span>06/16/2026 - 06/22/2026</span>
-              </div>
+              <MonthPicker 
+                selectedMonthYear={selectedMonthYear}
+                onSelectMonthYear={setSelectedMonthYear}
+                hideAllYear={true}
+              />
               
               <Select defaultValue="status">
                 <SelectTrigger className="w-[130px] bg-card border-gray-200 dark:border-slate-800 shadow-sm h-10">
@@ -197,16 +203,6 @@ export default function Role() {
                   <SelectItem value="status">Status</SelectItem>
                   <SelectItem value="active">Active</SelectItem>
                   <SelectItem value="inactive">Inactive</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              <Select defaultValue="7days">
-                <SelectTrigger className="w-[180px] bg-card border-gray-200 dark:border-slate-800 shadow-sm h-10">
-                  <SelectValue placeholder="Sort By" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="7days">Sort By : Last 7 Days</SelectItem>
-                  <SelectItem value="30days">Sort By : Last 30 Days</SelectItem>
                 </SelectContent>
               </Select>
             </div>

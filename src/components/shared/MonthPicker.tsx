@@ -121,7 +121,7 @@ export function MonthPicker({ monthYear, onSelectMonthYear, className, hideAllYe
                 setViewYear(currentYearNum);
                 // setOpen(false);
               }}
-              className="text-[#0091ff] hover:underline text-[11px] font-bold"
+              className="text-[#942392] hover:underline text-[11px] font-bold"
             >
               This month
             </button>

@@ -4155,32 +4155,37 @@ app.get("/api/employees/:userId/analytics", async (req, res) => {
     const monthlyExpected = calculateExpectedWorkingDays(currentMonthStart, monthEndToUse, employee, companyLeaves, userLeaves, malaysiaHolidays);
     const yearlyExpected = calculateExpectedWorkingDays(currentYearStart, yearEndToUse, employee, companyLeaves, userLeaves, malaysiaHolidays);
 
-    let monthlyPresent = 0;
-    let monthlyLate = 0;
-    let yearlyPresent = 0;
-    let yearlyLate = 0;
+    let monthlyPresentDays = new Set();
+    let monthlyLateDays = new Set();
+    let yearlyPresentDays = new Set();
+    let yearlyLateDays = new Set();
 
     attendances.forEach(a => {
       const klTime = new Date(new Date(a.clock_in).getTime() + 8 * 60 * 60 * 1000);
       const d = klTime.toISOString().split('T')[0];
       const hh = klTime.getUTCHours();
       const mm = klTime.getUTCMinutes();
-      const lateTimeStr = getLateThresholdTime ? getLateThresholdTime() : '09:00:00';
+      const lateTimeStr = employee.shift_id ? (employee.shift_start || '09:00:00') : '09:00:00';
       const [lhStr, lmStr] = lateTimeStr.split(':');
       const lh = parseInt(lhStr);
       const lm = parseInt(lmStr);
       const isLate = hh > lh || (hh === lh && mm > lm);
 
       if (d.startsWith(monthDate.toISOString().substring(0, 7))) {
-        monthlyPresent++;
-        if (isLate) monthlyLate++;
+        monthlyPresentDays.add(d);
+        if (isLate) monthlyLateDays.add(d);
       }
       
       if (d.startsWith(yearNum.toString())) {
-        yearlyPresent++;
-        if (isLate) yearlyLate++;
+        yearlyPresentDays.add(d);
+        if (isLate) yearlyLateDays.add(d);
       }
     });
+
+    let monthlyPresent = monthlyPresentDays.size;
+    let monthlyLate = monthlyLateDays.size;
+    let yearlyPresent = yearlyPresentDays.size;
+    let yearlyLate = yearlyLateDays.size;
 
     const monthlyAttendanceRate = monthlyExpected > 0 ? Math.round((monthlyPresent / monthlyExpected) * 100) : 0;
     const yearlyAttendanceRate = yearlyExpected > 0 ? Math.round((yearlyPresent / yearlyExpected) * 100) : 0;
