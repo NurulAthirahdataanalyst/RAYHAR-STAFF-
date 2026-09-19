@@ -10765,6 +10765,23 @@ app.post('/api/outstation', async (req, res) => {
       } catch (notifErr) {
         console.error('Error inserting outstation notification:', notifErr);
       }
+      
+      // --- SEND OUTSTATION ASSIGNED EMAIL ---
+      try {
+        const [empProfile] = await pool.query(`SELECT email FROM profiles WHERE user_id = $1`, [emp.user_id]);
+        if (empProfile.length > 0 && empProfile[0].email) {
+          emailService.sendOutstationAssignedEmail({
+            employeeEmail: empProfile[0].email,
+            employeeName: emp.full_name,
+            destination: destination,
+            startDate: new Date(start_date).toLocaleDateString(),
+            endDate: new Date(end_date).toLocaleDateString(),
+            purpose: purpose || meeting_title || project
+          }).catch(console.error);
+        }
+      } catch (emailErr) {
+        console.error('Error sending outstation assigned email:', emailErr);
+      }
     }
 
     // Broadcast SSE so clients refresh outstation and notification data
@@ -10809,6 +10826,25 @@ app.put('/api/outstation/:id', async (req, res) => {
     );
 
     if (rows.length === 0) return res.status(404).json({ success: false, error: 'Assignment not found' });
+    
+    // --- SEND OUTSTATION UPDATED EMAIL ---
+    try {
+      const assigned = rows[0];
+      const [empProfile] = await pool.query(`SELECT email FROM profiles WHERE user_id = $1`, [assigned.user_id]);
+      if (empProfile.length > 0 && empProfile[0].email) {
+        emailService.sendOutstationUpdatedEmail({
+          employeeEmail: empProfile[0].email,
+          employeeName: assigned.full_name,
+          destination: assigned.destination,
+          startDate: new Date(assigned.start_date).toLocaleDateString(),
+          endDate: new Date(assigned.end_date).toLocaleDateString(),
+          purpose: assigned.purpose || assigned.meeting_title || assigned.project
+        }).catch(console.error);
+      }
+    } catch (emailErr) {
+      console.error('Error sending outstation updated email:', emailErr);
+    }
+    
     try {
       broadcastPresenceUpdate({ type: 'outstation', action: 'updated', id: rows[0].id || rows[0].assignment_id });
     } catch (e) { console.error('Error broadcasting outstation update:', e); }

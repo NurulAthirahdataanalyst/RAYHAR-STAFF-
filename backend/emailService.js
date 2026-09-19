@@ -301,10 +301,70 @@ async function sendPasswordResetEmail(data) {
   }
 }
 
+async function sendOutstationAssignedEmail(data) {
+  if (!process.env.BREVO_API_KEY) return;
+
+  const email = new brevo.SendSmtpEmail();
+  email.sender = { name: "Rayhar Staff Portal", email: "noreply@rayhar.com" };
+  email.to = [{ email: data.employeeEmail, name: data.employeeName }];
+  email.subject = `Temporary Branch Assignment: ${data.destination}`;
+  email.htmlContent = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+      <h2 style="color: #7B0099;">Temporary Branch Assignment</h2>
+      <p>Hello ${data.employeeName},</p>
+      <p>You have been assigned to a temporary branch/outstation duties.</p>
+      <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+        <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Destination:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${data.destination}</td></tr>
+        <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Start Date:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${data.startDate}</td></tr>
+        <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>End Date:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${data.endDate}</td></tr>
+        <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Purpose:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${data.purpose || 'N/A'}</td></tr>
+      </table>
+      <p>Please log in to the Employee Portal for more details.</p>
+      <p style="font-size: 12px; color: #888; text-align: center; margin-top: 30px;">Rayhar Staff Portal</p>
+    </div>
+  `;
+  try {
+    await apiInstance.sendTransacEmail(email);
+  } catch (err) {
+    console.error("Error sending outstation assigned email:", err);
+  }
+}
+
+async function sendOutstationUpdatedEmail(data) {
+  if (!process.env.BREVO_API_KEY) return;
+
+  const email = new brevo.SendSmtpEmail();
+  email.sender = { name: "Rayhar Staff Portal", email: "noreply@rayhar.com" };
+  email.to = [{ email: data.employeeEmail, name: data.employeeName }];
+  email.subject = `Update: Temporary Branch Assignment to ${data.destination}`;
+  email.htmlContent = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+      <h2 style="color: #7B0099;">Temporary Branch Update</h2>
+      <p>Hello ${data.employeeName},</p>
+      <p>Your temporary branch/outstation assignment has been <strong>Updated</strong>.</p>
+      <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+        <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Destination:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${data.destination}</td></tr>
+        <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Start Date:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${data.startDate}</td></tr>
+        <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>End Date:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${data.endDate}</td></tr>
+        <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Purpose:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${data.purpose || 'N/A'}</td></tr>
+      </table>
+      <p>Please log in to the Employee Portal to view the updated details.</p>
+      <p style="font-size: 12px; color: #888; text-align: center; margin-top: 30px;">Rayhar Staff Portal</p>
+    </div>
+  `;
+  try {
+    await apiInstance.sendTransacEmail(email);
+  } catch (err) {
+    console.error("Error sending outstation updated email:", err);
+  }
+}
+
 module.exports = {
   sendLeaveApprovalEmail,
   sendLateEmail,
   sendLeaveApprovedEmail,
   sendLeaveRejectedEmail,
-  sendPasswordResetEmail
+  sendPasswordResetEmail,
+  sendOutstationAssignedEmail,
+  sendOutstationUpdatedEmail
 };
