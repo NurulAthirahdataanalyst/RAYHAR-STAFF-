@@ -67,10 +67,10 @@ export function UnpaidLeaveIcon({
       {...props}
     >
       {/* Back document outline with receipt fold curl */}
-      <path d="M 15 9.5 V 3.5 A 1.5 1.5 0 0 0 13.5 2 H 3.5 A 1.5 1.5 0 0 0 2 3.5 V 15.5 C 2 18 4.2 18.5 6 18.5 C 7.2 18.5 7.8 17.5 7.8 15.5 V 10.5 C 7.8 9.2 8.8 8.5 10 8.5 H 17.5 A 1.5 1.5 0 0 1 19 10 V 15" />
+      <path d="M 16 9 V 3.5 A 1.5 1.5 0 0 0 14.5 2 H 3.5 A 1.5 1.5 0 0 0 2 3.5 V 15.5 C 2 18 4.5 18.5 6.5 18.5 C 8 18.5 8.5 17.5 8.5 15.5 V 10.5 C 8.5 9 9.8 8.5 11 8.5 H 18 A 1.5 1.5 0 0 1 19.5 10 V 15" />
 
-      {/* Front sheet left edge and bottom edge */}
-      <path d="M 7.8 11.5 V 21 A 1 1 0 0 0 8.8 22 H 14.5" />
+      {/* Front sheet left and bottom boundary */}
+      <path d="M 8.5 11.5 V 21 A 1 1 0 0 0 9.5 22 H 14.5" />
 
       {/* Currency / dollar symbol on back sheet */}
       <path d="M 5.2 3.5 v 3.8" strokeWidth={strokeWidth * 0.8} />
@@ -80,18 +80,18 @@ export function UnpaidLeaveIcon({
       />
 
       {/* Back document text lines */}
-      <line x1="8.5" y1="4.3" x2="12.5" y2="4.3" strokeWidth={strokeWidth * 0.9} />
-      <line x1="8.5" y1="6.5" x2="12.5" y2="6.5" strokeWidth={strokeWidth * 0.9} />
+      <line x1="8.8" y1="4.3" x2="13.2" y2="4.3" strokeWidth={strokeWidth * 0.85} />
+      <line x1="8.8" y1="6.5" x2="13.2" y2="6.5" strokeWidth={strokeWidth * 0.85} />
 
       {/* Front document statement lines */}
-      <line x1="10.8" y1="11.8" x2="15.8" y2="11.8" strokeWidth={strokeWidth * 0.9} />
-      <line x1="10.8" y1="14.8" x2="15.8" y2="14.8" strokeWidth={strokeWidth * 0.9} />
-      <line x1="10.8" y1="17.8" x2="13.8" y2="17.8" strokeWidth={strokeWidth * 0.9} />
+      <line x1="11.2" y1="11.8" x2="16.5" y2="11.8" strokeWidth={strokeWidth * 0.85} />
+      <line x1="11.2" y1="14.8" x2="16.5" y2="14.8" strokeWidth={strokeWidth * 0.85} />
+      <line x1="11.2" y1="17.8" x2="14.2" y2="17.8" strokeWidth={strokeWidth * 0.85} />
 
       {/* Cross Badge Circle at bottom-right */}
       <circle cx="18.5" cy="18.5" r="3.5" strokeWidth={strokeWidth} />
-      <line x1="16.8" y1="16.8" x2="20.2" y2="20.2" strokeWidth={strokeWidth * 0.9} />
-      <line x1="20.2" y1="16.8" x2="16.8" y2="20.2" strokeWidth={strokeWidth * 0.9} />
+      <line x1="16.8" y1="16.8" x2="20.2" y2="20.2" strokeWidth={strokeWidth * 0.85} />
+      <line x1="20.2" y1="16.8" x2="16.8" y2="20.2" strokeWidth={strokeWidth * 0.85} />
     </svg>
   );
 }
