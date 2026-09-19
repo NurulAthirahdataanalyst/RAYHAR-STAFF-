@@ -700,11 +700,11 @@ export default function Employees() {
 
 
 
-      <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 bg-card/50 backdrop-blur-sm p-3 rounded-2xl border border-border/50">
-        <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 w-full sm:w-auto flex-1">
+      <div className="flex flex-row items-center gap-2 bg-card/50 backdrop-blur-sm p-3 rounded-2xl border border-border/50 overflow-x-auto">
+        <div className="flex flex-row items-center gap-2 flex-1 min-w-0">
            <Popover open={empSearchOpen} onOpenChange={setEmpSearchOpen}>
               <PopoverTrigger asChild>
-                <div className="relative w-full sm:max-w-xs cursor-pointer">
+                 <div className="relative w-[170px] shrink-0 cursor-pointer">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/50 z-10 pointer-events-none" />
                   
                   <Input
@@ -715,7 +715,7 @@ export default function Employees() {
                         setSearch(e.target.value);
                         if (!empSearchOpen) setEmpSearchOpen(true);
                     }}
-                    className={`pl-9 pr-8 h-11 sm:h-10 border bg-background/50 rounded-xl font-semibold text-xs focus-visible:ring-1 focus-visible:ring-[#942392]/50 w-full transition-all ${checkedEmployees.length > 0 ? 'border-[#942392]/50 text-[#942392] placeholder:text-[#942392]/80 placeholder:font-bold' : 'border-border/60 placeholder:text-muted-foreground dark:placeholder:text-slate-400 font-medium'}`}
+                    className={`pl-9 pr-8 h-9 border bg-background/50 rounded-xl font-semibold text-xs focus-visible:ring-1 focus-visible:ring-[#942392]/50 w-full transition-all ${checkedEmployees.length > 0 ? 'border-[#942392]/50 text-[#942392] placeholder:text-[#942392]/80 placeholder:font-bold' : 'border-border/60 placeholder:text-muted-foreground dark:placeholder:text-slate-400 font-medium'}`}
                   />
                   {(search || checkedEmployees.length > 0) && (
                     <button 
@@ -811,7 +811,7 @@ export default function Employees() {
 
           {(["hr_admin", "managing_director", "operation_manager", "finance_manager"].includes(role) || uniqueBranches.length > 1) && (
             <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-              <SelectTrigger className="w-full sm:w-[200px] h-11 sm:h-10 border-border/60 bg-background/50 focus:ring-[#942392]/20 font-bold text-xs rounded-xl">
+              <SelectTrigger className="w-[140px] shrink-0 h-9 border-border/60 bg-background/50 focus:ring-[#942392]/20 font-bold text-xs rounded-xl">
                 <SelectValue placeholder="All Branches" />
               </SelectTrigger>
               <SelectContent className="rounded-xl">
@@ -827,7 +827,7 @@ export default function Employees() {
 
           {(["hr_admin", "managing_director", "operation_manager", "finance_manager"].includes(role) || uniqueDepartments.length > 1) && (
             <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
-              <SelectTrigger className="w-full sm:w-[180px] h-11 sm:h-10 border-border/60 bg-background/50 focus:ring-[#942392]/20 font-bold text-xs rounded-xl">
+              <SelectTrigger className="w-[150px] shrink-0 h-9 border-border/60 bg-background/50 focus:ring-[#942392]/20 font-bold text-xs rounded-xl">
                 <SelectValue placeholder="All Departments" />
               </SelectTrigger>
               <SelectContent className="rounded-xl">
@@ -842,7 +842,7 @@ export default function Employees() {
           )}
 
           <Select value={selectedPosition} onValueChange={setSelectedPosition}>
-            <SelectTrigger className="w-full sm:w-[180px] h-11 sm:h-10 border-border/60 bg-background/50 focus:ring-[#942392]/20 font-bold text-xs rounded-xl">
+            <SelectTrigger className="w-[140px] shrink-0 h-9 border-border/60 bg-background/50 focus:ring-[#942392]/20 font-bold text-xs rounded-xl">
               <SelectValue placeholder="All Positions" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
@@ -856,7 +856,7 @@ export default function Employees() {
           </Select>
 
           <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-            <SelectTrigger className="w-full sm:w-[150px] h-11 sm:h-10 border-border/60 bg-background/50 focus:ring-[#942392]/20 font-bold text-xs rounded-xl">
+            <SelectTrigger className="w-[120px] shrink-0 h-9 border-border/60 bg-background/50 focus:ring-[#942392]/20 font-bold text-xs rounded-xl">
               <SelectValue placeholder="Status: Active" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
@@ -879,7 +879,7 @@ export default function Employees() {
               setSelectedPosition("All");
               setSelectedStatus("All");
             }}
-            className="h-11 sm:h-10 px-3 border-border/60 bg-background/50 hover:bg-muted font-bold text-xs rounded-xl flex items-center gap-1.5 text-foreground/80 hover:text-foreground transition-all shadow-sm"
+            className="h-9 shrink-0 px-3 border-border/60 bg-background/50 hover:bg-muted font-bold text-xs rounded-xl flex items-center gap-1.5 text-foreground/80 hover:text-foreground transition-all shadow-sm"
             title="Reset all filters"
           >
             <RotateCcw className="w-3.5 h-3.5" />
@@ -887,7 +887,7 @@ export default function Employees() {
           </Button>
         </div>
         
-        <Badge variant="outline" className="px-3 py-1.5 text-xs font-bold whitespace-nowrap bg-muted/30 border-border/60 h-10 sm:h-auto flex items-center justify-center rounded-md">
+        <Badge variant="outline" className="px-3 py-1.5 text-xs font-bold whitespace-nowrap bg-muted/30 border-border/60 h-9 flex items-center justify-center rounded-md shrink-0">
           Total <span className="ml-2 flex items-center justify-center bg-[#942392] text-white rounded-md h-5 min-w-[20px] px-1.5 text-[10px] leading-none shrink-0">{filtered.length}</span>
         </Badge>
       </div>
