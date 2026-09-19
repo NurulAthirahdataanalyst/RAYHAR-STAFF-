@@ -723,29 +723,6 @@ export default function OutstationAnalytics() {
                       <Cell key={`cell-${idx}`} fill={entry.color} className="cursor-pointer outline-none hover:opacity-85 transition-opacity" />
                     ))}
                   </Pie>
-                  <RechartsTooltip
-                    cursor={false}
-                    content={({ active, payload }) => {
-                      if (active && payload && payload.length && hoveredDonutSlice) {
-                        const entry = payload[0].payload;
-                        const total = donutData.reduce((sum, d) => sum + (d.value || 0), 0);
-                        const pct = total > 0 ? Math.round((entry.value / total) * 100) : 0;
-                        return (
-                          <div className="bg-slate-900/95 dark:bg-slate-800/95 text-white px-2.5 py-1.5 rounded-lg shadow-xl border border-slate-700/60 backdrop-blur-sm text-xs pointer-events-none">
-                            <div className="flex items-center gap-1.5 mb-0.5">
-                              <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: entry.color }} />
-                              <span className="font-bold text-slate-100">{entry.name}</span>
-                            </div>
-                            <div className="flex items-center justify-between gap-3 text-slate-300 text-[10px] font-medium">
-                              <span>Trips: <b className="text-white font-black">{entry.value}</b></span>
-                              <span className="text-emerald-400 font-bold">{pct}%</span>
-                            </div>
-                          </div>
-                        );
-                      }
-                      return null;
-                    }}
-                  />
                 </PieChart>
               </ResponsiveContainer>
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
@@ -755,7 +732,11 @@ export default function OutstationAnalytics() {
                 <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 mt-0.5 max-w-[90px] truncate text-center">
                   {hoveredDonutSlice ? hoveredDonutSlice.name : "TOTAL TRIPS"}
                 </span>
-                {!hoveredDonutSlice && (
+                {hoveredDonutSlice ? (
+                  <span className="mt-1 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                    {statusSummary.total > 0 ? Math.round((hoveredDonutSlice.value / statusSummary.total) * 100) : 0}%
+                  </span>
+                ) : (
                   <span className="mt-1 inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400">
                     <ArrowUpRight className="w-3 h-3 stroke-[2.5]" />
                     {statusSummary.completedPct}%
