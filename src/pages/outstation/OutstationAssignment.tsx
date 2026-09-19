@@ -432,20 +432,20 @@ export default function OutstationAssignment() {
               <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground dark:text-slate-400">No assignments found</p>
             </div>
           ) : (
-            <div className="rounded-md border border-gray-200 dark:border-slate-800 dark:border-gray-500/30/60 bg-card [&_.overflow-auto::-webkit-scrollbar]:hidden [&_.overflow-auto]:[-ms-overflow-style:none] [&_.overflow-auto]:[scrollbar-width:none]">
+            <div className="rounded-md border border-gray-200 dark:border-slate-800 bg-card [&_.overflow-auto::-webkit-scrollbar]:hidden [&_.overflow-auto]:[-ms-overflow-style:none] [&_.overflow-auto]:[scrollbar-width:none]">
               <Table ref={tableRef}>
                 <TableHeader>
-                  <TableRow className="bg-slate-50/60 hover:bg-slate-50/60">
-                    <TableHead className="text-black text-[10px] px-2.5">Employee</TableHead>
-                    <TableHead className="text-black text-[10px] px-2.5">Department</TableHead>
-                    <TableHead className="text-black text-[10px] px-2.5">Branch</TableHead>
-                    <TableHead className="text-black text-[10px] px-2.5">Destination</TableHead>
-                    <TableHead className="text-black text-[10px] px-2.5">Start</TableHead>
-                    <TableHead className="text-black text-[10px] px-2.5">End</TableHead>
-                    <TableHead className="text-center text-black text-[10px] px-2.5">Days</TableHead>
-                    <TableHead className="text-black text-[10px] px-2.5">Assigned By</TableHead>
-                    <TableHead className="text-black text-[10px] px-2.5">Status</TableHead>
-                    <TableHead className="text-black text-[10px] px-2.5">Actions</TableHead>
+                  <TableRow className="bg-slate-50/60 dark:bg-slate-900 border-b border-gray-100 dark:border-slate-800 hover:bg-slate-50/60 dark:hover:bg-slate-900">
+                    <TableHead className="text-foreground dark:text-white text-[10px] px-2.5 font-black uppercase tracking-widest">Employee</TableHead>
+                    <TableHead className="text-foreground dark:text-white text-[10px] px-2.5 font-black uppercase tracking-widest">Department</TableHead>
+                    <TableHead className="text-foreground dark:text-white text-[10px] px-2.5 font-black uppercase tracking-widest">Branch</TableHead>
+                    <TableHead className="text-foreground dark:text-white text-[10px] px-2.5 font-black uppercase tracking-widest">Destination</TableHead>
+                    <TableHead className="text-foreground dark:text-white text-[10px] px-2.5 font-black uppercase tracking-widest">Start</TableHead>
+                    <TableHead className="text-foreground dark:text-white text-[10px] px-2.5 font-black uppercase tracking-widest">End</TableHead>
+                    <TableHead className="text-center text-foreground dark:text-white text-[10px] px-2.5 font-black uppercase tracking-widest">Days</TableHead>
+                    <TableHead className="text-foreground dark:text-white text-[10px] px-2.5 font-black uppercase tracking-widest">Assigned By</TableHead>
+                    <TableHead className="text-foreground dark:text-white text-[10px] px-2.5 font-black uppercase tracking-widest">Status</TableHead>
+                    <TableHead className="text-foreground dark:text-white text-[10px] px-2.5 font-black uppercase tracking-widest">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

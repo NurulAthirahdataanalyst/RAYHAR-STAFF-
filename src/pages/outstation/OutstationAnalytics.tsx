@@ -886,14 +886,14 @@ export default function OutstationAnalytics() {
                 <>
                   <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
-                      <thead className="bg-slate-50/80 dark:bg-slate-800/60 text-foreground dark:text-foreground text-[11px] font-bold uppercase tracking-wider border-b border-slate-100 dark:border-slate-800">
+                      <thead className="bg-slate-50/80 dark:bg-slate-900 text-foreground dark:text-white text-[11px] font-bold uppercase tracking-wider border-b border-slate-100 dark:border-slate-800">
                         <tr>
-                          <th className="px-4 py-3 text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Employee</th>
-                          <th className="px-4 py-3 text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Destination</th>
-                          <th className="px-4 py-3 text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Purpose</th>
-                          <th className="px-4 py-3 text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Period</th>
-                          <th className="px-4 py-3 text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Status</th>
-                          <th className="px-4 py-3 text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Duration</th>
+                          <th className="px-4 py-3 text-[10px] font-black text-foreground dark:text-white uppercase tracking-widest whitespace-nowrap">Employee</th>
+                          <th className="px-4 py-3 text-[10px] font-black text-foreground dark:text-white uppercase tracking-widest whitespace-nowrap">Destination</th>
+                          <th className="px-4 py-3 text-[10px] font-black text-foreground dark:text-white uppercase tracking-widest whitespace-nowrap">Event Name</th>
+                          <th className="px-4 py-3 text-[10px] font-black text-foreground dark:text-white uppercase tracking-widest whitespace-nowrap">Period</th>
+                          <th className="px-4 py-3 text-[10px] font-black text-foreground dark:text-white uppercase tracking-widest whitespace-nowrap">Status</th>
+                          <th className="px-4 py-3 text-[10px] font-black text-foreground dark:text-white uppercase tracking-widest whitespace-nowrap">Duration</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
@@ -901,7 +901,7 @@ export default function OutstationAnalytics() {
                           <tr key={index} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
                             <td className="px-4 py-3 font-semibold text-foreground dark:text-slate-100">{item.full_name || item.user_id}</td>
                             <td className="px-4 py-3 text-foreground dark:text-slate-300">{item.destination || "-"}</td>
-                            <td className="px-4 py-3 text-foreground dark:text-slate-300">{item.purpose || item.project || "-"}</td>
+                            <td className="px-4 py-3 text-foreground dark:text-slate-300">{item.project || item.purpose || "-"}</td>
                             <td className="px-4 py-3 text-foreground dark:text-foreground">{formatShortDate(item.start_date)} - {formatShortDate(item.end_date)}</td>
                             <td className="px-4 py-3">{statusBadge(item.status || "Unknown")}</td>
                             <td className="px-4 py-3 text-foreground dark:text-foreground">{item.total_days ? `${item.total_days} days` : "-"}</td>
@@ -939,7 +939,7 @@ export default function OutstationAnalytics() {
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <p className="text-xs font-bold text-foreground dark:text-slate-100">{group.destination || "Unknown"}</p>
-                      <p className="text-[11px] text-foreground dark:text-foreground mt-0.5">{group.purpose}</p>
+                      <p className="text-[11px] text-foreground dark:text-foreground mt-0.5">{group.project || group.purpose}</p>
                     </div>
                     <span className="text-2xl font-black text-foreground dark:text-slate-200">{group.count}</span>
                   </div>

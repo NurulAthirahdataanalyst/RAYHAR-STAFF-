@@ -8,6 +8,11 @@
   animation: bellRingPeriodic 4s infinite ease-in-out;
 }
 
+.dark .bell {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
 button:hover .bell {
   animation: bellRing 0.9s both;
 }
