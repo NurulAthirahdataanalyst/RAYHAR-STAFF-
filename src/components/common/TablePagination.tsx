@@ -78,7 +78,9 @@ export const TablePagination: React.FC<TablePaginationProps> = ({
               </SelectContent>
             </Select>
           </div>
+          )}
         </div>
+      )}
 
         <div className="flex items-center gap-1.5">
           <Button

@@ -276,37 +276,39 @@ export default function MyOutstation() {
         </div>
 
         {/* Tabs & Export inside Card Header */}
-        <div className="px-4 sm:px-6 pt-2 sm:pt-4 border-b border-gray-100 dark:border-slate-800/50 bg-white/50 dark:bg-slate-900/50 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
+        <div className="px-4 sm:px-6 pt-2 sm:pt-4 border-b border-gray-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
           <div className="flex items-center gap-6 w-full sm:w-auto overflow-x-auto scrollbar-none">
-            {(["Upcoming", "Active", "Completed", "Cancelled"] as const).map((s) => (
-              <button
-                key={s}
-                role="tab"
-                onClick={() => { setTab(s); setSearchParams({ tab: s.toLowerCase() }); }}
-                className={`text-sm font-black uppercase tracking-widest pb-3 translate-y-[1px] transition-colors border-b-[3px] whitespace-nowrap ${
-                  tab === s 
-                    ? (s === "Upcoming" ? "text-amber-500 border-amber-500" :
-                       s === "Active" ? "text-pink-500 border-pink-500" :
-                       s === "Completed" ? "text-emerald-500 border-emerald-500" :
-                       "text-red-500 border-red-500")
-                    : "text-foreground border-transparent hover:text-yellow-500 hover:border-yellow-500"
-                }`}
-              >
-                {s}
-                {counts[s] > 0 && (
-                  <span className={`ml-2 px-1.5 py-0.5 rounded-full text-[10px] ${
+            {([
+              { key: "Upcoming" as const, color: "text-amber-500", border: "border-amber-500", hoverText: "hover:text-amber-500", hoverBorder: "hover:border-amber-500", bgBadge: "bg-amber-500", hoverBadge: "group-hover:bg-amber-500" },
+              { key: "Active" as const, color: "text-pink-500", border: "border-pink-500", hoverText: "hover:text-pink-500", hoverBorder: "hover:border-pink-500", bgBadge: "bg-pink-500", hoverBadge: "group-hover:bg-pink-500" },
+              { key: "Completed" as const, color: "text-emerald-500", border: "border-emerald-500", hoverText: "hover:text-emerald-500", hoverBorder: "hover:border-emerald-500", bgBadge: "bg-emerald-500", hoverBadge: "group-hover:bg-emerald-500" },
+              { key: "Cancelled" as const, color: "text-red-500", border: "border-red-500", hoverText: "hover:text-red-500", hoverBorder: "hover:border-red-500", bgBadge: "bg-red-500", hoverBadge: "group-hover:bg-red-500" }
+            ]).map((item) => {
+              const s = item.key;
+              return (
+                <button
+                  key={s}
+                  role="tab"
+                  onClick={() => { setTab(s); setSearchParams({ tab: s.toLowerCase() }); }}
+                  className={`group text-sm font-black uppercase tracking-widest pb-3 translate-y-[1px] transition-colors border-b-[3px] whitespace-nowrap ${
                     tab === s 
-                      ? (s === "Upcoming" ? "bg-amber-500 text-white" :
-                         s === "Active" ? "bg-pink-500 text-white" :
-                         s === "Completed" ? "bg-emerald-500 text-white" :
-                         "bg-red-500 text-white")
-                      : "bg-muted-foreground/20 text-foreground transition-colors group-hover:bg-yellow-500 group-hover:text-white"
-                  }`}>
-                    {counts[s]}
-                  </span>
-                )}
-              </button>
-            ))}
+                      ? `${item.color} ${item.border}`
+                      : `text-foreground border-transparent ${item.hoverText} ${item.hoverBorder}`
+                  }`}
+                >
+                  {s}
+                  {counts[s] > 0 && (
+                    <span className={`ml-2 px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
+                      tab === s 
+                        ? `${item.bgBadge} text-white`
+                        : `bg-muted-foreground/20 text-foreground transition-colors ${item.hoverBadge} group-hover:text-white`
+                    }`}>
+                      {counts[s]}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
           
           <div className="pb-3 flex gap-2">

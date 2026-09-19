@@ -677,6 +677,7 @@ export default function Attendance() {
             tr:nth-child(even) td { background: #f8fafc; }
             .badge { padding: 4px 8px; border-radius: 9999px; font-size: 10px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; white-space: nowrap; display: inline-block; }
             .badge-present { background: #f3e8ff; color: #942392; }
+            .badge-late { background: #eee600; color: #000000; }
             .badge-absent { background: #fee2e2; color: #991b1b; }
             .badge-leave { background: #fef3c7; color: #92400e; }
             .badge-companyleave { background: #eae5ff; color: #581c87; }
@@ -1188,7 +1189,18 @@ export default function Attendance() {
   const shiftProgress = getShiftProgress();
 
   const displayedLogs = historyLogs
-    .filter(log => statusFilter === "ALL" || log.status === statusFilter)
+    .filter(log => {
+      if (statusFilter === "ALL") return true;
+      const isLate = String(log.status).toUpperCase().includes("LATE") || 
+                     (log.late && log.late !== "00:00" && log.late !== "--" && log.late !== "00h 00m");
+      if (statusFilter === "LATE") {
+        return isLate;
+      }
+      if (statusFilter === "ON TIME") {
+        return (log.status === "Present" || log.status === "ON TIME") && !isLate;
+      }
+      return log.status === statusFilter;
+    })
     .filter(log => {
       if (viewMode === "month") return true;
       return log.date === selectedDate;
@@ -1960,12 +1972,18 @@ export default function Attendance() {
                     const dateStr = logDate.toLocaleString("en-GB", { day: '2-digit', month: 'short', year: 'numeric' });
                     
                     let statusBadge = "bg-muted/5 text-foreground border-muted";
-                    if (log.status === "Present") {
-                      if (log.late !== "00:00" && log.late !== "--") {
-                        statusBadge = "bg-rose-100/50 text-rose-700 border-rose-200/50 dark:bg-rose-900/20 dark:text-rose-400";
-                      } else {
-                        statusBadge = "bg-purple-100/50 text-[#942392] border-[#942392]/20 dark:bg-purple-900/20 dark:text-purple-400";
-                      }
+                    let customStyle: React.CSSProperties | undefined = undefined;
+
+                    const isLate = 
+                      String(log.status).toUpperCase().includes("LATE") || 
+                      log.status === "Present (Late)" ||
+                      (log.status === "Present" && log.late && log.late !== "00:00" && log.late !== "--" && log.late !== "00h 00m");
+
+                    if (isLate) {
+                      statusBadge = "bg-[#eee600] text-slate-950 font-bold border-[#d4cc00] shadow-xs";
+                      customStyle = { backgroundColor: "#eee600", color: "#000000", borderColor: "#d4cc00" };
+                    } else if (log.status === "Present") {
+                      statusBadge = "bg-purple-100/50 text-[#942392] border-[#942392]/20 dark:bg-purple-900/20 dark:text-purple-400";
                     } else if (log.status === "Company Leave") {
                       statusBadge = "bg-violet-100/50 text-violet-700 border-violet-200/50 dark:bg-violet-900/20 dark:text-violet-400";
                     } else if (log.status === "Leave") {
@@ -1990,7 +2008,10 @@ export default function Attendance() {
                           {log.time_out || "--"}
                         </TableCell>
                         <TableCell className="whitespace-nowrap">
-                          <span className={`inline-flex items-center justify-center px-2.5 py-0.5 text-xs font-semibold rounded-md border ${statusBadge}`}>
+                          <span 
+                            style={customStyle}
+                            className={`inline-flex items-center justify-center px-2.5 py-0.5 text-xs font-semibold rounded-md border ${statusBadge}`}
+                          >
                             {log.status}
                           </span>
                         </TableCell>
