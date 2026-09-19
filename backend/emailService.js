@@ -211,15 +211,15 @@ async function sendLateEmail(data) {
   email.sender = { name: "Rayhar Staff Portal", email: "noreply@rayhar.com" };
   email.to = [{ email: data.employeeEmail, name: data.employeeName }];
   email.subject = "Attendance Notice: Late Clock-In";
-  email.htmlContent = \`
+  email.htmlContent = `
     <div style="font-family: sans-serif; color: #333;">
       <h2 style="color: #7B0099;">Rayhar Staff Portal</h2>
-      <p>Hello \${data.employeeName},</p>
-      <p>This is an automated notice that your clock-in today at <strong>\${data.clockInTime}</strong> was marked as <strong>LATE</strong>.</p>
+      <p>Hello ${data.employeeName},</p>
+      <p>This is an automated notice that your clock-in today at <strong>${data.clockInTime}</strong> was marked as <strong>LATE</strong>.</p>
       <p>Please ensure you adhere to the scheduled working hours. If you have an approved reason, please notify your manager.</p>
       <p style="font-size: 12px; color: #888;">This is an automated notification. Please do not reply.</p>
     </div>
-  \`;
+  `;
   try {
     await apiInstance.sendTransacEmail(email);
   } catch (err) {
@@ -234,14 +234,14 @@ async function sendLeaveApprovedEmail(data) {
   email.sender = { name: "Rayhar Staff Portal", email: "noreply@rayhar.com" };
   email.to = [{ email: data.employeeEmail, name: data.employeeName }];
   email.subject = "Leave Request Approved";
-  email.htmlContent = \`
+  email.htmlContent = `
     <div style="font-family: sans-serif; color: #333;">
       <h2 style="color: #7B0099;">Rayhar Staff Portal</h2>
-      <p>Hello \${data.employeeName},</p>
-      <p>Your leave request for <strong>\${data.leaveType}</strong> from <strong>\${data.startDate}</strong> to <strong>\${data.endDate}</strong> has been <strong>Approved</strong>.</p>
+      <p>Hello ${data.employeeName},</p>
+      <p>Your leave request for <strong>${data.leaveType}</strong> from <strong>${data.startDate}</strong> to <strong>${data.endDate}</strong> has been <strong>Approved</strong>.</p>
       <p style="font-size: 12px; color: #888;">This is an automated notification. Please do not reply.</p>
     </div>
-  \`;
+  `;
   try {
     await apiInstance.sendTransacEmail(email);
   } catch (err) {
@@ -256,16 +256,16 @@ async function sendLeaveRejectedEmail(data) {
   email.sender = { name: "Rayhar Staff Portal", email: "noreply@rayhar.com" };
   email.to = [{ email: data.employeeEmail, name: data.employeeName }];
   email.subject = "Leave Request Rejected";
-  email.htmlContent = \`
+  email.htmlContent = `
     <div style="font-family: sans-serif; color: #333;">
       <h2 style="color: #7B0099;">Rayhar Staff Portal</h2>
-      <p>Hello \${data.employeeName},</p>
-      <p>Your leave request for <strong>\${data.leaveType}</strong> from <strong>\${data.startDate}</strong> to <strong>\${data.endDate}</strong> has been <strong>Rejected</strong>.</p>
-      <p>Reason: \${data.rejectionReason || 'No reason provided.'}</p>
+      <p>Hello ${data.employeeName},</p>
+      <p>Your leave request for <strong>${data.leaveType}</strong> from <strong>${data.startDate}</strong> to <strong>${data.endDate}</strong> has been <strong>Rejected</strong>.</p>
+      <p>Reason: ${data.rejectionReason || 'No reason provided.'}</p>
       <p>Please contact your manager for further details.</p>
       <p style="font-size: 12px; color: #888;">This is an automated notification. Please do not reply.</p>
     </div>
-  \`;
+  `;
   try {
     await apiInstance.sendTransacEmail(email);
   } catch (err) {
