@@ -677,7 +677,7 @@ export default function Attendance() {
             tr:nth-child(even) td { background: #f8fafc; }
             .badge { padding: 4px 8px; border-radius: 9999px; font-size: 10px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; white-space: nowrap; display: inline-block; }
             .badge-present { background: #f3e8ff; color: #942392; }
-            .badge-late { background: #eee600; color: #000000; }
+            .badge-late { background: #fefce8; color: #a16207; border: 1px solid #fde68a; }
             .badge-absent { background: #fee2e2; color: #991b1b; }
             .badge-leave { background: #fef3c7; color: #92400e; }
             .badge-companyleave { background: #eae5ff; color: #581c87; }
@@ -1987,8 +1987,8 @@ export default function Attendance() {
                       (log.status === "Present" && log.late && log.late !== "00:00" && log.late !== "--" && log.late !== "00h 00m");
 
                     if (isLate) {
-                      statusBadge = "bg-[#eee600] text-slate-950 font-bold border-[#d4cc00] shadow-xs";
-                      customStyle = { backgroundColor: "#eee600", color: "#000000", borderColor: "#d4cc00" };
+                      statusBadge = "bg-yellow-50 border-yellow-300/70 dark:bg-yellow-900/20 dark:border-yellow-700/50";
+                      customStyle = { backgroundColor: "#fefce8", color: "#a16207", borderColor: "#fde68a" };
                     } else if (log.status === "Present") {
                       statusBadge = "bg-purple-100/50 text-[#942392] border-[#942392]/20 dark:bg-purple-900/20 dark:text-purple-400";
                     } else if (log.status === "Company Leave") {
