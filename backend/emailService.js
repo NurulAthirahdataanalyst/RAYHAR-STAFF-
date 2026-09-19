@@ -179,7 +179,7 @@ async function sendLeaveApprovalEmail(data) {
   
   email.sender = {
     name: "Rayhar Staff Portal",
-    email: "noreply@rayhar.com"
+    email: "nathirah.rahman98@gmail.com"
   };
   
   email.to = [
@@ -205,7 +205,7 @@ async function sendLateEmail(data) {
   if (!process.env.BREVO_API_KEY) return;
 
   const email = {};
-  email.sender = { name: "Rayhar Staff Portal", email: "noreply@rayhar.com" };
+  email.sender = { name: "Rayhar Staff Portal", email: "nathirah.rahman98@gmail.com" };
   email.to = [{ email: data.employeeEmail, name: data.employeeName }];
   email.subject = "Attendance Notice: Late Clock-In";
   email.htmlContent = `
@@ -228,7 +228,7 @@ async function sendLeaveApprovedEmail(data) {
   if (!process.env.BREVO_API_KEY) return;
 
   const email = {};
-  email.sender = { name: "Rayhar Staff Portal", email: "noreply@rayhar.com" };
+  email.sender = { name: "Rayhar Staff Portal", email: "nathirah.rahman98@gmail.com" };
   email.to = [{ email: data.employeeEmail, name: data.employeeName }];
   email.subject = "Leave Request Approved";
   email.htmlContent = `
@@ -250,7 +250,7 @@ async function sendLeaveRejectedEmail(data) {
   if (!process.env.BREVO_API_KEY) return;
 
   const email = {};
-  email.sender = { name: "Rayhar Staff Portal", email: "noreply@rayhar.com" };
+  email.sender = { name: "Rayhar Staff Portal", email: "nathirah.rahman98@gmail.com" };
   email.to = [{ email: data.employeeEmail, name: data.employeeName }];
   email.subject = "Leave Request Rejected";
   email.htmlContent = `
@@ -274,7 +274,7 @@ async function sendPasswordResetEmail(data) {
   if (!process.env.BREVO_API_KEY) return;
 
   const email = {};
-  email.sender = { name: "Rayhar Staff Portal", email: "noreply@rayhar.com" };
+  email.sender = { name: "Rayhar Staff Portal", email: "nathirah.rahman98@gmail.com" };
   email.to = [{ email: data.employeeEmail, name: data.employeeName }];
   email.subject = "Rayhar Staff Portal - Password Reset";
   email.htmlContent = `
@@ -302,7 +302,7 @@ async function sendOutstationAssignedEmail(data) {
   if (!process.env.BREVO_API_KEY) return;
 
   const email = {};
-  email.sender = { name: "Rayhar Staff Portal", email: "noreply@rayhar.com" };
+  email.sender = { name: "Rayhar Staff Portal", email: "nathirah.rahman98@gmail.com" };
   email.to = [{ email: data.employeeEmail, name: data.employeeName }];
   email.subject = `Temporary Branch Assignment: ${data.destination}`;
   email.htmlContent = `
@@ -331,7 +331,7 @@ async function sendOutstationUpdatedEmail(data) {
   if (!process.env.BREVO_API_KEY) return;
 
   const email = {};
-  email.sender = { name: "Rayhar Staff Portal", email: "noreply@rayhar.com" };
+  email.sender = { name: "Rayhar Staff Portal", email: "nathirah.rahman98@gmail.com" };
   email.to = [{ email: data.employeeEmail, name: data.employeeName }];
   email.subject = `Update: Temporary Branch Assignment to ${data.destination}`;
   email.htmlContent = `
@@ -359,7 +359,7 @@ async function sendOutstationUpdatedEmail(data) {
 async function sendLeaveSubmittedEmailToUser(data) {
   if (!process.env.BREVO_API_KEY) return;
   const email = {
-    sender: { name: "Rayhar Staff Portal", email: "noreply@rayhar.com" },
+    sender: { name: "Rayhar Staff Portal", email: "nathirah.rahman98@gmail.com" },
     to: [{ email: data.employeeEmail, name: data.employeeName }],
     subject: `Leave Request Submitted: ${data.leaveType}`,
     htmlContent: `
