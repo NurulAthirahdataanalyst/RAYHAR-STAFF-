@@ -1396,7 +1396,7 @@ export default function LeaveAnalytics() {
                             <span className="font-bold text-slate-100">{entry.name}</span>
                           </div>
                           <div className="flex items-center justify-between gap-3 text-slate-300 text-[10px] font-medium">
-                            <span>Count: <b className="text-white font-black">{entry.value}</b></span>
+                            <span>{entry.value === 1 ? "Application" : "Applications"}: <b className="text-white font-black">{entry.value}</b></span>
                             <span className="text-emerald-400 font-bold">{pct}%</span>
                           </div>
                         </div>
