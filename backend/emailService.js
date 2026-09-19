@@ -1,13 +1,10 @@
-const brevo = require('@getbrevo/brevo');
+const { BrevoClient } = require('@getbrevo/brevo');
 require('dotenv').config();
 
-const apiInstance = new brevo.TransactionalEmailsApi();
-if (process.env.BREVO_API_KEY) {
-  apiInstance.setApiKey(
-    brevo.TransactionalEmailsApiApiKeys.apiKey,
-    process.env.BREVO_API_KEY
-  );
-} else {
+const apiInstance = new BrevoClient({
+  apiKey: process.env.BREVO_API_KEY || ''
+});
+if (!process.env.BREVO_API_KEY) {
   console.warn("BREVO_API_KEY is not set in environment variables");
 }
 
@@ -178,7 +175,7 @@ function getLeaveApprovalHtml(data) {
 async function sendLeaveApprovalEmail(data) {
   if (!process.env.BREVO_API_KEY) return;
 
-  const email = new brevo.SendSmtpEmail();
+  const email = {};
   
   email.sender = {
     name: "Rayhar Staff Portal",
@@ -196,7 +193,7 @@ async function sendLeaveApprovalEmail(data) {
   email.htmlContent = getLeaveApprovalHtml(data);
   
   try {
-    const result = await apiInstance.sendTransacEmail(email);
+    const result = await apiInstance.transactionalEmails.sendTransacEmail(email);
     console.log("Leave approval email sent successfully.", result);
     return result;
   } catch (err) {
@@ -207,7 +204,7 @@ async function sendLeaveApprovalEmail(data) {
 async function sendLateEmail(data) {
   if (!process.env.BREVO_API_KEY) return;
 
-  const email = new brevo.SendSmtpEmail();
+  const email = {};
   email.sender = { name: "Rayhar Staff Portal", email: "noreply@rayhar.com" };
   email.to = [{ email: data.employeeEmail, name: data.employeeName }];
   email.subject = "Attendance Notice: Late Clock-In";
@@ -221,7 +218,7 @@ async function sendLateEmail(data) {
     </div>
   `;
   try {
-    await apiInstance.sendTransacEmail(email);
+    await apiInstance.transactionalEmails.sendTransacEmail(email);
   } catch (err) {
     console.error("Error sending late email:", err);
   }
@@ -230,7 +227,7 @@ async function sendLateEmail(data) {
 async function sendLeaveApprovedEmail(data) {
   if (!process.env.BREVO_API_KEY) return;
 
-  const email = new brevo.SendSmtpEmail();
+  const email = {};
   email.sender = { name: "Rayhar Staff Portal", email: "noreply@rayhar.com" };
   email.to = [{ email: data.employeeEmail, name: data.employeeName }];
   email.subject = "Leave Request Approved";
@@ -243,7 +240,7 @@ async function sendLeaveApprovedEmail(data) {
     </div>
   `;
   try {
-    await apiInstance.sendTransacEmail(email);
+    await apiInstance.transactionalEmails.sendTransacEmail(email);
   } catch (err) {
     console.error("Error sending leave approved email:", err);
   }
@@ -252,7 +249,7 @@ async function sendLeaveApprovedEmail(data) {
 async function sendLeaveRejectedEmail(data) {
   if (!process.env.BREVO_API_KEY) return;
 
-  const email = new brevo.SendSmtpEmail();
+  const email = {};
   email.sender = { name: "Rayhar Staff Portal", email: "noreply@rayhar.com" };
   email.to = [{ email: data.employeeEmail, name: data.employeeName }];
   email.subject = "Leave Request Rejected";
@@ -267,7 +264,7 @@ async function sendLeaveRejectedEmail(data) {
     </div>
   `;
   try {
-    await apiInstance.sendTransacEmail(email);
+    await apiInstance.transactionalEmails.sendTransacEmail(email);
   } catch (err) {
     console.error("Error sending leave rejected email:", err);
   }
@@ -276,7 +273,7 @@ async function sendLeaveRejectedEmail(data) {
 async function sendPasswordResetEmail(data) {
   if (!process.env.BREVO_API_KEY) return;
 
-  const email = new brevo.SendSmtpEmail();
+  const email = {};
   email.sender = { name: "Rayhar Staff Portal", email: "noreply@rayhar.com" };
   email.to = [{ email: data.employeeEmail, name: data.employeeName }];
   email.subject = "Rayhar Staff Portal - Password Reset";
@@ -295,7 +292,7 @@ async function sendPasswordResetEmail(data) {
     </div>
   `;
   try {
-    await apiInstance.sendTransacEmail(email);
+    await apiInstance.transactionalEmails.sendTransacEmail(email);
   } catch (err) {
     console.error("Error sending password reset email:", err);
   }
@@ -304,7 +301,7 @@ async function sendPasswordResetEmail(data) {
 async function sendOutstationAssignedEmail(data) {
   if (!process.env.BREVO_API_KEY) return;
 
-  const email = new brevo.SendSmtpEmail();
+  const email = {};
   email.sender = { name: "Rayhar Staff Portal", email: "noreply@rayhar.com" };
   email.to = [{ email: data.employeeEmail, name: data.employeeName }];
   email.subject = `Temporary Branch Assignment: ${data.destination}`;
@@ -324,7 +321,7 @@ async function sendOutstationAssignedEmail(data) {
     </div>
   `;
   try {
-    await apiInstance.sendTransacEmail(email);
+    await apiInstance.transactionalEmails.sendTransacEmail(email);
   } catch (err) {
     console.error("Error sending outstation assigned email:", err);
   }
@@ -333,7 +330,7 @@ async function sendOutstationAssignedEmail(data) {
 async function sendOutstationUpdatedEmail(data) {
   if (!process.env.BREVO_API_KEY) return;
 
-  const email = new brevo.SendSmtpEmail();
+  const email = {};
   email.sender = { name: "Rayhar Staff Portal", email: "noreply@rayhar.com" };
   email.to = [{ email: data.employeeEmail, name: data.employeeName }];
   email.subject = `Update: Temporary Branch Assignment to ${data.destination}`;
@@ -353,7 +350,7 @@ async function sendOutstationUpdatedEmail(data) {
     </div>
   `;
   try {
-    await apiInstance.sendTransacEmail(email);
+    await apiInstance.transactionalEmails.sendTransacEmail(email);
   } catch (err) {
     console.error("Error sending outstation updated email:", err);
   }
