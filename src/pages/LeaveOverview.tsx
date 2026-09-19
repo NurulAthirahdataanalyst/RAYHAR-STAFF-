@@ -101,6 +101,8 @@ export default function LeaveOverview() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [recentPage, setRecentPage] = useState(1);
   const [recentLimit, setRecentLimit] = useState(10);
+  const [approvalPage, setApprovalPage] = useState(1);
+  const [approvalLimit, setApprovalLimit] = useState(5);
   const [rlStats, setRlStats] = useState<{ available: number; earned: number; used: number; latestEarned: string | null }>({
     available: 0,
     earned: 0,
@@ -110,6 +112,7 @@ export default function LeaveOverview() {
 
   useEffect(() => {
     setRecentPage(1);
+    setApprovalPage(1);
   }, [selectedYear, leaveTypeFilter, statusFilter]);
 
   useEffect(() => {
@@ -183,6 +186,11 @@ export default function LeaveOverview() {
     const start = (recentPage - 1) * recentLimit;
     return tableLeaveRequests.slice(start, start + recentLimit);
   }, [tableLeaveRequests, recentPage, recentLimit]);
+
+  const paginatedApprovalRequests = useMemo(() => {
+    const start = (approvalPage - 1) * approvalLimit;
+    return filteredLeaveRequests.slice(start, start + approvalLimit);
+  }, [filteredLeaveRequests, approvalPage, approvalLimit]);
 
   useEffect(() => {
     const fetchLeaveRequests = async () => {
@@ -571,12 +579,33 @@ export default function LeaveOverview() {
 
       {/* Approval Section */}
       <Card className="border-none shadow-[0_20px_50px_rgba(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.2)] bg-card/80 backdrop-blur-md rounded-[24px] sm:rounded-[32px] overflow-hidden">
-        <CardHeader className="border-b border-border/50 pb-4 px-4 sm:px-6">
+        <CardHeader className="space-y-0 flex flex-row items-center justify-between border-b border-border/50 py-3.5 px-4 sm:px-6">
           <CardTitle className="text-base sm:text-lg font-black text-foreground">Approval Status Tracker</CardTitle>
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-black uppercase tracking-widest text-foreground">SHOW</span>
+            <Select
+              value={String(approvalLimit)}
+              onValueChange={(val) => {
+                setApprovalLimit(Number(val));
+                setApprovalPage(1);
+              }}
+            >
+              <SelectTrigger className="h-8 w-[68px] text-xs font-bold rounded-lg border border-border bg-card text-foreground shadow-xs">
+                <SelectValue placeholder={String(approvalLimit)} />
+              </SelectTrigger>
+              <SelectContent className="min-w-[68px] rounded-xl">
+                {[5, 10, 15, 25, 50].map((opt) => (
+                  <SelectItem key={opt} value={String(opt)} className="text-xs font-semibold">
+                    {opt}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </CardHeader>
         <CardContent className="p-4 sm:p-6 space-y-4">
-          {filteredLeaveRequests.length > 0 ? (
-            filteredLeaveRequests.map((req) => {
+          {paginatedApprovalRequests.length > 0 ? (
+            paginatedApprovalRequests.map((req) => {
               const fileName = req.formFileName || getLeaveFormFileName(req.appliedAt, req.type, userName);
 
               return (
@@ -634,6 +663,17 @@ export default function LeaveOverview() {
             </div>
           )}
         </CardContent>
+
+        {filteredLeaveRequests.length > 0 && (
+          <TablePagination
+            currentPage={approvalPage}
+            totalItems={filteredLeaveRequests.length}
+            pageSize={approvalLimit}
+            pageSizeOptions={[5, 10, 15, 25, 50]}
+            onPageChange={setApprovalPage}
+            onPageSizeChange={setApprovalLimit}
+          />
+        )}
       </Card>
     </div>
   );
