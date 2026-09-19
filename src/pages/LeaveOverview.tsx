@@ -672,6 +672,8 @@ export default function LeaveOverview() {
             pageSizeOptions={[5, 10, 15, 25, 50]}
             onPageChange={setApprovalPage}
             onPageSizeChange={setApprovalLimit}
+            showPageSize={false}
+            showTotal={false}
           />
         )}
       </Card>

@@ -271,6 +271,8 @@ export interface TablePaginationProps {
   onPageSizeChange: (pageSize: number) => void;
   pageSizeOptions?: number[];
   className?: string;
+  showPageSize?: boolean;
+  showTotal?: boolean;
 }
 
 export const TablePagination: React.FC<TablePaginationProps> = ({
@@ -281,6 +283,8 @@ export const TablePagination: React.FC<TablePaginationProps> = ({
   onPageSizeChange,
   pageSizeOptions = [10, 25, 50, 100],
   className = "",
+  showPageSize = true,
+  showTotal = true,
 }) => {
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
   const fromIndex = totalItems === 0 ? 0 : (currentPage - 1) * pageSize + 1;
@@ -300,35 +304,41 @@ export const TablePagination: React.FC<TablePaginationProps> = ({
   };
 
   return (
-    <div className={`flex flex-col sm:flex-row items-center justify-between p-4 border-t border-gray-100 dark:border-slate-800 gap-4 bg-slate-50/50 dark:bg-slate-900/50 ${className}`}>
-      <div className="flex items-center gap-4 text-[10px] font-bold text-foreground uppercase tracking-widest flex-wrap">
-        <span>
-          TOTAL SHOWING {fromIndex} TO {toIndex} OF {totalItems} ENTRIES
-        </span>
-        <div className="flex items-center gap-2">
-          <span>Show</span>
-          <Select
-            value={String(pageSize)}
-            onValueChange={(val) => {
-              onPageSizeChange(Number(val));
-              onPageChange(1);
-            }}
-          >
-            <SelectTrigger className="h-7 text-[10px] font-bold rounded border-border w-[65px] bg-card">
-              <SelectValue placeholder={String(pageSize)}>{pageSize}</SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {pageSizeOptions.map((opt) => (
-                <SelectItem key={opt} value={String(opt)}>
-                  {opt}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+    <div className={`flex flex-col sm:flex-row items-center ${(!showTotal && !showPageSize) ? 'justify-end' : 'justify-between'} p-4 border-t border-gray-100 dark:border-slate-800 gap-4 bg-slate-50/50 dark:bg-slate-900/50 ${className}`}>
+      {(showTotal || showPageSize) && (
+        <div className="flex items-center gap-4 text-[10px] font-bold text-foreground uppercase tracking-widest flex-wrap">
+          {showTotal && (
+            <span>
+              TOTAL SHOWING {fromIndex} TO {toIndex} OF {totalItems} ENTRIES
+            </span>
+          )}
+          {showPageSize && (
+            <div className="flex items-center gap-2">
+              <span>Show</span>
+              <Select
+                value={String(pageSize)}
+                onValueChange={(val) => {
+                  onPageSizeChange(Number(val));
+                  onPageChange(1);
+                }}
+              >
+                <SelectTrigger className="h-7 text-[10px] font-bold rounded border-border w-[65px] bg-card">
+                  <SelectValue placeholder={String(pageSize)}>{pageSize}</SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {pageSizeOptions.map((opt) => (
+                    <SelectItem key={opt} value={String(opt)}>
+                      {opt}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </div>
-      </div>
+      )}
 
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-1.5 sm:ml-auto">
         <Button
           onClick={() => onPageChange(Math.max(1, currentPage - 1))}
           disabled={currentPage === 1}
