@@ -161,7 +161,7 @@ export function StaffProfileDialog({
     }
   }, [isModalOpen]);
   const currentYear = new Date().getFullYear();
-  const [selectedYear, setSelectedYear] = useState<number>(currentYear);
+  const [selectedMonthYear, setSelectedMonthYear] = useState<string>(`${currentYear}-all`);
   const availableYears = [currentYear - 2, currentYear - 1, currentYear, currentYear + 1];
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [analyticsDate, setAnalyticsDate] = useState<string>(new Date().toISOString().substring(0, 7));
@@ -181,12 +181,13 @@ export function StaffProfileDialog({
     }
   };
 
-  const fetchAnalytics = async (userId: string, year = selectedYear) => {
+  const fetchAnalytics = async (userId: string, monthYear = selectedMonthYear) => {
     setAnalyticsLoading(true);
     try {
+      const [y, m] = monthYear.split('-');
       const params = new URLSearchParams();
-      params.append('month', 'all');
-      params.append('year', year.toString());
+      params.append('month', m || 'all');
+      params.append('year', y);
       
       const res = await fetch(`${API_BASE_URL}/api/employees/${userId}/analytics?${params}`);
       const data = await res.json();
@@ -203,13 +204,13 @@ export function StaffProfileDialog({
   useEffect(() => {
     if (selectedEmployee && isModalOpen) {
       fetchBranchesAndDepartments();
-      fetchAnalytics(selectedEmployee.user_id, selectedYear);
+      fetchAnalytics(selectedEmployee.user_id, selectedMonthYear);
       fetchTodayStats(selectedEmployee.user_id);
       fetchAttendanceSettings(selectedEmployee.user_id);
     } else {
       setAnalytics(null);
     }
-  }, [selectedEmployee, isModalOpen, selectedYear]);
+  }, [selectedEmployee, isModalOpen, selectedMonthYear]);
 
     const [tempAssignmentsHistory, setTempAssignmentsHistory] = useState<any[]>([]);
   const [locationHistory, setLocationHistory] = useState<any[]>([]);
@@ -831,17 +832,16 @@ export function StaffProfileDialog({
                           <BarChart3 className="h-3.5 w-3.5" />
                         </div>
                         <h3 className="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-200">
-                          {selectedYear} Performance Analytics
+                          {selectedMonthYear.split('-')[0]} Performance Analytics
                         </h3>
                       </div>
                       
-                      {/* Year Selector */}
-                      <YearPopover
-                        year={selectedYear.toString()}
-                        onSelectYear={(y) => {
-                          setSelectedYear(y ? parseInt(y) : new Date().getFullYear());
+                      {/* Month Picker */}
+                      <MonthPicker
+                        monthYear={selectedMonthYear}
+                        onSelectMonthYear={(val) => {
+                          setSelectedMonthYear(val);
                         }}
-                        className="appearance-none flex items-center justify-between px-3 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold rounded-md shadow-sm outline-none cursor-pointer h-7 gap-2 hover:border-[#942392]/40 min-w-[95px]"
                       />
                     </div>
 
