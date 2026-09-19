@@ -159,7 +159,7 @@ export default function Attendance() {
   const selectedMonth = parseInt(selectedDate.split('-')[1]);
   const selectedYear = parseInt(selectedDate.split('-')[0]);
 
-  const [statusFilter, setStatusFilter] = useState<"ALL" | "ON TIME" | "LATE">("ALL");
+  const [statusFilter, setStatusFilter] = useState<"ALL" | "ON TIME" | "LATE" | "ABSENT">("ALL");
   const [viewMode, setViewMode] = useState<"day" | "month">("day");
   const [expandedLogId, setExpandedLogId] = useState<number | null>(null);
   const [showFilters, setShowFilters] = useState(false);
@@ -1199,6 +1199,9 @@ export default function Attendance() {
       if (statusFilter === "ON TIME") {
         return (log.status === "Present" || log.status === "ON TIME") && !isLate;
       }
+      if (statusFilter === "ABSENT") {
+        return log.status === "Absent";
+      }
       return log.status === statusFilter;
     })
     .filter(log => {
@@ -1915,12 +1918,16 @@ export default function Attendance() {
 
               {/* Status Filter */}
               <div className="flex bg-muted/40 p-1 rounded-md border border-border/40">
-                {(["ALL", "ON TIME", "LATE"] as const).map((status) => (
+                {(["ALL", "ON TIME", "LATE", "ABSENT"] as const).map((status) => (
                   <button
                     key={status}
                     onClick={() => setStatusFilter(status)}
                     className={`px-3 py-1.5 text-[10px] font-black tracking-wider rounded-md transition-all uppercase ${
-                      statusFilter === status ? "bg-[#942392] text-white shadow-sm" : "text-foreground hover:text-foreground"
+                      statusFilter === status
+                        ? status === "ABSENT"
+                          ? "bg-red-600 text-white shadow-sm"
+                          : "bg-[#942392] text-white shadow-sm"
+                        : "text-foreground hover:text-foreground"
                     }`}
                   >
                     {status}
