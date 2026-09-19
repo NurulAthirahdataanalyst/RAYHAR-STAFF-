@@ -798,74 +798,89 @@ export default function LeaveAdmin() {
                     </div>
                   )}
 
-                  {/* Search Input in Popover */}
-                  <div className="relative">
-                    <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-2.5 top-1/2 -translate-y-1/2" />
-                    <Input
-                      placeholder="Search employees..."
-                      value={empSearch}
-                      onChange={(e) => setEmpSearch(e.target.value)}
-                      className="pl-8 pr-7 h-8 text-xs focus-visible:ring-1 focus-visible:ring-[#942392] focus-visible:border-[#942392]"
-                      autoFocus
-                    />
-                    {empSearch && (
-                      <button
-                        type="button"
-                        onClick={() => setEmpSearch("")}
-                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    )}
-                  </div>
+                  {/* Search Input in Popover removed to match Employee Directory */}
 
-                  {/* Employee List */}
                   <div className="max-h-48 overflow-y-auto border border-gray-200 dark:border-slate-800 rounded-lg divide-y divide-gray-100 dark:divide-slate-800">
                     {filteredEmps.length === 0 ? (
                       <div className="py-5 text-center text-[10px] text-muted-foreground font-bold uppercase tracking-wider">
                         No employees found
                       </div>
                     ) : (
-                      filteredEmps.map((e) => {
-                        const isSelected = !!selectedEmps.find(
-                          (s) => s.user_id === e.user_id || s.full_name === e.full_name
-                        );
-                        return (
-                          <div
-                            key={e.user_id}
-                            onClick={() => toggleEmp(e)}
-                            className={`flex items-center justify-between px-3 py-2 cursor-pointer transition-colors ${
-                              isSelected
-                                ? "bg-[#942392]/10 dark:bg-[#942392]/20"
-                                : "hover:bg-gray-50 dark:hover:bg-slate-800/60"
-                            }`}
-                          >
-                            <div className="flex items-center gap-2.5 min-w-0 pr-2">
-                              <div className="pointer-events-none flex items-center justify-center shrink-0">
-                                <AnimatedCheckbox
-                                  checked={isSelected}
-                                  readOnly
-                                  color="#942392"
-                                  size={18}
-                                />
-                              </div>
-                              <div className="min-w-0 text-left">
-                                <p className="text-[11px] font-bold text-foreground dark:text-gray-100 truncate">
-                                  {e.full_name}
-                                </p>
-                                <p className="text-[9px] text-muted-foreground truncate">
-                                  {e.department && e.department !== "—" ? e.department : "General"} · {e.branch || "HQ"}
-                                </p>
-                              </div>
+                      <>
+                        <div
+                          onClick={() => {
+                            if (selectedEmps.length === filteredEmps.length) {
+                              setSelectedEmps([]);
+                            } else {
+                              setSelectedEmps([...filteredEmps]);
+                            }
+                          }}
+                          className={`flex items-center justify-between px-3 py-2 cursor-pointer transition-colors ${
+                            selectedEmps.length === filteredEmps.length && filteredEmps.length > 0
+                              ? "bg-[#942392]/10 dark:bg-[#942392]/20"
+                              : "hover:bg-yellow-50 dark:hover:bg-yellow-900/20"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                            <div className="pointer-events-none flex items-center justify-center shrink-0">
+                              <AnimatedCheckbox
+                                checked={selectedEmps.length === filteredEmps.length && filteredEmps.length > 0}
+                                readOnly
+                                color="#942392"
+                                size={18}
+                              />
                             </div>
-                            {isSelected && (
-                              <Badge className="bg-[#942392]/15 text-[#942392] border border-[#942392]/30 text-[9px] font-bold shrink-0">
-                                Selected
-                              </Badge>
-                            )}
+                            <div className="min-w-0 text-left">
+                              <p className="text-[11px] font-bold text-foreground dark:text-gray-100 truncate">
+                                ALL EMPLOYEES
+                              </p>
+                              <p className="text-[9px] text-muted-foreground truncate">
+                                Select all in list
+                              </p>
+                            </div>
                           </div>
-                        );
-                      })
+                        </div>
+                        {filteredEmps.map((e) => {
+                          const isSelected = !!selectedEmps.find(
+                            (s) => s.user_id === e.user_id || s.full_name === e.full_name
+                          );
+                          return (
+                            <div
+                              key={e.user_id}
+                              onClick={() => toggleEmp(e)}
+                              className={`flex items-center justify-between px-3 py-2 cursor-pointer transition-colors ${
+                                isSelected
+                                  ? "bg-[#942392]/10 dark:bg-[#942392]/20"
+                                  : "hover:bg-yellow-50 dark:hover:bg-yellow-900/20"
+                              }`}
+                            >
+                              <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                                <div className="pointer-events-none flex items-center justify-center shrink-0">
+                                  <AnimatedCheckbox
+                                    checked={isSelected}
+                                    readOnly
+                                    color="#942392"
+                                    size={18}
+                                  />
+                                </div>
+                                <div className="min-w-0 text-left">
+                                  <p className="text-[11px] font-bold text-foreground dark:text-gray-100 truncate">
+                                    {e.full_name}
+                                  </p>
+                                  <p className="text-[9px] text-muted-foreground truncate">
+                                    {e.department && e.department !== "—" ? e.department : "General"} · {e.branch || "HQ"}
+                                  </p>
+                                </div>
+                              </div>
+                              {isSelected && (
+                                <Badge className="bg-[#942392]/15 text-[#942392] border border-[#942392]/30 text-[9px] font-bold shrink-0">
+                                  Selected
+                                </Badge>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </>
                     )}
                   </div>
                 </div>
