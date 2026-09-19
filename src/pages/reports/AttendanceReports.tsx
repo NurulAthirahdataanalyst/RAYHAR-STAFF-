@@ -169,8 +169,11 @@ export default function AttendanceReports() {
         const targetDate = toDateOnly(recordDateStr);
         if (!targetDate) return null;
 
+        const normalizedUserId = String(userId).trim().toUpperCase();
+
         const match = assignments.find((a: any) => {
-          if (a.user_id !== userId) return false;
+          const aUserId = String(a.user_id || "").trim().toUpperCase();
+          if (aUserId !== normalizedUserId) return false;
           if (a.status === "Cancelled" || a.status === "Rejected") return false;
 
           const start = toDateOnly(a.start_date);
@@ -188,6 +191,7 @@ export default function AttendanceReports() {
           const recDate = r.date || (viewType === "day" ? date : r.clock_in);
           return {
             ...r,
+            temporary_branch: undefined,
             status: r.status || "Unknown",
             temp_branch: getTempBranchForRecord(r.user_id, recDate)
           };
@@ -281,11 +285,13 @@ export default function AttendanceReports() {
       const distance = a.distance_meters !== null && a.distance_meters !== undefined ? `${Math.round(a.distance_meters)}m` : "-";
       const locationStatus = a.location || a.clock_in_location || "-";
       
+      const branchText = a.temp_branch ? `${a.permanent_branch || a.branch || 'HQ'} (TEMP: ${a.temp_branch})` : (a.permanent_branch || a.branch || 'HQ');
+      
       if (viewType === "day") {
         return [
           `"${(a.user_id || '').replace(/"/g, '""')}"`,
           `"${(a.full_name || '').replace(/"/g, '""')}"`,
-          `"${(a.branch || 'HQ').replace(/"/g, '""')}"`,
+          `"${branchText.replace(/"/g, '""')}"`,
           `"${(a.time_in || 'N/A').replace(/"/g, '""')}"`,
           `"${(a.time_out || 'N/A').replace(/"/g, '""')}"`,
           `"${(a.status || '').replace(/"/g, '""')}"`,
@@ -299,7 +305,7 @@ export default function AttendanceReports() {
           `"${(a.date || '').replace(/"/g, '""')}"`,
           `"${(a.user_id || '').replace(/"/g, '""')}"`,
           `"${(a.full_name || '').replace(/"/g, '""')}"`,
-          `"${(a.branch || 'HQ').replace(/"/g, '""')}"`,
+          `"${branchText.replace(/"/g, '""')}"`,
           `"${(a.time_in || 'N/A').replace(/"/g, '""')}"`,
           `"${(a.time_out || 'N/A').replace(/"/g, '""')}"`,
           `"${(a.status || '').replace(/"/g, '""')}"`,
@@ -606,9 +612,9 @@ export default function AttendanceReports() {
                           <TableCell>
                             <div className="flex flex-col gap-0.5">
                               <span className="font-medium text-xs">{req.permanent_branch || req.branch || "-"}</span>
-                              {(req.temp_branch || (req as any).temporary_branch) && (
+                              {req.temp_branch && (
                                 <span className="inline-flex items-center gap-1 text-[9px] font-black text-amber-800 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/70 px-1.5 py-0.5 rounded border border-amber-300 dark:border-amber-700 w-fit shadow-xs">
-                                  <MapPin className="w-2.5 h-2.5 text-amber-600 dark:text-amber-400" /> TEMP ASSIGNMENT : {req.temp_branch || (req as any).temporary_branch}
+                                  <MapPin className="w-2.5 h-2.5 text-amber-600 dark:text-amber-400" /> TEMP ASSIGNMENT : {req.temp_branch}
                                 </span>
                               )}
                             </div>
