@@ -2245,16 +2245,21 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
     [lateTimeStr, weekStartDLive.toISOString(), weekEndDLive.toISOString(), ...leaveTrendFilterParams]
   );
   
+  const weekStartStrLive = `${weekStartDLive.getFullYear()}-${String(weekStartDLive.getMonth() + 1).padStart(2, '0')}-${String(weekStartDLive.getDate()).padStart(2, '0')}`;
+  const weekEndStrLive = `${weekEndDLive.getFullYear()}-${String(weekEndDLive.getMonth() + 1).padStart(2, '0')}-${String(weekEndDLive.getDate()).padStart(2, '0')}`;
+
   const [weeklyLeaveRows] = await pool.query(
-    `SELECT lr.user_id, lr.start_date, lr.end_date 
+    `SELECT lr.user_id, lr.status, lr.leave_type, lr.reason, lr.cuti_ganti_tarikh,
+            (lr.start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date as start_date,
+            (lr.end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date as end_date
      FROM leave_requests lr
      JOIN profiles p ON lr.user_id = p.user_id
      WHERE lr.status = 'Approved' 
-       AND EXTRACT(YEAR FROM lr.start_date) = ?
-       AND EXTRACT(MONTH FROM lr.start_date) = ?
+       AND (lr.start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date <= ?::date
+       AND (lr.end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date >= ?::date
        AND p.status = 'Active'
        ${leaveTrendRoleFilter}`,
-    [tYear, tMonth, ...leaveTrendFilterParams]
+    [weekEndStrLive, weekStartStrLive, ...leaveTrendFilterParams]
   );
 
   const weeklyMap = {
@@ -2290,10 +2295,9 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
     });
     
     const leaveSet = new Set();
+    const dIterLiveStr = `${dIterLive.getFullYear()}-${String(dIterLive.getMonth() + 1).padStart(2, '0')}-${String(dIterLive.getDate()).padStart(2, '0')}`;
     weeklyLeaveRows.forEach(lr => {
-      const s = new Date(lr.start_date); s.setHours(0,0,0,0);
-      const e = new Date(lr.end_date); e.setHours(23,59,59,999);
-      if (dIterLive >= s && dIterLive <= e) {
+      if (lr.status === 'Approved' && isEmployeeOnLeaveOnDate(lr, dIterLiveStr)) {
         leaveSet.add(lr.user_id);
       }
     });
@@ -8418,6 +8422,9 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
     });
 
     // Add Leave from leaveRows (actual calculation for the week)
+    const onLeaveSetPerDay = {
+      'Sat': new Set(), 'Sun': new Set(), 'Mon': new Set(), 'Tue': new Set(), 'Wed': new Set(), 'Thu': new Set(), 'Fri': new Set()
+    };
     leaveRows.forEach(lr => {
       if (lr.status === 'Approved') {
         const startObj = new Date(lr.start_date);
@@ -8431,11 +8438,22 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
         
         while (dIter <= lEnd) {
           if (dIter >= weekStartD && dIter <= weekEndD) {
-            const dayName = dayNames[dIter.getDay()];
-            weeklyMap[dayName].leave++;
+            const dIterStr = `${dIter.getFullYear()}-${String(dIter.getMonth() + 1).padStart(2, '0')}-${String(dIter.getDate()).padStart(2, '0')}`;
+            if (isEmployeeOnLeaveOnDate(lr, dIterStr)) {
+              const dayName = dayNames[dIter.getDay()];
+              if (onLeaveSetPerDay[dayName]) {
+                onLeaveSetPerDay[dayName].add(lr.user_id);
+              }
+            }
           }
           dIter.setDate(dIter.getDate() + 1);
         }
+      }
+    });
+
+    Object.keys(onLeaveSetPerDay).forEach(day => {
+      if (weeklyMap[day]) {
+        weeklyMap[day].leave = onLeaveSetPerDay[day].size;
       }
     });
 
