@@ -618,7 +618,7 @@ export default function TeamAttendance() {
                           </TableCell>
                           <TableCell>
                             <div className="flex flex-col gap-1 items-start">
-                              <span className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-semibold rounded-full ${
+                              <span className={`uppercase whitespace-nowrap px-2 py-0.5 text-[10px] font-semibold rounded-full ${
                                 emp.status === 'Present' || emp.status === 'Present (On Time)' ? 'bg-green-100 text-green-700' :
                                 emp.status === 'Present (Late)' ? 'bg-yellow-50 text-yellow-700 border border-yellow-300/70' :
                                 emp.status === 'Clocked Out' ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300' :
@@ -627,13 +627,13 @@ export default function TeamAttendance() {
                                 emp.status === 'Approved Leave' || emp.status === 'Company Leave' ? 'bg-blue-100 text-blue-700' :
                                 'bg-red-100 text-red-700'
                               }`}>
-                                {emp.status}
+                                {emp.status === 'Present (Late)' ? 'LATE' : emp.status}
                               </span>
                               {emp.status === 'Missing Clock-Out' && emp.punctualityStatus && (
-                                <span className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-semibold rounded-full ${
+                                <span className={`uppercase whitespace-nowrap px-2 py-0.5 text-[10px] font-semibold rounded-full ${
                                   emp.punctualityStatus === 'Present (Late)' ? 'bg-yellow-50 text-yellow-700 border border-yellow-300/70' : 'bg-green-100 text-green-700'
                                 }`}>
-                                  {emp.punctualityStatus}
+                                  {emp.punctualityStatus === 'Present (Late)' ? 'LATE' : emp.punctualityStatus}
                                 </span>
                               )}
                             </div>

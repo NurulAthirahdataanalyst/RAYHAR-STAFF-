@@ -2017,9 +2017,9 @@ export default function Attendance() {
                         <TableCell className="whitespace-nowrap">
                           <span 
                             style={customStyle}
-                            className={`inline-flex items-center justify-center px-2.5 py-0.5 text-xs font-semibold rounded-md border ${statusBadge}`}
+                            className={`inline-flex items-center justify-center px-2.5 py-0.5 text-xs font-semibold uppercase rounded-md border ${statusBadge}`}
                           >
-                            {log.status}
+                            {log.status === "Present (Late)" ? "LATE" : log.status}
                           </span>
                         </TableCell>
                         <TableCell className="font-medium text-rose-600">{log.late === "00h 00m" || log.late === "00:00" || log.late === "--" ? "--" : log.late}</TableCell>
