@@ -3467,6 +3467,20 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
     // Generate and save the leave form PDF locally and on Supabase Storage
     generateAndSaveLeaveFormPDF(result.insertId);
 
+    // --- SEND IN-APP NOTIFICATION TO USER ---
+    try {
+      await notificationService.createNotification({
+        userId: user_id,
+        title: 'Leave Request Submitted',
+        message: `Your request for ${leaveData.leave_type} (${leaveData.days} day(s)) has been submitted and is pending approval.`,
+        type: 'leave_approval',
+        scope: 'personal',
+        sendPush: true,
+      });
+    } catch (notifErr) {
+      console.error("Failed to create in-app notification for user:", notifErr);
+    }
+
     // --- SEND EMAIL NOTIFICATION TO USER ---
     if (leaveData && leaveData.email) {
       emailService.sendLeaveSubmittedEmailToUser({

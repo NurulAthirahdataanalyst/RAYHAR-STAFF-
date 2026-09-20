@@ -197,9 +197,53 @@ async function sendLeaveRejectedEmail({ employeeEmail, employeeName, leaveType, 
   return sendEmail({ to: employeeEmail, subject, html });
 }
 
+/**
+ * Send Leave Submitted Email to Employee
+ */
+async function sendLeaveSubmittedEmailToUser({ employeeEmail, employeeName, leaveType, startDate, endDate }) {
+  const subject = `dY"" Leave Request Submitted: ${leaveType}`;
+  const portalUrl = `${PORTAL_URL}/leave`;
+
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px; background-color: #ffffff;">
+      <div style="background-color: #0ea5e9; padding: 16px; border-radius: 6px 6px 0 0; color: white; text-align: center;">
+        <h2 style="margin: 0; font-size: 20px;">Rayhar Leave Portal</h2>
+        <p style="margin: 4px 0 0 0; font-size: 14px; opacity: 0.9;">Leave Application Submitted Successfully</p>
+      </div>
+      
+      <div style="padding: 20px;">
+        <p style="font-size: 15px; color: #334155;">Hello <strong>${employeeName}</strong>,</p>
+        <p style="font-size: 14px; color: #475569;">Your leave request has been submitted and is currently pending approval.</p>
+        
+        <table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px;">
+          <tr style="border-bottom: 1px solid #f1f5f9;">
+            <td style="padding: 8px 0; color: #64748b; width: 140px;">Leave Type</td>
+            <td style="padding: 8px 0; color: #0f172a; font-weight: bold;">${leaveType}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; color: #64748b;">Dates</td>
+            <td style="padding: 8px 0; color: #0f172a;">${startDate} to ${endDate}</td>
+          </tr>
+        </table>
+        
+        <div style="text-align: center; margin: 30px 0 10px 0;">
+          <a href="${portalUrl}" style="background-color: #0ea5e9; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block; font-size: 14px;">View Leave Status</a>
+        </div>
+      </div>
+      
+      <div style="border-top: 1px solid #e2e8f0; padding-top: 15px; text-align: center; color: #94a3b8; font-size: 12px;">
+        <p style="margin: 0;">Rayhar Travels Sdn. Bhd. ? Employee Attendance & Leave Portal</p>
+      </div>
+    </div>
+  `;
+
+  return sendEmail({ to: employeeEmail, subject, html });
+}
+
 module.exports = {
   sendEmail,
   sendLeaveRequestEmail,
   sendLeaveApprovedEmail,
   sendLeaveRejectedEmail,
+  sendLeaveSubmittedEmailToUser,
 };
