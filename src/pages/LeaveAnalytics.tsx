@@ -1384,6 +1384,7 @@ export default function LeaveAnalytics() {
                 </Pie>
                 <Tooltip 
                   cursor={false}
+                  wrapperStyle={{ zIndex: 100 }}
                   content={({ active, payload }) => {
                     if (active && payload && payload.length && hoveredLeaveType) {
                       const entry = payload[0].payload;
@@ -1409,12 +1410,12 @@ export default function LeaveAnalytics() {
               </PieChart>
             </ResponsiveContainer>
             {/* Center stat showing total applications like in Attendance Overview */}
-            <div className="absolute inset-0 pb-7 flex flex-col items-center justify-center pointer-events-none">
+            <div className="absolute inset-0 pb-7 flex flex-col items-center justify-center pointer-events-none z-0">
               <span className="text-[28px] font-black text-slate-900 dark:text-slate-100 leading-none">
-                {hoveredLeaveType ? hoveredLeaveType.value : typeDistribution.reduce((acc, curr) => acc + (curr.value || 0), 0)}
+                {typeDistribution.reduce((acc, curr) => acc + (curr.value || 0), 0)}
               </span>
-              <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-1 text-center max-w-[110px] truncate">
-                {hoveredLeaveType ? hoveredLeaveType.name : "TOTAL APPLICATIONS"}
+              <span className="text-[8px] font-black uppercase tracking-widest text-slate-500 mt-1 max-w-[80px] text-center">
+                Total Requests
               </span>
             </div>
           </div>
