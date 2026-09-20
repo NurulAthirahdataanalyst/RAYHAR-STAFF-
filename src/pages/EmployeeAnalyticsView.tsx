@@ -373,7 +373,8 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
         const isPastOrToday = date <= new Date();
 
         // Friday & Saturday are off days for the first week (days 1-7), Friday only for remaining weeks
-        const isWeekendDay = (dayOfWeek === 5) || (dayOfWeek === 6 && d <= 7);
+        const zone = profile?.operating_zone || (profile?.branch === 'HQ' ? 'ZONE_A' : 'ZONE_B');
+        const isWeekendDay = zone === 'ZONE_A' ? (dayOfWeek === 0 || dayOfWeek === 6) : ((dayOfWeek === 5) || (dayOfWeek === 6 && d <= 7));
 
         if (!isWeekendDay) {
           const dateStr = `${targetYear}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
@@ -422,7 +423,6 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
           });
 
           if (hasLeave) {
-            if (isPastOrToday) totalWorkingDaysPassed++;
             leaveDaysCount++;
           } else if (hasCompanyLeave) {
             companyLeaveDaysCount++;
@@ -456,7 +456,8 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
         (selectedYearInt === currentYearInt && selectedMonthInt < currentMonthInt) ||
         (selectedYearInt === currentYearInt && selectedMonthInt === currentMonthInt && date <= today);
       
-      const isWeekendDay = (dayOfWeek === 5) || (dayOfWeek === 6 && d <= 7);
+      const zone = profile?.operating_zone || (profile?.branch === 'HQ' ? 'ZONE_A' : 'ZONE_B');
+      const isWeekendDay = zone === 'ZONE_A' ? (dayOfWeek === 0 || dayOfWeek === 6) : ((dayOfWeek === 5) || (dayOfWeek === 6 && d <= 7));
       
       if (!isWeekendDay) { // Working day
         const dateStr = `${year}-${month.padStart(2, '0')}-${String(d).padStart(2, '0')}`;
@@ -506,7 +507,6 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
         });
 
         if (hasLeave) {
-          if (isPastOrToday) totalWorkingDaysPassed++;
           leaveDaysCount++;
           heatmapData[d] = 'On Leave';
         } else if (hasCompanyLeave) {
@@ -553,7 +553,8 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
       for (let d = 1; d <= prevDaysInMonth; d++) {
          const date = new Date(prevYearInt, m - 1, d);
          const dayOfWeek = date.getDay();
-         const isWeekendDay = (dayOfWeek === 5) || (dayOfWeek === 6 && d <= 7);
+         const zone = profile?.operating_zone || (profile?.branch === 'HQ' ? 'ZONE_A' : 'ZONE_B');
+        const isWeekendDay = zone === 'ZONE_A' ? (dayOfWeek === 0 || dayOfWeek === 6) : ((dayOfWeek === 5) || (dayOfWeek === 6 && d <= 7));
          if (!isWeekendDay) prevWorkingDaysPassed++;
       }
     }
@@ -563,7 +564,8 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
     for (let d = 1; d <= prevDaysInMonth; d++) {
        const date = new Date(prevMonthDate.getFullYear(), prevMonthDate.getMonth(), d);
        const dayOfWeek = date.getDay();
-       const isWeekendDay = (dayOfWeek === 5) || (dayOfWeek === 6 && d <= 7);
+       const zone = profile?.operating_zone || (profile?.branch === 'HQ' ? 'ZONE_A' : 'ZONE_B');
+       const isWeekendDay = zone === 'ZONE_A' ? (dayOfWeek === 0 || dayOfWeek === 6) : ((dayOfWeek === 5) || (dayOfWeek === 6 && d <= 7));
        if (date <= new Date() && !isWeekendDay) prevWorkingDaysPassed++;
     }
   }

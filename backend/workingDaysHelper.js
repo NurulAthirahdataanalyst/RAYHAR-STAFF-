@@ -5,7 +5,16 @@ function calculateExpectedWorkingDays(startDate, endDate, employee, companyLeave
   let expectedDays = 0;
 
   for (const day of days) {
-    if (isWeekend(day)) continue;
+    const zone = employee?.operating_zone || (employee?.branch === 'HQ' ? 'ZONE_A' : 'ZONE_B');
+    const dayOfWeek = day.getDay();
+    const d = day.getDate();
+    let isWeekendDay = false;
+    if (zone === 'ZONE_A') {
+       isWeekendDay = (dayOfWeek === 0 || dayOfWeek === 6);
+    } else {
+       isWeekendDay = (dayOfWeek === 5) || (dayOfWeek === 6 && d <= 7);
+    }
+    if (isWeekendDay) continue;
 
     const dateStr = format(day, 'yyyy-MM-dd');
     
