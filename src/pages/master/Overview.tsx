@@ -271,12 +271,12 @@ export default function MasterOverview() {
               <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#942392]" />
               <CardContent className="p-6 flex items-center justify-between gap-4">
                 <div className="space-y-1.5 min-w-0 flex-1">
-                  <span className="text-[10px] font-black text-purple-700 dark:text-purple-400 uppercase tracking-widest block whitespace-normal break-words leading-tight">Total Staff / Users</span>
+                  <span className="text-[10px] font-black text-[#942392] dark:text-purple-400 uppercase tracking-widest block whitespace-normal break-words leading-tight">Total Staff / Users</span>
                   <div className="flex items-baseline gap-2 flex-wrap">
                     <span className="text-3xl font-black text-[#942392] dark:text-purple-400">{totalUsers}</span>
                     <span className="text-[9px] font-black text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 rounded-md px-2 py-0.5 whitespace-nowrap">{activeUsers} Active</span>
                   </div>
-                  <p className="text-[9px] text-purple-800/60 dark:text-purple-400/60 font-semibold uppercase tracking-wider">Access Licenses Provisioned</p>
+                  <p className="text-[9px] text-purple-800/60 dark:text-purple-400/60 font-semibold uppercase tracking-wider">Includes Active, Inactive & Deleted Staff</p>
                 </div>
                 <div className="w-12 h-12 rounded-2xl bg-[#942392]/10 dark:bg-[#942392]/20 flex items-center justify-center text-[#942392] dark:text-purple-400 shrink-0 group-hover:scale-110 transition-transform">
                   <Users className="w-5 h-5" />
