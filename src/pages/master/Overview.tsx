@@ -166,7 +166,7 @@ export default function MasterOverview() {
 
   // Access Roles summary
   const roleCounts = {
-    hr_admin: employees.filter(e => e.role === "hr_admin" && e.status === "Active").length,
+    admin_licenses: employees.filter(e => ["hr_admin", "managing_director", "operation_manager", "finance_manager"].includes(e.role) && e.status === "Active").length,
     head_of_department: employees.filter(e => e.role === "head_of_department" && e.status === "Active").length,
     branch_leader: employees.filter(e => e.role === "branch_leader" && e.status === "Active").length,
     managing_director: employees.filter(e => e.role === "managing_director" && e.status === "Active").length,
@@ -431,7 +431,7 @@ export default function MasterOverview() {
                     <h4 className="text-[10px] font-black text-foreground uppercase tracking-widest">Provisioned Role Mappings</h4>
                     <div className="grid grid-cols-2 gap-3">
                       {[
-                        { label: "Admin licenses", value: roleCounts.hr_admin, icon: Key, color: "text-purple-600" },
+                        { label: "Admin licenses", value: roleCounts.admin_licenses, icon: Key, color: "text-purple-600" },
                         { label: "HOD leaders", value: roleCounts.head_of_department, icon: ShieldCheck, color: "text-amber-500" },
                         { label: "Branch directors", value: roleCounts.branch_leader, icon: MapPin, color: "text-blue-500" },
                         { label: "Employee staff", value: roleCounts.employee, icon: Users, color: "text-emerald-500" },
