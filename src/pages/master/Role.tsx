@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { API_BASE_URL } from "@/config/api";
 import { useRole } from "@/contexts/RoleContext";
-import { MonthPicker } from "@/components/shared/MonthPicker";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 export default function Role() {
   const navigate = useNavigate();
@@ -35,9 +35,12 @@ export default function Role() {
   const [isSaving, setIsSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   
-  const [selectedMonthYear, setSelectedMonthYear] = useState<string>(
-    `${new Date().getFullYear()}-${(new Date().getMonth() + 1).toString().padStart(2, '0')}`
-  );
+  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+  const [yearPickerOpen, setYearPickerOpen] = useState(false);
+
+  // Generate range of years (5 years back to 2 years ahead)
+  const currentYear = new Date().getFullYear();
+  const yearRange = Array.from({ length: 8 }, (_, i) => currentYear - 5 + i);
 
   const fetchRoles = async () => {
     setLoading(true);
@@ -189,12 +192,59 @@ export default function Role() {
             <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200">Roles List</h2>
             
             <div className="flex flex-wrap items-center gap-3">
-              <MonthPicker 
-                monthYear={selectedMonthYear}
-                onSelectMonthYear={setSelectedMonthYear}
-                hideAllYear={true}
-              />
-              
+              {/* Year Picker */}
+              <Popover open={yearPickerOpen} onOpenChange={setYearPickerOpen}>
+                <PopoverTrigger asChild>
+                  <button className="flex items-center gap-2 h-10 px-4 rounded-xl border border-gray-200 dark:border-slate-700 bg-card shadow-sm hover:border-[#942392]/40 hover:bg-[#942392]/5 transition-all text-sm font-bold text-gray-800 dark:text-gray-100">
+                    <Calendar className="w-4 h-4 text-[#942392]" />
+                    {selectedYear}
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-56 p-3 shadow-xl rounded-2xl border border-border" align="start">
+                  {/* Year navigation */}
+                  <div className="flex items-center justify-between mb-3 px-1">
+                    <button
+                      onClick={() => setSelectedYear(y => y - 1)}
+                      className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-[#942392]/10 text-[#942392] transition-colors"
+                    >
+                      ‹
+                    </button>
+                    <span className="text-sm font-black text-foreground">{selectedYear}</span>
+                    <button
+                      onClick={() => setSelectedYear(y => y + 1)}
+                      className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-[#942392]/10 text-[#942392] transition-colors"
+                    >
+                      ›
+                    </button>
+                  </div>
+                  {/* Year grid */}
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {yearRange.map((yr) => (
+                      <button
+                        key={yr}
+                        onClick={() => { setSelectedYear(yr); setYearPickerOpen(false); }}
+                        className={`py-1.5 rounded-lg text-xs font-bold transition-all ${
+                          yr === selectedYear
+                            ? "bg-[#942392] text-white shadow-sm"
+                            : yr === currentYear
+                            ? "border border-[#942392]/40 text-[#942392]"
+                            : "hover:bg-[#942392]/10 text-foreground"
+                        }`}
+                      >
+                        {yr}
+                      </button>
+                    ))}
+                  </div>
+                  {/* This year shortcut */}
+                  <button
+                    onClick={() => { setSelectedYear(currentYear); setYearPickerOpen(false); }}
+                    className="mt-2 w-full text-center text-xs font-bold text-[#942392] hover:underline"
+                  >
+                    This year
+                  </button>
+                </PopoverContent>
+              </Popover>
+
               <Select defaultValue="status">
                 <SelectTrigger className="w-[130px] bg-card border-gray-200 dark:border-slate-800 shadow-sm h-10">
                   <SelectValue placeholder="Status" />
@@ -260,7 +310,9 @@ export default function Role() {
                     </td>
                   </tr>
                 ) : (
-                  roles.map((role) => (
+                  roles
+                    .filter((role) => new Date(role.created_at).getFullYear() === selectedYear)
+                    .map((role) => (
                     <tr key={role.id} className="hover:bg-gray-50/50 dark:hover:bg-slate-800/40 transition-colors bg-card group">
                       <td className="px-6 py-4 font-semibold text-gray-700 dark:text-gray-200">
                         {role.name === "Finance Manager" || role.name === "finance_manager" ? "Operation Manager" : role.name}
