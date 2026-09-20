@@ -43,8 +43,12 @@ export default function NotificationBell() {
 
   const displayedNotifications = isElevatedRole
     ? notifications.filter((n) => {
-        const isTeam = n.scope === "team" || 
-          n.type === "leave_approval" || 
+        // Trust the database scope column first — it is the ground truth
+        if (n.scope === "personal") return activeScope === "my";
+        if (n.scope === "team") return activeScope === "team";
+
+        // Fallback: auto-detect for older notifications with no scope
+        const isTeam = n.type === "leave_approval" || 
           (n.title && (
             n.title.includes("Leave Approved:") || 
             n.title.includes("Leave Rejected:") || 
