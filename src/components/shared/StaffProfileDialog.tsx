@@ -1760,6 +1760,7 @@ export function StaffProfileDialog({
                         approvalHistory={Array.isArray(req.approval_history) ? req.approval_history : []}
                         branch={req.branch || "HQ"} 
                         department={req.department || ""}
+                        pendingApproverName={req.pending_approver_name}
                       />
                     </div>
 
