@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { 
   Bell, 
   Check, 
@@ -121,6 +121,87 @@ function getNotificationDialogLabel(notif: NotificationItem): string {
   return rawTitle || "Notification";
 }
 
+// ─── Undo Delete Toast Component ──────────────────────────────────────────────
+function UndoDeleteToast({
+  toastId,
+  duration,
+  onUndo,
+}: {
+  toastId: string | number;
+  duration: number;
+  onUndo: () => void;
+}) {
+  const [progress, setProgress] = useState(100);
+  const [paused, setPaused] = useState(false);
+  const startRef = useRef(Date.now());
+  const pausedAtRef = useRef<number | null>(null);
+  const elapsed = useRef(0);
+  const rafRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const tick = () => {
+      if (!paused) {
+        const now = Date.now();
+        elapsed.current = now - startRef.current;
+        const remaining = Math.max(0, duration - elapsed.current);
+        setProgress((remaining / duration) * 100);
+      }
+      rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  }, [paused, duration]);
+
+  const handleMouseEnter = () => {
+    setPaused(true);
+    pausedAtRef.current = Date.now();
+  };
+
+  const handleMouseLeave = () => {
+    if (pausedAtRef.current !== null) {
+      const pauseDuration = Date.now() - pausedAtRef.current;
+      startRef.current += pauseDuration;
+      pausedAtRef.current = null;
+    }
+    setPaused(false);
+  };
+
+  return (
+    <div
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      className="relative w-[320px] rounded-xl overflow-hidden shadow-lg border border-red-200 dark:border-red-900 bg-white dark:bg-neutral-900"
+    >
+      {/* Progress bar at top */}
+      <div className="h-1 w-full bg-red-100 dark:bg-red-900/40">
+        <div
+          className="h-1 bg-red-500 transition-none"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+      {/* Content */}
+      <div className="flex items-center gap-3 px-4 py-3">
+        <div className="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/50 flex items-center justify-center shrink-0">
+          <Trash2 className="w-4 h-4 text-red-600 dark:text-red-400" />
+        </div>
+        <p className="flex-1 text-sm font-semibold text-red-700 dark:text-red-400">
+          Your notification has been deleted.
+        </p>
+        <button
+          onClick={onUndo}
+          title="Undo delete"
+          className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-red-500 hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors font-bold text-base leading-none"
+        >
+          ✕
+        </button>
+      </div>
+    </div>
+  );
+}
+// ──────────────────────────────────────────────────────────────────────────────
+
 export default function Notifications() {
   const { user } = useAuth();
   const { role } = useRole();
@@ -137,7 +218,6 @@ export default function Notifications() {
   const [myUnreadCount, setMyUnreadCount] = useState(0);
   const [teamUnreadCount, setTeamUnreadCount] = useState(0);
   const [notificationToDelete, setNotificationToDelete] = useState<NotificationItem | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
 
   const resolvedUserId = user?.user_id || user?.id || user?.employee_id;
   const isElevatedRole = ["hr_admin", "superadmin", "managing_director", "operation_manager", "finance_manager", "head_of_department", "branch_leader"].includes((role || "").toLowerCase());
@@ -251,34 +331,79 @@ export default function Notifications() {
     }
   };
 
-  const confirmDelete = async () => {
+  const confirmDelete = useCallback(async () => {
     if (!notificationToDelete || !resolvedUserId) return;
-    setIsDeleting(true);
-    try {
-      const id = notificationToDelete.id;
-      await fetch(`${API_BASE_URL}/api/notifications/${id}?user_id=${encodeURIComponent(resolvedUserId)}`, {
-        method: "DELETE",
-      });
-      const wasUnread = !notificationToDelete.is_read;
-      setNotifications((prev) => prev.filter((n) => n.id !== id));
-      if (wasUnread) {
-        setUnreadCount((c) => Math.max(0, c - 1));
-        if (notificationToDelete.scope === "team") {
-          setTeamUnreadCount((c) => Math.max(0, c - 1));
-        } else {
-          setMyUnreadCount((c) => Math.max(0, c - 1));
-        }
+
+    const deletedNotif = notificationToDelete;
+    const id = deletedNotif.id;
+    const wasUnread = !deletedNotif.is_read;
+
+    // Close dialog immediately
+    setNotificationToDelete(null);
+
+    // Optimistically remove from UI
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+    if (wasUnread) {
+      setUnreadCount((c) => Math.max(0, c - 1));
+      if (deletedNotif.scope === "team") {
+        setTeamUnreadCount((c) => Math.max(0, c - 1));
+      } else {
+        setMyUnreadCount((c) => Math.max(0, c - 1));
       }
-      toast.success("Notification deleted");
-      void refreshBell();
-      setNotificationToDelete(null);
-    } catch (e) {
-      console.error("Failed to delete notification:", e);
-      toast.error("Failed to delete notification");
-    } finally {
-      setIsDeleting(false);
     }
-  };
+
+    let undone = false;
+    const DURATION = 4000; // 4 seconds before actual delete
+
+    toast.custom(
+      (t) => (
+        <UndoDeleteToast
+          toastId={t}
+          duration={DURATION}
+          onUndo={() => {
+            undone = true;
+            toast.dismiss(t);
+            // Restore notification in UI
+            setNotifications((prev) => {
+              const already = prev.find((n) => n.id === id);
+              if (already) return prev;
+              return [deletedNotif, ...prev];
+            });
+            if (wasUnread) {
+              setUnreadCount((c) => c + 1);
+              if (deletedNotif.scope === "team") {
+                setTeamUnreadCount((c) => c + 1);
+              } else {
+                setMyUnreadCount((c) => c + 1);
+              }
+            }
+          }}
+        />
+      ),
+      { duration: DURATION, id: `delete-notif-${id}` }
+    );
+
+    // Wait for duration then actually delete if not undone
+    await new Promise((resolve) => setTimeout(resolve, DURATION + 200));
+    if (!undone) {
+      try {
+        await fetch(`${API_BASE_URL}/api/notifications/${id}?user_id=${encodeURIComponent(resolvedUserId)}`, {
+          method: "DELETE",
+        });
+        void refreshBell();
+      } catch (e) {
+        console.error("Failed to delete notification:", e);
+        // Restore on error
+        setNotifications((prev) => {
+          const already = prev.find((n) => n.id === id);
+          if (already) return prev;
+          return [deletedNotif, ...prev];
+        });
+        toast.error("Failed to delete notification");
+      }
+    }
+  }, [notificationToDelete, resolvedUserId, refreshBell]);
+
 
   const handleNotificationClick = async (notif: NotificationItem) => {
     if (!notif.is_read) {
@@ -734,7 +859,7 @@ export default function Notifications() {
                 &ldquo;{notificationToDelete ? getNotificationDialogLabel(notificationToDelete) : ""}&rdquo;
               </span>
               <span className="block text-xs text-rose-600 dark:text-rose-400 font-semibold">
-                This action cannot be undone.
+                You will have 4 seconds to undo this action.
               </span>
             </DialogDescription>
           </div>
@@ -745,7 +870,6 @@ export default function Notifications() {
               type="button"
               variant="outline"
               onClick={() => setNotificationToDelete(null)}
-              disabled={isDeleting}
               className="text-xs font-semibold px-4 h-9 cursor-pointer"
             >
               Cancel
@@ -754,17 +878,10 @@ export default function Notifications() {
               type="button"
               variant="destructive"
               onClick={confirmDelete}
-              disabled={isDeleting}
               className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold px-4 h-9 cursor-pointer flex items-center gap-1.5 shadow-xs"
             >
-              {isDeleting ? (
-                <>
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                  <span>Deleting...</span>
-                </>
-              ) : (
-                <span>Delete Notification</span>
-              )}
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>Delete Notification</span>
             </Button>
           </DialogFooter>
         </DialogContent>
