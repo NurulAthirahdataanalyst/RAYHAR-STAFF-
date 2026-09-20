@@ -2028,6 +2028,20 @@ export default function Branches() {
                 }}
                 style={{ height: "100%", width: "100%" }}
                 mapStyle={MAPLIBRE_STYLE}
+                onLoad={(e) => {
+                  const map = e.target;
+                  if (map && !(map as any)._removePatched) {
+                    const originalRemove = map.remove.bind(map);
+                    map.remove = () => {
+                      try {
+                        originalRemove();
+                      } catch (err) {
+                        console.warn("Suppressed maplibre remove error:", err);
+                      }
+                    };
+                    (map as any)._removePatched = true;
+                  }
+                }}
                 onClick={(e) => {
                   const { lat, lng } = e.lngLat;
                   setEditBranchData({...editBranchData, latitude: lat.toString(), longitude: lng.toString()});

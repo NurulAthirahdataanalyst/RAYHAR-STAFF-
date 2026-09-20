@@ -526,7 +526,21 @@ export default function GPSLocationTracker() {
             }}
             style={{ width: "100%", height: "100%" }}
             mapStyle={MAPLIBRE_STYLE}
-            onLoad={() => setMapLoaded(true)}
+            onLoad={(e) => {
+              setMapLoaded(true);
+              const map = e.target;
+              if (map && !(map as any)._removePatched) {
+                const originalRemove = map.remove.bind(map);
+                map.remove = () => {
+                  try {
+                    originalRemove();
+                  } catch (err) {
+                    console.warn("Suppressed maplibre remove error:", err);
+                  }
+                };
+                (map as any)._removePatched = true;
+              }
+            }}
           >
             
 
