@@ -23,6 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { API_BASE_URL } from "@/config/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { MonthPicker } from "@/components/shared/MonthPicker";
 import { useRole } from "@/contexts/RoleContext";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
@@ -218,6 +219,9 @@ export default function Notifications() {
   const [myUnreadCount, setMyUnreadCount] = useState(0);
   const [teamUnreadCount, setTeamUnreadCount] = useState(0);
   const [notificationToDelete, setNotificationToDelete] = useState<NotificationItem | null>(null);
+  const [selectedMonthYear, setSelectedMonthYear] = useState<string>(
+    `${new Date().getFullYear()}-${(new Date().getMonth() + 1).toString().padStart(2, '0')}`
+  );
 
   const resolvedUserId = user?.user_id || user?.id || user?.employee_id;
   const isElevatedRole = ["hr_admin", "superadmin", "managing_director", "operation_manager", "finance_manager", "head_of_department", "branch_leader"].includes((role || "").toLowerCase());
@@ -229,7 +233,8 @@ export default function Notifications() {
       const typeParam = activeTab !== "all" && activeTab !== "unread" ? `&type=${activeTab}` : "";
       const unreadParam = activeTab === "unread" ? "&unreadOnly=true" : "";
       const scopeParam = isElevatedRole ? `&scope=${activeScope}` : "&scope=personal";
-      const res = await fetch(`${API_BASE_URL}/api/notifications?user_id=${encodeURIComponent(resolvedUserId)}&limit=100${typeParam}${unreadParam}${scopeParam}`);
+      const monthParam = selectedMonthYear && selectedMonthYear !== 'all' && !selectedMonthYear.endsWith('-all') ? `&month=${selectedMonthYear}` : '';
+      const res = await fetch(`${API_BASE_URL}/api/notifications?user_id=${encodeURIComponent(resolvedUserId)}&limit=100${typeParam}${unreadParam}${scopeParam}${monthParam}`);
       const data = await res.json();
       if (data.success) {
         setNotifications(data.notifications || []);
@@ -247,7 +252,7 @@ export default function Notifications() {
 
   useEffect(() => {
     void fetchNotifications();
-  }, [resolvedUserId, activeTab, activeScope]);
+  }, [resolvedUserId, activeTab, activeScope, selectedMonthYear]);
 
   // Realtime updates
   useEffect(() => {
@@ -363,11 +368,12 @@ export default function Notifications() {
           onUndo={() => {
             undone = true;
             toast.dismiss(t);
-            // Restore notification in UI
+            // Restore notification in UI and maintain sort order
             setNotifications((prev) => {
               const already = prev.find((n) => n.id === id);
               if (already) return prev;
-              return [deletedNotif, ...prev];
+              const newList = [...prev, deletedNotif];
+              return newList.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
             });
             if (wasUnread) {
               setUnreadCount((c) => c + 1);
@@ -380,7 +386,7 @@ export default function Notifications() {
           }}
         />
       ),
-      { duration: DURATION, id: `delete-notif-${id}` }
+      { duration: DURATION, id: `delete-notif-${id}`, position: 'bottom-right' }
     );
 
     // Wait for duration then actually delete if not undone
@@ -560,7 +566,11 @@ export default function Notifications() {
   };
 
   function isTeamNotification(notif: NotificationItem): boolean {
+    // Trust the database scope column first — it is the ground truth
+    if (notif.scope === "personal") return false;
     if (notif.scope === "team") return true;
+
+    // Fallback auto-detection for older notifications
     if (notif.type === "leave_approval") return true;
     const title = notif.title || "";
     const msg = notif.message || "";
@@ -649,41 +659,53 @@ export default function Notifications() {
       </div>
 
       {/* Primary Scope Tabs: Personal vs Management (matching Recent Activity) */}
-      {isElevatedRole && (
-        <div className="flex items-center gap-6 border-b border-slate-200 dark:border-slate-800 pb-0">
-          <button
-            onClick={() => setActiveScope("my")}
-            className={`pb-2.5 text-sm font-bold transition-all duration-200 border-b-2 flex items-center gap-2 ${
-              activeScope === "my"
-                ? "border-[#942392] text-[#942392]"
-                : "border-transparent text-muted-foreground dark:text-white/70 hover:text-foreground dark:hover:text-white"
-            }`}
-          >
-            <span>Personal</span>
-            {myUnreadCount > 0 && (
-              <span className="px-1.5 py-0.5 text-[10px] font-black rounded-full bg-[#942392]/10 text-[#942392] border border-[#942392]/20">
-                {myUnreadCount}
-              </span>
-            )}
-          </button>
+      <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-0">
+        <div className="flex items-center gap-6">
+          {isElevatedRole && (
+            <>
+              <button
+                onClick={() => setActiveScope("my")}
+                className={`pb-2.5 text-sm font-bold transition-all duration-200 border-b-2 flex items-center gap-2 ${
+                  activeScope === "my"
+                    ? "border-[#942392] text-[#942392]"
+                    : "border-transparent text-muted-foreground dark:text-white/70 hover:text-foreground dark:hover:text-white"
+                }`}
+              >
+                <span>Personal</span>
+                {myUnreadCount > 0 && (
+                  <span className="px-1.5 py-0.5 text-[10px] font-black rounded-full bg-[#942392]/10 text-[#942392] border border-[#942392]/20">
+                    {myUnreadCount}
+                  </span>
+                )}
+              </button>
 
-          <button
-            onClick={() => setActiveScope("team")}
-            className={`pb-2.5 text-sm font-bold transition-all duration-200 border-b-2 flex items-center gap-2 ${
-              activeScope === "team"
-                ? "border-[#942392] text-[#942392]"
-                : "border-transparent text-muted-foreground dark:text-white/70 hover:text-foreground dark:hover:text-white"
-            }`}
-          >
-            <span>Team Management</span>
-            {teamUnreadCount > 0 && (
-              <span className="px-1.5 py-0.5 text-[10px] font-black rounded-full bg-[#942392]/10 text-[#942392] border border-[#942392]/20">
-                {teamUnreadCount}
-              </span>
-            )}
-          </button>
+              <button
+                onClick={() => setActiveScope("team")}
+                className={`pb-2.5 text-sm font-bold transition-all duration-200 border-b-2 flex items-center gap-2 ${
+                  activeScope === "team"
+                    ? "border-[#942392] text-[#942392]"
+                    : "border-transparent text-muted-foreground dark:text-white/70 hover:text-foreground dark:hover:text-white"
+                }`}
+              >
+                <span>Team Management</span>
+                {teamUnreadCount > 0 && (
+                  <span className="px-1.5 py-0.5 text-[10px] font-black rounded-full bg-[#942392]/10 text-[#942392] border border-[#942392]/20">
+                    {teamUnreadCount}
+                  </span>
+                )}
+              </button>
+            </>
+          )}
         </div>
-      )}
+        
+        <div className="flex items-center mb-2">
+          <MonthPicker
+            monthYear={selectedMonthYear}
+            onSelectMonthYear={setSelectedMonthYear}
+            hideAllYear={true}
+          />
+        </div>
+      </div>
 
       {/* Tabs and Search Bar */}
       <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-card p-2 rounded-xl border border-border shadow-xs">

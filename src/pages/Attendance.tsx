@@ -1978,7 +1978,7 @@ export default function Attendance() {
                     const logDate = new Date(log.date);
                     const dateStr = logDate.toLocaleString("en-GB", { day: '2-digit', month: 'short', year: 'numeric' });
                     
-                    let statusBadge = "bg-muted/5 text-foreground border-muted";
+                    let statusBadge = "bg-transparent text-slate-500 border-slate-300 dark:border-slate-700";
                     let customStyle: React.CSSProperties | undefined = undefined;
 
                     const isLate = 
@@ -1987,22 +1987,25 @@ export default function Attendance() {
                       (log.status === "Present" && log.late && log.late !== "00:00" && log.late !== "--" && log.late !== "00h 00m");
 
                     if (isLate) {
-                      statusBadge = "bg-yellow-50 border-yellow-300/70 dark:bg-yellow-900/20 dark:border-yellow-700/50";
-                      customStyle = { backgroundColor: "#fefce8", color: "#a16207", borderColor: "#fde68a" };
+                      statusBadge = "bg-transparent text-[#eab308] border-[#eab308]";
                     } else if (log.status === "Present") {
-                      statusBadge = "bg-purple-100/50 text-[#942392] border-[#942392]/20 dark:bg-purple-900/20 dark:text-purple-400";
-                    } else if (log.status === "Company Leave") {
-                      statusBadge = "bg-violet-100/50 text-violet-700 border-violet-200/50 dark:bg-violet-900/20 dark:text-violet-400";
+                      statusBadge = "bg-transparent text-[#942392] border-[#942392]";
+                    } else if (log.status === "Company Leave" || log.status === "Approved Leave") {
+                      statusBadge = "bg-transparent text-[#942392] border-[#942392]";
                     } else if (log.status === "Leave") {
-                      statusBadge = "bg-amber-100/50 text-amber-700 border-amber-200/50 dark:bg-amber-900/20 dark:text-amber-400";
+                      statusBadge = "bg-transparent text-[#f59e0b] border-[#f59e0b]";
                     } else if (log.status === "Holiday") {
-                      statusBadge = "bg-blue-100/50 text-blue-700 border-blue-200/50 dark:bg-blue-900/20 dark:text-blue-400";
+                      statusBadge = "bg-transparent text-[#3b82f6] border-[#3b82f6]";
                     } else if (log.status === "Weekend" || log.status === "Rest Day") {
-                      statusBadge = "bg-slate-100/50 text-slate-700 border-slate-200 dark:border-slate-800/50 dark:bg-slate-900/20 dark:text-foreground";
+                      statusBadge = "bg-transparent text-[#64748b] border-[#cbd5e1] dark:border-[#334155]";
                     } else if (log.status === "N/A") {
-                      statusBadge = "bg-slate-100/50 text-foreground border-slate-200 dark:border-slate-800/50 dark:bg-slate-900/20 dark:text-foreground";
+                      statusBadge = "bg-transparent text-slate-400 border-slate-200 dark:border-slate-800";
                     } else if (log.status === "Absent") {
-                      statusBadge = "bg-red-100/50 text-red-700 border-red-200/50 dark:bg-red-900/20 dark:text-red-400";
+                      statusBadge = "bg-transparent text-[#ef4444] border-[#ef4444]";
+                    } else if (log.status === "Missing Clock-Out") {
+                      statusBadge = "bg-transparent text-[#f97316] border-[#f97316]";
+                    } else if (log.status === "Outstation") {
+                      statusBadge = "bg-transparent text-[#3b82f6] border-[#3b82f6]";
                     }
 
                     return (
@@ -2017,7 +2020,7 @@ export default function Attendance() {
                         <TableCell className="whitespace-nowrap">
                           <span 
                             style={customStyle}
-                            className={`inline-flex items-center justify-center px-2.5 py-0.5 text-xs font-semibold uppercase rounded-md border ${statusBadge}`}
+                            className={`inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] ${statusBadge}`}
                           >
                             {log.status === "Present (Late)" ? "LATE" : log.status}
                           </span>

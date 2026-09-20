@@ -4008,6 +4008,7 @@ app.get("/api/notifications", async (req, res) => {
   const type = req.query.type ? String(req.query.type) : null;
   const unreadOnly = req.query.unreadOnly === "true" || req.query.unread === "1";
   const scope = req.query.scope ? String(req.query.scope) : null;
+  const month = req.query.month ? String(req.query.month) : null;
 
   if (!user_id) return res.status(400).json({ success: false, error: "user_id required" });
 
@@ -4018,6 +4019,7 @@ app.get("/api/notifications", async (req, res) => {
       type,
       unreadOnly,
       scope,
+      month,
     });
     const unreadData = await notificationService.getUnreadCount(user_id);
 

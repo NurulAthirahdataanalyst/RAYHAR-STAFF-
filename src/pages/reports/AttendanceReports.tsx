@@ -620,13 +620,15 @@ export default function AttendanceReports() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <span className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-semibold rounded-full ${
-                              req.status === 'Present (On Time)' ? 'bg-green-100 text-green-700' :
-                              req.status === 'Present (Late)' ? 'bg-yellow-100 text-yellow-700' :
-                              req.status === 'Missing Clock-Out' ? 'bg-orange-100 text-orange-700' :
-                              req.status === 'Outstation' ? 'bg-blue-100 text-blue-700' :
-                              req.status === 'Approved Leave' || req.status === 'Company Leave' ? 'bg-blue-100 text-blue-700' :
-                              'bg-red-100 text-red-700'
+                            <span className={`whitespace-nowrap px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] ${
+                              req.status === 'Present (On Time)' ? 'bg-transparent text-[#942392] border-[#942392]' :
+                              req.status === 'Present (Late)' ? 'bg-transparent text-[#eab308] border-[#eab308]' :
+                              req.status === 'Missing Clock-Out' ? 'bg-transparent text-[#f97316] border-[#f97316]' :
+                              req.status === 'Outstation' ? 'bg-transparent text-[#3b82f6] border-[#3b82f6]' :
+                              req.status === 'Approved Leave' || req.status === 'Company Leave' ? 'bg-transparent text-[#942392] border-[#942392]' :
+                              req.status === 'Weekend' || req.status === 'Rest Day' ? 'bg-transparent text-[#64748b] border-[#cbd5e1] dark:border-[#334155]' :
+                              req.status === 'Absent' ? 'bg-transparent text-[#ef4444] border-[#ef4444]' :
+                              'bg-transparent text-slate-400 border-slate-200'
                             }`}>
                               {req.status}
                             </span>

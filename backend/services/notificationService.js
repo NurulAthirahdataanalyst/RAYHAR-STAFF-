@@ -227,7 +227,7 @@ async function getUnreadCount(userId) {
 /**
  * 6. getNotifications (Paginated with filtering and scoping)
  */
-async function getNotifications(userId, { limit = 50, offset = 0, type = null, unreadOnly = false, scope = null } = {}) {
+async function getNotifications(userId, { limit = 50, offset = 0, type = null, unreadOnly = false, scope = null, month = null } = {}) {
   if (!poolInstance) throw new Error('NotificationService not initialized with database pool.');
   if (!userId) return [];
 
@@ -253,6 +253,13 @@ async function getNotifications(userId, { limit = 50, offset = 0, type = null, u
       query += ` AND type = ?`;
       params.push(type);
     }
+  }
+
+  if (month && month !== 'all' && !month.endsWith('-all')) {
+    // month is format YYYY-MM
+    // PostgreSQL uses TO_CHAR for formatting dates
+    query += ` AND TO_CHAR(created_at, 'YYYY-MM') = ?`;
+    params.push(month);
   }
 
   query += ` ORDER BY created_at DESC LIMIT ? OFFSET ?`;
