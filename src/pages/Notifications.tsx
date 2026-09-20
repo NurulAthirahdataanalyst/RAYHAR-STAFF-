@@ -793,7 +793,7 @@ export default function Notifications() {
 
                 {/* Footer Action Hint */}
                 <div className="flex items-center justify-between mt-3 pt-2 border-t border-border/40">
-                  <span className="text-[11px] font-bold text-[#942392] dark:text-[#d15fd0] flex items-center gap-1 group-hover:underline">
+                  <span className="text-[11px] font-bold text-[#942392] dark:text-[#d15fd0] flex items-center gap-1 no-underline">
                     View details <ArrowRight className="w-3 h-3 transition-transform group-hover:translate-x-0.5" />
                   </span>
 
