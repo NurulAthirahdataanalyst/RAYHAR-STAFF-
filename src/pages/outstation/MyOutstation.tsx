@@ -241,13 +241,13 @@ export default function MyOutstation() {
             <div className="flex items-center gap-3">
               <div className="flex items-center bg-white dark:bg-slate-900 rounded-full p-1 border border-slate-200 dark:border-slate-700 shadow-sm gap-0.5">
                 <button 
-                  className={`h-7 px-4 text-[10px] font-black tracking-widest rounded-full transition-all ${viewMode === 'month' ? 'bg-[#ffff00] text-slate-900 shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'}`}
+                  className={`h-7 px-4 text-[10px] font-black tracking-widest rounded-full transition-all ${viewMode === 'month' ? 'bg-[#ffff00] text-[#942392] shadow-sm' : 'text-black dark:text-white hover:text-[#942392] dark:hover:text-[#942392]'}`}
                   onClick={() => setViewMode('month')}
                 >
                   MONTH
                 </button>
                 <button 
-                  className={`h-7 px-4 text-[10px] font-black tracking-widest rounded-full transition-all ${viewMode === 'year' ? 'bg-[#ffff00] text-slate-900 shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'}`}
+                  className={`h-7 px-4 text-[10px] font-black tracking-widest rounded-full transition-all ${viewMode === 'year' ? 'bg-[#ffff00] text-[#942392] shadow-sm' : 'text-black dark:text-white hover:text-[#942392] dark:hover:text-[#942392]'}`}
                   onClick={() => setViewMode('year')}
                 >
                   YEAR
