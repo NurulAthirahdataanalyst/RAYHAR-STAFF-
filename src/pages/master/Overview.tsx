@@ -271,18 +271,49 @@ export default function MasterOverview() {
             {/* KPI 3: Total System Users */}
             <Card onClick={() => navigate("/employees")} className="cursor-pointer shadow-md bg-[#faf5ff] dark:bg-[#200a2d] border border-[#f3e8ff] dark:border-[#4c1266]/40 rounded-[24px] relative overflow-hidden transition-all duration-300 group hover:shadow-lg">
               <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#942392]" />
-              <CardContent className="p-6 flex items-center justify-between gap-4">
-                <div className="space-y-1.5 min-w-0 flex-1">
-                  <span className="text-[10px] font-black text-[#942392] dark:text-purple-400 uppercase tracking-widest block whitespace-normal break-words leading-tight">Total Staff / Users</span>
-                  <div className="flex items-baseline gap-2 flex-wrap">
+              <CardContent className="p-5 flex flex-col justify-between gap-3 h-full">
+                
+                {/* Top: TOTAL STAFF / USERS */}
+                <div>
+                  <span className="text-[10px] font-black text-[#942392] dark:text-purple-400 uppercase tracking-widest block mb-1 leading-tight">Total Staff / Users</span>
+                  <div className="flex items-baseline gap-2">
                     <span className="text-3xl font-black text-[#942392] dark:text-purple-400">{totalUsers}</span>
-                    <span className="text-[9px] font-black text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 rounded-md px-2 py-0.5 whitespace-nowrap">{activeUsers} Active</span>
+                    <span className="text-[10px] font-bold text-[#942392]/70 dark:text-purple-400/70 uppercase">Total Users</span>
                   </div>
-                  <p className="text-[9px] text-purple-800/60 dark:text-purple-400/60 font-semibold uppercase tracking-wider">Includes Active, Inactive & Deleted Staff</p>
                 </div>
-                <div className="w-12 h-12 rounded-2xl bg-[#942392]/10 dark:bg-[#942392]/20 flex items-center justify-center text-[#942392] dark:text-purple-400 shrink-0 group-hover:scale-110 transition-transform">
-                  <Users className="w-5 h-5" />
+
+                {/* Active / Inactive Tags */}
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-2 flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+                    <div className="flex flex-col leading-none">
+                      <span className="text-sm font-black text-emerald-600 dark:text-emerald-400">{activeUsers}</span>
+                      <span className="text-[8px] font-bold text-emerald-600/70 dark:text-emerald-400/70 uppercase tracking-wider">Active</span>
+                    </div>
+                  </div>
+                  <div className="flex-1 bg-slate-500/10 border border-slate-500/20 rounded-xl p-2 flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-slate-400 shrink-0" />
+                    <div className="flex flex-col leading-none">
+                      <span className="text-sm font-black text-slate-600 dark:text-slate-300">{inactiveUsers}</span>
+                      <span className="text-[8px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Inactive</span>
+                    </div>
+                  </div>
                 </div>
+
+                <div className="h-px w-full bg-[#942392]/10 dark:bg-purple-500/20 my-1" />
+
+                {/* Bottom: ACCESS LICENSES */}
+                <div>
+                  <span className="text-[9px] font-black text-[#942392] dark:text-purple-400 uppercase tracking-widest block mb-1">Access Licenses Provisioned</span>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black text-foreground">{totalUsers} / {totalUsers}</span>
+                    <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                      Fully Provisioned
+                    </span>
+                  </div>
+                </div>
+
               </CardContent>
             </Card>
  
