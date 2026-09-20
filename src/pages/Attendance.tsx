@@ -1987,25 +1987,25 @@ export default function Attendance() {
                       (log.status === "Present" && log.late && log.late !== "00:00" && log.late !== "--" && log.late !== "00h 00m");
 
                     if (isLate) {
-                      statusBadge = "bg-transparent text-[#eab308] border-[#eab308]";
+                      statusBadge = "bg-yellow-50 text-yellow-600 border-yellow-200 dark:bg-yellow-500/10 dark:border-yellow-500/20";
                     } else if (log.status === "Present") {
-                      statusBadge = "bg-transparent text-[#942392] border-[#942392]";
+                      statusBadge = "bg-[#fdf4ff] text-[#942392] border-[#942392]/20 dark:bg-[#942392]/10";
                     } else if (log.status === "Company Leave" || log.status === "Approved Leave") {
-                      statusBadge = "bg-transparent text-[#942392] border-[#942392]";
+                      statusBadge = "bg-[#fdf4ff] text-[#942392] border-[#942392]/20 dark:bg-[#942392]/10";
                     } else if (log.status === "Leave") {
-                      statusBadge = "bg-transparent text-[#f59e0b] border-[#f59e0b]";
+                      statusBadge = "bg-orange-50 text-orange-600 border-orange-200 dark:bg-orange-500/10 dark:border-orange-500/20";
                     } else if (log.status === "Holiday") {
-                      statusBadge = "bg-transparent text-[#3b82f6] border-[#3b82f6]";
+                      statusBadge = "bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/10 dark:border-blue-500/20";
                     } else if (log.status === "Weekend" || log.status === "Rest Day") {
-                      statusBadge = "bg-transparent text-[#64748b] border-[#cbd5e1] dark:border-[#334155]";
+                      statusBadge = "bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-500/10 dark:border-slate-500/20 dark:text-slate-300";
                     } else if (log.status === "N/A") {
-                      statusBadge = "bg-transparent text-slate-400 border-slate-200 dark:border-slate-800";
+                      statusBadge = "bg-slate-50 text-slate-400 border-slate-200 dark:bg-slate-500/10 dark:border-slate-500/20";
                     } else if (log.status === "Absent") {
-                      statusBadge = "bg-transparent text-[#ef4444] border-[#ef4444]";
+                      statusBadge = "bg-red-50 text-red-600 border-red-200 dark:bg-red-500/10 dark:border-red-500/20";
                     } else if (log.status === "Missing Clock-Out") {
-                      statusBadge = "bg-transparent text-[#f97316] border-[#f97316]";
+                      statusBadge = "bg-orange-50 text-orange-600 border-orange-200 dark:bg-orange-500/10 dark:border-orange-500/20";
                     } else if (log.status === "Outstation") {
-                      statusBadge = "bg-transparent text-[#3b82f6] border-[#3b82f6]";
+                      statusBadge = "bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/10 dark:border-blue-500/20";
                     }
 
                     return (

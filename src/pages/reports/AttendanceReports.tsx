@@ -621,14 +621,14 @@ export default function AttendanceReports() {
                           </TableCell>
                           <TableCell>
                             <span className={`whitespace-nowrap px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] ${
-                              req.status === 'Present (On Time)' ? 'bg-transparent text-[#942392] border-[#942392]' :
-                              req.status === 'Present (Late)' ? 'bg-transparent text-[#eab308] border-[#eab308]' :
-                              req.status === 'Missing Clock-Out' ? 'bg-transparent text-[#f97316] border-[#f97316]' :
-                              req.status === 'Outstation' ? 'bg-transparent text-[#3b82f6] border-[#3b82f6]' :
-                              req.status === 'Approved Leave' || req.status === 'Company Leave' ? 'bg-transparent text-[#942392] border-[#942392]' :
-                              req.status === 'Weekend' || req.status === 'Rest Day' ? 'bg-transparent text-[#64748b] border-[#cbd5e1] dark:border-[#334155]' :
-                              req.status === 'Absent' ? 'bg-transparent text-[#ef4444] border-[#ef4444]' :
-                              'bg-transparent text-slate-400 border-slate-200'
+                              req.status === 'Present (On Time)' ? 'bg-[#fdf4ff] text-[#942392] border-[#942392]/20 dark:bg-[#942392]/10' :
+                              req.status === 'Present (Late)' ? 'bg-yellow-50 text-yellow-600 border-yellow-200 dark:bg-yellow-500/10 dark:border-yellow-500/20' :
+                              req.status === 'Missing Clock-Out' ? 'bg-orange-50 text-orange-600 border-orange-200 dark:bg-orange-500/10 dark:border-orange-500/20' :
+                              req.status === 'Outstation' ? 'bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/10 dark:border-blue-500/20' :
+                              req.status === 'Approved Leave' || req.status === 'Company Leave' ? 'bg-[#fdf4ff] text-[#942392] border-[#942392]/20 dark:bg-[#942392]/10' :
+                              req.status === 'Weekend' || req.status === 'Rest Day' ? 'bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-500/10 dark:border-slate-500/20 dark:text-slate-300' :
+                              req.status === 'Absent' ? 'bg-red-50 text-red-600 border-red-200 dark:bg-red-500/10 dark:border-red-500/20' :
+                              'bg-slate-50 text-slate-400 border-slate-200 dark:bg-slate-500/10 dark:border-slate-500/20'
                             }`}>
                               {req.status}
                             </span>
