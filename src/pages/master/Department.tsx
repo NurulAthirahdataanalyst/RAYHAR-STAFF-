@@ -88,7 +88,7 @@ export default function Department() {
     return {
       count: deptEmployees.length,
       active: deptEmployees.filter(e => e.status === "Active").length,
-      hods: deptEmployees.filter(e => e.role === "head_of_department")
+      hods: deptEmployees.filter(e => e.role === "head_of_department" && e.status === "Active")
     };
   };
 
