@@ -190,7 +190,7 @@ export default function Role() {
             
             <div className="flex flex-wrap items-center gap-3">
               <MonthPicker 
-                selectedMonthYear={selectedMonthYear}
+                monthYear={selectedMonthYear}
                 onSelectMonthYear={setSelectedMonthYear}
                 hideAllYear={true}
               />
