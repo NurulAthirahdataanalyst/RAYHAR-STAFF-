@@ -40,7 +40,7 @@ async function createNotification({
       title.startsWith('New Leave Request') ||
       title.startsWith('Leave Request:') ||
       title.startsWith('Irregular Clock-In') || 
-      title.startsWith('Leave Final Approval Required') ||\
+      title.startsWith('Leave Final Approval Required') ||
       title.startsWith('Leave Approval Required') ||
       title.startsWith('Leave Approval Progress:') ||
       title.toLowerCase().includes('anomaly') ||
