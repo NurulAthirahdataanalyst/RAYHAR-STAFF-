@@ -46,6 +46,7 @@ export default function MasterOverview() {
   const [lastSynced, setLastSynced] = useState<Date | null>(null);
 
   const [activeAssignments, setActiveAssignments] = useState<any[]>([]);
+  const [completedAssignmentsCount, setCompletedAssignmentsCount] = useState(0);
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [assignForm, setAssignForm] = useState({ user_id: "", location: "", start_date: "", end_date: "", status: "Active" });
   const [submittingAssign, setSubmittingAssign] = useState(false);
@@ -105,7 +106,8 @@ export default function MasterOverview() {
       const assignRes = await fetch(`${API_BASE_URL}/api/work-assignments-all`);
       const assignData = await assignRes.json();
       if (assignData.success) {
-        setActiveAssignments(assignData.assignments);
+        setActiveAssignments(assignData.assignments.filter((a: any) => a.status === 'Active'));
+        setCompletedAssignmentsCount(assignData.assignments.filter((a: any) => a.status === 'Completed').length);
       }
 
       setLastSynced(new Date());
@@ -528,9 +530,16 @@ export default function MasterOverview() {
                       <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-amber-800/60 dark:text-amber-200/60">Temporary Branch Assignment</CardDescription>
                     </div>
                   </div>
-                  <Badge variant="outline" className="font-black text-[10px] px-3.5 py-1 text-amber-700 dark:text-[#ffff00] border-none bg-[#ffff00]/30 dark:bg-[#ffff00]/20 shrink-0">
-                    {activeAssignments.length} ACTIVE
-                  </Badge>
+                  <div className="flex flex-col gap-1 items-end shrink-0">
+                    <Badge variant="outline" className="font-black text-[10px] px-3.5 py-1 text-amber-700 dark:text-[#ffff00] border-none bg-[#ffff00]/30 dark:bg-[#ffff00]/20">
+                      {activeAssignments.length} ACTIVE
+                    </Badge>
+                    {completedAssignmentsCount > 0 && (
+                      <Badge variant="outline" className="font-black text-[9px] px-2 py-0.5 text-muted-foreground border-none bg-muted/50">
+                        {completedAssignmentsCount} COMPLETED
+                      </Badge>
+                    )}
+                  </div>
                 </CardHeader>
                 <CardContent className="pt-6 flex-1 flex flex-col px-6">
                   <div className="flex justify-between items-center mb-4">
