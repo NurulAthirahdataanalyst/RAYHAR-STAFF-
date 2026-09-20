@@ -456,8 +456,12 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
         (selectedYearInt === currentYearInt && selectedMonthInt < currentMonthInt) ||
         (selectedYearInt === currentYearInt && selectedMonthInt === currentMonthInt && date <= today);
       
-      const zone = profile?.operating_zone || (profile?.branch === 'HQ' ? 'ZONE_A' : 'ZONE_B');
-      const isWeekendDay = zone === 'ZONE_A' ? (dayOfWeek === 0 || dayOfWeek === 6) : ((dayOfWeek === 5) || (dayOfWeek === 6 && d <= 7));
+      const zone = profile?.operating_zone || (profile?.branch === 'HQ' ? 'ZONE_B' : 'ZONE_A');
+      // Zone A (e.g. Kelantan/Terengganu): Friday (5) and First Saturday (6 && d <= 7)
+      // Zone B (e.g. HQ/KL): Sunday (0) and First Saturday (6 && d <= 7)
+      const isWeekendDay = zone === 'ZONE_A' 
+        ? (dayOfWeek === 5 || (dayOfWeek === 6 && d <= 7)) 
+        : (dayOfWeek === 0 || (dayOfWeek === 6 && d <= 7));
       
       if (!isWeekendDay) { // Working day
         const dateStr = `${year}-${month.padStart(2, '0')}-${String(d).padStart(2, '0')}`;
@@ -536,13 +540,13 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
     }
   }
 
-  // Attendance Rate calculation
-  const calcRate = (present: number, late: number, workingDays: number) => {
+  // Attendance Rate calculation (excludes weekend clock-ins from masking absences)
+  const calcRate = (workingDays: number, absent: number) => {
     if (workingDays === 0) return 0;
-    return Math.min(100, Math.round(((present + late) / workingDays) * 100));
+    return Math.max(0, Math.min(100, Math.round(((workingDays - absent) / workingDays) * 100)));
   };
   
-  const attendanceRate = calcRate(presentDays - lateArrivals + outstationDaysCount, lateArrivals, totalWorkingDaysPassed);
+  const attendanceRate = calcRate(totalWorkingDaysPassed, absentDays);
   
   // Last month/year rate
   let prevWorkingDaysPassed = 0;
@@ -553,8 +557,10 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
       for (let d = 1; d <= prevDaysInMonth; d++) {
          const date = new Date(prevYearInt, m - 1, d);
          const dayOfWeek = date.getDay();
-         const zone = profile?.operating_zone || (profile?.branch === 'HQ' ? 'ZONE_A' : 'ZONE_B');
-        const isWeekendDay = zone === 'ZONE_A' ? (dayOfWeek === 0 || dayOfWeek === 6) : ((dayOfWeek === 5) || (dayOfWeek === 6 && d <= 7));
+         const zone = profile?.operating_zone || (profile?.branch === 'HQ' ? 'ZONE_B' : 'ZONE_A');
+         const isWeekendDay = zone === 'ZONE_A' 
+           ? (dayOfWeek === 5 || (dayOfWeek === 6 && d <= 7)) 
+           : (dayOfWeek === 0 || (dayOfWeek === 6 && d <= 7));
          if (!isWeekendDay) prevWorkingDaysPassed++;
       }
     }
@@ -564,15 +570,18 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
     for (let d = 1; d <= prevDaysInMonth; d++) {
        const date = new Date(prevMonthDate.getFullYear(), prevMonthDate.getMonth(), d);
        const dayOfWeek = date.getDay();
-       const zone = profile?.operating_zone || (profile?.branch === 'HQ' ? 'ZONE_A' : 'ZONE_B');
-       const isWeekendDay = zone === 'ZONE_A' ? (dayOfWeek === 0 || dayOfWeek === 6) : ((dayOfWeek === 5) || (dayOfWeek === 6 && d <= 7));
-       if (date <= new Date() && !isWeekendDay) prevWorkingDaysPassed++;
+        const zone = profile?.operating_zone || (profile?.branch === 'HQ' ? 'ZONE_B' : 'ZONE_A');
+        const isWeekendDay = zone === 'ZONE_A' 
+          ? (dayOfWeek === 5 || (dayOfWeek === 6 && d <= 7)) 
+          : (dayOfWeek === 0 || (dayOfWeek === 6 && d <= 7));
+        if (date <= new Date() && !isWeekendDay) prevWorkingDaysPassed++;
     }
   }
-  const prevPresentLogs = processedLastMonthLogs.filter(l => l.clock_in != null && (l.status === 'Present' || l.status === 'LATE' || l.status === 'Late'));
-  const prevPresentDays = prevPresentLogs.length;
-  const prevLateArrivals = prevPresentLogs.filter(l => l.is_late === 1 || l.is_late === true || l.status === 'LATE' || l.status === 'Late').length;
-  const prevAttendanceRate = calcRate(prevPresentDays - prevLateArrivals, prevLateArrivals, prevWorkingDaysPassed);
+  const prevPresentLogs = processedLastMonthLogs.filter(l => l.clock_in != null && (l.status === 'Present' || l.status === 'LATE' || l.status === 'Late' || l.status === 'Present (On Time)' || l.status === 'Present (Late)'));
+  // We need to calculate prevAbsentDays based on prevWorkingDaysPassed and prevPresentLogs (rough approximation for last month)
+  // To be accurate, we'd need to run the full heatmap loop for last month. As a quick approximation:
+  const prevAbsentDays = Math.max(0, prevWorkingDaysPassed - prevPresentLogs.length);
+  const prevAttendanceRate = calcRate(prevWorkingDaysPassed, prevAbsentDays);
   
   const rateDiff = attendanceRate - prevAttendanceRate;
 
