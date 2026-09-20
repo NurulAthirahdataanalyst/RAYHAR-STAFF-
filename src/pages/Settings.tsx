@@ -740,8 +740,7 @@ export default function SettingsPage() {
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Password</label>
-                    <input
-                      type="password"
+                    <PasswordInput
                       placeholder="Minimum 6 characters"
                       value={staffPassword}
                       onChange={(e) => setStaffPassword(e.target.value)}
