@@ -43,12 +43,14 @@ function formatShortDate(dStr: string) {
 }
 
 function statusBadge(status: string) {
-  const color = STATUS_COLORS[status] || STATUS_COLORS.Unknown;
-  return (
-    <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold text-white" style={{ backgroundColor: color }}>
-      {status}
-    </span>
-  );
+  const baseClasses = "inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap";
+  switch (status) {
+    case "Active":    return <span className={`${baseClasses} bg-[#fdf4ff] text-[#942392] border-[#942392]/20 dark:bg-[#942392]/10`}>Active</span>;
+    case "Upcoming":  return <span className={`${baseClasses} bg-yellow-50 text-yellow-600 border-yellow-200 dark:bg-yellow-500/10 dark:border-yellow-500/20`}>Upcoming</span>;
+    case "Completed": return <span className={`${baseClasses} bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/10 dark:border-blue-500/20`}>Completed</span>;
+    case "Cancelled": return <span className={`${baseClasses} bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-500/10 dark:border-slate-500/20`}>Cancelled</span>;
+    default:          return <span className={`${baseClasses} bg-slate-50 text-slate-400 border-slate-200 dark:bg-slate-500/10 dark:border-slate-500/20`}>{status}</span>;
+  }
 }
 
 // Global module cache & latch to guarantee skeleton shimmer NEVER repeats
