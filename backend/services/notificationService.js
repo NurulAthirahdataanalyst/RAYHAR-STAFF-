@@ -29,27 +29,30 @@ async function createNotification({
     throw new Error('createNotification missing required fields: userId, title, message');
   }
 
-  const isTeam = scope === 'team' || (
-    type === 'leave_approval' || 
-    (type === 'status_update' && title.includes(':')) || 
-    title.startsWith('Leave Approved:') ||
-    title.startsWith('Leave Rejected:') ||
-    title.startsWith('New Leave Request') ||
-    title.startsWith('Leave Request:') ||
-    title.startsWith('Irregular Clock-In') || 
-    title.startsWith('Leave Final Approval Required') ||
-    title.startsWith('Leave Approval Required') ||
-    title.startsWith('Leave Approval Progress:') ||
-    title.toLowerCase().includes('anomaly') ||
-    title.toLowerCase().includes('requires your approval') ||
-    title.toLowerCase().includes('need your approval') ||
-    message.includes("'s request for") ||
-    message.includes("submitted a Leave Request") ||
-    message.toLowerCase().includes("requires your approval") ||
-    message.toLowerCase().includes("is currently waiting for")
-  );
-
-  const finalScope = scope || (isTeam ? 'team' : 'personal');
+  // If scope is explicitly provided, always respect it — do NOT override
+  let finalScope = scope;
+  if (!finalScope) {
+    const isTeam = (
+      type === 'leave_approval' || 
+      (type === 'status_update' && title.includes(':')) || 
+      title.startsWith('Leave Approved:') ||
+      title.startsWith('Leave Rejected:') ||
+      title.startsWith('New Leave Request') ||
+      title.startsWith('Leave Request:') ||
+      title.startsWith('Irregular Clock-In') || 
+      title.startsWith('Leave Final Approval Required') ||\
+      title.startsWith('Leave Approval Required') ||
+      title.startsWith('Leave Approval Progress:') ||
+      title.toLowerCase().includes('anomaly') ||
+      title.toLowerCase().includes('requires your approval') ||
+      title.toLowerCase().includes('need your approval') ||
+      message.includes("'s request for") ||
+      message.includes("submitted a Leave Request") ||
+      message.toLowerCase().includes("requires your approval") ||
+      message.toLowerCase().includes("is currently waiting for")
+    );
+    finalScope = isTeam ? 'team' : 'personal';
+  }
 
   const [result] = await poolInstance.query(
     `INSERT INTO notifications (user_id, title, message, type, is_read, related_leave_id, scope, created_at)

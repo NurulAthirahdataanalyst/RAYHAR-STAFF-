@@ -3568,8 +3568,9 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
           });
         }
 
-        // Notify employee of their leave progress
-        let employeeMsg = `Your application for ${leaveData.leave_type} was submitted.`;
+        // Notify employee of their leave progress — PERSONAL tab
+        let employeeMsg = `Your application for ${leaveData.leave_type} (${leaveData.days} day(s)) was submitted.`;
+        let teamMsg = `${leaveData.full_name}'s leave application for ${leaveData.leave_type} (${leaveData.days} day(s)) is currently waiting for`;
         if (employeeBranch === 'HQ') {
           const [hodRows] = await pool.query(
             `SELECT UPPER(p.full_name) AS full_name, p.department FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'head_of_department' AND (LOWER(p.department) = LOWER(?) OR ? IS NULL) AND p.status = 'Active' LIMIT 1`,
@@ -3578,9 +3579,11 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
           const hodName = (hodRows && hodRows.length > 0 && hodRows[0].full_name) ? hodRows[0].full_name : "";
           const dCode = formatDeptForApprover((hodRows && hodRows.length > 0 && hodRows[0].department) ? hodRows[0].department : leaveData.department);
           if (hodName) {
-            employeeMsg = `Your leave application is currently waiting for Head of Department (${hodName} • ${dCode}).`;
+            employeeMsg = `Your leave application for ${leaveData.leave_type} (${leaveData.days} day(s)) is currently waiting for Head of Department (${dCode}).`;
+            teamMsg += ` Head of Department (${dCode}).`;
           } else {
-            employeeMsg = `Your leave application is currently waiting for Head of Department (${dCode}).`;
+            employeeMsg = `Your leave application for ${leaveData.leave_type} (${leaveData.days} day(s)) is currently waiting for Head of Department (${dCode}).`;
+            teamMsg += ` Head of Department (${dCode}).`;
           }
         } else {
           const [blRows] = await pool.query(
@@ -3589,23 +3592,29 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
           );
           const blName = (blRows && blRows.length > 0 && blRows[0].full_name) ? blRows[0].full_name : "";
           if (blName) {
-            employeeMsg = `Your leave application is currently waiting for Branch Leader (${blName} • ${employeeBranch}).`;
+            employeeMsg = `Your leave application for ${leaveData.leave_type} (${leaveData.days} day(s)) is currently waiting for Branch Leader (${employeeBranch}).`;
+            teamMsg += ` Branch Leader (${blName} • ${employeeBranch}).`;
           } else {
-            employeeMsg = `Your leave application is currently waiting for Branch Leader (${employeeBranch}).`;
+            employeeMsg = `Your leave application for ${leaveData.leave_type} (${leaveData.days} day(s)) is currently waiting for Branch Leader (${employeeBranch}).`;
+            teamMsg += ` Branch Leader (${employeeBranch}).`;
           }
         }
 
+        // Personal notification for the employee (goes to Personal tab)
         await notificationService.createNotification({
           userId: leaveData.user_id, 
-          title: `Leave Application Submitted`, 
+          title: `Leave Approval Progress`, 
           message: employeeMsg, 
-          type: 'status_update', 
+          type: 'leave_approval',
+          scope: 'personal',
           relatedLeaveId: result.insertId,
           sendPush: true,
         });
 
-        const leaveNotifTitle = `New Leave Request: ${leaveData.full_name}`;
-        const leaveNotifMessage = `${leaveData.full_name} submitted a Leave Request for ${leaveData.leave_type} (${leaveData.days} day(s)) from ${new Date(leaveData.start_date).toLocaleDateString()} to ${new Date(leaveData.end_date).toLocaleDateString()}.`;
+        const leaveNotifTitle = `Leave Request Submitted`;
+        const leaveNotifMessage = `${leaveData.full_name} for ${leaveData.leave_type} (${leaveData.days} day(s)) has been submitted and is pending approval.`;
+        // Team notification title for progress (shown in Team Management tab)
+        const teamProgressTitle = `Leave Approval Progress: ${leaveData.full_name}`;
 
         // Notify all elevated roles (HR Admins, Managing Director, Operation Manager)
         const [elevatedRows] = await pool.query(
@@ -3626,6 +3635,7 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
             });
           }
           if (el.user_id) {
+            // Send "Leave Request Submitted" (NURUL ATHIRAH for Unpaid Leave...)
             notificationService.createNotification({
               userId: el.user_id,
               title: leaveNotifTitle,
@@ -3635,6 +3645,16 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
               relatedLeaveId: result.insertId,
               sendPush: true,
             }).catch(err => console.error("Failed to send elevated in-app notification:", err));
+            // Send "Leave Approval Progress: NURUL ATHIRAH..." (NURUL ATHIRAH's leave is waiting for HOD...)
+            notificationService.createNotification({
+              userId: el.user_id,
+              title: teamProgressTitle,
+              message: teamMsg,
+              type: 'leave_approval',
+              scope: 'team',
+              relatedLeaveId: result.insertId,
+              sendPush: false,
+            }).catch(err => console.error("Failed to send team progress notification:", err));
           }
         }
 
