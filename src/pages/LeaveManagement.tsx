@@ -605,8 +605,8 @@ export default function LeaveManagement() {
                       <Label className="text-[10px] font-black uppercase tracking-widest text-foreground px-1">
                         No. Telefon <span className="text-red-500">*</span>
                         {phoneAutoFilled && (
-                          <span className="ml-2 text-[9px] font-black text-emerald-600 normal-case tracking-normal">
-                            âœ“ Tersimpan
+                          <span className="ml-2 text-[9px] font-black text-emerald-600 normal-case tracking-normal inline-flex items-center">
+                            <CheckCircle2 className="w-3 h-3 mr-1" /> Tersimpan
                           </span>
                         )}
                       </Label>
