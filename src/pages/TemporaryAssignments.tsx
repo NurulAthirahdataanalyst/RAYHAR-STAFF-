@@ -606,13 +606,13 @@ const TemporaryAssignments = () => {
 
       {/* Details Modal */}
       <Dialog open={showDetailsModal} onOpenChange={setShowDetailsModal}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold border-b border-slate-100 dark:border-slate-800 pb-4 text-slate-900 dark:text-slate-100">Temporary Assignment Details</DialogTitle>
+        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0 overflow-hidden">
+          <DialogHeader className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-950 sticky top-0 z-10 shrink-0">
+            <DialogTitle className="text-xl font-bold text-slate-900 dark:text-slate-100">Temporary Assignment Details</DialogTitle>
           </DialogHeader>
 
           {selectedAssignment && (
-            <div className="space-y-6 pt-4">
+            <div className="space-y-6 px-6 pb-6 pt-2 overflow-y-auto flex-1">
               {/* Employee Information */}
               <div>
                 <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 border-b border-slate-100 dark:border-slate-800 pb-2 mb-3">Employee Information</h3>
