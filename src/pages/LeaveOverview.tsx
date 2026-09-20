@@ -510,7 +510,7 @@ export default function LeaveOverview() {
                       <TableCell className="px-5 py-3.5 text-center">
                         <Badge
                           className={`text-[11px] font-black px-3 py-1 h-auto shadow-sm whitespace-nowrap ${
-                            req.status === "Approved" ? "bg-emerald-500 text-white hover:bg-emerald-600" :
+                            req.status === "Approved" ? "bg-[#228b22] text-white hover:bg-[#1a661a]" :
                             req.status === "Rejected" ? "bg-rose-600 text-white hover:bg-rose-700" :
                             "bg-[#C2410C] text-white hover:bg-[#A3370A]"
                           }`}
@@ -541,7 +541,7 @@ export default function LeaveOverview() {
                     <span className="text-sm font-black text-foreground">{leaveTypeLabels[req.type]}</span>
                     <Badge
                       className={`text-[10px] font-black h-auto py-1 px-2.5 whitespace-nowrap ${
-                        req.status === "Approved" ? "bg-emerald-500 text-white" :
+                        req.status === "Approved" ? "bg-[#228b22] text-white" :
                         req.status === "Rejected" ? "bg-rose-600 text-white" :
                         "bg-[#C2410C] text-white"
                       }`}
@@ -628,7 +628,7 @@ export default function LeaveOverview() {
                     </div>
                     <Badge
                       className={`text-[9px] font-black px-2.5 h-5 w-fit shadow-sm sm:self-center ${
-                        req.status === "Approved" ? "bg-emerald-500" :
+                        req.status === "Approved" ? "bg-[#228b22]" :
                         req.status === "Rejected" ? "bg-rose-500" :
                         "bg-[#C2410C] text-white border-none"
                       }`}

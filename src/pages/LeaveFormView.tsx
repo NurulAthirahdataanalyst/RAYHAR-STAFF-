@@ -455,7 +455,7 @@ export default function LeaveFormView() {
                         <TableCell className="px-6 py-4 text-center">
                           <Badge
                             className={`text-[10px] font-black px-2.5 py-1 h-auto shadow-sm whitespace-nowrap ${
-                              form.status === "Approved" ? "bg-emerald-500 text-white hover:bg-emerald-600" :
+                              form.status === "Approved" ? "bg-[#228b22] text-white hover:bg-[#1a661a]" :
                               form.status === "Rejected" ? "bg-rose-600 text-white hover:bg-rose-700" :
                               "bg-[#C2410C] text-white hover:bg-[#A3370A]"
                             }`}
@@ -515,7 +515,7 @@ export default function LeaveFormView() {
                       <div className="flex flex-col items-end gap-2 shrink-0">
                         <Badge
                           className={`text-[9px] font-black px-2 py-1 h-auto shadow-sm whitespace-nowrap ${
-                            form.status === "Approved" ? "bg-emerald-500 text-white" :
+                            form.status === "Approved" ? "bg-[#228b22] text-white" :
                             form.status === "Rejected" ? "bg-rose-600 text-white" :
                             "bg-[#C2410C] text-white"
                           }`}

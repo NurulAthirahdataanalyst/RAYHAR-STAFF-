@@ -743,7 +743,7 @@ export default function Branches() {
                               <Badge
                                 className={`text-[9px] font-black px-2.5 h-5 ${
                                   employee.today_status === "Present (On Time)" || employee.today_status === "Present"
-                                    ? "bg-emerald-500 text-white"
+                                    ? "bg-[#228b22] text-white"
                                     : employee.today_status === "Present (Late)"
                                       ? "bg-amber-500 text-white"
                                       : employee.today_status === "Outstation"
@@ -801,7 +801,7 @@ export default function Branches() {
                             <Badge
                               className={`text-[9px] font-black h-5 shrink-0 ${
                                 employee.today_status === "Present (On Time)" || employee.today_status === "Present"
-                                  ? "bg-emerald-500 text-white"
+                                  ? "bg-[#228b22] text-white"
                                   : employee.today_status === "Present (Late)"
                                     ? "bg-amber-500 text-white"
                                     : employee.today_status === "Outstation"
@@ -1091,7 +1091,7 @@ export default function Branches() {
                               <span className="text-xs font-black text-emerald-700">
                                 Approved Leaves
                               </span>
-                              <Badge className="bg-emerald-500 text-white font-black h-5 text-[10px] group-hover:scale-110 transition-transform">
+                              <Badge className="bg-[#228b22] text-white font-black h-5 text-[10px] group-hover:scale-110 transition-transform">
                                 {selectedEmployee.approved_leaves}
                               </Badge>
                             </button>
@@ -1800,7 +1800,7 @@ export default function Branches() {
                               <div className="relative space-y-4 before:absolute before:inset-0 before:ml-4 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-border/50 before:to-transparent">
                                 {req.approval_history.map((history: any, idx: number) => (
                                   <div key={idx} className="relative flex items-start gap-4">
-                                    <div className={`absolute left-4 -translate-x-1/2 flex h-2 w-2 items-center justify-center rounded-full border border-white dark:border-slate-900 ${history.status === 'Approved' ? 'bg-emerald-500' : 'bg-rose-500'} z-10`} />
+                                    <div className={`absolute left-4 -translate-x-1/2 flex h-2 w-2 items-center justify-center rounded-full border border-white dark:border-slate-900 ${history.status === 'Approved' ? 'bg-[#228b22]' : 'bg-rose-500'} z-10`} />
                                     <div className="ml-6 flex-1 bg-muted/30 rounded-[16px] p-3 border border-border/40">
                                       <div className="flex items-center justify-between gap-2 mb-1">
                                         <div className="flex items-center gap-2">

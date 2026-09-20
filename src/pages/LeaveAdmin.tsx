@@ -1060,7 +1060,7 @@ export default function LeaveAdmin() {
                         <TableCell className="px-3 py-3.5">
                           <span 
                             className={`inline-flex justify-center items-center px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider whitespace-normal text-center leading-tight max-w-[140px] ${
-                              req.status === "Approved" ? "bg-emerald-100/50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" :
+                              req.status === "Approved" ? "bg-[#228b22]/10 text-[#228b22] dark:bg-[#228b22]/30 dark:text-[#228b22]" :
                               req.status === "Rejected" ? "bg-rose-100/50 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400" :
                               "bg-[#C2410C] text-white"
                             }`}

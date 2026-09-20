@@ -266,7 +266,7 @@ export default function TeamLeaveRequests() {
                               "default"
                             } 
                             className={
-                              req.status === "Approved" ? "bg-green-500 hover:bg-green-600" : 
+                              req.status === "Approved" ? "bg-[#228b22] text-white hover:bg-[#1a661a]" : 
                               req.status === "Rejected" ? "" :
                               "bg-[#C2410C] hover:bg-[#A3370A] text-white border-none"
                             }
