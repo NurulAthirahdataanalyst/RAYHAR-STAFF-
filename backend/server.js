@@ -4642,6 +4642,16 @@ app.post("/api/login", async (req, res) => {
       });
     }
 
+    // Block login for Deleted users
+    const deletedStatuses = ['deleted', 'deleted staff'];
+    if (user.status && deletedStatuses.includes(user.status.trim().toLowerCase())) {
+      return res.status(403).json({ 
+        success: false, 
+        error: "This account has been deleted. Please contact HR if you believe this is a mistake.", 
+        message: "This account has been deleted. Please contact HR if you believe this is a mistake." 
+      });
+    }
+
     let isMatch = false;
     if (typeof user.password === 'string' && (user.password.startsWith('$2a$') || user.password.startsWith('$2b$') || user.password.startsWith('$2y$'))) {
       isMatch = await bcrypt.compare(password, user.password);
