@@ -702,7 +702,6 @@ export default function Notifications() {
           <MonthPicker
             monthYear={selectedMonthYear}
             onSelectMonthYear={setSelectedMonthYear}
-            hideAllYear={true}
           />
         </div>
       </div>

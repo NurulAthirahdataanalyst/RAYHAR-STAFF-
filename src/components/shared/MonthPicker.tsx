@@ -134,7 +134,7 @@ export function MonthPicker({ monthYear, onSelectMonthYear, className, hideAllYe
                 }}
                 className="text-[#942392] hover:underline text-[11px] font-bold"
               >
-                All year
+                This Year
               </button>
             )}
           </div>
