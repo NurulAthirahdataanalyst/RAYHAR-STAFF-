@@ -2492,13 +2492,21 @@ app.post("/api/signup", async (req, res) => {
     const connection = await pool.getConnection();
 
     const [existing] = await connection.query(
-      "SELECT user_id FROM profiles WHERE email = ? LIMIT 1",
+      "SELECT user_id, status FROM profiles WHERE email = ? LIMIT 1",
       [email]
     );
 
     if (existing.length > 0) {
-      connection.release();
-      return res.status(409).json({ success: false, error: "Email already registered" });
+      if (existing[0].status === 'Deleted' || existing[0].status === 'Deleted Staff') {
+        // Free up the email by appending a deleted flag
+        await connection.query(
+          "UPDATE profiles SET email = CONCAT(email, '_deleted_', user_id) WHERE user_id = ?",
+          [existing[0].user_id]
+        );
+      } else {
+        connection.release();
+        return res.status(409).json({ success: false, error: "Email already registered" });
+      }
     }
 
     // Generate New E00x ID â€” PostgreSQL version
