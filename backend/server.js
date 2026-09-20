@@ -3057,11 +3057,12 @@ cron.schedule('15 9 * * 1-5', async () => {
 function formatDeptForApprover(dept) {
   if (!dept) return "HQ";
   let d = String(dept).trim();
-  if (d.toLowerCase() === 'information technology') d = 'IT';
-  if (/^it$/i.test(d)) d = 'IT';
-  if (!d.toUpperCase().includes('HQ')) {
-    return `${d} (HQ)`;
-  }
+  if (d.toLowerCase() === 'information technology') return 'IT';
+  if (/^it$/i.test(d)) return 'IT';
+  
+  // Remove " Department" or " Dept" from the end if present to keep it short
+  d = d.replace(/\b(Department|Dept)\b/ig, '').trim();
+  
   return d;
 }
 

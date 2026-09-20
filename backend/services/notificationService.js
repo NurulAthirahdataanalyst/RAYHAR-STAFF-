@@ -147,39 +147,43 @@ async function markAsRead(notificationId, userId) {
 }
 
 const TEAM_SCOPE_CLAUSE = `(
-  scope = 'team' 
-  OR type = 'leave_approval' 
-  OR title LIKE 'Leave Approved:%' 
-  OR title LIKE 'Leave Rejected:%' 
-  OR title LIKE 'New Leave Request%' 
-  OR title LIKE 'Leave Request:%' 
-  OR title LIKE '%Need Your Approval%' 
-  OR title LIKE 'Irregular Clock-In%'
-  OR title LIKE 'Leave Final Approval Required%'
-  OR title LIKE 'Leave Approval Required%'
-  OR title LIKE 'Leave Approval Progress:%'
-  OR message LIKE '%''s request for%' 
-  OR message LIKE '% request for % is now %'
-  OR message LIKE '%submitted a Leave Request%'
-  OR message LIKE '%is currently waiting for%'
+  scope = 'team' OR (
+  scope IS NULL AND (
+    type = 'leave_approval' 
+    OR title LIKE 'Leave Approved:%' 
+    OR title LIKE 'Leave Rejected:%' 
+    OR title LIKE 'New Leave Request%' 
+    OR title LIKE 'Leave Request:%' 
+    OR title LIKE '%Need Your Approval%' 
+    OR title LIKE 'Irregular Clock-In%'
+    OR title LIKE 'Leave Final Approval Required%'
+    OR title LIKE 'Leave Approval Required%'
+    OR title LIKE 'Leave Approval Progress:%'
+    OR message LIKE '%''s request for%' 
+    OR message LIKE '% request for % is now %'
+    OR message LIKE '%submitted a Leave Request%'
+    OR message LIKE '%is currently waiting for%'
+  ))
 )`;
 
 const MY_SCOPE_CLAUSE = `(
-  (scope = 'personal' OR scope IS NULL)
-  AND type != 'leave_approval'
-  AND title NOT LIKE 'Leave Approved:%'
-  AND title NOT LIKE 'Leave Rejected:%'
-  AND title NOT LIKE 'New Leave Request%'
-  AND title NOT LIKE 'Leave Request:%'
-  AND title NOT LIKE '%Need Your Approval%'
-  AND title NOT LIKE 'Irregular Clock-In%'
-  AND title NOT LIKE 'Leave Final Approval Required%'
-  AND title NOT LIKE 'Leave Approval Required%'
-  AND title NOT LIKE 'Leave Approval Progress:%'
-  AND message NOT LIKE '%''s request for%'
-  AND message NOT LIKE '% request for % is now %'
-  AND message NOT LIKE '%submitted a Leave Request%'
-  AND message NOT LIKE '%is currently waiting for%'
+  scope = 'personal' OR (
+  scope IS NULL AND (
+    type != 'leave_approval'
+    AND title NOT LIKE 'Leave Approved:%'
+    AND title NOT LIKE 'Leave Rejected:%'
+    AND title NOT LIKE 'New Leave Request%'
+    AND title NOT LIKE 'Leave Request:%'
+    AND title NOT LIKE '%Need Your Approval%'
+    AND title NOT LIKE 'Irregular Clock-In%'
+    AND title NOT LIKE 'Leave Final Approval Required%'
+    AND title NOT LIKE 'Leave Approval Required%'
+    AND title NOT LIKE 'Leave Approval Progress:%'
+    AND message NOT LIKE '%''s request for%'
+    AND message NOT LIKE '% request for % is now %'
+    AND message NOT LIKE '%submitted a Leave Request%'
+    AND message NOT LIKE '%is currently waiting for%'
+  ))
 )`;
 
 /**
@@ -296,3 +300,4 @@ module.exports = {
   getNotifications,
   deleteNotification,
 };
+
