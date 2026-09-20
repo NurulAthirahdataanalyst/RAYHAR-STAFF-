@@ -517,7 +517,7 @@ export default function GPSLocationTracker() {
         <div className="h-[520px] bg-card rounded-lg overflow-hidden">
           <Map
             id="gps-map"
-            mapLib={maplibregl}
+            
             ref={mapRef}
             initialViewState={{
               longitude: 103.4194,
@@ -528,7 +528,7 @@ export default function GPSLocationTracker() {
             mapStyle={MAPLIBRE_STYLE}
             onLoad={() => setMapLoaded(true)}
           >
-            <NavigationControl position="top-left" />
+            
 
             {mapLoaded && validGroups.map((group) => {
               const first = group[0];

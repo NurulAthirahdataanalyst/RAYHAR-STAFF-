@@ -1039,7 +1039,7 @@ export default function SettingsPage() {
                     </DialogHeader>
                     <div className="grid grid-cols-1 md:grid-cols-3 h-[500px]">
                       <div className="md:col-span-2 relative h-full">
-                        <Map reuseMaps id="settings-coord-picker"
+                        <Map 
                           initialViewState={{
                             longitude: branchLng ? parseFloat(branchLng) : 103.4194,
                             latitude: branchLat ? parseFloat(branchLat) : 4.2248,
@@ -1060,7 +1060,7 @@ export default function SettingsPage() {
                               }).catch(console.error);
                           }}
                         >
-                          <NavigationControl position="top-left" />
+                          
                           {branchLat && branchLng && !isNaN(parseFloat(branchLat)) && !isNaN(parseFloat(branchLng)) && (
                             <MapMarker longitude={parseFloat(branchLng)} latitude={parseFloat(branchLat)} anchor="bottom">
                               <div style={{ width: 24, height: 36 }}>

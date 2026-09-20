@@ -2020,7 +2020,7 @@ export default function Branches() {
             </div>
           <div className="grid grid-cols-1 md:grid-cols-3 h-[500px]">
             <div className="md:col-span-2 relative h-full">
-              <Map reuseMaps id="branch-coord-picker"
+              <Map 
                 initialViewState={{
                   longitude: (() => { const v = parseFloat(String(editBranchData.longitude)); return !isNaN(v) ? v : 103.4194; })(),
                   latitude: (() => { const v = parseFloat(String(editBranchData.latitude)); return !isNaN(v) ? v : 4.2248; })(),
@@ -2040,7 +2040,7 @@ export default function Branches() {
                     }).catch(console.error);
                 }}
               >
-                <NavigationControl position="top-left" />
+                
                 {(() => {
                   const _lat = parseFloat(String(editBranchData.latitude));
                   const _lng = parseFloat(String(editBranchData.longitude));
