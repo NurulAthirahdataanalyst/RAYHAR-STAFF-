@@ -616,7 +616,7 @@ export default function Branches() {
                 onClick={handleBackToBranches}
               >
                 <ArrowLeft className="h-4 w-4" />
-                <span className="text-[10px] font-black uppercase tracking-widest">
+                <span className="text-[12px] font-black uppercase tracking-widest">
                   Back to branches
                 </span>
               </Button>
@@ -630,7 +630,7 @@ export default function Branches() {
                 >
                   {selectedBranch.code}
                 </Badge>
-                <Button variant="outline" size="sm" onClick={openEditModal} className="h-8 text-xs font-bold ml-2">Edit Branch</Button>
+                <Button variant="outline" size="sm" onClick={openEditModal} className="h-8 text-[13px] font-bold ml-2">Edit Branch</Button>
               </div>
               <p className="text-responsive-sm text-foreground font-medium mt-1">
                 Branch staff overview and analytics
@@ -639,7 +639,7 @@ export default function Branches() {
             
             {selectedBranch.operating_zone && (
               <div className="flex-shrink-0 bg-card border-2 border-slate-200 dark:border-slate-700 rounded-xl p-3 shadow-md self-start">
-                <p className="mb-2"><span className="text-[10px] font-bold text-foreground uppercase tracking-wider">Operating Hours ({selectedBranch.operating_zone === 'ZONE_A' ? 'Zone A' : 'Zone B'})</span></p>
+                <p className="mb-2"><span className="text-[12px] font-bold text-foreground uppercase tracking-wider">Operating Hours ({selectedBranch.operating_zone === 'ZONE_A' ? 'Zone A' : 'Zone B'})</span></p>
                 <div className="flex flex-wrap sm:flex-nowrap gap-4 sm:gap-6 text-[11px] text-foreground">
                   {selectedBranch.operating_zone === 'ZONE_A' ? (
                     <>
@@ -673,7 +673,7 @@ export default function Branches() {
           {loading ? (
             <div className="flex flex-col items-center justify-center p-20 gap-4 bg-card/60 backdrop-blur-md rounded-[32px] border border-border/50">
               <Loader2 className="h-10 w-10 animate-spin text-[#942392]" />
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground animate-pulse">
+              <p className="text-[12px] font-black uppercase tracking-[0.2em] text-foreground animate-pulse">
                 Syncing Branch Data...
               </p>
             </div>
@@ -684,16 +684,16 @@ export default function Branches() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="bg-muted/30 text-foreground border-b border-border">
-                        <th className="text-left py-4 px-6 text-[10px] tracking-[0.2em] text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">
+                        <th className="text-left py-4 px-6 text-[10px] tracking-[0.2em] text-[12px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">
                           Personnel
                         </th>
-                        <th className="text-left py-4 px-6 text-[10px] tracking-[0.2em] text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">
+                        <th className="text-left py-4 px-6 text-[10px] tracking-[0.2em] text-[12px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">
                           Leave Balance
                         </th>
-                        <th className="text-left py-4 px-6 text-[10px] tracking-[0.2em] text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">
+                        <th className="text-left py-4 px-6 text-[10px] tracking-[0.2em] text-[12px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">
                           Attendance
                         </th>
-                        <th className="text-left py-4 px-6 text-[10px] tracking-[0.2em] text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">
+                        <th className="text-left py-4 px-6 text-[10px] tracking-[0.2em] text-[12px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">
                           Today
                         </th>
                       </tr>
@@ -741,7 +741,7 @@ export default function Branches() {
                             </td>
                             <td className="py-4 px-6">
                               <Badge
-                                className={`text-[9px] font-black px-2.5 h-5 ${
+                                className={`text-[11px] font-black px-2.5 h-5 ${
                                   employee.today_status === "Present (On Time)" || employee.today_status === "Present"
                                     ? "bg-[#228b22] text-white"
                                     : employee.today_status === "Present (Late)"
@@ -799,7 +799,7 @@ export default function Branches() {
                               {employee.full_name}
                             </p>
                             <Badge
-                              className={`text-[9px] font-black h-5 shrink-0 ${
+                              className={`text-[11px] font-black h-5 shrink-0 ${
                                 employee.today_status === "Present (On Time)" || employee.today_status === "Present"
                                   ? "bg-[#228b22] text-white"
                                   : employee.today_status === "Present (Late)"
@@ -816,7 +816,7 @@ export default function Branches() {
                               {employee.today_status}
                             </Badge>
                           </div>
-                          <div className="flex items-center gap-2 text-[10px] font-bold text-foreground uppercase tracking-wider">
+                          <div className="flex items-center gap-2 text-[12px] font-bold text-foreground uppercase tracking-wider">
                             <span>ID: {employee.user_id}</span>
                             <span className="opacity-30">•</span>
                             <span>Rate: {employee.attendance_rate || 0}%</span>
@@ -864,9 +864,9 @@ export default function Branches() {
                               <table className="w-full text-sm">
                                 <thead>
                                   <tr className="bg-purple-500/10 text-purple-900 dark:text-purple-100 border-b border-purple-500/20">
-                                    <th className="text-left py-4 px-6 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Personnel</th>
-                                    <th className="text-left py-4 px-6 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Permanent Branch</th>
-                                    <th className="text-left py-4 px-6 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Assignment Period</th>
+                                    <th className="text-left py-4 px-6 text-[12px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Personnel</th>
+                                    <th className="text-left py-4 px-6 text-[12px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Permanent Branch</th>
+                                    <th className="text-left py-4 px-6 text-[12px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Assignment Period</th>
                                   </tr>
                                 </thead>
                                 <tbody className="divide-y divide-border/50">
@@ -911,10 +911,10 @@ export default function Branches() {
                             <table className="w-full text-sm">
                               <thead>
                                 <tr className="bg-slate-500/10 text-slate-900 dark:text-slate-100 border-b border-slate-500/20">
-                                  <th className="text-left py-4 px-6 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Personnel</th>
-                                  <th className="text-left py-4 px-6 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Permanent Branch</th>
-                                  <th className="text-left py-4 px-6 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Assignment Period</th>
-                                  <th className="text-left py-4 px-6 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Status</th>
+                                  <th className="text-left py-4 px-6 text-[12px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Personnel</th>
+                                  <th className="text-left py-4 px-6 text-[12px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Permanent Branch</th>
+                                  <th className="text-left py-4 px-6 text-[12px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Assignment Period</th>
+                                  <th className="text-left py-4 px-6 text-[12px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Status</th>
                                 </tr>
                               </thead>
                               <tbody className="divide-y divide-border/50">
@@ -971,7 +971,7 @@ export default function Branches() {
                   </div>
                   <div>
                     <DialogTitle className="text-lg font-black uppercase tracking-tight m-0 text-white">STAFF PROFILE</DialogTitle>
-                    <DialogDescription className="text-xs font-bold uppercase tracking-wider text-white/80 m-0 mt-1">VIEW AND ANALYZE STAFF METRICS</DialogDescription>
+                    <DialogDescription className="text-[13px] font-bold uppercase tracking-wider text-white/80 m-0 mt-1">VIEW AND ANALYZE STAFF METRICS</DialogDescription>
                   </div>
                 </div>
               </div>
@@ -1027,7 +1027,7 @@ export default function Branches() {
                               Status
                             </span>
                             <Badge
-                              className={`text-white font-black text-[9px] h-5 ${selectedEmployee.status === "Active" ? "bg-emerald-500" : "bg-rose-500"}`}
+                              className={`text-white font-black text-[11px] h-5 ${selectedEmployee.status === "Active" ? "bg-emerald-500" : "bg-rose-500"}`}
                             >
                               {selectedEmployee.status || "Active"}
                             </Badge>
@@ -1046,7 +1046,7 @@ export default function Branches() {
                             <p className="text-2xl font-black text-foreground">
                               {selectedEmployee.annual_leave_balance}
                             </p>
-                            <p className="text-[10px] font-black uppercase tracking-wider text-foreground">
+                            <p className="text-[12px] font-black uppercase tracking-wider text-foreground">
                               Annual Left
                             </p>
                           </div>
@@ -1055,7 +1055,7 @@ export default function Branches() {
                             <p className="text-2xl font-black text-foreground">
                               {selectedEmployee.attendance_rate || 0}%
                             </p>
-                            <p className="text-[10px] font-black uppercase tracking-wider text-foreground">
+                            <p className="text-[12px] font-black uppercase tracking-wider text-foreground">
                               Attendance
                             </p>
                           </div>
@@ -1064,7 +1064,7 @@ export default function Branches() {
                             <p className="text-2xl font-black text-foreground">
                               {selectedEmployee.pending_leaves}
                             </p>
-                            <p className="text-[10px] font-black uppercase tracking-wider text-foreground">
+                            <p className="text-[12px] font-black uppercase tracking-wider text-foreground">
                               Pending
                             </p>
                           </div>
@@ -1073,7 +1073,7 @@ export default function Branches() {
                             <p className="text-2xl font-black text-foreground">
                               {selectedEmployee.mc_leaves || 0}
                             </p>
-                            <p className="text-[10px] font-black uppercase tracking-wider text-foreground">
+                            <p className="text-[12px] font-black uppercase tracking-wider text-foreground">
                               Total MC
                             </p>
                           </div>
@@ -1130,7 +1130,7 @@ export default function Branches() {
               <div className="flex items-center gap-3">
                 <Badge
                   variant="outline"
-                  className="px-3 py-1.5 text-xs font-bold bg-muted/30 border-border/60 flex items-center justify-center rounded-md h-9"
+                  className="px-3 py-1.5 text-[13px] font-bold bg-muted/30 border-border/60 flex items-center justify-center rounded-md h-9"
                 >
                   Total{" "}
                   <span className="ml-2 flex items-center justify-center bg-[#942392] text-white rounded-md h-5 min-w-[20px] px-1.5 text-[10px] leading-none shrink-0">
@@ -1285,25 +1285,25 @@ export default function Branches() {
                         <div className="flex-1 flex flex-col items-center border-r border-slate-100 dark:border-slate-800 last:border-0">
                           <UserCheck className="w-5 h-5 text-[#942392] mb-1.5" strokeWidth={2.2} />
                           <p className="text-xl font-black text-[#942392] leading-none">{presentToday}</p>
-                          <p className="text-[9px] font-black text-[#942392] uppercase mt-1 tracking-widest">Present</p>
+                          <p className="text-[11px] font-black text-[#942392] uppercase mt-1 tracking-widest">Present</p>
                         </div>
                         {/* Leave */}
                         <div className="flex-1 flex flex-col items-center border-r border-slate-100 dark:border-slate-800 last:border-0">
                           <Leaf className="w-5 h-5 text-amber-500 mb-1.5" strokeWidth={2.2} />
                           <p className="text-xl font-black text-amber-500 leading-none">{onLeave}</p>
-                          <p className="text-[9px] font-black text-amber-500 uppercase mt-1 tracking-widest">Leave</p>
+                          <p className="text-[11px] font-black text-amber-500 uppercase mt-1 tracking-widest">Leave</p>
                         </div>
                         {/* Outstation */}
                         <div className="flex-1 flex flex-col items-center border-r border-slate-100 dark:border-slate-800 last:border-0">
                           <Briefcase className="w-5 h-5 text-[#942392] mb-1.5" strokeWidth={2.2} />
                           <p className="text-xl font-black text-[#942392] leading-none">{outstation}</p>
-                          <p className="text-[9px] font-black text-[#942392] uppercase mt-1 tracking-widest">Outstation</p>
+                          <p className="text-[11px] font-black text-[#942392] uppercase mt-1 tracking-widest">Outstation</p>
                         </div>
                         {/* Absent */}
                         <div className="flex-1 flex flex-col items-center">
                           <UserX className="w-5 h-5 text-amber-500 mb-1.5" strokeWidth={2.2} />
                           <p className="text-xl font-black text-amber-500 leading-none">{absent}</p>
-                          <p className="text-[9px] font-black text-amber-500 uppercase mt-1 tracking-widest">Absent</p>
+                          <p className="text-[11px] font-black text-amber-500 uppercase mt-1 tracking-widest">Absent</p>
                         </div>
                       </div>
 
@@ -1322,10 +1322,10 @@ export default function Branches() {
                         </div>
                         <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 mx-2" />
                         <div className="text-right min-w-0">
-                          <p className="text-[9px] font-black text-black dark:text-white uppercase tracking-widest leading-none">
+                          <p className="text-[11px] font-black text-black dark:text-white uppercase tracking-widest leading-none">
                             LEADER:
                           </p>
-                          <p className="text-[10px] font-black text-black dark:text-white mt-0.5 truncate uppercase max-w-[160px]">
+                          <p className="text-[12px] font-black text-black dark:text-white mt-0.5 truncate uppercase max-w-[160px]">
                             {leader}
                           </p>
                         </div>
@@ -1415,7 +1415,7 @@ export default function Branches() {
                                   </span>
                                     <Badge
                                       variant="outline"
-                                      className="font-mono text-[9px] h-4 px-1.5 bg-muted/20 border-border/50"
+                                      className="font-mono text-[11px] h-4 px-1.5 bg-muted/20 border-border/50"
                                     >
                                       {branch.code}
                                     </Badge>
@@ -1561,7 +1561,7 @@ export default function Branches() {
             {loadingLeaves ? (
               <div className="flex flex-col items-center justify-center p-12 gap-3">
                 <Loader2 className="w-8 h-8 animate-spin text-[#942392]" />
-                <p className="text-[10px] font-black uppercase tracking-widest text-foreground">
+                <p className="text-[12px] font-black uppercase tracking-widest text-foreground">
                   Fetching Forms...
                 </p>
               </div>
@@ -1624,7 +1624,7 @@ export default function Branches() {
                                   document.title = originalTitle;
                                 }, 500);
                               }}
-                              className="pdf-btn flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest bg-[#942392] text-white px-3 py-2 rounded-xl hover:bg-[#5e0080] transition-colors shadow-md"
+                              className="pdf-btn flex items-center gap-1.5 text-[12px] font-black uppercase tracking-widest bg-[#942392] text-white px-3 py-2 rounded-xl hover:bg-[#5e0080] transition-colors shadow-md"
                             >
                               <FileText className="w-3.5 h-3.5" />
                               Save to PDF
@@ -1639,9 +1639,9 @@ export default function Branches() {
                             </p>
                           </div>
 
-                          <div className="grid grid-cols-2 gap-4 text-xs font-bold">
+                          <div className="grid grid-cols-2 gap-4 text-[13px] font-bold">
                             <div className="space-y-1">
-                              <span className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50">
+                              <span className="text-[11px] uppercase font-black text-slate-950 dark:text-slate-50">
                                 Nama Penuh
                               </span>
                               <p className="border-b pb-1 border-border/40 truncate">
@@ -1649,7 +1649,7 @@ export default function Branches() {
                               </p>
                             </div>
                             <div className="space-y-1">
-                              <span className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50">
+                              <span className="text-[11px] uppercase font-black text-slate-950 dark:text-slate-50">
                                 Cawangan
                               </span>
                               <p className="border-b pb-1 border-border/40">
@@ -1657,7 +1657,7 @@ export default function Branches() {
                               </p>
                             </div>
                             <div className="space-y-1">
-                              <span className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50">
+                              <span className="text-[11px] uppercase font-black text-slate-950 dark:text-slate-50">
                                 Jenis Cuti
                               </span>
                               <p className="border-b pb-1 border-border/40">
@@ -1665,7 +1665,7 @@ export default function Branches() {
                               </p>
                             </div>
                             <div className="space-y-1">
-                              <span className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50">
+                              <span className="text-[11px] uppercase font-black text-slate-950 dark:text-slate-50">
                                 Status
                               </span>
                               <p
@@ -1679,19 +1679,19 @@ export default function Branches() {
                           {!(req.leave_type === "Replacement Leave" || req.leave_type === "Cuti Ganti") ? (
                             <div className="grid grid-cols-4 gap-3 p-4 bg-muted/30 rounded-[20px] border border-border/50">
                               <div className="text-center flex flex-col justify-center">
-                                <p className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50 mb-1">
+                                <p className="text-[11px] uppercase font-black text-slate-950 dark:text-slate-50 mb-1">
                                   Dari
                                 </p>
                                 <p className="font-black text-xs sm:text-sm">{fromStr}</p>
                               </div>
                               <div className="text-center flex flex-col justify-center border-l border-border/50">
-                                <p className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50 mb-1">
+                                <p className="text-[11px] uppercase font-black text-slate-950 dark:text-slate-50 mb-1">
                                   Hingga
                                 </p>
                                 <p className="font-black text-xs sm:text-sm">{toStr}</p>
                               </div>
                               <div className="text-center bg-white dark:bg-slate-900 rounded-[14px] border border-border/50 py-1 shadow-sm flex flex-col justify-center">
-                                <p className="text-[9px] uppercase font-black text-[#942392]">
+                                <p className="text-[11px] uppercase font-black text-[#942392]">
                                   Hari
                                 </p>
                                 <p className="font-black text-lg text-[#942392] leading-none mt-0.5">
@@ -1699,7 +1699,7 @@ export default function Branches() {
                                 </p>
                               </div>
                               <div className="text-center rounded-[14px] border-2 border-emerald-500 bg-white dark:bg-slate-900 shadow-sm flex flex-col justify-center py-1">
-                                <p className="text-[9px] uppercase font-black text-emerald-600">Baki Layak</p>
+                                <p className="text-[11px] uppercase font-black text-emerald-600">Baki Layak</p>
                                 <p className="font-black text-sm text-emerald-600 mt-0.5">
                                   {selectedEmployee?.annual_leave_balance ?? req.balance ?? "-"} HARI
                                 </p>
@@ -1707,16 +1707,16 @@ export default function Branches() {
                             </div>
                           ) : (
                             <div className="flex items-center justify-between p-3 bg-muted/30 rounded-[20px] border border-border/50">
-                              <span className="text-[10px] font-black uppercase text-slate-950 dark:text-slate-50 tracking-wider pl-2">Jumlah Hari Cuti Ganti</span>
+                              <span className="text-[12px] font-black uppercase text-slate-950 dark:text-slate-50 tracking-wider pl-2">Jumlah Hari Cuti Ganti</span>
                               <div className="text-center bg-white dark:bg-slate-900 rounded-[14px] border border-border/50 px-6 py-1.5 shadow-sm flex flex-col justify-center">
-                                <p className="text-[9px] uppercase font-black text-[#942392]">Hari</p>
+                                <p className="text-[11px] uppercase font-black text-[#942392]">Hari</p>
                                 <p className="font-black text-lg text-[#942392] leading-none mt-0.5">{req.days}</p>
                               </div>
                             </div>
                           )}
 
                           <div className="space-y-2">
-                            <p className="text-[9px] font-black uppercase text-slate-950 dark:text-slate-50 tracking-widest">
+                            <p className="text-[11px] font-black uppercase text-slate-950 dark:text-slate-50 tracking-widest">
                               Sebab / Tujuan
                             </p>
                             <p className="rounded-[16px] border border-border/40 p-4 font-bold text-foreground bg-muted/10 text-sm leading-relaxed">
@@ -1730,7 +1730,7 @@ export default function Branches() {
                               <div className="p-4 bg-purple-500/10 border border-purple-500/20 rounded-[16px] flex items-center justify-between group print:hidden">
                                 <div className="flex items-center gap-3">
                                   <FileText className="w-5 h-5 text-[#942392]" />
-                                  <span className="text-[10px] font-black text-[#942392] uppercase tracking-widest">
+                                  <span className="text-[12px] font-black text-[#942392] uppercase tracking-widest">
                                     MC Attachment
                                   </span>
                                 </div>
@@ -1738,7 +1738,7 @@ export default function Branches() {
                                   href={`${API_BASE_URL}${req.mc_file_url}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="text-[9px] font-black uppercase tracking-widest bg-[#942392] text-white px-4 py-2 rounded-xl hover:bg-[#5e0080] transition-colors shadow-lg"
+                                  className="text-[11px] font-black uppercase tracking-widest bg-[#942392] text-white px-4 py-2 rounded-xl hover:bg-[#5e0080] transition-colors shadow-lg"
                                 >
                                   View File
                                 </a>
@@ -1748,29 +1748,29 @@ export default function Branches() {
                           <div className="pt-4 border-t border-border/50 space-y-4">
                             <div className="flex items-center gap-2">
                               <PhoneCall className="w-4 h-4 text-rose-500" />
-                              <h3 className="text-[10px] font-black uppercase tracking-[0.2em]">
+                              <h3 className="text-[12px] font-black uppercase tracking-[0.2em]">
                                 Maklumat Waris (Kecemasan)
                               </h3>
                             </div>
                             <div className="grid grid-cols-2 gap-4 bg-muted/20 p-4 rounded-[20px]">
                               <div className="space-y-1">
-                                <span className="text-[8px] font-black text-slate-950 dark:text-slate-50 uppercase">
+                                <span className="text-[12px] font-black text-slate-950 dark:text-slate-50 uppercase">
                                   Nama
                                 </span>
-                                <p className="text-[11px] font-bold truncate">
+                                <p className="text-[13px] font-bold truncate">
                                   {req.waris_nama || "-"}
                                 </p>
                               </div>
                               <div className="space-y-1">
-                                <span className="text-[8px] font-black text-slate-950 dark:text-slate-50 uppercase">
+                                <span className="text-[12px] font-black text-slate-950 dark:text-slate-50 uppercase">
                                   Hubungan
                                 </span>
-                                <p className="text-[11px] font-bold truncate">
+                                <p className="text-[13px] font-bold truncate">
                                   {req.waris_hubungan || "-"}
                                 </p>
                               </div>
                               <div className="space-y-1">
-                                <span className="text-[8px] font-black text-slate-950 dark:text-slate-50 uppercase">
+                                <span className="text-[12px] font-black text-slate-950 dark:text-slate-50 uppercase">
                                   No. Telefon
                                 </span>
                                 <p className="text-[11px] font-black text-[#942392]">
@@ -1778,10 +1778,10 @@ export default function Branches() {
                                 </p>
                               </div>
                               <div className="space-y-1">
-                                <span className="text-[8px] font-black text-slate-950 dark:text-slate-50 uppercase">
+                                <span className="text-[12px] font-black text-slate-950 dark:text-slate-50 uppercase">
                                   Alamat
                                 </span>
-                                <p className="text-[10px] font-bold text-foreground break-words">
+                                <p className="text-[12px] font-bold text-foreground break-words">
                                   {req.waris_alamat || "-"}
                                 </p>
                               </div>
@@ -1793,7 +1793,7 @@ export default function Branches() {
                             <div className="space-y-4 pt-4 border-t border-border/50">
                               <div className="flex items-center gap-2">
                                 <Clock className="w-4 h-4 text-[#942392]" />
-                                <h3 className="text-[10px] font-black uppercase tracking-[0.2em]">
+                                <h3 className="text-[12px] font-black uppercase tracking-[0.2em]">
                                   Approval History
                                 </h3>
                               </div>
@@ -1804,14 +1804,14 @@ export default function Branches() {
                                     <div className="ml-6 flex-1 bg-muted/30 rounded-[16px] p-3 border border-border/40">
                                       <div className="flex items-center justify-between gap-2 mb-1">
                                         <div className="flex items-center gap-2">
-                                          <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-md ${history.status === 'Approved' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-rose-500/10 text-rose-600'}`}>
+                                          <span className={`text-[12px] font-black uppercase px-2 py-0.5 rounded-md ${history.status === 'Approved' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-rose-500/10 text-rose-600'}`}>
                                             {history.status}
                                           </span>
-                                          <span className="text-[10px] font-black text-foreground/70">
+                                          <span className="text-[12px] font-black text-foreground/70">
                                             by {history.approver_name || history.approver_id}
                                           </span>
                                         </div>
-                                        <span className="text-[8px] font-black text-foreground/50">
+                                        <span className="text-[12px] font-black text-foreground/50">
                                           {new Date(history.created_at).toLocaleDateString('ms-MY')}
                                         </span>
                                       </div>
@@ -1831,13 +1831,13 @@ export default function Branches() {
                           <div className="hidden print:block pt-24 mt-12 pb-2">
                             <div className="grid grid-cols-2 gap-16">
                               <div className="border-t border-foreground pt-2 text-center">
-                                <p className="text-[10px] font-bold uppercase">Tandatangan Kakitangan</p>
+                                <p className="text-[12px] font-bold uppercase">Tandatangan Kakitangan</p>
                               </div>
                               <div className="border-t border-foreground pt-2 text-center">
-                                <p className="text-[10px] font-bold uppercase">Kelulusan Pengurus / HR</p>
+                                <p className="text-[12px] font-bold uppercase">Kelulusan Pengurus / HR</p>
                               </div>
                             </div>
-                            <p className="text-[9px] text-center italic mt-4 text-foreground">
+                            <p className="text-[11px] text-center italic mt-4 text-foreground">
                               Borang ini sah digunakan sebagai bukti rasmi cuti kakitangan setelah mendapat kelulusan pihak pengurusan.
                             </p>
                           </div>
@@ -1865,28 +1865,28 @@ export default function Branches() {
               </div>
               <div>
                 <DialogTitle className="text-lg font-black uppercase tracking-tight m-0 text-white">BRANCH REGISTRATION</DialogTitle>
-                <DialogDescription className="text-xs font-bold uppercase tracking-wider text-white/80 m-0 mt-1">UPDATE REGIONAL BRANCH OFFICE IN THE DATABASE</DialogDescription>
+                <DialogDescription className="text-[13px] font-bold uppercase tracking-wider text-white/80 m-0 mt-1">UPDATE REGIONAL BRANCH OFFICE IN THE DATABASE</DialogDescription>
               </div>
             </div>
           </div>
           <form onSubmit={handleEditBranch} className="p-8 space-y-6 bg-card">
             <div className="grid grid-cols-2 gap-6">
               <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest">BRANCH CODE</label>
-                <Input value={editBranchData.code || ""} readOnly disabled className="h-11 rounded-xl bg-muted/50 text-xs font-bold" />
+                <label className="text-[12px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest">BRANCH CODE</label>
+                <Input value={editBranchData.code || ""} readOnly disabled className="h-11 rounded-xl bg-muted/50 text-[13px] font-bold" />
               </div>
               <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest">BRANCH NAME</label>
+                <label className="text-[12px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest">BRANCH NAME</label>
                 <Input 
                   value={editBranchData.name || ""} 
                   onChange={(e) => setEditBranchData({...editBranchData, name: e.target.value})} 
                   required
-                  className="h-11 rounded-xl text-xs font-bold"
+                  className="h-11 rounded-xl text-[13px] font-bold"
                 />
               </div>
             </div>
             <div className="space-y-1.5">
-              <label className="text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest">BRANCH LOCATION / DISTRICT</label>
+              <label className="text-[12px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest">BRANCH LOCATION / DISTRICT</label>
               <div className="flex gap-2">
                 <Input 
                   value={editBranchData.location || ""} 
@@ -1909,12 +1909,12 @@ export default function Branches() {
                     }
                   }}
                   placeholder="Type address & press Enter or click 🔍"
-                  className="h-11 rounded-xl text-xs font-bold flex-1"
+                  className="h-11 rounded-xl text-[13px] font-bold flex-1"
                 />
                 <button
                   type="button"
                   title="Find Coordinates from Address"
-                  className="h-11 px-4 rounded-xl border border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100 transition-colors flex items-center gap-1 text-xs font-bold"
+                  className="h-11 px-4 rounded-xl border border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100 transition-colors flex items-center gap-1 text-[13px] font-bold"
                   onClick={async () => {
                     const addr = editBranchData.location;
                     if (!addr) { toast.error("Please enter an address first"); return; }
@@ -1937,25 +1937,25 @@ export default function Branches() {
             </div>
             <div className="grid grid-cols-2 gap-6">
               <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest">OPERATING ZONE</label>
+                <label className="text-[12px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest">OPERATING ZONE</label>
                 <Select
                   value={editBranchData.operating_zone || "ZONE_B"}
                   onValueChange={(val) => setEditBranchData({ ...editBranchData, operating_zone: val })}
                 >
-                  <SelectTrigger className="w-full h-11 px-4 rounded-xl border border-input bg-transparent text-xs font-bold shadow-sm">
+                  <SelectTrigger className="w-full h-11 px-4 rounded-xl border border-input bg-transparent text-[13px] font-bold shadow-sm">
                     <SelectValue placeholder="Select Zone" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl">
-                    <SelectItem value="ZONE_A" className="text-xs font-bold uppercase">ZONE A (Fri/Sat Weekend)</SelectItem>
-                    <SelectItem value="ZONE_B" className="text-xs font-bold uppercase">ZONE B (Sat/Sun Weekend)</SelectItem>
+                    <SelectItem value="ZONE_A" className="text-[13px] font-bold uppercase">ZONE A (Fri/Sat Weekend)</SelectItem>
+                    <SelectItem value="ZONE_B" className="text-[13px] font-bold uppercase">ZONE B (Sat/Sun Weekend)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-1.5 cursor-pointer" onClick={() => setIsMapModalOpen(true)}>
-                <label className="text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest">COORDINATES</label>
+                <label className="text-[12px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest">COORDINATES</label>
                 <div className="flex items-center gap-2 h-11 px-4 border border-input rounded-xl bg-muted/20 hover:bg-muted/40 transition-colors">
                   <MapPin className="w-4 h-4 text-[#942392]" />
-                  <span className="text-xs font-bold text-foreground">
+                  <span className="text-[13px] font-bold text-foreground">
                     {editBranchData.latitude && editBranchData.longitude 
                       ? `${editBranchData.latitude}, ${editBranchData.longitude}` 
                       : "Select from map"}
@@ -1965,8 +1965,8 @@ export default function Branches() {
             </div>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <label className="text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest">Radius</label>
-                <span className="text-[10px] font-black text-foreground">0m – 500m</span>
+                <label className="text-[12px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest">Radius</label>
+                <span className="text-[12px] font-black text-foreground">0m – 500m</span>
               </div>
               <div className="relative pt-6">
                 {/* Floating animated label */}
@@ -1992,14 +1992,14 @@ export default function Branches() {
                   }}
                 />
                 <div className="flex justify-between mt-1">
-                  <span className="text-[9px] text-foreground font-bold">0m</span>
-                  <span className="text-[9px] text-foreground font-bold">500m</span>
+                  <span className="text-[11px] text-foreground font-bold">0m</span>
+                  <span className="text-[11px] text-foreground font-bold">500m</span>
                 </div>
               </div>
             </div>
             <div className="flex justify-end gap-3 pt-4 border-t">
-              <Button type="button" variant="outline" onClick={() => setIsEditBranchModalOpen(false)} className="h-11 px-6 rounded-xl text-[10px] font-black uppercase tracking-wider">Discard</Button>
-              <Button type="submit" className="h-11 px-6 rounded-xl bg-[#942392] text-white hover:bg-[#942392]/90 text-[10px] font-black uppercase tracking-wider shadow-md">Save Changes</Button>
+              <Button type="button" variant="outline" onClick={() => setIsEditBranchModalOpen(false)} className="h-11 px-6 rounded-xl text-[12px] font-black uppercase tracking-wider">Discard</Button>
+              <Button type="submit" className="h-11 px-6 rounded-xl bg-[#942392] text-white hover:bg-[#942392]/90 text-[12px] font-black uppercase tracking-wider shadow-md">Save Changes</Button>
             </div>
           </form>
         </DialogContent>
@@ -2014,7 +2014,7 @@ export default function Branches() {
                 </div>
                 <div>
                   <DialogTitle className="text-lg font-black uppercase tracking-tight m-0 text-white">UPDATE BRANCH LOCATION</DialogTitle>
-                  <DialogDescription className="text-xs font-bold uppercase tracking-wider text-white/80 m-0 mt-1">UPDATE GPS COORDINATES AND ADDRESS</DialogDescription>
+                  <DialogDescription className="text-[13px] font-bold uppercase tracking-wider text-white/80 m-0 mt-1">UPDATE GPS COORDINATES AND ADDRESS</DialogDescription>
                 </div>
               </div>
             </div>
@@ -2081,20 +2081,20 @@ export default function Branches() {
             <div className="p-6 bg-slate-50 dark:bg-slate-900 flex flex-col h-full overflow-y-auto">
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-foreground">Manual Coordinates</label>
+                  <label className="text-[12px] font-black uppercase tracking-widest text-foreground">Manual Coordinates</label>
                   <Input 
                     value={editBranchData.latitude || ""} 
                     onChange={(e) => setEditBranchData({...editBranchData, latitude: e.target.value})}
                     placeholder="Latitude"
-                    className="h-10 rounded-xl text-xs font-bold placeholder:text-slate-400 dark:placeholder:text-slate-500 placeholder:font-normal border-purple-400 focus-visible:ring-purple-400"
+                    className="h-10 rounded-xl text-[13px] font-bold placeholder:text-slate-400 dark:placeholder:text-slate-500 placeholder:font-normal border-purple-400 focus-visible:ring-purple-400"
                   />
                   <Input 
                     value={editBranchData.longitude || ""} 
                     onChange={(e) => setEditBranchData({...editBranchData, longitude: e.target.value})}
                     placeholder="Longitude"
-                    className="h-10 rounded-xl text-xs font-bold placeholder:text-slate-400 dark:placeholder:text-slate-500 placeholder:font-normal"
+                    className="h-10 rounded-xl text-[13px] font-bold placeholder:text-slate-400 dark:placeholder:text-slate-500 placeholder:font-normal"
                   />
-                  <Button type="button" variant="outline" className="w-full h-10 rounded-xl text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 border-purple-200" onClick={() => {
+                  <Button type="button" variant="outline" className="w-full h-10 rounded-xl text-[13px] font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 border-purple-200" onClick={() => {
                     const lat = parseFloat(String(editBranchData.latitude));
                     const lng = parseFloat(String(editBranchData.longitude));
                     if (!isNaN(lat) && !isNaN(lng)) {
@@ -2114,7 +2114,7 @@ export default function Branches() {
                 </div>
                 
                 <div className="space-y-2 pt-4">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-foreground">Address / Display Name</label>
+                  <label className="text-[12px] font-black uppercase tracking-widest text-foreground">Address / Display Name</label>
                   <div className={`p-4 bg-card border rounded-xl shadow-sm text-xs leading-relaxed ${editBranchData.location ? 'text-foreground font-medium' : 'text-slate-400 dark:text-slate-500'}`}>
                     {editBranchData.location || "Select a location on the map"}
                   </div>
@@ -2122,8 +2122,8 @@ export default function Branches() {
               </div>
               
               <div className="mt-auto flex gap-3 pt-6">
-                <Button type="button" variant="outline" onClick={() => setIsMapModalOpen(false)} className="flex-1 h-11 rounded-xl text-[10px] font-black uppercase tracking-wider bg-white">Cancel</Button>
-                <Button type="button" onClick={() => setIsMapModalOpen(false)} className="flex-1 h-11 rounded-xl bg-[#942392] text-white hover:bg-[#942392]/90 text-[10px] font-black uppercase tracking-wider shadow-md">Save</Button>
+                <Button type="button" variant="outline" onClick={() => setIsMapModalOpen(false)} className="flex-1 h-11 rounded-xl text-[12px] font-black uppercase tracking-wider bg-white">Cancel</Button>
+                <Button type="button" onClick={() => setIsMapModalOpen(false)} className="flex-1 h-11 rounded-xl bg-[#942392] text-white hover:bg-[#942392]/90 text-[12px] font-black uppercase tracking-wider shadow-md">Save</Button>
               </div>
             </div>
           </div>

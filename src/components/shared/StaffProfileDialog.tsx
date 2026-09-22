@@ -694,20 +694,20 @@ export function StaffProfileDialog({
                       
                       <div className="mt-5 w-full flex flex-col gap-2">
                         <div className="flex justify-between items-center px-3 py-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800">
-                          <span className="text-[10px] font-bold text-foreground uppercase tracking-widest">User ID</span>
+                          <span className="text-[12px] font-bold text-foreground uppercase tracking-widest">User ID</span>
                           <span className="text-xs font-black text-slate-700 dark:text-slate-200">{selectedEmployee.user_id}</span>
                         </div>
                         <div className="flex justify-between items-center px-3 py-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800">
-                          <span className="text-[10px] font-bold text-foreground uppercase tracking-widest">Branch</span>
+                          <span className="text-[12px] font-bold text-foreground uppercase tracking-widest">Branch</span>
                           <span className="text-xs font-black text-slate-700 dark:text-slate-200">{selectedEmployee.branch}</span>
                         </div>
                         <div className="flex justify-between items-center px-3 py-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800">
-                          <span className="text-[10px] font-bold text-foreground uppercase tracking-widest">Department</span>
+                          <span className="text-[12px] font-bold text-foreground uppercase tracking-widest">Department</span>
                           <span className="text-xs font-black text-slate-700 dark:text-slate-200 truncate max-w-[120px]">{selectedEmployee.department}</span>
                         </div>
                         <div className="flex justify-between items-center px-3 py-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800">
-                          <span className="text-[10px] font-bold text-foreground uppercase tracking-widest">Status</span>
-                          <Badge className={`text-white font-black text-[9px] uppercase tracking-wider ${selectedEmployee.status === 'Active' ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-rose-500 hover:bg-rose-600'}`}>
+                          <span className="text-[12px] font-bold text-foreground uppercase tracking-widest">Status</span>
+                          <Badge className={`text-white font-black text-[11px] uppercase tracking-wider ${selectedEmployee.status === 'Active' ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-rose-500 hover:bg-rose-600'}`}>
                             {selectedEmployee.status}
                           </Badge>
                         </div>
@@ -717,7 +717,7 @@ export function StaffProfileDialog({
                     {/* Today's Attendance Card */}
                     <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-800/60 dark:border-slate-700 shadow-sm flex flex-col gap-3">
                       <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-700 pb-2">
-                        <span className="text-[10px] font-black tracking-widest uppercase text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
+                        <span className="text-[12px] font-black tracking-widest uppercase text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
                           <Clock className="w-3.5 h-3.5 text-[#942392]" />
                           TODAY'S ATTENDANCE
                         </span>
@@ -791,8 +791,8 @@ export function StaffProfileDialog({
 
                       <div className="pt-2 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between flex-wrap gap-1.5">
                         <div className="flex items-center gap-1.5">
-                          <span className="text-[10px] font-bold text-foreground">Status:</span>
-                          <span className="flex items-center gap-1 text-xs font-bold text-slate-800 dark:text-slate-200">
+                          <span className="text-[12px] font-bold text-foreground">Status:</span>
+                          <span className="flex items-center gap-1 text-[13px] font-bold text-slate-800 dark:text-slate-200">
                             <span className={`w-2 h-2 rounded-full ${
                               todayStats?.todayStatus?.includes("Present") || todayStats?.todayStatus?.includes("Clocked Out") ? "bg-emerald-500" :
                               todayStats?.todayStatus?.includes("On Leave") ? "bg-purple-500" :
@@ -805,19 +805,19 @@ export function StaffProfileDialog({
 
                         {/* Dynamic Tag */}
                         {todayStats?.isOutstationToday ? (
-                          <Badge className="bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 text-[9px] font-bold">
+                          <Badge className="bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 text-[13px] font-bold">
                             Outstation
                           </Badge>
                         ) : todayStats?.activeTemporaryAssignment ? (
-                          <Badge className="bg-purple-100 text-[#942392] border border-purple-200 dark:bg-purple-900/40 dark:text-purple-300 dark:border-purple-800 text-[9px] font-bold">
+                          <Badge className="bg-purple-100 text-[#942392] border border-purple-200 dark:bg-purple-900/40 dark:text-purple-300 dark:border-purple-800 text-[13px] font-bold">
                             (TEMPORARY BRANCH)
                           </Badge>
                         ) : todayStats?.isMultiLocation ? (
-                          <Badge className="bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-300 text-[9px] font-bold">
+                          <Badge className="bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-300 text-[13px] font-bold">
                             Multi Location
                           </Badge>
                         ) : todayStats?.todayStatus === "On Leave" && todayStats?.onLeaveType ? (
-                          <Badge className="bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 text-[9px] font-bold">
+                          <Badge className="bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 text-[13px] font-bold">
                             {todayStats.onLeaveType}
                           </Badge>
                         ) : null}
@@ -849,7 +849,7 @@ export function StaffProfileDialog({
                     {analyticsLoading ? (
                       <div className="flex flex-col items-center justify-center p-12 bg-slate-50/50 dark:bg-slate-900/50 rounded-xl border border-dashed border-slate-200 dark:border-slate-800">
                         <Loader2 className="w-6 h-6 animate-spin text-purple-600 mb-2" />
-                        <p className="text-xs font-bold text-foreground">Calculating statistics...</p>
+                        <p className="text-[13px] font-bold text-foreground">Calculating statistics...</p>
                       </div>
                     ) : analytics ? (
                       <>
@@ -861,10 +861,10 @@ export function StaffProfileDialog({
                               <CardContent className="p-4">
                                 <div className="flex justify-between items-center mb-3">
                                   <div className="flex items-center gap-2">
-                                    <p className="text-[10px] font-bold uppercase tracking-widest text-foreground dark:text-foreground">Monthly Rate</p>
+                                    <p className="text-[12px] font-bold uppercase tracking-widest text-foreground dark:text-foreground">Monthly Rate</p>
                                     <Tooltip>
                                       <TooltipTrigger>
-                                        <div className="w-3 h-3 rounded-full bg-slate-100 dark:bg-slate-800 text-foreground flex items-center justify-center text-[8px] font-bold cursor-help hover:bg-slate-200 transition-colors">?</div>
+                                        <div className="w-3 h-3 rounded-full bg-slate-100 dark:bg-slate-800 text-foreground flex items-center justify-center text-[12px] font-bold cursor-help hover:bg-slate-200 transition-colors">?</div>
                                       </TooltipTrigger>
                                       <TooltipContent className="max-w-[200px] p-2 text-[10px] leading-relaxed">
                                         <p className="font-bold mb-1 text-slate-800 dark:text-slate-200">Formula:</p>
@@ -872,7 +872,7 @@ export function StaffProfileDialog({
                                       </TooltipContent>
                                     </Tooltip>
                                   </div>
-                                  <Badge variant="secondary" className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 border ${
+                                  <Badge variant="secondary" className={`text-[11px] font-black uppercase tracking-wider px-2 py-0.5 border ${
                                     analytics.attendance.monthly.rate >= 95 ? 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800' : 
                                     analytics.attendance.monthly.rate >= 85 ? 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800' : 
                                     analytics.attendance.monthly.rate >= 70 ? 'text-amber-700 bg-amber-50 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800' : 
@@ -896,15 +896,15 @@ export function StaffProfileDialog({
                                 <div className="grid grid-cols-3 gap-2">
                                   <div className="bg-emerald-50/50 dark:bg-emerald-950/40 border border-emerald-100/50 dark:border-emerald-800/60 rounded-lg p-2 text-center">
                                     <p className="text-lg font-black text-emerald-600 dark:text-emerald-400 leading-none mb-1">{analytics.attendance.monthly.present}</p>
-                                    <p className="text-[8px] font-bold text-emerald-600/70 dark:text-emerald-400/80 uppercase tracking-wider">Present</p>
+                                    <p className="text-[12px] font-bold text-emerald-600/70 dark:text-emerald-400/80 uppercase tracking-wider">Present</p>
                                   </div>
                                   <div className="bg-amber-50/50 dark:bg-amber-950/40 border border-amber-100/50 dark:border-amber-800/60 rounded-lg p-2 text-center">
                                     <p className="text-lg font-black text-amber-600 dark:text-amber-400 leading-none mb-1">{analytics.attendance.monthly.late}</p>
-                                    <p className="text-[8px] font-bold text-amber-600/70 dark:text-amber-400/80 uppercase tracking-wider">Late</p>
+                                    <p className="text-[12px] font-bold text-amber-600/70 dark:text-amber-400/80 uppercase tracking-wider">Late</p>
                                   </div>
                                   <div className="bg-slate-50/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-800/60 rounded-lg p-2 text-center">
                                     <p className="text-lg font-black text-slate-600 dark:text-slate-300 leading-none mb-1">{analytics.attendance.monthly.absent}</p>
-                                    <p className="text-[8px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Absent</p>
+                                    <p className="text-[12px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Absent</p>
                                   </div>
                                 </div>
                               </CardContent>
@@ -915,9 +915,9 @@ export function StaffProfileDialog({
                               <CardContent className="p-4">
                                 <div className="flex justify-between items-center mb-3">
                                   <div className="flex items-center gap-2">
-                                    <p className="text-[10px] font-bold uppercase tracking-widest text-foreground dark:text-foreground">Yearly Rate</p>
+                                    <p className="text-[12px] font-bold uppercase tracking-widest text-foreground dark:text-foreground">Yearly Rate</p>
                                   </div>
-                                  <Badge variant="secondary" className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 border ${
+                                  <Badge variant="secondary" className={`text-[11px] font-black uppercase tracking-wider px-2 py-0.5 border ${
                                     analytics.attendance.yearly.rate >= 95 ? 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800' : 
                                     analytics.attendance.yearly.rate >= 85 ? 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800' : 
                                     analytics.attendance.yearly.rate >= 70 ? 'text-amber-700 bg-amber-50 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800' : 
@@ -941,15 +941,15 @@ export function StaffProfileDialog({
                                 <div className="grid grid-cols-3 gap-2">
                                   <div className="bg-emerald-50/50 dark:bg-emerald-950/40 border border-emerald-100/50 dark:border-emerald-800/60 rounded-lg p-2 text-center">
                                     <p className="text-lg font-black text-emerald-600 dark:text-emerald-400 leading-none mb-1">{analytics.attendance.yearly.present}</p>
-                                    <p className="text-[8px] font-bold text-emerald-600/70 dark:text-emerald-400/80 uppercase tracking-wider">Present</p>
+                                    <p className="text-[12px] font-bold text-emerald-600/70 dark:text-emerald-400/80 uppercase tracking-wider">Present</p>
                                   </div>
                                   <div className="bg-amber-50/50 dark:bg-amber-950/40 border border-amber-100/50 dark:border-amber-800/60 rounded-lg p-2 text-center">
                                     <p className="text-lg font-black text-amber-600 dark:text-amber-400 leading-none mb-1">{analytics.attendance.yearly.late}</p>
-                                    <p className="text-[8px] font-bold text-amber-600/70 dark:text-amber-400/80 uppercase tracking-wider">Late</p>
+                                    <p className="text-[12px] font-bold text-amber-600/70 dark:text-amber-400/80 uppercase tracking-wider">Late</p>
                                   </div>
                                   <div className="bg-slate-50/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-800/60 rounded-lg p-2 text-center">
                                     <p className="text-lg font-black text-slate-600 dark:text-slate-300 leading-none mb-1">{analytics.attendance.yearly.absent}</p>
-                                    <p className="text-[8px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Absent</p>
+                                    <p className="text-[12px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Absent</p>
                                   </div>
                                 </div>
                               </CardContent>
@@ -970,21 +970,21 @@ export function StaffProfileDialog({
                           
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
                             <div className="rounded-xl border border-slate-200 dark:border-slate-800/60 p-3 bg-white dark:bg-slate-800 shadow-sm flex flex-col justify-between">
-                              <p className="text-[9px] font-bold uppercase tracking-widest text-foreground dark:text-foreground mb-1.5">Total Entitled</p>
+                              <p className="text-[13px] font-bold uppercase tracking-widest text-foreground dark:text-foreground mb-1.5">Total Entitled</p>
                               <p className="text-2xl font-black text-slate-800 dark:text-slate-200 tracking-tighter">{analytics.leave.entitlement}</p>
                             </div>
                             <div className="rounded-xl border border-slate-200 dark:border-slate-800/60 p-3 bg-white dark:bg-slate-800 shadow-sm flex flex-col justify-between">
-                              <p className="text-[9px] font-bold uppercase tracking-widest text-foreground dark:text-foreground mb-1.5">Approved Taken</p>
+                              <p className="text-[13px] font-bold uppercase tracking-widest text-foreground dark:text-foreground mb-1.5">Approved Taken</p>
                               <p className="text-2xl font-black text-slate-800 dark:text-slate-200 tracking-tighter">{analytics.leave.used}</p>
                             </div>
                             <div className="rounded-xl border-2 border-emerald-500/20 dark:border-emerald-700/50 p-3 bg-emerald-50/30 dark:bg-emerald-950/40 shadow-sm flex flex-col justify-between">
-                              <p className="text-[9px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 mb-1.5">Remaining Balance</p>
+                              <p className="text-[13px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 mb-1.5">Remaining Balance</p>
                               <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400 tracking-tighter">{analytics.leave.remaining}</p>
                             </div>
                             <div className="rounded-xl border border-slate-200 dark:border-slate-800/60 p-3 bg-white dark:bg-slate-800 shadow-sm flex flex-col justify-between">
                               <Tooltip>
                                 <TooltipTrigger className="text-left w-full h-full flex flex-col justify-between">
-                                  <p className="text-[9px] font-bold uppercase tracking-widest text-foreground dark:text-foreground mb-1.5 flex items-center justify-between w-full">
+                                  <p className="text-[13px] font-bold uppercase tracking-widest text-foreground dark:text-foreground mb-1.5 flex items-center justify-between w-full">
                                     Utilization
                                     <span className="w-3 h-3 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[7px] text-foreground">?</span>
                                   </p>
@@ -1010,7 +1010,7 @@ export function StaffProfileDialog({
                                 </div>
                                 <span className="text-lg font-black text-amber-600 dark:text-amber-400">{analytics.leave.pending}</span>
                               </div>
-                              <span className="text-[9px] font-bold text-amber-700/80 dark:text-amber-300/80 uppercase tracking-widest">Pending Requests</span>
+                              <span className="text-[13px] font-bold text-amber-700/80 dark:text-amber-300/80 uppercase tracking-widest">Pending Requests</span>
                             </button>
                             
                             <button 
@@ -1023,7 +1023,7 @@ export function StaffProfileDialog({
                                 </div>
                                 <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">{analytics.leave.approvedApplications ?? analytics.leave.totalTaken}</span>
                               </div>
-                              <span className="text-[9px] font-bold text-emerald-700/80 dark:text-emerald-300/80 uppercase tracking-widest">Approved Leave</span>
+                              <span className="text-[13px] font-bold text-emerald-700/80 dark:text-emerald-300/80 uppercase tracking-widest">Approved Leave</span>
                             </button>
 
                             <button 
@@ -1036,7 +1036,7 @@ export function StaffProfileDialog({
                                 </div>
                                 <span className="text-lg font-black text-foreground">{analytics.leave.rejected}</span>
                               </div>
-                              <span className="text-[9px] font-bold text-foreground uppercase tracking-widest">Rejected Requests</span>
+                              <span className="text-[13px] font-bold text-foreground uppercase tracking-widest">Rejected Requests</span>
                             </button>
                           </div>
 
@@ -1044,7 +1044,7 @@ export function StaffProfileDialog({
                           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
                             {/* REPLACEMENT LEAVE */}
                             <div className="border border-slate-200 dark:border-slate-800/60 bg-white dark:bg-slate-800 rounded-xl p-3 flex flex-col justify-between shadow-sm">
-                              <p className="text-[9px] font-bold uppercase tracking-widest text-foreground dark:text-foreground mb-1 flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span><RefreshCw className="w-3 h-3 text-muted-foreground" />Replacement Leave</p>
+                              <p className="text-[13px] font-bold uppercase tracking-widest text-foreground dark:text-foreground mb-1 flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span><RefreshCw className="w-3 h-3 text-muted-foreground" />Replacement Leave</p>
                               <div className="my-1.5">
                                 <span className="text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tighter">
                                   {analytics.leave?.replacement?.taken || 0}
@@ -1052,7 +1052,7 @@ export function StaffProfileDialog({
                                 <span className="text-xs font-semibold text-foreground ml-1.5">Days Taken</span>
                               </div>
                               <div className="mt-1">
-                                <div className="flex justify-between items-center text-[9px] font-bold text-foreground mb-1">
+                                <div className="flex justify-between items-center text-[13px] font-bold text-foreground mb-1">
                                   <span className="uppercase tracking-wider">Progress</span>
                                   <span>{analytics.leave?.replacement?.taken || 0} / {analytics.leave?.replacement?.entitlement || 0}</span>
                                 </div>
@@ -1069,7 +1069,7 @@ export function StaffProfileDialog({
 
                             {/* UNPAID LEAVE */}
                             <div className="border border-slate-200 dark:border-slate-800/60 bg-white dark:bg-slate-800 rounded-xl p-3 flex flex-col justify-between shadow-sm">
-                              <p className="text-[9px] font-bold uppercase tracking-widest text-foreground dark:text-foreground mb-1 flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span><Wallet className="w-3 h-3 text-muted-foreground" />Unpaid Leave</p>
+                              <p className="text-[13px] font-bold uppercase tracking-widest text-foreground dark:text-foreground mb-1 flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span><Wallet className="w-3 h-3 text-muted-foreground" />Unpaid Leave</p>
                               <div className="my-1.5">
                                 <span className="text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tighter">
                                   {analytics.leave?.unpaid?.taken || 0}
@@ -1079,7 +1079,7 @@ export function StaffProfileDialog({
                                 </span>
                               </div>
                               <div className="mt-1">
-                                <div className="flex justify-between items-center text-[9px] font-bold text-foreground mb-1">
+                                <div className="flex justify-between items-center text-[13px] font-bold text-foreground mb-1">
                                   <span className="uppercase tracking-wider">Usage</span>
                                   <span>{(analytics.leave?.unpaid?.taken || 0) === 0 ? "0 Application" : `${analytics.leave?.unpaid?.taken} Days`}</span>
                                 </div>
@@ -1092,7 +1092,7 @@ export function StaffProfileDialog({
 
                             {/* MEDICAL LEAVE (SICK LEAVE) */}
                             <div className="border border-slate-200 dark:border-slate-800/60 bg-white dark:bg-slate-800 rounded-xl p-3 flex flex-col justify-between shadow-sm">
-                              <p className="text-[9px] font-bold uppercase tracking-widest text-foreground dark:text-foreground mb-1 flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span><Stethoscope className="w-3 h-3 text-muted-foreground" />Medical Leave (Sick Leave)</p>
+                              <p className="text-[13px] font-bold uppercase tracking-widest text-foreground dark:text-foreground mb-1 flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span><Stethoscope className="w-3 h-3 text-muted-foreground" />Medical Leave (Sick Leave)</p>
                               <div className="my-1.5">
                                 <span className="text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tighter">
                                   {analytics.leave?.sick?.taken || 0}
@@ -1100,7 +1100,7 @@ export function StaffProfileDialog({
                                 <span className="text-xs font-semibold text-foreground ml-1.5">Days Taken</span>
                               </div>
                               <div className="mt-1">
-                                <div className="flex justify-between items-center text-[9px] font-bold text-foreground mb-1">
+                                <div className="flex justify-between items-center text-[13px] font-bold text-foreground mb-1">
                                   <span className="uppercase tracking-wider">Progress</span>
                                   <span>{analytics.leave?.sick?.taken || 0} / {analytics.leave?.sick?.entitlement || 14}</span>
                                 </div>
@@ -1145,7 +1145,7 @@ export function StaffProfileDialog({
                             
                             <div className="space-y-3">
                               <div>
-                                <Label className="text-xs font-bold text-foreground uppercase">Working Branch</Label>
+                                <Label className="text-[13px] font-bold text-foreground uppercase">Working Branch</Label>
                                 <Select value={tempAssignment.location} onValueChange={(val) => setTempAssignment({...tempAssignment, location: val})()}>
                                   <SelectTrigger>
                                     <SelectValue placeholder="Select Branch" />
@@ -1165,17 +1165,17 @@ export function StaffProfileDialog({
 
                               <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                  <Label className="text-xs font-bold text-foreground uppercase">Start Date</Label>
+                                  <Label className="text-[13px] font-bold text-foreground uppercase">Start Date</Label>
                                   <Input type="date" value={tempAssignment.start_date} onChange={(e) => setTempAssignment({...tempAssignment, start_date: e.target.value})} />
                                 </div>
                                 <div>
-                                  <Label className="text-xs font-bold text-foreground uppercase">End Date</Label>
+                                  <Label className="text-[13px] font-bold text-foreground uppercase">End Date</Label>
                                   <Input type="date" value={tempAssignment.end_date} onChange={(e) => setTempAssignment({...tempAssignment, end_date: e.target.value})} />
                                 </div>
                               </div>
                               
                               <div>
-                                <Label className="text-xs font-bold text-foreground uppercase">Status</Label>
+                                <Label className="text-[13px] font-bold text-foreground uppercase">Status</Label>
                                 <Select value={tempAssignment.status} onValueChange={(val) => setTempAssignment({...tempAssignment, status: val})()}>
                                   <SelectTrigger>
                                     <SelectValue />
@@ -1267,7 +1267,7 @@ export function StaffProfileDialog({
                                       <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{ta.start_date ? new Date(ta.start_date).toLocaleDateString('en-GB') : '-'}</td>
                                       <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{ta.end_date ? new Date(ta.end_date).toLocaleDateString('en-GB') : '-'}</td>
                                       <td className="px-4 py-3">
-                                        <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${ta.status === 'Active' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400'}`}>
+                                        <span className={`px-2 py-1 rounded-full text-[12px] font-bold ${ta.status === 'Active' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400'}`}>
                                           {ta.status}
                                         </span>
                                       </td>
@@ -1307,7 +1307,7 @@ export function StaffProfileDialog({
                                   <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{selectedEmployee?.branch ? toProperCase(branchMap[selectedEmployee.branch] || BRANCH_NAMES[selectedEmployee.branch as keyof typeof BRANCH_NAMES] || selectedEmployee.branch) : '-'}</td>
                                   <td className="px-4 py-3 font-bold text-slate-800 dark:text-slate-200">{selectedEmployee?.branch || '-'}</td>
                                   <td className="px-4 py-3">
-                                    <span className="px-2 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400">
+                                    <span className="px-2 py-1 rounded-full text-[12px] font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400">
                                       Permanent
                                     </span>
                                   </td>
@@ -1318,7 +1318,7 @@ export function StaffProfileDialog({
                                     <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{toProperCase(branchMap[loc] || BRANCH_NAMES[loc as keyof typeof BRANCH_NAMES] || loc)}</td>
                                     <td className="px-4 py-3 font-bold text-slate-800 dark:text-slate-200">{loc}</td>
                                     <td className="px-4 py-3">
-                                      <span className="px-2 py-1 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400">
+                                      <span className="px-2 py-1 rounded-full text-[12px] font-bold bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400">
                                         Active
                                       </span>
                                     </td>
@@ -1402,17 +1402,17 @@ export function StaffProfileDialog({
                                       </td>
                                       <td className="px-2 py-2">
                                         {isNoGPS ? (
-                                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black border uppercase tracking-widest bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-500/20 dark:text-slate-300 dark:border-slate-500/30">
+                                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[12px] font-black border uppercase tracking-widest bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-500/20 dark:text-slate-300 dark:border-slate-500/30">
                                             <div className="w-1.5 h-1.5 rounded-full bg-slate-500" />
                                             No GPS
                                           </span>
                                         ) : h.location_status === 'OFF-SITE' ? (
-                                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black border uppercase tracking-widest bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-500/20 dark:text-orange-300 dark:border-orange-500/30">
+                                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[12px] font-black border uppercase tracking-widest bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-500/20 dark:text-orange-300 dark:border-orange-500/30">
                                             <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
                                             Off-Site {h.is_update ? "- UPDATED" : ""}
                                           </span>
                                         ) : (
-                                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black border uppercase tracking-widest bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30">
+                                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[12px] font-black border uppercase tracking-widest bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30">
                                             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                                             On-Site {h.is_update ? "- UPDATED" : ""}
                                           </span>
@@ -1420,7 +1420,7 @@ export function StaffProfileDialog({
                                       </td>
                                       <td className="px-2 py-2">
                                         {attStatus ? (
-                                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black border uppercase tracking-widest ${attClass}`}>
+                                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[12px] font-black border uppercase tracking-widest ${attClass}`}>
                                             <div className={`w-1.5 h-1.5 rounded-full ${attDot}`} />
                                             {attStatus}
                                           </span>
@@ -1459,7 +1459,7 @@ export function StaffProfileDialog({
                               disabled={loadingMoreLocationHistory}
                               variant="outline"
                               size="sm"
-                              className="text-xs font-bold uppercase tracking-widest gap-2 bg-card border-[#942392]/30 text-[#942392] hover:bg-[#942392]/10"
+                              className="text-[13px] font-bold uppercase tracking-widest gap-2 bg-card border-[#942392]/30 text-[#942392] hover:bg-[#942392]/10"
                             >
                               {loadingMoreLocationHistory ? (
                                 <>
@@ -1542,7 +1542,7 @@ export function StaffProfileDialog({
                               <TableCell className="font-bold text-xs">{req.leave_type}</TableCell>
                               <TableCell className="text-xs">{fromStr}</TableCell>
                               <TableCell className="text-xs">{toStr}</TableCell>
-                              <TableCell className="text-xs font-bold">{req.days}</TableCell>
+                              <TableCell className="text-[13px] font-bold">{req.days}</TableCell>
                               <TableCell className="text-right">
                                 <Button
                                   variant="outline"
@@ -1597,21 +1597,21 @@ export function StaffProfileDialog({
                       <p className="text-xs font-black tracking-[0.3em] uppercase opacity-60 dark:text-purple-300">Permohonan Cuti Kakitangan</p>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4 text-xs font-bold">
+                    <div className="grid grid-cols-2 gap-4 text-[13px] font-bold">
                       <div className="space-y-1">
-                        <span className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50">Nama Penuh</span>
+                        <span className="text-[11px] uppercase font-black text-slate-950 dark:text-slate-50">Nama Penuh</span>
                         <p className="border-b pb-1 border-border/40 truncate">{selectedEmployee?.name}</p>
                       </div>
                       <div className="space-y-1">
-                        <span className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50">Cawangan</span>
+                        <span className="text-[11px] uppercase font-black text-slate-950 dark:text-slate-50">Cawangan</span>
                         <p className="border-b pb-1 border-border/40">{selectedEmployee?.branch || "HQ"}</p>
                       </div>
                       <div className="space-y-1">
-                        <span className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50">Jenis Cuti</span>
+                        <span className="text-[11px] uppercase font-black text-slate-950 dark:text-slate-50">Jenis Cuti</span>
                         <p className="border-b pb-1 border-border/40">{req.leave_type}</p>
                       </div>
                       <div className="space-y-1">
-                        <span className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50">Status</span>
+                        <span className="text-[11px] uppercase font-black text-slate-950 dark:text-slate-50">Status</span>
                         <p className={`font-black uppercase ${req.status === "Rejected" ? "text-rose-600" : "text-[#942392]"}`}>
                           {req.status}
                         </p>
@@ -1621,19 +1621,19 @@ export function StaffProfileDialog({
                     {!(req.leave_type === "Replacement Leave" || req.leave_type === "Cuti Ganti") ? (
                       <div className="grid grid-cols-4 gap-3 p-4 bg-muted/30 rounded-[20px] border border-border/50">
                         <div className="text-center flex flex-col justify-center">
-                          <p className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50 mb-1">Dari</p>
+                          <p className="text-[11px] uppercase font-black text-slate-950 dark:text-slate-50 mb-1">Dari</p>
                           <p className="font-black text-xs sm:text-sm">{fromStr}</p>
                         </div>
                         <div className="text-center flex flex-col justify-center border-l border-border/50">
-                          <p className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50 mb-1">Hingga</p>
+                          <p className="text-[11px] uppercase font-black text-slate-950 dark:text-slate-50 mb-1">Hingga</p>
                           <p className="font-black text-xs sm:text-sm">{toStr}</p>
                         </div>
                         <div className="text-center bg-white dark:bg-slate-900 rounded-[14px] border border-border/50 py-1 shadow-sm flex flex-col justify-center">
-                          <p className="text-[9px] uppercase font-black text-[#942392]">Hari</p>
+                          <p className="text-[11px] uppercase font-black text-[#942392]">Hari</p>
                           <p className="font-black text-lg text-[#942392] leading-none mt-0.5">{req.days}</p>
                         </div>
                         <div className="text-center rounded-[14px] border-2 border-emerald-500 bg-white dark:bg-slate-900 shadow-sm flex flex-col justify-center py-1">
-                          <p className="text-[9px] uppercase font-black text-emerald-600">Baki Layak</p>
+                          <p className="text-[11px] uppercase font-black text-emerald-600">Baki Layak</p>
                           <p className="font-black text-sm text-emerald-600 mt-0.5">
                             {analytics?.leave?.remaining ?? selectedEmployee?.annual_leave_balance ?? req.balance ?? "-"} HARI
                           </p>
@@ -1641,16 +1641,16 @@ export function StaffProfileDialog({
                       </div>
                     ) : (
                       <div className="flex items-center justify-between p-3 bg-muted/30 rounded-[20px] border border-border/50">
-                        <span className="text-[10px] font-black uppercase text-slate-950 dark:text-slate-50 tracking-wider pl-2">Jumlah Hari Cuti Ganti</span>
+                        <span className="text-[12px] font-black uppercase text-slate-950 dark:text-slate-50 tracking-wider pl-2">Jumlah Hari Cuti Ganti</span>
                         <div className="text-center bg-white dark:bg-slate-900 rounded-[14px] border border-border/50 px-6 py-1.5 shadow-sm flex flex-col justify-center">
-                          <p className="text-[9px] uppercase font-black text-[#942392]">Hari</p>
+                          <p className="text-[11px] uppercase font-black text-[#942392]">Hari</p>
                           <p className="font-black text-lg text-[#942392] leading-none mt-0.5">{req.days}</p>
                         </div>
                       </div>
                     )}
 
                     <div className="space-y-2">
-                      <p className="text-[9px] font-black uppercase text-slate-950 dark:text-slate-50 tracking-widest">Sebab / Tujuan</p>
+                      <p className="text-[11px] font-black uppercase text-slate-950 dark:text-slate-50 tracking-widest">Sebab / Tujuan</p>
                       <p className="rounded-[16px] border border-border/40 p-4 font-bold text-foreground bg-muted/10 text-sm leading-relaxed">
                         {getCleanReason(req.reason) || "-"}
                       </p>
@@ -1666,7 +1666,7 @@ export function StaffProfileDialog({
                       );
                       return (
                         <div className="space-y-3">
-                          <p className="text-[9px] font-black uppercase text-blue-600 opacity-80 tracking-widest px-1">Butiran Cuti Ganti</p>
+                          <p className="text-[11px] font-black uppercase text-blue-600 opacity-80 tracking-widest px-1">Butiran Cuti Ganti</p>
                           <div className="border border-blue-500/20 rounded-[20px] overflow-hidden bg-blue-500/5">
                             <Table>
                               <TableHeader>
@@ -1714,13 +1714,13 @@ export function StaffProfileDialog({
                       <div className="p-4 bg-purple-500/10 border border-purple-500/20 rounded-[16px] flex items-center justify-between group">
                         <div className="flex items-center gap-3">
                           <FileText className="w-5 h-5 text-[#942392]" />
-                          <span className="text-[10px] font-black text-[#942392] uppercase tracking-widest">MC Attachment</span>
+                          <span className="text-[12px] font-black text-[#942392] uppercase tracking-widest">MC Attachment</span>
                         </div>
                         <a
                           href={`${API_BASE_URL}${req.mc_file_url}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-[9px] font-black uppercase tracking-widest bg-[#942392] text-white px-4 py-2 rounded-xl hover:bg-[#5e0080] transition-colors shadow-lg"
+                          className="text-[11px] font-black uppercase tracking-widest bg-[#942392] text-white px-4 py-2 rounded-xl hover:bg-[#5e0080] transition-colors shadow-lg"
                         >
                           View File
                         </a>
@@ -1731,24 +1731,24 @@ export function StaffProfileDialog({
                     <div className="pt-4 border-t border-border/50 space-y-4">
                       <div className="flex items-center gap-2">
                         <PhoneCall className="w-4 h-4 text-rose-500" />
-                        <h3 className="text-[10px] font-black uppercase tracking-[0.2em]">Maklumat Waris (Kecemasan)</h3>
+                        <h3 className="text-[12px] font-black uppercase tracking-[0.2em]">Maklumat Waris (Kecemasan)</h3>
                       </div>
                       <div className="grid grid-cols-2 gap-4 bg-muted/20 p-4 rounded-[20px]">
                         <div className="space-y-1">
-                          <span className="text-[8px] font-black text-slate-950 dark:text-slate-50 uppercase">Nama</span>
-                          <p className="text-[11px] font-bold truncate">{req.waris_nama || "-"}</p>
+                          <span className="text-[12px] font-black text-slate-950 dark:text-slate-50 uppercase">Nama</span>
+                          <p className="text-[13px] font-bold truncate">{req.waris_nama || "-"}</p>
                         </div>
                         <div className="space-y-1">
-                          <span className="text-[8px] font-black text-slate-950 dark:text-slate-50 uppercase">Hubungan</span>
-                          <p className="text-[11px] font-bold truncate">{req.waris_hubungan || "-"}</p>
+                          <span className="text-[12px] font-black text-slate-950 dark:text-slate-50 uppercase">Hubungan</span>
+                          <p className="text-[13px] font-bold truncate">{req.waris_hubungan || "-"}</p>
                         </div>
                         <div className="space-y-1">
-                          <span className="text-[8px] font-black text-slate-950 dark:text-slate-50 uppercase">No. Telefon</span>
+                          <span className="text-[12px] font-black text-slate-950 dark:text-slate-50 uppercase">No. Telefon</span>
                           <p className="text-[11px] font-black text-[#942392]">{req.waris_phone || "-"}</p>
                         </div>
                         <div className="space-y-1">
-                          <span className="text-[8px] font-black text-slate-950 dark:text-slate-50 uppercase">Alamat</span>
-                          <p className="text-[11px] font-bold break-words">{req.waris_alamat || "-"}</p>
+                          <span className="text-[12px] font-black text-slate-950 dark:text-slate-50 uppercase">Alamat</span>
+                          <p className="text-[13px] font-bold break-words">{req.waris_alamat || "-"}</p>
                         </div>
                       </div>
                     </div>
@@ -1767,13 +1767,13 @@ export function StaffProfileDialog({
                     <div className="hidden print:block pt-24 mt-12 pb-2">
                       <div className="grid grid-cols-2 gap-16">
                         <div className="border-t border-foreground pt-2 text-center">
-                          <p className="text-[10px] font-bold uppercase">Tandatangan Kakitangan</p>
+                          <p className="text-[12px] font-bold uppercase">Tandatangan Kakitangan</p>
                         </div>
                         <div className="border-t border-foreground pt-2 text-center">
-                          <p className="text-[10px] font-bold uppercase">Kelulusan Pengurus / HR</p>
+                          <p className="text-[12px] font-bold uppercase">Kelulusan Pengurus / HR</p>
                         </div>
                       </div>
-                      <p className="text-[9px] text-center italic mt-4 text-foreground">
+                      <p className="text-[11px] text-center italic mt-4 text-foreground">
                         Borang ini sah digunakan sebagai bukti rasmi cuti kakitangan setelah mendapat kelulusan pihak pengurusan.
                       </p>
                     </div>

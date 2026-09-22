@@ -176,7 +176,7 @@ export const ApprovalHistoryTimeline: React.FC<ApprovalHistoryTimelineProps> = (
     <div className="space-y-4">
       <div className="flex items-center gap-2 mb-3">
         <Clock className="w-4 h-4 text-foreground" />
-        <h3 className="text-xs font-black uppercase tracking-[0.2em] text-foreground">
+        <h3 className="text-[13px] font-black uppercase tracking-[0.2em] text-foreground">
           APPROVAL HISTORY
         </h3>
       </div>
@@ -205,23 +205,23 @@ export const ApprovalHistoryTimeline: React.FC<ApprovalHistoryTimelineProps> = (
                 <div className="flex items-center gap-3 flex-wrap">
                   {/* Status Badge */}
                   {isApproved && (
-                    <span className="px-2.5 py-1 text-[10px] font-black uppercase tracking-wider rounded-md bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300">
+                    <span className="px-2.5 py-1 text-[11px] font-black uppercase tracking-wider rounded-md bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300">
                       APPROVED
                     </span>
                   )}
                   {isRejected && (
-                    <span className="px-2.5 py-1 text-[10px] font-black uppercase tracking-wider rounded-md bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300">
+                    <span className="px-2.5 py-1 text-[11px] font-black uppercase tracking-wider rounded-md bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300">
                       REJECTED
                     </span>
                   )}
                   {isPending && (
-                    <span className="px-2.5 py-1 text-[10px] font-black uppercase tracking-wider rounded-md bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300">
+                    <span className="px-2.5 py-1 text-[11px] font-black uppercase tracking-wider rounded-md bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300">
                       PENDING
                     </span>
                   )}
 
                   {/* Approver Details */}
-                  <div className="text-xs">
+                  <div className="text-[13px]">
                     {isApproved || isRejected ? (
                       <p className="font-medium text-foreground">
                         by{' '}
@@ -249,7 +249,7 @@ export const ApprovalHistoryTimeline: React.FC<ApprovalHistoryTimelineProps> = (
                 {/* Date & Time */}
                 {item.dateStr && (
                   <div className="text-right sm:text-right shrink-0">
-                    <span className="text-xs font-black text-foreground tracking-tight">
+                    <span className="text-[13px] font-black text-foreground tracking-tight">
                       {item.dateStr}
                     </span>
                   </div>

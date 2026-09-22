@@ -678,7 +678,7 @@ export default function Employees() {
             onClick={() => navigate("/master")}
           >
             <ArrowLeft className="h-4 w-4" />
-            <span className="text-[10px] font-black uppercase tracking-widest">
+            <span className="text-[12px] font-black uppercase tracking-widest">
               Back to Employee Management
             </span>
           </Button>
@@ -686,7 +686,7 @@ export default function Employees() {
           {role === "hr_admin" ? (
             <Button 
               onClick={() => setIsAddModalOpen(true)}
-              className="h-9 px-6 rounded-xl bg-[#942392] text-white hover:bg-[#942392]/95 font-black text-[9px] uppercase tracking-wider shadow-lg shadow-[#942392]/15 transition-all whitespace-nowrap touch-target flex items-center"
+              className="h-9 px-6 rounded-xl bg-[#942392] text-white hover:bg-[#942392]/95 font-black text-[11px] uppercase tracking-wider shadow-lg shadow-[#942392]/15 transition-all whitespace-nowrap touch-target flex items-center"
             >
               <Plus className="w-4 h-4 mr-2" />
               Add Staff
@@ -734,7 +734,7 @@ export default function Employees() {
                       {checkedEmployees.map(id => {
                         const emp = dbEmployees.find(e => (e.id?.toString() || e.user_id || e.name) === id);
                         return emp ? (
-                          <span key={id} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#942392]/10 text-[#942392] text-[10px] font-bold">
+                          <span key={id} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#942392]/10 text-[#942392] text-[12px] font-bold">
                             {emp.name}
                             <button onClick={() => setCheckedEmployees(prev => prev.filter(x => x !== id))} className="hover:text-red-500">
                               <X className="w-2.5 h-2.5" />
@@ -790,7 +790,7 @@ export default function Employees() {
                             </svg>
                           </label>
                           <div className="flex-1 min-w-0">
-                            <p className="text-xs font-bold text-foreground">ALL EMPLOYEES</p>
+                            <p className="text-[13px] font-bold text-foreground">ALL EMPLOYEES</p>
                             <p className="text-[10px] text-muted-foreground">Select all in list</p>
                           </div>
                         </div>
@@ -817,10 +817,10 @@ export default function Employees() {
                                 </svg>
                               </label>
                               <div className="flex-1 min-w-0">
-                                <p className={`text-xs font-bold truncate ${isChecked ? 'text-[#942392]' : 'text-foreground'}`}>{emp.name}</p>
+                                <p className={`text-[13px] font-bold truncate ${isChecked ? 'text-[#942392]' : 'text-foreground'}`}>{emp.name}</p>
                                 <p className="text-[10px] text-muted-foreground truncate">{emp.user_id || emp.email || ''} · {emp.branch || ''}</p>
                               </div>
-                              {isChecked && <span className="text-[10px] font-bold text-[#942392] bg-[#942392]/10 px-2 py-0.5 rounded-full">Selected</span>}
+                              {isChecked && <span className="text-[12px] font-bold text-[#942392] bg-[#942392]/10 px-2 py-0.5 rounded-full">Selected</span>}
                             </div>
                           );
                         })}
@@ -830,7 +830,7 @@ export default function Employees() {
                 </div>
                 {checkedEmployees.length > 0 && (
                   <div className="border-t border-border/50 p-2 flex justify-between items-center">
-                    <span className="text-[10px] font-bold text-[#942392]">{checkedEmployees.length} selected</span>
+                    <span className="text-[12px] font-bold text-[#942392]">{checkedEmployees.length} selected</span>
                     <Button size="sm" variant="ghost" className="text-[10px] h-6 text-red-500 hover:text-red-600" onClick={() => setCheckedEmployees([])}>Clear All</Button>
                   </div>
                 )}
@@ -843,9 +843,9 @@ export default function Employees() {
                 <SelectValue placeholder="All Branches" />
               </SelectTrigger>
               <SelectContent className="rounded-xl">
-                <SelectItem value="All" className="text-xs font-bold">All Branches</SelectItem>
+                <SelectItem value="All" className="text-[13px] font-bold">All Branches</SelectItem>
                 {(Array.isArray(uniqueBranches) ? uniqueBranches : []).map((br) => (
-                  <SelectItem key={br} value={br} className="text-xs font-bold">
+                  <SelectItem key={br} value={br} className="text-[13px] font-bold">
                     {br === "All" ? "All Branches" : `${br} - ${toProperCase(branchMap[br] || br)}`}
                   </SelectItem>
                 ))}
@@ -859,9 +859,9 @@ export default function Employees() {
                 <SelectValue placeholder="All Departments" />
               </SelectTrigger>
               <SelectContent className="rounded-xl">
-                <SelectItem value="All" className="text-xs font-bold">All Departments</SelectItem>
+                <SelectItem value="All" className="text-[13px] font-bold">All Departments</SelectItem>
                 {(Array.isArray(uniqueDepartments) ? uniqueDepartments : []).map((dept) => (
-                  <SelectItem key={dept} value={dept} className="text-xs font-bold">
+                  <SelectItem key={dept} value={dept} className="text-[13px] font-bold">
                     {toProperCase(dept)}
                   </SelectItem>
                 ))}
@@ -874,9 +874,9 @@ export default function Employees() {
               <SelectValue placeholder="All Positions" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
-              <SelectItem value="All" className="text-xs font-bold">All Positions</SelectItem>
+              <SelectItem value="All" className="text-[13px] font-bold">All Positions</SelectItem>
               {(Array.isArray(uniquePositions) ? uniquePositions : []).map((pos) => (
-                <SelectItem key={pos} value={pos} className="text-xs font-bold capitalize">
+                <SelectItem key={pos} value={pos} className="text-[13px] font-bold capitalize">
                   {pos.replace(/_/g, ' ')}
                 </SelectItem>
               ))}
@@ -888,10 +888,10 @@ export default function Employees() {
               <SelectValue placeholder="Status: Active" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
-              <SelectItem value="All" className="text-xs font-bold">All Statuses</SelectItem>
-              <SelectItem value="Active" className="text-xs font-bold">Active Only</SelectItem>
-              <SelectItem value="Inactive" className="text-xs font-bold">Inactive Only</SelectItem>
-              <SelectItem value="Deleted" className="text-xs font-bold">Deleted Only</SelectItem>
+              <SelectItem value="All" className="text-[13px] font-bold">All Statuses</SelectItem>
+              <SelectItem value="Active" className="text-[13px] font-bold">Active Only</SelectItem>
+              <SelectItem value="Inactive" className="text-[13px] font-bold">Inactive Only</SelectItem>
+              <SelectItem value="Deleted" className="text-[13px] font-bold">Deleted Only</SelectItem>
             </SelectContent>
           </Select>
 
@@ -915,7 +915,7 @@ export default function Employees() {
           </Button>
         </div>
         
-        <Badge variant="outline" className="px-3 py-1.5 text-xs font-bold whitespace-nowrap bg-muted/30 border-border/60 h-9 flex items-center justify-center rounded-md shrink-0">
+        <Badge variant="outline" className="px-3 py-1.5 text-[13px] font-bold whitespace-nowrap bg-muted/30 border-border/60 h-9 flex items-center justify-center rounded-md shrink-0">
           Total <span className="ml-2 flex items-center justify-center bg-[#942392] text-white rounded-md h-5 min-w-[20px] px-1.5 text-[10px] leading-none shrink-0">{filtered.length}</span>
         </Badge>
       </div>
@@ -925,7 +925,7 @@ export default function Employees() {
           {loading ? (
             <div className="flex flex-col items-center justify-center p-12 gap-3">
               <Loader2 className="w-8 h-8 animate-spin text-[#942392]" />
-              <p className="text-xs font-bold text-foreground animate-pulse uppercase tracking-widest">Loading Personnel...</p>
+              <p className="text-[13px] font-bold text-foreground animate-pulse uppercase tracking-widest">Loading Personnel...</p>
             </div>
           ) : (
             <>
@@ -960,15 +960,15 @@ export default function Employees() {
                             </div>
                           </TableCell>
                           <TableCell className="py-4 px-6">
-                            <span className="text-xs font-bold text-foreground capitalize">
+                            <span className="text-[13px] font-bold text-foreground capitalize">
                               {emp.position === "Finance Manager" || emp.position === "finance_manager" ? "Operation Manager" : emp.position.replace(/_/g, ' ')}
                             </span>
                           </TableCell>
-                          <TableCell className="py-4 px-6 text-xs font-bold text-foreground">
+                          <TableCell className="py-4 px-6 text-[13px] font-bold text-foreground">
                             <div className="flex flex-col gap-1 items-start">
                               <span>{emp.branch}</span>
                               {emp.tempBranch && (
-                                <Badge variant="outline" className="text-[9px] bg-[#a01497]/10 text-[#a01497] border-[#a01497]/20 whitespace-nowrap">
+                                <Badge variant="outline" className="text-[11px] bg-[#a01497]/10 text-[#a01497] border-[#a01497]/20 whitespace-nowrap">
                                   Temp: {emp.tempBranch}
                                 </Badge>
                               )}
@@ -976,7 +976,7 @@ export default function Employees() {
                           </TableCell>
                           <TableCell className="py-4 px-6" onClick={(e) => e.stopPropagation()}>
                             <div className="flex items-center gap-2">
-                              <Badge className={`text-[10px] font-black px-3 ${emp.status === 'Active' ? 'bg-emerald-500 hover:bg-emerald-600 text-white' : emp.status === 'Inactive' ? 'bg-amber-500 hover:bg-amber-600 text-white' : 'bg-rose-500 hover:bg-rose-600 text-white'}`}>
+                              <Badge className={`text-[12px] font-black px-3 ${emp.status === 'Active' ? 'bg-emerald-500 hover:bg-emerald-600 text-white' : emp.status === 'Inactive' ? 'bg-amber-500 hover:bg-amber-600 text-white' : 'bg-rose-500 hover:bg-rose-600 text-white'}`}>
                                   {emp.status === 'Deleted' ? 'Deleted Staff' : `${emp.status} Staff`}
                                 </Badge>
                               {role === "hr_admin" && (
@@ -984,7 +984,7 @@ export default function Employees() {
                                   variant="ghost"
                                   size="sm"
                                   onClick={(e) => handleToggleStatus(e, emp)}
-                                  className={`h-7 px-2.5 rounded-lg text-[9px] font-black uppercase tracking-wider ${
+                                  className={`h-7 px-2.5 rounded-lg text-[11px] font-black uppercase tracking-wider ${
                                     emp.status === "Active"
                                       ? "hover:bg-red-500/10 hover:text-red-500 text-red-400"
                                       : "hover:bg-emerald-500/10 hover:text-emerald-500 text-emerald-400"
@@ -1032,7 +1032,7 @@ export default function Employees() {
                         <div className="flex items-center justify-between gap-2 mb-1">
                           <p className="font-black text-sm text-foreground truncate">{emp.name}</p>
                            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                            <Badge className={`text-[9px] font-black h-5 shrink-0 ${emp.status === 'Active' ? 'bg-emerald-500 text-white' : emp.status === 'Inactive' ? 'bg-amber-500 text-white' : 'bg-rose-500 text-white'}`}>
+                            <Badge className={`text-[11px] font-black h-5 shrink-0 ${emp.status === 'Active' ? 'bg-emerald-500 text-white' : emp.status === 'Inactive' ? 'bg-amber-500 text-white' : 'bg-rose-500 text-white'}`}>
                                 {emp.status === 'Deleted' ? 'Deleted Staff' : `${emp.status} Staff`}
                               </Badge>
                             {role === "hr_admin" && (
@@ -1040,7 +1040,7 @@ export default function Employees() {
                                 variant="ghost"
                                 size="sm"
                                 onClick={(e) => handleToggleStatus(e, emp)}
-                                className={`h-6 px-2 rounded-md text-[8px] font-black uppercase tracking-wider ${
+                                className={`h-6 px-2 rounded-md text-[12px] font-black uppercase tracking-wider ${
                                   emp.status === "Active"
                                     ? "hover:bg-red-500/10 hover:text-red-500 text-red-500"
                                     : "hover:bg-emerald-500/10 hover:text-emerald-500 text-emerald-500"
@@ -1061,7 +1061,7 @@ export default function Employees() {
                                 )}
                               </div>
                         </div>
-                        <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold text-foreground uppercase tracking-wider">
+                        <div className="flex flex-wrap items-center gap-2 text-[12px] font-bold text-foreground uppercase tracking-wider">
                           <span className="truncate max-w-[100px]">
                             {emp.position === "Finance Manager" || emp.position === "finance_manager" ? "Operation Manager" : emp.position.replace(/_/g, ' ')}
                           </span>
@@ -1070,7 +1070,7 @@ export default function Employees() {
                           {emp.tempBranch && (
                             <>
                               <span className="opacity-30">â€¢</span>
-                              <Badge variant="outline" className="text-[9px] bg-[#a01497]/10 text-[#a01497] border-[#a01497]/20">
+                              <Badge variant="outline" className="text-[11px] bg-[#a01497]/10 text-[#a01497] border-[#a01497]/20">
                                 Temp: {emp.tempBranch}
                               </Badge>
                             </>
@@ -1087,7 +1087,7 @@ export default function Employees() {
               {/* Pagination Controls */}
               {filtered.length > 0 && (
                 <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-gray-100 dark:border-slate-800 gap-4 bg-slate-50/50 dark:bg-slate-900/50">
-                  <div className="flex items-center gap-4 text-[10px] font-bold text-foreground uppercase tracking-widest">
+                  <div className="flex items-center gap-4 text-[12px] font-bold text-foreground uppercase tracking-widest">
                     <span>
                       TOTAL SHOWING {indexOfFirstItem + 1} TO {Math.min(indexOfLastItem, filtered.length)} OF {filtered.length} ENTRIES
                     </span>
@@ -1097,7 +1097,7 @@ export default function Employees() {
                         value={entriesPerPage.toString()} 
                         onValueChange={(val) => { setEntriesPerPage(Number(val)); setCurrentPage(1); }}
                       >
-                        <SelectTrigger className="h-7 text-xs font-bold rounded-lg border-border w-[70px]">
+                        <SelectTrigger className="h-7 text-[13px] font-bold rounded-lg border-border w-[70px]">
                           <SelectValue placeholder={entriesPerPage.toString()}>{entriesPerPage}</SelectValue>
                         </SelectTrigger>
                         <SelectContent>
@@ -1116,7 +1116,7 @@ export default function Employees() {
                       size="sm" 
                       onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                       disabled={currentPage === 1}
-                      className="h-8 px-3 text-xs font-bold"
+                      className="h-8 px-3 text-[13px] font-bold"
                     >
                       {"<"}
                     </Button>
@@ -1127,7 +1127,7 @@ export default function Employees() {
                           variant={currentPage === pageNum ? "default" : "outline"}
                           size="sm"
                           onClick={() => setCurrentPage(pageNum)}
-                          className={`h-8 w-8 p-0 text-xs font-bold ${currentPage === pageNum ? 'bg-[#a01497] text-white hover:bg-[#8a1182]' : 'text-slate-600 dark:text-slate-300'}`}
+                          className={`h-8 w-8 p-0 text-[13px] font-bold ${currentPage === pageNum ? 'bg-[#a01497] text-white hover:bg-[#8a1182]' : 'text-slate-600 dark:text-slate-300'}`}
                         >
                           {pageNum}
                         </Button>
@@ -1138,7 +1138,7 @@ export default function Employees() {
                       size="sm" 
                       onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                       disabled={currentPage === totalPages || totalPages === 0}
-                      className="h-8 px-3 text-xs font-bold"
+                      className="h-8 px-3 text-[13px] font-bold"
                     >
                       {">"}
                     </Button>
@@ -1212,7 +1212,7 @@ export default function Employees() {
                               <TableCell className="font-bold text-xs">{req.leave_type}</TableCell>
                               <TableCell className="text-xs">{fromStr}</TableCell>
                               <TableCell className="text-xs">{toStr}</TableCell>
-                              <TableCell className="text-xs font-bold">{req.days}</TableCell>
+                              <TableCell className="text-[13px] font-bold">{req.days}</TableCell>
                               <TableCell className="text-right">
                                 <Button
                                   variant="outline"
@@ -1267,21 +1267,21 @@ export default function Employees() {
                       <p className="text-xs font-black tracking-[0.3em] uppercase opacity-60 dark:text-purple-300">Permohonan Cuti Kakitangan</p>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4 text-xs font-bold">
+                    <div className="grid grid-cols-2 gap-4 text-[13px] font-bold">
                       <div className="space-y-1">
-                        <span className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50">Nama Penuh</span>
+                        <span className="text-[11px] uppercase font-black text-slate-950 dark:text-slate-50">Nama Penuh</span>
                         <p className="border-b pb-1 border-border/40 truncate">{selectedEmployee?.name}</p>
                       </div>
                       <div className="space-y-1">
-                        <span className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50">Cawangan</span>
+                        <span className="text-[11px] uppercase font-black text-slate-950 dark:text-slate-50">Cawangan</span>
                         <p className="border-b pb-1 border-border/40">{selectedEmployee?.branch || "HQ"}</p>
                       </div>
                       <div className="space-y-1">
-                        <span className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50">Jenis Cuti</span>
+                        <span className="text-[11px] uppercase font-black text-slate-950 dark:text-slate-50">Jenis Cuti</span>
                         <p className="border-b pb-1 border-border/40">{req.leave_type}</p>
                       </div>
                       <div className="space-y-1">
-                        <span className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50">Status</span>
+                        <span className="text-[11px] uppercase font-black text-slate-950 dark:text-slate-50">Status</span>
                         <p className={`font-black uppercase ${req.status === "Rejected" ? "text-rose-600" : "text-[#942392]"}`}>
                           {req.status}
                         </p>
@@ -1291,19 +1291,19 @@ export default function Employees() {
                     {!(req.leave_type === "Replacement Leave" || req.leave_type === "Cuti Ganti") ? (
                       <div className="grid grid-cols-4 gap-3 p-4 bg-muted/30 rounded-[20px] border border-border/50">
                         <div className="text-center flex flex-col justify-center">
-                          <p className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50 mb-1">Dari</p>
+                          <p className="text-[11px] uppercase font-black text-slate-950 dark:text-slate-50 mb-1">Dari</p>
                           <p className="font-black text-xs sm:text-sm">{fromStr}</p>
                         </div>
                         <div className="text-center flex flex-col justify-center border-l border-border/50">
-                          <p className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50 mb-1">Hingga</p>
+                          <p className="text-[11px] uppercase font-black text-slate-950 dark:text-slate-50 mb-1">Hingga</p>
                           <p className="font-black text-xs sm:text-sm">{toStr}</p>
                         </div>
                         <div className="text-center bg-white dark:bg-slate-900 rounded-[14px] border border-border/50 py-1 shadow-sm flex flex-col justify-center">
-                          <p className="text-[9px] uppercase font-black text-[#942392]">Hari</p>
+                          <p className="text-[11px] uppercase font-black text-[#942392]">Hari</p>
                           <p className="font-black text-lg text-[#942392] leading-none mt-0.5">{req.days}</p>
                         </div>
                         <div className="text-center rounded-[14px] border-2 border-emerald-500 bg-white dark:bg-slate-900 shadow-sm flex flex-col justify-center py-1">
-                          <p className="text-[9px] uppercase font-black text-emerald-600">Baki Layak</p>
+                          <p className="text-[11px] uppercase font-black text-emerald-600">Baki Layak</p>
                           <p className="font-black text-sm text-emerald-600 mt-0.5">
                             {analytics?.leave?.remaining ?? selectedEmployee?.annual_leave_balance ?? req.balance ?? "-"} HARI
                           </p>
@@ -1311,16 +1311,16 @@ export default function Employees() {
                       </div>
                     ) : (
                       <div className="flex items-center justify-between p-3 bg-muted/30 rounded-[20px] border border-border/50">
-                        <span className="text-[10px] font-black uppercase text-slate-950 dark:text-slate-50 tracking-wider pl-2">Jumlah Hari Cuti Ganti</span>
+                        <span className="text-[12px] font-black uppercase text-slate-950 dark:text-slate-50 tracking-wider pl-2">Jumlah Hari Cuti Ganti</span>
                         <div className="text-center bg-white dark:bg-slate-900 rounded-[14px] border border-border/50 px-6 py-1.5 shadow-sm flex flex-col justify-center">
-                          <p className="text-[9px] uppercase font-black text-[#942392]">Hari</p>
+                          <p className="text-[11px] uppercase font-black text-[#942392]">Hari</p>
                           <p className="font-black text-lg text-[#942392] leading-none mt-0.5">{req.days}</p>
                         </div>
                       </div>
                     )}
 
                     <div className="space-y-2">
-                      <p className="text-[9px] font-black uppercase text-slate-950 dark:text-slate-50 tracking-widest">Sebab / Tujuan</p>
+                      <p className="text-[11px] font-black uppercase text-slate-950 dark:text-slate-50 tracking-widest">Sebab / Tujuan</p>
                       <p className="rounded-[16px] border border-border/40 p-4 font-bold text-foreground bg-muted/10 text-sm leading-relaxed">
                         {getCleanReason(req.reason) || "-"}
                       </p>
@@ -1336,7 +1336,7 @@ export default function Employees() {
                       );
                       return (
                         <div className="space-y-3">
-                          <p className="text-[9px] font-black uppercase text-blue-600 opacity-80 tracking-widest px-1">Butiran Cuti Ganti</p>
+                          <p className="text-[11px] font-black uppercase text-blue-600 opacity-80 tracking-widest px-1">Butiran Cuti Ganti</p>
                           <div className="border border-blue-500/20 rounded-[20px] overflow-hidden bg-blue-500/5">
                             <Table>
                               <TableHeader>
@@ -1384,13 +1384,13 @@ export default function Employees() {
                       <div className="p-4 bg-purple-500/10 border border-purple-500/20 rounded-[16px] flex items-center justify-between group">
                         <div className="flex items-center gap-3">
                           <FileText className="w-5 h-5 text-[#942392]" />
-                          <span className="text-[10px] font-black text-[#942392] uppercase tracking-widest">MC Attachment</span>
+                          <span className="text-[12px] font-black text-[#942392] uppercase tracking-widest">MC Attachment</span>
                         </div>
                         <a
                           href={`${API_BASE_URL}${req.mc_file_url}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-[9px] font-black uppercase tracking-widest bg-[#942392] text-white px-4 py-2 rounded-xl hover:bg-[#5e0080] transition-colors shadow-lg"
+                          className="text-[11px] font-black uppercase tracking-widest bg-[#942392] text-white px-4 py-2 rounded-xl hover:bg-[#5e0080] transition-colors shadow-lg"
                         >
                           View File
                         </a>
@@ -1401,24 +1401,24 @@ export default function Employees() {
                     <div className="pt-4 border-t border-border/50 space-y-4">
                       <div className="flex items-center gap-2">
                         <PhoneCall className="w-4 h-4 text-rose-500" />
-                        <h3 className="text-[10px] font-black uppercase tracking-[0.2em]">Maklumat Waris (Kecemasan)</h3>
+                        <h3 className="text-[12px] font-black uppercase tracking-[0.2em]">Maklumat Waris (Kecemasan)</h3>
                       </div>
                       <div className="grid grid-cols-2 gap-4 bg-muted/20 p-4 rounded-[20px]">
                         <div className="space-y-1">
-                          <span className="text-[8px] font-black text-slate-950 dark:text-slate-50 uppercase">Nama</span>
-                          <p className="text-[11px] font-bold truncate">{req.waris_nama || "-"}</p>
+                          <span className="text-[12px] font-black text-slate-950 dark:text-slate-50 uppercase">Nama</span>
+                          <p className="text-[13px] font-bold truncate">{req.waris_nama || "-"}</p>
                         </div>
                         <div className="space-y-1">
-                          <span className="text-[8px] font-black text-slate-950 dark:text-slate-50 uppercase">Hubungan</span>
-                          <p className="text-[11px] font-bold truncate">{req.waris_hubungan || "-"}</p>
+                          <span className="text-[12px] font-black text-slate-950 dark:text-slate-50 uppercase">Hubungan</span>
+                          <p className="text-[13px] font-bold truncate">{req.waris_hubungan || "-"}</p>
                         </div>
                         <div className="space-y-1">
-                          <span className="text-[8px] font-black text-slate-950 dark:text-slate-50 uppercase">No. Telefon</span>
+                          <span className="text-[12px] font-black text-slate-950 dark:text-slate-50 uppercase">No. Telefon</span>
                           <p className="text-[11px] font-black text-[#942392]">{req.waris_phone || "-"}</p>
                         </div>
                         <div className="space-y-1">
-                          <span className="text-[8px] font-black text-slate-950 dark:text-slate-50 uppercase">Alamat</span>
-                          <p className="text-[11px] font-bold break-words">{req.waris_alamat || "-"}</p>
+                          <span className="text-[12px] font-black text-slate-950 dark:text-slate-50 uppercase">Alamat</span>
+                          <p className="text-[13px] font-bold break-words">{req.waris_alamat || "-"}</p>
                         </div>
                       </div>
                     </div>
@@ -1428,7 +1428,7 @@ export default function Employees() {
                       <div className="space-y-4 pt-4 border-t border-border/50">
                         <div className="flex items-center gap-2">
                           <Clock className="w-4 h-4 text-[#942392]" />
-                          <h3 className="text-[10px] font-black uppercase tracking-[0.2em]">
+                          <h3 className="text-[12px] font-black uppercase tracking-[0.2em]">
                             Approval History
                           </h3>
                         </div>
@@ -1439,14 +1439,14 @@ export default function Employees() {
                               <div className="ml-6 flex-1 bg-muted/30 rounded-[16px] p-3 border border-border/40">
                                 <div className="flex items-center justify-between gap-2 mb-1">
                                   <div className="flex items-center gap-2">
-                                    <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-md ${history.status === 'Approved' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-rose-500/10 text-rose-600'}`}>
+                                    <span className={`text-[12px] font-black uppercase px-2 py-0.5 rounded-md ${history.status === 'Approved' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-rose-500/10 text-rose-600'}`}>
                                       {history.status}
                                     </span>
-                                    <span className="text-[10px] font-black text-foreground/70">
+                                    <span className="text-[12px] font-black text-foreground/70">
                                       by {history.approver_name || history.approver_id}
                                     </span>
                                   </div>
-                                  <span className="text-[8px] font-black text-foreground/50">
+                                  <span className="text-[12px] font-black text-foreground/50">
                                     {new Date(history.created_at).toLocaleDateString('ms-MY')}
                                   </span>
                                 </div>
@@ -1465,13 +1465,13 @@ export default function Employees() {
                     <div className="hidden print:block pt-24 mt-12 pb-2">
                       <div className="grid grid-cols-2 gap-16">
                         <div className="border-t border-foreground pt-2 text-center">
-                          <p className="text-[10px] font-bold uppercase">Tandatangan Kakitangan</p>
+                          <p className="text-[12px] font-bold uppercase">Tandatangan Kakitangan</p>
                         </div>
                         <div className="border-t border-foreground pt-2 text-center">
-                          <p className="text-[10px] font-bold uppercase">Kelulusan Pengurus / HR</p>
+                          <p className="text-[12px] font-bold uppercase">Kelulusan Pengurus / HR</p>
                         </div>
                       </div>
-                      <p className="text-[9px] text-center italic mt-4 text-foreground">
+                      <p className="text-[11px] text-center italic mt-4 text-foreground">
                         Borang ini sah digunakan sebagai bukti rasmi cuti kakitangan setelah mendapat kelulusan pihak pengurusan.
                       </p>
                     </div>
