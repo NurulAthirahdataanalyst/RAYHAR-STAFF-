@@ -1784,7 +1784,15 @@ export default function Dashboard() {
                   const days = Math.ceil((new Date(g.end_date).getTime() - new Date(g.start_date).getTime()) / (1000 * 3600 * 24)) + 1;
 
                   return (
-                    <div key={i} onClick={() => navigate("/outstation/my?tab=active")} className="flex items-start gap-3 p-4 border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors cursor-pointer">
+                    <div key={i} onClick={() => {
+                      const adminRoles = ["hr_admin", "managing_director", "operation_manager", "head_of_department", "branch_leader"];
+                      const isAssigned = g.employees.some((e: any) => e.name?.toLowerCase() === rawName?.toLowerCase());
+                      if (adminRoles.includes(role) && !isAssigned) {
+                        navigate("/outstation/assignment");
+                      } else {
+                        navigate("/outstation/my?tab=active");
+                      }
+                    }} className="flex items-start gap-3 p-4 border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors cursor-pointer">
                       <div className="w-[3px] rounded-full self-stretch bg-[#ff5b37] mr-1" />
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate uppercase">{g.title}</p>
@@ -1854,7 +1862,15 @@ export default function Dashboard() {
                   const extraCount = Math.max(0, g.employees.length - 3);
 
                   return (
-                    <div key={i} onClick={() => navigate("/outstation/my?tab=upcoming")} className="flex items-start gap-3 p-4 border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors cursor-pointer">
+                    <div key={i} onClick={() => {
+                      const adminRoles = ["hr_admin", "managing_director", "operation_manager", "head_of_department", "branch_leader"];
+                      const isAssigned = g.employees.some((e: any) => e.name?.toLowerCase() === rawName?.toLowerCase());
+                      if (adminRoles.includes(role) && !isAssigned) {
+                        navigate("/outstation/assignment");
+                      } else {
+                        navigate("/outstation/my?tab=upcoming");
+                      }
+                    }} className="flex items-start gap-3 p-4 border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors cursor-pointer">
                       <div className="w-[3px] rounded-full self-stretch bg-[#0088cc] mr-1" />
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate uppercase">{g.title}</p>
