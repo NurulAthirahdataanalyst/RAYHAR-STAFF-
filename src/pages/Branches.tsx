@@ -1677,35 +1677,48 @@ export default function Branches() {
                           </div>
 
                           {!(req.leave_type === "Replacement Leave" || req.leave_type === "Cuti Ganti") ? (
-                            <div className="grid grid-cols-4 gap-3 p-4 print:p-5 bg-muted/30 rounded-[20px] border border-border/50">
-                              <div className="text-center flex flex-col justify-center">
-                                <p className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50 mb-1">
-                                  Dari
-                                </p>
-                                <p className="font-black text-xs sm:text-sm print:text-[11px]">{fromStr}</p>
-                              </div>
-                              <div className="text-center flex flex-col justify-center border-l border-border/50">
-                                <p className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50 mb-1">
-                                  Hingga
-                                </p>
-                                <p className="font-black text-xs sm:text-sm print:text-[11px]">{toStr}</p>
-                              </div>
-                              <div className="text-center bg-white dark:bg-slate-900 rounded-[14px] border border-border/50 py-1 shadow-sm flex flex-col justify-center">
-                                <p className="text-[9px] print:text-[13px] uppercase font-black text-[#942392]">
-                                  Hari
-                                </p>
-                                <p className="font-black text-lg text-[#942392] leading-none mt-0.5">
-                                  {req.days}
-                                </p>
-                              </div>
-                              <div className="text-center rounded-[14px] border-2 border-emerald-500 bg-white dark:bg-slate-900 shadow-sm flex flex-col justify-center py-1">
-                                <p className="text-[9px] print:text-[13px] uppercase font-black text-emerald-600">Baki Layak</p>
-                                <p className="font-black text-sm text-emerald-600 mt-0.5">
-                                  {selectedEmployee?.annual_leave_balance ?? req.balance ?? "-"} HARI
-                                </p>
-                              </div>
-                            </div>
-                          ) : (
+                            <div className="grid grid-cols-4 gap-3 print:gap-4">
+                      {/* Dari */}
+                      <div className="border border-border/50 rounded-xl overflow-hidden flex flex-col">
+                        <div className="bg-slate-50 dark:bg-slate-800/50 p-1.5 text-center border-b border-border/50">
+                          <p className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50">Dari</p>
+                        </div>
+                        <div className="p-2 flex-1 flex items-center justify-center bg-white dark:bg-slate-950">
+                          <p className="font-black text-xs sm:text-sm print:text-[11px] text-center">{selectedForm.from}</p>
+                        </div>
+                      </div>
+                      
+                      {/* Hingga */}
+                      <div className="border border-border/50 rounded-xl overflow-hidden flex flex-col">
+                        <div className="bg-slate-50 dark:bg-slate-800/50 p-1.5 text-center border-b border-border/50">
+                          <p className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50">Hingga</p>
+                        </div>
+                        <div className="p-2 flex-1 flex items-center justify-center bg-white dark:bg-slate-950">
+                          <p className="font-black text-xs sm:text-sm print:text-[11px] text-center">{selectedForm.to}</p>
+                        </div>
+                      </div>
+                      
+                      {/* Bilangan Hari */}
+                      <div className="border border-[#942392]/30 rounded-xl overflow-hidden flex flex-col shadow-sm">
+                        <div className="bg-[#942392]/5 p-1.5 text-center border-b border-[#942392]/20">
+                          <p className="text-[9px] print:text-[13px] uppercase font-black text-[#942392]">Bilangan Hari</p>
+                        </div>
+                        <div className="p-2 flex-1 flex items-center justify-center bg-white dark:bg-slate-950">
+                          <p className="font-black text-xs sm:text-sm print:text-[11px] text-[#942392] text-center">{selectedForm.days}</p>
+                        </div>
+                      </div>
+                      
+                      {/* Baki Layak */}
+                      <div className="border border-emerald-500/40 rounded-xl overflow-hidden flex flex-col shadow-sm">
+                        <div className="bg-emerald-50 p-1.5 text-center border-b border-emerald-500/20 dark:bg-emerald-950/20">
+                          <p className="text-[9px] print:text-[13px] uppercase font-black text-emerald-600">Baki Layak</p>
+                        </div>
+                        <div className="p-2 flex-1 flex items-center justify-center bg-white dark:bg-slate-950">
+                          <p className="font-black text-xs sm:text-sm print:text-[11px] text-emerald-600 text-center">{selectedForm.balance ?? "-"} HARI</p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
                             <div className="flex items-center justify-between p-3 bg-muted/30 rounded-[20px] border border-border/50">
                               <span className="text-[10px] print:text-[13px] font-black uppercase text-slate-950 dark:text-slate-50 tracking-wider pl-2">Jumlah Hari Cuti Ganti</span>
                               <div className="text-center bg-white dark:bg-slate-900 rounded-[14px] border border-border/50 px-6 py-1.5 shadow-sm flex flex-col justify-center">
