@@ -127,7 +127,7 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role }: LeaveDetai
                   <FileText className="h-6 w-6" />
                   Leave Application Detail
                 </DialogTitle>
-                <DialogDescription className="text-white/80 font-bold uppercase text-[8px] print:text-[10px] tracking-widest">
+                <DialogDescription className="text-white/80 font-bold uppercase text-[8px] print:text-[12px] tracking-widest">
                   HR Approval Registry • ID: {selectedRequest.id}
                 </DialogDescription>
               </DialogHeader>
@@ -142,27 +142,27 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role }: LeaveDetai
 
                 <div className="grid grid-cols-2 gap-4 print:gap-y-6 print:gap-x-8 text-xs print:text-[13px] font-bold">
                   <div className="space-y-1 print:space-y-1.5">
-                    <span className="text-[9px] print:text-[11px] uppercase font-black text-slate-950 dark:text-slate-50">Nama Penuh</span>
+                    <span className="text-[9px] print:text-[12px] uppercase font-black text-slate-950 dark:text-slate-50">Nama Penuh</span>
                     <p className="border-b pb-1 print:pb-2 border-border/40 break-words font-bold">{selectedRequest.employee || (selectedRequest as any).full_name}</p>
                   </div>
                   <div className="space-y-1 print:space-y-1.5">
-                    <span className="text-[9px] print:text-[11px] uppercase font-black text-slate-950 dark:text-slate-50">Cawangan</span>
+                    <span className="text-[9px] print:text-[12px] uppercase font-black text-slate-950 dark:text-slate-50">Cawangan</span>
                     <p className="border-b pb-1 print:pb-2 border-border/40">{formatBranchName(selectedRequest.branch)}</p>
                   </div>
                   <div className="space-y-1 print:space-y-1.5">
-                    <span className="text-[9px] print:text-[11px] uppercase font-black text-slate-950 dark:text-slate-50">No. Telefon</span>
+                    <span className="text-[9px] print:text-[12px] uppercase font-black text-slate-950 dark:text-slate-50">No. Telefon</span>
                     <p className="border-b pb-1 print:pb-2 border-border/40 font-black text-[#942392]">{selectedRequest.phone || (selectedRequest as any).applicant_phone || "-"}</p>
                   </div>
                   <div className="space-y-1 print:space-y-1.5">
-                    <span className="text-[9px] print:text-[11px] uppercase font-black text-slate-950 dark:text-slate-50">Jenis Cuti</span>
+                    <span className="text-[9px] print:text-[12px] uppercase font-black text-slate-950 dark:text-slate-50">Jenis Cuti</span>
                     <p className="border-b pb-1 print:pb-2 border-border/40">{selectedRequest.type}</p>
                   </div>
                   <div className="space-y-1 col-span-2 sm:col-span-1">
-                    <span className="text-[9px] print:text-[11px] uppercase font-black text-slate-950 dark:text-slate-50">Status</span>
+                    <span className="text-[9px] print:text-[12px] uppercase font-black text-slate-950 dark:text-slate-50">Status</span>
                     <p className={`font-black uppercase ${selectedRequest.status === "Rejected" ? "text-rose-600" : "text-[#942392]"}`}>
                       {selectedRequest.status}
                       {selectedRequest.status === "Rejected" && selectedRequest.approverRole && (
-                        <span className="block text-[8px] print:text-[10px] text-rose-500 mt-0.5 opacity-60">
+                        <span className="block text-[8px] print:text-[12px] text-rose-500 mt-0.5 opacity-60">
                           (by: {formatRole(selectedRequest.approverRole)})
                         </span>
                       )}
@@ -173,19 +173,19 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role }: LeaveDetai
                 {!(selectedRequest.type === "Replacement Leave" || selectedRequest.type === "Cuti Ganti") ? (
                   <div className="grid grid-cols-4 gap-3 p-4 print:p-5 bg-muted/30 rounded-[20px] border border-border/50">
                     <div className="text-center flex flex-col justify-center">
-                      <p className="text-[9px] print:text-[11px] uppercase font-black text-slate-950 dark:text-slate-50 mb-1">Dari</p>
-                      <p className="font-black text-xs sm:text-sm">{selectedRequest.from}</p>
+                      <p className="text-[9px] print:text-[12px] uppercase font-black text-slate-950 dark:text-slate-50 mb-1">Dari</p>
+                      <p className="font-black text-xs sm:text-sm print:text-[13px]">{selectedRequest.from}</p>
                     </div>
                     <div className="text-center flex flex-col justify-center border-l border-border/50">
-                      <p className="text-[9px] print:text-[11px] uppercase font-black text-slate-950 dark:text-slate-50 mb-1">Hingga</p>
-                      <p className="font-black text-xs sm:text-sm">{selectedRequest.to}</p>
+                      <p className="text-[9px] print:text-[12px] uppercase font-black text-slate-950 dark:text-slate-50 mb-1">Hingga</p>
+                      <p className="font-black text-xs sm:text-sm print:text-[13px]">{selectedRequest.to}</p>
                     </div>
                     <div className="text-center bg-white dark:bg-slate-900 rounded-[14px] border border-border/50 py-1 shadow-sm flex flex-col justify-center">
-                      <p className="text-[9px] print:text-[11px] uppercase font-black text-[#942392]">Hari</p>
+                      <p className="text-[9px] print:text-[12px] uppercase font-black text-[#942392]">Hari</p>
                       <p className="font-black text-lg text-[#942392] leading-none mt-0.5">{selectedRequest.days}</p>
                     </div>
                     <div className="text-center rounded-[14px] border-2 border-emerald-500 bg-white dark:bg-slate-900 shadow-sm flex flex-col justify-center py-1">
-                      <p className="text-[9px] print:text-[11px] uppercase font-black text-emerald-600">Baki Layak</p>
+                      <p className="text-[9px] print:text-[12px] uppercase font-black text-emerald-600">Baki Layak</p>
                       <p className="font-black text-sm text-emerald-600 mt-0.5">
                         {bakiLayak} HARI
                       </p>
@@ -195,7 +195,7 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role }: LeaveDetai
                   <div className="flex items-center justify-between p-3 bg-muted/30 rounded-[20px] border border-border/50">
                     <span className="text-[10px] print:text-[12px] font-black uppercase text-slate-950 dark:text-slate-50 tracking-wider pl-2">Jumlah Hari Cuti Ganti</span>
                     <div className="text-center bg-white dark:bg-slate-900 rounded-[14px] border border-border/50 px-6 py-1.5 shadow-sm flex flex-col justify-center">
-                      <p className="text-[9px] print:text-[11px] uppercase font-black text-[#942392]">Hari</p>
+                      <p className="text-[9px] print:text-[12px] uppercase font-black text-[#942392]">Hari</p>
                       <p className="font-black text-lg text-[#942392] leading-none mt-0.5">{selectedRequest.days}</p>
                     </div>
                   </div>
@@ -203,7 +203,7 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role }: LeaveDetai
 
                 {!(selectedRequest.type === "Replacement Leave" || selectedRequest.type === "Cuti Ganti") && (
                 <div className="space-y-2">
-                  <p className="text-[10px] print:text-[11px] font-black uppercase text-slate-950 dark:text-slate-50 tracking-widest">Sebab / Tujuan</p>
+                  <p className="text-[10px] print:text-[12px] font-black uppercase text-slate-950 dark:text-slate-50 tracking-widest">Sebab / Tujuan</p>
                   <div className="rounded-[16px] border border-border/40 p-4 font-bold text-foreground bg-muted/10 text-sm leading-relaxed whitespace-pre-wrap break-words min-h-[50px]">
                     {getCleanReason(selectedRequest.reason) || "-"}
                   </div>
@@ -219,16 +219,16 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role }: LeaveDetai
                   );
                   return (
                     <div className="space-y-3">
-                      <p className="text-[10px] print:text-[11px] font-black uppercase text-blue-600 opacity-80 tracking-widest px-1">Butiran Cuti Ganti</p>
+                      <p className="text-[10px] print:text-[12px] font-black uppercase text-blue-600 opacity-80 tracking-widest px-1">Butiran Cuti Ganti</p>
                       <div className="border border-blue-500/20 rounded-[20px] overflow-x-auto bg-blue-500/5">
                         <Table>
                           <TableHeader>
                             <TableRow className="bg-blue-500/10 hover:bg-blue-500/10 border-b border-blue-500/20">
-                              <TableHead className="py-2.5 px-4 text-[8px] print:text-[10px]">Tarikh Cuti</TableHead>
-                              <TableHead className="py-2.5 px-4 text-[8px] print:text-[10px]">Tarikh/Hari Cuti Ganti</TableHead>
-                              <TableHead className="py-2.5 px-4 text-[8px] print:text-[10px]">Keterangan / Tugasan</TableHead>
-                              <TableHead className="py-2.5 px-4 text-[8px] print:text-[10px] text-right">Jam Bekerja</TableHead>
-                              <TableHead className="py-2.5 px-4 text-[8px] print:text-[10px] text-center">Status</TableHead>
+                              <TableHead className="py-2.5 px-4 text-[8px] print:text-[12px]">Tarikh Cuti</TableHead>
+                              <TableHead className="py-2.5 px-4 text-[8px] print:text-[12px]">Tarikh/Hari Cuti Ganti</TableHead>
+                              <TableHead className="py-2.5 px-4 text-[8px] print:text-[12px]">Keterangan / Tugasan</TableHead>
+                              <TableHead className="py-2.5 px-4 text-[8px] print:text-[12px] text-right">Jam Bekerja</TableHead>
+                              <TableHead className="py-2.5 px-4 text-[8px] print:text-[12px] text-center">Status</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody className="divide-y divide-blue-500/10 font-bold text-foreground/80">
@@ -257,7 +257,7 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role }: LeaveDetai
                                 <TableRow key={idx} className="hover:bg-blue-500/5">
                                   <TableCell className="py-2 px-4">{row.tarikhCuti || "-"}</TableCell>
                                   <TableCell className="py-2 px-4">{row.tarikhGanti || "-"}</TableCell>
-                                  <TableCell className="py-2 px-4 whitespace-normal break-words max-w-[200px] text-[9px] print:text-[11px] text-blue-900/80 font-medium">{row.keterangan || "-"}</TableCell>
+                                  <TableCell className="py-2 px-4 whitespace-normal break-words max-w-[200px] text-[9px] print:text-[12px] text-blue-900/80 font-medium">{row.keterangan || "-"}</TableCell>
                                   <TableCell className="py-2 px-4 text-right">
                                     {validation?.actual_hours !== undefined && validation.actual_hours !== null ? (
                                       <span className="font-bold text-blue-600">{Number(validation.actual_hours).toFixed(1)} / {row.jamGanti || 4} Jam</span>
@@ -279,7 +279,7 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role }: LeaveDetai
                 })()}
 
                 {(selectedRequest.type === "Unpaid Leave" || selectedRequest.type === "Cuti Tanpa Gaji") && (
-                  <div className="grid grid-cols-2 gap-4 print:gap-y-6 print:gap-x-8 text-[8px] print:text-[10px] border rounded-[20px] p-4 bg-rose-500/5 border-rose-500/20">
+                  <div className="grid grid-cols-2 gap-4 print:gap-y-6 print:gap-x-8 text-[8px] print:text-[12px] border rounded-[20px] p-4 bg-rose-500/5 border-rose-500/20">
                     <div>
                       <p className="uppercase font-black text-rose-600 opacity-60">No. Tel H/P</p>
                       <p className="font-black mt-0.5">{selectedRequest.cutiTanpaGajiPhone || "-"}</p>
@@ -303,7 +303,7 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role }: LeaveDetai
                       href={`${API_BASE_URL}${selectedRequest.mcFileUrl}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-[10px] print:text-[11px] font-black uppercase tracking-widest bg-[#942392] text-white px-4 py-2 rounded-xl hover:bg-[#5e0080] transition-colors shadow-lg"
+                      className="text-[10px] print:text-[12px] font-black uppercase tracking-widest bg-[#942392] text-white px-4 py-2 rounded-xl hover:bg-[#5e0080] transition-colors shadow-lg"
                     >
                       View File
                     </a>
@@ -327,7 +327,7 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role }: LeaveDetai
                       </div>
                       <div className="space-y-1 print:space-y-1.5">
                         <span className="text-[10px] print:text-[12px] font-black text-slate-950 dark:text-slate-50 uppercase">No. Telefon</span>
-                        <p className="text-[9px] print:text-[11px] font-black text-[#942392]">{selectedRequest.warisPhone}</p>
+                        <p className="text-[9px] print:text-[12px] font-black text-[#942392]">{selectedRequest.warisPhone}</p>
                       </div>
                       <div className="space-y-1 print:space-y-1.5">
                         <span className="text-[10px] print:text-[12px] font-black text-slate-950 dark:text-slate-50 uppercase">Alamat</span>
@@ -359,7 +359,7 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role }: LeaveDetai
                               {new Date(history.created_at).toLocaleDateString('ms-MY')}
                             </span>
                           </div>
-                          <p className="text-[8px] print:text-[10px] italic text-foreground bg-white/50 dark:bg-black/20 p-2 rounded-lg mt-1">
+                          <p className="text-[8px] print:text-[12px] italic text-foreground bg-white/50 dark:bg-black/20 p-2 rounded-lg mt-1">
                             "{history.remarks}"
                           </p>
                         </div>
@@ -377,12 +377,12 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role }: LeaveDetai
                       <p className="text-[10px] print:text-[12px] font-bold uppercase">Kelulusan Pengurus / HR</p>
                     </div>
                   </div>
-                  <p className="text-[9px] print:text-[11px] text-center italic mt-4 text-foreground">
+                  <p className="text-[9px] print:text-[12px] text-center italic mt-4 text-foreground">
                     Borang ini sah digunakan sebagai bukti rasmi cuti kakitangan setelah mendapat kelulusan pihak pengurusan.
                   </p>
                 </div>
 
-                <p className="text-[8px] print:text-[10px] text-center italic text-muted-foreground pt-4 print:hidden">
+                <p className="text-[8px] print:text-[12px] text-center italic text-muted-foreground pt-4 print:hidden">
                   Borang ini sah digunakan sebagai bukti rasmi cuti kakitangan setelah mendapat kelulusan pihak pengurusan.
                 </p>
 
@@ -390,7 +390,7 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role }: LeaveDetai
                   <Button
                     type="button"
                     variant="outline"
-                    className="gap-2 border-[#942392] text-[#942392] hover:bg-[#942392]/5 rounded-xl font-black text-[8px] print:text-[10px] uppercase tracking-widest px-6"
+                    className="gap-2 border-[#942392] text-[#942392] hover:bg-[#942392]/5 rounded-xl font-black text-[8px] print:text-[12px] uppercase tracking-widest px-6"
                     onClick={() => {
                       const originalTitle = document.title;
                       const empName = selectedRequest.employee || selectedRequest.name || "UNKNOWN";
