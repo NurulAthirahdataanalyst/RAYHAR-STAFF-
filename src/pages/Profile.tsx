@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { User, Mail, Building2, ShieldCheck, Calendar, MapPin, Lock, Loader2, ArrowLeft, Plus, Sparkles } from "lucide-react";
+import { User, Mail, Building2, ShieldCheck, Calendar, MapPin, Lock, Loader2, ArrowLeft, ArrowRight, Plus, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { API_BASE_URL } from "@/config/api";
 import { supabase } from "@/integrations/supabase/client";
@@ -138,7 +138,7 @@ const Profile = () => {
 
   return (
     <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-500">
-      {/* Back to Dashboard */}
+      {/* Back to Dashboard + Move to Notification */}
       <div className="flex items-center justify-between">
         <Button
           variant="ghost"
@@ -150,6 +150,17 @@ const Profile = () => {
           <span className="text-[10px] font-black uppercase tracking-widest">
             Back to Dashboard
           </span>
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="mb-1 gap-2 px-0 text-[#942392] hover:bg-transparent hover:text-[#5e0080] transition-colors touch-target no-global-hover cursor-pointer"
+          onClick={() => navigate("/notifications")}
+        >
+          <span className="text-[10px] font-black uppercase tracking-widest">
+            Move to Notification
+          </span>
+          <ArrowRight className="h-4 w-4" />
         </Button>
       </div>
 

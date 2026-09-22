@@ -612,7 +612,7 @@ export default function Notifications() {
 
   return (
     <div className="space-y-4 sm:space-y-5 animate-in fade-in duration-500">
-      {/* Top Header Row: Back to Dashboard on Left, Refresh & Actions on Right (Single Line) */}
+      {/* Top Header Row: Back to Dashboard on Left, Move to Profile + Refresh & Actions on Right */}
       <div className="flex items-center justify-between gap-3 pb-1">
         <Button
           variant="ghost"
@@ -627,6 +627,18 @@ export default function Notifications() {
         </Button>
 
         <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-2 px-0 text-[#942392] hover:bg-transparent hover:text-[#5e0080] transition-colors touch-target no-global-hover cursor-pointer"
+            onClick={() => navigate("/profile")}
+          >
+            <span className="text-[10px] font-black uppercase tracking-widest">
+              Move to Profile
+            </span>
+            <ArrowRight className="h-4 w-4" />
+          </Button>
+
           {currentScopeUnread > 0 && (
             <Badge className="bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-xs">
               {currentScopeUnread} unread
@@ -658,7 +670,7 @@ export default function Notifications() {
         </div>
       </div>
 
-      {/* Primary Scope Tabs: Personal vs Management (matching Recent Activity) */}
+      {/* Primary Scope Tabs: Personal vs Management */}
       <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-0">
         <div className="flex items-center gap-6">
           {isElevatedRole && (
@@ -697,16 +709,9 @@ export default function Notifications() {
             </>
           )}
         </div>
-        
-        <div className="flex items-center mb-2">
-          <MonthPicker
-            monthYear={selectedMonthYear}
-            onSelectMonthYear={setSelectedMonthYear}
-          />
-        </div>
       </div>
 
-      {/* Tabs and Search Bar */}
+      {/* Tabs, Search Bar, and Month Picker */}
       <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-card p-2 rounded-xl border border-border shadow-xs">
         <div className="flex items-center gap-1 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
           {[
@@ -731,14 +736,20 @@ export default function Notifications() {
           ))}
         </div>
 
-        <div className="relative min-w-[220px]">
-          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search notifications..."
-            className="pl-8 h-8 text-xs bg-background"
+        <div className="flex items-center gap-2">
+          <MonthPicker
+            monthYear={selectedMonthYear}
+            onSelectMonthYear={setSelectedMonthYear}
           />
+          <div className="relative min-w-[220px]">
+            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search notifications..."
+              className="pl-8 h-8 text-xs bg-background"
+            />
+          </div>
         </div>
       </div>
 

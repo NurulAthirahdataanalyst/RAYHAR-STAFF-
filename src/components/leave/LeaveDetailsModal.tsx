@@ -225,7 +225,7 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role }: LeaveDetai
                 {!(selectedRequest.type === "Replacement Leave" || selectedRequest.type === "Cuti Ganti") && (
                 <div className="space-y-2">
                   <p className="text-[10px] print:text-[13px] font-black uppercase text-slate-950 dark:text-slate-50 tracking-widest">Sebab / Tujuan</p>
-                  <div className="rounded-[16px] border border-border/40 p-4 font-bold text-foreground bg-muted/10 text-sm leading-relaxed whitespace-pre-wrap break-words min-h-[50px]">
+                  <div className="rounded-[16px] border border-border/40 print:border-none print:border-0 print:border-transparent print:bg-transparent p-4 font-bold text-foreground bg-muted/10 text-sm leading-relaxed whitespace-pre-wrap break-words min-h-[50px] print:p-0 print:pt-1">
                     {getCleanReason(selectedRequest.reason) || "-"}
                   </div>
                 </div>
@@ -337,7 +337,7 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role }: LeaveDetai
                       <PhoneCall className="w-4 h-4 text-rose-500" />
                       <h3 className="text-[10px] print:text-[13px] font-black uppercase tracking-[0.2em]">Maklumat Waris (Kecemasan)</h3>
                     </div>
-                    <div className="grid grid-cols-2 gap-4 print:gap-y-6 print:gap-x-8 bg-muted/20 p-4 rounded-[20px]">
+                    <div className="grid grid-cols-2 gap-4 print:gap-y-6 print:gap-x-8 bg-muted/20 print:bg-transparent print:border-none p-4 print:px-0 rounded-[20px]">
                       <div className="space-y-1 print:space-y-1.5">
                         <span className="text-[10px] print:text-[13px] font-black text-slate-950 dark:text-slate-50 uppercase">Nama</span>
                         <p className="text-xs print:text-[11px] font-bold truncate">{selectedRequest.warisNama}</p>

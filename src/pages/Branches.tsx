@@ -1765,7 +1765,7 @@ export default function Branches() {
                                 Maklumat Waris (Kecemasan)
                               </h3>
                             </div>
-                            <div className="grid grid-cols-2 gap-4 print:gap-y-6 print:gap-x-8 bg-muted/20 p-4 rounded-[20px]">
+                            <div className="grid grid-cols-2 gap-4 print:gap-y-6 print:gap-x-8 bg-muted/20 print:bg-transparent print:border-none p-4 print:px-0 rounded-[20px]">
                               <div className="space-y-1 print:space-y-1.5">
                                 <span className="text-[10px] print:text-[13px] font-black text-slate-950 dark:text-slate-50 uppercase">
                                   Nama
