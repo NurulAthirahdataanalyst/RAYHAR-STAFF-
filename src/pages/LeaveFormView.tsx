@@ -535,7 +535,7 @@ export default function LeaveFormView() {
               <div className="w-20 h-20 rounded-[32px] bg-muted/30 flex items-center justify-center border-2 border-dashed border-border/50 group hover:border-[#942392]/30 transition-colors">
                 <FileText className="h-10 w-10 text-foreground/30 group-hover:text-[#942392]/30 transition-colors" />
               </div>
-              <div className="space-y-1">
+              <div className="space-y-1 print:space-y-1.5">
                 <p className="text-xs font-black text-foreground uppercase tracking-widest">
                   {activeTab === "pending" ? "No Pending Applications" : activeTab === "approved" ? "No Approved Applications" : activeTab === "rejected" ? "No Rejected Applications" : "No Leave Registry Found"}
                 </p>
@@ -581,22 +581,22 @@ export default function LeaveFormView() {
                     <p className="text-[24px] print:text-[16px] font-black tracking-[0.3em] uppercase opacity-60 dark:text-purple-300">Permohonan Cuti Kakitangan</p>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 text-xs print:text-[13px] font-bold">
-                    <div className="space-y-1">
+                  <div className="grid grid-cols-2 gap-4 print:gap-y-6 print:gap-x-8 text-xs print:text-[13px] font-bold">
+                    <div className="space-y-1 print:space-y-1.5">
                       <span className="text-[9px] print:text-[11px] uppercase font-black text-slate-950 dark:text-slate-50">Nama Penuh</span>
-                      <p className="border-b pb-1 border-border/40 break-words font-bold">{selectedForm.employee}</p>
+                      <p className="border-b pb-1 print:pb-2 border-border/40 break-words font-bold">{selectedForm.employee}</p>
                     </div>
-                    <div className="space-y-1">
+                    <div className="space-y-1 print:space-y-1.5">
                       <span className="text-[9px] print:text-[11px] uppercase font-black text-slate-950 dark:text-slate-50">Cawangan</span>
-                      <p className="border-b pb-1 border-border/40">{formatBranchName(selectedForm.branch)}</p>
+                      <p className="border-b pb-1 print:pb-2 border-border/40">{formatBranchName(selectedForm.branch)}</p>
                     </div>
-                    <div className="space-y-1">
+                    <div className="space-y-1 print:space-y-1.5">
                       <span className="text-[9px] print:text-[11px] uppercase font-black text-slate-950 dark:text-slate-50">No. Telefon</span>
-                      <p className="border-b pb-1 border-border/40 font-black text-[#942392]">{selectedForm.phone || (selectedForm as any).applicant_phone || "-"}</p>
+                      <p className="border-b pb-1 print:pb-2 border-border/40 font-black text-[#942392]">{selectedForm.phone || (selectedForm as any).applicant_phone || "-"}</p>
                     </div>
-                    <div className="space-y-1">
+                    <div className="space-y-1 print:space-y-1.5">
                       <span className="text-[9px] print:text-[11px] uppercase font-black text-slate-950 dark:text-slate-50">Jenis Cuti</span>
-                      <p className="border-b pb-1 border-border/40">{selectedForm.type}</p>
+                      <p className="border-b pb-1 print:pb-2 border-border/40">{selectedForm.type}</p>
                     </div>
                     <div className="space-y-1 col-span-2 sm:col-span-1">
                       <span className="text-[9px] print:text-[11px] uppercase font-black text-slate-950 dark:text-slate-50">Status</span>
@@ -612,7 +612,7 @@ export default function LeaveFormView() {
                   </div>
 
                   {!(selectedForm.type === "Replacement Leave" || selectedForm.type === "Cuti Ganti") ? (
-                    <div className="grid grid-cols-4 gap-3 p-4 bg-muted/30 rounded-[20px] border border-border/50">
+                    <div className="grid grid-cols-4 gap-3 p-4 print:p-5 bg-muted/30 rounded-[20px] border border-border/50">
                       <div className="text-center flex flex-col justify-center">
                         <p className="text-[9px] print:text-[11px] uppercase font-black text-slate-950 dark:text-slate-50 mb-1">Dari</p>
                         <p className="font-black text-xs sm:text-sm">{selectedForm.from}</p>
@@ -713,7 +713,7 @@ export default function LeaveFormView() {
 
                   {/* Conditional Fields: Cuti Tanpa Gaji */}
                   {(selectedForm.type === "Unpaid Leave" || selectedForm.type === "Cuti Tanpa Gaji") && (
-                    <div className="grid grid-cols-2 gap-4 text-[8px] print:text-[10px] border rounded-[20px] p-4 bg-rose-500/5 border-rose-500/20">
+                    <div className="grid grid-cols-2 gap-4 print:gap-y-6 print:gap-x-8 text-[8px] print:text-[10px] border rounded-[20px] p-4 bg-rose-500/5 border-rose-500/20">
                       <div>
                         <p className="uppercase font-black text-rose-600 opacity-60">No. Tel H/P</p>
                         <p className="font-black mt-0.5">{selectedForm.cutiTanpaGajiPhone || "-"}</p>
@@ -751,20 +751,20 @@ export default function LeaveFormView() {
                       <PhoneCall className="w-4 h-4 text-rose-500" />
                       <h3 className="text-[10px] print:text-[12px] font-black uppercase tracking-[0.2em]">Maklumat Waris (Kecemasan)</h3>
                     </div>
-                    <div className="grid grid-cols-2 gap-4 print:gap-2 bg-muted/20 p-4 print:p-2 rounded-[20px] print:rounded-none">
-                      <div className="space-y-1">
+                    <div className="grid grid-cols-2 gap-4 print:gap-y-6 print:gap-x-8 bg-muted/20 p-4 print:p-5 rounded-[20px]">
+                      <div className="space-y-1 print:space-y-1.5">
                         <span className="text-[10px] print:text-[12px] font-black text-slate-950 dark:text-slate-50 uppercase">Nama</span>
                         <p className="text-xs print:text-[13px] font-bold truncate">{selectedForm.warisNama}</p>
                       </div>
-                      <div className="space-y-1">
+                      <div className="space-y-1 print:space-y-1.5">
                         <span className="text-[10px] print:text-[12px] font-black text-slate-950 dark:text-slate-50 uppercase">Hubungan</span>
                         <p className="text-xs print:text-[13px] font-bold truncate">{selectedForm.warisHubungan}</p>
                       </div>
-                      <div className="space-y-1">
+                      <div className="space-y-1 print:space-y-1.5">
                         <span className="text-[10px] print:text-[12px] font-black text-slate-950 dark:text-slate-50 uppercase">No. Telefon</span>
                         <p className="text-[9px] print:text-[11px] font-black text-[#942392]">{selectedForm.warisPhone}</p>
                       </div>
-                      <div className="space-y-1">
+                      <div className="space-y-1 print:space-y-1.5">
                         <span className="text-[10px] print:text-[12px] font-black text-slate-950 dark:text-slate-50 uppercase">Alamat</span>
                         <p className="text-xs print:text-[13px] font-bold break-words">{selectedForm.warisAlamat}</p>
                       </div>

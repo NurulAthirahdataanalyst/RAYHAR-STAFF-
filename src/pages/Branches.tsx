@@ -1557,7 +1557,7 @@ export default function Branches() {
           </div>
 
           <div className="flex-1 overflow-y-auto">
-          <div className="p-4 sm:p-6 space-y-6">
+          <div className="p-4 sm:p-6 print:p-6 space-y-6">
             {loadingLeaves ? (
               <div className="flex flex-col items-center justify-center p-12 gap-3">
                 <Loader2 className="w-8 h-8 animate-spin text-[#942392]" />
@@ -1639,32 +1639,32 @@ export default function Branches() {
                             </p>
                           </div>
 
-                          <div className="grid grid-cols-2 gap-4 text-xs print:text-[13px] font-bold">
-                            <div className="space-y-1">
+                          <div className="grid grid-cols-2 gap-4 print:gap-y-6 print:gap-x-8 text-xs print:text-[13px] font-bold">
+                            <div className="space-y-1 print:space-y-1.5">
                               <span className="text-[9px] print:text-[11px] uppercase font-black text-slate-950 dark:text-slate-50">
                                 Nama Penuh
                               </span>
-                              <p className="border-b pb-1 border-border/40 truncate">
+                              <p className="border-b pb-1 print:pb-2 border-border/40 truncate">
                                 {selectedEmployee?.full_name}
                               </p>
                             </div>
-                            <div className="space-y-1">
+                            <div className="space-y-1 print:space-y-1.5">
                               <span className="text-[9px] print:text-[11px] uppercase font-black text-slate-950 dark:text-slate-50">
                                 Cawangan
                               </span>
-                              <p className="border-b pb-1 border-border/40">
+                              <p className="border-b pb-1 print:pb-2 border-border/40">
                                 {selectedBranch?.code || "HQ"}
                               </p>
                             </div>
-                            <div className="space-y-1">
+                            <div className="space-y-1 print:space-y-1.5">
                               <span className="text-[9px] print:text-[11px] uppercase font-black text-slate-950 dark:text-slate-50">
                                 Jenis Cuti
                               </span>
-                              <p className="border-b pb-1 border-border/40">
+                              <p className="border-b pb-1 print:pb-2 border-border/40">
                                 {req.leave_type}
                               </p>
                             </div>
-                            <div className="space-y-1">
+                            <div className="space-y-1 print:space-y-1.5">
                               <span className="text-[9px] print:text-[11px] uppercase font-black text-slate-950 dark:text-slate-50">
                                 Status
                               </span>
@@ -1677,7 +1677,7 @@ export default function Branches() {
                           </div>
 
                           {!(req.leave_type === "Replacement Leave" || req.leave_type === "Cuti Ganti") ? (
-                            <div className="grid grid-cols-4 gap-3 p-4 bg-muted/30 rounded-[20px] border border-border/50">
+                            <div className="grid grid-cols-4 gap-3 p-4 print:p-5 bg-muted/30 rounded-[20px] border border-border/50">
                               <div className="text-center flex flex-col justify-center">
                                 <p className="text-[9px] print:text-[11px] uppercase font-black text-slate-950 dark:text-slate-50 mb-1">
                                   Dari
@@ -1752,8 +1752,8 @@ export default function Branches() {
                                 Maklumat Waris (Kecemasan)
                               </h3>
                             </div>
-                            <div className="grid grid-cols-2 gap-4 bg-muted/20 p-4 rounded-[20px]">
-                              <div className="space-y-1">
+                            <div className="grid grid-cols-2 gap-4 print:gap-y-6 print:gap-x-8 bg-muted/20 p-4 rounded-[20px]">
+                              <div className="space-y-1 print:space-y-1.5">
                                 <span className="text-[10px] print:text-[12px] font-black text-slate-950 dark:text-slate-50 uppercase">
                                   Nama
                                 </span>
@@ -1761,7 +1761,7 @@ export default function Branches() {
                                   {req.waris_nama || "-"}
                                 </p>
                               </div>
-                              <div className="space-y-1">
+                              <div className="space-y-1 print:space-y-1.5">
                                 <span className="text-[10px] print:text-[12px] font-black text-slate-950 dark:text-slate-50 uppercase">
                                   Hubungan
                                 </span>
@@ -1769,7 +1769,7 @@ export default function Branches() {
                                   {req.waris_hubungan || "-"}
                                 </p>
                               </div>
-                              <div className="space-y-1">
+                              <div className="space-y-1 print:space-y-1.5">
                                 <span className="text-[10px] print:text-[12px] font-black text-slate-950 dark:text-slate-50 uppercase">
                                   No. Telefon
                                 </span>
@@ -1777,7 +1777,7 @@ export default function Branches() {
                                   {req.waris_phone || "-"}
                                 </p>
                               </div>
-                              <div className="space-y-1">
+                              <div className="space-y-1 print:space-y-1.5">
                                 <span className="text-[10px] print:text-[12px] font-black text-slate-950 dark:text-slate-50 uppercase">
                                   Alamat
                                 </span>
