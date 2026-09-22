@@ -343,7 +343,7 @@ export default function LeaveFormView() {
             onClick={() => navigate("/leave")}
           >
             <ArrowLeft className="h-4 w-4" />
-            <span className="text-[10px] print:text-[12px] font-black uppercase tracking-widest">
+            <span className="text-[10px] print:text-[13px] font-black uppercase tracking-widest">
               Back to Leave Overview
             </span>
           </Button>
@@ -357,14 +357,14 @@ export default function LeaveFormView() {
             <Button
               variant="outline"
               onClick={handleExport}
-              className="gap-2 bg-card border border-border/50 text-foreground hover:bg-muted rounded-xl font-black text-[8px] print:text-[12px] uppercase tracking-widest px-4 shadow-sm transition-all active:scale-95"
+              className="gap-2 bg-card border border-border/50 text-foreground hover:bg-muted rounded-xl font-black text-[8px] print:text-[13px] uppercase tracking-widest px-4 shadow-sm transition-all active:scale-95"
             >
               <Download className="w-3.5 h-3.5" />
               Export
             </Button>
             <Button
               onClick={() => navigate("/leave/apply")}
-              className="gap-2 bg-[#942392] text-white hover:bg-[#5e0080] rounded-xl font-black text-[8px] print:text-[12px] uppercase tracking-widest px-4 shadow-sm transition-all active:scale-95"
+              className="gap-2 bg-[#942392] text-white hover:bg-[#5e0080] rounded-xl font-black text-[8px] print:text-[13px] uppercase tracking-widest px-4 shadow-sm transition-all active:scale-95"
             >
               <FileText className="w-3.5 h-3.5" />
               New Application
@@ -394,7 +394,7 @@ export default function LeaveFormView() {
                 >
                   {tab.label}
                   {tab.count > 0 && (
-                    <span className={`ml-2 px-1.5 py-0.5 rounded-full text-[10px] print:text-[12px] font-bold ${
+                    <span className={`ml-2 px-1.5 py-0.5 rounded-full text-[10px] print:text-[13px] font-bold ${
                       activeTab === tab.key 
                         ? `${tab.bgBadge} text-white`
                         : `bg-muted-foreground/20 text-foreground transition-colors ${tab.hoverBadge} group-hover:text-white`
@@ -407,7 +407,7 @@ export default function LeaveFormView() {
             </div>
             
             <div className="pb-3 flex items-center gap-3 w-full sm:w-auto justify-end">
-              <Badge variant="outline" className="font-black text-[8px] print:text-[12px] px-3 py-1 bg-white/50 dark:bg-black/20 border-border/50 text-foreground">
+              <Badge variant="outline" className="font-black text-[8px] print:text-[13px] px-3 py-1 bg-white/50 dark:bg-black/20 border-border/50 text-foreground">
                 {filteredForms.length} {activeTab === "pending" ? "PENDING" : activeTab === "approved" ? "APPROVED" : activeTab === "rejected" ? "REJECTED" : "TOTAL"}
               </Badge>
             </div>
@@ -415,7 +415,7 @@ export default function LeaveFormView() {
           {loading ? (
             <div className="flex flex-col items-center justify-center p-12 gap-3">
               <Loader2 className="w-8 h-8 animate-spin text-[#942392]" />
-              <p className="text-[10px] print:text-[12px] font-black uppercase tracking-[0.2em] text-foreground animate-pulse">Syncing History...</p>
+              <p className="text-[10px] print:text-[13px] font-black uppercase tracking-[0.2em] text-foreground animate-pulse">Syncing History...</p>
             </div>
           ) : filteredForms.length > 0 ? (
             <>
@@ -424,11 +424,11 @@ export default function LeaveFormView() {
                 <Table>
                   <TableHeader className="bg-muted/30">
                     <TableRow>
-                      <TableHead className="px-6 py-4 text-[8px] print:text-[12px]">Leave Type</TableHead>
-                      <TableHead className="px-6 py-4 text-[8px] print:text-[12px]">From</TableHead>
-                      <TableHead className="px-6 py-4 text-[8px] print:text-[12px]">To</TableHead>
-                      <TableHead className="px-6 py-4 text-[8px] print:text-[12px] text-center">Days</TableHead>
-                      <TableHead className="px-6 py-4 text-[8px] print:text-[12px] text-center">Status</TableHead>
+                      <TableHead className="px-6 py-4 text-[8px] print:text-[13px]">Leave Type</TableHead>
+                      <TableHead className="px-6 py-4 text-[8px] print:text-[13px]">From</TableHead>
+                      <TableHead className="px-6 py-4 text-[8px] print:text-[13px]">To</TableHead>
+                      <TableHead className="px-6 py-4 text-[8px] print:text-[13px] text-center">Days</TableHead>
+                      <TableHead className="px-6 py-4 text-[8px] print:text-[13px] text-center">Status</TableHead>
                       <TableHead className="px-6 py-4 text-right"></TableHead>
                     </TableRow>
                   </TableHeader>
@@ -447,7 +447,7 @@ export default function LeaveFormView() {
                         <TableCell className="px-6 py-4">
                           <div className="flex flex-col">
                             <span className="font-black text-[#942392] dark:text-purple-400">{leaveTypeLabels[form.type]}</span>
-                            <span className="text-[10px] print:text-[12px] font-bold text-foreground uppercase tracking-widest mt-0.5">{form.appliedAt.slice(0, 10)}</span>
+                            <span className="text-[10px] print:text-[13px] font-bold text-foreground uppercase tracking-widest mt-0.5">{form.appliedAt.slice(0, 10)}</span>
                           </div>
                         </TableCell>
                         <TableCell className="px-6 py-4 text-foreground font-bold">{form.from}</TableCell>
@@ -455,7 +455,7 @@ export default function LeaveFormView() {
                         <TableCell className="px-6 py-4 text-center font-black text-foreground">{form.days}</TableCell>
                         <TableCell className="px-6 py-4 text-center">
                           <Badge
-                            className={`text-[10px] print:text-[12px] font-black px-2.5 py-1 h-auto shadow-sm whitespace-nowrap ${
+                            className={`text-[10px] print:text-[13px] font-black px-2.5 py-1 h-auto shadow-sm whitespace-nowrap ${
                               form.status === "Approved" ? "bg-[#228b22] text-white hover:bg-[#1a661a]" :
                               form.status === "Rejected" ? "bg-rose-600 text-white hover:bg-rose-700" :
                               "bg-[#C2410C] text-white hover:bg-[#A3370A]"
@@ -498,10 +498,10 @@ export default function LeaveFormView() {
                           <p className="text-sm font-black text-foreground truncate group-hover:text-[#942392] transition-colors">
                             {leaveTypeLabels[form.type]}
                           </p>
-                          <div className="flex flex-wrap items-center gap-2 text-[10px] print:text-[12px] font-bold text-foreground uppercase tracking-widest">
+                          <div className="flex flex-wrap items-center gap-2 text-[10px] print:text-[13px] font-bold text-foreground uppercase tracking-widest">
                             <span>{form.appliedAt.slice(0, 10)}</span>
                           </div>
-                          <div className="flex items-center gap-2 text-[10px] print:text-[12px] font-bold text-foreground mt-1 bg-muted/40 w-fit px-2 py-0.5 rounded-lg">
+                          <div className="flex items-center gap-2 text-[10px] print:text-[13px] font-bold text-foreground mt-1 bg-muted/40 w-fit px-2 py-0.5 rounded-lg">
                             <span className="flex items-center gap-1">
                               <Calendar className="w-3 h-3 opacity-50" />
                               {form.from} → {form.to}
@@ -515,7 +515,7 @@ export default function LeaveFormView() {
 
                       <div className="flex flex-col items-end gap-2 shrink-0">
                         <Badge
-                          className={`text-[9px] print:text-[12px] font-black px-2 py-1 h-auto shadow-sm whitespace-nowrap ${
+                          className={`text-[9px] print:text-[13px] font-black px-2 py-1 h-auto shadow-sm whitespace-nowrap ${
                             form.status === "Approved" ? "bg-[#228b22] text-white" :
                             form.status === "Rejected" ? "bg-rose-600 text-white" :
                             "bg-[#C2410C] text-white"
@@ -539,7 +539,7 @@ export default function LeaveFormView() {
                 <p className="text-xs font-black text-foreground uppercase tracking-widest">
                   {activeTab === "pending" ? "No Pending Applications" : activeTab === "approved" ? "No Approved Applications" : activeTab === "rejected" ? "No Rejected Applications" : "No Leave Registry Found"}
                 </p>
-                <p className="text-[8px] print:text-[12px] font-medium text-foreground italic">
+                <p className="text-[8px] print:text-[13px] font-medium text-foreground italic">
                   {activeTab === "pending" ? "All your applications have been processed" : activeTab === "approved" ? "No applications approved yet" : activeTab === "rejected" ? "No applications rejected" : "You haven't submitted any leave applications yet"}
                 </p>
               </div>
@@ -547,7 +547,7 @@ export default function LeaveFormView() {
                 <Button
                   variant="outline"
                   onClick={() => navigate("/leave/apply")}
-                  className="mt-2 rounded-xl border-[#942392] text-[#942392] hover:bg-[#942392]/5 font-black text-[8px] print:text-[12px] uppercase tracking-widest"
+                  className="mt-2 rounded-xl border-[#942392] text-[#942392] hover:bg-[#942392]/5 font-black text-[8px] print:text-[13px] uppercase tracking-widest"
                 >
                   Start New Application
                 </Button>
@@ -568,7 +568,7 @@ export default function LeaveFormView() {
                     <FileText className="h-6 w-6" />
                     Leave Application Form
                   </DialogTitle>
-                  <DialogDescription className="text-white/80 font-bold uppercase text-[8px] print:text-[12px] tracking-widest">
+                  <DialogDescription className="text-white/80 font-bold uppercase text-[8px] print:text-[13px] tracking-widest">
                     Your Personal Registry • ID: {selectedForm.id}
                   </DialogDescription>
                 </DialogHeader>
@@ -581,29 +581,29 @@ export default function LeaveFormView() {
                     <p className="text-[24px] print:text-[16px] font-black tracking-[0.3em] uppercase opacity-60 dark:text-purple-300">Permohonan Cuti Kakitangan</p>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 print:gap-y-6 print:gap-x-8 text-xs print:text-[13px] font-bold">
+                  <div className="grid grid-cols-2 gap-4 print:gap-y-6 print:gap-x-8 text-xs print:text-[11px] font-bold">
                     <div className="space-y-1 print:space-y-1.5">
-                      <span className="text-[9px] print:text-[12px] uppercase font-black text-slate-950 dark:text-slate-50">Nama Penuh</span>
+                      <span className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50">Nama Penuh</span>
                       <p className="border-b pb-1 print:pb-2 border-border/40 break-words font-bold">{selectedForm.employee}</p>
                     </div>
                     <div className="space-y-1 print:space-y-1.5">
-                      <span className="text-[9px] print:text-[12px] uppercase font-black text-slate-950 dark:text-slate-50">Cawangan</span>
+                      <span className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50">Cawangan</span>
                       <p className="border-b pb-1 print:pb-2 border-border/40">{formatBranchName(selectedForm.branch)}</p>
                     </div>
                     <div className="space-y-1 print:space-y-1.5">
-                      <span className="text-[9px] print:text-[12px] uppercase font-black text-slate-950 dark:text-slate-50">No. Telefon</span>
+                      <span className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50">No. Telefon</span>
                       <p className="border-b pb-1 print:pb-2 border-border/40 font-black text-[#942392]">{selectedForm.phone || (selectedForm as any).applicant_phone || "-"}</p>
                     </div>
                     <div className="space-y-1 print:space-y-1.5">
-                      <span className="text-[9px] print:text-[12px] uppercase font-black text-slate-950 dark:text-slate-50">Jenis Cuti</span>
+                      <span className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50">Jenis Cuti</span>
                       <p className="border-b pb-1 print:pb-2 border-border/40">{selectedForm.type}</p>
                     </div>
                     <div className="space-y-1 col-span-2 sm:col-span-1">
-                      <span className="text-[9px] print:text-[12px] uppercase font-black text-slate-950 dark:text-slate-50">Status</span>
+                      <span className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50">Status</span>
                       <p className={`font-black uppercase ${selectedForm.status === "Rejected" ? "text-rose-600" : "text-[#942392]"}`}>
                         {selectedForm.status}
                         {selectedForm.status === "Rejected" && selectedForm.approverRole && (
-                          <span className="block text-[8px] print:text-[12px] text-rose-500 mt-0.5 opacity-60">
+                          <span className="block text-[8px] print:text-[13px] text-rose-500 mt-0.5 opacity-60">
                             (by: {formatRole(selectedForm.approverRole)})
                           </span>
                         )}
@@ -614,19 +614,19 @@ export default function LeaveFormView() {
                   {!(selectedForm.type === "Replacement Leave" || selectedForm.type === "Cuti Ganti") ? (
                     <div className="grid grid-cols-4 gap-3 p-4 print:p-5 bg-muted/30 rounded-[20px] border border-border/50">
                       <div className="text-center flex flex-col justify-center">
-                        <p className="text-[9px] print:text-[12px] uppercase font-black text-slate-950 dark:text-slate-50 mb-1">Dari</p>
-                        <p className="font-black text-xs sm:text-sm print:text-[13px]">{selectedForm.from}</p>
+                        <p className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50 mb-1">Dari</p>
+                        <p className="font-black text-xs sm:text-sm print:text-[11px]">{selectedForm.from}</p>
                       </div>
                       <div className="text-center flex flex-col justify-center border-l border-border/50">
-                        <p className="text-[9px] print:text-[12px] uppercase font-black text-slate-950 dark:text-slate-50 mb-1">Hingga</p>
-                        <p className="font-black text-xs sm:text-sm print:text-[13px]">{selectedForm.to}</p>
+                        <p className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50 mb-1">Hingga</p>
+                        <p className="font-black text-xs sm:text-sm print:text-[11px]">{selectedForm.to}</p>
                       </div>
                       <div className="text-center bg-white dark:bg-slate-900 rounded-[14px] border border-border/50 py-1 shadow-sm flex flex-col justify-center">
-                        <p className="text-[9px] print:text-[12px] uppercase font-black text-[#942392]">Hari</p>
+                        <p className="text-[9px] print:text-[13px] uppercase font-black text-[#942392]">Hari</p>
                         <p className="font-black text-lg text-[#942392] leading-none mt-0.5">{selectedForm.days}</p>
                       </div>
                       <div className="text-center rounded-[14px] border-2 border-emerald-500 bg-white dark:bg-slate-900 shadow-sm flex flex-col justify-center py-1">
-                        <p className="text-[9px] print:text-[12px] uppercase font-black text-emerald-600">Baki Layak</p>
+                        <p className="text-[9px] print:text-[13px] uppercase font-black text-emerald-600">Baki Layak</p>
                         <p className="font-black text-sm text-emerald-600 mt-0.5">
                           {selectedForm.balance ?? "-"} HARI
                         </p>
@@ -634,9 +634,9 @@ export default function LeaveFormView() {
                     </div>
                   ) : (
                     <div className="flex items-center justify-between p-3 bg-muted/30 rounded-[20px] border border-border/50">
-                      <span className="text-[10px] print:text-[12px] font-black uppercase text-slate-950 dark:text-slate-50 tracking-wider pl-2">Jumlah Hari Cuti Ganti</span>
+                      <span className="text-[10px] print:text-[13px] font-black uppercase text-slate-950 dark:text-slate-50 tracking-wider pl-2">Jumlah Hari Cuti Ganti</span>
                       <div className="text-center bg-white dark:bg-slate-900 rounded-[14px] border border-border/50 px-6 py-1.5 shadow-sm flex flex-col justify-center">
-                        <p className="text-[9px] print:text-[12px] uppercase font-black text-[#942392]">Hari</p>
+                        <p className="text-[9px] print:text-[13px] uppercase font-black text-[#942392]">Hari</p>
                         <p className="font-black text-lg text-[#942392] leading-none mt-0.5">{selectedForm.days}</p>
                       </div>
                     </div>
@@ -644,7 +644,7 @@ export default function LeaveFormView() {
 
                   {!(selectedForm.type === "Replacement Leave" || selectedForm.type === "Cuti Ganti") && (
                   <div className="space-y-2">
-                    <p className="text-[10px] print:text-[12px] font-black uppercase text-slate-950 dark:text-slate-50 tracking-widest">Sebab / Tujuan</p>
+                    <p className="text-[10px] print:text-[13px] font-black uppercase text-slate-950 dark:text-slate-50 tracking-widest">Sebab / Tujuan</p>
                     <div className="rounded-[16px] border border-border/40 p-4 font-bold text-foreground bg-muted/10 text-sm leading-relaxed whitespace-pre-wrap break-words min-h-[50px] max-h-[100px] overflow-y-auto print:max-h-none print:overflow-visible print:p-2">
                       {getCleanReason(selectedForm.reason) || "-"}
                     </div>
@@ -661,15 +661,15 @@ export default function LeaveFormView() {
                     );
                     return (
                       <div className="space-y-3">
-                        <p className="text-[10px] print:text-[12px] font-black uppercase text-blue-600 opacity-80 tracking-widest px-1">Butiran Cuti Ganti</p>
+                        <p className="text-[10px] print:text-[13px] font-black uppercase text-blue-600 opacity-80 tracking-widest px-1">Butiran Cuti Ganti</p>
                         <div className="border border-blue-500/20 rounded-[20px] overflow-hidden bg-blue-500/5">
                           <Table>
                             <TableHeader>
                               <TableRow className="bg-blue-500/10 hover:bg-blue-500/10 border-b border-blue-500/20">
-                                <TableHead className="py-2.5 px-4 text-[8px] print:text-[12px]">Tarikh Cuti</TableHead>
-                                <TableHead className="py-2.5 px-4 text-[8px] print:text-[12px]">Tarikh/Hari Cuti Ganti</TableHead>
-                                <TableHead className="py-2.5 px-4 text-[8px] print:text-[12px]">Keterangan / Tugasan</TableHead>
-                                <TableHead className="py-2.5 px-4 text-[8px] print:text-[12px] text-right">Jam Bekerja</TableHead>
+                                <TableHead className="py-2.5 px-4 text-[8px] print:text-[13px]">Tarikh Cuti</TableHead>
+                                <TableHead className="py-2.5 px-4 text-[8px] print:text-[13px]">Tarikh/Hari Cuti Ganti</TableHead>
+                                <TableHead className="py-2.5 px-4 text-[8px] print:text-[13px]">Keterangan / Tugasan</TableHead>
+                                <TableHead className="py-2.5 px-4 text-[8px] print:text-[13px] text-right">Jam Bekerja</TableHead>
                               </TableRow>
                             </TableHeader>
                             <TableBody className="divide-y divide-blue-500/10 font-bold text-foreground/80">
@@ -699,7 +699,7 @@ export default function LeaveFormView() {
                                 <TableRow key={idx} className="hover:bg-blue-500/5">
                                   <TableCell className="py-2 px-4">{row.tarikhCuti || "-"}</TableCell>
                                   <TableCell className="py-2 px-4">{row.tarikhGanti || "-"}</TableCell>
-                                  <TableCell className="py-2 px-4 whitespace-normal break-words max-w-[200px] text-[9px] print:text-[12px] text-blue-900/80 font-medium">{row.keterangan || "-"}</TableCell>
+                                  <TableCell className="py-2 px-4 whitespace-normal break-words max-w-[200px] text-[9px] print:text-[13px] text-blue-900/80 font-medium">{row.keterangan || "-"}</TableCell>
                                   <TableCell className="py-2 px-4 text-right">{hasCalculated ? `${actualHours} Jam` : "-- Jam"}</TableCell>
                                 </TableRow>
                                 );
@@ -713,7 +713,7 @@ export default function LeaveFormView() {
 
                   {/* Conditional Fields: Cuti Tanpa Gaji */}
                   {(selectedForm.type === "Unpaid Leave" || selectedForm.type === "Cuti Tanpa Gaji") && (
-                    <div className="grid grid-cols-2 gap-4 print:gap-y-6 print:gap-x-8 text-[8px] print:text-[12px] border rounded-[20px] p-4 bg-rose-500/5 border-rose-500/20">
+                    <div className="grid grid-cols-2 gap-4 print:gap-y-6 print:gap-x-8 text-[8px] print:text-[13px] border rounded-[20px] p-4 bg-rose-500/5 border-rose-500/20">
                       <div>
                         <p className="uppercase font-black text-rose-600 opacity-60">No. Tel H/P</p>
                         <p className="font-black mt-0.5">{selectedForm.cutiTanpaGajiPhone || "-"}</p>
@@ -732,13 +732,13 @@ export default function LeaveFormView() {
                     <div className="p-4 bg-purple-500/10 border border-purple-500/20 rounded-[16px] flex items-center justify-between group">
                       <div className="flex items-center gap-3">
                         <FileText className="w-5 h-5 text-[#942392]" />
-                        <span className="text-[10px] print:text-[12px] font-black text-[#942392] uppercase tracking-widest">MC Attachment</span>
+                        <span className="text-[10px] print:text-[13px] font-black text-[#942392] uppercase tracking-widest">MC Attachment</span>
                       </div>
                       <a
                         href={`${API_BASE_URL}${selectedForm.mcFileUrl}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-[10px] print:text-[12px] font-black uppercase tracking-widest bg-[#942392] text-white px-4 py-2 rounded-xl hover:bg-[#5e0080] transition-colors shadow-lg"
+                        className="text-[10px] print:text-[13px] font-black uppercase tracking-widest bg-[#942392] text-white px-4 py-2 rounded-xl hover:bg-[#5e0080] transition-colors shadow-lg"
                       >
                         View File
                       </a>
@@ -749,24 +749,24 @@ export default function LeaveFormView() {
                   <div className="pt-4 border-t border-border/50 space-y-4 print:space-y-2 print:pt-2">
                     <div className="flex items-center gap-2">
                       <PhoneCall className="w-4 h-4 text-rose-500" />
-                      <h3 className="text-[10px] print:text-[12px] font-black uppercase tracking-[0.2em]">Maklumat Waris (Kecemasan)</h3>
+                      <h3 className="text-[10px] print:text-[13px] font-black uppercase tracking-[0.2em]">Maklumat Waris (Kecemasan)</h3>
                     </div>
                     <div className="grid grid-cols-2 gap-4 print:gap-y-6 print:gap-x-8 bg-muted/20 p-4 print:p-5 rounded-[20px]">
                       <div className="space-y-1 print:space-y-1.5">
-                        <span className="text-[10px] print:text-[12px] font-black text-slate-950 dark:text-slate-50 uppercase">Nama</span>
-                        <p className="text-xs print:text-[13px] font-bold truncate">{selectedForm.warisNama}</p>
+                        <span className="text-[10px] print:text-[13px] font-black text-slate-950 dark:text-slate-50 uppercase">Nama</span>
+                        <p className="text-xs print:text-[11px] font-bold truncate">{selectedForm.warisNama}</p>
                       </div>
                       <div className="space-y-1 print:space-y-1.5">
-                        <span className="text-[10px] print:text-[12px] font-black text-slate-950 dark:text-slate-50 uppercase">Hubungan</span>
-                        <p className="text-xs print:text-[13px] font-bold truncate">{selectedForm.warisHubungan}</p>
+                        <span className="text-[10px] print:text-[13px] font-black text-slate-950 dark:text-slate-50 uppercase">Hubungan</span>
+                        <p className="text-xs print:text-[11px] font-bold truncate">{selectedForm.warisHubungan}</p>
                       </div>
                       <div className="space-y-1 print:space-y-1.5">
-                        <span className="text-[10px] print:text-[12px] font-black text-slate-950 dark:text-slate-50 uppercase">No. Telefon</span>
-                        <p className="text-[9px] print:text-[12px] font-black text-[#942392]">{selectedForm.warisPhone}</p>
+                        <span className="text-[10px] print:text-[13px] font-black text-slate-950 dark:text-slate-50 uppercase">No. Telefon</span>
+                        <p className="text-[9px] print:text-[13px] font-black text-[#942392]">{selectedForm.warisPhone}</p>
                       </div>
                       <div className="space-y-1 print:space-y-1.5">
-                        <span className="text-[10px] print:text-[12px] font-black text-slate-950 dark:text-slate-50 uppercase">Alamat</span>
-                        <p className="text-xs print:text-[13px] font-bold break-words">{selectedForm.warisAlamat}</p>
+                        <span className="text-[10px] print:text-[13px] font-black text-slate-950 dark:text-slate-50 uppercase">Alamat</span>
+                        <p className="text-xs print:text-[11px] font-bold break-words">{selectedForm.warisAlamat}</p>
                       </div>
                     </div>
                   </div>
@@ -788,14 +788,14 @@ export default function LeaveFormView() {
                         {selectedForm.approvalHistory.filter(h => h.remarks).map((history, idx) => (
                           <div key={idx} className="bg-muted/30 rounded-xl p-3 border border-border/40">
                             <div className="flex items-center justify-between gap-2 mb-1">
-                              <span className="text-[10px] print:text-[12px] font-black text-foreground/70">
+                              <span className="text-[10px] print:text-[13px] font-black text-foreground/70">
                                 Remark by {history.approver_name || history.approver_id}
                               </span>
-                              <span className="text-[10px] print:text-[12px] font-black text-foreground/50">
+                              <span className="text-[10px] print:text-[13px] font-black text-foreground/50">
                                 {new Date(history.created_at).toLocaleDateString('ms-MY')}
                               </span>
                             </div>
-                            <p className="text-[8px] print:text-[12px] italic text-foreground bg-white/50 dark:bg-black/20 p-2 rounded-lg mt-1">
+                            <p className="text-[8px] print:text-[13px] italic text-foreground bg-white/50 dark:bg-black/20 p-2 rounded-lg mt-1">
                               "{history.remarks}"
                             </p>
                           </div>
@@ -810,18 +810,18 @@ export default function LeaveFormView() {
                   <div className="hidden print:block pt-24 mt-12 pb-2">
                     <div className="grid grid-cols-2 gap-16">
                       <div className="border-t border-foreground pt-2 text-center">
-                        <p className="text-[10px] print:text-[12px] font-bold uppercase">Tandatangan Kakitangan</p>
+                        <p className="text-[10px] print:text-[13px] font-bold uppercase">Tandatangan Kakitangan</p>
                       </div>
                       <div className="border-t border-foreground pt-2 text-center">
-                        <p className="text-[10px] print:text-[12px] font-bold uppercase">Kelulusan Pengurus / HR</p>
+                        <p className="text-[10px] print:text-[13px] font-bold uppercase">Kelulusan Pengurus / HR</p>
                       </div>
                     </div>
-                    <p className="text-[9px] print:text-[12px] text-center italic mt-4 text-foreground">
+                    <p className="text-[9px] print:text-[13px] text-center italic mt-4 text-foreground">
                       Borang ini sah digunakan sebagai bukti rasmi cuti kakitangan setelah mendapat kelulusan pihak pengurusan.
                     </p>
                   </div>
 
-                  <p className="text-[8px] print:text-[12px] text-center italic text-muted-foreground pt-4 print:hidden">
+                  <p className="text-[8px] print:text-[13px] text-center italic text-muted-foreground pt-4 print:hidden">
                     Borang ini sah digunakan sebagai bukti rasmi cuti kakitangan setelah mendapat kelulusan pihak pengurusan.
                   </p>
 
@@ -829,7 +829,7 @@ export default function LeaveFormView() {
                     <Button
                       type="button"
                       variant="outline"
-                      className="gap-2 border-[#942392] text-[#942392] hover:bg-[#942392]/5 rounded-xl font-black text-[8px] print:text-[12px] uppercase tracking-widest px-6"
+                      className="gap-2 border-[#942392] text-[#942392] hover:bg-[#942392]/5 rounded-xl font-black text-[8px] print:text-[13px] uppercase tracking-widest px-6"
                       onClick={() => {
                         const originalTitle = document.title;
                         const empName = selectedForm?.employee || (selectedForm as any)?.name || userName || "UNKNOWN";
