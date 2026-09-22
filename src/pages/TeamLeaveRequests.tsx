@@ -1,3 +1,4 @@
+import { formatBranchName } from '@/utils/branchUtils';
 import { useRole } from "@/contexts/RoleContext";
 import { useState, useEffect } from "react";
 import { API_BASE_URL } from "@/config/api";
@@ -316,7 +317,7 @@ export default function TeamLeaveRequests() {
                     </div>
                     <div className="space-y-1">
                       <span className="text-[11px] uppercase font-black text-slate-950 dark:text-slate-50">Cawangan</span>
-                      <p className="border-b pb-1 border-border/40">{selectedRequest.branch}</p>
+                      <p className="border-b pb-1 border-border/40">{formatBranchName(selectedRequest.branch)}</p>
                     </div>
                     <div className="space-y-1">
                       <span className="text-[11px] uppercase font-black text-slate-950 dark:text-slate-50">No. Telefon</span>

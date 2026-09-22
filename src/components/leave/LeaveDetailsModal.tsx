@@ -1,3 +1,4 @@
+import { formatBranchName } from '@/utils/branchUtils';
 import React, { useEffect, useState } from "react";
 import {
   Dialog,
@@ -146,7 +147,7 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role }: LeaveDetai
                   </div>
                   <div className="space-y-1">
                     <span className="text-[11px] uppercase font-black text-slate-950 dark:text-slate-50">Cawangan</span>
-                    <p className="border-b pb-1 border-border/40">{selectedRequest.branch}</p>
+                    <p className="border-b pb-1 border-border/40">{formatBranchName(selectedRequest.branch)}</p>
                   </div>
                   <div className="space-y-1">
                     <span className="text-[11px] uppercase font-black text-slate-950 dark:text-slate-50">No. Telefon</span>

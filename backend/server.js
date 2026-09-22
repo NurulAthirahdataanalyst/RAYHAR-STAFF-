@@ -646,7 +646,8 @@ async function generateAndSaveLeaveFormPDF(leaveId) {
       doc.fontSize(9).font("Helvetica-Bold").fillColor("#111111").text(employeeName.toUpperCase(), leftCol, 116, { width: 250 });
 
       doc.fontSize(8).font("Helvetica-Bold").fillColor("#555555").text("CAWANGAN", rightCol, 105);
-      doc.fontSize(9).font("Helvetica-Bold").fillColor("#111111").text(employeeBranch.toUpperCase(), rightCol, 116);
+      const fb = (() => { const c = employeeBranch.toUpperCase().trim(); if (c === "HQ") return "HQ"; const map = {HQ: "HQ", AOR: "Alor Setar", BTP: "Batu Pahat", BTM: "Bertam", CNH: "Cheneh", DGN: "Dungun", IPH: "Ipoh", JHB: "Johor Bahru", JB: "Johor Bahru", KBG: "Kubang Kerian", KBR: "Kota Bharu", KKS: "Kuala Kangsar", KMM: "Kemaman", KTG: "Kuala Terengganu", TGG: "Kuala Terengganu", MJG: "Manjung", MLK: "Melaka", MZM: "Marang", RMP: "Rembau", SNS: "Seremban", SPJ: "Sungai Petani", TWU: "Tawau", JTH: "Jerteh"}; return map[c] ? c + " - " + map[c].toUpperCase() : c; })();
+      doc.fontSize(11).font("Helvetica-Bold").fillColor("#111111").text(fb, rightCol, 116);
 
       // Row 2: Jenis Cuti & Status
       doc.fontSize(8).font("Helvetica-Bold").fillColor("#555555").text("JENIS CUTI", leftCol, 134);

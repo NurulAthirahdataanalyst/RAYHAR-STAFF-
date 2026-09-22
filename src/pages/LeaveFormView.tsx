@@ -1,3 +1,4 @@
+import { formatBranchName } from '@/utils/branchUtils';
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -587,7 +588,7 @@ export default function LeaveFormView() {
                     </div>
                     <div className="space-y-1">
                       <span className="text-[11px] uppercase font-black text-slate-950 dark:text-slate-50">Cawangan</span>
-                      <p className="border-b pb-1 border-border/40">{selectedForm.branch}</p>
+                      <p className="border-b pb-1 border-border/40">{formatBranchName(selectedForm.branch)}</p>
                     </div>
                     <div className="space-y-1">
                       <span className="text-[11px] uppercase font-black text-slate-950 dark:text-slate-50">No. Telefon</span>

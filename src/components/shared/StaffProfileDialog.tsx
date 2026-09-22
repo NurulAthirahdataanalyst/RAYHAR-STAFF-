@@ -1,3 +1,4 @@
+import { formatBranchName } from '@/utils/branchUtils';
 import { MonthPicker } from '@/components/shared/MonthPicker';
 import { YearPopover } from '@/components/shared/YearPopover';
 import { ApprovalHistoryTimeline } from "@/components/leave/ApprovalHistoryTimeline";
