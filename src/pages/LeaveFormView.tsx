@@ -767,12 +767,12 @@ export default function LeaveFormView() {
                   )}
 
                   {/* Waris Section */}
-                  <div className="pt-4 border-t border-border/50 print:border-none space-y-4 print:space-y-3 print:pt-5 print:mt-5">
+                  <div className="pt-4 border-t border-border/50 space-y-4 print:space-y-3 print:pt-5 print:mt-5">
                     <div className="flex items-center gap-2">
                       <PhoneCall className="w-4 h-4 text-rose-500" />
                       <h3 className="text-[10px] print:text-[13px] font-black uppercase tracking-[0.2em]">Maklumat Waris (Kecemasan)</h3>
                     </div>
-                    <div className="grid grid-cols-2 gap-4 print:gap-y-6 print:gap-x-8 bg-muted/20 print:bg-transparent print:border-none p-4 print:p-5 print:px-0 rounded-[20px]">
+                    <div className="grid grid-cols-2 gap-4 print:gap-y-6 print:gap-x-8 bg-muted/20 print:bg-transparent print:border-none print:border-0 print:border-transparent print:outline-none print:shadow-none p-4 print:p-5 print:px-0 rounded-[20px]">
                       <div className="space-y-1 print:space-y-1.5">
                         <span className="text-[10px] print:text-[13px] font-black text-slate-950 dark:text-slate-50 uppercase">Nama</span>
                         <p className="text-xs print:text-[11px] font-bold truncate">{selectedForm.warisNama}</p>
@@ -793,7 +793,7 @@ export default function LeaveFormView() {
                   </div>
 
                   {/* Approval History Timeline (Vertical Flow) */}
-                  <div className="space-y-4 print:space-y-3 pt-4 print:pt-5 print:mt-5 border-t border-border/50 print:border-none">
+                  <div className="space-y-4 print:space-y-3 pt-4 print:pt-5 print:mt-5 border-t border-border/50">
                     <ApprovalHistoryTimeline 
                       status={selectedForm.status} 
                       approverRole={selectedForm.approverRole || "HR Admin"} 

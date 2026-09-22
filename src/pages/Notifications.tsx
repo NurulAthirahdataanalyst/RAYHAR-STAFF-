@@ -863,7 +863,7 @@ export default function Notifications() {
       <Dialog 
         open={!!notificationToDelete} 
         onOpenChange={(open) => {
-          if (!open && !isDeleting) {
+          if (!open) {
             setNotificationToDelete(null);
           }
         }}
