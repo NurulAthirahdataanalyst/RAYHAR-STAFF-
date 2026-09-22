@@ -201,7 +201,7 @@ export const ApprovalHistoryTimeline: React.FC<ApprovalHistoryTimelineProps> = (
               />
 
               {/* Approval Step Card */}
-              <div className="w-full bg-gray-50/80 dark:bg-slate-900/60 border border-gray-200/80 dark:border-slate-800 rounded-[18px] p-3 sm:px-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-sm transition-all hover:bg-gray-50 dark:hover:bg-slate-900">
+              <div className="w-full bg-gray-50/80 dark:bg-slate-900/60 print:bg-transparent print:p-0 print:py-1 border border-gray-200/80 dark:border-slate-800 print:border-none print:shadow-none rounded-[18px] p-3 sm:px-4 print:rounded-none print:p-0 print:py-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-sm transition-all hover:bg-gray-50 dark:hover:bg-slate-900">
                 <div className="flex items-center gap-3 flex-wrap">
                   {/* Status Badge */}
                   {isApproved && (

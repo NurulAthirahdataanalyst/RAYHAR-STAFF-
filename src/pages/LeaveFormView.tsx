@@ -746,7 +746,7 @@ export default function LeaveFormView() {
                   )}
 
                   {/* Waris Section */}
-                  <div className="pt-4 border-t border-border/50 space-y-4 print:space-y-6 print:pt-6 print:mt-4">
+                  <div className="pt-4 border-t border-border/50 space-y-4 print:space-y-8 print:pt-8 print:mt-6">
                     <div className="flex items-center gap-2">
                       <PhoneCall className="w-4 h-4 text-rose-500" />
                       <h3 className="text-[10px] print:text-[13px] font-black uppercase tracking-[0.2em]">Maklumat Waris (Kecemasan)</h3>
