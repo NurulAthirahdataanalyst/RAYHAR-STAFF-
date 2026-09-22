@@ -1631,10 +1631,10 @@ export default function Branches() {
                             </button>
                           </div>
                           <div className="text-center border-b-2 border-foreground/50 dark:border-purple-500/50 pb-4">
-                            <h2 className="text-2xl font-black tracking-tighter text-foreground dark:text-purple-400">
+                            <h2 className="text-4xl font-black tracking-tighter text-foreground dark:text-purple-400">
                               RAYHAR GROUP
                             </h2>
-                            <p className="text-[10px] font-black tracking-[0.3em] uppercase opacity-60 dark:text-purple-300">
+                            <p className="text-xs font-black tracking-[0.3em] uppercase opacity-60 dark:text-purple-300">
                               Permohonan Cuti Kakitangan
                             </p>
                           </div>
@@ -1828,7 +1828,7 @@ export default function Branches() {
                           )}
 
                           {/* Signatures hidden on screen, visible on print */}
-                          <div className="hidden print:block pt-6 pb-2">
+                          <div className="hidden print:block pt-24 mt-12 pb-2">
                             <div className="grid grid-cols-2 gap-16">
                               <div className="border-t border-foreground pt-2 text-center">
                                 <p className="text-[10px] font-bold uppercase">Tandatangan Kakitangan</p>

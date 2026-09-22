@@ -1,0 +1,1 @@
+﻿const { pool } = require('./backend/server'); pool.query("SELECT p.full_name, p.department, ur.role FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE p.full_name LIKE '%NURAIN%'").then(([r]) => { console.log(r); process.exit(0); }).catch(e => { console.error(e); process.exit(1); });

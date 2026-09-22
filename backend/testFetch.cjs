@@ -1,0 +1,1 @@
+﻿const { Pool } = require("pg"); require("dotenv").config({path:"../.env"}); const pool = new Pool({ connectionString: process.env.DATABASE_URL }); pool.query("SELECT * FROM leave_approvals WHERE leave_id = 33").then(r => { console.log(r.rows); process.exit(0); }).catch(e => { console.error(e); process.exit(1); });

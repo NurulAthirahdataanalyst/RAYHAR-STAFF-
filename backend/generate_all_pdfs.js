@@ -149,8 +149,8 @@ async function generatePDF(leave) {
     doc.rect(40, 40, 532, 712).strokeColor("#000000").lineWidth(1.5).stroke();
 
     // Header
-    doc.fontSize(20).font("Helvetica-Bold").fillColor("#000000").text("RAYHAR GROUP", { align: "center" });
-    doc.fontSize(11).font("Helvetica-Bold").fillColor("#333333").text("PERMOHONAN CUTI KAKITANGAN", { align: "center", characterSpacing: 1 });
+    doc.fontSize(28).font("Helvetica-Bold").fillColor("#000000").text("RAYHAR GROUP", { align: "center" });
+    doc.fontSize(14).font("Helvetica-Bold").fillColor("#333333").text("PERMOHONAN CUTI KAKITANGAN", { align: "center", characterSpacing: 1 });
     
     // Divider Line under header
     doc.moveTo(40, 95).lineTo(572, 95).strokeColor("#000000").lineWidth(1.5).stroke();

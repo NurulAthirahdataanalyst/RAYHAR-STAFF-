@@ -1,0 +1,1 @@
+﻿const { Pool } = require("pg"); const pool = new Pool({ connectionString: process.env.DATABASE_URL }); pool.query("SELECT p.full_name, p.department, p.status, ur.role FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE p.full_name LIKE '%NURAIN%'").then(r => { console.log(r.rows); process.exit(0); }).catch(e => { console.error(e); process.exit(1); });
