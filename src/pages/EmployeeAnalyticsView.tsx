@@ -537,10 +537,12 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
           } else {
             heatmapData[d] = 'Present (On Time)';
           }
-        } else if (isPastOrToday) {
+        } else if (isPastOrToday && !isBeforeCreation) {
           totalWorkingDaysPassed++;
           absentDays++;
           heatmapData[d] = 'Absent';
+        } else if (isBeforeCreation) {
+          heatmapData[d] = 'N/A';
         }
       }
     }
@@ -1205,6 +1207,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                         else if (status === 'On Leave') bgColor = "bg-blue-500 text-white";
                         else if (status === 'Company Leave') bgColor = "bg-purple-500 text-white";
                         else if (status === 'Outstation') bgColor = "bg-pink-500 text-white";
+                        else if (status === 'N/A') bgColor = "bg-slate-300 dark:bg-slate-700 text-foreground/50";
                         else if (isWeekend) bgColor = "bg-muted/30"; // weekend empty
                       }
                       
@@ -1214,7 +1217,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                           className={`aspect-square rounded-[6px] flex items-center justify-center text-[10px] font-bold ${bgColor} ${textColor} ${status ? 'hover:scale-110 cursor-default transition-all shadow-sm' : ''}`}
                           title={status ? `${cell.day} ${monthNameFull}: ${status}` : ''}
                         >
-                          {cell.day}
+                          {status === 'N/A' ? 'N/A' : cell.day}
                         </div>
                       );
                     })}
@@ -1227,6 +1230,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                     <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-blue-500" /><span className="text-[9px] font-bold text-foreground">Approved Leave</span></div>
                     <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-purple-500" /><span className="text-[9px] font-bold text-foreground">Company Leave</span></div>
                     <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-rose-500" /><span className="text-[9px] font-bold text-foreground">Absent</span></div>
+                    <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-slate-300 dark:bg-slate-700" /><span className="text-[9px] font-bold text-foreground">N/A</span></div>
                     <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-muted/30" /><span className="text-[9px] font-bold text-foreground">Weekend</span></div>
                  </div>
                </>
