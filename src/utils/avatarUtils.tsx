@@ -462,9 +462,10 @@ export function getSavedAvatar(userId?: string): string {
     if (userId) {
       const userSpecific = localStorage.getItem(`${STORAGE_KEY}_${userId}`);
       if (userSpecific) return userSpecific;
+    } else {
+      const globalSaved = localStorage.getItem(STORAGE_KEY);
+      if (globalSaved) return globalSaved;
     }
-    const globalSaved = localStorage.getItem(STORAGE_KEY);
-    if (globalSaved) return globalSaved;
   } catch (e) {
     console.error("Failed to get saved avatar", e);
   }
@@ -475,9 +476,10 @@ export function saveSelectedAvatar(avatarId: string, userId?: string): void {
   try {
     if (userId) {
       localStorage.setItem(`${STORAGE_KEY}_${userId}`, avatarId);
+    } else {
+      localStorage.setItem(STORAGE_KEY, avatarId);
     }
-    localStorage.setItem(STORAGE_KEY, avatarId);
-    window.dispatchEvent(new CustomEvent("avatarChanged", { detail: avatarId }));
+    window.dispatchEvent(new CustomEvent("avatarChanged", { detail: { avatarId, userId } }));
   } catch (e) {
     console.error("Failed to save avatar", e);
   }

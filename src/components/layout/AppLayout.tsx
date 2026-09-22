@@ -41,8 +41,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const handleAvatarUpdate = (e: any) => {
-      if (e?.detail) setAvatarId(e.detail);
-      else setAvatarId(getSavedAvatar(user?.id || user?.user_id));
+      const { avatarId: newAvatarId, userId: eventUserId } = e?.detail || {};
+      const currentUserId = user?.id || user?.user_id;
+      if (newAvatarId && (!eventUserId || eventUserId === currentUserId)) {
+        setAvatarId(newAvatarId);
+      } else {
+        setAvatarId(getSavedAvatar(currentUserId));
+      }
     };
     window.addEventListener("avatarChanged", handleAvatarUpdate);
     return () => window.removeEventListener("avatarChanged", handleAvatarUpdate);

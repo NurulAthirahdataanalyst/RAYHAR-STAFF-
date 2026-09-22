@@ -64,8 +64,13 @@ const Profile = () => {
 
   useEffect(() => {
     const handleAvatarUpdate = (e: any) => {
-      if (e?.detail) setAvatarId(e.detail);
-      else setAvatarId(getSavedAvatar(userId || user?.id));
+      const { avatarId: newAvatarId, userId: eventUserId } = e?.detail || {};
+      const currentUserId = userId || user?.id;
+      if (newAvatarId && (!eventUserId || eventUserId === currentUserId)) {
+        setAvatarId(newAvatarId);
+      } else {
+        setAvatarId(getSavedAvatar(currentUserId));
+      }
     };
     window.addEventListener("avatarChanged", handleAvatarUpdate);
     return () => window.removeEventListener("avatarChanged", handleAvatarUpdate);
