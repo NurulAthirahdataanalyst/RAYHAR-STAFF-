@@ -617,10 +617,10 @@ export default function Notifications() {
         <Button
           variant="ghost"
           size="sm"
-          className="gap-2 px-0 text-[#942392] hover:bg-transparent hover:text-[#5e0080] transition-colors touch-target no-global-hover cursor-pointer"
+          className="group gap-2 px-0 text-[#942392] hover:bg-transparent hover:text-[#5e0080] transition-all duration-200 touch-target no-global-hover cursor-pointer active:scale-95"
           onClick={() => navigate("/")}
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="h-4 w-4 transition-transform duration-200 group-hover:-translate-x-1" />
           <span className="text-[10px] font-black uppercase tracking-widest">
             Back to Dashboard
           </span>
@@ -630,13 +630,13 @@ export default function Notifications() {
           <Button
             variant="ghost"
             size="sm"
-            className="gap-2 px-0 text-[#942392] hover:bg-transparent hover:text-[#5e0080] transition-colors touch-target no-global-hover cursor-pointer"
+            className="group gap-2 px-0 text-[#942392] hover:bg-transparent hover:text-[#5e0080] transition-all duration-200 touch-target no-global-hover cursor-pointer active:scale-95"
             onClick={() => navigate("/profile")}
           >
             <span className="text-[10px] font-black uppercase tracking-widest">
               Move to Profile
             </span>
-            <ArrowRight className="h-4 w-4" />
+            <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
           </Button>
 
           {currentScopeUnread > 0 && (
