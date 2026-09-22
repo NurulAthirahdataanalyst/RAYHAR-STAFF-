@@ -371,6 +371,12 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
         const date = new Date(targetYear, m - 1, d);
         const dayOfWeek = date.getDay();
         const isPastOrToday = date <= new Date();
+        let isBeforeCreation = false;
+        if (profile && profile.created_at) {
+          const joinDate = new Date(profile.created_at);
+          joinDate.setHours(0, 0, 0, 0);
+          if (date < joinDate) isBeforeCreation = true;
+        }
 
         // Friday & Saturday are off days for the first week (days 1-7), Friday only for remaining weeks
         const zone = profile?.operating_zone || (profile?.branch === 'HQ' ? 'ZONE_A' : 'ZONE_B');
