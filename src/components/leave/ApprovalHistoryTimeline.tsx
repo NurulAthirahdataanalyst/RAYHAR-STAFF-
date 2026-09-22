@@ -181,7 +181,7 @@ export const ApprovalHistoryTimeline: React.FC<ApprovalHistoryTimelineProps> = (
         </h3>
       </div>
 
-      <div className="relative pl-6 space-y-4 before:absolute before:left-[11px] before:top-3 before:bottom-3 before:w-[2px] before:bg-gray-200 dark:before:bg-slate-700">
+      <div className="relative pl-6 space-y-4 before:absolute before:left-[11px] before:top-3 before:bottom-3 before:w-[2px] before:bg-gray-200 dark:before:bg-slate-700 print:before:hidden">
         {displayItems.map((item, index) => {
           const isApproved = item.status === 'Approved';
           const isRejected = item.status === 'Rejected';
