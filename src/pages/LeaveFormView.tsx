@@ -767,7 +767,7 @@ export default function LeaveFormView() {
                   )}
 
                   {/* Waris Section */}
-                  <div className="pt-4 border-t border-border/50 space-y-4 print:space-y-8 print:pt-8 print:mt-6">
+                  <div className="pt-4 border-t border-border/50 space-y-4 print:space-y-3 print:pt-5 print:mt-5">
                     <div className="flex items-center gap-2">
                       <PhoneCall className="w-4 h-4 text-rose-500" />
                       <h3 className="text-[10px] print:text-[13px] font-black uppercase tracking-[0.2em]">Maklumat Waris (Kecemasan)</h3>
@@ -793,7 +793,7 @@ export default function LeaveFormView() {
                   </div>
 
                   {/* Approval History Timeline (Vertical Flow) */}
-                  <div className="space-y-4 print:space-y-2 pt-4 print:pt-2 border-t border-border/50">
+                  <div className="space-y-4 print:space-y-3 pt-4 print:pt-5 print:mt-5 border-t border-border/50">
                     <ApprovalHistoryTimeline 
                       status={selectedForm.status} 
                       approverRole={selectedForm.approverRole || "HR Admin"} 
