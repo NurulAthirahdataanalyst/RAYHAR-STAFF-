@@ -749,9 +749,7 @@ export default function LeaveFormView() {
                         <p className="uppercase font-black text-slate-950 dark:text-slate-50">Tandatangan</p>
                         <p className="font-black mt-0.5 text-slate-950 dark:text-slate-50 flex items-center gap-1.5">
                           {selectedForm.cutiTanpaGajiSignature ? (
-                            <>
-                              <span className="w-2 h-2 rounded-full bg-emerald-500" /> DISAHKAN
-                            </>
+                            "✓ DISAHKAN"
                           ) : (
                             "TIADA PENGESAHAN"
                           )}
@@ -784,7 +782,7 @@ export default function LeaveFormView() {
                       <PhoneCall className="w-4 h-4 text-rose-500" />
                       <h3 className="text-[10px] print:text-[13px] font-black uppercase tracking-[0.2em]">Maklumat Waris (Kecemasan)</h3>
                     </div>
-                    <div className="grid grid-cols-2 gap-4 print:gap-y-6 print:gap-x-8 bg-muted/20 print:bg-transparent print:border-none print:border-0 print:border-transparent print:outline-none print:shadow-none p-4 print:p-5 print:px-0 rounded-[20px]">
+                    <div className="grid grid-cols-2 gap-4 print:gap-y-6 print:gap-x-8">
                       <div className="space-y-1 print:space-y-1.5">
                         <span className="text-[10px] print:text-[13px] font-black text-slate-950 dark:text-slate-50 uppercase">Nama</span>
                         <p className="text-xs print:text-[11px] font-bold truncate">{selectedForm.warisNama}</p>

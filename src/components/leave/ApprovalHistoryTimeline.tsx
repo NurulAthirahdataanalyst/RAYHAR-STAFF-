@@ -1,5 +1,5 @@
 import React from 'react';
-import { Clock, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Clock, ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -190,15 +190,19 @@ export const ApprovalHistoryTimeline: React.FC<ApprovalHistoryTimelineProps> = (
           return (
             <div key={index} className="relative flex items-center group">
               {/* Dot on connecting vertical timeline line */}
-              <div
-                className={`absolute -left-[19px] w-3.5 h-3.5 rounded-full border-2 border-white dark:border-slate-900 shadow-sm z-10 ${
-                  isApproved
-                    ? 'bg-emerald-500'
-                    : isRejected
-                    ? 'bg-rose-500'
-                    : 'bg-amber-400'
-                }`}
-              />
+              {isApproved ? (
+                <div className="absolute -left-[19px] w-3.5 h-3.5 rounded-full border-2 border-white dark:border-slate-900 shadow-sm z-10 bg-emerald-500 flex items-center justify-center">
+                  <Check className="w-2.5 h-2.5 text-white" />
+                </div>
+              ) : (
+                <div
+                  className={`absolute -left-[19px] w-3.5 h-3.5 rounded-full border-2 border-white dark:border-slate-900 shadow-sm z-10 ${
+                    isRejected
+                      ? 'bg-rose-500'
+                      : 'bg-amber-400'
+                  }`}
+                />
+              )}
 
               {/* Approval Step Card */}
               <div className="w-full bg-gray-50/80 dark:bg-slate-900/60 print:bg-transparent print:p-0 print:py-1 border border-gray-200/80 dark:border-slate-800 print:border-none print:shadow-none rounded-[18px] p-3 sm:px-4 print:rounded-none print:p-0 print:py-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-sm transition-all hover:bg-gray-50 dark:hover:bg-slate-900">
