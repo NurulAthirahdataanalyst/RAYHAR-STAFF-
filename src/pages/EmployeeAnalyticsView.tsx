@@ -468,6 +468,13 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
       const isWeekendDay = zone === 'ZONE_A' 
         ? (dayOfWeek === 5 || (dayOfWeek === 6 && d <= 7)) 
         : (dayOfWeek === 0 || (dayOfWeek === 6 && d <= 7));
+
+      let isBeforeCreation = false;
+      if (profile && profile.created_at) {
+        const joinDate = new Date(profile.created_at);
+        joinDate.setHours(0, 0, 0, 0);
+        if (date < joinDate) isBeforeCreation = true;
+      }
       
       if (!isWeekendDay) { // Working day
         const dateStr = `${year}-${month.padStart(2, '0')}-${String(d).padStart(2, '0')}`;
