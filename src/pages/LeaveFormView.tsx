@@ -612,7 +612,11 @@ export default function LeaveFormView() {
                   </div>
 
                   {!(selectedForm.type === "Replacement Leave" || selectedForm.type === "Cuti Ganti") ? (
-                    <div className="grid grid-cols-4 gap-3 print:gap-4">
+                    <div className={`grid ${
+                      (selectedForm.type === "Unpaid Leave" || selectedForm.type === "Cuti Tanpa Gaji")
+                        ? "grid-cols-3"
+                        : "grid-cols-4"
+                    } gap-3 print:gap-4`}>
                       {/* Dari */}
                       <div className="border border-border/50 rounded-xl overflow-hidden flex flex-col">
                         <div className="bg-slate-50 dark:bg-slate-800/50 p-1.5 text-center border-b border-border/50">
@@ -644,7 +648,8 @@ export default function LeaveFormView() {
                       </div>
                       
                       {/* Baki Layak */}
-                      <div className="border border-emerald-500/40 rounded-xl overflow-hidden flex flex-col shadow-sm">
+                      {!(selectedForm.type === "Unpaid Leave" || selectedForm.type === "Cuti Tanpa Gaji") && (
+                        <div className="border border-emerald-500/40 rounded-xl overflow-hidden flex flex-col shadow-sm">
                         <div className="bg-emerald-50 p-1.5 text-center border-b border-emerald-500/20 dark:bg-emerald-950/20">
                           <p className="text-[9px] print:text-[13px] uppercase font-black text-emerald-600">Baki Layak</p>
                         </div>
@@ -652,6 +657,7 @@ export default function LeaveFormView() {
                           <p className="font-black text-xs sm:text-sm print:text-[11px] text-emerald-600 text-center">{selectedForm.balance ?? "-"} HARI</p>
                         </div>
                       </div>
+                      )}
                     </div>
                   ) : (
                     <div className="flex items-center justify-between p-3 bg-muted/30 rounded-[20px] border border-border/50">
@@ -734,15 +740,21 @@ export default function LeaveFormView() {
 
                   {/* Conditional Fields: Cuti Tanpa Gaji */}
                   {(selectedForm.type === "Unpaid Leave" || selectedForm.type === "Cuti Tanpa Gaji") && (
-                    <div className="grid grid-cols-2 gap-4 print:gap-y-6 print:gap-x-8 text-[8px] print:text-[13px] border rounded-[20px] p-4 bg-rose-500/5 border-rose-500/20">
+                    <div className="grid grid-cols-2 gap-4 print:gap-y-6 print:gap-x-8 text-[8px] print:text-[13px] p-4 print:px-0">
                       <div>
-                        <p className="uppercase font-black text-rose-600 opacity-60">No. Tel H/P</p>
+                        <p className="uppercase font-black text-slate-950 dark:text-slate-50">No. Tel H/P</p>
                         <p className="font-black mt-0.5">{selectedForm.cutiTanpaGajiPhone || "-"}</p>
                       </div>
                       <div>
-                        <p className="uppercase font-black text-rose-600 opacity-60">Tandatangan</p>
-                        <p className="font-black mt-0.5 text-rose-700">
-                          {selectedForm.cutiTanpaGajiSignature ? "✓ DISAHKAN" : "TIADA PENGESAHAN"}
+                        <p className="uppercase font-black text-slate-950 dark:text-slate-50">Tandatangan</p>
+                        <p className="font-black mt-0.5 text-slate-950 dark:text-slate-50 flex items-center gap-1.5">
+                          {selectedForm.cutiTanpaGajiSignature ? (
+                            <>
+                              <span className="w-2 h-2 rounded-full bg-emerald-500" /> DISAHKAN
+                            </>
+                          ) : (
+                            "TIADA PENGESAHAN"
+                          )}
                         </p>
                       </div>
                     </div>
