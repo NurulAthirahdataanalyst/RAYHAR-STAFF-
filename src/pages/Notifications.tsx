@@ -645,16 +645,6 @@ export default function Notifications() {
             </Badge>
           )}
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={fetchNotifications}
-            disabled={loading}
-            className="gap-1.5 cursor-pointer text-xs h-8 border-border"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin text-[#942392]" : ""}`} />
-            Refresh
-          </Button>
 
           {currentScopeUnread > 0 && (
             <Button
