@@ -32,7 +32,7 @@ export function getBreadcrumbs(pathname: string, search?: string): BreadcrumbSeg
   if (pathname === "/outstation/reports") return [home, { label: "REPORTS", path: "/reports" }, { label: "OUTSTATION REPORTS" }];
 
   // Analytics Pages
-  if (pathname === "/analytics") return [home, { label: "ANALYTICS" }, { label: "EMPLOYEE ANALYTICS" }];
+  if (pathname === "/analytics") return [home, { label: "ANALYTICS" }];
 
   // Leave Administration Pages
   if (pathname === "/leave/admin") return [home, { label: "LEAVE ADMINISTRATION", path: "/leave/admin" }, { label: "LEAVE APPROVALS" }];

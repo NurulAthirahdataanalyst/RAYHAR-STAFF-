@@ -107,7 +107,7 @@ export function getPageTitleInfo(pathname: string, userRole?: string): PageInfo 
 
   // Analytics
   if (pathname === "/analytics") return {
-    title: "Employee Analytics",
+    title: "Analytics",
     subtitle: "Discover workforce trends through attendance and employee performance insights.",
     icon: ChartPie
   };

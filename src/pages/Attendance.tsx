@@ -2150,11 +2150,17 @@ export default function Attendance() {
                                 </td>
                                 <td className="px-4 py-3 font-bold">
                                   {a.computedStatus === 'Active' ? (
-                                    <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500"/>ACTIVE</span>
+                                    <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/20">
+                                      ACTIVE
+                                    </span>
                                   ) : a.computedStatus === 'Upcoming' ? (
-                                    <span className="text-blue-600 dark:text-blue-400 flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-blue-500"/>UPCOMING</span>
+                                    <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/10 dark:border-blue-500/20">
+                                      UPCOMING
+                                    </span>
                                   ) : (
-                                    <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600"/>COMPLETED</span>
+                                    <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-500/10 dark:border-slate-500/20 dark:text-slate-300">
+                                      COMPLETED
+                                    </span>
                                   )}
                                 </td>
                               </tr>

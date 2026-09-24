@@ -145,7 +145,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         { title: "My Leave Requests", icon: FileSearch, path: "/leave/forms", roles: HOD_BL_ROLES },
       ],
     },
-    { title: "Employee Analytics", icon: BarChart3, path: "/analytics", roles: HOD_BL_ROLES },
+    { title: "Analytics", icon: BarChart3, path: "/analytics", roles: HOD_BL_ROLES },
     { title: adminSectionTitle, isSection: true, roles: HOD_BL_ROLES },
     {
       title: "Approval Center",
