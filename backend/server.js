@@ -6664,8 +6664,8 @@ app.get("/api/dashboard-stats", async (req, res) => {
         WHERE user_id = ? AND clock_out IS NOT NULL
           AND DATE(clock_out AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
         UNION ALL
-        SELECT 'approval' AS type, COALESCE(approver.full_name, la.approver_role) AS actor,
-          CASE WHEN la.status = 'Approved' THEN 'approved your Leave Request' ELSE 'rejected your Leave Request' END AS action,
+        SELECT 'approval' AS type, 'Your Leave Request' AS actor,
+          CASE WHEN la.status = 'Approved' THEN 'was Approved' ELSE 'was Rejected' END AS action,
           NULL AS target,
           CASE WHEN lr.leave_type = 'Replacement Leave' OR lr.leave_type = 'Cuti Ganti' THEN CASE WHEN lr.start_date = lr.end_date THEN CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Days') ELSE CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' and ', TO_CHAR(lr.end_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Days') END ELSE CASE WHEN lr.start_date = lr.end_date THEN CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Days') ELSE CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' - ', TO_CHAR(lr.end_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Days') END END AS context,
           TO_CHAR(la.created_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time,
@@ -6677,8 +6677,8 @@ app.get("/api/dashboard-stats", async (req, res) => {
         WHERE lr.user_id = ?
           AND DATE(la.created_at AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
         UNION ALL
-        SELECT 'leave' AS type, lba.approved_by AS actor,
-          CASE WHEN lba.adjustment_days < 0 THEN 'deducted your leave' ELSE 'added your leave' END AS action,
+        SELECT 'leave' AS type, 'Your leave balance' AS actor,
+          CASE WHEN lba.adjustment_days < 0 THEN 'was deducted' ELSE 'was added' END AS action,
           NULL AS target,
           CONCAT(lba.leave_type, ' • ', lba.adjustment_days, ' Days (', lba.reason, ')') AS context,
           TO_CHAR(lba.created_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time,
@@ -6700,9 +6700,9 @@ app.get("/api/dashboard-stats", async (req, res) => {
           AND DATE(created_at AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
         UNION ALL
         SELECT 'outstation' AS type,
-          oa.assigned_by_name AS actor,
-          'created an upcoming outstation assignment for' AS action,
-          'You' AS target,
+          'You' AS actor,
+          'have been assigned to an upcoming outstation' AS action,
+          NULL AS target,
           CONCAT('for event ', oa.purpose, ' at ', oa.destination, ' from ', TO_CHAR(oa.start_date, 'DD/MM/YYYY'), ' - ', TO_CHAR(oa.end_date, 'DD/MM/YYYY')) AS context,
           TO_CHAR(oa.created_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time,
           oa.created_at AS sort_time,
@@ -11702,6 +11702,9 @@ app.listen(PORT, "0.0.0.0", () => {
 // =================================================================
 // END OF FILE
 // =================================================================
+
+
+
 
 
 
