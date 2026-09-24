@@ -21,6 +21,22 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
 import PageActions from "@/components/layout/PageActions";
 
+const branchNameMap: Record<string, string> = {
+  HQ: "Rayhar HQ", KMM: "Kemaman", TGG: "Kuala Terengganu", CNH: "Chendering",
+  KBG: "Kota Bharu", DGN: "Dungun", JTH: "Jertih", KBR: "Kota Bharu",
+  RMP: "Rantau Panjang", MZM: "Marang", TWU: "Tawau", AOR: "Alor Setar",
+  BTM: "Bertam", KKS: "Kuala Kangsar", SHA: "Shah Alam", BBB: "Bandar Baru Bangi",
+  KUL: "Kuala Lumpur", IPH: "Ipoh", MJG: "Manjung", MLK: "Melaka",
+  SNS: "Seremban", JB: "Johor Bharu", BTP: "Batu Pahat"
+};
+
+function getBranchFullName(code: string) {
+  if (!code) return 'N/A';
+  // Sometimes code might already be full or have extra characters, just in case
+  const c = code.toUpperCase();
+  return branchNameMap[c] ? `${c} - ${branchNameMap[c]}` : code;
+}
+
 const formatAttendanceTime = (value: unknown) => {
   if (!value) return "--:--";
 
@@ -2144,8 +2160,8 @@ export default function Attendance() {
                           <tbody className="divide-y divide-border/50">
                             {processed.map(a => (
                               <tr key={a.id} className={a.computedStatus === 'Active' ? 'bg-emerald-500/5' : 'hover:bg-muted/10'}>
-                                <td className="px-4 py-3 font-medium">{a.temp_branch || a.location || 'N/A'}</td>
-                                <td className="px-4 py-3 font-medium text-slate-600 dark:text-slate-300">
+                                <td className="px-4 py-3 font-medium text-foreground">{getBranchFullName(a.temp_branch || a.location || '')}</td>
+                                <td className="px-4 py-3 font-medium text-foreground">
                                   {fmtDate(a.start_date)}{a.end_date ? ' – ' + fmtDate(a.end_date) : ''}
                                 </td>
                                 <td className="px-4 py-3 font-bold">
