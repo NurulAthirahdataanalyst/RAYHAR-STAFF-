@@ -300,6 +300,8 @@ export default function Branches() {
   };
 
   const [employees, setEmployees] = useState<BranchEmployee[]>([]);
+  const [employeeCurrentPage, setEmployeeCurrentPage] = useState(1);
+  const [employeePageSize, setEmployeePageSize] = useState(10);
   const [temporaryStaff, setTemporaryStaff] = useState<any[]>([]);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -465,6 +467,7 @@ export default function Branches() {
         if (data.success) {
           const emps = data.employees || [];
           setEmployees(emps);
+          setEmployeeCurrentPage(1);
           if (emps.length > 0) {
             setSelectedEmployeeId(emps[0].user_id);
           } else {
@@ -598,6 +601,8 @@ export default function Branches() {
 
   
 
+  const paginatedEmployees = useMemo(() => { const start = (employeeCurrentPage - 1) * employeePageSize; return employees.slice(start, start + employeePageSize); }, [employees, employeeCurrentPage, employeePageSize]);
+
   const selectedEmployee = useMemo(
     () => employees.find((e) => e.user_id === selectedEmployeeId),
     [employees, selectedEmployeeId],
@@ -702,7 +707,7 @@ export default function Branches() {
                     </thead>
                     <tbody className="divide-y divide-border/50">
                       {employees.length > 0 ? (
-                        employees.map((employee) => (
+                        paginatedEmployees.map((employee) => (
                           <tr
                             key={employee.user_id}
                             className={`cursor-pointer transition-colors group hover:bg-[#942392]/5 ${
@@ -778,7 +783,7 @@ export default function Branches() {
 
                 <div className="md:hidden divide-y divide-border/50">
                   {employees.length > 0 ? (
-                    employees.map((employee) => (
+                    paginatedEmployees.map((employee) => (
                       <div
                         key={employee.user_id}
                         className="p-4 active:bg-[#942392]/5 transition-colors flex items-center gap-4 cursor-pointer"
@@ -832,6 +837,14 @@ export default function Branches() {
                     </div>
                   )}
                 </div>
+                
+                <TablePagination
+                  currentPage={employeeCurrentPage}
+                  totalItems={employees.length}
+                  pageSize={employeePageSize}
+                  onPageChange={setEmployeeCurrentPage}
+                  onPageSizeChange={setEmployeePageSize}
+                />
               </CardContent>
             </Card>
           )}
