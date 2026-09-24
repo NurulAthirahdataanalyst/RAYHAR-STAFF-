@@ -630,7 +630,9 @@ export default function Branches() {
                 >
                   {selectedBranch.code}
                 </Badge>
-                <Button variant="outline" size="sm" onClick={openEditModal} className="h-8 text-xs print:text-[11px] font-bold ml-2">Edit Branch</Button>
+                {user?.role === "hr_admin" && (
+                  <Button variant="outline" size="sm" onClick={openEditModal} className="h-8 text-xs print:text-[11px] font-bold ml-2">Edit Branch</Button>
+                )}
               </div>
               <p className="text-responsive-sm text-foreground font-medium mt-1">
                 Branch staff overview and analytics
