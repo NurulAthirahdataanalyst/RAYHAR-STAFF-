@@ -364,9 +364,10 @@ export default function AttendanceDashboard() {
             ed.setHours(0,0,0,0);
             selDateObj.setHours(0,0,0,0);
             if (selDateObj >= sd && selDateObj <= ed) {
-              const normLoc = a.location ? a.location.split('-')[0].trim() : a.location;
+              const rawLoc = a.temp_branch || a.location;
+              const normLoc = rawLoc ? rawLoc.split('-')[0].trim() : rawLoc;
               tempMap[a.user_id] = normLoc;
-              activeAssigns.push({ ...a, location: normLoc });
+              activeAssigns.push({ ...a, location: normLoc, temp_branch_normalized: normLoc });
             }
           }
         });
@@ -868,8 +869,9 @@ export default function AttendanceDashboard() {
       : branches.map(b => ({ branch: b.name, totalEmployees: 0 }));
 
     activeAssignments.forEach((a: any) => {
-       if (a.location && !listSource.find((b:any) => b.branch === a.location)) {
-           listSource.push({ branch: a.location, totalEmployees: 0 });
+       const loc = a.temp_branch_normalized || a.location;
+       if (loc && !listSource.find((b:any) => b.branch === loc)) {
+           listSource.push({ branch: loc, totalEmployees: 0 });
        }
     });
 
@@ -882,12 +884,14 @@ export default function AttendanceDashboard() {
         // Use activeAssignments directly for 100% accurate movement tracking (regardless of if employee clocked in yet)
         const temporaryOut = activeAssignments.filter((a: any) => {
             const pb = a.primary_branch === 'HQ' ? 'HQ' : (a.primary_branch || '');
-            return pb === b.branch && a.location !== b.branch;
+            const loc = a.temp_branch_normalized || a.location;
+            return pb === b.branch && loc !== b.branch;
         }).length;
         
         const temporaryIn = activeAssignments.filter((a: any) => {
             const pb = a.primary_branch === 'HQ' ? 'HQ' : (a.primary_branch || '');
-            return pb !== b.branch && a.location === b.branch;
+            const loc = a.temp_branch_normalized || a.location;
+            return pb !== b.branch && loc === b.branch;
         }).length;
         
         const expectedWorkforce = Math.max(0, permanentStaffCount - temporaryOut) + temporaryIn;
