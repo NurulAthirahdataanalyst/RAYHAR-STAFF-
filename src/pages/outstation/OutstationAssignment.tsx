@@ -439,7 +439,7 @@ export default function OutstationAssignment() {
                     <TableHead className="text-foreground dark:text-white text-[10px] px-2.5 font-black uppercase tracking-widest">Employee</TableHead>
                     <TableHead className="text-foreground dark:text-white text-[10px] px-2.5 font-black uppercase tracking-widest">Department</TableHead>
                     <TableHead className="text-foreground dark:text-white text-[10px] px-2.5 font-black uppercase tracking-widest">Branch</TableHead>
-                    <TableHead className="text-foreground dark:text-white text-[10px] px-2.5 font-black uppercase tracking-widest">Destination</TableHead>
+                    <TableHead className="text-foreground dark:text-white text-[10px] px-2.5 font-black uppercase tracking-widest">Event</TableHead>
                     <TableHead className="text-foreground dark:text-white text-[10px] px-2.5 font-black uppercase tracking-widest">Start</TableHead>
                     <TableHead className="text-foreground dark:text-white text-[10px] px-2.5 font-black uppercase tracking-widest">End</TableHead>
                     <TableHead className="text-center text-foreground dark:text-white text-[10px] px-2.5 font-black uppercase tracking-widest">Days</TableHead>
@@ -463,7 +463,7 @@ export default function OutstationAssignment() {
                       <TableCell className="text-foreground dark:text-gray-300 text-[12px] px-2.5">{a.branch || "—"}</TableCell>
                       <TableCell className="px-2.5" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center gap-1 font-semibold text-foreground dark:text-gray-100 text-[12px]">
-                          <MapPin className="w-3 h-3 text-pink-400 shrink-0" />{a.destination}
+                          <MapPin className="w-3 h-3 text-pink-400 shrink-0" />{a.project || "—"}
                         </div>
                         {a.client_company && <div className="text-[10px] text-foreground ml-4">{a.client_company}</div>}
                       </TableCell>
@@ -482,7 +482,7 @@ export default function OutstationAssignment() {
                             >
                               <Edit2 className="w-3.5 h-3.5" />
                             </button>
-                          ) : (
+                          ) : String(a.assigned_by) === String(userId) ? (
                             <button
                               onClick={() => openEdit(a)}
                               className="p-1.5 rounded-lg hover:bg-blue-50 text-blue-500 transition-colors"
@@ -490,10 +490,22 @@ export default function OutstationAssignment() {
                             >
                               <Edit2 className="w-3.5 h-3.5" />
                             </button>
+                          ) : (
+                            <button
+                              disabled
+                              className="p-1.5 rounded-lg text-gray-300 dark:text-gray-600 cursor-not-allowed opacity-40"
+                              title="Only the user who created this assignment can edit it."
+                            >
+                              <Edit2 className="w-3.5 h-3.5" />
+                            </button>
                           )}
 
                           {a.status !== "Cancelled" && a.status !== "Completed" && (
-                            <button onClick={() => handleCancel(a.id)} className="p-1.5 rounded-lg hover:bg-amber-50 text-amber-500 transition-colors" title="Cancel"><XCircle className="w-3.5 h-3.5" /></button>
+                            String(a.assigned_by) === String(userId) ? (
+                              <button onClick={() => handleCancel(a.id)} className="p-1.5 rounded-lg hover:bg-amber-50 text-amber-500 transition-colors" title="Cancel"><XCircle className="w-3.5 h-3.5" /></button>
+                            ) : (
+                              <button disabled className="p-1.5 rounded-lg text-gray-300 dark:text-gray-600 cursor-not-allowed opacity-40" title="Only the user who created this assignment can cancel it."><XCircle className="w-3.5 h-3.5" /></button>
+                            )
                           )}
 
                           {(a.status || "").toLowerCase() === "completed" ? (
