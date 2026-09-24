@@ -16,6 +16,19 @@ import { API_BASE_URL } from "../config/api";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import Map, { Marker as MapMarker, NavigationControl, useMap as useMapLibre } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
+import maplibregl from 'maplibre-gl';
+
+if (maplibregl.Map && !(maplibregl.Map.prototype as any)._removePatched) {
+  const originalRemove = maplibregl.Map.prototype.remove;
+  maplibregl.Map.prototype.remove = function() {
+    try {
+      originalRemove.call(this);
+    } catch (err) {
+      console.warn("Suppressed global maplibre remove error:", err);
+    }
+  };
+  (maplibregl.Map.prototype as any)._removePatched = true;
+}
 
 const MAPLIBRE_STYLE = {
   version: 8 as const,
@@ -1047,20 +1060,6 @@ export default function SettingsPage() {
                           }}
                           style={{ height: "100%", width: "100%" }}
                           mapStyle={MAPLIBRE_STYLE}
-                          onLoad={(e) => {
-                            const map = e.target;
-                            if (map && !(map as any)._removePatched) {
-                              const originalRemove = map.remove.bind(map);
-                              map.remove = () => {
-                                try {
-                                  originalRemove();
-                                } catch (err) {
-                                  console.warn("Suppressed maplibre remove error:", err);
-                                }
-                              };
-                              (map as any)._removePatched = true;
-                            }
-                          }}
                           onClick={(e) => {
                             const { lat, lng } = e.lngLat;
                             setBranchLat(lat.toString());
