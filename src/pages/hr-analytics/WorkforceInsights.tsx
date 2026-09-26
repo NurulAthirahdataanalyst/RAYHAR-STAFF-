@@ -22,7 +22,7 @@ import { Tooltip as UITooltip, TooltipContent, TooltipProvider, TooltipTrigger }
 import { EmployeesRequiringAttentionCard } from '@/components/shared/EmployeesRequiringAttentionCard';
 import { MissingPunchCard } from "./MissingPunchCard";
 
-const COLORS = ['#4f46e5', '#eab308', '#94a3b8', '#DC2626', '#a855f7', '#f746b9']; // Present, Late, On Leave, Absent, Comp Leave, Outstation
+const COLORS = ['#4f46e5', '#eab308', '#3b82f6', '#DC2626', '#a855f7', '#f746b9']; // Present, Late, On Leave, Absent, Comp Leave, Outstation
 
 const BRANCH_NAMES: Record<string, string> = {
   HQ: "HQ",
