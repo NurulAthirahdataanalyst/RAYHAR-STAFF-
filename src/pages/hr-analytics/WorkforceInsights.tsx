@@ -2712,88 +2712,920 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
              
              <div className={`space-y-4 flex-1 pr-2 ${liveBranchRanking.length > 5 ? 'overflow-y-auto custom-scrollbar max-h-[220px]' : 'overflow-y-visible'}`}>
                <TooltipProvider>
-                {liveBranchRanking.map((branch: any, idx: number) => {
-                    const greenPerc = branch.isWeekend ? 0 : (branch.totalEmployees > 0 ? ((branch.presentOnTime) / branch.totalEmployees) * 100 : 0);
-                    const yellowPerc = branch.isWeekend ? 0 : (branch.totalEmployees > 0 ? ((branch.presentLate + branch.tempLate) / branch.totalEmployees) * 100 : 0);
-                    const bluePerc = branch.isWeekend ? 0 : (branch.totalEmployees > 0 ? ((branch.onLeave + branch.tempOnLeave + branch.companyLeave + branch.tempCompanyLeave) / branch.totalEmployees) * 100 : 0);
-                    const redPerc = branch.isWeekend ? 0 : (branch.totalEmployees > 0 ? (branch.absent / branch.totalEmployees) * 100 : 0);
-                    const brownPerc = branch.isWeekend ? 0 : (branch.totalEmployees > 0 ? (branch.tempPresent / branch.totalEmployees) * 100 : 0);
+import { StaffProfileDialog } from '@/components/shared/StaffProfileDialog';
+import { useRole } from "@/contexts/RoleContext";
+import { useState, useEffect, useRef, useMemo } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { ExportDropdown } from "@/components/shared/ExportDropdown";
+import PageActions from "@/components/layout/PageActions";
+import { YearPopover } from "@/components/shared/YearPopover";
+import { MonthPicker } from "@/components/shared/MonthPicker";
+import { exportToCSV } from "@/utils/export";
+import { API_BASE_URL } from "@/config/api";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Loader2, Users, UserCheck, CalendarDays, Calendar as CalendarIcon, Clock, FileCheck, CheckCircle2, XCircle, AlertTriangle, Building2, Download, ChevronRight, Wifi, WifiOff, TrendingUp, MapPin, Plane, FileText, AlertCircle, Award, ChevronLeft } from "lucide-react";
+import { getCleanReason } from "@/lib/leaveStorage";
+import { format, subDays, addDays, startOfWeek, endOfWeek } from "date-fns";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend, Sector, AreaChart, Area, ReferenceArea } from "recharts";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-                    return (
-                      <div key={idx} className="flex flex-col gap-1">
-                        <div className="flex justify-between items-end">
-                          <div className="flex flex-col">
-                            <span className="text-[11px] font-bold text-[#1A1F36] dark:text-gray-200">
-                              {FULL_BRANCH_NAMES[branch.branch] || branch.branch}
-                            </span>
-                            <div className="flex items-center gap-1.5 mt-0.5">
-                              <span className="text-[9px] font-semibold text-foreground flex items-center gap-1">
-                                👥 {branch.permanentStaffCount} Staff
-                              </span>
-                              {branch.temporaryIn > 0 && (
-                                <span className="text-[9px] font-bold text-[#8b4513] bg-orange-100/70 dark:bg-amber-900/30 dark:text-amber-500 px-1 rounded flex items-center gap-1">
-                                  🟤 {branch.temporaryIn} Temporary Staff
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          <span className={`text-[10px] font-black ${branch.displayRate >= 95 ? 'text-emerald-500' : branch.displayRate >= 80 ? 'text-amber-500' : 'text-red-500'}`}>
-                            {branch.displayRate}%
-                          </span>
-                        </div>
-                        <UITooltip delayDuration={100}>
-                          <TooltipTrigger asChild>
-                            <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full flex overflow-hidden mt-1 cursor-pointer">
-                              {branch.isWeekend ? (
-                                <div className="h-full bg-slate-300 dark:bg-slate-600" style={{ width: '100%' }}></div>
-                              ) : (
-                                <>
-                                  {greenPerc > 0 && <div className="h-full bg-[#10b981]" style={{ width: `${greenPerc}%` }}></div>}
-                                  {brownPerc > 0 && <div className="h-full bg-[#b45309]" style={{ width: `${brownPerc}%` }}></div>}
-                                  {yellowPerc > 0 && <div className="h-full bg-[#f59e0b]" style={{ width: `${yellowPerc}%` }}></div>}
-                                  {bluePerc > 0 && <div className="h-full bg-[#3b82f6]" style={{ width: `${bluePerc}%` }}></div>}
-                                  {redPerc > 0 && <div className="h-full bg-[#ef4444]" style={{ width: `${redPerc}%` }}></div>}
-                                </>
-                              )}
-                            </div>
-                          </TooltipTrigger>
-                          <TooltipContent side="top" align="center" className="bg-card border border-slate-200 dark:border-slate-800 shadow-xl rounded p-3 z-50 w-max whitespace-nowrap text-left min-w-[200px]">
-                            <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 mb-2 border-b border-slate-100 dark:border-slate-800 pb-1">
-                              {FULL_BRANCH_NAMES[branch.branch] || branch.branch}
-                            </p>
-                            <div className="flex flex-col gap-1.5 text-[9px] text-slate-600 dark:text-foreground mb-2 border-b border-slate-100 dark:border-slate-800 pb-2">
-                              <p className="flex justify-between items-center gap-4">
-                                <span>Permanent Staff:</span> 
-                                <span className="font-semibold text-slate-700 dark:text-slate-300">{branch.permanentStaffCount}</span>
-                              </p>
-                              <p className="flex justify-between items-center gap-4">
-                                <span>Temporary In:</span> 
-                                <span className="font-semibold text-amber-600">{branch.temporaryIn}</span>
-                              </p>
-                              <p className="flex justify-between items-center gap-4">
-                                <span>Temporary Out:</span> 
-                                <span className="font-semibold text-amber-600">{branch.temporaryOut}</span>
-                              </p>
-                              <p className="flex justify-between items-center gap-4 pt-1 border-t border-slate-100 dark:border-slate-800">
-                                <span className="font-bold text-slate-700 dark:text-slate-300">Expected Workforce:</span> 
-                                <span className="font-bold text-slate-900 dark:text-slate-100">{branch.totalEmployees}</span>
-                              </p>
-                            </div>
-                            <div className="flex flex-col gap-1 text-[9px] text-slate-600 dark:text-foreground">
-                              <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#10b981]"></div>Present (On Time):</span> <span className="font-bold text-emerald-600">{branch.presentOnTime}</span></p>
-                              {branch.tempPresent > 0 && <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-amber-700"></div>Temporary Present:</span> <span className="font-bold text-amber-700">{branch.tempPresent}</span></p>}
-                              <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#f59e0b]"></div>Late:</span> <span className="font-bold text-amber-600">{branch.presentLate + branch.tempLate}</span></p>
-                              <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-pink-500"></div>Outstation:</span> <span className="font-bold text-pink-600">{branch.outstation}</span></p>
-                              <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#3b82f6]"></div>On Leave:</span> <span className="font-bold text-blue-600">{branch.onLeave + branch.tempOnLeave}</span></p>
-                              <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-purple-500"></div>Company Leave:</span> <span className="font-bold text-purple-600">{branch.companyLeave + branch.tempCompanyLeave}</span></p>
-                              <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#ef4444]"></div>Absent:</span> <span className="font-bold text-red-600">{branch.absent}</span></p>
-                            </div>
-                          </TooltipContent>
-                        </UITooltip>
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Button } from "@/components/ui/button";
+import { Tooltip as UITooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { EmployeesRequiringAttentionCard } from '@/components/shared/EmployeesRequiringAttentionCard';
+import { MissingPunchCard } from "./MissingPunchCard";
+
+const COLORS = ['#4f46e5', '#eab308', '#3b82f6', '#DC2626', '#a855f7', '#f746b9']; // Present, Late, On Leave, Absent, Comp Leave, Outstation
+
+const BRANCH_NAMES: Record<string, string> = {
+  HQ: "HQ",
+  KMM: "KMM - Kemaman",
+  TGG: "TGG - Kuala Terengganu",
+  CNH: "CNH - Cheneh",
+  KBG: "KBG - Kuala Berang",
+  DGN: "DGN - Dungun",
+  JTH: "JTH - Jertih",
+  KBR: "KBR - Kota Baru",
+  RMP: "RMP - Rompin",
+  MZM: "MZM - Muadzam Shah",
+  SHA: "SHA - Shah Alam",
+  BBB: "BBB - Bandar Baru Bangi",
+  KUL: "KUL - Kuala Lumpur",
+  IPH: "IPH - Ipoh",
+  MJG: "MJG - Manjung",
+  MLK: "MLK - Melaka",
+  KKS: "KKS - Kuala Kangsar",
+  TWU: "TWU - Tawau",
+  SNS: "SNS - Seremban",
+  AOR: "AOR - Alor Setar",
+  BTM: "BTM - Bertam",
+  BTP: "BTP - Batu Pahat",
+  JB: "JB - Johor Bharu"
+};
+
+const cardHoverEffects: Record<string, string> = {
+  emerald: "cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:bg-emerald-50/50 dark:hover:bg-slate-900/50 group",
+  orange: "cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:bg-orange-50/50 dark:hover:bg-slate-900/50 group",
+  purple: "cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:bg-purple-50/50 dark:hover:bg-slate-900/50 group",
+  red: "cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:bg-red-50/50 dark:hover:bg-slate-900/50 group",
+  amber: "cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:bg-amber-50/50 dark:hover:bg-slate-900/50 group",
+  blue: "cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:bg-blue-50/50 dark:hover:bg-slate-900/50 group",
+  indigo: "cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:bg-indigo-50/50 dark:hover:bg-slate-900/50 group",
+  slate: "cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:bg-slate-50/50 dark:hover:bg-slate-900/50 group",
+};
+const cardHoverEffect = cardHoverEffects.purple;
+
+const AVATAR_COLORS = [
+  "bg-purple-100 text-purple-700",
+  "bg-blue-100 text-blue-700",
+  "bg-emerald-100 text-emerald-700",
+  "bg-pink-100 text-pink-700",
+  "bg-amber-100 text-amber-700",
+  "bg-cyan-100 text-cyan-700",
+  "bg-indigo-100 text-indigo-700",
+  "bg-rose-100 text-rose-700",
+];
+const getAvatarColor = (str: string) => AVATAR_COLORS[(str || '').charCodeAt(0) % AVATAR_COLORS.length];
+
+const formatDeptBranch = (dept?: string, branch?: string) => {
+  const cleanDept = (dept || "").trim();
+  const cleanBranch = (branch || "").trim();
+  const hasDept = cleanDept && cleanDept !== '—' && cleanDept !== '-' && cleanDept !== 'â€”';
+  const hasBranch = cleanBranch && cleanBranch !== '—' && cleanBranch !== '-' && cleanBranch !== 'â€”';
+
+  if (hasDept && hasBranch) {
+    return `${cleanDept} • ${cleanBranch}`;
+  } else if (hasDept) {
+    return cleanDept;
+  } else if (hasBranch) {
+    return cleanBranch;
+  }
+  return '—';
+};
+
+interface LiveEmp {
+  user_id: string;
+  full_name: string;
+  initials: string;
+  branch: string;
+  department: string;
+  role: string;
+  clock_in: string | null;
+  clock_out: string | null;
+  late_minutes: number;
+  is_late: boolean;
+}
+
+interface PendingItem {
+  id: number;
+  user_id: string;
+  name: string;
+  initials: string;
+  leave_type: string;
+  dates: string;
+  days: string;
+  reason: string;
+  status: string;
+}
+
+export default function WorkforceInsights() {
+  const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
+  const { role, userBranch, userDepartment, userId } = useRole();
+  const scopeLabel = role === "head_of_department" || role === "hod" ? userDepartment : (role === "branch_leader" ? userBranch : "");
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [data, setData] = useState<any>(null);
+  const [isAllMonth, setIsAllMonth] = useState(false);
+  const [trendWeekStart, setTrendWeekStart] = useState<Date>(
+    startOfWeek(new Date(), { weekStartsOn: 6 })
+  );
+  const [month, setMonth] = useState((new Date().getMonth() + 1).toString().padStart(2, '0'));
+  const [year, setYear] = useState(new Date().getFullYear().toString());
+  const [day, setDay] = useState(new Date().getDate().toString().padStart(2, '0'));
+  const [viewMode, setViewMode] = useState<'day' | 'month' | 'year'>('day');
+  const [selectedRegion, setSelectedRegion] = useState<string>('All Regions');
+
+  const regionMap: Record<string, string> = {
+    'AOR': 'Northern', 'Alor Setar': 'Northern', 'BTM': 'Northern', 'Bertam': 'Northern', 'IPH': 'Northern', 'Ipoh': 'Northern', 'KKS': 'Northern', 'Kuala Kangsar': 'Northern', 'MJG': 'Northern', 'Manjung': 'Northern',
+    'HQ': 'Central', 'Rayhar HQ': 'Central', 'BBB': 'Central', 'Bandar Baru Bangi': 'Central', 'SHA': 'Central', 'Shah Alam': 'Central', 'KUL': 'Central', 'Kuala Lumpur': 'Central',
+    'BPT': 'Southern', 'Batu Pahat': 'Southern', 'JHB': 'Southern', 'Johor Bahru': 'Southern', 'MLK': 'Southern', 'Melaka': 'Southern', 'SNS': 'Southern', 'Seremban': 'Southern',
+    'KMM': 'East Coast', 'Kemaman': 'East Coast', 'CNH': 'East Coast', 'Cheneh': 'East Coast', 'DGN': 'East Coast', 'Dungun': 'East Coast', 'JTH': 'East Coast', 'Jertih': 'East Coast', 'KBG': 'East Coast', 'Kuala Berang': 'East Coast', 'TGG': 'East Coast', 'Kuala Terengganu': 'East Coast', 'KBR': 'East Coast', 'Kota Bharu': 'East Coast', 'MZM': 'East Coast', 'Muadzam Shah': 'East Coast', 'RMP': 'East Coast', 'Rompin': 'East Coast',
+    'TWU': 'East Malaysia', 'Tawau': 'East Malaysia', 'RRR': 'East Coast'
+  };
+  const regionOrder = ['Central', 'Northern', 'Southern', 'East Coast', 'East Malaysia'];
+
+  const displayDate = viewMode === 'day' 
+    ? `${day}/${month}/${year}` 
+    : `${new Date(0, parseInt(month) - 1).toLocaleString('en', { month: 'long' }).toUpperCase()}, ${year}`;
+
+  const selectedDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+  
+  const sseTargetDate = viewMode === 'day' ? selectedDate : new Date();
+  const sseWeekStart = startOfWeek(sseTargetDate, { weekStartsOn: 6 });
+  const isViewingSseWeek = trendWeekStart.getTime() === sseWeekStart.getTime();
+  const isViewingSseWeekRef = useRef(isViewingSseWeek);
+  useEffect(() => {
+    isViewingSseWeekRef.current = isViewingSseWeek;
+  }, [isViewingSseWeek]);
+
+  const handleDateSelect = (date: Date | undefined) => {
+    if (date) {
+      setDay(date.getDate().toString().padStart(2, '0'));
+      setMonth((date.getMonth() + 1).toString().padStart(2, '0'));
+      setYear(date.getFullYear().toString());
+    }
+  };
+
+  useEffect(() => {
+    setTrendWeekStart(startOfWeek(selectedDate, { weekStartsOn: 6 }));
+  }, [day, month, year]);
+
+  // â”€â”€ SSE Live Feed State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  const [clockInOut, setClockInOut] = useState<LiveEmp[]>([]);
+  const [lateList, setLateList] = useState<LiveEmp[]>([]);
+  const [absentList, setAbsentList] = useState<LiveEmp[]>([]);
+  const [pendingApprovalsList, setPendingApprovalsList] = useState<PendingItem[]>([]);
+  const [upcomingOutstationList, setUpcomingOutstationList] = useState<any[]>([]);
+  const [activeOutstationList, setActiveOutstationList] = useState<any[]>([]);
+  const [outstationSummary, setOutstationSummary] = useState<any>(null);
+  const [liveMonthlyComp, setLiveMonthlyComp] = useState<any>(null);
+  const [liveLeaveTrend, setLiveLeaveTrend] = useState<any>(null);
+  const [liveWeeklyAttendanceTrend, setLiveWeeklyAttendanceTrend] = useState<any[] | null>(null);
+  const [liveHrAlerts, setLiveHrAlerts] = useState<any[] | null>(null);
+  const [missingPunchYesterdayLive, setMissingPunchYesterdayLive] = useState<number | null>(null);
+  const [feedConnected, setFeedConnected] = useState(false);
+  const [liveEmployees, setLiveEmployees] = useState<any[]>([]);
+  const [tempAssignments, setTempAssignments] = useState<any[]>([]);
+
+  const isAdminRole = ["hr_admin", "managing_director", "operation_manager", "finance_manager"].includes(role || "");
+
+  // SSE connection for live feed
+  useEffect(() => {
+    if (!isAdminRole) return;
+    const isAllAccessRole = ["hr_admin", "managing_director", "operation_manager", "finance_manager"].includes(role || "");
+    const queryBranch = isAllAccessRole ? "" : (userBranch || "");
+    const queryDept = isAllAccessRole ? "" : (userDepartment || "");
+
+    const params = new URLSearchParams({
+      role: role || "",
+      branch: queryBranch,
+      department: queryDept,
+      month: month.toString(),
+      year: year.toString()
+    });
+    if (viewMode === 'day') {
+      params.append('date', `${year}-${month}-${day}`);
+    }
+    const es = new EventSource(`${API_BASE_URL}/api/workforce/live-feed?${params}`);
+    es.onopen = () => setFeedConnected(true);
+    es.onmessage = (e) => {
+      try {
+        const d = JSON.parse(e.data);
+        if (d.type === 'workforce_feed') {
+          setClockInOut(d.clockInOut || []);
+          setLateList(d.lateList || []);
+          setAbsentList(d.absentList || []);
+          setPendingApprovalsList(d.pendingApprovals || []);
+          setUpcomingOutstationList(d.upcomingOutstationList || []);
+          setActiveOutstationList(d.activeOutstationList || []);
+          setOutstationSummary(d.outstationSummary || d.outstationAnalytics || null);
+          setLiveMonthlyComp(d.monthlyComparison || null);
+          setLiveLeaveTrend(d.leaveTrend || d.leaveAnalytics?.monthlyTrend || null);
+          setLiveWeeklyAttendanceTrend(prev => isViewingSseWeekRef.current ? (d.weeklyAttendanceTrend || null) : prev);
+          setLiveHrAlerts(d.hrAlerts || null);
+          if (d.missingPunchYesterday !== undefined) setMissingPunchYesterdayLive(d.missingPunchYesterday);
+          setFeedConnected(true);
+        }
+      } catch {}
+    };
+    es.onerror = () => setFeedConnected(false);
+    return () => es.close();
+  }, [role, userBranch, userDepartment, isAdminRole, month, year, day, viewMode]);
+
+  // SSE connection for live stats (to get liveEmployees)
+  useEffect(() => {
+    if (!isAdminRole) return;
+    const isAllAccessRole = ["hr_admin", "managing_director", "operation_manager", "finance_manager"].includes(role || "");
+    const queryBranch = isAllAccessRole ? "" : (userBranch || "");
+    const queryDept = isAllAccessRole ? "" : (userDepartment || "");
+    const url = `${API_BASE_URL}/api/presence/live-stats?date=${year}-${month}-${day}&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(queryBranch)}&department=${encodeURIComponent(queryDept)}`;
+    const es = new EventSource(url);
+    
+    es.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === 'presence_update') {
+          setLiveEmployees(data.employees || []);
+        }
+      } catch (err) {}
+    };
+    return () => es.close();
+  }, [role, userBranch, userDepartment, isAdminRole, month, year, day]);
+
+  const getApprovalState = (userRole: string | undefined, itemStatus: string) => {
+    const normRole = (userRole || '').toLowerCase();
+    const st = itemStatus || '';
+
+    // 1. Is this item waiting for userRole to approve?
+    let canApprove = false;
+    
+    if (['head_of_department', 'branch_leader', 'hod'].includes(normRole)) {
+      canApprove = st === 'Pending' || st.startsWith('Pending HOD') || st === 'Pending Branch Leader';
+    } else if (['operation_manager', 'operation', 'finance_manager', 'finance'].includes(normRole)) {
+      canApprove = st === 'Pending Operation' || st === 'Pending Operation Manager' || st === 'Pending Finance' || st === 'Pending Finance Manager';
+    } else if (['managing_director', 'md'].includes(normRole)) {
+      canApprove = st === 'Pending MD' || st === 'Pending Managing Director';
+    }
+
+    // HR & Employees NEVER get approve/decline buttons
+    if (['hr_admin', 'hr', 'employee'].includes(normRole)) {
+      canApprove = false;
+    }
+
+    // 2. Display Status Badge text & styling
+    let displayStatus = st;
+    let statusBadgeClass = "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20";
+
+    if (canApprove) {
+      displayStatus = "Pending Your Approval";
+      statusBadgeClass = "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20";
+    } else if (st === 'Pending' || st.startsWith('Pending HOD') || st === 'Pending Branch Leader') {
+      displayStatus = "Pending HOD / Branch Leader";
+      statusBadgeClass = "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20";
+    } else if (st === 'Pending Operation' || st === 'Pending Operation Manager' || st === 'Pending Finance' || st === 'Pending Finance Manager') {
+      displayStatus = "Pending Operation Manager";
+      statusBadgeClass = "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20";
+    } else if (st === 'Pending MD' || st === 'Pending Managing Director') {
+      displayStatus = "Pending Managing Director";
+      statusBadgeClass = "bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-500/10 dark:text-purple-400 dark:border-purple-500/20";
+    } else if (st === 'Approved') {
+      displayStatus = "Approved";
+      statusBadgeClass = "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20";
+    } else if (st === 'Rejected') {
+      displayStatus = "Rejected";
+      statusBadgeClass = "bg-red-50 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20";
+    }
+
+    return { canApprove, displayStatus, statusBadgeClass };
+  };
+
+  const handleApproveLeave = async (id: number) => {
+    setPendingApprovalsList(prev => prev.filter(item => item.id !== id));
+    try {
+      await fetch(`${API_BASE_URL}/api/leave-requests/${id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'Approve', status: 'Approved', approver_id: userId, role: role })
+      });
+    } catch (err) { console.error('Approve error:', err); }
+  };
+
+  const handleDeclineLeave = async (id: number) => {
+    setPendingApprovalsList(prev => prev.filter(item => item.id !== id));
+    try {
+      await fetch(`${API_BASE_URL}/api/leave-requests/${id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'Reject', status: 'Rejected', approver_id: userId, role: role })
+      });
+    } catch (err) { console.error('Decline error:', err); }
+  };
+
+  const fetchInsights = async () => {
+    setLoading(true);
+    try {
+      const isAllAccessRole = ["hr_admin", "hr", "admin", "managing_director", "md", "operation_manager", "finance_manager"].includes((role || "").toLowerCase().trim().replace(/ /g, "_"));
+      const queryBranch = isAllAccessRole ? "" : (userBranch || "");
+      const queryDept = isAllAccessRole ? "" : (userDepartment || "");
+
+      const params = new URLSearchParams({
+        role: role || "",
+        branch: queryBranch,
+        department: queryDept,
+        month: month,
+        year: year
+      });
+      if (viewMode === 'day') {
+        params.append('date', `${year}-${month}-${day}`);
+      }
+      
+      const [res, tempRes] = await Promise.all([
+        fetch(`${API_BASE_URL}/api/workforce-stats?${params}`),
+        fetch(`${API_BASE_URL}/api/work-assignments-all?${params}`)
+      ]);
+      
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      
+      const json = await res.json();
+      if (json.success) {
+        setData(json);
+      } else {
+        throw new Error(json.error || "Failed to fetch data");
+      }
+
+      if (tempRes.ok) {
+        const tempJson = await tempRes.json();
+        if (tempJson.success) {
+          setTempAssignments(tempJson.assignments);
+        }
+      }
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchWeeklyTrendOnly = async (weekStart: Date) => {
+    try {
+      const isAllAccessRole = ["hr_admin", "hr", "admin", "managing_director", "md", "operation_manager", "finance_manager"].includes((role || "").toLowerCase().trim().replace(/ /g, "_"));
+      const queryBranch = isAllAccessRole ? "" : (userBranch || "");
+      const queryDept = isAllAccessRole ? "" : (userDepartment || "");
+
+      const params = new URLSearchParams({
+        role: role || "",
+        branch: queryBranch,
+        department: queryDept,
+        month: month,
+        year: year,
+        weekStartDate: format(weekStart, 'yyyy-MM-dd'),
+        date: format(selectedDate, 'yyyy-MM-dd')
+      });
+      const res = await fetch(`${API_BASE_URL}/api/workforce-stats?${params}`);
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.attendanceOverview?.weeklyAttendanceTrend) {
+          setLiveWeeklyAttendanceTrend(json.attendanceOverview.weeklyAttendanceTrend);
+        }
+      }
+    } catch (err) {
+      console.error("Error fetching weekly trend:", err);
+    }
+  };
+
+  // When trendWeekStart changes (but not on initial mount where fetchInsights covers it), we fetch just the weekly trend
+  useEffect(() => {
+    if (data) {
+      fetchWeeklyTrendOnly(trendWeekStart);
+    }
+  }, [trendWeekStart, role, userBranch, userDepartment]);
+
+  useEffect(() => { fetchInsights(); }, [role, userBranch, userDepartment, month, year, day, viewMode]);
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+  if (error) return <div className="min-h-screen flex items-center justify-center text-red-500">Error: {error}. The backend may still be deploying.</div>;
+  if (!data) return <div className="min-h-screen flex items-center justify-center text-foreground">No data available</div>;
+
+  const onTimeCount = Math.max(0, data.teamAvailability.present - data.teamAvailability.late);
+  const donutData = [
+    { name: 'On Time', value: onTimeCount },
+    { name: 'Late', value: data.teamAvailability.late },
+    { name: 'On Leave', value: data.teamAvailability.onLeave },
+    { name: 'Absent', value: data.teamAvailability.absent },
+    { name: 'Comp Leave', value: data.teamAvailability.companyLeave || 0 },
+    { name: 'Outstation', value: data.topKpi?.outstationToday || 0 },
+  ];
+
+  const availableToday = data.teamAvailability.present;
+  const totalTeam = availableToday + data.teamAvailability.onLeave + data.teamAvailability.absent + (data.teamAvailability.companyLeave || 0) + (data.topKpi?.outstationToday || 0);
+  const availabilityRate = totalTeam > 0 ? Math.round((availableToday / totalTeam) * 100) : 0;
+
+  // Simulated Leave Utilization Trend Data (Time Normalized in Hours)
+  const leaveTrendData = [
+    { month: 'Jan', Annual: 45, Sick: 20, Replacement: 0 },
+    { month: 'Feb', Annual: 55, Sick: 35, Replacement: 8 },
+    { month: 'Mar', Annual: 40, Sick: 15, Replacement: 0 },
+    { month: 'Apr', Annual: 75, Sick: 50, Replacement: 16 },
+    { month: 'May', Annual: 60, Sick: 25, Replacement: 8 },
+    { month: 'Jun', Annual: ((data.leave?.annual || 0) + (data.leave?.emergency || 0)) * 8, Sick: (data.leave?.medical || 0) * 8, Replacement: (data.leave?.replacement || 0) * 8 }
+  ];
+  const currentMonthSick = leaveTrendData[5].Sick;
+  const prevMonthSick = leaveTrendData[4].Sick;
+  const sickLeaveSpike = currentMonthSick > 0 && currentMonthSick >= prevMonthSick * 1.5;
+
+  const departmentChartData = (data.departmentMetrics || [])
+    .filter((d: any) => d.name && d.name.toLowerCase() !== 'unassigned')
+    .map((d: any) => ({
+      ...d,
+      name: d.name.toUpperCase()
+    }));
+
+  const CustomDeptTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-card border border-slate-300 dark:border-slate-700 rounded-md shadow-lg p-2 flex flex-col gap-1 min-w-[100px]">
+          <p className="text-[11px] font-bold text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-900/50 px-2 py-1 rounded-sm border-b border-slate-100 dark:border-slate-800">{label}</p>
+          <div className="flex items-center gap-1.5 px-2 py-1">
+            <div className="w-2 h-2 rounded-full bg-[#ff5b37]"></div>
+            <p className="text-[11px] text-slate-700 dark:text-slate-200">Employee: <span className="font-bold">{payload[0].value}</span></p>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  const CustomEmployeeTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-card border border-slate-300 dark:border-slate-700 rounded-md shadow-lg p-2 flex flex-col gap-1 min-w-[100px]">
+          <p className="text-[11px] font-bold text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-900/50 px-2 py-1 rounded-sm border-b border-slate-100 dark:border-slate-800">{label}</p>
+          <div className="flex items-center gap-1.5 px-2 py-1">
+            <div className="w-2 h-2 rounded-full bg-[#942392]"></div>
+            <p className="text-[11px] text-slate-700 dark:text-slate-200">Attendance: <span className="font-bold">{payload[0].value}%</span></p>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
+  return (
+    <div className="space-y-6 animate-in fade-in duration-500 w-full">
+        
+        {/* Filter Toolbar Line directly under main header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200/60 dark:border-slate-800/60">
+          {/* LEFT: DAY | MONTH View Toggle Bar */}
+          <div className="inline-flex items-center bg-slate-100 dark:bg-slate-900 p-1.5 rounded-xl shadow-inner border border-slate-200 dark:border-slate-800 shrink-0 gap-1">
+            <button 
+              className={`flex items-center justify-center h-8 px-5 text-[11px] font-black tracking-widest rounded-lg transition-all duration-300 ${viewMode === 'day' ? 'bg-[#FFFE00] text-[#942392] shadow-md' : 'text-foreground hover:text-slate-700 hover:bg-slate-200/50'}`}
+              onClick={() => setViewMode('day')}
+            >
+              DAY
+            </button>
+            <button 
+              className={`flex items-center justify-center h-8 px-5 text-[11px] font-black tracking-widest rounded-lg transition-all duration-300 ${viewMode === 'month' ? 'bg-[#FFFE00] text-[#942392] shadow-md' : 'text-foreground hover:text-slate-700 hover:bg-slate-200/50'}`}
+              onClick={() => setViewMode('month')}
+            >
+              MONTH
+            </button>
+          </div>
+
+          {/* RIGHT: Active Filter Controls */}
+          <div className="flex flex-wrap items-center justify-end gap-2.5">
+            <div className="relative">
+              {viewMode === "day" ? (
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button className="appearance-none flex items-center justify-between px-4 py-2 bg-card border border-slate-300 dark:border-slate-700 text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-10 gap-3 hover:border-[#942392]/40 min-w-[140px]">
+                      <span>{displayDate}</span>
+                      <CalendarIcon className="w-4 h-4 text-foreground" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl bg-card z-50" align="end">
+                    <Calendar
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={handleDateSelect}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              ) : viewMode === "month" ? (
+                <MonthPicker
+                  hideAllYear={true}
+                  monthYear={`${year}-${month.padStart(2, '0')}`}
+                  onSelectMonthYear={(val) => {
+                    const [newYear, newMonth] = val.split('-');
+                    setYear(newYear);
+                    if (newMonth === 'all') {
+                      setMonth('all');
+                    } else {
+                      setMonth(parseInt(newMonth).toString());
+                    }
+                  }}
+                  className="appearance-none flex items-center justify-between px-4 py-2 bg-card border border-slate-300 dark:border-slate-700 text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-10 min-w-[140px]"
+                />
+              ) : (
+                <YearPopover year={year} onSelectYear={setYear} />
+              )}
+            </div>
+            <ExportDropdown 
+              onExportCSV={() => exportToCSV(data.departmentMetrics || [], 'Workforce_Insights')} 
+              onExportPDF={() => window.print()} 
+            />
+          </div>
+        </div>
+
+        {/* Redesigned Top Section: 5-column layout */}
+        {viewMode === 'day' ? (
+          <>
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 mb-6">
+          
+          {/* 8 KPI Cards (Replaces old Attendance Overview + 4 Grid) */}
+          <div className={`col-span-1 ${['head_of_department', 'branch_leader'].includes(role) ? 'xl:col-span-4' : 'xl:col-span-3'} grid grid-cols-2 lg:grid-cols-5 gap-4`}>
+            
+                        {/* 1. Present Today */}
+            <Card className={`group lg:col-span-2 border border-emerald-100 dark:border-emerald-900/40 bg-card p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.emerald} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+              <div>
+                <div className="flex justify-between items-start mb-2">
+                  <div className="w-10 h-10 rounded-full border border-emerald-200 dark:border-emerald-800/60 bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
+                    <Users className="w-5 h-5 text-emerald-600 dark:text-emerald-400 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
+                  </div>
+                  {feedConnected && <span className="text-emerald-600 dark:text-emerald-400 text-[11px] font-bold flex items-center gap-1 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full shadow-sm"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />Live</span>}
+                </div>
+                <p className="text-[11px] font-extrabold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider mb-2 mt-2">Present Today</p>
+                <div className="flex flex-col items-center justify-center mt-2">
+                  <h3 className="text-5xl font-black text-slate-800 dark:text-white leading-none tracking-tight">{feedConnected && clockInOut.length > 0 ? clockInOut.length : data.teamAvailability.present}</h3>
+                  <p className="text-[12px] font-semibold text-foreground mt-1">Employees</p>
+                </div>
+              </div>
+              <div className="mt-4">
+                <div className="flex justify-between items-end mb-2 relative">
+                  <p className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-0.5"><TrendingUp className="w-3 h-3" /> 2 vs Yesterday</p>
+                  <p className="text-[11px] font-bold text-emerald-700 dark:text-emerald-400">{(feedConnected && clockInOut.length > 0 ? clockInOut.length : data.teamAvailability.present) === data.topKpi.activeEmployees ? "100%" : `${Math.round(((feedConnected && clockInOut.length > 0 ? clockInOut.length : data.teamAvailability.present) / (data.topKpi.activeEmployees || 1)) * 100)}%`} of Workforce</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-full bg-emerald-200/50 dark:bg-emerald-950/50 rounded-full h-2.5 overflow-hidden">
+                    <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${Math.min(100, ((feedConnected && clockInOut.length > 0 ? clockInOut.length : data.teamAvailability.present) / (data.topKpi.activeEmployees || 1)) * 100)}%` }}></div>
+                  </div>
+                  <div className="text-[12px] font-extrabold text-slate-800 dark:text-slate-100 whitespace-nowrap">
+                     {feedConnected && clockInOut.length > 0 ? clockInOut.length : data.teamAvailability.present} <span className="text-foreground font-bold">/ {data.topKpi.activeEmployees}</span>
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            {/* 2. Late Arrivals */}
+            {(() => {
+              let highestLateTime = "None";
+              if (feedConnected && lateList.length > 0) {
+                const maxTime = Math.max(...(Array.isArray(lateList) ? lateList : []).map(emp => emp.clock_in ? new Date(emp.clock_in).getTime() : 0));
+                if (maxTime > 0) {
+                   highestLateTime = new Date(maxTime).toLocaleTimeString('en-US', {
+                       timeZone: 'Asia/Kuala_Lumpur',
+                       hour: 'numeric',
+                       minute: '2-digit',
+                       hour12: true
+                   });
+                }
+              }
+              
+              return (
+            <Card className={`group border border-slate-100 dark:border-slate-800 bg-card p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.orange} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+              <div>
+                <div className="w-10 h-10 rounded-full border border-orange-100 dark:border-orange-800/60 bg-orange-50/50 dark:bg-orange-950/40 flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110">
+                  <Clock className="w-5 h-5 text-orange-500 dark:text-orange-400 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
+                </div>
+                <p className="text-[11px] font-extrabold text-orange-600 dark:text-orange-400 uppercase tracking-wider mb-2">Late Arrival</p>
+                <div className="flex flex-col items-start mt-1">
+                  <h3 className="text-4xl font-black text-slate-800 dark:text-white leading-none">{feedConnected && lateList.length > 0 ? lateList.length : data.teamAvailability.late}</h3>
+                  <p className="text-[12px] font-semibold text-foreground mt-1">Employees</p>
+                </div>
+              </div>
+              <div className="mt-2">
+                <p className="text-[11px] font-bold text-foreground mb-3">Highest: <span className="text-orange-500 dark:text-orange-400">{highestLateTime}</span></p>
+              </div>
+            </Card>
+            );})()}
+
+            {/* 3. On Leave Today */}
+            <Card className={`group border border-slate-100 dark:border-slate-800 bg-card p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.purple} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+              <div>
+                <div className="w-10 h-10 rounded-full border border-purple-100 dark:border-purple-800/60 bg-purple-50/50 dark:bg-purple-950/40 flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110">
+                  <CalendarDays className="w-5 h-5 text-purple-600 dark:text-purple-400 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
+                </div>
+                <p className="text-[11px] font-extrabold text-purple-600 dark:text-purple-400 uppercase tracking-wider mb-2">On Leave Today</p>
+                <div className="flex flex-col items-start mt-1">
+                  <h3 className="text-4xl font-black text-slate-800 dark:text-white leading-none">{data.topKpi.onLeaveToday}</h3>
+                  <p className="text-[12px] font-semibold text-foreground mt-1">Employees</p>
+                </div>
+              </div>
+                <div className="flex items-center gap-1 flex-wrap">
+                  <span className="bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 text-[9px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap">AL {data.leave?.annual || 0}</span>
+                  <span className="bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 text-[9px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap">MC {data.leave?.medical || 0}</span>
+                  <span className="bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 text-[9px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap">RL {data.leave?.replacement || 0}</span>
+                  <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[9px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap">UL {data.leave?.unpaid || 0}</span>
+                </div>
+            </Card>
+
+            {/* 4. Absent Today */}
+            <Card className={`group border border-slate-100 dark:border-slate-800 bg-card p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.red} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+              <div>
+                <div className="w-10 h-10 rounded-full border border-red-100 dark:border-red-800/60 bg-red-50/50 dark:bg-red-950/40 flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110">
+                  <XCircle className="w-5 h-5 text-red-500 dark:text-red-400 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
+                </div>
+                <p className="text-[11px] font-extrabold text-red-500 dark:text-red-400 uppercase tracking-wider mb-2">Absent Today</p>
+                <div className="flex flex-col items-start mt-1">
+                  <h3 className="text-4xl font-black text-slate-800 dark:text-white leading-none">{feedConnected && absentList.length > 0 ? absentList.filter(a => (a as any).status === 'absent').length : data.teamAvailability.absent}</h3>
+                  <p className="text-[12px] font-semibold text-foreground mt-1">Employees</p>
+                </div>
+              </div>
+              <div className="mt-2">
+                <p className="text-[11px] font-bold text-red-500 dark:text-red-400 mb-3">Needs Attention</p>
+              </div>
+            </Card>
+
+            {/* 5. Missing Punch */}
+            <Card className={`group border border-slate-100 dark:border-slate-800 bg-card p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.amber} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+              <div>
+                <div className="flex justify-between items-start mb-2">
+                  <div className="w-10 h-10 rounded-full border border-amber-100 dark:border-amber-800/60 bg-amber-50/50 dark:bg-amber-950/40 flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110">
+                    <AlertTriangle className="w-5 h-5 text-amber-500 dark:text-amber-400 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
+                  </div>
+                  {feedConnected && <span className="text-amber-500 dark:text-amber-400 text-[11px] font-bold flex items-center gap-1 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full shadow-sm"><span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />Live</span>}
+                </div>
+                <p className="text-[11px] font-extrabold text-amber-500 dark:text-amber-400 uppercase tracking-wider mb-2">Missing Punch</p>
+                <div className="flex flex-col items-start mt-1">
+                  <h3 className="text-4xl font-black text-slate-800 dark:text-white leading-none">
+                    {feedConnected && missingPunchYesterdayLive !== null 
+                      ? missingPunchYesterdayLive 
+                      : (data.topKpi?.missingPunchYesterday || 0)}
+                  </h3>
+                  <p className="text-[12px] font-semibold text-foreground mt-1">Employees</p>
+                </div>
+              </div>
+              <div className="mt-2">
+                <p className="text-[11px] font-bold text-amber-500 dark:text-amber-400 mb-3 flex items-center gap-1">Yesterday's Records</p>
+                <div className="w-full bg-amber-100 dark:bg-amber-950/50 rounded-full h-1.5 overflow-hidden">
+                  <div className="h-full bg-amber-500 rounded-full w-[100%]"></div>
+                </div>
+              </div>
+            </Card>
+
+            {/* 6. Outstation */}
+            <Card className={`group border border-slate-100 dark:border-slate-800 bg-card p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.blue} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+              <div>
+                <div className="w-10 h-10 rounded-full border border-blue-100 dark:border-blue-800/60 bg-blue-50/50 dark:bg-blue-950/40 flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110">
+                  <Plane className="w-5 h-5 text-blue-500 dark:text-blue-400 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
+                </div>
+                <p className="text-[11px] font-extrabold text-blue-500 dark:text-blue-400 uppercase tracking-wider mb-2">Outstation</p>
+                <div className="flex flex-col items-start mt-1">
+                  <h3 className="text-4xl font-black text-slate-800 dark:text-white leading-none">{activeOutstationList.length > 0 ? activeOutstationList.length : (data.topKpi.outstationToday || 0)}</h3>
+                  <p className="text-[12px] font-semibold text-foreground mt-1">Employees</p>
+                </div>
+              </div>
+              <div className="mt-2">
+                <p className="text-[11px] font-bold text-blue-500 dark:text-blue-400 mb-3">{(activeOutstationList.length > 0 || (data.topKpi.outstationToday || 0) > 0) ? "Away on duty" : "None Today"}</p>
+                <div className="flex items-center border-t border-slate-100 dark:border-slate-800 pt-3">
+                  <div className="w-12 bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden ml-auto shrink-0">
+                    <div className="h-full bg-blue-300 rounded-full w-[30%]"></div>
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            {/* 7. Attendance Rate */}
+            <Card className={`group border border-slate-100 dark:border-slate-800 bg-card p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.indigo} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+              <div>
+                <div className="w-10 h-10 rounded-full border border-indigo-100 dark:border-indigo-800/60 bg-indigo-50/50 dark:bg-indigo-950/40 flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110">
+                  <CheckCircle2 className="w-5 h-5 text-indigo-500 dark:text-indigo-400 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
+                </div>
+                <p className="text-[11px] font-extrabold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mb-2">Attendance Rate</p>
+                <div className="flex items-baseline gap-2 mt-1">
+                  <h3 className="text-4xl font-black text-slate-800 dark:text-white leading-none">{data.topKpi.attendanceRate}%</h3>
+                </div>
+                <p className="text-[11px] font-bold text-foreground mt-1">Target 95%</p>
+              </div>
+              <div className="mt-1 flex flex-col items-start w-full relative">
+                <p className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-0.5"><TrendingUp className="w-3 h-3" /> 2% vs Yesterday</p>
+              </div>
+            </Card>
+
+            {/* 8. Active Workforce */}
+            <Card className={`group lg:col-span-2 border border-slate-100 dark:border-slate-800 bg-card p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.emerald} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+              <div>
+                <div className="w-10 h-10 rounded-full border border-emerald-100 dark:border-emerald-800/60 bg-emerald-50/50 dark:bg-emerald-950/40 flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110">
+                  <Users className="w-5 h-5 text-emerald-500 dark:text-emerald-400 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
+                </div>
+                <p className="text-[11px] font-extrabold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-2">Active Workforce</p>
+                <div className="flex items-baseline gap-2 mt-1">
+                  <h3 className="text-4xl font-black text-slate-800 dark:text-white leading-none">
+                    {data.topKpi.activeEmployees} <span className="text-[18px] font-bold text-foreground">/ {data.topKpi.totalHeadcount}</span>
+                  </h3>
+                </div>
+                <p className="text-[12px] font-semibold text-emerald-600 dark:text-emerald-400 mt-1">Active</p>
+              </div>
+              <div className="mt-4 flex items-center gap-3 border-t border-slate-100 dark:border-slate-800 pt-3">
+                <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">{Math.round((data.topKpi.activeEmployees / (data.topKpi.totalHeadcount || 1)) * 100)}%</span>
+                <div className="w-full bg-emerald-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                  <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${Math.min(100, (data.topKpi.activeEmployees / (data.topKpi.totalHeadcount || 1)) * 100)}%` }}></div>
+                </div>
+              </div>
+            </Card>
+
+          </div>
+
+          {/* Column 3: Employees By Department or Employee Attendance */}
+          {!['head_of_department', 'branch_leader'].includes(role) && (() => {
+            const rawBranchMetrics = data.branchMetrics || [];
+            const hqMetric = rawBranchMetrics.find((b: any) => b.name === 'HQ' || b.name === 'Rayhar HQ') || { count: 0 };
+            const hqCount = hqMetric.count || 0;
+            const branchCount = rawBranchMetrics.filter((b: any) => b.name !== 'HQ' && b.name !== 'Rayhar HQ').reduce((sum: number, b: any) => sum + (b.count || 0), 0);
+            const totalEmployees = hqCount + branchCount;
+            const hqPct = totalEmployees > 0 ? (hqCount / totalEmployees) * 100 : 0;
+            const branchPct = totalEmployees > 0 ? (branchCount / totalEmployees) * 100 : 0;
+            
+            const allAttendance = data.performance?.allAttendance || [];
+            const topPerformers = allAttendance.filter((a: any) => a.attendanceRate === 100);
+            const topPerformerCount = topPerformers.length;
+
+            return (
+              <Card className={`col-span-1 xl:col-span-1 border border-slate-200 dark:border-slate-800 bg-card p-5 flex flex-col justify-between ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+                <div className="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
+                  <span className="text-[12px] font-bold text-slate-800 dark:text-slate-200">Employee Distribution</span>
+                </div>
+                
+                <div className="flex flex-col flex-1 mt-2">
+                  <div className="flex justify-between items-end mb-2">
+                     <span className="text-[11px] font-semibold text-foreground">Total Employee</span>
+                     <span className="text-3xl font-black text-slate-800 dark:text-slate-200">{totalEmployees > 0 ? totalEmployees : (data.topKpi?.totalHeadcount || 218)}</span>
+                  </div>
+                  
+                  {/* 100% Stacked Bar for HQ and Branch */}
+                  <div className="flex w-full h-5 rounded-full overflow-hidden mt-2 mb-4">
+                    <div style={{ width: `${hqPct || 37.6}%` }} className="bg-[#f59e0b] h-full" />
+                    <div style={{ width: `${branchPct || 62.4}%` }} className="bg-[#0f766e] h-full" />
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4 border-b border-slate-100 dark:border-slate-800 pb-5 mb-5">
+                    <div className="flex flex-col border-r border-slate-100 dark:border-slate-800">
+                      <div className="flex items-center gap-1.5 mb-2">
+                         <div className="w-2 h-2 rounded-full bg-[#f59e0b]" />
+                         <span className="text-[10px] font-bold text-foreground">HQ ({(hqPct || 37.6).toFixed(1)}%)</span>
                       </div>
-                    );
-                  })}
-               </TooltipProvider>
+                      <span className="text-2xl font-black text-slate-800 dark:text-slate-200">{hqCount > 0 ? hqCount : 82}</span>
+                    </div>
+                    <div className="flex flex-col pl-2">
+                      <div className="flex items-center gap-1.5 mb-2">
+                         <div className="w-2 h-2 rounded-full bg-[#0f766e]" />
+                         <span className="text-[10px] font-bold text-foreground">Branch ({(branchPct || 62.4).toFixed(1)}%)</span>
+                      </div>
+                      <span className="text-2xl font-black text-slate-800 dark:text-slate-200">{branchCount > 0 ? branchCount : 136}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-2 mb-6">
+                    <span className="text-[12px] font-bold text-slate-800 dark:text-slate-200">Top Performer</span>
+                    <div className="group flex items-center justify-between bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-900/30 rounded-xl p-4 mt-1 cursor-default hover:bg-orange-100/50 dark:hover:bg-orange-900/20 transition-colors">
+                       <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 shadow-sm transition-transform duration-300 group-hover:scale-110">
+                             <Award className="w-5 h-5 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
+                          </div>
+                          <div className="flex flex-col">
+                             <span className="text-[14px] font-bold text-slate-800 dark:text-slate-200">{topPerformerCount > 0 ? topPerformerCount : 27} Employees</span>
+                             <span className="text-[11px] font-semibold text-foreground">Attendance Rate: <span className="text-emerald-500 font-bold">100%</span></span>
+                          </div>
+                       </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <button onClick={() => navigate('/branch-management')} className="w-full h-10 flex items-center justify-center bg-slate-50 dark:bg-slate-900/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-[11px] font-bold text-slate-600 dark:text-slate-200 rounded-lg border border-slate-200 dark:border-slate-700">
+                   View All Employees <ChevronRight className="w-3 h-3 ml-1" />
+                </button>
+              </Card>
+            );
+          })()}
+
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+          
+          {/* Left Column (2-span): Branch Distribution + HOD/BL Live Cards */}
+          <div className="col-span-1 lg:col-span-2 flex flex-col gap-6">
+            {(() => {
+              const rawBranchMetrics = data?.branchMetrics || [];
+              const filteredBranches = selectedRegion === 'All Regions' 
+                ? rawBranchMetrics 
+                : rawBranchMetrics.filter((b:any) => regionMap[b.name] === selectedRegion || (b.name==='HQ' && selectedRegion==='Central'));
+              
+              return (
+                <Card className={`border border-slate-200 dark:border-slate-800 bg-card flex flex-col h-fit ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+                <CardHeader className="p-5 border-b border-slate-100 dark:border-slate-800 pb-4 flex flex-row justify-between items-center">
+                  <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-200">Branch Workforce Distribution</CardTitle>
+                  <Select value={selectedRegion} onValueChange={setSelectedRegion}>
+                    <SelectTrigger className="w-[120px] h-7 text-[10px] font-bold border border-slate-300 dark:border-slate-700 bg-card shadow-none focus:ring-0">
+                      <SelectValue placeholder="All Regions" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="All Regions" className="text-[10px] font-bold">All Regions</SelectItem>
+                      {regionOrder.map(r => <SelectItem key={r} value={r} className="text-[10px] font-bold">{r}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </CardHeader>
+                <CardContent className="p-5 flex flex-col">
+                  <div className={`space-y-4 flex-1 pr-2 ${filteredBranches.length > 5 ? 'overflow-y-auto custom-scrollbar max-h-[220px] custom-scrollbar' : 'overflow-y-visible'}`}>
+                    <TooltipProvider>
+                      {(Array.isArray(filteredBranches) ? filteredBranches : []).map((branch: any, idx: number) => {
+                        const branchEmployees = liveEmployees.filter(emp => emp.branch === branch.name);
+
+                        let outstation: number, presentOnTime: number, presentLate: number, onLeave: number, companyLeave: number, absent: number;
+
+                        if (['head_of_department', 'branch_leader'].includes(role)) {
+                          // For HOD/BL: use the same server-side filtered data as the KPI cards
+                          // to ensure Branch Distribution matches "Present Today" / "Absent Today" exactly
+                          presentOnTime = Math.max(0, (data.teamAvailability?.present ?? 0) - (data.teamAvailability?.late ?? 0));
+                          presentLate = data.teamAvailability?.late ?? 0;
+                          onLeave = data.topKpi?.onLeaveToday ?? 0;
+                          outstation = data.topKpi?.outstationToday ?? 0;
+                          companyLeave = 0;
+                          absent = data.teamAvailability?.absent ?? 0;
+                        } else {
+                          outstation = branchEmployees.filter(emp => emp.status === 'outstation').length;
+                          presentOnTime = branchEmployees.filter(emp => emp.status === 'present').length;
+                          presentLate = branchEmployees.filter(emp => emp.status === 'late').length;
+                          onLeave = branchEmployees.filter(emp => emp.status === 'onLeave').length;
+                          companyLeave = branchEmployees.filter(emp => emp.status === 'companyLeave').length;
+                          absent = Math.max(0, branch.count - (presentOnTime + presentLate + outstation + onLeave + companyLeave));
+                        }
+                        
+                        const expectedWorkingDays = branch.count - onLeave - companyLeave;
+                        let realRate = 0;
+                        if (expectedWorkingDays > 0) {
+                          realRate = Math.round(((presentOnTime + presentLate + outstation) / expectedWorkingDays) * 100);
+                        } else if (branch.count > 0 && expectedWorkingDays === 0) {
+                          realRate = 100;
+                        }
+
+                        return { ...branch, realRate, presentOnTime, presentLate, outstation, onLeave, companyLeave, absent };
+                      }).sort((a:any, b:any) => b.realRate - a.realRate).map((branch: any, idx: number) => {
+                        return (
+                          <div key={idx} className="flex flex-col gap-1">
+                            <div className="flex justify-between items-end">
+                              <div className="flex flex-col">
+                                <span className="text-[11px] font-bold text-[#1A1F36] dark:text-gray-200">{branch.name}</span>
+                                <span className="text-[9px] text-foreground">{branch.count} Employees</span>
+                              </div>
+                              <span className={`text-[10px] font-black ${branch.realRate >= 95 ? 'text-emerald-500' : 'text-rose-500'}`}>{branch.realRate}%</span>
+                            </div>
+                            <UITooltip delayDuration={100}>
+                              <TooltipTrigger asChild>
+                                <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 flex overflow-hidden cursor-pointer">
+                                  {branch.count > 0 ? (
+                                    <>
+                                      <div className="h-full bg-[#10b981]" style={{ width: `${(branch.presentOnTime / branch.count) * 100}%` }}></div>
+                                      <div className="h-full bg-[#f59e0b]" style={{ width: `${(branch.presentLate / branch.count) * 100}%` }}></div>
+                                      <div className="h-full bg-pink-500" style={{ width: `${(branch.outstation / branch.count) * 100}%` }}></div>
+                                      <div className="h-full bg-blue-500" style={{ width: `${(branch.onLeave / branch.count) * 100}%` }}></div>
+                                      <div className="h-full bg-purple-500" style={{ width: `${(branch.companyLeave / branch.count) * 100}%` }}></div>
+                                      <div className="h-full bg-red-500" style={{ width: `${(branch.absent / branch.count) * 100}%` }}></div>
+                                    </>
+                                  ) : (
+                                    <div className="h-full w-full bg-slate-200"></div>
+                                  )}
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent side="top" align="center" className="bg-card border border-slate-200 dark:border-slate-800 shadow-xl rounded p-3 z-50 w-max whitespace-nowrap text-left min-w-[150px]">
+                                <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 mb-2 border-b border-slate-100 dark:border-slate-800 pb-1">{branch.name}</p>
+                                <div className="flex flex-col gap-1 text-[9px] text-slate-600 dark:text-slate-300">
+                                  <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#10b981]"></div>Present (On Time):</span> <span className="font-bold text-emerald-600">{branch.presentOnTime}</span></p>
+                                  <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#f59e0b]"></div>Present (Late):</span> <span className="font-bold text-amber-500">{branch.presentLate}</span></p>
+                                  <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-pink-500"></div>Outstation:</span> <span className="font-bold text-pink-500">{branch.outstation}</span></p>
+                                  <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>On Leave:</span> <span className="font-bold text-blue-500">{branch.onLeave}</span></p>
+                                  <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-purple-500"></div>Company Leave:</span> <span className="font-bold text-purple-500">{branch.companyLeave}</span></p>
+                                  <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>Absent:</span> <span className="font-bold text-red-500">{branch.absent}</span></p>
+                                </div>
+                              </TooltipContent>
+                            </UITooltip>
+                          </div>
+                        );
+                      })}
+                    </TooltipProvider>
                {liveBranchRanking.length === 0 && (
                  <div className="text-center text-foreground text-xs py-10 font-medium">No branches found in this region.</div>
                )}
