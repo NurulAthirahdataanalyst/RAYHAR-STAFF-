@@ -1510,19 +1510,22 @@ export default function LeaveAnalytics() {
                   {branchComparison.slice(0, branchLimit).map((item, index) => {
                     const maxVal = Math.max(...branchComparison.map(b => b.value));
                     const widthPercent = maxVal === 0 ? 0 : (item.value / maxVal) * 100;
+                    const COLORS = ["bg-[#3B82F6]", "bg-[#10B981]", "bg-[#F59E0B]", "bg-[#8B5CF6]", "bg-[#EC4899]", "bg-[#06B6D4]"];
+                    const uniqueValues = Array.from(new Set(branchComparison.map(b => b.value))).sort((a, b) => b - a);
+                    const colorClass = COLORS[uniqueValues.indexOf(item.value) % COLORS.length];
                     return (
-                      <div key={index} className="flex items-center justify-between gap-3 sm:gap-4 text-xs">
-                        <div className="w-32 font-bold text-slate-800 dark:text-slate-200 text-xs truncate tracking-tight uppercase">
+                      <div key={index} title={`${item.name} - ${item.value} APPLICATION${item.value !== 1 ? 'S' : ''}`} className="flex items-center justify-between gap-3 sm:gap-4 text-xs group cursor-default">
+                        <div className="w-32 font-bold text-slate-800 dark:text-slate-200 text-xs truncate tracking-tight uppercase group-hover:text-[#3B82F6] transition-colors">
                           {item.name}
                         </div>
                         <div className="flex-1 bg-slate-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
                           <div
-                            className="h-2.5 rounded-full bg-[#3B82F6] transition-all duration-500"
+                            className={`h-2.5 rounded-full ${colorClass} transition-all duration-500 opacity-90 group-hover:opacity-100`}
                             style={{ width: `${widthPercent}%` }}
                           />
                         </div>
                         <div className="flex items-center gap-1.5 shrink-0 min-w-[30px] justify-end">
-                          <span className="font-bold text-xs text-slate-800 dark:text-slate-200">{item.value}</span>
+                          <span className="font-bold text-xs text-slate-800 dark:text-slate-200 group-hover:text-[#3B82F6] transition-colors">{item.value}</span>
                         </div>
                       </div>
                     );
