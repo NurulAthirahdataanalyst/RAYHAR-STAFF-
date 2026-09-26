@@ -1113,7 +1113,12 @@ export default function LeaveAnalytics() {
     }
     if (heatmapData.length > 0) {
       const highestDay = heatmapData.reduce((prev, curr) => (prev.value > curr.value) ? prev : curr);
-      insights.push(`${highestDay.name}days receive the highest leave requests.`);
+      const fullDayNames: Record<string, string> = {
+        'Mon': 'Mondays', 'Tue': 'Tuesdays', 'Wed': 'Wednesdays', 
+        'Thu': 'Thursdays', 'Fri': 'Fridays', 'Sat': 'Saturdays', 'Sun': 'Sundays'
+      };
+      const dayName = fullDayNames[highestDay.name] || `${highestDay.name}days`;
+      insights.push(`${dayName} receive the highest leave requests.`);
     }
     if (balanceRisk.overQuota > 0) {
       insights.push(`${balanceRisk.overQuota} employees may exhaust their leave quota this month.`);
