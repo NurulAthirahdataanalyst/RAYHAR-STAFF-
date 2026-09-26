@@ -19,6 +19,7 @@ import {
 import { StaffProfileDialog } from '@/components/shared/StaffProfileDialog';
 import { EmployeesRequiringAttentionCard } from '@/components/shared/EmployeesRequiringAttentionCard';
 import { Badge } from "@/components/ui/badge";
+import { Tooltip as RadixTooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { YearPopover } from "@/components/shared/YearPopover";
 import { MonthPicker } from "@/components/shared/MonthPicker";
@@ -1511,31 +1512,48 @@ export default function LeaveAnalytics() {
               <div className="py-6 text-center text-muted-foreground text-xs">No data available.</div>
             ) : (
               <>
-                <div className="space-y-4 flex-1">
-                  {branchComparison.slice(0, branchLimit).map((item, index) => {
-                    const maxVal = Math.max(...branchComparison.map(b => b.value));
-                    const widthPercent = maxVal === 0 ? 0 : (item.value / maxVal) * 100;
-                    const COLORS = ["bg-[#3B82F6]", "bg-[#10B981]", "bg-[#F59E0B]", "bg-[#8B5CF6]", "bg-[#EC4899]", "bg-[#06B6D4]"];
-                    const uniqueValues = Array.from(new Set(branchComparison.map(b => b.value))).sort((a, b) => b - a);
-                    const colorClass = COLORS[uniqueValues.indexOf(item.value) % COLORS.length];
-                    return (
-                      <div key={index} title={`${item.name} - ${item.value} APPLICATION${item.value !== 1 ? 'S' : ''}`} className="flex items-center justify-between gap-3 sm:gap-4 text-xs group cursor-default">
-                        <div className="w-32 font-bold text-slate-800 dark:text-slate-200 text-xs truncate tracking-tight uppercase group-hover:text-[#3B82F6] transition-colors">
-                          {item.name}
-                        </div>
-                        <div className="flex-1 bg-slate-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
-                          <div
-                            className={`h-2.5 rounded-full ${colorClass} transition-all duration-500 opacity-90 group-hover:opacity-100`}
-                            style={{ width: `${widthPercent}%` }}
-                          />
-                        </div>
-                        <div className="flex items-center gap-1.5 shrink-0 min-w-[30px] justify-end">
-                          <span className="font-bold text-xs text-slate-800 dark:text-slate-200 group-hover:text-[#3B82F6] transition-colors">{item.value}</span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                <TooltipProvider delayDuration={100}>
+                  <div className="space-y-4 flex-1">
+                    {branchComparison.slice(0, branchLimit).map((item, index) => {
+                      const maxVal = Math.max(...branchComparison.map(b => b.value));
+                      const widthPercent = maxVal === 0 ? 0 : (item.value / maxVal) * 100;
+                      const COLORS = ["bg-[#3B82F6]", "bg-[#10B981]", "bg-[#F59E0B]", "bg-[#8B5CF6]", "bg-[#EC4899]", "bg-[#06B6D4]"];
+                      const uniqueValues = Array.from(new Set(branchComparison.map(b => b.value))).sort((a, b) => b - a);
+                      const colorClass = COLORS[uniqueValues.indexOf(item.value) % COLORS.length];
+                      return (
+                        <RadixTooltip key={index}>
+                          <TooltipTrigger asChild>
+                            <div className="flex items-center justify-between gap-3 sm:gap-4 text-xs group cursor-default">
+                              <div className="w-32 font-bold text-slate-800 dark:text-slate-200 text-xs truncate tracking-tight uppercase group-hover:text-[#3B82F6] transition-colors">
+                                {item.name}
+                              </div>
+                              <div className="flex-1 bg-slate-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
+                                <div
+                                  className={`h-2.5 rounded-full ${colorClass} transition-all duration-500 opacity-90 group-hover:opacity-100`}
+                                  style={{ width: `${widthPercent}%` }}
+                                />
+                              </div>
+                              <div className="flex items-center gap-1.5 shrink-0 min-w-[30px] justify-end">
+                                <span className="font-bold text-xs text-slate-800 dark:text-slate-200 group-hover:text-[#3B82F6] transition-colors">{item.value}</span>
+                              </div>
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="bg-slate-900/95 dark:bg-slate-800/95 text-white p-0 rounded-lg shadow-xl border border-slate-700/60 backdrop-blur-sm text-xs z-[100] border-none overflow-hidden">
+                            <div className="px-2.5 py-1.5">
+                              <div className="flex items-center gap-1.5 mb-0.5">
+                                <span className={`w-2 h-2 rounded-full shrink-0 ${colorClass}`} />
+                                <span className="font-bold text-slate-100">{item.name}</span>
+                              </div>
+                              <div className="flex items-center justify-between gap-3 text-slate-300 text-[10px] font-medium mt-1">
+                                <span>{item.value === 1 ? "Application" : "Applications"}: <b className="text-white font-black">{item.value}</b></span>
+                              </div>
+                            </div>
+                          </TooltipContent>
+                        </RadixTooltip>
+                      );
+                    })}
+                  </div>
+                </TooltipProvider>
                 
                 <div className="mt-auto pt-2">
                   <div className="rounded-2xl bg-slate-50/80 dark:bg-slate-900/60 p-2.5 sm:p-3 flex items-center justify-between border border-slate-100 dark:border-slate-800/80">
