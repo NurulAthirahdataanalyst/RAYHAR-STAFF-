@@ -1088,6 +1088,8 @@ export default function AttendanceDashboard() {
   const zoneARestEmployees = useMemo(() => {
     return dailyAttendance.filter((r: any) => {
       const displayStatus = r.status;
+      const isOnLeave = displayStatus === "On Leave" || displayStatus === "Approved Leave" || displayStatus === "Company Leave" || displayStatus === "Outstation";
+      if (isOnLeave) return false;
       const isRest = displayStatus === "Weekend" || displayStatus === "Rest Day" || displayStatus === "Holiday" || Boolean(r.is_rest_day);
       if (!isRest) return false;
       const empZone = r.zone || r.operating_zone || (['AOR', 'CNH', 'DGN', 'HQ', 'JTH', 'KBG', 'KBR', 'KMM', 'TGG'].includes((r.branch || '').toUpperCase()) ? 'ZONE_A' : 'ZONE_B');
@@ -1105,6 +1107,8 @@ export default function AttendanceDashboard() {
   const zoneBRestEmployees = useMemo(() => {
     return dailyAttendance.filter((r: any) => {
       const displayStatus = r.status;
+      const isOnLeave = displayStatus === "On Leave" || displayStatus === "Approved Leave" || displayStatus === "Company Leave" || displayStatus === "Outstation";
+      if (isOnLeave) return false;
       const isRest = displayStatus === "Weekend" || displayStatus === "Rest Day" || displayStatus === "Holiday" || Boolean(r.is_rest_day);
       if (!isRest) return false;
       const empZone = r.zone || r.operating_zone || (['AOR', 'CNH', 'DGN', 'HQ', 'JTH', 'KBG', 'KBR', 'KMM', 'TGG'].includes((r.branch || '').toUpperCase()) ? 'ZONE_A' : 'ZONE_B');

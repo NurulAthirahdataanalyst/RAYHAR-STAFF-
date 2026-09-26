@@ -617,7 +617,7 @@ export default function WorkforceCalendar() {
           const presentLate = regulars.filter(a => a.status === "Present (Late)" || a.is_late || (a.status === "Missing Clock-Out" && a.is_late));
           
           const absent = regulars.filter(a => a.status === "Absent" && !a.is_rest_day);
-          const restDays = regulars.filter(a => a.status === "Rest Day" || a.status === "Weekend" || a.is_rest_day);
+          const restDays = regulars.filter(a => (a.status === "Rest Day" || a.status === "Weekend" || a.is_rest_day) && !["On Leave", "Approved Leave", "Company Leave", "Replacement Leave"].includes(a.status));
 
 
           return createPortal(
@@ -681,15 +681,15 @@ export default function WorkforceCalendar() {
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
                         <div className="border border-emerald-200 bg-emerald-50 rounded-xl p-3 flex flex-col items-start dark:bg-emerald-950/30">
                           <span className="text-[9px] sm:text-[10px] font-black uppercase text-emerald-700">Present (On Time)</span>
-                          <span className="text-xl sm:text-2xl font-black text-emerald-600 mt-1">{presentOnTime.length}</span>
+                          <span className="text-xl sm:text-2xl font-black text-emerald-600 mt-1">{presentOnTime.length + temporary.filter(a => a.time_in && a.time_in !== "-" && !a.is_late).length + outstation.filter(a => a.time_in && a.time_in !== "-" && !a.is_late).length}</span>
                         </div>
                         <div className="border border-amber-200 bg-amber-50 rounded-xl p-3 flex flex-col items-start dark:bg-amber-950/30">
                           <span className="text-[9px] sm:text-[10px] font-black uppercase text-amber-700">Present (Late)</span>
-                          <span className="text-xl sm:text-2xl font-black text-amber-600 mt-1">{presentLate.length}</span>
+                          <span className="text-xl sm:text-2xl font-black text-amber-600 mt-1">{presentLate.length + temporary.filter(a => a.time_in && a.time_in !== "-" && a.is_late).length + outstation.filter(a => a.time_in && a.time_in !== "-" && a.is_late).length}</span>
                         </div>
                         <div className="border border-red-200 bg-red-50 rounded-xl p-3 flex flex-col items-start dark:bg-red-950/30">
                           <span className="text-[9px] sm:text-[10px] font-black uppercase text-red-700">Absent</span>
-                          <span className="text-xl sm:text-2xl font-black text-red-600 mt-1">{absent.length}</span>
+                          <span className="text-xl sm:text-2xl font-black text-red-600 mt-1">{absent.length + temporary.filter(a => (!a.time_in || a.time_in === "-") && a.status === "Absent").length}</span>
                         </div>
                         <div className="border border-slate-200 bg-slate-50 rounded-xl p-3 flex flex-col items-start dark:bg-slate-950/30">
                           <span className="text-[9px] sm:text-[10px] font-black uppercase text-slate-700">Rest Day</span>
