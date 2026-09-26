@@ -6295,7 +6295,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
         const userZone = branchZoneMap.get(p.branch) || 'ZONE_B';
         const isRestDay = checkIsWeekend(userZone, queryDateObj);
         
-        if (isRestDay) {
+        if (isRestDay && !isPersonalLeave && !isOutstation) {
           restDayCount++;
         }
 
@@ -11700,6 +11700,7 @@ app.listen(PORT, "0.0.0.0", () => {
 // =================================================================
 // END OF FILE
 // =================================================================
+
 
 
 

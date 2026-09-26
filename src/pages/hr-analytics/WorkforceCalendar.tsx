@@ -617,7 +617,11 @@ export default function WorkforceCalendar() {
           const presentLate = regulars.filter(a => a.status === "Present (Late)" || a.is_late || (a.status === "Missing Clock-Out" && a.is_late));
           
           const absent = regulars.filter(a => a.status === "Absent" && !a.is_rest_day);
-          const restDays = regulars.filter(a => (a.status === "Rest Day" || a.status === "Weekend" || a.is_rest_day) && !["On Leave", "Approved Leave", "Company Leave", "Replacement Leave"].includes(a.status));
+          const restDays = regulars.filter(a => {
+            const isRest = a.status === "Rest Day" || a.status === "Weekend" || a.is_rest_day;
+            const isOnLeave = (a.status || "").toLowerCase().includes("leave") || a.status === "Outstation";
+            return isRest && !isOnLeave;
+          });
 
 
           return createPortal(

@@ -1087,8 +1087,8 @@ export default function AttendanceDashboard() {
 
   const zoneARestEmployees = useMemo(() => {
     return dailyAttendance.filter((r: any) => {
-      const displayStatus = r.status;
-      const isOnLeave = displayStatus === "On Leave" || displayStatus === "Approved Leave" || displayStatus === "Company Leave" || displayStatus === "Outstation";
+      const displayStatus = r.status || "";
+      const isOnLeave = displayStatus.toLowerCase().includes("leave") || displayStatus === "Outstation";
       if (isOnLeave) return false;
       const isRest = displayStatus === "Weekend" || displayStatus === "Rest Day" || displayStatus === "Holiday" || Boolean(r.is_rest_day);
       if (!isRest) return false;
@@ -1106,8 +1106,8 @@ export default function AttendanceDashboard() {
 
   const zoneBRestEmployees = useMemo(() => {
     return dailyAttendance.filter((r: any) => {
-      const displayStatus = r.status;
-      const isOnLeave = displayStatus === "On Leave" || displayStatus === "Approved Leave" || displayStatus === "Company Leave" || displayStatus === "Outstation";
+      const displayStatus = r.status || "";
+      const isOnLeave = displayStatus.toLowerCase().includes("leave") || displayStatus === "Outstation";
       if (isOnLeave) return false;
       const isRest = displayStatus === "Weekend" || displayStatus === "Rest Day" || displayStatus === "Holiday" || Boolean(r.is_rest_day);
       if (!isRest) return false;
