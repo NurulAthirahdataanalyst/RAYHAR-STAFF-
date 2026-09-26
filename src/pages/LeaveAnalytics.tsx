@@ -377,6 +377,7 @@ export default function LeaveAnalytics() {
   // State to hold portal target
   const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
   const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
+  const [branchLimit, setBranchLimit] = useState<number>(10);
 
   useEffect(() => {
     // Locate the portal target in the PageHeader after mount
@@ -1478,46 +1479,76 @@ export default function LeaveAnalytics() {
         )}
         {/* Branch Compare */}
         <Card className="border border-slate-200 dark:border-slate-800 bg-card rounded-xl shadow-sm p-4 flex flex-col w-full lg:col-span-2 xl:col-span-1">
-          <div className="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
-            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Branch Comparison</h3>
+          <div className="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-800 pb-4">
+            <div>
+              <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Leave Request By Branch</h3>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Total Application</p>
+            </div>
+            <Select
+              value={branchLimit.toString()}
+              onValueChange={(v) => setBranchLimit(Number(v))}
+            >
+              <SelectTrigger className="h-8 w-[72px] px-2 text-xs font-bold rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-foreground dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#3B82F6] cursor-pointer shadow-xs">
+                <SelectValue placeholder="10" />
+              </SelectTrigger>
+              <SelectContent className="min-w-[72px] rounded-lg">
+                <SelectItem value="10" className="text-xs font-bold">10</SelectItem>
+                <SelectItem value="15" className="text-xs font-bold">15</SelectItem>
+                <SelectItem value="20" className="text-xs font-bold">20</SelectItem>
+                <SelectItem value="25" className="text-xs font-bold">25</SelectItem>
+                <SelectItem value="50" className="text-xs font-bold">50</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          <div className="flex-1 min-overflow-y-auto pr-2 custom-scrollbar w-full">
-            <ResponsiveContainer width="100%" height={Math.max(200, branchComparison.length * 30)}>
-              <BarChart data={branchComparison} layout="vertical" margin={{ top: 0, right: 30, left: 0, bottom: 0 }}>
-                <XAxis type="number" hide />
-                <YAxis type="category" dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} width={80} />
-                <Tooltip 
-                  cursor={false} 
-                  content={({ active, payload, label }) => {
-                    if (active && payload && payload.length && hoveredBranch === label) {
-                      return (
-                        <div className="bg-card p-3 rounded-xl shadow-lg border border-slate-100 dark:border-slate-800 text-xs">
-                          <p className="font-bold text-slate-800 dark:text-slate-200 mb-2">{label}</p>
-                          {(Array.isArray(payload) ? payload : []).map((entry: any, index: number) => (
-                            <div key={index} className="flex justify-between items-center gap-4 font-semibold mb-1">
-                              <span style={{ color: '#3B82F6' }}>{entry.name}</span>
-                              <span className="text-slate-700 dark:text-slate-300">{entry.value}</span>
-                            </div>
-                          ))}
+          
+          <div className="flex-1 flex flex-col justify-between gap-4 h-full">
+            {branchComparison.length === 0 ? (
+              <div className="py-6 text-center text-muted-foreground text-xs">No data available.</div>
+            ) : (
+              <>
+                <div className="space-y-4 flex-1">
+                  {branchComparison.slice(0, branchLimit).map((item, index) => {
+                    const maxVal = Math.max(...branchComparison.map(b => b.value));
+                    const widthPercent = maxVal === 0 ? 0 : (item.value / maxVal) * 100;
+                    return (
+                      <div key={index} className="flex items-center justify-between gap-3 sm:gap-4 text-xs">
+                        <div className="w-32 font-bold text-slate-800 dark:text-slate-200 text-xs truncate tracking-tight uppercase">
+                          {item.name}
                         </div>
-                      );
-                    }
-                    return null;
-                  }} 
-                />
-                <Bar 
-                  dataKey="value" 
-                  name="Applications" 
-                  fill="#3B82F6" 
-                  radius={[0,4,4,0]} 
-                  barSize={12}
-                  onMouseEnter={(data: any) => setHoveredBranch(data.name)}
-                  onMouseLeave={() => setHoveredBranch(null)}
-                >
-                   <LabelList dataKey="value" position="right" style={{ fontSize: '10px', fill: '#3B82F6', fontWeight: 'bold' }} />
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+                        <div className="flex-1 bg-slate-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
+                          <div
+                            className="h-2.5 rounded-full bg-[#3B82F6] transition-all duration-500"
+                            style={{ width: `${widthPercent}%` }}
+                          />
+                        </div>
+                        <div className="flex items-center gap-1.5 shrink-0 min-w-[30px] justify-end">
+                          <span className="font-bold text-xs text-slate-800 dark:text-slate-200">{item.value}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                
+                <div className="mt-auto pt-2">
+                  <div className="rounded-2xl bg-slate-50/80 dark:bg-slate-900/60 p-2.5 sm:p-3 flex items-center justify-between border border-slate-100 dark:border-slate-800/80">
+                    <div className="flex items-center">
+                      <div className="w-9 h-9 rounded-xl bg-blue-100/60 dark:bg-blue-950/50 flex items-center justify-center text-[#3B82F6] dark:text-blue-400 shrink-0">
+                        <FileText className="w-4 h-4 text-[#3B82F6] dark:text-blue-400" />
+                      </div>
+                      <div className="h-7 w-[1px] bg-slate-200 dark:bg-slate-700 mx-3 shrink-0" />
+                      <div className="flex flex-col">
+                        <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 tracking-wider uppercase">
+                          TOTAL APPLICATION
+                        </span>
+                        <span className="text-base sm:text-lg font-extrabold text-[#3B82F6] dark:text-blue-300 leading-none mt-0.5">
+                          {branchComparison.reduce((sum, item) => sum + item.value, 0)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </Card>
       </div>
