@@ -16,7 +16,7 @@ import { API_BASE_URL } from "../config/api";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import Map, { Marker as MapMarker, NavigationControl, useMap as useMapLibre } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import maplibregl from 'maplibre-gl';
+import * as maplibregl from 'maplibre-gl';
 
 if (maplibregl.Map && !(maplibregl.Map.prototype as any)._removePatched) {
   const originalRemove = maplibregl.Map.prototype.remove;
