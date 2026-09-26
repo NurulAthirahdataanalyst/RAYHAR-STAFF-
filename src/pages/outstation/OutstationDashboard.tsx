@@ -694,7 +694,7 @@ export default function OutstationDashboard() {
                             </div>
                           </td>
                           <td className="px-4 py-3">
-                            <Badge variant="outline" className="bg-green-50/50 text-green-600 border-green-200 text-[10px] font-bold shadow-none px-2 py-0.5 gap-1 uppercase tracking-wider">
+                            <Badge variant="outline" className="bg-green-50/50 dark:bg-emerald-500/20 text-green-600 dark:text-emerald-400 border-green-200 dark:border-emerald-500/30 text-[10px] font-bold shadow-none px-2 py-0.5 gap-1 uppercase tracking-wider">
                               <CheckCircle2 className="w-3 h-3" /> Active
                             </Badge>
                           </td>

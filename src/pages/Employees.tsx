@@ -771,30 +771,32 @@ export default function Employees() {
                       });
                     return (
                       <>
-                        <div
-                          onClick={() => {
-                            if (checkedEmployees.length === empList.length) {
-                              setCheckedEmployees([]);
-                            } else {
-                              setCheckedEmployees(empList.map(e => e.id?.toString() || e.user_id || e.name));
-                            }
-                          }}
-                          className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors ${checkedEmployees.length === empList.length && empList.length > 0 ? 'bg-[#942392]/5' : 'hover:bg-yellow-50 dark:hover:bg-yellow-900/20'}`}
-                        >
-                          <label className="relative cursor-pointer" style={{width:18,height:18}} onClick={(e) => e.preventDefault()}>
-                            <input type="checkbox" checked={checkedEmployees.length === empList.length && empList.length > 0} readOnly className="sr-only peer" />
-                            <svg viewBox="0 0 18 18" width="18" height="18" className="relative z-10" style={{fill:'none',strokeLinecap:'round',strokeLinejoin:'round',stroke: checkedEmployees.length === empList.length && empList.length > 0 ? '#942392' : '#c8ccd4',strokeWidth:1.5,transition:'all 0.2s ease'}}>
-                              <path d="M1,9 L1,3.5 C1,2 2,1 3.5,1 L14.5,1 C16,1 17,2 17,3.5 L17,14.5 C17,16 16,17 14.5,17 L3.5,17 C2,17 1,16 1,14.5 L1,9 Z"
-                                style={{strokeDasharray:60, strokeDashoffset: checkedEmployees.length === empList.length && empList.length > 0 ? 60 : 0, transition:'all 0.3s linear'}} />
-                              <polyline points="1 9 7 14 15 4"
-                                style={{strokeDasharray:22, strokeDashoffset: checkedEmployees.length === empList.length && empList.length > 0 ? 42 : 66, transition: checkedEmployees.length === empList.length && empList.length > 0 ? 'all 0.2s linear 0.15s' : 'all 0.2s linear'}} />
-                            </svg>
-                          </label>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs print:text-[11px] font-bold text-foreground">ALL EMPLOYEES</p>
-                            <p className="text-[8px] print:text-[13px] text-muted-foreground">Select all in list</p>
+                        {!empSearchText && (
+                          <div
+                            onClick={() => {
+                              if (checkedEmployees.length === empList.length) {
+                                setCheckedEmployees([]);
+                              } else {
+                                setCheckedEmployees(empList.map(e => e.id?.toString() || e.user_id || e.name));
+                              }
+                            }}
+                            className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors ${checkedEmployees.length === empList.length && empList.length > 0 ? 'bg-[#942392]/5' : 'hover:bg-yellow-50 dark:hover:bg-yellow-900/20'}`}
+                          >
+                            <label className="relative cursor-pointer" style={{width:18,height:18}} onClick={(e) => e.preventDefault()}>
+                              <input type="checkbox" checked={checkedEmployees.length === empList.length && empList.length > 0} readOnly className="sr-only peer" />
+                              <svg viewBox="0 0 18 18" width="18" height="18" className="relative z-10" style={{fill:'none',strokeLinecap:'round',strokeLinejoin:'round',stroke: checkedEmployees.length === empList.length && empList.length > 0 ? '#942392' : '#c8ccd4',strokeWidth:1.5,transition:'all 0.2s ease'}}>
+                                <path d="M1,9 L1,3.5 C1,2 2,1 3.5,1 L14.5,1 C16,1 17,2 17,3.5 L17,14.5 C17,16 16,17 14.5,17 L3.5,17 C2,17 1,16 1,14.5 L1,9 Z"
+                                  style={{strokeDasharray:60, strokeDashoffset: checkedEmployees.length === empList.length && empList.length > 0 ? 60 : 0, transition:'all 0.3s linear'}} />
+                                <polyline points="1 9 7 14 15 4"
+                                  style={{strokeDasharray:22, strokeDashoffset: checkedEmployees.length === empList.length && empList.length > 0 ? 42 : 66, transition: checkedEmployees.length === empList.length && empList.length > 0 ? 'all 0.2s linear 0.15s' : 'all 0.2s linear'}} />
+                              </svg>
+                            </label>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs print:text-[11px] font-bold text-foreground">ALL EMPLOYEES</p>
+                              <p className="text-[8px] print:text-[13px] text-muted-foreground">Select all in list</p>
+                            </div>
                           </div>
-                        </div>
+                        )}
                         {empList.map(emp => {
                           const empId = emp.id?.toString() || emp.user_id || emp.name;
                           const isChecked = checkedEmployees.includes(empId);

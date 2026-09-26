@@ -302,8 +302,8 @@ export default function LeaveCalendar() {
                 let textCol = "text-foreground";
                 
                 if (today) {
-                  cellBg = "bg-[#DBC5E1]";
-                  textCol = "text-[#942392]";
+                  cellBg = "bg-[#DBC5E1] dark:bg-pink-900/40";
+                  textCol = "text-[#942392] dark:text-pink-300";
                 } else if (!isCurrentMonth) {
                   cellBg = "bg-slate-50/50 dark:bg-slate-900/50";
                   textCol = "text-foreground opacity-50";
