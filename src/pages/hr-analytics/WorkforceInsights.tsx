@@ -338,7 +338,7 @@ export default function WorkforceInsights() {
       }
       
       const [res, tempRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/api/reports/workforce-insights?${params}`),
+        fetch(`${API_BASE_URL}/api/workforce-stats?${params}`),
         fetch(`${API_BASE_URL}/api/work-assignments-all?${params}`)
       ]);
       
@@ -382,7 +382,7 @@ export default function WorkforceInsights() {
         weekStartDate: format(weekStart, 'yyyy-MM-dd'),
         date: format(selectedDate, 'yyyy-MM-dd')
       });
-      const res = await fetch(`${API_BASE_URL}/api/reports/workforce-insights?${params}`);
+      const res = await fetch(`${API_BASE_URL}/api/workforce-stats?${params}`);
       if (res.ok) {
         const json = await res.json();
         if (json.success && json.attendanceOverview?.weeklyAttendanceTrend) {

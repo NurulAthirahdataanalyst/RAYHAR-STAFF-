@@ -7982,7 +7982,7 @@ app.get("/api/reports/analytics", async (req, res) => {
 // ===============================
 // WORKFORCE INSIGHTS DASHBOARD API
 // ===============================
-app.get("/api/reports/workforce-insights", async (req, res) => {
+app.get("/api/workforce-stats", async (req, res) => {
   try {
     const { role, branch, department } = req.query;
     const normRole = (role || "").toLowerCase().trim().replace(/ /g, "_");
