@@ -1515,7 +1515,7 @@ export default function Attendance() {
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="font-semibold text-foreground">Coordinates</span>
-                    <span className="font-bold font-mono text-[10px]">{locationCoords ? `${locationCoords.lat.toFixed(5)}, ${locationCoords.lng.toFixed(5)}` : "-"}</span>
+                    <span className="font-bold font-mono text-[10px]">{locationCoords ? `${locationCoords.lat.toFixed(7)}, ${locationCoords.lng.toFixed(7)}` : "-"}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="font-semibold text-foreground">Distance</span>
