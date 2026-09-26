@@ -6020,9 +6020,7 @@ app.get("/api/attendance/history", async (req, res) => {
         location_name = isRemote 
           ? "Home Office" 
           : (clockRow.attendance_id % 3 === 2 ? "Innovation Lab" : "Main Office, Floor 4");
-      } else if (leaveRow) {
-        status = "Leave";
-      } else if (matchingHoliday) {
+       else if (matchingHoliday) {
         status = "Holiday";
       } else if (empCreatedAtStr && dateStr < empCreatedAtStr) {
         status = "N/A";

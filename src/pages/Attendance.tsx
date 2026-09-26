@@ -175,7 +175,7 @@ export default function Attendance() {
   const selectedMonth = parseInt(selectedDate.split('-')[1]);
   const selectedYear = parseInt(selectedDate.split('-')[0]);
 
-  const [statusFilter, setStatusFilter] = useState<"ALL" | "ON TIME" | "LATE" | "ABSENT">("ALL");
+  const [statusFilter, setStatusFilter] = useState<"ALL" | "ON TIME" | "LATE" | "ABSENT" | "ON LEAVE">("ALL");
   const [viewMode, setViewMode] = useState<"day" | "month">("day");
   const [expandedLogId, setExpandedLogId] = useState<number | null>(null);
   const [showFilters, setShowFilters] = useState(false);
@@ -1218,6 +1218,9 @@ export default function Attendance() {
       if (statusFilter === "ABSENT") {
         return log.status === "Absent";
       }
+      if (statusFilter === "ON LEAVE") {
+        return ["Leave", "On Leave", "Approved Leave", "Company Leave"].includes(log.status);
+      }
       return log.status === statusFilter;
     })
     .filter(log => {
@@ -1934,7 +1937,7 @@ export default function Attendance() {
 
               {/* Status Filter */}
               <div className="flex bg-muted/40 p-1 rounded-md border border-border/40">
-                {(["ALL", "ON TIME", "LATE", "ABSENT"] as const).map((status) => (
+                {(["ALL", "ON TIME", "LATE", "ABSENT", "ON LEAVE"] as const).map((status) => (
                   <button
                     key={status}
                     onClick={() => setStatusFilter(status)}
@@ -2038,7 +2041,7 @@ export default function Attendance() {
                             style={customStyle}
                             className={`inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] ${statusBadge}`}
                           >
-                            {log.status === "Present (Late)" ? "LATE" : log.status}
+                            {log.status === "Present (Late)" ? "LATE" : ["Leave", "Approved Leave", "On Leave", "Company Leave"].includes(log.status) ? "ON LEAVE" : log.status}
                           </span>
                         </TableCell>
                         <TableCell className="font-medium text-rose-600">{log.late === "00h 00m" || log.late === "00:00" || log.late === "--" ? "--" : log.late}</TableCell>
