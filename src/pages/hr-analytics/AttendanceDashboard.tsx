@@ -1815,6 +1815,11 @@ export default function AttendanceDashboard() {
                                 🟤 {branch.temporaryIn} Temporary Staff
                               </span>
                             )}
+                            {branch.temporaryOut > 0 && (
+                              <span className="text-[9px] font-bold text-slate-500 bg-slate-100 dark:text-slate-400 dark:bg-slate-800 px-1 rounded flex items-center gap-1">
+                                {branch.temporaryOut} Temporary Staff Out
+                              </span>
+                            )}
                           </div>
                         </div>
                         {branch.isWeekend ? (
