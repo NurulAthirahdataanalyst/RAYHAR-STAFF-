@@ -1498,6 +1498,7 @@ export default function LeaveAnalytics() {
                 <SelectValue placeholder="10" />
               </SelectTrigger>
               <SelectContent className="min-w-[72px] rounded-lg">
+                <SelectItem value="5" className="text-xs font-bold">5</SelectItem>
                 <SelectItem value="10" className="text-xs font-bold">10</SelectItem>
                 <SelectItem value="15" className="text-xs font-bold">15</SelectItem>
                 <SelectItem value="20" className="text-xs font-bold">20</SelectItem>
