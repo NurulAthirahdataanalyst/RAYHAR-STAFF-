@@ -5202,16 +5202,37 @@ try {
   // The total we show is the count of unique minute-buckets.
   // Easiest: fetch all timestamps (just timestamps), build dedup count, then paginate that.
   
-  // Fetch ALL timestamps for counting & deduplication
-  const [allLogTs] = await pool.query(
-    `SELECT recorded_at as ts, 'log' as source FROM employee_location_logs WHERE (user_id = ? OR employee_id = ?) 
-     UNION ALL
-     SELECT clock_in as ts, 'clock_in' as source FROM attendances WHERE user_id = ? AND clock_in IS NOT NULL
-     UNION ALL
-     SELECT clock_out as ts, 'clock_out' as source FROM attendances WHERE user_id = ? AND clock_out IS NOT NULL AND clock_out_latitude IS NOT NULL
-     ORDER BY ts DESC`,
-    [String(userId), String(userId), String(userId), String(userId)]
-  );
+  const monthStr = req.query.month; // e.g. '2026-09'
+  let timeFilterLog = '';
+  let timeFilterAtt = '';
+  let queryParams = [String(userId), String(userId), String(userId), String(userId)];
+  if (monthStr && /^\d{4}-\d{2}$/.test(monthStr)) {
+    timeFilterLog = " AND TO_CHAR(recorded_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'YYYY-MM') = ?";
+    timeFilterAtt = " AND TO_CHAR(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'YYYY-MM') = ?";
+    const timeFilterAttOut = " AND TO_CHAR(clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'YYYY-MM') = ?";
+    queryParams.push(monthStr, monthStr, monthStr);
+    
+    var allLogTsData = await pool.query(
+      `SELECT recorded_at as ts, 'log' as source FROM employee_location_logs WHERE (user_id = $1 OR employee_id = $2) ${timeFilterLog.replace('?', '$5')}
+       UNION ALL
+       SELECT clock_in as ts, 'clock_in' as source FROM attendances WHERE user_id = $3 AND clock_in IS NOT NULL ${timeFilterAtt.replace('?', '$6')}
+       UNION ALL
+       SELECT clock_out as ts, 'clock_out' as source FROM attendances WHERE user_id = $4 AND clock_out IS NOT NULL AND clock_out_latitude IS NOT NULL ${timeFilterAttOut.replace('?', '$7')}
+       ORDER BY ts DESC`,
+      [String(userId), String(userId), String(userId), String(userId), monthStr, monthStr, monthStr]
+    );
+  } else {
+    var allLogTsData = await pool.query(
+      `SELECT recorded_at as ts, 'log' as source FROM employee_location_logs WHERE (user_id = $1 OR employee_id = $2) 
+       UNION ALL
+       SELECT clock_in as ts, 'clock_in' as source FROM attendances WHERE user_id = $3 AND clock_in IS NOT NULL
+       UNION ALL
+       SELECT clock_out as ts, 'clock_out' as source FROM attendances WHERE user_id = $4 AND clock_out IS NOT NULL AND clock_out_latitude IS NOT NULL
+       ORDER BY ts DESC`,
+      [String(userId), String(userId), String(userId), String(userId)]
+    );
+  }
+  const allLogTs = allLogTsData[0];
   
   // Deduplicate by minute
   const seenMinutes = new Map();

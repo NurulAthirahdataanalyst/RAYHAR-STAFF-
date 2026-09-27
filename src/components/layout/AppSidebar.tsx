@@ -202,7 +202,16 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         { title: "Department & Branch Reports", icon: Building2, path: "/reports/department", roles: HOD_BL_ROLES },
       ],
     },
-    { title: "GPS Location Tracker", icon: MapPinned, path: "/gps-location-tracker", roles: HOD_BL_ROLES },
+    {
+      title: "GPS Location Tracker",
+      icon: MapPinned,
+      path: "/gps-location-tracker",
+      roles: HOD_BL_ROLES,
+      children: [
+        { title: "Live Tracker", icon: MapPinned, path: "/gps-location-tracker", roles: HOD_BL_ROLES },
+        { title: "Location History", icon: History, path: "/gps-location-tracker/history", roles: HOD_BL_ROLES },
+      ]
+    },
   ];
 
 
@@ -324,7 +333,16 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         { title: "Department & Branch Reports", icon: Building2, path: "/reports/department", roles: FULL_ADMIN_ROLES },
       ]
     },
-    { title: "GPS Location Tracker", icon: MapPinned, path: "/gps-location-tracker", roles: ALL_ROLES },
+    {
+      title: "GPS Location Tracker",
+      icon: MapPinned,
+      path: "/gps-location-tracker",
+      roles: ALL_ROLES,
+      children: [
+        { title: "Live Tracker", icon: MapPinned, path: "/gps-location-tracker", roles: ["hr_admin", "admin", "managing_director", "operation_manager", "finance_manager"] },
+        { title: "Location History", icon: History, path: "/gps-location-tracker/history", roles: ["employee"] },
+      ]
+    },
 
     { title: "Settings", icon: Settings, path: "/settings", roles: ["hr_admin"] },
   ];

@@ -54,6 +54,7 @@ import OutstationCalendar from "./pages/outstation/OutstationCalendar";
 import OutstationAnalytics from "./pages/outstation/OutstationAnalytics";
 import OutstationReports from "./pages/outstation/OutstationReports";
 import GPSLocationTracker from "./pages/GPSLocationTracker";
+import LocationHistory from "./pages/LocationHistory";
 import Notifications from "./pages/Notifications";
 
 
@@ -107,6 +108,7 @@ function ProtectedRoutes() {
           <Route path="/branches/temporary-assignments" element={<TemporaryAssignments />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/gps-location-tracker" element={<GPSLocationTracker />} />
+                  <Route path="/gps-location-tracker/history" element={<LocationHistory />} />
 
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/notifications" element={<Notifications />} />
