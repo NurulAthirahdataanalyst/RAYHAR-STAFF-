@@ -1418,7 +1418,7 @@ export default function LeaveAnalytics() {
               </PieChart>
             </ResponsiveContainer>
             {/* Center stat showing total applications like in Attendance Overview */}
-            <div className="absolute inset-0 pb-7 flex flex-col items-center justify-center pointer-events-none z-0">
+            <div className="absolute top-[45%] left-[50%] -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center pointer-events-none z-0">
               <span className="text-[28px] font-black text-slate-900 dark:text-slate-100 leading-none">
                 {typeDistribution.reduce((acc, curr) => acc + (curr.value || 0), 0)}
               </span>
@@ -1794,3 +1794,4 @@ export default function LeaveAnalytics() {
     </div>
   );
 }
+
