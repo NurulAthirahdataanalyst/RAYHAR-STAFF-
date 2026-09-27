@@ -65,7 +65,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { 
-  BarChart3, Calendar as CalendarIcon, Clock, MapPin, Search, ShieldAlert, Check, X, ShieldCheck, HelpCircle, Layers, Building2, ChevronRight, CheckSquare, ListFilter, SlidersHorizontal, Activity, Sparkles 
+  BarChart3, Calendar as CalendarIcon, Clock, MapPin, Search, ShieldAlert, Check, X, ShieldCheck, HelpCircle, Layers, Building2, ChevronLeft, ChevronRight, CheckSquare, ListFilter, SlidersHorizontal, Activity, Sparkles 
 } from "lucide-react";
 import { API_BASE_URL } from "../config/api";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
@@ -379,6 +379,7 @@ export default function LeaveAnalytics() {
   const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
   const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
   const [branchLimit, setBranchLimit] = useState<number>(10);
+  const [branchPage, setBranchPage] = useState<number>(1);
 
   useEffect(() => {
     // Locate the portal target in the PageHeader after mount
@@ -1492,7 +1493,7 @@ export default function LeaveAnalytics() {
             </div>
             <Select
               value={branchLimit.toString()}
-              onValueChange={(v) => setBranchLimit(Number(v))}
+              onValueChange={(v) => { setBranchLimit(Number(v)); setBranchPage(1); }}
             >
               <SelectTrigger className="h-8 w-[72px] px-2 text-xs font-bold rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-foreground dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#3B82F6] cursor-pointer shadow-xs">
                 <SelectValue placeholder="10" />
@@ -1515,7 +1516,11 @@ export default function LeaveAnalytics() {
               <>
                 <TooltipProvider delayDuration={100}>
                   <div className="space-y-4 flex-1">
-                    {branchComparison.slice(0, branchLimit).map((item, index) => {
+                    {(() => {
+                      const totalPages = Math.ceil(branchComparison.length / branchLimit);
+                      const startIdx = (branchPage - 1) * branchLimit;
+                      const pageItems = branchComparison.slice(startIdx, startIdx + branchLimit);
+                      return pageItems.map((item, index) => {
                       const maxVal = Math.max(...branchComparison.map(b => b.value));
                       const widthPercent = maxVal === 0 ? 0 : (item.value / maxVal) * 100;
                       const COLORS = ["bg-[#3B82F6]", "bg-[#10B981]", "bg-[#F59E0B]", "bg-[#8B5CF6]", "bg-[#EC4899]", "bg-[#06B6D4]"];
@@ -1552,9 +1557,33 @@ export default function LeaveAnalytics() {
                           </TooltipContent>
                         </RadixTooltip>
                       );
-                    })}
+                    });
+                    })()}
                   </div>
                 </TooltipProvider>
+
+                {/* Pagination Controls */}
+                {Math.ceil(branchComparison.length / branchLimit) > 1 && (
+                  <div className="flex items-center justify-center gap-2 pt-2 mt-2 border-t border-slate-100 dark:border-slate-800">
+                    <button
+                      onClick={() => setBranchPage(p => Math.max(1, p - 1))}
+                      disabled={branchPage <= 1}
+                      className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    >
+                      <ChevronLeft className="w-3.5 h-3.5" />
+                    </button>
+                    <span className="text-xs font-bold text-slate-600 dark:text-slate-300 min-w-[60px] text-center">
+                      {branchPage} / {Math.ceil(branchComparison.length / branchLimit)}
+                    </span>
+                    <button
+                      onClick={() => setBranchPage(p => Math.min(Math.ceil(branchComparison.length / branchLimit), p + 1))}
+                      disabled={branchPage >= Math.ceil(branchComparison.length / branchLimit)}
+                      className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    >
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
                 
                 <div className="mt-auto pt-2">
                   <div className="rounded-2xl bg-slate-50/80 dark:bg-slate-900/60 p-2.5 sm:p-3 flex items-center justify-between border border-slate-100 dark:border-slate-800/80">
