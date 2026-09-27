@@ -1087,13 +1087,21 @@ export default function AttendanceDashboard() {
 
   const zoneARestEmployees = useMemo(() => {
     return dailyAttendance.filter((r: any) => {
-      const displayStatus = r.status || "";
-      const isOnLeave = displayStatus.toLowerCase().includes("leave") || displayStatus === "Outstation";
-      if (isOnLeave) return false;
-      const isRest = displayStatus === "Weekend" || displayStatus === "Rest Day" || displayStatus === "Holiday" || Boolean(r.is_rest_day);
-      if (!isRest) return false;
+      const dt = new Date(selectedDate);
+      const dayOfWeek = dt.getDay();
+      const d = dt.getDate();
       const empZone = r.zone || r.operating_zone || (['AOR', 'CNH', 'DGN', 'HQ', 'JTH', 'KBG', 'KBR', 'KMM', 'TGG'].includes((r.branch || '').toUpperCase()) ? 'ZONE_A' : 'ZONE_B');
+      
+      const actualIsRest = empZone === 'ZONE_A'
+        ? (dayOfWeek === 5 || (dayOfWeek === 6 && d <= 7))
+        : (dayOfWeek === 0 || (dayOfWeek === 6 && d <= 7));
+        
+      if (!actualIsRest) return false;
       if (empZone !== 'ZONE_A') return false;
+
+      const displayStatus = r.status || "";
+      const isActuallyOnLeave = displayStatus.toLowerCase().includes("leave") || displayStatus === "Outstation" || absentEmployees.some(ae => ae.user_id === r.user_id && ((ae.status || "").toLowerCase().includes("leave") || ae.status === "Outstation" || ae.type?.toLowerCase().includes("leave")));
+      if (isActuallyOnLeave) return false;
       
       const matchesBranch = selectedBranchFilter === "all" || r.branch === selectedBranchFilter;
       const matchesDept = selectedDepartmentFilter === "all" || r.department === selectedDepartmentFilter;
@@ -1102,17 +1110,25 @@ export default function AttendanceDashboard() {
         r.user_id?.toLowerCase().includes(absentSearchTerm.toLowerCase());
       return matchesBranch && matchesDept && matchesSearch;
     });
-  }, [dailyAttendance, selectedBranchFilter, selectedDepartmentFilter, absentSearchTerm]);
+  }, [dailyAttendance, selectedBranchFilter, selectedDepartmentFilter, absentSearchTerm, selectedDate, absentEmployees]);
 
   const zoneBRestEmployees = useMemo(() => {
     return dailyAttendance.filter((r: any) => {
-      const displayStatus = r.status || "";
-      const isOnLeave = displayStatus.toLowerCase().includes("leave") || displayStatus === "Outstation";
-      if (isOnLeave) return false;
-      const isRest = displayStatus === "Weekend" || displayStatus === "Rest Day" || displayStatus === "Holiday" || Boolean(r.is_rest_day);
-      if (!isRest) return false;
+      const dt = new Date(selectedDate);
+      const dayOfWeek = dt.getDay();
+      const d = dt.getDate();
       const empZone = r.zone || r.operating_zone || (['AOR', 'CNH', 'DGN', 'HQ', 'JTH', 'KBG', 'KBR', 'KMM', 'TGG'].includes((r.branch || '').toUpperCase()) ? 'ZONE_A' : 'ZONE_B');
+      
+      const actualIsRest = empZone === 'ZONE_A'
+        ? (dayOfWeek === 5 || (dayOfWeek === 6 && d <= 7))
+        : (dayOfWeek === 0 || (dayOfWeek === 6 && d <= 7));
+        
+      if (!actualIsRest) return false;
       if (empZone !== 'ZONE_B') return false;
+
+      const displayStatus = r.status || "";
+      const isActuallyOnLeave = displayStatus.toLowerCase().includes("leave") || displayStatus === "Outstation" || absentEmployees.some(ae => ae.user_id === r.user_id && ((ae.status || "").toLowerCase().includes("leave") || ae.status === "Outstation" || ae.type?.toLowerCase().includes("leave")));
+      if (isActuallyOnLeave) return false;
       
       const matchesBranch = selectedBranchFilter === "all" || r.branch === selectedBranchFilter;
       const matchesDept = selectedDepartmentFilter === "all" || r.department === selectedDepartmentFilter;
@@ -1121,7 +1137,7 @@ export default function AttendanceDashboard() {
         r.user_id?.toLowerCase().includes(absentSearchTerm.toLowerCase());
       return matchesBranch && matchesDept && matchesSearch;
     });
-  }, [dailyAttendance, selectedBranchFilter, selectedDepartmentFilter, absentSearchTerm]);
+  }, [dailyAttendance, selectedBranchFilter, selectedDepartmentFilter, absentSearchTerm, selectedDate, absentEmployees]);
 
   const allAnomalies = useMemo(() => {
     return filteredDailyAttendance.flatMap(record => {

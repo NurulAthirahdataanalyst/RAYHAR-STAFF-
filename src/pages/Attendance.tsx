@@ -451,7 +451,36 @@ export default function Attendance() {
       );
       const data = await response.json();
       if (data.success && data.history) {
-        setHistoryLogs(data.history);
+        let historyData = data.history;
+        try {
+          const leavesRes = await fetch(`${API_BASE_URL}/api/leave-requests?userId=${encodeURIComponent(id)}`);
+          const leavesData = await leavesRes.json();
+          if (leavesData.success && leavesData.leaveRequests) {
+            const approvedLeaves = leavesData.leaveRequests.filter((lr: any) => lr.status === "Approved");
+            historyData = historyData.map((log: any) => {
+              if (!log.date) return log;
+              const logDate = new Date(log.date);
+              logDate.setHours(0,0,0,0);
+              const logTime = logDate.getTime();
+              
+              const hasLeave = approvedLeaves.some((lr: any) => {
+                const sd = new Date(lr.tarikhMula || lr.start_date);
+                sd.setHours(0,0,0,0);
+                const ed = new Date(lr.tarikhTamat || lr.end_date);
+                ed.setHours(0,0,0,0);
+                return logTime >= sd.getTime() && logTime <= ed.getTime();
+              });
+              
+              if (hasLeave) {
+                return { ...log, status: "Approved Leave", is_on_leave: true };
+              }
+              return log;
+            });
+          }
+        } catch (err) {
+          console.error("Error fetching leaves for history:", err);
+        }
+        setHistoryLogs(historyData);
       }
     } catch (err) {
       console.error("Error fetching personal attendance logs:", err);

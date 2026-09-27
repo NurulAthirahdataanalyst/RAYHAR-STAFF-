@@ -476,7 +476,28 @@ export default function EmployeeAnalytics() {
       const leaveData = await leaveRes.json();
 
       if (attData.success && Array.isArray(attData.history)) {
-        setMyLogs(attData.history);
+        let historyData = attData.history;
+        if (leaveData.success && Array.isArray(leaveData.leaveRequests)) {
+          const approvedLeaves = leaveData.leaveRequests.filter((lr: any) => lr.status === "Approved");
+          historyData = historyData.map((log: any) => {
+            if (!log.date) return log;
+            const logDate = new Date(log.date);
+            logDate.setHours(0,0,0,0);
+            const logTime = logDate.getTime();
+            const hasLeave = approvedLeaves.some((lr: any) => {
+              const sd = new Date(lr.tarikhMula || lr.start_date);
+              sd.setHours(0,0,0,0);
+              const ed = new Date(lr.tarikhTamat || lr.end_date);
+              ed.setHours(0,0,0,0);
+              return logTime >= sd.getTime() && logTime <= ed.getTime();
+            });
+            if (hasLeave) {
+              return { ...log, status: "Approved Leave", is_on_leave: true };
+            }
+            return log;
+          });
+        }
+        setMyLogs(historyData);
       }
       if (leaveData.success && Array.isArray(leaveData.leaveRequests)) {
         setLeaveRequests(leaveData.leaveRequests);

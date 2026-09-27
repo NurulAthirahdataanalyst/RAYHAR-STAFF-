@@ -616,11 +616,24 @@ export default function WorkforceCalendar() {
           const presentOnTime = regulars.filter(a => a.status === "Present (On Time)" || (a.status === "Missing Clock-Out" && !a.is_late));
           const presentLate = regulars.filter(a => a.status === "Present (Late)" || a.is_late || (a.status === "Missing Clock-Out" && a.is_late));
           
-          const absent = regulars.filter(a => a.status === "Absent" && !a.is_rest_day);
+          const dayOfWeek = selectedDay.getDay();
+          const d = selectedDay.getDate();
+
+          const checkIsRest = (a: any) => {
+            const empZone = a.zone || a.operating_zone || (['AOR', 'CNH', 'DGN', 'HQ', 'JTH', 'KBG', 'KBR', 'KMM', 'TGG'].includes((a.branch || '').toUpperCase()) ? 'ZONE_A' : 'ZONE_B');
+            return empZone === 'ZONE_A' 
+              ? (dayOfWeek === 5 || (dayOfWeek === 6 && d <= 7))
+              : (dayOfWeek === 0 || (dayOfWeek === 6 && d <= 7));
+          };
+
+          const checkIsLeave = (a: any) => {
+            if ((a.status || "").toLowerCase().includes("leave") || a.status === "Outstation") return true;
+            return leaveEvts.some(e => e.user_id === a.user_id || (e.name && a.full_name && e.name.toLowerCase() === a.full_name.toLowerCase()));
+          };
+
+          const absent = regulars.filter(a => a.status === "Absent" && !checkIsRest(a) && !checkIsLeave(a));
           const restDays = regulars.filter(a => {
-            const isRest = a.status === "Rest Day" || a.status === "Weekend" || a.is_rest_day;
-            const isOnLeave = (a.status || "").toLowerCase().includes("leave") || a.status === "Outstation";
-            return isRest && !isOnLeave;
+            return checkIsRest(a) && !checkIsLeave(a);
           });
 
 
