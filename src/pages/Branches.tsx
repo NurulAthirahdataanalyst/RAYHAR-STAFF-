@@ -695,6 +695,9 @@ export default function Branches() {
                           Personnel
                         </th>
                         <th className="text-left py-4 px-6 text-[8px] print:text-[13px] tracking-[0.2em] text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">
+                          Position
+                        </th>
+                        <th className="text-left py-4 px-6 text-[8px] print:text-[13px] tracking-[0.2em] text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">
                           Leave Balance
                         </th>
                         <th className="text-left py-4 px-6 text-[8px] print:text-[13px] tracking-[0.2em] text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">
@@ -739,6 +742,9 @@ export default function Branches() {
                                   </p>
                                 </div>
                               </div>
+                            </td>
+                            <td className="py-4 px-6 font-bold text-foreground text-xs capitalize">
+                              {(employee.role === "operation_manager" || employee.role === "finance_manager") ? "Operation Manager" : employee.role === "hr_admin" ? "HR Admin" : employee.role ? String(employee.role).split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : "Employee"}
                             </td>
                             <td className="py-4 px-6 font-bold text-foreground text-xs uppercase">
                               {employee.annual_leave_balance} DAYS
