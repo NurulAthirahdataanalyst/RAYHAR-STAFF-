@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useMemo } from "react";
-import Map, { Marker, Popup, NavigationControl, Source, Layer } from 'react-map-gl/maplibre';
-import * as maplibregl from 'maplibre-gl';
-import 'maplibre-gl/dist/maplibre-gl.css';
+import { MapContainer, TileLayer, Marker as LeafletMarker, Popup as LeafletPopup, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -12,22 +12,24 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRole } from "@/contexts/RoleContext";
 import { useToast } from "@/hooks/use-toast";
 
-const MAPLIBRE_STYLE = {
-  version: 8 as const,
-  sources: {
-    "osm": {
-      type: "raster" as const,
-      tiles: [
-        "https://a.tile.openstreetmap.org/{z}/{x}/{y}.png",
-        "https://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
-        "https://c.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      ],
-      tileSize: 256,
-      attribution: "&copy; OpenStreetMap contributors"
+// Fix default Leaflet marker icons broken by bundlers
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+});
+
+// Helper: fly-to controller inside MapContainer
+function FlyToController({ center, zoom }: { center: [number, number] | null; zoom: number }) {
+  const map = useMap();
+  useEffect(() => {
+    if (center) {
+      map.flyTo(center, zoom, { duration: 1.2 });
     }
-  },
-  layers: [{ id: "osm-layer", type: "raster" as const, source: "osm", minzoom: 0, maxzoom: 19 }]
-};
+  }, [center, zoom, map]);
+  return null;
+}
 
 const BRANCH_NAMES: Record<string, string> = {
   HQ: "Rayhar HQ",
@@ -147,10 +149,12 @@ export default function GPSLocationTracker() {
   const [query, setQuery] = useState("");
   const [branchFilter, setBranchFilter] = useState<string>("All");
   const [statusFilter, setStatusFilter] = useState<string>("All");
-  const mapRef = useRef<any | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
-  const [mapLoaded, setMapLoaded] = useState(false);
   const [activeCluster, setActiveCluster] = useState<EmpLocation[] | null>(null);
+  // Leaflet fly-to: [lat, lng] | null
+  const [flyToCenter, setFlyToCenter] = useState<[number, number] | null>(null);
+  const [flyToZoom, setFlyToZoom] = useState(15);
+
 
   // Admin alerts (arrival/departure/breach) - hoisted before useEffect
   const [alerts, setAlerts] = useState<any[]>([]);
@@ -334,40 +338,34 @@ export default function GPSLocationTracker() {
     return Object.values(groups);
   }, [filtered, locations, selected]);
 
-  // Auto-focus on active employee location when map and data load
+  // Auto-focus on active employee location when data loads
   const hasAutoCentered = useRef(false);
   useEffect(() => {
-    if (!mapLoaded || hasAutoCentered.current || !mapRef.current) return;
+    if (hasAutoCentered.current) return;
     const currentUserId = user?.user_id || user?.id;
     const myLoc = currentUserId ? locations[currentUserId] : null;
     const targetLoc = (myLoc && myLoc.lat != null && myLoc.lng != null && !isNaN(Number(myLoc.lat)) && !isNaN(Number(myLoc.lng)))
-      ? myLoc 
+      ? myLoc
       : Object.values(locations).find(l => l.lat != null && l.lng != null && !isNaN(Number(l.lat)) && !isNaN(Number(l.lng)));
 
     if (targetLoc && targetLoc.lat != null && targetLoc.lng != null) {
-      try {
-        const mapObj = mapRef.current.getMap ? mapRef.current.getMap() : mapRef.current;
-        mapObj.flyTo({
-          center: [Number(targetLoc.lng), Number(targetLoc.lat)],
-          zoom: 15,
-          duration: 1200
-        });
-        hasAutoCentered.current = true;
-      } catch {}
+      setFlyToCenter([Number(targetLoc.lat), Number(targetLoc.lng)]);
+      setFlyToZoom(15);
+      hasAutoCentered.current = true;
     }
-  }, [mapLoaded, locations, user]);
+  }, [locations, user]);
 
   const focusOn = (empId: string) => {
     const loc = locations[empId];
-    if (!loc || loc.lat == null || loc.lng == null || isNaN(Number(loc.lat)) || isNaN(Number(loc.lng))) { toast({ title: "No Location Data", description: "This employee hasn't submitted their GPS location yet or it is invalid.", variant: "default" }); return; } if (!mapRef.current) return;
-    try {
-      const mapObj = mapRef.current.getMap ? mapRef.current.getMap() : mapRef.current;
-      mapObj.flyTo({ center: [Number(loc.lng), Number(loc.lat)], zoom: 16, duration: 1500 });
-    } catch (err) {
-      // ignore
+    if (!loc || loc.lat == null || loc.lng == null || isNaN(Number(loc.lat)) || isNaN(Number(loc.lng))) {
+      toast({ title: "No Location Data", description: "This employee hasn't submitted their GPS location yet or it is invalid.", variant: "default" });
+      return;
     }
+    setFlyToCenter([Number(loc.lat), Number(loc.lng)]);
+    setFlyToZoom(16);
     setSelected(empId);
   };
+
 
   // Location history modal - with full pagination (Load More)
   const [historyFor, setHistoryFor] = useState<string | null>(null);
@@ -514,37 +512,23 @@ export default function GPSLocationTracker() {
         </div>
 
       <div className="flex flex-col gap-4">
-        <div className="h-[520px] bg-card rounded-lg overflow-hidden">
-          <Map
-            id="gps-map"
-            
-            ref={mapRef}
-            initialViewState={{
-              longitude: 103.4194,
-              latitude: 4.2248,
-              zoom: 7
-            }}
+        <div className="h-[520px] rounded-lg overflow-hidden border border-border" style={{ zIndex: 0 }}>
+          <MapContainer
+            center={[4.2248, 103.4194]}
+            zoom={7}
             style={{ width: "100%", height: "100%" }}
-            mapStyle={MAPLIBRE_STYLE}
-            onLoad={(e) => {
-              setMapLoaded(true);
-              const map = e.target;
-              if (map && !(map as any)._removePatched) {
-                const originalRemove = map.remove.bind(map);
-                map.remove = () => {
-                  try {
-                    originalRemove();
-                  } catch (err) {
-                    console.warn("Suppressed maplibre remove error:", err);
-                  }
-                };
-                (map as any)._removePatched = true;
-              }
-            }}
+            scrollWheelZoom={true}
           >
-            
+            <TileLayer
+              url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+              subdomains={['a','b','c','d']}
+              maxZoom={20}
+            />
 
-            {mapLoaded && validGroups.map((group) => {
+            <FlyToController center={flyToCenter} zoom={flyToZoom} />
+
+            {validGroups.map((group) => {
               const first = group[0];
               if (!first) return null;
               const lat = Number(first.lat);
@@ -553,88 +537,122 @@ export default function GPSLocationTracker() {
 
               const isSelected = group.some((l) => selected === l.user_id);
               const isOnline = !!(first.lat && first.lng);
-              const statusColor = isSelected ? 'bg-amber-500' : (isOnline ? 'bg-emerald-500' : 'bg-rose-500');
               const groupKey = `marker-${group.map(g => g.user_id).sort().join('-')}`;
+              const name = (first.full_name || first.user_id || "U").trim();
+              const avatarText = (name || "U").substring(0, 2).toUpperCase();
+              const timeText = first.last_updated
+                ? new Date(first.last_updated).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                : 'Unknown';
+              const dotColor = isSelected ? '#f59e0b' : (isOnline ? '#10b981' : '#f43f5e');
+              const borderColor = isSelected ? '#f59e0b' : '#e5e7eb';
+
+              const markerHtml = group.length > 1
+                ? `<div style="display:flex;flex-direction:column;align-items:center;cursor:pointer">
+                    <div style="background:white;border-radius:9999px;padding:4px 12px 4px 4px;display:flex;align-items:center;gap:8px;border:2px solid ${borderColor};box-shadow:0 2px 8px rgba(0,0,0,0.15)">
+                      <div style="width:32px;height:32px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;position:relative">
+                        +${group.length}
+                        <div style="position:absolute;bottom:0;right:0;width:10px;height:10px;border-radius:50%;background:${dotColor};border:2px solid white"></div>
+                      </div>
+                      <div style="display:flex;flex-direction:column">
+                        <span style="font-size:11px;font-weight:700;white-space:nowrap">${group.length} Employees</span>
+                        <span style="font-size:10px;color:#6b7280;white-space:nowrap">Click to view</span>
+                      </div>
+                    </div>
+                    <div style="width:2px;height:20px;background:${dotColor};opacity:0.5"></div>
+                    <div style="width:12px;height:12px;border-radius:50%;background:${dotColor};border:2.5px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.2)"></div>
+                  </div>`
+                : `<div style="display:flex;flex-direction:column;align-items:center;cursor:pointer">
+                    <div style="background:white;border-radius:9999px;padding:4px 12px 4px 4px;display:flex;align-items:center;gap:8px;border:2px solid ${borderColor};box-shadow:0 2px 8px rgba(0,0,0,0.15)${isSelected ? ';outline:3px solid rgba(245,158,11,0.3)' : ''}">
+                      <div style="width:32px;height:32px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;position:relative">
+                        ${avatarText}
+                        <div style="position:absolute;bottom:0;right:0;width:10px;height:10px;border-radius:50%;background:${dotColor};border:2px solid white"></div>
+                      </div>
+                      <div style="display:flex;flex-direction:column">
+                        <span style="font-size:11px;font-weight:700;white-space:nowrap">${name}</span>
+                        <span style="font-size:10px;color:#6b7280;white-space:nowrap">Updated ${timeText}</span>
+                      </div>
+                    </div>
+                    <div style="width:2px;height:20px;background:${dotColor};opacity:0.5"></div>
+                    <div style="width:12px;height:12px;border-radius:50%;background:${dotColor};border:2.5px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.2)"></div>
+                  </div>`;
+
+              const icon = L.divIcon({
+                html: markerHtml,
+                className: '',
+                iconSize: [0, 0],
+                iconAnchor: [0, 0],
+              });
 
               return (
-                <Marker 
+                <LeafletMarker
                   key={groupKey}
-                  longitude={lng} 
-                  latitude={lat} 
-                  anchor="bottom"
-                  onClick={(e) => { 
-                    e.originalEvent.stopPropagation(); 
-                    if (group.length === 1) {
-                      focusOn(first.user_id); 
-                    } else {
-                      setActiveCluster(group);
+                  position={[lat, lng]}
+                  icon={icon}
+                  eventHandlers={{
+                    click: () => {
+                      if (group.length === 1) {
+                        focusOn(first.user_id);
+                      } else {
+                        setActiveCluster(group);
+                      }
                     }
                   }}
-                  style={{ zIndex: isSelected ? 50 : 10 }}
                 >
-                  {group.length > 1 ? (
-                    <div className="flex flex-col items-center justify-end w-full h-full group pb-1 cursor-pointer">
-                      <div className={`bg-card rounded-full shadow-lg p-1 pr-3 flex items-center gap-2 border ${isSelected ? 'border-amber-500 ring-2 ring-amber-500/20' : 'border-border'} transition-all hover:scale-105 z-10`}>
-                        <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-bold text-foreground relative">
-                          +{group.length}
-                          <div className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full ${statusColor} border-2 border-card`} />
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="text-xs font-bold whitespace-nowrap text-foreground leading-none">
-                            {group.length} Employees Here
-                          </span>
-                          <span className="text-[10px] text-muted-foreground whitespace-nowrap mt-1 leading-none">
-                            Click to view list
-                          </span>
-                        </div>
+                  {group.length === 1 && (
+                    <LeafletPopup offset={[0, -40]}>
+                      <div style={{ minWidth: 160 }}>
+                        <div style={{ fontWeight: 700, fontSize: 13 }}>{name}</div>
+                        <div style={{ fontSize: 11, color: '#6b7280' }}>{first.branch || ''}</div>
+                        {first.last_updated && (
+                          <div style={{ fontSize: 11, marginTop: 4 }}>
+                            {new Date(first.last_updated).toLocaleString()}
+                          </div>
+                        )}
                       </div>
-                      <div className={`w-0.5 h-6 ${isSelected ? 'bg-amber-500' : 'bg-emerald-500/50'} z-0 -mt-1`} />
-                      <div className={`w-3 h-3 rounded-full ${statusColor} border-[2.5px] border-white shadow-sm shadow-black/20 z-10 -mt-1 relative`} />
-                    </div>
-                  ) : (
-                    getMarkerHTML(first, isSelected)
+                    </LeafletPopup>
                   )}
-                </Marker>
+                </LeafletMarker>
               );
             })}
 
-            {mapLoaded && activeCluster && activeCluster.length > 0 && Number.isFinite(Number(activeCluster[0].lat)) && Number.isFinite(Number(activeCluster[0].lng)) && (
-              <Popup
-                longitude={Number(activeCluster[0].lng)}
-                latitude={Number(activeCluster[0].lat)}
-                anchor="top"
-                onClose={() => setActiveCluster(null)}
-                closeOnClick={false}
-                className="z-50"
+            {activeCluster && activeCluster.length > 0 && Number.isFinite(Number(activeCluster[0].lat)) && Number.isFinite(Number(activeCluster[0].lng)) && (
+              <LeafletMarker
+                key="active-cluster-popup"
+                position={[Number(activeCluster[0].lat), Number(activeCluster[0].lng)]}
+                icon={L.divIcon({ html: '', className: '', iconSize: [0, 0] })}
               >
-                <div className="p-2 space-y-2 min-w-[220px]">
-                  <div className="flex items-center justify-between border-b pb-1">
-                    <h4 className="font-bold text-xs">Employees at this location ({activeCluster.length})</h4>
-                  </div>
-                  <div className="max-h-48 overflow-y-auto space-y-1">
+                <LeafletPopup
+                  offset={[0, 0]}
+                  eventHandlers={{ remove: () => setActiveCluster(null) }}
+                  autoClose={false}
+                  closeOnClick={false}
+                >
+                  <div style={{ minWidth: 220, maxHeight: 200, overflowY: 'auto' }}>
+                    <div style={{ fontWeight: 700, fontSize: 12, borderBottom: '1px solid #e5e7eb', paddingBottom: 6, marginBottom: 6 }}>
+                      Employees at this location ({activeCluster.length})
+                    </div>
                     {activeCluster.map((emp) => (
                       <div
                         key={emp.user_id}
-                        className="flex items-center justify-between p-1.5 hover:bg-muted rounded cursor-pointer transition-colors text-xs"
-                        onClick={() => {
-                          focusOn(emp.user_id);
-                          setActiveCluster(null);
-                        }}
+                        onClick={() => { focusOn(emp.user_id); setActiveCluster(null); }}
+                        style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 6px', borderRadius: 6, cursor: 'pointer', fontSize: 11 }}
+                        onMouseOver={e => (e.currentTarget.style.background = '#f3f4f6')}
+                        onMouseOut={e => (e.currentTarget.style.background = '')}
                       >
-                        <div className="flex flex-col">
-                          <span className="font-semibold">{emp.full_name || emp.user_id}</span>
-                          <span className="text-[10px] text-muted-foreground">{emp.branch || 'No branch'}</span>
+                        <div>
+                          <div style={{ fontWeight: 600 }}>{emp.full_name || emp.user_id}</div>
+                          <div style={{ color: '#6b7280' }}>{emp.branch || 'No branch'}</div>
                         </div>
-                        <span className="text-[10px] text-muted-foreground">
+                        <div style={{ color: '#6b7280', alignSelf: 'center' }}>
                           {emp.last_updated ? new Date(emp.last_updated).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
-                        </span>
+                        </div>
                       </div>
                     ))}
                   </div>
-                </div>
-              </Popup>
+                </LeafletPopup>
+              </LeafletMarker>
             )}
-          </Map>
+          </MapContainer>
         </div>
 
           <div>
