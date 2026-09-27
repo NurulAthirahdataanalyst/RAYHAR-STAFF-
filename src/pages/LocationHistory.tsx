@@ -119,22 +119,37 @@ export default function LocationHistory() {
                             <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${statusColor}`}>
                               <div className={`w-1.5 h-1.5 rounded-full ${dotColor}`} />
                               {statusText}
-                              {h.source !== 'log' && (
-                                <span className="opacity-70 ml-1 border-l border-current pl-1.5">
-                                  {h.source === 'clock_in' ? 'CLOCK-IN' : 'CLOCK-OUT'}
-                                </span>
-                              )}
+                              {h.is_update && (
+  <span className="opacity-70 ml-1 border-l border-current pl-1.5">
+    UPDATED
+  </span>
+)}
                             </div>
                           </TableCell>
                           <TableCell className="py-4">
-                            {h.source === 'clock_in' ? (
-                              <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-md">Clock In</span>
-                            ) : h.source === 'clock_out' ? (
-                              <span className="text-[10px] font-black uppercase tracking-wider bg-amber-100 text-amber-700 px-2.5 py-1 rounded-md">Clock Out</span>
-                            ) : (
-                              <span className="text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-700 px-2.5 py-1 rounded-md opacity-50">Auto Log</span>
-                            )}
-                          </TableCell>
+  {h.attendance_status ? (() => {
+    const statusColors: Record<string, string> = {
+      'Clock In': 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300 border-blue-200 dark:border-blue-500/30',
+      'Clock Out': 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300 border-indigo-200 dark:border-indigo-500/30',
+      'Replacement Leave': 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300 border-amber-200 dark:border-amber-500/30',
+      'Outstation': 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300 border-purple-200 dark:border-purple-500/30',
+    };
+    const dotColors: Record<string, string> = {
+      'Clock In': 'bg-blue-500', 'Clock Out': 'bg-indigo-500',
+      'Replacement Leave': 'bg-amber-500', 'Outstation': 'bg-purple-500',
+    };
+    const cls = statusColors[h.attendance_status] || 'bg-teal-100 text-teal-700 dark:bg-teal-500/20 dark:text-teal-300 border-teal-200 dark:border-teal-500/30';
+    const dot = dotColors[h.attendance_status] || 'bg-teal-500';
+    return (
+      <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-black border uppercase tracking-widest ${cls}`}>
+        <div className={`w-1.5 h-1.5 rounded-full ${dot}`} />
+        {h.attendance_status}
+      </span>
+    );
+  })() : (
+    <span className="text-muted-foreground">-</span>
+  )}
+</TableCell>
                         </TableRow>
                       );
                     })
