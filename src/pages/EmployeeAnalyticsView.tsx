@@ -428,7 +428,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
             return dateStr >= startStr && dateStr <= endStr && o.status !== 'Cancelled';
           });
 
-          if (hasLeave) {
+          if (isBeforeCreation) { /* skip */ } else if (hasLeave) {
             leaveDaysCount++;
           } else if (hasCompanyLeave) {
             companyLeaveDaysCount++;

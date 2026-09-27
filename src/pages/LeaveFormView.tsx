@@ -577,8 +577,8 @@ export default function LeaveFormView() {
               <div id="leave-form-print" className="p-4 sm:p-8 print:p-2 space-y-6 print:space-y-2">
                 <div className="rounded-[24px] border border-border/50 p-6 sm:p-8 print:p-4 space-y-6 print:space-y-3 bg-card shadow-sm print:shadow-none print:border-none">
                   <div className="text-center border-b-2 border-foreground/50 dark:border-purple-500/50 pb-4 print:pb-2">
-                    <h2 className="text-5xl print:text-2xl print:text-4xl font-black tracking-tighter text-foreground dark:text-purple-400">RAYHAR GROUP</h2>
-                    <p className="text-[24px] print:text-[16px] font-black tracking-[0.3em] uppercase opacity-60 dark:text-purple-300">Permohonan Cuti Kakitangan</p>
+                    <h2 className="text-2xl print:text-4xl font-black tracking-tighter text-foreground dark:text-purple-400">RAYHAR GROUP</h2>
+                    <p className="text-[10px] print:text-[16px] font-black tracking-[0.2em] print:tracking-[0.3em] uppercase opacity-60 dark:text-purple-300">Permohonan Cuti Kakitangan</p>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4 print:gap-y-6 print:gap-x-8 text-xs print:text-[11px] font-bold">
