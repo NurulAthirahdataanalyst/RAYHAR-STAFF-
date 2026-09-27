@@ -732,7 +732,7 @@ export default function WorkforceCalendar() {
                                     <span className="text-xs font-bold uppercase truncate">{a.full_name} {a.branch ? `(${a.branch})` : ''}</span>
                                     <div className="flex items-center gap-1.5 mt-1">
                                       <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                                      <span className="text-[10px] font-black uppercase text-emerald-600">Present</span>
+                                      <span className="text-[10px] font-black uppercase text-emerald-600">Present {a.latitude && a.longitude ? ` • ${Number(a.latitude).toFixed(6)}, ${Number(a.longitude).toFixed(6)}` : ''}</span>
                                     </div>
                                   </div>
                                   <div className="flex gap-4 text-right">
@@ -765,7 +765,7 @@ export default function WorkforceCalendar() {
                                     <span className="text-xs font-bold uppercase truncate">{a.full_name} {a.branch ? `(${a.branch})` : ''}</span>
                                     <div className="flex items-center gap-1.5 mt-1">
                                       <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                                      <span className="text-[10px] font-black uppercase text-amber-600">Late</span>
+                                      <span className="text-[10px] font-black uppercase text-amber-600">Late {a.latitude && a.longitude ? ` • ${Number(a.latitude).toFixed(6)}, ${Number(a.longitude).toFixed(6)}` : ''}</span>
                                     </div>
                                   </div>
                                   <div className="flex gap-4 text-right">
@@ -798,7 +798,7 @@ export default function WorkforceCalendar() {
                                     <span className="text-xs font-bold uppercase truncate">{a.full_name} ({a.temp_branch})</span>
                                     <div className="flex items-center gap-1.5 mt-1">
                                       <div className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
-                                      <span className="text-[10px] font-black uppercase text-indigo-600">Temporary</span>
+                                      <span className="text-[10px] font-black uppercase text-indigo-600">Temporary {a.latitude && a.longitude ? ` • ${Number(a.latitude).toFixed(6)}, ${Number(a.longitude).toFixed(6)}` : ''}</span>
                                     </div>
                                   </div>
                                   <div className="flex gap-4 text-right">
@@ -831,7 +831,7 @@ export default function WorkforceCalendar() {
                                     <span className="text-xs font-bold uppercase truncate">{a.full_name} {a.branch ? `(${a.branch})` : ''}</span>
                                     <div className="flex items-center gap-1.5 mt-1">
                                       <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                                      <span className="text-[10px] font-black uppercase text-blue-600">Outstation</span>
+                                      <span className="text-[10px] font-black uppercase text-blue-600">Outstation {a.latitude && a.longitude ? ` • ${Number(a.latitude).toFixed(6)}, ${Number(a.longitude).toFixed(6)}` : ''}</span>
                                     </div>
                                   </div>
                                   <div className="flex gap-4 text-right">
