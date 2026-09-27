@@ -216,15 +216,71 @@ export default function Dashboard() {
           ) {
             setStats((current) => ({ ...current, ...(data.stats || {}) }));
             setActivities(data.recentActivities || []);
-            if (data.activityFeed) {
-              setActivityFeed(data.activityFeed);
+            let updatedActivityFeed = data.activityFeed;
+            if (updatedActivityFeed && updatedActivityFeed.my) {
+              try {
+                const leavesRes = await fetch(`${API_BASE_URL}/api/leave-requests?userId=${encodeURIComponent(dashboardUserId!)}`);
+                const leavesData = await leavesRes.json();
+                if (leavesData.success && leavesData.leaveRequests) {
+                  const approvedLeaves = leavesData.leaveRequests.filter((lr: any) => lr.status === "Approved");
+                  updatedActivityFeed.my = updatedActivityFeed.my.map((item: any) => {
+                    if (item.type === "attendance" && item.sort_time) {
+                      const itemDate = new Date(item.sort_time);
+                      itemDate.setHours(0,0,0,0);
+                      const itemTime = itemDate.getTime();
+                      const hasLeave = approvedLeaves.some((lr: any) => {
+                        const sd = new Date(lr.tarikhMula || lr.start_date);
+                        sd.setHours(0,0,0,0);
+                        const ed = new Date(lr.tarikhTamat || lr.end_date);
+                        ed.setHours(0,0,0,0);
+                        return itemTime >= sd.getTime() && itemTime <= ed.getTime();
+                      });
+                      if (hasLeave) {
+                        return { ...item, badge: "ON LEAVE" };
+                      }
+                    }
+                    return item;
+                  });
+                }
+              } catch (e) {
+                console.error("Failed to fetch leaves for activityFeed", e);
+              }
+              setActivityFeed(updatedActivityFeed);
             }
             applyAttendanceUpdate(localUpdate);
           } else {
             setStats((current) => ({ ...current, ...(data.stats || {}) }));
             setActivities(data.recentActivities || []);
-            if (data.activityFeed) {
-              setActivityFeed(data.activityFeed);
+            let updatedActivityFeed = data.activityFeed;
+            if (updatedActivityFeed && updatedActivityFeed.my) {
+              try {
+                const leavesRes = await fetch(`${API_BASE_URL}/api/leave-requests?userId=${encodeURIComponent(dashboardUserId!)}`);
+                const leavesData = await leavesRes.json();
+                if (leavesData.success && leavesData.leaveRequests) {
+                  const approvedLeaves = leavesData.leaveRequests.filter((lr: any) => lr.status === "Approved");
+                  updatedActivityFeed.my = updatedActivityFeed.my.map((item: any) => {
+                    if (item.type === "attendance" && item.sort_time) {
+                      const itemDate = new Date(item.sort_time);
+                      itemDate.setHours(0,0,0,0);
+                      const itemTime = itemDate.getTime();
+                      const hasLeave = approvedLeaves.some((lr: any) => {
+                        const sd = new Date(lr.tarikhMula || lr.start_date);
+                        sd.setHours(0,0,0,0);
+                        const ed = new Date(lr.tarikhTamat || lr.end_date);
+                        ed.setHours(0,0,0,0);
+                        return itemTime >= sd.getTime() && itemTime <= ed.getTime();
+                      });
+                      if (hasLeave) {
+                        return { ...item, badge: "ON LEAVE" };
+                      }
+                    }
+                    return item;
+                  });
+                }
+              } catch (e) {
+                console.error("Failed to fetch leaves for activityFeed", e);
+              }
+              setActivityFeed(updatedActivityFeed);
             }
             setLastUpdated("Updated a few seconds ago");
           }
@@ -1679,6 +1735,7 @@ export default function Dashboard() {
                           Reminder: "text-yellow-700 border-yellow-200 bg-yellow-50 dark:text-yellow-300 dark:border-yellow-800/60 dark:bg-yellow-950/40",
                           Note: "text-slate-600 border-slate-200 bg-slate-50 dark:text-slate-300 dark:border-slate-700 dark:bg-slate-800/40",
                           Assigned: "text-pink-700 border-pink-200 bg-pink-50/50 dark:text-pink-300 dark:border-pink-800/60 dark:bg-pink-950/40",
+                          "ON LEAVE": "text-orange-700 border-orange-200 bg-orange-50 dark:text-orange-300 dark:border-orange-800/60 dark:bg-orange-950/40",
                         };
                         const badgeCls = badgeColor[item.badge] || "text-foreground border-slate-200 dark:border-slate-800";
                         
