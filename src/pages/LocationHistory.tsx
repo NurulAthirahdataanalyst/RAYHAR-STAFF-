@@ -14,13 +14,16 @@ export default function LocationHistory() {
   const [historyLoading, setHistoryLoading] = useState(false);
   const [nextPage, setNextPage] = useState(1);
   const [hasMoreHistory, setHasMoreHistory] = useState(true);
-  const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
+  const [selectedMonthStr, setSelectedMonthStr] = useState<string>(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  });
 
   const fetchHistory = async (page: number, append = false) => {
     if (!user?.user_id) return;
     setHistoryLoading(true);
     try {
-      const monthStr = `${selectedMonth.getFullYear()}-${String(selectedMonth.getMonth() + 1).padStart(2, '0')}`;
+      const monthStr = selectedMonthStr;
       const res = await fetch(`${API_BASE_URL}/api/employee-location-history?userId=${encodeURIComponent(user.user_id)}&page=${page}&limit=${HISTORY_LIMIT}&month=${monthStr}`);
       const data = await res.json();
       if (data.success) {
@@ -38,7 +41,7 @@ export default function LocationHistory() {
 
   useEffect(() => {
     fetchHistory(1);
-  }, [user, selectedMonth]);
+  }, [user, selectedMonthStr]);
 
   const handleLoadMore = () => {
     fetchHistory(nextPage, true);
@@ -57,7 +60,7 @@ export default function LocationHistory() {
             </div>
             
             <div className="flex items-center gap-3">
-              <MonthPicker date={selectedMonth} onDateChange={(d) => d && setSelectedMonth(d)} />
+              <MonthPicker monthYear={selectedMonthStr} onSelectMonthYear={setSelectedMonthStr} />
             </div>
           </div>
 
@@ -78,7 +81,7 @@ export default function LocationHistory() {
                   {historyLoading && history.length === 0 ? (
                     <TableRow><TableCell colSpan={6} className="text-center py-12 text-muted-foreground">Loading history...</TableCell></TableRow>
                   ) : history.length === 0 ? (
-                    <TableRow><TableCell colSpan={6} className="text-center py-12 text-muted-foreground">No location history found for {selectedMonth.toLocaleString('default', { month: 'long', year: 'numeric' })}</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={6} className="text-center py-12 text-muted-foreground">No location history found for {selectedMonthStr}</TableCell></TableRow>
                   ) : (
                     history.map((h, i) => {
                       const branchName = h.branch || user?.branch || "HQ";
