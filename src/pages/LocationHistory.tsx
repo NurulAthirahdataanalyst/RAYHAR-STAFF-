@@ -93,11 +93,11 @@ export default function LocationHistory() {
                         statusColor = "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400";
                         dotColor = "bg-blue-500";
                       } else if (h.is_leave) {
-                        statusText = \`ON LEAVE (\${h.leave_type || 'Unknown'})\`;
+                        statusText = `ON LEAVE (${h.leave_type || 'Unknown'})`;
                         statusColor = "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-400";
                         dotColor = "bg-purple-500";
                       } else if (h.is_temporary) {
-                        statusText = \`TEMP: \${h.temp_branch}\`;
+                        statusText = `TEMP: ${h.temp_branch}`;
                         statusColor = "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-400";
                         dotColor = "bg-indigo-500";
                       } else if (distance !== null && distance > 300) {
@@ -107,20 +107,20 @@ export default function LocationHistory() {
                       }
                       
                       return (
-                        <TableRow key={\`\${h.timestamp}-\${i}\`} className="hover:bg-muted/50 transition-colors">
+                        <TableRow key={`${h.timestamp}-${i}`} className="hover:bg-muted/50 transition-colors">
                           <TableCell className="py-4 font-medium text-foreground whitespace-nowrap">
                             {new Date(h.timestamp).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }).toUpperCase()}
                           </TableCell>
                           <TableCell className="py-4 font-mono text-xs">
-                            {h.latitude && h.longitude ? \`\${Number(h.latitude).toFixed(6)}, \${Number(h.longitude).toFixed(6)}\` : 'N/A'}
+                            {h.latitude && h.longitude ? `${Number(h.latitude).toFixed(6)}, ${Number(h.longitude).toFixed(6)}` : 'N/A'}
                           </TableCell>
                           <TableCell className="py-4 text-sm font-medium">{branchName}</TableCell>
                           <TableCell className="py-4 text-sm">
-                            {distance !== null ? \`\${distance} m\` : 'N/A'}
+                            {distance !== null ? `${distance} m` : 'N/A'}
                           </TableCell>
                           <TableCell className="py-4">
-                            <div className={\`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider \${statusColor}\`}>
-                              <div className={\`w-1.5 h-1.5 rounded-full \${dotColor}\`} />
+                            <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${statusColor}`}>
+                              <div className={`w-1.5 h-1.5 rounded-full ${dotColor}`} />
                               {statusText}
                               {h.source !== 'log' && (
                                 <span className="opacity-70 ml-1 border-l border-current pl-1.5">
