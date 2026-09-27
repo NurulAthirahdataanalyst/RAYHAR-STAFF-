@@ -1,0 +1,1 @@
+const fs = require('fs'); let code = fs.readFileSync('backend/server.js', 'utf8'); code = code.replace(/p\.department,\s*p\.status,\s*COALESCE\(ur\.role, 'employee'\) AS role/g, 'p.department, p.status, p.created_at, p.updated_at, COALESCE(ur.role, \'employee\') AS role'); fs.writeFileSync('backend/server.js', code);

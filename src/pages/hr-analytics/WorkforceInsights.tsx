@@ -118,7 +118,7 @@ interface PendingItem {
 export default function WorkforceInsights() {
   const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
   const { role, userBranch, userDepartment, userId } = useRole();
-  const scopeLabel = role === "head_of_department" || role === "hod" ? userDepartment : (role === "branch_leader" ? userBranch : "");
+  const scopeLabel = profile?.role === "head_of_department" || profile?.role === "hod" ? userDepartment : (profile?.role === "branch_leader" ? userBranch : "");
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -2692,121 +2692,134 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
              </div>
            </Card>
 
-           {/* Branch Workforce Distribution */}
-           <Card className="lg:col-span-7 p-4 border border-slate-200 dark:border-slate-800 hover:border-[#942392] hover: transition-all duration-300 flex flex-col bg-card rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
-             <div className="flex justify-between items-center mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
-               <div className="flex items-center gap-2">
-                 <MapPin className="w-4 h-4 text-foreground" />
-                 <h3 className="text-sm font-bold text-[#1A1F36] dark:text-gray-100">Branch Workforce Distribution</h3>
-               </div>
-               <Select value={selectedRegion} onValueChange={setSelectedRegion}>
-                 <SelectTrigger className="w-[120px] h-7 text-[10px] font-bold border border-slate-300 dark:border-slate-700 bg-card shadow-none focus:ring-0">
-                   <SelectValue placeholder="All Regions" />
-                 </SelectTrigger>
-                 <SelectContent>
-                   <SelectItem value="All Regions" className="text-[10px] font-bold">All Regions</SelectItem>
-                   {regionOrder.map(r => <SelectItem key={r} value={r} className="text-[10px] font-bold">{r}</SelectItem>)}
-                 </SelectContent>
-               </Select>
-             </div>
-             
-             <div className={`space-y-4 flex-1 pr-2 ${liveBranchRanking.length > 5 ? 'overflow-y-auto custom-scrollbar max-h-[220px]' : 'overflow-y-visible'}`}>
-               <TooltipProvider>
-                {liveBranchRanking.map((branch: any, idx: number) => {
-                    const greenPerc = branch.isWeekend ? 0 : (branch.totalEmployees > 0 ? ((branch.presentOnTime) / branch.totalEmployees) * 100 : 0);
-                    const yellowPerc = branch.isWeekend ? 0 : (branch.totalEmployees > 0 ? ((branch.presentLate + branch.tempLate) / branch.totalEmployees) * 100 : 0);
-                    const bluePerc = branch.isWeekend ? 0 : (branch.totalEmployees > 0 ? ((branch.onLeave + branch.tempOnLeave + branch.companyLeave + branch.tempCompanyLeave) / branch.totalEmployees) * 100 : 0);
-                    const redPerc = branch.isWeekend ? 0 : (branch.totalEmployees > 0 ? (branch.absent / branch.totalEmployees) * 100 : 0);
-                    const brownPerc = branch.isWeekend ? 0 : (branch.totalEmployees > 0 ? (branch.tempPresent / branch.totalEmployees) * 100 : 0);
-
-                    return (
-                      <div key={idx} className="flex flex-col gap-1">
-                        <div className="flex justify-between items-end">
-                          <div className="flex flex-col">
-                            <span className="text-[11px] font-bold text-[#1A1F36] dark:text-gray-200">
-                              {FULL_BRANCH_NAMES[branch.branch] || branch.branch}
-                            </span>
-                            <div className="flex items-center gap-1.5 mt-0.5">
-                              <span className="text-[9px] font-semibold text-foreground flex items-center gap-1">
-                                ≡ƒæÑ {branch.permanentStaffCount} Staff
-                              </span>
-                              {branch.temporaryIn > 0 && (
-                                <span className="text-[9px] font-bold text-[#8b4513] bg-orange-100/70 dark:bg-amber-900/30 dark:text-amber-500 px-1 rounded flex items-center gap-1">
-                                  ≡ƒƒñ {branch.temporaryIn} Temporary Staff
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          <span className={`text-[10px] font-black ${branch.displayRate >= 95 ? 'text-emerald-500' : branch.displayRate >= 80 ? 'text-amber-500' : 'text-red-500'}`}>
-                            {branch.displayRate}%
-                          </span>
-                        </div>
-                        <UITooltip delayDuration={100}>
-                          <TooltipTrigger asChild>
-                            <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full flex overflow-hidden mt-1 cursor-pointer">
-                              {branch.isWeekend ? (
-                                <div className="h-full bg-slate-300 dark:bg-slate-600" style={{ width: '100%' }}></div>
-                              ) : (
-                                <>
-                                  {greenPerc > 0 && <div className="h-full bg-[#10b981]" style={{ width: `${greenPerc}%` }}></div>}
-                                  {brownPerc > 0 && <div className="h-full bg-[#b45309]" style={{ width: `${brownPerc}%` }}></div>}
-                                  {yellowPerc > 0 && <div className="h-full bg-[#f59e0b]" style={{ width: `${yellowPerc}%` }}></div>}
-                                  {bluePerc > 0 && <div className="h-full bg-[#3b82f6]" style={{ width: `${bluePerc}%` }}></div>}
-                                  {redPerc > 0 && <div className="h-full bg-[#ef4444]" style={{ width: `${redPerc}%` }}></div>}
-                                </>
-                              )}
-                            </div>
-                          </TooltipTrigger>
-                          <TooltipContent side="top" align="center" className="bg-card border border-slate-200 dark:border-slate-800 shadow-xl rounded p-3 z-50 w-max whitespace-nowrap text-left min-w-[200px]">
-                            <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 mb-2 border-b border-slate-100 dark:border-slate-800 pb-1">
-                              {FULL_BRANCH_NAMES[branch.branch] || branch.branch}
-                            </p>
-                            <div className="flex flex-col gap-1.5 text-[9px] text-slate-600 dark:text-foreground mb-2 border-b border-slate-100 dark:border-slate-800 pb-2">
-                              <p className="flex justify-between items-center gap-4">
-                                <span>Permanent Staff:</span> 
-                                <span className="font-semibold text-slate-700 dark:text-slate-300">{branch.permanentStaffCount}</span>
-                              </p>
-                              <p className="flex justify-between items-center gap-4">
-                                <span>Temporary In:</span> 
-                                <span className="font-semibold text-amber-600">{branch.temporaryIn}</span>
-                              </p>
-                              <p className="flex justify-between items-center gap-4">
-                                <span>Temporary Out:</span> 
-                                <span className="font-semibold text-amber-600">{branch.temporaryOut}</span>
-                              </p>
-                              <p className="flex justify-between items-center gap-4 pt-1 border-t border-slate-100 dark:border-slate-800">
-                                <span className="font-bold text-slate-700 dark:text-slate-300">Expected Workforce:</span> 
-                                <span className="font-bold text-slate-900 dark:text-slate-100">{branch.totalEmployees}</span>
-                              </p>
-                            </div>
-                            <div className="flex flex-col gap-1 text-[9px] text-slate-600 dark:text-foreground">
-                              <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#10b981]"></div>Present (On Time):</span> <span className="font-bold text-emerald-600">{branch.presentOnTime}</span></p>
-                              {branch.tempPresent > 0 && <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-amber-700"></div>Temporary Present:</span> <span className="font-bold text-amber-700">{branch.tempPresent}</span></p>}
-                              <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#f59e0b]"></div>Late:</span> <span className="font-bold text-amber-600">{branch.presentLate + branch.tempLate}</span></p>
-                              <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-pink-500"></div>Outstation:</span> <span className="font-bold text-pink-600">{branch.outstation}</span></p>
-                              <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#3b82f6]"></div>On Leave:</span> <span className="font-bold text-blue-600">{branch.onLeave + branch.tempOnLeave}</span></p>
-                              <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-purple-500"></div>Company Leave:</span> <span className="font-bold text-purple-600">{branch.companyLeave + branch.tempCompanyLeave}</span></p>
-                              <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#ef4444]"></div>Absent:</span> <span className="font-bold text-red-600">{branch.absent}</span></p>
-                            </div>
-                          </TooltipContent>
-                        </UITooltip>
-                      </div>
-                    );
-                  })}
-               </TooltipProvider>
-               {liveBranchRanking.length === 0 && (
-                 <div className="text-center text-foreground text-xs py-10 font-medium">No branches found in this region.</div>
-               )}
-             </div>
-
-              <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
-                <p className="text-[10px] font-semibold text-foreground flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                  Showing {liveBranchRanking.length} locations
-                </p>
-                <button className="text-xs font-bold text-foreground hover:text-[#942392] transition-colors flex items-center gap-1">See All <ChevronRight className="w-3 h-3" /></button>
+        {/* Branch Workforce Distribution */}
+        <Card className="border border-slate-100 dark:border-slate-800/80 bg-card overflow-hidden lg:col-span-6 flex flex-col h-fit rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
+          <CardHeader className="pb-4 pt-5 px-6 border-b border-gray-100 dark:border-slate-800 flex flex-row items-start justify-between">
+            <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-200">Branch Workforce Distribution</CardTitle>
+            <div className="flex items-center gap-2 flex-wrap justify-end">
+              <Select value={selectedRegion} onValueChange={setSelectedRegion}>
+                <SelectTrigger className="w-[160px] h-8 text-[11px] font-bold border-gray-200 dark:border-slate-800 bg-card shadow-none focus:ring-0">
+                  <SelectValue placeholder="All Regions" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all" className="text-[11px] font-bold">All Regions</SelectItem>
+                  <SelectItem value="East Coast / East Malaysia" className="text-[11px] font-bold">East Coast / East Malaysia</SelectItem>
+                  <SelectItem value="North Malaysia" className="text-[11px] font-bold">North Malaysia</SelectItem>
+                  <SelectItem value="Central / West Coast" className="text-[11px] font-bold">Central / West Coast</SelectItem>
+                  <SelectItem value="South Malaysia" className="text-[11px] font-bold">South Malaysia</SelectItem>
+                </SelectContent>
+              </Select>
+              <div className="flex items-center gap-3">
+                <ExportDropdown onExportCSV={handleExport}  />
               </div>
-            </Card>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-6 px-6 pb-6 flex-1 flex flex-col justify-between">
+            <div className={`space-y-4 flex-1 pr-2 ${liveBranchRanking.length > 5 ? 'overflow-y-auto max-h-[220px]' : 'overflow-y-visible'}`}>
+              <TooltipProvider>
+                {liveBranchRanking.map((branch: any, idx: number) => {
+                  return (
+                    <div key={idx} className="flex flex-col gap-1">
+                      <div className="flex justify-between items-end">
+                        <div className="flex flex-col">
+                          <span className="text-[11px] font-bold text-slate-800 dark:text-slate-100">{FULL_BRANCH_NAMES[branch.branch] || (branches.find(b => b.code === branch.branch)?.name ? `${branch.branch} - ${toProperCase(branches.find(b => b.code === branch.branch)?.name)}` : branch.branch)}</span>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <span className="text-[9px] font-semibold text-foreground flex items-center gap-1">
+                              👥 {branch.permanentStaffCount} Staff
+                            </span>
+                            {branch.temporaryIn > 0 && (
+                              <span className="text-[9px] font-bold text-[#8b4513] bg-orange-100/70 px-1 rounded flex items-center gap-1">
+                                🟤 {branch.temporaryIn} Temporary Staff
+                              </span>
+                            )}
+                            {branch.temporaryOut > 0 && (
+                              <span className="text-[9px] font-bold text-slate-500 bg-slate-100 dark:text-slate-400 dark:bg-slate-800 px-1 rounded flex items-center gap-1">
+                                {branch.temporaryOut} Temporary Staff Out
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        {branch.isWeekend ? (
+                          <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-foreground border border-slate-200 dark:border-slate-700">Weekend</span>
+                        ) : (
+                          <span className={`text-[10px] font-black ${branch.rate >= 90 ? 'text-emerald-500' : branch.rate >= 75 ? 'text-amber-500' : 'text-red-500'}`}>{branch.rate}%</span>
+                        )}
+                      </div>
+                      <UITooltip delayDuration={100}>
+                        <TooltipTrigger asChild>
+                      <div className="cursor-pointer w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 flex overflow-hidden">
+                            {branch.isWeekend ? (
+                              <div className="h-full w-full bg-slate-300 dark:bg-slate-600 rounded-full"></div>
+                            ) : branch.totalEmployees > 0 ? (
+                              <>
+                                {branch.presentOnTime > 0 && <div className="h-full bg-[#10b981]" style={{ width: `${(branch.presentOnTime / branch.totalEmployees) * 100}%` }}></div>}
+                                {branch.tempPresent > 0 && <div className="h-full bg-[#8b4513]" style={{ width: `${(branch.tempPresent / branch.totalEmployees) * 100}%` }}></div>}
+                                {(branch.presentLate + branch.tempLate) > 0 && <div className="h-full bg-[#f59e0b]" style={{ width: `${((branch.presentLate + branch.tempLate) / branch.totalEmployees) * 100}%` }}></div>}
+                                {branch.outstation > 0 && <div className="h-full bg-pink-500" style={{ width: `${(branch.outstation / branch.totalEmployees) * 100}%` }}></div>}
+                                {branch.onLeave > 0 && <div className="h-full bg-blue-500" style={{ width: `${(branch.onLeave / branch.totalEmployees) * 100}%` }}></div>}
+                                {branch.companyLeave > 0 && <div className="h-full bg-purple-500" style={{ width: `${(branch.companyLeave / branch.totalEmployees) * 100}%` }}></div>}
+                                {branch.absent > 0 && <div className="h-full bg-red-500" style={{ width: `${(branch.absent / branch.totalEmployees) * 100}%` }}></div>}
+                              </>
+                            ) : (
+                              <div className="h-full w-full bg-slate-200 dark:bg-slate-700"></div>
+                            )}
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent side="top" align="center" className="bg-card border border-slate-200 dark:border-slate-800 shadow-xl rounded p-3 z-50 w-max whitespace-nowrap text-left min-w-[200px]">
+                          <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 mb-2 border-b border-slate-100 dark:border-slate-800 pb-1">{FULL_BRANCH_NAMES[branch.branch] || (branches.find(b => b.code === branch.branch)?.name ? `${branch.branch} - ${toProperCase(branches.find(b => b.code === branch.branch)?.name)}` : branch.branch)}</p>
+                          <div className="flex flex-col gap-1 text-[9px] text-slate-600 mb-2 border-b border-slate-100 dark:border-slate-800 pb-2">
+                            <p className="flex justify-between items-center gap-4"><span>Permanent Staff:</span> <span className="font-bold text-slate-700 dark:text-slate-300">{branch.permanentStaffCount}</span></p>
+                            <p className="flex justify-between items-center gap-4"><span>Temporary In:</span> <span className="font-bold text-slate-700 dark:text-slate-300">{branch.temporaryIn}</span></p>
+                            <p className="flex justify-between items-center gap-4"><span>Temporary Out:</span> <span className="font-bold text-slate-700 dark:text-slate-300">{branch.temporaryOut}</span></p>
+                            <p className="flex justify-between items-center gap-4 font-black mt-1"><span>Expected Workforce:</span> <span className="font-bold text-slate-800 dark:text-slate-100">{branch.totalEmployees}</span></p>
+                          </div>
+                          <div className="flex flex-col gap-1 text-[9px] text-slate-600">
+                            {branch.isWeekend ? (
+                              <>
+                                <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-slate-400"></div>Weekend / Rest Day:</span> <span className="font-bold text-slate-600">{branch.totalEmployees}</span></p>
+                                <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>Absent:</span> <span className="font-bold text-foreground">0</span></p>
+                              </>
+                            ) : (
+                              <>
+                                <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#10b981]"></div>Present (On Time):</span> <span className="font-bold text-emerald-600">{branch.presentOnTime}</span></p>
+                                {branch.tempPresent > 0 && <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#8b4513]"></div>Temporary Present:</span> <span className="font-bold text-[#8b4513]">{branch.tempPresent}</span></p>}
+                                <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#f59e0b]"></div>Late {branch.tempLate > 0 && <span className="text-[8px] font-medium opacity-60">({branch.tempLate} Temp)</span>}:</span> <span className="font-bold text-amber-500">{branch.presentLate + branch.tempLate}</span></p>
+                                <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-pink-500"></div>Outstation:</span> <span className="font-bold text-pink-500">{branch.outstation}</span></p>
+                                <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>On Leave:</span> <span className="font-bold text-blue-500">{branch.onLeave}</span></p>
+                                <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-purple-500"></div>Company Leave:</span> <span className="font-bold text-purple-500">{branch.companyLeave}</span></p>
+                                <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>Absent:</span> <span className="font-bold text-red-500">{branch.absent}</span></p>
+                              </>
+                            )}
+                          </div>
+                        </TooltipContent>
+                      </UITooltip>
+                    </div>
+                  );
+                })}
+              </TooltipProvider>
+              {liveBranchRanking.length === 0 && (
+                <div className="text-center text-foreground text-xs py-10 font-medium">No branches found in this region.</div>
+              )}
+            </div>
+            <div className="mt-4 pt-3 border-t border-gray-100 dark:border-slate-800 flex justify-between items-center">
+              <p className="text-[10px] font-semibold text-foreground flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                Showing {liveBranchRanking.length} locations
+                {liveBranchRanking.filter((b: any) => b.isWeekend).length > 0 && (
+                  <span className="ml-1 text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-foreground border border-slate-200 dark:border-slate-700">
+                    {liveBranchRanking.filter((b: any) => b.isWeekend).length} on Weekend
+                  </span>
+                )}
+              </p>
+              <p 
+                className="text-[10px] font-bold text-[#942392] cursor-pointer hover:underline flex items-center gap-1"
+                onClick={() => navigate((profile?.role === "head_of_department" || profile?.role === "hod" || profile?.role === "branch_leader") ? "/employees" : "/branches")}
+              >
+                View All <ChevronRight className="w-3 h-3" />
+              </p>
+            </div>
+          </CardContent>
+        </Card>
           </div>
 
          {/* Row 2: 3 Columns */}

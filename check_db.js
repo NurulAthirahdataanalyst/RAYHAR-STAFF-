@@ -1,17 +1,1 @@
-const mysql = require('mysql2/promise');
-require('dotenv').config({ path: 'backend/.env' });
-
-async function check() {
-    const pool = mysql.createPool({
-        host: process.env.DB_HOST,
-        user: process.env.DB_USER,
-        password: process.env.DB_PASSWORD,
-        database: process.env.DB_NAME,
-        port: process.env.DB_PORT
-    });
-
-    const [rows] = await pool.query("SELECT DISTINCT status FROM leave_requests");
-    console.log("Statuses:", rows);
-    process.exit(0);
-}
-check();
+require('dotenv').config(); const {Pool}=require('pg'); const pool=new Pool(); pool.query('SELECT column_name FROM information_schema.columns WHERE table_name=\\'profiles\\'').then(res => { console.log(res.rows); process.exit(0); });
