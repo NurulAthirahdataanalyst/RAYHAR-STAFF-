@@ -225,6 +225,11 @@ export function getPageTitleInfo(pathname: string, userRole?: string): PageInfo 
     subtitle: "Manage your personal information and account settings.",
     icon: User
   };
+  if (pathname === "/gps-location-tracker/history") return {
+    title: "Location History",
+    subtitle: "View your historical location logs and attendance coordinates.",
+    icon: MapPinned
+  };
   if (pathname === "/gps-location-tracker") return {
     title: "GPS Location Tracker",
     subtitle: "Monitor live workforce field locations, outstation tracking, and attendance coordinates.",

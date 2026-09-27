@@ -4,6 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { API_BASE_URL } from "@/config/api";
 import { MonthPicker } from "@/components/shared/MonthPicker";
+import PageActions from "@/components/layout/PageActions";
 
 const HISTORY_LIMIT = 50;
 
@@ -51,18 +52,11 @@ export default function LocationHistory() {
     <div className="flex flex-col h-[calc(100vh-theme(spacing.16))] bg-background">
       <div className="flex-1 overflow-auto p-4 md:p-6 lg:p-8">
         <div className="max-w-6xl mx-auto space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-black text-foreground uppercase tracking-tight">Location History</h1>
-              <p className="text-sm text-muted-foreground mt-1">
-                {user?.full_name || user?.user_id} &bull; {historyTotal.toLocaleString()} total records
-              </p>
-            </div>
-            
-            <div className="flex items-center gap-3">
-              <MonthPicker monthYear={selectedMonthStr} onSelectMonthYear={setSelectedMonthStr} />
-            </div>
-          </div>
+          <PageActions>
+  <div className="flex items-center gap-3">
+    <MonthPicker monthYear={selectedMonthStr} onSelectMonthYear={setSelectedMonthStr} />
+  </div>
+</PageActions>
 
           <div className="bg-card rounded-xl border border-border overflow-hidden shadow-sm">
             <div className="overflow-x-auto">
@@ -115,7 +109,7 @@ export default function LocationHistory() {
                             {new Date(h.timestamp).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }).toUpperCase()}
                           </TableCell>
                           <TableCell className="py-4 font-mono text-xs">
-                            {h.latitude && h.longitude ? `${Number(h.latitude).toFixed(6)}, ${Number(h.longitude).toFixed(6)}` : 'N/A'}
+                            {h.lat && h.lng ? `${Number(h.lat).toFixed(6)}, ${Number(h.lng).toFixed(6)}` : 'N/A'}
                           </TableCell>
                           <TableCell className="py-4 text-sm font-medium">{branchName}</TableCell>
                           <TableCell className="py-4 text-sm">
