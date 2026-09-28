@@ -9627,8 +9627,16 @@ app.post("/api/departments", async (req, res) => {
 
 app.delete("/api/departments/:id", async (req, res) => {
   const { id } = req.params;
+  const operatorName = req.query.operatorName || 'HR';
   try {
     await pool.query("DELETE FROM departments WHERE name = ?", [id]);
+    
+    // Log activity
+    await pool.query(
+      `INSERT INTO activity_logs (actor, action, target, context, type) VALUES ($1, $2, $3, $4, $5)`,
+      [operatorName, 'deleted a department', id, `Department name: ${id}`, 'system']
+    );
+
     res.json({ success: true, message: "Department deleted successfully" });
   } catch (err) {
     console.error("Error deleting department:", err);
@@ -11642,12 +11650,27 @@ app.post("/api/work-assignments", async (req, res) => {
 });
 
 app.put("/api/work-assignments/:id", async (req, res) => {
+  const operatorName = req.body.operatorName || 'HR';
   try {
     const { location, start_date, end_date, status, purpose, remarks } = req.body;
+    
+    // Get employee info before update for logging
+    const [assignRows] = await pool.query("SELECT ewa.user_id, p.full_name FROM employee_work_assignment ewa JOIN profiles p ON p.user_id = ewa.user_id WHERE ewa.id = ?", [req.params.id]);
+    
     await pool.query(
       `UPDATE employee_work_assignment SET location = ?, start_date = ?, end_date = ?, status = ?, purpose = ?, remarks = ? WHERE id = ?`,
       [location, start_date, end_date || null, status, purpose || null, remarks || null, req.params.id]
     );
+    
+    // Log activity
+    if (assignRows.length > 0) {
+      const empName = assignRows[0].full_name;
+      await pool.query(
+        `INSERT INTO activity_logs (user_id, actor, action, target, context, type) VALUES ($1, $2, $3, $4, $5, $6)`,
+        [assignRows[0].user_id, operatorName, 'edited a temporary assignment for', empName, `Branch: ${location}`, 'system']
+      );
+    }
+
     res.json({ success: true });
   } catch(e) {
     res.status(500).json({ success: false, error: e.message });
@@ -11655,8 +11678,23 @@ app.put("/api/work-assignments/:id", async (req, res) => {
 });
 
 app.delete("/api/work-assignments/:id", async (req, res) => {
+  const operatorName = req.query.operatorName || 'HR';
   try {
-    await pool.query(`DELETE FROM employee_work_assignment WHERE id = ?`, [req.params.id]);
+    const { id } = req.params;
+    const [assignRows] = await pool.query("SELECT ewa.user_id, p.full_name, ewa.location FROM employee_work_assignment ewa JOIN profiles p ON p.user_id = ewa.user_id WHERE ewa.id = ?", [id]);
+    const empName = assignRows.length > 0 ? assignRows[0].full_name : id;
+    const empLocation = assignRows.length > 0 ? assignRows[0].location : '';
+    
+    await pool.query(`DELETE FROM employee_work_assignment WHERE id = ?`, [id]);
+    
+    // Log activity
+    if (assignRows.length > 0) {
+      await pool.query(
+        `INSERT INTO activity_logs (user_id, actor, action, target, context, type) VALUES ($1, $2, $3, $4, $5, $6)`,
+        [assignRows[0].user_id, operatorName, 'deleted a temporary assignment for', empName, `Branch: ${empLocation}`, 'system']
+      );
+    }
+    
     res.json({ success: true });
   } catch(e) {
     res.status(500).json({ success: false, error: e.message });
