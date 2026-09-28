@@ -51,7 +51,7 @@ export default function LocationHistory() {
   return (
     <div className="flex flex-col h-[calc(100vh-theme(spacing.16))] bg-background">
       <div className="flex-1 overflow-auto p-4 md:p-6 lg:p-8">
-        <div className="max-w-6xl mx-auto space-y-6">
+        <div className="space-y-6">
           <PageActions>
   <div className="flex items-center gap-3">
     <MonthPicker monthYear={selectedMonthStr} onSelectMonthYear={setSelectedMonthStr} />
