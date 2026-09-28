@@ -49,16 +49,16 @@ export default function LocationHistory() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-theme(spacing.16))] bg-background">
-      <div className="flex-1 overflow-auto p-4 md:p-6 lg:p-8">
-        <div className="space-y-6">
+    <div className="flex flex-col h-[calc(100vh-theme(spacing.16))] bg-background relative">
+      <div id="location-history-page-scroll" className="flex-1 overflow-auto p-4 md:p-6 lg:p-8">
+        <div className="space-y-6 relative">
           <PageActions>
   <div className="flex items-center gap-3">
     <MonthPicker monthYear={selectedMonthStr} onSelectMonthYear={setSelectedMonthStr} />
   </div>
 </PageActions>
 
-          <div className="bg-card rounded-xl border border-border overflow-hidden shadow-sm">
+          <div className="bg-card rounded-xl border border-border overflow-hidden shadow-sm relative">
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader className="bg-muted/50">
@@ -176,6 +176,21 @@ export default function LocationHistory() {
           </div>
         </div>
       </div>
+      
+      {history.length >= 30 && (
+        <button 
+          onClick={() => {
+            const el = document.getElementById('location-history-page-scroll');
+            if (el) el.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          className="fixed bottom-10 right-10 z-50 p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full shadow-lg hover:bg-slate-50 dark:hover:bg-slate-700 hover:scale-105 transition-all text-slate-600 dark:text-slate-300"
+          title="Scroll to Top"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 19V5M5 12l7-7 7 7"/>
+          </svg>
+        </button>
+      )}
     </div>
   );
 }
