@@ -2710,7 +2710,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                 </SelectContent>
               </Select>
               <div className="flex items-center gap-3">
-                <ExportDropdown onExportCSV={handleExport}  />
+                <ExportDropdown onExportCSV={() => exportToCSV(liveBranchRanking || [], 'Branch_Workforce_Distribution')} onExportPDF={() => window.print()} />
               </div>
             </div>
           </CardHeader>
