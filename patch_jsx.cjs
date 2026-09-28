@@ -1,1 +1,0 @@
-const fs = require('fs'); let code = fs.readFileSync('src/pages/hr-analytics/WorkforceInsights.tsx', 'utf8'); code = code.replace(/<div className=\\lex items-center gap-3\\>[\\s\\S]*?<ExportDropdown[\\s\\S]*?<\\/div>/g, ''); fs.writeFileSync('src/pages/hr-analytics/WorkforceInsights.tsx', code);

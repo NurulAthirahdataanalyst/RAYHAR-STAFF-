@@ -4538,6 +4538,14 @@ app.post("/api/employees/status", async (req, res) => {
         [user_id]
       );
     }
+    
+    // Log the activity
+    const [empRows] = await pool.query("SELECT full_name FROM profiles WHERE user_id = ?", [user_id]);
+    const targetName = empRows.length > 0 ? empRows[0].full_name : user_id;
+    await pool.query(
+      `INSERT INTO activity_logs (user_id, actor, action, target, context, type) VALUES ($1, $2, $3, $4, $5, $6)`,
+      [user_id, 'HR', status === 'Inactive' ? 'inactivated staff' : 'changed staff status', targetName, `Status changed to ${status}`, 'system']
+    );
 
     res.json({ success: true, message: `Employee status updated to ${status} successfully.` });
     broadcastPresenceUpdate({ type: 'employee-status-change', userId: user_id, status });
@@ -6932,22 +6940,40 @@ app.get("/api/dashboard-stats", async (req, res) => {
       }
 
       const [sysRows] = await pool.query(
-        `SELECT 'system' AS type,
-          COALESCE(cl.created_by, 'HR') AS actor,
-          CASE
-            WHEN cl.status = 'Active' THEN 'created a Company Leave'
-            ELSE 'cancelled a Company Leave'
-          END AS action,
-          NULL AS target,
-          CONCAT(cl.leave_name, ' • ', TO_CHAR(cl.start_date, 'DD/MM/YYYY'), ' • ', (cl.end_date - cl.start_date + 1), ' Day') AS context,
-          TO_CHAR(cl.updated_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time,
-          TO_CHAR(cl.updated_at, 'DD Mon YYYY') AS date,
-          cl.status AS badge
-        FROM company_leave_calendar cl
-        WHERE 1=1
-          ${sysFilter}
-        ORDER BY cl.updated_at DESC`,
-        sysParams
+        `WITH sys_acts AS (
+          SELECT 'system' AS type,
+            COALESCE(cl.created_by, 'HR') AS actor,
+            CASE
+              WHEN cl.status = 'Active' THEN 'created a Company Leave'
+              ELSE 'cancelled a Company Leave'
+            END AS action,
+            NULL AS target,
+            CONCAT(cl.leave_name, ' • ', TO_CHAR(cl.start_date, 'DD/MM/YYYY'), ' • ', (cl.end_date - cl.start_date + 1), ' Day') AS context,
+            TO_CHAR(cl.updated_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time,
+            cl.updated_at AS sort_time,
+            cl.status AS badge
+          FROM company_leave_calendar cl
+          WHERE 1=1
+            ${sysFilter}
+            
+          UNION ALL
+          
+          SELECT 'system' AS type,
+            al.actor,
+            al.action,
+            al.target,
+            al.context,
+            TO_CHAR(al.created_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time,
+            al.created_at AS sort_time,
+            'System' AS badge
+          FROM activity_logs al
+          WHERE al.type = 'system'
+            AND DATE(al.created_at AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
+        )
+        SELECT type, actor, action, target, context, time, TO_CHAR(sort_time, 'DD Mon YYYY') AS date, badge
+        FROM sys_acts
+        ORDER BY sort_time DESC`,
+        [...sysParams, queryDate]
       );
       systemActivityRows = sysRows;
     }
@@ -9479,9 +9505,20 @@ app.post("/api/branches", async (req, res) => {
 
 app.delete("/api/branches/:id", async (req, res) => {
   const { id } = req.params;
+  const operatorName = req.query.operatorName || 'HR';
   try {
+    const [branchRow] = await pool.query("SELECT name FROM branches WHERE code = ?", [id]);
+    const branchName = branchRow.length > 0 ? branchRow[0].name : id;
+    
     // Note: The param name is code
     await pool.query("DELETE FROM branches WHERE code = ?", [id]);
+    
+    // Log activity
+    await pool.query(
+      `INSERT INTO activity_logs (actor, action, target, context, type) VALUES ($1, $2, $3, $4, $5)`,
+      [operatorName, 'deleted a branch', branchName, `Branch code: ${id}`, 'system']
+    );
+
     res.json({ success: true, message: "Branch deleted successfully" });
   } catch (err) {
     console.error("Error deleting branch:", err);

@@ -15,6 +15,7 @@ export interface TablePaginationProps {
   tableRef?: React.RefObject<HTMLElement | null>;
   showPageSize?: boolean;
   showTotal?: boolean;
+  scrollTopThreshold?: number;
 }
 
 export const TablePagination: React.FC<TablePaginationProps> = ({
@@ -28,6 +29,7 @@ export const TablePagination: React.FC<TablePaginationProps> = ({
   tableRef,
   showPageSize = true,
   showTotal = true,
+  scrollTopThreshold = 50,
 }) => {
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
   const fromIndex = totalItems === 0 ? 0 : (currentPage - 1) * pageSize + 1;
@@ -133,7 +135,7 @@ export const TablePagination: React.FC<TablePaginationProps> = ({
           </Button>
         </div>
       </div>
-      <TableScrollTopButton entriesPerPage={pageSize} threshold={50} tableRef={tableRef} />
+      <TableScrollTopButton entriesPerPage={pageSize} threshold={scrollTopThreshold} tableRef={tableRef} />
     </>
   );
 };

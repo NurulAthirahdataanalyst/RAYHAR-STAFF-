@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { TablePagination } from "@/components/common/TablePagination";
 import { API_BASE_URL } from "../config/api";
 import { RefreshCw, MapPin , X} from 'lucide-react';
 import { useAuth } from "@/contexts/AuthContext";
@@ -154,6 +155,10 @@ export default function GPSLocationTracker() {
   // Leaflet fly-to: [lat, lng] | null
   const [flyToCenter, setFlyToCenter] = useState<[number, number] | null>(null);
   const [flyToZoom, setFlyToZoom] = useState(15);
+  
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const tableRef = useRef<HTMLTableElement>(null);
 
 
   // Admin alerts (arrival/departure/breach) - hoisted before useEffect
@@ -323,6 +328,10 @@ export default function GPSLocationTracker() {
     });
   }, [visibleEmployees, branchFilter, query, statusFilter, locations]);
 
+  const indexOfLastItem = currentPage * pageSize;
+  const indexOfFirstItem = indexOfLastItem - pageSize;
+  const currentItems = filtered.slice(indexOfFirstItem, indexOfLastItem);
+
   const validGroups = useMemo(() => {
     const groups: Record<string, EmpLocation[]> = {};
     filtered.forEach((emp) => {
@@ -479,16 +488,16 @@ export default function GPSLocationTracker() {
             <h2 className="text-xl font-bold md:hidden">Location Tracker</h2>
           </div>
           <div className="flex flex-wrap items-center gap-2 ml-auto">
-            <Input placeholder="Search Employee..." value={query} onChange={(e) => setQuery(e.target.value)} className="w-auto" />
+            <Input placeholder="Search Employee..." value={query} onChange={(e) => { setQuery(e.target.value); setCurrentPage(1); }} className="w-auto" />
                 {query && (
                   <button 
-                    onClick={() => setQuery('')} 
+                    onClick={() => { setQuery(''); setCurrentPage(1); }} 
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground/40 hover:text-foreground z-10 transition-colors"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
                 )}
-            <Select value={branchFilter} onValueChange={(v) => setBranchFilter(v)}>
+            <Select value={branchFilter} onValueChange={(v) => { setBranchFilter(v); setCurrentPage(1); }}>
               <SelectTrigger className="w-40 sm:w-56">
                 <SelectValue placeholder="Branch">
                   {branchFilter === "All"
@@ -693,7 +702,7 @@ export default function GPSLocationTracker() {
                     </SelectContent>
                   </Select>
                 )}
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setCurrentPage(1); }}>
                   <SelectTrigger className="w-32 h-8 text-xs">
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
@@ -708,7 +717,7 @@ export default function GPSLocationTracker() {
             </div>
 
             <div className="border rounded-lg [&>div]:max-h-[600px] [&>div]:overflow-auto">
-            <Table>
+            <Table ref={tableRef}>
               <TableHeader className="sticky top-0 bg-card z-10 shadow-sm border-b">
                 <TableRow>
                   <TableHead>Employee</TableHead>
@@ -720,7 +729,7 @@ export default function GPSLocationTracker() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map((e) => {
+                {currentItems.map((e) => {
                   const loc = locations[e.user_id];
                   return (
                     <TableRow key={e.user_id} className="hover:bg-muted/50">
@@ -752,6 +761,15 @@ export default function GPSLocationTracker() {
               </TableBody>
             </Table>
           </div>
+          <TablePagination
+            currentPage={currentPage}
+            totalItems={filtered.length}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={setPageSize}
+            tableRef={tableRef}
+            scrollTopThreshold={30}
+          />
         </div>
       </div>
     {historyFor && (

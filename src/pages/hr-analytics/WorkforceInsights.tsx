@@ -1,4 +1,4 @@
-﻿import { StaffProfileDialog } from '@/components/shared/StaffProfileDialog';
+import { StaffProfileDialog } from '@/components/shared/StaffProfileDialog';
 import { useRole } from "@/contexts/RoleContext";
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
@@ -118,7 +118,7 @@ interface PendingItem {
 export default function WorkforceInsights() {
   const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
   const { role, userBranch, userDepartment, userId } = useRole();
-  const scopeLabel = profile?.role === "head_of_department" || profile?.role === "hod" ? userDepartment : (profile?.role === "branch_leader" ? userBranch : "");
+  const scopeLabel = role === "head_of_department" || role === "hod" ? userDepartment : (role === "branch_leader" ? userBranch : "");
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -2813,7 +2813,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
               </p>
               <p 
                 className="text-[10px] font-bold text-[#942392] cursor-pointer hover:underline flex items-center gap-1"
-                onClick={() => navigate((profile?.role === "head_of_department" || profile?.role === "hod" || profile?.role === "branch_leader") ? "/employees" : "/branches")}
+                onClick={() => navigate((role === "head_of_department" || role === "hod" || role === "branch_leader") ? "/employees" : "/branches")}
               >
                 View All <ChevronRight className="w-3 h-3" />
               </p>
