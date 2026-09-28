@@ -619,9 +619,10 @@ export default function GPSLocationTracker() {
 
             {activeCluster && activeCluster.length > 0 && Number.isFinite(Number(activeCluster[0].lat)) && Number.isFinite(Number(activeCluster[0].lng)) && (
               <LeafletMarker
-                key="active-cluster-popup"
+                key={`active-cluster-popup-${activeCluster[0].user_id}`}
                 position={[Number(activeCluster[0].lat), Number(activeCluster[0].lng)]}
                 icon={L.divIcon({ html: '', className: '', iconSize: [0, 0] })}
+                ref={(r) => { if (r) setTimeout(() => r.openPopup(), 10); }}
               >
                 <LeafletPopup
                   offset={[0, -60]}
