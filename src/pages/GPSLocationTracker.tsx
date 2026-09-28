@@ -331,7 +331,8 @@ export default function GPSLocationTracker() {
       const lat = Number(loc.lat);
       const lng = Number(loc.lng);
       if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
-      const key = `${lat.toFixed(5)},${lng.toFixed(5)}`;
+      // Break out the selected employee into their own marker so they render on top
+      const key = emp.user_id === selected ? `selected-${emp.user_id}` : `${lat.toFixed(5)},${lng.toFixed(5)}`;
       if (!groups[key]) groups[key] = [];
       groups[key].push(loc);
     });
