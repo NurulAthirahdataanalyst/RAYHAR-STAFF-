@@ -331,7 +331,7 @@ export default function GPSLocationTracker() {
       const lat = Number(loc.lat);
       const lng = Number(loc.lng);
       if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
-      const key = emp.user_id === selected ? `selected-${emp.user_id}` : `${lat.toFixed(5)},${lng.toFixed(5)}`;
+      const key = `${lat.toFixed(5)},${lng.toFixed(5)}`;
       if (!groups[key]) groups[key] = [];
       groups[key].push(loc);
     });
@@ -547,7 +547,7 @@ export default function GPSLocationTracker() {
               const borderColor = isSelected ? '#f59e0b' : '#e5e7eb';
 
               const markerHtml = group.length > 1
-                ? `<div style="display:flex;flex-direction:column;align-items:center;cursor:pointer">
+                ? `<div style="transform: translate(-50%, -100%); display:flex;flex-direction:column;align-items:center;cursor:pointer">
                     <div style="background:white;border-radius:9999px;padding:4px 12px 4px 4px;display:flex;align-items:center;gap:8px;border:2px solid ${borderColor};box-shadow:0 2px 8px rgba(0,0,0,0.15)">
                       <div style="width:32px;height:32px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;position:relative">
                         +${group.length}
@@ -561,7 +561,7 @@ export default function GPSLocationTracker() {
                     <div style="width:2px;height:20px;background:${dotColor};opacity:0.5"></div>
                     <div style="width:12px;height:12px;border-radius:50%;background:${dotColor};border:2.5px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.2)"></div>
                   </div>`
-                : `<div style="display:flex;flex-direction:column;align-items:center;cursor:pointer">
+                : `<div style="transform: translate(-50%, -100%); display:flex;flex-direction:column;align-items:center;cursor:pointer">
                     <div style="background:white;border-radius:9999px;padding:4px 12px 4px 4px;display:flex;align-items:center;gap:8px;border:2px solid ${borderColor};box-shadow:0 2px 8px rgba(0,0,0,0.15)${isSelected ? ';outline:3px solid rgba(245,158,11,0.3)' : ''}">
                       <div style="width:32px;height:32px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;position:relative">
                         ${avatarText}
@@ -588,6 +588,7 @@ export default function GPSLocationTracker() {
                   key={groupKey}
                   position={[lat, lng]}
                   icon={icon}
+                  zIndexOffset={isSelected ? 1000 : (group.length > 1 ? 500 : 1)}
                   eventHandlers={{
                     click: () => {
                       if (group.length === 1) {
@@ -599,7 +600,7 @@ export default function GPSLocationTracker() {
                   }}
                 >
                   {group.length === 1 && (
-                    <LeafletPopup offset={[0, -40]}>
+                    <LeafletPopup offset={[0, -60]}>
                       <div style={{ minWidth: 160 }}>
                         <div style={{ fontWeight: 700, fontSize: 13 }}>{name}</div>
                         <div style={{ fontSize: 11, color: '#6b7280' }}>{first.branch || ''}</div>
@@ -622,7 +623,7 @@ export default function GPSLocationTracker() {
                 icon={L.divIcon({ html: '', className: '', iconSize: [0, 0] })}
               >
                 <LeafletPopup
-                  offset={[0, 0]}
+                  offset={[0, -60]}
                   eventHandlers={{ remove: () => setActiveCluster(null) }}
                   autoClose={false}
                   closeOnClick={false}
