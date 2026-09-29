@@ -261,7 +261,7 @@ export default function Login() {
 
       <div className="w-full max-w-sm sm:max-w-md animate-in fade-in zoom-in duration-500 relative z-10">
         <div className="flex flex-col items-center justify-center gap-2 sm:gap-3 mb-6 sm:mb-8">
-          <img src={rayharLogo} alt="Rayhar Logo" className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl shadow-xl" />
+          <img src={rayharLogo} alt="Rayhar Logo" className="w-12 h-12 sm:w-14 sm:h-14 object-contain mix-blend-multiply" />
           <div className="text-center">
             <h1 className="font-heading font-black text-slate-900 text-xl sm:text-2xl tracking-tight">Rayhar Group</h1>
             <p className="text-[10px] sm:text-xs font-extrabold text-[#942392] uppercase tracking-widest">Staff Admin Panel</p>
