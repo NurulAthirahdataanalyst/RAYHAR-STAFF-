@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, ReferenceLine
 } from "recharts";
-import { Flame, Info, Trophy, Briefcase, CalendarCheck2, ArrowUpRight, ArrowDownRight, Clock, Zap, MapPin, Search, PlusCircle, AlertCircle, Calendar } from "lucide-react";
+import { Flame, Info, Trophy, Briefcase, CalendarCheck2, ArrowUpRight, ArrowDownRight, Clock, Zap, MapPin, Search, PlusCircle, AlertCircle, Calendar, Maximize, Minimize } from "lucide-react";
 
 // Types
 interface EmployeeAnalyticsViewProps {
@@ -42,6 +42,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
   const leaveRequests = Array.isArray(propLeaveRequests) ? propLeaveRequests : [];
   const [replacementLeaves, setReplacementLeaves] = useState<any[]>([]);
   const [temporaryAssignments, setTemporaryAssignments] = useState<any[]>([]);
+  const [isChartMaximized, setIsChartMaximized] = useState(false);
 
   // Filter out any logs that were recorded on a Company Leave date
   const myLogs = useMemo(() => {
@@ -1297,7 +1298,18 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
         {/* Punctuality Trend Line Chart */}
         <Card className="rounded-[20px] border border-border/50 shadow-sm bg-card group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20 hover:ring-amber-500/20">
           <CardContent className="p-5 h-full flex flex-col">
-            <h3 className="text-[11px] font-bold uppercase tracking-wider text-foreground pb-3 border-b mb-6">PUNCTUALITY TREND ({monthNameFull})</h3>
+            <div className="flex items-center justify-between pb-3 border-b mb-6">
+              <h3 className="text-[11px] font-bold uppercase tracking-wider text-foreground">PUNCTUALITY TREND ({monthNameFull})</h3>
+              {month === "all" && (
+                <button
+                  onClick={() => setIsChartMaximized(true)}
+                  className="p-1 hover:bg-muted rounded-md text-muted-foreground transition-colors -mt-3 -mr-2"
+                  title="Maximize Chart"
+                >
+                  <Maximize className="w-4 h-4" />
+                </button>
+              )}
+            </div>
             
             {trendData.length === 0 ? (
               <div className="flex-1 flex flex-col items-center justify-center text-center opacity-50">
@@ -1598,6 +1610,102 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                   </tbody>
                 </table>
               </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+      {/* Maximized Chart Modal */}
+      {isChartMaximized && month === "all" && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-8 bg-background/80 backdrop-blur-sm">
+          <Card className="w-full max-w-5xl h-[80vh] flex flex-col shadow-2xl border-border/50 rounded-2xl relative overflow-hidden bg-card animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between p-6 border-b border-border/50">
+              <h2 className="text-lg font-black uppercase tracking-wider text-foreground">PUNCTUALITY TREND (ALL MONTHS)</h2>
+              <button
+                onClick={() => setIsChartMaximized(false)}
+                className="p-2 hover:bg-muted rounded-md text-muted-foreground transition-colors"
+                title="Minimize Chart"
+              >
+                <Minimize className="w-5 h-5" />
+              </button>
+            </div>
+            <CardContent className="flex-1 p-6 h-full w-full">
+              {trendData.length === 0 ? (
+                <div className="flex-1 flex flex-col items-center justify-center h-full text-center opacity-50">
+                  <Flame className="w-12 h-12 mb-3 text-foreground" />
+                  <p className="text-base font-bold text-foreground">No data points yet</p>
+                </div>
+              ) : (
+                <div className="h-full w-full min-h-[400px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={trendData} margin={{ top: 20, right: 50, bottom: 20, left: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.5} />
+                      <XAxis 
+                        dataKey="dayStr" 
+                        axisLine={false} 
+                        tickLine={false} 
+                        tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} 
+                        minTickGap={30}
+                      />
+                      <YAxis 
+                        domain={['auto', 'auto']}
+                        tickFormatter={formatYAxis}
+                        axisLine={false} 
+                        tickLine={false} 
+                        tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} 
+                      />
+                      <Tooltip 
+                        content={({ active, payload, label }) => {
+                          if (!active || !payload || !payload.length) return null;
+                          return (
+                            <div className="bg-card/95 backdrop-blur-md border border-border rounded-xl shadow-xl p-4 text-foreground min-w-[150px]">
+                              <p className="text-xs font-black uppercase tracking-wider text-foreground mb-2 border-b border-border/40 pb-2">
+                                {label}
+                              </p>
+                              <div className="space-y-2">
+                                {payload.map((entry, idx) => {
+                                  const isClockOut = entry.name === 'clockOutValue' || entry.dataKey === 'clockOutValue';
+                                  const labelName = isClockOut ? 'Clock Out' : 'Clock In';
+                                  const val = typeof entry.value === 'number' ? formatYAxis(entry.value) : entry.value;
+                                  const color = entry.color || (isClockOut ? '#ef4444' : '#8b5cf6');
+                                  return (
+                                    <div key={idx} className="flex items-center justify-between gap-4 text-sm font-bold" style={{ color }}>
+                                      <div className="flex items-center gap-2">
+                                        <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: color }} />
+                                        <span className="font-semibold">{labelName} :</span>
+                                      </div>
+                                      <span className="font-extrabold">{val}</span>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          );
+                        }}
+                      />
+                      <ReferenceLine y={avgDecimal} stroke="#8b5cf6" strokeDasharray="3 3" opacity={0.5} label={{ position: 'right', value: 'Avg', fill: '#8b5cf6', fontSize: 12 }} />
+                      
+                      <Line 
+                        type="monotone" 
+                        dataKey="timeValue" 
+                        stroke="#8b5cf6" 
+                        strokeWidth={3} 
+                        dot={{ r: 4, fill: '#8b5cf6', strokeWidth: 0 }} 
+                        activeDot={{ r: 7 }} 
+                        connectNulls={true}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="clockOutValue" 
+                        stroke="#ef4444" 
+                        strokeWidth={3} 
+                        dot={{ r: 4, fill: '#ef4444', strokeWidth: 0 }}
+                        activeDot={{ r: 7 }} 
+                        connectNulls={true}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

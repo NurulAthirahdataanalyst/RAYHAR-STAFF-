@@ -149,7 +149,7 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
     "managing director", "managing_director", "md",
     "operation manager", "operation_manager",
     "finance manager", "finance_manager"
-  ].includes(rawRole);
+  ].some(r => rawRole.includes(r));
 
   const fetchLeaveBalances = async () => {
     setLoading(true);
@@ -418,13 +418,13 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'AVAILABLE':
-        return <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-[10px] font-black tracking-wider uppercase"><ShieldCheck className="w-3 h-3 mr-1" />AVAILABLE</Badge>;
+        return <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-[10px] font-black tracking-wider uppercase hover:bg-emerald-600 hover:text-white transition-colors"><ShieldCheck className="w-3 h-3 mr-1" />AVAILABLE</Badge>;
       case 'LOW BALANCE':
-        return <Badge className="bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 text-[10px] font-black tracking-wider uppercase"><AlertTriangle className="w-3 h-3 mr-1" />LOW BALANCE</Badge>;
+        return <Badge className="bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 text-[10px] font-black tracking-wider uppercase hover:bg-amber-600 hover:text-white transition-colors"><AlertTriangle className="w-3 h-3 mr-1" />LOW BALANCE</Badge>;
       case 'FULLY USED':
-        return <Badge className="bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 text-[10px] font-black tracking-wider uppercase"><XCircle className="w-3 h-3 mr-1" />FULLY USED</Badge>;
+        return <Badge className="bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 text-[10px] font-black tracking-wider uppercase hover:bg-rose-600 hover:text-white transition-colors"><XCircle className="w-3 h-3 mr-1" />FULLY USED</Badge>;
       default:
-        return <Badge className="bg-slate-500/15 text-slate-600 dark:text-slate-400 border border-slate-500/30 text-[10px] font-black tracking-wider uppercase"><HelpCircle className="w-3 h-3 mr-1" />NO ENTITLEMENT</Badge>;
+        return <Badge className="bg-slate-500/15 text-slate-600 dark:text-slate-400 border border-slate-500/30 text-[10px] font-black tracking-wider uppercase hover:bg-slate-600 hover:text-white transition-colors"><HelpCircle className="w-3 h-3 mr-1" />NO ENTITLEMENT</Badge>;
     }
   };
 

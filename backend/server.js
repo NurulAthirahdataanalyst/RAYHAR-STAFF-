@@ -9084,14 +9084,9 @@ app.get("/api/reports/workforce-leave-balance", async (req, res) => {
       "managing director", "managing_director", "md",
       "operation manager", "operation_manager",
       "finance manager", "finance_manager"
-    ].includes(rawRole) || [
-      "hr admin", "hr_admin", "hr", "admin",
-      "managing director", "managing_director", "md",
-      "operation manager", "operation_manager",
-      "finance manager", "finance_manager"
-    ].includes(normalizedRole);
+    ].some(r => rawRole.includes(r) || normalizedRole.includes(r));
 
-    let profileFilter = " WHERE p.status = 'Active'";
+    let profileFilter = " WHERE LOWER(p.status) = 'active'";
     let pParams = [];
 
     if (!isAllAccessRole) {
