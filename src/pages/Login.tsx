@@ -264,7 +264,7 @@ export default function Login() {
           <img src={rayharLogo} alt="Rayhar Logo" className="w-12 h-12 sm:w-14 sm:h-14 object-contain mix-blend-multiply" />
           <div className="text-center">
             <h1 className="font-heading font-black text-slate-900 text-xl sm:text-2xl tracking-tight">Rayhar Group</h1>
-            <p className="text-[10px] sm:text-xs font-extrabold text-[#942392] uppercase tracking-widest">Staff Admin Panel</p>
+            <p className="text-[10px] sm:text-xs font-extrabold text-[#942392] uppercase tracking-widest">Workforce Portal</p>
           </div>
         </div>
 
