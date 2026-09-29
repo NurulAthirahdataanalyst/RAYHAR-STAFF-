@@ -238,7 +238,7 @@ export default function Login() {
 
   return (
     <div
-      className={`min-h-screen flex items-center justify-center p-4 force-light safe-area-top safe-area-bottom transition-all duration-700 ease-in-out ${isExiting ? 'opacity-0 blur-md scale-95' : 'opacity-100 blur-0 scale-100'}`}
+      className={`min-h-screen relative flex items-center justify-center p-4 force-light safe-area-top safe-area-bottom transition-all duration-700 ease-in-out ${isExiting ? 'opacity-0 blur-md scale-95' : 'opacity-100 blur-0 scale-100'}`}
       style={{
         backgroundImage: `url(${watercolorBg})`,
         backgroundSize: 'cover',
@@ -247,7 +247,19 @@ export default function Login() {
         backgroundRepeat: 'no-repeat',
       }}
     >
-      <div className="w-full max-w-sm sm:max-w-md animate-in fade-in zoom-in duration-500">
+      {/* Blur Vignette Overlay */}
+      <div 
+        className="absolute inset-0 z-0 pointer-events-none"
+        style={{
+          boxShadow: 'inset 0 0 150px rgba(0,0,0,0.4)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          maskImage: 'radial-gradient(circle at center, transparent 30%, black 85%)',
+          WebkitMaskImage: 'radial-gradient(circle at center, transparent 30%, black 85%)',
+        }}
+      />
+
+      <div className="w-full max-w-sm sm:max-w-md animate-in fade-in zoom-in duration-500 relative z-10">
         <div className="flex flex-col items-center justify-center gap-2 sm:gap-3 mb-6 sm:mb-8">
           <img src={rayharLogo} alt="Rayhar Logo" className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl shadow-xl" />
           <div className="text-center">
