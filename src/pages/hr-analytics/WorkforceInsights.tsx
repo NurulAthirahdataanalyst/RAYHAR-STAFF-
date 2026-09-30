@@ -475,7 +475,7 @@ export default function WorkforceInsights() {
         
         <div className="flex flex-col gap-1 mb-2">
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Workforce Insight</h1>
-          <div className="text-sm text-foreground">Gain actionable insights into workforce performance and attendance behavior.</div>
+          <div className="text-sm text-foreground italic">Gain actionable insights into workforce performance and attendance behavior.</div>
         </div>
 
         {/* Filter Toolbar Line directly under main header */}
@@ -759,7 +759,7 @@ export default function WorkforceInsights() {
               <Card className={`col-span-1 xl:col-span-1 border border-slate-200 dark:border-slate-800 bg-card p-5 flex flex-col justify-between ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
                 <div className="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
                   <span className="text-[12px] font-bold text-slate-800 dark:text-slate-200">Employee Distribution</span>
-                  <div className="text-xs text-foreground mt-0.5">Overview of employee allocation across headquarters and branch locations.</div>
+                  <div className="text-xs text-foreground mt-0.5 italic">Overview of employee allocation across headquarters and branch locations.</div>
                 </div>
                 
                 <div className="flex flex-col flex-1 mt-2">
@@ -793,7 +793,7 @@ export default function WorkforceInsights() {
 
                   <div className="flex flex-col gap-2 mb-6">
                     <span className="text-[12px] font-bold text-slate-800 dark:text-slate-200">Top Performer</span>
-                    <div className="text-xs text-foreground mt-0.5">Recognize employees with outstanding attendance performance.</div>
+                    <div className="text-xs text-foreground mt-0.5 italic">Recognize employees with outstanding attendance performance.</div>
                     <div className="group flex items-center justify-between bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-900/30 rounded-xl p-4 mt-1 cursor-default hover:bg-orange-100/50 dark:hover:bg-orange-900/20 transition-colors">
                        <div className="flex items-center gap-4">
                           <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 shadow-sm transition-transform duration-300 group-hover:scale-110">
@@ -831,7 +831,7 @@ export default function WorkforceInsights() {
                 <Card className={`border border-slate-200 dark:border-slate-800 bg-card flex flex-col h-fit ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
                 <CardHeader className="p-5 border-b border-slate-100 dark:border-slate-800 pb-4 flex flex-row justify-between items-center">
                   <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Branch Workforce Distribution</CardTitle>
-                  <div className="text-xs text-foreground mt-0.5">View workforce distribution across all company branches and regions.</div>
+                  <div className="text-xs text-foreground mt-0.5 italic">View workforce distribution across all company branches and regions.</div>
                   <Select value={selectedRegion} onValueChange={setSelectedRegion}>
                     <SelectTrigger className="w-[120px] h-7 text-[10px] font-bold border border-slate-300 dark:border-slate-700 bg-card shadow-none focus:ring-0">
                       <SelectValue placeholder="All Regions" />
@@ -944,7 +944,7 @@ export default function WorkforceInsights() {
             <CardHeader className="p-5 border-b border-slate-100 dark:border-slate-800 pb-4">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Temporary Branch Assignment</CardTitle>
-                <div className="text-xs text-foreground mt-0.5">Monitor active, upcoming, and completed temporary branch assignments.</div>
+                <div className="text-xs text-foreground mt-0.5 italic">Monitor active, upcoming, and completed temporary branch assignments.</div>
                 <Link to="/branches/temporary-assignments" className="text-[11px] font-bold text-[#942392] hover:text-[#7a1d78] transition-colors flex items-center group/link">
                   View All Assignments
                   <ChevronRight className="w-3 h-3 ml-0.5 group-hover/link:translate-x-0.5 transition-transform" />
@@ -1108,7 +1108,7 @@ export default function WorkforceInsights() {
               <div className="flex flex-row items-start justify-between">
                 <div>
                   <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Team Availability</CardTitle>
-                  <CardDescription className="text-xs text-foreground mt-0.5">Real-time status for the current shift</CardDescription>
+                  <CardDescription className="text-xs text-foreground mt-0.5 italic">Real-time status for the current shift</CardDescription>
                 </div>
                 <span className="bg-indigo-100 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 text-[10px] font-semibold px-2 py-0.5 rounded-md">Live</span>
               </div>
@@ -1264,7 +1264,7 @@ export default function WorkforceInsights() {
           <Card className={`col-span-1 border border-slate-200 dark:border-slate-800 bg-card ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
             <CardHeader className="p-5 border-b border-slate-100 dark:border-slate-800 pb-4">
               <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Leave Monitoring</CardTitle>
-              <div className="text-xs text-foreground mt-0.5">Track leave requests, approvals, and employee leave status.</div>
+              <div className="text-xs text-foreground mt-0.5 italic">Track leave requests, approvals, and employee leave status.</div>
             </CardHeader>
             <CardContent className="p-4 sm:p-5">
               <div className="flex flex-col gap-3">
@@ -1333,7 +1333,7 @@ export default function WorkforceInsights() {
           <Card className={`col-span-1 ${['head_of_department', 'branch_leader'].includes(role) ? 'lg:col-span-3' : 'lg:col-span-2'} border border-slate-200 dark:border-slate-800 bg-card ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
             <CardHeader className="p-5 border-b border-slate-100 dark:border-slate-800 pb-4">
               <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Employee Performance & Attendance</CardTitle>
-              <div className="text-xs text-foreground mt-0.5">Monitor attendance trends and identify top and low-performing employees.</div>
+              <div className="text-xs text-foreground mt-0.5 italic">Monitor attendance trends and identify top and low-performing employees.</div>
             </CardHeader>
             <CardContent className="p-5 grid grid-cols-1 md:grid-cols-3 gap-6">
               
@@ -1341,7 +1341,7 @@ export default function WorkforceInsights() {
                 <h4 className="text-xs font-bold text-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-500" /> Top Attendance Performers
                 </h4>
-                <div className="text-xs text-foreground mt-0.5 mb-2">Employees with the highest attendance rates during the selected period.</div>
+                <div className="text-xs text-foreground mt-0.5 mb-2 italic">Employees with the highest attendance rates during the selected period.</div>
                 <div className="space-y-3">
                   {data?.performance?.topAttendance?.length > 0 ? (Array.isArray(data.performance.topAttendance) ? data.performance.topAttendance : []).map((emp: any, i: number) => (
                     <div key={i} className="flex items-center justify-between p-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-md transition-colors">
@@ -1363,7 +1363,7 @@ export default function WorkforceInsights() {
                 <h4 className="text-xs font-bold text-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 text-red-500" /> Highest Late Arrivals
                 </h4>
-                <div className="text-xs text-foreground mt-0.5 mb-2">Employees with the most recorded late arrivals.</div>
+                <div className="text-xs text-foreground mt-0.5 mb-2 italic">Employees with the most recorded late arrivals.</div>
                 <div className="space-y-3">
                   {data?.performance?.topLate?.length > 0 ? (Array.isArray(data.performance.topLate) ? data.performance.topLate : []).map((emp: any, i: number) => (
                     <div key={i} className="flex items-center justify-between p-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-md transition-colors">
@@ -1388,7 +1388,7 @@ export default function WorkforceInsights() {
                 <h4 className="text-xs font-bold text-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
                   <XCircle className="w-4 h-4 text-slate-500" /> Highest Absent
                 </h4>
-                <div className="text-xs text-foreground mt-0.5 mb-2">Employees with the highest number of absence records.</div>
+                <div className="text-xs text-foreground mt-0.5 mb-2 italic">Employees with the highest number of absence records.</div>
                 <div className="space-y-3">
                   {data?.performance?.topAbsent?.length > 0 ? (Array.isArray(data.performance.topAbsent) ? data.performance.topAbsent : []).map((emp: any, i: number) => (
                     <div key={i} className="flex items-center justify-between p-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-md transition-colors">
@@ -1428,7 +1428,7 @@ export default function WorkforceInsights() {
                     <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
                       <div className="flex items-center gap-2">
                         <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Clock-In/Out</h3>
-                        <div className="text-xs text-foreground mt-0.5">Live updates of employee clock-in and clock-out activities.</div>
+                        <div className="text-xs text-foreground mt-0.5 italic">Live updates of employee clock-in and clock-out activities.</div>
                         {feedConnected
                           ? <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-white animate-pulse" />LIVE</span>
                           : <span className="text-[8px] text-foreground font-bold uppercase">Connecting…</span>}
@@ -1462,8 +1462,10 @@ export default function WorkforceInsights() {
                               <div className="flex items-center gap-1.5 flex-wrap">
                                 <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 leading-tight line-clamp-2">{emp.full_name.toUpperCase()}</p>
                                 {emp.is_late && (
-                                  <span className="px-1 py-0.5 text-[8px] font-bold rounded bg-orange-100 text-orange-600 border border-orange-200">Late</span>
-                                  <div className="text-xs text-foreground mt-0.5">Employees who reported late for the current workday.</div>
+                                  <>
+                                    <span className="px-1 py-0.5 text-[8px] font-bold rounded bg-orange-100 text-orange-600 border border-orange-200">Late</span>
+                                    <div className="text-xs text-foreground mt-0.5 italic">Employees who reported late for the current workday.</div>
+                                  </>
                                 )}
                               </div>
                               <p className="text-[10px] text-foreground font-medium">{formatDeptBranch(emp.department, emp.branch)}</p>
@@ -1496,7 +1498,7 @@ export default function WorkforceInsights() {
                     <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
                       <div className="flex items-center gap-2">
                         <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Absent / Leave / Outstation</h3>
-                        <div className="text-xs text-foreground mt-0.5">Current employees who are absent, on leave, or assigned outstation.</div>
+                        <div className="text-xs text-foreground mt-0.5 italic">Current employees who are absent, on leave, or assigned outstation.</div>
                         {feedConnected
                           ? <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-white animate-pulse" />LIVE</span>
                           : <span className="text-[8px] text-foreground font-bold uppercase">Connecting…</span>}
@@ -1569,7 +1571,7 @@ export default function WorkforceInsights() {
           <Card className={`col-span-1 border border-slate-200 dark:border-slate-800 bg-card ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
             <CardHeader className="p-5 border-b border-slate-100 dark:border-slate-800 pb-4">
               <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Leave Monitoring</CardTitle>
-              <div className="text-xs text-foreground mt-0.5">Track leave requests, approvals, and employee leave status.</div>
+              <div className="text-xs text-foreground mt-0.5 italic">Track leave requests, approvals, and employee leave status.</div>
             </CardHeader>
             <CardContent className="p-4 sm:p-5">
               <div className="flex flex-col gap-3">
@@ -1646,7 +1648,7 @@ export default function WorkforceInsights() {
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
               <div className="flex items-center gap-2">
                 <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Clock-In/Out</h3>
-                <div className="text-xs text-foreground mt-0.5">Live updates of employee clock-in and clock-out activities.</div>
+                <div className="text-xs text-foreground mt-0.5 italic">Live updates of employee clock-in and clock-out activities.</div>
                 {feedConnected
                   ? <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-card animate-pulse" />LIVE</span>
                   : <span className="text-[8px] text-foreground font-bold uppercase">Connecting…</span>}
@@ -1689,7 +1691,7 @@ export default function WorkforceInsights() {
                             <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 leading-tight line-clamp-2">{emp.full_name.toUpperCase()}</p>
                             {emp.is_late && (
                               <span className="px-1 py-0.5 text-[8px] font-bold rounded bg-orange-100 text-orange-600 border border-orange-200">Late</span>
-                              <div className="text-xs text-foreground mt-0.5">Employees who reported late for the current workday.</div>
+                              <div className="text-xs text-foreground mt-0.5 italic">Employees who reported late for the current workday.</div>
                             )}
                           </div>
                           <p className="text-[10px] text-foreground font-medium">{formatDeptBranch(emp.department, emp.branch)}</p>
@@ -1724,7 +1726,7 @@ export default function WorkforceInsights() {
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
               <div className="flex items-center gap-2">
                 <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Late</h3>
-                <div className="text-xs text-foreground mt-0.5">Employees who reported late for the current workday.</div>
+                <div className="text-xs text-foreground mt-0.5 italic">Employees who reported late for the current workday.</div>
                 {feedConnected
                   ? <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-card animate-pulse" />LIVE</span>
                   : <span className="text-[8px] text-foreground font-bold uppercase">Connecting…</span>}
@@ -1790,7 +1792,7 @@ export default function WorkforceInsights() {
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
               <div className="flex items-center gap-2">
                 <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Absent / Leave / Outstation</h3>
-                <div className="text-xs text-foreground mt-0.5">Current employees who are absent, on leave, or assigned outstation.</div>
+                <div className="text-xs text-foreground mt-0.5 italic">Current employees who are absent, on leave, or assigned outstation.</div>
                 {feedConnected
                   ? <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-card animate-pulse" />LIVE</span>
                   : <span className="text-[8px] text-foreground font-bold uppercase">Connecting…</span>}
@@ -1872,7 +1874,7 @@ export default function WorkforceInsights() {
                 <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
                   <div className="flex items-center gap-2">
                     <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Active Outstation</h3>
-                    <div className="text-xs text-foreground mt-0.5">Employees currently assigned to outstation duties.</div>
+                    <div className="text-xs text-foreground mt-0.5 italic">Employees currently assigned to outstation duties.</div>
                     {feedConnected
                       ? <span className="flex items-center gap-1 bg-pink-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-card animate-pulse" />LIVE</span>
                       : <span className="text-[8px] text-foreground font-bold uppercase">Connecting…</span>}
@@ -1967,7 +1969,7 @@ export default function WorkforceInsights() {
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
               <div className="flex items-center gap-2">
                 <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Pending Approvals</h3>
-                <div className="text-xs text-foreground mt-0.5">Requests awaiting review and approval from authorized personnel.</div>
+                <div className="text-xs text-foreground mt-0.5 italic">Requests awaiting review and approval from authorized personnel.</div>
                 {pendingApprovalsList.length > 0 && (
                   <span className="px-1.5 py-0.5 text-[8px] font-black bg-amber-500 text-white rounded">{pendingApprovalsList.length}</span>
                 )}
@@ -2484,6 +2486,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
             <Card className="p-5 border border-slate-100 dark:border-slate-700 hover:border-[#942392] hover: transition-all duration-300 flex flex-col relative overflow-hidden rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
                 <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Attendance Trend</CardTitle>
+                <div className="text-xs text-foreground mt-0.5 italic">Track workforce attendance patterns and daily attendance performance over time.</div>
                 
                 {/* Weekly Navigator */}
                 <div className="flex items-center gap-1 sm:gap-2 self-end sm:self-auto">
@@ -2520,7 +2523,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                   <div className="flex items-baseline gap-1.5">
                     <span className="text-2xl font-black text-slate-800 dark:text-slate-100">{(liveWeeklyAttendanceTrend || data?.attendanceOverview?.weeklyAttendanceTrend)?.reduce((sum: number, item: any) => sum + item.late, 0) || 0}</span>
                     <span className="text-xs font-bold text-foreground">Late</span>
-                    <div className="text-xs text-foreground mt-0.5">Employees who reported late for the current workday.</div>
+                    <div className="text-xs text-foreground mt-0.5 italic">Employees who reported late for the current workday.</div>
                   </div>
                   <div className="flex items-baseline gap-1.5">
                     <span className="text-2xl font-black text-slate-800 dark:text-slate-100">{(liveWeeklyAttendanceTrend || data?.attendanceOverview?.weeklyAttendanceTrend)?.reduce((sum: number, item: any) => sum + item.absent, 0) || 0}</span>
@@ -2590,6 +2593,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
            <Card className="p-5 border border-slate-200 dark:border-slate-800 bg-card flex flex-col hover:border-[#942392] hover: transition-all duration-300 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
               <div className="flex items-center mb-6 border-b border-slate-100 dark:border-slate-800 pb-3">
                 <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Leave Utilization Trend vs. Previous Month</CardTitle>
+                 <div className="text-xs text-foreground mt-0.5 italic">Analyze leave usage trends and compare monthly leave patterns.</div>
               </div>
               <div className="h-[250px] w-full min-h-[250px]">
                 <ResponsiveContainer width="100%" height="100%">
@@ -2613,6 +2617,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
               <Card className="p-5 border border-slate-100 dark:border-slate-700 bg-card hover:border-[#942392] hover: transition-all duration-300 flex flex-col rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
               <div className="flex justify-between items-center mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
                 <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Monthly Comparison</CardTitle>
+                 <div className="text-xs text-foreground mt-0.5 italic">Compare key workforce metrics against previous month performance.</div>
               </div>
               <div className="overflow-x-auto flex-1">
                 <table className="w-full text-sm text-left">
@@ -2686,6 +2691,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                <div className="flex items-center gap-2">
                  <Building2 className="w-4 h-4 text-foreground" />
                  <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Department Workforce Distribution</h3>
+                  <div className="text-xs text-foreground mt-0.5 italic">View employee distribution across departments and operational teams.</div>
                </div>
              </div>
              
@@ -2721,7 +2727,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
         <Card className="border border-slate-100 dark:border-slate-800/80 bg-card overflow-hidden lg:col-span-6 flex flex-col h-fit rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
           <CardHeader className="pb-4 pt-5 px-6 border-b border-gray-100 dark:border-slate-800 flex flex-row items-start justify-between">
             <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Branch Workforce Distribution</CardTitle>
-            <div className="text-xs text-foreground mt-0.5">View workforce distribution across all company branches and regions.</div>
+            <div className="text-xs text-foreground mt-0.5 italic">View workforce distribution across all company branches and regions.</div>
             <div className="flex items-center gap-2 flex-wrap justify-end">
               <Select value={selectedRegion} onValueChange={setSelectedRegion}>
                 <SelectTrigger className="w-[160px] h-8 text-[11px] font-bold border-gray-200 dark:border-slate-800 bg-card shadow-none focus:ring-0">
@@ -2856,6 +2862,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                <div className="flex items-center gap-2">
                  <FileText className="w-4 h-4 text-foreground" />
                  <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Leave Distribution</h3>
+                  <div className="text-xs text-foreground mt-0.5 italic">View employee leave usage breakdown by leave category.</div>
                </div>
              </div>
              
@@ -2943,6 +2950,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
              )}
              <div className="flex justify-between items-center mb-8 relative z-10 border-b border-slate-100 dark:border-slate-800 pb-3">
                <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Travel & Outstation Summary</CardTitle>
+                <div className="text-xs text-foreground mt-0.5 italic">Track employee movement, travel status, and outstation activities.</div>
              </div>
              
              <div className="grid grid-cols-3 gap-2 mb-8">
@@ -2995,6 +3003,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                <div className="flex items-center gap-2">
                  <Users className="w-4 h-4 text-foreground" />
                  <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Workforce Movement</h3>
+                  <div className="text-xs text-foreground mt-0.5 italic">Monitor employee transfers, assignments, and workforce changes.</div>
                </div>
              </div>
              
