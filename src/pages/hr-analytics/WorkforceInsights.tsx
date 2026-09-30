@@ -1879,6 +1879,7 @@ export default function WorkforceInsights() {
                       ? <span className="flex items-center gap-1 bg-pink-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-card animate-pulse" />LIVE</span>
                       : <span className="text-[8px] text-foreground font-bold uppercase">Connecting…</span>}
                     </div>
+                    <div className="text-xs text-foreground mt-0.5 italic">Employees currently assigned to outstation duties.</div>
                   </div>
                   <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded text-foreground flex items-center gap-1 cursor-pointer hover:underline" onClick={() => navigate("/outstation")}>
                     <CalendarDays className="w-3 h-3" /> {displayDate}
