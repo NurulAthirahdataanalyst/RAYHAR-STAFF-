@@ -647,7 +647,7 @@ export default function OutstationDashboard() {
               <CardHeader className="px-6 py-5 border-b border-gray-100 dark:border-slate-800 bg-card flex flex-row flex-wrap items-center justify-between gap-4 sticky top-0 z-10">
               <div>
                 <CardTitle className="text-base font-bold text-foreground dark:text-slate-200">Active Outstations</CardTitle>
-                <p className="text-[13px] text-foreground dark:text-foreground font-medium mt-0.5">Real-time status of employees currently on assignment</p>
+                <p className="text-xs text-foreground dark:text-foreground mt-0.5">Real-time status of employees currently on assignment</p>
               </div>
 
             </CardHeader>
@@ -937,7 +937,7 @@ export default function OutstationDashboard() {
               <CardHeader className="px-6 py-5 border-b border-gray-100 dark:border-slate-800 bg-card flex flex-row flex-wrap items-center justify-between gap-4 sticky top-0 z-10">
                 <div>
                   <CardTitle className="text-base font-bold text-foreground dark:text-slate-200">Upcoming Outstations</CardTitle>
-                  <p className="text-[13px] text-foreground dark:text-foreground font-medium mt-0.5">Scheduled travels and assignments</p>
+                  <p className="text-xs text-foreground dark:text-foreground mt-0.5">Scheduled travels and assignments</p>
                 </div>
               </CardHeader>
               <CardContent className="p-0 flex-1 overflow-x-auto">
