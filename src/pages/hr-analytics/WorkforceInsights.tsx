@@ -2069,9 +2069,12 @@ export default function WorkforceInsights() {
 
           {/* Card 4: Upcoming Outstation */}
           <Card className={`border border-slate-200 dark:border-slate-800 bg-card flex flex-col p-4 ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
-              <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Upcoming Outstation</h3>
-              <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded text-foreground flex items-center gap-1">
+            <div className="flex items-start justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
+              <div className="flex flex-col">
+                <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Upcoming Outstation</h3>
+                <div className="text-xs text-foreground mt-0.5 italic">View scheduled employee outstation assignments and details.</div>
+              </div>
+              <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded text-foreground flex items-center gap-1 shrink-0">
                 <CalendarDays className="w-3 h-3" /> {displayDate}
               </span>
             </div>
