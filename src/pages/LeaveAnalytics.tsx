@@ -1291,7 +1291,7 @@ export default function LeaveAnalytics() {
         {/* Trend */}
         <Card className="border border-slate-200 dark:border-slate-800 bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
           <div className="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
-            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Leave Trend Over Time ({monthLabel})</h3>
+            <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Leave Trend Over Time ({monthLabel})</h3>
           </div>
           <div className="flex-1 w-full min-h-[250px]">
             <ResponsiveContainer width="100%" height={250}>
@@ -1327,7 +1327,7 @@ export default function LeaveAnalytics() {
         {/* Seasonality */}
         <Card className="border border-slate-200 dark:border-slate-800 bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
           <div className="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
-            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Leave Seasonality (by Month)</h3>
+            <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Leave Seasonality (by Month)</h3>
           </div>
           <div className="flex-1 w-full min-h-[250px]">
             <ResponsiveContainer width="100%" height={250}>
@@ -1369,7 +1369,7 @@ export default function LeaveAnalytics() {
         {/* Type Breakdown */}
         <Card className="border border-slate-200 dark:border-slate-800 bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
           <div className="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
-            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Leave Type Breakdown</h3>
+            <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Leave Type Breakdown</h3>
           </div>
           <div className="relative flex-1 w-full min-h-[250px] flex items-center justify-center">
             <ResponsiveContainer width="100%" height={250}>
@@ -1442,7 +1442,7 @@ export default function LeaveAnalytics() {
         {selectedBranch === "HQ" && (
         <Card className="border border-slate-200 dark:border-slate-800 bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
           <div className="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
-            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Department Comparison</h3>
+            <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Department Comparison</h3>
           </div>
           <div className="flex-1 min-overflow-hidden w-full">
             <ResponsiveContainer width="100%" height={Math.max(200, deptComparison.length * 30)}>
@@ -1488,7 +1488,7 @@ export default function LeaveAnalytics() {
         <Card className="border border-slate-200 dark:border-slate-800 bg-card rounded-xl shadow-sm p-4 flex flex-col w-full lg:col-span-2 xl:col-span-1">
           <div className="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-800 pb-4">
             <div>
-              <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Leave Request By Branch</h3>
+              <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Leave Request By Branch</h3>
               <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Total Application</p>
             </div>
             <Select
@@ -1613,7 +1613,7 @@ export default function LeaveAnalytics() {
         {/* Balance Risk */}
         <Card className="border border-slate-200 dark:border-slate-800 bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
           <div className="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
-            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Leave Balance Risk</h3>
+            <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Leave Balance Risk</h3>
           </div>
           <div className="space-y-3 flex-1 flex flex-col justify-center">
             <div className="flex items-center justify-between p-3 rounded-lg border border-emerald-100 dark:border-emerald-900/40 bg-emerald-50 dark:bg-emerald-950/20">
@@ -1652,7 +1652,7 @@ export default function LeaveAnalytics() {
         {/* Leave Calendar */}
         <Card className="border border-slate-200 dark:border-slate-800 bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
           <div className="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
-            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Leave Calendar <span className="text-[9px] font-normal text-foreground">(This Month)</span></h3>
+            <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Leave Calendar <span className="text-[9px] font-normal text-foreground">(This Month)</span></h3>
           </div>
           <div className="flex-1 flex flex-col justify-center items-center border border-dashed border-slate-200 dark:border-slate-800 rounded-lg bg-slate-50 dark:bg-slate-900/50 min-h-[160px]">
             <CalendarCheck className="w-6 h-6 text-foreground mb-2" />
@@ -1665,7 +1665,7 @@ export default function LeaveAnalytics() {
         {/* Upcoming */}
         <Card className="border border-slate-200 dark:border-slate-800 bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
           <div className="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
-            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Upcoming Approved Leave <span className="text-[9px] font-normal text-foreground">(Forecast)</span></h3>
+            <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Upcoming Approved Leave <span className="text-[9px] font-normal text-foreground">(Forecast)</span></h3>
           </div>
           <div className="space-y-4 flex-1">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
@@ -1697,7 +1697,7 @@ export default function LeaveAnalytics() {
         {/* Approval Perf */}
         <Card className="border border-slate-200 dark:border-slate-800 bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
           <div className="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
-            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Approval Performance <span className="text-[9px] font-normal text-foreground">(Avg. Time)</span></h3>
+            <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Approval Performance <span className="text-[9px] font-normal text-foreground">(Avg. Time)</span></h3>
           </div>
           <div className="flex-1 flex flex-col justify-center items-center min-h-[160px]">
             <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-3">
@@ -1711,7 +1711,7 @@ export default function LeaveAnalytics() {
         {/* Action Center */}
         <Card className="border border-slate-200 dark:border-slate-800 bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
           <div className="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
-            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Action Center</h3>
+            <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Action Center</h3>
           </div>
           <div className="space-y-3 flex-1 flex flex-col justify-center">
             <div 
@@ -1734,7 +1734,7 @@ export default function LeaveAnalytics() {
 
         {/* HR Insights */}
         <Card className="border border-slate-200 dark:border-slate-800 bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
-          <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-3 flex items-center gap-2">
+          <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight mb-3 flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-purple-500" />
             HR Insights
           </h3>
