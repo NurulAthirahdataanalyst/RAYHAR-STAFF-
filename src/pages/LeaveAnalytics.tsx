@@ -1295,6 +1295,7 @@ export default function LeaveAnalytics() {
               <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">{trendTitle}</h3>
               <div className="text-xs text-foreground mt-0.5 italic">{trendSubtitle}</div>
             </div>
+          </div>
           <div className="flex-1 w-full min-h-[250px]">
             <ResponsiveContainer width="100%" height={250}>
               <LineChart data={monthlyTrend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
@@ -1333,6 +1334,7 @@ export default function LeaveAnalytics() {
               <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">{seasonalityTitle}</h3>
               <div className="text-xs text-foreground mt-0.5 italic">{seasonalitySubtitle}</div>
             </div>
+          </div>
           <div className="flex-1 w-full min-h-[250px]">
             <ResponsiveContainer width="100%" height={250}>
               <BarChart data={seasonality} layout="vertical" margin={{ top: 0, right: 20, left: 0, bottom: 0 }}>
@@ -1377,6 +1379,7 @@ export default function LeaveAnalytics() {
               <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Leave Type Breakdown</h3>
               <div className="text-xs text-foreground mt-0.5 italic">View leave requests distribution by leave category and usage pattern.</div>
             </div>
+          </div>
           <div className="relative flex-1 w-full min-h-[250px] flex items-center justify-center">
             <ResponsiveContainer width="100%" height={250}>
               <PieChart onMouseLeave={() => setHoveredLeaveType(null)}>
@@ -1628,6 +1631,7 @@ export default function LeaveAnalytics() {
               <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Leave Balance Risk</h3>
               <div className="text-xs text-foreground mt-0.5 italic">Monitor employee leave balance levels and identify potential risks.</div>
             </div>
+          </div>
           <div className="space-y-3 flex-1 flex flex-col justify-center">
             <div className="flex items-center justify-between p-3 rounded-lg border border-emerald-100 dark:border-emerald-900/40 bg-emerald-50 dark:bg-emerald-950/20">
               <div className="flex items-center gap-2">
@@ -1669,6 +1673,7 @@ export default function LeaveAnalytics() {
               <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Upcoming Approved Leave <span className="text-[9px] font-normal text-foreground">(Forecast)</span></h3>
               <div className="text-xs text-foreground mt-0.5 italic">Preview upcoming employee leave schedules and workforce availability.</div>
             </div>
+          </div>
           <div className="space-y-4 flex-1">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <div className="flex items-center gap-3">
@@ -1704,6 +1709,7 @@ export default function LeaveAnalytics() {
               <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Action Center</h3>
               <div className="text-xs text-foreground mt-0.5 italic">Manage pending tasks and important leave-related actions.</div>
             </div>
+          </div>
           <div className="space-y-3 flex-1 flex flex-col justify-center">
             <div 
               className="flex items-center justify-between p-3 rounded-lg bg-amber-50 dark:bg-amber-950/20 cursor-pointer hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors border border-amber-100 dark:border-amber-900/40"
