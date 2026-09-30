@@ -1291,8 +1291,10 @@ export default function LeaveAnalytics() {
         {/* Trend */}
         <Card className="border border-slate-200 dark:border-slate-800 bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
           <div className="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
-            <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Leave Trend Over Time ({monthLabel})</h3>
-          </div>
+            <div className="flex flex-col">
+              <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">{trendTitle}</h3>
+              <div className="text-xs text-foreground mt-0.5 italic">{trendSubtitle}</div>
+            </div>
           <div className="flex-1 w-full min-h-[250px]">
             <ResponsiveContainer width="100%" height={250}>
               <LineChart data={monthlyTrend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
@@ -1327,8 +1329,10 @@ export default function LeaveAnalytics() {
         {/* Seasonality */}
         <Card className="border border-slate-200 dark:border-slate-800 bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
           <div className="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
-            <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Leave Seasonality (by Month)</h3>
-          </div>
+            <div className="flex flex-col">
+              <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">{seasonalityTitle}</h3>
+              <div className="text-xs text-foreground mt-0.5 italic">{seasonalitySubtitle}</div>
+            </div>
           <div className="flex-1 w-full min-h-[250px]">
             <ResponsiveContainer width="100%" height={250}>
               <BarChart data={seasonality} layout="vertical" margin={{ top: 0, right: 20, left: 0, bottom: 0 }}>
@@ -1369,8 +1373,10 @@ export default function LeaveAnalytics() {
         {/* Type Breakdown */}
         <Card className="border border-slate-200 dark:border-slate-800 bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
           <div className="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
-            <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Leave Type Breakdown</h3>
-          </div>
+            <div className="flex flex-col">
+              <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Leave Type Breakdown</h3>
+              <div className="text-xs text-foreground mt-0.5 italic">View leave requests distribution by leave category and usage pattern.</div>
+            </div>
           <div className="relative flex-1 w-full min-h-[250px] flex items-center justify-center">
             <ResponsiveContainer width="100%" height={250}>
               <PieChart onMouseLeave={() => setHoveredLeaveType(null)}>
@@ -1429,8 +1435,11 @@ export default function LeaveAnalytics() {
           </div>
           <div className="mt-2 p-3 bg-slate-50 dark:bg-slate-900 rounded-lg flex items-center justify-between">
             <div>
+              <div className="flex flex-col">
               <p className="text-[10px] text-foreground dark:text-foreground uppercase tracking-wide font-semibold">Top Growing Type</p>
+              <div className="text-[9px] text-foreground mt-0.5 mb-1 italic">Identify leave categories with the highest increase compared to previous month.</div>
               <p className="text-sm font-bold text-emerald-600">{typeDistribution[0]?.name || "N/A"}</p>
+            </div>
             </div>
             <div className="text-right">
               <p className="text-sm font-bold text-emerald-600">↑ 18%</p>
@@ -1488,8 +1497,10 @@ export default function LeaveAnalytics() {
         <Card className="border border-slate-200 dark:border-slate-800 bg-card rounded-xl shadow-sm p-4 flex flex-col w-full lg:col-span-2 xl:col-span-1">
           <div className="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-800 pb-4">
             <div>
+              <div className="flex flex-col">
               <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Leave Request By Branch</h3>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Total Application</p>
+              <div className="text-xs text-foreground mt-0.5 italic">Compare leave application volume across different branch locations.</div>
+            </div>
             </div>
             <Select
               value={branchLimit.toString()}
@@ -1613,8 +1624,10 @@ export default function LeaveAnalytics() {
         {/* Balance Risk */}
         <Card className="border border-slate-200 dark:border-slate-800 bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
           <div className="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
-            <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Leave Balance Risk</h3>
-          </div>
+            <div className="flex flex-col">
+              <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Leave Balance Risk</h3>
+              <div className="text-xs text-foreground mt-0.5 italic">Monitor employee leave balance levels and identify potential risks.</div>
+            </div>
           <div className="space-y-3 flex-1 flex flex-col justify-center">
             <div className="flex items-center justify-between p-3 rounded-lg border border-emerald-100 dark:border-emerald-900/40 bg-emerald-50 dark:bg-emerald-950/20">
               <div className="flex items-center gap-2">
@@ -1652,8 +1665,10 @@ export default function LeaveAnalytics() {
         {/* Upcoming */}
         <Card className="border border-slate-200 dark:border-slate-800 bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
           <div className="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
-            <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Upcoming Approved Leave <span className="text-[9px] font-normal text-foreground">(Forecast)</span></h3>
-          </div>
+            <div className="flex flex-col">
+              <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Upcoming Approved Leave <span className="text-[9px] font-normal text-foreground">(Forecast)</span></h3>
+              <div className="text-xs text-foreground mt-0.5 italic">Preview upcoming employee leave schedules and workforce availability.</div>
+            </div>
           <div className="space-y-4 flex-1">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <div className="flex items-center gap-3">
@@ -1685,8 +1700,10 @@ export default function LeaveAnalytics() {
         {/* Action Center */}
         <Card className="border border-slate-200 dark:border-slate-800 bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
           <div className="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
-            <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Action Center</h3>
-          </div>
+            <div className="flex flex-col">
+              <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Action Center</h3>
+              <div className="text-xs text-foreground mt-0.5 italic">Manage pending tasks and important leave-related actions.</div>
+            </div>
           <div className="space-y-3 flex-1 flex flex-col justify-center">
             <div 
               className="flex items-center justify-between p-3 rounded-lg bg-amber-50 dark:bg-amber-950/20 cursor-pointer hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors border border-amber-100 dark:border-amber-900/40"
@@ -1708,10 +1725,13 @@ export default function LeaveAnalytics() {
 
         {/* HR Insights */}
         <Card className="border border-slate-200 dark:border-slate-800 bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
-          <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight mb-3 flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-purple-500" />
-            HR Insights
-          </h3>
+          <div className="flex flex-col mb-3">
+              <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-purple-500" />
+                HR Insights
+              </h3>
+              <div className="text-xs text-foreground mt-0.5 italic">Discover key leave patterns and workforce availability insights.</div>
+            </div>
           <div className="space-y-2 flex-1">
             {records.length > 0 ? (
               <>
