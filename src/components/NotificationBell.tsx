@@ -61,6 +61,7 @@ export default function NotificationBell() {
           )) ||
           (n.message && (
             n.message.includes("'s request for") || 
+            (n.title && n.title.includes("submitted a Leave Request")) ||
             n.message.includes("submitted a Leave Request") ||
             (n.message.includes("request for") && n.message.includes("is now")) ||
             n.message.toLowerCase().includes("requires your approval")

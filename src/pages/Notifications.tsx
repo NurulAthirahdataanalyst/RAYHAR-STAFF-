@@ -585,6 +585,7 @@ export default function Notifications() {
       title.startsWith("Leave Approval Required") ||
       title.startsWith("Leave Approval Progress:") ||
       msg.includes("'s request for") ||
+      title.includes("submitted a Leave Request") ||
       msg.includes("submitted a Leave Request") ||
       msg.includes("is currently waiting for") ||
       (msg.includes("request for") && msg.includes("is now")) ||
