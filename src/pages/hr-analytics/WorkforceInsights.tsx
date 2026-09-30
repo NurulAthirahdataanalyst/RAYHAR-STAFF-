@@ -2977,9 +2977,9 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
              <div className="grid grid-cols-3 gap-2 mb-8">
                {(() => {
                  const currentOutstation = outstationSummary || data.outstationAnalytics || {};
-                 const completed = currentOutstation.completedEvents ?? currentOutstation.completedTrips ?? 0;
-                 const upcoming = currentOutstation.upcomingEvents ?? currentOutstation.upcomingTrips ?? 0;
-                 const cancelled = currentOutstation.cancelledEvents ?? currentOutstation.cancelledTrips ?? 0;
+                 const completed = currentOutstation.completed ?? currentOutstation.completedEvents ?? currentOutstation.completedTrips ?? 0;
+                 const upcoming = currentOutstation.upcoming ?? currentOutstation.upcomingEvents ?? currentOutstation.upcomingTrips ?? 0;
+                 const cancelled = currentOutstation.cancelled ?? currentOutstation.cancelledEvents ?? currentOutstation.cancelledTrips ?? 0;
                  return (
                    <>
                      <div className="flex flex-col items-center justify-center py-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50/50 dark:bg-slate-800/30">
