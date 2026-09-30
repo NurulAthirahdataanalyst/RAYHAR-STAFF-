@@ -100,7 +100,7 @@ const TemporaryAssignments = () => {
     try {
       const [branchRes, empRes] = await Promise.all([
         fetch(`${API_BASE_URL}/api/branches`),
-        fetch(`${API_BASE_URL}/api/employees?role=hr_admin&branch=`)
+        fetch(`${API_BASE_URL}/api/employees?role=hr_admin&branch=&status=Active`)
       ]);
       const branchData = await branchRes.json();
       const empData = await empRes.json();

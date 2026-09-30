@@ -96,7 +96,7 @@ export default function MasterOverview() {
       }
 
       // Fetch employees (All employees for HR Admin view)
-      const empRes = await fetch(`${API_BASE_URL}/api/employees?role=hr_admin&branch=`);
+      const empRes = await fetch(`${API_BASE_URL}/api/employees?role=hr_admin&branch=&status=Active`);
       const empData = await empRes.json();
       if (empData.success) {
         setEmployees(empData.employees);

@@ -70,6 +70,7 @@ export default function DepartmentReports() {
         role: role || "",
         branch: userBranch || "",
         department: userDepartment || "",
+        status: "Active",
       });
       const res = await fetch(`${API_BASE_URL}/api/employees?${params}`);
       const data = await res.json();

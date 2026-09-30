@@ -171,6 +171,7 @@ export default function LeaveAdmin() {
         role: role || "",
         branch: userBranch || "",
         department: userDepartment || "",
+        status: "Active",
       });
       const response = await fetch(`${API_BASE_URL}/api/employees?${scopeParams}`);
       const data = await response.json();

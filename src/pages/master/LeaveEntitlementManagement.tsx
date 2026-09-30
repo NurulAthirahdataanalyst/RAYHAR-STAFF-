@@ -180,7 +180,7 @@ export default function LeaveEntitlementManagement() {
   const fetchEmployees = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/employees`);
+      const res = await fetch(`${API_BASE_URL}/api/employees?status=Active`);
       const data = await res.json();
       if (data.success) {
         setEmployees(data.employees);
