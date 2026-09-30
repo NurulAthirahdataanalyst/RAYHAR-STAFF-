@@ -2736,8 +2736,10 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
         {/* Branch Workforce Distribution */}
         <Card className="border border-slate-100 dark:border-slate-800/80 bg-card overflow-hidden lg:col-span-6 flex flex-col h-fit rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
           <CardHeader className="pb-4 pt-5 px-6 border-b border-gray-100 dark:border-slate-800 flex flex-row items-start justify-between">
-            <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Branch Workforce Distribution</CardTitle>
-            <div className="text-xs text-foreground mt-0.5 italic">View workforce distribution across all company branches and regions.</div>
+            <div className="flex flex-col">
+              <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Branch Workforce Distribution</CardTitle>
+              <div className="text-xs text-foreground mt-0.5 italic">View workforce distribution across all company branches and regions.</div>
+            </div>
             <div className="flex items-center gap-2 flex-wrap justify-end">
               <Select value={selectedRegion} onValueChange={setSelectedRegion}>
                 <SelectTrigger className="w-[160px] h-8 text-[11px] font-bold border-gray-200 dark:border-slate-800 bg-card shadow-none focus:ring-0">
