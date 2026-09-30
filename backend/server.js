@@ -3625,8 +3625,8 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
           sendPush: true,
         });
 
-        const leaveNotifTitle = `Leave Request Submitted`;
-        const leaveNotifMessage = `${leaveData.full_name} for ${leaveData.leave_type} (${leaveData.days} day(s)) has been submitted and is pending approval.`;
+        const leaveNotifTitle = `${leaveData.full_name} submitted a Leave Request`;
+        const leaveNotifMessage = `${leaveData.leave_type} - ${new Date(leaveData.start_date).toLocaleDateString("en-GB")} - ${leaveData.days} Day(s)`;
         // Team notification title for progress (shown in Team Management tab)
         const teamProgressTitle = `Leave Approval Progress: ${leaveData.full_name}`;
 
@@ -3644,7 +3644,8 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
           if (el.user_id === approverUserId) continue; // Already received direct approval action notification
 
           if (el.email && el.role === 'hr_admin') {
-            sendNotificationEmail(el.email, `FYI - New Leave Application: ${leaveData.full_name}`, html).catch(err => {
+            const fallbackHtml = `<p>FYI - New Leave Application from ${leaveData.full_name}.</p>`;
+            sendNotificationEmail(el.email, `FYI - New Leave Application: ${leaveData.full_name}`, fallbackHtml).catch(err => {
               console.error("Failed to send HR notification email:", err);
             });
           }
