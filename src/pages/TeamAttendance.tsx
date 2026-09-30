@@ -427,7 +427,7 @@ export default function TeamAttendance() {
                 <Clock className="w-6 h-6 text-green-500" />
               </div>
               <div>
-                <p className="text-sm font-medium text-foreground">Present Today</p>
+                <p className="text-sm font-medium text-foreground">{dateViewMode === 'MONTH' ? 'Monthly Present' : 'Present Today'}</p>
                 <h3 className="text-3xl font-bold mt-1 text-green-600 dark:text-green-400">{presentCount}</h3>
               </div>
             </CardContent>
@@ -439,7 +439,7 @@ export default function TeamAttendance() {
                 <Clock className="w-6 h-6 text-amber-500" />
               </div>
               <div>
-                <p className="text-sm font-medium text-foreground">Late Today</p>
+                <p className="text-sm font-medium text-foreground">{dateViewMode === 'MONTH' ? 'Total Late Arrivals' : 'Late Today'}</p>
                 <h3 className="text-3xl font-bold mt-1 text-amber-600 dark:text-amber-400">{lateCount}</h3>
               </div>
             </CardContent>
