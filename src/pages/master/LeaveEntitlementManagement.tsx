@@ -212,7 +212,7 @@ export default function LeaveEntitlementManagement() {
     );
   }
 
-  if (role !== "hr_admin" && role !== "managing_director") {
+  if (role !== "hr_admin" && role !== "managing_director" && role !== "operation_manager") {
     return <Navigate to="/" replace />;
   }
 

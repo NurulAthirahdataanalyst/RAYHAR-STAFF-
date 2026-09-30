@@ -69,7 +69,7 @@ export default function MasterOverview() {
 
   // Redirect non-hr_admin roles as this is a master administration center
   useEffect(() => {
-    if (!roleLoading && role !== "hr_admin" && role !== "managing_director") {
+    if (!roleLoading && role !== "hr_admin" && role !== "managing_director" && role !== "operation_manager") {
       navigate("/");
     }
   }, [role, roleLoading, navigate]);
