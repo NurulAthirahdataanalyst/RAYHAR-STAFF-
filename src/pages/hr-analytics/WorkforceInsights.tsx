@@ -1690,8 +1690,10 @@ export default function WorkforceInsights() {
                           <div className="flex items-center gap-1.5 flex-wrap">
                             <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 leading-tight line-clamp-2">{emp.full_name.toUpperCase()}</p>
                             {emp.is_late && (
-                              <span className="px-1 py-0.5 text-[8px] font-bold rounded bg-orange-100 text-orange-600 border border-orange-200">Late</span>
-                              <div className="text-xs text-foreground mt-0.5 italic">Employees who reported late for the current workday.</div>
+                              <>
+                                <span className="px-1 py-0.5 text-[8px] font-bold rounded bg-orange-100 text-orange-600 border border-orange-200">Late</span>
+                                <div className="text-xs text-foreground mt-0.5 italic">Employees who reported late for the current workday.</div>
+                              </>
                             )}
                           </div>
                           <p className="text-[10px] text-foreground font-medium">{formatDeptBranch(emp.department, emp.branch)}</p>
