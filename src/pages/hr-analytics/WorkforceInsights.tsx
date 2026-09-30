@@ -935,7 +935,7 @@ export default function WorkforceInsights() {
           <Card className={`border border-slate-200 dark:border-slate-800 bg-card flex flex-col h-fit ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
             <CardHeader className="p-5 border-b border-slate-100 dark:border-slate-800 pb-4">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-200">Temporary Branch Assignment</CardTitle>
+                <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Temporary Branch Assignment</CardTitle>
                 <Link to="/branches/temporary-assignments" className="text-[11px] font-bold text-[#942392] hover:text-[#7a1d78] transition-colors flex items-center group/link">
                   View All Assignments
                   <ChevronRight className="w-3 h-3 ml-0.5 group-hover/link:translate-x-0.5 transition-transform" />
@@ -1098,7 +1098,7 @@ export default function WorkforceInsights() {
             <CardHeader className="p-4 border-b border-slate-100 dark:border-slate-800 pb-3">
               <div className="flex flex-row items-start justify-between">
                 <div>
-                  <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-200">Team Availability</CardTitle>
+                  <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Team Availability</CardTitle>
                   <CardDescription className="text-xs text-foreground mt-0.5">Real-time status for the current shift</CardDescription>
                 </div>
                 <span className="bg-indigo-100 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 text-[10px] font-semibold px-2 py-0.5 rounded-md">Live</span>
@@ -1254,7 +1254,7 @@ export default function WorkforceInsights() {
 {!['head_of_department', 'branch_leader'].includes(role) && (
           <Card className={`col-span-1 border border-slate-200 dark:border-slate-800 bg-card ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
             <CardHeader className="p-5 border-b border-slate-100 dark:border-slate-800 pb-4">
-              <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-200">Leave Monitoring</CardTitle>
+              <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Leave Monitoring</CardTitle>
             </CardHeader>
             <CardContent className="p-4 sm:p-5">
               <div className="flex flex-col gap-3">
@@ -1267,7 +1267,7 @@ export default function WorkforceInsights() {
                       <Clock className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-slate-800 dark:text-slate-200 group-hover:text-[#942392] transition-colors">Pending Requests</p>
+                      <p className="text-base font-bold text-slate-900 dark:text-white tracking-tight group-hover:text-[#942392] transition-colors">Pending Requests</p>
                       <p className="text-xs text-foreground font-medium">Awaiting Approval</p>
                     </div>
                   </div>
@@ -1286,7 +1286,7 @@ export default function WorkforceInsights() {
                       <FileCheck className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-slate-800 dark:text-slate-200 group-hover:text-[#942392] transition-colors">Approved Leave</p>
+                      <p className="text-base font-bold text-slate-900 dark:text-white tracking-tight group-hover:text-[#942392] transition-colors">Approved Leave</p>
                       <p className="text-xs text-foreground font-medium">This Month</p>
                     </div>
                   </div>
@@ -1305,7 +1305,7 @@ export default function WorkforceInsights() {
                       <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-slate-800 dark:text-slate-200 group-hover:text-[#942392] transition-colors">Staff on Leave</p>
+                      <p className="text-base font-bold text-slate-900 dark:text-white tracking-tight group-hover:text-[#942392] transition-colors">Staff on Leave</p>
                       <p className="text-xs text-foreground font-medium">Out of Office (Today)</p>
                     </div>
                   </div>
@@ -1322,7 +1322,7 @@ export default function WorkforceInsights() {
           {/* 6. Employee Performance & Attendance Ranking */}
           <Card className={`col-span-1 ${['head_of_department', 'branch_leader'].includes(role) ? 'lg:col-span-3' : 'lg:col-span-2'} border border-slate-200 dark:border-slate-800 bg-card ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
             <CardHeader className="p-5 border-b border-slate-100 dark:border-slate-800 pb-4">
-              <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-200">Employee Performance & Attendance</CardTitle>
+              <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Employee Performance & Attendance</CardTitle>
             </CardHeader>
             <CardContent className="p-5 grid grid-cols-1 md:grid-cols-3 gap-6">
               
@@ -1413,7 +1413,7 @@ export default function WorkforceInsights() {
                   <Card className={`border border-slate-200 dark:border-slate-800 bg-card flex flex-col p-4 ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
                     <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
                       <div className="flex items-center gap-2">
-                        <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Clock-In/Out</h3>
+                        <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Clock-In/Out</h3>
                         {feedConnected
                           ? <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-white animate-pulse" />LIVE</span>
                           : <span className="text-[8px] text-foreground font-bold uppercase">ConnectingΓÇª</span>}
@@ -1479,7 +1479,7 @@ export default function WorkforceInsights() {
                   <Card className={`border border-slate-200 dark:border-slate-800 bg-card flex flex-col p-4 ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
                     <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
                       <div className="flex items-center gap-2">
-                        <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Absent / Leave / Outstation</h3>
+                        <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Absent / Leave / Outstation</h3>
                         {feedConnected
                           ? <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-white animate-pulse" />LIVE</span>
                           : <span className="text-[8px] text-foreground font-bold uppercase">ConnectingΓÇª</span>}
@@ -1551,7 +1551,7 @@ export default function WorkforceInsights() {
                             {/* 3. Leave Monitoring */}
           <Card className={`col-span-1 border border-slate-200 dark:border-slate-800 bg-card ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
             <CardHeader className="p-5 border-b border-slate-100 dark:border-slate-800 pb-4">
-              <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-200">Leave Monitoring</CardTitle>
+              <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Leave Monitoring</CardTitle>
             </CardHeader>
             <CardContent className="p-4 sm:p-5">
               <div className="flex flex-col gap-3">
@@ -1564,7 +1564,7 @@ export default function WorkforceInsights() {
                       <Clock className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-slate-800 dark:text-slate-200 group-hover:text-[#942392] transition-colors">Pending Requests</p>
+                      <p className="text-base font-bold text-slate-900 dark:text-white tracking-tight group-hover:text-[#942392] transition-colors">Pending Requests</p>
                       <p className="text-xs text-foreground font-medium">Awaiting Approval</p>
                     </div>
                   </div>
@@ -1583,7 +1583,7 @@ export default function WorkforceInsights() {
                       <FileCheck className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-slate-800 dark:text-slate-200 group-hover:text-[#942392] transition-colors">Approved Leave</p>
+                      <p className="text-base font-bold text-slate-900 dark:text-white tracking-tight group-hover:text-[#942392] transition-colors">Approved Leave</p>
                       <p className="text-xs text-foreground font-medium">This Month</p>
                     </div>
                   </div>
@@ -1602,7 +1602,7 @@ export default function WorkforceInsights() {
                       <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-slate-800 dark:text-slate-200 group-hover:text-[#942392] transition-colors">Staff on Leave</p>
+                      <p className="text-base font-bold text-slate-900 dark:text-white tracking-tight group-hover:text-[#942392] transition-colors">Staff on Leave</p>
                       <p className="text-xs text-foreground font-medium">Out of Office (Today)</p>
                     </div>
                   </div>
@@ -1627,7 +1627,7 @@ export default function WorkforceInsights() {
           <Card className={`border border-slate-200 dark:border-slate-800 bg-card flex flex-col p-4 ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
               <div className="flex items-center gap-2">
-                <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Clock-In/Out</h3>
+                <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Clock-In/Out</h3>
                 {feedConnected
                   ? <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-card animate-pulse" />LIVE</span>
                   : <span className="text-[8px] text-foreground font-bold uppercase">ConnectingΓÇª</span>}
@@ -1703,7 +1703,7 @@ export default function WorkforceInsights() {
           <Card className={`border border-slate-200 dark:border-slate-800 bg-card flex flex-col p-4 ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
               <div className="flex items-center gap-2">
-                <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Late</h3>
+                <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Late</h3>
                 {feedConnected
                   ? <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-card animate-pulse" />LIVE</span>
                   : <span className="text-[8px] text-foreground font-bold uppercase">ConnectingΓÇª</span>}
@@ -1768,7 +1768,7 @@ export default function WorkforceInsights() {
           <Card className={`border border-slate-200 dark:border-slate-800 bg-card flex flex-col p-4 ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
               <div className="flex items-center gap-2">
-                <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Absent / Leave / Outstation</h3>
+                <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Absent / Leave / Outstation</h3>
                 {feedConnected
                   ? <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-card animate-pulse" />LIVE</span>
                   : <span className="text-[8px] text-foreground font-bold uppercase">ConnectingΓÇª</span>}
@@ -1849,7 +1849,7 @@ export default function WorkforceInsights() {
               <Card className={`border border-slate-200 dark:border-slate-800 bg-card flex flex-col p-4 ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
                 <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
                   <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Active Outstation</h3>
+                    <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Active Outstation</h3>
                     {feedConnected
                       ? <span className="flex items-center gap-1 bg-pink-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-card animate-pulse" />LIVE</span>
                       : <span className="text-[8px] text-foreground font-bold uppercase">ConnectingΓÇª</span>}
@@ -1943,7 +1943,7 @@ export default function WorkforceInsights() {
           <Card className={`border border-slate-200 dark:border-slate-800 bg-card flex flex-col p-4 ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
               <div className="flex items-center gap-2">
-                <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Pending Approvals</h3>
+                <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Pending Approvals</h3>
                 {pendingApprovalsList.length > 0 && (
                   <span className="px-1.5 py-0.5 text-[8px] font-black bg-amber-500 text-white rounded">{pendingApprovalsList.length}</span>
                 )}
@@ -2042,7 +2042,7 @@ export default function WorkforceInsights() {
           {/* Card 4: Upcoming Outstation */}
           <Card className={`border border-slate-200 dark:border-slate-800 bg-card flex flex-col p-4 ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
-              <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Upcoming Outstation</h3>
+              <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Upcoming Outstation</h3>
               <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded text-foreground flex items-center gap-1">
                 <CalendarDays className="w-3 h-3" /> {displayDate}
               </span>
@@ -2459,7 +2459,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
            <div className="lg:col-span-2 flex flex-col gap-6">
             <Card className="p-5 border border-slate-100 dark:border-slate-700 hover:border-[#942392] hover: transition-all duration-300 flex flex-col relative overflow-hidden rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
-                <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-200">Attendance Trend</CardTitle>
+                <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Attendance Trend</CardTitle>
                 
                 {/* Weekly Navigator */}
                 <div className="flex items-center gap-1 sm:gap-2 self-end sm:self-auto">
@@ -2564,7 +2564,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
            
            <Card className="p-5 border border-slate-200 dark:border-slate-800 bg-card flex flex-col hover:border-[#942392] hover: transition-all duration-300 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
               <div className="flex items-center mb-6 border-b border-slate-100 dark:border-slate-800 pb-3">
-                <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-200">Leave Utilization Trend vs. Previous Month</CardTitle>
+                <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Leave Utilization Trend vs. Previous Month</CardTitle>
               </div>
               <div className="h-[250px] w-full min-h-[250px]">
                 <ResponsiveContainer width="100%" height="100%">
@@ -2587,7 +2587,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
             <div className="lg:col-span-1 flex flex-col gap-6">
               <Card className="p-5 border border-slate-100 dark:border-slate-700 bg-card hover:border-[#942392] hover: transition-all duration-300 flex flex-col rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
               <div className="flex justify-between items-center mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
-                <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-200">Monthly Comparison</CardTitle>
+                <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Monthly Comparison</CardTitle>
               </div>
               <div className="overflow-x-auto flex-1">
                 <table className="w-full text-sm text-left">

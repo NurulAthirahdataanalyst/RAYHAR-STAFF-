@@ -1708,7 +1708,7 @@ export default function AttendanceDashboard() {
         {/* ZONE A */}
         <Card className="border border-slate-100 dark:border-slate-800/80 bg-card overflow-hidden rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
           <div className="p-4 border-b border-gray-100 dark:border-slate-800 flex items-center justify-between">
-            <h2 className="text-sm font-bold text-gray-800 dark:text-gray-200">Employees on Rest Day (Zone A)</h2>
+            <h2 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Employees on Rest Day (Zone A)</h2>
             <span className="px-2 py-0.5 text-[10px] font-black uppercase tracking-wider rounded bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-slate-700">
               {zoneARestEmployees.length}
             </span>
@@ -1749,7 +1749,7 @@ export default function AttendanceDashboard() {
         {/* ZONE B */}
         <Card className="border border-slate-100 dark:border-slate-800/80 bg-card overflow-hidden rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
           <div className="p-4 border-b border-gray-100 dark:border-slate-800 flex items-center justify-between">
-            <h2 className="text-sm font-bold text-gray-800 dark:text-gray-200">Employees on Rest Day (Zone B)</h2>
+            <h2 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Employees on Rest Day (Zone B)</h2>
             <span className="px-2 py-0.5 text-[10px] font-black uppercase tracking-wider rounded bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-slate-700">
               {zoneBRestEmployees.length}
             </span>
@@ -1794,7 +1794,7 @@ export default function AttendanceDashboard() {
         {/* Branch Workforce Distribution */}
         <Card className="border border-slate-100 dark:border-slate-800/80 bg-card overflow-hidden lg:col-span-6 flex flex-col h-fit rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
           <CardHeader className="pb-4 pt-5 px-6 border-b border-gray-100 dark:border-slate-800 flex flex-row items-start justify-between">
-            <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-200">Branch Workforce Distribution</CardTitle>
+            <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Branch Workforce Distribution</CardTitle>
             <div className="flex items-center gap-2 flex-wrap justify-end">
               <Select value={liveRegion} onValueChange={setLiveRegion}>
                 <SelectTrigger className="w-[160px] h-8 text-[11px] font-bold border-gray-200 dark:border-slate-800 bg-card shadow-none focus:ring-0">
@@ -1923,7 +1923,7 @@ export default function AttendanceDashboard() {
         {/* Attendance Overview */}
         <Card className="border border-slate-100 dark:border-slate-800/80 bg-card overflow-hidden lg:col-span-6 flex flex-col h-fit rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
           <CardHeader className="pb-4 pt-5 px-6 border-b border-gray-100 dark:border-slate-800 flex flex-row items-start justify-between">
-            <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-200">Attendance Overview</CardTitle>
+            <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Attendance Overview</CardTitle>
           </CardHeader>
           <CardContent className="pt-6 px-6 pb-6 flex-1 flex flex-col">
             
