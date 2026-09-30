@@ -267,7 +267,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
         
         {/* ═══════ DESKTOP TOP BAR ═══════ */}
-        <header className="hidden lg:flex sticky -top-[1px] pt-[11px] pb-[10px] z-30 w-full bg-[#942392]/95 backdrop-blur-md px-3 items-center justify-between shadow-md border-b border-[#942392]/15">
+        <header className="hidden lg:flex sticky top-0 z-30 w-full bg-[#942392] py-2.5 px-3 items-center justify-between shadow-md border-b border-[#942392]/15">
           <div className="absolute inset-0 bg-white/[0.02] pointer-events-none" />
           
           <div className="flex items-center justify-between relative z-10 w-full">
@@ -359,7 +359,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
         {/* ═══════ MOBILE TOP BAR ═══════ */}
         <div className="lg:hidden sticky top-0 z-30 p-1.5 safe-area-top">
-          <div className="bg-[#942392]/90 backdrop-blur-md rounded-[16px] p-1.5 px-2.5 flex items-center justify-between shadow-lg border border-[#942392]/15 top-nav-bar">
+          <div className="bg-[#942392] rounded-[16px] p-1.5 px-2.5 flex items-center justify-between shadow-lg border border-[#942392]/15 top-nav-bar">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setMobileMenuOpen(true)}
