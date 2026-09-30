@@ -472,11 +472,6 @@ export default function WorkforceInsights() {
   };
   return (
     <div className="space-y-6 animate-in fade-in duration-500 w-full">
-        
-        <div className="flex flex-col gap-1 mb-2">
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Workforce Insight</h1>
-          <div className="text-sm text-foreground italic">Gain actionable insights into workforce performance and attendance behavior.</div>
-        </div>
 
         {/* Filter Toolbar Line directly under main header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200/60 dark:border-slate-800/60">
@@ -1876,10 +1871,10 @@ export default function WorkforceInsights() {
             <div className="flex flex-col gap-6">
               {/* Card: Active Outstation */}
               <Card className={`border border-slate-200 dark:border-slate-800 bg-card flex flex-col p-4 ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
-                <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Active Outstation</h3>
-                    <div className="text-xs text-foreground mt-0.5 italic">Employees currently assigned to outstation duties.</div>
+                <div className="flex items-start justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Active Outstation</h3>
                     {feedConnected
                       ? <span className="flex items-center gap-1 bg-pink-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-card animate-pulse" />LIVE</span>
                       : <span className="text-[8px] text-foreground font-bold uppercase">Connecting…</span>}
@@ -1971,13 +1966,15 @@ export default function WorkforceInsights() {
 
           {/* Card 4: Pending Approvals — LIVE SSE */}
           <Card className={`border border-slate-200 dark:border-slate-800 bg-card flex flex-col p-4 ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
-              <div className="flex items-center gap-2">
-                <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Pending Approvals</h3>
-                <div className="text-xs text-foreground mt-0.5 italic">Requests awaiting review and approval from authorized personnel.</div>
+            <div className="flex items-start justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
+              <div className="flex flex-col">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Pending Approvals</h3>
                 {pendingApprovalsList.length > 0 && (
                   <span className="px-1.5 py-0.5 text-[8px] font-black bg-amber-500 text-white rounded">{pendingApprovalsList.length}</span>
                 )}
+                </div>
+                <div className="text-xs text-foreground mt-0.5 italic">Requests awaiting review and approval from authorized personnel.</div>
               </div>
               <Button
                 onClick={() => navigate("/leave/admin?tab=pending")}
