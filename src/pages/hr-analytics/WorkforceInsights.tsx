@@ -77,17 +77,17 @@ const getAvatarColor = (str: string) => AVATAR_COLORS[(str || '').charCodeAt(0) 
 const formatDeptBranch = (dept?: string, branch?: string) => {
   const cleanDept = (dept || "").trim();
   const cleanBranch = (branch || "").trim();
-  const hasDept = cleanDept && cleanDept !== 'ΓÇö' && cleanDept !== '-' && cleanDept !== '├óΓé¼ΓÇ¥';
-  const hasBranch = cleanBranch && cleanBranch !== 'ΓÇö' && cleanBranch !== '-' && cleanBranch !== '├óΓé¼ΓÇ¥';
+  const hasDept = cleanDept && cleanDept !== '—' && cleanDept !== '-' && cleanDept !== '—';
+  const hasBranch = cleanBranch && cleanBranch !== '—' && cleanBranch !== '-' && cleanBranch !== '—';
 
   if (hasDept && hasBranch) {
-    return `${cleanDept} ΓÇó ${cleanBranch}`;
+    return `${cleanDept} • ${cleanBranch}`;
   } else if (hasDept) {
     return cleanDept;
   } else if (hasBranch) {
     return cleanBranch;
   }
-  return 'ΓÇö';
+  return '—';
 };
 
 interface LiveEmp {
@@ -1027,7 +1027,7 @@ export default function WorkforceInsights() {
                               const empName = a.name || a.full_name || a.employee_name || 'N/A';
                               const empRole = a.role ? a.role.replace(/_/g, ' ').toUpperCase() : '';
                               const primaryBranch = a.primary_branch || a.branch || '';
-                              const empRoleBranch = empRole && primaryBranch ? `${empRole} ΓÇó ${primaryBranch}` : (empRole || primaryBranch);
+                              const empRoleBranch = empRole && primaryBranch ? `${empRole} • ${primaryBranch}` : (empRole || primaryBranch);
 
                               const origBranchCode = a.primary_branch || a.original_branch || a.branch || 'HQ';
                               const origBranchName = BRANCH_NAMES[origBranchCode] || origBranchCode;
@@ -1040,7 +1040,7 @@ export default function WorkforceInsights() {
 
                               const startDateStr = start ? format(start, "MMM d, yyyy") : "";
                               const endDateStr = end ? format(end, "MMM d, yyyy") : "Ongoing";
-                              const durationText = start ? `${startDateStr} - ${endDateStr}` : "ΓÇö";
+                              const durationText = start ? `${startDateStr} - ${endDateStr}` : "—";
 
                               const todayStr = new Date().toISOString().split('T')[0];
                               const isUpcoming = a.status === 'Active' && start && start.toISOString().split('T')[0] > todayStr;
@@ -1416,7 +1416,7 @@ export default function WorkforceInsights() {
                         <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Clock-In/Out</h3>
                         {feedConnected
                           ? <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-white animate-pulse" />LIVE</span>
-                          : <span className="text-[8px] text-foreground font-bold uppercase">ConnectingΓÇª</span>}
+                          : <span className="text-[8px] text-foreground font-bold uppercase">Connecting…</span>}
                         {scopeLabel && <span className="text-[9px] font-bold text-foreground bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded truncate max-w-[100px]">{scopeLabel}</span>}
                       </div>
                       <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded text-foreground flex items-center gap-1">
@@ -1428,7 +1428,7 @@ export default function WorkforceInsights() {
                       {displayClockIns.length === 0 && !feedConnected && (
                         <div className="flex flex-col items-center justify-center py-8 text-slate-300">
                           <Loader2 className="w-5 h-5 animate-spin mb-2" />
-                          <p className="text-[10px] font-medium">Loading live dataΓÇª</p>
+                          <p className="text-[10px] font-medium">Loading live data…</p>
                         </div>
                       )}
                       {displayClockIns.length === 0 && feedConnected && (
@@ -1482,7 +1482,7 @@ export default function WorkforceInsights() {
                         <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Absent / Leave / Outstation</h3>
                         {feedConnected
                           ? <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-white animate-pulse" />LIVE</span>
-                          : <span className="text-[8px] text-foreground font-bold uppercase">ConnectingΓÇª</span>}
+                          : <span className="text-[8px] text-foreground font-bold uppercase">Connecting…</span>}
                       </div>
                       <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded text-foreground flex items-center gap-1">
                         <CalendarDays className="w-3 h-3" /> {displayDate}
@@ -1493,7 +1493,7 @@ export default function WorkforceInsights() {
                       {displayAbsent.length === 0 && !feedConnected && (
                         <div className="flex flex-col items-center justify-center py-8 text-slate-300">
                           <Loader2 className="w-5 h-5 animate-spin mb-2" />
-                          <p className="text-[10px] font-medium">Loading live dataΓÇª</p>
+                          <p className="text-[10px] font-medium">Loading live data…</p>
                         </div>
                       )}
                       {displayAbsent.length === 0 && feedConnected && (
@@ -1623,14 +1623,14 @@ export default function WorkforceInsights() {
           <>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
 
-          {/* Card 1: Clock-In/Out ΓÇö LIVE SSE */}
+          {/* Card 1: Clock-In/Out — LIVE SSE */}
           <Card className={`border border-slate-200 dark:border-slate-800 bg-card flex flex-col p-4 ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
               <div className="flex items-center gap-2">
                 <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Clock-In/Out</h3>
                 {feedConnected
                   ? <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-card animate-pulse" />LIVE</span>
-                  : <span className="text-[8px] text-foreground font-bold uppercase">ConnectingΓÇª</span>}
+                  : <span className="text-[8px] text-foreground font-bold uppercase">Connecting…</span>}
               </div>
               <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded text-foreground flex items-center gap-1">
                 <CalendarDays className="w-3 h-3" /> {displayDate}
@@ -1650,7 +1650,7 @@ export default function WorkforceInsights() {
                   {displayClockIns.length === 0 && !feedConnected && (
                     <div className="flex flex-col items-center justify-center py-8 text-slate-300">
                       <Loader2 className="w-5 h-5 animate-spin mb-2" />
-                      <p className="text-[10px] font-medium">Loading live dataΓÇª</p>
+                      <p className="text-[10px] font-medium">Loading live data…</p>
                     </div>
                   )}
                   {displayClockIns.length === 0 && feedConnected && (
@@ -1699,14 +1699,14 @@ export default function WorkforceInsights() {
             </Button>
           </Card>
 
-          {/* Card 2: Late ΓÇö LIVE SSE */}
+          {/* Card 2: Late — LIVE SSE */}
           <Card className={`border border-slate-200 dark:border-slate-800 bg-card flex flex-col p-4 ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
               <div className="flex items-center gap-2">
                 <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Late</h3>
                 {feedConnected
                   ? <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-card animate-pulse" />LIVE</span>
-                  : <span className="text-[8px] text-foreground font-bold uppercase">ConnectingΓÇª</span>}
+                  : <span className="text-[8px] text-foreground font-bold uppercase">Connecting…</span>}
               </div>
               <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded text-foreground flex items-center gap-1">
                 <CalendarDays className="w-3 h-3" /> {displayDate}
@@ -1717,7 +1717,7 @@ export default function WorkforceInsights() {
               {lateList.length === 0 && !feedConnected && (
                 <div className="flex flex-col items-center justify-center py-8 text-slate-300">
                   <Loader2 className="w-5 h-5 animate-spin mb-2" />
-                  <p className="text-[10px] font-medium">Loading live dataΓÇª</p>
+                  <p className="text-[10px] font-medium">Loading live data…</p>
                 </div>
               )}
               {lateList.length === 0 && feedConnected && (
@@ -1764,14 +1764,14 @@ export default function WorkforceInsights() {
             </Button>
           </Card>
 
-          {/* Card 3: Absent ΓÇö LIVE SSE */}
+          {/* Card 3: Absent — LIVE SSE */}
           <Card className={`border border-slate-200 dark:border-slate-800 bg-card flex flex-col p-4 ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
               <div className="flex items-center gap-2">
                 <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Absent / Leave / Outstation</h3>
                 {feedConnected
                   ? <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-card animate-pulse" />LIVE</span>
-                  : <span className="text-[8px] text-foreground font-bold uppercase">ConnectingΓÇª</span>}
+                  : <span className="text-[8px] text-foreground font-bold uppercase">Connecting…</span>}
               </div>
               <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded text-foreground flex items-center gap-1">
                 <CalendarDays className="w-3 h-3" /> {displayDate}
@@ -1782,7 +1782,7 @@ export default function WorkforceInsights() {
               {absentList.length === 0 && !feedConnected && (
                 <div className="flex flex-col items-center justify-center py-8 text-slate-300">
                   <Loader2 className="w-5 h-5 animate-spin mb-2" />
-                  <p className="text-[10px] font-medium">Loading live dataΓÇª</p>
+                  <p className="text-[10px] font-medium">Loading live data…</p>
                 </div>
               )}
               {absentList.length === 0 && feedConnected && (
@@ -1852,7 +1852,7 @@ export default function WorkforceInsights() {
                     <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Active Outstation</h3>
                     {feedConnected
                       ? <span className="flex items-center gap-1 bg-pink-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-card animate-pulse" />LIVE</span>
-                      : <span className="text-[8px] text-foreground font-bold uppercase">ConnectingΓÇª</span>}
+                      : <span className="text-[8px] text-foreground font-bold uppercase">Connecting…</span>}
                   </div>
                   <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded text-foreground flex items-center gap-1 cursor-pointer hover:underline" onClick={() => navigate("/outstation")}>
                     <CalendarDays className="w-3 h-3" /> {displayDate}
@@ -1863,7 +1863,7 @@ export default function WorkforceInsights() {
                   {activeOutstationList.length === 0 && !feedConnected && (
                     <div className="flex flex-col items-center justify-center py-8 text-slate-300">
                       <Loader2 className="w-5 h-5 animate-spin mb-2" />
-                      <p className="text-[10px] font-medium">Loading live dataΓÇª</p>
+                      <p className="text-[10px] font-medium">Loading live data…</p>
                     </div>
                   )}
                   {activeOutstationList.length === 0 && feedConnected && (
@@ -1939,7 +1939,7 @@ export default function WorkforceInsights() {
                 </div>
               </Card>
 
-          {/* Card 4: Pending Approvals ΓÇö LIVE SSE */}
+          {/* Card 4: Pending Approvals — LIVE SSE */}
           <Card className={`border border-slate-200 dark:border-slate-800 bg-card flex flex-col p-4 ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
               <div className="flex items-center gap-2">
@@ -1961,7 +1961,7 @@ export default function WorkforceInsights() {
               {pendingApprovalsList.length === 0 && !feedConnected && (
                 <div className="flex flex-col items-center justify-center py-8 text-slate-300">
                   <Loader2 className="w-5 h-5 animate-spin mb-2" />
-                  <p className="text-[10px] font-medium">LoadingΓÇª</p>
+                  <p className="text-[10px] font-medium">Loading…</p>
                 </div>
               )}
               {pendingApprovalsList.length === 0 && feedConnected ? (
@@ -2052,7 +2052,7 @@ export default function WorkforceInsights() {
               {upcomingOutstationList.length === 0 && !feedConnected && (
                 <div className="flex flex-col items-center justify-center py-8 text-slate-300">
                   <Loader2 className="w-5 h-5 animate-spin mb-2" />
-                  <p className="text-[10px] font-medium">Loading live dataΓÇª</p>
+                  <p className="text-[10px] font-medium">Loading live data…</p>
                 </div>
               )}
               {upcomingOutstationList.length === 0 && feedConnected && (
@@ -2335,7 +2335,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
     });
   }
 
-  // Leave Utilization Trend Data ΓÇö SSE real data only, no random fallback
+  // Leave Utilization Trend Data — SSE real data only, no random fallback
   const leaveTrendData = liveLeaveTrend || data.leaveTrend || data.leaveAnalytics?.monthlyTrend || emptyTrend;
 
   const currentMonthSick = leaveTrendData.length > 0 ? (leaveTrendData[leaveTrendData.length - 1].Sick ?? leaveTrendData[leaveTrendData.length - 1].sick ?? 0) : 0;
