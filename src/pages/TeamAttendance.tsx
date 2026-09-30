@@ -363,8 +363,8 @@ export default function TeamAttendance() {
   }
 
   // Metrics computed from merged list to reflect displayed statuses
-  const presentCount = mergedList.filter(e => e.status === 'Present' || e.status === 'Outstation').length;
-  const lateCount = mergedList.filter(e => (e.status === 'Present' || e.status === 'Outstation') && e.late !== '00:00' && e.late !== '--').length;
+  const presentCount = mergedList.filter(e => e.status.includes('Present') || e.status === 'Clocked Out' || e.status === 'Missing Clock-Out' || e.status === 'Outstation').length;
+  const lateCount = mergedList.filter(e => e.status === 'Present (Late)' || ((e.status.includes('Present') || e.status === 'Clocked Out' || e.status === 'Missing Clock-Out' || e.status === 'Outstation') && e.late !== '00:00' && e.late !== '--' && e.late !== '0 Min' && e.late !== '0 mins')).length;
   const absentCount = mergedList.filter(e => e.status === 'Absent').length;
 
   let filteredList = mergedList.filter(e => 

@@ -6179,7 +6179,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
         profileQueryParams
       );
 
-      const presentParams = [queryDate, queryDate, queryDate, ...queryParams];
+      const presentParams = [queryDate, queryDate, ...queryParams];
       const onLeaveParams = [queryDate, ...queryParams];
 
       const leaveAttendanceFilter = attendanceFilter ? attendanceFilter.replace(/\buser_id\b/g, 'lr.user_id') : "";
@@ -6212,7 +6212,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
 
       const lateTimeStr = getLateThresholdTime();
       const lateFilter = attendanceFilter ? attendanceFilter.replace(/\buser_id\b/g, 'fc.user_id') : "";
-      const lateParams = [queryDate, queryDate, queryDate, ...queryParams];
+      const lateParams = [queryDate, queryDate, ...queryParams];
       const [rawLateRows] = await pool.query(
         `WITH first_clocks AS (
            SELECT user_id, MIN(clock_in) AS first_clock_in
