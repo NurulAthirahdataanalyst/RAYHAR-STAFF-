@@ -3316,7 +3316,7 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
   }
   
   try {
-    const [empRows] = await pool.query(`SELECT p.branch, p.department, p.full_name,
+    const [empRows] = await pool.query(`SELECT p.branch, p.department, p.full_name, p.role,
       COALESCE(p.annual_leave_entitlement, 14) AS annual_leave_entitlement,
       COALESCE(adj.total_adjustment, 0) AS total_adjustment
       FROM profiles p
@@ -3331,6 +3331,7 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
     const employeeBranch = empRows[0]?.branch || "HQ";
     const employeeDept = empRows[0]?.department || "";
     const employeeName = empRows[0]?.full_name || user_id;
+    const employeeRole = empRows[0]?.role || "";
 
     // Validate Replacement Leave Dates
     if (cutiGantiData.length > 0) {
@@ -3406,11 +3407,22 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
         }
       }
     }
-    
-    const initialStatus = (leave_type === 'Cuti Sakit' || leave_type === 'Sick Leave') ? 'Approved' : 
-                          (employeeBranch === 'HQ' 
-                            ? 'Pending HOD' 
-                            : 'Pending Branch Leader');
+    let initialStatus = 'Pending HOD';
+    if (leave_type === 'Cuti Sakit' || leave_type === 'Sick Leave') {
+      initialStatus = 'Approved';
+    } else if (employeeBranch === 'HQ') {
+      if (employeeRole.toLowerCase() === 'head_of_department') {
+        initialStatus = 'Pending Operation Manager';
+      } else {
+        initialStatus = 'Pending HOD';
+      }
+    } else {
+      if (employeeRole.toLowerCase() === 'branch_leader') {
+        initialStatus = 'Pending Managing Director';
+      } else {
+        initialStatus = 'Pending Branch Leader';
+      }
+    }
 
     try {
       await pool.query(`ALTER TABLE leave_requests ADD COLUMN IF NOT EXISTS phone VARCHAR(50)`);
