@@ -759,7 +759,6 @@ export default function WorkforceInsights() {
               <Card className={`col-span-1 xl:col-span-1 border border-slate-200 dark:border-slate-800 bg-card p-5 flex flex-col justify-between ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
                 <div className="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
                   <span className="text-[12px] font-bold text-slate-800 dark:text-slate-200">Employee Distribution</span>
-                  <div className="text-xs text-foreground mt-0.5 italic">Overview of employee allocation across headquarters and branch locations.</div>
                 </div>
                 
                 <div className="flex flex-col flex-1 mt-2">
@@ -830,8 +829,10 @@ export default function WorkforceInsights() {
               return (
                 <Card className={`border border-slate-200 dark:border-slate-800 bg-card flex flex-col h-fit ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
                 <CardHeader className="p-5 border-b border-slate-100 dark:border-slate-800 pb-4 flex flex-row justify-between items-center">
+                  <div className="flex flex-col">
                   <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Branch Workforce Distribution</CardTitle>
                   <div className="text-xs text-foreground mt-0.5 italic">View workforce distribution across all company branches and regions.</div>
+                </div>
                   <Select value={selectedRegion} onValueChange={setSelectedRegion}>
                     <SelectTrigger className="w-[120px] h-7 text-[10px] font-bold border border-slate-300 dark:border-slate-700 bg-card shadow-none focus:ring-0">
                       <SelectValue placeholder="All Regions" />
@@ -942,10 +943,12 @@ export default function WorkforceInsights() {
           {/* Temporary Branch Assignments Summary */}
           <Card className={`border border-slate-200 dark:border-slate-800 bg-card flex flex-col h-fit ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
             <CardHeader className="p-5 border-b border-slate-100 dark:border-slate-800 pb-4">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Temporary Branch Assignment</CardTitle>
-                <div className="text-xs text-foreground mt-0.5 italic">Monitor active, upcoming, and completed temporary branch assignments.</div>
-                <Link to="/branches/temporary-assignments" className="text-[11px] font-bold text-[#942392] hover:text-[#7a1d78] transition-colors flex items-center group/link">
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex flex-col">
+                  <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Temporary Branch Assignment</CardTitle>
+                  <div className="text-xs text-foreground mt-0.5 italic">Monitor active, upcoming, and completed temporary branch assignments.</div>
+                </div>
+                <Link to="/branches/temporary-assignments" className="text-[11px] font-bold text-[#942392] hover:text-[#7a1d78] transition-colors flex items-center group/link shrink-0">
                   View All Assignments
                   <ChevronRight className="w-3 h-3 ml-0.5 group-hover/link:translate-x-0.5 transition-transform" />
                 </Link>
@@ -2487,8 +2490,10 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
            <div className="lg:col-span-2 flex flex-col gap-6">
             <Card className="p-5 border border-slate-100 dark:border-slate-700 hover:border-[#942392] hover: transition-all duration-300 flex flex-col relative overflow-hidden rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
+                <div className="flex flex-col">
                 <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Attendance Trend</CardTitle>
                 <div className="text-xs text-foreground mt-0.5 italic">Track workforce attendance patterns and daily attendance performance over time.</div>
+              </div>
                 
                 {/* Weekly Navigator */}
                 <div className="flex items-center gap-1 sm:gap-2 self-end sm:self-auto">
@@ -2594,8 +2599,10 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
            
            <Card className="p-5 border border-slate-200 dark:border-slate-800 bg-card flex flex-col hover:border-[#942392] hover: transition-all duration-300 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
               <div className="flex items-center mb-6 border-b border-slate-100 dark:border-slate-800 pb-3">
-                <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Leave Utilization Trend vs. Previous Month</CardTitle>
+                <div className="flex flex-col">
+                 <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Leave Utilization Trend vs. Previous Month</CardTitle>
                  <div className="text-xs text-foreground mt-0.5 italic">Analyze leave usage trends and compare monthly leave patterns.</div>
+               </div>
               </div>
               <div className="h-[250px] w-full min-h-[250px]">
                 <ResponsiveContainer width="100%" height="100%">
@@ -2618,8 +2625,10 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
             <div className="lg:col-span-1 flex flex-col gap-6">
               <Card className="p-5 border border-slate-100 dark:border-slate-700 bg-card hover:border-[#942392] hover: transition-all duration-300 flex flex-col rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
               <div className="flex justify-between items-center mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
-                <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Monthly Comparison</CardTitle>
+                <div className="flex flex-col">
+                 <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Monthly Comparison</CardTitle>
                  <div className="text-xs text-foreground mt-0.5 italic">Compare key workforce metrics against previous month performance.</div>
+               </div>
               </div>
               <div className="overflow-x-auto flex-1">
                 <table className="w-full text-sm text-left">
@@ -2692,8 +2701,10 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
              <div className="flex justify-between items-center mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
                <div className="flex items-center gap-2">
                  <Building2 className="w-4 h-4 text-foreground" />
-                 <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Department Workforce Distribution</h3>
+                 <div className="flex flex-col">
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Department Workforce Distribution</h3>
                   <div className="text-xs text-foreground mt-0.5 italic">View employee distribution across departments and operational teams.</div>
+                </div>
                </div>
              </div>
              
@@ -2863,8 +2874,10 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
              <div className="flex justify-between items-center mb-2 border-b border-slate-100 dark:border-slate-800 pb-3">
                <div className="flex items-center gap-2">
                  <FileText className="w-4 h-4 text-foreground" />
-                 <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Leave Distribution</h3>
+                 <div className="flex flex-col">
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Leave Distribution</h3>
                   <div className="text-xs text-foreground mt-0.5 italic">View employee leave usage breakdown by leave category.</div>
+                </div>
                </div>
              </div>
              
@@ -2951,8 +2964,10 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                </div>
              )}
              <div className="flex justify-between items-center mb-8 relative z-10 border-b border-slate-100 dark:border-slate-800 pb-3">
-               <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Travel & Outstation Summary</CardTitle>
+               <div className="flex flex-col">
+                <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Travel & Outstation Summary</CardTitle>
                 <div className="text-xs text-foreground mt-0.5 italic">Track employee movement, travel status, and outstation activities.</div>
+              </div>
              </div>
              
              <div className="grid grid-cols-3 gap-2 mb-8">
@@ -3004,8 +3019,10 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
              <div className="flex justify-between items-center mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
                <div className="flex items-center gap-2">
                  <Users className="w-4 h-4 text-foreground" />
-                 <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Workforce Movement</h3>
+                 <div className="flex flex-col">
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Workforce Movement</h3>
                   <div className="text-xs text-foreground mt-0.5 italic">Monitor employee transfers, assignments, and workforce changes.</div>
+                </div>
                </div>
              </div>
              
