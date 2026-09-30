@@ -541,7 +541,7 @@ export default function OutstationAnalytics() {
           <Card className="border border-slate-200/80 dark:border-slate-800 shadow-sm rounded-[16px] bg-card h-full flex flex-col">
             <CardHeader className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex flex-row flex-wrap items-center justify-between gap-4">
               <div>
-                <CardTitle className="text-lg font-bold text-foreground dark:text-slate-100">Monthly Outstation Tracker</CardTitle>
+                <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Monthly Outstation Tracker</CardTitle>
                 <p className="text-xs text-foreground dark:text-foreground mt-0.5">Track total outstation events and completions by month</p>
               </div>
 

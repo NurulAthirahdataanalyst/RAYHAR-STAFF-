@@ -823,7 +823,7 @@ export default function WorkforceInsights() {
               return (
                 <Card className={`border border-slate-200 dark:border-slate-800 bg-card flex flex-col h-fit ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
                 <CardHeader className="p-5 border-b border-slate-100 dark:border-slate-800 pb-4 flex flex-row justify-between items-center">
-                  <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-200">Branch Workforce Distribution</CardTitle>
+                  <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Branch Workforce Distribution</CardTitle>
                   <Select value={selectedRegion} onValueChange={setSelectedRegion}>
                     <SelectTrigger className="w-[120px] h-7 text-[10px] font-bold border border-slate-300 dark:border-slate-700 bg-card shadow-none focus:ring-0">
                       <SelectValue placeholder="All Regions" />
@@ -2660,7 +2660,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
              <div className="flex justify-between items-center mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
                <div className="flex items-center gap-2">
                  <Building2 className="w-4 h-4 text-foreground" />
-                 <h3 className="text-sm font-bold text-[#1A1F36] dark:text-slate-100">Department Workforce Distribution</h3>
+                 <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Department Workforce Distribution</h3>
                </div>
              </div>
              
@@ -2695,7 +2695,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
         {/* Branch Workforce Distribution */}
         <Card className="border border-slate-100 dark:border-slate-800/80 bg-card overflow-hidden lg:col-span-6 flex flex-col h-fit rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
           <CardHeader className="pb-4 pt-5 px-6 border-b border-gray-100 dark:border-slate-800 flex flex-row items-start justify-between">
-            <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-200">Branch Workforce Distribution</CardTitle>
+            <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Branch Workforce Distribution</CardTitle>
             <div className="flex items-center gap-2 flex-wrap justify-end">
               <Select value={selectedRegion} onValueChange={setSelectedRegion}>
                 <SelectTrigger className="w-[160px] h-8 text-[11px] font-bold border-gray-200 dark:border-slate-800 bg-card shadow-none focus:ring-0">
@@ -2829,7 +2829,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
              <div className="flex justify-between items-center mb-2 border-b border-slate-100 dark:border-slate-800 pb-3">
                <div className="flex items-center gap-2">
                  <FileText className="w-4 h-4 text-foreground" />
-                 <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">Leave Distribution</h3>
+                 <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Leave Distribution</h3>
                </div>
              </div>
              
@@ -2916,7 +2916,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                </div>
              )}
              <div className="flex justify-between items-center mb-8 relative z-10 border-b border-slate-100 dark:border-slate-800 pb-3">
-               <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-200">Travel & Outstation Summary</CardTitle>
+               <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Travel & Outstation Summary</CardTitle>
              </div>
              
              <div className="grid grid-cols-3 gap-2 mb-8">
@@ -2968,7 +2968,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
              <div className="flex justify-between items-center mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
                <div className="flex items-center gap-2">
                  <Users className="w-4 h-4 text-foreground" />
-                 <h3 className="text-sm font-bold text-[#1A1F36] dark:text-slate-100">Workforce Movement</h3>
+                 <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Workforce Movement</h3>
                </div>
              </div>
              

@@ -107,8 +107,8 @@ export const EmployeesRequiringAttentionCard = ({ data = [], variant = 'grid', o
               <AlertTriangle className="w-6 h-6 text-red-500" strokeWidth={2} />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">Employees Requiring Attention</h2>
-              <p className="text-sm text-foreground font-medium">Low leave balance / High leave utilization</p>
+              <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Employees Requiring Attention</h3>
+              <p className="text-xs text-foreground dark:text-foreground mt-0.5">Low leave balance / High leave utilization</p>
             </div>
           </div>
           <div className="bg-red-50 dark:bg-red-950/40 px-4 py-2 rounded-xl flex items-center gap-2">
