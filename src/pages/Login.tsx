@@ -116,6 +116,22 @@ export default function Login() {
 
     setResetLoading(true);
     try {
+      // 1. Check if the user exists in profiles
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('email')
+        .eq('email', email)
+        .maybeSingle();
+
+      if (!profile) {
+        toast({
+          title: "Email Not Found",
+          description: "This email address is not registered in the system. Please contact HR for assistance.",
+          variant: "destructive"
+        });
+        return;
+      }
+
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password`,
       });
@@ -124,23 +140,19 @@ export default function Login() {
         throw error;
       }
 
-      // Always show success message to prevent email enumeration
       toast({
         title: "Reset Link Sent",
         description: "If an account exists with this email address, a password reset link has been sent. Please check your inbox.",
       });
       setShowResetBox(false);
       setResetEmail("");
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error requesting password reset:", err);
-      // We still show the success message for security, unless it's a known network/rate limit error, 
-      // but to be perfectly safe as requested: "Regardless of whether the email exists, use a generic success message."
       toast({
-        title: "Reset Link Sent",
-        description: "If an account exists with this email address, a password reset link has been sent. Please check your inbox.",
+        title: "Error",
+        description: err.message || "An unexpected error occurred while sending the reset link.",
+        variant: "destructive"
       });
-      setShowResetBox(false);
-      setResetEmail("");
     } finally {
       setResetLoading(false);
     }
