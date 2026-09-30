@@ -165,6 +165,7 @@ export default function TeamAttendance() {
           branch: userBranch || "",
           department: userDepartment || "",
           date: selectedDate,
+          status: "Active",
         });
         const [empRes, workAssignRes] = await Promise.all([
           fetch(`${API_BASE_URL}/api/employees?${empParams}`),
