@@ -1609,7 +1609,7 @@ export default function LeaveAnalytics() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
         {/* Balance Risk */}
         <Card className="border border-slate-200 dark:border-slate-800 bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
           <div className="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
@@ -1649,19 +1649,6 @@ export default function LeaveAnalytics() {
           </div>
         </Card>
 
-        {/* Leave Calendar */}
-        <Card className="border border-slate-200 dark:border-slate-800 bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
-          <div className="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
-            <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Leave Calendar <span className="text-[9px] font-normal text-foreground">(This Month)</span></h3>
-          </div>
-          <div className="flex-1 flex flex-col justify-center items-center border border-dashed border-slate-200 dark:border-slate-800 rounded-lg bg-slate-50 dark:bg-slate-900/50 min-h-[160px]">
-            <CalendarCheck className="w-6 h-6 text-foreground mb-2" />
-            <p className="text-xs font-bold text-slate-600 dark:text-foreground">Calendar View Ready</p>
-            <p className="text-[10px] text-foreground text-center mt-1 px-4">Integrate with full calendar component.</p>
-            <Button variant="outline" size="sm" className="mt-3 text-[10px] h-7" onClick={() => navigate("/leave/calendar")}>Go to Calendar</Button>
-          </div>
-        </Card>
-
         {/* Upcoming */}
         <Card className="border border-slate-200 dark:border-slate-800 bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
           <div className="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
@@ -1693,20 +1680,7 @@ export default function LeaveAnalytics() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
-        {/* Approval Perf */}
-        <Card className="border border-slate-200 dark:border-slate-800 bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
-          <div className="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
-            <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Approval Performance <span className="text-[9px] font-normal text-foreground">(Avg. Time)</span></h3>
-          </div>
-          <div className="flex-1 flex flex-col justify-center items-center min-h-[160px]">
-            <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-3">
-              <Loader2 className="w-5 h-5 text-foreground animate-spin" />
-            </div>
-            <p className="text-xs font-bold text-slate-600 dark:text-foreground">Coming Soon</p>
-            <p className="text-[10px] text-foreground text-center mt-1">Approval timestamp tracking is being implemented.</p>
-          </div>
-        </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
 
         {/* Action Center */}
         <Card className="border border-slate-200 dark:border-slate-800 bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
