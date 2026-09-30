@@ -1431,7 +1431,7 @@ export default function WorkforceInsights() {
                     <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
                       <div className="flex items-center gap-2">
                         <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Clock-In/Out</h3>
-                        <div className="text-xs text-foreground mt-0.5 italic">Live updates of employee clock-in and clock-out activities.</div>
+                        
                         {feedConnected
                           ? <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-white animate-pulse" />LIVE</span>
                           : <span className="text-[8px] text-foreground font-bold uppercase">Connecting…</span>}
@@ -1467,7 +1467,7 @@ export default function WorkforceInsights() {
                                 {emp.is_late && (
                                   <>
                                     <span className="px-1 py-0.5 text-[8px] font-bold rounded bg-orange-100 text-orange-600 border border-orange-200">Late</span>
-                                    <div className="text-xs text-foreground mt-0.5 italic">Employees who reported late for the current workday.</div>
+                                    
                                   </>
                                 )}
                               </div>
@@ -1501,7 +1501,7 @@ export default function WorkforceInsights() {
                     <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
                       <div className="flex items-center gap-2">
                         <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Absent / Leave / Outstation</h3>
-                        <div className="text-xs text-foreground mt-0.5 italic">Current employees who are absent, on leave, or assigned outstation.</div>
+                        
                         {feedConnected
                           ? <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-white animate-pulse" />LIVE</span>
                           : <span className="text-[8px] text-foreground font-bold uppercase">Connecting…</span>}
@@ -1651,7 +1651,7 @@ export default function WorkforceInsights() {
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
               <div className="flex items-center gap-2">
                 <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Clock-In/Out</h3>
-                <div className="text-xs text-foreground mt-0.5 italic">Live updates of employee clock-in and clock-out activities.</div>
+                
                 {feedConnected
                   ? <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-card animate-pulse" />LIVE</span>
                   : <span className="text-[8px] text-foreground font-bold uppercase">Connecting…</span>}
@@ -1695,7 +1695,7 @@ export default function WorkforceInsights() {
                             {emp.is_late && (
                               <>
                                 <span className="px-1 py-0.5 text-[8px] font-bold rounded bg-orange-100 text-orange-600 border border-orange-200">Late</span>
-                                <div className="text-xs text-foreground mt-0.5 italic">Employees who reported late for the current workday.</div>
+                                
                               </>
                             )}
                           </div>
@@ -1731,7 +1731,7 @@ export default function WorkforceInsights() {
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
               <div className="flex items-center gap-2">
                 <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Late</h3>
-                <div className="text-xs text-foreground mt-0.5 italic">Employees who reported late for the current workday.</div>
+                
                 {feedConnected
                   ? <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-card animate-pulse" />LIVE</span>
                   : <span className="text-[8px] text-foreground font-bold uppercase">Connecting…</span>}
@@ -1797,7 +1797,7 @@ export default function WorkforceInsights() {
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
               <div className="flex items-center gap-2">
                 <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Absent / Leave / Outstation</h3>
-                <div className="text-xs text-foreground mt-0.5 italic">Current employees who are absent, on leave, or assigned outstation.</div>
+                
                 {feedConnected
                   ? <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-card animate-pulse" />LIVE</span>
                   : <span className="text-[8px] text-foreground font-bold uppercase">Connecting…</span>}
@@ -2530,7 +2530,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                   <div className="flex items-baseline gap-1.5">
                     <span className="text-2xl font-black text-slate-800 dark:text-slate-100">{(liveWeeklyAttendanceTrend || data?.attendanceOverview?.weeklyAttendanceTrend)?.reduce((sum: number, item: any) => sum + item.late, 0) || 0}</span>
                     <span className="text-xs font-bold text-foreground">Late</span>
-                    <div className="text-xs text-foreground mt-0.5 italic">Employees who reported late for the current workday.</div>
+                    
                   </div>
                   <div className="flex items-baseline gap-1.5">
                     <span className="text-2xl font-black text-slate-800 dark:text-slate-100">{(liveWeeklyAttendanceTrend || data?.attendanceOverview?.weeklyAttendanceTrend)?.reduce((sum: number, item: any) => sum + item.absent, 0) || 0}</span>
