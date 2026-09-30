@@ -2871,7 +2871,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
            {/* Leave Distribution (Donut Chart) */}
            <Card className="p-4 border border-slate-100 dark:border-slate-700 bg-card hover:border-[#942392] hover: transition-all duration-300 flex flex-col rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
-             <div className="flex justify-between items-center mb-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+             <div className="flex justify-between items-start mb-2 border-b border-slate-100 dark:border-slate-800 pb-3">
                <div className="flex items-center gap-2">
                  <FileText className="w-4 h-4 text-foreground" />
                  <div className="flex flex-col">
