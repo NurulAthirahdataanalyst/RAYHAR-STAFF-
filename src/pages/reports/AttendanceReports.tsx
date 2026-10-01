@@ -432,7 +432,7 @@ export default function AttendanceReports() {
                 <SelectValue placeholder="Select Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="All">All</SelectItem>
+                <SelectItem value="All">All Status</SelectItem>
                 <SelectItem value="Present (On Time)">Present (On Time)</SelectItem>
                 <SelectItem value="Present (Late)">Present (Late)</SelectItem>
                 <SelectItem value="Approved Leave">Approved Leave</SelectItem>
