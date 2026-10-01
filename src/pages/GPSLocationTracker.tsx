@@ -26,7 +26,7 @@ function FlyToController({ center, zoom }: { center: [number, number] | null; zo
   const map = useMap();
   useEffect(() => {
     if (center) {
-      map.flyTo(center, zoom, { duration: 1.2 });
+      map.setView(center, zoom, { animate: true });
     }
   }, [center, zoom, map]);
   return null;

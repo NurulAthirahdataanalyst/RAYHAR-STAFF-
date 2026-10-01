@@ -1142,6 +1142,9 @@ export default function LeaveAnalytics() {
     );
   }
 
+  const trendTitle = viewType === "day" ? "Hourly Trend" : (viewType === "month" ? "Daily Trend" : "Monthly Trend");
+  const trendSubtitle = viewType === "day" ? "Leave distribution by hour" : (viewType === "month" ? "Leave distribution by day" : "Leave distribution by month");
+
   return (
     <div className="space-y-4 animate-in fade-in duration-500 max-w-[1600px] mx-auto px-4 pt-2 pb-6">
       
