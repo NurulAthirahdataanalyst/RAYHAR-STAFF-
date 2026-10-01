@@ -887,6 +887,9 @@ export default function Branches() {
                                   <tr className="bg-purple-500/10 text-purple-900 dark:text-purple-100 border-b border-purple-500/20">
                                     <th className="text-left py-4 px-6 text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Personnel</th>
                                     <th className="text-left py-4 px-6 text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Permanent Branch</th>
+                                    {selectedBranch?.code === "HQ" && (
+                                      <th className="text-left py-4 px-6 text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Department</th>
+                                    )}
                                     <th className="text-left py-4 px-6 text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Assignment Period</th>
                                   </tr>
                                 </thead>
@@ -908,8 +911,13 @@ export default function Branches() {
                                         </div>
                                       </td>
                                       <td className="py-4 px-6 font-semibold text-foreground text-sm">
-                                        {assignment.primary_branch}{assignment.department ? ` • ${assignment.department}` : ''}
+                                        {selectedBranch?.code === "HQ" ? assignment.primary_branch : `${assignment.primary_branch}${assignment.department ? ` • ${assignment.department}` : ''}`}
                                       </td>
+                                      {selectedBranch?.code === "HQ" && (
+                                        <td className="py-4 px-6 font-semibold text-foreground text-sm">
+                                          {assignment.assigned_department || assignment.department || 'All Departments'}
+                                        </td>
+                                      )}
                                       <td className="py-4 px-6 text-sm font-semibold text-foreground uppercase">
                                         {new Date(assignment.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()} - {new Date(assignment.end_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()}
                                       </td>
@@ -934,6 +942,9 @@ export default function Branches() {
                                 <tr className="bg-slate-500/10 text-slate-900 dark:text-slate-100 border-b border-slate-500/20">
                                   <th className="text-left py-4 px-6 text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Personnel</th>
                                   <th className="text-left py-4 px-6 text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Permanent Branch</th>
+                                  {selectedBranch?.code === "HQ" && (
+                                    <th className="text-left py-4 px-6 text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Department</th>
+                                  )}
                                   <th className="text-left py-4 px-6 text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Assignment Period</th>
                                   <th className="text-left py-4 px-6 text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Status</th>
                                 </tr>
@@ -957,8 +968,13 @@ export default function Branches() {
                                         </div>
                                       </td>
                                       <td className="py-4 px-6 font-semibold text-foreground text-sm">
-                                        {assignment.primary_branch}{assignment.department ? ` • ${assignment.department}` : ''}
+                                        {selectedBranch?.code === "HQ" ? assignment.primary_branch : `${assignment.primary_branch}${assignment.department ? ` • ${assignment.department}` : ''}`}
                                       </td>
+                                      {selectedBranch?.code === "HQ" && (
+                                        <td className="py-4 px-6 font-semibold text-foreground text-sm">
+                                          {assignment.assigned_department || assignment.department || 'All Departments'}
+                                        </td>
+                                      )}
                                       <td className="py-4 px-6 text-sm font-semibold text-foreground uppercase">
                                         {new Date(assignment.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()} - {new Date(assignment.end_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()}
                                       </td>
