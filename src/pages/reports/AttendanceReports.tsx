@@ -197,7 +197,12 @@ export default function AttendanceReports() {
           };
         });
 
-        if (viewType === "month") {
+        if (viewType === "day") {
+          // Day view: sort by full_name A-Z
+          processedData.sort((a: any, b: any) =>
+            (a.full_name || "").localeCompare(b.full_name || "")
+          );
+        } else if (viewType === "month") {
           const today = new Date();
           // Adjust to Malaysia Time roughly for "today"
           const myTime = new Date(today.getTime() + (8 * 60 * 60 * 1000));
@@ -212,8 +217,21 @@ export default function AttendanceReports() {
              processedData = processedData.filter((r: any) => r.date <= todayStr);
           }
           
-          // Sort descending by date
-          processedData.sort((a: any, b: any) => b.date.localeCompare(a.date));
+          // Sort: date DESC, then full_name ASC within same date
+          processedData.sort((a: any, b: any) => {
+            const dateCmp = (b.date || "").localeCompare(a.date || "");
+            if (dateCmp !== 0) return dateCmp;
+            return (a.full_name || "").localeCompare(b.full_name || "");
+          });
+        } else if (viewType === "year") {
+          // Sort: date DESC, then full_name ASC within same date
+          processedData.sort((a: any, b: any) => {
+            const aDate = a.date || (a.clock_in ? a.clock_in.slice(0, 10) : "");
+            const bDate = b.date || (b.clock_in ? b.clock_in.slice(0, 10) : "");
+            const dateCmp = bDate.localeCompare(aDate);
+            if (dateCmp !== 0) return dateCmp;
+            return (a.full_name || "").localeCompare(b.full_name || "");
+          });
         }
 
         setAttendanceData(processedData);
@@ -279,7 +297,20 @@ export default function AttendanceReports() {
     const headers = viewType === "day"
       ? ["Employee ID", "Name", "Branch", "Clock In", "Clock Out", "Status", "Working Hours", "Coordinate (Latitude, Longitude)", "Distance", "Location Status"]
       : ["Date", "Employee ID", "Name", "Branch", "Clock In", "Clock Out", "Status", "Working Hours", "Coordinate (Latitude, Longitude)", "Distance", "Location Status"];
-    const rows = filteredList.map(a => {
+
+    // Sort export: for month/year — date DESC then name ASC; for day — name ASC
+    const sortedList = [...filteredList].sort((a, b) => {
+      if (viewType === "day") {
+        return (a.full_name || "").localeCompare(b.full_name || "");
+      }
+      const aDate = a.date || (a.clock_in ? a.clock_in.slice(0, 10) : "");
+      const bDate = b.date || (b.clock_in ? b.clock_in.slice(0, 10) : "");
+      const dateCmp = bDate.localeCompare(aDate);
+      if (dateCmp !== 0) return dateCmp;
+      return (a.full_name || "").localeCompare(b.full_name || "");
+    });
+
+    const rows = sortedList.map(a => {
       const workingHrs = calculateWorkingHours(a.clock_in, a.clock_out);
       const coords = a.latitude && a.longitude ? `${Number(a.latitude).toFixed(6)}, ${Number(a.longitude).toFixed(6)}` : "-";
       const distance = a.distance_meters !== null && a.distance_meters !== undefined ? `${Math.round(a.distance_meters)}m` : "-";
