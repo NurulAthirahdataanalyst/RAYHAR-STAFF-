@@ -1242,12 +1242,12 @@ export default function Employees() {
           {/* History Section */}
           <div>
             <h3 className="text-sm font-black uppercase tracking-wider text-foreground mb-4">History of Temporary Staff</h3>
-            <Card className="border-none shadow-sm overflow-hidden bg-card/60 backdrop-blur-md rounded-[24px]">
+            <Card className="border-none shadow-sm overflow-hidden bg-card rounded-[24px]">
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="bg-slate-500/10 text-slate-900 dark:text-slate-100 border-b border-slate-500/20">
+                      <tr className="bg-purple-500/10 text-purple-900 dark:text-purple-100 border-b border-purple-500/20">
                         <th className="text-left py-4 px-6 text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Personnel</th>
                         <th className="text-left py-4 px-6 text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Permanent Branch</th>
                         <th className="text-left py-4 px-6 text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Assignment Period</th>
@@ -1267,27 +1267,27 @@ export default function Employees() {
                         const isCompleted = assignment.status === 'Completed' || (assignment.status === 'Active' && now > end);
 
                         let statusText = assignment.status;
-                        let badgeClass = 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300';
+                        let badgeClass = 'bg-slate-50 text-slate-700 border-slate-300 dark:bg-slate-900/40 dark:text-slate-300 dark:border-slate-700';
 
                         if (isDuty) {
                           statusText = 'ON DUTY';
-                          badgeClass = 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300';
+                          badgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800';
                         } else if (isUpcoming) {
                           statusText = 'UPCOMING';
-                          badgeClass = 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300';
+                          badgeClass = 'bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800';
                         } else if (isCompleted) {
                           statusText = 'COMPLETED';
-                          badgeClass = 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300';
+                          badgeClass = 'bg-slate-50 text-slate-700 border-slate-300 dark:bg-slate-900/40 dark:text-slate-300 dark:border-slate-700';
                         } else if (assignment.status === 'Cancelled') {
                           statusText = 'CANCELLED';
-                          badgeClass = 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300';
+                          badgeClass = 'bg-rose-50 text-rose-700 border-rose-300 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800';
                         }
 
                         return (
-                          <tr key={`hist-${assignment.id}`} className="hover:bg-slate-500/5 transition-colors opacity-80">
+                          <tr key={`hist-${assignment.id}`} className="hover:bg-purple-500/5 transition-colors">
                             <td className="py-4 px-6">
                               <div className="flex items-center gap-3">
-                                <div className="w-9 h-9 rounded-xl bg-slate-500/20 flex items-center justify-center text-[9px] print:text-[13px] font-black text-slate-700 dark:text-slate-300">
+                                <div className="w-9 h-9 rounded-xl bg-purple-500/20 flex items-center justify-center text-[9px] print:text-[13px] font-black text-purple-700 dark:text-purple-300">
                                   {assignment.name ? assignment.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase() : "NA"}
                                 </div>
                                 <div className="min-w-0">
@@ -1305,7 +1305,7 @@ export default function Employees() {
                               {new Date(assignment.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()} - {assignment.end_date ? new Date(assignment.end_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase() : 'ONGOING'}
                             </td>
                             <td className="py-4 px-6 text-xs font-semibold">
-                              <span className={`px-2 py-1 rounded-md text-[8px] print:text-[13px] uppercase tracking-widest font-black ${badgeClass}`}>
+                              <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-[10px] print:text-[12px] uppercase tracking-wider font-bold border ${badgeClass}`}>
                                 {statusText}
                               </span>
                             </td>
