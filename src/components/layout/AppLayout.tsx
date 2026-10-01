@@ -24,6 +24,7 @@ import PageHeader from "./PageHeader";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { UserAvatar, getSavedAvatar } from "@/utils/avatarUtils";
+import { GlobalScrollTopButton } from "../shared/GlobalScrollTopButton";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, signOut } = useAuth();
@@ -534,6 +535,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
         </div>
       </main>
+      <GlobalScrollTopButton />
     </div>
   );
 }
