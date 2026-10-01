@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Users, UserCog, ArrowLeft, Building2, ShieldAlert, CheckCircle2, AlertCircle } from "lucide-react";
+import { Users, UserCog, ArrowLeft, Building2, ShieldAlert, CheckCircle2, AlertCircle, UserCheck, History } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { API_BASE_URL } from "@/config/api";
 import {
@@ -23,25 +23,62 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 
+const getInitials = (name: string) => {
+  if (!name) return "??";
+  const parts = name.trim().split(" ").filter(Boolean);
+  if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+};
+
+const formatAssignmentPeriod = (startStr: string, endStr: string | null) => {
+  if (!startStr) return "N/A";
+  try {
+    const parseDateStr = (str: string) => {
+      const parts = str.split('T')[0].split('-');
+      if (parts.length === 3) {
+        const y = parseInt(parts[0]);
+        const m = parseInt(parts[1]) - 1;
+        const d = parseInt(parts[2]);
+        return new Date(y, m, d);
+      }
+      return new Date(str);
+    };
+    const sDate = parseDateStr(startStr);
+    const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEPT", "OCT", "NOV", "DEC"];
+    const startFormatted = `${sDate.getDate()} ${months[sDate.getMonth()]} ${sDate.getFullYear()}`;
+    if (!endStr) return `${startFormatted} - ONGOING`;
+    const eDate = parseDateStr(endStr);
+    const endFormatted = `${eDate.getDate()} ${months[eDate.getMonth()]} ${eDate.getFullYear()}`;
+    return `${startFormatted} - ${endFormatted}`;
+  } catch (e) {
+    return `${startStr} - ${endStr || "ONGOING"}`;
+  }
+};
+
 export default function DepartmentDetails() {
   const { deptName } = useParams<{ deptName: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
   
   const [employees, setEmployees] = useState<any[]>([]);
+  const [tempAssignments, setTempAssignments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [transferModalOpen, setTransferModalOpen] = useState(false);
   const [selectedNewHod, setSelectedNewHod] = useState<string>("");
   const [isTransferring, setIsTransferring] = useState(false);
-  const [tempAssignments, setTempAssignments] = useState<any[]>([]);
 
-  const fetchEmployees = async () => {
+  const fetchDepartmentData = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/employees?branch=HQ&status=Active`);
-      const data = await response.json();
-      if (data.success) {
+      const [empRes, assignRes] = await Promise.all([
+        fetch(`${API_BASE_URL}/api/employees?branch=HQ&status=Active`),
+        fetch(`${API_BASE_URL}/api/work-assignments-all`)
+      ]);
+      const empData = await empRes.json();
+      const assignData = await assignRes.json();
+
+      if (empData.success) {
         // Filter by the specific department
-        const deptStaff = data.employees.filter((e: any) => {
+        const deptStaff = empData.employees.filter((e: any) => {
           if (!e.department || !deptName) return false;
           const normEmpDept = e.department.toLowerCase().replace(/\bdepartment\b/g, '').trim();
           const normDeptName = deptName.toLowerCase().replace(/\bdepartment\b/g, '').trim();
@@ -49,20 +86,10 @@ export default function DepartmentDetails() {
         });
         setEmployees(deptStaff);
       }
-    } catch (error) {
-      console.error("Error fetching employees:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  const fetchTempAssignments = async () => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/work-assignments-all`);
-      const data = await response.json();
-      if (data.success) {
+      if (assignData.success && assignData.assignments) {
         const todayStr = new Date().toISOString().split('T')[0];
-        const mapped = data.assignments.map((a: any) => {
+        const mapped = assignData.assignments.map((a: any) => {
           let computed = a.status;
           if (computed === 'Active') {
             const start = a.start_date.split('T')[0];
@@ -73,45 +100,46 @@ export default function DepartmentDetails() {
           }
           return { ...a, computedStatus: computed };
         });
-
-        const deptAssignments = mapped.filter((a: any) => {
-          if (!a.department || !deptName) return false;
-          return a.department.toLowerCase() === deptName.toLowerCase();
-        });
-        
-        setTempAssignments(deptAssignments);
+        setTempAssignments(mapped);
       }
     } catch (error) {
-      console.error("Error fetching temp assignments:", error);
+      console.error("Error fetching department data:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchEmployees();
-    fetchTempAssignments();
+    fetchDepartmentData();
 
-    // Setup SSE for real-time updates
-    const sse = new EventSource(`${API_BASE_URL}/api/presence/stream`);
-    sse.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        if (data.type === 'refresh' || data.type === 'assignment') {
-          fetchTempAssignments();
-        }
-      } catch (e) {}
+    const handleFocus = () => fetchDepartmentData();
+    window.addEventListener("focus", handleFocus);
+    window.addEventListener("storage", handleFocus);
+
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+      window.removeEventListener("storage", handleFocus);
     };
-    return () => sse.close();
   }, [deptName]);
 
   const currentHod = employees.find(e => e.role === "head_of_department" && e.status === "Active");
   const activeStaff = employees.filter(e => e.status === "Active");
   
-  // Temporary staff derived lists
-  const tempOnDuty = tempAssignments.filter(a => a.computedStatus === "Active");
-  const tempHistory = tempAssignments.filter(a => a.computedStatus === "Completed" || a.computedStatus === "Upcoming" || a.computedStatus === "Inactive");
-
   // Potential new HODs are active staff in the same department who aren't currently the HOD
   const candidateHods = activeStaff.filter(e => e.role !== "head_of_department");
+
+  const isDeptMatch = (assignedDept: string | undefined | null) => {
+    if (!assignedDept || !deptName) return false;
+    const norm1 = assignedDept.toLowerCase().replace(/\bdepartment\b/g, '').trim();
+    const norm2 = deptName.toLowerCase().replace(/\bdepartment\b/g, '').trim();
+    return norm1 === norm2 || assignedDept === deptName;
+  };
+
+  const filteredTempAssignments = tempAssignments.filter(a => 
+    isDeptMatch(a.assigned_department) || (a.temp_branch === 'HQ' && isDeptMatch(a.assigned_department))
+  );
+
+  const activeTempStaff = filteredTempAssignments.filter(a => a.computedStatus === 'Active');
 
   const handleHodTransfer = async () => {
     if (!selectedNewHod) {
@@ -137,7 +165,7 @@ export default function DepartmentDetails() {
         toast.success("HOD transferred successfully");
         setTransferModalOpen(false);
         setSelectedNewHod("");
-        fetchEmployees(); // Refresh data
+        fetchDepartmentData(); // Refresh data
       } else {
         toast.error(data.error || "Failed to transfer HOD");
       }
@@ -271,6 +299,7 @@ export default function DepartmentDetails() {
         </Card>
       </div>
 
+      {/* 1. Department Personnel */}
       <Card className="rounded-[25px] border-border/50 shadow-sm bg-card/50 backdrop-blur-sm overflow-hidden">
         <CardHeader className="border-b border-border/50 bg-muted/20">
           <CardTitle className="text-lg font-black">Department Personnel</CardTitle>
@@ -342,16 +371,16 @@ export default function DepartmentDetails() {
         </CardContent>
       </Card>
 
-      {/* Temporary Staff On Duty Table */}
-      <div className="mt-8">
-        <h3 className="text-sm font-black uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-3">
-          Temporary Staff On Duty
-        </h3>
-        <Card className="rounded-[16px] border-border/50 shadow-sm bg-card/50 backdrop-blur-sm overflow-hidden">
+      {/* 2. Temporary Staff On Duty */}
+      <div className="space-y-2">
+        <h2 className="text-sm font-black uppercase tracking-wider text-slate-900 dark:text-slate-100">
+          TEMPORARY STAFF ON DUTY
+        </h2>
+        <Card className="rounded-[25px] border-border/50 shadow-sm bg-card/50 backdrop-blur-sm overflow-hidden">
           <CardContent className="p-0">
             <div className="overflow-x-auto">
               <table className="w-full text-sm text-left">
-                <thead className="text-xs text-foreground uppercase bg-purple-50/50 dark:bg-purple-900/10 font-black tracking-wider">
+                <thead className="text-xs text-foreground uppercase bg-purple-50/60 dark:bg-purple-950/20 font-black tracking-wider">
                   <tr>
                     <th className="px-6 py-4 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Personnel</th>
                     <th className="px-6 py-4 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Permanent Branch</th>
@@ -359,36 +388,40 @@ export default function DepartmentDetails() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/50">
-                  {tempOnDuty.length === 0 ? (
-                    <tr>
-                      <td colSpan={3} className="px-6 py-8 text-center text-foreground text-xs font-medium">
-                        No temporary staff currently on duty.
-                      </td>
-                    </tr>
-                  ) : (
-                    tempOnDuty.map((emp: any) => (
-                      <tr key={emp.id} className="hover:bg-muted/10 transition-colors">
+                  {activeTempStaff.map((staff) => {
+                    const initials = getInitials(staff.name);
+                    return (
+                      <tr key={staff.id} className="hover:bg-purple-50/20 dark:hover:bg-purple-950/10 transition-colors">
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-md bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 flex items-center justify-center font-black text-xs shrink-0">
-                              {(emp.name || emp.employee || "").charAt(0).toUpperCase()}
+                            <div className="w-9 h-9 rounded-full bg-purple-100 dark:bg-purple-900/40 text-[#942392] font-black text-xs flex items-center justify-center shrink-0">
+                              {initials}
                             </div>
                             <div>
-                              <div className="font-bold text-foreground uppercase text-[11px]">{emp.name || emp.employee}</div>
-                              <span className="text-[9px] font-black text-purple-600 bg-purple-100 dark:bg-purple-900/30 px-1.5 py-0.5 rounded uppercase tracking-wider inline-block mt-0.5">Temp</span>
+                              <div className="font-bold text-foreground uppercase text-xs sm:text-sm">
+                                {staff.name}
+                              </div>
+                              <span className="inline-block mt-0.5 bg-purple-100 dark:bg-purple-900/40 text-[#942392] text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wider">
+                                TEMP
+                              </span>
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 font-bold text-xs">
-                          {emp.primary_branch || "N/A"}
+                        <td className="px-6 py-4 text-xs font-bold text-slate-700 dark:text-slate-300 uppercase">
+                          {staff.primary_branch || 'HQ'}
                         </td>
-                        <td className="px-6 py-4 font-bold text-xs">
-                          {emp.start_date ? new Date(emp.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase() : ''} 
-                          {" - "} 
-                          {emp.end_date ? new Date(emp.end_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase() : "ONGOING"}
+                        <td className="px-6 py-4 text-xs font-bold text-slate-700 dark:text-slate-300 uppercase">
+                          {formatAssignmentPeriod(staff.start_date, staff.end_date)}
                         </td>
                       </tr>
-                    ))
+                    );
+                  })}
+                  {activeTempStaff.length === 0 && !loading && (
+                    <tr>
+                      <td colSpan={3} className="px-6 py-8 text-center text-xs text-foreground font-medium">
+                        No active temporary staff currently assigned on duty to this department.
+                      </td>
+                    </tr>
                   )}
                 </tbody>
               </table>
@@ -397,12 +430,12 @@ export default function DepartmentDetails() {
         </Card>
       </div>
 
-      {/* History of Temporary Staff Table */}
-      <div className="mt-8">
-        <h3 className="text-sm font-black uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-3">
-          History of Temporary Staff
-        </h3>
-        <Card className="rounded-[16px] border-border/50 shadow-sm bg-card/50 backdrop-blur-sm overflow-hidden">
+      {/* 3. History of Temporary Staff */}
+      <div className="space-y-2">
+        <h2 className="text-sm font-black uppercase tracking-wider text-slate-900 dark:text-slate-100">
+          HISTORY OF TEMPORARY STAFF
+        </h2>
+        <Card className="rounded-[25px] border-border/50 shadow-sm bg-card/50 backdrop-blur-sm overflow-hidden">
           <CardContent className="p-0">
             <div className="overflow-x-auto">
               <table className="w-full text-sm text-left">
@@ -415,42 +448,51 @@ export default function DepartmentDetails() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/50">
-                  {tempHistory.length === 0 ? (
-                    <tr>
-                      <td colSpan={4} className="px-6 py-8 text-center text-foreground text-xs font-medium">
-                        No temporary staff history found.
-                      </td>
-                    </tr>
-                  ) : (
-                    tempHistory.map((emp: any) => (
-                      <tr key={emp.id} className="hover:bg-muted/10 transition-colors">
+                  {filteredTempAssignments.map((staff) => {
+                    const initials = getInitials(staff.name);
+                    const isDuty = staff.computedStatus === 'Active';
+                    return (
+                      <tr key={staff.id} className="hover:bg-muted/10 transition-colors">
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-md bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-400 flex items-center justify-center font-black text-xs shrink-0">
-                              {(emp.name || emp.employee || "").charAt(0).toUpperCase()}
+                            <div className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-black text-xs flex items-center justify-center shrink-0">
+                              {initials}
                             </div>
-                            <div className="font-bold text-foreground uppercase text-[11px]">{emp.name || emp.employee}</div>
+                            <div>
+                              <div className="font-bold text-foreground uppercase text-xs sm:text-sm">
+                                {staff.name}
+                              </div>
+                            </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 font-bold text-xs">
-                          {emp.primary_branch || "N/A"}
+                        <td className="px-6 py-4 text-xs font-bold text-slate-700 dark:text-slate-300 uppercase">
+                          {staff.primary_branch || 'HQ'}
                         </td>
-                        <td className="px-6 py-4 font-bold text-xs">
-                          {emp.start_date ? new Date(emp.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase() : ''} 
-                          {" - "} 
-                          {emp.end_date ? new Date(emp.end_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase() : "N/A"}
+                        <td className="px-6 py-4 text-xs font-bold text-slate-700 dark:text-slate-300 uppercase">
+                          {formatAssignmentPeriod(staff.start_date, staff.end_date)}
                         </td>
                         <td className="px-6 py-4">
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider ${
-                            emp.computedStatus === 'Upcoming' 
-                              ? 'bg-blue-100 text-blue-700' 
-                              : 'bg-emerald-100 text-emerald-700'
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                            isDuty 
+                              ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400' 
+                              : staff.computedStatus === 'Upcoming'
+                              ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400'
+                              : staff.computedStatus === 'Cancelled'
+                              ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400'
+                              : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
                           }`}>
-                            {emp.computedStatus === 'Completed' ? 'ENDED' : emp.computedStatus}
+                            {isDuty ? 'ON DUTY' : staff.computedStatus.toUpperCase()}
                           </span>
                         </td>
                       </tr>
-                    ))
+                    );
+                  })}
+                  {filteredTempAssignments.length === 0 && !loading && (
+                    <tr>
+                      <td colSpan={4} className="px-6 py-8 text-center text-xs text-foreground font-medium">
+                        No temporary staff assignment history found for this department.
+                      </td>
+                    </tr>
                   )}
                 </tbody>
               </table>
@@ -458,7 +500,6 @@ export default function DepartmentDetails() {
           </CardContent>
         </Card>
       </div>
-
     </div>
   );
 }
