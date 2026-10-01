@@ -156,7 +156,8 @@ const TemporaryAssignments = () => {
     e.stopPropagation();
     setAssignForm({
       user_id: assignment.user_id.toString(),
-      location: assignment.temp_branch,
+      location: assignment.temp_branch || "",
+      department: (assignment as any).department || "",
       start_date: assignment.start_date.split('T')[0],
       end_date: assignment.end_date ? assignment.end_date.split('T')[0] : "",
       status: assignment.status,
@@ -540,20 +541,21 @@ const TemporaryAssignments = () => {
                   </div>
                   {/* Filtered employee list */}
                   {(() => {
-                    const todayStr = new Date().toISOString().split('T')[0];
                     const filtered = employees.filter(e =>
-                      !employeeSearch || e.full_name.toLowerCase().includes(employeeSearch.toLowerCase())
+                      e.user_id != null && String(e.user_id) !== "" &&
+                      (!employeeSearch || e.full_name.toLowerCase().includes(employeeSearch.toLowerCase()))
                     );
                     if (filtered.length === 0) {
                       return <div className="px-3 py-4 text-sm text-foreground text-center">No employees found</div>;
                     }
                     return filtered.map(e => {
+                      const uid = String(e.user_id);
                       const isActiveOutstation = assignments.some(a =>
-                        String(a.user_id) === String(e.user_id) &&
+                        String(a.user_id) === uid &&
                         a.computedStatus === 'Active'
                       );
                       return (
-                        <SelectItem key={e.user_id} value={e.user_id}>
+                        <SelectItem key={uid} value={uid}>
                           <span className="flex items-center gap-2 flex-wrap">
                             <span>{e.full_name} ({e.branch})</span>
                             {isActiveOutstation && (
@@ -576,8 +578,8 @@ const TemporaryAssignments = () => {
                   <SelectValue placeholder="Select Branch" />
                 </SelectTrigger>
                 <SelectContent className="max-h-[200px]">
-                  {branches.map(b => (
-                    <SelectItem key={b.code} value={b.code}>{b.code} - {toProperCase(b.name)}</SelectItem>
+                  {branches.filter(b => b.code != null && String(b.code) !== "").map(b => (
+                    <SelectItem key={String(b.code)} value={String(b.code)}>{b.code} - {toProperCase(b.name)}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
