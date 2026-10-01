@@ -6806,7 +6806,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
             p.full_name AS actor,
             CASE WHEN (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::time > '${getLateThresholdTime()}' THEN 'Clocked in late' ELSE 'Clocked In' END AS action,
             NULL AS target,
-            CONCAT(COALESCE(p.department, ''), ' • ', p.branch) AS context,
+            CONCAT_WS(' • ', NULLIF(TRIM(p.department), ''), COALESCE((SELECT CONCAT(p.branch, ' -> ', ewa.location) FROM employee_work_assignment ewa WHERE ewa.user_id = p.user_id AND ewa.status = 'Active' AND DATE(a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur') BETWEEN (ewa.start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND COALESCE((ewa.end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date, '2099-12-31'::date) LIMIT 1), p.branch)) AS context,
             TO_CHAR(a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time,
             a.clock_in AS sort_time,
             CASE WHEN (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::time > '${getLateThresholdTime()}' THEN 'Late' ELSE 'Present' END AS badge
@@ -6823,7 +6823,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
             p.full_name AS actor,
             'Clocked Out' AS action,
             NULL AS target,
-            CONCAT(COALESCE(p.department, ''), ' • ', p.branch) AS context,
+            CONCAT_WS(' • ', NULLIF(TRIM(p.department), ''), COALESCE((SELECT CONCAT(p.branch, ' -> ', ewa.location) FROM employee_work_assignment ewa WHERE ewa.user_id = p.user_id AND ewa.status = 'Active' AND DATE(a.clock_out AT TIME ZONE 'Asia/Kuala_Lumpur') BETWEEN (ewa.start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND COALESCE((ewa.end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date, '2099-12-31'::date) LIMIT 1), p.branch)) AS context,
             TO_CHAR(a.clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time,
             a.clock_out AS sort_time,
             'Clocked Out' AS badge

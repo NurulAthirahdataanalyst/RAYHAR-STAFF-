@@ -607,8 +607,8 @@ const TemporaryAssignments = () => {
       {/* Details Modal */}
       <Dialog open={showDetailsModal} onOpenChange={setShowDetailsModal}>
         <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0 overflow-hidden">
-          <DialogHeader className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-950 sticky top-0 z-10 shrink-0">
-            <DialogTitle className="text-xl font-bold text-slate-900 dark:text-slate-100">Temporary Assignment Details</DialogTitle>
+          <DialogHeader className="px-6 py-4 border-b border-[#851b83] bg-[#942392] sticky top-0 z-10 shrink-0">
+            <DialogTitle className="text-xl font-bold text-white">Temporary Assignment Details</DialogTitle>
           </DialogHeader>
 
           {selectedAssignment && (
