@@ -24,12 +24,16 @@ export function TableScrollTopButton({
       onClick();
       return;
     }
-    if (tableRef && tableRef.current) {
-      const el = tableRef.current;
-      
-      // 1. Scroll inner overflow container to top if present
+
+    // 1. Resolve table element: from ref, or fallback to the closest table in the DOM
+    const el = (tableRef && tableRef.current) 
+      ? tableRef.current 
+      : (document.querySelector('table') as HTMLElement | null);
+
+    if (el) {
+      // 2. Scroll inner overflow container to top if present
       let parent: HTMLElement | null = el.parentElement;
-      while (parent && parent !== document.body && parent !== document.documentElement) {
+      while (parent && parent !== document.body && parent !== document.documentElement && parent.tagName !== 'MAIN') {
         const style = window.getComputedStyle(parent);
         if ((style.overflowY === 'auto' || style.overflowY === 'scroll') && parent.scrollHeight > parent.clientHeight) {
           parent.scrollTo({ top: 0, behavior: 'smooth' });
@@ -38,17 +42,28 @@ export function TableScrollTopButton({
         parent = parent.parentElement;
       }
 
-      // 2. Scroll window so table header is positioned below the sticky navbar
-      const rect = el.getBoundingClientRect();
-      const navbarOffset = 140; // Height of sticky top header + page title padding
-      const targetY = rect.top + window.pageYOffset - navbarOffset;
+      // 3. Scroll the main container (AppLayout <main>) or window so table header is positioned below sticky navbar
+      const mainContainer = document.querySelector('main');
+      if (mainContainer && mainContainer.scrollHeight > mainContainer.clientHeight) {
+        const elRect = el.getBoundingClientRect();
+        const mainRect = mainContainer.getBoundingClientRect();
+        const navbarOffset = 70; // Height of sticky top desktop header
+        const targetScroll = mainContainer.scrollTop + (elRect.top - mainRect.top) - navbarOffset;
 
-      window.scrollTo({
-        top: Math.max(0, targetY),
-        behavior: 'smooth'
-      });
+        mainContainer.scrollTo({
+          top: Math.max(0, targetScroll),
+          behavior: 'smooth'
+        });
+      } else {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     } else {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      const mainContainer = document.querySelector('main');
+      if (mainContainer) {
+        mainContainer.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     }
   };
 

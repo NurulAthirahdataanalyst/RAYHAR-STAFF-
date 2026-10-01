@@ -302,6 +302,8 @@ export default function Branches() {
   const [employees, setEmployees] = useState<BranchEmployee[]>([]);
   const [employeeCurrentPage, setEmployeeCurrentPage] = useState(1);
   const [employeePageSize, setEmployeePageSize] = useState(10);
+  const personnelTableRef = useRef<HTMLTableElement>(null);
+  const branchesTableRef = useRef<HTMLTableElement>(null);
   const [temporaryStaff, setTemporaryStaff] = useState<any[]>([]);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -688,7 +690,7 @@ export default function Branches() {
             <Card className="border-none shadow-sm overflow-hidden bg-card/60 backdrop-blur-md rounded-[24px]">
               <CardContent className="p-0">
                 <div className="hidden md:block overflow-x-auto">
-                  <table className="w-full text-sm">
+                  <table ref={personnelTableRef} className="w-full text-sm scroll-mt-20">
                     <thead>
                       <tr className="bg-muted/30 text-foreground border-b border-border">
                         <th className="text-left py-4 px-6 text-[8px] print:text-[13px] tracking-[0.2em] text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">
@@ -850,6 +852,7 @@ export default function Branches() {
                   pageSize={employeePageSize}
                   onPageChange={setEmployeeCurrentPage}
                   onPageSizeChange={setEmployeePageSize}
+                  tableRef={personnelTableRef}
                 />
               </CardContent>
             </Card>
@@ -1407,7 +1410,7 @@ export default function Branches() {
             <Card className="border-border shadow-sm overflow-hidden bg-card/60 backdrop-blur-md">
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
-                  <Table>
+                  <Table ref={branchesTableRef} className="scroll-mt-20">
                     <TableHeader className="bg-muted/30">
                       <TableRow>
                         <TableHead className="py-4 pl-6">Branch Name</TableHead>
@@ -1600,6 +1603,7 @@ export default function Branches() {
                 pageSize={pageSize}
                 onPageChange={setCurrentPage}
                 onPageSizeChange={setPageSize}
+                tableRef={branchesTableRef}
               />
             </div>
           )}
