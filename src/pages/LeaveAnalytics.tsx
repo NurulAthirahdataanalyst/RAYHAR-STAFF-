@@ -1334,8 +1334,8 @@ export default function LeaveAnalytics() {
         <Card className="border border-slate-200 dark:border-slate-800 bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
           <div className="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
             <div className="flex flex-col">
-              <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">{seasonalityTitle}</h3>
-              <div className="text-xs text-foreground mt-0.5 italic">{seasonalitySubtitle}</div>
+              <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Leave Seasonality</h3>
+              <div className="text-xs text-foreground mt-0.5 italic">Leave distribution by month</div>
             </div>
           </div>
           <div className="flex-1 w-full min-h-[250px]">
