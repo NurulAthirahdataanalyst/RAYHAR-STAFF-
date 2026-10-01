@@ -33,6 +33,7 @@ export default function DepartmentDetails() {
   const [transferModalOpen, setTransferModalOpen] = useState(false);
   const [selectedNewHod, setSelectedNewHod] = useState<string>("");
   const [isTransferring, setIsTransferring] = useState(false);
+  const [tempAssignments, setTempAssignments] = useState<any[]>([]);
 
   const fetchEmployees = async () => {
     try {
@@ -55,13 +56,60 @@ export default function DepartmentDetails() {
     }
   };
 
+  const fetchTempAssignments = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/work-assignments-all`);
+      const data = await response.json();
+      if (data.success) {
+        const todayStr = new Date().toISOString().split('T')[0];
+        const mapped = data.assignments.map((a: any) => {
+          let computed = a.status;
+          if (computed === 'Active') {
+            const start = a.start_date.split('T')[0];
+            const end = a.end_date ? a.end_date.split('T')[0] : '2099-12-31';
+            if (todayStr < start) computed = 'Upcoming';
+            else if (todayStr > end) computed = 'Completed';
+            else computed = 'Active';
+          }
+          return { ...a, computedStatus: computed };
+        });
+
+        const deptAssignments = mapped.filter((a: any) => {
+          if (!a.department || !deptName) return false;
+          return a.department.toLowerCase() === deptName.toLowerCase();
+        });
+        
+        setTempAssignments(deptAssignments);
+      }
+    } catch (error) {
+      console.error("Error fetching temp assignments:", error);
+    }
+  };
+
   useEffect(() => {
     fetchEmployees();
+    fetchTempAssignments();
+
+    // Setup SSE for real-time updates
+    const sse = new EventSource(`${API_BASE_URL}/api/presence/stream`);
+    sse.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === 'refresh' || data.type === 'assignment') {
+          fetchTempAssignments();
+        }
+      } catch (e) {}
+    };
+    return () => sse.close();
   }, [deptName]);
 
   const currentHod = employees.find(e => e.role === "head_of_department" && e.status === "Active");
   const activeStaff = employees.filter(e => e.status === "Active");
   
+  // Temporary staff derived lists
+  const tempOnDuty = tempAssignments.filter(a => a.computedStatus === "Active");
+  const tempHistory = tempAssignments.filter(a => a.computedStatus === "Completed" || a.computedStatus === "Upcoming" || a.computedStatus === "Inactive");
+
   // Potential new HODs are active staff in the same department who aren't currently the HOD
   const candidateHods = activeStaff.filter(e => e.role !== "head_of_department");
 
@@ -293,6 +341,124 @@ export default function DepartmentDetails() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Temporary Staff On Duty Table */}
+      <div className="mt-8">
+        <h3 className="text-sm font-black uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-3">
+          Temporary Staff On Duty
+        </h3>
+        <Card className="rounded-[16px] border-border/50 shadow-sm bg-card/50 backdrop-blur-sm overflow-hidden">
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left">
+                <thead className="text-xs text-foreground uppercase bg-purple-50/50 dark:bg-purple-900/10 font-black tracking-wider">
+                  <tr>
+                    <th className="px-6 py-4 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Personnel</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Permanent Branch</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Assignment Period</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/50">
+                  {tempOnDuty.length === 0 ? (
+                    <tr>
+                      <td colSpan={3} className="px-6 py-8 text-center text-foreground text-xs font-medium">
+                        No temporary staff currently on duty.
+                      </td>
+                    </tr>
+                  ) : (
+                    tempOnDuty.map((emp: any) => (
+                      <tr key={emp.id} className="hover:bg-muted/10 transition-colors">
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-md bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 flex items-center justify-center font-black text-xs shrink-0">
+                              {(emp.name || emp.employee || "").charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                              <div className="font-bold text-foreground uppercase text-[11px]">{emp.name || emp.employee}</div>
+                              <span className="text-[9px] font-black text-purple-600 bg-purple-100 dark:bg-purple-900/30 px-1.5 py-0.5 rounded uppercase tracking-wider inline-block mt-0.5">Temp</span>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 font-bold text-xs">
+                          {emp.primary_branch || "N/A"}
+                        </td>
+                        <td className="px-6 py-4 font-bold text-xs">
+                          {emp.start_date ? new Date(emp.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase() : ''} 
+                          {" - "} 
+                          {emp.end_date ? new Date(emp.end_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase() : "ONGOING"}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* History of Temporary Staff Table */}
+      <div className="mt-8">
+        <h3 className="text-sm font-black uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-3">
+          History of Temporary Staff
+        </h3>
+        <Card className="rounded-[16px] border-border/50 shadow-sm bg-card/50 backdrop-blur-sm overflow-hidden">
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left">
+                <thead className="text-xs text-foreground uppercase bg-slate-50 dark:bg-slate-900/50 font-black tracking-wider">
+                  <tr>
+                    <th className="px-6 py-4 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Personnel</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Permanent Branch</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Assignment Period</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/50">
+                  {tempHistory.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="px-6 py-8 text-center text-foreground text-xs font-medium">
+                        No temporary staff history found.
+                      </td>
+                    </tr>
+                  ) : (
+                    tempHistory.map((emp: any) => (
+                      <tr key={emp.id} className="hover:bg-muted/10 transition-colors">
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-md bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-400 flex items-center justify-center font-black text-xs shrink-0">
+                              {(emp.name || emp.employee || "").charAt(0).toUpperCase()}
+                            </div>
+                            <div className="font-bold text-foreground uppercase text-[11px]">{emp.name || emp.employee}</div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 font-bold text-xs">
+                          {emp.primary_branch || "N/A"}
+                        </td>
+                        <td className="px-6 py-4 font-bold text-xs">
+                          {emp.start_date ? new Date(emp.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase() : ''} 
+                          {" - "} 
+                          {emp.end_date ? new Date(emp.end_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase() : "N/A"}
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider ${
+                            emp.computedStatus === 'Upcoming' 
+                              ? 'bg-blue-100 text-blue-700' 
+                              : 'bg-emerald-100 text-emerald-700'
+                          }`}>
+                            {emp.computedStatus === 'Completed' ? 'ENDED' : emp.computedStatus}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
     </div>
   );
 }
