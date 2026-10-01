@@ -216,8 +216,9 @@ export default function LeaveReports() {
   }, [searchQuery, statusFilter, leaveTypeFilter, viewType, date, selectedMonth, selectedYear, pageSize]);
 
   const handleExportCSV = () => {
-    const headers = ["Employee", "Branch", "Leave Type", "Start Date", "End Date", "Days", "Status"];
+    const headers = ["Date Submitted", "Employee", "Branch", "Leave Type", "Start Date", "End Date", "Days", "Status"];
     const rows = filteredList.map(a => [
+      `"${(formatDate(a.created_at || a.submitted_at) || '-').replace(/"/g, '""')}"`,
       `"${(a.full_name || a.user_id || '').replace(/"/g, '""')}"`,
       `"${(a.branch || 'HQ').replace(/"/g, '""')}"`,
       `"${(a.leave_type || '').replace(/"/g, '""')}"`,
@@ -450,6 +451,7 @@ export default function LeaveReports() {
                 <Table ref={tableRef}>
                   <TableHeader>
                     <TableRow>
+                      <TableHead className="w-[120px]">Date Submitted</TableHead>
                       <TableHead>Employee</TableHead>
                       <TableHead>Branch</TableHead>
                       <TableHead>Leave Type</TableHead>
@@ -462,13 +464,16 @@ export default function LeaveReports() {
                   <TableBody>
                     {filteredList.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={7} className="text-center py-8 text-foreground">
+                        <TableCell colSpan={8} className="text-center py-8 text-foreground">
                           No leave records found for this {viewType}.
                         </TableCell>
                       </TableRow>
                     ) : (
                       pagedList.map((req, idx) => (
                         <TableRow key={idx}>
+                          <TableCell className="font-medium">
+                            {formatDate(req.created_at || req.submitted_at) || "-"}
+                          </TableCell>
                           <TableCell className="font-medium">
                             {req.full_name || req.user_id}
                           </TableCell>

@@ -68,6 +68,7 @@ type LeaveRequest = {
   to: string;
   days: number;
   reason: string;
+  createdAt?: string;
   status: "Pending HOD" | "Pending Branch Leader" | "Pending Operation Manager" | "Pending Finance" | "Pending MD" | "Approved" | "Rejected";
   warisNama: string;
   warisPhone: string;
@@ -507,6 +508,7 @@ export default function LeaveAdmin() {
       }
 
       const formatted = data.leaveRequests.map((request: any) => ({
+        createdAt: request.created_at ? formatDate(request.created_at) : "-",
         id: request.leave_id,
         userId: request.user_id,
         employee: request.full_name || request.user_id,
@@ -950,7 +952,21 @@ export default function LeaveAdmin() {
             </Button>
 
             <ExportDropdown 
-              onExportCSV={() => exportToCSV(filteredRequests, 'Leave_Requests')} 
+              onExportCSV={() => {
+                const exportData = filteredRequests.map(req => ({
+                  "Date Submitted": req.createdAt || "-",
+                  "Employee": req.employee,
+                  "Branch": req.branch,
+                  "Department": req.department,
+                  "Leave Type": req.type,
+                  "From": req.from,
+                  "To": req.to,
+                  "Days": req.days,
+                  "Status": req.status,
+                  "Reason": req.reason,
+                }));
+                exportToCSV(exportData, 'Leave_Requests');
+              }} 
               onExportPDF={() => window.print()} 
             />
           </div>
@@ -1002,6 +1018,7 @@ export default function LeaveAdmin() {
               <Table ref={tableRef}>
                 <TableHeader className="bg-muted/20 border-b border-border/40">
                   <TableRow>
+                    <TableHead className="px-3 py-4 text-[10px]">Date Submitted</TableHead>
                     <TableHead className="px-3 py-4 text-[10px]">Employee</TableHead>
                     <TableHead className="px-3 py-4 text-[10px]">Leave Type</TableHead>
                     <TableHead className="px-3 py-4 text-[10px]">From</TableHead>
@@ -1026,6 +1043,9 @@ export default function LeaveAdmin() {
                           }
                         }}
                       >
+                        <TableCell className="px-3 py-3.5 text-[12px] font-medium text-foreground">
+                          {req.createdAt || "-"}
+                        </TableCell>
                         <TableCell className="px-3 py-3.5">
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-md bg-[#942392]/10 text-[#942392] flex items-center justify-center text-xs font-bold shrink-0">
