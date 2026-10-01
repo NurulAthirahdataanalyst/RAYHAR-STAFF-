@@ -11578,12 +11578,12 @@ app.get("/api/work-assignments-all", async (req, res) => {
 
       if (role === 'branch_leader') {
         const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
-        filterP = " WHERE LOWER(p.branch) = LOWER(?)";
-        paramsTotal.push(safeBranch);
+        filterP = " WHERE (LOWER(p.branch) = LOWER(?) OR LOWER(ewa.location) = LOWER(?))";
+        paramsTotal.push(safeBranch, safeBranch);
       } else if (role === 'head_of_department') {
         const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
-        filterP = " WHERE LOWER(p.department) = LOWER(?)";
-        paramsTotal.push(safeDept);
+        filterP = " WHERE (LOWER(p.department) = LOWER(?) OR (LOWER(ewa.location) = 'hq' AND LOWER(COALESCE(ewa.department, '')) = LOWER(?)))";
+        paramsTotal.push(safeDept, safeDept);
       }
 
       const [rows] = await pool.query(`
@@ -11591,9 +11591,12 @@ app.get("/api/work-assignments-all", async (req, res) => {
           ewa.id,
           ewa.user_id,
           ewa.location as temp_branch,
+          ewa.department as assigned_department,
           ewa.start_date,
           ewa.end_date,
           ewa.status,
+          ewa.purpose,
+          ewa.remarks,
           p.full_name as name,
           p.branch as primary_branch,
           p.department,
@@ -11626,12 +11629,12 @@ app.get("/api/work-assignments/:user_id", async (req, res) => {
 
 app.post("/api/work-assignments", async (req, res) => {
   try {
-    const { user_id, location, start_date, end_date, status, purpose, remarks } = req.body;
+    const { user_id, location, department, start_date, end_date, status, purpose, remarks } = req.body;
     let returningClause = "";
     // Note: RETURNING is for Postgres, wait, this pool is custom or standard. Let's just do a normal insert
     const [result] = await pool.query(
-      `INSERT INTO employee_work_assignment (user_id, location, start_date, end_date, status, purpose, remarks) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [user_id, location, start_date, end_date || null, status || 'Active', purpose || null, remarks || null]
+      `INSERT INTO employee_work_assignment (user_id, location, department, start_date, end_date, status, purpose, remarks) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [user_id, location, department || null, start_date, end_date || null, status || 'Active', purpose || null, remarks || null]
     );
     const insertedId = result.insertId || (result.rows && result.rows.length ? result.rows[0].id : null);
 
@@ -11660,14 +11663,14 @@ app.post("/api/work-assignments", async (req, res) => {
 app.put("/api/work-assignments/:id", async (req, res) => {
   const operatorName = req.body.operatorName || 'HR';
   try {
-    const { location, start_date, end_date, status, purpose, remarks } = req.body;
+    const { location, department, start_date, end_date, status, purpose, remarks } = req.body;
     
     // Get employee info before update for logging
     const [assignRows] = await pool.query("SELECT ewa.user_id, p.full_name FROM employee_work_assignment ewa JOIN profiles p ON p.user_id = ewa.user_id WHERE ewa.id = ?", [req.params.id]);
     
     await pool.query(
-      `UPDATE employee_work_assignment SET location = ?, start_date = ?, end_date = ?, status = ?, purpose = ?, remarks = ? WHERE id = ?`,
-      [location, start_date, end_date || null, status, purpose || null, remarks || null, req.params.id]
+      `UPDATE employee_work_assignment SET location = ?, department = ?, start_date = ?, end_date = ?, status = ?, purpose = ?, remarks = ? WHERE id = ?`,
+      [location, department || null, start_date, end_date || null, status, purpose || null, remarks || null, req.params.id]
     );
     
     // Log activity

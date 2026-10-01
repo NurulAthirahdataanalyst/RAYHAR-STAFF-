@@ -20,6 +20,7 @@ interface TemporaryAssignment {
   user_id: number;
   name: string;
   department: string;
+  assigned_department?: string;
   role: string;
   temp_branch: string;
   primary_branch?: string;
@@ -28,6 +29,8 @@ interface TemporaryAssignment {
   status: string;
   employee?: string;
   computedStatus?: string;
+  purpose?: string;
+  remarks?: string;
 }
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "https://attendance-system-gamma-jade.vercel.app";
@@ -157,7 +160,7 @@ const TemporaryAssignments = () => {
     setAssignForm({
       user_id: assignment.user_id.toString(),
       location: assignment.temp_branch || "",
-      department: (assignment as any).department || "",
+      department: (assignment as any).assigned_department || (assignment as any).department || "",
       start_date: assignment.start_date.split('T')[0],
       end_date: assignment.end_date ? assignment.end_date.split('T')[0] : "",
       status: assignment.status,
@@ -672,10 +675,18 @@ const TemporaryAssignments = () => {
                     <p className="text-xs text-foreground font-medium">Assignment Title</p>
                     <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">Temporary Branch Reassignment</p>
                   </div>
-                  <div className="col-span-2">
+                  <div className={selectedAssignment.temp_branch === "HQ" ? "" : "col-span-2"}>
                     <p className="text-xs text-foreground font-medium">Assignment Location</p>
                     <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{selectedAssignment.temp_branch}</p>
                   </div>
+                  {selectedAssignment.temp_branch === "HQ" && (
+                    <div>
+                      <p className="text-xs text-foreground font-medium">Department</p>
+                      <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+                        {(selectedAssignment as any).assigned_department || (selectedAssignment as any).department || "Not specified"}
+                      </p>
+                    </div>
+                  )}
                   <div>
                     <p className="text-xs text-foreground font-medium">Start Date</p>
                     <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{format(new Date(selectedAssignment.start_date), "dd/MM/yyyy")}</p>

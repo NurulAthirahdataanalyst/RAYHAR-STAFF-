@@ -963,9 +963,40 @@ export default function Branches() {
                                         {new Date(assignment.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()} - {new Date(assignment.end_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()}
                                       </td>
                                       <td className="py-4 px-6 text-xs font-semibold">
-                                        <span className={`px-2 py-1 rounded-md text-[8px] print:text-[13px] uppercase tracking-widest font-black ${isActive ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'}`}>
-                                          {isActive ? 'On Duty' : assignment.status}
-                                        </span>
+                                        {(() => {
+                                          const start = new Date(assignment.start_date);
+                                          const end = assignment.end_date ? new Date(assignment.end_date) : new Date('2099-12-31');
+                                          start.setHours(0, 0, 0, 0);
+                                          end.setHours(23, 59, 59, 999);
+                                          const now = new Date();
+
+                                          const isDuty = assignment.status === 'Active' && now >= start && now <= end;
+                                          const isUpcoming = assignment.status === 'Active' && now < start;
+                                          const isCompleted = assignment.status === 'Completed' || (assignment.status === 'Active' && now > end);
+
+                                          let statusText = assignment.status;
+                                          let badgeClass = 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300';
+
+                                          if (isDuty) {
+                                            statusText = 'ON DUTY';
+                                            badgeClass = 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300';
+                                          } else if (isUpcoming) {
+                                            statusText = 'UPCOMING';
+                                            badgeClass = 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300';
+                                          } else if (isCompleted) {
+                                            statusText = 'COMPLETED';
+                                            badgeClass = 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300';
+                                          } else if (assignment.status === 'Cancelled') {
+                                            statusText = 'CANCELLED';
+                                            badgeClass = 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300';
+                                          }
+
+                                          return (
+                                            <span className={`px-2 py-1 rounded-md text-[8px] print:text-[13px] uppercase tracking-widest font-black ${badgeClass}`}>
+                                              {statusText}
+                                            </span>
+                                          );
+                                        })()}
                                       </td>
                                     </tr>
                                   );

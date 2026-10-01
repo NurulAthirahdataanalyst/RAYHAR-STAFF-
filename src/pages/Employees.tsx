@@ -110,6 +110,7 @@ export default function Employees() {
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const tableRef = useRef<HTMLTableElement>(null);
   const [dbEmployees, setDbEmployees] = useState<any[]>([]);
+  const [temporaryStaff, setTemporaryStaff] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedEmployee, setSelectedEmployee] = useState<any | null>(null);
   const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
@@ -373,7 +374,8 @@ export default function Employees() {
       const assignData = await assignRes.json();
       let assignments: any[] = [];
       if (assignData.success) {
-        assignments = assignData.assignments;
+        assignments = assignData.assignments || [];
+        setTemporaryStaff(assignments);
       }
 
       if (!empRes.ok || !data.success) {
@@ -467,6 +469,27 @@ export default function Employees() {
     const matchesPosition = selectedPosition === "All" || e.position === selectedPosition;
     const matchesStatus = selectedStatus === "All" || e.status === selectedStatus;
     return matchesSearch && matchesBranch && matchesDepartment && matchesPosition && matchesStatus;
+  });
+
+  const isHOD = role?.toLowerCase() === "head_of_department";
+  const hodDept = (userDepartment || "").trim().toLowerCase();
+
+  const hodTempStaff = isHOD && hodDept
+    ? temporaryStaff.filter((a: any) => {
+        const isHq = (a.temp_branch === "HQ" || a.location === "HQ");
+        const assignedDept = (a.assigned_department || a.department || "").trim().toLowerCase();
+        return isHq && assignedDept === hodDept;
+      })
+    : [];
+
+  const onDutyTempStaff = hodTempStaff.filter((a: any) => {
+    if (a.status !== 'Active') return false;
+    const start = new Date(a.start_date);
+    const end = a.end_date ? new Date(a.end_date) : new Date('2099-12-31');
+    start.setHours(0, 0, 0, 0);
+    end.setHours(23, 59, 59, 999);
+    const now = new Date();
+    return now >= start && now <= end;
   });
 
   // Sort priority for roles: Head of Department at position 4, Branch Leader at position 5
@@ -1152,6 +1175,139 @@ export default function Employees() {
           )}
         </CardContent>
       </Card>
+
+      {/* Temporary Staff Sections for HOD */}
+      {isHOD && hodTempStaff.length > 0 && !loading && (
+        <div className="mt-8 mb-4 space-y-8">
+          {/* On Duty Section */}
+          {onDutyTempStaff.length > 0 && (
+            <div>
+              <h3 className="text-sm font-black uppercase tracking-wider text-foreground mb-4">Temporary Staff On Duty</h3>
+              <Card className="border-none shadow-sm overflow-hidden bg-card/60 backdrop-blur-md rounded-[24px]">
+                <CardContent className="p-0">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="bg-purple-500/10 text-purple-900 dark:text-purple-100 border-b border-purple-500/20">
+                          <th className="text-left py-4 px-6 text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Personnel</th>
+                          <th className="text-left py-4 px-6 text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Permanent Branch</th>
+                          <th className="text-left py-4 px-6 text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Assignment Period</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border/50">
+                        {onDutyTempStaff.map((assignment: any) => (
+                          <tr key={`duty-${assignment.id}`} className="hover:bg-purple-500/5 transition-colors">
+                            <td className="py-4 px-6">
+                              <div className="flex items-center gap-3">
+                                <div className="w-9 h-9 rounded-xl bg-purple-500/20 flex items-center justify-center text-[9px] print:text-[13px] font-black text-purple-700 dark:text-purple-300">
+                                  {assignment.name ? assignment.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase() : "NA"}
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="font-bold text-foreground text-sm">{assignment.name}</p>
+                                  <p className="text-[8px] print:text-[13px] text-foreground truncate font-medium uppercase tracking-widest flex items-center gap-1">
+                                    <span className="px-1.5 py-0.5 rounded bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300">TEMP</span>
+                                    {assignment.employee || assignment.user_id}
+                                  </p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="py-4 px-6 font-semibold text-foreground text-sm">
+                              {assignment.primary_branch || "HQ"}
+                            </td>
+                            <td className="py-4 px-6 text-sm font-semibold text-foreground uppercase">
+                              {new Date(assignment.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()} - {assignment.end_date ? new Date(assignment.end_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase() : 'ONGOING'}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* History Section */}
+          <div>
+            <h3 className="text-sm font-black uppercase tracking-wider text-foreground mb-4">History of Temporary Staff</h3>
+            <Card className="border-none shadow-sm overflow-hidden bg-card/60 backdrop-blur-md rounded-[24px]">
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="bg-slate-500/10 text-slate-900 dark:text-slate-100 border-b border-slate-500/20">
+                        <th className="text-left py-4 px-6 text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Personnel</th>
+                        <th className="text-left py-4 px-6 text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Permanent Branch</th>
+                        <th className="text-left py-4 px-6 text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Assignment Period</th>
+                        <th className="text-left py-4 px-6 text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border/50">
+                      {hodTempStaff.map((assignment: any) => {
+                        const start = new Date(assignment.start_date);
+                        const end = assignment.end_date ? new Date(assignment.end_date) : new Date('2099-12-31');
+                        start.setHours(0, 0, 0, 0);
+                        end.setHours(23, 59, 59, 999);
+                        const now = new Date();
+
+                        const isDuty = assignment.status === 'Active' && now >= start && now <= end;
+                        const isUpcoming = assignment.status === 'Active' && now < start;
+                        const isCompleted = assignment.status === 'Completed' || (assignment.status === 'Active' && now > end);
+
+                        let statusText = assignment.status;
+                        let badgeClass = 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300';
+
+                        if (isDuty) {
+                          statusText = 'ON DUTY';
+                          badgeClass = 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300';
+                        } else if (isUpcoming) {
+                          statusText = 'UPCOMING';
+                          badgeClass = 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300';
+                        } else if (isCompleted) {
+                          statusText = 'COMPLETED';
+                          badgeClass = 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300';
+                        } else if (assignment.status === 'Cancelled') {
+                          statusText = 'CANCELLED';
+                          badgeClass = 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300';
+                        }
+
+                        return (
+                          <tr key={`hist-${assignment.id}`} className="hover:bg-slate-500/5 transition-colors opacity-80">
+                            <td className="py-4 px-6">
+                              <div className="flex items-center gap-3">
+                                <div className="w-9 h-9 rounded-xl bg-slate-500/20 flex items-center justify-center text-[9px] print:text-[13px] font-black text-slate-700 dark:text-slate-300">
+                                  {assignment.name ? assignment.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase() : "NA"}
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="font-bold text-foreground text-sm">{assignment.name}</p>
+                                  <p className="text-[8px] print:text-[13px] text-foreground truncate font-medium uppercase tracking-widest flex items-center gap-1">
+                                    {assignment.employee || assignment.user_id}
+                                  </p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="py-4 px-6 font-semibold text-foreground text-sm">
+                              {assignment.primary_branch || "HQ"}
+                            </td>
+                            <td className="py-4 px-6 text-sm font-semibold text-foreground uppercase">
+                              {new Date(assignment.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()} - {assignment.end_date ? new Date(assignment.end_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase() : 'ONGOING'}
+                            </td>
+                            <td className="py-4 px-6 text-xs font-semibold">
+                              <span className={`px-2 py-1 rounded-md text-[8px] print:text-[13px] uppercase tracking-widest font-black ${badgeClass}`}>
+                                {statusText}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
 
       {/* Employee Details */}
       <StaffProfileDialog 
