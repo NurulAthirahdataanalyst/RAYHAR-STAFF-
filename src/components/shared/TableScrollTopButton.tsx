@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { ArrowUp } from 'lucide-react';
 
 interface TableScrollTopButtonProps {
-  entriesPerPage: number;
+  entriesPerPage?: number;
   threshold?: number; // Default 50
   tableRef?: React.RefObject<HTMLElement | null>;
   onClick?: () => void;
@@ -16,8 +17,42 @@ export function TableScrollTopButton({
   onClick,
   className = ""
 }: TableScrollTopButtonProps) {
-  // Only render if pagination value is 50 or above
-  if (entriesPerPage < threshold) return null;
+  const [mounted, setMounted] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+
+    const checkScroll = () => {
+      const mainEl = document.querySelector('main');
+      const scrollTop = mainEl ? mainEl.scrollTop : (window.scrollY || document.documentElement.scrollTop || 0);
+      const scrollHeight = mainEl ? mainEl.scrollHeight : (document.documentElement.scrollHeight || 0);
+      const clientHeight = mainEl ? mainEl.clientHeight : (window.innerHeight || 0);
+
+      // Only show when scrolled down away from the top of the page (e.g. > 150px)
+      const isScrolledDown = scrollTop > 150;
+      const isNearBottom = (scrollTop + clientHeight) >= (scrollHeight - 250);
+
+      // Check pagination threshold if entriesPerPage is passed
+      const isEligible = entriesPerPage === undefined || entriesPerPage >= threshold || isNearBottom;
+
+      setIsVisible(isScrolledDown && isEligible);
+    };
+
+    // Run initial check
+    checkScroll();
+
+    // Listen with capture to catch scroll events from <main> or any container
+    document.addEventListener('scroll', checkScroll, { capture: true, passive: true });
+    window.addEventListener('resize', checkScroll, { passive: true });
+
+    return () => {
+      document.removeEventListener('scroll', checkScroll, { capture: true });
+      window.removeEventListener('resize', checkScroll);
+    };
+  }, [entriesPerPage, threshold]);
+
+  if (!mounted || !isVisible) return null;
 
   const handleScrollToTop = () => {
     if (onClick) {
@@ -67,15 +102,17 @@ export function TableScrollTopButton({
     }
   };
 
-  return (
+  const buttonContent = (
     <button
       type="button"
       onClick={handleScrollToTop}
-      title="Scroll table to first row"
-      aria-label="Scroll table to first row"
-      className={`fixed bottom-10 right-6 sm:right-10 z-50 w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-slate-300 dark:border-slate-700 bg-white/95 dark:bg-slate-900/95 shadow-xl flex items-center justify-center text-slate-700 dark:text-slate-200 hover:text-[#942392] hover:border-[#942392] dark:hover:border-[#942392] hover:bg-slate-50 dark:hover:bg-slate-800 transition-all duration-300 hover:scale-110 active:scale-95 group ${className}`}
+      title="Scroll to top"
+      aria-label="Scroll to top"
+      className={`fixed bottom-6 right-6 sm:bottom-8 sm:right-8 z-[9999] w-10 h-10 sm:w-11 sm:h-11 rounded-full border border-slate-300 dark:border-slate-700 bg-white/95 dark:bg-slate-900/95 shadow-2xl flex items-center justify-center text-slate-700 dark:text-slate-200 hover:text-white hover:bg-[#942392] hover:border-[#942392] dark:hover:border-[#942392] transition-all duration-300 hover:scale-110 active:scale-95 group cursor-pointer animate-in fade-in zoom-in-75 ${className}`}
     >
-      <ArrowUp className="w-4 h-4 sm:w-5 sm:h-5 text-slate-600 dark:text-slate-300 group-hover:text-[#942392] transition-colors" />
+      <ArrowUp className="w-5 h-5 text-slate-700 dark:text-slate-200 group-hover:text-white transition-colors" />
     </button>
   );
+
+  return createPortal(buttonContent, document.body);
 }
