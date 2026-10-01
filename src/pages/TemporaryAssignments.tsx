@@ -586,12 +586,12 @@ const TemporaryAssignments = () => {
             {assignForm.location === "HQ" && (
               <div>
                 <Label className="text-xs font-bold uppercase tracking-widest text-foreground">Department</Label>
-                <Select value={assignForm.department} onValueChange={(val) => setAssignForm({...assignForm, department: val})}>
+                <Select value={assignForm.department || "all"} onValueChange={(val) => setAssignForm({...assignForm, department: val === "all" ? "" : val})}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select Department (optional)" />
                   </SelectTrigger>
                   <SelectContent className="max-h-[200px]">
-                    <SelectItem value="">All Departments</SelectItem>
+                    <SelectItem value="all">All Departments</SelectItem>
                     {departments.map((d: any) => (
                       <SelectItem key={d.id || d.name} value={d.name}>{d.name}</SelectItem>
                     ))}
