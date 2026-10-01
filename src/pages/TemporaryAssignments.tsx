@@ -54,12 +54,14 @@ const TemporaryAssignments = () => {
 
   // Modal State
   const [showAssignModal, setShowAssignModal] = useState(false);
-  const [assignForm, setAssignForm] = useState({ user_id: "", location: "", start_date: "", end_date: "", status: "Active", purpose: "", remarks: "" });
+  const [assignForm, setAssignForm] = useState({ user_id: "", location: "", department: "", start_date: "", end_date: "", status: "Active", purpose: "", remarks: "" });
   const [submittingAssign, setSubmittingAssign] = useState(false);
   const [employees, setEmployees] = useState<any[]>([]);
   const [branches, setBranches] = useState<any[]>([]);
+  const [departments, setDepartments] = useState<any[]>([]);
   const [employeeSearch, setEmployeeSearch] = useState("");
   
+
   const [editId, setEditId] = useState<number | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deletingAssignment, setDeletingAssignment] = useState<TemporaryAssignment | null>(null);
@@ -98,14 +100,17 @@ const TemporaryAssignments = () => {
 
   const fetchDependencies = async () => {
     try {
-      const [branchRes, empRes] = await Promise.all([
+      const [branchRes, empRes, deptRes] = await Promise.all([
         fetch(`${API_BASE_URL}/api/branches`),
-        fetch(`${API_BASE_URL}/api/employees?role=hr_admin&branch=&status=Active`)
+        fetch(`${API_BASE_URL}/api/employees?role=hr_admin&branch=&status=Active`),
+        fetch(`${API_BASE_URL}/api/departments`)
       ]);
       const branchData = await branchRes.json();
       const empData = await empRes.json();
+      const deptData = await deptRes.json();
       if (branchData.success) setBranches(branchData.branches);
       if (empData.success) setEmployees(empData.employees);
+      if (deptData.success) setDepartments(deptData.departments || []);
     } catch (e) {
       console.error("Failed to fetch dependencies", e);
     }
@@ -135,7 +140,7 @@ const TemporaryAssignments = () => {
         toast.success(editId ? "Assignment updated successfully" : "Assignment created successfully");
         setShowAssignModal(false);
         fetchAssignments();
-        setAssignForm({ user_id: "", location: "", start_date: "", end_date: "", status: "Active", purpose: "", remarks: "" });
+        setAssignForm({ user_id: "", location: "", department: "", start_date: "", end_date: "", status: "Active", purpose: "", remarks: "" });
         setEditId(null);
       } else {
         toast.error("Failed to save assignment");
@@ -225,7 +230,7 @@ const TemporaryAssignments = () => {
           <Button 
             onClick={() => {
               setEditId(null);
-              setAssignForm({ user_id: "", location: "", start_date: "", end_date: "", status: "Active", purpose: "", remarks: "" });
+              setAssignForm({ user_id: "", location: "", department: "", start_date: "", end_date: "", status: "Active", purpose: "", remarks: "" });
               setShowAssignModal(true);
             }}
             className="bg-[#a01497] hover:bg-[#850f7c] text-white font-bold whitespace-nowrap"
@@ -504,12 +509,12 @@ const TemporaryAssignments = () => {
 
       {/* ASSIGNMENT DIALOG */}
       <Dialog open={showAssignModal} onOpenChange={setShowAssignModal}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>{editId ? "Edit Temporary Assignment" : "Temporary Branch Assignment"}</DialogTitle>
-            <DialogDescription>{editId ? "Update the employee's temporary branch assignment." : "Assign an employee to work at a different branch temporarily."}</DialogDescription>
+        <DialogContent className="max-w-md p-0 overflow-hidden">
+          <DialogHeader className="px-6 py-4 border-b border-[#851b83] bg-[#942392] shrink-0">
+            <DialogTitle className="text-xl font-bold text-white">{editId ? "Edit Temporary Assignment" : "Temporary Branch Assignment"}</DialogTitle>
+            <DialogDescription className="text-purple-200 text-sm">{editId ? "Update the employee's temporary branch assignment." : "Assign an employee to work at a different branch temporarily."}</DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 pt-4">
+          <div className="space-y-4 p-6">
             <div>
               <Label className="text-xs font-bold uppercase tracking-widest text-foreground">Employee</Label>
               <Select value={assignForm.user_id} onValueChange={(val) => { setAssignForm({...assignForm, user_id: val}); setEmployeeSearch(""); }}>
@@ -566,7 +571,7 @@ const TemporaryAssignments = () => {
             </div>
             <div>
               <Label className="text-xs font-bold uppercase tracking-widest text-foreground">Target Branch</Label>
-              <Select value={assignForm.location} onValueChange={(val) => setAssignForm({...assignForm, location: val})}>
+              <Select value={assignForm.location} onValueChange={(val) => setAssignForm({...assignForm, location: val, department: ""})}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select Branch" />
                 </SelectTrigger>
@@ -577,6 +582,23 @@ const TemporaryAssignments = () => {
                 </SelectContent>
               </Select>
             </div>
+            {/* Department filter — shown only when HQ branch is selected */}
+            {assignForm.location === "HQ" && (
+              <div>
+                <Label className="text-xs font-bold uppercase tracking-widest text-foreground">Department</Label>
+                <Select value={assignForm.department} onValueChange={(val) => setAssignForm({...assignForm, department: val})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Department (optional)" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[200px]">
+                    <SelectItem value="">All Departments</SelectItem>
+                    {departments.map((d: any) => (
+                      <SelectItem key={d.id || d.name} value={d.name}>{d.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label className="text-xs font-bold uppercase tracking-widest text-foreground mb-2 block">Start Date</Label>
@@ -591,11 +613,11 @@ const TemporaryAssignments = () => {
               <Button 
                 variant="outline" 
                 className="w-1/3 text-rose-500 border-rose-200 hover:bg-rose-50 dark:hover:bg-rose-950/30"
-                onClick={() => setAssignForm({ user_id: "", location: "", start_date: "", end_date: "", status: "Active", purpose: "", remarks: "" })}
+                onClick={() => setAssignForm({ user_id: "", location: "", department: "", start_date: "", end_date: "", status: "Active", purpose: "", remarks: "" })}
               >
                 Reset
               </Button>
-              <Button className="w-full bg-[#a01497] hover:bg-[#850f7c] text-white" disabled={submittingAssign} onClick={handleAssignSubmit}>
+              <Button className="w-full bg-[#942392] hover:bg-[#7a1b7a] text-white" disabled={submittingAssign} onClick={handleAssignSubmit}>
                 {submittingAssign ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                 {editId ? "Save Changes" : "Confirm Assignment"}
               </Button>
