@@ -474,15 +474,27 @@ export default function Employees() {
   const isHOD = role?.toLowerCase() === "head_of_department";
   const hodDept = (userDepartment || "").trim().toLowerCase();
 
-  const hodTempStaff = isHOD && hodDept
-    ? temporaryStaff.filter((a: any) => {
+  const isBranchLeader = role?.toLowerCase() === "branch_leader";
+  const blBranch = (userBranch || "").trim().toLowerCase();
+
+  const relevantTempStaff = (() => {
+    if (isHOD && hodDept) {
+      return temporaryStaff.filter((a: any) => {
         const isHq = (a.temp_branch === "HQ" || a.location === "HQ");
         const assignedDept = (a.assigned_department || a.department || "").trim().toLowerCase();
         return isHq && assignedDept === hodDept;
-      })
-    : [];
+      });
+    }
+    if (isBranchLeader && blBranch) {
+      return temporaryStaff.filter((a: any) => {
+        const tempBranch = (a.temp_branch || a.location || "").trim().toLowerCase();
+        return tempBranch === blBranch;
+      });
+    }
+    return [];
+  })();
 
-  const onDutyTempStaff = hodTempStaff.filter((a: any) => {
+  const onDutyTempStaff = relevantTempStaff.filter((a: any) => {
     if (a.status !== 'Active') return false;
     const start = new Date(a.start_date);
     const end = a.end_date ? new Date(a.end_date) : new Date('2099-12-31');
@@ -1176,8 +1188,8 @@ export default function Employees() {
         </CardContent>
       </Card>
 
-      {/* Temporary Staff Sections for HOD */}
-      {isHOD && hodTempStaff.length > 0 && !loading && (
+      {/* Temporary Staff Sections for HOD and Branch Leader */}
+      {(isHOD || isBranchLeader) && relevantTempStaff.length > 0 && !loading && (
         <div className="mt-8 mb-4 space-y-8">
           {/* On Duty Section */}
           {onDutyTempStaff.length > 0 && (
@@ -1243,7 +1255,7 @@ export default function Employees() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border/50">
-                      {hodTempStaff.map((assignment: any) => {
+                      {relevantTempStaff.map((assignment: any) => {
                         const start = new Date(assignment.start_date);
                         const end = assignment.end_date ? new Date(assignment.end_date) : new Date('2099-12-31');
                         start.setHours(0, 0, 0, 0);
