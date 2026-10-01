@@ -247,14 +247,14 @@ export default function AttendanceReports() {
 
   // KPI Calculations
   const totalEmployeesDay = filteredList.length;
-  const presentCountDay = filteredList.filter(a => a.status === "Present (On Time)" || a.status === "Present (Late)").length;
-  const lateCountDay = filteredList.filter(a => a.status === "Present (Late)").length;
+  const presentCountDay = filteredList.filter(a => a.status === "Present (On Time)" || a.status === "Present (Late)" || a.status === "Missing Clock-Out").length;
+  const lateCountDay = filteredList.filter(a => a.status === "Present (Late)" || a.is_late).length;
   const outstationCountDay = filteredList.filter(a => a.status === "Outstation").length;
   const leaveCountDay = filteredList.filter(a => a.status === "Company Leave" || a.status === "Approved Leave").length;
-  const missingClockOutCountDay = filteredList.filter(a => a.status === "Missing Clock-Out").length;
+  const missingClockOutCountDay = filteredList.filter(a => a.status === "Missing Clock-Out" || a.missing_clock_out).length;
   const absentCountDay = filteredList.filter(a => a.status === "Absent").length;
   const workingEmployeesDay = totalEmployeesDay - leaveCountDay;
-  const attendedEmployeesDay = presentCountDay + outstationCountDay + missingClockOutCountDay;
+  const attendedEmployeesDay = presentCountDay + outstationCountDay; // missingClockOut is already included in presentCountDay
   const attendanceRateDay = workingEmployeesDay > 0 ? Math.round((attendedEmployeesDay / workingEmployeesDay) * 100) : 0;
 
   const totalEmployees = viewType === "day" ? totalEmployeesDay : (monthlySummary?.totalEmployees || 0);
@@ -620,18 +620,27 @@ export default function AttendanceReports() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <span className={`whitespace-nowrap px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] ${
-                              req.status === 'Present (On Time)' ? 'bg-[#fdf4ff] text-[#942392] border-[#942392]/20 dark:bg-[#942392]/10' :
-                              req.status === 'Present (Late)' ? 'bg-yellow-50 text-yellow-600 border-yellow-200 dark:bg-yellow-500/10 dark:border-yellow-500/20' :
-                              req.status === 'Missing Clock-Out' ? 'bg-orange-50 text-orange-600 border-orange-200 dark:bg-orange-500/10 dark:border-orange-500/20' :
-                              req.status === 'Outstation' ? 'bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/10 dark:border-blue-500/20' :
-                              req.status === 'Approved Leave' || req.status === 'Company Leave' ? 'bg-[#fdf4ff] text-[#942392] border-[#942392]/20 dark:bg-[#942392]/10' :
-                              req.status === 'Weekend' || req.status === 'Rest Day' ? 'bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-500/10 dark:border-slate-500/20 dark:text-slate-300' :
-                              req.status === 'Absent' ? 'bg-red-50 text-red-600 border-red-200 dark:bg-red-500/10 dark:border-red-500/20' :
-                              'bg-slate-50 text-slate-400 border-slate-200 dark:bg-slate-500/10 dark:border-slate-500/20'
-                            }`}>
-                              {req.status}
-                            </span>
+                            <div className="flex flex-col items-start gap-1">
+                              <span className={`whitespace-nowrap px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] ${
+                                req.status === 'Present (On Time)' ? 'bg-[#fdf4ff] text-[#942392] border-[#942392]/20 dark:bg-[#942392]/10' :
+                                req.status === 'Present (Late)' ? 'bg-yellow-50 text-yellow-600 border-yellow-200 dark:bg-yellow-500/10 dark:border-yellow-500/20' :
+                                req.status === 'Missing Clock-Out' ? 'bg-orange-50 text-orange-600 border-orange-200 dark:bg-orange-500/10 dark:border-orange-500/20' :
+                                req.status === 'Outstation' ? 'bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/10 dark:border-blue-500/20' :
+                                req.status === 'Approved Leave' || req.status === 'Company Leave' ? 'bg-[#fdf4ff] text-[#942392] border-[#942392]/20 dark:bg-[#942392]/10' :
+                                req.status === 'Weekend' || req.status === 'Rest Day' ? 'bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-500/10 dark:border-slate-500/20 dark:text-slate-300' :
+                                req.status === 'Absent' ? 'bg-red-50 text-red-600 border-red-200 dark:bg-red-500/10 dark:border-red-500/20' :
+                                'bg-slate-50 text-slate-400 border-slate-200 dark:bg-slate-500/10 dark:border-slate-500/20'
+                              }`}>
+                                {req.status}
+                              </span>
+                              {req.status === 'Missing Clock-Out' && (
+                                <span className={`whitespace-nowrap px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] ${
+                                  req.is_late ? 'bg-yellow-50 text-yellow-600 border-yellow-200 dark:bg-yellow-500/10 dark:border-yellow-500/20' : 'bg-[#fdf4ff] text-[#942392] border-[#942392]/20 dark:bg-[#942392]/10'
+                                }`}>
+                                  {req.is_late ? 'Present (Late)' : 'Present (On Time)'}
+                                </span>
+                              )}
+                            </div>
                           </TableCell>
                           <TableCell>{req.time_in || "-"}</TableCell>
                           <TableCell>{req.time_out || "-"}</TableCell>
