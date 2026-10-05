@@ -829,15 +829,6 @@ export default function WorkforceInsights() {
                   <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Branch Workforce Distribution</CardTitle>
                   <div className="text-xs text-foreground mt-0.5 italic">View workforce distribution across all company branches and regions.</div>
                 </div>
-                  <Select value={selectedRegion} onValueChange={setSelectedRegion}>
-                    <SelectTrigger className="w-[120px] h-7 text-[10px] font-bold border border-slate-300 dark:border-slate-700 bg-card shadow-none focus:ring-0">
-                      <SelectValue placeholder="All Regions" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="All Regions" className="text-[10px] font-bold">All Regions</SelectItem>
-                      {regionOrder.map(r => <SelectItem key={r} value={r} className="text-[10px] font-bold">{r}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
                 </CardHeader>
                 <CardContent className="p-5 flex flex-col">
                   <div className={`space-y-4 flex-1 pr-2 ${filteredBranches.length > 5 ? 'overflow-y-auto custom-scrollbar max-h-[220px] custom-scrollbar' : 'overflow-y-visible'}`}>
