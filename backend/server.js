@@ -3252,9 +3252,9 @@ app.post("/api/leave-requests/:id/upload-mc", upload.single("lampiranMc"), async
   const leaveId = req.params.id;
   try {
     const { rows } = await pool.query(`
-      SELECT l.*, p.name, p.branch 
+      SELECT l.*, p.full_name AS name, p.branch 
       FROM leave_requests l 
-      JOIN profiles p ON l.user_id = p.id 
+      JOIN profiles p ON l.user_id = p.user_id 
       WHERE l.id = $1
     `, [leaveId]);
 
