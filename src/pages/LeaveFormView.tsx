@@ -617,7 +617,7 @@ export default function LeaveFormView() {
               </div>
 
               <div id="leave-form-print" className="p-4 sm:p-8 print:p-2 space-y-6 print:space-y-2">
-                <div className="rounded-[24px] border border-border/50 p-6 sm:p-8 print:p-4 space-y-6 print:space-y-3 bg-card shadow-sm print:shadow-none print:border-none">
+                <div className="rounded-[24px] border border-border/50 p-6 sm:p-8 print:p-8 space-y-6 print:space-y-3 bg-card shadow-sm print:shadow-none print:border-2 print:border-black print:rounded-none">
                   <div className="text-center border-b-2 border-foreground/50 dark:border-purple-500/50 pb-4 print:pb-2">
                     <h2 className="text-2xl print:text-4xl font-black tracking-tighter text-foreground dark:text-purple-400">RAYHAR GROUP</h2>
                     <p className="text-[10px] print:text-[16px] font-black tracking-[0.2em] print:tracking-[0.3em] uppercase opacity-60 dark:text-purple-300">Permohonan Cuti Kakitangan</p>
@@ -838,6 +838,24 @@ export default function LeaveFormView() {
                             }
                           }}
                         />
+                        <a
+                          href={`${API_BASE_URL}${selectedForm.mcFileUrl}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[10px] print:text-[13px] font-black uppercase tracking-widest bg-[#942392] text-white px-4 py-2 rounded-xl hover:bg-[#5e0080] transition-colors shadow-lg"
+                        >
+                          View File
+                        </a>
+                        <a
+                          href={`${API_BASE_URL}${selectedForm.mcFileUrl}`}
+                          download
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center justify-center h-8 w-8 rounded-md border border-[#942392]/20 text-[#942392] hover:bg-[#942392] hover:text-white transition-colors"
+                          title="Download File"
+                        >
+                          <Download className="w-4 h-4" />
+                        </a>
                         <Button 
                           variant="outline" 
                           size="icon" 
@@ -851,14 +869,6 @@ export default function LeaveFormView() {
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
                         </Button>
-                        <a
-                          href={`${API_BASE_URL}${selectedForm.mcFileUrl}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-[10px] print:text-[13px] font-black uppercase tracking-widest bg-[#942392] text-white px-4 py-2 rounded-xl hover:bg-[#5e0080] transition-colors shadow-lg"
-                        >
-                          View File
-                        </a>
                       </div>
                     </div>
                   )}
@@ -943,22 +953,6 @@ export default function LeaveFormView() {
                     Borang ini sah digunakan sebagai bukti rasmi cuti kakitangan setelah mendapat kelulusan pihak pengurusan.
                   </p>
 
-                  {/* Print-only MC Document Page */}
-                  {(selectedForm.type === "Sick Leave" || selectedForm.type === "Cuti Sakit") && selectedForm.mcFileUrl && selectedForm.mcFileUrl.match(/\.(jpeg|jpg|png|gif)$/i) && (
-                    <div className="hidden print:block break-before-page w-full pt-10">
-                      <div className="text-center mb-8">
-                        <h2 className="text-xl font-bold uppercase tracking-widest text-black border-b-2 border-black inline-block pb-2">MC DOCUMENT</h2>
-                      </div>
-                      <div className="w-full flex items-center justify-center h-[800px]">
-                        <img 
-                          src={`${API_BASE_URL}${selectedForm.mcFileUrl}`} 
-                          alt="MC Attachment" 
-                          className="max-w-full max-h-full object-contain"
-                        />
-                      </div>
-                    </div>
-                  )}
-
                   <div className="pt-4 flex justify-end gap-3 print:hidden">
                     <Button
                       type="button"
@@ -978,6 +972,23 @@ export default function LeaveFormView() {
                     </Button>
                   </div>
                 </div>
+
+
+                  {/* Print-only MC Document Page */}
+                  {(selectedForm.type === "Sick Leave" || selectedForm.type === "Cuti Sakit") && selectedForm.mcFileUrl && selectedForm.mcFileUrl.match(/\.(jpeg|jpg|png|gif)$/i) && (
+                    <div className="hidden print:block break-before-page w-full pt-10 border-2 border-black print:p-8 print:mt-10">
+                      <div className="text-center mb-8">
+                        <h2 className="text-xl font-bold uppercase tracking-widest text-black border-b-2 border-black inline-block pb-2">MC DOCUMENT</h2>
+                      </div>
+                      <div className="w-full flex items-center justify-center h-[800px]">
+                        <img 
+                          src={`${API_BASE_URL}${selectedForm.mcFileUrl}`} 
+                          alt="MC Attachment" 
+                          className="max-w-full max-h-full object-contain"
+                        />
+                      </div>
+                    </div>
+                  )}
               </div>
             </>
           )}
