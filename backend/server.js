@@ -4589,7 +4589,7 @@ app.post("/api/employees/status", async (req, res) => {
 
   try {
     await pool.query(
-      "UPDATE profiles SET status = ? WHERE user_id = ?",
+      "UPDATE profiles SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?",
       [status, user_id]
     );
 
@@ -8819,15 +8819,17 @@ app.get("/api/workforce-stats", async (req, res) => {
       }
     });
 
-    const [realLeaveAnalyticsRows] = await pool.query(
-      `SELECT lr.leave_type, COUNT(*) as count 
-       FROM leave_requests lr
-       JOIN profiles p ON p.user_id = lr.user_id
-       WHERE lr.status = 'Approved'
-       ${profileFilter}
-       GROUP BY lr.leave_type`,
-      pFilterParams
-    );
+      const [realLeaveAnalyticsRows] = await pool.query(
+        `SELECT lr.leave_type, COUNT(*) as count 
+         FROM leave_requests lr
+         JOIN profiles p ON p.user_id = lr.user_id
+         WHERE lr.status = 'Approved'
+           AND (lr.start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date <= ?::date
+           AND (lr.end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date >= ?::date
+         ${profileFilter}
+         GROUP BY lr.leave_type`,
+        [monthEndStr, monthStartStr, ...pFilterParams]
+      );
     let realLeaveAnalytics = { annual: 0, medical: 0, emergency: 0, unpaid: 0 };
     realLeaveAnalyticsRows.forEach(r => {
       const type = String(r.leave_type || '').toLowerCase();
@@ -9070,11 +9072,11 @@ app.get("/api/workforce-stats", async (req, res) => {
       }),
       leaveAnalytics: realLeaveAnalytics,
       outstationAnalytics: dynamicMetrics.outstationAnalytics,
-      workforceMovement: { 
-        newJoiners: parseInt((await pool.query(`SELECT COUNT(*) as cnt FROM profiles p WHERE EXTRACT(MONTH FROM p.created_at) = ? AND EXTRACT(YEAR FROM p.created_at) = ? AND p.status='Active' ${profileFilter}`, [requestedMonth, requestedYear, ...pFilterParams]))[0][0]?.cnt || 0), 
-        resigned: parseInt((await pool.query(`SELECT COUNT(*) as cnt FROM profiles p WHERE p.status = 'Inactive' ${profileFilter}`, [...pFilterParams]))[0][0]?.cnt || 0), 
-        transferred: parseInt((await pool.query(`SELECT COUNT(DISTINCT e.user_id) as cnt FROM employee_work_assignment e JOIN profiles p ON e.user_id = p.user_id WHERE e.type = 'Temporary Assignment' AND e.start_date < ? AND e.end_date >= ? ${profileFilter}`, [new Date(requestedYear, requestedMonth, 1).toISOString().substring(0, 10), new Date(requestedYear, requestedMonth - 1, 1).toISOString().substring(0, 10), ...pFilterParams]))[0][0]?.cnt || 0) 
-      },
+        workforceMovement: { 
+          newJoiners: parseInt((await pool.query(`SELECT COUNT(*) as cnt FROM profiles p WHERE EXTRACT(MONTH FROM p.created_at) = ? AND EXTRACT(YEAR FROM p.created_at) = ? ${profileFilter}`, [requestedMonth, requestedYear, ...pFilterParams]))[0][0]?.cnt || 0), 
+          resigned: parseInt((await pool.query(`SELECT COUNT(*) as cnt FROM profiles p WHERE p.status = 'Inactive' AND EXTRACT(MONTH FROM p.updated_at) = ? AND EXTRACT(YEAR FROM p.updated_at) = ? ${profileFilter}`, [requestedMonth, requestedYear, ...pFilterParams]))[0][0]?.cnt || 0), 
+          transferred: parseInt((await pool.query(`SELECT COUNT(DISTINCT e.user_id) as cnt FROM employee_work_assignment e JOIN profiles p ON e.user_id = p.user_id WHERE e.type = 'Temporary Assignment' AND EXTRACT(MONTH FROM e.created_at) = ? AND EXTRACT(YEAR FROM e.created_at) = ? ${profileFilter}`, [requestedMonth, requestedYear, ...pFilterParams]))[0][0]?.cnt || 0) 
+        },
       hrAlerts: dynamicMetrics.hrAlerts,
       topKpi: {
         totalHeadcount,
