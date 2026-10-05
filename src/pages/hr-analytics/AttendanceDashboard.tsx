@@ -1796,18 +1796,6 @@ export default function AttendanceDashboard() {
           <CardHeader className="pb-4 pt-5 px-6 border-b border-gray-100 dark:border-slate-800 flex flex-row items-start justify-between">
             <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Branch Workforce Distribution</CardTitle>
             <div className="flex items-center gap-2 flex-wrap justify-end">
-              <Select value={liveRegion} onValueChange={setLiveRegion}>
-                <SelectTrigger className="w-[160px] h-8 text-[11px] font-bold border-gray-200 dark:border-slate-800 bg-card shadow-none focus:ring-0">
-                  <SelectValue placeholder="All Regions" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all" className="text-[11px] font-bold">All Regions</SelectItem>
-                  <SelectItem value="East Coast / East Malaysia" className="text-[11px] font-bold">East Coast / East Malaysia</SelectItem>
-                  <SelectItem value="North Malaysia" className="text-[11px] font-bold">North Malaysia</SelectItem>
-                  <SelectItem value="Central / West Coast" className="text-[11px] font-bold">Central / West Coast</SelectItem>
-                  <SelectItem value="South Malaysia" className="text-[11px] font-bold">South Malaysia</SelectItem>
-                </SelectContent>
-              </Select>
               <div className="flex items-center gap-3">
                 <ExportDropdown onExportCSV={handleExport} onExportPDF={handleExportPDF} />
               </div>
