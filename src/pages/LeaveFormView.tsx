@@ -304,6 +304,34 @@ export default function LeaveFormView() {
     }
   }, [selectedForm?.id, userId]);
 
+  const handleDownloadMCFile = async (e: React.MouseEvent, form: any) => {
+    e.preventDefault();
+    try {
+        const url = `${API_BASE_URL}${form.mcFileUrl}`;
+        const response = await fetch(url);
+        const blob = await response.blob();
+        
+        // Extract original extension
+        const urlParts = form.mcFileUrl.split('.');
+        const ext = urlParts.length > 1 ? urlParts[urlParts.length - 1] : 'pdf';
+        
+        // Create filename: Full Name - branch - leave_type
+        const filename = `${form.employeeName} - ${form.branch} - ${leaveTypeLabels[form.leaveType as keyof typeof leaveTypeLabels] || form.leaveType}.${ext}`;
+        
+        const blobUrl = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = blobUrl;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+        console.error("Download failed:", error);
+        toast.error("Failed to download file");
+    }
+  };
+
   const handleExport = () => {
     if (filteredForms.length === 0) {
       toast.error("No records to export");
@@ -846,16 +874,13 @@ export default function LeaveFormView() {
                         >
                           View File
                         </a>
-                        <a
-                          href={`${API_BASE_URL}${selectedForm.mcFileUrl}`}
-                          download
-                          target="_blank"
-                          rel="noopener noreferrer"
+                        <button
+                          onClick={(e) => handleDownloadMCFile(e, selectedForm)}
                           className="flex items-center justify-center h-8 w-8 rounded-md border border-[#942392]/20 text-[#942392] hover:bg-[#942392] hover:text-white transition-colors"
                           title="Download File"
                         >
                           <Download className="w-4 h-4" />
-                        </a>
+                        </button>
                         <Button 
                           variant="outline" 
                           size="icon" 
@@ -997,4 +1022,7 @@ export default function LeaveFormView() {
     </div>
   );
 }
+
+
+
 
