@@ -3536,8 +3536,8 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
       await notificationService.createNotification({
         userId: user_id,
         title: 'Leave Request Submitted',
-        message: (leaveData.leave_type === 'Sick Leave' || leaveData.leave_type === 'Cuti Sakit')
-          ? `Your request for ${leaveData.leave_type} (${leaveData.days} day(s)) has been submitted and approved.`
+        message: (leaveData.leave_type?.trim().toLowerCase() === 'sick leave' || leaveData.leave_type?.trim().toLowerCase() === 'cuti sakit')
+          ? `Your request for ${leaveData.leave_type} (${leaveData.days} day(s)) has been submitted and automatically approved.`
           : `Your request for ${leaveData.leave_type} (${leaveData.days} day(s)) has been submitted and is pending approval.`,
         type: 'leave_approval',
         scope: 'personal',
@@ -3727,6 +3727,58 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
 
       } catch (mailErr) {
         console.error("Error sending workflow emails/notifications:", mailErr);
+      }
+    } else if (initialStatus === "Approved" && leaveData) {
+      try {
+        const leaveNotifTitle = `${leaveData.full_name} submitted a Leave Request`;
+        const leaveNotifMessage = `${leaveData.leave_type} - ${new Date(leaveData.start_date).toLocaleDateString("en-GB")} - ${leaveData.days} Day(s)`;
+        const teamProgressTitle = `Leave Approved`;
+        const teamMsg = `${leaveData.full_name}'s leave application for ${leaveData.leave_type} (${leaveData.days} day(s)) was automatically approved.`;
+        
+        // Notify all elevated roles
+        const [elevatedRows] = await pool.query(
+          `SELECT DISTINCT p.email, p.user_id, ur.role 
+           FROM profiles p 
+           JOIN user_role ur ON p.user_id = ur.user_id 
+           WHERE ur.role IN ('hr_admin', 'managing_director', 'operation_manager', 'finance_manager') 
+             AND p.status = 'Active' 
+             AND p.user_id != ?`,
+          [leaveData.user_id]
+        );
+
+        for (const el of (elevatedRows || [])) {
+          if (el.email && el.role === 'hr_admin') {
+            const fallbackHtml = `<p>FYI - New Leave Application from ${leaveData.full_name} (Auto-Approved).</p>`;
+            if (typeof sendNotificationEmail !== 'undefined') {
+              sendNotificationEmail(el.email, `FYI - Auto-Approved Leave Application: ${leaveData.full_name}`, fallbackHtml).catch(err => {
+                console.error("Failed to send HR notification email:", err);
+              });
+            }
+          }
+          if (el.user_id) {
+            notificationService.createNotification({
+              userId: el.user_id,
+              title: leaveNotifTitle,
+              message: leaveNotifMessage,
+              type: 'leave_approval',
+              scope: 'team',
+              relatedLeaveId: result.insertId,
+              sendPush: true,
+            }).catch(err => console.error("Failed to send elevated in-app notification:", err));
+
+            notificationService.createNotification({
+              userId: el.user_id,
+              title: teamProgressTitle,
+              message: teamMsg,
+              type: 'leave_approval',
+              scope: 'team',
+              relatedLeaveId: result.insertId,
+              sendPush: false,
+            }).catch(err => console.error("Failed to send team progress notification:", err));
+          }
+        }
+      } catch (mailErr) {
+        console.error("Error sending auto-approved notifications:", mailErr);
       }
     }
 
