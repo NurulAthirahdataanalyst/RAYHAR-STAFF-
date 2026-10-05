@@ -723,8 +723,8 @@ export default function TeamAttendance() {
 
       </div>
 
-      {historyFor && (
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/40 p-4" onClick={(e) => { if (e.target === e.currentTarget) closeHistory(); }}>
+      {historyFor && createPortal(
+        <div className="fixed inset-0 z-[9999] backdrop-blur-sm flex items-center justify-center bg-black/40 p-4" onClick={(e) => { if (e.target === e.currentTarget) closeHistory(); }}>
           <div className="w-full max-w-5xl bg-card rounded-lg p-6 max-h-[90vh] flex flex-col">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-black uppercase">Location History - {employees.find(e => e.user_id === historyFor)?.full_name || historyFor}</h3>
@@ -811,5 +811,6 @@ export default function TeamAttendance() {
     </div>
   );
 }
+
 
 
