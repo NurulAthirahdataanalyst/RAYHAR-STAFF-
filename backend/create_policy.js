@@ -1,7 +1,12 @@
 require('dotenv').config({ path: '../.env' });
 const { Pool } = require('pg');
 
-const databaseUrl = process.env.DATABASE_URL || 'postgresql://postgres.xvpebtompjcjfvuzeumo:RayharTravel2026@aws-1-ap-northeast-2.pooler.supabase.com:6543/postgres';
+const databaseUrl = process.env.DATABASE_URL;
+
+if (!databaseUrl) {
+  console.error("Error: DATABASE_URL is not set in the environment.");
+  process.exit(1);
+}
 
 const pool = new Pool({ 
   connectionString: databaseUrl, 
