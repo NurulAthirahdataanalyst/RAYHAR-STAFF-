@@ -441,7 +441,7 @@ export default function Notifications() {
         navigate(notif.related_leave_id ? `/leave/admin?leaveId=${notif.related_leave_id}` : `/leave/admin`);
         return;
       } else {
-        navigate(notif.related_leave_id ? `/leave?leaveId=${notif.related_leave_id}` : `/leave`);
+        navigate("/leave/forms");
         return;
       }
     }

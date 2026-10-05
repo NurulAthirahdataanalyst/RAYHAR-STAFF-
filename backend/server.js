@@ -3536,7 +3536,9 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
       await notificationService.createNotification({
         userId: user_id,
         title: 'Leave Request Submitted',
-        message: `Your request for ${leaveData.leave_type} (${leaveData.days} day(s)) has been submitted and is pending approval.`,
+        message: (leaveData.leave_type === 'Sick Leave' || leaveData.leave_type === 'Cuti Sakit')
+          ? `Your request for ${leaveData.leave_type} (${leaveData.days} day(s)) has been submitted and approved.`
+          : `Your request for ${leaveData.leave_type} (${leaveData.days} day(s)) has been submitted and is pending approval.`,
         type: 'leave_approval',
         scope: 'personal',
         sendPush: true,
