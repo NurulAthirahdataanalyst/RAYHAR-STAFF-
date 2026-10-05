@@ -458,7 +458,7 @@ export default function TeamLeaveRequests() {
 
                   {/* Conditional Fields: Cuti Sakit (MC) */}
                   {(selectedRequest.type === "Sick Leave" || selectedRequest.type === "Cuti Sakit") && selectedRequest.mcFileUrl && (
-                    <div className="p-4 bg-purple-500/10 border border-purple-500/20 rounded-[16px] flex items-center justify-between group">
+                    <div className="p-4 bg-purple-500/10 border border-purple-500/20 rounded-[16px] flex items-center justify-between group print:hidden">
                       <div className="flex items-center gap-3">
                         <FileText className="w-5 h-5 text-[#942392]" />
                         <span className="text-[10px] print:text-[13px] font-black text-[#942392] uppercase tracking-widest">MC Attachment</span>
@@ -568,6 +568,22 @@ export default function TeamLeaveRequests() {
                     </Button>
                   </div>
                 </div>
+
+                {/* Print-only MC Document Page */}
+                {(selectedRequest.type === "Sick Leave" || selectedRequest.type === "Cuti Sakit") && selectedRequest.mcFileUrl && selectedRequest.mcFileUrl.match(/\.(jpeg|jpg|png|gif)$/i) && (
+                  <div className="hidden print:block break-before-page w-full pt-10 border-2 border-black print:p-8 print:mt-10">
+                    <div className="text-center mb-8">
+                      <h2 className="text-xl font-bold uppercase tracking-widest text-black border-b-2 border-black inline-block pb-2">MC DOCUMENT</h2>
+                    </div>
+                    <div className="w-full flex items-center justify-center h-[800px]">
+                      <img 
+                        src={`${API_BASE_URL}${selectedRequest.mcFileUrl}`} 
+                        alt="MC Attachment" 
+                        className="max-w-full max-h-full object-contain"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             </>
           )}
