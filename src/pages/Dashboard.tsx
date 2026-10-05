@@ -808,29 +808,7 @@ export default function Dashboard() {
           <>
             {/* 1. Today's Status */}
             <Card 
-              onClick={() => {
-                if (safeTodayStatus.includes("Absent")) {
-                  if (role === "employee") {
-                    navigate("/attendance");
-                  } else if (role === "branch_leader" || role === "branch_officer" || role === "head_of_department") {
-                    navigate("/team-attendance");
-                  } else {
-                    navigate("/hr-analytics/attendance#employee-absenteeism");
-                  }
-                } else if (displayStatus.includes("Outstation")) {
-                  navigate("/outstation/my");
-                } else if (isOnLeave) {
-                  navigate("/leave/admin");
-                } else if (isPresent || isClockedOut) {
-                  if (role === "employee") {
-                    navigate("/attendance");
-                  } else if (role === "branch_leader" || role === "branch_officer" || role === "head_of_department") {
-                    navigate("/team-attendance");
-                  } else {
-                    navigate("/hr-analytics/attendance#admin-attendance");
-                  }
-                }
-              }}
+              onClick={() => navigate("/attendance")}
               className={`rounded-2xl shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] group relative overflow-hidden flex flex-col justify-between cursor-pointer ${
                 safeTodayStatus.includes("Present (On Time)") 
                   ? "border border-emerald-200 dark:border-emerald-900/60 bg-emerald-50/60 dark:bg-emerald-950/30" 
@@ -1149,25 +1127,7 @@ export default function Dashboard() {
                     valueClassName={todayStatusTextClass}
                     subtitle={todayStatusSubtitle}
                     variant={isPresent ? "success" : isClockedOut ? "default" : (isOnLeave || isCompanyLeave) ? "purple" : "maroon"}
-                    onClick={() => {
-                      if (safeTodayStatus.includes("Absent")) {
-                        if (role === "branch_leader" || role === "branch_officer" || role === "head_of_department") {
-                          navigate("/team-attendance");
-                        } else {
-                          navigate("/hr-analytics/attendance#employee-absenteeism");
-                        }
-                      } else if (displayStatus.includes("Outstation")) {
-                        navigate("/outstation/my");
-                      } else if (isOnLeave) {
-                        navigate("/leave/admin");
-                      } else if (isPresent || isClockedOut) {
-                        if (role === "branch_leader" || role === "branch_officer" || role === "head_of_department") {
-                          navigate("/team-attendance");
-                        } else {
-                          navigate("/hr-analytics/attendance#admin-attendance");
-                        }
-                      }
-                    }}
+                    onClick={() => navigate("/attendance")}
                   />
                 )}
                 {isCompanyLeaveActiveOnDate ? (
@@ -2104,5 +2064,6 @@ export default function Dashboard() {
     </div>
   );
 }
+
 
 
