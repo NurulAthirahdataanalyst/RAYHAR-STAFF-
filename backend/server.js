@@ -3255,7 +3255,7 @@ app.post("/api/leave-requests/:id/upload-mc", upload.single("lampiranMc"), async
       SELECT l.*, p.full_name AS name, p.branch 
       FROM leave_requests l 
       JOIN profiles p ON l.user_id = p.user_id 
-      WHERE l.id = $1
+      WHERE l.leave_id = $1
     `, [leaveId]);
 
     if (rows.length === 0) {
@@ -3284,7 +3284,7 @@ app.post("/api/leave-requests/:id/upload-mc", upload.single("lampiranMc"), async
       uploadToSupabaseStorage(newFilePath, supabaseStoragePath, req.file.mimetype);
       
       await pool.query(
-        "UPDATE leave_requests SET mc_file_url = $1 WHERE id = $2",
+        "UPDATE leave_requests SET mc_file_url = $1 WHERE leave_id = $2",
         [mc_file_url, leaveId]
       );
       
