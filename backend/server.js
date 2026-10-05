@@ -3251,14 +3251,14 @@ app.get("/api/calculate-leave-days", async (req, res) => {
 app.post("/api/leave-requests/:id/upload-mc", upload.single("lampiranMc"), async (req, res) => {
   const leaveId = req.params.id;
   try {
-    const { rows } = await pool.query(`
+    const [rows] = await pool.query(`
       SELECT l.*, p.full_name AS name, p.branch 
       FROM leave_requests l 
       JOIN profiles p ON l.user_id = p.user_id 
-      WHERE l.leave_id = $1
+      WHERE l.leave_id = ?
     `, [leaveId]);
 
-    if (rows.length === 0) {
+    if (!rows || rows.length === 0) {
       return res.status(404).json({ success: false, error: "Leave request not found" });
     }
 
@@ -3284,7 +3284,7 @@ app.post("/api/leave-requests/:id/upload-mc", upload.single("lampiranMc"), async
       uploadToSupabaseStorage(newFilePath, supabaseStoragePath, req.file.mimetype);
       
       await pool.query(
-        "UPDATE leave_requests SET mc_file_url = $1 WHERE leave_id = $2",
+        "UPDATE leave_requests SET mc_file_url = ? WHERE leave_id = ?",
         [mc_file_url, leaveId]
       );
       
