@@ -8888,6 +8888,17 @@ app.get("/api/workforce-stats", async (req, res) => {
       }))
       .sort((a, b) => b.missingPunches - a.missingPunches);
 
+    // Absent Employees Logic
+    const absentEmployees = (empStats || [])
+      .filter(u => u.absentCount > 0)
+      .map(u => ({
+        name: u.name,
+        department: u.department || 'General',
+        branch: u.branch || 'HQ',
+        absences: u.absentCount
+      }))
+      .sort((a, b) => b.absences - a.absences);
+
     // Get previous month missing punches for trend indicator
     const prevMonthDate = new Date(requestedYear, requestedMonth - 2, 1);
     const prevMonthStr = prevMonthDate.getMonth() + 1;
@@ -9102,7 +9113,8 @@ app.get("/api/workforce-stats", async (req, res) => {
         allAttendance: rankings,
         attentionEmployees,
         missingPunchEmployees,
-        missingPunchIndicator
+        missingPunchIndicator,
+        absentEmployees
       },
       sseInitialPayload
     });

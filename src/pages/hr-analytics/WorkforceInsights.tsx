@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Tooltip as UITooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { EmployeesRequiringAttentionCard } from '@/components/shared/EmployeesRequiringAttentionCard';
 import { MissingPunchCard } from "./MissingPunchCard";
+import { TotalAbsentCard } from "./TotalAbsentCard";
 
 const COLORS = ['#4f46e5', '#eab308', '#3b82f6', '#DC2626', '#a855f7', '#f746b9']; // Present, Late, On Leave, Absent, Comp Leave, Outstation
 
@@ -2687,6 +2688,13 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                <MissingPunchCard 
                  employees={data.performance.missingPunchEmployees} 
                  indicator={data.performance.missingPunchIndicator || "Same as last month"} 
+               />
+             )}
+             
+             {/* Total Absent KPI Card */}
+             {data?.performance?.absentEmployees && (
+               <TotalAbsentCard 
+                 employees={data.performance.absentEmployees} 
                />
              )}
            </div>
