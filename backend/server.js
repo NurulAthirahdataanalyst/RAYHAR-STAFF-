@@ -3248,6 +3248,56 @@ app.get("/api/calculate-leave-days", async (req, res) => {
   }
 });
 
+app.post("/api/leave-requests/:id/upload-mc", upload.single("lampiranMc"), async (req, res) => {
+  const leaveId = req.params.id;
+  try {
+    const { rows } = await pool.query(`
+      SELECT l.*, p.name, p.branch 
+      FROM leave_requests l 
+      JOIN profiles p ON l.user_id = p.id 
+      WHERE l.id = $1
+    `, [leaveId]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({ success: false, error: "Leave request not found" });
+    }
+
+    const leaveRequest = rows[0];
+    const employeeName = leaveRequest.name || "Unknown";
+    const employeeBranch = leaveRequest.branch || "HQ";
+
+    let mc_file_url = null;
+    if (req.file) {
+      const folderName = `${employeeName} (${employeeBranch})`.replace(/[\\/:*?"<>|]/g, "_").trim();
+      const userUploadsDir = path.join(uploadsDir, folderName);
+      
+      if (!fs.existsSync(userUploadsDir)) {
+        fs.mkdirSync(userUploadsDir, { recursive: true });
+      }
+      
+      const newFilePath = path.join(userUploadsDir, req.file.filename);
+      fs.renameSync(req.file.path, newFilePath);
+      
+      mc_file_url = `/uploads/${folderName}/${req.file.filename}`;
+      const supabaseStoragePath = `${folderName}/${req.file.filename}`;
+      
+      uploadToSupabaseStorage(newFilePath, supabaseStoragePath, req.file.mimetype);
+      
+      await pool.query(
+        "UPDATE leave_requests SET mc_file_url = $1 WHERE id = $2",
+        [mc_file_url, leaveId]
+      );
+      
+      return res.json({ success: true, mc_file_url });
+    } else {
+      return res.status(400).json({ success: false, error: "No file uploaded" });
+    }
+  } catch (error) {
+    console.error("Upload MC Error:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) => {
   const {
     user_id,

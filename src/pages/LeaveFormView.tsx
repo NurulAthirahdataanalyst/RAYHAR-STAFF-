@@ -466,9 +466,51 @@ export default function LeaveFormView() {
                           </Badge>
                         </TableCell>
                         <TableCell className="px-6 py-4 text-right">
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-foreground hover:text-[#942392] hover:bg-[#942392]/10">
-                            <Eye className="w-4 h-4" />
-                          </Button>
+                          <div className="flex justify-end items-center gap-2">
+                            {(form.type === "Sick Leave" || form.type === "Cuti Sakit") && (
+                              <div onClick={(e) => e.stopPropagation()}>
+                                <input 
+                                  type="file" 
+                                  id={`upload-mc-${form.id}`} 
+                                  className="hidden" 
+                                  accept="image/*,.pdf"
+                                  onChange={async (e) => {
+                                    const file = e.target.files?.[0];
+                                    if (!file) return;
+                                    const formData = new FormData();
+                                    formData.append("lampiranMc", file);
+                                    toast.loading("Uploading MC...", { id: "upload-mc" });
+                                    try {
+                                      const res = await fetch(`${API_BASE_URL}/api/leave-requests/${form.id}/upload-mc`, {
+                                        method: "POST",
+                                        body: formData,
+                                      });
+                                      if (res.ok) {
+                                        toast.success("MC uploaded successfully!", { id: "upload-mc" });
+                                        fetchForms();
+                                      } else {
+                                        const err = await res.json();
+                                        toast.error(err.error || "Failed to upload MC", { id: "upload-mc" });
+                                      }
+                                    } catch (err) {
+                                      toast.error("Failed to upload MC", { id: "upload-mc" });
+                                    }
+                                  }}
+                                />
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  className="h-8 text-[10px] uppercase font-bold tracking-wider"
+                                  onClick={() => document.getElementById(`upload-mc-${form.id}`)?.click()}
+                                >
+                                  Upload New File
+                                </Button>
+                              </div>
+                            )}
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-foreground hover:text-[#942392] hover:bg-[#942392]/10">
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
