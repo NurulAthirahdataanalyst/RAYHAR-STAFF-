@@ -1153,6 +1153,10 @@ export function StaffProfileDialog({
                             </div>
                           </CardContent>
                         </Card>
+                      </div>
+
+                      <div className="space-y-4">
+
 
                         <Card>
                           <CardContent className="p-4 space-y-4">
@@ -1207,9 +1211,6 @@ export function StaffProfileDialog({
                             </div>
                           </CardContent>
                         </Card>
-                      </div>
-
-                      <div className="space-y-4">
                         {role === "hr_admin" ? (
                           <Card>
                             <CardContent className="p-4 space-y-4">
