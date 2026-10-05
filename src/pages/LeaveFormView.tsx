@@ -802,19 +802,64 @@ export default function LeaveFormView() {
 
                   {/* Conditional Fields: Cuti Sakit (MC) */}
                   {(selectedForm.type === "Sick Leave" || selectedForm.type === "Cuti Sakit") && selectedForm.mcFileUrl && (
-                    <div className="p-4 bg-purple-500/10 border border-purple-500/20 rounded-[16px] flex items-center justify-between group">
+                    <div className="p-4 bg-purple-500/10 border border-purple-500/20 rounded-[16px] flex items-center justify-between group print:hidden">
                       <div className="flex items-center gap-3">
                         <FileText className="w-5 h-5 text-[#942392]" />
                         <span className="text-[10px] print:text-[13px] font-black text-[#942392] uppercase tracking-widest">MC Attachment</span>
                       </div>
-                      <a
-                        href={`${API_BASE_URL}${selectedForm.mcFileUrl}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-[10px] print:text-[13px] font-black uppercase tracking-widest bg-[#942392] text-white px-4 py-2 rounded-xl hover:bg-[#5e0080] transition-colors shadow-lg"
-                      >
-                        View File
-                      </a>
+                      <div className="flex items-center gap-2">
+                        <input 
+                          type="file" 
+                          id={`upload-mc-modal-${selectedForm.id}`} 
+                          className="hidden" 
+                          accept="image/*,.pdf"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            const formData = new FormData();
+                            formData.append("lampiranMc", file);
+                            toast.loading("Uploading MC...", { id: "upload-mc-modal" });
+                            try {
+                              const res = await fetch(`${API_BASE_URL}/api/leave-requests/${selectedForm.id}/upload-mc`, {
+                                method: "POST",
+                                body: formData,
+                              });
+                              if (res.ok) {
+                                toast.success("MC uploaded successfully!", { id: "upload-mc-modal" });
+                                if (typeof fetchForms === "function") fetchForms();
+                                const json = await res.json();
+                                setSelectedForm({ ...selectedForm, mcFileUrl: json.mc_file_url });
+                              } else {
+                                const err = await res.json();
+                                toast.error(err.error || "Failed to upload MC", { id: "upload-mc-modal" });
+                              }
+                            } catch (err) {
+                              toast.error("Failed to upload MC", { id: "upload-mc-modal" });
+                            }
+                          }}
+                        />
+                        <Button 
+                          variant="outline" 
+                          size="icon" 
+                          className="h-8 w-8 text-[#942392] border-[#942392]/20 hover:bg-[#942392] hover:text-white transition-colors"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            document.getElementById(`upload-mc-modal-${selectedForm.id}`)?.click();
+                          }}
+                          title="Replace File"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+                        </Button>
+                        <a
+                          href={`${API_BASE_URL}${selectedForm.mcFileUrl}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[10px] print:text-[13px] font-black uppercase tracking-widest bg-[#942392] text-white px-4 py-2 rounded-xl hover:bg-[#5e0080] transition-colors shadow-lg"
+                        >
+                          View File
+                        </a>
+                      </div>
                     </div>
                   )}
 
@@ -898,6 +943,22 @@ export default function LeaveFormView() {
                     Borang ini sah digunakan sebagai bukti rasmi cuti kakitangan setelah mendapat kelulusan pihak pengurusan.
                   </p>
 
+                  {/* Print-only MC Document Page */}
+                  {(selectedForm.type === "Sick Leave" || selectedForm.type === "Cuti Sakit") && selectedForm.mcFileUrl && selectedForm.mcFileUrl.match(/\.(jpeg|jpg|png|gif)$/i) && (
+                    <div className="hidden print:block break-before-page w-full pt-10">
+                      <div className="text-center mb-8">
+                        <h2 className="text-xl font-bold uppercase tracking-widest text-black border-b-2 border-black inline-block pb-2">MC DOCUMENT</h2>
+                      </div>
+                      <div className="w-full flex items-center justify-center h-[800px]">
+                        <img 
+                          src={`${API_BASE_URL}${selectedForm.mcFileUrl}`} 
+                          alt="MC Attachment" 
+                          className="max-w-full max-h-full object-contain"
+                        />
+                      </div>
+                    </div>
+                  )}
+
                   <div className="pt-4 flex justify-end gap-3 print:hidden">
                     <Button
                       type="button"
@@ -925,3 +986,4 @@ export default function LeaveFormView() {
     </div>
   );
 }
+
