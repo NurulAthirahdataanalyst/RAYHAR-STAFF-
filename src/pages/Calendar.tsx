@@ -1096,7 +1096,6 @@ export default function Calendar() {
               <button 
                 onClick={() => setViewMode('week')}
                 className={`px-5 py-1.5 rounded-md text-sm font-bold shadow-sm transition-colors ${viewMode === 'week' ? 'bg-[#FFFE00] text-[#942392] border-2 border-[#942392]' : 'text-foreground hover:text-foreground'}`}>Week</button>
-              <button className="px-5 py-1.5 rounded-md text-foreground hover:text-foreground text-sm font-bold transition-colors">Day</button>
             </div>
           </div>
           
@@ -1890,10 +1889,12 @@ export default function Calendar() {
             className="w-full max-w-sm rounded-2xl shadow-xl border border-border bg-card overflow-hidden animate-in zoom-in-95 duration-200"
             onClick={e => e.stopPropagation()}
           >
-            <div className="p-6">
-              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mb-4">
+            <div className="p-6 pb-4 bg-red-50 dark:bg-red-950/30">
+              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
                 <Trash2 className="w-6 h-6 text-red-600" />
               </div>
+            </div>
+            <div className="p-6 pt-4">
               <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-2">Delete Category?</h3>
               <p className="text-sm text-foreground mb-6">
                 Are you sure you want to delete <span className="font-bold text-slate-700">"{categoryToDelete.name}"</span>? Any existing events assigned to this category will be changed to "Notes".

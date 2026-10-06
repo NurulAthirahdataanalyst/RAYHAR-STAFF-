@@ -364,7 +364,7 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role }: LeaveDetai
                         }}
                       />
                       <a
-                        href={`${API_BASE_URL}${selectedRequest.mcFileUrl}`}
+                          href={`${API_BASE_URL}${selectedRequest.mcFileUrl}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-[10px] print:text-[13px] font-black uppercase tracking-widest bg-[#942392] text-white px-4 py-2 rounded-xl hover:bg-[#5e0080] transition-colors shadow-lg"
