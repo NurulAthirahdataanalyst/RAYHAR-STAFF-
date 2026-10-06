@@ -1012,19 +1012,15 @@ export default function Employees() {
                           </TableCell>
                           <TableCell className="py-4 px-6" onClick={(e) => e.stopPropagation()}>
                             <div className="flex items-center gap-2">
-                              <Badge className={`text-[10px] print:text-[13px] font-black px-3 ${emp.status === 'Active' ? 'bg-emerald-500 hover:bg-emerald-600 text-white' : emp.status === 'Inactive' ? 'bg-amber-500 hover:bg-amber-600 text-white' : 'bg-rose-500 hover:bg-rose-600 text-white'}`}>
+                              <span className={`inline-flex items-center justify-center px-3 py-1 text-[10px] print:text-[13px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap ${emp.status === 'Active' ? 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/20' : emp.status === 'Inactive' ? 'bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-500/10 dark:border-amber-500/20' : 'bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-500/10 dark:border-rose-500/20'}`}>
                                   {emp.status === 'Deleted' ? 'Deleted Staff' : `${emp.status} Staff`}
-                                </Badge>
+                                </span>
                               {role === "hr_admin" && (
                                 <Button
                                   variant="ghost"
                                   size="sm"
                                   onClick={(e) => handleToggleStatus(e, emp)}
-                                  className={`h-7 px-2.5 rounded-lg text-[10px] print:text-[13px] font-black uppercase tracking-wider ${
-                                    emp.status === "Active"
-                                      ? "hover:bg-red-500/10 hover:text-red-500 text-red-400"
-                                      : "hover:bg-emerald-500/10 hover:text-emerald-500 text-emerald-400"
-                                  }`}
+                                  className={`inline-flex items-center justify-center px-3 py-1 h-auto text-[10px] print:text-[13px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap transition-colors ${emp.status === "Active" ? "bg-transparent text-rose-500 border-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10" : "bg-transparent text-emerald-500 border-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-500/10"}`}
                                 >
                                   {emp.status === "Active" ? "Inactive" : "Re-activate"}
                                 </Button>
@@ -1068,19 +1064,15 @@ export default function Employees() {
                         <div className="flex items-center justify-between gap-2 mb-1">
                           <p className="font-black text-sm text-foreground truncate">{emp.name}</p>
                            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                            <Badge className={`text-[9px] print:text-[13px] font-black h-5 shrink-0 ${emp.status === 'Active' ? 'bg-emerald-500 text-white' : emp.status === 'Inactive' ? 'bg-amber-500 text-white' : 'bg-rose-500 text-white'}`}>
+                            <span className={`inline-flex items-center justify-center px-3 py-1 text-[10px] print:text-[13px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap ${emp.status === 'Active' ? 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/20' : emp.status === 'Inactive' ? 'bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-500/10 dark:border-amber-500/20' : 'bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-500/10 dark:border-rose-500/20'}`}>
                                 {emp.status === 'Deleted' ? 'Deleted Staff' : `${emp.status} Staff`}
-                              </Badge>
+                                </span>
                             {role === "hr_admin" && (
                               <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={(e) => handleToggleStatus(e, emp)}
-                                className={`h-6 px-2 rounded-md text-[10px] print:text-[13px] font-black uppercase tracking-wider ${
-                                  emp.status === "Active"
-                                    ? "hover:bg-red-500/10 hover:text-red-500 text-red-500"
-                                    : "hover:bg-emerald-500/10 hover:text-emerald-500 text-emerald-500"
-                                }`}
+                                className={`inline-flex items-center justify-center px-3 py-1 h-auto text-[10px] print:text-[13px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap transition-colors ${emp.status === "Active" ? "bg-transparent text-rose-500 border-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10" : "bg-transparent text-emerald-500 border-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-500/10"}`}
                               >
                                 {emp.status === "Active" ? "Inactive" : "Activate"}
                               </Button>

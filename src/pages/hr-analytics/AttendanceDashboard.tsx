@@ -1519,18 +1519,9 @@ export default function AttendanceDashboard() {
                           </td>
                           <td className="px-4 py-3">
                             <div className="flex flex-col gap-1 items-start">
-                              <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium ${attStatusClass}`}>
-                                <span className={`w-1 h-1 rounded-full mr-1 ${
-                                  attStatus === 'Present (On Time)' ? 'bg-green-500' : 
-                                  attStatus === 'Present (Late)' ? 'bg-amber-500' : 
-                                  attStatus === 'Company Leave' ? 'bg-purple-500' :
-                                  attStatus === 'Approved Leave' ? 'bg-blue-500' :
-                                  attStatus === 'Outstation' ? 'bg-[#f746b9] animate-pulse' :
-                                  (attStatus === 'Weekend' || attStatus === 'Rest Day') ? 'bg-gray-500' :
-                                  'bg-red-500'
-                                }`} />
-                                {attStatus}
-                              </span>
+                              <span className={`inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap ${attStatusClass}`}>
+                                  {attStatus}
+                                </span>
                               {record.clock_in && workStatus && (
                                 <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium ${workStatusClass}`}>
                                   {workStatus}
@@ -1542,7 +1533,7 @@ export default function AttendanceDashboard() {
                           <td className="px-4 py-3 text-[11px] text-gray-600 font-medium">{record.clock_out ? formatAttendanceTime(record.clock_out) : "--:--"}</td>
                           <td className="px-4 py-3 text-[11px] text-foreground font-medium">{lateMinStr}</td>
                           <td className="px-4 py-3">
-                            <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold ${isGoodHrs ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                            <span className={`inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap ${isGoodHrs ? 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/20' : 'bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-500/10 dark:border-rose-500/20'}`}>
                               {workHrsStr === '--' ? '0 H 00 Min' : `${workHrsStr.split('h ')[0]} H ${workHrsStr.split('h ')[1].replace('m', '').padStart(2, '0')} Min`}
                             </span>
                           </td>
@@ -1647,25 +1638,13 @@ export default function AttendanceDashboard() {
                           </td>
                           <td className="px-4 py-2">
                             {displayStatus === 'Outstation' ? (
-                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium bg-pink-50 dark:bg-pink-950/40 text-pink-700 dark:text-pink-300 border border-pink-200 dark:border-pink-900/50 shadow-sm">
-                                <span className="w-1 h-1 rounded-full mr-1 bg-[#f746b9] animate-pulse" />
-                                Outstation
-                              </span>
+                              <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap bg-pink-50 dark:bg-pink-950/40 text-pink-700 dark:text-pink-300 border-pink-200 dark:border-pink-900/50 shadow-sm">Outstation</span>
                             ) : displayStatus === 'Company Leave' ? (
-                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-900/50 shadow-sm">
-                                <span className="w-1 h-1 rounded-full mr-1 bg-purple-500 animate-pulse" />
-                                Company Leave
-                              </span>
+                              <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-900/50 shadow-sm">Company Leave</span>
                             ) : (displayStatus === 'On Leave' || displayStatus === 'Approved Leave') ? (
-                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-900/50 shadow-sm">
-                                <span className="w-1 h-1 rounded-full mr-1 bg-blue-500 animate-pulse" />
-                                On Leave
-                              </span>
+                              <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-900/50 shadow-sm">On Leave</span>
                             ) : (
-                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 border border-red-100 dark:border-red-900/50">
-                                <span className="w-1 h-1 rounded-full mr-1 bg-red-500" />
-                                Absent
-                              </span>
+                              <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 border-red-100 dark:border-red-900/50">Absent</span>
                             )}
                           </td>
                         </tr>
