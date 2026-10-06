@@ -1020,15 +1020,16 @@ export default function LeaveFormView() {
               </div>
             {/* Print-only MC Document Page */}
                   {(selectedForm.type === "Sick Leave" || selectedForm.type === "Cuti Sakit") && selectedForm.mcFileUrl && selectedForm.mcFileUrl.match(/\.(jpeg|jpg|png|gif)$/i) && (
-                    <div className="hidden print:block break-before-page w-full pt-10 border-2 border-black print:p-8 print:mt-10">
+                    <div className="h-0 overflow-hidden opacity-0 print:h-auto print:opacity-100 print:overflow-visible break-before-page w-full print:pt-10 print:border-2 print:border-black print:p-8 print:mt-10">
                       <div className="text-center mb-8">
                         <h2 className="text-xl font-bold uppercase tracking-widest text-black border-b-2 border-black inline-block pb-2">MC DOCUMENT</h2>
                       </div>
                       <div className="w-full flex items-center justify-center h-[800px]">
                         <img 
-                          src={safeFileUrl(selectedForm.mcFileUrl, "about:blank")} 
+                          src={safeFileUrl(selectedForm.mcFileUrl)} 
                           alt="MC Attachment" 
                           className="max-w-full max-h-full object-contain"
+                          crossOrigin="anonymous"
                         />
                       </div>
                     </div>
