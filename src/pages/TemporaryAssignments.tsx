@@ -41,6 +41,18 @@ function toProperCase(str: string): string {
   return str.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
+
+function statusBadge(status: string) {
+  const baseClasses = "inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap";
+  switch (status) {
+    case "Active":    return <span className={`${baseClasses} bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/20`}>Active</span>;
+    case "Upcoming":  return <span className={`${baseClasses} bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-500/10 dark:border-amber-500/20`}>Upcoming</span>;
+    case "Completed": return <span className={`${baseClasses} bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-500/10 dark:border-slate-500/20`}>Completed</span>;
+    case "Cancelled": return <span className={`${baseClasses} bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-500/10 dark:border-rose-500/20`}>Cancelled</span>;
+    default:          return <span className={`${baseClasses} bg-slate-50 text-slate-400 border-slate-200 dark:bg-slate-500/10 dark:border-slate-500/20`}>{status}</span>;
+  }
+}
+
 const TemporaryAssignments = () => {
   const { role, userBranch, userDepartment } = useRole();
   const isHRAdmin = role === "hr_admin";
@@ -420,20 +432,7 @@ const TemporaryAssignments = () => {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge
-                        variant={assignment.computedStatus === "Active" ? "default" : assignment.computedStatus === "Completed" ? "secondary" : assignment.computedStatus === "Upcoming" ? "default" : "destructive"}
-                        className={`
-                          ${assignment.computedStatus === "Active" ? "bg-emerald-500 hover:bg-emerald-600 text-white" : ""}
-                          ${assignment.computedStatus === "Upcoming" ? "bg-amber-500 hover:bg-amber-600 text-white" : ""}
-                          ${assignment.computedStatus === "Completed" ? "bg-slate-200 hover:bg-slate-300 text-slate-700 dark:bg-slate-700 dark:text-slate-300" : ""}
-                          ${assignment.computedStatus === "Cancelled" ? "bg-rose-500 hover:bg-rose-600 text-white" : ""}
-                        `}
-                      >
-                        {assignment.computedStatus === "Active" && <CheckCircle2 className="w-3 h-3 mr-1" />}
-                        {assignment.computedStatus === "Upcoming" && <Clock className="w-3 h-3 mr-1" />}
-                        {assignment.computedStatus === "Cancelled" && <XCircle className="w-3 h-3 mr-1" />}
-                        {assignment.computedStatus}
-                      </Badge>
+                      {statusBadge(assignment.computedStatus)}
                     </TableCell>
                     {isHRAdmin && (
                       <TableCell className="text-right">
@@ -740,17 +739,7 @@ const TemporaryAssignments = () => {
                   <div>
                     <p className="text-xs text-foreground font-medium">Status</p>
                     <div className="mt-1">
-                      <Badge
-                        variant={selectedAssignment.computedStatus === "Active" ? "default" : selectedAssignment.computedStatus === "Completed" ? "secondary" : selectedAssignment.computedStatus === "Upcoming" ? "default" : "destructive"}
-                        className={`
-                          ${selectedAssignment.computedStatus === "Active" ? "bg-emerald-500 hover:bg-emerald-600 text-white" : ""}
-                          ${selectedAssignment.computedStatus === "Upcoming" ? "bg-amber-500 hover:bg-amber-600 text-white" : ""}
-                          ${selectedAssignment.computedStatus === "Completed" ? "bg-slate-200 hover:bg-slate-300 text-slate-700 dark:bg-slate-700 dark:text-slate-300" : ""}
-                          ${selectedAssignment.computedStatus === "Cancelled" ? "bg-rose-500 hover:bg-rose-600 text-white" : ""}
-                        `}
-                      >
-                        {selectedAssignment.computedStatus}
-                      </Badge>
+                      {statusBadge(selectedAssignment.computedStatus)}
                     </div>
                   </div>
                 </div>
