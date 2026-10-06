@@ -131,7 +131,7 @@ export default function WorkforceInsights() {
   const [month, setMonth] = useState((new Date().getMonth() + 1).toString().padStart(2, '0'));
   const [year, setYear] = useState(new Date().getFullYear().toString());
   const [day, setDay] = useState(new Date().getDate().toString().padStart(2, '0'));
-  const [viewMode, setViewMode] = useState<'day' | 'month' | 'year'>('day');
+  const [viewMode, setViewMode] = useState<'day' | 'month' | 'year'>('month');
   const [selectedRegion, setSelectedRegion] = useState<string>('All Regions');
 
   const regionMap: Record<string, string> = {
