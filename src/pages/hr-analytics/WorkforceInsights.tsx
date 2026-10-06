@@ -9,7 +9,7 @@ import { MonthPicker } from "@/components/shared/MonthPicker";
 import { exportToCSV } from "@/utils/export";
 import { API_BASE_URL } from "@/config/api";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Loader2, Users, UserCheck, CalendarDays, Calendar as CalendarIcon, Clock, FileCheck, CheckCircle2, XCircle, AlertTriangle, Building2, Download, ChevronRight, Wifi, WifiOff, TrendingUp, MapPin, Plane, FileText, AlertCircle, Award, ChevronLeft } from "lucide-react";
+import { Loader2, Users, UserCheck, CalendarDays, Calendar as CalendarIcon, Clock, FileCheck, CheckCircle2, XCircle, AlertTriangle, Building2, Download, ChevronRight, Wifi, WifiOff, TrendingUp, TrendingDown, MapPin, Plane, FileText, AlertCircle, Award, ChevronLeft } from "lucide-react";
 import { getCleanReason } from "@/lib/leaveStorage";
 import { format, subDays, addDays, startOfWeek, endOfWeek } from "date-fns";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend, Sector, AreaChart, Area, ReferenceArea } from "recharts";
@@ -2650,7 +2650,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                           <td className="px-4 py-3 text-right">
                             {isNeutral ? <span className="text-foreground font-bold inline-block">-</span> : 
                              <span className={`inline-flex items-center gap-1 font-bold text-[11px] ${isPositive ? 'text-emerald-500' : 'text-red-500'}`}>
-                               {row.diff > 0 ? 'Γåæ' : 'Γåô'} {diffFormatted}{row.label.includes('Rate') ? '%' : ''}
+                               {row.diff > 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />} {diffFormatted}{row.label.includes('Rate') ? '%' : ''}
                              </span>}
                           </td>
                         </tr>
