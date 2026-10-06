@@ -2227,14 +2227,15 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
       [y, m, ...leaveTrendFilterParams]
     );
 
-    let annual = 0, sick = 0, replacement = 0;
+    let annual = 0, sick = 0, replacement = 0, unpaid = 0;
     for (const r of leaveMonthRows) {
       const lt = (r.leave_type || '').toLowerCase();
       if (lt.includes('annual') || lt.includes('emergency')) annual += parseInt(r.cnt);
       else if (lt.includes('sick') || lt.includes('medical')) sick += parseInt(r.cnt);
       else if (lt.includes('replacement') || lt.includes('cuti ganti')) replacement += parseInt(r.cnt);
+      else if (lt.includes('unpaid')) unpaid += parseInt(r.cnt);
     }
-    leaveTrend.push({ month: monthNames[m - 1], Annual: annual, Sick: sick, Replacement: replacement });
+    leaveTrend.push({ month: monthNames[m - 1], Annual: annual, Sick: sick, Replacement: replacement, Unpaid: unpaid });
   }
 
   // Weekly Attendance Trend

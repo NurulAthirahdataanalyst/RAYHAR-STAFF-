@@ -2598,6 +2598,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                     <Line type="linear" dataKey="Annual" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: '#fff' }} activeDot={{ r: 6, strokeWidth: 0 }} />
                     <Line type="linear" dataKey="Sick" stroke="#eab308" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: '#fff' }} activeDot={{ r: 6, strokeWidth: 0 }} />
                     <Line type="linear" dataKey="Replacement" stroke="#10b981" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: '#fff' }} activeDot={{ r: 6, strokeWidth: 0 }} />
+                    <Line type="linear" dataKey="Unpaid" stroke="#ef4444" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: '#fff' }} activeDot={{ r: 6, strokeWidth: 0 }} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
