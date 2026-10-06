@@ -1626,8 +1626,8 @@ export default function Employees() {
                             e.preventDefault();
                             e.stopPropagation();
                             try {
-                              const empName = req.employee || req.full_name || selectedStaff?.full_name || "UNKNOWN";
-                              const branchName = req.branch || selectedStaff?.branch || "HQ";
+                              const empName = req.employee || req.full_name || viewEmployee?.full_name || "UNKNOWN";
+                              const branchName = req.branch || viewEmployee?.branch || "HQ";
                               const leaveType = req.type || req.leave_type || "MC";
                               
                               let originalExt = "pdf";

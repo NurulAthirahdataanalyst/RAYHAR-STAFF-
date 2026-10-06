@@ -647,7 +647,7 @@ export default function OutstationReports() {
                       </tr>
                     ))
                   ) : (
-                    pagedAssignments.map((a, i) => (
+                    pagedAssignments.map((a: any, i: any) => (
                       <tr key={a.id} className="border-b border-gray-50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">

@@ -107,6 +107,7 @@ export default function Dashboard() {
     upcomingOutstation: 0,
     activeCompanyLeave: null as any,
     companyLeave: null as any,
+    restDayToday: 0,
     hasRecords: true,
   });
 

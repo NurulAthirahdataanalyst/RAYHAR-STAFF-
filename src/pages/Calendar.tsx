@@ -952,7 +952,7 @@ export default function Calendar() {
                               type="button"
                               onClick={() => setNewCategoryColor(colorKey)}
                               className={`w-8 h-8 rounded-full cursor-pointer transition-transform hover:scale-110 flex items-center justify-center shadow-xs ${colorKey} ${isSelected ? 'ring-2 ring-offset-2 ring-[#942392] scale-105' : 'opacity-85 hover:opacity-100'}`}
-                              title={colorMeta.hex}
+                              title={colorKey}
                             >
                               {isSelected && <Check className="w-4 h-4 text-white drop-shadow-sm" />}
                             </button>
@@ -966,7 +966,7 @@ export default function Calendar() {
                       <label className="text-[10px] font-black text-foreground uppercase tracking-wider">Custom & Random Colour</label>
                       <div className="flex items-center gap-3">
                         <ColorPickerPopover
-                          color={newCategoryColor.startsWith('#') ? newCategoryColor : (CATEGORY_COLORS[newCategoryColor]?.hex || '#942392')}
+                          color={newCategoryColor.startsWith('#') ? newCategoryColor : (undefined || '#942392')}
                           onChange={(hex) => setNewCategoryColor(hex)}
                         />
                         <button
@@ -987,7 +987,7 @@ export default function Calendar() {
                     {(() => {
                       const activeHex = newCategoryColor.startsWith('#') 
                         ? newCategoryColor.toUpperCase() 
-                        : (CATEGORY_COLORS[newCategoryColor]?.hex || '#942392');
+                        : (undefined || '#942392');
                       
                       const cleanHex = activeHex.replace('#', '');
                       const r = parseInt(cleanHex.slice(0, 2), 16) || 0;
