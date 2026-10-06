@@ -2337,7 +2337,8 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
   const leaveData = [
     { name: 'Annual/Emergency Leave', value: (leave.annual || 0) + (leave.emergency || 0), color: '#3b82f6' },
     { name: 'Replacement Leave', value: leave.replacement || 0, color: '#eab308' },
-    { name: 'Sick Leave', value: leave.medical || 0, color: '#10b981' }
+    { name: 'Sick Leave', value: leave.medical || 0, color: '#10b981' },
+    { name: 'Unpaid Leave', value: leave.unpaid || 0, color: '#ef4444' }
   ];
   
   // exact total count

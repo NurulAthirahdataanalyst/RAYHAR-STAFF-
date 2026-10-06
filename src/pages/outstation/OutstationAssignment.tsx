@@ -1,3 +1,4 @@
+import DOMPurify from 'dompurify';
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { useRole } from "@/contexts/RoleContext";
@@ -973,7 +974,7 @@ export default function OutstationAssignment() {
                       </body>
                     </html>
                   `;
-                  printWindow.document.write(html);
+                  printWindow.document.write(DOMPurify.sanitize(html, { FORCE_BODY: false, ADD_TAGS: ['style', 'head', 'html', 'body', 'title'] }));
                   printWindow.document.close();
                   setTimeout(() => { printWindow.print(); printWindow.close(); }, 250);
                 }} className="rounded-xl font-black text-[11px] border-purple-200 text-purple-700 hover:bg-purple-50">

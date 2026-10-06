@@ -1,4 +1,5 @@
 import { formatBranchName } from '@/utils/branchUtils';
+import { safeUrl } from '@/utils/security';
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -322,9 +323,7 @@ export default function LeaveFormView() {
         const link = document.createElement("a");
         link.href = blobUrl;
         link.download = filename;
-        document.body.appendChild(link);
         link.click();
-        document.body.removeChild(link);
         URL.revokeObjectURL(blobUrl);
     } catch (error) {
         console.error("Download failed:", error);
@@ -355,9 +354,7 @@ export default function LeaveFormView() {
     const link = document.createElement("a");
     link.setAttribute("href", url);
     link.setAttribute("download", `leave_requests_${activeTab}.csv`);
-    document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
   };
 
   return (
@@ -867,20 +864,34 @@ export default function LeaveFormView() {
                           }}
                         />
                         <a
-                          href={`${API_BASE_URL}${selectedForm.mcFileUrl}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-[10px] print:text-[13px] font-black uppercase tracking-widest bg-[#942392] text-white px-4 py-2 rounded-xl hover:bg-[#5e0080] transition-colors shadow-lg"
-                        >
-                          View File
-                        </a>
-                        <button
-                          onClick={(e) => handleDownloadMCFile(e, selectedForm)}
-                          className="flex items-center justify-center h-8 w-8 rounded-md border border-[#942392]/20 text-[#942392] hover:bg-[#942392] hover:text-white transition-colors"
-                          title="Download File"
-                        >
-                          <Download className="w-4 h-4" />
-                        </button>
+                            href={safeUrl(`${API_BASE_URL}${selectedForm.mcFileUrl}`)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-center h-8 px-4 text-[10px] print:text-[13px] font-black uppercase tracking-widest bg-[#942392] text-white rounded-md hover:bg-[#5e0080] transition-colors shadow-sm"
+                          >
+                            View File
+                          </a>
+                          <button
+                            onClick={(e) => handleDownloadMCFile(e, selectedForm)}
+                            className="flex items-center justify-center gap-1.5 h-8 px-4 rounded-md border border-[#942392]/20 text-[#942392] hover:bg-[#942392] hover:text-white transition-colors"
+                            title="Download File"
+                          >
+                            <Download className="w-4 h-4" />
+                            <span className="text-[10px] font-bold uppercase tracking-wider hidden sm:inline-block">Download File</span>
+                          </button>
+                          <button
+                            type="button" 
+                            className="flex items-center justify-center gap-1.5 h-8 px-4 rounded-md border border-[#942392]/20 text-[#942392] hover:bg-[#942392] hover:text-white transition-colors"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              document.getElementById(`upload-mc-modal-${selectedForm.id}`)?.click();
+                            }}
+                            title="Upload File"
+                          >
+                            <Upload className="w-4 h-4" />
+                            <span className="text-[10px] font-bold uppercase tracking-wider">Upload File</span>
+                          </button>
                         <Button 
                           variant="outline" 
                           size="icon" 

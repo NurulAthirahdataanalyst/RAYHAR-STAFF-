@@ -13,6 +13,19 @@ const { startOfMonth, endOfMonth, startOfYear, endOfYear, format, isBefore } = r
 const emailService = require("./emailService");
 const helmet = require("helmet");
 const escapeHtml = require("escape-html");
+const rateLimit = require("express-rate-limit");
+
+const uploadLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 50,
+  message: { success: false, error: "Too many upload requests" }
+});
+
+const passwordResetLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5,
+  message: { success: false, error: "Too many password reset requests" }
+});
 
 const jwtSecret = process.env.JWT_SECRET;
 console.log('ðŸ” JWT_SECRET loaded?', !!jwtSecret);
@@ -3253,7 +3266,7 @@ app.get("/api/calculate-leave-days", async (req, res) => {
   }
 });
 
-app.post("/api/leave-requests/:id/upload-mc", upload.single("lampiranMc"), async (req, res) => {
+app.post("/api/leave-requests/:id/upload-mc", uploadLimiter, upload.single("lampiranMc"), async (req, res) => {
   const leaveId = req.params.id;
   try {
     const [rows] = await pool.query(`
@@ -3310,7 +3323,7 @@ app.post("/api/leave-requests/:id/upload-mc", upload.single("lampiranMc"), async
   }
 });
 
-app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) => {
+app.post("/api/leave-requests", uploadLimiter, upload.single("lampiranMc"), async (req, res) => {
   const {
     user_id,
     leave_type,
@@ -8898,16 +8911,15 @@ app.get("/api/workforce-stats", async (req, res) => {
     });
 
       const [realLeaveAnalyticsRows] = await pool.query(
-        `SELECT lr.leave_type, COUNT(*) as count 
-         FROM leave_requests lr
-         JOIN profiles p ON p.user_id = lr.user_id
-         WHERE lr.status = 'Approved'
-           AND (lr.start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date <= ?::date
-           AND (lr.end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date >= ?::date
-         ${profileFilter}
-         GROUP BY lr.leave_type`,
-        [monthEndStr, monthStartStr, ...pFilterParams]
-      );
+          SELECT lr.leave_type, COUNT(*) as count 
+           FROM leave_requests lr
+           JOIN profiles p ON p.user_id = lr.user_id
+           WHERE EXTRACT(MONTH FROM lr.start_date AT TIME ZONE 'Asia/Kuala_Lumpur') = ?
+             AND EXTRACT(YEAR FROM lr.start_date AT TIME ZONE 'Asia/Kuala_Lumpur') = ?
+           
+           GROUP BY lr.leave_type,
+          [requestedMonth, requestedYear, ...pFilterParams]
+        );
     let realLeaveAnalytics = { annual: 0, medical: 0, emergency: 0, replacement: 0, unpaid: 0 };
       realLeaveAnalyticsRows.forEach(r => {
         const type = String(r.leave_type || '').toLowerCase();
@@ -9153,7 +9165,7 @@ app.get("/api/workforce-stats", async (req, res) => {
       outstationAnalytics: dynamicMetrics.outstationAnalytics,
         workforceMovement: { 
           newJoiners: parseInt((await pool.query(`SELECT COUNT(*) as cnt FROM profiles p WHERE EXTRACT(MONTH FROM p.created_at) = ? AND EXTRACT(YEAR FROM p.created_at) = ? ${profileFilter}`, [requestedMonth, requestedYear, ...pFilterParams]))[0][0]?.cnt || 0), 
-          resigned: parseInt((await pool.query(`SELECT COUNT(*) as cnt FROM profiles p WHERE p.status = 'Inactive' AND EXTRACT(MONTH FROM p.updated_at) = ? AND EXTRACT(YEAR FROM p.updated_at) = ? ${profileFilter}`, [requestedMonth, requestedYear, ...pFilterParams]))[0][0]?.cnt || 0), 
+          resigned: parseInt((await pool.query(`SELECT COUNT(*) as cnt FROM profiles p WHERE p.status IN ('Inactive', 'Deleted') AND EXTRACT(MONTH FROM p.updated_at) = ? AND EXTRACT(YEAR FROM p.updated_at) = ? ${profileFilter}`, [requestedMonth, requestedYear, ...pFilterParams]))[0][0]?.cnt || 0), 
           transferred: parseInt((await pool.query(`SELECT COUNT(DISTINCT e.user_id) as cnt FROM employee_work_assignment e JOIN profiles p ON e.user_id = p.user_id WHERE EXTRACT(MONTH FROM e.created_at) = ? AND EXTRACT(YEAR FROM e.created_at) = ? ${profileFilter}`, [requestedMonth, requestedYear, ...pFilterParams]))[0][0]?.cnt || 0) 
         },
       hrAlerts: dynamicMetrics.hrAlerts,
@@ -10357,7 +10369,7 @@ app.get("/api/reports/leave-utilization", async (req, res) => {
 // ===============================
 // PASSWORD RESET API
 // ===============================
-app.post("/api/request-password-reset", async (req, res) => {
+app.post("/api/request-password-reset", passwordResetLimiter, async (req, res) => {
   const { email } = req.body;
   if (!email) {
     return res.status(400).json({ success: false, error: "Email is required" });
@@ -10405,7 +10417,7 @@ app.post("/api/request-password-reset", async (req, res) => {
   }
 });
 
-app.post("/api/reset-password", async (req, res) => {
+app.post("/api/reset-password", passwordResetLimiter, async (req, res) => {
   const { token, accessToken, email, newPassword } = req.body;
 
   if (!newPassword) {
@@ -10431,7 +10443,7 @@ app.post("/api/reset-password", async (req, res) => {
     if (token) {
       // 1. Verify Backend JWT Token
       try {
-        const decoded = jwt.verify(token, secret);
+        const decoded = jwt.verify(token, secret, { algorithms: ["HS256"] });
         if (decoded.purpose !== "password_reset") {
           return res.status(400).json({ success: false, error: "Invalid token type" });
         }
@@ -10445,7 +10457,7 @@ app.post("/api/reset-password", async (req, res) => {
     } else if (accessToken) {
       // 2. Decode Supabase Recovery Access Token
       try {
-        const decoded = jwt.decode(accessToken);
+        const decoded = jwt.verify(accessToken, secret, { algorithms: ["HS256"] });
         if (decoded && decoded.email) {
           if (decoded.exp && decoded.exp * 1000 < Date.now()) {
             return res.status(400).json({ success: false, error: "Your password reset session has expired. Please request a new link." });

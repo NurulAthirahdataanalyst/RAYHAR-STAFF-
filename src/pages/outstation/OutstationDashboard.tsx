@@ -226,7 +226,7 @@ export default function OutstationDashboard() {
     const groups: Record<string, {
       destination: string; department: string; project: string; purpose?: string; start_date: string; end_date: string; status: string;
       employees: any[];
-    }> = {};
+    }> = Object.create(null);
 
     active.forEach(a => {
       const key = `${a.destination}_${a.start_date}_${a.end_date}_${a.status}`;
@@ -252,7 +252,7 @@ export default function OutstationDashboard() {
     const groups: Record<string, {
       destination: string; department: string; project: string; purpose?: string; start_date: string; end_date: string; status: string;
       employees: any[];
-    }> = {};
+    }> = Object.create(null);
 
     upcomingList.forEach(a => {
       const key = `${a.destination}_${a.start_date}_${a.end_date}_${a.status}`;
@@ -389,7 +389,7 @@ export default function OutstationDashboard() {
   // NEW KPI CALCULATIONS
   const eventGroups = useMemo(() => {
     const today = new Date().toISOString().split('T')[0];
-    const groups: Record<string, any> = {};
+    const groups: Record<string, any> = Object.create(null);
     filteredAssignments.forEach(a => {
       const eventName = (a.project && a.project !== '-') ? a.project : (a.purpose && a.purpose !== '-') ? a.purpose : 'General';
       if (!groups[eventName]) {
@@ -442,7 +442,7 @@ export default function OutstationDashboard() {
   });
 
   const upcomingGroupedNext7Days = useMemo(() => {
-    const groups: Record<string, any[]> = {};
+    const groups: Record<string, any[]> = Object.create(null);
     upcomingNext7Days.forEach(a => {
       const key = `${a.destination}_${a.start_date}_${a.end_date}_${a.status}`;
       if (!groups[key]) groups[key] = [];

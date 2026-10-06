@@ -1,3 +1,4 @@
+import { safeUrl } from '@/utils/security';
 import { formatBranchName } from '@/utils/branchUtils';
 import { useNavigate } from "react-router-dom";
 import { MonthPicker } from '@/components/shared/MonthPicker';
@@ -562,10 +563,7 @@ export default function Employees() {
     const url = URL.createObjectURL(blob);
     link.setAttribute("href", url);
     link.setAttribute("download", `Employee_Directory_${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
   };
 
   useEffect(() => {
@@ -1616,7 +1614,7 @@ export default function Employees() {
                           }}
                         />
                         <a
-                          href={`${API_BASE_URL}${req.mc_file_url}`}
+                          href={safeUrl(`${API_BASE_URL}${req.mc_file_url}`)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-[10px] print:text-[13px] font-black uppercase tracking-widest bg-[#942392] text-white px-4 py-2 rounded-xl hover:bg-[#5e0080] transition-colors shadow-lg"
@@ -1649,9 +1647,7 @@ export default function Employees() {
                               const a = document.createElement('a');
                               a.href = objectUrl;
                               a.download = filename;
-                              document.body.appendChild(a);
                               a.click();
-                              document.body.removeChild(a);
                               URL.revokeObjectURL(objectUrl);
                             } catch (err) {
                               import("react-hot-toast").then(({ toast }) => toast.error("Failed to download file"));
