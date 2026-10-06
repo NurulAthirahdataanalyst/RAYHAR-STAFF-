@@ -55,6 +55,7 @@ type LeaveForm = {
   id: number;
   employee: string;
   branch: string;
+  department?: string;
   phone?: string;
   type: LeaveType;
   from: string;
@@ -69,6 +70,7 @@ type LeaveForm = {
   warisAlamat: string;
   warisHubungan: string;
   approverRole?: string;
+  pending_approver_name?: string;
   cutiGantiTarikh?: string;
   cutiGantiHari?: string;
   cutiGantiJam?: number;
@@ -76,6 +78,11 @@ type LeaveForm = {
   cutiTanpaGajiPhone?: string;
   cutiTanpaGajiSignature?: boolean;
   mcFileUrl?: string;
+  replacementValidations?: {
+    replacement_date: string;
+    validation_status: string;
+    actual_hours: number | null;
+  }[];
   approvalHistory?: {
     id: number;
     approver_id: string;
@@ -88,6 +95,7 @@ type LeaveForm = {
     approver_branch?: string;
   }[];
 };
+
 
 const formatDate = (value: string) => (value ? value.slice(0, 10) : "");
 
