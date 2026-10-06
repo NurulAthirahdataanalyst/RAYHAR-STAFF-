@@ -268,7 +268,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
         
         {/* ═══════ DESKTOP TOP BAR ═══════ */}
-        <header className="hidden lg:flex sticky top-0 z-30 w-full bg-[#942392] py-2.5 px-3 items-center justify-between shadow-md border-b border-[#942392]/15">
+        <header className="hidden lg:flex sticky top-0 z-30 w-full bg-rose-500 py-2.5 px-3 items-center justify-between shadow-md border-b border-[#942392]/15">
           <div className="absolute inset-0 bg-white/[0.02] pointer-events-none" />
           
           <div className="flex items-center justify-between relative z-10 w-full">
@@ -360,7 +360,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
         {/* ═══════ MOBILE TOP BAR ═══════ */}
         <div className="lg:hidden sticky top-0 z-30 p-1.5 safe-area-top">
-          <div className="bg-[#942392] rounded-[16px] p-1.5 px-2.5 flex items-center justify-between shadow-lg border border-[#942392]/15 top-nav-bar">
+          <div className="bg-rose-500 rounded-[16px] p-1.5 px-2.5 flex items-center justify-between shadow-lg border border-[#942392]/15 top-nav-bar">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setMobileMenuOpen(true)}
@@ -455,7 +455,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               {/* Floating Toggle Button on Left Boundary */}
               <button
                 onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                className={`absolute z-50 flex h-7 w-7 items-center justify-center rounded-md bg-[#942392] text-white shadow-md hover:scale-110 active:scale-95 transition-transform border border-white/20 ${
+                className={`absolute z-50 flex h-7 w-7 items-center justify-center rounded-md bg-rose-500 text-white shadow-md hover:scale-110 active:scale-95 transition-transform border border-white/20 ${
                   sidebarCollapsed ? "-left-3.5 top-28" : "-left-3.5 top-28 xl:-left-3.5"
                 }`}
                 aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
@@ -469,7 +469,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   <>
                     {/* ═══════ PENDING APPROVALS ═══════ */}
                     {["hr_admin", "branch_leader", "managing_director", "operation_manager", "finance_manager", "head_of_department"].includes(resolvedRole) && (
-                      <div className="shrink-0 bg-[#942392] p-3.5 rounded-[20px] shadow-lg text-white relative overflow-hidden group w-full transition-all duration-500">
+                      <div className="shrink-0 bg-rose-500 p-3.5 rounded-[20px] shadow-lg text-white relative overflow-hidden group w-full transition-all duration-500">
                         <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-md -mr-8 -mt-8 transition-transform group-hover:scale-110" />
                         
                         <div className="flex items-center justify-between mb-3">
@@ -507,7 +507,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     {["hr_admin", "branch_leader", "managing_director", "operation_manager", "finance_manager", "head_of_department"].includes(resolvedRole) && (
                       <div 
                         onClick={() => navigate("/leave/admin")}
-                        className="cursor-pointer group relative flex flex-col items-center justify-center w-9 h-9 rounded-xl bg-[#942392] hover:bg-[#942392]/90 text-white shadow-sm transition-all shrink-0"
+                        className="cursor-pointer group relative flex flex-col items-center justify-center w-9 h-9 rounded-xl bg-rose-500 hover:bg-rose-500/90 text-white shadow-sm transition-all shrink-0"
                       >
                         <ClipboardCheck className="w-5 h-5" />
                         {pendingApprovals > 0 && (

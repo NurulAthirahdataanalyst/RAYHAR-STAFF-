@@ -643,7 +643,7 @@ export default function LeaveFormView() {
               </div>
 
               <div id="leave-form-print" className="p-4 sm:p-8 print:p-2 space-y-6 print:space-y-2">
-                <div className="rounded-[24px] border border-border/50 p-6 sm:p-8 print:p-8 space-y-6 print:space-y-3 bg-card shadow-sm print:shadow-none print:border-2 print:border-black print:rounded-none">
+                <div className="rounded-[24px] border border-border/50 p-6 sm:p-8 print:p-8 space-y-6 print:space-y-3 bg-card shadow-sm print:shadow-none print:border-2 print:border-black print:rounded-none print:break-inside-avoid">
                   <div className="text-center border-b-2 border-foreground/50 dark:border-purple-500/50 pb-4 print:pb-2">
                     <h2 className="text-2xl print:text-4xl font-black tracking-tighter text-foreground dark:text-purple-400">RAYHAR GROUP</h2>
                     <p className="text-[10px] print:text-[16px] font-black tracking-[0.2em] print:tracking-[0.3em] uppercase opacity-60 dark:text-purple-300">Permohonan Cuti Kakitangan</p>
@@ -897,20 +897,19 @@ export default function LeaveFormView() {
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <button
-                                type="button"
-                                className="flex items-center justify-center h-8 w-8 rounded-md border border-[#942392]/20 text-[#942392] hover:bg-[#942392] hover:text-white transition-colors"
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  document.getElementById(`upload-mc-modal-${selectedForm.id}`)?.click();
-                                }}
-                              >
-                                <Upload className="w-4 h-4" />
-                              </button>
+                                  type="button"
+                                  className="flex items-center justify-center px-3 h-8 rounded-md border border-[#942392]/20 text-[#942392] hover:bg-[#942392] hover:text-white transition-colors gap-1 text-[10px] font-bold uppercase tracking-wider"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    document.getElementById(`upload-mc-modal-${selectedForm.id}`)?.click();
+                                  }}
+                                >
+                                  <Upload className="w-3 h-3" />
+                                  [ Upload File ]
+                                </button>
                             </TooltipTrigger>
-                            <TooltipContent side="top">
-                              <p className="text-xs font-bold">{selectedForm.mcFileUrl ? "Replace File" : "Upload File"}</p>
-                            </TooltipContent>
+                            <TooltipContent side="top"><p className="text-xs font-bold">{selectedForm.mcFileUrl ? "Replace File" : "Upload File"}</p></TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
                       </div>

@@ -267,6 +267,7 @@ const branches = [
 ];
 
 type BranchEmployee = {
+  department?: string;
   user_id: string;
   full_name: string;
   email: string;
@@ -1091,7 +1092,7 @@ export default function Branches() {
                               Department
                             </span>
                             <span className="font-black text-foreground">
-                              Haji Umrah (BHU)
+                              {selectedEmployee.department || "Not Assigned"}
                             </span>
                           </div>
                           <div className="flex justify-between items-center text-xs">

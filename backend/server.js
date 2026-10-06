@@ -2598,6 +2598,7 @@ app.get("/api/branch-employees", async (req, res) => {
         p.full_name,
         p.email,
         p.branch,
+          p.department,
         p.status,
         COALESCE(ur.role, 'employee') AS role,
         COALESCE(lr.pending_leaves, 0) AS pending_leaves,
@@ -8125,7 +8126,7 @@ app.get("/api/reports/analytics", async (req, res) => {
         COUNT(*) as total_leaves
       FROM leave_requests lr
       JOIN profiles p ON p.user_id = lr.user_id
-      WHERE EXTRACT(YEAR FROM lr.start_date) = ? AND lr.status = 'Approved' AND p.status = 'Active' ${profileFilter}
+      WHERE EXTRACT(YEAR FROM lr.start_date) = ? AND p.status = \'Active\' ${profileFilter}
       GROUP BY EXTRACT(MONTH FROM lr.start_date)
       `,
       [requestedYear, ...pFilterParams]
@@ -8918,7 +8919,7 @@ app.get("/api/workforce-stats", async (req, res) => {
            JOIN profiles p ON p.user_id = lr.user_id
            WHERE EXTRACT(MONTH FROM lr.start_date AT TIME ZONE 'Asia/Kuala_Lumpur') = ?
              AND EXTRACT(YEAR FROM lr.start_date AT TIME ZONE 'Asia/Kuala_Lumpur') = ?
-             AND lr.status = 'Approved' AND p.status = 'Active' ${profileFilter}
+             AND p.status = \'Active\' ${profileFilter}
            GROUP BY lr.leave_type`,
           [requestedMonth, requestedYear, ...pFilterParams]
         );

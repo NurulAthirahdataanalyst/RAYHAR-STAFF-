@@ -543,11 +543,13 @@ export default function WorkforceInsights() {
           <>
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 mb-6">
           
-          {/* 8 KPI Cards (Replaces old Attendance Overview + 4 Grid) */}
-          <div className={`col-span-1 ${['head_of_department', 'branch_leader'].includes(role) ? 'xl:col-span-4' : 'xl:col-span-3'} grid grid-cols-2 lg:grid-cols-5 gap-4`}>
+          {/* 7 KPI Cards (Replaces old Attendance Overview + 4 Grid) */}
+          <div className={`col-span-1 ${['head_of_department', 'branch_leader'].includes(role) ? 'xl:col-span-4' : 'xl:col-span-3'} flex flex-col gap-4`}>
+            {/* Top Row: 4 Cards (25% each) */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             
                         {/* 1. Present Today */}
-            <Card className={`group lg:col-span-2 border border-emerald-100 dark:border-emerald-900/40 bg-card p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.emerald} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+            <Card className={`group border border-emerald-100 dark:border-emerald-900/40 bg-card p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.emerald} rounded-[24px] shadow-sm hover:shadow-lg hover:-translate-y-1.5 transition-all duration-300`}>
               <div>
                 <div className="flex justify-between items-start mb-2">
                   <div className="w-10 h-10 rounded-full border border-emerald-200 dark:border-emerald-800/60 bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
@@ -611,7 +613,7 @@ export default function WorkforceInsights() {
             );})()}
 
             {/* 3. On Leave Today */}
-            <Card className={`group border border-slate-100 dark:border-slate-800 bg-card p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.purple} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+            <Card className={`group border border-slate-100 dark:border-slate-800 bg-card p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.purple} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] hover:-translate-y-1.5 hover:shadow-lg transition-all duration-300`}>
               <div>
                 <div className="w-10 h-10 rounded-full border border-purple-100 dark:border-purple-800/60 bg-purple-50/50 dark:bg-purple-950/40 flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110">
                   <CalendarDays className="w-5 h-5 text-purple-600 dark:text-purple-400 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
@@ -631,7 +633,7 @@ export default function WorkforceInsights() {
             </Card>
 
             {/* 4. Absent Today */}
-            <Card className={`group border border-slate-100 dark:border-slate-800 bg-card p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.red} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+            <Card className={`group border border-slate-100 dark:border-slate-800 bg-card p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.red} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] hover:-translate-y-1.5 hover:shadow-lg transition-all duration-300`}>
               <div>
                 <div className="w-10 h-10 rounded-full border border-red-100 dark:border-red-800/60 bg-red-50/50 dark:bg-red-950/40 flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110">
                   <XCircle className="w-5 h-5 text-red-500 dark:text-red-400 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
@@ -646,9 +648,12 @@ export default function WorkforceInsights() {
                 <p className="text-[11px] font-bold text-red-500 dark:text-red-400 mb-3">Needs Attention</p>
               </div>
             </Card>
+            </div>
 
+            {/* Bottom Row: 3 Cards (33.333% each) */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* 5. Missing Punch */}
-            <Card className={`group border border-slate-100 dark:border-slate-800 bg-card p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.amber} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+            <Card className={`group border border-slate-100 dark:border-slate-800 bg-card p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.amber} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] hover:-translate-y-1.5 hover:shadow-lg transition-all duration-300`}>
               <div>
                 <div className="flex justify-between items-start mb-2">
                   <div className="w-10 h-10 rounded-full border border-amber-100 dark:border-amber-800/60 bg-amber-50/50 dark:bg-amber-950/40 flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110">
@@ -675,7 +680,7 @@ export default function WorkforceInsights() {
             </Card>
 
             {/* 6. Outstation */}
-            <Card className={`group border border-slate-100 dark:border-slate-800 bg-card p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.blue} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+            <Card className={`group border border-slate-100 dark:border-slate-800 bg-card p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.blue} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] hover:-translate-y-1.5 hover:shadow-lg transition-all duration-300`}>
               <div>
                 <div className="w-10 h-10 rounded-full border border-blue-100 dark:border-blue-800/60 bg-blue-50/50 dark:bg-blue-950/40 flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110">
                   <Plane className="w-5 h-5 text-blue-500 dark:text-blue-400 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
@@ -696,25 +701,8 @@ export default function WorkforceInsights() {
               </div>
             </Card>
 
-            {/* 7. Attendance Rate */}
-            <Card className={`group border border-slate-100 dark:border-slate-800 bg-card p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.indigo} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
-              <div>
-                <div className="w-10 h-10 rounded-full border border-indigo-100 dark:border-indigo-800/60 bg-indigo-50/50 dark:bg-indigo-950/40 flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110">
-                  <CheckCircle2 className="w-5 h-5 text-indigo-500 dark:text-indigo-400 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
-                </div>
-                <p className="text-[11px] font-extrabold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mb-2">Attendance Rate</p>
-                <div className="flex items-baseline gap-2 mt-1">
-                  <h3 className="text-4xl font-black text-slate-800 dark:text-white leading-none">{data.topKpi.attendanceRate}%</h3>
-                </div>
-                <p className="text-[11px] font-bold text-foreground mt-1">Target 95%</p>
-              </div>
-              <div className="mt-1 flex flex-col items-start w-full relative">
-                <p className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-0.5"><TrendingUp className="w-3 h-3" /> 2% vs Yesterday</p>
-              </div>
-            </Card>
-
             {/* 8. Active Workforce */}
-            <Card className={`group lg:col-span-2 border border-slate-100 dark:border-slate-800 bg-card p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.emerald} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+            <Card className={`group border border-slate-100 dark:border-slate-800 bg-card p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.emerald} rounded-[24px] shadow-sm hover:shadow-lg hover:-translate-y-1.5 transition-all duration-300`}>
               <div>
                 <div className="w-10 h-10 rounded-full border border-emerald-100 dark:border-emerald-800/60 bg-emerald-50/50 dark:bg-emerald-950/40 flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110">
                   <Users className="w-5 h-5 text-emerald-500 dark:text-emerald-400 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
@@ -734,6 +722,8 @@ export default function WorkforceInsights() {
                 </div>
               </div>
             </Card>
+
+          </div>
 
           </div>
 
@@ -2660,7 +2650,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                </table>
              </div>
              <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end">
-               <button onClick={() => { if(!["branch_leader", "head_of_department"].includes(currentRole || "")) navigate("/master"); }} className="text-xs font-bold text-foreground hover:text-[#942392] transition-colors flex items-center gap-1">Open Report <ChevronRight className="w-3 h-3" /></button>
+               <button onClick={() => { if(!["branch_leader", "head_of_department"].includes(currentRole || "")) navigate("/employees"); }} className="text-xs font-bold text-foreground hover:text-[#942392] transition-colors flex items-center gap-1">Open Report <ChevronRight className="w-3 h-3" /></button>
              </div>
              </Card>
              
@@ -3024,7 +3014,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                </div>
              </div>
              <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end">
-               <button onClick={() => { if(!["branch_leader", "head_of_department"].includes(currentRole || "")) navigate("/master"); }} className="text-xs font-bold text-foreground hover:text-[#942392] transition-colors flex items-center gap-1">Open Report <ChevronRight className="w-3 h-3" /></button>
+               <button onClick={() => { if(!["branch_leader", "head_of_department"].includes(currentRole || "")) navigate("/employees"); }} className="text-xs font-bold text-foreground hover:text-[#942392] transition-colors flex items-center gap-1">Open Report <ChevronRight className="w-3 h-3" /></button>
              </div>
            </Card>
           </div>
