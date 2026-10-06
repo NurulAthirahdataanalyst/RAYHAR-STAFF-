@@ -17,6 +17,8 @@ import {
 import { toast } from "sonner";
 import { FileText, Printer, Loader2, ArrowLeft, PhoneCall, Eye, Calendar, MapPin, Clock, Check, X, Download, Upload } from "lucide-react";
 import { useRole } from "@/contexts/RoleContext";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
 
 import PageActions from "@/components/layout/PageActions";
 import { MonthPicker } from "@/components/shared/MonthPicker";
@@ -313,7 +315,7 @@ export default function LeaveFormView() {
         const ext = urlParts.length > 1 ? urlParts[urlParts.length - 1] : 'pdf';
         
         // Create filename: Full Name - branch - leave_type
-        const filename = `${form.employeeName} - ${form.branch} - ${leaveTypeLabels[form.leaveType as keyof typeof leaveTypeLabels] || form.leaveType}.${ext}`;
+        const filename = `${form.employee} - ${form.branch} - ${leaveTypeLabels[form.type as keyof typeof leaveTypeLabels] || form.type}.${ext}`;
         
         await downloadUploadedFile(form.mcFileUrl, filename);
     } catch (error) {
@@ -817,7 +819,8 @@ export default function LeaveFormView() {
                   )}
 
                   {/* Conditional Fields: Cuti Sakit (MC) */}
-                  {(selectedForm.type === "Sick Leave" || selectedForm.type === "Cuti Sakit") && selectedForm.mcFileUrl && (
+                  {/* Conditional Fields: Cuti Sakit (MC) */}
+                  {(selectedForm.type === "Sick Leave" || selectedForm.type === "Cuti Sakit") && (
                     <div className="p-4 bg-purple-500/10 border border-purple-500/20 rounded-[16px] flex items-center justify-between group print:hidden">
                       <div className="flex items-center gap-3">
                         <FileText className="w-5 h-5 text-[#942392]" />
@@ -854,51 +857,58 @@ export default function LeaveFormView() {
                             }
                           }}
                         />
-                        <a
-                            href={safeFileUrl(selectedForm.mcFileUrl)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center justify-center h-8 px-4 text-[10px] print:text-[13px] font-black uppercase tracking-widest bg-[#942392] text-white rounded-md hover:bg-[#5e0080] transition-colors shadow-sm"
-                          >
-                            View File
-                          </a>
-                          <button
-                            onClick={(e) => handleDownloadMCFile(e, selectedForm)}
-                            className="flex items-center justify-center gap-1.5 h-8 px-4 rounded-md border border-[#942392]/20 text-[#942392] hover:bg-[#942392] hover:text-white transition-colors"
-                            title="Download File"
-                          >
-                            <Download className="w-4 h-4" />
-                            <span className="text-[10px] font-bold uppercase tracking-wider hidden sm:inline-block">Download File</span>
-                          </button>
-                          <button
-                            type="button" 
-                            className="flex items-center justify-center gap-1.5 h-8 px-4 rounded-md border border-[#942392]/20 text-[#942392] hover:bg-[#942392] hover:text-white transition-colors"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              document.getElementById(`upload-mc-modal-${selectedForm.id}`)?.click();
-                            }}
-                            title="Upload File"
-                          >
-                            <Upload className="w-4 h-4" />
-                            <span className="text-[10px] font-bold uppercase tracking-wider">Upload File</span>
-                          </button>
-                        <Button 
-                          variant="outline" 
-                          size="icon" 
-                          className="h-8 w-8 text-[#942392] border-[#942392]/20 hover:bg-[#942392] hover:text-white transition-colors"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            document.getElementById(`upload-mc-modal-${selectedForm.id}`)?.click();
-                          }}
-                          title="Replace File"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
-                        </Button>
+                        <TooltipProvider delayDuration={200}>
+                          {selectedForm.mcFileUrl && (
+                            <>
+                              {/* View File button */}
+                              <a
+                                href={safeFileUrl(selectedForm.mcFileUrl)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center justify-center h-8 px-4 text-[10px] print:text-[13px] font-black uppercase tracking-widest bg-[#942392] text-white rounded-md hover:bg-[#5e0080] transition-colors shadow-sm"
+                              >
+                                View File
+                              </a>
+                              {/* Download icon with tooltip */}
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button
+                                    onClick={(e) => handleDownloadMCFile(e, selectedForm)}
+                                    className="flex items-center justify-center h-8 w-8 rounded-md border border-[#942392]/20 text-[#942392] hover:bg-[#942392] hover:text-white transition-colors"
+                                  >
+                                    <Download className="w-4 h-4" />
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent side="top">
+                                  <p className="text-xs font-bold">Download File</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </>
+                          )}
+                          {/* Upload icon with tooltip */}
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button
+                                type="button"
+                                className="flex items-center justify-center h-8 w-8 rounded-md border border-[#942392]/20 text-[#942392] hover:bg-[#942392] hover:text-white transition-colors"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  document.getElementById(`upload-mc-modal-${selectedForm.id}`)?.click();
+                                }}
+                              >
+                                <Upload className="w-4 h-4" />
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent side="top">
+                              <p className="text-xs font-bold">{selectedForm.mcFileUrl ? "Replace File" : "Upload File"}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </div>
                     </div>
                   )}
+
 
                   {/* Waris Section */}
                   <div className="pt-4 border-t border-border/50 space-y-4 print:space-y-3 print:pt-5 print:mt-5">

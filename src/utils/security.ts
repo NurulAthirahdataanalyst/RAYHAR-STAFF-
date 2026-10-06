@@ -29,9 +29,22 @@ export const safeUrl = (url: string | null | undefined, fallback: string = "#"):
  */
 export const safeFileUrl = (file: string | null | undefined, fallback: string = "#"): string => {
   if (!file || typeof file !== "string") return fallback;
+  // Accept absolute https URLs that contain /uploads/ (e.g. stored as full backend URL)
+  if (file.startsWith("https://") || file.startsWith("http://")) {
+    try {
+      const parsed = new URL(file);
+      if (ALLOWED_PROTOCOLS.has(parsed.protocol) && parsed.pathname.includes("/uploads/") && !file.includes("..") && !file.includes("\\")) {
+        return file;
+      }
+    } catch {
+      return fallback;
+    }
+    return fallback;
+  }
   if (!file.startsWith("/uploads/") || file.includes("..") || file.includes("\\")) return fallback;
   return safeUrl(`${API_BASE_URL}${file}`, fallback);
 };
+
 
 /**
  * Only allows internal, relative app routes to prevent open redirects.
