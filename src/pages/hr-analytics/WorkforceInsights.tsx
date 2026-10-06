@@ -3022,12 +3022,12 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                <div className="flex flex-col justify-center items-center py-2 bg-[#DCFCE7] dark:bg-emerald-950/40 border border-transparent dark:border-emerald-800/40 rounded-[24px] shadow-[0_4px_20px_rgb(0,0,0,0.04)]">
                  <span className="text-2xl font-black text-emerald-700 dark:text-emerald-300 mb-0.5">+{movement.newJoiners || 0}</span>
                  <p className="text-[10px] font-bold text-emerald-900 dark:text-emerald-200 uppercase tracking-wider">New Joiners</p>
-                 <p className="text-[8px] font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">{viewMode === 'day' ? 'This Month' : (month === 'all' ? year : new Date(parseInt(year), parseInt(month) - 1).toLocaleString('en-US', {month: 'short', year: 'numeric'}))}</p>
+                 <p className="text-[8px] font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">{month === 'all' ? year : new Date(parseInt(year), parseInt(month) - 1).toLocaleString('en-US', {month: 'short', year: 'numeric'})}</p>
                </div>
                <div className="flex flex-col justify-center items-center py-2 bg-[#FEE2E2] dark:bg-rose-950/40 border border-transparent dark:border-rose-800/40 rounded-[24px] shadow-[0_4px_20px_rgb(0,0,0,0.04)]">
                  <span className="text-2xl font-black text-rose-700 dark:text-rose-300 mb-0.5">-{movement.resigned || 0}</span>
                  <p className="text-[10px] font-bold text-rose-900 dark:text-rose-200 uppercase tracking-wider">Resigned</p>
-                 <p className="text-[8px] font-bold text-rose-600 dark:text-rose-400 mt-0.5">{viewMode === 'day' ? 'This Month' : (month === 'all' ? year : new Date(parseInt(year), parseInt(month) - 1).toLocaleString('en-US', {month: 'short', year: 'numeric'}))}</p>
+                 <p className="text-[8px] font-bold text-rose-600 dark:text-rose-400 mt-0.5">{month === 'all' ? year : new Date(parseInt(year), parseInt(month) - 1).toLocaleString('en-US', {month: 'short', year: 'numeric'})}</p>
                </div>
                <div className="col-span-2 flex flex-col justify-center items-center py-2 bg-[#F8FAFC] dark:bg-slate-800/60 border border-transparent dark:border-slate-700 rounded-[24px] shadow-[0_4px_20px_rgb(0,0,0,0.04)] text-center">
                  <span className="text-xl font-black text-slate-700 dark:text-slate-200 mb-0.5">{movement.transferred || 0}</span>
