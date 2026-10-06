@@ -8913,13 +8913,13 @@ app.get("/api/workforce-stats", async (req, res) => {
     });
 
       const [realLeaveAnalyticsRows] = await pool.query(
-          SELECT lr.leave_type, COUNT(*) as count 
+          `SELECT lr.leave_type, COUNT(*) as count
            FROM leave_requests lr
            JOIN profiles p ON p.user_id = lr.user_id
            WHERE EXTRACT(MONTH FROM lr.start_date AT TIME ZONE 'Asia/Kuala_Lumpur') = ?
              AND EXTRACT(YEAR FROM lr.start_date AT TIME ZONE 'Asia/Kuala_Lumpur') = ?
-           
-           GROUP BY lr.leave_type,
+             AND lr.status = 'Approved' AND p.status = 'Active' ${profileFilter}
+           GROUP BY lr.leave_type`,
           [requestedMonth, requestedYear, ...pFilterParams]
         );
     let realLeaveAnalytics = { annual: 0, medical: 0, emergency: 0, replacement: 0, unpaid: 0 };
