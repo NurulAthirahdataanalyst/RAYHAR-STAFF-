@@ -35,6 +35,7 @@ if (!jwtSecret) {
 
 const app = express();
 app.use(helmet());
+app.set('trust proxy', false); // Disable IP spoofing via X-Forwarded-For unless behind a trusted proxy
 
 const malaysiaHolidays = [
   // 2024
