@@ -2216,10 +2216,10 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
     const mStr = m.toString().padStart(2, '0');
 
       const [leaveMonthRows] = await pool.query(
-      `SELECT leave_type, COALESCE(SUM(days), 0) as cnt
+      `SELECT leave_type, COUNT(*) as cnt
        FROM leave_requests lr
        JOIN profiles p ON p.user_id = lr.user_id
-       WHERE lr.status = 'Approved'
+       WHERE 1=1
          AND EXTRACT(YEAR FROM lr.start_date) = ?
          AND EXTRACT(MONTH FROM lr.start_date) = ?
          AND p.status = 'Active'
