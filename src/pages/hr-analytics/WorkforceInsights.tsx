@@ -2226,7 +2226,9 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
 
     activeTempOnDate.forEach((a: any) => {
        if (a.location && !listSource.find((b:any) => b.branch === a.location)) {
-           listSource.push({ branch: a.location, totalEmployees: 0 });
+           if (currentRole !== "branch_leader") {
+               listSource.push({ branch: a.location, totalEmployees: 0 });
+           }
        }
     });
 

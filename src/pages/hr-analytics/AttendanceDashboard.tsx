@@ -861,8 +861,10 @@ export default function AttendanceDashboard() {
     activeAssignments.forEach((a: any) => {
        const loc = a.temp_branch_normalized || a.location;
        if (loc && !listSource.find((b:any) => b.branch === loc)) {
-           listSource.push({ branch: loc, totalEmployees: 0 });
-       }
+             if (role !== "branch_leader") {
+                 listSource.push({ branch: loc, totalEmployees: 0 });
+             }
+         }
     });
 
     const allRecords = [...dailyAttendance, ...absentEmployees];
