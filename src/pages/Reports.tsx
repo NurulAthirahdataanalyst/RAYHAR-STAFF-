@@ -1,3 +1,4 @@
+import { writePrintDocument } from '@/utils/security';
 
 import { useRole } from "@/contexts/RoleContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -395,9 +396,7 @@ export default function Reports() {
     link.setAttribute("href", url);
     link.setAttribute("download", `Rayhar_Attendance_Report_${dateStr}.csv`);
     link.style.visibility = 'hidden';
-    document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
 
     toast.success("CSV Report exported successfully!");
   };
@@ -433,7 +432,7 @@ export default function Reports() {
 
     const displayDate = selectedDate ? new Date(selectedDate).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : new Date().toLocaleDateString();
 
-    printWindow.document.write(`
+    writePrintDocument(printWindow, `
       <html>
         <head>
           <title>Rayhar Daily Attendance Report - ${displayDate}</title>
@@ -485,16 +484,9 @@ export default function Reports() {
               ${rowsHtml}
             </tbody>
           </table>
-          
-          <script>
-            window.onload = function() {
-              setTimeout(function() { window.print(); }, 500);
-            }
-          </script>
         </body>
       </html>
-    `);
-    printWindow.document.close();
+    `, { autoPrint: true });
   };
 
   // Generate Report action using real data
@@ -577,7 +569,7 @@ export default function Reports() {
           const rowsHtml = rows.map(r => `<tr>${r.map((c: any) => `<td>${escapeCsv(c)}</td>`).join('')}</tr>`).join('');
           const headersHtml = headers.map(h => `<th>${h}</th>`).join('');
           
-          printWindow.document.write(`
+          writePrintDocument(printWindow, `
             <html>
               <head>
                 <title>${reportName.replace('.csv', '')}</title>
@@ -595,11 +587,9 @@ export default function Reports() {
                   <thead><tr>${headersHtml}</tr></thead>
                   <tbody>${rowsHtml}</tbody>
                 </table>
-                <script>window.onload = function() { window.print(); window.close(); }</script>
               </body>
             </html>
-          `);
-          printWindow.document.close();
+          `, { autoPrint: true, closeAfterPrint: true });
           toast.success(`${generatorType.toUpperCase()} Analytical Report PDF generated successfully!`);
         } else if (generatorFormat === 'excel') {
           const csvContent = [
@@ -613,9 +603,7 @@ export default function Reports() {
           link.setAttribute("href", url);
           link.setAttribute("download", reportName.replace('.csv', '.xlsx'));
           link.style.visibility = 'hidden';
-          document.body.appendChild(link);
           link.click();
-          document.body.removeChild(link);
           toast.success(`${generatorType.toUpperCase()} Analytical Report Excel sheet generated!`);
         } else {
           const csvContent = [
@@ -628,9 +616,7 @@ export default function Reports() {
           link.setAttribute("href", url);
           link.setAttribute("download", reportName);
           link.style.visibility = 'hidden';
-          document.body.appendChild(link);
           link.click();
-          document.body.removeChild(link);
           toast.success(`${generatorType.toUpperCase()} Analytical Report CSV generated successfully!`);
         }
       } else {

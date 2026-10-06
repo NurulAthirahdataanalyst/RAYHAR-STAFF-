@@ -1,11 +1,17 @@
+require("dotenv").config();
 const mysql = require("mysql2/promise");
 
+if (!process.env.DB_PASSWORD && !process.env.MYSQLPASSWORD) {
+  console.error("DB_PASSWORD is missing. Set it in backend/.env");
+  process.exit(1);
+}
+
 const pool = mysql.createPool({
-  host: "LocalHost",
-  user: "root",
-  password: "625231",
-  database: "employee_portal",
-  port: 3307,
+  host: process.env.DB_HOST || process.env.MYSQLHOST || "localhost",
+  user: process.env.DB_USER || process.env.MYSQLUSER || "root",
+  password: process.env.DB_PASSWORD || process.env.MYSQLPASSWORD,
+  database: process.env.DB_NAME || process.env.MYSQLDATABASE || "employee_portal",
+  port: Number(process.env.DB_PORT || process.env.MYSQLPORT || 3307),
 });
 
 (async () => {

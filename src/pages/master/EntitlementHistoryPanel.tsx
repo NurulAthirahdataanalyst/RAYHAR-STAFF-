@@ -1,3 +1,4 @@
+import { writePrintDocument } from '@/utils/security';
 import { useState, useEffect, useMemo, useCallback } from "react";
 import {
   Search, Filter, Download, X, ArrowLeft, History,
@@ -113,9 +114,7 @@ function exportCSV(logs: EntitlementHistoryLog[], filename: string) {
   link.setAttribute('href', url);
   link.setAttribute('download', filename);
   link.style.visibility = 'hidden';
-  document.body.appendChild(link);
   link.click();
-  document.body.removeChild(link);
 }
 
 function exportPDF(logs: EntitlementHistoryLog[], title: string) {
@@ -132,7 +131,7 @@ function exportPDF(logs: EntitlementHistoryLog[], title: string) {
       <td>${l.performed_by}</td>
       <td style="font-size:10px;color:#64748b">${l.reason}</td>
     </tr>`).join('');
-  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"/><title>${title}</title>
+  writePrintDocument(w, `<!DOCTYPE html><html><head><meta charset="utf-8"/><title>${title}</title>
   <style>
     body{font-family:'Segoe UI',sans-serif;color:#1e293b;padding:32px;font-size:12px}
     h1{font-size:22px;font-weight:900;color:#942392;margin:0}
@@ -157,14 +156,12 @@ function exportPDF(logs: EntitlementHistoryLog[], title: string) {
     <th>Date</th><th>Employee</th><th>Action</th><th>Leave Type</th>
     <th>Adjustment</th><th>Balance</th><th>Performed By</th><th>Reason</th>
   </tr></thead><tbody>${rows}</tbody></table>
-  <button onclick="window.print()" style="margin-top:20px;padding:8px 20px;background:#942392;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:700">PRINT</button>
-  </body></html>`);
-  w.document.close();
+  </body></html>`, { autoPrint: true });
 }
 
 // ——— Timeline group helpers ———
 function groupByDate(logs: EntitlementHistoryLog[]): Array<{ dateLabel: string; dateStr: string; entries: EntitlementHistoryLog[] }> {
-  const map: Record<string, EntitlementHistoryLog[]> = {};
+  const map: Record<string, any> = Object.create(null);
   logs.forEach(l => { if (!map[l.date]) map[l.date] = []; map[l.date].push(l); });
   const today = new Date().toISOString().split('T')[0];
   const yest  = new Date(Date.now() - 86400000).toISOString().split('T')[0];

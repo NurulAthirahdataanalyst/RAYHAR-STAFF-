@@ -354,9 +354,7 @@ export default function AttendanceReports() {
     link.setAttribute("href", url);
     link.setAttribute("download", viewType === "day" ? `attendance_report_${date}.csv` : viewType === "month" ? `attendance_report_${months.find(m => m.value === selectedMonth)?.label}_${selectedYear}.csv` : `attendance_report_${selectedYear}.csv`);
     link.style.visibility = 'hidden';
-    document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
   };
 
   return (

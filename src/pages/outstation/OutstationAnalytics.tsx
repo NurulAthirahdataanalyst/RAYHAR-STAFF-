@@ -193,16 +193,7 @@ export default function OutstationAnalytics() {
   // Group individual employee assignments into distinct Outstation Events
   const eventGroups = useMemo(() => {
     const today = new Date().toISOString().slice(0, 10);
-    const groups: Record<string, {
-      key: string;
-      destination: string;
-      project: string;
-      purpose: string;
-      start_date: string;
-      end_date: string;
-      status: string;
-      assignments: any[];
-    }> = {};
+    const groups: Record<string, any> = Object.create(null);
 
     filteredAssignments.forEach(a => {
       const projectOrPurpose = (a.project && a.project !== '-') ? a.project : (a.purpose && a.purpose !== '-') ? a.purpose : 'General';
@@ -278,7 +269,7 @@ export default function OutstationAnalytics() {
   }, [monthlyTrackerData, selectedMonth]);
 
   const destinationData = useMemo(() => {
-    const counts: Record<string, number> = {};
+    const counts: Record<string, any> = Object.create(null);
     filteredAssignments.forEach(a => {
       const destination = a.destination || "Unknown";
       counts[destination] = (counts[destination] || 0) + 1;
@@ -376,7 +367,7 @@ export default function OutstationAnalytics() {
   }, [allRecentAssignments, recentPage, recentLimit]);
 
   const upcomingGroups = useMemo(() => {
-    const groups: Record<string, { destination: string; purpose: string; start_date: string; count: number }> = {};
+    const groups: Record<string, any> = Object.create(null);
     filteredAssignments.filter(a => a.status === "Upcoming").forEach(a => {
       const key = `${a.destination}_${a.purpose}_${a.start_date}`;
       if (!groups[key]) groups[key] = { destination: a.destination, purpose: a.purpose || a.project || "General", start_date: a.start_date, count: 0 };

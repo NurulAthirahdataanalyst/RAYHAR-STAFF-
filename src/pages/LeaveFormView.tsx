@@ -1,5 +1,5 @@
 import { formatBranchName } from '@/utils/branchUtils';
-import { safeUrl } from '@/utils/security';
+import { safeFileUrl, downloadUploadedFile } from '@/utils/security';
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -308,23 +308,14 @@ export default function LeaveFormView() {
   const handleDownloadMCFile = async (e: React.MouseEvent, form: any) => {
     e.preventDefault();
     try {
-        const url = `${API_BASE_URL}${form.mcFileUrl}`;
-        const response = await fetch(url);
-        const blob = await response.blob();
-        
         // Extract original extension
-        const urlParts = form.mcFileUrl.split('.');
+        const urlParts = String(form.mcFileUrl || "").split('.');
         const ext = urlParts.length > 1 ? urlParts[urlParts.length - 1] : 'pdf';
         
         // Create filename: Full Name - branch - leave_type
         const filename = `${form.employeeName} - ${form.branch} - ${leaveTypeLabels[form.leaveType as keyof typeof leaveTypeLabels] || form.leaveType}.${ext}`;
         
-        const blobUrl = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = blobUrl;
-        link.download = filename;
-        link.click();
-        URL.revokeObjectURL(blobUrl);
+        await downloadUploadedFile(form.mcFileUrl, filename);
     } catch (error) {
         console.error("Download failed:", error);
         toast.error("Failed to download file");
@@ -864,7 +855,7 @@ export default function LeaveFormView() {
                           }}
                         />
                         <a
-                            href={safeUrl(`${API_BASE_URL}${selectedForm.mcFileUrl}`)}
+                            href={safeFileUrl(selectedForm.mcFileUrl)}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex items-center justify-center h-8 px-4 text-[10px] print:text-[13px] font-black uppercase tracking-widest bg-[#942392] text-white rounded-md hover:bg-[#5e0080] transition-colors shadow-sm"
@@ -1017,7 +1008,7 @@ export default function LeaveFormView() {
                       </div>
                       <div className="w-full flex items-center justify-center h-[800px]">
                         <img 
-                          src={`${API_BASE_URL}${selectedForm.mcFileUrl}`} 
+                          src={safeFileUrl(selectedForm.mcFileUrl, "about:blank")} 
                           alt="MC Attachment" 
                           className="max-w-full max-h-full object-contain"
                         />

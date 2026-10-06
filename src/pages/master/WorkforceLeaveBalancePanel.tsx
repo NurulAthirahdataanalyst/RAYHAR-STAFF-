@@ -319,9 +319,7 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
     const link = document.createElement("a");
     link.setAttribute("href", url);
     link.setAttribute("download", filename);
-    document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
     URL.revokeObjectURL(url);
   };
 
@@ -409,9 +407,7 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
     const link = document.createElement("a");
     link.setAttribute("href", url);
     link.setAttribute("download", filename);
-    document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
     URL.revokeObjectURL(url);
   };
 

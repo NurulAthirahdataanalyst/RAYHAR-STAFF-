@@ -72,10 +72,19 @@ async function runRestore() {
     backupFile = path.join(backupsDir, files[files.length - 1]);
     console.log(`ℹ️ No backup file specified. Using the latest: ${files[files.length - 1]}`);
   } else {
-    // Check if the user passed relative or absolute path
-    if (!path.isAbsolute(backupFile)) {
-      backupFile = path.join(process.cwd(), backupFile);
+    // Only accept a plain filename located inside backups/db (prevents path traversal)
+    const safeName = path.basename(backupFile);
+    if (!/^[\w.-]+\.json$/.test(safeName)) {
+      console.error("❌ Error: Invalid backup filename. Only .json files inside 'backend/backups/db/' are allowed.");
+      process.exit(1);
     }
+    const resolvedDir = path.resolve(backupsDir);
+    const resolvedFile = path.resolve(resolvedDir, safeName);
+    if (!resolvedFile.startsWith(resolvedDir + path.sep)) {
+      console.error("❌ Error: Invalid backup file path.");
+      process.exit(1);
+    }
+    backupFile = resolvedFile;
   }
 
   if (!fs.existsSync(backupFile)) {

@@ -151,8 +151,14 @@ async function runRestore() {
     let failCount = 0;
 
     for (const file of files) {
-      // Local path setup
-      const localFilePath = path.join(uploadsDir, file.name);
+      // Local path setup (reject names that would escape uploadsDir)
+      const resolvedUploadsDir = path.resolve(uploadsDir);
+      const localFilePath = path.resolve(resolvedUploadsDir, String(file.name || ""));
+      if (!localFilePath.startsWith(resolvedUploadsDir + path.sep)) {
+        console.warn(`⚠️ Skipping unsafe file path: ${file.name}`);
+        failCount++;
+        continue;
+      }
       const localSubdir = path.dirname(localFilePath);
 
       // Create folders locally if they don't exist

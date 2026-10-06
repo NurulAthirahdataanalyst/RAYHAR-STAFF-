@@ -595,7 +595,7 @@ export default function EmployeeAnalytics() {
 
   // ── Dept Overtime Chart ───────────────────────────────────────────────────
   const deptOvertimeData = useMemo(() => {
-    const map: Record<string, { dept: string; overtime: number; count: number }> = {};
+    const map: Record<string, any> = Object.create(null);
     teamMetrics.forEach(m => {
       const upperDept = (m.department || "OTHER").toUpperCase().trim();
       if (!map[upperDept]) map[upperDept] = { dept: upperDept, overtime: 0, count: 0 };

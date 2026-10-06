@@ -239,9 +239,7 @@ export default function LeaveReports() {
     link.setAttribute("href", url);
     link.setAttribute("download", viewType === "day" ? `leave_report_${date}.csv` : viewType === "month" ? `leave_report_${months.find(m => m.value === selectedMonth)?.label}_${selectedYear}.csv` : `leave_report_${selectedYear}.csv`);
     link.style.visibility = 'hidden';
-    document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
   };
 
   return (

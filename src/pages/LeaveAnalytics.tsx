@@ -1,3 +1,4 @@
+import { writePrintDocument } from '@/utils/security';
 import { useState, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { useRole } from "@/contexts/RoleContext";
@@ -531,7 +532,7 @@ export default function LeaveAnalytics() {
       }
 
       if (entData.success && Array.isArray(entData.data)) {
-        const entMap: Record<string, number> = {};
+        const entMap: Record<string, any> = Object.create(null);
         entData.data.forEach((e: any) => {
           entMap[e.user_id] = Number(e.balance || 0) + Number(e.annual_days_used || 0);
         });
@@ -606,7 +607,7 @@ export default function LeaveAnalytics() {
 
   // ─ Staff-level summary (for Branch Leader / HOD) ─────────────────────────
   const staffSummary = useMemo(() => {
-    const map: Record<string, { id: string; name: string; total: number; approved: number; rejected: number; pending: number; days: number; department: string; branch: string; quota: number; rawRole: string; }> = {};
+    const map: Record<string, any> = Object.create(null);
     
     allEmployees.forEach(emp => {
       map[emp.user_id] = {
@@ -715,7 +716,7 @@ export default function LeaveAnalytics() {
 
   // Leave type distribution
   const typeDistribution = useMemo(() => {
-    const counts: Record<string, number> = {};
+    const counts: Record<string, any> = Object.create(null);
     filtered.forEach((r) => {
       counts[r.leave_type] = (counts[r.leave_type] || 0) + 1;
     });
@@ -920,7 +921,7 @@ export default function LeaveAnalytics() {
         ? `Year ${selectedYear}`
         : `${monthNames[parseInt(selectedMonth) - 1]} ${selectedYear}`;
 
-    printWindow.document.write(`
+    writePrintDocument(printWindow, `
       <html>
         <head>
           <title>Rayhar Staff Leave Report - ${periodName}</title>
@@ -977,16 +978,9 @@ export default function LeaveAnalytics() {
               ${rowsHtml}
             </tbody>
           </table>
-          
-          <script>
-            window.onload = function() {
-              setTimeout(function() { window.print(); }, 500);
-            }
-          </script>
         </body>
       </html>
-    `);
-    printWindow.document.close();
+    `, { autoPrint: true });
   };
 
   // Tooltip style (shared)
@@ -1005,7 +999,7 @@ export default function LeaveAnalytics() {
   
   // 1. Department Comparison
   const deptComparison = useMemo(() => {
-    const counts: Record<string, number> = {};
+    const counts: Record<string, any> = Object.create(null);
     filtered.forEach(r => {
       const d = r.department || "Unknown";
       if (d !== "Unknown") {
@@ -1017,7 +1011,7 @@ export default function LeaveAnalytics() {
 
   // 2. Branch Comparison
   const branchComparison = useMemo(() => {
-    const counts: Record<string, number> = {};
+    const counts: Record<string, any> = Object.create(null);
     filtered.forEach(r => {
       const b = r.branch || "Unknown";
       counts[b] = (counts[b] || 0) + 1;

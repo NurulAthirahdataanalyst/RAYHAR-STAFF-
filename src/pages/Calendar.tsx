@@ -1,3 +1,4 @@
+import { safeUrl } from '@/utils/security';
 import { useState, useEffect, useMemo } from "react";
 import { format, isSameDay, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, addMonths, subMonths, isBefore, startOfDay } from "date-fns";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
@@ -1767,7 +1768,7 @@ export default function Calendar() {
           const parts = text.split(urlRegex);
           return parts.map((part, i) => {
             if (part.match(urlRegex)) {
-              return <a key={i} href={part} target="_blank" rel="noreferrer" className="text-[#942392] hover:underline font-medium">{part}</a>;
+              return <a key={i} href={safeUrl(part)} target="_blank" rel="noreferrer" className="text-[#942392] hover:underline font-medium">{part}</a>;
             }
             return <span key={i}>{part}</span>;
           });

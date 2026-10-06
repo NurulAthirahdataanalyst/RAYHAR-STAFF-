@@ -1,3 +1,4 @@
+import { safeFileUrl, downloadUploadedFile } from '@/utils/security';
 import { formatBranchName } from '@/utils/branchUtils';
 import { MonthPicker } from '@/components/shared/MonthPicker';
 import { YearPopover } from '@/components/shared/YearPopover';
@@ -545,9 +546,7 @@ export function StaffProfileDialog({
     link.setAttribute("href", url);
     link.setAttribute("download", `Employee_Directory_${new Date().toISOString().split('T')[0]}.csv`);
     link.style.visibility = 'hidden';
-    document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
   };
 
   useEffect(() => {
@@ -1788,7 +1787,7 @@ export function StaffProfileDialog({
                           }}
                         />
                         <a
-                          href={`${API_BASE_URL}${req.mc_file_url}`}
+                          href={safeFileUrl(req.mc_file_url)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-[10px] print:text-[13px] font-black uppercase tracking-widest bg-[#942392] text-white px-4 py-2 rounded-xl hover:bg-[#5e0080] transition-colors shadow-lg"
@@ -1813,18 +1812,7 @@ export function StaffProfileDialog({
                               }
                               const filename = `${empName} - ${branchName} - ${leaveType}.${originalExt}`;
                               
-                              const fileUrl = `${API_BASE_URL}${req.mc_file_url}`;
-                              const response = await fetch(fileUrl);
-                              const blob = await response.blob();
-                              const objectUrl = URL.createObjectURL(blob);
-                              
-                              const a = document.createElement('a');
-                              a.href = objectUrl;
-                              a.download = filename;
-                              document.body.appendChild(a);
-                              a.click();
-                              document.body.removeChild(a);
-                              URL.revokeObjectURL(objectUrl);
+                              await downloadUploadedFile(req.mc_file_url, filename);
                             } catch (err) {
                               import("react-hot-toast").then(({ toast }) => toast.error("Failed to download file"));
                             }
@@ -1934,7 +1922,7 @@ export function StaffProfileDialog({
                         </div>
                         <div className="w-full flex items-center justify-center h-[800px]">
                           <img 
-                            src={`${API_BASE_URL}${req.mc_file_url}`} 
+                            src={safeFileUrl(req.mc_file_url, "about:blank")} 
                             alt="MC Attachment" 
                             className="max-w-full max-h-full object-contain"
                           />

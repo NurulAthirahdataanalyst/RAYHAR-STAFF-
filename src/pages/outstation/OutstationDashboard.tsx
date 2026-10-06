@@ -1,3 +1,4 @@
+import { writePrintDocument } from '@/utils/security';
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
@@ -877,9 +878,7 @@ export default function OutstationDashboard() {
                                             </body>
                                           </html>
                                         `;
-                                        printWindow.document.write(html);
-                                        printWindow.document.close();
-                                        setTimeout(() => { printWindow.print(); printWindow.close(); }, 250);
+                                        writePrintDocument(printWindow, html, { autoPrint: true, closeAfterPrint: true, delay: 250 });
                                       }} className="rounded-xl font-black text-[11px] border-purple-200 text-purple-700 hover:bg-purple-50">
                                         Export to PDF
                                       </Button>
@@ -1165,9 +1164,7 @@ export default function OutstationDashboard() {
                                             </body>
                                           </html>
                                         `;
-                                        printWindow.document.write(html);
-                                        printWindow.document.close();
-                                        setTimeout(() => { printWindow.print(); printWindow.close(); }, 250);
+                                        writePrintDocument(printWindow, html, { autoPrint: true, closeAfterPrint: true, delay: 250 });
                                       }} className="rounded-xl font-black text-[11px] border-purple-200 text-purple-700 hover:bg-purple-50">
                                         Export to PDF
                                       </Button>

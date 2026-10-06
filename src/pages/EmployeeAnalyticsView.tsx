@@ -657,7 +657,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
   let totalTimeMs = 0;
   let earliest = "23:59:59";
   let latest = "00:00:00";
-  const timeBuckets: Record<string, number> = {};
+  const timeBuckets: Record<string, any> = Object.create(null);
   
   // For Line Chart
   const trendData: any[] = [];

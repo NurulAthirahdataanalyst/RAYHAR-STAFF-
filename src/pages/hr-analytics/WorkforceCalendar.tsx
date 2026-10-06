@@ -486,7 +486,7 @@ export default function WorkforceCalendar() {
                     </div>
                     <div className="space-y-1 mt-1">
                       {(() => {
-                        const summary: Record<string, { count: number, c: any }> = {};
+                        const summary: Record<string, any> = Object.create(null);
                         evts.forEach(e => {
                           let key = e.type;
                           if (e.source === "leave") key = "Leave";

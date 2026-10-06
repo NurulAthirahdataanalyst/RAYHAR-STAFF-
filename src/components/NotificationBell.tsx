@@ -1,3 +1,4 @@
+import { safeRedirectUrl } from '@/utils/security';
 import { useState } from "react";
 import { 
   Bell, 
@@ -125,13 +126,13 @@ export default function NotificationBell() {
       if (userRole === "employee" || userRole === "intern" || !isApprover || isPersonal) {
         navigate("/outstation/my");
       } else {
-        navigate(notif.action_url || "/outstation");
+        navigate(safeRedirectUrl(notif.action_url, "/outstation"));
       }
       return;
     }
 
     if (notif.action_url) {
-      navigate(notif.action_url);
+      navigate(safeRedirectUrl(notif.action_url));
       return;
     }
 

@@ -109,7 +109,7 @@ export default function DepartmentReports() {
   });
 
   // Group by department using filtered employees list (exclude invalid department like '--')
-  const deptMap: Record<string, { branch: string, headcount: number, active: number }> = {};
+  const deptMap: Record<string, any> = Object.create(null);
   filteredEmployees.forEach(e => {
     const deptName = (e.department || '').trim();
     if (isInvalidDepartment(deptName)) return;
@@ -134,7 +134,7 @@ export default function DepartmentReports() {
   const hqList = deptArray.filter(e => e.branch === 'HQ');
     
   // Aggregate branch list by branch
-  const branchMap: Record<string, { headcount: number, active: number }> = {};
+  const branchMap: Record<string, any> = Object.create(null);
   filteredEmployees.filter(e => (e.branch || 'HQ') !== 'HQ').forEach(e => {
     const b = e.branch || 'HQ';
     if (!branchMap[b]) {
@@ -180,9 +180,7 @@ export default function DepartmentReports() {
     link.setAttribute("href", url);
     link.setAttribute("download", `department_branch_report.csv`);
     link.style.visibility = 'hidden';
-    document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
   };
 
   return (

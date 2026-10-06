@@ -28,7 +28,5 @@ export const exportToCSV = (data: any[], filename: string) => {
   link.setAttribute("href", url);
   link.setAttribute("download", `${filename}.csv`);
   link.style.visibility = 'hidden';
-  document.body.appendChild(link);
   link.click();
-  document.body.removeChild(link);
 };

@@ -1,4 +1,4 @@
-import { safeUrl } from '@/utils/security';
+import { safeFileUrl, downloadUploadedFile } from '@/utils/security';
 import { formatBranchName } from '@/utils/branchUtils';
 import { useNavigate } from "react-router-dom";
 import { MonthPicker } from '@/components/shared/MonthPicker';
@@ -1614,7 +1614,7 @@ export default function Employees() {
                           }}
                         />
                         <a
-                          href={safeUrl(`${API_BASE_URL}${req.mc_file_url}`)}
+                          href={safeFileUrl(req.mc_file_url)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-[10px] print:text-[13px] font-black uppercase tracking-widest bg-[#942392] text-white px-4 py-2 rounded-xl hover:bg-[#5e0080] transition-colors shadow-lg"
@@ -1639,16 +1639,7 @@ export default function Employees() {
                               }
                               const filename = `${empName} - ${branchName} - ${leaveType}.${originalExt}`;
                               
-                              const fileUrl = `${API_BASE_URL}${req.mc_file_url}`;
-                              const response = await fetch(fileUrl);
-                              const blob = await response.blob();
-                              const objectUrl = URL.createObjectURL(blob);
-                              
-                              const a = document.createElement('a');
-                              a.href = objectUrl;
-                              a.download = filename;
-                              a.click();
-                              URL.revokeObjectURL(objectUrl);
+                              await downloadUploadedFile(req.mc_file_url, filename);
                             } catch (err) {
                               import("react-hot-toast").then(({ toast }) => toast.error("Failed to download file"));
                             }
@@ -1786,7 +1777,7 @@ export default function Employees() {
                         </div>
                         <div className="w-full flex items-center justify-center h-[800px]">
                           <img 
-                            src={`${API_BASE_URL}${req.mc_file_url}`} 
+                            src={safeFileUrl(req.mc_file_url, "about:blank")} 
                             alt="MC Attachment" 
                             className="max-w-full max-h-full object-contain"
                           />

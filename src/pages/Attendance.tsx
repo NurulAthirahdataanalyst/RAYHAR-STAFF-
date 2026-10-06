@@ -1,3 +1,4 @@
+import { writePrintDocument } from '@/utils/security';
 import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { TableScrollTopButton } from "@/components/shared/TableScrollTopButton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -705,7 +706,7 @@ export default function Attendance() {
       ? new Date(selectedDate).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
       : new Date(selectedYear, selectedMonth - 1).toLocaleString('default', { month: 'long', year: 'numeric' });
 
-    printWindow.document.write(`
+    writePrintDocument(printWindow, `
       <html>
         <head>
           <title>Rayhar Staff Attendance Report - ${user?.full_name || 'Employee'}</title>
@@ -795,16 +796,9 @@ export default function Attendance() {
               ${logsHtml || '<tr><td colspan="6" style="text-align: center;">No attendance logs found for this period.</td></tr>'}
             </tbody>
           </table>
-          
-          <script>
-            window.onload = function() {
-              setTimeout(function() { window.print(); }, 500);
-            }
-          </script>
         </body>
       </html>
-    `);
-    printWindow.document.close();
+    `, { autoPrint: true });
   };
 
   // Export CSV Handler
@@ -882,9 +876,7 @@ export default function Attendance() {
     link.setAttribute("href", url);
     link.setAttribute("download", `Rayhar_Attendance_Report_${user?.full_name || 'Employee'}_${periodFileStr}.csv`);
     link.style.visibility = 'hidden';
-    document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
 
     toast({
       title: "Export Successful",

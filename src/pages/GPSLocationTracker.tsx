@@ -180,7 +180,7 @@ export default function GPSLocationTracker() {
           if (!payload) return;
           if (payload.type === 'employee-locations' && Array.isArray(payload.locations)) {
             const list: Employee[] = [];
-            const locMap: Record<string, EmpLocation> = {};
+            const locMap: Record<string, any> = Object.create(null);
             payload.locations.forEach((r: any) => {
               const userId = r.user_id || r.userId || r.id;
               if (userId) {
@@ -246,7 +246,7 @@ export default function GPSLocationTracker() {
       const res = await fetch(`${API_BASE_URL}/api/employee-locations${queryParams}`);
       const j = await res.json();
       const list: Employee[] = [];
-      const locMap: Record<string, EmpLocation> = {};
+      const locMap: Record<string, any> = Object.create(null);
       if (j && j.success && Array.isArray(j.locations)) {
         j.locations.forEach((r: any) => {
           const userId = r.user_id || r.userId || r.id;
@@ -334,7 +334,7 @@ export default function GPSLocationTracker() {
   const currentItems = filtered.slice(indexOfFirstItem, indexOfLastItem);
 
   const validGroups = useMemo(() => {
-    const groups: Record<string, EmpLocation[]> = {};
+    const groups: Record<string, any> = Object.create(null);
     filtered.forEach((emp) => {
       const loc = locations[emp.user_id];
       if (!loc || loc.lat == null || loc.lng == null) return;

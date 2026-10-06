@@ -117,7 +117,7 @@ export default function OutstationReports() {
       .then(res => res.json())
       .then(data => {
         if (data.success && Array.isArray(data.branches)) {
-          const map: Record<string, string> = {};
+          const map: Record<string, any> = Object.create(null);
           data.branches.forEach((b: any) => {
             if (b.code && b.name) map[b.code] = b.name;
           });
@@ -167,7 +167,7 @@ export default function OutstationReports() {
   const eventGroups = useMemo(() => {
     const today = new Date().toISOString().split('T')[0];
     
-    const groups: Record<string, EventGroup> = {};
+    const groups: Record<string, any> = Object.create(null);
     assignments.forEach(a => {
       const eventName = (a.project && a.project !== '-') ? a.project : (a.purpose && a.purpose !== '-') ? a.purpose : 'General';
       if (!groups[eventName]) {

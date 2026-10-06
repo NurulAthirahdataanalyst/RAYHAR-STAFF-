@@ -1,3 +1,4 @@
+import { isValidIndex } from '@/utils/security';
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -798,7 +799,9 @@ export default function LeaveManagement() {
                                   minDate={new Date().toISOString().split('T')[0]}
                                   onChange={(val) => {
                                     const newRows = [...formData.cutiGantiRows];
-                                    newRows[index].tarikhCuti = val;
+                                    if (isValidIndex(newRows, index)) {
+                                      newRows[index].tarikhCuti = val;
+                                    }
                                     setFormData(prev => ({ ...prev, cutiGantiRows: newRows }));
                                   }}
                                   className="h-12 bg-card rounded-xl font-bold border border-[#942392]/20"
@@ -812,7 +815,9 @@ export default function LeaveManagement() {
                                   minDate={new Date().toISOString().split('T')[0]}
                                   onChange={(val) => {
                                     const newRows = [...formData.cutiGantiRows];
-                                    newRows[index].tarikhGanti = val;
+                                    if (isValidIndex(newRows, index)) {
+                                      newRows[index].tarikhGanti = val;
+                                    }
                                     setFormData({ ...formData, cutiGantiRows: newRows });
                                   }}
                                   className="h-12 bg-card rounded-xl font-bold border border-[#942392]/20"
@@ -825,7 +830,9 @@ export default function LeaveManagement() {
                                   value={row.keterangan || ""}
                                   onChange={(e) => {
                                     const newRows = [...formData.cutiGantiRows];
-                                    newRows[index].keterangan = e.target.value;
+                                    if (isValidIndex(newRows, index)) {
+                                      newRows[index].keterangan = e.target.value;
+                                    }
                                     setFormData({ ...formData, cutiGantiRows: newRows });
                                   }}
                                   placeholder="Contoh: Kerja lebih masa"
