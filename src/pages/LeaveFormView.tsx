@@ -450,11 +450,11 @@ export default function LeaveFormView() {
                 <Table>
                   <TableHeader className="bg-muted/30">
                     <TableRow>
-                      <TableHead className="px-6 py-4 text-[8px] print:text-[13px]">Leave Type</TableHead>
-                      <TableHead className="px-6 py-4 text-[8px] print:text-[13px]">From</TableHead>
-                      <TableHead className="px-6 py-4 text-[8px] print:text-[13px]">To</TableHead>
-                      <TableHead className="px-6 py-4 text-[8px] print:text-[13px] text-center">Days</TableHead>
-                      <TableHead className="px-6 py-4 text-[8px] print:text-[13px] text-center">Status</TableHead>
+                      <TableHead className="px-6 py-4 text-[10px] print:text-[13px]">Leave Type</TableHead>
+                      <TableHead className="px-6 py-4 text-[10px] print:text-[13px]">From</TableHead>
+                      <TableHead className="px-6 py-4 text-[10px] print:text-[13px]">To</TableHead>
+                      <TableHead className="px-6 py-4 text-[10px] print:text-[13px] text-center">Days</TableHead>
+                      <TableHead className="px-6 py-4 text-[10px] print:text-[13px] text-center">Status</TableHead>
                       <TableHead className="px-6 py-4 text-right"></TableHead>
                     </TableRow>
                   </TableHeader>
@@ -761,10 +761,10 @@ export default function LeaveFormView() {
                           <Table>
                             <TableHeader>
                               <TableRow className="bg-blue-500/10 hover:bg-blue-500/10 border-b border-blue-500/20">
-                                <TableHead className="py-2.5 px-4 text-[8px] print:text-[13px]">Tarikh Cuti</TableHead>
-                                <TableHead className="py-2.5 px-4 text-[8px] print:text-[13px]">Tarikh/Hari Cuti Ganti</TableHead>
-                                <TableHead className="py-2.5 px-4 text-[8px] print:text-[13px]">Keterangan / Tugasan</TableHead>
-                                <TableHead className="py-2.5 px-4 text-[8px] print:text-[13px] text-right">Jam Bekerja</TableHead>
+                                <TableHead className="py-2.5 px-4 text-[10px] print:text-[13px]">Tarikh Cuti</TableHead>
+                                <TableHead className="py-2.5 px-4 text-[10px] print:text-[13px]">Tarikh/Hari Cuti Ganti</TableHead>
+                                <TableHead className="py-2.5 px-4 text-[10px] print:text-[13px]">Keterangan / Tugasan</TableHead>
+                                <TableHead className="py-2.5 px-4 text-[10px] print:text-[13px] text-right">Jam Bekerja</TableHead>
                               </TableRow>
                             </TableHeader>
                             <TableBody className="divide-y divide-blue-500/10 font-bold text-foreground/80">
