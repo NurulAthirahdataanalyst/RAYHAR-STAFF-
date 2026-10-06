@@ -51,7 +51,21 @@ export default function LeaveManagement() {
   const { userId, userName, userBranch } = useRole();
   const [currentStep, setCurrentStep] = useState(0); // 0: Arahan, 1: Profil, 2: Cuti, 3: Waris
   const [loading, setLoading] = useState(false);
+
   const [liveRequests, setLiveRequests] = useState<any[]>([]);
+  const [branchesList, setBranchesList] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch(API_BASE_URL + "/api/branches")
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && Array.isArray(data.branches) && data.branches.length > 0) {
+          setBranchesList(data.branches);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
 
   // Fetch live leave requests from backend to get the actual approved leave days
   useEffect(() => {
@@ -638,30 +652,16 @@ export default function LeaveManagement() {
                         <SelectValue placeholder="-- Pilih Cawangan --" />
                       </SelectTrigger>
                       <SelectContent className="rounded-2xl">
-                        <SelectItem value="HQ">Rayhar Travels HQ (Terengganu)</SelectItem>
-                        <SelectItem value="KMM">Kemaman</SelectItem>
-                        <SelectItem value="TGG">Kuala Terengganu</SelectItem>
-                        <SelectItem value="CNH">Cheneh</SelectItem>
-                        <SelectItem value="KBG">Kuala Berang</SelectItem>
-                        <SelectItem value="DGN">Dungun</SelectItem>
-                        <SelectItem value="JTH">Jertih</SelectItem>
-                        <SelectItem value="KBR">Kota Baru</SelectItem>
-                        <SelectItem value="RMP">Rompin</SelectItem>
-                        <SelectItem value="MZM">Muadzam Shah</SelectItem>
-                        <SelectItem value="SHA">Shah Alam</SelectItem>
-                        <SelectItem value="BBB">Bandar Baru Bangi</SelectItem>
-                        <SelectItem value="KUL">Kuala Lumpur</SelectItem>
-                        <SelectItem value="IPH">Ipoh</SelectItem>
-                        <SelectItem value="MJG">Manjung</SelectItem>
-                        <SelectItem value="MLK">Melaka</SelectItem>
-                        <SelectItem value="KKS">Kuala Kangsar</SelectItem>
-                        <SelectItem value="TWU">Tawau</SelectItem>
-                        <SelectItem value="SNS">Seremban</SelectItem>
-                        <SelectItem value="AOR">Alor Setar</SelectItem>
-                        <SelectItem value="BTM">Bertam</SelectItem>
-                        <SelectItem value="BTP">Batu Pahat</SelectItem>
-                        <SelectItem value="JB">Johor Bharu</SelectItem>
-                      </SelectContent>
+                          {branchesList.length > 0 ? (
+                            branchesList.map((b: any) => (
+                              <SelectItem key={b.code} value={b.code}>
+                                {b.name ? `${b.name.split(' ').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ')}` : b.code}
+                              </SelectItem>
+                            ))
+                          ) : (
+                            <SelectItem value="loading" disabled>Loading branches...</SelectItem>
+                          )}
+                        </SelectContent>
                     </Select>
                   </div>
                 </div>

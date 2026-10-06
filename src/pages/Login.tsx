@@ -58,6 +58,7 @@ export default function Login() {
   const navigate = useNavigate();
   const { loginLocal } = useAuth();
   const [branchesList, setBranchesList] = useState(BRANCHES);
+  const [departmentsList, setDepartmentsList] = useState<string[]>([]);
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/api/branches`)
@@ -68,6 +69,15 @@ export default function Login() {
             code: b.code,
             name: b.name ? toProperCase(b.name) : b.code
           })));
+        }
+      })
+      .catch(() => {});
+
+    fetch(`${API_BASE_URL}/api/departments`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && Array.isArray(data.departments) && data.departments.length > 0) {
+          setDepartmentsList(data.departments.map((d: any) => d.name || d.department_name || d).filter(Boolean));
         }
       })
       .catch(() => {});
