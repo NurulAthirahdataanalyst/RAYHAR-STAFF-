@@ -2451,20 +2451,8 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                </div>
                <div className="flex flex-col">
                  <p className="text-[10px] text-foreground font-bold uppercase tracking-widest mb-0.5">Leave Utilization</p>
-                 <h3 className="text-2xl font-black text-slate-800 dark:text-slate-100">{leaveUtil || 0}%</h3>
-                 <p className="text-[10px] text-foreground font-medium">Leave Used</p>
-               </div>
-            </Card>
-
-            {/* 7. Perfect Attend. */}
-            <Card className="p-4 flex items-center border border-yellow-200 dark:border-yellow-900/50 cursor-default bg-yellow-50 dark:bg-yellow-900/10   relative rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
-               <div className="w-12 h-12 rounded-xl bg-yellow-100 dark:bg-yellow-900/40 text-yellow-600 dark:text-yellow-400 flex items-center justify-center mr-4">
-                 <Award className="w-5 h-5" />
-               </div>
-               <div className="flex flex-col">
-                 <p className="text-[10px] text-foreground font-bold uppercase tracking-widest mb-0.5">Perfect Attend.</p>
-                 <h3 className="text-2xl font-black text-slate-800 dark:text-slate-100">{data?.performance?.perfectAttendance || 0}</h3>
-                 <p className="text-[10px] text-foreground font-medium">Employees</p>
+                 <h3 className="text-2xl font-black text-slate-800 dark:text-slate-100">{totalLeaveCount || 0}</h3>
+                 <p className="text-[10px] text-foreground font-medium">Leave Applications</p>
                </div>
             </Card>
 
