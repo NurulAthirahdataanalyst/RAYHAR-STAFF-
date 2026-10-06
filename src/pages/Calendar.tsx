@@ -156,12 +156,14 @@ function fmtDate(dateStr: string | undefined | null): string {
 }
 
 function getLeaveTypeInfo(type: string) {
-  const t = (type || "").toLowerCase();
-  if (t.includes("medical") || t.includes("mc")) {
+  const raw = (type || "").trim();
+  const t = raw.toLowerCase();
+  // Sick / Medical leave (e.g. "Sick Leave", "SICK LEAVE", "Medical Leave", "MC", "Cuti Sakit")
+  if (t.includes("sick") || t.includes("medical") || t.includes("sakit") || /\bmc\b/.test(t)) {
     return {
       bg: "bg-amber-500/10 border-l-2 border-amber-500 text-amber-700 dark:text-amber-300",
-      pillLabel: "🟡 MC",
-      fullTitle: "Medical Leave (MC)"
+      pillLabel: "🟡 Sick Leave",
+      fullTitle: "Sick Leave (MC)"
     };
   }
   if (t.includes("unpaid")) {
@@ -178,10 +180,19 @@ function getLeaveTypeInfo(type: string) {
       fullTitle: "Replacement Leave"
     };
   }
+  if (t.includes("annual") || t.includes("emergency") || t.includes("tahunan") || t.includes("kecemasan")) {
+    return {
+      bg: "bg-emerald-500/10 border-l-2 border-emerald-500 text-emerald-700 dark:text-emerald-300",
+      pillLabel: "🟢 Annual Leave",
+      fullTitle: "Annual Leave (AL)"
+    };
+  }
+  // Any other leave type (Maternity, Compassionate, etc.) — show its real name, never mislabel as Annual
+  const label = raw || "Leave";
   return {
-    bg: "bg-emerald-500/10 border-l-2 border-emerald-500 text-emerald-700 dark:text-emerald-300",
-    pillLabel: "🟢 Annual Leave",
-    fullTitle: "Annual Leave (AL)"
+    bg: "bg-indigo-500/10 border-l-2 border-indigo-500 text-indigo-700 dark:text-indigo-300",
+    pillLabel: `🟣 ${label}`,
+    fullTitle: label
   };
 }
 

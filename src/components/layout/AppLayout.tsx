@@ -261,10 +261,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const formattedRole = getFormattedRoleDisplay();
 
   return (
-    <div className="flex h-screen bg-background transition-colors duration-300 max-w-full overflow-hidden">
+    <div className="flex h-[100dvh] bg-background transition-colors duration-300 max-w-full overflow-hidden">
       <AppSidebar mobileOpen={mobileMenuOpen} onMobileClose={() => setMobileMenuOpen(false)} />
       
-      <main className="flex-1 h-screen overflow-y-auto overflow-x-hidden relative min-w-0 scroll-smooth">
+      <main className="flex-1 h-[100dvh] overflow-y-auto overflow-x-hidden relative min-w-0 scroll-smooth">
 
         
         {/* ═══════ DESKTOP TOP BAR ═══════ */}

@@ -997,9 +997,8 @@ export default function LeaveFormView() {
                     </Button>
                   </div>
                 </div>
-
-
-                  {/* Print-only MC Document Page */}
+              </div>
+            {/* Print-only MC Document Page */}
                   {(selectedForm.type === "Sick Leave" || selectedForm.type === "Cuti Sakit") && selectedForm.mcFileUrl && selectedForm.mcFileUrl.match(/\.(jpeg|jpg|png|gif)$/i) && (
                     <div className="hidden print:block break-before-page w-full pt-10 border-2 border-black print:p-8 print:mt-10">
                       <div className="text-center mb-8">
@@ -1014,7 +1013,7 @@ export default function LeaveFormView() {
                       </div>
                     </div>
                   )}
-              </div>
+                
             </>
           )}
         </DialogContent>

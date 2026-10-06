@@ -1143,9 +1143,9 @@ export function StaffProfileDialog({
                   {loadingSettings ? (
                     <div className="flex justify-center p-12"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
                   ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                      <div className="space-y-4">
-                        <Card>
+                    <div className="space-y-5">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-start">
+                        <Card className="h-full">
                           <CardContent className="p-4 space-y-4">
                             <h3 className="font-bold text-lg border-b pb-2">Primary Branch</h3>
                             <div className="bg-slate-100 dark:bg-slate-800 p-3 rounded text-sm font-semibold">
@@ -1153,12 +1153,8 @@ export function StaffProfileDialog({
                             </div>
                           </CardContent>
                         </Card>
-                      </div>
-
-                      <div className="space-y-4">
-
-
-                        <Card>
+  
+                        <Card className="h-full">
                           <CardContent className="p-4 space-y-4">
                             <h3 className="font-bold text-lg border-b pb-2">Temporary Assignment</h3>
                             
@@ -1181,7 +1177,7 @@ export function StaffProfileDialog({
                                   </SelectContent>
                                 </Select>
                               </div>
-
+  
                               <div className="grid grid-cols-2 gap-3">
                                 <div>
                                   <Label className="text-xs print:text-[11px] font-bold text-foreground uppercase">Start Date</Label>
@@ -1206,47 +1202,48 @@ export function StaffProfileDialog({
                                   </SelectContent>
                                 </Select>
                               </div>
-
+  
                               <Button className="w-full mt-2 bg-[#a01497] hover:bg-[#850f7c] text-white" onClick={saveTempAssignment}>Save Temporary Assignment</Button>
                             </div>
                           </CardContent>
                         </Card>
-                        {role === "hr_admin" ? (
-                          <Card>
-                            <CardContent className="p-4 space-y-4">
-                              <div className="flex justify-between items-center border-b pb-2">
-                                <h3 className="font-bold text-lg">Manage Allowed Branches</h3>
-                              </div>
-                              <div className="text-xs text-foreground mb-2">Select the branches this employee is permitted to clock into.</div>
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[300px] overflow-y-auto pr-2">
-                                {(branchesList.length > 0
-                                  ? branchesList
-                                  : Object.entries(branchMap).map(([code, name]) => ({ code, name }))
-                                ).map((b: any) => {
-                                  const code = b.code;
-                                  const name = toProperCase(b.name || branchMap[code] || code);
-                                  return (
-                                    <div key={code} className="flex items-center space-x-2 border p-2 rounded hover:bg-slate-50 dark:hover:bg-slate-800">
-                                      <Checkbox 
-                                        id={`branch-${code}`} 
-                                        checked={allowedLocations.includes(code)}
-                                        onCheckedChange={(checked) => {
-                                          if (checked) setAllowedLocations([...allowedLocations, code]);
-                                          else setAllowedLocations(allowedLocations.filter(c => c !== code));
-                                        }}
-                                      />
-                                      <Label htmlFor={`branch-${code}`} className="text-sm cursor-pointer flex-1">
-                                        {code} - {name}
-                                      </Label>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                              <Button className="w-full mt-4 bg-[#a01497] hover:bg-[#850f7c] text-white" onClick={saveAllowedLocations}>Save Allowed Branches</Button>
-                            </CardContent>
-                          </Card>
-                        ) : null}
                       </div>
+
+                      {role === "hr_admin" ? (
+                        <Card>
+                          <CardContent className="p-4 space-y-4">
+                            <div className="flex justify-between items-center border-b pb-2">
+                              <h3 className="font-bold text-lg">Manage Allowed Branches</h3>
+                            </div>
+                            <div className="text-xs text-foreground mb-2">Select the branches this employee is permitted to clock into.</div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[300px] overflow-y-auto pr-2">
+                              {(branchesList.length > 0
+                                ? branchesList
+                                : Object.entries(branchMap).map(([code, name]) => ({ code, name }))
+                              ).map((b: any) => {
+                                const code = b.code;
+                                const name = toProperCase(b.name || branchMap[code] || code);
+                                return (
+                                  <div key={code} className="flex items-center space-x-2 border p-2 rounded hover:bg-slate-50 dark:hover:bg-slate-800">
+                                    <Checkbox 
+                                      id={`branch-${code}`} 
+                                      checked={allowedLocations.includes(code)}
+                                      onCheckedChange={(checked) => {
+                                        if (checked) setAllowedLocations([...allowedLocations, code]);
+                                        else setAllowedLocations(allowedLocations.filter(c => c !== code));
+                                      }}
+                                    />
+                                    <Label htmlFor={`branch-${code}`} className="text-sm cursor-pointer flex-1">
+                                      {code} - {name}
+                                    </Label>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                            <Button className="w-full mt-4 bg-[#a01497] hover:bg-[#850f7c] text-white" onClick={saveAllowedLocations}>Save Allowed Branches</Button>
+                          </CardContent>
+                        </Card>
+                      ) : null}
                     </div>
                   )}
                 </TabsContent>
@@ -1753,6 +1750,43 @@ export function StaffProfileDialog({
                           <FileText className="w-5 h-5 text-[#942392]" />
                           <span className="text-[10px] print:text-[13px] font-black text-[#942392] uppercase tracking-widest">MC Attachment</span>
                         </div>
+                      <div className="flex items-center gap-2">
+                        <input 
+                          type="file" 
+                          id={`upload-mc-modal-${req.leave_id || req.id}`} 
+                          className="hidden" 
+                          accept="image/*,.pdf"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            const formData = new FormData();
+                            formData.append("lampiranMc", file);
+                            import("react-hot-toast").then(({ toast }) => {
+                              toast.loading("Uploading MC...", { id: "upload-mc-modal" });
+                            });
+                            try {
+                              const res = await fetch(`${API_BASE_URL}/api/leave-requests/${req.leave_id || req.id}/upload-mc`, {
+                                method: "POST",
+                                body: formData,
+                              });
+                              if (res.ok) {
+                                import("react-hot-toast").then(({ toast }) => {
+                                  toast.success("MC uploaded successfully!", { id: "upload-mc-modal" });
+                                });
+                                setTimeout(() => window.location.reload(), 1000);
+                              } else {
+                                const err = await res.json();
+                                import("react-hot-toast").then(({ toast }) => {
+                                  toast.error(err.error || "Failed to upload MC", { id: "upload-mc-modal" });
+                                });
+                              }
+                            } catch (err) {
+                              import("react-hot-toast").then(({ toast }) => {
+                                toast.error("Failed to upload MC", { id: "upload-mc-modal" });
+                              });
+                            }
+                          }}
+                        />
                         <a
                           href={`${API_BASE_URL}${req.mc_file_url}`}
                           target="_blank"
@@ -1761,6 +1795,58 @@ export function StaffProfileDialog({
                         >
                           View File
                         </a>
+                        <button
+                          onClick={async (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            try {
+                              const empName = req.employee || req.full_name || staffData?.full_name || "UNKNOWN";
+                              const branchName = req.branch || staffData?.branch || "HQ";
+                              const leaveType = req.type || req.leave_type || "MC";
+                              
+                              let originalExt = "pdf";
+                              if (req.mc_file_url) {
+                                const match = req.mc_file_url.match(/\.([a-zA-Z0-9]+)$/);
+                                if (match) {
+                                  originalExt = match[1];
+                                }
+                              }
+                              const filename = `${empName} - ${branchName} - ${leaveType}.${originalExt}`;
+                              
+                              const fileUrl = `${API_BASE_URL}${req.mc_file_url}`;
+                              const response = await fetch(fileUrl);
+                              const blob = await response.blob();
+                              const objectUrl = URL.createObjectURL(blob);
+                              
+                              const a = document.createElement('a');
+                              a.href = objectUrl;
+                              a.download = filename;
+                              document.body.appendChild(a);
+                              a.click();
+                              document.body.removeChild(a);
+                              URL.revokeObjectURL(objectUrl);
+                            } catch (err) {
+                              import("react-hot-toast").then(({ toast }) => toast.error("Failed to download file"));
+                            }
+                          }}
+                          className="flex items-center justify-center h-8 w-8 rounded-md border border-[#942392]/20 text-[#942392] hover:bg-[#942392] hover:text-white transition-colors"
+                          title="Download File"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+                        </button>
+                        <button
+                          type="button" 
+                          className="flex items-center justify-center h-8 w-8 rounded-md border border-[#942392]/20 text-[#942392] hover:bg-[#942392] hover:text-white transition-colors"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            document.getElementById(`upload-mc-modal-${req.leave_id || req.id}`)?.click();
+                          }}
+                          title="Replace File"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+                        </button>
+                      </div>
                       </div>
                     )}
 
@@ -1839,7 +1925,8 @@ export function StaffProfileDialog({
                       </Button>
                     </div>
 
-                    {/* Print-only MC Document Page */}
+                    </div>
+                {/* Print-only MC Document Page */}
                     {(req.leave_type === "Sick Leave" || req.leave_type === "Cuti Sakit") && req.mc_file_url && req.mc_file_url.match(/\.(jpeg|jpg|png|gif)$/i) && (
                       <div className="hidden print:block break-before-page w-full pt-10 border-2 border-black print:p-8 print:mt-10">
                         <div className="text-center mb-8">
@@ -1854,7 +1941,6 @@ export function StaffProfileDialog({
                         </div>
                       </div>
                     )}
-                  </div>
                 </div>
               </>
             );

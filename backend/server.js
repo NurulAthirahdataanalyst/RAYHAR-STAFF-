@@ -11,6 +11,8 @@ const { sendNotificationEmail } = require("./mailer");
 const { calculateExpectedWorkingDays } = require("./workingDaysHelper");
 const { startOfMonth, endOfMonth, startOfYear, endOfYear, format, isBefore } = require("date-fns");
 const emailService = require("./emailService");
+const helmet = require("helmet");
+const escapeHtml = require("escape-html");
 
 const jwtSecret = process.env.JWT_SECRET;
 console.log('ðŸ” JWT_SECRET loaded?', !!jwtSecret);
@@ -19,6 +21,7 @@ if (!jwtSecret) {
 }
 
 const app = express();
+app.use(helmet());
 
 const malaysiaHolidays = [
   // 2024
@@ -341,12 +344,14 @@ if (!fs.existsSync(tempDir)) {
 }
 
 // Multer Config (saves temporarily to uploads/temp)
+const crypto = require("crypto");
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, tempDir);
   },
   filename: function (req, file, cb) {
-    cb(null, Date.now() + path.extname(file.originalname));
+    const safeExt = path.extname(file.originalname).replace(/[^a-zA-Z0-9.]/g, "");
+    cb(null, crypto.randomBytes(16).toString("hex") + safeExt);
   }
 });
 const upload = multer({ storage: storage });
@@ -3275,11 +3280,18 @@ app.post("/api/leave-requests/:id/upload-mc", upload.single("lampiranMc"), async
         fs.mkdirSync(userUploadsDir, { recursive: true });
       }
       
-      const newFilePath = path.join(userUploadsDir, req.file.filename);
+      const safeFilename = path.basename(req.file.filename);
+      const newFilePath = path.join(userUploadsDir, safeFilename);
+      
+      const resolvedPath = path.resolve(newFilePath);
+      if (!resolvedPath.startsWith(path.resolve(userUploadsDir))) {
+        return res.status(400).json({ success: false, error: "Invalid file path" });
+      }
+
       fs.renameSync(req.file.path, newFilePath);
       
-      mc_file_url = `/uploads/${folderName}/${req.file.filename}`;
-      const supabaseStoragePath = `${folderName}/${req.file.filename}`;
+      mc_file_url = `/uploads/${folderName}/${safeFilename}`;
+      const supabaseStoragePath = `${folderName}/${safeFilename}`;
       
       uploadToSupabaseStorage(newFilePath, supabaseStoragePath, req.file.mimetype);
       
@@ -3435,23 +3447,34 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
         }
         
         // Move file from temp to subdirectory
-        const newFilePath = path.join(userUploadsDir, req.file.filename);
+        const safeFilename = path.basename(req.file.filename);
+        const newFilePath = path.join(userUploadsDir, safeFilename);
+        
+        const resolvedPath = path.resolve(newFilePath);
+        if (!resolvedPath.startsWith(path.resolve(userUploadsDir))) {
+          return res.status(400).json({ success: false, error: "Invalid file path" });
+        }
+
         fs.renameSync(req.file.path, newFilePath);
         
         // Store relative path URL
-        mc_file_url = `/uploads/${folderName}/${req.file.filename}`;
+        mc_file_url = `/uploads/${folderName}/${safeFilename}`;
         
         // Backup to Supabase with folder structure
-        const supabaseStoragePath = `${folderName}/${req.file.filename}`;
+        const supabaseStoragePath = `${folderName}/${safeFilename}`;
         uploadToSupabaseStorage(newFilePath, supabaseStoragePath, req.file.mimetype);
       } catch (fileErr) {
         console.error("âŒ Error organizing file into subfolder:", fileErr);
         // Fallback: move to base uploadsDir
-        const fallbackPath = path.join(uploadsDir, req.file.filename);
+        const safeFilenameFallback = path.basename(req.file.filename);
+        const fallbackPath = path.join(uploadsDir, safeFilenameFallback);
         try {
-          fs.renameSync(req.file.path, fallbackPath);
-          mc_file_url = `/uploads/${req.file.filename}`;
-          uploadToSupabaseStorage(fallbackPath, req.file.filename, req.file.mimetype);
+          const resolvedFallback = path.resolve(fallbackPath);
+          if (resolvedFallback.startsWith(path.resolve(uploadsDir))) {
+            fs.renameSync(req.file.path, fallbackPath);
+            mc_file_url = `/uploads/${safeFilenameFallback}`;
+            uploadToSupabaseStorage(fallbackPath, safeFilenameFallback, req.file.mimetype);
+          }
         } catch (fallbackErr) {
           console.error("âŒ Fallback move also failed:", fallbackErr);
         }
@@ -3696,8 +3719,9 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
           if (el.user_id === approverUserId) continue; // Already received direct approval action notification
 
           if (el.email && el.role === 'hr_admin') {
-            const fallbackHtml = `<p>FYI - New Leave Application from ${leaveData.full_name}.</p>`;
-            sendNotificationEmail(el.email, `FYI - New Leave Application: ${leaveData.full_name}`, fallbackHtml).catch(err => {
+            const safeName = escapeHtml(leaveData.full_name || 'Employee');
+            const fallbackHtml = `<p>FYI - New Leave Application from ${safeName}.</p>`;
+            sendNotificationEmail(el.email, `FYI - New Leave Application: ${safeName}`, fallbackHtml).catch(err => {
               console.error("Failed to send HR notification email:", err);
             });
           }
@@ -3748,9 +3772,10 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
 
         for (const el of (elevatedRows || [])) {
           if (el.email && el.role === 'hr_admin') {
-            const fallbackHtml = `<p>FYI - New Leave Application from ${leaveData.full_name} (Auto-Approved).</p>`;
+            const safeName = escapeHtml(leaveData.full_name || 'Employee');
+            const fallbackHtml = `<p>FYI - New Leave Application from ${safeName} (Auto-Approved).</p>`;
             if (typeof sendNotificationEmail !== 'undefined') {
-              sendNotificationEmail(el.email, `FYI - Auto-Approved Leave Application: ${leaveData.full_name}`, fallbackHtml).catch(err => {
+              sendNotificationEmail(el.email, `FYI - Auto-Approved Leave Application: ${safeName}`, fallbackHtml).catch(err => {
                 console.error("Failed to send HR notification email:", err);
               });
             }
@@ -3957,7 +3982,8 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
           for (const member of (elevatedFinalRows || [])) {
             if (member.user_id === approver_id) continue;
             if (member.email && member.role === 'hr_admin') {
-              sendNotificationEmail(member.email, `Leave Request ${nextStatus}: ${leaveData.employee_name}`, `<p>The leave request for <strong>${leaveData.employee_name}</strong> has been <strong>${nextStatus}</strong>.</p>`).catch(console.error);
+              const safeName = escapeHtml(leaveData.employee_name || 'Employee');
+              sendNotificationEmail(member.email, `Leave Request ${nextStatus}: ${safeName}`, `<p>The leave request for <strong>${safeName}</strong> has been <strong>${nextStatus}</strong>.</p>`).catch(console.error);
             }
             if (member.user_id) {
               notificationService.createNotification({
@@ -8882,15 +8908,16 @@ app.get("/api/workforce-stats", async (req, res) => {
          GROUP BY lr.leave_type`,
         [monthEndStr, monthStartStr, ...pFilterParams]
       );
-    let realLeaveAnalytics = { annual: 0, medical: 0, emergency: 0, unpaid: 0 };
-    realLeaveAnalyticsRows.forEach(r => {
-      const type = String(r.leave_type || '').toLowerCase();
-      const count = parseInt(r.count) || 0;
-      if (type.includes('annual')) realLeaveAnalytics.annual += count;
-      else if (type.includes('medical') || type.includes('sick')) realLeaveAnalytics.medical += count;
-      else if (type.includes('emergency')) realLeaveAnalytics.emergency += count;
-      else realLeaveAnalytics.unpaid += count;
-    });
+    let realLeaveAnalytics = { annual: 0, medical: 0, emergency: 0, replacement: 0, unpaid: 0 };
+      realLeaveAnalyticsRows.forEach(r => {
+        const type = String(r.leave_type || '').toLowerCase();
+        const count = parseInt(r.count) || 0;
+        if (type.includes('annual')) realLeaveAnalytics.annual += count;
+        else if (type.includes('medical') || type.includes('sick')) realLeaveAnalytics.medical += count;
+        else if (type.includes('emergency')) realLeaveAnalytics.emergency += count;
+        else if (type.includes('replacement') || type.includes('ganti')) realLeaveAnalytics.replacement += count;
+        else realLeaveAnalytics.unpaid += count;
+      });
 
     const [attentionRows] = await pool.query(
       `SELECT
@@ -9127,7 +9154,7 @@ app.get("/api/workforce-stats", async (req, res) => {
         workforceMovement: { 
           newJoiners: parseInt((await pool.query(`SELECT COUNT(*) as cnt FROM profiles p WHERE EXTRACT(MONTH FROM p.created_at) = ? AND EXTRACT(YEAR FROM p.created_at) = ? ${profileFilter}`, [requestedMonth, requestedYear, ...pFilterParams]))[0][0]?.cnt || 0), 
           resigned: parseInt((await pool.query(`SELECT COUNT(*) as cnt FROM profiles p WHERE p.status = 'Inactive' AND EXTRACT(MONTH FROM p.updated_at) = ? AND EXTRACT(YEAR FROM p.updated_at) = ? ${profileFilter}`, [requestedMonth, requestedYear, ...pFilterParams]))[0][0]?.cnt || 0), 
-          transferred: parseInt((await pool.query(`SELECT COUNT(DISTINCT e.user_id) as cnt FROM employee_work_assignment e JOIN profiles p ON e.user_id = p.user_id WHERE e.type = 'Temporary Assignment' AND EXTRACT(MONTH FROM e.created_at) = ? AND EXTRACT(YEAR FROM e.created_at) = ? ${profileFilter}`, [requestedMonth, requestedYear, ...pFilterParams]))[0][0]?.cnt || 0) 
+          transferred: parseInt((await pool.query(`SELECT COUNT(DISTINCT e.user_id) as cnt FROM employee_work_assignment e JOIN profiles p ON e.user_id = p.user_id WHERE EXTRACT(MONTH FROM e.created_at) = ? AND EXTRACT(YEAR FROM e.created_at) = ? ${profileFilter}`, [requestedMonth, requestedYear, ...pFilterParams]))[0][0]?.cnt || 0) 
         },
       hrAlerts: dynamicMetrics.hrAlerts,
       topKpi: {
@@ -10348,7 +10375,10 @@ app.post("/api/request-password-reset", async (req, res) => {
     const user = rows[0];
 
     // Check JWT secret
-    const secret = jwtSecret || process.env.JWT_SECRET || "rayhar-default-jwt-secret";
+    const secret = jwtSecret || process.env.JWT_SECRET;
+    if (!secret) {
+      throw new Error("JWT_SECRET is missing");
+    }
 
     // Generate JWT token valid for 15 minutes
     const token = jwt.sign({ user_id: user.user_id, purpose: "password_reset" }, secret, { expiresIn: "15m" });
@@ -10391,7 +10421,10 @@ app.post("/api/reset-password", async (req, res) => {
   }
 
   try {
-    const secret = jwtSecret || process.env.JWT_SECRET || "rayhar-default-jwt-secret";
+    const secret = jwtSecret || process.env.JWT_SECRET;
+    if (!secret) {
+      throw new Error("JWT_SECRET is missing");
+    }
     let targetUserId = null;
     let targetEmail = null;
 
@@ -10821,13 +10854,13 @@ app.get('/api/outstation', async (req, res) => {
 
     if (role === 'branch_leader' && branch) {
       params.push(branch);
-      whereClause += ` AND oa.branch = $${params.length}`;
+      whereClause += ` AND oa.branch = ?`;
     } else if (role === 'head_of_department' && department) {
       params.push(department);
-      whereClause += ` AND oa.department = $${params.length}`;
+      whereClause += ` AND oa.department = ?`;
     } else if (role === 'employee' && user_id) {
       params.push(user_id);
-      whereClause += ` AND oa.user_id = $${params.length}`;
+      whereClause += ` AND oa.user_id = ?`;
     }
     // hr_admin, managing_director, finance_manager → see all (no extra filter)
 
@@ -10856,10 +10889,10 @@ app.get('/api/outstation/stats', async (req, res) => {
 
     if (role === 'branch_leader' && branch) {
       params.push(branch);
-      scopeWhere = `branch = $${params.length}`;
+      scopeWhere = `branch = ?`;
     } else if (role === 'head_of_department' && department) {
       params.push(department);
-      scopeWhere = `department = $${params.length}`;
+      scopeWhere = `department = ?`;
     }
 
     const today = new Date().toISOString().split('T')[0];
@@ -11231,11 +11264,11 @@ async function getWorkforceCalendarData(role, branch, department, month, year) {
   if (role === 'branch_leader' && branch) {
     leaveWhere = `AND p.branch = $${params.length + 1}`;
     params.push(branch);
-    outstationWhere = `WHERE oa.branch = $${params.length}`;
+    outstationWhere = `WHERE oa.branch = ?`;
   } else if (role === 'head_of_department' && department) {
     leaveWhere = `AND p.department = $${params.length + 1}`;
     params.push(department);
-    outstationWhere = `WHERE oa.department = $${params.length}`;
+    outstationWhere = `WHERE oa.department = ?`;
   } else if (role === 'head_of_department' && !department) {
     return [];
   }
