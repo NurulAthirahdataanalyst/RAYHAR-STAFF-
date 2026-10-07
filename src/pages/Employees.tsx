@@ -1020,7 +1020,7 @@ export default function Employees() {
                                   variant="ghost"
                                   size="sm"
                                   onClick={(e) => handleToggleStatus(e, emp)}
-                                  className={`inline-flex items-center justify-center px-3 py-1 h-auto text-[10px] print:text-[13px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap transition-colors ${emp.status === "Active" ? "bg-transparent text-rose-500 border-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10" : "bg-transparent text-emerald-500 border-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-500/10"}`}
+                                  className={`inline-flex items-center justify-center px-3 py-1 h-auto text-[10px] print:text-[13px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap transition-colors ${emp.status === "Active" ? "bg-transparent text-red-600 border-red-600 hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-500/10 dark:hover:text-red-500" : "bg-transparent text-emerald-600 border-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-emerald-500/10 dark:hover:text-emerald-500"}`}
                                 >
                                   {emp.status === "Active" ? "Inactive" : "Re-activate"}
                                 </Button>
@@ -1072,7 +1072,7 @@ export default function Employees() {
                                 variant="ghost"
                                 size="sm"
                                 onClick={(e) => handleToggleStatus(e, emp)}
-                                className={`inline-flex items-center justify-center px-3 py-1 h-auto text-[10px] print:text-[13px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap transition-colors ${emp.status === "Active" ? "bg-transparent text-rose-500 border-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10" : "bg-transparent text-emerald-500 border-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-500/10"}`}
+                                className={`inline-flex items-center justify-center px-3 py-1 h-auto text-[10px] print:text-[13px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap transition-colors ${emp.status === "Active" ? "bg-transparent text-red-600 border-red-600 hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-500/10 dark:hover:text-red-500" : "bg-transparent text-emerald-600 border-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-emerald-500/10 dark:hover:text-emerald-500"}`}
                               >
                                 {emp.status === "Active" ? "Inactive" : "Activate"}
                               </Button>
