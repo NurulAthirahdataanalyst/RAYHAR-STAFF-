@@ -534,7 +534,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-5 animate-in fade-in duration-500 pb-16 max-w-4xl mx-auto">
+    <div className="space-y-4 sm:space-y-5 animate-in fade-in duration-500 pb-16 max-w-5xl mx-auto">
       {/* HEADER SECTION */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -553,7 +553,7 @@ export default function SettingsPage() {
       </div>
 
       {/* HORIZONTAL NAVIGATION TABS - PILL REDESIGN */}
-      <div className="flex bg-gradient-to-r from-[#800A7A] via-[#942392] to-[#3d0052] p-2 rounded-xl shadow-inner overflow-x-auto gap-1 scrollbar-none items-center w-full lg:w-fit max-w-full mx-auto border border-[#942392]/20 relative z-10 mb-6">
+      <div className="flex flex-wrap bg-gradient-to-r from-[#800A7A] via-[#942392] to-[#3d0052] p-2 rounded-xl shadow-inner gap-1 scrollbar-none items-center justify-center w-full max-w-full mx-auto border border-[#942392]/20 relative z-10 mb-6">
         {[
           { id: "system", label: "SYSTEM CONFIGURATION", icon: SlidersHorizontal },
           { id: "staff", label: "PERSONNEL MANAGEMENT", icon: UserPlus },
@@ -566,13 +566,13 @@ export default function SettingsPage() {
             <button
               key={tab.id}
               onClick={() => handleTabChange(tab.id as SettingsTab)}
-              className={`flex items-center gap-2 py-2.5 px-4 text-[10px] sm:text-[11px] font-black uppercase tracking-wider whitespace-nowrap rounded-lg transition-all duration-300 ${
+              className={`flex flex-1 sm:flex-none justify-center items-center gap-1.5 py-2.5 px-3 text-[9px] sm:text-[10px] font-black uppercase tracking-wider whitespace-nowrap rounded-lg transition-all duration-300 ${
                 isActive 
                   ? "bg-[#ffff00] text-[#942392] shadow-md font-black" 
                   : "text-white/90 hover:text-white hover:bg-white/10 font-bold"
               }`}
             >
-              <Icon className={`w-4 h-4 shrink-0 transition-colors ${isActive ? "text-[#942392]" : "text-white/90"}`} />
+              <Icon className={`w-3.5 h-3.5 shrink-0 transition-colors ${isActive ? "text-[#942392]" : "text-white/90"}`} />
               <span>{tab.label}</span>
             </button>
           );
