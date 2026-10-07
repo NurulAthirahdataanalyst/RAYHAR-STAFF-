@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { PasswordInput } from "@/components/ui/password-input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
-  Building2, UserPlus, Loader2, Plus, AlertCircle,
+  Building2, UserPlus, Loader2, Plus, AlertCircle, Settings,
   SlidersHorizontal, MapPin, Layers, Info, Cloud, CheckCircle2, History, X, Save, BellRing, Calendar, Clock, CalendarDays
 } from "lucide-react";
 import { toast } from "sonner";
@@ -537,11 +537,16 @@ export default function SettingsPage() {
     <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-500 pb-16 w-full">
       {/* HEADER SECTION */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-black text-foreground uppercase tracking-tight">Portal Configurations</h1>
-          <p className="text-xs text-foreground uppercase tracking-wider font-semibold opacity-70 mt-1">
-            Configure global branches, staff roles, and check-in parameters
-          </p>
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 sm:p-3 bg-[#942392] rounded-xl flex items-center justify-center shrink-0 shadow-md">
+            <Settings className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-black text-foreground uppercase tracking-tight">Portal Configurations</h1>
+            <p className="text-xs text-foreground uppercase tracking-wider font-semibold opacity-70 mt-1">
+              Configure global branches, staff roles, and check-in parameters
+            </p>
+          </div>
         </div>
         <button 
           onClick={() => toast.info("Audit logs are locked. Only system super-admins can view detailed log histories.")}
