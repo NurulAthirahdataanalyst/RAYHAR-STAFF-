@@ -329,6 +329,19 @@ export default function Branches() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isEditBranchModalOpen, setIsEditBranchModalOpen] = useState(false);
   const [editBranchData, setEditBranchData] = useState<any>({});
+
+  // Add New Branch State
+  const [isAddBranchModalOpen, setIsAddBranchModalOpen] = useState(false);
+  const [addBranchData, setAddBranchData] = useState<any>({
+    code: "",
+    name: "",
+    location: "",
+    operating_zone: "ZONE_B",
+    latitude: "",
+    longitude: "",
+    radius: "50",
+  });
+  const [isSubmittingBranch, setIsSubmittingBranch] = useState(false);
   const [isMapModalOpen, setIsMapModalOpen] = useState(false);
 
   const openEditModal = () => {
@@ -342,6 +355,43 @@ export default function Branches() {
       radius: selectedBranch.radius || 50
     });
     setIsEditBranchModalOpen(true);
+  };
+
+  const handleAddBranch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!addBranchData.code || !addBranchData.name) {
+      toast.error("Branch Code and Name are required");
+      return;
+    }
+    setIsSubmittingBranch(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/branches`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code: addBranchData.code.trim().toUpperCase(),
+          name: addBranchData.name.trim(),
+          location: addBranchData.location.trim(),
+          operating_zone: addBranchData.operating_zone,
+          latitude: parseFloat(addBranchData.latitude) || null,
+          longitude: parseFloat(addBranchData.longitude) || null,
+          radius: parseFloat(addBranchData.radius) || 50,
+        })
+      });
+      const data = await response.json();
+      if (response.ok && data.success) {
+        toast.success("Branch registered successfully!");
+        setIsAddBranchModalOpen(false);
+        setAddBranchData({ code: "", name: "", location: "", operating_zone: "ZONE_B", latitude: "", longitude: "", radius: "50" });
+        fetchBranchesList();
+      } else {
+        toast.error(data.error || "Failed to register branch");
+      }
+    } catch (err) {
+      toast.error("Network error");
+    } finally {
+      setIsSubmittingBranch(false);
+    }
   };
 
   const handleEditBranch = async (e: React.FormEvent) => {
@@ -1264,6 +1314,13 @@ export default function Branches() {
                     <span>Line</span>
                   </Button>
                 </div>
+                <Button 
+                  onClick={() => setIsAddBranchModalOpen(true)}
+                  className="rounded-xl px-4 py-2 h-9 text-xs font-black uppercase tracking-wider bg-[#942392] hover:bg-[#5e0080] text-white shadow-md flex items-center gap-1.5"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Add Branch</span>
+                </Button>
               </div>
             )}
           </PageActions>
@@ -1940,6 +1997,157 @@ export default function Branches() {
             )}
           </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Branch Modal */}
+      <Dialog open={isAddBranchModalOpen} onOpenChange={setIsAddBranchModalOpen}>
+        <DialogContent className="sm:max-w-[425px] md:max-w-xl overflow-hidden [&>button]:text-white [&>button]:hover:text-white/80 border-none shadow-2xl rounded-3xl p-0">
+          <DialogHeader className="bg-[#942392] p-6 sm:rounded-t-lg m-0">
+            <DialogTitle className="text-white font-black uppercase tracking-tight m-0 text-lg">Add New Branch</DialogTitle>
+            <DialogDescription className="text-xs font-bold uppercase tracking-wider text-white/80 m-0 mt-1">
+              Insert a new regional branch office into the database
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleAddBranch} className="p-6 space-y-4 bg-card">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-1.5 col-span-1">
+                <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Branch Code</label>
+                <Input
+                  placeholder="e.g. AOR"
+                  value={addBranchData.code}
+                  onChange={(e) => setAddBranchData({...addBranchData, code: e.target.value})}
+                  className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#942392] focus:ring-2 focus:ring-[#942392]/10 rounded-xl text-xs font-black uppercase placeholder:normal-case outline-none"
+                  required
+                />
+              </div>
+              <div className="space-y-1.5 col-span-1 md:col-span-2">
+                <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Branch Name</label>
+                <Input
+                  placeholder="e.g. ALOR SETAR"
+                  value={addBranchData.name}
+                  onChange={(e) => setAddBranchData({...addBranchData, name: e.target.value})}
+                  className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#942392] focus:ring-2 focus:ring-[#942392]/10 rounded-xl text-xs font-bold placeholder:normal-case uppercase outline-none"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5 relative">
+              <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Branch Location / District</label>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Type address & press Enter or click 🔍"
+                  value={addBranchData.location}
+                  onChange={(e) => setAddBranchData({...addBranchData, location: e.target.value})}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      const addr = addBranchData.location;
+                      if (!addr.trim()) return;
+                      toast.loading("Searching coordinates...");
+                      smartGeocode(addr).then(result => {
+                        toast.dismiss();
+                        if (result) {
+                          setAddBranchData(prev => ({...prev, latitude: result.lat, longitude: result.lon}));
+                          toast.success("Coordinates found & updated!");
+                        } else {
+                          toast.error("Could not find coordinates. Try entering just the town/city name.");
+                        }
+                      }).catch(() => { toast.dismiss(); toast.error("Search failed"); });
+                    }
+                  }}
+                  className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#942392] focus:ring-2 focus:ring-[#942392]/10 rounded-xl text-xs font-bold"
+                />
+                <button
+                  type="button"
+                  className="h-11 w-11 shrink-0 flex items-center justify-center rounded-xl bg-[#942392]/10 text-[#942392] hover:bg-[#942392]/20 transition-colors border border-[#942392]/20"
+                  onClick={async () => {
+                    const addr = addBranchData.location;
+                    if (!addr.trim()) return;
+                    toast.loading("Searching coordinates...");
+                    try {
+                      const result = await smartGeocode(addr);
+                      toast.dismiss();
+                      if (result) {
+                        setAddBranchData(prev => ({...prev, latitude: result.lat, longitude: result.lon}));
+                        toast.success("Coordinates found!");
+                      } else {
+                        toast.error("Could not find coordinates.");
+                      }
+                    } catch { toast.dismiss(); toast.error("Search failed"); }
+                  }}
+                >
+                  <Search className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Operating Zone</label>
+              <Select value={addBranchData.operating_zone} onValueChange={(val) => setAddBranchData({...addBranchData, operating_zone: val})}>
+                <SelectTrigger className="w-full h-11 px-4 rounded-xl border border-input bg-transparent text-xs font-bold shadow-sm">
+                  <SelectValue placeholder="Select Zone" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl">
+                  <SelectItem value="ZONE_A" className="text-xs font-bold">ZONE A (EAST COAST/JDT - FRI/SAT OFF)</SelectItem>
+                  <SelectItem value="ZONE_B" className="text-xs font-bold">ZONE B (WEST COAST - SAT/SUN OFF)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Coordinates</label>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Lat, Lng"
+                    value={addBranchData.latitude && addBranchData.longitude ? `${parseFloat(addBranchData.latitude).toFixed(4)}, ${parseFloat(addBranchData.longitude).toFixed(4)}` : ""}
+                    readOnly
+                    className="w-full h-11 px-3 bg-muted/50 rounded-xl text-xs font-bold opacity-70"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditBranchData(addBranchData);
+                      setIsMapModalOpen(true);
+                      setIsAddBranchModalOpen(false);
+                    }}
+                    className="h-11 px-3 shrink-0 flex items-center justify-center gap-1.5 rounded-xl bg-[#942392] text-white font-black uppercase text-[10px] tracking-wider hover:bg-[#5e0080] shadow-sm"
+                  >
+                    <MapPin className="w-3.5 h-3.5" /> Select
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <div className="flex justify-between items-center">
+                  <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Radius</label>
+                  <span className="text-[9px] font-black text-[#942392]">0m - 500m</span>
+                </div>
+                <div className="flex items-center gap-4 h-11 px-3 bg-muted/20 border border-border/50 rounded-xl">
+                  <Slider
+                    value={[parseFloat(addBranchData.radius) || 50]}
+                    max={500}
+                    step={10}
+                    onValueChange={(val) => setAddBranchData({...addBranchData, radius: val[0].toString()})}
+                    className="flex-1"
+                  />
+                  <div className="text-[10px] font-black w-10 text-right bg-[#942392]/10 text-[#942392] py-1 px-1.5 rounded-md">
+                    {addBranchData.radius}m
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4">
+              <Button type="button" variant="ghost" onClick={() => setIsAddBranchModalOpen(false)} className="rounded-xl text-xs font-black uppercase">Cancel</Button>
+              <Button type="submit" disabled={isSubmittingBranch} className="rounded-xl px-6 bg-[#942392] hover:bg-[#5e0080] text-white shadow-md text-xs font-black uppercase flex items-center gap-2">
+                <Plus className="w-4 h-4" />
+                {isSubmittingBranch ? "Saving..." : "Add Branch"}
+              </Button>
+            </div>
+          </form>
         </DialogContent>
       </Dialog>
 
