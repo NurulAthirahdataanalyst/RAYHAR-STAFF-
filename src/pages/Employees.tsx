@@ -1960,7 +1960,7 @@ export default function Employees() {
             
             <DialogFooter className="pt-4">
               <Button type="button" variant="outline" onClick={() => setIsAddModalOpen(false)}>Cancel</Button>
-              <Button type="submit" className="bg-[#1dc8cc] hover:bg-[#15a3a6] text-white" disabled={isSubmitting}>
+              <Button type="submit" className="bg-[#942392] hover:bg-[#942392]/90 text-white" disabled={isSubmitting}>
                 {isSubmitting && <Loader2 className="animate-spin mr-2 h-4 w-4" />}
                 {isSubmitting ? "Creating..." : "Create User"}
               </Button>
