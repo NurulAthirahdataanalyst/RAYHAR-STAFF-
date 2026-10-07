@@ -2109,9 +2109,8 @@ export default function Branches() {
                   <button
                     type="button"
                     onClick={() => {
-                      setEditBranchData(addBranchData);
+                      setEditBranchData({...addBranchData});
                       setIsMapModalOpen(true);
-                      setIsAddBranchModalOpen(false);
                     }}
                     className="h-11 px-3 shrink-0 flex items-center justify-center gap-1.5 rounded-xl bg-[#942392] text-white font-black uppercase text-[10px] tracking-wider hover:bg-[#5e0080] shadow-sm"
                   >
@@ -2423,7 +2422,17 @@ export default function Branches() {
               
               <div className="mt-auto flex gap-3 pt-6">
                 <Button type="button" variant="outline" onClick={() => setIsMapModalOpen(false)} className="flex-1 h-11 rounded-xl text-[10px] print:text-[13px] font-black uppercase tracking-wider bg-white">Cancel</Button>
-                <Button type="button" onClick={() => setIsMapModalOpen(false)} className="flex-1 h-11 rounded-xl bg-[#942392] text-white hover:bg-[#942392]/90 text-[10px] print:text-[13px] font-black uppercase tracking-wider shadow-md">Save</Button>
+                <Button type="button" onClick={() => {
+                  if (isAddBranchModalOpen) {
+                    setAddBranchData((prev: any) => ({
+                      ...prev, 
+                      latitude: editBranchData.latitude, 
+                      longitude: editBranchData.longitude, 
+                      location: editBranchData.location
+                    }));
+                  }
+                  setIsMapModalOpen(false);
+                }} className="flex-1 h-11 rounded-xl bg-[#942392] text-white hover:bg-[#942392]/90 text-[10px] print:text-[13px] font-black uppercase tracking-wider shadow-md">Save</Button>
               </div>
             </div>
           </div>
