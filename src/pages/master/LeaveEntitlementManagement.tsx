@@ -247,16 +247,18 @@ export default function LeaveEntitlementManagement() {
                       <div
                         key={module.title}
                         onClick={() => setActiveModule(module.title)}
-                        className="rounded-2xl border border-border/60 bg-card p-6 shadow-sm hover:shadow-md hover:border-[#942392]/40 cursor-pointer transition-all duration-200 group flex flex-col justify-between min-h-[220px]"
+                        className="rounded-[24px] border border-border/60 bg-card p-6 shadow-xl hover:shadow-2xl hover:-translate-y-1 cursor-pointer transition-all duration-300 group flex flex-col justify-between min-h-[220px]"
                       >
                         <div>
-                          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-105 ${module.tone}`}>
-                            <Icon className="w-6 h-6" />
+                          <div className="flex items-start justify-between gap-3">
+                            <h3 className="mt-1 text-[15px] sm:text-base font-black uppercase tracking-tight text-foreground group-hover:text-[#942392] transition-colors leading-tight pr-2">
+                              {module.title}
+                            </h3>
+                            <div className={`w-12 h-12 shrink-0 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 ${module.tone}`}>
+                              <Icon className="w-6 h-6" />
+                            </div>
                           </div>
-                          <h3 className="mt-6 text-lg font-black text-foreground group-hover:text-[#942392] transition-colors">
-                            {module.title}
-                          </h3>
-                          <p className="mt-3 text-xs sm:text-sm leading-relaxed text-foreground">
+                          <p className="mt-4 text-xs sm:text-sm leading-relaxed text-foreground">
                             {module.description}
                           </p>
                         </div>
@@ -274,16 +276,18 @@ export default function LeaveEntitlementManagement() {
                       <div
                         key={module.title}
                         onClick={() => setActiveModule(module.title)}
-                        className="rounded-2xl border border-border/60 bg-card p-6 shadow-sm hover:shadow-md hover:border-[#942392]/40 cursor-pointer transition-all duration-200 group flex flex-col justify-between min-h-[220px]"
+                        className="rounded-[24px] border border-border/60 bg-card p-6 shadow-xl hover:shadow-2xl hover:-translate-y-1 cursor-pointer transition-all duration-300 group flex flex-col justify-between min-h-[220px]"
                       >
                         <div>
-                          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-105 ${module.tone}`}>
-                            <Icon className="w-6 h-6" />
+                          <div className="flex items-start justify-between gap-3">
+                            <h3 className="mt-1 text-[15px] sm:text-base font-black uppercase tracking-tight text-foreground group-hover:text-[#942392] transition-colors leading-tight pr-2">
+                              {module.title}
+                            </h3>
+                            <div className={`w-12 h-12 shrink-0 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 ${module.tone}`}>
+                              <Icon className="w-6 h-6" />
+                            </div>
                           </div>
-                          <h3 className="mt-6 text-lg font-black text-foreground group-hover:text-[#942392] transition-colors">
-                            {module.title}
-                          </h3>
-                          <p className="mt-3 text-xs sm:text-sm leading-relaxed text-foreground">
+                          <p className="mt-4 text-xs sm:text-sm leading-relaxed text-foreground">
                             {module.description}
                           </p>
                         </div>
