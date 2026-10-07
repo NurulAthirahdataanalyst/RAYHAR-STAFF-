@@ -2758,8 +2758,8 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
         <Card className={`border border-slate-100 dark:border-slate-800/80 bg-card overflow-hidden ${currentRole === "branch_leader" ? "lg:col-span-12" : "lg:col-span-7"} flex flex-col h-fit rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
           <CardHeader className="pb-4 pt-5 px-6 border-b border-gray-100 dark:border-slate-800 flex flex-row items-start justify-between">
             <div className="flex flex-col">
-              <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Branch Workforce Distribution</CardTitle>
-              <div className="text-xs text-foreground mt-0.5 italic">View workforce distribution across all company branches and regions.</div>
+              <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Average Attendance by Branch</CardTitle>
+              <div className="text-xs text-foreground mt-0.5 italic">View average attendance performance across all company branches.</div>
             </div>
 
           </CardHeader>
