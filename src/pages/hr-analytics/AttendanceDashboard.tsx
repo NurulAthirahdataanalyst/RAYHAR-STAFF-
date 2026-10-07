@@ -1766,11 +1766,7 @@ export default function AttendanceDashboard() {
         <Card className="border border-slate-100 dark:border-slate-800/80 bg-card overflow-hidden lg:col-span-6 flex flex-col h-fit rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
           <CardHeader className="pb-4 pt-5 px-6 border-b border-gray-100 dark:border-slate-800 flex flex-row items-start justify-between">
             <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Branch Workforce Distribution</CardTitle>
-            <div className="flex items-center gap-2 flex-wrap justify-end">
-              <div className="flex items-center gap-3">
-                <ExportDropdown onExportCSV={handleExport} onExportPDF={handleExportPDF} />
-              </div>
-            </div>
+
           </CardHeader>
           <CardContent className="pt-6 px-6 pb-6 flex-1 flex flex-col justify-between">
             <div className={`space-y-4 flex-1 pr-2 ${liveBranchRanking.length > 5 ? 'overflow-y-auto max-h-[220px]' : 'overflow-y-visible'}`}>
