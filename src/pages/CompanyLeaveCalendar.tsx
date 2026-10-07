@@ -250,13 +250,7 @@ const CompanyLeaveCalendar = () => {
                           )}
                         </td>
                         <td className="px-4 py-3">
-                          <span className={`px-2 py-1 rounded text-xs font-bold ${
-                            isCompleted 
-                              ? 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-300 dark:border-slate-700' 
-                              : displayStatus === 'Active' 
-                                ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' 
-                                : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200'
-                          }`}>
+                          <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/10 dark:border-blue-500/20">
                             {displayStatus}
                           </span>
                         </td>

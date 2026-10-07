@@ -1079,14 +1079,7 @@ export default function LeaveAdmin() {
                           </Badge>
                         </TableCell>
                         <TableCell className="px-3 py-3.5">
-                          <span 
-                            className={`inline-flex justify-center items-center px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider whitespace-normal text-center leading-tight max-w-[140px] ${
-                              req.status === "Approved" ? "bg-[#228b22]/10 text-[#228b22] dark:bg-[#228b22]/30 dark:text-[#228b22]" :
-                              req.status === "Rejected" ? "bg-rose-100/50 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400" :
-                              "bg-[#C2410C] text-white"
-                            }`}
-                            style={req.status !== "Approved" && req.status !== "Rejected" ? { backgroundColor: "#C2410C", color: "white" } : {}}
-                          >
+                          <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/10 dark:border-blue-500/20">
                             {getDisplayStatus(req.status)}
                           </span>
                         </TableCell>

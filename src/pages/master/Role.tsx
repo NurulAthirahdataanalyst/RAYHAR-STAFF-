@@ -270,13 +270,11 @@ export default function Role() {
                       </td>
                       <td className="px-6 py-4">
                         {role.status === "Active" ? (
-                          <span className="inline-flex items-center px-2 py-1 rounded-md text-[11px] font-bold bg-green-50 text-green-700 border border-green-200 dark:bg-green-950/30 dark:text-green-400 dark:border-green-800/50">
-                            <span className="w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5"></span>
+                          <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/10 dark:border-blue-500/20">
                             Active
                           </span>
                         ) : (
-                          <span className="inline-flex items-center px-2 py-1 rounded-md text-[11px] font-bold bg-red-50 text-red-700 border border-red-200 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800/50">
-                            <span className="w-1.5 h-1.5 rounded-full bg-red-500 mr-1.5"></span>
+                          <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/10 dark:border-blue-500/20">
                             Inactive
                           </span>
                         )}

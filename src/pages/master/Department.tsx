@@ -261,9 +261,9 @@ export default function Department() {
                             {req.hods.length > 0 ? (
                               <div className="flex flex-wrap gap-1">
                                 {req.hods.map((hod: any) => (
-                                  <Badge key={hod.user_id} variant="outline" className="bg-primary/5 border-primary/20 text-primary">
+                                  <span key={hod.user_id} className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/10 dark:border-blue-500/20">
                                     {hod.full_name || "Unknown HOD"}
-                                  </Badge>
+                                  </span>
                                 ))}
                               </div>
                             ) : (
@@ -274,9 +274,9 @@ export default function Department() {
                             {req.headcount}
                           </TableCell>
                           <TableCell className="text-center">
-                            <Badge variant="outline" className="bg-emerald-500/5 text-emerald-600 border-emerald-500/20">
+                            <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/10 dark:border-blue-500/20">
                               {req.active} Active
-                            </Badge>
+                            </span>
                           </TableCell>
                           <TableCell className="text-right pr-6">
                             <Button 

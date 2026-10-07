@@ -508,16 +508,9 @@ export default function LeaveOverview() {
                       <TableCell className="px-5 py-3.5 text-foreground font-bold">{req.to}</TableCell>
                       <TableCell className="px-5 py-3.5 text-center font-black text-foreground">{req.days}</TableCell>
                       <TableCell className="px-5 py-3.5 text-center">
-                        <Badge
-                          className={`text-[11px] font-black px-3 py-1 h-auto shadow-sm whitespace-nowrap ${
-                            req.status === "Approved" ? "bg-[#228b22] text-white hover:bg-[#1a661a]" :
-                            req.status === "Rejected" ? "bg-rose-600 text-white hover:bg-rose-700" :
-                            "bg-[#C2410C] text-white hover:bg-[#A3370A]"
-                          }`}
-                          style={req.status !== "Approved" && req.status !== "Rejected" ? { backgroundColor: "#C2410C", color: "white" } : {}}
-                        >
+                        <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/10 dark:border-blue-500/20">
                           {getDisplayStatus(req.status).toUpperCase()}
-                        </Badge>
+                        </span>
                       </TableCell>
                     </TableRow>
                   ))
@@ -539,16 +532,9 @@ export default function LeaveOverview() {
                 <div key={i} className="p-4 active:bg-[#942392]/5 transition-colors space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-black text-foreground">{leaveTypeLabels[req.type]}</span>
-                    <Badge
-                      className={`text-[10px] font-black h-auto py-1 px-2.5 whitespace-nowrap ${
-                        req.status === "Approved" ? "bg-[#228b22] text-white" :
-                        req.status === "Rejected" ? "bg-rose-600 text-white" :
-                        "bg-[#C2410C] text-white"
-                      }`}
-                      style={req.status !== "Approved" && req.status !== "Rejected" ? { backgroundColor: "#C2410C", color: "white" } : {}}
-                    >
+                    <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/10 dark:border-blue-500/20">
                       {getDisplayStatus(req.status).toUpperCase()}
-                    </Badge>
+                    </span>
                   </div>
                   <div className="flex items-center justify-between bg-muted/20 p-2 rounded-xl">
                     <div className="flex items-center gap-2 text-[10px] font-bold text-foreground uppercase tracking-tight">
