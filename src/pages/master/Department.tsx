@@ -261,7 +261,7 @@ export default function Department() {
                             {req.hods.length > 0 ? (
                               <div className="flex flex-wrap gap-1">
                                 {req.hods.map((hod: any) => (
-                                  <span key={hod.user_id} className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/10 dark:border-blue-500/20">
+                                  <span key={hod.user_id} className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap bg-[#942392]/5 text-[#942392] border-[#942392]/20 dark:bg-[#942392]/10 dark:border-[#942392]/20">
                                     {hod.full_name || "Unknown HOD"}
                                   </span>
                                 ))}
@@ -274,7 +274,7 @@ export default function Department() {
                             {req.headcount}
                           </TableCell>
                           <TableCell className="text-center">
-                            <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/10 dark:border-blue-500/20">
+                            <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/20">
                               {req.active} Active
                             </span>
                           </TableCell>
