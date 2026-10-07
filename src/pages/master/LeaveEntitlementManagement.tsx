@@ -1784,6 +1784,9 @@ function ManualLeaveAdjustmentForm({
   onRefresh
 }: any) {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const adminName = user?.full_name || user?.name;
+  const performedByStr = adminName ? `HR Admin - ${adminName}` : 'HR Admin';
   const [selectedEmp, setSelectedEmp] = useState<any | null>(null);
   const [leaveType, setLeaveType] = useState("Annual/Emergency Leave");
   const [adjustmentType, setAdjustmentType] = useState("Add Leave");
