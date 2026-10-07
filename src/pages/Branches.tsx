@@ -1286,7 +1286,7 @@ export default function Branches() {
                     </button>
                   )}
                 </div>
-                <div className="flex items-center h-9 gap-1 bg-muted/40 p-1 rounded-xl border border-border/40 shrink-0">
+                <div className="flex items-center h-10 gap-1 bg-muted/40 p-1 rounded-xl border border-border/40 shrink-0">
                   <Button
                     variant="ghost"
                     size="sm"
@@ -1316,7 +1316,7 @@ export default function Branches() {
                 </div>
                 <Button 
                   onClick={() => setIsAddBranchModalOpen(true)}
-                  className="rounded-xl px-4 py-2 h-9 text-xs font-black uppercase tracking-wider bg-[#942392] hover:bg-[#5e0080] text-white shadow-md flex items-center gap-1.5"
+                  className="rounded-xl px-4 py-2 h-10 text-xs font-black uppercase tracking-wider bg-[#942392] hover:bg-[#5e0080] text-white shadow-md flex items-center gap-1.5"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>Add Branch</span>

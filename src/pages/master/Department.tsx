@@ -126,10 +126,10 @@ export default function Department() {
 
           {role === "hr_admin" && ( <Button
             onClick={() => navigate("/settings?tab=department")}
-            className="h-9 px-6 rounded-xl bg-[#942392] text-white hover:bg-[#942392]/95 font-black text-[9px] uppercase tracking-wider shadow-lg shadow-[#942392]/15 transition-all touch-target whitespace-nowrap flex items-center"
+            className="h-10 px-4 rounded-xl bg-[#942392] text-white hover:bg-[#942392]/95 font-black text-xs uppercase tracking-wider shadow-md transition-all whitespace-nowrap flex items-center gap-1.5"
           >
-            <Plus className="w-4 h-4 mr-2" />
-            Add New Department
+            <Plus className="w-3.5 h-3.5" />
+            <span>Add New Department</span>
           </Button> )}
         </div>
 
