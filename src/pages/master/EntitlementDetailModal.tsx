@@ -1,36 +1,86 @@
 import { X, Download } from "lucide-react";
 import { EntitlementHistoryLog } from "@/lib/entitlementHistory";
 import { getBadge } from "./EntitlementActivityCard";
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { createPortal } from "react-dom";
 
 export function EntitlementDetailModal({ log, onClose }: { log: EntitlementHistoryLog; onClose: () => void }) {
   const badge = getBadge(log.action_type);
   const isPositive = log.adjustment >= 0;
-  const [isExporting, setIsExporting] = useState(false);
-
   const saveAsPDF = async () => {
-    setIsExporting(true);
-    try {
-      const el = document.getElementById("entitlement-record-content");
-      if (!el) return;
-      const canvas = await html2canvas(el, { scale: 2 });
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF({
-        orientation: "portrait",
-        unit: "pt",
-        format: [canvas.width, canvas.height]
-      });
-      pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
-      pdf.save(`Entitlement_Record_${log.history_id}.pdf`);
-    } catch (err) {
-      console.error("Failed to generate PDF", err);
-    } finally {
-      setIsExporting(false);
-    }
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) return;
+    const isPositive = log.adjustment >= 0;
+    const html = `
+      <html>
+        <head>
+          <title>Leave Entitlement Record - ${log.history_id}</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 20px; color: #333; }
+            h1 { color: #942392; font-size: 24px; margin-bottom: 5px; text-transform: uppercase; }
+            h2 { font-size: 16px; margin-top: 30px; border-bottom: 1px solid #eee; padding-bottom: 5px; color: #666; text-transform: uppercase; }
+            .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+            .info-box { background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #eee; }
+            .label { font-size: 10px; color: #666; font-weight: bold; text-transform: uppercase; margin-bottom: 5px; }
+            .value { font-size: 14px; font-weight: bold; }
+            table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+            th, td { padding: 10px; text-align: left; border-bottom: 1px solid #eee; font-size: 12px; }
+            th { font-weight: bold; color: #666; text-transform: uppercase; font-size: 10px; width: 30%; }
+            .balance-box { display: flex; align-items: center; justify-content: space-around; background: #f9f9f9; padding: 20px; border-radius: 8px; border: 1px solid #eee; margin-bottom: 20px; text-align: center; }
+            .balance-val { font-size: 24px; font-weight: bold; }
+            .adjustment { font-size: 20px; font-weight: bold; color: ${isPositive ? '#059669' : '#e11d48'}; }
+            .footer { margin-top: 40px; font-size: 10px; color: #999; text-align: center; }
+          </style>
+        </head>
+        <body>
+          <h1>Leave Entitlement Record</h1>
+          <p style="color: #666; margin-top: 0;">${log.history_id}</p>
+          
+          <div class="balance-box">
+            <div>
+              <div class="label">Previous Balance</div>
+              <div class="balance-val">${log.previous_balance} <span style="font-size:12px; font-weight:normal;">Days</span></div>
+            </div>
+            <div class="adjustment">
+              ${isPositive ? '+' : ''}${log.adjustment} Days
+            </div>
+            <div>
+              <div class="label">New Balance</div>
+              <div class="balance-val">${log.new_balance} <span style="font-size:12px; font-weight:normal;">Days</span></div>
+            </div>
+          </div>
+
+          <h2>Record Details</h2>
+          <table>
+            <tr><th>Reference ID</th><td>${log.reference_id}</td></tr>
+            <tr><th>Employee</th><td>${log.employee_name} (${log.employee_id || '-'})</td></tr>
+            <tr><th>Department / Branch</th><td>${log.department || '-'} / ${log.branch || '-'}</td></tr>
+            <tr><th>Leave Type</th><td>${log.leave_type}</td></tr>
+            <tr><th>Action Type</th><td>${log.action_type}</td></tr>
+            <tr><th>Reason</th><td>${log.reason || '-'}</td></tr>
+            <tr><th>Remarks</th><td>${log.remarks || '-'}</td></tr>
+          </table>
+
+          <h2>Audit Trail</h2>
+          <table>
+            <tr><th>Performed By</th><td>${log.performed_by}</td></tr>
+            <tr><th>Role</th><td>${log.performed_role || '-'}</td></tr>
+            <tr><th>Source Module</th><td>${log.source_module || '-'}</td></tr>
+            <tr><th>Date & Time</th><td>${log.date} ${log.time}</td></tr>
+          </table>
+
+          <div class="footer">
+            🔒 This audit record is immutable and cannot be edited or deleted.
+          </div>
+          
+          <script>
+            window.onload = function() { window.print(); window.close(); }
+          </script>
+        </body>
+      </html>
+    `;
+    printWindow.document.write(html);
+    printWindow.document.close();
   };
 
   return createPortal(
@@ -50,11 +100,10 @@ export function EntitlementDetailModal({ log, onClose }: { log: EntitlementHisto
                 variant="outline"
                 size="sm"
                 onClick={saveAsPDF}
-                disabled={isExporting}
                 className="h-8 px-2 text-xs bg-white text-[#942392] border-white hover:bg-white/90 hover:text-[#942392]"
               >
                 <Download className="w-3 h-3 mr-1" />
-                PDF
+                Print / PDF
               </Button>
               <button
                 onClick={onClose}
