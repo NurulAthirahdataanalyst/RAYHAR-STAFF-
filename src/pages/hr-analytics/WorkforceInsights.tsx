@@ -2235,15 +2235,25 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
       if (a.status !== 'Active') return false;
       const sd = new Date(a.start_date);
       const ed = new Date(a.end_date);
-      const selDateObj = new Date(year, month - 1, day);
+      const safeMonth = month === 'all' ? new Date().getMonth() : parseInt(month as string) - 1;
+      const selDateObj = new Date(parseInt(year as string), safeMonth, parseInt(day as string));
       sd.setHours(0,0,0,0);
       ed.setHours(0,0,0,0);
       selDateObj.setHours(0,0,0,0);
+      
+      if (month === 'all') {
+          return sd.getFullYear() <= parseInt(year as string) && ed.getFullYear() >= parseInt(year as string);
+      }
       return selDateObj >= sd && selDateObj <= ed;
-    }).map((a: any) => ({
-      ...a,
-      location: a.location ? a.location.split('-')[0].trim() : a.location
-    }));
+    }).map((a: any) => {
+      const rawLoc = a.temp_branch || a.location;
+      const normLoc = rawLoc ? rawLoc.split('-')[0].trim() : rawLoc;
+      return {
+        ...a,
+        location: normLoc,
+        temp_branch_normalized: normLoc
+      };
+    });
 
     activeTempOnDate.forEach((a: any) => {
        if (a.location && !listSource.find((b:any) => b.branch === a.location)) {
