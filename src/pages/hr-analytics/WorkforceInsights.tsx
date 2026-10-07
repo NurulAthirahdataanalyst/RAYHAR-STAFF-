@@ -2376,10 +2376,10 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
        <div>
          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
             {/* 1. Attendance Rate */}
-            <Card className="p-4 flex items-center border border-indigo-200 dark:border-indigo-900/50 cursor-default bg-indigo-50 dark:bg-indigo-900/10   relative rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] hover:-translate-y-1 hover:-translate-x-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.15)] dark:hover:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] transition-all duration-300">
+            <Card className="group p-4 flex items-center border border-indigo-200 dark:border-indigo-900/50 cursor-default bg-card hover:bg-indigo-50/50 dark:hover:bg-indigo-900/20 relative rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] hover:-translate-y-1 hover:-translate-x-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.15)] dark:hover:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] transition-all duration-300">
                {feedConnected && <span className="absolute top-3 right-3 flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-card animate-pulse" />LIVE</span>}
-               <div className="w-12 h-12 rounded-xl bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mr-4">
-                 <CheckCircle2 className="w-5 h-5" />
+               <div className="w-12 h-12 rounded-xl bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mr-4 transition-transform duration-300 group-hover:scale-110">
+                 <CheckCircle2 className="w-5 h-5 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
                </div>
                <div className="flex flex-col">
                  <p className="text-[10px] text-foreground font-bold uppercase tracking-widest mb-0.5">Attendance Rate</p>
@@ -2389,9 +2389,9 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
             </Card>
 
             {/* 2. Total Present */}
-            <Card className="p-4 flex items-center border border-emerald-200 dark:border-emerald-900/50 cursor-default bg-emerald-50 dark:bg-emerald-900/10   relative rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] hover:-translate-y-1 hover:-translate-x-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.15)] dark:hover:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] transition-all duration-300">
-               <div className="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mr-4">
-                 <UserCheck className="w-5 h-5" />
+            <Card className="group p-4 flex items-center border border-emerald-200 dark:border-emerald-900/50 cursor-default bg-card hover:bg-emerald-50/50 dark:hover:bg-emerald-900/20 relative rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] hover:-translate-y-1 hover:-translate-x-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.15)] dark:hover:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] transition-all duration-300">
+               <div className="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mr-4 transition-transform duration-300 group-hover:scale-110">
+                 <UserCheck className="w-5 h-5 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
                </div>
                <div className="flex flex-col">
                  <p className="text-[10px] text-foreground font-bold uppercase tracking-widest mb-0.5">Total Present</p>
@@ -2401,9 +2401,9 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
             </Card>
 
             {/* 3. Total Absenteeism */}
-            <Card className="p-4 flex items-center border border-red-200 dark:border-red-900/50 cursor-default bg-red-50 dark:bg-red-900/10   relative rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] hover:-translate-y-1 hover:-translate-x-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.15)] dark:hover:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] transition-all duration-300">
-               <div className="w-12 h-12 rounded-xl bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 flex items-center justify-center mr-4">
-                 <XCircle className="w-5 h-5" />
+            <Card className="group p-4 flex items-center border border-red-200 dark:border-red-900/50 cursor-default bg-card hover:bg-red-50/50 dark:hover:bg-red-900/20 relative rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] hover:-translate-y-1 hover:-translate-x-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.15)] dark:hover:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] transition-all duration-300">
+               <div className="w-12 h-12 rounded-xl bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 flex items-center justify-center mr-4 transition-transform duration-300 group-hover:scale-110">
+                 <XCircle className="w-5 h-5 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
                </div>
                <div className="flex flex-col">
                  <p className="text-[10px] text-foreground font-bold uppercase tracking-widest mb-0.5">Total Absenteeism</p>
@@ -2413,9 +2413,9 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
             </Card>
 
             {/* 4. Late Attendance */}
-            <Card className="p-4 flex items-center border border-amber-200 dark:border-amber-900/50 cursor-default bg-amber-50 dark:bg-amber-900/10   relative rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] hover:-translate-y-1 hover:-translate-x-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.15)] dark:hover:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] transition-all duration-300">
-               <div className="w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 flex items-center justify-center mr-4">
-                 <Clock className="w-5 h-5" />
+            <Card className="group p-4 flex items-center border border-amber-200 dark:border-amber-900/50 cursor-default bg-card hover:bg-amber-50/50 dark:hover:bg-amber-900/20 relative rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] hover:-translate-y-1 hover:-translate-x-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.15)] dark:hover:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] transition-all duration-300">
+               <div className="w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 flex items-center justify-center mr-4 transition-transform duration-300 group-hover:scale-110">
+                 <Clock className="w-5 h-5 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
                </div>
                <div className="flex flex-col">
                  <p className="text-[10px] text-foreground font-bold uppercase tracking-widest mb-0.5">Late Attendance</p>
@@ -2427,9 +2427,9 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
             </div>
 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
 {/* 5. Avg Working Hrs */}
-            <Card className="p-4 flex items-center border border-cyan-200 dark:border-cyan-900/50 cursor-default bg-cyan-50 dark:bg-cyan-900/10   relative rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] hover:-translate-y-1 hover:-translate-x-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.15)] dark:hover:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] transition-all duration-300">
-               <div className="w-12 h-12 rounded-xl bg-cyan-100 dark:bg-cyan-900/40 text-cyan-600 dark:text-cyan-400 flex items-center justify-center mr-4">
-                 <TrendingUp className="w-5 h-5" />
+            <Card className="group p-4 flex items-center border border-cyan-200 dark:border-cyan-900/50 cursor-default bg-card hover:bg-cyan-50/50 dark:hover:bg-cyan-900/20 relative rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] hover:-translate-y-1 hover:-translate-x-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.15)] dark:hover:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] transition-all duration-300">
+               <div className="w-12 h-12 rounded-xl bg-cyan-100 dark:bg-cyan-900/40 text-cyan-600 dark:text-cyan-400 flex items-center justify-center mr-4 transition-transform duration-300 group-hover:scale-110">
+                 <TrendingUp className="w-5 h-5 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
                </div>
                <div className="flex flex-col">
                  <p className="text-[10px] text-foreground font-bold uppercase tracking-widest mb-0.5">Avg Working Hrs</p>
@@ -2439,9 +2439,9 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
             </Card>
 
             {/* 6. Leave Utilization */}
-            <Card className="p-4 flex items-center border border-purple-200 dark:border-purple-900/50 cursor-default bg-purple-50 dark:bg-purple-900/10   relative rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] hover:-translate-y-1 hover:-translate-x-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.15)] dark:hover:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] transition-all duration-300">
-               <div className="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 flex items-center justify-center mr-4">
-                 <CalendarDays className="w-5 h-5" />
+            <Card className="group p-4 flex items-center border border-purple-200 dark:border-purple-900/50 cursor-default bg-card hover:bg-purple-50/50 dark:hover:bg-purple-900/20 relative rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] hover:-translate-y-1 hover:-translate-x-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.15)] dark:hover:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] transition-all duration-300">
+               <div className="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 flex items-center justify-center mr-4 transition-transform duration-300 group-hover:scale-110">
+                 <CalendarDays className="w-5 h-5 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
                </div>
                <div className="flex flex-col">
                  <p className="text-[10px] text-foreground font-bold uppercase tracking-widest mb-0.5">Leave Utilization</p>
@@ -2451,9 +2451,9 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
             </Card>
 
             {/* 8. Attendance Risk */}
-            <Card className="p-4 flex items-center border border-rose-200 dark:border-rose-900/50 cursor-default bg-rose-50 dark:bg-rose-900/10   relative rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] hover:-translate-y-1 hover:-translate-x-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.15)] dark:hover:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] transition-all duration-300">
-               <div className="w-12 h-12 rounded-xl bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400 flex items-center justify-center mr-4">
-                 <AlertTriangle className="w-5 h-5" />
+            <Card className="group p-4 flex items-center border border-rose-200 dark:border-rose-900/50 cursor-default bg-card hover:bg-rose-50/50 dark:hover:bg-rose-900/20 relative rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] hover:-translate-y-1 hover:-translate-x-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.15)] dark:hover:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] transition-all duration-300">
+               <div className="w-12 h-12 rounded-xl bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400 flex items-center justify-center mr-4 transition-transform duration-300 group-hover:scale-110">
+                 <AlertTriangle className="w-5 h-5 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
                </div>
                <div className="flex flex-col">
                  <p className="text-[10px] text-foreground font-bold uppercase tracking-widest mb-0.5">Attendance Risk</p>

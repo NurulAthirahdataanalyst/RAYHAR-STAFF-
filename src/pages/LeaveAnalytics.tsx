@@ -1265,10 +1265,20 @@ export default function LeaveAnalytics() {
           { label: "Avg Leave Days / Employee", val: avgLeaveDays, color: "text-indigo-600", bg: "bg-indigo-50", icon: <CalendarIcon className="w-5 h-5"/>, trend: "↓ 0.5 vs last month" },
           { label: "Sick Leave Rate", val: `${sickLeaveRate}%`, color: "text-pink-600", bg: "bg-pink-50", icon: <BriefcaseMedical className="w-5 h-5"/>, trend: "↑ 2% vs last month" },
         ].map((k, i) => (
-          <Card key={i} className="border border-slate-200 dark:border-slate-800 bg-card rounded-xl shadow-sm p-4 flex flex-col justify-between ">
+          <Card key={i} className={`group border border-slate-200 dark:border-slate-800 bg-card rounded-[24px] shadow-sm p-4 flex flex-col justify-between transition-all duration-300 cursor-pointer hover:-translate-y-1 hover:-translate-x-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.15)] dark:hover:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] ${
+            k.color.includes('emerald') ? 'hover:border-emerald-500 hover:bg-emerald-50/50 dark:hover:bg-emerald-900/20' : 
+            k.color.includes('amber') ? 'hover:border-amber-500 hover:bg-amber-50/50 dark:hover:bg-amber-900/20' : 
+            k.color.includes('rose') ? 'hover:border-rose-500 hover:bg-rose-50/50 dark:hover:bg-rose-900/20' : 
+            k.color.includes('blue') ? 'hover:border-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-900/20' : 
+            k.color.includes('indigo') ? 'hover:border-indigo-500 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/20' : 
+            k.color.includes('pink') ? 'hover:border-pink-500 hover:bg-pink-50/50 dark:hover:bg-pink-900/20' : 
+            'hover:border-slate-400 hover:bg-slate-50/50 dark:hover:bg-slate-800/50'
+          }`}>
             <div className="flex items-start justify-between">
-              <div className={`p-2 rounded-lg ${k.bg} ${k.color}`}>
-                {k.icon}
+              <div className={`p-2 rounded-lg ${k.bg} ${k.color} transition-transform duration-300 group-hover:scale-110`}>
+                <div className="transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6">
+                  {k.icon}
+                </div>
               </div>
             </div>
             <div>
