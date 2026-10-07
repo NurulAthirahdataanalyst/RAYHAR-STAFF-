@@ -5,6 +5,7 @@ import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { createPortal } from "react-dom";
 
 export function EntitlementDetailModal({ log, onClose }: { log: EntitlementHistoryLog; onClose: () => void }) {
   const badge = getBadge(log.action_type);
@@ -32,15 +33,14 @@ export function EntitlementDetailModal({ log, onClose }: { log: EntitlementHisto
     }
   };
 
-  return (
-    <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 pointer-events-none">
-        {/* Overlay */}
-        <div className="absolute inset-0 bg-black/50 pointer-events-auto" onClick={onClose} />
-        {/* Modal */}
-        <div className="relative w-full max-w-md max-h-[90vh] bg-card rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 pointer-events-auto">
-          {/* Modal header */}
-          <div className="flex items-center justify-between p-5 border-b border-[#942392] bg-[#942392]">
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 pointer-events-none">
+      {/* Overlay */}
+      <div className="absolute inset-0 bg-black/50 pointer-events-auto" onClick={onClose} />
+      {/* Modal */}
+      <div className="relative w-full max-w-md max-h-[90vh] bg-card rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 pointer-events-auto">
+        {/* Modal header */}
+        <div className="flex items-center justify-between p-5 border-b border-[#942392] bg-[#942392]">
             <div>
               <p className="text-[10px] font-bold text-white uppercase tracking-wider">Leave Entitlement Record</p>
               <p className="text-xs font-black text-white mt-0.5">{log.history_id}</p>
@@ -125,6 +125,7 @@ export function EntitlementDetailModal({ log, onClose }: { log: EntitlementHisto
           </div>
         </div>
       </div>
-    </>
+    </div>,
+    document.body
   );
 }
