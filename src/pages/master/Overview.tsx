@@ -515,9 +515,9 @@ export default function MasterOverview() {
           </div>
 
           {/* SYSTEM INTEGRITY DIAGNOSTIC CHECKLIST */}
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
             {/* DATABASE HEALTH & DIAGNOSTICS */}
-            <Card className="xl:col-span-2 border-none shadow-sm bg-card/60 backdrop-blur-md rounded-[28px] overflow-hidden">
+            <Card className="xl:col-span-1 border-none shadow-sm bg-card/60 backdrop-blur-md rounded-[28px] overflow-hidden">
               <CardHeader className="pb-4 border-b border-border/40">
                 <CardTitle className="text-sm sm:text-base font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
                   <div className="p-2 bg-emerald-500/10 rounded-xl">

@@ -531,10 +531,7 @@ export default function WorkforceInsights() {
                 <YearPopover year={year} onSelectYear={setYear} />
               )}
             </div>
-            <ExportDropdown 
-              onExportCSV={() => exportToCSV(data.departmentMetrics || [], 'Workforce_Insights')} 
-              onExportPDF={() => window.print()} 
-            />
+
           </div>
         </div>
 
@@ -2754,11 +2751,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
               <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Branch Workforce Distribution</CardTitle>
               <div className="text-xs text-foreground mt-0.5 italic">View workforce distribution across all company branches and regions.</div>
             </div>
-            <div className="flex items-center gap-2 flex-wrap justify-end">
-              <div className="flex items-center gap-3">
-                <ExportDropdown onExportCSV={() => exportToCSV(liveBranchRanking || [], 'Branch_Workforce_Distribution')} onExportPDF={() => window.print()} />
-              </div>
-            </div>
+
           </CardHeader>
           <CardContent className="pt-6 px-6 pb-6 flex-1 flex flex-col justify-between">
             <div className={`space-y-4 flex-1 pr-2 ${liveBranchRanking.length > 5 ? 'overflow-y-auto max-h-[220px]' : 'overflow-y-visible'}`}>
