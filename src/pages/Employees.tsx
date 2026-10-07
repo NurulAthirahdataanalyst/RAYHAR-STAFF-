@@ -720,10 +720,10 @@ export default function Employees() {
           {role === "hr_admin" ? (
             <Button 
               onClick={() => setIsAddModalOpen(true)}
-              className="h-9 px-6 rounded-xl bg-[#942392] text-white hover:bg-[#942392]/95 font-black text-[9px] print:text-[13px] uppercase tracking-wider shadow-lg shadow-[#942392]/15 transition-all whitespace-nowrap touch-target flex items-center"
+              className="h-9 px-4 rounded-xl bg-[#942392] text-white hover:bg-[#942392]/95 font-black text-xs print:text-[13px] uppercase tracking-wider shadow-md transition-all whitespace-nowrap flex items-center gap-1.5"
             >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Staff
+              <Plus className="w-3.5 h-3.5" />
+              <span>Add Staff</span>
             </Button>
           ) : (
             <div className="flex flex-wrap items-center justify-end gap-3 sm:gap-4 w-full sm:w-auto">
