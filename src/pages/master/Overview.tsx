@@ -584,12 +584,21 @@ export default function MasterOverview() {
                     {activeAssignments.length === 0 ? (
                       <div className="text-center py-6 text-xs text-foreground font-semibold">No active assignments</div>
                     ) : (
-                      activeAssignments.map((a, i) => (
+                      activeAssignments.map((a, i) => {
+                        const todayStr = new Date().toISOString().split('T')[0];
+                        const startStr = a.start_date ? a.start_date.split('T')[0] : '';
+                        const isUpcoming = startStr && startStr > todayStr;
+                        return (
                         <div key={i} className="flex flex-col gap-1.5 pb-3 border-b border-border/40 last:border-0 relative">
                           <div className="flex justify-between items-center">
                             <div className="flex items-center gap-2">
                               <Users className="w-3.5 h-3.5 text-foreground" />
                               <span className="text-xs font-black truncate max-w-[120px]">{a.name}</span>
+                              {isUpcoming && (
+                                <span className="text-[8px] font-black tracking-widest uppercase bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-sm dark:bg-amber-500/20 dark:text-amber-300">
+                                  Upcoming
+                                </span>
+                              )}
                             </div>
                             <div className="flex items-center gap-1.5 text-[10px] font-black tracking-widest text-foreground bg-muted/50 px-2 py-1 rounded-md">
                               <span>{a.primary_branch}</span>
@@ -601,14 +610,15 @@ export default function MasterOverview() {
                             {a.start_date ? new Date(a.start_date).toLocaleDateString('en-GB', {day: '2-digit', month: 'short'}) : 'Start'} - {a.end_date ? new Date(a.end_date).toLocaleDateString('en-GB', {day: '2-digit', month: 'short'}) : 'Until Further Notice'}
                           </div>
                         </div>
-                      ))
+                        );
+                      })
                     )}
                   </div>
                 </CardContent>
               </div>
               <div className="p-6 border-t border-border/40 bg-muted/5 mt-auto">
                 <Button 
-                  onClick={() => setShowAssignModal(true)}
+                  onClick={() => navigate('/branches/temporary-assignments')}
                   className="w-full py-5 rounded-xl bg-[#fff200] hover:bg-[#e6da00] text-black font-black text-[10px] uppercase tracking-widest shadow-md flex items-center justify-center gap-1.5"
                 >
                   View All Assignments
