@@ -378,8 +378,8 @@ export default function MasterOverview() {
                   {/* Department Density List */}
                   <div className="space-y-3.5">
                     <h4 className="text-[10px] font-black text-foreground uppercase tracking-widest">Department Allocation Density</h4>
-                    <div className="space-y-2.5 max-h-48 overflow-y-auto pr-1">
-                      {departmentStats.slice(0, 4).map((d) => {
+                    <div className="space-y-2.5 max-h-48 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-muted">
+                      {departmentStats.map((d) => {
                         const pct = totalUsers > 0 ? Math.round((d.count / totalUsers) * 100) : 0;
                         return (
                           <div key={d.name} className="space-y-1">
@@ -482,8 +482,8 @@ export default function MasterOverview() {
                   {/* Branch Density List */}
                   <div className="space-y-3.5">
                     <h4 className="text-[10px] font-black text-foreground uppercase tracking-widest">Branch Allocation Density</h4>
-                    <div className="space-y-2.5 max-h-48 overflow-y-auto pr-1">
-                      {Object.entries(branchCounts).sort((a: any, b: any) => b[1] - a[1]).slice(0, 4).map(([branchName, count]: [string, any]) => {
+                    <div className="space-y-2.5 max-h-48 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-muted">
+                      {Object.entries(branchCounts).sort((a: any, b: any) => b[1] - a[1]).map(([branchName, count]: [string, any]) => {
                         const pct = totalUsers > 0 ? Math.round((count / totalUsers) * 100) : 0;
                         return (
                           <div key={branchName} className="space-y-1">
