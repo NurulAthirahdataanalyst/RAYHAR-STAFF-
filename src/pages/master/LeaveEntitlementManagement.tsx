@@ -57,6 +57,7 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { useRole } from "@/contexts/RoleContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, useSearchParams } from "react-router-dom";
 import { API_BASE_URL } from "@/config/api";
 import { toast, useToast } from "@/hooks/use-toast";
@@ -159,8 +160,11 @@ const modules = [
 
 export default function LeaveEntitlementManagement() {
   const { role, loading: roleLoading } = useRole();
+  const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const rawModule = searchParams.get("module");
+
+  const performedByStr = user?.full_name ? `HR Admin - ${user.full_name}` : 'HR Admin';
   let activeModule = rawModule ? rawModule.replace(/-/g, ' ') : null;
   if (activeModule === "Leave Balance History") {
     activeModule = "Leave Activity History";
@@ -662,7 +666,7 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
         adjustment: leaveDays,
         new_balance: leaveDays,
         reason: `Base annual entitlement for ${leaveYear}`,
-        performed_by: "Nurul Athirah (HR)",
+        performed_by: performedByStr,
         performed_role: 'HR Admin',
         source_module: 'Annual Leave Allocation',
       });
@@ -716,7 +720,7 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
       adjustment: allocatedDays,
       new_balance: newTotal,
       reason: `OT records converted: ${selectedOTs.join(', ')}`,
-      performed_by: "Nurul Athirah (HR)",
+      performed_by: performedByStr,
       performed_role: 'HR Admin',
       source_module: 'Annual Leave Allocation',
     }));
@@ -1644,7 +1648,7 @@ function AdditionalLeaveAllocationForm({ employees, onCancel, onRefresh }: { emp
       adjustment: addDays,
       new_balance: newTotal,
       reason: `${reasonCat}${remarks ? ': ' + remarks : ''}`,
-      performed_by: 'Nurul Athirah (HR)',
+      performed_by: performedByStr,
       performed_role: 'HR Admin',
       source_module: 'Additional Leave Allocation',
     }));
@@ -1943,7 +1947,7 @@ function ManualLeaveAdjustmentForm({
         adjustment: adjValue,
         new_balance: newBalance,
         reason: `${reasonCategory}: ${reasonDetails}`,
-        performed_by: 'HR Admin',
+        performed_by: performedByStr,
         performed_role: 'HR Admin',
         source_module: 'Manual Leave Adjustments',
       }));
@@ -2236,7 +2240,7 @@ function SpecialLeaveCreditsForm({ employees, onCancel }: any) {
         adjustment: adjDays,
         new_balance: adjDays,
         reason: reasonDetails || `${leaveCategory} granted`,
-        performed_by: 'HR Admin',
+        performed_by: performedByStr,
         performed_role: 'HR Admin',
         source_module: 'Special Leave Credits',
       }));
@@ -2373,7 +2377,7 @@ function MaternityLeaveForm({ employees, onCancel }: any) {
         adjustment: totalDays,
         new_balance: totalDays,
         reason: `EDD: ${edd}, Start: ${startDate}, End: ${endDate}`,
-        performed_by: 'HR Admin',
+        performed_by: performedByStr,
         performed_role: 'HR Admin',
         source_module: 'Maternity Leave',
       }));
