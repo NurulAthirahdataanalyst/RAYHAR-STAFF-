@@ -534,7 +534,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-5 animate-in fade-in duration-500 pb-16 max-w-5xl mx-auto">
+    <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-500 pb-16 w-full">
       {/* HEADER SECTION */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -552,6 +552,7 @@ export default function SettingsPage() {
         </button>
       </div>
 
+      <div className="max-w-5xl mx-auto space-y-4 sm:space-y-5">
       {/* HORIZONTAL NAVIGATION TABS - PILL REDESIGN */}
       <div className="flex flex-wrap bg-gradient-to-r from-[#800A7A] via-[#942392] to-[#3d0052] p-2 rounded-xl shadow-inner gap-1 scrollbar-none items-center justify-center w-full max-w-full mx-auto border border-[#942392]/20 relative z-10 mb-6">
         {[
@@ -1260,6 +1261,7 @@ export default function SettingsPage() {
           )}
 
         </div>
+      </div>
       </div>
     </div>
   );
