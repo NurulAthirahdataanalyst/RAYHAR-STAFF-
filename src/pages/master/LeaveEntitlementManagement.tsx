@@ -2,8 +2,6 @@ import React from 'react';
 import { useState, useEffect, useRef } from "react";
 import { TableScrollTopButton } from "@/components/shared/TableScrollTopButton";
 
-import { API_BASE_URL } from '@/config/api';
-
 // HR Notification Helper
 const createHRNotification = async (userId: string, title: string, message: string) => {
   try {
