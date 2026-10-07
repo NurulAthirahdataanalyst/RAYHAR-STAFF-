@@ -162,7 +162,8 @@ export default function LeaveEntitlementManagement() {
   const [searchParams, setSearchParams] = useSearchParams();
   const rawModule = searchParams.get("module");
 
-  const performedByStr = user?.full_name ? `HR Admin - ${user.full_name}` : 'HR Admin';
+  const adminName = user?.full_name || user?.name;
+  const performedByStr = adminName ? `HR Admin - ${adminName}` : 'HR Admin';
   let activeModule = rawModule ? rawModule.replace(/-/g, ' ') : null;
   if (activeModule === "Leave Balance History") {
     activeModule = "Leave Activity History";
