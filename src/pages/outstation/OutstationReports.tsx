@@ -432,7 +432,7 @@ export default function OutstationReports() {
               <Card className="border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm">
                 <CardContent className="p-6 flex flex-col justify-between h-full">
                   <p className="text-sm font-medium text-foreground">Event Name</p>
-                  <p className="text-xl font-bold text-foreground dark:text-gray-100 mt-2 line-clamp-3 leading-tight" title={selectedEvent!.eventName}>{selectedEvent!.eventName}</p>
+                  <p className="text-xl font-bold text-foreground dark:text-gray-100 mt-2 break-words leading-tight" title={selectedEvent!.eventName}>{selectedEvent!.eventName}</p>
                 </CardContent>
               </Card>
               <Card className="border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm">
@@ -456,7 +456,7 @@ export default function OutstationReports() {
               <Card className="border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm">
                 <CardContent className="p-6 flex flex-col justify-between h-full">
                   <p className="text-sm font-medium text-foreground">Destination</p>
-                  <p className="text-xl font-bold text-foreground dark:text-gray-300 mt-2 line-clamp-3 leading-tight" title={selectedEvent!.destination}>{selectedEvent!.destination}</p>
+                  <p className="text-xl font-bold text-foreground dark:text-gray-300 mt-2 break-words leading-tight" title={selectedEvent!.destination}>{selectedEvent!.destination}</p>
                 </CardContent>
               </Card>
             </>
@@ -768,7 +768,7 @@ export default function OutstationReports() {
                   <div className="grid grid-cols-2 gap-3">
                     <div className="col-span-2 bg-gray-50 dark:bg-slate-900/50 rounded-xl p-3 border border-gray-100 dark:border-slate-800">
                       <p className="text-[10px] text-black dark:text-white font-bold uppercase">Destination</p>
-                      <p className="text-sm font-black text-foreground dark:text-gray-100 mt-0.5">{viewFormEvent.destination}</p>
+                      <p className="text-sm font-black text-foreground dark:text-gray-100 mt-0.5 break-words">{viewFormEvent.destination}</p>
                     </div>
                     <div className="bg-gray-50 dark:bg-slate-900/50 rounded-xl p-3 border border-gray-100 dark:border-slate-800">
                       <p className="text-[10px] text-black dark:text-white font-bold uppercase">Event Name</p>
