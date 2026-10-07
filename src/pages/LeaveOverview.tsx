@@ -508,7 +508,11 @@ export default function LeaveOverview() {
                       <TableCell className="px-5 py-3.5 text-foreground font-bold">{req.to}</TableCell>
                       <TableCell className="px-5 py-3.5 text-center font-black text-foreground">{req.days}</TableCell>
                       <TableCell className="px-5 py-3.5 text-center">
-                        <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/10 dark:border-blue-500/20">
+                        <span className={`inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap ${
+                          req.status === "Approved" ? "bg-green-50 text-green-600 border-green-200 dark:bg-green-500/10 dark:border-green-500/20" :
+                          req.status === "Rejected" ? "bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-500/10 dark:border-rose-500/20" :
+                          "bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-500/10 dark:border-amber-500/20"
+                        }`}>
                           {getDisplayStatus(req.status).toUpperCase()}
                         </span>
                       </TableCell>
@@ -532,7 +536,11 @@ export default function LeaveOverview() {
                 <div key={i} className="p-4 active:bg-[#942392]/5 transition-colors space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-black text-foreground">{leaveTypeLabels[req.type]}</span>
-                    <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/10 dark:border-blue-500/20">
+                    <span className={`inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap ${
+                      req.status === "Approved" ? "bg-green-50 text-green-600 border-green-200 dark:bg-green-500/10 dark:border-green-500/20" :
+                      req.status === "Rejected" ? "bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-500/10 dark:border-rose-500/20" :
+                      "bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-500/10 dark:border-amber-500/20"
+                    }`}>
                       {getDisplayStatus(req.status).toUpperCase()}
                     </span>
                   </div>
