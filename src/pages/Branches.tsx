@@ -2126,12 +2126,17 @@ export default function Branches() {
                   <span className="text-[9px] font-black text-[#942392]">0m - 500m</span>
                 </div>
                 <div className="flex items-center gap-4 h-11 px-3 bg-muted/20 border border-border/50 rounded-xl">
-                  <Slider
-                    value={[parseFloat(addBranchData.radius) || 50]}
-                    max={500}
-                    step={10}
-                    onValueChange={(val) => setAddBranchData({...addBranchData, radius: val[0].toString()})}
-                    className="flex-1"
+                  <input
+                    type="range"
+                    min="0"
+                    max="500"
+                    step="5"
+                    value={addBranchData.radius || 50}
+                    onChange={(e) => setAddBranchData({...addBranchData, radius: e.target.value})}
+                    className="flex-1 h-2 rounded-full appearance-none cursor-pointer"
+                    style={{
+                      background: `linear-gradient(to right, #942392 0%, #942392 ${(((parseFloat(addBranchData.radius || "50") - 0) / 500) * 100)}%, #e5e7eb ${(((parseFloat(addBranchData.radius || "50") - 0) / 500) * 100)}%, #e5e7eb 100%)`
+                    }}
                   />
                   <div className="text-[10px] font-black w-10 text-right bg-[#942392]/10 text-[#942392] py-1 px-1.5 rounded-md">
                     {addBranchData.radius}m
