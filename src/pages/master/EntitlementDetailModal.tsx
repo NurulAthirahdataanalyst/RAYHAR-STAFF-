@@ -124,8 +124,7 @@ export function EntitlementDetailModal({ log, onClose }: { log: EntitlementHisto
             </div>
           </div>
         </div>
-      </div>
-    </div>,
+      </div>,
     document.body
   );
 }
