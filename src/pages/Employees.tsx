@@ -1788,28 +1788,36 @@ export default function Employees() {
       <Dialog open={!!statusConfirmEmp} onOpenChange={(open) => !open && setStatusConfirmEmp(null)}>
         <DialogContent className={`sm:max-w-[425px] overflow-hidden p-0 ${
           statusConfirmEmp?.status === "Active"
-            ? "[&>button]:text-amber-600 [&>button]:hover:text-amber-700"
+            ? "bg-[#faf5fc] dark:bg-slate-900 [&>button]:text-yellow-400 [&>button]:hover:text-yellow-300 [&>button]:top-4 [&>button]:right-4"
             : "[&>button]:text-emerald-600 [&>button]:hover:text-emerald-700"
         }`}>
-          <DialogHeader className={`p-5 border-b ${
+          <DialogHeader className={`p-5 ${
             statusConfirmEmp?.status === "Active"
-              ? "bg-amber-50 dark:bg-amber-950/40 border-amber-100 dark:border-amber-900/30"
-              : "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-100 dark:border-emerald-900/30"
+              ? "bg-[#942392] border-b-2 border-yellow-400"
+              : "bg-emerald-50 dark:bg-emerald-950/40 border-b border-emerald-100 dark:border-emerald-900/30"
           }`}>
             <DialogTitle className={`text-xl font-black ${
-              statusConfirmEmp?.status === "Active" ? "text-amber-600 dark:text-amber-400" : "text-emerald-600 dark:text-emerald-400"
+              statusConfirmEmp?.status === "Active" ? "text-yellow-400" : "text-emerald-600 dark:text-emerald-400"
             }`}>
               {statusConfirmEmp?.status === "Active" ? "Inactive Employee?" : "Reactivate Employee?"}
             </DialogTitle>
           </DialogHeader>
           <div className="p-5 space-y-4">
-            <p className="text-sm text-foreground dark:text-slate-300">
+            <p className={`text-sm ${statusConfirmEmp?.status === "Active" ? "text-[#942392] font-semibold dark:text-purple-200" : "text-foreground dark:text-slate-300"}`}>
               {statusConfirmEmp?.status === "Active" 
                 ? <>Are you sure you want to mark <strong>{statusConfirmEmp?.name}</strong> as Inactive?</>
                 : <>Are you sure you want to reactivate <strong>{statusConfirmEmp?.name}</strong>?</>}
             </p>
-            <div className={`border rounded-lg p-3 ${statusConfirmEmp?.status === "Active" ? "bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/20" : "bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20"}`}>
-              <p className={`text-xs font-medium leading-relaxed ${statusConfirmEmp?.status === "Active" ? "text-amber-600 dark:text-amber-400" : "text-emerald-600 dark:text-emerald-400"}`}>
+            <div className={`border rounded-lg p-3 ${
+              statusConfirmEmp?.status === "Active" 
+                ? "bg-[#942392]/5 border-[#942392]/30" 
+                : "bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20"
+            }`}>
+              <p className={`text-xs font-medium leading-relaxed ${
+                statusConfirmEmp?.status === "Active" 
+                  ? "text-[#942392] dark:text-purple-300" 
+                  : "text-emerald-600 dark:text-emerald-400"
+              }`}>
                 {statusConfirmEmp?.status === "Active" 
                   ? "This action is temporary and can be reversed later. The employee's records will be retained." 
                   : "This action will restore the employee's active status and grant them system access."}
@@ -1817,13 +1825,17 @@ export default function Employees() {
             </div>
           </div>
           <DialogFooter className="p-5 pt-0">
-            <Button variant="outline" onClick={() => setStatusConfirmEmp(null)}>
+            <Button 
+              variant="outline" 
+              onClick={() => setStatusConfirmEmp(null)}
+              className={statusConfirmEmp?.status === "Active" ? "border-[#942392] text-[#942392] hover:bg-[#942392]/10 hover:text-[#942392]" : ""}
+            >
               Cancel
             </Button>
             <Button 
-              variant={statusConfirmEmp?.status === "Active" ? "destructive" : "default"} 
+              variant={statusConfirmEmp?.status === "Active" ? "default" : "default"} 
               onClick={confirmToggleStatus} 
-              className={statusConfirmEmp?.status === "Active" ? "bg-amber-600 hover:bg-amber-700 text-white" : "bg-emerald-600 hover:bg-emerald-700 text-white"}
+              className={statusConfirmEmp?.status === "Active" ? "bg-[#942392] hover:bg-[#7a1d79] text-white" : "bg-emerald-600 hover:bg-emerald-700 text-white"}
             >
               {statusConfirmEmp?.status === "Active" ? "Inactive" : "Reactivate"}
             </Button>
