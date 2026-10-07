@@ -1286,12 +1286,12 @@ export default function Branches() {
                     </button>
                   )}
                 </div>
-                <div className="flex items-center gap-1 bg-muted/40 p-1 rounded-xl border border-border/40 shrink-0">
+                <div className="flex items-center h-9 gap-1 bg-muted/40 p-1 rounded-xl border border-border/40 shrink-0">
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => setViewMode("grid")}
-                    className={`rounded-lg px-3 py-1.5 h-7 gap-1.5 text-xs font-black uppercase tracking-wider transition-all duration-200 touch-target ${
+                    className={`rounded-lg px-3 h-full gap-1.5 text-xs font-black uppercase tracking-wider transition-all duration-200 touch-target ${
                       viewMode === "grid"
                         ? "bg-[#942392] text-white hover:bg-[#942392]/90 shadow-md"
                         : "text-foreground hover:bg-muted/50 hover:text-foreground"
@@ -1304,7 +1304,7 @@ export default function Branches() {
                     variant="ghost"
                     size="sm"
                     onClick={() => setViewMode("line")}
-                    className={`rounded-lg px-3 py-1.5 h-7 gap-1.5 text-xs font-black uppercase tracking-wider transition-all duration-200 touch-target ${
+                    className={`rounded-lg px-3 h-full gap-1.5 text-xs font-black uppercase tracking-wider transition-all duration-200 touch-target ${
                       viewMode === "line"
                         ? "bg-[#942392] text-white hover:bg-[#942392]/90 shadow-md"
                         : "text-foreground hover:bg-muted/50 hover:text-foreground"
