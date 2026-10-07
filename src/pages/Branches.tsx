@@ -757,23 +757,23 @@ export default function Branches() {
                               {employee.attendance_rate || 0}%
                             </td>
                             <td className="py-4 px-6">
-                              <Badge
-                                className={`text-[9px] print:text-[13px] font-black px-2.5 h-5 ${
+                              <span
+                                className={`inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap ${
                                   employee.today_status === "Present (On Time)" || employee.today_status === "Present"
-                                    ? "bg-[#228b22] text-white"
+                                    ? "bg-[#228b22] text-white border-transparent"
                                     : employee.today_status === "Present (Late)"
-                                      ? "bg-amber-500 text-white"
+                                      ? "bg-amber-500 text-white border-transparent"
                                       : employee.today_status === "Outstation"
-                                        ? "bg-pink-500 text-white"
+                                        ? "bg-pink-500 text-white border-transparent"
                                         : employee.today_status === "On Leave"
-                                          ? "bg-blue-500 text-white"
+                                          ? "bg-blue-500 text-white border-transparent"
                                           : employee.today_status === "Company Leave"
-                                            ? "bg-purple-500 text-white"
-                                            : "bg-rose-500 text-white"
+                                            ? "bg-purple-500 text-white border-transparent"
+                                            : "bg-rose-500 text-white border-transparent"
                                 }`}
                               >
                                 {employee.today_status}
-                              </Badge>
+                              </span>
                             </td>
                           </tr>
                         ))
@@ -815,23 +815,23 @@ export default function Branches() {
                             <p className="font-black text-sm text-foreground truncate">
                               {employee.full_name}
                             </p>
-                            <Badge
-                              className={`text-[9px] print:text-[13px] font-black h-5 shrink-0 ${
+                            <span
+                              className={`inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap shrink-0 ${
                                 employee.today_status === "Present (On Time)" || employee.today_status === "Present"
-                                  ? "bg-[#228b22] text-white"
+                                  ? "bg-[#228b22] text-white border-transparent"
                                   : employee.today_status === "Present (Late)"
-                                    ? "bg-amber-500 text-white"
+                                    ? "bg-amber-500 text-white border-transparent"
                                     : employee.today_status === "Outstation"
-                                      ? "bg-pink-500 text-white"
+                                      ? "bg-pink-500 text-white border-transparent"
                                       : employee.today_status === "On Leave"
-                                        ? "bg-blue-500 text-white"
+                                        ? "bg-blue-500 text-white border-transparent"
                                         : employee.today_status === "Company Leave"
-                                          ? "bg-purple-500 text-white"
-                                          : "bg-rose-500 text-white"
+                                          ? "bg-purple-500 text-white border-transparent"
+                                          : "bg-rose-500 text-white border-transparent"
                               }`}
                             >
                               {employee.today_status}
-                            </Badge>
+                            </span>
                           </div>
                           <div className="flex items-center gap-2 text-[10px] print:text-[13px] font-bold text-foreground uppercase tracking-wider">
                             <span>ID: {employee.user_id}</span>

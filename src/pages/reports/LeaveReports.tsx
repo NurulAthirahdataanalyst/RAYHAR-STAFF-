@@ -481,10 +481,10 @@ export default function LeaveReports() {
                           <TableCell>{formatDate(req.end_date)}</TableCell>
                           <TableCell>{req.days}</TableCell>
                           <TableCell>
-                            <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                              req.status === 'Approved' ? 'bg-green-100 text-green-700' :
-                              req.status === 'Rejected' ? 'bg-red-100 text-red-700' :
-                              'bg-yellow-100 text-yellow-700'
+                            <span className={`inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap ${
+                              req.status === 'Approved' ? 'bg-green-50 text-green-600 border-green-200 dark:bg-green-500/10 dark:border-green-500/20' :
+                              req.status === 'Rejected' ? 'bg-red-50 text-red-600 border-red-200 dark:bg-red-500/10 dark:border-red-500/20' :
+                              'bg-yellow-50 text-yellow-600 border-yellow-200 dark:bg-yellow-500/10 dark:border-yellow-500/20'
                             }`}>
                               {req.status}
                             </span>
