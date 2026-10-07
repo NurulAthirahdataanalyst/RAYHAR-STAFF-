@@ -241,30 +241,47 @@ export default function LeaveEntitlementManagement() {
             <CardContent className="p-6">
               <div className="flex flex-col gap-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <svg width="0" height="0" className="absolute">
+                    <defs>
+                      <linearGradient id="grad-sky" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#38bdf8" /><stop offset="100%" stopColor="#2563eb" /></linearGradient>
+                      <linearGradient id="grad-emerald" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#34d399" /><stop offset="100%" stopColor="#059669" /></linearGradient>
+                      <linearGradient id="grad-violet" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#a78bfa" /><stop offset="100%" stopColor="#7c3aed" /></linearGradient>
+                      <linearGradient id="grad-amber" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#fbbf24" /><stop offset="100%" stopColor="#d97706" /></linearGradient>
+                      <linearGradient id="grad-pink" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#f472b6" /><stop offset="100%" stopColor="#db2777" /></linearGradient>
+                      <linearGradient id="grad-slate" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#94a3b8" /><stop offset="100%" stopColor="#475569" /></linearGradient>
+                    </defs>
+                  </svg>
                   {modules.slice(0, 4).map((module) => {
                     const Icon = module.icon;
+                    const toneMatch = module.tone.match(/text-([a-z]+)-/);
+                    const colorName = toneMatch ? toneMatch[1] : 'slate';
+                    const gradId = `grad-${colorName}`;
+                    const gradientClass = `from-${colorName}-400 to-${colorName}-600`;
+
                     return (
                       <div
                         key={module.title}
                         onClick={() => setActiveModule(module.title)}
-                        className="rounded-[24px] border border-border/60 bg-card p-6 shadow-xl hover:shadow-2xl hover:-translate-y-1 cursor-pointer transition-all duration-300 group flex flex-col justify-between min-h-[220px]"
+                        className="relative overflow-hidden rounded-[24px] border border-border/40 bg-card p-6 shadow-[0_15px_40px_-10px_rgba(0,0,0,0.08),inset_0_1px_1px_rgba(255,255,255,0.7)] dark:shadow-[0_15px_40px_-10px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.05)] hover:shadow-[0_20px_50px_-10px_rgba(0,0,0,0.12),inset_0_1px_1px_rgba(255,255,255,0.9)] dark:hover:shadow-[0_20px_50px_-10px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:-translate-y-1 cursor-pointer transition-all duration-300 group flex flex-col justify-between min-h-[220px]"
                       >
                         <div>
                           <div className="flex items-start justify-between gap-3">
                             <h3 className="mt-1 text-[15px] sm:text-base font-black uppercase tracking-tight text-foreground group-hover:text-[#942392] transition-colors leading-tight pr-2">
                               {module.title}
                             </h3>
-                            <div className={`w-12 h-12 shrink-0 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 ${module.tone}`}>
-                              <Icon className="w-6 h-6" />
+                            <div className="shrink-0 transition-transform duration-300 group-hover:scale-110">
+                              <Icon className="w-8 h-8" style={{ stroke: `url(#${gradId})` }} />
                             </div>
                           </div>
-                          <p className="mt-4 text-xs sm:text-sm leading-relaxed text-foreground">
+                          <p className="mt-4 text-xs sm:text-sm leading-relaxed text-foreground opacity-80">
                             {module.description}
                           </p>
                         </div>
-                        <div className="mt-8 pt-4 border-t border-border/40 text-[#942392] text-xs font-black uppercase tracking-wider flex items-center gap-1.5 group-hover:translate-x-1 transition-transform">
+                        <div className="mt-8 pt-4 border-t border-border/40 text-[#942392] text-xs font-black uppercase tracking-wider flex items-center gap-1.5 group-hover:translate-x-1 transition-transform relative z-10">
                           Manage module &rarr;
                         </div>
+                        {/* Bottom gradient accent bar */}
+                        <div className={`absolute bottom-0 left-0 w-full h-[4px] bg-gradient-to-r ${gradientClass} opacity-80 group-hover:opacity-100 transition-opacity`} />
                       </div>
                     );
                   })}
@@ -272,28 +289,35 @@ export default function LeaveEntitlementManagement() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-4">
                   {modules.slice(4).map((module) => {
                     const Icon = module.icon;
+                    const toneMatch = module.tone.match(/text-([a-z]+)-/);
+                    const colorName = toneMatch ? toneMatch[1] : 'slate';
+                    const gradId = `grad-${colorName}`;
+                    const gradientClass = `from-${colorName}-400 to-${colorName}-600`;
+
                     return (
                       <div
                         key={module.title}
                         onClick={() => setActiveModule(module.title)}
-                        className="rounded-[24px] border border-border/60 bg-card p-6 shadow-xl hover:shadow-2xl hover:-translate-y-1 cursor-pointer transition-all duration-300 group flex flex-col justify-between min-h-[220px]"
+                        className="relative overflow-hidden rounded-[24px] border border-border/40 bg-card p-6 shadow-[0_15px_40px_-10px_rgba(0,0,0,0.08),inset_0_1px_1px_rgba(255,255,255,0.7)] dark:shadow-[0_15px_40px_-10px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.05)] hover:shadow-[0_20px_50px_-10px_rgba(0,0,0,0.12),inset_0_1px_1px_rgba(255,255,255,0.9)] dark:hover:shadow-[0_20px_50px_-10px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:-translate-y-1 cursor-pointer transition-all duration-300 group flex flex-col justify-between min-h-[220px]"
                       >
                         <div>
                           <div className="flex items-start justify-between gap-3">
                             <h3 className="mt-1 text-[15px] sm:text-base font-black uppercase tracking-tight text-foreground group-hover:text-[#942392] transition-colors leading-tight pr-2">
                               {module.title}
                             </h3>
-                            <div className={`w-12 h-12 shrink-0 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 ${module.tone}`}>
-                              <Icon className="w-6 h-6" />
+                            <div className="shrink-0 transition-transform duration-300 group-hover:scale-110">
+                              <Icon className="w-8 h-8" style={{ stroke: `url(#${gradId})` }} />
                             </div>
                           </div>
-                          <p className="mt-4 text-xs sm:text-sm leading-relaxed text-foreground">
+                          <p className="mt-4 text-xs sm:text-sm leading-relaxed text-foreground opacity-80">
                             {module.description}
                           </p>
                         </div>
-                        <div className="mt-8 pt-4 border-t border-border/40 text-[#942392] text-xs font-black uppercase tracking-wider flex items-center gap-1.5 group-hover:translate-x-1 transition-transform">
+                        <div className="mt-8 pt-4 border-t border-border/40 text-[#942392] text-xs font-black uppercase tracking-wider flex items-center gap-1.5 group-hover:translate-x-1 transition-transform relative z-10">
                           Manage module &rarr;
                         </div>
+                        {/* Bottom gradient accent bar */}
+                        <div className={`absolute bottom-0 left-0 w-full h-[4px] bg-gradient-to-r ${gradientClass} opacity-80 group-hover:opacity-100 transition-opacity`} />
                       </div>
                     );
                   })}
