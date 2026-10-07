@@ -2,23 +2,27 @@ import React from 'react';
 import { useState, useEffect, useRef } from "react";
 import { TableScrollTopButton } from "@/components/shared/TableScrollTopButton";
 
-// HR Notification Helper (Mocking DB insertion via localStorage)
-const createHRNotification = (userId: string, title: string, message: string) => {
+import { API_BASE_URL } from '@/config/api';
+
+// HR Notification Helper
+const createHRNotification = async (userId: string, title: string, message: string) => {
   try {
-    const existing = JSON.parse(localStorage.getItem('hrNotifications') || '[]');
-    existing.push({
-      id: 'hr-notif-' + Date.now() + '-' + Math.random().toString(36).substring(2, 9),
-      user_id: userId,
-      title,
-      message,
-      type: 'leave_adjustment',
-      is_read: false,
-      created_at: new Date().toISOString()
+    const res = await fetch(`${API_BASE_URL}/api/notifications`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        user_id: userId,
+        title: title,
+        message: message,
+        type: 'leave_adjustment',
+        scope: 'personal'
+      })
     });
-    localStorage.setItem('hrNotifications', JSON.stringify(existing));
-    window.dispatchEvent(new Event('storage'));
+    if (!res.ok) {
+      console.warn("Failed to create HR notification on backend.");
+    }
   } catch (e) {
-    console.error("Failed to create HR notification", e);
+    console.error("Error creating HR notification:", e);
   }
 };
 import { ChevronLeft, ChevronRight, Award,
