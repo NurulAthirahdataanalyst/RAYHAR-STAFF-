@@ -534,7 +534,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-5 animate-in fade-in duration-500 pb-16">
+    <div className="space-y-4 sm:space-y-5 animate-in fade-in duration-500 pb-16 max-w-4xl mx-auto">
       {/* HEADER SECTION */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -553,7 +553,7 @@ export default function SettingsPage() {
       </div>
 
       {/* HORIZONTAL NAVIGATION TABS - PILL REDESIGN */}
-      <div className="flex bg-gradient-to-r from-[#800A7A] via-[#942392] to-[#3d0052] p-2 rounded-xl shadow-inner overflow-x-auto gap-1 scrollbar-none items-center w-full lg:w-fit max-w-full border border-[#942392]/20 relative z-10 mb-6">
+      <div className="flex bg-gradient-to-r from-[#800A7A] via-[#942392] to-[#3d0052] p-2 rounded-xl shadow-inner overflow-x-auto gap-1 scrollbar-none items-center w-full lg:w-fit max-w-full mx-auto border border-[#942392]/20 relative z-10 mb-6">
         {[
           { id: "system", label: "SYSTEM CONFIGURATION", icon: SlidersHorizontal },
           { id: "staff", label: "PERSONNEL MANAGEMENT", icon: UserPlus },
