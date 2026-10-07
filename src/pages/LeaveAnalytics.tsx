@@ -1265,7 +1265,7 @@ export default function LeaveAnalytics() {
           { label: "Avg Leave Days / Employee", val: avgLeaveDays, color: "text-indigo-600", bg: "bg-indigo-50", icon: <CalendarIcon className="w-5 h-5"/>, trend: "↓ 0.5 vs last month" },
           { label: "Sick Leave Rate", val: `${sickLeaveRate}%`, color: "text-pink-600", bg: "bg-pink-50", icon: <BriefcaseMedical className="w-5 h-5"/>, trend: "↑ 2% vs last month" },
         ].map((k, i) => (
-          <Card key={i} className={`group border border-slate-200 dark:border-slate-800 bg-card rounded-[24px] shadow-sm p-4 flex flex-col justify-between transition-all duration-300 cursor-pointer hover:-translate-y-1 hover:-translate-x-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.15)] dark:hover:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] ${
+          <Card key={i} className={`group border border-slate-200 dark:border-slate-800 bg-card rounded-[24px] shadow-sm p-4 flex flex-col justify-between transition-all duration-300 cursor-pointer hover:-translate-y-1 hover:shadow-lg ${
             k.color.includes('emerald') ? 'hover:border-emerald-500 hover:bg-emerald-50/50 dark:hover:bg-emerald-900/20' : 
             k.color.includes('amber') ? 'hover:border-amber-500 hover:bg-amber-50/50 dark:hover:bg-amber-900/20' : 
             k.color.includes('rose') ? 'hover:border-rose-500 hover:bg-rose-50/50 dark:hover:bg-rose-900/20' : 
