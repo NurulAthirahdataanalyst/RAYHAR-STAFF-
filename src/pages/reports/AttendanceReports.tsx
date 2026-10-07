@@ -295,8 +295,8 @@ export default function AttendanceReports() {
 
   const handleExportCSV = () => {
     const headers = viewType === "day"
-      ? ["Employee ID", "Name", "Branch", "Clock In", "Clock Out", "Status", "Working Hours", "Coordinate (Latitude, Longitude)", "Distance", "Location Status"]
-      : ["Date", "Employee ID", "Name", "Branch", "Clock In", "Clock Out", "Status", "Working Hours", "Coordinate (Latitude, Longitude)", "Distance", "Location Status"];
+      ? ["Employee ID", "Name", "Branch", "Clock In", "Clock Out", "Status", "Working Hours", "Coordinate (Latitude&Longitude)", "Distance", "Location Status"]
+      : ["Date", "Employee ID", "Name", "Branch", "Clock In", "Clock Out", "Status", "Working Hours", "Coordinate (Latitude&Longitude)", "Distance", "Location Status"];
 
     // Sort export: for month/year — date DESC then name ASC; for day — name ASC
     const sortedList = [...filteredList].sort((a, b) => {
@@ -620,7 +620,7 @@ export default function AttendanceReports() {
                       <TableHead className="w-[90px]">Clock In</TableHead>
                         <TableHead className="w-[90px]">Clock Out</TableHead>
                         <TableHead className="w-[100px]">Working Hours</TableHead>
-                        <TableHead className="min-w-[180px]">Coordinate (Latitude, Longitude)</TableHead>
+                        <TableHead className="min-w-[180px]">Coordinate (Latitude&Longitude)</TableHead>
                         <TableHead className="w-[120px]">Distance</TableHead>
                         <TableHead className="w-[120px]">Location Status</TableHead>
                       </TableRow>

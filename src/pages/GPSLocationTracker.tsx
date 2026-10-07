@@ -791,7 +791,7 @@ export default function GPSLocationTracker() {
                   <TableHeader className="sticky top-0 bg-card z-10 shadow-sm border-b">
                     <TableRow>
                       <TableHead>Date &amp; Time</TableHead>
-                      <TableHead>Coordinate (Latitude, Longitude)</TableHead>
+                      <TableHead>Coordinate (Latitude&Longitude)</TableHead>
                       <TableHead>Branch</TableHead>
                       <TableHead>Distance from Branch</TableHead>
                       <TableHead>Location Status</TableHead>

@@ -581,7 +581,7 @@ export default function TeamAttendance() {
                       <TableHead>Clock In</TableHead>
                       <TableHead>Clock Out</TableHead>
                       <TableHead>Working Hours</TableHead>
-                      <TableHead>Coordinate (Latitude, Longitude)</TableHead>
+                      <TableHead>Coordinate (Latitude&Longitude)</TableHead>
                       <TableHead>Distance</TableHead>
                       <TableHead>Location Status</TableHead>
                     </TableRow>
@@ -735,7 +735,7 @@ export default function TeamAttendance() {
                 <TableHeader className="sticky top-0 bg-card z-10 shadow-sm border-b">
                   <TableRow>
                     <TableHead>Date & Time</TableHead>
-                    <TableHead>Coordinate (Latitude, Longitude)</TableHead>
+                    <TableHead>Coordinate (Latitude&Longitude)</TableHead>
                     <TableHead>Branch</TableHead>
                     <TableHead>Distance from Branch</TableHead>
                     <TableHead>Location Status</TableHead>

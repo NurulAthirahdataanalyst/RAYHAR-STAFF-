@@ -64,7 +64,7 @@ export default function LocationHistory() {
                 <TableHeader className="bg-muted/50">
                   <TableRow>
                     <TableHead className="py-4">Date &amp; Time</TableHead>
-                    <TableHead className="py-4">Coordinate (Latitude, Longitude)</TableHead>
+                    <TableHead className="py-4">Coordinate (Latitude&Longitude)</TableHead>
                     <TableHead className="py-4">Branch</TableHead>
                     <TableHead className="py-4">Distance from Branch</TableHead>
                     <TableHead className="py-4">Location Status</TableHead>
