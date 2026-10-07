@@ -846,6 +846,24 @@ export default function WorkforceInsights() {
                           absent = Math.max(0, branch.count - (presentOnTime + presentLate + outstation + onLeave + companyLeave));
                         }
                         
+                        const bCode = branch.name === 'HQ' ? 'HQ' : branch.name.split('-')[0].trim();
+                        const today = new Date();
+                        today.setHours(0,0,0,0);
+                        const activeAssignmentsToday = (tempAssignments || []).filter((a: any) => {
+                          if (a.status !== 'Active') return false;
+                          const sd = new Date(a.start_date); sd.setHours(0,0,0,0);
+                          const ed = new Date(a.end_date); ed.setHours(23,59,59,999);
+                          return today >= sd && today <= ed;
+                        });
+                        const temporaryIn = activeAssignmentsToday.filter((a: any) => {
+                           const loc = a.location ? a.location.split('-')[0].trim() : a.location;
+                           return loc === bCode;
+                        }).length;
+                        const temporaryOut = activeAssignmentsToday.filter((a: any) => {
+                           const pb = a.primary_branch === 'HQ' ? 'HQ' : (a.primary_branch || '');
+                           return pb === bCode;
+                        }).length;
+                        
                         const expectedWorkingDays = branch.count - onLeave - companyLeave;
                         let realRate = 0;
                         if (expectedWorkingDays > 0) {
@@ -854,7 +872,7 @@ export default function WorkforceInsights() {
                           realRate = 100;
                         }
 
-                        return { ...branch, realRate, presentOnTime, presentLate, outstation, onLeave, companyLeave, absent };
+                        return { ...branch, realRate, presentOnTime, presentLate, outstation, onLeave, companyLeave, absent, temporaryIn, temporaryOut, permanentStaffCount: branch.count - temporaryIn + temporaryOut };
                       }).sort((a:any, b:any) => b.realRate - a.realRate).map((branch: any, idx: number) => {
                         return (
                           <div key={idx} className="flex flex-col gap-1">
@@ -882,8 +900,14 @@ export default function WorkforceInsights() {
                                   )}
                                 </div>
                               </TooltipTrigger>
-                              <TooltipContent side="top" align="center" className="bg-card border border-slate-200 dark:border-slate-800 shadow-xl rounded p-3 z-50 w-max whitespace-nowrap text-left min-w-[150px]">
+                              <TooltipContent side="top" align="center" className="bg-card border border-slate-200 dark:border-slate-800 shadow-xl rounded p-3 z-50 w-max whitespace-nowrap text-left min-w-[200px]">
                                 <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 mb-2 border-b border-slate-100 dark:border-slate-800 pb-1">{branch.name}</p>
+                                <div className="flex flex-col gap-1 text-[9px] text-slate-600 dark:text-slate-300 mb-2 border-b border-slate-100 dark:border-slate-800 pb-2">
+                                  <p className="flex justify-between items-center gap-4"><span>Permanent Staff:</span> <span className="font-bold text-slate-700 dark:text-slate-300">{branch.permanentStaffCount}</span></p>
+                                  <p className="flex justify-between items-center gap-4"><span>Temporary In:</span> <span className="font-bold text-slate-700 dark:text-slate-300">{branch.temporaryIn}</span></p>
+                                  <p className="flex justify-between items-center gap-4"><span>Temporary Out:</span> <span className="font-bold text-slate-700 dark:text-slate-300">{branch.temporaryOut}</span></p>
+                                  <p className="flex justify-between items-center gap-4 font-black mt-1"><span>Expected Workforce:</span> <span className="font-bold text-slate-800 dark:text-slate-100">{branch.count}</span></p>
+                                </div>
                                 <div className="flex flex-col gap-1 text-[9px] text-slate-600 dark:text-slate-300">
                                   <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#10b981]"></div>Present (On Time):</span> <span className="font-bold text-emerald-600">{branch.presentOnTime}</span></p>
                                   <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#f59e0b]"></div>Present (Late):</span> <span className="font-bold text-amber-500">{branch.presentLate}</span></p>
