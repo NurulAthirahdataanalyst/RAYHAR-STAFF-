@@ -538,12 +538,12 @@ export default function SettingsPage() {
       {/* HEADER SECTION */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 sm:p-3 bg-[#942392] rounded-xl flex items-center justify-center shrink-0 shadow-md">
-            <Settings className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+          <div className="w-10 h-10 rounded-xl bg-[#942392] text-white flex items-center justify-center shadow-xs shrink-0">
+            <Settings className="w-5 h-5 text-white" />
           </div>
           <div>
             <h1 className="text-2xl font-black text-foreground uppercase tracking-tight">Portal Configurations</h1>
-            <p className="text-xs text-foreground uppercase tracking-wider font-semibold opacity-70 mt-1">
+            <p className="text-xs sm:text-sm text-foreground italic mt-0.5">
               Configure global branches, staff roles, and check-in parameters
             </p>
           </div>

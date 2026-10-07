@@ -164,9 +164,9 @@ export function getPageTitleInfo(pathname: string, userRole?: string): PageInfo 
     subtitle: "View branch performance, workforce distribution, and operational status.",
     icon: Building
   };
-  if (pathname === "/branches/temporary-assignment") return {
-    title: "Branch Temporary Assignment",
-    subtitle: "Assign employees temporarily to different company branches.",
+  if (pathname === "/branches/temporary-assignments") return {
+    title: "Temporary Assignments",
+    subtitle: "Manage staff temporary branch placements and assignments",
     icon: ArrowRightLeft
   };
 
