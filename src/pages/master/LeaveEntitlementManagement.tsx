@@ -241,16 +241,7 @@ export default function LeaveEntitlementManagement() {
             <CardContent className="p-6">
               <div className="flex flex-col gap-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <svg width="0" height="0" className="absolute">
-                    <defs>
-                      <linearGradient id="grad-sky" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#38bdf8" /><stop offset="100%" stopColor="#2563eb" /></linearGradient>
-                      <linearGradient id="grad-emerald" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#34d399" /><stop offset="100%" stopColor="#059669" /></linearGradient>
-                      <linearGradient id="grad-violet" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#a78bfa" /><stop offset="100%" stopColor="#7c3aed" /></linearGradient>
-                      <linearGradient id="grad-amber" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#fbbf24" /><stop offset="100%" stopColor="#d97706" /></linearGradient>
-                      <linearGradient id="grad-pink" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#f472b6" /><stop offset="100%" stopColor="#db2777" /></linearGradient>
-                      <linearGradient id="grad-slate" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#94a3b8" /><stop offset="100%" stopColor="#475569" /></linearGradient>
-                    </defs>
-                  </svg>
+
                   {modules.slice(0, 4).map((module) => {
                     const Icon = module.icon;
                     const toneMatch = module.tone.match(/text-([a-z]+)-/);
@@ -269,8 +260,8 @@ export default function LeaveEntitlementManagement() {
                             <h3 className="mt-1 text-[15px] sm:text-base font-black uppercase tracking-tight text-foreground group-hover:text-[#942392] transition-colors leading-tight pr-2">
                               {module.title}
                             </h3>
-                            <div className="shrink-0 transition-transform duration-300 group-hover:scale-110">
-                              <Icon className="w-8 h-8" style={{ stroke: `url(#${gradId})` }} />
+                            <div className={`w-12 h-12 shrink-0 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 ${module.tone}`}>
+                              <Icon className="w-6 h-6" />
                             </div>
                           </div>
                           <p className="mt-4 text-xs sm:text-sm leading-relaxed text-foreground opacity-80">
@@ -305,8 +296,8 @@ export default function LeaveEntitlementManagement() {
                             <h3 className="mt-1 text-[15px] sm:text-base font-black uppercase tracking-tight text-foreground group-hover:text-[#942392] transition-colors leading-tight pr-2">
                               {module.title}
                             </h3>
-                            <div className="shrink-0 transition-transform duration-300 group-hover:scale-110">
-                              <Icon className="w-8 h-8" style={{ stroke: `url(#${gradId})` }} />
+                            <div className={`w-12 h-12 shrink-0 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 ${module.tone}`}>
+                              <Icon className="w-6 h-6" />
                             </div>
                           </div>
                           <p className="mt-4 text-xs sm:text-sm leading-relaxed text-foreground opacity-80">
