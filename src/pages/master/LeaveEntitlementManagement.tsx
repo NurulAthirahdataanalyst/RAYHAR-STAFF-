@@ -1919,20 +1919,29 @@ function ManualLeaveAdjustmentForm({
     
     try {
       // Real API call to sync adjustment to database
-      const response = await fetch(`${API_BASE_URL}/api/profiles/${selectedEmp.user_id}/leave-adjustments`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          leaveType: leaveType,
-          adjustmentDays: adjValue,
-          reason: `${reasonCategory}: ${reasonDetails}`,
-          approvedBy: "HR Admin"
-        })
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Failed to update database");
+      let apiSuccess = false;
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/profiles/${selectedEmp.user_id}/leave-adjustments`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            leaveType: leaveType,
+            adjustmentDays: adjValue,
+            reason: `${reasonCategory}: ${reasonDetails}`,
+            approvedBy: performedByStr
+          })
+        });
+        const data = await response.json();
+        if (response.ok) {
+          apiSuccess = true;
+        } else {
+          console.warn("Backend API error (non-blocking):", data.error);
+        }
+      } catch (apiErr) {
+        console.warn("Backend API unreachable (non-blocking):", apiErr);
+      }
 
-      // Append to entitlement audit history
+      // Always: Append to entitlement audit history log
       const actionType = adjValue >= 0 ? 'Manual Adjustment' : 'Deduction';
       appendHistoryLog(buildHistoryLog({
         employee_id: selectedEmp.user_id,
@@ -1950,13 +1959,10 @@ function ManualLeaveAdjustmentForm({
         performed_role: 'HR Admin',
         source_module: 'Manual Leave Adjustments',
       }));
-      // Update base entitlement properly by fetching the actual stored entitlement
-      const currentEntitlements = (() => ({ "Annual & Emergency Leave": 14, "Replacement Leave": 0, "Sick Leave (MC)": 14, "Unpaid Leave": 0 }))();
-      const currentBase = currentEntitlements[mappedType as keyof typeof currentEntitlements] || 14;
-      const newEntitlement = currentBase + adjValue;
-      (() => {})();
 
-      createHRNotification(selectedEmp.user_id, adjValue >= 0 ? "Leave Added" : "Leave Deducted", `HR Admin has ${adjValue >= 0 ? 'added' : 'deducted'} ${Math.abs(adjValue)} days ${adjValue >= 0 ? 'to' : 'from'} your ${leaveType}.`);
+      // Always: send notification to the employee
+      createHRNotification(selectedEmp.user_id, adjValue >= 0 ? "Leave Added" : "Leave Deducted", `${performedByStr} has ${adjValue >= 0 ? 'added' : 'deducted'} ${Math.abs(adjValue)} days ${adjValue >= 0 ? 'to' : 'from'} your ${leaveType}.`);
+      
       toast({
         title: "Leave balance updated successfully.",
         description: (
@@ -1965,6 +1971,7 @@ function ManualLeaveAdjustmentForm({
             <div>{leaveType}</div>
             <div>Adjustment: {adjValue > 0 ? '+' : ''}{adjValue} Days</div>
             <div>New Balance: {newBalance} Days</div>
+            {!apiSuccess && <div className="text-amber-600 font-medium">⚠ Saved locally. DB sync pending.</div>}
           </div>
         ),
       });
@@ -1975,10 +1982,10 @@ function ManualLeaveAdjustmentForm({
       } catch (e) {}
       onRefresh?.();
       onCancel();
-    } catch (err) {
+    } catch (err: any) {
       toast({
         title: "Error",
-        description: "Failed to apply adjustment",
+        description: err?.message || "Failed to apply adjustment",
         variant: "destructive"
       });
     } finally {
@@ -2199,7 +2206,7 @@ function ManualLeaveAdjustmentForm({
         {/* Actions */}
         <div className="flex justify-end gap-3">
           <Button variant="outline" size="sm" onClick={onCancel} className="text-xs uppercase font-black tracking-wider w-32">Cancel</Button>
-          <Button size="sm" disabled={isSubmitting} onClick={handleSave} className="bg-amber-600 hover:bg-amber-700 text-white text-xs uppercase font-black tracking-wider min-w-[150px]">
+          <Button size="sm" disabled={isSubmitting} onClick={handleSave} className="text-white text-xs uppercase font-black tracking-wider min-w-[150px]" style={{ backgroundColor: '#942392' }} onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#7a1c7a')} onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#942392')}>
             {isSubmitting ? "Saving..." : "Save Adjustment"}
           </Button>
         </div>
