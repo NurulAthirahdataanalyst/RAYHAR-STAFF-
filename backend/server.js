@@ -5677,8 +5677,9 @@ app.post("/api/attendance", async (req, res) => {
         const clockInDate = new Date(rows[0].clock_in);
         // Format to HH:MM:SS in KL time
         const klTimeStr = clockInDate.toLocaleString('en-US', { timeZone: 'Asia/Kuala_Lumpur', hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        // If > 08:30 (and allowing say up to 12:00 for morning clock in checks, but simple string compare works here if format is exactly HH:MM:SS)
-        if (klTimeStr > "08:30:00") {
+        
+        const lateThresholdTime = getLateThresholdTime();
+        if (klTimeStr >= lateThresholdTime) {
           emailService.sendLateEmail({
             employeeEmail: empProfile[0].email,
             employeeName: empProfile[0].name || user_id,

@@ -514,7 +514,7 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role }: LeaveDetai
               </div>
               {/* Print-only MC Document Page */}
                 {(selectedRequest.type === "Sick Leave" || selectedRequest.type === "Cuti Sakit") && selectedRequest.mcFileUrl && selectedRequest.mcFileUrl.match(/\.(jpeg|jpg|png|gif)$/i) && (
-                  <div className="hidden print:block break-before-page w-full pt-10 border-2 border-black print:p-8 print:mt-10">
+                  <div className="opacity-0 h-0 w-0 overflow-hidden absolute print:static print:opacity-100 print:h-auto print:w-full print:break-before-page print:pt-10 print:border-2 print:border-black print:p-8 print:mt-10">
                     <div className="text-center mb-8">
                       <h2 className="text-xl font-bold uppercase tracking-widest text-black border-b-2 border-black inline-block pb-2">MC DOCUMENT</h2>
                     </div>
