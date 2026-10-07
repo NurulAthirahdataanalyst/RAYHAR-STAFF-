@@ -580,10 +580,10 @@ export default function SettingsPage() {
       </div>
 
       {/* ACTIVE TAB CONTENTS */}
-      <div className="grid grid-cols-1 gap-4 sm:gap-5 items-start lg:grid-cols-3">
+      <div className="flex flex-col gap-4 sm:gap-5 items-center w-full">
         
-        {/* LEFT/MAIN CONTAINER (SPAN 2 COLS) */}
-        <div className="lg:col-span-2 space-y-4">
+        {/* MAIN CONTAINER */}
+        <div className="w-full max-w-4xl space-y-4">
           
           {/* TAB 1: SYSTEM CONFIGURATION */}
           {activeTab === "system" && (
