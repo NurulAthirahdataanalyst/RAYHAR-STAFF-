@@ -2804,6 +2804,8 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                       <div className="cursor-pointer w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 flex overflow-hidden">
                             {branch.isWeekend ? (
                               <div className="h-full w-full bg-slate-300 dark:bg-slate-600 rounded-full"></div>
+                            ) : viewMode !== 'day' ? (
+                              <div className={`h-full ${branch.rate >= 90 ? 'bg-emerald-500' : branch.rate >= 75 ? 'bg-amber-500' : 'bg-[#ef4444]'}`} style={{ width: `${Math.max(0, Math.min(100, branch.rate))}%` }}></div>
                             ) : branch.totalEmployees > 0 ? (
                               <>
                                 {branch.presentOnTime > 0 && <div className="h-full bg-[#10b981]" style={{ width: `${(branch.presentOnTime / branch.totalEmployees) * 100}%` }}></div>}
