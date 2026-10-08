@@ -2312,11 +2312,16 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
         const absent = isWeekend ? 0 : Math.max(0, expectedWorkforce - totalRecorded);
         
         let rate = 0;
-        const expectedExcludingLeave = isWeekend ? 0 : (expectedWorkforce - onLeave - companyLeave - tempOnLeave - tempCompanyLeave);
-        if (isWeekend) {
-          rate = 100;
-        } else if (expectedExcludingLeave > 0) {
-          rate = Math.round(((presentOnTime + presentLate + outstation + tempPresent + tempLate + tempOutstation) / expectedExcludingLeave) * 100);
+        if (viewMode === 'day') {
+          const expectedExcludingLeave = isWeekend ? 0 : expectedWorkforce;
+          if (isWeekend) {
+            rate = 100;
+          } else if (expectedExcludingLeave > 0) {
+            rate = Math.round(((presentOnTime + presentLate + outstation + tempPresent + tempLate + tempOutstation) / expectedExcludingLeave) * 100);
+          }
+        } else {
+          const backendData = (Array.isArray(rawBranchMetrics) ? rawBranchMetrics : []).find((rb: any) => rb.name === b.branch);
+          rate = backendData && backendData.attendanceRate !== undefined ? backendData.attendanceRate : 0;
         }
 
         return {
@@ -2348,7 +2353,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
          ...d,
          displayRate: d.isWeekend ? 100 : d.rate
       }));
-  }, [rawBranchMetrics, clockInOut, tempAssignments, selectedRegion, year, month, day]);
+  }, [rawBranchMetrics, clockInOut, tempAssignments, selectedRegion, year, month, day, viewMode]);
 
   const departmentMetrics = (Array.isArray(data.departmentMetrics) ? data.departmentMetrics : []).map((d: any) => ({ ...d, name: (d.name || '').toUpperCase() }));
   const topDepartments = [...departmentMetrics].sort((a:any,b:any)=>b.value-a.value).slice(0, 5);
