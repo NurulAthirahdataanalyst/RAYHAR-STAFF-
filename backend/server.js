@@ -825,6 +825,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Fallback redirection for files wiped by Render ephemeral restart (supports nested folders)
 app.get(/^\/uploads\/(.+)$/, (req, res) => {
   const fileSubpath = req.params[0];
+  if (fileSubpath.includes('..')) return res.status(400).send('Invalid path');
   const supabaseUrl = process.env.VITE_SUPABASE_URL;
   if (supabaseUrl && fileSubpath) {
     const encodedSubpath = fileSubpath.split('/').map(segment => encodeURIComponent(segment)).join('/');
@@ -832,7 +833,7 @@ app.get(/^\/uploads\/(.+)$/, (req, res) => {
     console.log(`â†ªï¸ File ${fileSubpath} not found locally. Redirecting to Supabase fallback: ${publicUrl}`);
     return res.redirect(publicUrl);
   }
-  res.status(404).send('Cannot GET /uploads/' + (fileSubpath || ''));
+  res.status(404).send('File not found');
 });
 
 // ===============================
@@ -3300,11 +3301,13 @@ app.post("/api/leave-requests/:id/upload-mc", uploadLimiter, upload.single("lamp
       const newFilePath = path.join(userUploadsDir, safeFilename);
       
       const resolvedPath = path.resolve(newFilePath);
-      if (!resolvedPath.startsWith(path.resolve(userUploadsDir))) {
+      const expectedDir = path.resolve(userUploadsDir);
+      const relPath = path.relative(expectedDir, resolvedPath);
+      if (relPath.startsWith('..') || path.isAbsolute(relPath)) {
         return res.status(400).json({ success: false, error: "Invalid file path" });
       }
 
-      fs.renameSync(req.file.path, newFilePath);
+      fs.renameSync(req.file.path, resolvedPath);
       
       mc_file_url = `/uploads/${folderName}/${safeFilename}`;
       const supabaseStoragePath = `${folderName}/${safeFilename}`;
@@ -3467,11 +3470,13 @@ app.post("/api/leave-requests", uploadLimiter, upload.single("lampiranMc"), asyn
         const newFilePath = path.join(userUploadsDir, safeFilename);
         
         const resolvedPath = path.resolve(newFilePath);
-        if (!resolvedPath.startsWith(path.resolve(userUploadsDir))) {
+        const expectedDir = path.resolve(userUploadsDir);
+        const relPath = path.relative(expectedDir, resolvedPath);
+        if (relPath.startsWith('..') || path.isAbsolute(relPath)) {
           return res.status(400).json({ success: false, error: "Invalid file path" });
         }
 
-        fs.renameSync(req.file.path, newFilePath);
+        fs.renameSync(req.file.path, resolvedPath);
         
         // Store relative path URL
         mc_file_url = `/uploads/${folderName}/${safeFilename}`;
@@ -3486,8 +3491,10 @@ app.post("/api/leave-requests", uploadLimiter, upload.single("lampiranMc"), asyn
         const fallbackPath = path.join(uploadsDir, safeFilenameFallback);
         try {
           const resolvedFallback = path.resolve(fallbackPath);
-          if (resolvedFallback.startsWith(path.resolve(uploadsDir))) {
-            fs.renameSync(req.file.path, fallbackPath);
+          const expectedUploadsDir = path.resolve(uploadsDir);
+          const relFallback = path.relative(expectedUploadsDir, resolvedFallback);
+          if (!relFallback.startsWith('..') && !path.isAbsolute(relFallback)) {
+            fs.renameSync(req.file.path, resolvedFallback);
             mc_file_url = `/uploads/${safeFilenameFallback}`;
             uploadToSupabaseStorage(fallbackPath, safeFilenameFallback, req.file.mimetype);
           }
@@ -3871,7 +3878,9 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
         }
       }
     }
+    const validStatuses = ['Pending', 'Pending HOD', 'Pending Branch Leader', 'Pending Operation Manager', 'Pending Finance', 'Pending Finance Manager', 'Pending MD', 'Pending Managing Director', 'Approved', 'Rejected', 'Cancelled'];
     let nextStatus = status; // Default to what frontend sent
+    if (nextStatus && !validStatuses.includes(nextStatus)) return res.status(400).json({ success: false, error: 'Invalid status value' });
 
     if (action === 'Reject' || status === 'Rejected') {
       nextStatus = 'Rejected';
@@ -3944,7 +3953,7 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
             targetEmail = omRows[0].email;
             targetUserId = omRows[0].user_id;
             subject = `Leave Request Pending Operation Manager Approval: ${leaveData.employee_name}`;
-            html = `<p>Approval stage complete for <strong>${leaveData.employee_name}</strong>. It is now pending your Operation Manager review.</p>`;
+            html = `<p>Approval stage complete for <strong>${escapeHtml(leaveData.employee_name)}</strong>. It is now pending your Operation Manager review.</p>`;
             notificationTitle = `Leave Approval Required`;
             notificationMessage = `${leaveData.employee_name} requires your Operation Manager approval for a leave request.`;
           }
@@ -3954,7 +3963,7 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
             targetEmail = mdRows[0].email;
             targetUserId = mdRows[0].user_id;
             subject = `Leave Request Pending Managing Director Approval: ${leaveData.employee_name}`;
-            html = `<p>Branch Leader has approved a leave request for <strong>${leaveData.employee_name}</strong>. It is now pending your final Managing Director approval.</p>`;
+            html = `<p>Branch Leader has approved a leave request for <strong>${escapeHtml(leaveData.employee_name)}</strong>. It is now pending your final Managing Director approval.</p>`;
             notificationTitle = `Leave Final Approval Required`;
             notificationMessage = `${leaveData.employee_name} requires your Managing Director approval for a leave request.`;
           }
@@ -3962,7 +3971,7 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
           targetEmail = leaveData.employee_email;
           targetUserId = leaveData.user_id;
           subject = `Leave Request ${nextStatus}: ${leaveData.leave_type}`;
-          html = `<p>Hello ${leaveData.employee_name},</p><p>Your leave request for <strong>${leaveData.leave_type}</strong> has been <strong>${nextStatus}</strong>.</p>`;
+          html = `<p>Hello ${escapeHtml(leaveData.employee_name)},</p><p>Your leave request for <strong>${escapeHtml(leaveData.leave_type)}</strong> has been <strong>${escapeHtml(nextStatus)}</strong>.</p>`;
           notificationTitle = `Leave Request ${nextStatus}`;
           notificationMessage = `Your request for ${leaveData.leave_type} has been ${nextStatus.toLowerCase()}.`;
 
@@ -3999,7 +4008,7 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
             if (member.user_id === approver_id) continue;
             if (member.email && member.role === 'hr_admin') {
               const safeName = escapeHtml(leaveData.employee_name || 'Employee');
-              sendNotificationEmail(member.email, `Leave Request ${nextStatus}: ${safeName}`, `<p>The leave request for <strong>${safeName}</strong> has been <strong>${nextStatus}</strong>.</p>`).catch(console.error);
+              sendNotificationEmail(member.email, `Leave Request ${nextStatus}: ${safeName}`, `<p>The leave request for <strong>${safeName}</strong> has been <strong>${escapeHtml(nextStatus)}</strong>.</p>`).catch(console.error);
             }
             if (member.user_id) {
               notificationService.createNotification({
@@ -11974,6 +11983,11 @@ app.listen(PORT, "0.0.0.0", () => {
 // =================================================================
 // END OF FILE
 // =================================================================
+
+
+
+
+
 
 
 
