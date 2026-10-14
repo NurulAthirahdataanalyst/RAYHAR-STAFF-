@@ -380,6 +380,10 @@ export default function OutstationAssignment() {
 
   // Open Edit Event Modal with full staff participants list
   const openEditEvent = (event: EventGroup) => {
+    if (event.status === "Completed") {
+      toast.error("Completed outstation assignments cannot be edited.");
+      return;
+    }
     setEditEventTarget(event);
     setEditForm({
       destination: event.destination || "",
@@ -955,14 +959,16 @@ export default function OutstationAssignment() {
                               <FileText className="w-3 h-3" /> View Form
                             </Button>
 
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="inline-flex items-center justify-center px-3 py-1 h-6 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap gap-1.5 border-blue-500/30 text-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-500/10 shadow-none"
-                              onClick={() => openEditEvent(e)}
-                            >
-                              <Edit2 className="w-3 h-3" /> Edit Form
-                            </Button>
+                            {e.status === "Active" && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="inline-flex items-center justify-center px-3 py-1 h-6 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap gap-1.5 border-blue-500/30 text-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-500/10 shadow-none"
+                                onClick={() => openEditEvent(e)}
+                              >
+                                <Edit2 className="w-3 h-3" /> Edit Form
+                              </Button>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -1032,13 +1038,15 @@ export default function OutstationAssignment() {
                         {/* Actions (Pencil, Cancel, Trash) */}
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-1">
-                            <button
-                              onClick={() => openEditEvent(selectedEvent)}
-                              className="p-1.5 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-950/40 text-blue-500 transition-colors"
-                              title="Edit Event & Participants"
-                            >
-                              <Edit2 className="w-3.5 h-3.5" />
-                            </button>
+                            {selectedEvent.status === "Active" && (
+                              <button
+                                onClick={() => openEditEvent(selectedEvent)}
+                                className="p-1.5 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-950/40 text-blue-500 transition-colors"
+                                title="Edit Event & Participants"
+                              >
+                                <Edit2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
 
                             {a.status !== "Cancelled" && a.status !== "Completed" && (
                               <button
