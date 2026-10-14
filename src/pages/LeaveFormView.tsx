@@ -504,10 +504,10 @@ export default function LeaveFormView() {
                         <TableCell className="px-6 py-4 text-center font-black text-foreground">{form.days}</TableCell>
                         <TableCell className="px-6 py-4 text-center">
                           <Badge
-                            className={`text-[10px] print:text-[13px] font-black px-2.5 py-1 h-auto shadow-sm whitespace-nowrap ${
-                              form.status === "Approved" ? "bg-[#228b22] text-white hover:bg-[#1a661a]" :
-                              form.status === "Rejected" ? "bg-rose-600 text-white hover:bg-rose-700" :
-                              "bg-[#C2410C] text-white hover:bg-[#A3370A]"
+                            className={`text-[10px] print:text-[13px] font-extrabold tracking-wider px-3 py-1 h-auto rounded-full border-[1.5px] whitespace-nowrap shadow-none ${
+                              form.status === "Approved" ? "bg-green-50 text-[#228b22] border-green-200 hover:bg-green-100 dark:bg-green-500/10 dark:border-green-500/20" :
+                              form.status === "Rejected" ? "bg-rose-600 text-white hover:bg-rose-700 border-transparent shadow-sm" :
+                              "bg-[#C2410C] text-white hover:bg-[#A3370A] border-transparent shadow-sm"
                             }`}
                             style={form.status !== "Approved" && form.status !== "Rejected" ? { backgroundColor: "#C2410C", color: "white" } : {}}
                           >
@@ -606,10 +606,10 @@ export default function LeaveFormView() {
 
                       <div className="flex flex-col items-end gap-2 shrink-0">
                         <Badge
-                          className={`text-[9px] print:text-[13px] font-black px-2 py-1 h-auto shadow-sm whitespace-nowrap ${
-                            form.status === "Approved" ? "bg-[#228b22] text-white" :
-                            form.status === "Rejected" ? "bg-rose-600 text-white" :
-                            "bg-[#C2410C] text-white"
+                          className={`text-[9px] print:text-[13px] font-extrabold tracking-wider px-2.5 py-1 h-auto rounded-full border-[1.5px] whitespace-nowrap shadow-none ${
+                            form.status === "Approved" ? "bg-green-50 text-[#228b22] border-green-200 hover:bg-green-100 dark:bg-green-500/10 dark:border-green-500/20" :
+                            form.status === "Rejected" ? "bg-rose-600 text-white border-transparent shadow-sm" :
+                            "bg-[#C2410C] text-white border-transparent shadow-sm"
                           }`}
                           style={form.status !== "Approved" && form.status !== "Rejected" ? { backgroundColor: "#C2410C", color: "white" } : {}}
                         >
