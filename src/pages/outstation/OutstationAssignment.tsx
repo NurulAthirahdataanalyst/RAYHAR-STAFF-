@@ -855,20 +855,32 @@ export default function OutstationAssignment() {
                   <tr className="border-b border-gray-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900">
                     {!selectedEvent ? (
                       // 1st Screenshot Columns
-                      [
-                        "Event Name",
-                        "Destination",
-                        "Start Date",
-                        "End Date",
-                        "Days",
-                        "Status",
-                        "Participants",
-                        "Actions"
-                      ].map(h => (
-                        <th key={h} className="px-4 py-3 text-left text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">
-                          {h}
+                      <>
+                        <th className="px-4 py-3 text-left text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest min-w-[200px]">
+                          Event Name
                         </th>
-                      ))
+                        <th className="px-4 py-3 text-left text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest min-w-[160px]">
+                          Destination
+                        </th>
+                        <th className="px-3 py-3 text-left text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">
+                          Start Date
+                        </th>
+                        <th className="px-3 py-3 text-left text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">
+                          End Date
+                        </th>
+                        <th className="px-3 py-3 text-center text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">
+                          Days
+                        </th>
+                        <th className="px-3 py-3 text-center text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">
+                          Status
+                        </th>
+                        <th className="px-3 py-3 text-center text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">
+                          Participants
+                        </th>
+                        <th className="px-3 py-3 text-center text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap w-[120px]">
+                          Actions
+                        </th>
+                      </>
                     ) : (
                       // 2nd Screenshot Columns
                       [
@@ -900,7 +912,7 @@ export default function OutstationAssignment() {
                         className="border-b border-gray-50 dark:border-slate-800 hover:bg-pink-50/30 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group"
                       >
                         {/* Event Name (Clickable) */}
-                        <td className="px-4 py-3 font-bold text-foreground dark:text-gray-100 max-w-[240px]">
+                        <td className="px-4 py-3 align-middle font-bold text-foreground dark:text-gray-100 min-w-[200px]">
                           <span
                             className="group-hover:text-[#942392] transition-colors underline decoration-dotted underline-offset-4"
                             title={`Click to view participants of ${e.eventName}`}
@@ -910,7 +922,7 @@ export default function OutstationAssignment() {
                         </td>
 
                         {/* Destination */}
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-3 align-middle min-w-[160px]">
                           <div className="flex items-center gap-1 font-semibold text-foreground dark:text-gray-100">
                             <MapPin className="w-3 h-3 text-pink-400 shrink-0" />
                             <span>{e.destination}</span>
@@ -921,39 +933,39 @@ export default function OutstationAssignment() {
                         </td>
 
                         {/* Start Date */}
-                        <td className="px-4 py-3 text-foreground dark:text-gray-100 font-medium whitespace-nowrap">
+                        <td className="px-3 py-3 align-middle text-foreground dark:text-gray-100 font-medium whitespace-nowrap">
                           {fmtDate(e.startDate)}
                         </td>
 
                         {/* End Date */}
-                        <td className="px-4 py-3 text-foreground dark:text-gray-100 font-medium whitespace-nowrap">
+                        <td className="px-3 py-3 align-middle text-foreground dark:text-gray-100 font-medium whitespace-nowrap">
                           {fmtDate(e.endDate)}
                         </td>
 
                         {/* Days */}
-                        <td className="px-4 py-3 text-center font-black text-pink-600">
+                        <td className="px-3 py-3 align-middle text-center font-black text-pink-600">
                           {e.totalDays}
                         </td>
 
                         {/* Status */}
-                        <td className="px-4 py-3">
+                        <td className="px-3 py-3 align-middle text-center">
                           {statusBadge(e.status)}
                         </td>
 
                         {/* Participants */}
-                        <td className="px-4 py-3">
+                        <td className="px-3 py-3 align-middle text-center">
                           <Badge variant="outline" className="text-foreground dark:text-slate-300 font-semibold px-2.5 py-0.5 rounded-full border-slate-200 dark:border-slate-700">
                             {e.assignments.length} Staff
                           </Badge>
                         </td>
 
-                        {/* Actions (View Form | Edit Form) */}
-                        <td className="px-4 py-3" onClick={(ev) => ev.stopPropagation()}>
-                          <div className="flex items-center gap-2">
+                        {/* Actions (View Form & Edit Form stacked vertically) */}
+                        <td className="px-3 py-2.5 align-middle text-center w-[120px]" onClick={(ev) => ev.stopPropagation()}>
+                          <div className="flex flex-col items-center justify-center gap-1.5 mx-auto">
                             <Button
                               size="sm"
                               variant="outline"
-                              className="inline-flex items-center justify-center px-3 py-1 h-6 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap gap-1.5 border-[#942392]/30 text-[#942392] hover:bg-[#942392]/5 shadow-none"
+                              className="w-[94px] inline-flex items-center justify-center px-2 py-1 h-6 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap gap-1 border-[#942392]/30 text-[#942392] hover:bg-[#942392]/5 shadow-none"
                               onClick={() => setViewFormEvent(e)}
                             >
                               <FileText className="w-3 h-3" /> View Form
@@ -963,7 +975,7 @@ export default function OutstationAssignment() {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                className="inline-flex items-center justify-center px-3 py-1 h-6 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap gap-1.5 border-blue-500/30 text-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-500/10 shadow-none"
+                                className="w-[94px] inline-flex items-center justify-center px-2 py-1 h-6 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap gap-1 border-blue-500/30 text-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-500/10 shadow-none"
                                 onClick={() => openEditEvent(e)}
                               >
                                 <Edit2 className="w-3 h-3" /> Edit Form
@@ -981,7 +993,7 @@ export default function OutstationAssignment() {
                         className="border-b border-gray-50 dark:border-slate-800 hover:bg-pink-50/20 dark:hover:bg-slate-800/40 transition-colors"
                       >
                         {/* Employee Avatar + Name */}
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-3 align-middle">
                           <div className="flex items-center gap-2.5">
                             <div className="w-7 h-7 rounded-full bg-gradient-to-br from-pink-200 to-pink-400 dark:from-pink-900 dark:to-pink-600 flex items-center justify-center text-[10px] font-black text-pink-800 dark:text-pink-100 shrink-0">
                               {(a.full_name || "?").split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
@@ -993,17 +1005,17 @@ export default function OutstationAssignment() {
                         </td>
 
                         {/* Department */}
-                        <td className="px-4 py-3 text-foreground dark:text-gray-300">
+                        <td className="px-4 py-3 align-middle text-foreground dark:text-gray-300">
                           {a.department || "—"}
                         </td>
 
                         {/* Branch */}
-                        <td className="px-4 py-3 text-foreground dark:text-gray-300 font-semibold">
+                        <td className="px-4 py-3 align-middle text-foreground dark:text-gray-300 font-semibold">
                           {a.branch || "—"}
                         </td>
 
                         {/* Event */}
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-3 align-middle">
                           <div className="flex items-center gap-1 font-semibold text-foreground dark:text-gray-100">
                             <MapPin className="w-3 h-3 text-pink-400 shrink-0" />
                             <span>{a.project || selectedEvent.eventName}</span>
@@ -1011,32 +1023,32 @@ export default function OutstationAssignment() {
                         </td>
 
                         {/* Start */}
-                        <td className="px-4 py-3 text-foreground dark:text-gray-100 font-medium whitespace-nowrap">
+                        <td className="px-4 py-3 align-middle text-foreground dark:text-gray-100 font-medium whitespace-nowrap">
                           {fmtDate(a.start_date)}
                         </td>
 
                         {/* End */}
-                        <td className="px-4 py-3 text-foreground dark:text-gray-100 font-medium whitespace-nowrap">
+                        <td className="px-4 py-3 align-middle text-foreground dark:text-gray-100 font-medium whitespace-nowrap">
                           {fmtDate(a.end_date)}
                         </td>
 
                         {/* Days */}
-                        <td className="px-4 py-3 text-center font-black text-pink-600">
+                        <td className="px-4 py-3 align-middle text-center font-black text-pink-600">
                           {a.total_days != null ? Number(a.total_days) : calcTotalDays(a.start_date, a.end_date)}
                         </td>
 
                         {/* Assigned By */}
-                        <td className="px-4 py-3 text-foreground dark:text-gray-100 font-medium" title={a.assigned_by_name}>
+                        <td className="px-4 py-3 align-middle text-foreground dark:text-gray-100 font-medium" title={a.assigned_by_name}>
                           {formatName(a.assigned_by_name || "")}
                         </td>
 
                         {/* Status */}
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-3 align-middle">
                           {statusBadge(a.status)}
                         </td>
 
                         {/* Actions (Pencil, Cancel, Trash) */}
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-3 align-middle">
                           <div className="flex items-center gap-1">
                             {selectedEvent.status === "Active" && (
                               <button
