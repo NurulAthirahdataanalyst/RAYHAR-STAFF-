@@ -96,35 +96,55 @@ export const isPdfUrl = (url: string | null | undefined): boolean => {
  * so that window.print() and print preview can render it synchronously and reliably
  * without broken image icons or CORS issues.
  */
-export const preloadImage = async (url: string): Promise<string> => {
+export const preloadImage = async (url: string, fallbackUrl?: string): Promise<string> => {
   if (!url || url === "#" || url === "about:blank" || isPdfUrl(url)) return url;
   if (url.startsWith("data:image/")) return url;
 
-  try {
-    const res = await fetch(url);
-    if (res.ok) {
-      const blob = await res.blob();
-      return await new Promise<string>((resolve) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          if (typeof reader.result === "string") {
-            resolve(reader.result);
-          } else {
-            resolve(url);
-          }
-        };
-        reader.onerror = () => resolve(url);
-        reader.readAsDataURL(blob);
-      });
+  const tryFetchDataUrl = async (targetUrl: string): Promise<string | null> => {
+    try {
+      const res = await fetch(targetUrl);
+      if (res.ok) {
+        const blob = await res.blob();
+        return await new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            if (typeof reader.result === "string") {
+              resolve(reader.result);
+            } else {
+              resolve(targetUrl);
+            }
+          };
+          reader.onerror = () => resolve(targetUrl);
+          reader.readAsDataURL(blob);
+        });
+      }
+    } catch (err) {
+      console.warn("Failed to fetch image as data URL from:", targetUrl, err);
     }
-  } catch (err) {
-    console.warn("Failed to fetch image as data URL, trying image preloader fallback:", err);
+    return null;
+  };
+
+  const loadedPrimary = await tryFetchDataUrl(url);
+  if (loadedPrimary) return loadedPrimary;
+
+  if (fallbackUrl && fallbackUrl !== url && !isPdfUrl(fallbackUrl)) {
+    const loadedFallback = await tryFetchDataUrl(fallbackUrl);
+    if (loadedFallback) return loadedFallback;
   }
 
   return new Promise<string>((resolve) => {
     const img = new Image();
     img.onload = () => resolve(url);
-    img.onerror = () => resolve(url);
+    img.onerror = () => {
+      if (fallbackUrl && fallbackUrl !== url) {
+        const imgFallback = new Image();
+        imgFallback.onload = () => resolve(fallbackUrl);
+        imgFallback.onerror = () => resolve(url);
+        imgFallback.src = fallbackUrl;
+      } else {
+        resolve(url);
+      }
+    };
     img.src = url;
     if (img.complete) resolve(url);
     setTimeout(() => resolve(url), 2000);

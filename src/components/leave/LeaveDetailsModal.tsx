@@ -70,8 +70,9 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role }: LeaveDetai
     let active = true;
     if (selectedRequest?.mcFileUrl) {
       const url = getMcAttachmentUrl(selectedRequest.mcFileUrl);
+      const fallback = safeFileUrl(selectedRequest.mcFileUrl);
       if (url) {
-        preloadImage(url).then((blobUrl) => {
+        preloadImage(url, fallback).then((blobUrl) => {
           if (active && blobUrl) {
             setMcBlobUrl(blobUrl);
           }
@@ -482,7 +483,8 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role }: LeaveDetai
 
                         if (selectedRequest.mcFileUrl && !isPdfUrl(selectedRequest.mcFileUrl) && !mcBlobUrl) {
                           const directUrl = getMcAttachmentUrl(selectedRequest.mcFileUrl);
-                          const loaded = await preloadImage(directUrl);
+                          const fallbackUrl = safeFileUrl(selectedRequest.mcFileUrl);
+                          const loaded = await preloadImage(directUrl, fallbackUrl);
                           if (loaded) {
                             setMcBlobUrl(loaded);
                           }

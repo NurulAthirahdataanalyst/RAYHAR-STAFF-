@@ -30,8 +30,9 @@ export default function TeamLeaveRequests() {
     let active = true;
     if (selectedRequest?.mcFileUrl && !isPdfUrl(selectedRequest.mcFileUrl)) {
       const url = getMcAttachmentUrl(selectedRequest.mcFileUrl);
+      const fallback = safeFileUrl(selectedRequest.mcFileUrl);
       if (url) {
-        preloadImage(url).then((dataUrl) => {
+        preloadImage(url, fallback).then((dataUrl) => {
           if (active && dataUrl) {
             setMcBlobUrl(dataUrl);
           }
@@ -617,7 +618,8 @@ export default function TeamLeaveRequests() {
                           document.title = `LEAVE REQUEST ( ${empName.toUpperCase()} - ${branch.toUpperCase()} )`;
                           if (selectedRequest.mcFileUrl && !isPdfUrl(selectedRequest.mcFileUrl) && !mcBlobUrl) {
                             const directUrl = getMcAttachmentUrl(selectedRequest.mcFileUrl);
-                            const loaded = await preloadImage(directUrl);
+                            const fallbackUrl = safeFileUrl(selectedRequest.mcFileUrl);
+                            const loaded = await preloadImage(directUrl, fallbackUrl);
                             if (loaded) {
                               setMcBlobUrl(loaded);
                             }

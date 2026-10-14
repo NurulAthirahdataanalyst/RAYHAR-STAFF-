@@ -161,8 +161,9 @@ export default function LeaveFormView() {
     let active = true;
     if (selectedForm?.mcFileUrl && !isPdfUrl(selectedForm.mcFileUrl)) {
       const url = getMcAttachmentUrl(selectedForm.mcFileUrl);
+      const fallback = safeFileUrl(selectedForm.mcFileUrl);
       if (url) {
-        preloadImage(url).then((dataUrl) => {
+        preloadImage(url, fallback).then((dataUrl) => {
           if (active && dataUrl) {
             setMcBlobUrl(dataUrl);
           }
@@ -986,7 +987,8 @@ export default function LeaveFormView() {
                           document.title = `LEAVE REQUEST ( ${empName.toUpperCase()} - ${branchCode.toUpperCase()} )`;
                           if (selectedForm?.mcFileUrl && !isPdfUrl(selectedForm.mcFileUrl) && !mcBlobUrl) {
                             const directUrl = getMcAttachmentUrl(selectedForm.mcFileUrl);
-                            const loaded = await preloadImage(directUrl);
+                            const fallbackUrl = safeFileUrl(selectedForm.mcFileUrl);
+                            const loaded = await preloadImage(directUrl, fallbackUrl);
                             if (loaded) {
                               setMcBlobUrl(loaded);
                             }

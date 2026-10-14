@@ -1857,7 +1857,7 @@ export function StaffProfileDialog({
                           const branch = selectedEmployee?.branch || selectedEmployee?.branch_code || "HQ";
                           document.title = `LEAVE REQUEST ( ${empName.toUpperCase()} - ${branch.toUpperCase()} )`;
                           if (req.mc_file_url) {
-                            await preloadImage(getMcAttachmentUrl(req.mc_file_url));
+                            await preloadImage(getMcAttachmentUrl(req.mc_file_url), safeFileUrl(req.mc_file_url));
                             await new Promise((r) => setTimeout(r, 200));
                           }
                           handlePrint();
