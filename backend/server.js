@@ -11333,16 +11333,16 @@ function broadcastWorkforceCalendarUpdate(payload = { type: 'refresh' }) {
 async function getWorkforceCalendarData(role, branch, department, month, year) {
   const params = [];
   let leaveWhere = '';
-  let outstationWhere = 'WHERE 1=1';
+  let outstationWhere = "WHERE oa.status != 'Cancelled'";
 
   if (role === 'branch_leader' && branch) {
     leaveWhere = `AND p.branch = $${params.length + 1}`;
     params.push(branch);
-    outstationWhere = `WHERE oa.branch = ?`;
+    outstationWhere += ` AND oa.branch = ?`;
   } else if (role === 'head_of_department' && department) {
     leaveWhere = `AND p.department = $${params.length + 1}`;
     params.push(department);
-    outstationWhere = `WHERE oa.department = ?`;
+    outstationWhere += ` AND oa.department = ?`;
   } else if (role === 'head_of_department' && !department) {
     return [];
   }
@@ -11405,7 +11405,7 @@ async function getWorkforceCalendarData(role, branch, department, month, year) {
         end_date: r.end_date,
         start_time: null,
         end_time: null,
-        status: r.status,
+        status: typeof computeOutstationStatus === 'function' ? computeOutstationStatus(r) : r.status,
         destination: r.destination,
         days: null,
       });

@@ -283,7 +283,7 @@ export default function WorkforceCalendar() {
   const kpiReplacement = currentMonthEvents.filter(e => e.source === "leave" && e.status === "Approved" && e.type?.includes("Replacement")).length;
   const kpiUnpaid = currentMonthEvents.filter(e => e.source === "leave" && e.status === "Approved" && e.type?.includes("Unpaid")).length;
   
-  const outstationEvents = currentMonthEvents.filter(e => e.source === "outstation");
+  const outstationEvents = currentMonthEvents.filter(e => e.source === "outstation" && e.status !== "Cancelled");
   const kpiOutstation = new Set(outstationEvents.map(e => `${e.start_date}_${e.end_date}_${e.destination || e.project || e.meeting_title}`)).size;
   
   const kpiCompany = currentMonthEvents.filter(e => e.source === "company_leave").length;
@@ -294,6 +294,7 @@ export default function WorkforceCalendar() {
     return events
       .filter(e => {
         if (!e.start_date || !e.end_date) return false;
+        if (e.source === "outstation" && e.status === "Cancelled") return false;
         
         if (filterType !== "All Types") {
           if (filterType === "Outstation") {
@@ -565,7 +566,7 @@ export default function WorkforceCalendar() {
         {/* Daily Summary Popup */}
         {selectedDay && (() => {
           const dayEvts = getEventsForDay(selectedDay);
-          const leaveEvts = dayEvts.filter(e => !["Present (On Time)", "Present (Late)", "Absent"].includes(e.type));
+          const leaveEvts = dayEvts.filter(e => !["Present (On Time)", "Present (Late)", "Absent"].includes(e.type) && e.status !== "Cancelled");
 
           // Filter dailyAttendance based on current branch/dept if filters are active
           const filteredAtt = dailyAttendance.filter(a => {
@@ -934,6 +935,7 @@ export default function WorkforceCalendar() {
         const { event: selectedEvent, date: dateStr } = selectedEventInfo;
         const dayEvts = events.filter(e => {
           if (!e.start_date || !e.end_date) return false;
+          if (e.source === "outstation" && e.status === "Cancelled") return false;
           if (filterType !== "All Types") {
             if (filterType === "Outstation") { if (e.source !== "outstation") return false; }
             else if (filterType === "Company Leave") { if (e.source !== "company_leave") return false; }

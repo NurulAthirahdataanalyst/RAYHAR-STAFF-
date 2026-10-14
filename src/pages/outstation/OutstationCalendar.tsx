@@ -199,6 +199,8 @@ export default function OutstationCalendar({ onlyMine = false }: { onlyMine?: bo
             <div className="grid grid-cols-7 divide-x divide-border/40">
               {calDays.map((day, idx) => {
                 const evts = getAssignmentsForDay(day);
+                const priority: Record<string, number> = { "Active": 1, "Upcoming": 2, "Completed": 3, "Cancelled": 4 };
+                const sortedEvts = [...evts].sort((a, b) => (priority[a.status] || 5) - (priority[b.status] || 5));
                 const isCurrentMonth = isSameMonth(day, new Date(viewYear, viewMonth, 1));
                 const today = isToday(day);
                 const isPast = isBefore(day, startOfDay(new Date())) && !today;
@@ -226,21 +228,22 @@ export default function OutstationCalendar({ onlyMine = false }: { onlyMine?: bo
                       {format(day, 'd')}
                     </div>
                     <div className="space-y-0.5">
-                      {evts.slice(0, 2).map(a => {
+                      {sortedEvts.slice(0, 2).map(a => {
                         const c = statusColor(a.status);
+                        const isCancelled = a.status === "Cancelled";
                         return (
                           <div
                             key={a.id}
                             onClick={() => setSelectedEvent(a)}
-                            className={`px-1.5 py-0.5 rounded text-[9px] font-bold cursor-pointer ${c.bg} ${c.text} truncate border ${c.border} hover:opacity-80 transition-opacity`}
-                            title={`${a.full_name} → ${a.destination}`}
+                            className={`px-1.5 py-0.5 rounded text-[9px] font-bold cursor-pointer ${c.bg} ${c.text} truncate border ${c.border} hover:opacity-80 transition-opacity ${isCancelled ? 'line-through opacity-70' : ''}`}
+                            title={`${a.full_name} → ${a.destination} (${a.status})`}
                           >
-                            {a.full_name?.split(" ")[0]} → {a.destination}
+                            {a.full_name?.split(" ")[0]} → {a.destination} {isCancelled ? '(Cancelled)' : ''}
                           </div>
                         );
                       })}
-                      {evts.length > 2 && (
-                        <div className={`text-[9px] font-bold pl-1 ${today ? 'text-white/80' : 'text-foreground'}`}>+{evts.length - 2} more</div>
+                      {sortedEvts.length > 2 && (
+                        <div className={`text-[9px] font-bold pl-1 ${today ? 'text-white/80' : 'text-foreground'}`}>+{sortedEvts.length - 2} more</div>
                       )}
                     </div>
                   </div>
@@ -253,11 +256,41 @@ export default function OutstationCalendar({ onlyMine = false }: { onlyMine?: bo
 
       {/* Event Detail Popup */}
       {selectedEvent && (() => {
-        const relatedAssignments = assignments.filter(a => 
-          a.destination === selectedEvent.destination && 
-          a.start_date === selectedEvent.start_date &&
-          a.end_date === selectedEvent.end_date
-        );
+        const rawName = selectedEvent.project || selectedEvent.meeting_title || selectedEvent.purpose || selectedEvent.destination || 'Outstation Assignment';
+        const selStart = selectedEvent.start_date?.slice(0, 10);
+        const selEnd = selectedEvent.end_date?.slice(0, 10);
+        const selDest = (selectedEvent.destination || '').trim().toLowerCase();
+
+        const relatedAssignments = assignments.filter(a => {
+          const aStart = a.start_date?.slice(0, 10);
+          const aEnd = a.end_date?.slice(0, 10);
+          const aDest = (a.destination || '').trim().toLowerCase();
+          const aName = a.project || a.meeting_title || a.purpose || a.destination || 'Outstation Assignment';
+          const nameMatch = (selectedEvent.project && a.project && a.project === selectedEvent.project) || aName === rawName;
+          return aStart === selStart && aEnd === selEnd && (nameMatch || aDest === selDest);
+        });
+
+        const allCancelled = relatedAssignments.length > 0 && relatedAssignments.every(a => a.status === 'Cancelled');
+        const anyActive = relatedAssignments.some(a => a.status === 'Active');
+        const anyCompleted = relatedAssignments.some(a => a.status === 'Completed');
+        const anyUpcoming = relatedAssignments.some(a => a.status === 'Upcoming');
+
+        let overallStatus = "Upcoming";
+        if (allCancelled) {
+          overallStatus = "Cancelled";
+        } else if (anyActive) {
+          overallStatus = "Active";
+        } else if (anyCompleted) {
+          overallStatus = "Completed";
+        } else if (anyUpcoming) {
+          overallStatus = "Upcoming";
+        } else {
+          overallStatus = selectedEvent.status;
+        }
+
+        const activeCount = relatedAssignments.filter(a => a.status !== 'Cancelled').length;
+        const cancelledCount = relatedAssignments.filter(a => a.status === 'Cancelled').length;
+
         return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-xl p-4 transition-all duration-300" onClick={() => setSelectedEvent(null)}>
           <div className="bg-card rounded-2xl shadow-2xl overflow-hidden max-w-md w-full flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
@@ -310,33 +343,57 @@ export default function OutstationCalendar({ onlyMine = false }: { onlyMine?: bo
                     </div>
                   </div>
                 )}
-                <div className="mt-2">
+                <div className="mt-2 flex items-center gap-2 flex-wrap">
                   {(() => {
-                    const c = statusColor(selectedEvent.status);
+                    const c = statusColor(overallStatus);
                     return (
-                      <span className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-black ${c.bg} ${c.text} border ${c.border}`}>
+                      <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-black ${c.bg} ${c.text} border ${c.border}`}>
                         <div className={`w-2 h-2 rounded-full ${c.dot}`} />
-                        {selectedEvent.status}
+                        {overallStatus}
                       </span>
                     );
                   })()}
+                  {relatedAssignments.length > 1 && (
+                    <span className="text-[10px] font-bold text-muted-foreground bg-muted px-2.5 py-1 rounded-md border border-border">
+                      {activeCount} Active{cancelledCount > 0 ? ` · ${cancelledCount} Cancelled` : ''}
+                    </span>
+                  )}
                 </div>
               </div>
 
               <div className="pt-4 border-t border-gray-100 dark:border-slate-800">
-                <p className="text-[10px] font-black uppercase text-foreground mb-3">Assigned Employees ({relatedAssignments.length})</p>
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-[10px] font-black uppercase text-foreground">
+                    Assigned Employees ({relatedAssignments.length})
+                  </p>
+                  {cancelledCount > 0 && (
+                    <span className="text-[10px] font-bold text-muted-foreground">
+                      {activeCount} Active, {cancelledCount} Cancelled
+                    </span>
+                  )}
+                </div>
                 <div className="space-y-2">
-                  {relatedAssignments.map((a: any) => (
-                    <div key={a.id} className="flex items-center gap-3 p-2.5 rounded-xl border transition-colors border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm">
-                      <div className="w-8 h-8 rounded-full bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 text-[10px] font-bold flex items-center justify-center shrink-0">
-                        {a.full_name?.split(' ').map((n:string)=>n[0]).join('').substring(0,2).toUpperCase()}
+                  {relatedAssignments.map((a: any) => {
+                    const sc = statusColor(a.status);
+                    const isCanc = a.status === "Cancelled";
+                    return (
+                      <div key={a.id} className={`flex items-center justify-between gap-3 p-2.5 rounded-xl border transition-colors shadow-sm ${isCanc ? 'border-gray-200 dark:border-slate-800 bg-gray-50/70 dark:bg-slate-900/40 opacity-75' : 'border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800'}`}>
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className={`w-8 h-8 rounded-full ${isCanc ? 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400' : 'bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300'} text-[10px] font-bold flex items-center justify-center shrink-0`}>
+                            {a.full_name?.split(' ').map((n:string)=>n[0]).join('').substring(0,2).toUpperCase()}
+                          </div>
+                          <div className="min-w-0">
+                            <p className={`text-[12px] font-bold text-foreground dark:text-gray-100 truncate leading-tight ${isCanc ? 'line-through text-muted-foreground' : ''}`}>{a.full_name}</p>
+                            <p className="text-[10px] text-muted-foreground truncate mt-0.5">{a.user_id || a.department}</p>
+                          </div>
+                        </div>
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold shrink-0 ${sc.bg} ${sc.text} border ${sc.border}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${sc.dot}`} />
+                          {a.status}
+                        </span>
                       </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-[12px] font-bold text-foreground dark:text-gray-100 truncate leading-tight">{a.full_name}</p>
-                        <p className="text-[10px] text-foreground truncate mt-0.5">{a.user_id || a.department}</p>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             </div>
