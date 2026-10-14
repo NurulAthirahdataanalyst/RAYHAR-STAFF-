@@ -11159,9 +11159,12 @@ app.put('/api/outstation/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
+    const userRole = (req.query.role || req.body.role || req.headers['x-user-role'] || '').toLowerCase();
+    const isHrOrAdmin = ['hr_admin', 'managing_director', 'operation_manager', 'finance_manager'].includes(userRole);
+
     const [checkRows] = await pool.query('SELECT status FROM outstation_assignments WHERE id = $1', [id]);
     if (checkRows.length === 0) return res.status(404).json({ success: false, error: 'Assignment not found' });
-    if ((checkRows[0].status || '').toLowerCase() === 'completed') {
+    if (!isHrOrAdmin && (checkRows[0].status || '').toLowerCase() === 'completed') {
       return res.status(400).json({ success: false, message: 'Completed outstation assignments cannot be edited.' });
     }
 
@@ -11248,14 +11251,16 @@ app.delete('/api/outstation/:id', async (req, res) => {
       });
     }
 
-    // 2. Verify creator matches authenticated user
+    // 2. Verify creator matches authenticated user or HR/Admin
     req.user = req.user || {};
     req.user.userId = req.user.userId || req.query.userId || req.body.userId || req.headers['x-user-id'];
+    const deleteRole = (req.query.role || req.body.role || req.headers['x-user-role'] || '').toLowerCase();
+    const isHrOrAdminDelete = ['hr_admin', 'managing_director', 'operation_manager', 'finance_manager'].includes(deleteRole);
 
-    if (assignment.assigned_by !== req.user.userId) {
+    if (!isHrOrAdminDelete && assignment.assigned_by !== req.user.userId) {
       return res.status(403).json({
         success: false,
-        message: "Only the user who created this outstation assignment can delete it."
+        message: "Only the user who created this outstation assignment or HR/Admin can delete it."
       });
     }
 
