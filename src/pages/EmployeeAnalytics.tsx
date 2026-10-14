@@ -467,45 +467,56 @@ export default function EmployeeAnalytics() {
 
   const fetchMyData = async () => {
     setLoadingMe(true);
-    try {
-      const [attRes, leaveRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/api/attendance/history?userId=${userId}&month=${selectedMonth}&year=${selectedYear}`),
-        fetch(`${API_BASE_URL}/api/leave-requests?userId=${encodeURIComponent(userId!)}`),
-      ]);
-      const attData   = await attRes.json();
-      const leaveData = await leaveRes.json();
-
-      if (attData.success && Array.isArray(attData.history)) {
-        let historyData = attData.history;
-        if (leaveData.success && Array.isArray(leaveData.leaveRequests)) {
-          const approvedLeaves = leaveData.leaveRequests.filter((lr: any) => lr.status === "Approved");
-          historyData = historyData.map((log: any) => {
-            if (!log.date) return log;
-            const logDate = new Date(log.date);
-            logDate.setHours(0,0,0,0);
-            const logTime = logDate.getTime();
-            const hasLeave = approvedLeaves.some((lr: any) => {
-              const sd = new Date(lr.tarikhMula || lr.start_date);
-              sd.setHours(0,0,0,0);
-              const ed = new Date(lr.tarikhTamat || lr.end_date);
-              ed.setHours(0,0,0,0);
-              return logTime >= sd.getTime() && logTime <= ed.getTime();
-            });
-            if (hasLeave) {
-              return { ...log, status: "Approved Leave", is_on_leave: true };
-            }
-            return log;
-          });
+    const maxRetries = 2;
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        const [attRes, leaveRes] = await Promise.all([
+          fetch(`${API_BASE_URL}/api/attendance/history?userId=${userId}&month=${selectedMonth}&year=${selectedYear}`),
+          fetch(`${API_BASE_URL}/api/leave-requests?userId=${encodeURIComponent(userId!)}`),
+        ]);
+        if (!attRes.ok || !leaveRes.ok) {
+          throw new Error("Server response not ok");
         }
-        setMyLogs(historyData);
+        const attData   = await attRes.json();
+        const leaveData = await leaveRes.json();
+
+        if (attData.success && Array.isArray(attData.history)) {
+          let historyData = attData.history;
+          if (leaveData.success && Array.isArray(leaveData.leaveRequests)) {
+            const approvedLeaves = leaveData.leaveRequests.filter((lr: any) => lr.status === "Approved");
+            historyData = historyData.map((log: any) => {
+              if (!log.date) return log;
+              const logDate = new Date(log.date);
+              logDate.setHours(0,0,0,0);
+              const logTime = logDate.getTime();
+              const hasLeave = approvedLeaves.some((lr: any) => {
+                const sd = new Date(lr.tarikhMula || lr.start_date);
+                sd.setHours(0,0,0,0);
+                const ed = new Date(lr.tarikhTamat || lr.end_date);
+                ed.setHours(0,0,0,0);
+                return logTime >= sd.getTime() && logTime <= ed.getTime();
+              });
+              if (hasLeave) {
+                return { ...log, status: "Approved Leave", is_on_leave: true };
+              }
+              return log;
+            });
+          }
+          setMyLogs(historyData);
+        }
+        if (leaveData.success && Array.isArray(leaveData.leaveRequests)) {
+          setLeaveRequests(leaveData.leaveRequests);
+        }
+        setLoadingMe(false);
+        return;
+      } catch (err) {
+        if (attempt < maxRetries) {
+          await new Promise((r) => setTimeout(r, 1500));
+          continue;
+        }
+        console.error("EmployeeAnalytics: fetchMyData error", err);
+        setLoadingMe(false);
       }
-      if (leaveData.success && Array.isArray(leaveData.leaveRequests)) {
-        setLeaveRequests(leaveData.leaveRequests);
-      }
-    } catch (err) {
-      console.error("EmployeeAnalytics: fetchMyData error", err);
-    } finally {
-      setLoadingMe(false);
     }
   };
 

@@ -29,6 +29,9 @@ export const safeUrl = (url: string | null | undefined, fallback: string = "#"):
 export const safeFileUrl = (file: string | null | undefined, fallback: string = "#"): string => {
   if (!file || typeof file !== "string") return fallback;
   if (file.startsWith("blob:") || file.startsWith("data:image/")) return file;
+  if (file.includes("lhgfzerdekwxppzjngyg.supabase.co")) {
+    file = file.replace("lhgfzerdekwxppzjngyg.supabase.co", "xvpebtompjcjfvuzeumo.supabase.co");
+  }
   // Accept absolute https URLs that contain /uploads/ or Supabase storage
   if (file.startsWith("https://") || file.startsWith("http://")) {
     try {
@@ -58,6 +61,9 @@ export const safeFileUrl = (file: string | null | undefined, fallback: string = 
 export const getMcAttachmentUrl = (file: string | null | undefined): string => {
   if (!file || typeof file !== "string") return "";
   if (file.startsWith("blob:") || file.startsWith("data:image/")) return file;
+  if (file.includes("lhgfzerdekwxppzjngyg.supabase.co")) {
+    file = file.replace("lhgfzerdekwxppzjngyg.supabase.co", "xvpebtompjcjfvuzeumo.supabase.co");
+  }
   if (file.startsWith("http://") || file.startsWith("https://")) {
     return safeFileUrl(file, "");
   }
@@ -65,7 +71,10 @@ export const getMcAttachmentUrl = (file: string | null | undefined): string => {
     if (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")) {
       return `${API_BASE_URL}${file}`;
     }
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "https://xvpebtompjcjfvuzeumo.supabase.co";
+    const envUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseUrl = (envUrl && !envUrl.includes("lhgfzerdekwxppzjngyg"))
+      ? envUrl
+      : "https://xvpebtompjcjfvuzeumo.supabase.co";
     const subpath = file.replace(/^\/uploads\//, "");
     const encoded = subpath.split("/").map(encodeURIComponent).join("/");
     return `${supabaseUrl}/storage/v1/object/public/mc-attachments/${encoded}`;

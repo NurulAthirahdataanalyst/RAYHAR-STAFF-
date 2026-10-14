@@ -493,62 +493,75 @@ export default function LeaveAdmin() {
 
   const fetchRequests = async () => {
     setLoading(true);
-    try {
-      const params = new URLSearchParams({
-        role,
-        branch: userBranch || "",
-        department: userDepartment || "",
-      });
+    const maxRetries = 2;
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        const params = new URLSearchParams({
+          role,
+          branch: userBranch || "",
+          department: userDepartment || "",
+        });
 
-      const response = await fetch(`${API_BASE_URL}/api/leave-requests?${params}`);
-      const data = await response.json();
+        const response = await fetch(`${API_BASE_URL}/api/leave-requests?${params}`);
+        if (!response.ok) {
+          throw new Error(`Server returned status ${response.status}`);
+        }
+        const data = await response.json();
 
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || "Failed to fetch leave requests");
+        if (!data.success) {
+          throw new Error(data.error || "Failed to fetch leave requests");
+        }
+
+        const formatted = data.leaveRequests.map((request: any) => ({
+          createdAt: request.created_at ? formatDate(request.created_at) : "-",
+          id: request.leave_id,
+          userId: request.user_id,
+          employee: request.full_name || request.user_id,
+          branch: request.branch || "HQ",
+          department: request.department || "—",
+          type: request.leave_type,
+          from: formatDate(request.start_date),
+          to: formatDate(request.end_date),
+          days: Number(request.days || 0),
+          phone: request.phone || request.applicant_phone || "-",
+          balance: request.balance !== undefined && request.balance !== null ? Number(request.balance) : (request.annual_leave_balance !== undefined ? Number(request.annual_leave_balance) : undefined),
+          annual_leave_balance: request.annual_leave_balance,
+          medical_leave_balance: request.medical_leave_balance,
+          replacement_leave_balance: request.replacement_leave_balance,
+          reason: request.reason || "-",
+          status: request.status || "Pending HOD",
+          // Mapped from backend snake_case to frontend camelCase
+          warisNama: request.waris_nama || "N/A",
+          warisPhone: request.waris_phone || "N/A",
+          warisAlamat: request.waris_alamat || "N/A",
+          warisHubungan: request.waris_hubungan || "N/A",
+          approverRole: request.approver_role,
+          cutiGantiTarikh: request.cuti_ganti_tarikh ? formatDate(request.cuti_ganti_tarikh) : undefined,
+          cutiGantiHari: request.cuti_ganti_hari,
+          cutiGantiJam: request.cuti_ganti_jam,
+          cutiTanpaGajiPhone: request.cuti_tanpa_gaji_phone,
+          cutiTanpaGajiSignature: request.cuti_tanpa_gaji_signature,
+          mcFileUrl: request.mc_file_url,
+          approvalHistory: request.approval_history || [],
+          replacementValidations: request.replacement_validations || [],
+        }));
+
+        setRequests(formatted);
+        setLoading(false);
+        return;
+      } catch (error) {
+        if (attempt < maxRetries) {
+          // Wait 1.5s then retry silently in case server is waking up / redeploying
+          await new Promise((r) => setTimeout(r, 1500));
+          continue;
+        }
+        console.error("Leave approval fetch error:", error);
+        toast.error("Unable to load leave requests", {
+          id: "leave-admin-fetch-error",
+          description: error instanceof Error ? error.message : "Please try again.",
+        });
+        setLoading(false);
       }
-
-      const formatted = data.leaveRequests.map((request: any) => ({
-        createdAt: request.created_at ? formatDate(request.created_at) : "-",
-        id: request.leave_id,
-        userId: request.user_id,
-        employee: request.full_name || request.user_id,
-        branch: request.branch || "HQ",
-        department: request.department || "—",
-        type: request.leave_type,
-        from: formatDate(request.start_date),
-        to: formatDate(request.end_date),
-        days: Number(request.days || 0),
-        phone: request.phone || request.applicant_phone || "-",
-        balance: request.balance !== undefined && request.balance !== null ? Number(request.balance) : (request.annual_leave_balance !== undefined ? Number(request.annual_leave_balance) : undefined),
-        annual_leave_balance: request.annual_leave_balance,
-        medical_leave_balance: request.medical_leave_balance,
-        replacement_leave_balance: request.replacement_leave_balance,
-        reason: request.reason || "-",
-        status: request.status || "Pending HOD",
-        // Mapped from backend snake_case to frontend camelCase
-        warisNama: request.waris_nama || "N/A",
-        warisPhone: request.waris_phone || "N/A",
-        warisAlamat: request.waris_alamat || "N/A",
-        warisHubungan: request.waris_hubungan || "N/A",
-        approverRole: request.approver_role,
-        cutiGantiTarikh: request.cuti_ganti_tarikh ? formatDate(request.cuti_ganti_tarikh) : undefined,
-        cutiGantiHari: request.cuti_ganti_hari,
-        cutiGantiJam: request.cuti_ganti_jam,
-        cutiTanpaGajiPhone: request.cuti_tanpa_gaji_phone,
-        cutiTanpaGajiSignature: request.cuti_tanpa_gaji_signature,
-        mcFileUrl: request.mc_file_url,
-        approvalHistory: request.approval_history || [],
-        replacementValidations: request.replacement_validations || [],
-      }));
-
-      setRequests(formatted);
-    } catch (error) {
-      console.error("Leave approval fetch error:", error);
-      toast.error("Unable to load leave requests", {
-        description: error instanceof Error ? error.message : "Please try again.",
-      });
-    } finally {
-      setLoading(false);
     }
   };
 

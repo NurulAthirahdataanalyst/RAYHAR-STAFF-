@@ -1,5 +1,5 @@
 import { formatBranchName } from '@/utils/branchUtils';
-import { safeFileUrl, downloadUploadedFile, getMcAttachmentUrl, preloadImage } from '@/utils/security';
+import { safeFileUrl, downloadUploadedFile, getMcAttachmentUrl, preloadImage, isPdfUrl } from '@/utils/security';
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -154,6 +154,28 @@ export default function LeaveFormView() {
   const [loading, setLoading] = useState(true);
   const [selectedForm, setSelectedForm] = useState<LeaveForm | null>(null);
   const [activeTab, setActiveTab] = useState<FormTabFilter>("pending");
+  const [mcBlobUrl, setMcBlobUrl] = useState<string | null>(null);
+  const [isPrinting, setIsPrinting] = useState<boolean>(false);
+
+  useEffect(() => {
+    let active = true;
+    if (selectedForm?.mcFileUrl && !isPdfUrl(selectedForm.mcFileUrl)) {
+      const url = getMcAttachmentUrl(selectedForm.mcFileUrl);
+      if (url) {
+        preloadImage(url).then((dataUrl) => {
+          if (active && dataUrl) {
+            setMcBlobUrl(dataUrl);
+          }
+        }).catch(() => {});
+      }
+    } else {
+      setMcBlobUrl(null);
+    }
+    return () => {
+      active = false;
+    };
+  }, [selectedForm?.mcFileUrl]);
+
   const [monthYear, setMonthYear] = useState<string>(() => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -835,42 +857,12 @@ export default function LeaveFormView() {
                         <span className="text-[10px] print:text-[13px] font-black text-[#942392] uppercase tracking-widest">MC Attachment</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <input 
-                          type="file" 
-                          id={`upload-mc-modal-${selectedForm.id}`} 
-                          className="hidden" 
-                          accept="image/*,.pdf"
-                          onChange={async (e) => {
-                            const file = e.target.files?.[0];
-                            if (!file) return;
-                            const formData = new FormData();
-                            formData.append("lampiranMc", file);
-                            toast.loading("Uploading MC...", { id: "upload-mc-modal" });
-                            try {
-                              const res = await fetch(`${API_BASE_URL}/api/leave-requests/${selectedForm.id}/upload-mc`, {
-                                method: "POST",
-                                body: formData,
-                              });
-                              if (res.ok) {
-                                toast.success("MC uploaded successfully!", { id: "upload-mc-modal" });
-                                if (typeof fetchForms === "function") fetchForms();
-                                const json = await res.json();
-                                setSelectedForm({ ...selectedForm, mcFileUrl: json.mc_file_url });
-                              } else {
-                                const err = await res.json();
-                                toast.error(err.error || "Failed to upload MC", { id: "upload-mc-modal" });
-                              }
-                            } catch (err) {
-                              toast.error("Failed to upload MC", { id: "upload-mc-modal" });
-                            }
-                          }}
-                        />
                         <TooltipProvider delayDuration={200}>
                           {selectedForm.mcFileUrl && (
                             <>
                               {/* View File button */}
                               <a
-                                href={safeFileUrl(selectedForm.mcFileUrl)}
+                                href={getMcAttachmentUrl(selectedForm.mcFileUrl) || safeFileUrl(selectedForm.mcFileUrl)}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="flex items-center justify-center h-8 px-4 text-[10px] print:text-[13px] font-black uppercase tracking-widest bg-[#942392] text-white rounded-md hover:bg-[#5e0080] transition-colors shadow-sm"
@@ -893,24 +885,6 @@ export default function LeaveFormView() {
                               </Tooltip>
                             </>
                           )}
-                          {/* Upload icon with tooltip */}
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <button
-                                  type="button"
-                                  className="flex items-center justify-center px-3 h-8 rounded-md border border-[#942392]/20 text-[#942392] hover:bg-[#942392] hover:text-white transition-colors gap-1 text-[10px] font-bold uppercase tracking-wider"
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    document.getElementById(`upload-mc-modal-${selectedForm.id}`)?.click();
-                                  }}
-                                >
-                                  <Upload className="w-3 h-3" />
-                                  [ Upload File ]
-                                </button>
-                            </TooltipTrigger>
-                            <TooltipContent side="top"><p className="text-xs font-bold">{selectedForm.mcFileUrl ? "Replace File" : "Upload File"}</p></TooltipContent>
-                          </Tooltip>
                         </TooltipProvider>
                       </div>
                     </div>
@@ -1002,45 +976,71 @@ export default function LeaveFormView() {
                       type="button"
                       variant="outline"
                       className="gap-2 border-[#942392] text-[#942392] hover:bg-[#942392]/5 rounded-xl font-black text-[8px] print:text-[13px] uppercase tracking-widest px-6"
+                      disabled={isPrinting}
                       onClick={async () => {
-                        const originalTitle = document.title;
-                        const empName = selectedForm?.employee || (selectedForm as any)?.name || userName || "UNKNOWN";
-                        const branchCode = selectedForm?.branch || userBranch || "HQ";
-                        document.title = `LEAVE REQUEST ( ${empName.toUpperCase()} - ${branchCode.toUpperCase()} )`;
-                        if (selectedForm?.mcFileUrl) {
-                          await preloadImage(getMcAttachmentUrl(selectedForm.mcFileUrl));
-                          await new Promise((r) => setTimeout(r, 200));
+                        setIsPrinting(true);
+                        try {
+                          const originalTitle = document.title;
+                          const empName = selectedForm?.employee || (selectedForm as any)?.name || userName || "UNKNOWN";
+                          const branchCode = selectedForm?.branch || userBranch || "HQ";
+                          document.title = `LEAVE REQUEST ( ${empName.toUpperCase()} - ${branchCode.toUpperCase()} )`;
+                          if (selectedForm?.mcFileUrl && !isPdfUrl(selectedForm.mcFileUrl) && !mcBlobUrl) {
+                            const directUrl = getMcAttachmentUrl(selectedForm.mcFileUrl);
+                            const loaded = await preloadImage(directUrl);
+                            if (loaded) {
+                              setMcBlobUrl(loaded);
+                            }
+                            await new Promise((r) => setTimeout(r, 300));
+                          }
+                          window.print();
+                          setTimeout(() => { document.title = originalTitle; }, 500);
+                        } finally {
+                          setIsPrinting(false);
                         }
-                        window.print();
-                        setTimeout(() => { document.title = originalTitle; }, 500);
                       }}
                     >
-                      <Printer className="h-4 w-4" />
-                      Export to PDF
+                      {isPrinting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Printer className="h-4 w-4" />}
+                      {isPrinting ? "Preparing..." : "Export to PDF"}
                     </Button>
                   </div>
                 </div>
               </div>
             {/* Print-only MC Document Page */}
                   {(selectedForm.type === "Sick Leave" || selectedForm.type === "Cuti Sakit") && selectedForm.mcFileUrl && (
-                    <div className="h-0 overflow-hidden opacity-0 print:h-auto print:opacity-100 print:overflow-visible break-before-page w-full print:pt-6 print:border-2 print:border-black print:p-6 print:mt-6">
+                    <div 
+                      className="h-0 overflow-hidden opacity-0 print:h-auto print:opacity-100 print:overflow-visible break-before-page w-full print:pt-6 print:border-2 print:border-black print:p-6 print:mt-6"
+                      style={{
+                        pageBreakBefore: "always",
+                        breakBefore: "page",
+                        pageBreakInside: "avoid",
+                        breakInside: "avoid"
+                      }}
+                    >
                       <div className="text-center mb-6">
                         <h2 className="text-xl font-bold uppercase tracking-widest text-black border-b-2 border-black inline-block pb-2">MC DOCUMENT</h2>
                       </div>
-                      <div className="w-full flex items-center justify-center max-h-[750px]">
-                        <img 
-                          src={getMcAttachmentUrl(selectedForm.mcFileUrl) || safeFileUrl(selectedForm.mcFileUrl)} 
-                          alt="MC Attachment" 
-                          className="max-w-full max-h-[750px] object-contain"
-                          crossOrigin="anonymous"
-                          onError={(e) => {
-                            const currentSrc = e.currentTarget.src;
-                            if (currentSrc.includes('supabase.co')) {
-                              e.currentTarget.src = `${API_BASE_URL}${selectedForm.mcFileUrl}`;
-                            }
-                          }}
-                        />
-                      </div>
+                      {isPdfUrl(selectedForm.mcFileUrl) ? (
+                        <div className="p-8 border-2 border-slate-300 rounded-xl text-center my-6 space-y-3 bg-slate-50/50">
+                          <FileText className="w-12 h-12 mx-auto text-[#942392]" />
+                          <p className="font-black text-sm uppercase text-slate-800 tracking-wider">Lampiran Sijil Cuti Sakit (Format PDF)</p>
+                          <p className="text-xs text-slate-600 font-mono break-all">{selectedForm.mcFileUrl.split('/').pop()}</p>
+                          <p className="text-xs text-slate-500 italic mt-2">Dokumen ini telah dilampirkan dalam format PDF. Sila guna butang &quot;View File&quot; atau &quot;Download File&quot; dalam portal untuk melihat fail asal.</p>
+                        </div>
+                      ) : (
+                        <div className="w-full flex items-center justify-center max-h-[750px]">
+                          <img 
+                            src={mcBlobUrl || getMcAttachmentUrl(selectedForm.mcFileUrl) || safeFileUrl(selectedForm.mcFileUrl, "about:blank")} 
+                            alt="MC Attachment" 
+                            className="max-w-full max-h-[750px] object-contain block mx-auto"
+                            onError={(e) => {
+                              const currentSrc = e.currentTarget.src;
+                              if (currentSrc.includes('supabase.co')) {
+                                e.currentTarget.src = `${API_BASE_URL}${selectedForm.mcFileUrl}`;
+                              }
+                            }}
+                          />
+                        </div>
+                      )}
                     </div>
                   )}
                 
