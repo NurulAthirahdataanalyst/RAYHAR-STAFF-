@@ -633,14 +633,24 @@ async function generateAndSaveLeaveFormPDF(leaveId) {
     const safeName = employeeName.toUpperCase().replace(/[^A-Z0-9]/g, "_");
     const filename = `${safeName}-${submitDate}-${leaveTypeName}-form.pdf`;
 
-    const folderName = `${employeeName} (${employeeBranch})`.replace(/[\\/:*?"<>|]/g, "_").trim();
-    const userUploadsDir = path.join(__dirname, "uploads", folderName);
+    const cleanFolder = `${employeeName} (${employeeBranch})`.replace(/[^a-zA-Z0-9._\- ]/g, "_").trim();
+    const folderName = path.basename(cleanFolder) || "general";
+    const uploadsRoot = path.resolve(__dirname, "uploads");
+    const userUploadsDir = path.resolve(uploadsRoot, folderName);
+
+    if (!userUploadsDir.startsWith(uploadsRoot + path.sep)) {
+      throw new Error("Invalid destination directory");
+    }
 
     if (!fs.existsSync(userUploadsDir)) {
       fs.mkdirSync(userUploadsDir, { recursive: true });
     }
 
-    const filePath = path.join(userUploadsDir, filename);
+    const safePdfFilename = path.basename(filename);
+    const filePath = path.resolve(userUploadsDir, safePdfFilename);
+    if (!filePath.startsWith(userUploadsDir + path.sep)) {
+      throw new Error("Invalid destination file path");
+    }
 
     await new Promise((resolve, reject) => {
       const doc = new PDFDocument({ margin: 50 });
