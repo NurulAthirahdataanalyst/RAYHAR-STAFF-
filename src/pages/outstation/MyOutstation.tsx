@@ -281,7 +281,7 @@ export default function MyOutstation() {
             {([
               { key: "Upcoming" as const, color: "text-amber-500", border: "border-amber-500", hoverText: "hover:text-amber-500", hoverBorder: "hover:border-amber-500", bgBadge: "bg-amber-500", hoverBadge: "group-hover:bg-amber-500" },
               { key: "Active" as const, color: "text-pink-500", border: "border-pink-500", hoverText: "hover:text-pink-500", hoverBorder: "hover:border-pink-500", bgBadge: "bg-pink-500", hoverBadge: "group-hover:bg-pink-500" },
-              { key: "Completed" as const, color: "text-emerald-500", border: "border-emerald-500", hoverText: "hover:text-emerald-500", hoverBorder: "hover:border-emerald-500", bgBadge: "bg-emerald-500", hoverBadge: "group-hover:bg-emerald-500" },
+              { key: "Completed" as const, color: "text-[#228b22]", border: "border-[#228b22]", hoverText: "hover:text-[#228b22]", hoverBorder: "hover:border-[#228b22]", bgBadge: "bg-[#228b22]", hoverBadge: "group-hover:bg-[#228b22]" },
               { key: "Cancelled" as const, color: "text-red-500", border: "border-red-500", hoverText: "hover:text-red-500", hoverBorder: "hover:border-red-500", bgBadge: "bg-red-500", hoverBadge: "group-hover:bg-red-500" }
             ]).map((item) => {
               const s = item.key;
