@@ -24,17 +24,22 @@ export const safeUrl = (url: string | null | undefined, fallback: string = "#"):
 };
 
 /**
- * Builds a link to an uploaded file served by the backend.
- * Only paths under `/uploads/` are accepted (no traversal, no external hosts).
+ * Builds a link to an uploaded file served by the backend or Supabase storage.
  */
 export const safeFileUrl = (file: string | null | undefined, fallback: string = "#"): string => {
   if (!file || typeof file !== "string") return fallback;
-  // Accept absolute https URLs that contain /uploads/ (e.g. stored as full backend URL)
+  if (file.startsWith("blob:") || file.startsWith("data:image/")) return file;
+  // Accept absolute https URLs that contain /uploads/ or Supabase storage
   if (file.startsWith("https://") || file.startsWith("http://")) {
     try {
       const parsed = new URL(file);
-      if (ALLOWED_PROTOCOLS.has(parsed.protocol) && parsed.pathname.includes("/uploads/") && !file.includes("..") && !file.includes("\\")) {
-        return file;
+      if (ALLOWED_PROTOCOLS.has(parsed.protocol)) {
+        if (parsed.hostname.endsWith(".supabase.co") && parsed.pathname.startsWith("/storage/")) {
+          return file;
+        }
+        if (parsed.pathname.includes("/uploads/") && !file.includes("..") && !file.includes("\\")) {
+          return file;
+        }
       }
     } catch {
       return fallback;
@@ -43,6 +48,55 @@ export const safeFileUrl = (file: string | null | undefined, fallback: string = 
   }
   if (!file.startsWith("/uploads/") || file.includes("..") || file.includes("\\")) return fallback;
   return safeUrl(`${API_BASE_URL}${file}`, fallback);
+};
+
+/**
+ * Resolves an MC attachment path into a direct, fast URL.
+ * Automatically prefers the Supabase storage CDN bucket for instant loading,
+ * avoiding Render cold-start sleeps and redirect delays.
+ */
+export const getMcAttachmentUrl = (file: string | null | undefined): string => {
+  if (!file || typeof file !== "string") return "";
+  if (file.startsWith("blob:") || file.startsWith("data:image/")) return file;
+  if (file.startsWith("http://") || file.startsWith("https://")) {
+    return safeFileUrl(file, "");
+  }
+  if (file.startsWith("/uploads/")) {
+    if (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")) {
+      return `${API_BASE_URL}${file}`;
+    }
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "https://xvpebtompjcjfvuzeumo.supabase.co";
+    const subpath = file.replace(/^\/uploads\//, "");
+    const encoded = subpath.split("/").map(encodeURIComponent).join("/");
+    return `${supabaseUrl}/storage/v1/object/public/mc-attachments/${encoded}`;
+  }
+  return "";
+};
+
+/**
+ * Preloads an image into memory, converting it into a local Blob URL
+ * so that window.print() can render it immediately without broken image icons.
+ */
+export const preloadImage = async (url: string): Promise<string> => {
+  if (!url || url === "#" || url === "about:blank") return url;
+  try {
+    const res = await fetch(url, { mode: "cors" });
+    if (res.ok) {
+      const blob = await res.blob();
+      return URL.createObjectURL(blob);
+    }
+  } catch (err) {
+    console.warn("Failed to fetch image as blob, trying image preloader fallback:", err);
+  }
+  return new Promise<string>((resolve) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => resolve(url);
+    img.onerror = () => resolve(url);
+    img.src = url;
+    if (img.complete) resolve(url);
+    setTimeout(() => resolve(url), 2000);
+  });
 };
 
 

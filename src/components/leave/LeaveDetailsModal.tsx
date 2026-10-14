@@ -1,4 +1,4 @@
-import { safeFileUrl, downloadUploadedFile } from '@/utils/security';
+import { safeFileUrl, downloadUploadedFile, getMcAttachmentUrl, preloadImage } from '@/utils/security';
 import { formatBranchName } from '@/utils/branchUtils';
 import React, { useEffect, useState } from "react";
 import {
@@ -12,7 +12,7 @@ import { ApprovalHistoryTimeline } from "@/components/leave/ApprovalHistoryTimel
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { FileText, Printer, PhoneCall, Clock, Check, X, Download } from "lucide-react";
+import { FileText, Printer, PhoneCall, Clock, Check, X, Download, Loader2 } from "lucide-react";
 import { parseCutiGantiRows, getCleanReason } from "@/lib/leaveStorage";
 import { API_BASE_URL } from "@/config/api";
 
@@ -63,6 +63,27 @@ interface LeaveDetailsModalProps {
 
 export function LeaveDetailsModal({ selectedRequest, onClose, role }: LeaveDetailsModalProps) {
   const [bakiLayak, setBakiLayak] = useState<number | string>('-');
+  const [mcBlobUrl, setMcBlobUrl] = useState<string | null>(null);
+  const [isPrinting, setIsPrinting] = useState<boolean>(false);
+
+  useEffect(() => {
+    let active = true;
+    if (selectedRequest?.mcFileUrl) {
+      const url = getMcAttachmentUrl(selectedRequest.mcFileUrl);
+      if (url) {
+        preloadImage(url).then((blobUrl) => {
+          if (active && blobUrl) {
+            setMcBlobUrl(blobUrl);
+          }
+        }).catch(() => {});
+      }
+    } else {
+      setMcBlobUrl(null);
+    }
+    return () => {
+      active = false;
+    };
+  }, [selectedRequest?.mcFileUrl]);
 
   useEffect(() => {
     if (selectedRequest) {
@@ -365,7 +386,7 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role }: LeaveDetai
                         }}
                       />
                       <a
-                          href={safeFileUrl(selectedRequest.mcFileUrl)}
+                        href={getMcAttachmentUrl(selectedRequest.mcFileUrl) || safeFileUrl(selectedRequest.mcFileUrl)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-[10px] print:text-[13px] font-black uppercase tracking-widest bg-[#942392] text-white px-4 py-2 rounded-xl hover:bg-[#5e0080] transition-colors shadow-lg"
@@ -497,32 +518,55 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role }: LeaveDetai
                   <Button
                     type="button"
                     variant="outline"
+                    disabled={isPrinting}
                     className="gap-2 border-[#942392] text-[#942392] hover:bg-[#942392]/5 rounded-xl font-black text-[8px] print:text-[13px] uppercase tracking-widest px-6"
-                    onClick={() => {
-                      const originalTitle = document.title;
-                      const empName = selectedRequest.employee || selectedRequest.name || "UNKNOWN";
-                      const branch = selectedRequest.branch || selectedRequest.branch_code || "HQ";
-                      document.title = `LEAVE REQUEST ( ${empName.toUpperCase()} - ${branch.toUpperCase()} )`;
-                      window.print();
-                      setTimeout(() => { document.title = originalTitle; }, 500);
+                    onClick={async () => {
+                      setIsPrinting(true);
+                      try {
+                        const originalTitle = document.title;
+                        const empName = selectedRequest.employee || selectedRequest.name || "UNKNOWN";
+                        const branch = selectedRequest.branch || selectedRequest.branch_code || "HQ";
+                        document.title = `LEAVE REQUEST ( ${empName.toUpperCase()} - ${branch.toUpperCase()} )`;
+
+                        if (selectedRequest.mcFileUrl && !mcBlobUrl) {
+                          const directUrl = getMcAttachmentUrl(selectedRequest.mcFileUrl);
+                          const loaded = await preloadImage(directUrl);
+                          if (loaded) {
+                            setMcBlobUrl(loaded);
+                          }
+                          await new Promise((r) => setTimeout(r, 200));
+                        }
+
+                        window.print();
+                        setTimeout(() => { document.title = originalTitle; }, 500);
+                      } finally {
+                        setIsPrinting(false);
+                      }
                     }}
                   >
-                    <Printer className="h-4 w-4" />
-                    Print Form
+                    {isPrinting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Printer className="h-4 w-4" />}
+                    {isPrinting ? "Preparing..." : "Print Form"}
                   </Button>
                 </div>
               </div>
               {/* Print-only MC Document Page */}
-                {(selectedRequest.type === "Sick Leave" || selectedRequest.type === "Cuti Sakit") && selectedRequest.mcFileUrl && selectedRequest.mcFileUrl.match(/\.(jpeg|jpg|png|gif)$/i) && (
-                  <div className="opacity-0 h-0 w-0 overflow-hidden absolute print:static print:opacity-100 print:h-auto print:w-full print:break-before-page print:pt-10 print:border-2 print:border-black print:p-8 print:mt-10">
-                    <div className="text-center mb-8">
+                {(selectedRequest.type === "Sick Leave" || selectedRequest.type === "Cuti Sakit") && selectedRequest.mcFileUrl && (
+                  <div className="opacity-0 h-0 w-0 overflow-hidden absolute print:static print:opacity-100 print:h-auto print:w-full print:break-before-page print:pt-6 print:border-2 print:border-black print:p-6 print:mt-6 print:overflow-visible">
+                    <div className="text-center mb-6">
                       <h2 className="text-xl font-bold uppercase tracking-widest text-black border-b-2 border-black inline-block pb-2">MC DOCUMENT</h2>
                     </div>
-                    <div className="w-full flex items-center justify-center h-[800px]">
+                    <div className="w-full flex items-center justify-center max-h-[750px]">
                       <img 
-                        src={safeFileUrl(selectedRequest.mcFileUrl, "about:blank")} 
+                        src={mcBlobUrl || getMcAttachmentUrl(selectedRequest.mcFileUrl) || safeFileUrl(selectedRequest.mcFileUrl, "about:blank")} 
                         alt="MC Attachment" 
-                        className="max-w-full max-h-full object-contain"
+                        className="max-w-full max-h-[750px] object-contain"
+                        crossOrigin="anonymous"
+                        onError={(e) => {
+                          const currentSrc = e.currentTarget.src;
+                          if (currentSrc.includes('supabase.co')) {
+                            e.currentTarget.src = `${API_BASE_URL}${selectedRequest.mcFileUrl}`;
+                          }
+                        }}
                       />
                     </div>
                   </div>

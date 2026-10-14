@@ -1,4 +1,4 @@
-import { safeFileUrl, downloadUploadedFile } from '@/utils/security';
+import { safeFileUrl, downloadUploadedFile, getMcAttachmentUrl, preloadImage } from '@/utils/security';
 import { formatBranchName } from '@/utils/branchUtils';
 import { useNavigate } from "react-router-dom";
 import { MonthPicker } from '@/components/shared/MonthPicker';
@@ -1745,11 +1745,15 @@ export default function Employees() {
                         type="button"
                         variant="outline"
                         className="gap-2 border-[#942392] text-[#942392] hover:bg-[#942392]/5 rounded-xl font-black text-[8px] print:text-[13px] uppercase tracking-widest px-6"
-                        onClick={() => {
+                        onClick={async () => {
                           const originalTitle = document.title;
                           const empName = selectedEmployee?.name || selectedEmployee?.full_name || "UNKNOWN";
                           const branch = selectedEmployee?.branch || selectedEmployee?.branch_code || "HQ";
                           document.title = `LEAVE REQUEST ( ${empName.toUpperCase()} - ${branch.toUpperCase()} )`;
+                          if (req.mc_file_url) {
+                            await preloadImage(getMcAttachmentUrl(req.mc_file_url));
+                            await new Promise((r) => setTimeout(r, 200));
+                          }
                           handlePrint();
                           setTimeout(() => {
                             document.title = originalTitle;
@@ -1762,16 +1766,23 @@ export default function Employees() {
 
                     </div>
                 {/* Print-only MC Document Page */}
-                    {(req.leave_type === "Sick Leave" || req.leave_type === "Cuti Sakit") && req.mc_file_url && req.mc_file_url.match(/\.(jpeg|jpg|png|gif)$/i) && (
-                      <div className="hidden print:block break-before-page w-full pt-10 border-2 border-black print:p-8 print:mt-10">
-                        <div className="text-center mb-8">
+                    {(req.leave_type === "Sick Leave" || req.leave_type === "Cuti Sakit") && req.mc_file_url && (
+                      <div className="opacity-0 h-0 w-0 overflow-hidden absolute print:static print:opacity-100 print:h-auto print:w-full print:break-before-page print:pt-6 print:border-2 print:border-black print:p-6 print:mt-6 print:overflow-visible">
+                        <div className="text-center mb-6">
                           <h2 className="text-xl font-bold uppercase tracking-widest text-black border-b-2 border-black inline-block pb-2">MC DOCUMENT</h2>
                         </div>
-                        <div className="w-full flex items-center justify-center h-[800px]">
+                        <div className="w-full flex items-center justify-center max-h-[750px]">
                           <img 
-                            src={safeFileUrl(req.mc_file_url, "about:blank")} 
+                            src={getMcAttachmentUrl(req.mc_file_url) || safeFileUrl(req.mc_file_url, "about:blank")} 
                             alt="MC Attachment" 
-                            className="max-w-full max-h-full object-contain"
+                            className="max-w-full max-h-[750px] object-contain"
+                            crossOrigin="anonymous"
+                            onError={(e) => {
+                              const currentSrc = e.currentTarget.src;
+                              if (currentSrc.includes('supabase.co')) {
+                                e.currentTarget.src = `${API_BASE_URL}${req.mc_file_url}`;
+                              }
+                            }}
                           />
                         </div>
                       </div>

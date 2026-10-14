@@ -7,6 +7,7 @@ const cors = require("cors");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
+const crypto = require("crypto");
 const { sendNotificationEmail } = require("./mailer");
 const { calculateExpectedWorkingDays } = require("./workingDaysHelper");
 const { startOfMonth, endOfMonth, startOfYear, endOfYear, format, isBefore } = require("date-fns");
@@ -358,7 +359,6 @@ if (!fs.existsSync(tempDir)) {
 }
 
 // Multer Config (saves temporarily to uploads/temp)
-const crypto = require("crypto");
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, tempDir);
@@ -3290,35 +3290,44 @@ app.post("/api/leave-requests/:id/upload-mc", uploadLimiter, upload.single("lamp
 
     let mc_file_url = null;
     if (req.file) {
-      const folderName = `${employeeName} (${employeeBranch})`.replace(/[\\/:*?"<>|]/g, "_").trim();
-      const userUploadsDir = path.join(uploadsDir, folderName);
-      
+      const rawExt = path.extname(req.file.originalname || "").toLowerCase();
+      const safeExt = /^\.[a-z0-9]+$/.test(rawExt) ? rawExt : ".pdf";
+      const safeFilename = `${crypto.randomUUID()}${safeExt}`;
+      const filename = path.basename(safeFilename);
+      if (!/^[a-zA-Z0-9._-]+$/.test(filename)) {
+        return res.status(400).json({ success: false, error: "Invalid filename" });
+      }
+
+      const uploadsRoot = path.resolve(uploadsDir);
+      const cleanFolder = `${employeeName} (${employeeBranch})`.replace(/[^a-zA-Z0-9._\- ]/g, "_").trim();
+      const folderName = path.basename(cleanFolder) || "general";
+      const userUploadsDir = path.resolve(uploadsRoot, folderName);
+
+      if (!userUploadsDir.startsWith(uploadsRoot + path.sep)) {
+        return res.status(400).json({ success: false, error: "Invalid directory" });
+      }
+
       if (!fs.existsSync(userUploadsDir)) {
         fs.mkdirSync(userUploadsDir, { recursive: true });
       }
-      
-      const safeFilename = path.basename(req.file.filename);
-      const newFilePath = path.join(userUploadsDir, safeFilename);
-      
-      const resolvedPath = path.resolve(newFilePath);
-      const expectedDir = path.resolve(userUploadsDir);
-      const relPath = path.relative(expectedDir, resolvedPath);
-      if (relPath.startsWith('..') || path.isAbsolute(relPath)) {
+
+      const resolvedPath = path.resolve(userUploadsDir, filename);
+      if (!resolvedPath.startsWith(userUploadsDir + path.sep)) {
         return res.status(400).json({ success: false, error: "Invalid file path" });
       }
 
       fs.renameSync(req.file.path, resolvedPath);
-      
-      mc_file_url = `/uploads/${folderName}/${safeFilename}`;
-      const supabaseStoragePath = `${folderName}/${safeFilename}`;
-      
-      uploadToSupabaseStorage(newFilePath, supabaseStoragePath, req.file.mimetype);
-      
+
+      mc_file_url = `/uploads/${folderName}/${filename}`;
+      const supabaseStoragePath = `${folderName}/${filename}`;
+
+      uploadToSupabaseStorage(resolvedPath, supabaseStoragePath, req.file.mimetype);
+
       await pool.query(
         "UPDATE leave_requests SET mc_file_url = ? WHERE leave_id = ?",
         [mc_file_url, leaveId]
       );
-      
+
       return res.json({ success: true, mc_file_url });
     } else {
       return res.status(400).json({ success: false, error: "No file uploaded" });
@@ -3455,51 +3464,64 @@ app.post("/api/leave-requests", uploadLimiter, upload.single("lampiranMc"), asyn
 
     let mc_file_url = null;
     if (req.file) {
+      const rawExt = path.extname(req.file.originalname || "").toLowerCase();
+      const safeExt = /^\.[a-z0-9]+$/.test(rawExt) ? rawExt : ".pdf";
+      const safeFilename = `${crypto.randomUUID()}${safeExt}`;
+      const filename = path.basename(safeFilename);
+      const uploadsRoot = path.resolve(uploadsDir);
+
       try {
+        if (!/^[a-zA-Z0-9._-]+$/.test(filename)) {
+          throw new Error("Invalid filename");
+        }
+
         // Sanitize employee name and branch to avoid invalid folder names
-        const folderName = `${employeeName} (${employeeBranch})`.replace(/[\\/:*?"<>|]/g, "_").trim();
-        const userUploadsDir = path.join(uploadsDir, folderName);
-        
+        const cleanFolder = `${employeeName} (${employeeBranch})`.replace(/[^a-zA-Z0-9._\- ]/g, "_").trim();
+        const folderName = path.basename(cleanFolder) || "general";
+        const userUploadsDir = path.resolve(uploadsRoot, folderName);
+
+        if (!userUploadsDir.startsWith(uploadsRoot + path.sep)) {
+          throw new Error("Invalid destination directory");
+        }
+
         // Ensure subdirectory exists
         if (!fs.existsSync(userUploadsDir)) {
           fs.mkdirSync(userUploadsDir, { recursive: true });
         }
-        
+
         // Move file from temp to subdirectory
-        const safeFilename = path.basename(req.file.filename);
-        const newFilePath = path.join(userUploadsDir, safeFilename);
-        
-        const resolvedPath = path.resolve(newFilePath);
-        const expectedDir = path.resolve(userUploadsDir);
-        const relPath = path.relative(expectedDir, resolvedPath);
-        if (relPath.startsWith('..') || path.isAbsolute(relPath)) {
-          return res.status(400).json({ success: false, error: "Invalid file path" });
+        const resolvedPath = path.resolve(userUploadsDir, filename);
+        if (!resolvedPath.startsWith(userUploadsDir + path.sep)) {
+          throw new Error("Invalid path");
         }
 
         fs.renameSync(req.file.path, resolvedPath);
-        
+
         // Store relative path URL
-        mc_file_url = `/uploads/${folderName}/${safeFilename}`;
-        
+        mc_file_url = `/uploads/${folderName}/${filename}`;
+
         // Backup to Supabase with folder structure
-        const supabaseStoragePath = `${folderName}/${safeFilename}`;
-        uploadToSupabaseStorage(newFilePath, supabaseStoragePath, req.file.mimetype);
+        const supabaseStoragePath = `${folderName}/${filename}`;
+        uploadToSupabaseStorage(resolvedPath, supabaseStoragePath, req.file.mimetype);
       } catch (fileErr) {
-        console.error("âŒ Error organizing file into subfolder:", fileErr);
+        console.error("❌ Error organizing file into subfolder:", fileErr);
         // Fallback: move to base uploadsDir
-        const safeFilenameFallback = path.basename(req.file.filename);
-        const fallbackPath = path.join(uploadsDir, safeFilenameFallback);
         try {
-          const resolvedFallback = path.resolve(fallbackPath);
-          const expectedUploadsDir = path.resolve(uploadsDir);
-          const relFallback = path.relative(expectedUploadsDir, resolvedFallback);
-          if (!relFallback.startsWith('..') && !path.isAbsolute(relFallback)) {
-            fs.renameSync(req.file.path, resolvedFallback);
-            mc_file_url = `/uploads/${safeFilenameFallback}`;
-            uploadToSupabaseStorage(fallbackPath, safeFilenameFallback, req.file.mimetype);
+          const fallbackFilename = path.basename(`${crypto.randomUUID()}${safeExt}`);
+          if (!/^[a-zA-Z0-9._-]+$/.test(fallbackFilename)) {
+            throw new Error("Invalid fallback filename");
           }
+          const resolvedFallback = path.resolve(uploadsRoot, fallbackFilename);
+
+          if (!resolvedFallback.startsWith(uploadsRoot + path.sep)) {
+            throw new Error("Invalid destination");
+          }
+
+          fs.renameSync(req.file.path, resolvedFallback);
+          mc_file_url = `/uploads/${fallbackFilename}`;
+          uploadToSupabaseStorage(resolvedFallback, fallbackFilename, req.file.mimetype);
         } catch (fallbackErr) {
-          console.error("âŒ Fallback move also failed:", fallbackErr);
+          console.error("❌ Fallback move also failed:", fallbackErr);
         }
       }
     }

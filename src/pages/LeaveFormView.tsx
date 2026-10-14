@@ -1,5 +1,5 @@
 import { formatBranchName } from '@/utils/branchUtils';
-import { safeFileUrl, downloadUploadedFile } from '@/utils/security';
+import { safeFileUrl, downloadUploadedFile, getMcAttachmentUrl, preloadImage } from '@/utils/security';
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -1002,11 +1002,15 @@ export default function LeaveFormView() {
                       type="button"
                       variant="outline"
                       className="gap-2 border-[#942392] text-[#942392] hover:bg-[#942392]/5 rounded-xl font-black text-[8px] print:text-[13px] uppercase tracking-widest px-6"
-                      onClick={() => {
+                      onClick={async () => {
                         const originalTitle = document.title;
                         const empName = selectedForm?.employee || (selectedForm as any)?.name || userName || "UNKNOWN";
                         const branchCode = selectedForm?.branch || userBranch || "HQ";
                         document.title = `LEAVE REQUEST ( ${empName.toUpperCase()} - ${branchCode.toUpperCase()} )`;
+                        if (selectedForm?.mcFileUrl) {
+                          await preloadImage(getMcAttachmentUrl(selectedForm.mcFileUrl));
+                          await new Promise((r) => setTimeout(r, 200));
+                        }
                         window.print();
                         setTimeout(() => { document.title = originalTitle; }, 500);
                       }}
@@ -1018,17 +1022,23 @@ export default function LeaveFormView() {
                 </div>
               </div>
             {/* Print-only MC Document Page */}
-                  {(selectedForm.type === "Sick Leave" || selectedForm.type === "Cuti Sakit") && selectedForm.mcFileUrl && selectedForm.mcFileUrl.match(/\.(jpeg|jpg|png|gif)$/i) && (
-                    <div className="h-0 overflow-hidden opacity-0 print:h-auto print:opacity-100 print:overflow-visible break-before-page w-full print:pt-10 print:border-2 print:border-black print:p-8 print:mt-10">
-                      <div className="text-center mb-8">
+                  {(selectedForm.type === "Sick Leave" || selectedForm.type === "Cuti Sakit") && selectedForm.mcFileUrl && (
+                    <div className="h-0 overflow-hidden opacity-0 print:h-auto print:opacity-100 print:overflow-visible break-before-page w-full print:pt-6 print:border-2 print:border-black print:p-6 print:mt-6">
+                      <div className="text-center mb-6">
                         <h2 className="text-xl font-bold uppercase tracking-widest text-black border-b-2 border-black inline-block pb-2">MC DOCUMENT</h2>
                       </div>
-                      <div className="w-full flex items-center justify-center h-[800px]">
+                      <div className="w-full flex items-center justify-center max-h-[750px]">
                         <img 
-                          src={safeFileUrl(selectedForm.mcFileUrl)} 
+                          src={getMcAttachmentUrl(selectedForm.mcFileUrl) || safeFileUrl(selectedForm.mcFileUrl)} 
                           alt="MC Attachment" 
-                          className="max-w-full max-h-full object-contain"
+                          className="max-w-full max-h-[750px] object-contain"
                           crossOrigin="anonymous"
+                          onError={(e) => {
+                            const currentSrc = e.currentTarget.src;
+                            if (currentSrc.includes('supabase.co')) {
+                              e.currentTarget.src = `${API_BASE_URL}${selectedForm.mcFileUrl}`;
+                            }
+                          }}
                         />
                       </div>
                     </div>
