@@ -74,23 +74,46 @@ export const getMcAttachmentUrl = (file: string | null | undefined): string => {
 };
 
 /**
- * Preloads an image into memory, converting it into a local Blob URL
- * so that window.print() can render it immediately without broken image icons.
+ * Checks if a URL or file path points to a PDF document.
+ */
+export const isPdfUrl = (url: string | null | undefined): boolean => {
+  if (!url || typeof url !== "string") return false;
+  const clean = url.split("?")[0].toLowerCase();
+  return clean.endsWith(".pdf");
+};
+
+/**
+ * Preloads an image into memory, converting it into a base64 Data URL
+ * so that window.print() and print preview can render it synchronously and reliably
+ * without broken image icons or CORS issues.
  */
 export const preloadImage = async (url: string): Promise<string> => {
-  if (!url || url === "#" || url === "about:blank") return url;
+  if (!url || url === "#" || url === "about:blank" || isPdfUrl(url)) return url;
+  if (url.startsWith("data:image/")) return url;
+
   try {
-    const res = await fetch(url, { mode: "cors" });
+    const res = await fetch(url);
     if (res.ok) {
       const blob = await res.blob();
-      return URL.createObjectURL(blob);
+      return await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          if (typeof reader.result === "string") {
+            resolve(reader.result);
+          } else {
+            resolve(url);
+          }
+        };
+        reader.onerror = () => resolve(url);
+        reader.readAsDataURL(blob);
+      });
     }
   } catch (err) {
-    console.warn("Failed to fetch image as blob, trying image preloader fallback:", err);
+    console.warn("Failed to fetch image as data URL, trying image preloader fallback:", err);
   }
+
   return new Promise<string>((resolve) => {
     const img = new Image();
-    img.crossOrigin = "anonymous";
     img.onload = () => resolve(url);
     img.onerror = () => resolve(url);
     img.src = url;

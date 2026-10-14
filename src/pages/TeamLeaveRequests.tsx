@@ -1,10 +1,10 @@
-import { safeFileUrl, downloadUploadedFile, getMcAttachmentUrl, preloadImage } from '@/utils/security';
+import { safeFileUrl, downloadUploadedFile, getMcAttachmentUrl, preloadImage, isPdfUrl } from '@/utils/security';
 import { formatBranchName } from '@/utils/branchUtils';
 import { useRole } from "@/contexts/RoleContext";
 import { useState, useEffect } from "react";
 import { API_BASE_URL } from "@/config/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Users, CalendarClock, CalendarX2, Building2, FileText, Printer, PhoneCall, Clock , X} from 'lucide-react';
+import { Loader2, Users, CalendarClock, CalendarX2, Building2, FileText, Printer, PhoneCall, Clock , X, Download } from 'lucide-react';
 
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -23,6 +23,27 @@ export default function TeamLeaveRequests() {
   const [leaveRequests, setLeaveRequests] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRequest, setSelectedRequest] = useState<any | null>(null);
+  const [mcBlobUrl, setMcBlobUrl] = useState<string | null>(null);
+  const [isPrinting, setIsPrinting] = useState<boolean>(false);
+
+  useEffect(() => {
+    let active = true;
+    if (selectedRequest?.mcFileUrl && !isPdfUrl(selectedRequest.mcFileUrl)) {
+      const url = getMcAttachmentUrl(selectedRequest.mcFileUrl);
+      if (url) {
+        preloadImage(url).then((dataUrl) => {
+          if (active && dataUrl) {
+            setMcBlobUrl(dataUrl);
+          }
+        }).catch(() => {});
+      }
+    } else {
+      setMcBlobUrl(null);
+    }
+    return () => {
+      active = false;
+    };
+  }, [selectedRequest?.mcFileUrl]);
 
   const formatRole = (r: string) => {
     if (!r) return "APPROVER";
@@ -465,44 +486,8 @@ export default function TeamLeaveRequests() {
                         <span className="text-[10px] print:text-[13px] font-black text-[#942392] uppercase tracking-widest">MC Attachment</span>
                       </div>
                     <div className="flex items-center gap-2">
-                      <input 
-                        type="file" 
-                        id={`upload-mc-modal-${selectedRequest.id}`} 
-                        className="hidden" 
-                        accept="image/*,.pdf"
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (!file) return;
-                          const formData = new FormData();
-                          formData.append("lampiranMc", file);
-                          import("react-hot-toast").then(({ toast }) => {
-                            toast.loading("Uploading MC...", { id: "upload-mc-modal" });
-                          });
-                          try {
-                            const res = await fetch(`${API_BASE_URL}/api/leave-requests/${selectedRequest.id}/upload-mc`, {
-                              method: "POST",
-                              body: formData,
-                            });
-                            if (res.ok) {
-                              import("react-hot-toast").then(({ toast }) => {
-                                toast.success("MC uploaded successfully!", { id: "upload-mc-modal" });
-                              });
-                              setTimeout(() => window.location.reload(), 1000);
-                            } else {
-                              const err = await res.json();
-                              import("react-hot-toast").then(({ toast }) => {
-                                toast.error(err.error || "Failed to upload MC", { id: "upload-mc-modal" });
-                              });
-                            }
-                          } catch (err) {
-                            import("react-hot-toast").then(({ toast }) => {
-                              toast.error("Failed to upload MC", { id: "upload-mc-modal" });
-                            });
-                          }
-                        }}
-                      />
                       <a
-                        href={safeFileUrl(selectedRequest.mcFileUrl)}
+                        href={getMcAttachmentUrl(selectedRequest.mcFileUrl) || safeFileUrl(selectedRequest.mcFileUrl)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-[10px] print:text-[13px] font-black uppercase tracking-widest bg-[#942392] text-white px-4 py-2 rounded-xl hover:bg-[#5e0080] transition-colors shadow-lg"
@@ -532,22 +517,11 @@ export default function TeamLeaveRequests() {
                             import("react-hot-toast").then(({ toast }) => toast.error("Failed to download file"));
                           }
                         }}
-                        className="flex items-center justify-center h-8 w-8 rounded-md border border-[#942392]/20 text-[#942392] hover:bg-[#942392] hover:text-white transition-colors"
+                        className="flex items-center justify-center gap-1.5 h-8 px-3 rounded-md border border-[#942392]/20 text-[#942392] hover:bg-[#942392] hover:text-white transition-colors"
                         title="Download File"
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
-                      </button>
-                      <button
-                        type="button" 
-                        className="flex items-center justify-center h-8 w-8 rounded-md border border-[#942392]/20 text-[#942392] hover:bg-[#942392] hover:text-white transition-colors"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          document.getElementById(`upload-mc-modal-${selectedRequest.id}`)?.click();
-                        }}
-                        title="Replace File"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+                        <Download className="w-4 h-4" />
+                        <span className="text-[10px] font-bold uppercase tracking-wider hidden sm:inline-block">Download File</span>
                       </button>
                     </div>
                     </div>
@@ -632,22 +606,32 @@ export default function TeamLeaveRequests() {
                     <Button
                       type="button"
                       variant="outline"
+                      disabled={isPrinting}
                       className="gap-2 border-[#942392] text-[#942392] hover:bg-[#942392]/5 rounded-xl font-black text-[8px] print:text-[13px] uppercase tracking-widest px-6"
                       onClick={async () => {
-                        const originalTitle = document.title;
-                        const empName = selectedRequest.employee || selectedRequest.name || "UNKNOWN";
-                        const branch = selectedRequest.branch || "HQ";
-                        document.title = `LEAVE REQUEST ( ${empName.toUpperCase()} - ${branch.toUpperCase()} )`;
-                        if (selectedRequest.mcFileUrl) {
-                          await preloadImage(getMcAttachmentUrl(selectedRequest.mcFileUrl));
-                          await new Promise((r) => setTimeout(r, 200));
+                        setIsPrinting(true);
+                        try {
+                          const originalTitle = document.title;
+                          const empName = selectedRequest.employee || selectedRequest.name || "UNKNOWN";
+                          const branch = selectedRequest.branch || "HQ";
+                          document.title = `LEAVE REQUEST ( ${empName.toUpperCase()} - ${branch.toUpperCase()} )`;
+                          if (selectedRequest.mcFileUrl && !isPdfUrl(selectedRequest.mcFileUrl) && !mcBlobUrl) {
+                            const directUrl = getMcAttachmentUrl(selectedRequest.mcFileUrl);
+                            const loaded = await preloadImage(directUrl);
+                            if (loaded) {
+                              setMcBlobUrl(loaded);
+                            }
+                            await new Promise((r) => setTimeout(r, 300));
+                          }
+                          window.print();
+                          setTimeout(() => { document.title = originalTitle; }, 500);
+                        } finally {
+                          setIsPrinting(false);
                         }
-                        window.print();
-                        setTimeout(() => { document.title = originalTitle; }, 500);
                       }}
                     >
-                      <Printer className="h-4 w-4" />
-                      Print Form
+                      {isPrinting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Printer className="h-4 w-4" />}
+                      {isPrinting ? "Preparing..." : "Print Form"}
                     </Button>
                   </div>
                 </div>
@@ -655,24 +639,40 @@ export default function TeamLeaveRequests() {
                 </div>
                 {/* Print-only MC Document Page */}
                 {(selectedRequest.type === "Sick Leave" || selectedRequest.type === "Cuti Sakit") && selectedRequest.mcFileUrl && (
-                  <div className="opacity-0 h-0 w-0 overflow-hidden absolute print:static print:opacity-100 print:h-auto print:w-full print:break-before-page print:pt-6 print:border-2 print:border-black print:p-6 print:mt-6 print:overflow-visible">
+                  <div 
+                    className="opacity-0 h-0 w-0 overflow-hidden absolute print:static print:opacity-100 print:h-auto print:w-full print:break-before-page print:pt-6 print:border-2 print:border-black print:p-6 print:mt-6 print:overflow-visible"
+                    style={{
+                      pageBreakBefore: "always",
+                      breakBefore: "page",
+                      pageBreakInside: "avoid",
+                      breakInside: "avoid"
+                    }}
+                  >
                     <div className="text-center mb-6">
                       <h2 className="text-xl font-bold uppercase tracking-widest text-black border-b-2 border-black inline-block pb-2">MC DOCUMENT</h2>
                     </div>
-                    <div className="w-full flex items-center justify-center max-h-[750px]">
-                      <img 
-                        src={getMcAttachmentUrl(selectedRequest.mcFileUrl) || safeFileUrl(selectedRequest.mcFileUrl, "about:blank")} 
-                        alt="MC Attachment" 
-                        className="max-w-full max-h-[750px] object-contain"
-                        crossOrigin="anonymous"
-                        onError={(e) => {
-                          const currentSrc = e.currentTarget.src;
-                          if (currentSrc.includes('supabase.co')) {
-                            e.currentTarget.src = `${API_BASE_URL}${selectedRequest.mcFileUrl}`;
-                          }
-                        }}
-                      />
-                    </div>
+                    {isPdfUrl(selectedRequest.mcFileUrl) ? (
+                      <div className="p-8 border-2 border-slate-300 rounded-xl text-center my-6 space-y-3 bg-slate-50/50">
+                        <FileText className="w-12 h-12 mx-auto text-[#942392]" />
+                        <p className="font-black text-sm uppercase text-slate-800 tracking-wider">Lampiran Sijil Cuti Sakit (Format PDF)</p>
+                        <p className="text-xs text-slate-600 font-mono break-all">{selectedRequest.mcFileUrl.split('/').pop()}</p>
+                        <p className="text-xs text-slate-500 italic mt-2">Dokumen ini telah dilampirkan dalam format PDF. Sila guna butang &quot;View File&quot; atau &quot;Download File&quot; dalam portal untuk melihat fail asal.</p>
+                      </div>
+                    ) : (
+                      <div className="w-full flex items-center justify-center max-h-[750px]">
+                        <img 
+                          src={mcBlobUrl || getMcAttachmentUrl(selectedRequest.mcFileUrl) || safeFileUrl(selectedRequest.mcFileUrl, "about:blank")} 
+                          alt="MC Attachment" 
+                          className="max-w-full max-h-[750px] object-contain block mx-auto"
+                          onError={(e) => {
+                            const currentSrc = e.currentTarget.src;
+                            if (currentSrc.includes('supabase.co')) {
+                              e.currentTarget.src = `${API_BASE_URL}${selectedRequest.mcFileUrl}`;
+                            }
+                          }}
+                        />
+                      </div>
+                    )}
                   </div>
                 )}
             </>
