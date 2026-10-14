@@ -92,19 +92,30 @@ export default function MyOutstation() {
 
   useEffect(() => {
     if (!userId) return;
+    let active = true;
     const fetch_ = async () => {
       setLoading(true);
-      try {
-        const res = await fetch(`${API_BASE_URL}/api/outstation?role=employee&user_id=${userId}`);
-        const data = await res.json();
-        if (data.success) setAssignments(data.assignments || []);
-      } catch (err) {
-        console.error("MyOutstation error:", err);
-      } finally {
-        setLoading(false);
+      let attempts = 0;
+      while (attempts < 3 && active) {
+        try {
+          attempts++;
+          const res = await fetch(`${API_BASE_URL}/api/outstation?role=employee&user_id=${userId}`);
+          const data = await res.json();
+          if (active && data.success) {
+            setAssignments(data.assignments || []);
+            break;
+          }
+        } catch (err) {
+          console.warn(`MyOutstation fetch attempt ${attempts} failed:`, err);
+          if (attempts < 3 && active) {
+            await new Promise((r) => setTimeout(r, 1200 * attempts));
+          }
+        }
       }
+      if (active) setLoading(false);
     };
     void fetch_();
+    return () => { active = false; };
   }, [userId]);
 
   const baseFiltered = assignments.filter(a => {

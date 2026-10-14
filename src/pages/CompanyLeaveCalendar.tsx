@@ -70,26 +70,34 @@ const CompanyLeaveCalendar = () => {
 
   const fetchLeaves = async () => {
     setIsLoading(true);
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/company-leaves`);
-      const data = await res.json();
-      if (data.success) {
-        setLeaves(data.leaves);
+    let attempts = 0;
+    while (attempts < 3) {
+      try {
+        attempts++;
+        const res = await fetch(`${API_BASE_URL}/api/company-leaves`);
+        const data = await res.json();
+        if (data.success) {
+          setLeaves(data.leaves);
+        }
+        
+        const bRes = await fetch(`${API_BASE_URL}/api/branches`);
+        const bData = await bRes.json();
+        if (bData.success) setBranchesList(bData.branches);
+        
+        const dRes = await fetch(`${API_BASE_URL}/api/departments`);
+        const dData = await dRes.json();
+        if (dData.success) setDepartmentsList(dData.departments);
+        break;
+      } catch (error) {
+        console.warn(`CompanyLeaveCalendar fetch attempt ${attempts} failed:`, error);
+        if (attempts >= 3) {
+          // Keep existing leaves without interrupting user on background retry
+        } else {
+          await new Promise((r) => setTimeout(r, 1200 * attempts));
+        }
       }
-      
-      const bRes = await fetch(`${API_BASE_URL}/api/branches`);
-      const bData = await bRes.json();
-      if (bData.success) setBranchesList(bData.branches);
-      
-      const dRes = await fetch(`${API_BASE_URL}/api/departments`);
-      const dData = await dRes.json();
-      if (dData.success) setDepartmentsList(dData.departments);
-      
-    } catch (error) {
-      toast({ title: "Error", description: "Failed to fetch data", variant: "destructive" });
-    } finally {
-      setIsLoading(false);
     }
+    setIsLoading(false);
   };
 
   useEffect(() => {
