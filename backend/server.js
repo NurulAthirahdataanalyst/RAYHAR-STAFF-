@@ -459,9 +459,22 @@ app.delete("/api/roles/:id", async (req, res) => {
 });
 
 // Supabase Cloud Storage Helper Functions for Medical Certificate Backup
+function getSupabaseConfig() {
+  const envUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+  const supabaseUrl = (envUrl && !envUrl.includes("lhgfzerdekwxppzjngyg"))
+    ? envUrl
+    : "https://xvpebtompjcjfvuzeumo.supabase.co";
+
+  const envKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_KEY;
+  const supabaseKey = (envKey && !envKey.includes("lhgfzerdekwxppzjngyg"))
+    ? envKey
+    : "sb_publishable_DobBRciIF_Ux15lEhPpOEQ_qvm2LMHf";
+
+  return { supabaseUrl, supabaseKey };
+}
+
 async function ensureSupabaseBucketExists() {
-  const supabaseUrl = process.env.VITE_SUPABASE_URL;
-  const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
+  const { supabaseUrl, supabaseKey } = getSupabaseConfig();
   const https = require("https");
 
   if (!supabaseUrl || !supabaseKey) {
@@ -519,8 +532,7 @@ async function ensureSupabaseBucketExists() {
 }
 
 async function uploadToSupabaseStorage(filePath, filename, mimeType) {
-  const supabaseUrl = process.env.VITE_SUPABASE_URL;
-  const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
+  const { supabaseUrl, supabaseKey } = getSupabaseConfig();
   const https = require("https");
 
   if (!supabaseUrl || !supabaseKey) return;
@@ -836,7 +848,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.get(/^\/uploads\/(.+)$/, (req, res) => {
   const fileSubpath = req.params[0];
   if (fileSubpath.includes('..')) return res.status(400).send('Invalid path');
-  const supabaseUrl = process.env.VITE_SUPABASE_URL;
+  const { supabaseUrl } = getSupabaseConfig();
   if (supabaseUrl && fileSubpath) {
     const encodedSubpath = fileSubpath.split('/').map(segment => encodeURIComponent(segment)).join('/');
     const publicUrl = `${supabaseUrl}/storage/v1/object/public/mc-attachments/${encodedSubpath}`;
