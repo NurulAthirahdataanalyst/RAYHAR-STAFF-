@@ -2387,8 +2387,7 @@ export default function Calendar() {
         const ds = selectedDaySummary;
         const isToday = isSameDay(ds.date, new Date());
         const hasContent = ds.holidays.length > 0 || ds.companyLeaves.length > 0 || ds.approvedLeaves.length > 0 || ds.outstations.length > 0 || ds.attendance.length > 0 || ds.notes.length > 0;
-        return (
-          createPortal(
+        return createPortal(
           <div
             className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm transition-all duration-300"
             onClick={() => setSelectedDaySummary(null)}
