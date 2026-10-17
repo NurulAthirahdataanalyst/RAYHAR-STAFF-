@@ -1680,9 +1680,9 @@ export default function Calendar() {
       </div>
 
       {/* Add New Event / Edit Event Modal Overlay */}
-      {isAddEventModalOpen && (
+      {isAddEventModalOpen && createPortal(
         <div 
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in transition-all duration-300"
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in transition-all duration-300"
           onClick={() => { setIsAddEventModalOpen(false); setEditingEventId(null); }}
         >
           <div 
@@ -1819,7 +1819,8 @@ export default function Calendar() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Event Details Modal */}
@@ -2066,10 +2067,10 @@ export default function Calendar() {
       })()}
 
       {/* Delete Category Confirmation Modal */}
-      {categoryToDelete && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xl animate-in fade-in transition-all duration-300" onClick={() => setCategoryToDelete(null)}>
+      {categoryToDelete && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in transition-all duration-300" onClick={() => setCategoryToDelete(null)}>
           <div 
-            className="w-full max-w-sm rounded-2xl shadow-xl border border-border bg-card overflow-hidden animate-in zoom-in-95 duration-200"
+            className="w-full max-w-sm rounded-2xl shadow-2xl border-0 bg-card overflow-hidden animate-in zoom-in-95 duration-200"
             onClick={e => e.stopPropagation()}
           >
             <div className="p-6 pb-4 bg-red-50 dark:bg-red-950/30">
@@ -2118,13 +2119,14 @@ export default function Calendar() {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Company Leave Detail Modal */}
-      {selectedCompanyLeave && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xl transition-all duration-300" onClick={() => setSelectedCompanyLeave(null)}>
-          <div className="bg-card rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden" onClick={e => e.stopPropagation()}>
+      {selectedCompanyLeave && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm transition-all duration-300" onClick={() => setSelectedCompanyLeave(null)}>
+          <div className="bg-card rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden border-0" onClick={e => e.stopPropagation()}>
             {/* Header */}
             <div className="bg-gradient-to-r from-[#5e0080] via-[#942392] to-purple-500 px-6 py-5">
               <div className="flex items-start justify-between">
@@ -2224,7 +2226,8 @@ export default function Calendar() {
               </Button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Leave Request Detail Modal */}
@@ -2232,49 +2235,50 @@ export default function Calendar() {
         const startStr = fmtDate(selectedLeave.start_date);
         const endStr = fmtDate(selectedLeave.end_date);
         const totalDays = getTotalDays(selectedLeave.start_date.slice(0, 10), selectedLeave.end_date.slice(0, 10));
-        return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xl transition-all duration-300" onClick={() => setSelectedLeave(null)}>
-          <div className="bg-card rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden border border-border" onClick={e => e.stopPropagation()}>
-            <div className="bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-5 text-white">
-              <div className="flex items-start justify-between">
-                <div>
-                  <span className="text-xs font-semibold text-emerald-100 uppercase tracking-wide bg-white/20 px-2.5 py-0.5 rounded-full">Approved Leave</span>
-                  <h2 className="text-xl font-bold text-white mt-1">{selectedLeave.leave_type}</h2>
-                </div>
-                <button onClick={() => setSelectedLeave(null)} className="text-white/70 hover:text-white transition-colors">
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-            <div className="px-6 py-5 space-y-4">
-              <div className="flex items-start gap-3">
-                <CalendarIcon className="w-4 h-4 text-emerald-600 mt-1" />
-                <div>
-                  <p className="text-xs text-foreground font-medium uppercase tracking-wide">Duration</p>
-                  <p className="font-semibold text-foreground">{startStr} → {endStr} <span className="ml-2 text-xs font-bold text-emerald-600 dark:text-emerald-400">Total day: {totalDays} day{totalDays > 1 ? 's' : ''}</span></p>
-                </div>
-              </div>
-              {selectedLeave.reason && (
-                <div className="flex items-start gap-3">
-                  <FileText className="w-4 h-4 text-emerald-600 mt-1" />
+        return createPortal(
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm transition-all duration-300" onClick={() => setSelectedLeave(null)}>
+            <div className="bg-card rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden border-0" onClick={e => e.stopPropagation()}>
+              <div className="bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-5 text-white">
+                <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-xs text-foreground font-medium uppercase tracking-wide">Reason</p>
-                    <p className="font-semibold text-foreground">{selectedLeave.reason}</p>
+                    <span className="text-xs font-semibold text-emerald-100 uppercase tracking-wide bg-white/20 px-2.5 py-0.5 rounded-full">Approved Leave</span>
+                    <h2 className="text-xl font-bold text-white mt-1">{selectedLeave.leave_type}</h2>
+                  </div>
+                  <button onClick={() => setSelectedLeave(null)} className="text-white/70 hover:text-white transition-colors">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+              <div className="px-6 py-5 space-y-4">
+                <div className="flex items-start gap-3">
+                  <CalendarIcon className="w-4 h-4 text-emerald-600 mt-1" />
+                  <div>
+                    <p className="text-xs text-foreground font-medium uppercase tracking-wide">Duration</p>
+                    <p className="font-semibold text-foreground">{startStr} → {endStr} <span className="ml-2 text-xs font-bold text-emerald-600 dark:text-emerald-400">Total day: {totalDays} day{totalDays > 1 ? 's' : ''}</span></p>
                   </div>
                 </div>
-              )}
-              <div className="flex items-center gap-3">
-                <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300">
-                  🟢 Status: Approved
-                </Badge>
+                {selectedLeave.reason && (
+                  <div className="flex items-start gap-3">
+                    <FileText className="w-4 h-4 text-emerald-600 mt-1" />
+                    <div>
+                      <p className="text-xs text-foreground font-medium uppercase tracking-wide">Reason</p>
+                      <p className="font-semibold text-foreground">{selectedLeave.reason}</p>
+                    </div>
+                  </div>
+                )}
+                <div className="flex items-center gap-3">
+                  <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300">
+                    🟢 Status: Approved
+                  </Badge>
+                </div>
+              </div>
+              <div className="px-6 pb-5 flex justify-end">
+                <Button onClick={() => setSelectedLeave(null)} className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold">Close</Button>
               </div>
             </div>
-            <div className="px-6 pb-5 flex justify-end">
-              <Button onClick={() => setSelectedLeave(null)} className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold">Close</Button>
-            </div>
-          </div>
-        </div>
-      );
+          </div>,
+          document.body
+        );
       })()}
 
       {/* Outstation Detail Modal */}
@@ -2283,57 +2287,58 @@ export default function Calendar() {
         const endStr = fmtDate(selectedOutstation.end_date);
         const totalDays = getTotalDays(selectedOutstation.start_date.slice(0, 10), selectedOutstation.end_date.slice(0, 10));
         const headerTitle = selectedOutstation.project || selectedOutstation.purpose || selectedOutstation.destination;
-        return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xl transition-all duration-300" onClick={() => setSelectedOutstation(null)}>
-          <div className="bg-card rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden border border-border" onClick={e => e.stopPropagation()}>
-            <div className="bg-gradient-to-r from-pink-600 to-rose-600 px-6 py-5 text-white">
-              <div className="flex items-start justify-between">
-                <div>
-                  <span className="text-xs font-semibold text-pink-100 uppercase tracking-wide bg-white/20 px-2.5 py-0.5 rounded-full">✈️ Outstation</span>
-                  <h2 className="text-xl font-bold text-white mt-1 uppercase">{headerTitle}</h2>
-                </div>
-                <button onClick={() => setSelectedOutstation(null)} className="text-white/70 hover:text-white transition-colors">
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-            <div className="px-6 py-5 space-y-4">
-              <div className="flex items-start gap-3">
-                <MapPin className="w-4 h-4 text-pink-600 mt-1" />
-                <div>
-                  <p className="text-xs text-foreground font-medium uppercase tracking-wide">Destination</p>
-                  <p className="font-semibold text-foreground uppercase">{selectedOutstation.destination}</p>
-                </div>
-              </div>
-              {(selectedOutstation.project || selectedOutstation.purpose) && (
-                <div className="flex items-start gap-3">
-                  <Plane className="w-4 h-4 text-pink-600 mt-1" />
+        return createPortal(
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm transition-all duration-300" onClick={() => setSelectedOutstation(null)}>
+            <div className="bg-card rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden border-0" onClick={e => e.stopPropagation()}>
+              <div className="bg-gradient-to-r from-pink-600 to-rose-600 px-6 py-5 text-white">
+                <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-xs text-foreground font-medium uppercase tracking-wide">Project / Purpose</p>
-                    <p className="font-semibold text-foreground">{selectedOutstation.project ? selectedOutstation.project : selectedOutstation.purpose} {selectedOutstation.project && selectedOutstation.purpose ? `(${selectedOutstation.purpose})` : ''}</p>
+                    <span className="text-xs font-semibold text-pink-100 uppercase tracking-wide bg-white/20 px-2.5 py-0.5 rounded-full">✈️ Outstation</span>
+                    <h2 className="text-xl font-bold text-white mt-1 uppercase">{headerTitle}</h2>
+                  </div>
+                  <button onClick={() => setSelectedOutstation(null)} className="text-white/70 hover:text-white transition-colors">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+              <div className="px-6 py-5 space-y-4">
+                <div className="flex items-start gap-3">
+                  <MapPin className="w-4 h-4 text-pink-600 mt-1" />
+                  <div>
+                    <p className="text-xs text-foreground font-medium uppercase tracking-wide">Destination</p>
+                    <p className="font-semibold text-foreground uppercase">{selectedOutstation.destination}</p>
                   </div>
                 </div>
-              )}
-              <div className="flex items-start gap-3">
-                <CalendarIcon className="w-4 h-4 text-pink-600 mt-1" />
-                <div>
-                  <p className="text-xs text-foreground font-medium uppercase tracking-wide">Duration</p>
-                  <p className="font-semibold text-foreground">{startStr} — {endStr} <span className="ml-2 text-xs font-bold text-pink-600 dark:text-pink-400">Total day: {totalDays} day{totalDays > 1 ? 's' : ''}</span></p>
+                {(selectedOutstation.project || selectedOutstation.purpose) && (
+                  <div className="flex items-start gap-3">
+                    <Plane className="w-4 h-4 text-pink-600 mt-1" />
+                    <div>
+                      <p className="text-xs text-foreground font-medium uppercase tracking-wide">Project / Purpose</p>
+                      <p className="font-semibold text-foreground">{selectedOutstation.project ? selectedOutstation.project : selectedOutstation.purpose} {selectedOutstation.project && selectedOutstation.purpose ? `(${selectedOutstation.purpose})` : ''}</p>
+                    </div>
+                  </div>
+                )}
+                <div className="flex items-start gap-3">
+                  <CalendarIcon className="w-4 h-4 text-pink-600 mt-1" />
+                  <div>
+                    <p className="text-xs text-foreground font-medium uppercase tracking-wide">Duration</p>
+                    <p className="font-semibold text-foreground">{startStr} — {endStr} <span className="ml-2 text-xs font-bold text-pink-600 dark:text-pink-400">Total day: {totalDays} day{totalDays > 1 ? 's' : ''}</span></p>
+                  </div>
                 </div>
               </div>
+              <div className="px-6 pb-5 flex justify-end">
+                <Button onClick={() => setSelectedOutstation(null)} className="bg-pink-600 hover:bg-pink-700 text-white font-semibold">Close</Button>
+              </div>
             </div>
-            <div className="px-6 pb-5 flex justify-end">
-              <Button onClick={() => setSelectedOutstation(null)} className="bg-pink-600 hover:bg-pink-700 text-white font-semibold">Close</Button>
-            </div>
-          </div>
-        </div>
-      );
+          </div>,
+          document.body
+        );
       })()}
 
       {/* Attendance Detail Modal */}
-      {selectedAttendance && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xl transition-all duration-300" onClick={() => setSelectedAttendance(null)}>
-          <div className="bg-card rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden border border-border" onClick={e => e.stopPropagation()}>
+      {selectedAttendance && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm transition-all duration-300" onClick={() => setSelectedAttendance(null)}>
+          <div className="bg-card rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden border-0" onClick={e => e.stopPropagation()}>
             <div className="bg-gradient-to-r from-[#5e0080] via-[#942392] to-purple-600 px-6 py-5 text-white">
               <div className="flex items-start justify-between">
                 <div>
@@ -2379,7 +2384,8 @@ export default function Calendar() {
               <Button onClick={() => setSelectedAttendance(null)} className="bg-[#942392] hover:bg-[#5e0080] text-white font-semibold">Close</Button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Day Summary Modal */}
