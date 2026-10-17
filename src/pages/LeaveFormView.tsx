@@ -427,9 +427,9 @@ export default function LeaveFormView() {
             <div className="flex items-center gap-6 overflow-x-auto w-full sm:w-auto scrollbar-none">
               {([
                 { key: "history" as FormTabFilter, label: "History", count: monthFilteredForms.length, color: "text-[#942392]", border: "border-[#942392]", hoverText: "hover:text-[#942392]", hoverBorder: "hover:border-[#942392]", bgBadge: "bg-[#942392]", hoverBadge: "group-hover:bg-[#942392]" },
-                { key: "pending" as FormTabFilter, label: "Pending", count: pendingCount, color: "text-amber-500", border: "border-amber-500", hoverText: "hover:text-amber-500", hoverBorder: "hover:border-amber-500", bgBadge: "bg-amber-500", hoverBadge: "group-hover:bg-amber-500" },
+                { key: "pending" as FormTabFilter, label: "Pending", count: pendingCount, color: "text-[#ffff00]", border: "border-[#ffff00]", hoverText: "hover:text-[#ffff00]", hoverBorder: "hover:border-[#ffff00]", bgBadge: "bg-[#ffff00]", hoverBadge: "group-hover:bg-[#ffff00]" },
                 { key: "approved" as FormTabFilter, label: "Approved", count: approvedCount, color: "text-[#228b22]", border: "border-[#228b22]", hoverText: "hover:text-[#228b22]", hoverBorder: "hover:border-[#228b22]", bgBadge: "bg-[#228b22]", hoverBadge: "group-hover:bg-[#228b22]" },
-                { key: "rejected" as FormTabFilter, label: "Rejected", count: rejectedCount, color: "text-red-500", border: "border-red-500", hoverText: "hover:text-red-500", hoverBorder: "hover:border-red-500", bgBadge: "bg-red-500", hoverBadge: "group-hover:bg-red-500" }
+                { key: "rejected" as FormTabFilter, label: "Rejected", count: rejectedCount, color: "text-[#ff0000]", border: "border-[#ff0000]", hoverText: "hover:text-[#ff0000]", hoverBorder: "hover:border-[#ff0000]", bgBadge: "bg-[#ff0000]", hoverBadge: "group-hover:bg-[#ff0000]" }
               ]).map((tab) => (
                 <button
                   key={tab.key}
