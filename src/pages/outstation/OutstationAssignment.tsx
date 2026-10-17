@@ -732,14 +732,14 @@ export default function OutstationAssignment() {
           </div>
 
           {/* Header Filter Row */}
-          <div className="flex flex-wrap items-center justify-between w-full gap-2 border-b border-border/60 dark:border-slate-700">
+          <div className="flex flex-wrap items-end justify-between w-full gap-2 border-b border-border/60 dark:border-slate-700">
             
             {/* LEFT: Tabs (only in Events Overview mode) */}
             {!selectedEvent ? (
-              <div className="flex items-center gap-6 -mb-[2px] w-full sm:w-auto shrink-0">
+              <div className="flex items-center gap-6 w-full sm:w-auto shrink-0">
                 <button
                   onClick={() => setViewType("month")}
-                  className={`text-sm font-bold pb-2.5 transition-colors border-b-2 ${
+                  className={`text-sm font-bold pb-2.5 translate-y-[1px] relative z-10 transition-colors border-b-2 ${
                     viewType === "month"
                       ? "text-[#942392] border-[#942392]"
                       : "text-foreground/70 hover:text-foreground border-transparent hover:border-[#ffff00]"
@@ -749,7 +749,7 @@ export default function OutstationAssignment() {
                 </button>
                 <button
                   onClick={() => setViewType("year")}
-                  className={`text-sm font-bold pb-2.5 transition-colors border-b-2 ${
+                  className={`text-sm font-bold pb-2.5 translate-y-[1px] relative z-10 transition-colors border-b-2 ${
                     viewType === "year"
                       ? "text-[#942392] border-[#942392]"
                       : "text-foreground/70 hover:text-foreground border-transparent hover:border-[#ffff00]"
