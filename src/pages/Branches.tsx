@@ -525,27 +525,6 @@ export default function Branches() {
   };
 
   useEffect(() => {
-    if (allBranches.length > 0) {
-      const fetchBranchStats = async () => {
-        try {
-          const params = new URLSearchParams({
-            startDate: new Date().toISOString().split("T")[0],
-            endDate: new Date().toISOString().split("T")[0],
-          });
-          const response = await fetch(
-            `${API_BASE_URL}/api/analytics/branch-stats?${params}`,
-          );
-          const data = await response.json();
-          if (data.success) setBranchStats(data.data || []);
-        } catch (err) {
-          console.error("Error fetching branch stats", err);
-        }
-      };
-      fetchBranchStats();
-    }
-  }, [allBranches]);
-
-  useEffect(() => {
     if (!selectedBranch || !selectedBranch.code) return;
     const fetchBranchEmployees = async () => {
       setLoading(true);
