@@ -290,10 +290,10 @@ export default function MyOutstation() {
         <div className="px-4 sm:px-6 pt-2 sm:pt-4 border-b border-gray-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
           <div className="flex items-center gap-6 w-full sm:w-auto overflow-x-auto scrollbar-none">
             {([
-              { key: "Upcoming" as const, color: "text-amber-500", border: "border-amber-500", hoverText: "hover:text-amber-500", hoverBorder: "hover:border-amber-500", bgBadge: "bg-amber-500", hoverBadge: "group-hover:bg-amber-500" },
-              { key: "Active" as const, color: "text-pink-500", border: "border-pink-500", hoverText: "hover:text-pink-500", hoverBorder: "hover:border-pink-500", bgBadge: "bg-pink-500", hoverBadge: "group-hover:bg-pink-500" },
+              { key: "Upcoming" as const, color: "text-[#ffff00]", border: "border-[#ffff00]", hoverText: "hover:text-[#ffff00]", hoverBorder: "hover:border-[#ffff00]", bgBadge: "bg-[#ffff00]", hoverBadge: "group-hover:bg-[#ffff00]" },
+              { key: "Active" as const, color: "text-[#e4007c]", border: "border-[#e4007c]", hoverText: "hover:text-[#e4007c]", hoverBorder: "hover:border-[#e4007c]", bgBadge: "bg-[#e4007c]", hoverBadge: "group-hover:bg-[#e4007c]" },
               { key: "Completed" as const, color: "text-[#228b22]", border: "border-[#228b22]", hoverText: "hover:text-[#228b22]", hoverBorder: "hover:border-[#228b22]", bgBadge: "bg-[#228b22]", hoverBadge: "group-hover:bg-[#228b22]" },
-              { key: "Cancelled" as const, color: "text-red-500", border: "border-red-500", hoverText: "hover:text-red-500", hoverBorder: "hover:border-red-500", bgBadge: "bg-red-500", hoverBadge: "group-hover:bg-red-500" }
+              { key: "Cancelled" as const, color: "text-[#ff0000]", border: "border-[#ff0000]", hoverText: "hover:text-[#ff0000]", hoverBorder: "hover:border-[#ff0000]", bgBadge: "bg-[#ff0000]", hoverBadge: "group-hover:bg-[#ff0000]" }
             ]).map((item) => {
               const s = item.key;
               return (
