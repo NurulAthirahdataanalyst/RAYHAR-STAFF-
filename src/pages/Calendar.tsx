@@ -1686,7 +1686,7 @@ export default function Calendar() {
           onClick={() => { setIsAddEventModalOpen(false); setEditingEventId(null); }}
         >
           <div 
-            className="bg-card w-full max-w-md rounded-2xl shadow-2xl border border-border/60 overflow-hidden animate-in zoom-in-95 duration-200"
+            className="bg-card w-full max-w-md rounded-2xl shadow-2xl border-0 overflow-hidden animate-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between p-5 border-b border-slate-200 dark:border-slate-700 bg-[#942392]">
@@ -1951,9 +1951,9 @@ export default function Calendar() {
         }
 
         return createPortal(
-          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xl animate-in fade-in transition-all duration-300" onClick={() => setSelectedEvent(null)}>
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in transition-all duration-300" onClick={() => setSelectedEvent(null)}>
             <div 
-              className="w-full max-w-[380px] rounded-2xl shadow-2xl border border-border/60 overflow-hidden animate-in zoom-in-95 duration-200 bg-card"
+              className="w-full max-w-[380px] rounded-2xl shadow-2xl border-0 overflow-hidden animate-in zoom-in-95 duration-200 bg-card"
               onClick={e => e.stopPropagation()}
             >
               {/* Header with category background & identical separator line */}
@@ -2393,7 +2393,7 @@ export default function Calendar() {
             onClick={() => setSelectedDaySummary(null)}
           >
             <div
-              className="bg-card rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden border border-border flex flex-col max-h-[85vh]"
+              className="bg-card rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden border-0 flex flex-col max-h-[85vh]"
               onClick={e => e.stopPropagation()}
             >
               {/* Header */}

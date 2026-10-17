@@ -294,7 +294,7 @@ export default function OutstationCalendar({ onlyMine = false }: { onlyMine?: bo
 
         return createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 sm:p-6 transition-all duration-300 animate-in fade-in" onClick={() => setSelectedEvent(null)}>
-          <div className="bg-card rounded-2xl shadow-2xl overflow-hidden max-w-xl sm:max-w-2xl w-full flex flex-col max-h-[90vh] border border-border/60 animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+          <div className="bg-card rounded-2xl shadow-2xl overflow-hidden max-w-xl sm:max-w-2xl w-full flex flex-col max-h-[90vh] border-0 animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
             {/* Header */}
             <div className="flex items-center justify-between bg-gradient-to-r from-pink-600 to-[#942392] text-white px-5 py-4 sm:px-6 sm:py-4.5">
               <div className="flex items-center gap-3.5 min-w-0">
