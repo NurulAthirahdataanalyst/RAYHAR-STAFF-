@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { API_BASE_URL } from "../config/api";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -1615,8 +1616,8 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
         </div>
       )}
       {/* Maximized Chart Modal */}
-      {isChartMaximized && month === "all" && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-8 bg-background/80 backdrop-blur-sm">
+      {isChartMaximized && month === "all" && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-8 bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
           <Card className="w-full max-w-5xl h-[80vh] flex flex-col shadow-2xl border-border/50 rounded-2xl relative overflow-hidden bg-card animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between p-6 border-b border-border/50">
               <h2 className="text-lg font-black uppercase tracking-wider text-foreground">PUNCTUALITY TREND (ALL MONTHS)</h2>
@@ -1708,7 +1709,8 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
               )}
             </CardContent>
           </Card>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

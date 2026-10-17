@@ -1,5 +1,6 @@
 import { safeUrl } from '@/utils/security';
 import { useState, useEffect, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { format, isSameDay, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, addMonths, subMonths, isBefore, startOfDay } from "date-fns";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
 import { exportToCSV } from "@/utils/export";
@@ -1949,8 +1950,8 @@ export default function Calendar() {
           }
         }
 
-        return (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xl animate-in fade-in transition-all duration-300" onClick={() => setSelectedEvent(null)}>
+        return createPortal(
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xl animate-in fade-in transition-all duration-300" onClick={() => setSelectedEvent(null)}>
             <div 
               className="w-full max-w-[380px] rounded-2xl shadow-2xl border border-border/60 overflow-hidden animate-in zoom-in-95 duration-200 bg-card"
               onClick={e => e.stopPropagation()}
@@ -2059,7 +2060,8 @@ export default function Calendar() {
                 </div>
               </div>
             </div>
-          </div>
+          </div>,
+          document.body
         );
       })()}
 
