@@ -11825,13 +11825,81 @@ app.get("/api/work-assignments-all", async (req, res) => {
           p.full_name as name,
           p.branch as primary_branch,
           p.department,
-          p.role
+          p.role,
+          today.clock_in AS today_clock_in,
+          today.clock_out AS today_clock_out,
+          CASE WHEN COALESCE(leave_today.leave_count, 0) > 0 THEN 1 ELSE 0 END AS is_on_leave,
+          CASE WHEN COALESCE(outstation_today.outstation_count, 0) > 0 THEN 1 ELSE 0 END AS is_outstation
         FROM employee_work_assignment ewa
         JOIN profiles p ON ewa.user_id = p.user_id
+        LEFT JOIN (
+          SELECT 
+            user_id,
+            MIN(clock_in) AS clock_in,
+            MAX(clock_out) AS clock_out
+          FROM attendances
+          WHERE (clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date
+          GROUP BY user_id
+        ) today ON today.user_id = p.user_id
+        LEFT JOIN (
+          SELECT user_id, COUNT(*) as leave_count
+          FROM leave_requests
+          WHERE status = 'Approved'
+          AND (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date
+          GROUP BY user_id
+        ) leave_today ON leave_today.user_id = p.user_id
+        LEFT JOIN (
+          SELECT user_id, COUNT(*) as outstation_count
+          FROM outstation_assignments
+          WHERE status != 'Cancelled'
+          AND (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date
+          GROUP BY user_id
+        ) outstation_today ON outstation_today.user_id = p.user_id
         ${filterP}
         ORDER BY ewa.start_date DESC
       `, paramsTotal);
-      res.json({ success: true, assignments: rows });
+
+      const [companyLeaves] = await pool.query(
+        `SELECT * FROM company_leave_calendar WHERE status = 'Active' AND (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date`
+      );
+
+      const branchZoneMap = await getBranchZoneMap();
+      const now = new Date();
+      const klOffset = 8 * 60;
+      const queryDateObj = new Date(now.getTime() + (now.getTimezoneOffset() * 60000) + (klOffset * 60000));
+
+      const assignments = rows.map((row) => {
+        const activeBranch = row.temp_branch || row.primary_branch;
+        const activeDept = row.assigned_department || row.department;
+        const matchingLeave = companyLeaves.find(cl => {
+          if (cl.applies_to === 'all') return true;
+          if (cl.applies_to === 'branch' && cl.branch_id) {
+            const branchesList = cl.branch_id.split(',').map(s => s.trim());
+            return branchesList.includes(activeBranch) || branchesList.includes(row.primary_branch);
+          }
+          if (cl.applies_to === 'department' && cl.department_id) {
+            const depts = cl.department_id.split(',').map(s => s.trim());
+            const normEmpDept = (activeDept || '').toLowerCase().replace(/\bdepartment\b/g, '').trim();
+            return depts.some(d => {
+              const normClDept = d.toLowerCase().replace(/\bdepartment\b/g, '').trim();
+              return normEmpDept === normClDept || activeDept === d;
+            });
+          }
+          return false;
+        });
+
+        row.company_leave_match = matchingLeave;
+        const userZone = branchZoneMap.get(activeBranch) || 'ZONE_B';
+        row.is_rest_day = checkIsWeekend(userZone, queryDateObj);
+        const todayStatus = computeEmployeeTodayStatus(row);
+
+        return {
+          ...row,
+          today_status: todayStatus
+        };
+      });
+
+      res.json({ success: true, assignments });
     } catch(e) {
       res.status(500).json({ success: false, error: e.message });
     }

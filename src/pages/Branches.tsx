@@ -448,7 +448,43 @@ export default function Branches() {
       const res = await fetch(`${API_BASE_URL}/api/work-assignments-all`);
       const data = await res.json();
       if (data.success) {
-        setTemporaryStaff(data.assignments || []);
+        const list = data.assignments || [];
+        const missingBranches = Array.from(
+          new Set(
+            list
+              .filter((a: any) => a.status === "Active" && !a.today_status && a.primary_branch)
+              .map((a: any) => a.primary_branch)
+          )
+        ) as string[];
+
+        if (missingBranches.length > 0) {
+          const statusMap: Record<string, string> = {};
+          await Promise.all(
+            missingBranches.map(async (br) => {
+              try {
+                const bRes = await fetch(`${API_BASE_URL}/api/branch-employees?branch=${encodeURIComponent(br)}`);
+                const bData = await bRes.json();
+                if (bData.success && Array.isArray(bData.employees)) {
+                  bData.employees.forEach((emp: any) => {
+                    if (emp.user_id && emp.today_status) {
+                      statusMap[emp.user_id] = emp.today_status;
+                    }
+                  });
+                }
+              } catch (err) {
+                console.error("Failed to fetch branch employees for temp staff status", err);
+              }
+            })
+          );
+          setTemporaryStaff(
+            list.map((a: any) => ({
+              ...a,
+              today_status: a.today_status || statusMap[a.user_id] || "Absent",
+            }))
+          );
+        } else {
+          setTemporaryStaff(list);
+        }
       }
     } catch (e) {
       console.error("Failed to fetch temporary staff", e);
@@ -946,6 +982,7 @@ export default function Branches() {
                                       <th className="text-left py-4 px-6 text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Department</th>
                                     )}
                                     <th className="text-left py-4 px-6 text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Assignment Period</th>
+                                    <th className="text-left py-4 px-6 text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Today Status</th>
                                   </tr>
                                 </thead>
                                 <tbody className="divide-y divide-border/50">
@@ -975,6 +1012,30 @@ export default function Branches() {
                                       )}
                                       <td className="py-4 px-6 text-sm font-semibold text-foreground uppercase">
                                         {new Date(assignment.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()} - {new Date(assignment.end_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()}
+                                      </td>
+                                      <td className="py-4 px-6">
+                                        {(() => {
+                                          const todayStatus = assignment.today_status || "Absent";
+                                          return (
+                                            <span
+                                              className={`inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap ${
+                                                todayStatus === "Present (On Time)" || todayStatus === "Present"
+                                                  ? "bg-[#228b22] text-white border-transparent"
+                                                  : todayStatus === "Present (Late)"
+                                                    ? "bg-amber-500 text-white border-transparent"
+                                                    : todayStatus === "Outstation"
+                                                      ? "bg-pink-500 text-white border-transparent"
+                                                      : todayStatus === "On Leave"
+                                                        ? "bg-blue-500 text-white border-transparent"
+                                                        : todayStatus === "Company Leave"
+                                                          ? "bg-purple-500 text-white border-transparent"
+                                                          : "bg-rose-500 text-white border-transparent"
+                                              }`}
+                                            >
+                                              {todayStatus}
+                                            </span>
+                                          );
+                                        })()}
                                       </td>
                                     </tr>
                                   ))}
