@@ -634,7 +634,7 @@ export default function EmployeeAnalytics() {
     <div className="space-y-5 sm:space-y-7 animate-in fade-in duration-500 pb-12">
 
       {/* ── Page Header ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="flex flex-col items-start gap-4 w-full">
         <div className="flex items-center gap-3">
           <div className="p-2.5 bg-[#942392] rounded-xl text-white">
             <Activity className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
@@ -650,7 +650,7 @@ export default function EmployeeAnalytics() {
         </div>
 
         {/* Month/Year Filter */}
-        <div className="flex items-center gap-2 self-start sm:self-auto">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto sm:ml-auto">
           <MonthPicker
             monthYear={selectedMonth === "all" ? `${selectedYear}-all` : `${selectedYear}-${selectedMonth.padStart(2, '0')}`}
             onSelectMonthYear={(val) => {
