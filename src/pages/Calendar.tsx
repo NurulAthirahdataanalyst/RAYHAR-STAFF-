@@ -1952,18 +1952,18 @@ export default function Calendar() {
         return (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xl animate-in fade-in transition-all duration-300" onClick={() => setSelectedEvent(null)}>
             <div 
-              className="w-full max-w-[420px] rounded-2xl shadow-2xl border border-border/60 overflow-hidden animate-in zoom-in-95 duration-200 bg-card"
+              className="w-full max-w-[380px] rounded-2xl shadow-2xl border border-border/60 overflow-hidden animate-in zoom-in-95 duration-200 bg-card"
               onClick={e => e.stopPropagation()}
             >
               {/* Header with category background & identical separator line */}
               <div 
-                className={`flex items-center justify-between p-5 border-b border-slate-200 dark:border-slate-700 ${headerBgClass}`}
+                className={`flex items-center justify-between px-4 py-3 sm:px-5 sm:py-3.5 border-b border-slate-200 dark:border-slate-700 ${headerBgClass}`}
                 style={headerBgStyle}
               >
-                <div className="flex items-center gap-3">
-                  <h3 className="font-bold text-lg text-white tracking-tight">Event Details</h3>
+                <div className="flex items-center gap-2.5">
+                  <h3 className="font-bold text-base text-white tracking-tight">Event Details</h3>
                   <span 
-                    className={`inline-flex items-center rounded-md px-2.5 py-0.5 text-[11px] font-bold shadow-xs ${tagColorClass}`}
+                    className={`inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-bold shadow-xs ${tagColorClass}`}
                     style={tagColorStyle}
                   >
                     {categoryName}
@@ -1971,58 +1971,58 @@ export default function Calendar() {
                 </div>
                 <button 
                   onClick={() => setSelectedEvent(null)} 
-                  className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/20 text-white transition-colors"
+                  className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-white/20 text-white transition-colors"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-4 h-4" />
                 </button>
               </div>
 
               {/* Body */}
-              <div className="p-6">
-                <div className="mb-6">
-                  <h3 className="text-2xl font-extrabold text-slate-900 dark:text-slate-100 leading-tight">{modalEventName}</h3>
+              <div className="p-4 sm:p-5">
+                <div className="mb-4">
+                  <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 leading-snug">{modalEventName}</h3>
                 </div>
 
                 <div className="flex flex-col">
                   {/* DATE ROW */}
-                  <div className="flex gap-4 pb-4">
-                    <CalendarIcon className="w-[18px] h-[18px] mt-0.5 text-[#942392]" strokeWidth={2} />
+                  <div className="flex gap-3 pb-3">
+                    <CalendarIcon className="w-4 h-4 mt-0.5 text-[#942392] shrink-0" strokeWidth={2} />
                     <div className="flex flex-col">
-                      <span className="text-[11px] text-foreground font-bold uppercase tracking-wider mb-0.5">Date</span>
-                      <span className="text-[15px] text-slate-900 dark:text-slate-100 font-semibold">{finalDateDisplay}</span>
+                      <span className="text-[10px] text-foreground font-bold uppercase tracking-wider mb-0.5">Date</span>
+                      <span className="text-xs sm:text-sm text-slate-900 dark:text-slate-100 font-semibold">{finalDateDisplay}</span>
                     </div>
                   </div>
                   
                   {/* TIME ROW */}
                   {finalTimeDisplay && (
-                    <div className="flex gap-4 pb-4">
-                      <Clock className="w-[18px] h-[18px] mt-0.5 text-[#942392]" strokeWidth={2} />
+                    <div className="flex gap-3 pb-3">
+                      <Clock className="w-4 h-4 mt-0.5 text-[#942392] shrink-0" strokeWidth={2} />
                       <div className="flex flex-col">
-                        <span className="text-[11px] text-foreground font-bold uppercase tracking-wider mb-0.5">Time</span>
-                        <span className="text-[15px] text-slate-900 dark:text-slate-100 font-semibold">{finalTimeDisplay}</span>
-                        {durationDisplay && <span className="text-[13px] text-foreground font-medium mt-0.5">({durationDisplay})</span>}
+                        <span className="text-[10px] text-foreground font-bold uppercase tracking-wider mb-0.5">Time</span>
+                        <span className="text-xs sm:text-sm text-slate-900 dark:text-slate-100 font-semibold">{finalTimeDisplay}</span>
+                        {durationDisplay && <span className="text-[11px] text-foreground font-medium mt-0.5">({durationDisplay})</span>}
                       </div>
                     </div>
                   )}
 
                   {/* LOCATION ROW */}
                   {modalLocation && (
-                    <div className="flex gap-4 pb-4">
-                      <MapPin className="w-[18px] h-[18px] mt-0.5 text-[#942392]" strokeWidth={2} />
+                    <div className="flex gap-3 pb-3">
+                      <MapPin className="w-4 h-4 mt-0.5 text-[#942392] shrink-0" strokeWidth={2} />
                       <div className="flex flex-col">
-                        <span className="text-[11px] text-foreground font-bold uppercase tracking-wider mb-0.5">Location</span>
-                        <div className="text-[15px] text-slate-900 dark:text-slate-100 font-semibold">{renderLocation(modalLocation)}</div>
+                        <span className="text-[10px] text-foreground font-bold uppercase tracking-wider mb-0.5">Location</span>
+                        <div className="text-xs sm:text-sm text-slate-900 dark:text-slate-100 font-semibold">{renderLocation(modalLocation)}</div>
                       </div>
                     </div>
                   )}
 
                   {/* DESCRIPTION ROW */}
                   {modalDescription && (
-                    <div className="flex gap-4 pb-2">
-                      <FileText className="w-[18px] h-[18px] mt-0.5 text-[#942392]" strokeWidth={2} />
+                    <div className="flex gap-3 pb-1">
+                      <FileText className="w-4 h-4 mt-0.5 text-[#942392] shrink-0" strokeWidth={2} />
                       <div className="flex flex-col">
-                        <span className="text-[11px] text-foreground font-bold uppercase tracking-wider mb-0.5">Description</span>
-                        <span className="text-[15px] text-slate-800 dark:text-slate-200 font-medium whitespace-pre-wrap leading-relaxed">{modalDescription}</span>
+                        <span className="text-[10px] text-foreground font-bold uppercase tracking-wider mb-0.5">Description</span>
+                        <span className="text-xs sm:text-sm text-slate-800 dark:text-slate-200 font-medium whitespace-pre-wrap leading-relaxed">{modalDescription}</span>
                       </div>
                     </div>
                   )}
@@ -2030,16 +2030,18 @@ export default function Calendar() {
               </div>
 
               {/* Footer with identical separator line & Edit button at left-most in line with Delete and Close */}
-              <div className="flex items-center justify-between px-6 py-4 border-t border-slate-200 dark:border-slate-700 bg-card">
+              <div className="flex items-center justify-between px-4 py-3 sm:px-5 sm:py-3 border-t border-slate-200 dark:border-slate-700 bg-card">
                 <Button
+                  size="sm"
                   variant="outline"
                   onClick={() => handleOpenEditEvent(selectedEvent)}
-                  className="font-semibold px-6 rounded-lg border-[#942392]/30 text-[#942392] hover:bg-[#942392]/10 hover:text-[#942392] dark:border-purple-500/40 dark:text-purple-300"
+                  className="h-8 text-xs font-semibold px-4 rounded-lg border-[#942392]/30 text-[#942392] hover:bg-[#942392]/10 hover:text-[#942392] dark:border-purple-500/40 dark:text-purple-300"
                 >
                   Edit
                 </Button>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 sm:gap-2.5">
                   <Button 
+                    size="sm"
                     variant="outline" 
                     onClick={() => {
                       if (confirm('Are you sure you want to delete this event?')) {
@@ -2047,11 +2049,11 @@ export default function Calendar() {
                         setSelectedEvent(null);
                       }
                     }} 
-                    className="font-semibold px-6 rounded-lg border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+                    className="h-8 text-xs font-semibold px-3.5 rounded-lg border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
                   >
                     Delete
                   </Button>
-                  <Button variant="outline" onClick={() => setSelectedEvent(null)} className="font-semibold px-6 rounded-lg border-slate-300 text-slate-700 hover:bg-slate-50 dark:bg-slate-900/50 dark:text-slate-200">
+                  <Button size="sm" variant="outline" onClick={() => setSelectedEvent(null)} className="h-8 text-xs font-semibold px-3.5 rounded-lg border-slate-300 text-slate-700 hover:bg-slate-50 dark:bg-slate-900/50 dark:border-slate-700 dark:text-slate-200">
                     Close
                   </Button>
                 </div>
