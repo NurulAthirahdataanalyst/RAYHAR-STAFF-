@@ -1898,20 +1898,20 @@ export default function Attendance() {
       <div className="relative z-10 w-full w-full pb-8">
         <Card className="border border-slate-100 dark:border-slate-700 bg-card shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] rounded-[24px] overflow-hidden backdrop-blur-md ">
           {/* Header Row */}
-          <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/50 bg-muted/20 pb-4">
-            <div>
+          <CardHeader className="flex flex-wrap items-center justify-between gap-3 border-b border-border/50 bg-muted/20 pb-4">
+            <div className="shrink-0">
               <CardTitle className="text-lg font-bold">Employee Attendance</CardTitle>
               <p className="text-xs font-bold text-foreground uppercase tracking-widest mt-1">Detailed Log Records</p>
             </div>
             
-            <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex items-center gap-2 flex-wrap w-full md:w-auto md:ml-auto">
               {/* Date Filter */}
-              <div className="relative">
+              <div className="relative w-[calc(50%-0.25rem)] sm:w-auto shrink-0">
                 {viewMode === "day" ? (
                   <Popover>
                     <PopoverTrigger asChild>
-                      <button className="appearance-none flex items-center justify-center px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-[34px] gap-2 hover:bg-muted/80">
-                        {new Date(selectedDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()} <CalendarDays className="w-4 h-4 text-foreground" />
+                      <button className="appearance-none flex items-center justify-between sm:justify-center w-full sm:w-auto px-3 sm:px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-[34px] gap-2 hover:bg-muted/80">
+                        {new Date(selectedDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()} <CalendarDays className="w-4 h-4 text-foreground shrink-0" />
                       </button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0 overflow-hidden border-none shadow-xl" align="start">
@@ -1931,16 +1931,16 @@ export default function Attendance() {
                     onSelectMonthYear={(val) => {
                       setSelectedDate(`${val}-01`);
                     }}
-                    className="appearance-none flex items-center justify-center h-[34px] px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest"
+                    className="appearance-none flex items-center justify-between sm:justify-center w-full sm:w-auto h-[34px] px-3 sm:px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest"
                   />
                 )}
               </div>
 
               {/* View Tabs */}
-              <div className="flex bg-muted/40 p-1 rounded-md border border-border/40">
+              <div className="flex bg-muted/40 p-1 rounded-md border border-border/40 w-[calc(50%-0.25rem)] sm:w-auto shrink-0">
                 <button
                   onClick={() => setViewMode("day")}
-                  className={`px-4 py-1.5 text-[10px] font-black tracking-wider rounded-md transition-all uppercase ${
+                  className={`flex-1 sm:flex-none px-3 sm:px-4 py-1.5 text-[10px] font-black tracking-wider rounded-md transition-all uppercase ${
                     viewMode === "day" ? "bg-[#942392] text-white shadow-sm" : "text-foreground hover:text-foreground"
                   }`}
                 >
@@ -1948,7 +1948,7 @@ export default function Attendance() {
                 </button>
                 <button
                   onClick={() => setViewMode("month")}
-                  className={`px-4 py-1.5 text-[10px] font-black tracking-wider rounded-md transition-all uppercase ${
+                  className={`flex-1 sm:flex-none px-3 sm:px-4 py-1.5 text-[10px] font-black tracking-wider rounded-md transition-all uppercase ${
                     viewMode === "month" ? "bg-[#942392] text-white shadow-sm" : "text-foreground hover:text-foreground"
                   }`}
                 >
@@ -1957,12 +1957,12 @@ export default function Attendance() {
               </div>
 
               {/* Status Filter */}
-              <div className="flex bg-muted/40 p-1 rounded-md border border-border/40">
+              <div className="flex flex-wrap bg-muted/40 p-1 rounded-md border border-border/40 w-full sm:w-auto gap-0.5">
                 {(["ALL", "ON TIME", "LATE", "ABSENT", "ON LEAVE"] as const).map((status) => (
                   <button
                     key={status}
                     onClick={() => setStatusFilter(status)}
-                    className={`px-3 py-1.5 text-[10px] font-black tracking-wider rounded-md transition-all uppercase ${
+                    className={`flex-1 sm:flex-none px-2.5 sm:px-3 py-1.5 text-[10px] font-black tracking-wider rounded-md transition-all uppercase whitespace-nowrap ${
                       statusFilter === status
                         ? status === "ABSENT"
                           ? "bg-red-600 text-white shadow-sm"
@@ -1976,7 +1976,9 @@ export default function Attendance() {
               </div>
               
               {/* Export */}
-              <ExportDropdown onExportCSV={handleExportCSV} onExportPDF={handleExportPDF} />
+              <div className="shrink-0 ml-auto sm:ml-0">
+                <ExportDropdown onExportCSV={handleExportCSV} onExportPDF={handleExportPDF} />
+              </div>
             </div>
           </CardHeader>
 

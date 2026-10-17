@@ -704,8 +704,8 @@ export default function Notifications() {
       </div>
 
       {/* Tabs, Search Bar, and Month Picker */}
-      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-card p-2 rounded-xl border border-border shadow-xs">
-        <div className="flex items-center gap-1 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
+      <div className="flex flex-wrap items-center justify-between gap-2 bg-card p-2.5 rounded-xl border border-border shadow-xs">
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-1 overflow-x-auto pb-1 sm:pb-0 scrollbar-none w-full lg:w-auto">
           {[
             { id: "all", label: "All" },
             { id: "unread", label: "Unread" },
@@ -717,7 +717,7 @@ export default function Notifications() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as FilterTab)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all ${
+              className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all ${
                 activeTab === tab.id
                   ? "bg-[#942392] text-white shadow-xs"
                   : "text-muted-foreground hover:text-foreground hover:bg-muted"
@@ -728,18 +728,19 @@ export default function Notifications() {
           ))}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto sm:ml-auto">
           <MonthPicker
             monthYear={selectedMonthYear}
             onSelectMonthYear={setSelectedMonthYear}
+            className="w-[calc(45%-0.25rem)] sm:w-auto shrink-0 h-8"
           />
-          <div className="relative min-w-[220px]">
-            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <div className="relative flex-1 min-w-[150px] sm:min-w-[200px]">
+            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search notifications..."
-              className="pl-8 h-8 text-xs bg-background"
+              className="pl-8 h-8 text-xs bg-background w-full"
             />
           </div>
         </div>

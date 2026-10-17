@@ -482,11 +482,11 @@ export default function OutstationReports() {
           </div>
 
           {/* Filter row */}
-          <div className="flex flex-col xl:flex-row items-start xl:items-end justify-between w-full gap-3 border-b border-gray-100 dark:border-slate-800">
+          <div className="flex flex-wrap items-center justify-between w-full gap-2 border-b border-gray-100 dark:border-slate-800">
 
             {/* LEFT: Month/Year tabs — only in Events Overview (not in Event Details) */}
             {!selectedEventName ? (
-              <div className="flex items-center gap-6 -mb-[1px]">
+              <div className="flex items-center gap-6 -mb-[1px] w-full sm:w-auto shrink-0">
                 <button
                   onClick={() => setViewType("month")}
                   className={`text-sm font-bold pb-2.5 transition-colors border-b-[3px] ${
@@ -509,34 +509,34 @@ export default function OutstationReports() {
                 </button>
               </div>
             ) : (
-              <div /> /* spacer so flex-row layout is consistent */
+              <div className="hidden sm:block" /> /* spacer so flex-row layout is consistent */
             )}
 
             {/* RIGHT: Filters */}
-            <div className="flex items-center gap-2 flex-wrap pb-2.5">
+            <div className="flex items-center gap-2 flex-wrap pb-2.5 w-full sm:w-auto sm:ml-auto">
 
-              {/* Events Overview filters: Calendar → Search → Status */}
+              {/* Events Overview filters: Search → Calendar → Status */}
               {!selectedEventName ? (
                 <>
+                  <div className="relative w-full sm:w-44 shrink-0">
+                    <Search className="w-3.5 h-3.5 text-foreground absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <Input placeholder="Search event..." value={filterSearch} onChange={e => setFilterSearch(e.target.value)} className="pl-8 h-8 text-xs w-full bg-gray-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-foreground dark:text-slate-100" />
+                  </div>
                   {viewType === "month" ? (
                     <MonthPicker
                       monthYear={selectedMonthYear}
                       onSelectMonthYear={setSelectedMonthYear}
-                      className="appearance-none flex items-center justify-between px-3 py-1.5 bg-gray-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-foreground dark:text-slate-100 text-xs font-black rounded-md shadow-sm outline-none cursor-pointer h-8 gap-2 hover:border-[#942392]/40"
+                      className="appearance-none flex items-center justify-between px-3 py-1.5 bg-gray-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-foreground dark:text-slate-100 text-xs font-black rounded-md shadow-sm outline-none cursor-pointer h-8 gap-2 hover:border-[#942392]/40 w-[calc(50%-0.25rem)] sm:w-auto shrink-0"
                     />
                   ) : (
                     <YearPopover
                       year={selectedYear}
                       onSelectYear={setSelectedYear}
-                      className="appearance-none flex items-center justify-between px-3 py-1.5 bg-gray-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-foreground dark:text-slate-100 text-xs font-black rounded-md shadow-sm outline-none cursor-pointer h-8 gap-2 hover:border-yellow-500/40"
+                      className="appearance-none flex items-center justify-between px-3 py-1.5 bg-gray-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-foreground dark:text-slate-100 text-xs font-black rounded-md shadow-sm outline-none cursor-pointer h-8 gap-2 hover:border-yellow-500/40 w-[calc(50%-0.25rem)] sm:w-auto shrink-0"
                     />
                   )}
-                  <div className="relative">
-                    <Search className="w-3.5 h-3.5 text-foreground absolute left-2.5 top-1/2 -translate-y-1/2" />
-                    <Input placeholder="Search event..." value={filterSearch} onChange={e => setFilterSearch(e.target.value)} className="pl-8 h-8 text-xs w-44 bg-gray-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-foreground dark:text-slate-100" />
-                  </div>
                   <Select value={filterStatus} onValueChange={setFilterStatus}>
-                    <SelectTrigger className="w-[130px] h-8 text-xs bg-gray-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-foreground dark:text-slate-100">
+                    <SelectTrigger className="w-[calc(50%-0.25rem)] sm:w-[130px] shrink-0 h-8 text-xs bg-gray-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-foreground dark:text-slate-100">
                       <SelectValue placeholder="Status">{filterStatus === "All" ? "All Status" : filterStatus}</SelectValue>
                     </SelectTrigger>
                     <SelectContent className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-foreground dark:text-slate-100">
@@ -545,10 +545,14 @@ export default function OutstationReports() {
                   </Select>
                 </>
               ) : (
-                /* Event Details filters: Branch → Dept → Search (far right) */
+                /* Event Details filters: Search → Branch → Dept */
                 <>
+                  <div className="relative w-full sm:w-44 shrink-0">
+                    <Search className="w-3.5 h-3.5 text-foreground absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <Input placeholder="Search employee..." value={filterSearch} onChange={e => setFilterSearch(e.target.value)} className="pl-8 h-8 text-xs w-full bg-gray-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-foreground dark:text-slate-100" />
+                  </div>
                   <Select value={filterBranch} onValueChange={setFilterBranch}>
-                    <SelectTrigger className="w-[160px] sm:w-[210px] h-8 text-xs bg-gray-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-foreground dark:text-slate-100">
+                    <SelectTrigger className="w-[calc(50%-0.25rem)] sm:w-[180px] shrink-0 h-8 text-xs bg-gray-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-foreground dark:text-slate-100">
                       <SelectValue placeholder="Branch">
                         {filterBranch === "All"
                           ? "All Branches"
@@ -570,7 +574,7 @@ export default function OutstationReports() {
                     </SelectContent>
                   </Select>
                   <Select value={filterDept} onValueChange={setFilterDept}>
-                    <SelectTrigger className="w-[140px] sm:w-[190px] h-8 text-xs bg-gray-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-foreground dark:text-slate-100">
+                    <SelectTrigger className="w-[calc(50%-0.25rem)] sm:w-[165px] shrink-0 h-8 text-xs bg-gray-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-foreground dark:text-slate-100">
                       <SelectValue placeholder="Department">{filterDept === "All" ? "All Departments" : toProperCase(filterDept)}</SelectValue>
                     </SelectTrigger>
                     <SelectContent className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-foreground dark:text-slate-100">
@@ -581,10 +585,6 @@ export default function OutstationReports() {
                       ))}
                     </SelectContent>
                   </Select>
-                  <div className="relative">
-                    <Search className="w-3.5 h-3.5 text-foreground absolute left-2.5 top-1/2 -translate-y-1/2" />
-                    <Input placeholder="Search employee..." value={filterSearch} onChange={e => setFilterSearch(e.target.value)} className="pl-8 h-8 text-xs w-44 bg-gray-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-foreground dark:text-slate-100" />
-                  </div>
                 </>
               )}
             </div>

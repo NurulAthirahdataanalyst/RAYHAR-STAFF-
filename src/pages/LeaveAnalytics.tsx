@@ -1143,15 +1143,15 @@ export default function LeaveAnalytics() {
     <div className="space-y-4 animate-in fade-in duration-500 max-w-[1600px] mx-auto px-4 pt-2 pb-6">
       
       {/* Filter Toolbar Line directly under main header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200/60 dark:border-slate-800/60">
+      <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-200/60 dark:border-slate-800/60">
         {/* LEFT: DAY | MONTH | YEAR View Toggle Bar */}
-        <div className="inline-flex items-center bg-slate-100 dark:bg-slate-900 p-1.5 rounded-xl shadow-inner border border-slate-200 dark:border-slate-800 shrink-0 gap-1">
+        <div className="flex sm:inline-flex w-full sm:w-auto items-center bg-slate-100 dark:bg-slate-900 p-1.5 rounded-xl shadow-inner border border-slate-200 dark:border-slate-800 shrink-0 gap-1">
           <button
             onClick={() => {
               setViewType("day");
               if (selectedMonth === "all") setSelectedMonth((new Date().getMonth() + 1).toString());
             }}
-            className={`flex items-center justify-center h-8 px-5 text-[11px] font-black tracking-widest rounded-lg transition-all duration-300 ${
+            className={`flex-1 sm:flex-none flex items-center justify-center h-8 px-5 text-[11px] font-black tracking-widest rounded-lg transition-all duration-300 ${
               viewType === "day"
                 ? "bg-[#FFFE00] text-[#942392] shadow-md"
                 : "text-foreground hover:text-slate-700 hover:bg-slate-200/50"
@@ -1164,7 +1164,7 @@ export default function LeaveAnalytics() {
               setViewType("month");
               if (selectedMonth === "all") setSelectedMonth((new Date().getMonth() + 1).toString());
             }}
-            className={`flex items-center justify-center h-8 px-5 text-[11px] font-black tracking-widest rounded-lg transition-all duration-300 ${
+            className={`flex-1 sm:flex-none flex items-center justify-center h-8 px-5 text-[11px] font-black tracking-widest rounded-lg transition-all duration-300 ${
               viewType === "month"
                 ? "bg-[#FFFE00] text-[#942392] shadow-md"
                 : "text-foreground hover:text-slate-700 hover:bg-slate-200/50"
@@ -1177,7 +1177,7 @@ export default function LeaveAnalytics() {
               setViewType("year");
               setSelectedMonth("all");
             }}
-            className={`flex items-center justify-center h-8 px-5 text-[11px] font-black tracking-widest rounded-lg transition-all duration-300 ${
+            className={`flex-1 sm:flex-none flex items-center justify-center h-8 px-5 text-[11px] font-black tracking-widest rounded-lg transition-all duration-300 ${
               viewType === "year"
                 ? "bg-[#FFFE00] text-[#942392] shadow-md"
                 : "text-foreground hover:text-slate-700 hover:bg-slate-200/50"
@@ -1188,13 +1188,13 @@ export default function LeaveAnalytics() {
         </div>
 
         {/* RIGHT: Active Filter Controls (Year, Month, Branch, Leave Type, Export Button) */}
-        <div className="flex flex-wrap items-center justify-end gap-2.5">
+        <div className="flex flex-wrap items-center sm:justify-end gap-2 w-full sm:w-auto sm:ml-auto">
           {viewType === "day" && (
-            <div className="relative">
+            <div className="relative w-[calc(50%-0.25rem)] sm:w-auto shrink-0">
               <Popover>
                 <PopoverTrigger asChild>
-                  <button className="appearance-none flex items-center justify-between px-4 py-2 bg-card border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer tracking-widest h-10 gap-3 hover:border-[#942392]/40 min-w-[140px]">
-                    {new Date(selectedDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })} <CalendarDays className="w-4 h-4 text-foreground" />
+                  <button className="appearance-none flex items-center justify-between px-3 py-2 bg-card border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer tracking-widest h-9 gap-2 hover:border-[#942392]/40 w-full sm:min-w-[135px]">
+                    {new Date(selectedDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })} <CalendarDays className="w-4 h-4 text-foreground shrink-0" />
                   </button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl bg-card z-50" align="start">
@@ -1214,19 +1214,19 @@ export default function LeaveAnalytics() {
             <MonthPicker
               monthYear={selectedMonthYear}
               onSelectMonthYear={setSelectedMonthYear}
-              className="appearance-none flex items-center justify-between px-4 py-2 bg-card border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer tracking-widest h-10 gap-3 hover:border-[#942392]/40 min-w-[140px]"
+              className="appearance-none flex items-center justify-between px-3 py-2 bg-card border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer tracking-widest h-9 gap-2 hover:border-[#942392]/40 w-[calc(50%-0.25rem)] sm:w-auto sm:min-w-[135px] shrink-0"
             />
           )}
           {viewType === "year" && (
             <YearPopover
               year={selectedYear}
               onSelectYear={setSelectedYear}
-              className="appearance-none flex items-center justify-between px-4 py-2 bg-card border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-[11px] font-black uppercase tracking-widest rounded-md shadow-sm outline-none cursor-pointer h-10 gap-3 hover:border-[#942392]/40 min-w-[110px]"
+              className="appearance-none flex items-center justify-between px-3 py-2 bg-card border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-[11px] font-black uppercase tracking-widest rounded-md shadow-sm outline-none cursor-pointer h-9 gap-2 hover:border-[#942392]/40 w-[calc(50%-0.25rem)] sm:w-auto sm:min-w-[110px] shrink-0"
             />
           )}
           {!isScopedRole && (
             <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-              <SelectTrigger className="w-[180px] sm:w-[200px] h-9 text-[11px] font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-none outline-none hover:border-[#942392]/40 hover:ring-1 hover:ring-[#942392]/40 hover:bg-[#942392]/5 dark:hover:border-[#942392]/60 dark:hover:ring-[#942392]/60 dark:hover:bg-[#942392]/20 transition-all duration-200 focus:ring-1 focus:ring-[#942392]">
+              <SelectTrigger className="w-[calc(50%-0.25rem)] sm:w-[175px] shrink-0 h-9 text-[11px] font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-none outline-none hover:border-[#942392]/40 hover:ring-1 hover:ring-[#942392]/40 hover:bg-[#942392]/5 dark:hover:border-[#942392]/60 dark:hover:ring-[#942392]/60 dark:hover:bg-[#942392]/20 transition-all duration-200 focus:ring-1 focus:ring-[#942392]">
                 <SelectValue placeholder="All Branches" />
               </SelectTrigger>
               <SelectContent>
@@ -1243,7 +1243,7 @@ export default function LeaveAnalytics() {
             </Select>
           )}
           <Select value={selectedType} onValueChange={setSelectedType}>
-            <SelectTrigger className="w-[140px] h-9 text-[11px] font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-none outline-none hover:border-[#942392]/40 hover:ring-1 hover:ring-[#942392]/40 hover:bg-[#942392]/5 dark:hover:border-[#942392]/60 dark:hover:ring-[#942392]/60 dark:hover:bg-[#942392]/20 transition-all duration-200 focus:ring-1 focus:ring-[#942392]">
+            <SelectTrigger className="flex-1 min-w-[120px] sm:flex-none sm:w-[140px] shrink-0 h-9 text-[11px] font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-none outline-none hover:border-[#942392]/40 hover:ring-1 hover:ring-[#942392]/40 hover:bg-[#942392]/5 dark:hover:border-[#942392]/60 dark:hover:ring-[#942392]/60 dark:hover:bg-[#942392]/20 transition-all duration-200 focus:ring-1 focus:ring-[#942392]">
               <SelectValue placeholder="Leave Type" />
             </SelectTrigger>
             <SelectContent>
@@ -1251,7 +1251,9 @@ export default function LeaveAnalytics() {
               {LEAVE_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
             </SelectContent>
           </Select>
-          <ExportDropdown onExportCSV={handleExport} onExportPDF={handleExportPDF} />
+          <div className="shrink-0">
+            <ExportDropdown onExportCSV={handleExport} onExportPDF={handleExportPDF} />
+          </div>
         </div>
       </div>
 

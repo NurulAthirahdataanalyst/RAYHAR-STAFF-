@@ -846,9 +846,9 @@ export default function Reports() {
                       const showDeptFilter = !isEmployee && !isBranchLeader;
 
                       return (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 gap-3 sm:gap-4">
                           {showBranchFilter && (
-                            <div className="space-y-1.5">
+                            <div className="space-y-1.5 min-w-0">
                               <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Branch Location</label>
                               <Select value={generatorBranch} onValueChange={setGeneratorBranch}>
                                 <SelectTrigger className="w-full h-11 text-xs font-black uppercase tracking-widest rounded-xl border-border bg-background/30">
@@ -867,7 +867,7 @@ export default function Reports() {
                           )}
 
                           {showDeptFilter && (
-                            <div className="space-y-1.5">
+                            <div className="space-y-1.5 min-w-0">
                               <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Department</label>
                               <Select value={generatorDept} onValueChange={setGeneratorDept}>
                                 <SelectTrigger className="w-full h-11 text-xs font-black uppercase tracking-widest rounded-xl border-border bg-background/30">
@@ -883,7 +883,7 @@ export default function Reports() {
                             </div>
                           )}
 
-                          <div className="space-y-1.5">
+                          <div className="space-y-1.5 col-span-2 sm:col-span-1 min-w-0">
                             <div className="flex items-center justify-between">
                               <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Period</label>
                               <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-900 rounded-lg p-0.5">

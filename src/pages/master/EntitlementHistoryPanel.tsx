@@ -333,8 +333,8 @@ export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => 
 
         <CardContent className="p-0 flex-1 flex flex-col min-h-0">
           {/* Search + Filter toggle bar */}
-          <div className="p-4 border-b border-border/40 bg-muted/5 flex flex-col sm:flex-row gap-3 shrink-0">
-            <div className="relative flex-1">
+          <div className="p-3 sm:p-4 border-b border-border/40 bg-muted/5 flex flex-wrap items-center gap-2 shrink-0">
+            <div className="relative w-full sm:flex-1 sm:min-w-[200px]">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search by employee, reason, history ID, or reference ID..."
@@ -349,9 +349,9 @@ export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => 
               )}
             </div>
             
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto shrink-0">
               <Select value={dateRange} onValueChange={(v: DateRange) => setDateRange(v)}>
-                <SelectTrigger className="w-[160px] h-9 text-xs bg-card">
+                <SelectTrigger className="flex-1 sm:flex-none sm:w-[160px] h-9 text-xs bg-card">
                   <SelectValue placeholder="Date Range" />
                 </SelectTrigger>
                 <SelectContent>
@@ -366,14 +366,14 @@ export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => 
                 </SelectContent>
               </Select>
               
-              <Button variant="outline" size="sm" className={`h-9 text-xs gap-1.5 ${showFilters ? 'bg-[#942392]/5 border-[#942392]/40 text-[#942392]' : ''}`}
+              <Button variant="outline" size="sm" className={`h-9 text-xs gap-1.5 shrink-0 ${showFilters ? 'bg-[#942392]/5 border-[#942392]/40 text-[#942392]' : ''}`}
                 onClick={() => setShowFilters(!showFilters)}>
                 <Filter className="w-3.5 h-3.5" />
                 Filters
                 {showFilters ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
               </Button>
               
-              <Button variant="ghost" size="sm" className="h-9 w-9 p-0 text-rose-500 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-500/20"
+              <Button variant="ghost" size="sm" className="h-9 w-9 p-0 shrink-0 text-rose-500 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-500/20"
                 onClick={handleResetFilters} title="Reset all filters">
                 <RotateCcw className="w-4 h-4" />
               </Button>
@@ -382,21 +382,21 @@ export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => 
 
           {/* Custom date range */}
           {dateRange === 'custom' && (
-            <div className="px-4 py-3 bg-slate-50 dark:bg-slate-900/50 border-b border-border/40 flex items-center justify-end gap-3 shrink-0">
-              <div className="flex items-center gap-2">
-                <Label className="text-xs font-bold text-foreground">From</Label>
-                <CustomDatePicker value={customFrom} onChange={setCustomFrom} placeholder="FROM DATE" className="w-[190px] h-9" />
+            <div className="px-4 py-3 bg-slate-50 dark:bg-slate-900/50 border-b border-border/40 flex flex-wrap items-center justify-end gap-2 sm:gap-3 shrink-0">
+              <div className="flex items-center gap-1.5 w-[calc(50%-0.25rem)] sm:w-auto">
+                <Label className="text-xs font-bold text-foreground shrink-0">From</Label>
+                <CustomDatePicker value={customFrom} onChange={setCustomFrom} placeholder="FROM DATE" className="w-full sm:w-[190px] h-9" />
               </div>
-              <div className="flex items-center gap-2">
-                <Label className="text-xs font-bold text-foreground">To</Label>
-                <CustomDatePicker value={customTo} onChange={setCustomTo} placeholder="TO DATE" className="w-[190px] h-9" />
+              <div className="flex items-center gap-1.5 w-[calc(50%-0.25rem)] sm:w-auto">
+                <Label className="text-xs font-bold text-foreground shrink-0">To</Label>
+                <CustomDatePicker value={customTo} onChange={setCustomTo} placeholder="TO DATE" className="w-full sm:w-[190px] h-9" />
               </div>
             </div>
           )}
 
           {/* Advanced filters panel */}
           {showFilters && (
-            <div className="px-4 py-3 border-b border-border/40 bg-muted/10 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 shrink-0">
+            <div className="px-4 py-3 border-b border-border/40 bg-muted/10 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-2.5 shrink-0">
               {/* Custom Employee Filter */}
               <div className="space-y-1">
                 <Label className="text-[10px] font-black uppercase tracking-wider text-foreground">Employee</Label>
@@ -454,10 +454,10 @@ export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => 
                 { label: 'Action Type', value: filterAction, set: setAction,        options: actionTypes },
                 { label: 'Performed By', value: filterBy,   set: setFilterBy,       options: performers },
               ].map(f => (
-                <div key={f.label} className="space-y-1">
+                <div key={f.label} className="space-y-1 min-w-0">
                   <Label className="text-[10px] font-black uppercase tracking-wider text-foreground">{f.label}</Label>
                   <Select value={f.value} onValueChange={f.set}>
-                    <SelectTrigger className="h-8 text-xs bg-card min-w-[140px]">
+                    <SelectTrigger className="w-full h-8 text-xs bg-card">
                       <SelectValue>
                         {f.value === 'all'
                           ? `All ${f.label === 'Branch' ? 'Branches' : f.label === 'Department' ? 'Departments' : f.label + 's'}`

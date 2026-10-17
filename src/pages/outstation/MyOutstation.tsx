@@ -230,35 +230,35 @@ export default function MyOutstation() {
         
         {/* Filters Row */}
         <div className="p-4 sm:px-6 sm:pt-6 sm:pb-2 border-b-0 bg-white/50 dark:bg-slate-900/50">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="relative flex-1 sm:max-w-xs">
-              <Search className="w-3.5 h-3.5 text-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="relative w-full sm:flex-1 sm:max-w-xs shrink-0">
+              <Search className="w-3.5 h-3.5 text-foreground absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               <Input
                 placeholder="Search destination..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-8 h-9 text-xs border-gray-200 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-900/50 focus-visible:ring-[#942392] uppercase font-bold tracking-wider rounded-xl"
               />
-                {search && (
-                  <button 
-                    onClick={() => setSearch('')} 
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground/40 hover:text-foreground z-10 transition-colors"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                )}
+              {search && (
+                <button 
+                  onClick={() => setSearch('')} 
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground/40 hover:text-foreground z-10 transition-colors"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
             </div>
 
-            <div className="flex items-center gap-3">
-              <div className="flex items-center bg-white dark:bg-slate-900 rounded-full p-1 border border-slate-200 dark:border-slate-700 shadow-sm gap-0.5">
+            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto sm:ml-auto">
+              <div className="flex items-center bg-white dark:bg-slate-900 rounded-full p-1 border border-slate-200 dark:border-slate-700 shadow-sm gap-0.5 w-[calc(50%-0.25rem)] sm:w-auto shrink-0">
                 <button 
-                  className={`h-7 px-4 text-[10px] font-black tracking-widest rounded-full transition-all ${viewMode === 'month' ? 'bg-[#ffff00] text-[#942392] shadow-sm' : 'text-black dark:text-white hover:text-[#942392] dark:hover:text-[#942392]'}`}
+                  className={`flex-1 sm:flex-none h-7 px-3 sm:px-4 text-[10px] font-black tracking-widest rounded-full transition-all ${viewMode === 'month' ? 'bg-[#ffff00] text-[#942392] shadow-sm' : 'text-black dark:text-white hover:text-[#942392] dark:hover:text-[#942392]'}`}
                   onClick={() => setViewMode('month')}
                 >
                   MONTH
                 </button>
                 <button 
-                  className={`h-7 px-4 text-[10px] font-black tracking-widest rounded-full transition-all ${viewMode === 'year' ? 'bg-[#ffff00] text-[#942392] shadow-sm' : 'text-black dark:text-white hover:text-[#942392] dark:hover:text-[#942392]'}`}
+                  className={`flex-1 sm:flex-none h-7 px-3 sm:px-4 text-[10px] font-black tracking-widest rounded-full transition-all ${viewMode === 'year' ? 'bg-[#ffff00] text-[#942392] shadow-sm' : 'text-black dark:text-white hover:text-[#942392] dark:hover:text-[#942392]'}`}
                   onClick={() => setViewMode('year')}
                 >
                   YEAR
@@ -277,10 +277,10 @@ export default function MyOutstation() {
                       setSelectedMonth(parseInt(m).toString());
                     }
                   }}
-                  className="flex items-center justify-between h-9 px-3 text-[10px] font-black uppercase tracking-widest text-foreground dark:text-slate-100 bg-card border border-slate-200 dark:border-slate-700 rounded-md shadow-sm min-w-[140px]"
+                  className="flex items-center justify-between h-9 px-3 text-[10px] font-black uppercase tracking-widest text-foreground dark:text-slate-100 bg-card border border-slate-200 dark:border-slate-700 rounded-md shadow-sm w-[calc(50%-0.25rem)] sm:w-auto sm:min-w-[140px] shrink-0"
                 />
               ) : (
-                <YearPopover year={selectedYear} onSelectYear={setSelectedYear} className="flex items-center justify-between h-9 px-3 text-[10px] font-black uppercase tracking-widest text-foreground dark:text-slate-100 bg-card border border-slate-200 dark:border-slate-700 rounded-md shadow-sm min-w-[140px]" />
+                <YearPopover year={selectedYear} onSelectYear={setSelectedYear} className="flex items-center justify-between h-9 px-3 text-[10px] font-black uppercase tracking-widest text-foreground dark:text-slate-100 bg-card border border-slate-200 dark:border-slate-700 rounded-md shadow-sm w-[calc(50%-0.25rem)] sm:w-auto sm:min-w-[140px] shrink-0" />
               )}
             </div>
           </div>

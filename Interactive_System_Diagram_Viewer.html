@@ -1,0 +1,668 @@
+<!-- Rayhar Group Employee Portal - Interactive Complete Architecture & Engineering Document -->
+<!-- Double-click this file or open with Google Chrome, Microsoft Edge, or any modern browser -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rayhar System - Complete Engineering Architecture</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    .pill {
+      border-radius: 9999px;
+      font-weight: 600;
+      text-align: center;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .parallelogram {
+      transform: skew(-12deg);
+      border-radius: 6px;
+    }
+    .parallelogram > * {
+      transform: skew(12deg);
+    }
+    .box-rect {
+      border-radius: 8px;
+      font-weight: 600;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .arch-card-green {
+      background-color: #d9f99d;
+      border: 2px solid #84cc16;
+      border-radius: 12px;
+      font-weight: bold;
+      color: #1a2e05;
+    }
+    .arch-card-yellow {
+      background-color: #fef08a;
+      border: 1.5px solid #eab308;
+      border-radius: 10px;
+      color: #422006;
+    }
+    .arrow-down {
+      width: 2px;
+      height: 20px;
+      background: #94a3b8;
+      position: relative;
+      margin: 0 auto;
+    }
+    .arrow-down::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: -4px;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 6px solid #94a3b8;
+    }
+    .seq-step {
+      transition: all 0.2s ease;
+    }
+    .seq-step:hover {
+      transform: translateX(4px);
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 p-4 md:p-8 min-h-screen">
+  <div class="max-w-7xl mx-auto space-y-6">
+
+    <!-- Top Action Bar -->
+    <header class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div>
+        <div class="flex items-center space-x-3">
+          <span class="inline-block w-4 h-4 rounded-full bg-blue-600"></span>
+          <h1 class="text-2xl font-bold text-slate-900">Rayhar Portal Engineering & System Architecture</h1>
+        </div>
+        <p class="text-sm text-slate-500 mt-1">
+          Complete Software Engineering Blueprint: Use Case • Waterfall SDLC • Activity Diagrams • Running System State Machine
+        </p>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2">
+        <!-- Tab Navigation Buttons -->
+        <div class="bg-slate-100 p-1 rounded-xl flex flex-wrap items-center border border-slate-200 gap-1">
+          <button id="tab-btn-usecase" onclick="switchMainTab('usecase')" class="px-3 py-1.5 text-xs font-bold rounded-lg bg-white shadow text-blue-700 transition">
+            Use Case
+          </button>
+          <button id="tab-btn-activity" onclick="switchMainTab('activity')" class="px-3 py-1.5 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900 transition">
+            Activity Diagram
+          </button>
+          <button id="tab-btn-waterfall" onclick="switchMainTab('waterfall')" class="px-3 py-1.5 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900 transition">
+            Waterfall SDLC
+          </button>
+          <button id="tab-btn-running" onclick="switchMainTab('running')" class="px-3 py-1.5 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900 transition">
+            Running System
+          </button>
+          <button id="tab-btn-arch" onclick="switchMainTab('arch')" class="px-3 py-1.5 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900 transition">
+            Fig.4 Architecture
+          </button>
+          <button id="tab-btn-flow" onclick="switchMainTab('flow')" class="px-3 py-1.5 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900 transition">
+            Flowchart
+          </button>
+          <button id="tab-btn-seq" onclick="switchMainTab('seq')" class="px-3 py-1.5 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900 transition">
+            Sequence
+          </button>
+        </div>
+
+        <!-- Download Button -->
+        <button onclick="downloadSelf()" class="inline-flex items-center space-x-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+          <span>Download Standalone HTML</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 1: USE CASE DIAGRAM (SEPARATED) -->
+    <!-- ========================================================================= -->
+    <div id="view-usecase" class="space-y-6">
+      <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6">
+        <div class="flex items-center justify-between border-b pb-4">
+          <div>
+            <h2 class="text-lg font-bold text-slate-900">1. UML Use Case Diagrams</h2>
+            <p class="text-xs text-slate-500">Separated Actor & Boundary Mapping: Attendance Tracking (4 Modes) vs Leave Tracking (Multi-Tier)</p>
+          </div>
+          <span class="text-xs font-semibold px-3 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg">
+            UML 2.5 Specification
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          
+          <!-- Use Case 1: Attendance Tracking -->
+          <div class="border border-blue-200 bg-blue-50/40 rounded-xl p-5 space-y-4">
+            <div class="flex items-center justify-between border-b border-blue-200 pb-2">
+              <h3 class="text-sm font-bold text-blue-900">Attendance Tracking System Boundary</h3>
+              <span class="text-[11px] font-bold bg-blue-200 text-blue-800 px-2 py-0.5 rounded">Actors: Employee, Supervisor, HR Admin</span>
+            </div>
+
+            <div class="space-y-2.5 text-xs text-slate-700">
+              <div class="bg-white p-3 rounded-lg border border-slate-200 space-y-1">
+                <span class="font-bold text-blue-700">UC-ATT-01: Clock-In Standard Onsite</span>
+                <p class="text-slate-600">Employee clocks in at primary branch. <em>&laquo;includes&raquo;</em> GPS Haversine Geofence (&le; 50m), <em>&laquo;includes&raquo;</em> Face Verification, <em>&laquo;extends&raquo;</em> Admin Assisted Check-In if face auth fails.</p>
+              </div>
+
+              <div class="bg-white p-3 rounded-lg border border-slate-200 space-y-1">
+                <span class="font-bold text-purple-700">UC-ATT-02: Clock-In Outstation Assignment</span>
+                <p class="text-slate-600">Employee performs offsite duties. <em>&laquo;includes&raquo;</em> Geofence Bypass, <em>&laquo;includes&raquo;</em> Reverse Geocoding scan, <em>&laquo;includes&raquo;</em> Live "Update Location" client arrivals.</p>
+              </div>
+
+              <div class="bg-white p-3 rounded-lg border border-slate-200 space-y-1">
+                <span class="font-bold text-teal-700">UC-ATT-03: Clock-In Temporary Branch Assignment</span>
+                <p class="text-slate-600">Employee dispatched to another company branch. <em>&laquo;includes&raquo;</em> Dynamic Target Coordinate Switch, <em>&laquo;includes&raquo;</em> Temp Branch Haversine check (&le; 50m).</p>
+              </div>
+
+              <div class="bg-white p-3 rounded-lg border border-slate-200 space-y-1">
+                <span class="font-bold text-indigo-700">UC-ATT-04: Clock-In Multi-Location Branch</span>
+                <p class="text-slate-600">Roving auditor / executive selects current station. <em>&laquo;includes&raquo;</em> Allowed Branches Dropdown, <em>&laquo;includes&raquo;</em> Target Branch Geofence Check.</p>
+              </div>
+
+              <div class="bg-white p-3 rounded-lg border border-slate-200 space-y-1">
+                <span class="font-bold text-slate-800">UC-ATT-05: Monitor Real-Time Presence & Reporting</span>
+                <p class="text-slate-600">HR Admin & Management inspect live SSE streams (Present, Late, Absent, Outstation counters) and export monthly payroll audit logs.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Use Case 2: Leave Tracking -->
+          <div class="border border-emerald-200 bg-emerald-50/40 rounded-xl p-5 space-y-4">
+            <div class="flex items-center justify-between border-b border-emerald-200 pb-2">
+              <h3 class="text-sm font-bold text-emerald-900">Leave Tracking System Boundary</h3>
+              <span class="text-[11px] font-bold bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded">Actors: Employee, BL / HOD, MD / Ops Mgr, HR Admin</span>
+            </div>
+
+            <div class="space-y-2.5 text-xs text-slate-700">
+              <div class="bg-white p-3 rounded-lg border border-slate-200 space-y-1">
+                <span class="font-bold text-emerald-700">UC-LEAVE-01: Submit Leave Application</span>
+                <p class="text-slate-600">Employee applies for absence. <em>&laquo;includes&raquo;</em> 'Baki Layak' balance validation (Annual), <em>&laquo;includes&raquo;</em> MC document upload (Sick), <em>&laquo;includes&raquo;</em> Past overtime hours audit (Replacement/Cuti Ganti).</p>
+              </div>
+
+              <div class="bg-white p-3 rounded-lg border border-slate-200 space-y-1">
+                <span class="font-bold text-blue-700">UC-LEAVE-02: Review Team Leaves (Tier 1 Approval)</span>
+                <p class="text-slate-600">Branch Leader (Branch staff) or HOD (HQ staff) reviews application. <em>&laquo;includes&raquo;</em> Colleague Leave Clash / Overlap Warning Detection.</p>
+              </div>
+
+              <div class="bg-white p-3 rounded-lg border border-slate-200 space-y-1">
+                <span class="font-bold text-purple-700">UC-LEAVE-03: Final Executive Approval (Tier 2 Approval)</span>
+                <p class="text-slate-600">Managing Director (Branch flow) or Operation Manager (HQ flow) reviews Tier-1 endorsed requests for final corporate signoff.</p>
+              </div>
+
+              <div class="bg-white p-3 rounded-lg border border-slate-200 space-y-1">
+                <span class="font-bold text-amber-700">UC-LEAVE-04: Auto-Deduct Entitlement & Calendar Sync</span>
+                <p class="text-slate-600">System automated service decrements leave balance in <code>leave_balance_adjustments</code> and publishes confirmed dates to <code>company_leave_calendar</code>.</p>
+              </div>
+
+              <div class="bg-white p-3 rounded-lg border border-slate-200 space-y-1">
+                <span class="font-bold text-rose-700">UC-LEAVE-05: Entitlement Governance Hub</span>
+                <p class="text-slate-600">HR Admin allocates annual leave baselines, executes yearly carry-forward rollovers, and makes manual reconciliation adjustments.</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 2: ACTIVITY DIAGRAM (SEPARATED) -->
+    <!-- ========================================================================= -->
+    <div id="view-activity" class="hidden space-y-6">
+      <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6">
+        <div class="flex items-center justify-between border-b pb-4">
+          <div>
+            <h2 class="text-lg font-bold text-slate-900">2. UML Activity Diagrams (Execution Logic)</h2>
+            <p class="text-xs text-slate-500">Separated Operational Workflows: Attendance Dynamic Decision Tree vs Leave Multi-Tier State Machine</p>
+          </div>
+          <span class="text-xs font-semibold px-3 py-1 bg-amber-50 text-amber-800 border border-amber-300 rounded-lg">
+            Swimlane & Logic Branching
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          
+          <!-- Activity: Attendance -->
+          <div class="border border-slate-200 rounded-xl p-5 bg-slate-50 space-y-3">
+            <h3 class="text-sm font-bold text-slate-900 border-b pb-2">Attendance Tracking Activity Workflow</h3>
+            <div class="space-y-2 text-xs">
+              <div class="bg-white p-3 rounded-lg border border-slate-200">
+                <span class="font-bold text-blue-700">1. Mode Determination:</span> System checks active assignments: Outstation &rarr; Temporary Branch &rarr; Multi-Location &rarr; Standard Onsite fallback.
+              </div>
+              <div class="bg-white p-3 rounded-lg border border-slate-200">
+                <span class="font-bold text-amber-700">2. Geofence Resolution:</span>
+                <ul class="list-disc pl-4 mt-1 space-y-0.5 text-slate-600">
+                  <li><strong>Standard:</strong> Distance to Home Branch Master Coords &le; 50m</li>
+                  <li><strong>Outstation:</strong> Bypass geofence + Reverse Geocoding scan</li>
+                  <li><strong>Temp Branch:</strong> Swap target coordinates to Temp Branch &le; 50m</li>
+                  <li><strong>Multi-Location:</strong> Validate against user-picked target branch &le; 50m</li>
+                </ul>
+              </div>
+              <div class="bg-white p-3 rounded-lg border border-slate-200">
+                <span class="font-bold text-emerald-700">3. Biometric & Anti-Spoof Gate:</span> Validates mock location = false, proxy = false, face verification = passed. If face fails, routes to Assisted Admin Clock-In.
+              </div>
+              <div class="bg-white p-3 rounded-lg border border-slate-200">
+                <span class="font-bold text-purple-700">4. Live Shift & Checkout:</span> Active shift timer, live "Update Location" audit pings for outstation, shift completion recorded on Clock-Out.
+              </div>
+            </div>
+          </div>
+
+          <!-- Activity: Leave -->
+          <div class="border border-slate-200 rounded-xl p-5 bg-slate-50 space-y-3">
+            <h3 class="text-sm font-bold text-slate-900 border-b pb-2">Leave Tracking Activity Workflow</h3>
+            <div class="space-y-2 text-xs">
+              <div class="bg-white p-3 rounded-lg border border-slate-200">
+                <span class="font-bold text-emerald-700">1. Form Submission & Rule Engine:</span>
+                <ul class="list-disc pl-4 mt-1 space-y-0.5 text-slate-600">
+                  <li><strong>Annual/Emergency:</strong> Checks Baki Layak &ge; Requested Days</li>
+                  <li><strong>Sick:</strong> Validates clinic Medical Certificate attachment</li>
+                  <li><strong>Replacement (Cuti Ganti):</strong> Verifies historical overtime worked on off-days</li>
+                </ul>
+              </div>
+              <div class="bg-white p-3 rounded-lg border border-slate-200">
+                <span class="font-bold text-blue-700">2. Tier 1 Review & Clash Detection:</span> Branch Leader or HOD inspects overlap with team members. Approves or Rejects with remarks.
+              </div>
+              <div class="bg-white p-3 rounded-lg border border-slate-200">
+                <span class="font-bold text-indigo-700">3. Tier 2 Executive Signoff:</span> Managing Director (Branch) or Operation Manager (HQ) executes final review.
+              </div>
+              <div class="bg-white p-3 rounded-lg border border-slate-200">
+                <span class="font-bold text-rose-700">4. State Finalization:</span> On approval, automatically deducts balance in <code>leave_balance_adjustments</code>, inserts to <code>company_leave_calendar</code>, and pushes live alerts.
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 3: WATERFALL SDLC METHOD -->
+    <!-- ========================================================================= -->
+    <div id="view-waterfall" class="hidden space-y-6">
+      <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6">
+        <div class="flex items-center justify-between border-b pb-4">
+          <div>
+            <h2 class="text-lg font-bold text-slate-900">3. Waterfall Method SDLC Implementation</h2>
+            <p class="text-xs text-slate-500">Classical sequential software engineering lifecycle applied across Attendance and Leave Tracking tracks</p>
+          </div>
+          <span class="text-xs font-semibold px-3 py-1 bg-purple-50 text-purple-700 border border-purple-200 rounded-lg">
+            Sequential Engineering Model
+          </span>
+        </div>
+
+        <div class="space-y-4">
+          <!-- Phase 1 -->
+          <div class="border border-slate-200 rounded-xl p-4 bg-slate-50 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="w-full md:w-1/4">
+              <span class="text-xs font-bold text-purple-700 uppercase tracking-wider">Phase 1</span>
+              <h3 class="text-sm font-bold text-slate-800">Requirements Specification</h3>
+            </div>
+            <div class="w-full md:w-3/4 grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+              <div class="bg-white p-3 rounded-lg border border-slate-200">
+                <span class="font-bold text-blue-700">Attendance Requirements:</span> Define 50m radius threshold, GPS coordinate accuracy, mock location prevention, and the 4 operational modes.
+              </div>
+              <div class="bg-white p-3 rounded-lg border border-slate-200">
+                <span class="font-bold text-emerald-700">Leave Requirements:</span> Specify Malaysian statutory leave laws, MC upload requirements, replacement OT qualifications, and 2-tier approval hierarchy.
+              </div>
+            </div>
+          </div>
+
+          <!-- Phase 2 -->
+          <div class="border border-slate-200 rounded-xl p-4 bg-slate-50 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="w-full md:w-1/4">
+              <span class="text-xs font-bold text-blue-700 uppercase tracking-wider">Phase 2</span>
+              <h3 class="text-sm font-bold text-slate-800">System & Database Design</h3>
+            </div>
+            <div class="w-full md:w-3/4 grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+              <div class="bg-white p-3 rounded-lg border border-slate-200">
+                <span class="font-bold text-blue-700">Attendance Architecture:</span> Design Haversine geofence calculation module, reverse geocoding API integration, and SSE real-time broadcasting.
+              </div>
+              <div class="bg-white p-3 rounded-lg border border-slate-200">
+                <span class="font-bold text-emerald-700">Leave Architecture:</span> Design 21-table PostgreSQL relational schema, approval state machine, and clash detection overlap algorithms.
+              </div>
+            </div>
+          </div>
+
+          <!-- Phase 3 -->
+          <div class="border border-slate-200 rounded-xl p-4 bg-slate-50 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="w-full md:w-1/4">
+              <span class="text-xs font-bold text-teal-700 uppercase tracking-wider">Phase 3</span>
+              <h3 class="text-sm font-bold text-slate-800">Implementation & Coding</h3>
+            </div>
+            <div class="w-full md:w-3/4 grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+              <div class="bg-white p-3 rounded-lg border border-slate-200">
+                <span class="font-bold text-blue-700">Attendance Coding:</span> Build React mobile frontend, camera biometric feed, GPS hardware listener, and REST endpoints for clock-in/out.
+              </div>
+              <div class="bg-white p-3 rounded-lg border border-slate-200">
+                <span class="font-bold text-emerald-700">Leave Coding:</span> Develop 8 entitlement management sub-modules, leave application forms, calendar grid views, and PDF/CSV report exporter.
+              </div>
+            </div>
+          </div>
+
+          <!-- Phase 4 -->
+          <div class="border border-slate-200 rounded-xl p-4 bg-slate-50 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="w-full md:w-1/4">
+              <span class="text-xs font-bold text-amber-700 uppercase tracking-wider">Phase 4</span>
+              <h3 class="text-sm font-bold text-slate-800">Verification & Testing</h3>
+            </div>
+            <div class="w-full md:w-3/4 grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+              <div class="bg-white p-3 rounded-lg border border-slate-200">
+                <span class="font-bold text-blue-700">Attendance Testing:</span> Field testing GPS coordinates at branch perimeters, verifying mock location app detection, and stress testing simultaneous clock-ins.
+              </div>
+              <div class="bg-white p-3 rounded-lg border border-slate-200">
+                <span class="font-bold text-emerald-700">Leave Testing:</span> Validate carry-forward rollover logic, verify clash warnings during concurrent team requests, and audit balance deduction accuracy.
+              </div>
+            </div>
+          </div>
+
+          <!-- Phase 5 -->
+          <div class="border border-slate-200 rounded-xl p-4 bg-slate-50 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="w-full md:w-1/4">
+              <span class="text-xs font-bold text-emerald-700 uppercase tracking-wider">Phase 5</span>
+              <h3 class="text-sm font-bold text-slate-800">Deployment & Maintenance</h3>
+            </div>
+            <div class="w-full md:w-3/4 grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+              <div class="bg-white p-3 rounded-lg border border-slate-200">
+                <span class="font-bold text-blue-700">Operations:</span> Deploy to Supabase cloud, calibrate branch Wi-Fi BSSID routers, and set up live supervisor monitoring dashboards.
+              </div>
+              <div class="bg-white p-3 rounded-lg border border-slate-200">
+                <span class="font-bold text-emerald-700">Maintenance:</span> Execute annual leave resets on Jan 1st, archive previous year's attendance logs, and monitor cloud database performance.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 4: RUNNING SYSTEM (RUNTIME STATE MACHINE) -->
+    <!-- ========================================================================= -->
+    <div id="view-running" class="hidden space-y-6">
+      <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6">
+        <div class="flex items-center justify-between border-b pb-4">
+          <div>
+            <h2 class="text-lg font-bold text-slate-900">4. Running System in Production</h2>
+            <p class="text-xs text-slate-500">Live runtime lifecycle, event streams, state transitions, and background daemon services</p>
+          </div>
+          <span class="text-xs font-semibold px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg">
+            Real-Time Production Runtime
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          
+          <!-- Running System: Attendance -->
+          <div class="border border-blue-200 rounded-xl p-5 bg-blue-50/30 space-y-4">
+            <div class="flex items-center justify-between border-b border-blue-200 pb-2">
+              <h3 class="text-sm font-bold text-blue-900">Attendance Runtime State Machine</h3>
+              <span class="text-[11px] font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded">Real-time SSE Stream</span>
+            </div>
+
+            <div class="space-y-3 text-xs">
+              <div class="bg-white p-3 rounded-lg border border-slate-200">
+                <span class="font-bold text-slate-800">State 1: IDLE / OUTSIDE_WINDOW</span>
+                <p class="text-slate-600">Employee app checks daily company holiday calendar. If holiday, clock-in is restricted.</p>
+              </div>
+              <div class="bg-white p-3 rounded-lg border border-slate-200">
+                <span class="font-bold text-blue-700">State 2: SENSING & VALIDATING</span>
+                <p class="text-slate-600">Hardware GPS coordinates polled. Haversine distance computed against Home, Temp, or Selected Multi-Branch. Mock location scanned.</p>
+              </div>
+              <div class="bg-white p-3 rounded-lg border border-slate-200">
+                <span class="font-bold text-emerald-700">State 3: SESSION_ACTIVE (Timer Running)</span>
+                <p class="text-slate-600">Presence pushed to Supabase <code>attendances</code>. Server-Sent Events (SSE) immediately increments "Present" or "Late" counter on HR Dashboard.</p>
+              </div>
+              <div class="bg-white p-3 rounded-lg border border-slate-200">
+                <span class="font-bold text-purple-700">State 4: OUTSTATION_TRANSIT</span>
+                <p class="text-slate-600">When on outstation duty, employee triggers "Update Location" at client checkpoints, appending new GPS coordinates into <code>employee_location_logs</code>.</p>
+              </div>
+              <div class="bg-white p-3 rounded-lg border border-slate-200">
+                <span class="font-bold text-slate-800">State 5: SHIFT_TERMINATED</span>
+                <p class="text-slate-600">Clock-out calculates productive working hours, break hours, and lateness penalties for payroll reconciliation.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Running System: Leave -->
+          <div class="border border-emerald-200 rounded-xl p-5 bg-emerald-50/30 space-y-4">
+            <div class="flex items-center justify-between border-b border-emerald-200 pb-2">
+              <h3 class="text-sm font-bold text-emerald-900">Leave Runtime State Machine</h3>
+              <span class="text-[11px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded">Transactional Workflow</span>
+            </div>
+
+            <div class="space-y-3 text-xs">
+              <div class="bg-white p-3 rounded-lg border border-slate-200">
+                <span class="font-bold text-slate-800">State 1: DRAFT_VALIDATING</span>
+                <p class="text-slate-600">Dynamic UI blocks submission unless Baki Layak &ge; days requested, MC file uploaded, or replacement hours match.</p>
+              </div>
+              <div class="bg-white p-3 rounded-lg border border-slate-200">
+                <span class="font-bold text-amber-700">State 2: PENDING_TIER_1 (Supervisor Review)</span>
+                <p class="text-slate-600">Request locked in <code>leave_requests</code>. Branch Leader or HOD dashboard highlights concurrent team absence clashes.</p>
+              </div>
+              <div class="bg-white p-3 rounded-lg border border-slate-200">
+                <span class="font-bold text-blue-700">State 3: PENDING_TIER_2 (Executive Review)</span>
+                <p class="text-slate-600">Managing Director or Operations Manager receives endorsement for final administrative signoff.</p>
+              </div>
+              <div class="bg-white p-3 rounded-lg border border-slate-200">
+                <span class="font-bold text-emerald-700">State 4: APPROVED_SYNCHRONIZED</span>
+                <p class="text-slate-600">Database transaction decrements user balance in <code>leave_balance_adjustments</code> and syncs record to <code>company_leave_calendar</code>.</p>
+              </div>
+              <div class="bg-white p-3 rounded-lg border border-slate-200">
+                <span class="font-bold text-rose-700">State 5: MIDNIGHT_CRON_MARKER</span>
+                <p class="text-slate-600">At 00:00 daily, automated cron inspects active approved leaves and automatically tags employee attendance as "On Leave", preventing false absences.</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 5: FIG. 4 SYSTEM ARCHITECTURE DIAGRAM -->
+    <!-- ========================================================================= -->
+    <div id="view-arch" class="hidden space-y-6">
+      <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6">
+        <div class="flex items-center justify-between border-b pb-4">
+          <div>
+            <h2 class="text-lg font-bold text-slate-900">Fig.4 System Architecture Diagram</h2>
+            <p class="text-xs text-slate-500">Component-based architecture layout matching your reference style (Attendance & Leave Separated)</p>
+          </div>
+          <span class="text-xs font-semibold px-3 py-1 bg-lime-100 text-lime-800 border border-lime-300 rounded-lg">
+            System Architecture Spec
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 relative">
+          <!-- Left Column -->
+          <div class="lg:col-span-4 flex flex-col justify-between space-y-5">
+            <div class="arch-card-green p-4 text-center shadow-sm">
+              <h3 class="text-base font-extrabold">Web & Mobile Client App</h3>
+              <p class="text-[11px] text-lime-900 font-medium">React / PWA / Android Native Shell</p>
+            </div>
+            <div class="arch-card-yellow p-4 shadow-sm space-y-2">
+              <h4 class="text-xs font-bold uppercase tracking-wider text-amber-900 border-b border-amber-300/60 pb-1">Client Interface Layer</h4>
+              <ul class="text-xs space-y-1 text-amber-950 font-medium">
+                <li>• <strong>Employee Self-Service UI:</strong> Clock-in/out, live timer, history logs</li>
+                <li>• <strong>Leave Portal UI:</strong> Applications, balance display, MC document uploader</li>
+                <li>• <strong>Outstation UI:</strong> Trip application & live "Update Location" form</li>
+                <li>• <strong>Manager / Supervisor Panel:</strong> Approvals & team clash warnings</li>
+              </ul>
+            </div>
+            <div class="arch-card-yellow p-4 shadow-sm space-y-2">
+              <h4 class="text-xs font-bold uppercase tracking-wider text-amber-900 border-b border-amber-300/60 pb-1">Hardware Sensors & Anti-Spoof</h4>
+              <ul class="text-xs space-y-1 text-amber-950 font-medium">
+                <li>• <strong>GPS Hardware Coordinates Scan:</strong> Lat, Lng, Accuracy (&le; 50m)</li>
+                <li>• <strong>Facial Recognition & Liveness:</strong> AI camera face matching</li>
+                <li>• <strong>Wi-Fi BSSID Checker:</strong> Verifies registered office router</li>
+                <li>• <strong>Mock Location & Proxy Detector:</strong> Blocks fake GPS apps</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Middle Column -->
+          <div class="lg:col-span-5 flex flex-col justify-between space-y-5">
+            <div class="arch-card-yellow p-4 shadow-sm space-y-2">
+              <h4 class="text-xs font-bold uppercase tracking-wider text-amber-900 border-b border-amber-300/60 pb-1">Request Handling & Gateway</h4>
+              <ul class="text-xs space-y-1 text-amber-950 font-medium">
+                <li>• Authenticates user JWT session & Role-Based Access Control (RBAC)</li>
+                <li>• Routes requests between Employee Portal & Management Hub</li>
+                <li>• Manages offline sync queues & request payload validation</li>
+              </ul>
+            </div>
+            <div class="arch-card-yellow p-4 shadow-sm space-y-2 border-2 border-amber-500">
+              <div class="flex items-center justify-between border-b border-amber-300/60 pb-1">
+                <h4 class="text-xs font-bold uppercase tracking-wider text-amber-900">Real-Time Attendance Engine</h4>
+                <span class="text-[10px] bg-blue-100 text-blue-800 font-bold px-1.5 py-0.5 rounded">Attendance</span>
+              </div>
+              <ul class="text-xs space-y-1 text-amber-950 font-medium">
+                <li>• <strong>1. Standard Onsite:</strong> Haversine validation (&le; 50m of Home Branch)</li>
+                <li>• <strong>2. Outstation Assignment:</strong> Geofence bypass, Reverse Geocoding & live location trail</li>
+                <li>• <strong>3. Temporary Branch:</strong> Dynamic geofence coordinates switch</li>
+                <li>• <strong>4. Multi-Location:</strong> Dynamic validation against selected target branch</li>
+                <li>• <strong>Security & Logging:</strong> Face verification, mock detection, assisted admin overrides</li>
+              </ul>
+            </div>
+            <div class="arch-card-yellow p-4 shadow-sm space-y-2 border-2 border-emerald-500">
+              <div class="flex items-center justify-between border-b border-amber-300/60 pb-1">
+                <h4 class="text-xs font-bold uppercase tracking-wider text-amber-900">Leave Management Engine</h4>
+                <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.5 rounded">Leave</span>
+              </div>
+              <ul class="text-xs space-y-1 text-amber-950 font-medium">
+                <li>• <strong>Automated Policy Checks:</strong> 'Baki Layak' balance check, MC upload, OT audit</li>
+                <li>• <strong>Multi-Tier Hierarchy Routing:</strong> Branch (BL &rarr; MD) vs HQ (HOD &rarr; Ops Mgr)</li>
+                <li>• <strong>Conflict & Clash Warnings:</strong> Detects overlapping peer absences</li>
+                <li>• <strong>Entitlement Quota Engine:</strong> Auto-deducts days on final approval</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Right Column -->
+          <div class="lg:col-span-3 flex flex-col justify-start space-y-5">
+            <div class="arch-card-green p-4 text-center shadow-sm">
+              <h3 class="text-base font-extrabold">API Server</h3>
+              <p class="text-[11px] text-lime-900 font-medium">REST API & SSE Gateway</p>
+              <div class="mt-3 text-left text-xs text-lime-950 space-y-1 font-medium bg-lime-200/50 p-2.5 rounded-lg border border-lime-300">
+                <p>• /api/attendance, /api/leave, /api/outstation</p>
+                <p>• Real-time SSE Live Presence Stream</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-4 border-t border-slate-200">
+          <div class="lg:col-span-4 arch-card-green p-4 shadow-sm space-y-2">
+            <h3 class="text-sm font-bold text-lime-950 border-b border-lime-400 pb-1">Admin Dashboard (Web)</h3>
+            <ul class="text-xs space-y-1 text-lime-950 font-medium">
+              <li>• Real-time workforce presence monitoring</li>
+              <li>• Company-wide leave approval hub</li>
+              <li>• Entitlement & yearly quota management</li>
+              <li>• Export timesheets & payroll reports (PDF/CSV)</li>
+            </ul>
+          </div>
+          <div class="lg:col-span-5 arch-card-green p-4 shadow-sm space-y-2 border-2 border-lime-600">
+            <h3 class="text-sm font-bold text-lime-950 border-b border-lime-400 pb-1">Central Database (PostgreSQL / Supabase)</h3>
+            <ul class="text-xs space-y-1 text-lime-950 font-medium">
+              <li>• <strong>Profiles:</strong> profiles, user_role, branches, department</li>
+              <li>• <strong>Attendance:</strong> attendances, employee_location_logs</li>
+              <li>• <strong>Assignments:</strong> outstation_assignments, employee_work_assignment, employee_allowed_locations</li>
+              <li>• <strong>Leave Core:</strong> leave_requests, leave_approvals, leave_balance_adjustments, company_leave_calendar</li>
+            </ul>
+          </div>
+          <div class="lg:col-span-3 arch-card-green p-4 shadow-sm space-y-2">
+            <h3 class="text-sm font-bold text-lime-950 border-b border-lime-400 pb-1">External Services</h3>
+            <ul class="text-xs space-y-1 text-lime-950 font-medium">
+              <li>• Google Maps API / Reverse Geocoding</li>
+              <li>• Biometric AI Facial Recognition</li>
+              <li>• Firebase / Real-time Push Notifications</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 6: FLOWCHART (SCREENSHOT 1) -->
+    <!-- ========================================================================= -->
+    <div id="view-flow" class="hidden space-y-6">
+      <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6">
+        <div class="flex items-center justify-between border-b pb-4">
+          <h2 class="text-lg font-bold text-slate-800">Flowchart Representation (Screenshot 1 Layout)</h2>
+          <span class="text-xs font-semibold px-3 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg">4 Attendance Modes & Leave Flow</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs space-y-2">
+            <span class="font-bold text-blue-800">1. Onsite:</span> Coordinates Scan &rarr; Geofence Check (Home &le; 50m) &rarr; Mock Location Check &rarr; Face Verification &rarr; Check-IN Recorded.
+          </div>
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs space-y-2">
+            <span class="font-bold text-purple-800">2. Outstation:</span> Outstation Form &rarr; HR Approval &rarr; Bypass Geofence &rarr; Reverse Geocoding &rarr; Face Auth &rarr; Check-IN &rarr; Live Location Update &rarr; Checkout.
+          </div>
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs space-y-2">
+            <span class="font-bold text-teal-800">3. Temp Branch:</span> HR Assignment Dates &rarr; Target Geofence Swapped &rarr; Temp Coordinates Scan (&le; 50m) &rarr; Face Auth &rarr; Check-IN (Temp Status).
+          </div>
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs space-y-2">
+            <span class="font-bold text-indigo-800">4. Multi-Location:</span> Authorized Dropdown &rarr; Select Current Branch &rarr; Geofence Validation (&le; 50m) &rarr; Face Auth &rarr; Check-IN (Branch Tagged).
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 7: SEQUENCE DIAGRAMS -->
+    <!-- ========================================================================= -->
+    <div id="view-seq" class="hidden space-y-6">
+      <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6">
+        <div class="flex items-center justify-between border-b pb-4">
+          <h2 class="text-lg font-bold text-slate-800">End-to-End Sequence Diagrams</h2>
+          <span class="text-xs font-semibold px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg">Realtime Execution</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+          <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-2">
+            <h3 class="font-bold text-blue-900">Attendance Sequence Highlights:</h3>
+            <p>1. Client requests <code>navigator.geolocation</code>.<br/>2. Backend executes Haversine formula against Target Branch coordinates.<br/>3. Anti-spoof scans detect mock location apps & Wi-Fi BSSID.<br/>4. Face Verification runs. If failed, Assisted Check-in by Admin overrides.<br/>5. Records saved to <code>attendances</code>; SSE notifies Admin Dashboard.</p>
+          </div>
+          <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-2">
+            <h3 class="font-bold text-emerald-900">Leave Sequence Highlights:</h3>
+            <p>1. Form validates Baki Layak, MC attachment, or past worked overtime.<br/>2. Tier 1 Approver (Branch Leader / HOD) reviews with Clash Warnings.<br/>3. Tier 2 Approver (Managing Director / Ops Manager) provides final corporate signoff.<br/>4. Approved days decremented from entitlement; synced to Company Leave Calendar.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function switchMainTab(tabId) {
+      const views = ['usecase', 'activity', 'waterfall', 'running', 'arch', 'flow', 'seq'];
+      views.forEach(v => {
+        const el = document.getElementById('view-' + v);
+        const btn = document.getElementById('tab-btn-' + v);
+        if (v === tabId) {
+          el.classList.remove('hidden');
+          btn.className = "px-3 py-1.5 text-xs font-bold rounded-lg bg-white shadow text-blue-700 transition";
+        } else {
+          el.classList.add('hidden');
+          btn.className = "px-3 py-1.5 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900 transition";
+        }
+      });
+    }
+
+    function downloadSelf() {
+      const htmlContent = document.documentElement.outerHTML;
+      const blob = new Blob([htmlContent], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'Rayhar_Complete_Engineering_Architecture.html';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+  </script>
+</body>
+</html>

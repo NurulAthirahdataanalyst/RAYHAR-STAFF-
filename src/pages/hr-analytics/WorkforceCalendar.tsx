@@ -364,29 +364,23 @@ export default function WorkforceCalendar() {
 
       {/* Controls */}
       <Card className="border border-gray-200 dark:border-slate-800/80 shadow-sm">
-        <CardContent className="p-4 flex flex-col sm:flex-row flex-wrap items-center justify-between gap-3">
+        <CardContent className="p-4 flex flex-wrap items-center justify-between gap-2.5">
           {/* Month Nav */}
-          <div className="flex items-center gap-2">
-            <button onClick={prevMonth} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"><ChevronLeft className="w-4 h-4" /></button>
-            <h2 className="text-sm font-black text-gray-800 dark:text-gray-100 min-w-[160px] text-center">{MONTHS[viewMonth]} {viewYear}</h2>
-            <button onClick={nextMonth} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"><ChevronRight className="w-4 h-4" /></button>
-            <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => { setViewMonth(today.getMonth()); setViewYear(today.getFullYear()); }}>Today</Button>
+          <div className="flex items-center justify-between sm:justify-start gap-2 w-full sm:w-auto shrink-0">
+            <div className="flex items-center gap-1">
+              <button onClick={prevMonth} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"><ChevronLeft className="w-4 h-4" /></button>
+              <h2 className="text-sm font-black text-gray-800 dark:text-gray-100 min-w-[140px] sm:min-w-[160px] text-center">{MONTHS[viewMonth]} {viewYear}</h2>
+              <button onClick={nextMonth} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"><ChevronRight className="w-4 h-4" /></button>
+            </div>
+            <Button variant="outline" size="sm" className="h-8 text-xs shrink-0" onClick={() => { setViewMonth(today.getMonth()); setViewYear(today.getFullYear()); }}>Today</Button>
           </div>
 
           {/* Filters */}
-          <div className="flex flex-wrap items-center gap-2">
-            <Select value={filterType} onValueChange={setFilterType}>
-              <SelectTrigger className="w-[145px] h-8 text-xs"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {["All Types", "Annual Leave", "Sick Leave", "Unpaid Leave", "Replacement Leave", "Outstation", "Company Leave", "Pending"].map(t => (
-                  <SelectItem key={t} value={t} className="text-xs">{t}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto sm:ml-auto">
             {canFilterBranchDept && (
               <>
                 <Select value={filterBranch} onValueChange={setFilterBranch}>
-                  <SelectTrigger className="w-[170px] sm:w-[190px] h-8 text-xs">
+                  <SelectTrigger className="w-[calc(50%-0.25rem)] sm:w-[170px] shrink-0 h-8 text-xs">
                     <SelectValue placeholder="All Branches" />
                   </SelectTrigger>
                   <SelectContent>
@@ -399,7 +393,7 @@ export default function WorkforceCalendar() {
                   </SelectContent>
                 </Select>
                 <Select value={filterDept} onValueChange={setFilterDept}>
-                  <SelectTrigger className="w-[155px] h-8 text-xs">
+                  <SelectTrigger className="w-[calc(50%-0.25rem)] sm:w-[155px] shrink-0 h-8 text-xs">
                     <SelectValue placeholder="All Departments" />
                   </SelectTrigger>
                   <SelectContent>
@@ -409,10 +403,18 @@ export default function WorkforceCalendar() {
                 </Select>
               </>
             )}
-            <button onClick={fetchData} title="Refresh" className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors text-foreground hover:text-gray-800">
+            <Select value={filterType} onValueChange={setFilterType}>
+              <SelectTrigger className="flex-1 min-w-[120px] sm:flex-none sm:w-[145px] shrink-0 h-8 text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {["All Types", "Annual Leave", "Sick Leave", "Unpaid Leave", "Replacement Leave", "Outstation", "Company Leave", "Pending"].map(t => (
+                  <SelectItem key={t} value={t} className="text-xs">{t}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <button onClick={fetchData} title="Refresh" className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors text-foreground hover:text-gray-800 shrink-0">
               <RefreshCw className="w-3.5 h-3.5" />
             </button>
-            <div className="flex items-center gap-1 text-[10px] font-bold">
+            <div className="flex items-center gap-1 text-[10px] font-bold shrink-0">
               {connected ? <Wifi className="w-3 h-3 text-emerald-500" /> : <WifiOff className="w-3 h-3 text-foreground" />}
               <span className={connected ? "text-emerald-600" : "text-foreground"}>{connected ? "Live" : "Offline"}</span>
             </div>

@@ -474,32 +474,32 @@ export default function TeamAttendance() {
             </div>
 
             {/* Row 2: DAY/MONTH toggle and Filters */}
-            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 w-full">
+            <div className="flex flex-wrap items-center justify-between gap-2 w-full">
               {/* Left side: DAY / MONTH Toggle */}
-              <div className="flex items-center bg-slate-100 dark:bg-slate-900/50 rounded-lg p-1 border border-slate-300 dark:border-slate-700">
+              <div className="flex items-center bg-slate-100 dark:bg-slate-900/50 rounded-lg p-1 border border-slate-300 dark:border-slate-700 w-[calc(50%-0.25rem)] sm:w-auto shrink-0">
                 <button 
                   onClick={() => setDateViewMode('DAY')}
-                  className={`h-7 px-4 text-[11px] font-bold tracking-widest rounded-md transition-all ${dateViewMode === 'DAY' ? 'bg-[#942392] text-white shadow-sm' : 'text-foreground hover:text-slate-700 hover:bg-slate-200/50'}`}
+                  className={`flex-1 sm:flex-none h-7 px-3 sm:px-4 text-[11px] font-bold tracking-widest rounded-md transition-all ${dateViewMode === 'DAY' ? 'bg-[#942392] text-white shadow-sm' : 'text-foreground hover:text-slate-700 hover:bg-slate-200/50'}`}
                 >
                   DAY
                 </button>
                 <button 
                   onClick={() => setDateViewMode('MONTH')}
-                  className={`h-7 px-4 text-[11px] font-bold tracking-widest rounded-md transition-all ${dateViewMode === 'MONTH' ? 'bg-[#942392] text-white shadow-sm' : 'text-foreground hover:text-slate-700 hover:bg-slate-200/50'}`}
+                  className={`flex-1 sm:flex-none h-7 px-3 sm:px-4 text-[11px] font-bold tracking-widest rounded-md transition-all ${dateViewMode === 'MONTH' ? 'bg-[#942392] text-white shadow-sm' : 'text-foreground hover:text-slate-700 hover:bg-slate-200/50'}`}
                 >
                   MONTH
                 </button>
               </div>
 
               {/* Right side: Filters */}
-              <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto justify-end">
+              <div className="flex flex-wrap items-center gap-2 flex-1 sm:flex-none sm:ml-auto justify-end">
                 {/* Date Filter */}
-                <div className="relative">
+                <div className="relative w-full sm:w-auto shrink-0">
                   {dateViewMode === "DAY" ? (
                     <Popover>
                       <PopoverTrigger asChild>
-                        <button className="appearance-none flex items-center justify-center px-4 py-2 bg-card border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-[34px] gap-2 hover:border-[#942392] hover:ring-1 hover:ring-[#942392] transition-all">
-                          {new Date(selectedDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()} <CalendarDays className="w-4 h-4 text-foreground" />
+                        <button className="appearance-none flex items-center justify-between sm:justify-center w-full sm:w-auto px-3 sm:px-4 py-2 bg-card border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-[34px] gap-2 hover:border-[#942392] hover:ring-1 hover:ring-[#942392] transition-all">
+                          {new Date(selectedDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()} <CalendarDays className="w-4 h-4 text-foreground shrink-0" />
                         </button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0 overflow-hidden border-none shadow-xl" align="start">
@@ -519,14 +519,16 @@ export default function TeamAttendance() {
                       onSelectMonthYear={(val) => {
                         setSelectedDate(`${val}-01`);
                       }}
-                      className="appearance-none flex items-center justify-between gap-3 min-w-[140px] px-4 py-2 bg-card border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none focus:border-[#942392] focus:ring-1 focus:ring-[#942392] uppercase tracking-widest h-[34px]"
+                      className="appearance-none flex items-center justify-between gap-2 w-full sm:w-auto sm:min-w-[140px] px-3 sm:px-4 py-2 bg-card border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none focus:border-[#942392] focus:ring-1 focus:ring-[#942392] uppercase tracking-widest h-[34px]"
                     />
                   )}
                 </div>
+              </div>
 
+              <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
                 {/* Status Dropdown */}
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="h-[34px] text-[11px] font-black rounded-md border border-border w-[160px] bg-card uppercase tracking-widest hover:border-[#942392]">
+                  <SelectTrigger className="h-[34px] text-[11px] font-black rounded-md border border-border w-[calc(50%-0.25rem)] sm:w-[160px] shrink-0 bg-card uppercase tracking-widest hover:border-[#942392]">
                     <SelectValue placeholder="All Status">{statusFilter || "All Status"}</SelectValue>
                   </SelectTrigger>
                   <SelectContent className="bg-card border-border z-50">
@@ -544,26 +546,22 @@ export default function TeamAttendance() {
                 </Select>
 
                 {/* Search */}
-                <div className="flex flex-wrap items-center gap-3">
-                  
-
-                  <div className="relative flex items-center">
-                    <Search className="w-4 h-4 absolute left-3 text-foreground" />
-                    <Input
-                      placeholder="Search Employee..."
-                      className="pl-9 h-[34px] w-[200px] text-xs bg-card"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                {searchQuery && (
-                  <button 
-                    onClick={() => setSearchQuery('')} 
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground/40 hover:text-foreground z-10 transition-colors"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                )}
-                  </div>
+                <div className="relative flex items-center w-[calc(50%-0.25rem)] sm:w-[200px] shrink-0">
+                  <Search className="w-4 h-4 absolute left-3 text-foreground pointer-events-none" />
+                  <Input
+                    placeholder="Search Employee..."
+                    className="pl-9 pr-8 h-[34px] w-full text-xs bg-card"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                  {searchQuery && (
+                    <button 
+                      onClick={() => setSearchQuery('')} 
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground/40 hover:text-foreground z-10 transition-colors"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

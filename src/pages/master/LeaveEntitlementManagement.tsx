@@ -808,8 +808,8 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
 
             <div>
               <h4 className="text-xs font-black uppercase tracking-wider text-foreground mb-3 border-b pb-1">Employee Filter</h4>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="space-y-1.5">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="space-y-1.5 min-w-0">
                   <Label className="text-sm font-bold">Branch</Label>
                   <Select value={selectedBranch} onValueChange={setSelectedBranch}>
                     <SelectTrigger className="bg-card h-10 text-sm">
@@ -824,7 +824,7 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-1.5">
+                <div className="space-y-1.5 min-w-0">
                   <Label className="text-sm font-bold">Department</Label>
                   <Select value={selectedDept} onValueChange={setSelectedDept}>
                     <SelectTrigger className="bg-card h-10 text-sm">
@@ -835,12 +835,12 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-1.5 md:col-span-2">
+                <div className="space-y-1.5 col-span-2 md:col-span-2 min-w-0">
                   <Label className="text-sm font-bold">Search Name or ID</Label>
                   <Popover open={empSearchOpen} onOpenChange={setEmpSearchOpen}>
                     <PopoverTrigger asChild>
                       <div className="relative w-full cursor-pointer">
-                        <div className="pl-3 pr-8 h-9 border border-border/60 bg-card rounded-md flex items-center gap-1 overflow-hidden">
+                        <div className="pl-3 pr-8 h-10 border border-border/60 bg-card rounded-md flex items-center gap-1 overflow-hidden">
                           {checkedEmployees.length > 0 ? (
                             <span className="text-xs font-bold text-[#942392] truncate">{checkedEmployees.length} employee{checkedEmployees.length > 1 ? 's' : ''} selected</span>
                           ) : (
@@ -1307,7 +1307,7 @@ function CarryForwardLeaveForm({
 
         <div>
           <h4 className="text-xs font-black uppercase tracking-wider text-foreground mb-3 border-b pb-1">Employee Selection</h4>
-          <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
             <div className="space-y-1.5">
               <Label className="text-sm font-bold">Department</Label>
               <Select value={selectedDept} onValueChange={setSelectedDept}>
@@ -1330,7 +1330,7 @@ function CarryForwardLeaveForm({
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 col-span-2 sm:col-span-1">
               <Label className="text-sm font-bold">Employment Type</Label>
               <Select value={empType} onValueChange={setEmpType}>
                 <SelectTrigger className="bg-card h-10 text-sm"><SelectValue /></SelectTrigger>
@@ -1341,7 +1341,7 @@ function CarryForwardLeaveForm({
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-1.5 md:col-span-2">
+            <div className="space-y-1.5 col-span-2 lg:col-span-2">
               <Label className="text-sm font-bold">Search Name or ID</Label>
               <Popover open={empSearchOpen} onOpenChange={setEmpSearchOpen}>
                 <PopoverTrigger asChild>

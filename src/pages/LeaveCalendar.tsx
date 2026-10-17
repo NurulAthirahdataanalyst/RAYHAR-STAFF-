@@ -237,16 +237,16 @@ export default function LeaveCalendar() {
 
       {/* Controls */}
       <Card className="border border-gray-200 dark:border-slate-800/80 shadow-sm">
-        <CardContent className="p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
+        <CardContent className="p-3 sm:p-4 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2 sm:gap-3">
             <button onClick={prevMonth} className="p-2 rounded-lg hover:bg-gray-100 transition-colors"><ChevronLeft className="w-4 h-4" /></button>
-            <h2 className="text-base font-black text-gray-800 dark:text-gray-100 min-w-[180px] text-center">{MONTHS[viewMonth]} {viewYear}</h2>
+            <h2 className="text-sm sm:text-base font-black text-gray-800 dark:text-gray-100 min-w-[130px] sm:min-w-[180px] text-center">{MONTHS[viewMonth]} {viewYear}</h2>
             <button onClick={nextMonth} className="p-2 rounded-lg hover:bg-gray-100 transition-colors"><ChevronRight className="w-4 h-4" /></button>
             <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => { setViewMonth(today.getMonth()); setViewYear(today.getFullYear()); }}>Today</Button>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 flex-1 sm:flex-initial justify-end">
             <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-[130px] h-8 text-xs font-medium">
+              <SelectTrigger className="w-full sm:w-[130px] h-8 text-xs font-medium">
                 <SelectValue placeholder="All Status" />
               </SelectTrigger>
               <SelectContent>

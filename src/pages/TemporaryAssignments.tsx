@@ -332,31 +332,31 @@ const TemporaryAssignments = () => {
       </div>
 
       <Card className="border-none shadow-xl shadow-slate-200/40 dark:bg-slate-900/50 backdrop-blur-xl">
-        <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-6">
-          <div className="space-y-1">
+        <CardHeader className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-6">
+          <div className="space-y-1 shrink-0">
             <CardTitle className="text-xl">Temporary Assignment History</CardTitle>
             <CardDescription>A complete log of employee branch reassignments.</CardDescription>
           </div>
-          <div className="flex items-center gap-3 w-full sm:w-auto">
-            <div className="relative flex-1 sm:w-64">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-foreground" />
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto sm:ml-auto">
+            <div className="relative flex-1 min-w-[160px] sm:w-64">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-foreground pointer-events-none" />
               <Input
                 placeholder="Search employee or branch..."
-                className="pl-9"
+                className="pl-9 pr-8 h-9 text-xs"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
-                {search && (
-                  <button 
-                    onClick={() => setSearch('')} 
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground/40 hover:text-foreground z-10 transition-colors"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                )}
+              {search && (
+                <button 
+                  onClick={() => setSearch('')} 
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground/40 hover:text-foreground z-10 transition-colors"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[140px]">
+              <SelectTrigger className="w-[130px] sm:w-[140px] shrink-0 h-9 text-xs">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>

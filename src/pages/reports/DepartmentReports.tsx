@@ -187,18 +187,18 @@ export default function DepartmentReports() {
     <div className="min-h-screen bg-background">
       {/* Filters injected into the global page header (top-right) */}
       <PageActions>
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-foreground uppercase tracking-wider">Branch:</span>
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+          <div className="flex items-center gap-1.5 w-[calc(50%-0.25rem)] sm:w-auto shrink-0">
+            <span className="text-xs font-semibold text-foreground uppercase tracking-wider hidden sm:inline">Branch:</span>
             {role === "branch_leader" ? (
-              <div className="h-9 px-3 bg-slate-100 dark:bg-slate-800 rounded-md flex items-center border border-slate-200 dark:border-slate-700">
+              <div className="h-9 px-3 w-full sm:w-auto bg-slate-100 dark:bg-slate-800 rounded-md flex items-center border border-slate-200 dark:border-slate-700">
                 <span className="uppercase text-xs font-bold text-slate-500 dark:text-slate-400">
                   {userBranch || "ALL"}
                 </span>
               </div>
             ) : (
               <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-                <SelectTrigger className="w-[140px] sm:w-[190px] h-9 bg-white dark:bg-slate-950">
+                <SelectTrigger className="w-full sm:w-[175px] h-9 bg-white dark:bg-slate-950">
                   <SelectValue placeholder="All Branches" />
                 </SelectTrigger>
                 <SelectContent>
@@ -213,17 +213,17 @@ export default function DepartmentReports() {
           </div>
 
           {role !== "branch_leader" && (
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-foreground uppercase tracking-wider">Dept:</span>
+            <div className="flex items-center gap-1.5 w-[calc(50%-0.25rem)] sm:w-auto shrink-0">
+              <span className="text-xs font-semibold text-foreground uppercase tracking-wider hidden sm:inline">Dept:</span>
               {role === "head_of_department" || role === "hod" ? (
-                <div className="h-9 px-3 bg-slate-100 dark:bg-slate-800 rounded-md flex items-center border border-slate-200 dark:border-slate-700">
+                <div className="h-9 px-3 w-full sm:w-auto bg-slate-100 dark:bg-slate-800 rounded-md flex items-center border border-slate-200 dark:border-slate-700">
                   <span className="uppercase text-xs font-bold text-slate-500 dark:text-slate-400">
                     {userDepartment || "ALL"}
                   </span>
                 </div>
               ) : (
                 <Select value={selectedDept} onValueChange={setSelectedDept}>
-                  <SelectTrigger className="w-[160px] h-9 bg-white dark:bg-slate-950">
+                  <SelectTrigger className="w-full sm:w-[155px] h-9 bg-white dark:bg-slate-950">
                     <SelectValue placeholder="All Departments" />
                   </SelectTrigger>
                   <SelectContent>
@@ -238,7 +238,9 @@ export default function DepartmentReports() {
             </div>
           )}
 
-          <ExportDropdown onExportCSV={handleExportCSV} />
+          <div className="shrink-0 ml-auto sm:ml-0">
+            <ExportDropdown onExportCSV={handleExportCSV} />
+          </div>
         </div>
       </PageActions>
 

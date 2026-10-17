@@ -507,11 +507,11 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
       {/* Main Table Card */}
       <Card className="border-border/60 shadow-xl overflow-hidden bg-card/77 backdrop-blur-sm">
         {/* Filters Bar */}
-        <div className="p-4 border-b border-border/40 bg-muted/10 flex flex-wrap items-center gap-3 shrink-0">
+        <div className="p-3 sm:p-4 border-b border-border/40 bg-muted/10 flex flex-wrap items-center gap-2 shrink-0">
           {/* Employee Popover Search (Matching Employee Directory) */}
           <Popover open={empSearchOpen} onOpenChange={setEmpSearchOpen}>
             <PopoverTrigger asChild>
-              <div className="relative flex-1 min-w-[220px] max-w-xs cursor-pointer">
+              <div className="relative w-full sm:w-[175px] lg:w-[200px] shrink-0 cursor-pointer">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10 pointer-events-none" />
                 
                 <Input
@@ -619,7 +619,7 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
           {/* Branch filter */}
           {(isAllAccessRole || uniqueBranches.length > 1) && (
             <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-              <SelectTrigger className="w-[140px] sm:w-[190px] h-9 text-xs font-bold bg-background/50 border-border/60">
+              <SelectTrigger className="w-[calc(50%-0.25rem)] sm:w-[155px] shrink-0 h-9 text-xs font-bold bg-background/50 border-border/60">
                 <SelectValue placeholder="Branch: All" />
               </SelectTrigger>
               <SelectContent>
@@ -636,7 +636,7 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
           {/* Department filter */}
           {(isAllAccessRole || uniqueDepartments.length > 1) && (
             <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
-              <SelectTrigger className="w-[150px] h-9 text-xs font-bold bg-background/50 border-border/60">
+              <SelectTrigger className="w-[calc(50%-0.25rem)] sm:w-[145px] shrink-0 h-9 text-xs font-bold bg-background/50 border-border/60">
                 <SelectValue placeholder="Department: All" />
               </SelectTrigger>
               <SelectContent>
@@ -652,12 +652,12 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
           <MonthPicker
             monthYear={selectedMonthYear}
             onSelectMonthYear={setSelectedMonthYear}
-            className="h-9 text-xs font-black uppercase bg-background/50 border-border/60 min-w-[140px]"
+            className="h-9 text-xs font-black uppercase bg-background/50 border-border/60 w-[calc(50%-0.25rem)] sm:w-auto sm:min-w-[135px] shrink-0"
           />
 
           {/* Leave Type filter */}
           <Select value={selectedLeaveType} onValueChange={setSelectedLeaveType}>
-            <SelectTrigger className="w-[150px] h-9 text-xs font-bold bg-background/50 border-border/60">
+            <SelectTrigger className="w-[calc(50%-0.25rem)] sm:w-[145px] shrink-0 h-9 text-xs font-bold bg-background/50 border-border/60">
               <SelectValue placeholder="Leave Type: All" />
             </SelectTrigger>
             <SelectContent>
@@ -671,8 +671,8 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
 
           {/* Sort By */}
           <Select value={sortBy} onValueChange={(val: any) => setSortBy(val)}>
-            <SelectTrigger className="w-[160px] h-9 text-xs font-bold bg-background/50 border-border/60">
-              <ArrowUpDown className="w-3.5 h-3.5 mr-1" />
+            <SelectTrigger className="flex-1 min-w-[120px] sm:flex-none sm:w-[150px] shrink-0 h-9 text-xs font-bold bg-background/50 border-border/60">
+              <ArrowUpDown className="w-3.5 h-3.5 mr-1 shrink-0" />
               <SelectValue placeholder="Sort By" />
             </SelectTrigger>
             <SelectContent>
@@ -683,7 +683,7 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
           </Select>
 
           {/* Reset Filters */}
-          <Button variant="ghost" size="sm" onClick={resetFilters} className="h-9 px-2 text-xs font-bold text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30">
+          <Button variant="ghost" size="sm" onClick={resetFilters} className="h-9 px-2.5 shrink-0 text-xs font-bold text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30">
             <RotateCcw className="w-3.5 h-3.5 mr-1" />
             Reset
           </Button>

@@ -475,7 +475,7 @@ export default function WorkforceInsights() {
     <div className="space-y-6 animate-in fade-in duration-500 w-full">
 
         {/* Filter Toolbar Line directly under main header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200/60 dark:border-slate-800/60">
+        <div className="flex flex-wrap items-center justify-between gap-2.5 pb-2 border-b border-slate-200/60 dark:border-slate-800/60">
           {/* LEFT: DAY | MONTH View Toggle Bar */}
           <div className="inline-flex items-center bg-slate-100 dark:bg-slate-900 p-1.5 rounded-xl shadow-inner border border-slate-200 dark:border-slate-800 shrink-0 gap-1">
             <button 
@@ -493,7 +493,7 @@ export default function WorkforceInsights() {
           </div>
 
           {/* RIGHT: Active Filter Controls */}
-          <div className="flex flex-wrap items-center justify-end gap-2.5">
+          <div className="flex flex-wrap items-center justify-end gap-2.5 flex-1 sm:flex-initial">
             <div className="relative">
               {viewMode === "day" ? (
                 <Popover>

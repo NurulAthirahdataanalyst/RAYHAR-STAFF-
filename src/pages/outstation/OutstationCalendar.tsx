@@ -147,16 +147,16 @@ export default function OutstationCalendar({ onlyMine = false }: { onlyMine?: bo
       <Card className="border border-slate-100 dark:border-slate-700 bg-card shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] rounded-[24px] overflow-hidden">
         <CardHeader className="flex flex-col gap-4 border-b border-border/50 p-4 sm:p-5">
           {/* Controls */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 w-full">
-            <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-2 w-full">
+            <div className="flex items-center gap-2 sm:gap-3">
               <button onClick={prevMonth} className="p-2 rounded-lg hover:bg-gray-100 transition-colors"><ChevronLeft className="w-4 h-4" /></button>
-              <h2 className="text-base font-black text-foreground dark:text-gray-100 min-w-[180px] text-center">{MONTHS[viewMonth]} {viewYear}</h2>
+              <h2 className="text-sm sm:text-base font-black text-foreground dark:text-gray-100 min-w-[130px] sm:min-w-[180px] text-center">{MONTHS[viewMonth]} {viewYear}</h2>
               <button onClick={nextMonth} className="p-2 rounded-lg hover:bg-gray-100 transition-colors"><ChevronRight className="w-4 h-4" /></button>
               <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => { setViewMonth(today.getMonth()); setViewYear(today.getFullYear()); }}>Today</Button>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 flex-1 sm:flex-initial justify-end">
               <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger className="w-[130px] h-8 text-xs"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="w-full sm:w-[130px] h-8 text-xs"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {["All","Active","Upcoming","Completed","Cancelled"].map(s => (
                     <SelectItem key={s} value={s}>{s === "All" ? "All Status" : s}</SelectItem>

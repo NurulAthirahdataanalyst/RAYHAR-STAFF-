@@ -363,9 +363,9 @@ export default function AttendanceReports() {
       <div className="w-full py-4 space-y-6">
 
         {/* Filter Toolbar Line directly under main header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-1">
+        <div className="flex flex-wrap items-center justify-between gap-2 pb-1">
           {/* LEFT: DAY | MONTH | YEAR View Toggle Bar */}
-          <div className="flex items-center gap-4 sm:gap-6 border-b border-gray-200 dark:border-slate-800 w-full sm:w-auto">
+          <div className="flex items-center gap-4 sm:gap-6 border-b border-gray-200 dark:border-slate-800 w-full sm:w-auto shrink-0">
             <button
               onClick={() => setViewType("day")}
               className={`text-[11px] font-black uppercase tracking-widest pb-3 -mb-[1px] transition-colors border-b-[3px] ${
@@ -399,13 +399,13 @@ export default function AttendanceReports() {
           </div>
 
           {/* RIGHT: Active Filter Controls (Date/Month Picker, Status Dropdown, Export Button) */}
-          <div className="flex flex-wrap items-center gap-3 sm:justify-end">
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto sm:ml-auto sm:justify-end">
             {viewType === "day" ? (
               <CustomDatePicker
                 value={date}
                 onChange={setDate}
                 displayFormat="DD/MM/YYYY"
-                className="h-10 min-w-[140px] px-4 font-black uppercase text-[11px] tracking-widest bg-card border-slate-300 dark:border-slate-700"
+                className="h-9 w-[calc(50%-0.25rem)] sm:w-auto sm:min-w-[140px] shrink-0 px-3 font-black uppercase text-[11px] tracking-widest bg-card border-slate-300 dark:border-slate-700"
               />
             ) : viewType === "month" ? (
               <MonthPicker
@@ -419,14 +419,14 @@ export default function AttendanceReports() {
                     setSelectedMonth(parseInt(m).toString());
                   }
                 }}
-                className="flex items-center justify-between h-10 px-4 text-[11px] font-black uppercase tracking-widest text-slate-900 dark:text-slate-100 bg-card border border-slate-300 dark:border-slate-700 rounded-md shadow-sm min-w-[140px]"
+                className="flex items-center justify-between h-9 px-3 text-[11px] font-black uppercase tracking-widest text-slate-900 dark:text-slate-100 bg-card border border-slate-300 dark:border-slate-700 rounded-md shadow-sm w-[calc(50%-0.25rem)] sm:w-auto sm:min-w-[140px] shrink-0"
               />
             ) : (
-              <YearPopover year={selectedYear} onSelectYear={setSelectedYear} className="flex items-center justify-between h-10 px-4 text-[11px] font-black uppercase tracking-widest text-slate-900 dark:text-slate-100 bg-card border border-slate-300 dark:border-slate-700 rounded-md shadow-sm min-w-[140px]" />
+              <YearPopover year={selectedYear} onSelectYear={setSelectedYear} className="flex items-center justify-between h-9 px-3 text-[11px] font-black uppercase tracking-widest text-slate-900 dark:text-slate-100 bg-card border border-slate-300 dark:border-slate-700 rounded-md shadow-sm w-[calc(50%-0.25rem)] sm:w-auto sm:min-w-[140px] shrink-0" />
             )}
 
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[160px] h-10 bg-card">
+              <SelectTrigger className="w-[calc(50%-0.25rem)] sm:w-[160px] shrink-0 h-9 bg-card">
                 <SelectValue placeholder="Select Status" />
               </SelectTrigger>
               <SelectContent>
@@ -447,14 +447,16 @@ export default function AttendanceReports() {
               variant="outline"
               size="sm"
               onClick={handleResetFilters}
-              className="h-10 px-3 text-[11px] font-black uppercase tracking-widest text-foreground border-slate-300 dark:border-slate-700 bg-card hover:bg-muted hover:text-[#942392] hover:border-[#942392] transition-all rounded-md flex items-center gap-1.5 shadow-xs cursor-pointer group"
+              className="h-9 px-3 shrink-0 text-[11px] font-black uppercase tracking-widest text-foreground border-slate-300 dark:border-slate-700 bg-card hover:bg-muted hover:text-[#942392] hover:border-[#942392] transition-all rounded-md flex items-center gap-1.5 shadow-xs cursor-pointer group"
               title="Reset all filters to ALL"
             >
               <RotateCcw className="w-3.5 h-3.5 text-muted-foreground group-hover:text-[#942392] group-hover:-rotate-90 transition-transform duration-200" />
               <span>Reset</span>
             </Button>
 
-            <ExportDropdown onExportCSV={handleExportCSV} />
+            <div className="shrink-0 ml-auto sm:ml-0">
+              <ExportDropdown onExportCSV={handleExportCSV} />
+            </div>
           </div>
         </div>
 

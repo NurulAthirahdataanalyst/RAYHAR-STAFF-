@@ -1248,8 +1248,8 @@ export default function AttendanceDashboard() {
 
       {/* FILTER BAR SECTION */}
       <Card className="border border-slate-100 dark:border-slate-800/80 bg-card overflow-hidden mb-6 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
-        <div className="p-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-          <div>
+        <div className="p-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="shrink-0">
             <h2 className="text-base font-bold text-gray-800 dark:text-gray-200 flex items-center gap-2">
               <Filter className="w-4 h-4 text-foreground" /> Analytics Filters
             </h2>
@@ -1258,10 +1258,10 @@ export default function AttendanceDashboard() {
             </p>
           </div>
             
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
               {/* Search Filter */}
-              <div className="relative w-full sm:w-[220px]">
-                <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-foreground" />
+              <div className="relative w-full sm:w-[190px] shrink-0">
+                <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-foreground pointer-events-none" />
                 <input 
                   type="text"
                   placeholder="Search Employee..."
@@ -1272,11 +1272,11 @@ export default function AttendanceDashboard() {
               </div>
 
               {/* Date Filter */}
-              <div className="relative">
+              <div className="relative w-[calc(50%-0.25rem)] sm:w-auto shrink-0">
                 <Popover>
                   <PopoverTrigger asChild>
-                    <button className="appearance-none flex items-center justify-between px-4 py-2 bg-card border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer tracking-widest h-10 gap-3 hover:border-[#942392]/40 min-w-[140px]">
-                      {new Date(selectedDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })} <CalendarDays className="w-4 h-4 text-foreground" />
+                    <button className="appearance-none flex items-center justify-between px-3 py-2 bg-card border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer tracking-widest h-9 gap-2 hover:border-[#942392]/40 w-full sm:min-w-[135px]">
+                      {new Date(selectedDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })} <CalendarDays className="w-4 h-4 text-foreground shrink-0" />
                     </button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl bg-card z-50" align="start">
@@ -1295,7 +1295,7 @@ export default function AttendanceDashboard() {
               {/* Department Filter */}
               {role !== "head_of_department" && (
                 <Select value={selectedDepartmentFilter} onValueChange={setSelectedDepartmentFilter}>
-                  <SelectTrigger className="w-[140px] h-9 text-[11px] font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-none outline-none hover:border-[#942392]/40 hover:ring-1 hover:ring-[#942392]/40 hover:bg-[#942392]/5 dark:hover:border-[#942392]/60 dark:hover:ring-[#942392]/60 dark:hover:bg-[#942392]/20 transition-all duration-200 focus:ring-1 focus:ring-[#942392]">
+                  <SelectTrigger className="w-[calc(50%-0.25rem)] sm:w-[140px] shrink-0 h-9 text-[11px] font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-none outline-none hover:border-[#942392]/40 hover:ring-1 hover:ring-[#942392]/40 hover:bg-[#942392]/5 dark:hover:border-[#942392]/60 dark:hover:ring-[#942392]/60 dark:hover:bg-[#942392]/20 transition-all duration-200 focus:ring-1 focus:ring-[#942392]">
                     <SelectValue placeholder="Department" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1310,7 +1310,7 @@ export default function AttendanceDashboard() {
               {/* Branch Filter */}
               {role !== "branch_leader" && (
                 <Select value={selectedBranchFilter} onValueChange={setSelectedBranchFilter}>
-                  <SelectTrigger className="w-[170px] sm:w-[190px] h-9 text-[11px] font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-none outline-none hover:border-[#942392]/40 hover:ring-1 hover:ring-[#942392]/40 hover:bg-[#942392]/5 dark:hover:border-[#942392]/60 dark:hover:ring-[#942392]/60 dark:hover:bg-[#942392]/20 transition-all duration-200 focus:ring-1 focus:ring-[#942392]">
+                  <SelectTrigger className="flex-1 min-w-[115px] sm:flex-none sm:w-[165px] shrink-0 h-9 text-[11px] font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-none outline-none hover:border-[#942392]/40 hover:ring-1 hover:ring-[#942392]/40 hover:bg-[#942392]/5 dark:hover:border-[#942392]/60 dark:hover:ring-[#942392]/60 dark:hover:bg-[#942392]/20 transition-all duration-200 focus:ring-1 focus:ring-[#942392]">
                     <SelectValue placeholder="All Branches" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1324,7 +1324,7 @@ export default function AttendanceDashboard() {
 
               {/* Status Filter */}
               <Select value={selectedStatusFilter} onValueChange={setSelectedStatusFilter}>
-                <SelectTrigger className="w-[130px] h-9 text-[11px] font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-none outline-none hover:border-[#942392]/40 hover:ring-1 hover:ring-[#942392]/40 hover:bg-[#942392]/5 dark:hover:border-[#942392]/60 dark:hover:ring-[#942392]/60 dark:hover:bg-[#942392]/20 transition-all duration-200 focus:ring-1 focus:ring-[#942392]">
+                <SelectTrigger className="flex-1 min-w-[105px] sm:flex-none sm:w-[130px] shrink-0 h-9 text-[11px] font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-none outline-none hover:border-[#942392]/40 hover:ring-1 hover:ring-[#942392]/40 hover:bg-[#942392]/5 dark:hover:border-[#942392]/60 dark:hover:ring-[#942392]/60 dark:hover:bg-[#942392]/20 transition-all duration-200 focus:ring-1 focus:ring-[#942392]">
                   <SelectValue placeholder="Select Status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -1348,7 +1348,7 @@ export default function AttendanceDashboard() {
                   setSelectedBranchFilter("all");
                   setSelectedStatusFilter("all");
                 }}
-                className="h-9 px-3 text-[11px] font-bold text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 flex items-center gap-1.5 transition-colors"
+                className="h-9 px-3 shrink-0 text-[11px] font-bold text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 flex items-center gap-1.5 transition-colors"
                 title="Reset Filters"
               >
                 <RefreshCw className="w-3.5 h-3.5" />

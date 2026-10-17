@@ -384,11 +384,11 @@ export default function LeaveFormView() {
   return (
     <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-500">
 
-        <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2.5">
           <Button
             variant="ghost"
             size="sm"
-            className="mb-1 gap-2 px-0 text-foreground hover:bg-transparent hover:text-[#942392] transition-colors touch-target no-global-hover"
+            className="gap-2 px-0 text-foreground hover:bg-transparent hover:text-[#942392] transition-colors touch-target no-global-hover"
             onClick={() => navigate("/leave")}
           >
             <ArrowLeft className="h-4 w-4" />
@@ -397,23 +397,23 @@ export default function LeaveFormView() {
             </span>
           </Button>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
             <MonthPicker
               monthYear={monthYear}
               onSelectMonthYear={setMonthYear}
-              className="h-9 sm:h-10"
+              className="h-9 sm:h-10 flex-1 sm:flex-initial"
             />
             <Button
               variant="outline"
               onClick={handleExport}
-              className="gap-2 bg-card border border-border/50 text-foreground hover:bg-muted rounded-xl font-black text-[8px] print:text-[13px] uppercase tracking-widest px-4 shadow-sm transition-all active:scale-95"
+              className="gap-2 bg-card border border-border/50 text-foreground hover:bg-muted rounded-xl font-black text-[8px] print:text-[13px] uppercase tracking-widest px-3 sm:px-4 shadow-sm transition-all active:scale-95 h-9 sm:h-10"
             >
               <Download className="w-3.5 h-3.5" />
               Export
             </Button>
             <Button
               onClick={() => navigate("/leave/apply")}
-              className="gap-2 bg-[#942392] text-white hover:bg-[#5e0080] rounded-xl font-black text-[8px] print:text-[13px] uppercase tracking-widest px-4 shadow-sm transition-all active:scale-95"
+              className="gap-2 bg-[#942392] text-white hover:bg-[#5e0080] rounded-xl font-black text-[8px] print:text-[13px] uppercase tracking-widest px-3 sm:px-4 shadow-sm transition-all active:scale-95 h-9 sm:h-10"
             >
               <FileText className="w-3.5 h-3.5" />
               New Application

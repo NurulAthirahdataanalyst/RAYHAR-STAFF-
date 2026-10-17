@@ -709,9 +709,9 @@ export default function LeaveAdmin() {
 
       {/* Main Content Area */}
       <div className="mb-4 space-y-2.5">
-        <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2">
           {/* Employee Search Filter */}
-          <div className="w-full md:w-auto md:min-w-[280px] md:max-w-xs">
+          <div className="w-full sm:w-[200px] lg:w-[240px] shrink-0">
             <Popover open={empSearchOpen} onOpenChange={setEmpSearchOpen}>
               <PopoverTrigger asChild>
                 <div className="relative w-full cursor-pointer">
@@ -729,7 +729,7 @@ export default function LeaveAdmin() {
                     }}
                     onClick={() => setEmpSearchOpen(true)}
                     placeholder="Search employees..."
-                    className={`pl-9 pr-9 h-10 text-xs rounded-md bg-card cursor-pointer transition-all ${
+                    className={`pl-9 pr-9 h-9 text-xs rounded-md bg-card cursor-pointer transition-all ${
                       selectedEmps.length > 0
                         ? "border-[#942392] text-[#942392] font-bold bg-[#942392]/5 focus-visible:ring-[#942392]"
                         : "border-slate-300 dark:border-slate-700 hover:border-[#942392]/50 text-foreground focus-visible:ring-[#942392]"
@@ -904,66 +904,66 @@ export default function LeaveAdmin() {
             </Popover>
           </div>
 
-          <div className="flex flex-wrap items-center justify-end gap-2.5">
-            <MonthPicker
-              monthYear={selectedMonth === "all" ? `${selectedYear}-all` : `${selectedYear}-${selectedMonth}`}
-              onSelectMonthYear={(val) => {
-                if (val) {
-                  const [year, month] = val.split('-');
-                  setSelectedYear(year);
-                  if (month === 'all') {
-                    setSelectedMonth("all");
-                  } else {
-                    setSelectedMonth(month);
-                  }
-                } else {
+          <MonthPicker
+            monthYear={selectedMonth === "all" ? `${selectedYear}-all` : `${selectedYear}-${selectedMonth}`}
+            onSelectMonthYear={(val) => {
+              if (val) {
+                const [year, month] = val.split('-');
+                setSelectedYear(year);
+                if (month === 'all') {
                   setSelectedMonth("all");
+                } else {
+                  setSelectedMonth(month);
                 }
-              }}
-              className="appearance-none flex items-center justify-between px-4 py-2 bg-card border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-[11px] font-black uppercase tracking-widest rounded-md shadow-sm outline-none cursor-pointer h-10 gap-3 hover:border-[#942392]/40 min-w-[140px]"
-            />
-
-            <Select value={selectedLeaveType} onValueChange={setSelectedLeaveType}>
-              <SelectTrigger className="w-[160px] h-9 text-xs font-medium rounded-md bg-transparent">
-                <SelectValue placeholder="All Leave Types" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all" className="text-xs">All Leave Types</SelectItem>
-                {uniqueLeaveTypes.map(type => (
-                  <SelectItem key={type} value={type} className="text-xs">{type}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={activeTab} onValueChange={(val: any) => setActiveTab(val)}>
-              <SelectTrigger className="w-[140px] h-9 text-xs font-medium rounded-md bg-transparent">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="history" className="text-xs">All Status</SelectItem>
-                <SelectItem value="pending" className="text-xs">Pending</SelectItem>
-                <SelectItem value="approved" className="text-xs">Approved</SelectItem>
-                <SelectItem value="rejected" className="text-xs">Rejected</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="h-9 px-3 border-dashed text-xs cursor-pointer"
-              onClick={() => {
+              } else {
                 setSelectedMonth("all");
-                setSelectedYear(new Date().getFullYear().toString());
-                setSelectedLeaveType("all");
-                setActiveTab("history");
-                setSelectedEmps([]);
-                setEmpSearch("");
-              }}
-            >
-              <RotateCcw className="w-3.5 h-3.5 mr-2" />
-              Reset
-            </Button>
+              }
+            }}
+            className="appearance-none flex items-center justify-between px-3 py-2 bg-card border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-[11px] font-black uppercase tracking-widest rounded-md shadow-sm outline-none cursor-pointer h-9 gap-2 hover:border-[#942392]/40 w-[calc(50%-0.25rem)] sm:w-auto sm:min-w-[135px] shrink-0"
+          />
 
+          <Select value={selectedLeaveType} onValueChange={setSelectedLeaveType}>
+            <SelectTrigger className="w-[calc(50%-0.25rem)] sm:w-[150px] shrink-0 h-9 text-xs font-medium rounded-md bg-transparent">
+              <SelectValue placeholder="All Leave Types" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all" className="text-xs">All Leave Types</SelectItem>
+              {uniqueLeaveTypes.map(type => (
+                <SelectItem key={type} value={type} className="text-xs">{type}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={activeTab} onValueChange={(val: any) => setActiveTab(val)}>
+            <SelectTrigger className="flex-1 min-w-[100px] sm:flex-none sm:w-[130px] shrink-0 h-9 text-xs font-medium rounded-md bg-transparent">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="history" className="text-xs">All Status</SelectItem>
+              <SelectItem value="pending" className="text-xs">Pending</SelectItem>
+              <SelectItem value="approved" className="text-xs">Approved</SelectItem>
+              <SelectItem value="rejected" className="text-xs">Rejected</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="h-9 px-3 shrink-0 border-dashed text-xs cursor-pointer"
+            onClick={() => {
+              setSelectedMonth("all");
+              setSelectedYear(new Date().getFullYear().toString());
+              setSelectedLeaveType("all");
+              setActiveTab("history");
+              setSelectedEmps([]);
+              setEmpSearch("");
+            }}
+          >
+            <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
+            Reset
+          </Button>
+
+          <div className="shrink-0 sm:ml-auto">
             <ExportDropdown 
               onExportCSV={() => {
                 const exportData = filteredRequests.map(req => ({

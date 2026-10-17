@@ -483,23 +483,25 @@ export default function GPSLocationTracker() {
   return (
     <>
       <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mb-4">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
           <div>
             {/* Left side empty for title space, since page title is in AppLayout usually, but we keep this div to push filters right */}
             <h2 className="text-xl font-bold md:hidden">Location Tracker</h2>
           </div>
-          <div className="flex flex-wrap items-center gap-2 ml-auto">
-            <Input placeholder="Search Employee..." value={query} onChange={(e) => { setQuery(e.target.value); setCurrentPage(1); }} className="w-auto" />
-                {query && (
-                  <button 
-                    onClick={() => { setQuery(''); setCurrentPage(1); }} 
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground/40 hover:text-foreground z-10 transition-colors"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                )}
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto sm:ml-auto">
+            <div className="relative w-full sm:w-48 shrink-0">
+              <Input placeholder="Search Employee..." value={query} onChange={(e) => { setQuery(e.target.value); setCurrentPage(1); }} className="w-full h-9 pr-8 text-xs" />
+              {query && (
+                <button 
+                  onClick={() => { setQuery(''); setCurrentPage(1); }} 
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-foreground/40 hover:text-foreground z-10 transition-colors"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
             <Select value={branchFilter} onValueChange={(v) => { setBranchFilter(v); setCurrentPage(1); }}>
-              <SelectTrigger className="w-40 sm:w-56">
+              <SelectTrigger className="flex-1 min-w-[130px] sm:flex-none sm:w-52 h-9 text-xs shrink-0">
                 <SelectValue placeholder="Branch">
                   {branchFilter === "All"
                     ? "All Branches"
@@ -514,8 +516,8 @@ export default function GPSLocationTracker() {
                 ))}
               </SelectContent>
             </Select>
-            <Button onClick={() => void fetchData(true)}>
-              <RefreshCw className="w-4 h-4 mr-2" />
+            <Button size="sm" className="h-9 shrink-0" onClick={() => void fetchData(true)}>
+              <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
               Refresh Map
             </Button>
           </div>
@@ -669,29 +671,31 @@ export default function GPSLocationTracker() {
         </div>
 
           <div>
-            <div className="mb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <div className="shrink-0">
                 <h3 className="text-sm font-black">Employee List</h3>
                 <p className="text-xs text-foreground">Showing {filtered.length} employees</p>
               </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <Input
-                  placeholder="Search by name..."
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  className="w-48 h-8 text-xs"
-                />
-                {query && (
-                  <button 
-                    onClick={() => setQuery('')} 
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground/40 hover:text-foreground z-10 transition-colors"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                )}
+              <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto sm:ml-auto">
+                <div className="relative w-full sm:w-48 shrink-0">
+                  <Input
+                    placeholder="Search by name..."
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    className="w-full h-8 pr-8 text-xs"
+                  />
+                  {query && (
+                    <button 
+                      onClick={() => setQuery('')} 
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-foreground/40 hover:text-foreground z-10 transition-colors"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
                 {branches.length > 1 && (
                   <Select value={branchFilter} onValueChange={setBranchFilter}>
-                    <SelectTrigger className="w-32 sm:w-44 h-8 text-xs">
+                    <SelectTrigger className="w-[calc(50%-0.25rem)] sm:w-44 shrink-0 h-8 text-xs">
                       <SelectValue placeholder="Branch" />
                     </SelectTrigger>
                     <SelectContent>
@@ -704,7 +708,7 @@ export default function GPSLocationTracker() {
                   </Select>
                 )}
                 <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setCurrentPage(1); }}>
-                  <SelectTrigger className="w-32 h-8 text-xs">
+                  <SelectTrigger className="flex-1 min-w-[110px] sm:flex-none sm:w-32 shrink-0 h-8 text-xs">
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>

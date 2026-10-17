@@ -183,18 +183,19 @@ export default function Role() {
       <Card className="border-0 shadow-sm rounded-xl overflow-hidden bg-card">
         <CardContent className="p-0">
           {/* Table Header Filters */}
-          <div className="p-4 border-b border-gray-100 dark:border-slate-800 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
-            <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200">Roles List</h2>
+          <div className="p-4 border-b border-gray-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 shrink-0">Roles List</h2>
             
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto sm:ml-auto">
               {/* Year Picker — same as Attendance Reports */}
               <YearPopover
                 year={selectedYear}
                 onSelectYear={setSelectedYear}
+                className="w-[calc(50%-0.25rem)] sm:w-auto shrink-0 h-9"
               />
 
               <Select defaultValue="status">
-                <SelectTrigger className="w-[130px] bg-card border-gray-200 dark:border-slate-800 shadow-sm h-10">
+                <SelectTrigger className="w-[calc(50%-0.25rem)] sm:w-[130px] shrink-0 bg-card border-gray-200 dark:border-slate-800 shadow-sm h-9">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -207,8 +208,8 @@ export default function Role() {
           </div>
 
           {/* Sub Filters */}
-          <div className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 dark:border-slate-800 bg-gray-50/30 dark:bg-slate-900/40">
-            <div className="flex items-center gap-2 text-sm text-foreground font-medium">
+          <div className="p-4 flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 dark:border-slate-800 bg-gray-50/30 dark:bg-slate-900/40">
+            <div className="flex items-center gap-2 text-sm text-foreground font-medium shrink-0">
               <span>Row Per Page</span>
               <Select defaultValue="10">
                 <SelectTrigger className="w-[70px] bg-card border-gray-200 dark:border-slate-800 h-9 shadow-sm">
@@ -223,11 +224,11 @@ export default function Role() {
               <span>Entries</span>
             </div>
             
-            <div className="relative">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-foreground" />
+            <div className="relative flex-1 min-w-[160px] sm:flex-none sm:w-[250px] sm:ml-auto">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-foreground pointer-events-none" />
               <Input 
                 placeholder="Search" 
-                className="pl-9 bg-card border-gray-200 dark:border-slate-800 h-9 w-full sm:w-[250px] shadow-sm"
+                className="pl-9 bg-card border-gray-200 dark:border-slate-800 h-9 w-full shadow-sm"
               />
             </div>
           </div>
