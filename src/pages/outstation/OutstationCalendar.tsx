@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate, useLocation } from "react-router-dom";
 import { format, isSameDay, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isBefore, startOfDay } from "date-fns";
 import { useRole } from "@/contexts/RoleContext";
@@ -291,103 +292,116 @@ export default function OutstationCalendar({ onlyMine = false }: { onlyMine?: bo
         const activeCount = relatedAssignments.filter(a => a.status !== 'Cancelled').length;
         const cancelledCount = relatedAssignments.filter(a => a.status === 'Cancelled').length;
 
-        return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-xl p-4 transition-all duration-300" onClick={() => setSelectedEvent(null)}>
-          <div className="bg-card rounded-2xl shadow-2xl overflow-hidden max-w-md w-full flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between bg-pink-500 text-white p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-white/20">
+        return createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 sm:p-6 transition-all duration-300 animate-in fade-in" onClick={() => setSelectedEvent(null)}>
+          <div className="bg-card rounded-2xl shadow-2xl overflow-hidden max-w-xl sm:max-w-2xl w-full flex flex-col max-h-[90vh] border border-border/60 animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+            {/* Header */}
+            <div className="flex items-center justify-between bg-gradient-to-r from-pink-600 to-[#942392] text-white px-5 py-4 sm:px-6 sm:py-4.5">
+              <div className="flex items-center gap-3.5 min-w-0">
+                <div className="p-2.5 rounded-xl bg-white/20 shrink-0">
                   <Plane className="w-5 h-5 text-white" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-white/80 mb-0.5">Outstation Event</p>
-                  <h3 className="font-black text-white truncate">{selectedEvent.project || selectedEvent.purpose || selectedEvent.destination}</h3>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-white/80 mb-0.5">Outstation Event</p>
+                  <h3 className="font-extrabold text-white text-base sm:text-lg leading-snug">{selectedEvent.project || selectedEvent.purpose || selectedEvent.destination}</h3>
                 </div>
               </div>
-              <button onClick={() => setSelectedEvent(null)} className="p-1.5 rounded-lg hover:bg-white/20 text-white/80 hover:text-white transition-colors">
-                <X className="w-4 h-4" />
+              <button 
+                onClick={() => setSelectedEvent(null)} 
+                className="p-1.5 rounded-full hover:bg-white/20 text-white/80 hover:text-white transition-colors shrink-0 ml-3"
+              >
+                <X className="w-5 h-5" />
               </button>
             </div>
             
-            <div className="p-6 pt-4 overflow-y-auto pr-1 space-y-4 custom-scrollbar">
-              <div className="space-y-3 border-t border-gray-100 dark:border-slate-800 pt-4">
-                <div className="flex items-center gap-2.5">
-                  <MapPin className="w-3.5 h-3.5 text-pink-400 shrink-0" />
+            {/* Body */}
+            <div className="p-5 sm:p-6 overflow-y-auto space-y-5 custom-scrollbar">
+              
+              {/* Event Details 2-Column Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 p-4 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800">
+                <div className="flex items-start gap-3">
+                  <MapPin className="w-4 h-4 text-pink-500 shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-[9px] font-black uppercase text-foreground">Destination</p>
-                    <p className="text-[12px] font-bold text-foreground dark:text-gray-100">{selectedEvent.destination}</p>
+                    <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Destination</p>
+                    <p className="text-xs sm:text-sm font-bold text-foreground mt-0.5">{selectedEvent.destination}</p>
                   </div>
                 </div>
+
+                <div className="flex items-start gap-3">
+                  <Calendar className="w-4 h-4 text-pink-500 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Duration</p>
+                    <p className="text-xs sm:text-sm font-bold text-foreground mt-0.5">{fmtDate(selectedEvent.start_date)} → {fmtDate(selectedEvent.end_date)}</p>
+                  </div>
+                </div>
+
                 {selectedEvent.purpose && (
-                  <div className="flex items-center gap-2.5">
-                    <Plane className="w-3.5 h-3.5 text-pink-400 shrink-0" />
+                  <div className="flex items-start gap-3 sm:col-span-2">
+                    <Plane className="w-4 h-4 text-pink-500 shrink-0 mt-0.5" />
                     <div>
-                      <p className="text-[9px] font-black uppercase text-foreground">Purpose / Project</p>
-                      <p className="text-[12px] font-bold text-foreground dark:text-gray-200">{selectedEvent.purpose} {selectedEvent.project ? `· ${selectedEvent.project}` : ''}</p>
+                      <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Purpose / Project</p>
+                      <p className="text-xs sm:text-sm font-bold text-foreground mt-0.5">{selectedEvent.purpose} {selectedEvent.project ? `· ${selectedEvent.project}` : ''}</p>
                     </div>
                   </div>
                 )}
-                <div className="flex items-center gap-2.5">
-                  <Calendar className="w-3.5 h-3.5 text-pink-400 shrink-0" />
-                  <div>
-                    <p className="text-[9px] font-black uppercase text-foreground">Duration</p>
-                    <p className="text-[12px] font-bold text-foreground dark:text-gray-100">{fmtDate(selectedEvent.start_date)} → {fmtDate(selectedEvent.end_date)}</p>
-                  </div>
-                </div>
+
                 {selectedEvent.assigned_by_name && (
-                  <div className="flex items-center gap-2.5">
-                    <Clock className="w-3.5 h-3.5 text-pink-400 shrink-0" />
+                  <div className="flex items-start gap-3 sm:col-span-2">
+                    <Clock className="w-4 h-4 text-pink-500 shrink-0 mt-0.5" />
                     <div>
-                      <p className="text-[9px] font-black uppercase text-foreground">Assigned By</p>
-                      <p className="text-[12px] font-bold text-foreground dark:text-gray-200">{selectedEvent.assigned_by_name}</p>
+                      <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Assigned By</p>
+                      <p className="text-xs sm:text-sm font-bold text-foreground mt-0.5">{selectedEvent.assigned_by_name}</p>
                     </div>
                   </div>
                 )}
-                <div className="mt-2 flex items-center gap-2 flex-wrap">
+
+                {/* Status Bar */}
+                <div className="sm:col-span-2 pt-2 border-t border-slate-200/60 dark:border-slate-800 flex items-center gap-2 flex-wrap">
                   {(() => {
                     const c = statusColor(overallStatus);
                     return (
-                      <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-black ${c.bg} ${c.text} border ${c.border}`}>
+                      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-black ${c.bg} ${c.text} border ${c.border}`}>
                         <div className={`w-2 h-2 rounded-full ${c.dot}`} />
                         {overallStatus}
                       </span>
                     );
                   })()}
                   {relatedAssignments.length > 1 && (
-                    <span className="text-[10px] font-bold text-muted-foreground bg-muted px-2.5 py-1 rounded-md border border-border">
+                    <span className="text-[11px] font-bold text-muted-foreground bg-card px-2.5 py-1 rounded-md border border-border/60">
                       {activeCount} Active{cancelledCount > 0 ? ` · ${cancelledCount} Cancelled` : ''}
                     </span>
                   )}
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-gray-100 dark:border-slate-800">
-                <div className="flex items-center justify-between mb-3">
-                  <p className="text-[10px] font-black uppercase text-foreground">
+              {/* Assigned Employees List */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between pb-1 border-b border-border/40">
+                  <p className="text-xs font-black uppercase tracking-wider text-foreground">
                     Assigned Employees ({relatedAssignments.length})
                   </p>
                   {cancelledCount > 0 && (
-                    <span className="text-[10px] font-bold text-muted-foreground">
+                    <span className="text-[11px] font-bold text-muted-foreground">
                       {activeCount} Active, {cancelledCount} Cancelled
                     </span>
                   )}
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
                   {relatedAssignments.map((a: any) => {
                     const sc = statusColor(a.status);
                     const isCanc = a.status === "Cancelled";
                     return (
-                      <div key={a.id} className={`flex items-center justify-between gap-3 p-2.5 rounded-xl border transition-colors shadow-sm ${isCanc ? 'border-gray-200 dark:border-slate-800 bg-gray-50/70 dark:bg-slate-900/40 opacity-75' : 'border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800'}`}>
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div className={`w-8 h-8 rounded-full ${isCanc ? 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400' : 'bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300'} text-[10px] font-bold flex items-center justify-center shrink-0`}>
+                      <div key={a.id} className={`flex items-center justify-between gap-3 p-3 rounded-xl border transition-colors shadow-xs ${isCanc ? 'border-gray-200 dark:border-slate-800 bg-gray-50/70 dark:bg-slate-900/40 opacity-75' : 'border-gray-200 dark:border-slate-700 bg-card hover:border-pink-500/30'}`}>
+                        <div className="flex items-center gap-3.5 min-w-0">
+                          <div className={`w-9 h-9 rounded-full ${isCanc ? 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400' : 'bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300'} text-xs font-black flex items-center justify-center shrink-0 shadow-xs`}>
                             {a.full_name?.split(' ').map((n:string)=>n[0]).join('').substring(0,2).toUpperCase()}
                           </div>
                           <div className="min-w-0">
-                            <p className={`text-[12px] font-bold text-foreground dark:text-gray-100 truncate leading-tight ${isCanc ? 'line-through text-muted-foreground' : ''}`}>{a.full_name}</p>
-                            <p className="text-[10px] text-muted-foreground truncate mt-0.5">{a.user_id || a.department}</p>
+                            <p className={`text-xs sm:text-sm font-bold text-foreground dark:text-gray-100 truncate leading-tight ${isCanc ? 'line-through text-muted-foreground' : ''}`}>{a.full_name}</p>
+                            <p className="text-[11px] text-muted-foreground truncate mt-0.5 font-medium">{a.user_id ? `ID: ${a.user_id}` : ''}{a.user_id && a.department ? ' · ' : ''}{a.department || ''}</p>
                           </div>
                         </div>
-                        <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold shrink-0 ${sc.bg} ${sc.text} border ${sc.border}`}>
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold shrink-0 shadow-xs ${sc.bg} ${sc.text} border ${sc.border}`}>
                           <span className={`w-1.5 h-1.5 rounded-full ${sc.dot}`} />
                           {a.status}
                         </span>
@@ -398,7 +412,8 @@ export default function OutstationCalendar({ onlyMine = false }: { onlyMine?: bo
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
         );
       })()}
     </div>
