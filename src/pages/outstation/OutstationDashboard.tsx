@@ -51,10 +51,10 @@ function calcProgress(start: string, end: string) {
 
 function getStatusBadge(status: string) {
   switch (status) {
-    case "Active":    return <Badge className="bg-green-100 text-green-700 hover:bg-green-100 text-[10px] font-bold shadow-none border-0 px-2 py-0.5">🟢 Active</Badge>;
-    case "Upcoming":  return <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-100 text-[10px] font-bold shadow-none border-0 px-2 py-0.5">🟡 Upcoming</Badge>;
-    case "Completed": return <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 text-[10px] font-bold shadow-none border-0 px-2 py-0.5">🔵 Completed</Badge>;
-    case "Cancelled": return <Badge className="bg-red-100 text-red-700 hover:bg-red-100 text-[10px] font-bold shadow-none border-0 px-2 py-0.5">🔴 Cancelled</Badge>;
+    case "Active":    return <Badge className="bg-green-100 text-green-700 hover:bg-green-100 text-[10px] font-bold shadow-none border-0 px-2 py-0.5">Active</Badge>;
+    case "Upcoming":  return <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-100 text-[10px] font-bold shadow-none border-0 px-2 py-0.5">Upcoming</Badge>;
+    case "Completed": return <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 text-[10px] font-bold shadow-none border-0 px-2 py-0.5">Completed</Badge>;
+    case "Cancelled": return <Badge className="bg-red-100 text-red-700 hover:bg-red-100 text-[10px] font-bold shadow-none border-0 px-2 py-0.5">Cancelled</Badge>;
     default:          return <Badge variant="outline" className="text-[10px] shadow-none">{status}</Badge>;
   }
 }

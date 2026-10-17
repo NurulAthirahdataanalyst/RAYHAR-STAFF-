@@ -42,10 +42,10 @@ function fmtDate(d: string) {
 function statusBadge(status: string) {
   const baseClasses = "inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap";
   switch (status) {
-    case "Active":    return <span className={`${baseClasses} bg-pink-50 dark:bg-pink-500/10 text-pink-700 dark:text-pink-300 border-pink-200 dark:border-pink-500/30`}>🟣 Active</span>;
-    case "Upcoming":  return <span className={`${baseClasses} bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-500/30`}>🟡 Upcoming</span>;
-    case "Completed": return <span className={`${baseClasses} bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-500/30`}>🔵 Completed</span>;
-    case "Cancelled": return <span className={`${baseClasses} bg-gray-50 dark:bg-gray-500/10 text-foreground dark:text-gray-300 border-gray-200 dark:border-gray-500/30`}>⬜ Cancelled</span>;
+    case "Active":    return <span className={`${baseClasses} bg-pink-50 dark:bg-pink-500/10 text-pink-700 dark:text-pink-300 border-pink-200 dark:border-pink-500/30`}>Active</span>;
+    case "Upcoming":  return <span className={`${baseClasses} bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-500/30`}>Upcoming</span>;
+    case "Completed": return <span className={`${baseClasses} bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-500/30`}>Completed</span>;
+    case "Cancelled": return <span className={`${baseClasses} bg-gray-50 dark:bg-gray-500/10 text-foreground dark:text-gray-300 border-gray-200 dark:border-gray-500/30`}>Cancelled</span>;
     default:          return <span className={`${baseClasses} bg-gray-50 text-gray-700 border-gray-200`}>{status}</span>;
   }
 }
