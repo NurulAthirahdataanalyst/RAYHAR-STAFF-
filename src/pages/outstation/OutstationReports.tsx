@@ -495,7 +495,7 @@ export default function OutstationReports() {
                       : "text-foreground/70 hover:text-foreground border-transparent hover:border-[#ffff00]"
                   }`}
                 >
-                  Month View
+                  Month
                 </button>
                 <button
                   onClick={() => setViewType("year")}
@@ -505,7 +505,7 @@ export default function OutstationReports() {
                       : "text-foreground/70 hover:text-foreground border-transparent hover:border-[#ffff00]"
                   }`}
                 >
-                  Year View
+                  Year
                 </button>
               </div>
             ) : (
