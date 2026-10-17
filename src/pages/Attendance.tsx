@@ -691,14 +691,34 @@ export default function Attendance() {
     const logsHtml = targetLogs.map(log => {
       const d = new Date(log.date);
       const dateStr = d.toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
-      const statusClass = (log.status || '').toLowerCase().replace(/\s+/g, '');
+      const isLate =
+        String(log.status).toUpperCase().includes("LATE") ||
+        log.status === "Present (Late)" ||
+        (log.status === "Present" && log.late && log.late !== "00:00" && log.late !== "--" && log.late !== "00h 00m");
+      let statusClass = (log.status || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+      let displayStatus = log.status || '--';
+      if (isLate) {
+        statusClass = 'late';
+        displayStatus = 'LATE';
+      } else if (["Leave", "Approved Leave", "On Leave"].includes(log.status)) {
+        statusClass = 'leave';
+        displayStatus = 'ON LEAVE';
+      } else if (log.status === "Company Leave") {
+        statusClass = 'companyleave';
+      } else if (log.status === "Rest Day") {
+        statusClass = 'weekend';
+      } else if (log.status === "Outstation") {
+        statusClass = 'holiday';
+      } else if (log.status === "Missing Clock-Out") {
+        statusClass = 'leave';
+      }
       return `
         <tr>
           <td>${dateStr}</td>
           <td>${log.time_in || '--'}</td>
           <td>${log.time_out || '--'}</td>
-          <td><span class="badge badge-${statusClass}">${log.status}</span></td>
-          <td>${log.late === "00:00" ? "--" : (log.late || '--')}</td>
+          <td><span class="badge badge-${statusClass}">${displayStatus}</span></td>
+          <td>${log.late === "00:00" || log.late === "00h 00m" ? "--" : (log.late || '--')}</td>
           <td class="duration">${log.duration || '--'}</td>
         </tr>
       `;
@@ -715,7 +735,9 @@ export default function Attendance() {
         <head>
           <title>${reportFileName}</title>
           <style>
-            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #000000; padding: 40px; background: #ffffff; }
+            * { box-sizing: border-box; }
+            html, body { margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #000000; background: #ffffff; }
+            body { padding: 36px 40px; }
             h1 { color: #942392; margin-bottom: 5px; font-size: 24px; font-weight: 800; }
             h2 { color: #000000; font-size: 14px; margin-top: 0; font-weight: 700; margin-bottom: 30px; text-transform: uppercase; letter-spacing: 1px; }
             .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 40px; padding: 20px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; }
@@ -723,16 +745,16 @@ export default function Attendance() {
             .meta-item strong { color: #000000; }
             table { width: 100%; border-collapse: collapse; margin-top: 20px; }
             th { background: #f8fafc; color: #000000; text-align: left; padding: 12px 16px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #cbd5e1; }
-            td { padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-size: 13px; color: #000000; }
+            td { padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-size: 13px; color: #000000; vertical-align: middle; }
             tr:nth-child(even) td { background: #f8fafc; }
-            .badge { padding: 4px 8px; border-radius: 9999px; font-size: 10px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; white-space: nowrap; display: inline-block; }
-            .badge-present { background: #f3e8ff; color: #942392; }
+            .badge { display: inline-flex; align-items: center; justify-content: center; height: 22px; padding: 0 10px; border-radius: 9999px; font-size: 10px; font-weight: 800; line-height: 1; letter-spacing: 0.5px; text-transform: uppercase; white-space: nowrap; vertical-align: middle; }
+            .badge-present { background: #f3e8ff; color: #942392; border: 1px solid #e9d5ff; }
             .badge-late { background: #fefce8; color: #a16207; border: 1px solid #fde68a; }
-            .badge-absent { background: #fee2e2; color: #991b1b; }
-            .badge-leave { background: #fef3c7; color: #92400e; }
-            .badge-companyleave { background: #eae5ff; color: #581c87; }
-            .badge-holiday { background: #dbeafe; color: #1d4ed8; }
-            .badge-weekend { background: #f1f5f9; color: #475569; }
+            .badge-absent { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+            .badge-leave { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+            .badge-companyleave { background: #eae5ff; color: #581c87; border: 1px solid #d8b4fe; }
+            .badge-holiday { background: #dbeafe; color: #1d4ed8; border: 1px solid #bfdbfe; }
+            .badge-weekend { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
             .duration { font-family: monospace; font-weight: 600; }
             @media print {
               body { padding: 0; }
@@ -781,14 +803,78 @@ export default function Attendance() {
       exportBtn.addEventListener("click", async () => {
         try {
           exportBtn.style.visibility = "hidden";
+          printWindow.scrollTo(0, 0);
           const docBody = printWindow.document.body;
           const bodyRect = docBody.getBoundingClientRect();
+          const targetWidth = Math.ceil(bodyRect.width || docBody.scrollWidth || 1000);
           const canvas = await html2canvas(docBody, {
             scale: 2,
             useCORS: true,
             backgroundColor: "#ffffff",
-            windowWidth: printWindow.document.documentElement.scrollWidth || 1000,
+            x: 0,
+            y: 0,
+            scrollX: 0,
+            scrollY: 0,
+            width: targetWidth,
+            windowWidth: targetWidth,
           });
+
+          // Fix html2canvas baseline shift inside .badge pills by redrawing each pill natively on the 2D canvas
+          const mainCtx = canvas.getContext("2d");
+          if (mainCtx) {
+            const scaleX = canvas.width / (bodyRect.width || targetWidth || 1);
+            const scaleY = canvas.height / (bodyRect.height || 1);
+            const badges = Array.from(printWindow.document.querySelectorAll(".badge")) as HTMLElement[];
+            badges.forEach((badgeEl) => {
+              const r = badgeEl.getBoundingClientRect();
+              const x = (r.left - bodyRect.left) * scaleX;
+              const y = (r.top - bodyRect.top) * scaleY;
+              const w = r.width * scaleX;
+              const h = r.height * scaleY;
+
+              const tdEl = badgeEl.closest("td");
+              const trEl = badgeEl.closest("tr");
+              const tdBg = tdEl ? printWindow.getComputedStyle(tdEl).backgroundColor : "";
+              const trBg = trEl ? printWindow.getComputedStyle(trEl).backgroundColor : "";
+              const cellBg =
+                tdBg && tdBg !== "rgba(0, 0, 0, 0)" && tdBg !== "transparent"
+                  ? tdBg
+                  : trBg && trBg !== "rgba(0, 0, 0, 0)" && trBg !== "transparent"
+                  ? trBg
+                  : "#ffffff";
+
+              const cs = printWindow.getComputedStyle(badgeEl);
+              const pillBg = cs.backgroundColor || "#f1f5f9";
+              const pillColor = cs.color || "#000000";
+              const pillBorderColor = cs.borderColor;
+              const pillBorderWidth = parseFloat(cs.borderTopWidth || "0");
+
+              mainCtx.save();
+              mainCtx.fillStyle = cellBg;
+              mainCtx.fillRect(x - 2, y - 2, w + 4, h + 4);
+
+              const radius = h / 2;
+              mainCtx.beginPath();
+              mainCtx.roundRect(x, y, w, h, radius);
+              mainCtx.fillStyle = pillBg;
+              mainCtx.fill();
+
+              if (pillBorderWidth > 0 && pillBorderColor && pillBorderColor !== "rgba(0, 0, 0, 0)") {
+                mainCtx.strokeStyle = pillBorderColor;
+                mainCtx.lineWidth = pillBorderWidth * scaleX;
+                mainCtx.stroke();
+              }
+
+              const fontSizePx = parseFloat(cs.fontSize || "10") * scaleY;
+              mainCtx.fillStyle = pillColor;
+              mainCtx.font = `800 ${fontSizePx}px 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif`;
+              mainCtx.textAlign = "center";
+              mainCtx.textBaseline = "middle";
+              const text = (badgeEl.textContent || "").trim().toUpperCase();
+              mainCtx.fillText(text, x + w / 2, y + h / 2 + 0.5);
+              mainCtx.restore();
+            });
+          }
 
           const pdf = new jsPDF("p", "mm", "a4");
           const pdfWidth = pdf.internal.pageSize.getWidth();
@@ -799,7 +885,7 @@ export default function Attendance() {
           if (canvas.height <= pageHeightPx) {
             pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, pdfWidth, canvas.height / pxPerMm);
           } else {
-            const domScale = canvas.width / (docBody.scrollWidth || bodyRect.width || 1);
+            const domScale = canvas.width / (bodyRect.width || targetWidth || 1);
             const rowBottoms = Array.from(printWindow.document.querySelectorAll("tbody tr")).map((tr) => {
               const r = tr.getBoundingClientRect();
               return Math.round((r.bottom - bodyRect.top) * domScale);
