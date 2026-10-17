@@ -402,7 +402,7 @@ export default function EmployeeAnalytics() {
   const { role, userId, userName, userBranch, userDepartment } = useRole();
 
   const normRole = (role || "").toLowerCase().trim().replace(/ /g, "_");
-  const isAdminView = ["branch_leader", "managing_director", "md", "finance_manager", "head_of_department", "hod", "operation_manager", "hr", "hr_admin", "admin"].includes(normRole);
+  const isAdminView = !["hr", "hr_admin"].includes(normRole) && ["branch_leader", "managing_director", "md", "finance_manager", "head_of_department", "hod", "operation_manager", "admin"].includes(normRole);
   const showOvertime = !["hr", "hr_admin"].includes(normRole) && ["admin", "finance_manager", "managing_director", "md", "operation_manager", "head_of_department", "hod", "branch_leader"].includes(normRole);
   // Managing Director and Operation Manager do not want "Overtime by Employee" card
   const showEmpOvertime = !["managing_director", "md", "operation_manager"].includes(normRole);

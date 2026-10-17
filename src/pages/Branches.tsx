@@ -781,19 +781,19 @@ export default function Branches() {
                   <table ref={personnelTableRef} className="w-full text-sm scroll-mt-20">
                     <thead>
                       <tr className="bg-muted/30 text-foreground border-b border-border">
-                        <th className="text-left py-4 px-6 text-[8px] print:text-[13px] tracking-[0.2em] text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">
+                        <th className="text-left py-4 px-6 text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">
                           Personnel
                         </th>
-                        <th className="text-left py-4 px-6 text-[8px] print:text-[13px] tracking-[0.2em] text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">
+                        <th className="text-left py-4 px-6 text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">
                           Position
                         </th>
-                        <th className="text-left py-4 px-6 text-[8px] print:text-[13px] tracking-[0.2em] text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">
+                        <th className="text-left py-4 px-6 text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">
                           Leave Balance
                         </th>
-                        <th className="text-left py-4 px-6 text-[8px] print:text-[13px] tracking-[0.2em] text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">
+                        <th className="text-left py-4 px-6 text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">
                           Attendance
                         </th>
-                        <th className="text-left py-4 px-6 text-[8px] print:text-[13px] tracking-[0.2em] text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">
+                        <th className="text-left py-4 px-6 text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">
                           Today
                         </th>
                       </tr>
