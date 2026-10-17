@@ -10624,6 +10624,29 @@ app.post("/api/personal-notes", async (req, res) => {
   }
 });
 
+// Update a personal note
+app.put("/api/personal-notes/:id", async (req, res) => {
+  try {
+    const noteId = req.params.id;
+    const { userId, date, note_text, type } = req.body;
+
+    if (!userId || !date || !note_text) {
+      return res.status(400).json({ success: false, error: "UserId, Date and note text are required" });
+    }
+
+    const [result] = await pool.query(
+      "UPDATE personal_notes SET date = ?, note_text = ?, type = ? WHERE id = ? AND user_id = ? RETURNING id, user_id, TO_CHAR(date, 'YYYY-MM-DD') as date, note_text, type, created_at",
+      [date, note_text, type || 'note', noteId, userId]
+    );
+
+    const updatedNote = result[0] || { id: Number(noteId), user_id: userId, date, note_text, type: type || 'note' };
+    res.json({ success: true, note: updatedNote });
+  } catch (err) {
+    console.error("Error updating personal note:", err.message, err.stack);
+    res.status(500).json({ success: false, error: "Failed to update note: " + err.message });
+  }
+});
+
 // Delete a personal note
 app.delete("/api/personal-notes/:id", async (req, res) => {
   try {

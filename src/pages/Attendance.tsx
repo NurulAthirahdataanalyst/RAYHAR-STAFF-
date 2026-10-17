@@ -1,4 +1,6 @@
 import { writePrintDocument } from '@/utils/security';
+import { jsPDF } from "jspdf";
+import html2canvas from "html2canvas";
 import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { TableScrollTopButton } from "@/components/shared/TableScrollTopButton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -706,20 +708,22 @@ export default function Attendance() {
       ? new Date(selectedDate).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
       : new Date(selectedYear, selectedMonth - 1).toLocaleString('default', { month: 'long', year: 'numeric' });
 
+    const reportFileName = `Rayhar Staff Attendance Report - ${user?.full_name || 'Employee'}`;
+
     writePrintDocument(printWindow, `
       <html>
         <head>
-          <title>Rayhar Staff Attendance Report - ${user?.full_name || 'Employee'}</title>
+          <title>${reportFileName}</title>
           <style>
-            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #1e293b; padding: 40px; }
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #000000; padding: 40px; background: #ffffff; }
             h1 { color: #942392; margin-bottom: 5px; font-size: 24px; font-weight: 800; }
-            h2 { color: #64748b; font-size: 14px; margin-top: 0; font-weight: 600; margin-bottom: 30px; text-transform: uppercase; letter-spacing: 1px; }
+            h2 { color: #000000; font-size: 14px; margin-top: 0; font-weight: 700; margin-bottom: 30px; text-transform: uppercase; letter-spacing: 1px; }
             .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 40px; padding: 20px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; }
-            .meta-item { font-size: 13px; }
-            .meta-item strong { color: #475569; }
+            .meta-item { font-size: 13px; color: #000000; }
+            .meta-item strong { color: #000000; }
             table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-            th { background: #942392; color: white; text-align: left; padding: 12px 16px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
-            td { padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-size: 13px; }
+            th { background: #f8fafc; color: #000000; text-align: left; padding: 12px 16px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #cbd5e1; }
+            td { padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-size: 13px; color: #000000; }
             tr:nth-child(even) td { background: #f8fafc; }
             .badge { padding: 4px 8px; border-radius: 9999px; font-size: 10px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; white-space: nowrap; display: inline-block; }
             .badge-present { background: #f3e8ff; color: #942392; }
@@ -733,6 +737,7 @@ export default function Attendance() {
             @media print {
               body { padding: 0; }
               button { display: none; }
+              th { color: #000000 !important; border-bottom: 2px solid #cbd5e1 !important; }
             }
           </style>
         </head>
@@ -740,39 +745,10 @@ export default function Attendance() {
           <div style="display: flex; justify-content: space-between; align-items: flex-start;">
             <div>
               <h1 style="margin: 0; font-size: 28px; letter-spacing: -0.5px;">RAYHAR GROUP</h1>
-              <h2 style="margin: 2px 0 24px 0; font-size: 13px; font-weight: 700; color: #64748b;">Staff Attendance Report</h2>
+              <h2 style="margin: 2px 0 24px 0; font-size: 13px; font-weight: 700; color: #000000;">Staff Attendance Report</h2>
             </div>
-            <button onclick="window.print();" style="background: #942392; color: white; border: none; padding: 10px 20px; font-weight: 800; border-radius: 8px; cursor: pointer; font-size: 12px; transition: background 0.2s;">PRINT REPORT</button>
+            <button id="export-pdf-btn" style="background: #942392; color: white; border: none; padding: 10px 20px; font-weight: 800; border-radius: 8px; cursor: pointer; font-size: 12px; transition: background 0.2s;">EXPORT PDF</button>
           </div>
-
-          {/* Month-only KPI Cards */}
-          {viewMode === "month" && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 mt-2">
-              <div className="border border-slate-100 dark:border-slate-700 bg-card shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] rounded-[24px] p-4 flex flex-col items-center justify-center relative overflow-hidden">
-                <div className="w-8 h-8 rounded-full bg-violet-50 dark:bg-violet-900/30 flex items-center justify-center mb-2 shadow-sm">
-                  <CalendarDays className="w-4 h-4 text-violet-700" />
-                </div>
-                <div className="text-xl sm:text-2xl font-black text-foreground">{companyLeaveCount}</div>
-                <div className="text-[10px] sm:text-xs font-bold text-foreground uppercase tracking-widest mt-1">Company Leave</div>
-              </div>
-
-              <div className="border border-slate-100 dark:border-slate-700 bg-card shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] rounded-[24px] p-4 flex flex-col items-center justify-center relative overflow-hidden">
-                <div className="w-8 h-8 rounded-full bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center mb-2 shadow-sm">
-                  <FileText className="w-4 h-4 text-amber-700" />
-                </div>
-                <div className="text-xl sm:text-2xl font-black text-foreground">{approvedLeaveCount}</div>
-                <div className="text-[10px] sm:text-xs font-bold text-foreground uppercase tracking-widest mt-1">Approved Leave KPI</div>
-              </div>
-
-              <div className="border border-slate-100 dark:border-slate-700 bg-card shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] rounded-[24px] p-4 flex flex-col items-center justify-center relative overflow-hidden">
-                <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center mb-2 shadow-sm">
-                  <Timer className="w-4 h-4 text-blue-600" />
-                </div>
-                <div className="text-xl sm:text-2xl font-black text-foreground">{totalWorkdays}</div>
-                <div className="text-[10px] sm:text-xs font-bold text-foreground uppercase tracking-widest mt-1">Total Workdays (to date)</div>
-              </div>
-            </div>
-          )}
           
           <div class="meta-grid">
             <div class="meta-item"><strong>Employee Name:</strong> ${user?.full_name || 'N/A'}</div>
@@ -798,7 +774,91 @@ export default function Attendance() {
           </table>
         </body>
       </html>
-    `, { autoPrint: true });
+    `, { autoPrint: false });
+
+    const exportBtn = printWindow.document.getElementById("export-pdf-btn") as HTMLButtonElement | null;
+    if (exportBtn) {
+      exportBtn.addEventListener("click", async () => {
+        try {
+          exportBtn.style.visibility = "hidden";
+          const docBody = printWindow.document.body;
+          const bodyRect = docBody.getBoundingClientRect();
+          const canvas = await html2canvas(docBody, {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: "#ffffff",
+            windowWidth: printWindow.document.documentElement.scrollWidth || 1000,
+          });
+
+          const pdf = new jsPDF("p", "mm", "a4");
+          const pdfWidth = pdf.internal.pageSize.getWidth();
+          const pdfHeight = pdf.internal.pageSize.getHeight();
+          const pxPerMm = canvas.width / pdfWidth;
+          const pageHeightPx = Math.floor(pdfHeight * pxPerMm);
+
+          if (canvas.height <= pageHeightPx) {
+            pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, pdfWidth, canvas.height / pxPerMm);
+          } else {
+            const domScale = canvas.width / (docBody.scrollWidth || bodyRect.width || 1);
+            const rowBottoms = Array.from(printWindow.document.querySelectorAll("tbody tr")).map((tr) => {
+              const r = tr.getBoundingClientRect();
+              return Math.round((r.bottom - bodyRect.top) * domScale);
+            });
+
+            const marginMm = 12;
+            const marginPx = Math.floor(marginMm * pxPerMm);
+            let currentY = 0;
+            let pageIndex = 0;
+
+            while (currentY < canvas.height) {
+              const topOffsetMm = pageIndex === 0 ? 0 : marginMm;
+              const usableHeightPx = pageIndex === 0 ? pageHeightPx - marginPx : pageHeightPx - marginPx * 2;
+              let nextY = currentY + usableHeightPx;
+
+              if (nextY < canvas.height) {
+                const fittingRows = rowBottoms.filter((b) => b > currentY && b <= nextY);
+                if (fittingRows.length > 0) {
+                  nextY = fittingRows[fittingRows.length - 1];
+                }
+              } else {
+                nextY = canvas.height;
+              }
+
+              const sliceHeight = Math.max(1, nextY - currentY);
+              const pageCanvas = printWindow.document.createElement("canvas");
+              pageCanvas.width = canvas.width;
+              pageCanvas.height = sliceHeight;
+              const ctx = pageCanvas.getContext("2d");
+              if (ctx) {
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+                ctx.drawImage(canvas, 0, currentY, canvas.width, sliceHeight, 0, 0, canvas.width, sliceHeight);
+                if (pageIndex > 0) pdf.addPage();
+                pdf.addImage(pageCanvas.toDataURL("image/png"), "PNG", 0, topOffsetMm, pdfWidth, sliceHeight / pxPerMm);
+              }
+
+              currentY = nextY;
+              pageIndex++;
+            }
+          }
+
+          const pdfBlob = pdf.output("blob");
+          const blobUrl = URL.createObjectURL(pdfBlob);
+          const downloadLink = printWindow.document.createElement("a");
+          downloadLink.href = blobUrl;
+          downloadLink.download = `${reportFileName}.pdf`;
+          printWindow.document.body.appendChild(downloadLink);
+          downloadLink.click();
+          printWindow.document.body.removeChild(downloadLink);
+          setTimeout(() => URL.revokeObjectURL(blobUrl), 1500);
+        } catch (err) {
+          console.error("Failed to generate PDF:", err);
+          printWindow.print();
+        } finally {
+          exportBtn.style.visibility = "visible";
+        }
+      });
+    }
   };
 
   // Export CSV Handler
@@ -1898,7 +1958,7 @@ export default function Attendance() {
       <div className="relative z-10 w-full w-full pb-8">
         <Card className="border border-slate-100 dark:border-slate-700 bg-card shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] rounded-[24px] overflow-hidden backdrop-blur-md ">
           {/* Header Row */}
-          <CardHeader className="flex flex-wrap items-center justify-between gap-3 border-b border-border/50 bg-muted/20 pb-4">
+          <CardHeader className="space-y-0 flex flex-row flex-wrap items-center justify-between gap-3 border-b border-border/50 bg-muted/20 pb-4">
             <div className="shrink-0">
               <CardTitle className="text-lg font-bold">Employee Attendance</CardTitle>
               <p className="text-xs font-bold text-foreground uppercase tracking-widest mt-1">Detailed Log Records</p>

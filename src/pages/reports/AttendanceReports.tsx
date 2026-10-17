@@ -371,7 +371,7 @@ export default function AttendanceReports() {
               className={`text-[11px] font-black uppercase tracking-widest pb-3 -mb-[1px] transition-colors border-b-[3px] ${
                 viewType === "day"
                   ? "text-[#942392] border-[#942392]"
-                  : "text-foreground hover:text-yellow-500 border-transparent hover:border-yellow-500"
+                  : "text-foreground hover:text-[#ffff00] border-transparent hover:border-[#ffff00]"
               }`}
             >
               DAY
@@ -381,7 +381,7 @@ export default function AttendanceReports() {
               className={`text-[11px] font-black uppercase tracking-widest pb-3 -mb-[1px] transition-colors border-b-[3px] ${
                 viewType === "month"
                   ? "text-[#942392] border-[#942392]"
-                  : "text-foreground hover:text-yellow-500 border-transparent hover:border-yellow-500"
+                  : "text-foreground hover:text-[#ffff00] border-transparent hover:border-[#ffff00]"
               }`}
             >
               MONTH
@@ -391,7 +391,7 @@ export default function AttendanceReports() {
               className={`text-[11px] font-black uppercase tracking-widest pb-3 -mb-[1px] transition-colors border-b-[3px] ${
                 viewType === "year"
                   ? "text-[#942392] border-[#942392]"
-                  : "text-foreground hover:text-yellow-500 border-transparent hover:border-yellow-500"
+                  : "text-foreground hover:text-[#ffff00] border-transparent hover:border-[#ffff00]"
               }`}
             >
               YEAR

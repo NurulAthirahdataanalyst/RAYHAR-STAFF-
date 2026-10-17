@@ -451,7 +451,7 @@ export default function LeaveOverview() {
 
       {/* Leave Requests Table */}
       <Card className="border-none shadow-[0_18px_42px_rgba(0,0,0,0.04)] dark:shadow-[0_18px_42px_rgba(0,0,0,0.18)] bg-card/80 backdrop-blur-md rounded-[24px] sm:rounded-[28px] overflow-hidden">
-        <CardHeader className="space-y-0 flex flex-wrap items-center justify-between gap-3 border-b border-border/50 pb-3 px-4 sm:px-5">
+        <CardHeader className="space-y-0 flex flex-row flex-wrap items-center justify-between gap-3 border-b border-border/50 pb-3 px-4 sm:px-5">
           <CardTitle className="text-base sm:text-lg font-black text-foreground whitespace-nowrap">Recent Applications</CardTitle>
           <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto sm:ml-auto">
             <Select value={leaveTypeFilter} onValueChange={setLeaveTypeFilter}>

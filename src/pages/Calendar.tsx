@@ -11,6 +11,7 @@ import { useLocation } from "react-router-dom";
 import { API_BASE_URL } from "@/config/api";
 import ColorPickerPopover from "@/components/ColorPickerPopover";
 import { AnimatedCheckbox } from "@/components/ui/animated-checkbox";
+import { toast } from "sonner";
 
 import PageActions from "@/components/layout/PageActions";
 import { 
@@ -233,6 +234,7 @@ export default function Calendar() {
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
 
   const [isAddEventModalOpen, setIsAddEventModalOpen] = useState(false);
+  const [editingEventId, setEditingEventId] = useState<number | null>(null);
   const [eventName, setEventName] = useState("");
   const [isAllDay, setIsAllDay] = useState(false);
   const [startDate, setStartDate] = useState(format(new Date(), "yyyy-MM-dd"));
@@ -247,6 +249,7 @@ export default function Calendar() {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setIsAddEventModalOpen(false);
+        setEditingEventId(null);
       }
     };
 
@@ -393,6 +396,69 @@ export default function Calendar() {
     }
   }, [location.search]);
 
+  const handleOpenEditEvent = (note: PersonalNote) => {
+    const lines = note.note_text.split('\n');
+    const title = lines[0] || "";
+    const startsLine = lines.find(l => l.startsWith('Starts: '));
+    const endsLine = lines.find(l => l.startsWith('Ends: '));
+    const timeLine = lines.find(l => l.startsWith('Time: '));
+    const locationLine = lines.find(l => l.startsWith('Location: '));
+    const descStartIndex = lines.findIndex(
+      (l, i) =>
+        i > 0 &&
+        !l.startsWith('Starts: ') &&
+        !l.startsWith('Ends: ') &&
+        !l.startsWith('Time: ') &&
+        !l.startsWith('Location: ') &&
+        l.trim() !== ''
+    );
+    const description = descStartIndex !== -1 ? lines.slice(descStartIndex).join('\n').trim() : "";
+
+    let parsedStartDate = note.date.slice(0, 10);
+    let parsedEndDate = note.date.slice(0, 10);
+    let parsedStartTime = "09:00";
+    let parsedEndTime = "10:00";
+    let parsedAllDay = false;
+
+    if (startsLine && endsLine) {
+      const startParts = startsLine.replace('Starts: ', '').split(' ');
+      const endParts = endsLine.replace('Ends: ', '').split(' ');
+      if (startParts[0]) parsedStartDate = startParts[0];
+      if (endParts[0]) parsedEndDate = endParts[0];
+      if (startParts[1] === 'All') {
+        parsedAllDay = true;
+      } else {
+        parsedAllDay = false;
+        if (startParts[1]) parsedStartTime = startParts[1];
+        if (endParts[1] && endParts[1] !== 'All') parsedEndTime = endParts[1];
+      }
+    } else if (timeLine) {
+      const match = timeLine.replace('Time: ', '').match(/(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})/);
+      if (match) {
+        parsedAllDay = false;
+        parsedStartTime = match[1];
+        parsedEndTime = match[2];
+      } else {
+        parsedAllDay = true;
+      }
+    } else {
+      parsedAllDay = true;
+    }
+
+    setEditingEventId(note.id);
+    setEventName(title);
+    setIsAllDay(parsedAllDay);
+    setStartDate(parsedStartDate);
+    setEndDate(parsedEndDate);
+    setStartTime(parsedStartTime);
+    setEndTime(parsedEndTime);
+    setEventLocation(locationLine ? locationLine.replace('Location: ', '') : "");
+    setEventDescription(description);
+    setEventType(note.type || "reminder");
+    setSelectedEvent(null);
+    setIsAddEventModalOpen(true);
+  };
+
   const handleAddEvent = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!eventName.trim()) {
@@ -425,6 +491,66 @@ export default function Calendar() {
     try {
       const currentUserId = user?.user_id || user?.id;
       if (!currentUserId) return;
+
+      if (editingEventId !== null) {
+        const putRes = await fetch(`${API_BASE_URL}/api/personal-notes/${editingEventId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            userId: currentUserId,
+            date: startDate,
+            note_text: finalNoteText,
+            type: eventType
+          })
+        });
+
+        if (putRes.ok) {
+          const putData = await putRes.json();
+          if (putData.success) {
+            setNotes(notes.map(n => n.id === editingEventId ? putData.note : n));
+            setEventName("");
+            setEventDescription("");
+            setEventLocation("");
+            setEditingEventId(null);
+            setIsAddEventModalOpen(false);
+            toast.success("Event updated successfully");
+            return;
+          }
+        }
+
+        // Fallback if PUT route is not yet deployed on remote server: create new and delete old
+        const createRes = await fetch(`${API_BASE_URL}/api/personal-notes`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            userId: currentUserId,
+            date: startDate,
+            note_text: finalNoteText,
+            type: eventType
+          })
+        });
+        const createData = await createRes.json();
+        if (createData.success) {
+          await fetch(`${API_BASE_URL}/api/personal-notes/${editingEventId}?userId=${currentUserId}`, {
+            method: "DELETE"
+          });
+          setNotes(notes.map(n => n.id === editingEventId ? createData.note : n));
+          setEventName("");
+          setEventDescription("");
+          setEventLocation("");
+          setEditingEventId(null);
+          setIsAddEventModalOpen(false);
+          toast.success("Event updated successfully");
+        } else {
+          toast.error(createData.error || "Failed to update event");
+        }
+        return;
+      }
+
       const res = await fetch(`${API_BASE_URL}/api/personal-notes`, {
         method: "POST",
         headers: {
@@ -444,13 +570,14 @@ export default function Calendar() {
         setEventName("");
         setEventDescription("");
         setEventLocation("");
+        setEditingEventId(null);
         setIsAddEventModalOpen(false);
         toast.success("Event added successfully");
       } else {
         toast.error(data.error || "Failed to add event");
       }
     } catch (error) {
-      toast.error("Failed to add event");
+      toast.error(editingEventId !== null ? "Failed to update event" : "Failed to add event");
     }
   };
 
@@ -672,6 +799,11 @@ export default function Calendar() {
           />
           <Button 
             onClick={() => {
+              setEditingEventId(null);
+              setEventName("");
+              setEventLocation("");
+              setEventDescription("");
+              setIsAllDay(false);
               setStartDate(format(selectedDate, "yyyy-MM-dd"));
               setEndDate(format(selectedDate, "yyyy-MM-dd"));
               setIsAddEventModalOpen(true);
@@ -1546,20 +1678,20 @@ export default function Calendar() {
         </div>
       </div>
 
-      {/* Add New Event Modal Overlay */}
+      {/* Add New Event / Edit Event Modal Overlay */}
       {isAddEventModalOpen && (
         <div 
           className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xl animate-in fade-in transition-all duration-300"
-          onClick={() => setIsAddEventModalOpen(false)}
+          onClick={() => { setIsAddEventModalOpen(false); setEditingEventId(null); }}
         >
           <div 
             className="bg-card w-full max-w-md rounded-2xl shadow-2xl border border-border/60 overflow-hidden animate-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between p-5 border-b border-border/60 bg-[#942392]">
-              <h3 className="font-bold text-lg text-white">Add New Event</h3>
+            <div className="flex items-center justify-between p-5 border-b border-slate-200 dark:border-slate-700 bg-[#942392]">
+              <h3 className="font-bold text-lg text-white">{editingEventId !== null ? "Edit Event" : "Add New Event"}</h3>
               <button 
-                onClick={() => setIsAddEventModalOpen(false)} 
+                onClick={() => { setIsAddEventModalOpen(false); setEditingEventId(null); }} 
                 className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/20 text-white transition-colors"
               >
                 <X className="w-4 h-4" />
@@ -1662,7 +1794,7 @@ export default function Calendar() {
                 />
               </div>
 
-              <div className="flex items-center gap-4 pt-4 border-t border-border/60">
+              <div className="flex items-center gap-4 pt-4 border-t border-slate-200 dark:border-slate-700">
                 <div className="flex-1">
                   <select 
                     className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-sm font-semibold text-foreground focus:outline-none focus:border-[#FFFE00] focus:ring-1 focus:ring-[#FFFE00] transition-all"
@@ -1677,11 +1809,11 @@ export default function Calendar() {
                     ))}
                   </select>
                 </div>
-                <Button type="button" variant="ghost" onClick={() => setIsAddEventModalOpen(false)} className="font-bold">
+                <Button type="button" variant="ghost" onClick={() => { setIsAddEventModalOpen(false); setEditingEventId(null); }} className="font-bold">
                   Cancel
                 </Button>
                 <Button type="submit" className="bg-[#FFFE00] hover:bg-[#E6E500] text-[#942392] border-2 border-[#942392] font-bold px-6 shadow-md shadow-[#FFFE00]/20">
-                  Add Event
+                  {editingEventId !== null ? "Save Changes" : "Add Event"}
                 </Button>
               </div>
             </form>
@@ -1781,35 +1913,71 @@ export default function Calendar() {
         // Fallback for missing custom category
         if (selectedEvent.type.startsWith('custom-') && !customCat) categoryName = 'Note';
 
-        let tagColorClass = "bg-[#942392]/10 text-[#942392]";
-        if (selectedEvent.type === 'meeting') tagColorClass = "bg-green-500/10 text-green-700";
-        else if (selectedEvent.type === 'reminder') tagColorClass = "bg-yellow-500/10 text-yellow-700";
-        else if (selectedEvent.type === 'note') tagColorClass = "bg-blue-500/10 text-blue-700";
-        else if (selectedEvent.type === 'holiday') tagColorClass = "bg-red-500/10 text-red-700";
-        else if (customCat && CATEGORY_COLORS[customCat.color]) {
-          tagColorClass = CATEGORY_COLORS[customCat.color].replace(/border-l-2 border-\S+ /, '');
+        // Header background & category pill colors based on Event Category
+        let headerBgClass = "bg-[#942392]";
+        let headerBgStyle: React.CSSProperties | undefined = undefined;
+        let tagColorClass = "bg-white/95 text-[#942392]";
+        let tagColorStyle: React.CSSProperties | undefined = undefined;
+
+        if (selectedEvent.type === 'reminder') {
+          headerBgClass = "bg-amber-500";
+          tagColorClass = "bg-white/95 text-amber-800";
+        } else if (selectedEvent.type === 'note') {
+          headerBgClass = "bg-blue-500";
+          tagColorClass = "bg-white/95 text-blue-700";
+        } else if (selectedEvent.type === 'meeting') {
+          headerBgClass = "bg-green-500";
+          tagColorClass = "bg-white/95 text-green-700";
+        } else if (selectedEvent.type === 'holiday') {
+          headerBgClass = "bg-red-500";
+          tagColorClass = "bg-white/95 text-red-700";
+        } else if (selectedEvent.type === 'attendance') {
+          headerBgClass = "bg-[#942392]";
+          tagColorClass = "bg-white/95 text-[#942392]";
+        } else if (customCat) {
+          if (customCat.color.startsWith('#')) {
+            headerBgClass = "";
+            headerBgStyle = { backgroundColor: customCat.color };
+            tagColorClass = "bg-white/95";
+            tagColorStyle = { color: customCat.color };
+          } else {
+            headerBgClass = customCat.color;
+            if (CATEGORY_COLORS[customCat.color]) {
+              const textMatch = CATEGORY_COLORS[customCat.color].match(/text-\S+/);
+              tagColorClass = `bg-white/95 ${textMatch ? textMatch[0] : 'text-slate-800'}`;
+            }
+          }
         }
 
         return (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xl animate-in fade-in transition-all duration-300" onClick={() => setSelectedEvent(null)}>
             <div 
-              className="w-full max-w-[420px] rounded-2xl shadow-2xl border border-border overflow-hidden animate-in zoom-in-95 duration-200 bg-card"
+              className="w-full max-w-[420px] rounded-2xl shadow-2xl border border-border/60 overflow-hidden animate-in zoom-in-95 duration-200 bg-card"
               onClick={e => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-800">
+              {/* Header with category background & identical separator line */}
+              <div 
+                className={`flex items-center justify-between p-5 border-b border-slate-200 dark:border-slate-700 ${headerBgClass}`}
+                style={headerBgStyle}
+              >
                 <div className="flex items-center gap-3">
-                  <h3 className="font-bold text-lg text-slate-900 dark:text-slate-100 tracking-tight">Event Details</h3>
-                  <span className={`inline-flex items-center rounded-md px-2.5 py-0.5 text-[11px] font-bold ${tagColorClass}`}>
+                  <h3 className="font-bold text-lg text-white tracking-tight">Event Details</h3>
+                  <span 
+                    className={`inline-flex items-center rounded-md px-2.5 py-0.5 text-[11px] font-bold shadow-xs ${tagColorClass}`}
+                    style={tagColorStyle}
+                  >
                     {categoryName}
                   </span>
                 </div>
                 <button 
                   onClick={() => setSelectedEvent(null)} 
-                  className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-foreground transition-colors"
+                  className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/20 text-white transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
+
+              {/* Body */}
               <div className="p-6">
                 <div className="mb-6">
                   <h3 className="text-2xl font-extrabold text-slate-900 dark:text-slate-100 leading-tight">{modalEventName}</h3>
@@ -1850,7 +2018,7 @@ export default function Calendar() {
 
                   {/* DESCRIPTION ROW */}
                   {modalDescription && (
-                    <div className="flex gap-4 pb-4">
+                    <div className="flex gap-4 pb-2">
                       <FileText className="w-[18px] h-[18px] mt-0.5 text-[#942392]" strokeWidth={2} />
                       <div className="flex flex-col">
                         <span className="text-[11px] text-foreground font-bold uppercase tracking-wider mb-0.5">Description</span>
@@ -1859,8 +2027,18 @@ export default function Calendar() {
                     </div>
                   )}
                 </div>
+              </div>
 
-                <div className="flex justify-end gap-3 pt-4 mt-2 border-t border-slate-100 dark:border-slate-800">
+              {/* Footer with identical separator line & Edit button at left-most in line with Delete and Close */}
+              <div className="flex items-center justify-between px-6 py-4 border-t border-slate-200 dark:border-slate-700 bg-card">
+                <Button
+                  variant="outline"
+                  onClick={() => handleOpenEditEvent(selectedEvent)}
+                  className="font-semibold px-6 rounded-lg border-[#942392]/30 text-[#942392] hover:bg-[#942392]/10 hover:text-[#942392] dark:border-purple-500/40 dark:text-purple-300"
+                >
+                  Edit
+                </Button>
+                <div className="flex items-center gap-3">
                   <Button 
                     variant="outline" 
                     onClick={() => {
@@ -1873,7 +2051,7 @@ export default function Calendar() {
                   >
                     Delete
                   </Button>
-                  <Button variant="outline" onClick={() => setSelectedEvent(null)} className="font-semibold px-6 rounded-lg border-slate-300 text-slate-700 hover:bg-slate-50 dark:bg-slate-900/50">
+                  <Button variant="outline" onClick={() => setSelectedEvent(null)} className="font-semibold px-6 rounded-lg border-slate-300 text-slate-700 hover:bg-slate-50 dark:bg-slate-900/50 dark:text-slate-200">
                     Close
                   </Button>
                 </div>
