@@ -734,11 +734,10 @@ export default function Employees() {
 
 
 
-      <div className="flex flex-row items-center gap-2 bg-card/50 backdrop-blur-sm p-3 rounded-2xl border border-border/50 overflow-x-auto">
-        <div className="flex flex-row items-center gap-2 flex-1 min-w-0">
+      <div className="flex flex-wrap items-center gap-2 bg-card/50 backdrop-blur-sm p-3 rounded-2xl border border-border/50">
            <Popover open={empSearchOpen} onOpenChange={setEmpSearchOpen}>
               <PopoverTrigger asChild>
-                 <div className="relative w-[170px] shrink-0 cursor-pointer">
+                 <div className="relative w-full sm:w-[170px] shrink-0 cursor-pointer">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/50 z-10 pointer-events-none" />
                   
                   <Input
@@ -875,7 +874,7 @@ export default function Employees() {
 
           {(["hr_admin", "managing_director", "operation_manager", "finance_manager"].includes(role) || uniqueBranches.length > 1) && (
             <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-              <SelectTrigger className="w-[140px] shrink-0 h-9 border-border/60 bg-background/50 focus:ring-[#942392]/20 font-bold text-xs rounded-xl">
+              <SelectTrigger className="w-[calc(50%-0.25rem)] sm:w-[140px] shrink-0 h-9 border-border/60 bg-background/50 focus:ring-[#942392]/20 font-bold text-xs rounded-xl">
                 <SelectValue placeholder="All Branches" />
               </SelectTrigger>
               <SelectContent className="rounded-xl">
@@ -891,7 +890,7 @@ export default function Employees() {
 
           {(["hr_admin", "managing_director", "operation_manager", "finance_manager"].includes(role) || uniqueDepartments.length > 1) && (
             <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
-              <SelectTrigger className="w-[150px] shrink-0 h-9 border-border/60 bg-background/50 focus:ring-[#942392]/20 font-bold text-xs rounded-xl">
+              <SelectTrigger className="w-[calc(50%-0.25rem)] sm:w-[150px] shrink-0 h-9 border-border/60 bg-background/50 focus:ring-[#942392]/20 font-bold text-xs rounded-xl">
                 <SelectValue placeholder="All Departments" />
               </SelectTrigger>
               <SelectContent className="rounded-xl">
@@ -906,7 +905,7 @@ export default function Employees() {
           )}
 
           <Select value={selectedPosition} onValueChange={setSelectedPosition}>
-            <SelectTrigger className="w-[140px] shrink-0 h-9 border-border/60 bg-background/50 focus:ring-[#942392]/20 font-bold text-xs rounded-xl">
+            <SelectTrigger className="flex-1 min-w-[105px] sm:flex-none sm:w-[140px] shrink-0 h-9 border-border/60 bg-background/50 focus:ring-[#942392]/20 font-bold text-xs rounded-xl">
               <SelectValue placeholder="All Positions" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
@@ -920,7 +919,7 @@ export default function Employees() {
           </Select>
 
           <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-            <SelectTrigger className="w-[120px] shrink-0 h-9 border-border/60 bg-background/50 focus:ring-[#942392]/20 font-bold text-xs rounded-xl">
+            <SelectTrigger className="flex-1 min-w-[95px] sm:flex-none sm:w-[120px] shrink-0 h-9 border-border/60 bg-background/50 focus:ring-[#942392]/20 font-bold text-xs rounded-xl">
               <SelectValue placeholder="Status: Active" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
@@ -949,11 +948,10 @@ export default function Employees() {
             <RotateCcw className="w-3.5 h-3.5" />
             <span>Reset</span>
           </Button>
-        </div>
         
-        <Badge variant="outline" className="px-3 py-1.5 text-xs print:text-[11px] font-bold whitespace-nowrap bg-muted/30 border-border/60 h-9 flex items-center justify-center rounded-md shrink-0">
-          Total <span className="ml-2 flex items-center justify-center bg-[#942392] text-white rounded-md h-5 min-w-[20px] px-1.5 text-[8px] print:text-[13px] leading-none shrink-0">{filtered.length}</span>
-        </Badge>
+          <Badge variant="outline" className="hidden sm:flex ml-auto px-3 py-1.5 text-xs print:text-[11px] font-bold whitespace-nowrap bg-muted/30 border-border/60 h-9 items-center justify-center rounded-md shrink-0">
+            Total <span className="ml-2 flex items-center justify-center bg-[#942392] text-white rounded-md h-5 min-w-[20px] px-1.5 text-[8px] print:text-[13px] leading-none shrink-0">{filtered.length}</span>
+          </Badge>
       </div>
 
       <Card className="border-none shadow-sm overflow-hidden bg-card/60 backdrop-blur-md">
@@ -1093,11 +1091,11 @@ export default function Employees() {
                           <span className="truncate max-w-[100px]">
                             {emp.position === "Finance Manager" || emp.position === "finance_manager" ? "Operation Manager" : emp.position.replace(/_/g, ' ')}
                           </span>
-                          <span className="opacity-30">â€¢</span>
+                          <span className="opacity-30">•</span>
                           <span>{emp.branch}</span>
                           {emp.tempBranch && (
                             <>
-                              <span className="opacity-30">â€¢</span>
+                              <span className="opacity-30">•</span>
                               <Badge variant="outline" className="text-[9px] print:text-[13px] bg-[#a01497]/10 text-[#a01497] border-[#a01497]/20">
                                 Temp: {emp.tempBranch}
                               </Badge>
@@ -1416,7 +1414,7 @@ export default function Employees() {
                       Leave Application Detail
                     </DialogTitle>
                     <DialogDescription className="text-white/80 font-bold uppercase text-[8px] print:text-[13px] tracking-widest">
-                      HR Approval Registry â€¢ ID: {req.leave_id}
+                      HR Approval Registry • ID: {req.leave_id}
                     </DialogDescription>
                   </DialogHeader>
                 </div>
