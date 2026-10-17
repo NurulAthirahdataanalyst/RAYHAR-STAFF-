@@ -732,30 +732,30 @@ export default function OutstationAssignment() {
           </div>
 
           {/* Header Filter Row */}
-          <div className="flex flex-wrap items-center justify-between w-full gap-2 border-b border-gray-100 dark:border-slate-800">
+          <div className="flex flex-wrap items-center justify-between w-full gap-2 border-b border-border/60 dark:border-slate-700">
             
             {/* LEFT: Tabs (only in Events Overview mode) */}
             {!selectedEvent ? (
-              <div className="flex items-center gap-6 -mb-[1px] w-full sm:w-auto shrink-0">
+              <div className="flex items-center gap-6 -mb-[2px] w-full sm:w-auto shrink-0">
                 <button
                   onClick={() => setViewType("month")}
-                  className={`text-sm font-bold pb-2.5 transition-colors border-b-[3px] ${
+                  className={`text-sm font-bold pb-2.5 transition-colors border-b-2 ${
                     viewType === "month"
                       ? "text-[#942392] border-[#942392]"
-                      : "text-foreground/70 hover:text-foreground border-transparent hover:border-muted-foreground/40"
+                      : "text-foreground/70 hover:text-foreground border-transparent hover:border-[#ffff00]"
                   }`}
                 >
-                  Month View
+                  Month
                 </button>
                 <button
                   onClick={() => setViewType("year")}
-                  className={`text-sm font-bold pb-2.5 transition-colors border-b-[3px] ${
+                  className={`text-sm font-bold pb-2.5 transition-colors border-b-2 ${
                     viewType === "year"
-                      ? "text-yellow-500 border-yellow-500"
-                      : "text-foreground/70 hover:text-foreground border-transparent hover:border-muted-foreground/40"
+                      ? "text-[#942392] border-[#942392]"
+                      : "text-foreground/70 hover:text-foreground border-transparent hover:border-[#ffff00]"
                   }`}
                 >
-                  Year View
+                  Year
                 </button>
               </div>
             ) : (
@@ -793,7 +793,7 @@ export default function OutstationAssignment() {
                     <YearPopover
                       year={selectedYear}
                       onSelectYear={setSelectedYear}
-                      className="appearance-none flex items-center justify-between px-3 py-1.5 bg-gray-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-foreground dark:text-slate-100 text-xs font-black rounded-md shadow-sm outline-none cursor-pointer h-8 gap-2 hover:border-yellow-500/40 w-[calc(50%-0.25rem)] sm:w-auto shrink-0"
+                      className="appearance-none flex items-center justify-between px-3 py-1.5 bg-gray-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-foreground dark:text-slate-100 text-xs font-black rounded-md shadow-sm outline-none cursor-pointer h-8 gap-2 hover:border-[#942392]/40 w-[calc(50%-0.25rem)] sm:w-auto shrink-0"
                     />
                   )}
                   <Select value={filterStatus} onValueChange={setFilterStatus}>
