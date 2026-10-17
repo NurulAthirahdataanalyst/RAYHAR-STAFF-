@@ -1617,8 +1617,8 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
       )}
       {/* Maximized Chart Modal */}
       {isChartMaximized && month === "all" && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-8 bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
-          <Card className="w-full max-w-5xl h-[80vh] flex flex-col shadow-2xl border-border/50 rounded-2xl relative overflow-hidden bg-card animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-8 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setIsChartMaximized(false)}>
+          <Card className="w-full max-w-5xl h-[80vh] flex flex-col shadow-2xl border-border/50 rounded-2xl relative overflow-hidden bg-card animate-in fade-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between p-6 border-b border-border/50">
               <h2 className="text-lg font-black uppercase tracking-wider text-foreground">PUNCTUALITY TREND (ALL MONTHS)</h2>
               <button

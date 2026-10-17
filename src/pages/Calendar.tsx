@@ -1682,7 +1682,7 @@ export default function Calendar() {
       {/* Add New Event / Edit Event Modal Overlay */}
       {isAddEventModalOpen && (
         <div 
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xl animate-in fade-in transition-all duration-300"
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in transition-all duration-300"
           onClick={() => { setIsAddEventModalOpen(false); setEditingEventId(null); }}
         >
           <div 
@@ -2388,8 +2388,9 @@ export default function Calendar() {
         const isToday = isSameDay(ds.date, new Date());
         const hasContent = ds.holidays.length > 0 || ds.companyLeaves.length > 0 || ds.approvedLeaves.length > 0 || ds.outstations.length > 0 || ds.attendance.length > 0 || ds.notes.length > 0;
         return (
+          createPortal(
           <div
-            className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xl transition-all duration-300"
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm transition-all duration-300"
             onClick={() => setSelectedDaySummary(null)}
           >
             <div
@@ -2611,7 +2612,8 @@ export default function Calendar() {
                 </Button>
               </div>
             </div>
-          </div>
+          </div>,
+          document.body
         );
       })()}
 
