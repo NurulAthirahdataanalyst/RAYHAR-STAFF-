@@ -272,8 +272,8 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       children: [
         { title: "Leave Approval", icon: ClipboardList, path: "/leave/admin", roles: FULL_ADMIN_ROLES },
         { title: "Company Leave Calendar", icon: CalendarDays, path: "/calendar/company-leave", roles: ["hr_admin"] },
-        { title: "Leave Calendar", icon: Calendar, path: "/leave/calendar", roles: FULL_ADMIN_ROLES },
         { title: "Leave Entitlement Management", icon: CalendarDays, path: "/leave/entitlement", roles: ["hr_admin"] },
+        { title: "Leave Calendar", icon: Calendar, path: "/leave/calendar", roles: FULL_ADMIN_ROLES },
       ],
     },
     {
