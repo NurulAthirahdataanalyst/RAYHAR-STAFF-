@@ -3,14 +3,19 @@ export interface BreadcrumbSegment {
   path?: string;
 }
 
-export function getBreadcrumbs(pathname: string, search?: string): BreadcrumbSegment[] {
+export function getBreadcrumbs(pathname: string, search?: string, role?: string): BreadcrumbSegment[] {
   const home: BreadcrumbSegment = { label: "HOME", path: "/" };
 
   if (pathname === "/") return [home, { label: "DASHBOARD" }];
   
   // Calendar Pages
   if (pathname === "/calendar") return [home, { label: "CALENDAR", path: "/calendar" }, { label: "WORK CALENDAR" }];
-  if (pathname === "/calendar/company-leave") return [home, { label: "CALENDAR", path: "/calendar" }, { label: "COMPANY LEAVE CALENDAR" }];
+  if (pathname === "/calendar/company-leave") {
+    if (role === "hr_admin") {
+      return [home, { label: "LEAVE ADMINISTRATION", path: "/leave/admin" }, { label: "COMPANY LEAVE CALENDAR" }];
+    }
+    return [home, { label: "CALENDAR", path: "/calendar" }, { label: "COMPANY LEAVE CALENDAR" }];
+  }
 
   // Attendance Pages
   if (pathname === "/attendance") return [home, { label: "ATTENDANCE" }, { label: "EMPLOYEE ATTENDANCE" }];
