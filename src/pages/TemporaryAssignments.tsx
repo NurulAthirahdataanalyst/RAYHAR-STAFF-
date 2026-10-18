@@ -31,6 +31,7 @@ interface TemporaryAssignment {
   computedStatus?: string;
   purpose?: string;
   remarks?: string;
+  assigned_by?: string;
 }
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "https://attendance-system-gamma-jade.vercel.app";
@@ -54,7 +55,7 @@ function statusBadge(status: string) {
 }
 
 const TemporaryAssignments = () => {
-  const { role, userBranch, userDepartment } = useRole();
+  const { role, userName, userBranch, userDepartment } = useRole();
   const isHRAdmin = role === "hr_admin";
 
   const [assignments, setAssignments] = useState<TemporaryAssignment[]>([]);
@@ -69,7 +70,7 @@ const TemporaryAssignments = () => {
 
   // Modal State
   const [showAssignModal, setShowAssignModal] = useState(false);
-  const [assignForm, setAssignForm] = useState({ user_id: "", location: "", department: "", start_date: "", end_date: "", status: "Active", purpose: "", remarks: "" });
+  const [assignForm, setAssignForm] = useState({ user_id: "", location: "", department: "", start_date: "", end_date: "", status: "Active", purpose: "", remarks: "", assigned_by: "" });
   const [submittingAssign, setSubmittingAssign] = useState(false);
   const [employees, setEmployees] = useState<any[]>([]);
   const [branches, setBranches] = useState<any[]>([]);
@@ -145,17 +146,22 @@ const TemporaryAssignments = () => {
         : `${API_BASE_URL}/api/work-assignments`;
       const method = editId ? "PUT" : "POST";
 
+      const payload = {
+        ...assignForm,
+        assigned_by: assignForm.assigned_by || userName || "HR Admin"
+      };
+
       const res = await fetch(url, {
         method: method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(assignForm)
+        body: JSON.stringify(payload)
       });
       const data = await res.json();
       if (data.success) {
         toast.success(editId ? "Assignment updated successfully" : "Assignment created successfully");
         setShowAssignModal(false);
         fetchAssignments();
-        setAssignForm({ user_id: "", location: "", department: "", start_date: "", end_date: "", status: "Active", purpose: "", remarks: "" });
+        setAssignForm({ user_id: "", location: "", department: "", start_date: "", end_date: "", status: "Active", purpose: "", remarks: "", assigned_by: "" });
         setEditId(null);
       } else {
         toast.error("Failed to save assignment");
@@ -177,7 +183,8 @@ const TemporaryAssignments = () => {
       end_date: assignment.end_date ? assignment.end_date.split('T')[0] : "",
       status: assignment.status,
       purpose: (assignment as any).purpose || "",
-      remarks: (assignment as any).remarks || ""
+      remarks: (assignment as any).remarks || "",
+      assigned_by: assignment.assigned_by || userName || ""
     });
     setEditId(assignment.id);
     setShowAssignModal(true);
@@ -246,7 +253,7 @@ const TemporaryAssignments = () => {
           <Button 
             onClick={() => {
               setEditId(null);
-              setAssignForm({ user_id: "", location: "", department: "", start_date: "", end_date: "", status: "Active", purpose: "", remarks: "" });
+              setAssignForm({ user_id: "", location: "", department: "", start_date: "", end_date: "", status: "Active", purpose: "", remarks: "", assigned_by: userName || "" });
               setShowAssignModal(true);
             }}
             className="bg-[#a01497] hover:bg-[#850f7c] text-white font-bold whitespace-nowrap"
@@ -613,11 +620,19 @@ const TemporaryAssignments = () => {
                 <DatePickerInput value={assignForm.end_date} onChange={(val) => setAssignForm({...assignForm, end_date: val})} />
               </div>
             </div>
+            <div>
+              <Label className="text-xs font-bold uppercase tracking-widest text-foreground mb-2 block">Assigned By (HR Admin)</Label>
+              <Input 
+                value={assignForm.assigned_by || userName || ""} 
+                onChange={(e) => setAssignForm({...assignForm, assigned_by: e.target.value})}
+                placeholder="HR Admin Full Name"
+              />
+            </div>
             <div className="flex gap-2 pt-2">
               <Button 
                 variant="outline" 
                 className="w-1/3 text-rose-500 border-rose-200 hover:bg-rose-50 dark:hover:bg-rose-950/30"
-                onClick={() => setAssignForm({ user_id: "", location: "", department: "", start_date: "", end_date: "", status: "Active", purpose: "", remarks: "" })}
+                onClick={() => setAssignForm({ user_id: "", location: "", department: "", start_date: "", end_date: "", status: "Active", purpose: "", remarks: "", assigned_by: userName || "" })}
               >
                 Reset
               </Button>
@@ -730,7 +745,7 @@ const TemporaryAssignments = () => {
                 <div className="grid grid-cols-3 gap-x-4 gap-y-3">
                   <div>
                     <p className="text-xs text-foreground font-medium">Assigned By</p>
-                    <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">HR Admin</p>
+                    <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{selectedAssignment.assigned_by || "HR Admin"}</p>
                   </div>
                   <div>
                     <p className="text-xs text-foreground font-medium">Date</p>

@@ -1180,6 +1180,14 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
       console.error('⚠️ Clock-out coordinate column migration warning:', coordErr.message);
     }
 
+    // Add assigned_by column to employee_work_assignment table
+    try {
+      await connection.query(`ALTER TABLE employee_work_assignment ADD COLUMN IF NOT EXISTS assigned_by VARCHAR(255)`);
+      console.log('✅ Auto-migration for employee_work_assignment (assigned_by column) completed.');
+    } catch (assignErr) {
+      console.error('⚠️ employee_work_assignment column migration warning:', assignErr.message);
+    }
+
     try {
       const [roleCountRows] = await connection.query("SELECT COUNT(*) as count FROM roles");
       if (parseInt(roleCountRows[0].count) === 0) {
@@ -11845,6 +11853,7 @@ app.get("/api/work-assignments-all", async (req, res) => {
           ewa.status,
           ewa.purpose,
           ewa.remarks,
+          ewa.assigned_by,
           p.full_name as name,
           p.branch as primary_branch,
           p.department,
@@ -11945,12 +11954,12 @@ app.get("/api/work-assignments/:user_id", async (req, res) => {
 
 app.post("/api/work-assignments", async (req, res) => {
   try {
-    const { user_id, location, department, start_date, end_date, status, purpose, remarks } = req.body;
+    const { user_id, location, department, start_date, end_date, status, purpose, remarks, assigned_by } = req.body;
     let returningClause = "";
     // Note: RETURNING is for Postgres, wait, this pool is custom or standard. Let's just do a normal insert
     const [result] = await pool.query(
-      `INSERT INTO employee_work_assignment (user_id, location, department, start_date, end_date, status, purpose, remarks) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [user_id, location, department || null, start_date, end_date || null, status || 'Active', purpose || null, remarks || null]
+      `INSERT INTO employee_work_assignment (user_id, location, department, start_date, end_date, status, purpose, remarks, assigned_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [user_id, location, department || null, start_date, end_date || null, status || 'Active', purpose || null, remarks || null, assigned_by || null]
     );
     const insertedId = result.insertId || (result.rows && result.rows.length ? result.rows[0].id : null);
 
@@ -11977,16 +11986,16 @@ app.post("/api/work-assignments", async (req, res) => {
 });
 
 app.put("/api/work-assignments/:id", async (req, res) => {
-  const operatorName = req.body.operatorName || 'HR';
+  const operatorName = req.body.operatorName || req.body.assigned_by || 'HR';
   try {
-    const { location, department, start_date, end_date, status, purpose, remarks } = req.body;
+    const { location, department, start_date, end_date, status, purpose, remarks, assigned_by } = req.body;
     
     // Get employee info before update for logging
     const [assignRows] = await pool.query("SELECT ewa.user_id, p.full_name FROM employee_work_assignment ewa JOIN profiles p ON p.user_id = ewa.user_id WHERE ewa.id = ?", [req.params.id]);
     
     await pool.query(
-      `UPDATE employee_work_assignment SET location = ?, department = ?, start_date = ?, end_date = ?, status = ?, purpose = ?, remarks = ? WHERE id = ?`,
-      [location, department || null, start_date, end_date || null, status, purpose || null, remarks || null, req.params.id]
+      `UPDATE employee_work_assignment SET location = ?, department = ?, start_date = ?, end_date = ?, status = ?, purpose = ?, remarks = ?, assigned_by = COALESCE(?, assigned_by) WHERE id = ?`,
+      [location, department || null, start_date, end_date || null, status, purpose || null, remarks || null, assigned_by || null, req.params.id]
     );
     
     // Log activity
