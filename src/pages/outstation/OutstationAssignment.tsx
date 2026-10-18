@@ -684,7 +684,7 @@ export default function OutstationAssignment() {
 
       {/* Top Action Bar */}
       <PageActions>
-        <div className="flex w-full items-center justify-between">
+        <div className="flex w-full items-center justify-between gap-3 flex-wrap">
           <Button
             variant="ghost"
             size="sm"
@@ -703,22 +703,24 @@ export default function OutstationAssignment() {
             </span>
           </Button>
 
-          {selectedEvent && (selectedEvent.status === "Active" || selectedEvent.status === "Upcoming") && (
-            <Button
-              variant="outline"
-              className="h-10 px-4 text-[13px] font-bold border-[#942392]/30 text-[#942392] hover:bg-[#942392]/10 bg-white dark:bg-slate-900 shadow-sm w-full sm:w-auto shrink-0"
-              onClick={() => openEditEvent(selectedEvent)}
-            >
-              <Edit2 className="w-4 h-4 mr-1.5" /> Edit Event & Staff
-            </Button>
-          )}
+          <div className="flex items-center gap-2.5 ml-auto">
+            {selectedEvent && (selectedEvent.status === "Active" || selectedEvent.status === "Upcoming") && (
+              <Button
+                variant="outline"
+                className="h-10 px-4 text-[13px] font-bold border-[#942392]/30 text-[#942392] hover:bg-[#942392]/10 bg-white dark:bg-slate-900 shadow-sm shrink-0"
+                onClick={() => openEditEvent(selectedEvent)}
+              >
+                <Edit2 className="w-4 h-4 mr-1.5" /> Edit Event & Staff
+              </Button>
+            )}
 
-          <Button
-            className="h-10 px-5 text-[14px] font-semibold text-white shadow-sm bg-[#942392] hover:bg-[#3b0764] w-full sm:w-auto shrink-0"
-            onClick={openNew}
-          >
-            <Plane className="w-4 h-4 mr-2" /> New Assignment
-          </Button>
+            <Button
+              className="h-10 px-5 text-[14px] font-semibold text-white shadow-sm bg-[#942392] hover:bg-[#3b0764] shrink-0"
+              onClick={openNew}
+            >
+              <Plane className="w-4 h-4 mr-2" /> New Assignment
+            </Button>
+          </div>
         </div>
       </PageActions>
 
@@ -1077,18 +1079,9 @@ export default function OutstationAssignment() {
                           {statusBadge(a.status)}
                         </td>
 
-                        {/* Actions (Pencil, Cancel, Trash) */}
+                        {/* Actions (Cancel, Trash) */}
                         <td className="px-4 py-3 align-middle">
                           <div className="flex items-center gap-1">
-                            {(selectedEvent.status === "Active" || selectedEvent.status === "Upcoming") && (
-                              <button
-                                onClick={() => openEditEvent(selectedEvent)}
-                                className="p-1.5 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-950/40 text-blue-500 transition-colors"
-                                title="Edit Event & Participants (Add or Remove Staff)"
-                              >
-                                <Edit2 className="w-3.5 h-3.5" />
-                              </button>
-                            )}
 
                             {a.status !== "Cancelled" && a.status !== "Completed" && (
                               <button
