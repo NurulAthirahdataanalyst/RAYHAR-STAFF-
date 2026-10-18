@@ -802,7 +802,8 @@ export default function TeamAttendance() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
       {/* Floating Scroll-to-Top Button for 50+ entries */}
       <TableScrollTopButton entriesPerPage={entriesPerPage} tableRef={tableRef} />
