@@ -326,7 +326,8 @@ app.use(cors({
   credentials: true
 }));
 
-app.use(express.json());
+app.use(express.json({ limit: '2mb' }));
+app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 
 app.get("/api/settings", (req, res) => res.json({ success: true, settings: getSettings() }));
 app.post("/api/settings", async (req, res) => {

@@ -13,6 +13,7 @@ import { RefreshCw, MapPin , X} from 'lucide-react';
 import { useAuth } from "@/contexts/AuthContext";
 import { useRole } from "@/contexts/RoleContext";
 import { useToast } from "@/hooks/use-toast";
+import { escapeHtml } from "@/utils/security";
 
 // Fix default Leaflet marker icons broken by bundlers
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -551,11 +552,12 @@ export default function GPSLocationTracker() {
               const isSelected = group.some((l) => selected === l.user_id);
               const isOnline = !!(first.lat && first.lng);
               const groupKey = `marker-${group.map(g => g.user_id).sort().join('-')}`;
-              const name = (first.full_name || first.user_id || "U").trim();
-              const avatarText = (name || "U").substring(0, 2).toUpperCase();
-              const timeText = first.last_updated
+              const rawName = (first.full_name || first.user_id || "U").trim();
+              const name = escapeHtml(rawName);
+              const avatarText = escapeHtml((rawName || "U").substring(0, 2).toUpperCase());
+              const timeText = escapeHtml(first.last_updated
                 ? new Date(first.last_updated).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                : 'Unknown';
+                : 'Unknown');
               const dotColor = isSelected ? '#f59e0b' : (isOnline ? '#10b981' : '#f43f5e');
               const borderColor = isSelected ? '#f59e0b' : '#e5e7eb';
 
