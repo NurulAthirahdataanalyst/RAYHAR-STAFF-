@@ -1293,7 +1293,7 @@ export default function AttendanceDashboard() {
               </div>
 
               {/* Department Filter */}
-              {role !== "head_of_department" && (
+              {!["head_of_department", "branch_leader"].includes(role) && (
                 <Select value={selectedDepartmentFilter} onValueChange={setSelectedDepartmentFilter}>
                   <SelectTrigger className="w-[calc(50%-0.25rem)] sm:w-[140px] shrink-0 h-9 text-[11px] font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-none outline-none hover:border-[#942392]/40 hover:ring-1 hover:ring-[#942392]/40 hover:bg-[#942392]/5 dark:hover:border-[#942392]/60 dark:hover:ring-[#942392]/60 dark:hover:bg-[#942392]/20 transition-all duration-200 focus:ring-1 focus:ring-[#942392]">
                     <SelectValue placeholder="Department" />
@@ -1308,7 +1308,7 @@ export default function AttendanceDashboard() {
               )}
 
               {/* Branch Filter */}
-              {role !== "branch_leader" && (
+              {!["head_of_department", "branch_leader"].includes(role) && (
                 <Select value={selectedBranchFilter} onValueChange={setSelectedBranchFilter}>
                   <SelectTrigger className="flex-1 min-w-[115px] sm:flex-none sm:w-[165px] shrink-0 h-9 text-[11px] font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-none outline-none hover:border-[#942392]/40 hover:ring-1 hover:ring-[#942392]/40 hover:bg-[#942392]/5 dark:hover:border-[#942392]/60 dark:hover:ring-[#942392]/60 dark:hover:bg-[#942392]/20 transition-all duration-200 focus:ring-1 focus:ring-[#942392]">
                     <SelectValue placeholder="All Branches" />

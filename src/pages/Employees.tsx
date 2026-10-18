@@ -872,7 +872,7 @@ export default function Employees() {
               </PopoverContent>
             </Popover>
 
-          {(["hr_admin", "managing_director", "operation_manager", "finance_manager"].includes(role) || uniqueBranches.length > 1) && (
+          {!["head_of_department", "branch_leader"].includes(role) && (["hr_admin", "managing_director", "operation_manager", "finance_manager"].includes(role) || uniqueBranches.length > 1) && (
             <Select value={selectedBranch} onValueChange={setSelectedBranch}>
               <SelectTrigger className="w-[calc(50%-0.25rem)] sm:w-[140px] shrink-0 h-9 border-border/60 bg-background/50 focus:ring-[#942392]/20 font-bold text-xs rounded-xl">
                 <SelectValue placeholder="All Branches" />
@@ -888,7 +888,7 @@ export default function Employees() {
             </Select>
           )}
 
-          {(["hr_admin", "managing_director", "operation_manager", "finance_manager"].includes(role) || uniqueDepartments.length > 1) && (
+          {!["head_of_department", "branch_leader"].includes(role) && (["hr_admin", "managing_director", "operation_manager", "finance_manager"].includes(role) || uniqueDepartments.length > 1) && (
             <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
               <SelectTrigger className="w-[calc(50%-0.25rem)] sm:w-[150px] shrink-0 h-9 border-border/60 bg-background/50 focus:ring-[#942392]/20 font-bold text-xs rounded-xl">
                 <SelectValue placeholder="All Departments" />

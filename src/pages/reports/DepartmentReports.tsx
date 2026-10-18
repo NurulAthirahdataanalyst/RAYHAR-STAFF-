@@ -1,5 +1,6 @@
 import { useRole } from "@/contexts/RoleContext";
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "@/config/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Building2, Users } from "lucide-react";
@@ -44,12 +45,20 @@ function toProperCase(str: string): string {
 
 export default function DepartmentReports() {
   const { role, userBranch, userDepartment } = useRole();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [employees, setEmployees] = useState<any[]>([]);
   const [selectedBranch, setSelectedBranch] = useState("All");
   const [selectedDept, setSelectedDept] = useState("All");
 
   useEffect(() => {
+    if (["head_of_department", "branch_leader"].includes(role)) {
+      navigate("/reports/attendance", { replace: true });
+    }
+  }, [role, navigate]);
+
+  useEffect(() => {
+    if (["head_of_department", "branch_leader"].includes(role)) return;
     fetchData();
   }, [role, userBranch, userDepartment]);
 

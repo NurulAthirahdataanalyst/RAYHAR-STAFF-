@@ -842,8 +842,8 @@ export default function Reports() {
                       const isBranchLeader = role === 'branch_leader';
                       const isHOD = role === 'head_of_department';
 
-                      const showBranchFilter = !isEmployee && !isHOD;
-                      const showDeptFilter = !isEmployee && !isBranchLeader;
+                      const showBranchFilter = !isEmployee && !isHOD && !isBranchLeader;
+                      const showDeptFilter = !isEmployee && !isBranchLeader && !isHOD;
 
                       return (
                         <div className="grid grid-cols-2 gap-3 sm:gap-4">

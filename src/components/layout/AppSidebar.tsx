@@ -199,7 +199,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         { title: "Attendance Reports", icon: FileSearch, path: "/reports/attendance", roles: HOD_BL_ROLES },
         { title: "Leave Reports", icon: FileSearch, path: "/reports/leave", roles: HOD_BL_ROLES },
         { title: "Outstation Reports", icon: FileSearch, path: "/outstation/reports", roles: HOD_BL_ROLES },
-        { title: "Department & Branch Reports", icon: Building2, path: "/reports/department", roles: HOD_BL_ROLES },
+
       ],
     },
     {

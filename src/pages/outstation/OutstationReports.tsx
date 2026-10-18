@@ -551,6 +551,8 @@ export default function OutstationReports() {
                     <Search className="w-3.5 h-3.5 text-foreground absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <Input placeholder="Search employee..." value={filterSearch} onChange={e => setFilterSearch(e.target.value)} className="pl-8 h-8 text-xs w-full bg-gray-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-foreground dark:text-slate-100" />
                   </div>
+                  {!["head_of_department", "branch_leader"].includes(role) && (
+                    <>
                   <Select value={filterBranch} onValueChange={setFilterBranch}>
                     <SelectTrigger className="w-[calc(50%-0.25rem)] sm:w-[180px] shrink-0 h-8 text-xs bg-gray-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-foreground dark:text-slate-100">
                       <SelectValue placeholder="Branch">
@@ -585,6 +587,8 @@ export default function OutstationReports() {
                       ))}
                     </SelectContent>
                   </Select>
+                    </>
+                  )}
                 </>
               )}
             </div>
