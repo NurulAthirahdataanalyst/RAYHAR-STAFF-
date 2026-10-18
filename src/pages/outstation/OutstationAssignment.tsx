@@ -1430,22 +1430,22 @@ export default function OutstationAssignment() {
                 </div>
               </div>
             </div>
+          </div>
 
-            {/* Actions */}
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-100 dark:border-slate-800">
-              <Button variant="outline" size="sm" onClick={() => setEditEventModalOpen(false)}>
-                Cancel
-              </Button>
-              <Button
-                size="sm"
-                onClick={handleSaveEventEdit}
-                disabled={submitting}
-                className="bg-[#e4007c] hover:bg-[#c8006d] text-white gap-1.5 shadow-sm"
-              >
-                {submitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plane className="w-3.5 h-3.5" />}
-                Save Changes
-              </Button>
-            </div>
+          {/* Fixed Footer with Identical Full-Width Separator Line */}
+          <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50/80 dark:bg-slate-900/80 flex items-center justify-end gap-3 shrink-0">
+            <Button variant="outline" size="sm" onClick={() => setEditEventModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              onClick={handleSaveEventEdit}
+              disabled={submitting}
+              className="bg-[#e4007c] hover:bg-[#c8006d] text-white gap-1.5 shadow-sm"
+            >
+              {submitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plane className="w-3.5 h-3.5" />}
+              Save Changes
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -1661,15 +1661,15 @@ export default function OutstationAssignment() {
                 </div>
               )}
             </div>
+          </div>
 
-            {/* Actions */}
-            <div className="flex items-center justify-end gap-3 pt-2 border-t border-gray-100 dark:border-slate-800">
-              <Button variant="outline" size="sm" onClick={() => setNewDrawerOpen(false)}>Cancel</Button>
-              <Button size="sm" onClick={handleCreateAssignment} disabled={submitting} className="bg-[#e4007c] hover:bg-[#c8006d] text-white gap-1.5 shadow-sm">
-                {submitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plane className="w-3.5 h-3.5" />}
-                Assign{newSelectedEmps.length > 1 ? ` (${newSelectedEmps.length})` : ""}
-              </Button>
-            </div>
+          {/* Fixed Footer with Identical Full-Width Separator Line */}
+          <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50/80 dark:bg-slate-900/80 flex items-center justify-end gap-3 shrink-0">
+            <Button variant="outline" size="sm" onClick={() => setNewDrawerOpen(false)}>Cancel</Button>
+            <Button size="sm" onClick={handleCreateAssignment} disabled={submitting} className="bg-[#e4007c] hover:bg-[#c8006d] text-white gap-1.5 shadow-sm">
+              {submitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plane className="w-3.5 h-3.5" />}
+              Assign{newSelectedEmps.length > 1 ? ` (${newSelectedEmps.length})` : ""}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
