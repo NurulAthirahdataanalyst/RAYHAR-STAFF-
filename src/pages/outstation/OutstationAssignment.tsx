@@ -269,6 +269,9 @@ export default function OutstationAssignment() {
       if (a.meeting_title && !g.meeting_title) g.meeting_title = a.meeting_title;
       if (a.start_time && !g.startTime) g.startTime = a.start_time;
       if (a.end_time && !g.endTime) g.endTime = a.end_time;
+      if (a.assigned_by && !g.assigned_by) g.assigned_by = a.assigned_by;
+      if (a.assigned_by_name && !g.assigned_by_name) g.assigned_by_name = a.assigned_by_name;
+      if (a.assigned_by_role && !g.assigned_by_role) g.assigned_by_role = a.assigned_by_role;
     });
 
     return Object.values(groups).map(g => {
@@ -378,8 +381,46 @@ export default function OutstationAssignment() {
     }
   }, [location.state, location.pathname, navigate]);
 
+  // Permission check: only HR Admin and the creator ("Assigned By") can edit
+  const canEditEvent = useCallback((e?: EventGroup | null): boolean => {
+    if (!e) return false;
+    // Only Active or Upcoming events can be edited
+    if (e.status !== "Active" && e.status !== "Upcoming") return false;
+
+    // 1. HR Admin has full permission to edit any event
+    const isHrAdmin = role === "hr_admin" || (role as string) === "admin" || (role as string) === "HR ADMIN";
+    if (isHrAdmin) return true;
+
+    // 2. Otherwise, only the person who assigned it ("Assigned By") can edit
+    const normalize = (str?: string) =>
+      String(str || "")
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, " ");
+
+    const myId = normalize(userId);
+    const myName = normalize(userName);
+
+    const matchesMe = (assignedById?: string, assignedByName?: string) => {
+      const aId = normalize(assignedById);
+      const aName = normalize(assignedByName);
+      if (myId && aId && (aId === myId || aId.includes(myId) || myId.includes(aId))) return true;
+      if (myName && aName && (aName === myName || aName.includes(myName) || myName.includes(aName))) return true;
+      if (myName && aId && (aId === myName || aId.includes(myName) || myName.includes(aId))) return true;
+      return false;
+    };
+
+    if (matchesMe(e.assigned_by, e.assigned_by_name)) return true;
+
+    return e.assignments.some(a => matchesMe(a.assigned_by, a.assigned_by_name));
+  }, [role, userId, userName]);
+
   // Open Edit Event Modal with full staff participants list
   const openEditEvent = (event: EventGroup) => {
+    if (!canEditEvent(event)) {
+      toast.error("Only HR Admin and the staff who assigned this event can edit.");
+      return;
+    }
     if (event.status === "Completed") {
       toast.error("Completed outstation assignments cannot be edited.");
       return;
@@ -704,7 +745,7 @@ export default function OutstationAssignment() {
           </Button>
 
           <div className="flex items-center gap-2.5 ml-auto">
-            {selectedEvent && (selectedEvent.status === "Active" || selectedEvent.status === "Upcoming") && (
+            {selectedEvent && canEditEvent(selectedEvent) && (
               <Button
                 variant="outline"
                 className="h-10 px-4 text-[13px] font-bold border-[#942392]/30 text-[#942392] hover:bg-[#942392]/10 bg-white dark:bg-slate-900 shadow-sm shrink-0"
@@ -1003,7 +1044,7 @@ export default function OutstationAssignment() {
                               <FileText className="w-3 h-3" /> View Form
                             </Button>
 
-                            {(e.status === "Active" || e.status === "Upcoming") && (
+                            {canEditEvent(e) && (
                               <Button
                                 size="sm"
                                 variant="outline"
@@ -1861,7 +1902,7 @@ export default function OutstationAssignment() {
                 >
                   Export to PDF
                 </Button>
-                {(viewFormEvent.status === "Active" || viewFormEvent.status === "Upcoming") && (
+                {canEditEvent(viewFormEvent) && (
                   <Button
                     onClick={() => {
                       const target = viewFormEvent;
