@@ -646,8 +646,14 @@ async function generateAndSaveLeaveFormPDF(leaveId) {
     const safeName = employeeName.toUpperCase().replace(/[^A-Z0-9]/g, "_");
     const filename = `${safeName}-${submitDate}-${leaveTypeName}-form.pdf`;
 
-    const cleanFolder = `${employeeName} (${employeeBranch})`.replace(/[^a-zA-Z0-9._\- ]/g, "_").trim();
-    const folderName = path.basename(cleanFolder) || "general";
+    const cleanFolder = `${employeeName} (${employeeBranch})`
+      .replace(/\.{2,}/g, "")
+      .replace(/[^a-zA-Z0-9_\- ]/g, "_")
+      .trim();
+    let folderName = path.basename(cleanFolder).trim();
+    if (!folderName || folderName === "." || folderName === ".." || !/^[a-zA-Z0-9_\- ]+$/.test(folderName)) {
+      folderName = "general";
+    }
     const uploadsRoot = path.resolve(__dirname, "uploads");
     const userUploadsDir = path.resolve(uploadsRoot, folderName);
 
@@ -3321,17 +3327,34 @@ app.post("/api/leave-requests/:id/upload-mc", uploadLimiter, upload.single("lamp
 
     let mc_file_url = null;
     if (req.file) {
-      const rawExt = path.extname(req.file.originalname || "").toLowerCase();
-      const safeExt = /^\.[a-z0-9]+$/.test(rawExt) ? rawExt : ".pdf";
+      const rawExt = path.extname(path.basename(req.file.originalname || "")).toLowerCase();
+      const ALLOWED_EXTS = {
+        ".pdf": ".pdf",
+        ".jpg": ".jpg",
+        ".jpeg": ".jpeg",
+        ".png": ".png",
+        ".webp": ".webp",
+        ".doc": ".doc",
+        ".docx": ".docx"
+      };
+      const safeExt = Object.prototype.hasOwnProperty.call(ALLOWED_EXTS, rawExt)
+        ? ALLOWED_EXTS[rawExt]
+        : ".pdf";
       const safeFilename = `${crypto.randomUUID()}${safeExt}`;
       const filename = path.basename(safeFilename);
-      if (!/^[a-zA-Z0-9._-]+$/.test(filename)) {
+      if (!/^[a-zA-Z0-9._-]+$/.test(filename) || filename.includes("..")) {
         return res.status(400).json({ success: false, error: "Invalid filename" });
       }
 
       const uploadsRoot = path.resolve(uploadsDir);
-      const cleanFolder = `${employeeName} (${employeeBranch})`.replace(/[^a-zA-Z0-9._\- ]/g, "_").trim();
-      const folderName = path.basename(cleanFolder) || "general";
+      const cleanFolder = `${employeeName} (${employeeBranch})`
+        .replace(/\.{2,}/g, "")
+        .replace(/[^a-zA-Z0-9_\- ]/g, "_")
+        .trim();
+      let folderName = path.basename(cleanFolder).trim();
+      if (!folderName || folderName === "." || folderName === ".." || !/^[a-zA-Z0-9_\- ]+$/.test(folderName)) {
+        folderName = "general";
+      }
       const userUploadsDir = path.resolve(uploadsRoot, folderName);
 
       if (!userUploadsDir.startsWith(uploadsRoot + path.sep)) {
@@ -3347,7 +3370,13 @@ app.post("/api/leave-requests/:id/upload-mc", uploadLimiter, upload.single("lamp
         return res.status(400).json({ success: false, error: "Invalid file path" });
       }
 
-      fs.renameSync(req.file.path, resolvedPath);
+      const resolvedTempDir = path.resolve(tempDir);
+      const resolvedSource = path.resolve(req.file.path);
+      if (!resolvedSource.startsWith(resolvedTempDir + path.sep)) {
+        return res.status(400).json({ success: false, error: "Invalid source file path" });
+      }
+
+      fs.renameSync(resolvedSource, resolvedPath);
 
       mc_file_url = `/uploads/${folderName}/${filename}`;
       const supabaseStoragePath = `${folderName}/${filename}`;
@@ -3495,20 +3524,43 @@ app.post("/api/leave-requests", uploadLimiter, upload.single("lampiranMc"), asyn
 
     let mc_file_url = null;
     if (req.file) {
-      const rawExt = path.extname(req.file.originalname || "").toLowerCase();
-      const safeExt = /^\.[a-z0-9]+$/.test(rawExt) ? rawExt : ".pdf";
+      const rawExt = path.extname(path.basename(req.file.originalname || "")).toLowerCase();
+      const ALLOWED_EXTS = {
+        ".pdf": ".pdf",
+        ".jpg": ".jpg",
+        ".jpeg": ".jpeg",
+        ".png": ".png",
+        ".webp": ".webp",
+        ".doc": ".doc",
+        ".docx": ".docx"
+      };
+      const safeExt = Object.prototype.hasOwnProperty.call(ALLOWED_EXTS, rawExt)
+        ? ALLOWED_EXTS[rawExt]
+        : ".pdf";
       const safeFilename = `${crypto.randomUUID()}${safeExt}`;
       const filename = path.basename(safeFilename);
       const uploadsRoot = path.resolve(uploadsDir);
+      const resolvedTempDir = path.resolve(tempDir);
+      const resolvedSource = path.resolve(req.file.path);
+
+      if (!resolvedSource.startsWith(resolvedTempDir + path.sep)) {
+        throw new Error("Invalid source file path");
+      }
 
       try {
-        if (!/^[a-zA-Z0-9._-]+$/.test(filename)) {
+        if (!/^[a-zA-Z0-9._-]+$/.test(filename) || filename.includes("..")) {
           throw new Error("Invalid filename");
         }
 
         // Sanitize employee name and branch to avoid invalid folder names
-        const cleanFolder = `${employeeName} (${employeeBranch})`.replace(/[^a-zA-Z0-9._\- ]/g, "_").trim();
-        const folderName = path.basename(cleanFolder) || "general";
+        const cleanFolder = `${employeeName} (${employeeBranch})`
+          .replace(/\.{2,}/g, "")
+          .replace(/[^a-zA-Z0-9_\- ]/g, "_")
+          .trim();
+        let folderName = path.basename(cleanFolder).trim();
+        if (!folderName || folderName === "." || folderName === ".." || !/^[a-zA-Z0-9_\- ]+$/.test(folderName)) {
+          folderName = "general";
+        }
         const userUploadsDir = path.resolve(uploadsRoot, folderName);
 
         if (!userUploadsDir.startsWith(uploadsRoot + path.sep)) {
@@ -3526,7 +3578,7 @@ app.post("/api/leave-requests", uploadLimiter, upload.single("lampiranMc"), asyn
           throw new Error("Invalid path");
         }
 
-        fs.renameSync(req.file.path, resolvedPath);
+        fs.renameSync(resolvedSource, resolvedPath);
 
         // Store relative path URL
         mc_file_url = `/uploads/${folderName}/${filename}`;
@@ -3539,7 +3591,7 @@ app.post("/api/leave-requests", uploadLimiter, upload.single("lampiranMc"), asyn
         // Fallback: move to base uploadsDir
         try {
           const fallbackFilename = path.basename(`${crypto.randomUUID()}${safeExt}`);
-          if (!/^[a-zA-Z0-9._-]+$/.test(fallbackFilename)) {
+          if (!/^[a-zA-Z0-9._-]+$/.test(fallbackFilename) || fallbackFilename.includes("..")) {
             throw new Error("Invalid fallback filename");
           }
           const resolvedFallback = path.resolve(uploadsRoot, fallbackFilename);
@@ -3548,9 +3600,11 @@ app.post("/api/leave-requests", uploadLimiter, upload.single("lampiranMc"), asyn
             throw new Error("Invalid destination");
           }
 
-          fs.renameSync(req.file.path, resolvedFallback);
-          mc_file_url = `/uploads/${fallbackFilename}`;
-          uploadToSupabaseStorage(resolvedFallback, fallbackFilename, req.file.mimetype);
+          if (fs.existsSync(resolvedSource)) {
+            fs.renameSync(resolvedSource, resolvedFallback);
+            mc_file_url = `/uploads/${fallbackFilename}`;
+            uploadToSupabaseStorage(resolvedFallback, fallbackFilename, req.file.mimetype);
+          }
         } catch (fallbackErr) {
           console.error("❌ Fallback move also failed:", fallbackErr);
         }
