@@ -398,10 +398,10 @@ export default function OutstationAssignment() {
     });
 
     const parts: EditStaffParticipant[] = event.assignments.map(a => {
-      const emp = employees.find(e => e.user_id === a.user_id);
+      const emp = employees.find(e => String(e.user_id) === String(a.user_id));
       return {
         assignment_id: a.id,
-        user_id: a.user_id,
+        user_id: String(a.user_id),
         full_name: a.full_name || emp?.full_name || "",
         branch: a.branch || emp?.branch || "",
         department: a.department || emp?.department || "",
@@ -417,9 +417,9 @@ export default function OutstationAssignment() {
   // Staff available to add in edit modal
   const availableToAddStaff = useMemo(() => {
     const q = addStaffSearch.toLowerCase();
-    const assignedIds = new Set(editParticipants.map(p => p.user_id));
+    const assignedIds = new Set(editParticipants.map(p => String(p.user_id)));
     return employees.filter(e => {
-      if (assignedIds.has(e.user_id)) return false;
+      if (assignedIds.has(String(e.user_id))) return false;
       if (!q) return true;
       return (
         (e.full_name || "").toLowerCase().includes(q) ||
@@ -433,7 +433,7 @@ export default function OutstationAssignment() {
     setEditParticipants(prev => [
       ...prev,
       {
-        user_id: emp.user_id,
+        user_id: String(emp.user_id),
         full_name: emp.full_name,
         branch: emp.branch,
         department: emp.department,
@@ -444,7 +444,7 @@ export default function OutstationAssignment() {
   };
 
   const handleRemoveStaffFromEdit = (userIdToRemove: string) => {
-    setEditParticipants(prev => prev.filter(p => p.user_id !== userIdToRemove));
+    setEditParticipants(prev => prev.filter(p => String(p.user_id) !== String(userIdToRemove)));
   };
 
   // Save Event Changes (Trip Details + Add/Remove Participants)
@@ -702,6 +702,16 @@ export default function OutstationAssignment() {
               {selectedEventKey ? "Back to Events Overview" : "Back to Outstation Dashboard"}
             </span>
           </Button>
+
+          {selectedEvent && (selectedEvent.status === "Active" || selectedEvent.status === "Upcoming") && (
+            <Button
+              variant="outline"
+              className="h-10 px-4 text-[13px] font-bold border-[#942392]/30 text-[#942392] hover:bg-[#942392]/10 bg-white dark:bg-slate-900 shadow-sm w-full sm:w-auto shrink-0"
+              onClick={() => openEditEvent(selectedEvent)}
+            >
+              <Edit2 className="w-4 h-4 mr-1.5" /> Edit Event & Staff
+            </Button>
+          )}
 
           <Button
             className="h-10 px-5 text-[14px] font-semibold text-white shadow-sm bg-[#942392] hover:bg-[#3b0764] w-full sm:w-auto shrink-0"
@@ -971,7 +981,7 @@ export default function OutstationAssignment() {
                               <FileText className="w-3 h-3" /> View Form
                             </Button>
 
-                            {e.status === "Active" && (
+                            {(e.status === "Active" || e.status === "Upcoming") && (
                               <Button
                                 size="sm"
                                 variant="outline"
@@ -1050,11 +1060,11 @@ export default function OutstationAssignment() {
                         {/* Actions (Pencil, Cancel, Trash) */}
                         <td className="px-4 py-3 align-middle">
                           <div className="flex items-center gap-1">
-                            {selectedEvent.status === "Active" && (
+                            {(selectedEvent.status === "Active" || selectedEvent.status === "Upcoming") && (
                               <button
                                 onClick={() => openEditEvent(selectedEvent)}
                                 className="p-1.5 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-950/40 text-blue-500 transition-colors"
-                                title="Edit Event & Participants"
+                                title="Edit Event & Participants (Add or Remove Staff)"
                               >
                                 <Edit2 className="w-3.5 h-3.5" />
                               </button>
@@ -1819,6 +1829,18 @@ export default function OutstationAssignment() {
                 >
                   Export to PDF
                 </Button>
+                {(viewFormEvent.status === "Active" || viewFormEvent.status === "Upcoming") && (
+                  <Button
+                    onClick={() => {
+                      const target = viewFormEvent;
+                      setViewFormEvent(null);
+                      openEditEvent(target);
+                    }}
+                    className="rounded-xl font-black text-[11px] bg-[#942392] hover:bg-[#7a1b7a] text-white gap-1.5"
+                  >
+                    <Edit2 className="w-3.5 h-3.5" /> Edit Form
+                  </Button>
+                )}
                 <Button variant="outline" onClick={() => setViewFormEvent(null)} className="rounded-xl font-black text-[11px]">
                   Close
                 </Button>
