@@ -787,8 +787,18 @@ export default function OutstationAssignment() {
                       placeholder="Search event..."
                       value={filterSearch}
                       onChange={e => setFilterSearch(e.target.value)}
-                      className="pl-8 h-8 text-xs w-full bg-gray-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-foreground dark:text-slate-100 font-medium"
+                      className="pl-8 pr-7 h-8 text-xs w-full bg-gray-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-foreground dark:text-slate-100 font-medium"
                     />
+                    {filterSearch && (
+                      <button
+                        type="button"
+                        onClick={() => setFilterSearch("")}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5 rounded transition-colors"
+                        title="Clear search"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                   </div>
                   {viewType === "month" ? (
                     <MonthPicker
@@ -825,8 +835,18 @@ export default function OutstationAssignment() {
                       placeholder="Search employee, destination…"
                       value={filterSearch}
                       onChange={e => setFilterSearch(e.target.value)}
-                      className="pl-8 h-8 text-xs w-full bg-gray-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-foreground dark:text-slate-100 font-medium"
+                      className="pl-8 pr-7 h-8 text-xs w-full bg-gray-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-foreground dark:text-slate-100 font-medium"
                     />
+                    {filterSearch && (
+                      <button
+                        type="button"
+                        onClick={() => setFilterSearch("")}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5 rounded transition-colors"
+                        title="Clear search"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                   </div>
                   <Select value={filterStatus} onValueChange={setFilterStatus}>
                     <SelectTrigger className="flex-1 sm:flex-none sm:w-[130px] shrink-0 h-8 text-xs bg-gray-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-foreground dark:text-slate-100">
@@ -1166,18 +1186,18 @@ export default function OutstationAssignment() {
 
       {/* EDIT EVENT MODAL (With full Participant Management: Add/Remove staff) */}
       <Dialog open={editEventModalOpen} onOpenChange={setEditEventModalOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-base font-black uppercase tracking-wide">
-              <Plane className="w-4 h-4" style={{ color: PINK }} />
+        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0 overflow-hidden [&>button]:text-white [&>button]:hover:text-white/80 [&>button]:top-4 [&>button]:right-4">
+          <DialogHeader className="px-6 py-4 border-b border-[#c8006d] bg-[#e4007c] shrink-0 text-white">
+            <DialogTitle className="flex items-center gap-2 text-base font-black uppercase tracking-wide text-white">
+              <Plane className="w-4 h-4 text-white" />
               EDIT OUTSTATION ASSIGNMENT
             </DialogTitle>
-            <DialogDescription className="text-[11px]">
+            <DialogDescription className="text-pink-100 text-[11px]">
               Update trip details and manage staff participants below.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-5 pt-2">
+          <div className="space-y-5 p-6 overflow-y-auto flex-1">
             
             {/* Trip Information */}
             <div className="space-y-3">
@@ -1361,13 +1381,23 @@ export default function OutstationAssignment() {
                   Add More Staff to This Event
                 </Label>
                 <div className="relative">
-                  <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-2.5 top-1/2 -translate-y-1/2" />
+                  <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <Input
                     placeholder="Search employee by name, department, or branch…"
                     value={addStaffSearch}
                     onChange={e => setAddStaffSearch(e.target.value)}
-                    className="pl-8 h-8 text-xs"
+                    className="pl-8 pr-8 h-8 text-xs"
                   />
+                  {addStaffSearch && (
+                    <button
+                      type="button"
+                      onClick={() => setAddStaffSearch("")}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5 rounded transition-colors"
+                      title="Clear search"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                 </div>
 
                 <div className="max-h-36 overflow-y-auto border border-gray-200 dark:border-slate-800 rounded-lg divide-y divide-gray-100 dark:divide-slate-800">
@@ -1410,8 +1440,7 @@ export default function OutstationAssignment() {
                 size="sm"
                 onClick={handleSaveEventEdit}
                 disabled={submitting}
-                style={{ background: PINK }}
-                className="text-white gap-1.5"
+                className="bg-[#e4007c] hover:bg-[#c8006d] text-white gap-1.5 shadow-sm"
               >
                 {submitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plane className="w-3.5 h-3.5" />}
                 Save Changes
@@ -1423,18 +1452,18 @@ export default function OutstationAssignment() {
 
       {/* NEW ASSIGNMENT MODAL (Drawer) */}
       <Dialog open={newDrawerOpen} onOpenChange={setNewDrawerOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-base font-black uppercase tracking-wide">
-              <Plane className="w-4 h-4" style={{ color: PINK }} />
+        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0 overflow-hidden [&>button]:text-white [&>button]:hover:text-white/80 [&>button]:top-4 [&>button]:right-4">
+          <DialogHeader className="px-6 py-4 border-b border-[#c8006d] bg-[#e4007c] shrink-0 text-white">
+            <DialogTitle className="flex items-center gap-2 text-base font-black uppercase tracking-wide text-white">
+              <Plane className="w-4 h-4 text-white" />
               New Outstation Assignment
             </DialogTitle>
-            <DialogDescription className="text-[11px]">
+            <DialogDescription className="text-pink-100 text-[11px]">
               Assign one or more employees to an outstation event.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-5 pt-2">
+          <div className="space-y-5 p-6 overflow-y-auto flex-1">
             {/* Employee Multi-Select */}
             <div className="space-y-2">
               <Label className="text-[11px] font-black uppercase tracking-widest text-foreground flex items-center gap-1.5">
@@ -1458,13 +1487,23 @@ export default function OutstationAssignment() {
               )}
 
               <div className="relative">
-                <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-2.5 top-1/2 -translate-y-1/2" />
+                <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <Input
                   placeholder="Search employees…"
                   value={newEmpSearch}
                   onChange={e => setNewEmpSearch(e.target.value)}
-                  className="pl-8 h-8 text-xs"
+                  className="pl-8 pr-8 h-8 text-xs"
                 />
+                {newEmpSearch && (
+                  <button
+                    type="button"
+                    onClick={() => setNewEmpSearch("")}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5 rounded transition-colors"
+                    title="Clear search"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
               </div>
 
               <div className="max-h-40 overflow-y-auto border border-gray-200 dark:border-slate-800 rounded-lg divide-y divide-gray-100 dark:divide-slate-800">
@@ -1626,7 +1665,7 @@ export default function OutstationAssignment() {
             {/* Actions */}
             <div className="flex items-center justify-end gap-3 pt-2 border-t border-gray-100 dark:border-slate-800">
               <Button variant="outline" size="sm" onClick={() => setNewDrawerOpen(false)}>Cancel</Button>
-              <Button size="sm" onClick={handleCreateAssignment} disabled={submitting} style={{ background: PINK }} className="text-white gap-1.5">
+              <Button size="sm" onClick={handleCreateAssignment} disabled={submitting} className="bg-[#e4007c] hover:bg-[#c8006d] text-white gap-1.5 shadow-sm">
                 {submitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plane className="w-3.5 h-3.5" />}
                 Assign{newSelectedEmps.length > 1 ? ` (${newSelectedEmps.length})` : ""}
               </Button>
@@ -1671,7 +1710,7 @@ export default function OutstationAssignment() {
           {viewFormEvent && (
             <>
               {/* Header */}
-              <div className="bg-[#942392] px-6 py-5 text-white shrink-0">
+              <div className="bg-[#e4007c] px-6 py-5 text-white shrink-0 border-b border-[#c8006d]">
                 <div className="flex items-start gap-3">
                   <div className="p-2 rounded-xl bg-white/20 shrink-0">
                     <Plane className="w-5 h-5 text-white" />
