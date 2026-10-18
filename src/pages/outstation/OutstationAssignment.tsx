@@ -1179,7 +1179,7 @@ export default function OutstationAssignment() {
 
       {/* EDIT EVENT MODAL (With full Participant Management: Add/Remove staff) */}
       <Dialog open={editEventModalOpen} onOpenChange={setEditEventModalOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0 overflow-hidden [&>button]:text-white [&>button]:hover:text-white/80 [&>button]:top-4 [&>button]:right-4">
+        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0 overflow-hidden border-0 border-none outline-none focus:outline-none focus-visible:outline-none ring-0 focus:ring-0 focus-visible:ring-0 shadow-2xl [&>button]:text-white [&>button]:hover:text-white/80 [&>button]:top-4 [&>button]:right-4 [&>button]:focus:ring-0 [&>button]:focus:ring-offset-0 [&>button]:focus:outline-none [&>button]:outline-none">
           <DialogHeader className="px-6 py-4 border-b border-[#c8006d] bg-[#e4007c] shrink-0 text-white">
             <DialogTitle className="flex items-center gap-2 text-base font-black uppercase tracking-wide text-white">
               <Plane className="w-4 h-4 text-white" />
@@ -1445,7 +1445,7 @@ export default function OutstationAssignment() {
 
       {/* NEW ASSIGNMENT MODAL (Drawer) */}
       <Dialog open={newDrawerOpen} onOpenChange={setNewDrawerOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0 overflow-hidden [&>button]:text-white [&>button]:hover:text-white/80 [&>button]:top-4 [&>button]:right-4">
+        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0 overflow-hidden border-0 border-none outline-none focus:outline-none focus-visible:outline-none ring-0 focus:ring-0 focus-visible:ring-0 shadow-2xl [&>button]:text-white [&>button]:hover:text-white/80 [&>button]:top-4 [&>button]:right-4 [&>button]:focus:ring-0 [&>button]:focus:ring-offset-0 [&>button]:focus:outline-none [&>button]:outline-none">
           <DialogHeader className="px-6 py-4 border-b border-[#c8006d] bg-[#e4007c] shrink-0 text-white">
             <DialogTitle className="flex items-center gap-2 text-base font-black uppercase tracking-wide text-white">
               <Plane className="w-4 h-4 text-white" />
@@ -1699,7 +1699,7 @@ export default function OutstationAssignment() {
 
       {/* VIEW FORM DIALOG (Read-only view showing event details and all staff assigned) */}
       <Dialog open={!!viewFormEvent} onOpenChange={() => setViewFormEvent(null)}>
-        <DialogContent className="max-w-lg w-[95vw] sm:w-full rounded-2xl p-0 overflow-hidden max-h-[90vh] flex flex-col">
+        <DialogContent className="max-w-lg w-[95vw] sm:w-full rounded-2xl p-0 overflow-hidden max-h-[90vh] flex flex-col border-0 border-none outline-none focus:outline-none focus-visible:outline-none ring-0 focus:ring-0 focus-visible:ring-0 shadow-2xl [&>button]:text-white [&>button]:hover:text-white/80 [&>button]:top-4 [&>button]:right-4 [&>button]:focus:ring-0 [&>button]:focus:ring-offset-0 [&>button]:focus:outline-none [&>button]:outline-none">
           {viewFormEvent && (
             <>
               {/* Header */}

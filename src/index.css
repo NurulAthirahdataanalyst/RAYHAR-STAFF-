@@ -895,4 +895,14 @@ input[type=range]::-moz-range-thumb {
 .profile-nav-item:hover::before {
   opacity: 1 !important;
   transform: scaleY(1);
+}
+
+/* Remove default browser focus outline ring from dialog modals */
+[role="dialog"],
+[role="dialog"]:focus,
+[role="dialog"]:focus-visible,
+div[role="dialog"],
+div[role="dialog"]:focus,
+div[role="dialog"]:focus-visible {
+  outline: none !important;
 }
