@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar, ChevronLeft, ChevronRight } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface YearPopoverProps {
   year: string;
@@ -8,9 +9,17 @@ interface YearPopoverProps {
   className?: string;
   minYear?: number;
   excludeYear?: string;
+  iconPosition?: "left" | "right";
 }
 
-export function YearPopover({ year, onSelectYear, className, minYear, excludeYear }: YearPopoverProps) {
+export function YearPopover({
+  year,
+  onSelectYear,
+  className,
+  minYear,
+  excludeYear,
+  iconPosition = "right",
+}: YearPopoverProps) {
   const [open, setOpen] = useState(false);
   const currentYear = new Date().getFullYear();
   const activeYearNum = parseInt(year) || currentYear;
@@ -30,13 +39,20 @@ export function YearPopover({ year, onSelectYear, className, minYear, excludeYea
       <PopoverTrigger asChild>
         <button
           type="button"
-          className={
-            className ||
-            "appearance-none flex items-center justify-between px-4 py-2 bg-card border border-slate-200 dark:border-slate-800 text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-9 sm:h-10 gap-3 hover:border-[#942392]/40 min-w-[120px]"
-          }
+          className={cn(
+            "appearance-none inline-flex items-center justify-between px-3 py-2 bg-card border border-gray-200 dark:border-slate-800 text-foreground text-xs font-semibold rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-wider h-9 gap-2.5 hover:border-[#942392]/40 min-w-[110px] transition-all",
+            className
+          )}
         >
-          <span className="font-black text-foreground uppercase tracking-widest">{year || currentYear}</span>
-          <Calendar className="w-4 h-4 text-foreground opacity-80" />
+          {iconPosition === "left" && (
+            <Calendar className="w-4 h-4 text-foreground/80 shrink-0 mr-1" />
+          )}
+          <span className="font-bold text-foreground text-xs uppercase tracking-wider">
+            {year || currentYear}
+          </span>
+          {iconPosition !== "left" && (
+            <Calendar className="w-4 h-4 text-foreground/80 shrink-0 ml-1" />
+          )}
         </button>
       </PopoverTrigger>
       <PopoverContent
@@ -71,8 +87,10 @@ export function YearPopover({ year, onSelectYear, className, minYear, excludeYea
               const isSelected = y.toString() === year || (!year && y === currentYear);
               const isCurrent = y === currentYear;
               const isOutsideDecade = y < baseDecade || y > baseDecade + 9;
-              const isDisabled = (minYear !== undefined && y < minYear) || (excludeYear !== undefined && y.toString() === excludeYear);
-              
+              const isDisabled =
+                (minYear !== undefined && y < minYear) ||
+                (excludeYear !== undefined && y.toString() === excludeYear);
+
               return (
                 <button
                   key={y}
@@ -81,18 +99,18 @@ export function YearPopover({ year, onSelectYear, className, minYear, excludeYea
                   onClick={() => {
                     if (!isDisabled) {
                       onSelectYear(y.toString());
-                      // setOpen(false);
+                      setOpen(false);
                     }
                   }}
                   className={`py-2 px-1 text-xs font-bold rounded-lg transition-all text-center ${
                     isDisabled
                       ? "opacity-30 cursor-not-allowed bg-transparent text-slate-400"
                       : isSelected && isCurrent
-                      ? "bg-[#FFB800] text-black shadow-sm"
+                      ? "bg-[#942392] text-white shadow-sm ring-2 ring-[#FFB800]"
                       : isSelected
                       ? "bg-[#942392] text-white shadow-sm"
                       : isCurrent
-                      ? "bg-[#FFB800] text-black shadow-sm"
+                      ? "bg-[#FFB800]/20 text-[#942392] font-black border border-[#FFB800]"
                       : isOutsideDecade
                       ? "text-slate-300 dark:text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800/50"
                       : "hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
@@ -112,9 +130,9 @@ export function YearPopover({ year, onSelectYear, className, minYear, excludeYea
                 const cy = new Date().getFullYear().toString();
                 onSelectYear(cy);
                 setBaseDecade(Math.floor(parseInt(cy) / 10) * 10);
-                // setOpen(false);
+                setOpen(false);
               }}
-              className="text-slate-700 dark:text-slate-300 hover:underline text-[11px] font-bold"
+              className="text-[#942392] hover:underline text-[11px] font-bold"
             >
               This Year
             </button>
@@ -122,9 +140,9 @@ export function YearPopover({ year, onSelectYear, className, minYear, excludeYea
               type="button"
               onClick={() => {
                 onSelectYear("");
-                // setOpen(false);
+                setOpen(false);
               }}
-              className="text-slate-700 dark:text-slate-300 hover:underline text-[11px] font-bold"
+              className="text-slate-500 hover:text-red-500 hover:underline text-[11px] font-medium"
             >
               Clear
             </button>

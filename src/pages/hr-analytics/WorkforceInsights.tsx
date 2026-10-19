@@ -560,19 +560,19 @@ export default function WorkforceInsights() {
                   <p className="text-[12px] font-semibold text-foreground mt-1">Employees</p>
                 </div>
               </div>
-              <div className="mt-4">
-                <div className="flex justify-between items-end mb-2 relative">
-                  <p className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-0.5"><TrendingUp className="w-3 h-3" /> 2 vs Yesterday</p>
-                  <p className="text-[11px] font-bold text-emerald-700 dark:text-emerald-400">{(feedConnected && clockInOut.length > 0 ? clockInOut.length : data.teamAvailability.present) === data.topKpi.activeEmployees ? "100%" : `${Math.round(((feedConnected && clockInOut.length > 0 ? clockInOut.length : data.teamAvailability.present) / (data.topKpi.activeEmployees || 1)) * 100)}%`} of Workforce</p>
+              <div className="mt-4 flex items-center gap-3 border-t border-slate-100 dark:border-slate-800 pt-3">
+                <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
+                  {Math.round(((feedConnected && clockInOut.length > 0 ? clockInOut.length : data.teamAvailability.present) / (data.topKpi.activeEmployees || 1)) * 100)}%
+                </span>
+                <div className="w-full bg-emerald-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                  <div 
+                    className="h-full bg-emerald-500 rounded-full transition-all duration-500" 
+                    style={{ width: `${Math.min(100, ((feedConnected && clockInOut.length > 0 ? clockInOut.length : data.teamAvailability.present) / (data.topKpi.activeEmployees || 1)) * 100)}%` }}
+                  />
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-full bg-emerald-200/50 dark:bg-emerald-950/50 rounded-full h-2.5 overflow-hidden">
-                    <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${Math.min(100, ((feedConnected && clockInOut.length > 0 ? clockInOut.length : data.teamAvailability.present) / (data.topKpi.activeEmployees || 1)) * 100)}%` }}></div>
-                  </div>
-                  <div className="text-[12px] font-extrabold text-slate-800 dark:text-slate-100 whitespace-nowrap">
-                     {feedConnected && clockInOut.length > 0 ? clockInOut.length : data.teamAvailability.present} <span className="text-foreground font-bold">/ {data.topKpi.activeEmployees}</span>
-                  </div>
-                </div>
+                <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400 whitespace-nowrap">
+                  {feedConnected && clockInOut.length > 0 ? clockInOut.length : data.teamAvailability.present} / {data.topKpi.activeEmployees}
+                </span>
               </div>
             </Card>
 

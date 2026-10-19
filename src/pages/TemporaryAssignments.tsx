@@ -519,7 +519,7 @@ const TemporaryAssignments = () => {
 
       {/* ASSIGNMENT DIALOG */}
       <Dialog open={showAssignModal} onOpenChange={setShowAssignModal}>
-        <DialogContent className="max-w-md p-0 overflow-hidden">
+        <DialogContent className="max-w-md p-0 overflow-hidden border-0 shadow-2xl rounded-2xl">
           <DialogHeader className="px-6 py-4 border-b border-[#851b83] bg-[#942392] shrink-0">
             <DialogTitle className="text-xl font-bold text-white">{editId ? "Edit Temporary Assignment" : "Temporary Branch Assignment"}</DialogTitle>
             <DialogDescription className="text-purple-200 text-sm">{editId ? "Update the employee's temporary branch assignment." : "Assign an employee to work at a different branch temporarily."}</DialogDescription>
@@ -647,7 +647,7 @@ const TemporaryAssignments = () => {
 
       {/* Details Modal */}
       <Dialog open={showDetailsModal} onOpenChange={setShowDetailsModal}>
-        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0 overflow-hidden">
+        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0 overflow-hidden border-0 shadow-2xl rounded-2xl">
           <DialogHeader className="px-6 py-4 border-b border-[#851b83] bg-[#942392] sticky top-0 z-10 shrink-0">
             <DialogTitle className="text-xl font-bold text-white">Temporary Assignment Details</DialogTitle>
           </DialogHeader>
@@ -771,7 +771,7 @@ const TemporaryAssignments = () => {
 
       {/* Delete Confirmation Modal */}
       <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md border-0 shadow-2xl rounded-2xl">
           <DialogHeader>
             <DialogTitle>Delete Temporary Assignment</DialogTitle>
             <DialogDescription>

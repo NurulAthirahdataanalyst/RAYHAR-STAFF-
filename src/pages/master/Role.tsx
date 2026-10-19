@@ -36,6 +36,9 @@ export default function Role() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   
   const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [entriesPerPage, setEntriesPerPage] = useState<string>("10");
 
   const fetchRoles = async () => {
     setLoading(true);
@@ -187,19 +190,19 @@ export default function Role() {
             <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 shrink-0">Roles List</h2>
             
             <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto sm:ml-auto">
-              {/* Year Picker — same as Attendance Reports */}
+              {/* Year Picker */}
               <YearPopover
                 year={selectedYear}
                 onSelectYear={setSelectedYear}
-                className="w-[calc(50%-0.25rem)] sm:w-auto shrink-0 h-9"
+                className="w-[calc(50%-0.25rem)] sm:w-[130px] shrink-0 h-9"
               />
 
-              <Select defaultValue="status">
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-[calc(50%-0.25rem)] sm:w-[130px] shrink-0 bg-card border-gray-200 dark:border-slate-800 shadow-sm h-9">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="status">Status</SelectItem>
+                  <SelectItem value="all">Status</SelectItem>
                   <SelectItem value="active">Active</SelectItem>
                   <SelectItem value="inactive">Inactive</SelectItem>
                 </SelectContent>
@@ -211,7 +214,7 @@ export default function Role() {
           <div className="p-4 flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 dark:border-slate-800 bg-gray-50/30 dark:bg-slate-900/40">
             <div className="flex items-center gap-2 text-sm text-foreground font-medium shrink-0">
               <span>Row Per Page</span>
-              <Select defaultValue="10">
+              <Select value={entriesPerPage} onValueChange={setEntriesPerPage}>
                 <SelectTrigger className="w-[70px] bg-card border-gray-200 dark:border-slate-800 h-9 shadow-sm">
                   <SelectValue placeholder="10" />
                 </SelectTrigger>
@@ -228,6 +231,8 @@ export default function Role() {
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-foreground pointer-events-none" />
               <Input 
                 placeholder="Search" 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9 bg-card border-gray-200 dark:border-slate-800 h-9 w-full shadow-sm"
               />
             </div>
@@ -261,6 +266,8 @@ export default function Role() {
                 ) : (
                   roles
                     .filter((role) => !selectedYear || new Date(role.created_at).getFullYear().toString() === selectedYear)
+                    .filter((role) => statusFilter === "all" || role.status?.toLowerCase() === statusFilter.toLowerCase())
+                    .filter((role) => !searchQuery.trim() || role.name?.toLowerCase().includes(searchQuery.toLowerCase().trim()))
                     .map((role) => (
                     <tr key={role.id} className="hover:bg-gray-50/50 dark:hover:bg-slate-800/40 transition-colors bg-card group">
                       <td className="px-6 py-4 font-semibold text-gray-700 dark:text-gray-200">
