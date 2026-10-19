@@ -509,7 +509,9 @@ export default function Reports() {
       const data = await response.json();
       
       if (data.success) {
-        let reportName = `Rayhar_${generatorType.toUpperCase()}_Report_${selectedMonth}_${selectedYear}.csv`;
+        let reportName = selectedMonth === 'all'
+          ? `Rayhar_${generatorType.toUpperCase()}_Report_${selectedYear}.csv`
+          : `Rayhar_${generatorType.toUpperCase()}_Report_${selectedMonth}_${selectedYear}.csv`;
         let headers: string[] = [];
         let rows: any[] = [];
         

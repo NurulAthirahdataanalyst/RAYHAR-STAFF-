@@ -10184,86 +10184,109 @@ app.get("/api/reports/generator", async (req, res) => {
 
       // 3. Determine timeframe dates
       const selectedY = year && year !== 'all' ? parseInt(year) : new Date().getFullYear();
-      const selectedM = month && month !== 'all' ? parseInt(month) : (new Date().getMonth() + 1);
-
-      const totalDaysInMonth = new Date(selectedY, selectedM, 0).getDate();
+      const isAllMonths = !month || month === 'all';
       const now = new Date();
-      const isCurrentMonth = now.getFullYear() === selectedY && (now.getMonth() + 1) === selectedM;
-      const maxDay = isCurrentMonth ? now.getDate() : totalDaysInMonth;
+      const currentYearNum = now.getFullYear();
+      const currentMonthNum = now.getMonth() + 1;
+
+      let targetMonths = [];
+      if (isAllMonths) {
+        if (selectedY > currentYearNum) {
+          targetMonths = [];
+        } else if (selectedY === currentYearNum) {
+          // Current year: from current month down to January
+          for (let m = currentMonthNum; m >= 1; m--) {
+            targetMonths.push(m);
+          }
+        } else {
+          // Past year: from December down to January
+          for (let m = 12; m >= 1; m--) {
+            targetMonths.push(m);
+          }
+        }
+      } else {
+        targetMonths = [parseInt(month)];
+      }
 
       // 4. Generate daily records for each profile
       const resultRows = [];
 
-      for (let day = maxDay; day >= 1; day--) {
-        const dayStr = String(day).padStart(2, '0');
-        const monthStr = String(selectedM).padStart(2, '0');
-        const dateFormatted = `${dayStr}/${monthStr}/${selectedY}`;
-        const isoDateStr = `${selectedY}-${monthStr}-${dayStr}`;
+      for (const m of targetMonths) {
+        const totalDaysInMonth = new Date(selectedY, m, 0).getDate();
+        const isCurrentMonth = selectedY === currentYearNum && m === currentMonthNum;
+        const maxDay = isCurrentMonth ? now.getDate() : totalDaysInMonth;
 
-        const dateObj = new Date(selectedY, selectedM - 1, day);
-        const dayOfWeek = dateObj.getDay(); // 0 = Sun, 6 = Sat
-        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+        for (let day = maxDay; day >= 1; day--) {
+          const dayStr = String(day).padStart(2, '0');
+          const monthStr = String(m).padStart(2, '0');
+          const dateFormatted = `${dayStr}/${monthStr}/${selectedY}`;
+          const isoDateStr = `${selectedY}-${monthStr}-${dayStr}`;
 
-        for (const prof of targetProfiles) {
-          const empCreatedDate = getEmpCreatedDateStr(prof.created_at);
-          if (empCreatedDate && isoDateStr < empCreatedDate) {
-            continue; // Employee was not yet created/employed on this date
-          }
+          const dateObj = new Date(selectedY, m - 1, day);
+          const dayOfWeek = dateObj.getDay(); // 0 = Sun, 6 = Sat
+          const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
 
-          const key = `${prof.user_id}_${isoDateStr}`;
-          const att = attendanceMap.get(key);
-
-          // Resolve effective branch for THIS specific date
-          const branchInfo = getEffectiveBranch(prof.user_id, isoDateStr, prof.permanent_branch);
-
-          if (att && att.clock_in) {
-            // Use MYT-adjusted time for hour/minute check
-            const clockInMYT = new Date(new Date(att.clock_in).getTime() + MYT_OFFSET_MS);
-            const hours = clockInMYT.getUTCHours();
-            const mins = clockInMYT.getUTCMinutes();
-            const isLate = hours > 9 || (hours === 9 && mins > 0);
-            const status = isLate ? "Present (Late)" : "Present (On Time)";
-
-            let totalHrsText = "--";
-            if (att.clock_out) {
-              const diffMs = new Date(att.clock_out).getTime() - new Date(att.clock_in).getTime();
-              if (diffMs > 0) {
-                const h = Math.floor(diffMs / 3600000);
-                const m = Math.floor((diffMs % 3600000) / 60000);
-                totalHrsText = `${h}h ${m}m`;
-              }
-            } else {
-              totalHrsText = "5h 10m";
+          for (const prof of targetProfiles) {
+            const empCreatedDate = getEmpCreatedDateStr(prof.created_at);
+            if (empCreatedDate && isoDateStr < empCreatedDate) {
+              continue; // Employee was not yet created/employed on this date
             }
 
-            resultRows.push({
-              user_id: prof.user_id,
-              full_name: prof.full_name,
-              permanent_branch: branchInfo.permanent_branch,
-              temp_branch: branchInfo.temp_branch,
-              branch: branchInfo.branch,
-              date: dateFormatted,
-              iso_date: isoDateStr,
-              clock_in: att.clock_in,
-              clock_out: att.clock_out,
-              status: status,
-              total_hours: totalHrsText
-            });
-          } else {
-            const status = isWeekend ? "Weekend" : "Absent";
-            resultRows.push({
-              user_id: prof.user_id,
-              full_name: prof.full_name,
-              permanent_branch: branchInfo.permanent_branch,
-              temp_branch: branchInfo.temp_branch,
-              branch: branchInfo.branch,
-              date: dateFormatted,
-              iso_date: isoDateStr,
-              clock_in: null,
-              clock_out: null,
-              status: status,
-              total_hours: "--"
-            });
+            const key = `${prof.user_id}_${isoDateStr}`;
+            const att = attendanceMap.get(key);
+
+            // Resolve effective branch for THIS specific date
+            const branchInfo = getEffectiveBranch(prof.user_id, isoDateStr, prof.permanent_branch);
+
+            if (att && att.clock_in) {
+              // Use MYT-adjusted time for hour/minute check
+              const clockInMYT = new Date(new Date(att.clock_in).getTime() + MYT_OFFSET_MS);
+              const hours = clockInMYT.getUTCHours();
+              const mins = clockInMYT.getUTCMinutes();
+              const isLate = hours > 9 || (hours === 9 && mins > 0);
+              const status = isLate ? "Present (Late)" : "Present (On Time)";
+
+              let totalHrsText = "--";
+              if (att.clock_out) {
+                const diffMs = new Date(att.clock_out).getTime() - new Date(att.clock_in).getTime();
+                if (diffMs > 0) {
+                  const h = Math.floor(diffMs / 3600000);
+                  const m = Math.floor((diffMs % 3600000) / 60000);
+                  totalHrsText = `${h}h ${m}m`;
+                }
+              } else {
+                totalHrsText = "5h 10m";
+              }
+
+              resultRows.push({
+                user_id: prof.user_id,
+                full_name: prof.full_name,
+                permanent_branch: branchInfo.permanent_branch,
+                temp_branch: branchInfo.temp_branch,
+                branch: branchInfo.branch,
+                date: dateFormatted,
+                iso_date: isoDateStr,
+                clock_in: att.clock_in,
+                clock_out: att.clock_out,
+                status: status,
+                total_hours: totalHrsText
+              });
+            } else {
+              const status = isWeekend ? "Weekend" : "Absent";
+              resultRows.push({
+                user_id: prof.user_id,
+                full_name: prof.full_name,
+                permanent_branch: branchInfo.permanent_branch,
+                temp_branch: branchInfo.temp_branch,
+                branch: branchInfo.branch,
+                date: dateFormatted,
+                iso_date: isoDateStr,
+                clock_in: null,
+                clock_out: null,
+                status: status,
+                total_hours: "--"
+              });
+            }
           }
         }
       }
