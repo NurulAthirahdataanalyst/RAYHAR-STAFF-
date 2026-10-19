@@ -75,13 +75,29 @@ function formatNotificationDisplayDate(dateStr: string): string {
   return clean;
 }
 
-function getNotificationDialogLabel(notif: NotificationItem): string {
-  if (!notif) return "Notification";
-  const rawTitle = (notif.title || "")
-    .replace(/[\u{1F300}-\u{1F6FF}\u{1F900}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, "")
+function formatNotificationTitle(title: string): string {
+  if (!title) return "";
+  let cleaned = title
+    .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, "")
     .replace(/\*\*/g, "")
     .replace(/^🔔\s*/, "")
     .trim();
+
+  // If title is entirely in UPPERCASE, convert to Proper / Title Case
+  if (cleaned.length > 2 && cleaned === cleaned.toUpperCase() && /[A-Z]/.test(cleaned)) {
+    cleaned = cleaned
+      .toLowerCase()
+      .split(" ")
+      .map((w) => (w ? w.charAt(0).toUpperCase() + w.slice(1) : ""))
+      .join(" ");
+  }
+
+  return cleaned.trim();
+}
+
+function getNotificationDialogLabel(notif: NotificationItem): string {
+  if (!notif) return "Notification";
+  const rawTitle = formatNotificationTitle(notif.title || "");
   const type = (notif.type || "").toLowerCase();
   const lowerTitle = rawTitle.toLowerCase();
   const msg = (notif.message || "").replace(/\*\*/g, "").trim();
@@ -790,7 +806,7 @@ export default function Notifications() {
                 <div className="flex items-center justify-between gap-2 mb-1">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-sm font-bold text-slate-900 dark:text-white">
-                      {(notif.title || "").replace(/\*\*/g, "")}
+                      {formatNotificationTitle(notif.title)}
                     </span>
                     {!notif.is_read && (
                       <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-[#942392] text-white">

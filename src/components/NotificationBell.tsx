@@ -241,6 +241,26 @@ export default function NotificationBell() {
     }
   };
 
+  const formatNotificationTitle = (title: string) => {
+    if (!title) return "";
+    let cleaned = title
+      .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, "")
+      .replace(/\*\*/g, "")
+      .replace(/^🔔\s*/, "")
+      .trim();
+
+    // If title is entirely in UPPERCASE, convert to Proper / Title Case
+    if (cleaned.length > 2 && cleaned === cleaned.toUpperCase() && /[A-Z]/.test(cleaned)) {
+      cleaned = cleaned
+        .toLowerCase()
+        .split(" ")
+        .map((w) => (w ? w.charAt(0).toUpperCase() + w.slice(1) : ""))
+        .join(" ");
+    }
+
+    return cleaned.trim();
+  };
+
   return (
     <Popover
       open={isOpen}
@@ -372,7 +392,7 @@ export default function NotificationBell() {
                 <div className="flex-1 min-w-0 pr-6">
                   <div className="flex items-center gap-1.5 mb-0.5">
                     <p className="text-xs font-bold truncate text-slate-900 dark:text-white">
-                      {(notif.title || "").replace(/\*\*/g, "")}
+                      {formatNotificationTitle(notif.title || "")}
                     </p>
                     {!notif.is_read && (
                       <span className="w-1.5 h-1.5 rounded-full bg-[#942392] flex-shrink-0" />

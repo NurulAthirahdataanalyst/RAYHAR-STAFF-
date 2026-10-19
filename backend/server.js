@@ -10835,7 +10835,7 @@ app.post("/api/company-leaves", async (req, res) => {
 
         const bulkList = affectedRows.map(u => ({
           userId: u.user_id,
-          title: `🏢 Company Leave: ${formattedLeaveName}`,
+          title: `Company Leave: ${formattedLeaveName}`,
           message: `${leave_type || 'Company Leave'} on ${dateRange}. This is a ${is_paid ?? true ? 'paid' : 'unpaid'} company leave.`,
           type: 'announcement',
           relatedLeaveId: newLeaveId,
@@ -11220,7 +11220,7 @@ app.post('/api/outstation', async (req, res) => {
 
         await notificationService.createNotification({
           userId: emp.user_id,
-          title: '🔔UPCOMING OUTSTATION ASSIGNMENT',
+          title: 'Upcoming Outstation Assignment',
           message: outstationMsg,
           type: 'outstation',
           scope: 'personal',

@@ -8,6 +8,31 @@ function initNotificationService(pool) {
   pushService.initPushService(pool);
 }
 
+function sanitizeNotificationTitle(rawTitle) {
+  if (!rawTitle || typeof rawTitle !== 'string') return '';
+
+  // 1. Strip emojis and special symbols
+  let cleaned = rawTitle
+    .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '')
+    .replace(/\*\*/g, '')
+    .trim();
+
+  // 2. If title is entirely in UPPERCASE (e.g. UPCOMING OUTSTATION ASSIGNMENT)
+  // convert to Proper / Title Case (Upcoming Outstation Assignment)
+  if (cleaned.length > 2 && cleaned === cleaned.toUpperCase() && /[A-Z]/.test(cleaned)) {
+    cleaned = cleaned
+      .toLowerCase()
+      .split(' ')
+      .map(word => {
+        if (!word) return '';
+        return word.charAt(0).toUpperCase() + word.slice(1);
+      })
+      .join(' ');
+  }
+
+  return cleaned.trim();
+}
+
 /**
  * 1. createNotification
  * Inserts a single notification into notifications table and optionally sends email & push.
@@ -28,6 +53,9 @@ async function createNotification({
   if (!userId || !title || !message) {
     throw new Error('createNotification missing required fields: userId, title, message');
   }
+
+  // Clean title: remove emojis / bells and ensure Proper Case
+  title = sanitizeNotificationTitle(title);
 
   // If scope is explicitly provided, always respect it — do NOT override
   let finalScope = scope;
@@ -270,6 +298,12 @@ async function getNotifications(userId, { limit = 50, offset = 0, type = null, u
   params.push(limit, offset);
 
   const [rows] = await poolInstance.query(query, params);
+  if (Array.isArray(rows)) {
+    return rows.map(r => ({
+      ...r,
+      title: sanitizeNotificationTitle(r.title),
+    }));
+  }
   return rows || [];
 }
 
