@@ -897,12 +897,29 @@ input[type=range]::-moz-range-thumb {
   transform: scaleY(1);
 }
 
-/* Remove default browser focus outline ring from dialog modals */
+/* Remove default browser focus outline ring, borders, and rings from dialog modals */
 [role="dialog"],
 [role="dialog"]:focus,
 [role="dialog"]:focus-visible,
 div[role="dialog"],
 div[role="dialog"]:focus,
-div[role="dialog"]:focus-visible {
+div[role="dialog"]:focus-visible,
+[data-radix-portal] [role="dialog"],
+[data-radix-portal] [role="dialog"]:focus,
+[data-radix-portal] [role="dialog"]:focus-visible,
+[data-radix-portal] div[role="dialog"],
+[data-radix-portal] div[role="dialog"]:focus,
+[data-radix-portal] div[role="dialog"]:focus-visible {
   outline: none !important;
+  border: 0 !important;
+  border-width: 0 !important;
+  border-style: none !important;
+  border-color: transparent !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35) !important;
+  --tw-ring-offset-width: 0px !important;
+  --tw-ring-offset-color: transparent !important;
+  --tw-ring-width: 0px !important;
+  --tw-ring-color: transparent !important;
+  --tw-ring-shadow: 0 0 #0000 !important;
+  --tw-ring-offset-shadow: 0 0 #0000 !important;
 }

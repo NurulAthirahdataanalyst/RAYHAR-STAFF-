@@ -660,12 +660,12 @@ export function StaffProfileDialog({
     <>
       {/* Employee Details Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-6xl w-full overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] max-h-[90vh] p-0 gap-0 bg-slate-50 dark:bg-slate-900 print:hidden">
-          <DialogHeader className="p-4 pb-3 border-b bg-[#942392] sticky top-0 z-10 shadow-sm text-white">
+        <DialogContent className="max-w-6xl w-full overflow-hidden border-0 border-none shadow-2xl rounded-2xl p-0 gap-0 bg-slate-50 dark:bg-slate-900 print:hidden flex flex-col max-h-[90vh]">
+          <DialogHeader className="p-4 pb-3 bg-[#942392] shrink-0 z-10 shadow-sm text-white border-none">
             <DialogTitle className="text-xl font-black tracking-tight text-white uppercase">Staff Profile & Analytics {selectedEmployee ? `- ${selectedEmployee.name} (${selectedEmployee.branch})` : ""}</DialogTitle>
           </DialogHeader>
           
-          <div className="p-4">
+          <div className="p-4 overflow-y-auto flex-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             {selectedEmployee ? (
               <Tabs defaultValue="basic" className="w-full">
                 <TabsList className="mb-4 flex w-fit mx-auto flex-wrap h-auto gap-1 bg-slate-100 dark:bg-slate-900 p-2 rounded-xl shadow-inner border border-slate-200 dark:border-slate-800">
@@ -1501,9 +1501,9 @@ export function StaffProfileDialog({
       </Dialog>
       {/* LEAVE FORMS DIALOG */}
       <Dialog open={!!viewLeaveStatus} onOpenChange={(open) => !open && setViewLeaveStatus(null)}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-          <div className="print:hidden">
-            <DialogHeader className="bg-[#942392] p-6 -mx-6 -mt-6 mb-4 rounded-t-lg border-b border-[#942392]/20">
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden p-0 border-0 border-none shadow-2xl rounded-2xl flex flex-col">
+          <div className="print:hidden flex flex-col flex-1 overflow-hidden">
+            <DialogHeader className="bg-[#942392] p-6 text-white shrink-0 border-none">
               <DialogTitle className="flex items-center gap-2 text-white">
                 <FileText className="h-5 w-5 text-white/90" />
                 {viewLeaveStatus} Leaves - {selectedEmployee?.name}
@@ -1512,6 +1512,8 @@ export function StaffProfileDialog({
                 Review the submitted leave forms with this status.
               </DialogDescription>
             </DialogHeader>
+
+            <div className="p-6 overflow-y-auto flex-1">
 
           {loadingLeaves ? (
             <div className="flex justify-center p-8">
@@ -1577,6 +1579,7 @@ export function StaffProfileDialog({
               )}
             </div>
           )}
+            </div>
           </div>
         </DialogContent>
       </Dialog>
@@ -1918,7 +1921,7 @@ export function StaffProfileDialog({
 
       {/* Add User Modal */}
       <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[425px] border-0 border-none shadow-2xl rounded-2xl overflow-hidden">
           <DialogHeader>
             <DialogTitle>Add New Staff</DialogTitle>
             <DialogDescription>

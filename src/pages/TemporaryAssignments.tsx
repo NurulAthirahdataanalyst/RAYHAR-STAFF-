@@ -771,7 +771,7 @@ const TemporaryAssignments = () => {
 
       {/* Delete Confirmation Modal */}
       <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
-        <DialogContent className="max-w-md border-0 shadow-2xl rounded-2xl">
+        <DialogContent className="max-w-md border-0 border-none shadow-2xl rounded-2xl overflow-hidden">
           <DialogHeader>
             <DialogTitle>Delete Temporary Assignment</DialogTitle>
             <DialogDescription>

@@ -1318,9 +1318,9 @@ export default function Employees() {
 
       {/* LEAVE FORMS DIALOG */}
       <Dialog open={!!viewLeaveStatus} onOpenChange={(open) => !open && setViewLeaveStatus(null)}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-          <div className="print:hidden">
-            <DialogHeader className="bg-[#942392] p-6 -mx-6 -mt-6 mb-4 rounded-t-lg border-b border-[#942392]/20">
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden p-0 border-0 border-none shadow-2xl rounded-2xl flex flex-col">
+          <div className="print:hidden flex flex-col flex-1 overflow-hidden">
+            <DialogHeader className="bg-[#942392] p-6 text-white shrink-0 border-none">
               <DialogTitle className="flex items-center gap-2 text-white">
                 <FileText className="h-5 w-5 text-white/90" />
                 {viewLeaveStatus} Leaves - {selectedEmployee?.name}
@@ -1329,6 +1329,8 @@ export default function Employees() {
                 Review the submitted leave forms with this status.
               </DialogDescription>
             </DialogHeader>
+
+            <div className="p-6 overflow-y-auto flex-1">
 
           {loadingLeaves ? (
             <div className="flex justify-center p-8">
@@ -1394,6 +1396,7 @@ export default function Employees() {
               )}
             </div>
           )}
+            </div>
           </div>
         </DialogContent>
       </Dialog>
@@ -1764,14 +1767,14 @@ export default function Employees() {
       
             {/* Status Confirmation Modal */}
       <Dialog open={!!statusConfirmEmp} onOpenChange={(open) => !open && setStatusConfirmEmp(null)}>
-        <DialogContent className={`sm:max-w-[425px] overflow-hidden p-0 ${
+        <DialogContent className={`sm:max-w-[425px] overflow-hidden p-0 border-0 border-none shadow-2xl rounded-2xl ${
           statusConfirmEmp?.status === "Active"
             ? "bg-[#faf5fc] dark:bg-slate-900 [&>button]:text-yellow-400 [&>button]:hover:text-yellow-300 [&>button]:top-4 [&>button]:right-4"
             : "[&>button]:text-emerald-600 [&>button]:hover:text-emerald-700"
         }`}>
           <DialogHeader className={`p-5 ${
             statusConfirmEmp?.status === "Active"
-              ? "bg-[#942392] border-b-2 border-yellow-400"
+              ? "bg-[#942392] border-none"
               : "bg-emerald-50 dark:bg-emerald-950/40 border-b border-emerald-100 dark:border-emerald-900/30"
           }`}>
             <DialogTitle className={`text-xl font-black ${
@@ -1823,7 +1826,7 @@ export default function Employees() {
 
       {/* Delete Confirmation Modal */}
       <Dialog open={!!deleteConfirmEmp} onOpenChange={(open) => !open && setDeleteConfirmEmp(null)}>
-        <DialogContent className="sm:max-w-[425px] overflow-hidden p-0 [&>button]:text-rose-600 [&>button]:hover:text-rose-700">
+        <DialogContent className="sm:max-w-[425px] overflow-hidden p-0 border-0 border-none shadow-2xl rounded-2xl [&>button]:text-rose-600 [&>button]:hover:text-rose-700">
           <DialogHeader className="bg-rose-50 dark:bg-rose-950/40 p-5 border-b border-rose-100 dark:border-rose-900/30">
             <DialogTitle className="text-xl font-black text-rose-600 dark:text-rose-400">Delete Employee?</DialogTitle>
           </DialogHeader>
@@ -1850,14 +1853,14 @@ export default function Employees() {
 
       {/* Add User Modal */}
       <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
-        <DialogContent className="sm:max-w-[425px] overflow-hidden [&>button]:text-white [&>button]:hover:text-white/80">
-          <DialogHeader className="bg-[#942392] p-6 -mx-6 -mt-6 sm:rounded-t-lg">
+        <DialogContent className="sm:max-w-[425px] overflow-hidden p-0 border-0 border-none shadow-2xl rounded-2xl [&>button]:text-white [&>button]:hover:text-white/80">
+          <DialogHeader className="bg-[#942392] p-6 text-white border-none shrink-0">
             <DialogTitle className="text-white">Add New Staff</DialogTitle>
             <DialogDescription className="text-white/80">
               Create a new user account for an employee. They will be assigned to the selected branch.
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleSignup} className="space-y-4 pt-4">
+          <form onSubmit={handleSignup} className="space-y-4 p-6">
             <div className="space-y-2">
               <Label htmlFor="signup-name">Full Name</Label>
               <Input id="signup-name" type="text" className="bg-slate-100 dark:bg-slate-800/50 border-transparent focus:bg-white dark:focus:bg-slate-800" placeholder="e.g. AHMAD ALBAB" value={signupName} onChange={(e) => setSignupName(e.target.value.toUpperCase())} required />
