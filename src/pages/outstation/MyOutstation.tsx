@@ -357,11 +357,11 @@ export default function MyOutstation() {
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="font-black text-foreground dark:text-gray-100 text-[13px] uppercase">
-                          &#9992;&#65039; {a.project || a.purpose || a.meeting_title ? `${a.project || a.purpose || a.meeting_title} - ` : ""}{a.destination}
+                          {a.project || a.purpose || a.meeting_title ? `${a.project || a.purpose || a.meeting_title} - ` : ""}{a.destination}
                         </span>
                         {a.client_company && <span className="text-[10px] font-bold text-foreground">&bull; {a.client_company}</span>}
                       </div>
-                      <div className="flex flex-wrap gap-3 sm:ml-5 items-center">
+                      <div className="flex flex-wrap gap-3 items-center">
                         <span className="text-[11px] text-foreground dark:text-foreground font-bold">{fmtDate(a.start_date)} &mdash; {fmtDate(a.end_date)}</span>
                         <span className="text-[11px] font-black text-pink-600 sm:ml-2">{diffDays(a.start_date, a.end_date)} day(s)</span>
                       </div>
