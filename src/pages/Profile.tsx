@@ -64,16 +64,22 @@ const Profile = () => {
 
   useEffect(() => {
     const handleAvatarUpdate = (e: any) => {
-      const { avatarId: newAvatarId, userId: eventUserId } = e?.detail || {};
-      const currentUserId = userId || user?.id;
-      if (newAvatarId && (!eventUserId || eventUserId === currentUserId)) {
+      const newAvatarId = e?.detail?.avatarId;
+      if (newAvatarId) {
         setAvatarId(newAvatarId);
       } else {
-        setAvatarId(getSavedAvatar(currentUserId));
+        setAvatarId(getSavedAvatar(userId || user?.id));
       }
     };
     window.addEventListener("avatarChanged", handleAvatarUpdate);
     return () => window.removeEventListener("avatarChanged", handleAvatarUpdate);
+  }, [userId, user?.id]);
+
+  useEffect(() => {
+    const current = getSavedAvatar(userId || user?.id);
+    if (current && current !== "initials") {
+      setAvatarId(current);
+    }
   }, [userId, user?.id]);
 
   const handlePasswordReset = async (e?: React.FormEvent) => {

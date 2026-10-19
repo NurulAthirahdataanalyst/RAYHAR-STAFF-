@@ -50,7 +50,7 @@ export const AvatarPickerModal: React.FC<AvatarPickerModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl bg-card border border-border/60 shadow-2xl rounded-[28px] p-5 sm:p-7 overflow-hidden">
+      <DialogContent className="max-w-lg sm:max-w-xl bg-card border border-border/60 shadow-2xl rounded-[28px] p-5 sm:p-6 overflow-hidden">
         <DialogHeader className="space-y-1.5 pb-3 border-b border-border/40">
           <div className="flex items-center gap-2 text-[#942392] font-black text-xs uppercase tracking-widest">
             <Sparkles className="w-4 h-4 text-[#942392] animate-pulse" />
@@ -65,7 +65,7 @@ export const AvatarPickerModal: React.FC<AvatarPickerModalProps> = ({
         </DialogHeader>
 
         {/* Live Preview Area */}
-        <div className="p-4 rounded-2xl bg-gradient-to-r from-purple-500/10 via-pink-500/10 to-blue-500/10 border border-purple-500/20 flex flex-col sm:flex-row items-center gap-4">
+        <div className="p-3.5 rounded-2xl bg-gradient-to-r from-purple-500/10 via-pink-500/10 to-blue-500/10 border border-purple-500/20 flex flex-col sm:flex-row items-center gap-4">
           {/* Circular avatar with rainbow gradient ring */}
           <div className="relative group shrink-0">
             <div className="p-[3px] rounded-full bg-gradient-to-tr from-pink-500 via-purple-500 via-blue-500 via-emerald-400 to-amber-400 shadow-lg">
@@ -87,7 +87,7 @@ export const AvatarPickerModal: React.FC<AvatarPickerModalProps> = ({
             <button
               key={filterKey}
               onClick={() => setActiveFilter(filterKey)}
-              className={`px-3 py-1 rounded-full text-xs font-bold capitalize transition-all cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-full text-xs font-bold capitalize transition-all cursor-pointer ${
                 activeFilter === filterKey
                   ? "bg-[#942392] text-white shadow-md shadow-[#942392]/30"
                   : "bg-muted/50 text-muted-foreground hover:bg-muted"
@@ -98,8 +98,8 @@ export const AvatarPickerModal: React.FC<AvatarPickerModalProps> = ({
           ))}
         </div>
 
-        {/* Avatars Grid - Clean icons without names */}
-        <div className="max-h-[320px] overflow-y-auto pr-1 py-1 grid grid-cols-4 sm:grid-cols-5 gap-3">
+        {/* Avatars Grid - Clean circular avatars with no cutoff square boxes */}
+        <div className="max-h-[360px] overflow-y-auto px-1.5 py-2 grid grid-cols-4 sm:grid-cols-5 gap-3.5 justify-items-center">
           {filteredAvatars.map((opt) => {
             const isSelected = selectedId === opt.id;
             return (
@@ -107,19 +107,17 @@ export const AvatarPickerModal: React.FC<AvatarPickerModalProps> = ({
                 key={opt.id}
                 type="button"
                 onClick={() => setSelectedId(opt.id)}
-                className={`relative group p-2 rounded-2xl flex items-center justify-center transition-all cursor-pointer outline-none border ${
+                className={`relative group p-1 rounded-full flex items-center justify-center transition-all cursor-pointer outline-none ${
                   isSelected
-                    ? "bg-[#942392]/10 border-[#942392] ring-2 ring-[#942392]/50 shadow-md scale-105"
-                    : "bg-card hover:bg-muted/50 border-border/40 hover:border-border hover:scale-105"
+                    ? "ring-4 ring-[#942392] ring-offset-2 ring-offset-background scale-105 shadow-lg"
+                    : "hover:scale-105 hover:ring-2 hover:ring-[#942392]/50"
                 }`}
                 title={opt.name}
               >
                 {/* Avatar circle */}
-                <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden p-0.5 relative transition-transform ${
-                  isSelected ? "ring-2 ring-[#942392]" : "group-hover:ring-2 group-hover:ring-[#942392]/40"
-                }`}>
+                <div className="w-16 h-16 sm:w-[72px] sm:h-[72px] rounded-full overflow-hidden relative shadow-sm border border-border/40 bg-card">
                   {opt.id === "initials" ? (
-                    <UserAvatar avatarId="initials" name={userName} className="w-full h-full" />
+                    <UserAvatar avatarId="initials" name={userName} className="w-full h-full text-xl" />
                   ) : (
                     opt.render("100%")
                   )}
@@ -127,8 +125,8 @@ export const AvatarPickerModal: React.FC<AvatarPickerModalProps> = ({
 
                 {/* Selected Checkmark Badge */}
                 {isSelected && (
-                  <span className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-[#942392] text-white flex items-center justify-center shadow-md">
-                    <Check className="w-3 h-3 stroke-[3]" />
+                  <span className="absolute top-0 right-0 w-6 h-6 rounded-full bg-[#942392] text-white flex items-center justify-center shadow-md ring-2 ring-background">
+                    <Check className="w-3.5 h-3.5 stroke-[3]" />
                   </span>
                 )}
               </button>

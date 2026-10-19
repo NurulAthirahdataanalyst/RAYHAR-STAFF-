@@ -42,16 +42,22 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const handleAvatarUpdate = (e: any) => {
-      const { avatarId: newAvatarId, userId: eventUserId } = e?.detail || {};
-      const currentUserId = user?.id || user?.user_id;
-      if (newAvatarId && (!eventUserId || eventUserId === currentUserId)) {
+      const newAvatarId = e?.detail?.avatarId;
+      if (newAvatarId) {
         setAvatarId(newAvatarId);
       } else {
-        setAvatarId(getSavedAvatar(currentUserId));
+        setAvatarId(getSavedAvatar(user?.id || user?.user_id));
       }
     };
     window.addEventListener("avatarChanged", handleAvatarUpdate);
     return () => window.removeEventListener("avatarChanged", handleAvatarUpdate);
+  }, [user?.id, user?.user_id]);
+
+  useEffect(() => {
+    const current = getSavedAvatar(user?.id || user?.user_id);
+    if (current && current !== "initials") {
+      setAvatarId(current);
+    }
   }, [user?.id, user?.user_id]);
 
   const [pendingApprovals, setPendingApprovals] = useState(0);
