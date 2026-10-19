@@ -110,10 +110,10 @@ export function YearPopover({
                       : isSelected
                       ? "bg-[#942392] text-white shadow-sm"
                       : isCurrent
-                      ? "bg-[#FFB800]/20 text-[#942392] font-black border border-[#FFB800]"
+                      ? "bg-[#FFB800]/20 text-[#942392] dark:text-amber-300 font-black border border-[#FFB800]"
                       : isOutsideDecade
                       ? "text-slate-300 dark:text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800/50"
-                      : "hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
+                      : "hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200"
                   }`}
                 >
                   {y}
@@ -132,7 +132,7 @@ export function YearPopover({
                 setBaseDecade(Math.floor(parseInt(cy) / 10) * 10);
                 setOpen(false);
               }}
-              className="text-[#942392] hover:underline text-[11px] font-bold"
+              className="text-[#942392] dark:text-fuchsia-400 hover:underline text-[11px] font-bold"
             >
               This Year
             </button>

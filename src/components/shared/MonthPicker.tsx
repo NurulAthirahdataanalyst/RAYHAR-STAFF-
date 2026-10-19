@@ -121,7 +121,7 @@ export function MonthPicker({ monthYear, onSelectMonthYear, className, hideAllYe
                 setViewYear(currentYearNum);
                 // setOpen(false);
               }}
-              className="text-[#942392] hover:underline text-[11px] font-bold"
+              className="text-[#942392] dark:text-fuchsia-400 hover:underline text-[11px] font-bold"
             >
               This month
             </button>
@@ -132,7 +132,7 @@ export function MonthPicker({ monthYear, onSelectMonthYear, className, hideAllYe
                   onSelectMonthYear(`${viewYear}-all`); // clear
                   // setOpen(false);
                 }}
-                className="text-[#942392] hover:underline text-[11px] font-bold"
+                className="text-[#942392] dark:text-fuchsia-400 hover:underline text-[11px] font-bold"
               >
                 This Year
               </button>

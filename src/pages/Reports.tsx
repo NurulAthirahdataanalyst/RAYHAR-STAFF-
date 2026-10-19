@@ -756,19 +756,19 @@ export default function Reports() {
                         onClick={() => setGeneratorType("trends")}
                         className={`p-4 rounded-xl border-2 text-left flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${
                           generatorType === "trends"
-                            ? "border-[#942392] bg-[#942392]/5 text-foreground"
-                            : "border-border/40 bg-white/40 dark:bg-card/20 text-foreground hover:bg-muted/40 hover:text-foreground"
+                            ? "border-[#942392] dark:border-fuchsia-500 bg-[#942392]/5 dark:bg-[#942392]/20 text-foreground"
+                            : "border-border/40 dark:border-slate-800 bg-white/40 dark:bg-card/20 text-foreground hover:bg-muted/40 hover:text-foreground"
                         }`}
                       >
                         <div className="flex items-center gap-3">
                           <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                            generatorType === "trends" ? "bg-[#942392]/15 text-[#942392]" : "bg-muted dark:bg-slate-800 text-foreground"
+                            generatorType === "trends" ? "bg-[#942392]/15 dark:bg-[#942392]/30 text-[#942392] dark:text-fuchsia-300" : "bg-muted dark:bg-slate-800 text-foreground"
                           }`}>
                             <Clock className="w-5 h-5" />
                           </div>
                           <span className="text-sm font-black uppercase tracking-wider text-slate-800 dark:text-slate-100">Attendance Trends</span>
                         </div>
-                        <hr className="border-border/50 my-2.5 w-full" />
+                        <hr className="border-border/50 dark:border-slate-800 my-2.5 w-full" />
                         <span className="text-[10px] font-medium leading-normal text-foreground dark:text-slate-300">Clock-in, late check audits, and raw timelines</span>
                       </button>
 
@@ -776,19 +776,19 @@ export default function Reports() {
                         onClick={() => setGeneratorType("leave")}
                         className={`p-4 rounded-xl border-2 text-left flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${
                           generatorType === "leave"
-                            ? "border-[#942392] bg-[#942392]/5 text-foreground"
-                            : "border-border/40 bg-white/40 dark:bg-card/20 text-foreground hover:bg-muted/40 hover:text-foreground"
+                            ? "border-[#942392] dark:border-fuchsia-500 bg-[#942392]/5 dark:bg-[#942392]/20 text-foreground"
+                            : "border-border/40 dark:border-slate-800 bg-white/40 dark:bg-card/20 text-foreground hover:bg-muted/40 hover:text-foreground"
                         }`}
                       >
                         <div className="flex items-center gap-3">
                           <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                            generatorType === "leave" ? "bg-[#942392]/15 text-[#942392]" : "bg-muted dark:bg-slate-800 text-foreground"
+                            generatorType === "leave" ? "bg-[#942392]/15 dark:bg-[#942392]/30 text-[#942392] dark:text-fuchsia-300" : "bg-muted dark:bg-slate-800 text-foreground"
                           }`}>
                             <PieChart className="w-5 h-5" />
                           </div>
                           <span className="text-sm font-black uppercase tracking-wider text-slate-800 dark:text-slate-100">Leave Utilization</span>
                         </div>
-                        <hr className="border-border/50 my-2.5 w-full" />
+                        <hr className="border-border/50 dark:border-slate-800 my-2.5 w-full" />
                         <span className="text-[10px] font-medium leading-normal text-foreground dark:text-slate-300">Department utilization rates and absence charts</span>
                       </button>
 
@@ -796,19 +796,19 @@ export default function Reports() {
                         onClick={() => setGeneratorType("outstation")}
                         className={`p-4 rounded-xl border-2 text-left flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${
                           generatorType === "outstation"
-                            ? "border-[#942392] bg-[#942392]/5 text-foreground"
-                            : "border-border/40 bg-white/40 dark:bg-card/20 text-foreground hover:bg-muted/40 hover:text-foreground"
+                            ? "border-[#942392] dark:border-fuchsia-500 bg-[#942392]/5 dark:bg-[#942392]/20 text-foreground"
+                            : "border-border/40 dark:border-slate-800 bg-white/40 dark:bg-card/20 text-foreground hover:bg-muted/40 hover:text-foreground"
                         }`}
                       >
                         <div className="flex items-center gap-3">
                           <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                            generatorType === "outstation" ? "bg-[#942392]/15 text-[#942392]" : "bg-muted dark:bg-slate-800 text-foreground"
+                            generatorType === "outstation" ? "bg-[#942392]/15 dark:bg-[#942392]/30 text-[#942392] dark:text-fuchsia-300" : "bg-muted dark:bg-slate-800 text-foreground"
                           }`}>
                             <Briefcase className="w-5 h-5" />
                           </div>
                           <span className="text-sm font-black uppercase tracking-wider text-slate-800 dark:text-slate-100">Outstation Assignment</span>
                         </div>
-                        <hr className="border-border/50 my-2.5 w-full" />
+                        <hr className="border-border/50 dark:border-slate-800 my-2.5 w-full" />
                         <span className="text-[10px] font-medium leading-normal text-foreground dark:text-slate-300">Official business travel and assignment activities</span>
                       </button>
 
@@ -816,19 +816,19 @@ export default function Reports() {
                         onClick={() => setGeneratorType("company_leave")}
                         className={`p-4 rounded-xl border-2 text-left flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${
                           generatorType === "company_leave"
-                            ? "border-[#942392] bg-[#942392]/5 text-foreground"
-                            : "border-border/40 bg-white/40 dark:bg-card/20 text-foreground hover:bg-muted/40 hover:text-foreground"
+                            ? "border-[#942392] dark:border-fuchsia-500 bg-[#942392]/5 dark:bg-[#942392]/20 text-foreground"
+                            : "border-border/40 dark:border-slate-800 bg-white/40 dark:bg-card/20 text-foreground hover:bg-muted/40 hover:text-foreground"
                         }`}
                       >
                         <div className="flex items-center gap-3">
                           <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                            generatorType === "company_leave" ? "bg-[#942392]/15 text-[#942392]" : "bg-muted dark:bg-slate-800 text-foreground"
+                            generatorType === "company_leave" ? "bg-[#942392]/15 dark:bg-[#942392]/30 text-[#942392] dark:text-fuchsia-300" : "bg-muted dark:bg-slate-800 text-foreground"
                           }`}>
                             <Building2 className="w-5 h-5" />
                           </div>
                           <span className="text-sm font-black uppercase tracking-wider text-slate-800 dark:text-slate-100">Company Leave Calendar</span>
                         </div>
-                        <hr className="border-border/50 my-2.5 w-full" />
+                        <hr className="border-border/50 dark:border-slate-800 my-2.5 w-full" />
                         <span className="text-[10px] font-medium leading-normal text-foreground dark:text-slate-300">Corporate holidays and organization-wide leave schedule</span>
                       </button>
                     </div>
@@ -886,16 +886,28 @@ export default function Reports() {
                           <div className="space-y-1.5 col-span-2 sm:col-span-1 min-w-0">
                             <div className="flex items-center justify-between">
                               <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Period</label>
-                              <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-900 rounded-lg p-0.5">
-                                <button onClick={() => { setPeriodMode("year"); setSelectedMonth("all"); }} className={`px-2 py-1 rounded-md text-[9px] font-black tracking-widest uppercase transition-colors ${periodMode === 'year' ? 'bg-white dark:bg-slate-800 text-[#942392] shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>Year</button>
-                                <button onClick={() => { setPeriodMode("month"); setSelectedMonth((new Date().getMonth() + 1).toString()); }} className={`px-2 py-1 rounded-md text-[9px] font-black tracking-widest uppercase transition-colors ${periodMode === 'month' ? 'bg-white dark:bg-slate-800 text-[#942392] shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>Month</button>
+                              <div className="flex items-center bg-white dark:bg-slate-900 rounded-full p-1 border border-slate-200 dark:border-slate-800 shadow-sm gap-0.5">
+                                <button 
+                                  type="button"
+                                  onClick={() => { setPeriodMode("year"); setSelectedMonth("all"); }} 
+                                  className={`px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase transition-all ${periodMode === 'year' ? 'bg-[#ffff00] text-[#942392] shadow-sm' : 'text-slate-600 dark:text-white hover:text-[#942392] dark:hover:text-[#ffff00]'}`}
+                                >
+                                  Year
+                                </button>
+                                <button 
+                                  type="button"
+                                  onClick={() => { setPeriodMode("month"); setSelectedMonth((new Date().getMonth() + 1).toString()); }} 
+                                  className={`px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase transition-all ${periodMode === 'month' ? 'bg-[#ffff00] text-[#942392] shadow-sm' : 'text-slate-600 dark:text-white hover:text-[#942392] dark:hover:text-[#ffff00]'}`}
+                                >
+                                  Month
+                                </button>
                               </div>
                             </div>
                             {periodMode === 'year' ? (
                               <YearPopover
                                 year={selectedYear}
                                 onSelectYear={(y) => { setSelectedYear(y); setSelectedMonth("all"); }}
-                                className="w-full h-11 px-3 flex items-center justify-between text-xs font-black uppercase tracking-widest rounded-xl border border-border bg-background/30 text-foreground outline-none cursor-pointer hover:border-[#942392]/40 focus:ring-1 focus:ring-[#942392]"
+                                className="w-full h-11 px-3.5 flex items-center justify-between text-xs font-black uppercase tracking-widest rounded-xl border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-900/80 text-foreground dark:text-white outline-none cursor-pointer hover:border-[#942392] dark:hover:border-[#942392] transition-colors focus:ring-1 focus:ring-[#942392]"
                               />
                             ) : (
                               <MonthPicker
@@ -906,7 +918,7 @@ export default function Reports() {
                                   setSelectedYear(y);
                                   setSelectedMonth(m);
                                 }}
-                                className="w-full h-11 px-3 flex items-center justify-between text-xs font-black uppercase tracking-widest rounded-xl border border-border bg-background/30 text-foreground outline-none cursor-pointer hover:border-[#942392]/40 focus:ring-1 focus:ring-[#942392]"
+                                className="w-full h-11 px-3.5 flex items-center justify-between text-xs font-black uppercase tracking-widest rounded-xl border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-900/80 text-foreground dark:text-white outline-none cursor-pointer hover:border-[#942392] dark:hover:border-[#942392] transition-colors focus:ring-1 focus:ring-[#942392]"
                               />
                             )}
                           </div>
@@ -923,8 +935,8 @@ export default function Reports() {
                     onClick={() => setGeneratorFormat("csv")}
                     className={`py-3 px-4 rounded-xl border flex flex-col items-center justify-center gap-1.5 transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${
                       generatorFormat === "csv"
-                        ? "border-[#942392] bg-[#942392]/5 text-[#942392] font-black"
-                        : "border-border/50 bg-background/20 text-foreground font-semibold hover:bg-muted/40 hover:text-foreground"
+                        ? "border-[#942392] dark:border-fuchsia-500/50 bg-[#942392]/5 dark:bg-[#942392]/20 text-[#942392] dark:text-fuchsia-300 font-black"
+                        : "border-border/50 dark:border-slate-800 bg-background/20 dark:bg-slate-900/40 text-foreground dark:text-slate-300 font-semibold hover:bg-muted/40 hover:text-foreground"
                     }`}
                   >
                     <Download className="w-4 h-4" />
@@ -934,8 +946,8 @@ export default function Reports() {
                     onClick={() => setGeneratorFormat("excel")}
                     className={`py-3 px-4 rounded-xl border flex flex-col items-center justify-center gap-1.5 transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${
                       generatorFormat === "excel"
-                        ? "border-[#942392] bg-[#942392]/5 text-[#942392] font-black"
-                        : "border-border/50 bg-background/20 text-foreground font-semibold hover:bg-muted/40 hover:text-foreground"
+                        ? "border-[#942392] dark:border-fuchsia-500/50 bg-[#942392]/5 dark:bg-[#942392]/20 text-[#942392] dark:text-fuchsia-300 font-black"
+                        : "border-border/50 dark:border-slate-800 bg-background/20 dark:bg-slate-900/40 text-foreground dark:text-slate-300 font-semibold hover:bg-muted/40 hover:text-foreground"
                     }`}
                   >
                     <FileBarChart className="w-4 h-4" />
@@ -945,8 +957,8 @@ export default function Reports() {
                     onClick={() => setGeneratorFormat("pdf")}
                     className={`py-3 px-4 rounded-xl border flex flex-col items-center justify-center gap-1.5 transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${
                       generatorFormat === "pdf"
-                        ? "border-[#942392] bg-[#942392]/5 text-[#942392] font-black"
-                        : "border-border/50 bg-background/20 text-foreground font-semibold hover:bg-muted/40 hover:text-foreground"
+                        ? "border-[#942392] dark:border-fuchsia-500/50 bg-[#942392]/5 dark:bg-[#942392]/20 text-[#942392] dark:text-fuchsia-300 font-black"
+                        : "border-border/50 dark:border-slate-800 bg-background/20 dark:bg-slate-900/40 text-foreground dark:text-slate-300 font-semibold hover:bg-muted/40 hover:text-foreground"
                     }`}
                   >
                     <FileBarChart className="w-4 h-4" />
@@ -964,9 +976,9 @@ export default function Reports() {
               </div>
 
               {/* Counter Display */}
-              <div className="bg-muted/30 border border-border/30 rounded-2xl p-5 text-center flex flex-col gap-1 items-center justify-center select-none shadow-inner">
-                <span className="text-[9px] font-black text-foreground uppercase tracking-widest">Live Compiled Dataset</span>
-                <span className="text-3xl font-black text-[#942392] font-mono mt-1">
+              <div className="bg-muted/30 dark:bg-slate-900/60 border border-border/40 dark:border-slate-800 rounded-2xl p-5 text-center flex flex-col gap-1 items-center justify-center select-none shadow-inner">
+                <span className="text-[9px] font-black text-foreground dark:text-slate-300 uppercase tracking-widest">Live Compiled Dataset</span>
+                <span className="text-3xl font-black text-[#942392] dark:text-fuchsia-300 font-mono mt-1 drop-shadow-sm">
                   {previewCount.toLocaleString()} Records
                 </span>
                 <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest mt-1 flex items-center gap-1.5 animate-pulse">

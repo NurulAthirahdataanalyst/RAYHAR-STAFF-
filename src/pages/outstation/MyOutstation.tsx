@@ -38,11 +38,11 @@ function daysRemaining(end: string) {
 
 function statusBadge(status: string) {
   switch (status) {
-    case "Active":    return <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap bg-[#fdf4ff] text-[#942392] border-[#942392]/20 dark:bg-[#942392]/10">Active</span>;
-    case "Upcoming":  return <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap bg-yellow-50 text-yellow-600 border-yellow-200 dark:bg-yellow-500/10 dark:border-yellow-500/20">Upcoming</span>;
-    case "Completed": return <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/10 dark:border-blue-500/20">Completed</span>;
-    case "Cancelled": return <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-500/10 dark:border-slate-500/20">Cancelled</span>;
-    default:          return <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap bg-slate-50 text-slate-400 border-slate-200 dark:bg-slate-500/10 dark:border-slate-500/20">{status}</span>;
+    case "Active":    return <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap bg-[#fdf4ff] text-[#942392] border-[#942392]/20 dark:bg-[#942392]/20 dark:text-purple-300 dark:border-[#942392]/40">Active</span>;
+    case "Upcoming":  return <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-500/40">Upcoming</span>;
+    case "Completed": return <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/20 dark:text-blue-300 dark:border-blue-500/40">Completed</span>;
+    case "Cancelled": return <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700">Cancelled</span>;
+    default:          return <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap bg-slate-50 text-slate-500 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700">{status}</span>;
   }
 }
 
@@ -161,7 +161,7 @@ export default function MyOutstation() {
 
       {/* Current / Active Trip Banner */}
       {active && (
-        <Card className="border-2 border-pink-200 dark:border-pink-500/30 bg-gradient-to-r from-pink-50 to-white shadow-sm overflow-hidden">
+        <Card className="border-2 border-pink-200 dark:border-pink-500/30 bg-gradient-to-r from-pink-50 to-white dark:from-pink-950/40 dark:to-slate-900 shadow-sm overflow-hidden rounded-2xl">
           <CardContent className="p-5">
             <div className="flex items-start justify-between gap-4">
               <div className="flex items-center gap-4">
@@ -186,7 +186,7 @@ export default function MyOutstation() {
                 </p>
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-3 mt-4 pt-4 border-t border-pink-100">
+            <div className="grid grid-cols-3 gap-3 mt-4 pt-4 border-t border-pink-100 dark:border-pink-900/30">
               <div>
                 <p className="text-[9px] font-black uppercase tracking-widest text-foreground">Start</p>
                 <p className="text-[11px] font-bold text-foreground dark:text-gray-200 mt-0.5">{fmtDate(active.start_date)}</p>
@@ -206,17 +206,17 @@ export default function MyOutstation() {
 
       {/* Next Upcoming */}
       {!active && nextUpcoming && (
-        <Card className="border border-amber-200 dark:border-amber-500/30 bg-amber-50/50 shadow-sm">
+        <Card className="border border-amber-300 dark:border-amber-500/40 bg-amber-50/80 dark:bg-amber-950/30 shadow-sm rounded-2xl overflow-hidden">
           <CardContent className="p-4 flex items-center gap-4">
-            <div className="p-2.5 rounded-xl bg-amber-100 dark:bg-amber-500/20 border border-amber-200 dark:border-amber-500/30">
-              <Clock className="w-5 h-5 text-amber-600" />
+            <div className="p-2.5 rounded-xl bg-amber-100 dark:bg-amber-500/20 border border-amber-200 dark:border-amber-500/40 shrink-0">
+              <Clock className="w-5 h-5 text-amber-600 dark:text-amber-400" />
             </div>
             <div className="flex-1">
-              <p className="text-[10px] font-black uppercase tracking-widest text-amber-500">Upcoming Trip</p>
-              <p className="text-sm font-black text-foreground dark:text-gray-100 mt-0.5 flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5 text-amber-500" /> {nextUpcoming.destination}
+              <p className="text-[10px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-400">Upcoming Trip</p>
+              <p className="text-sm font-black text-slate-900 dark:text-white mt-0.5 flex items-center gap-1.5">
+                <MapPin className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" /> {nextUpcoming.destination}
               </p>
-              <p className="text-[11px] text-amber-600 font-bold mt-0.5">{fmtDate(nextUpcoming.start_date)} → {fmtDate(nextUpcoming.end_date)}</p>
+              <p className="text-[11px] text-amber-700 dark:text-amber-300 font-bold mt-0.5">{fmtDate(nextUpcoming.start_date)} → {fmtDate(nextUpcoming.end_date)}</p>
             </div>
             {statusBadge(nextUpcoming.status)}
           </CardContent>
