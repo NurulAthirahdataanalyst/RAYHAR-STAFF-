@@ -41,8 +41,8 @@ export const AvatarPickerModal: React.FC<AvatarPickerModalProps> = ({
   };
 
   const filteredAvatars = AVATAR_OPTIONS.filter((opt) => {
+    if (opt.id === "initials") return false; // Selectable via quick button and footer
     if (activeFilter === "all") return true;
-    if (opt.id === "initials") return true;
     return opt.gender === activeFilter;
   });
 
@@ -50,56 +50,75 @@ export const AvatarPickerModal: React.FC<AvatarPickerModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg sm:max-w-xl bg-card border border-border/60 shadow-2xl rounded-[28px] p-5 sm:p-6 overflow-hidden">
-        <DialogHeader className="space-y-1.5 pb-3 border-b border-border/40">
-          <div className="flex items-center gap-2 text-[#942392] font-black text-xs uppercase tracking-widest">
-            <Sparkles className="w-4 h-4 text-[#942392] animate-pulse" />
+      <DialogContent className="w-[95vw] max-w-lg sm:max-w-[530px] max-h-[86vh] sm:max-h-[82vh] flex flex-col bg-card border border-border/60 shadow-2xl rounded-3xl p-4 sm:p-5 gap-3 overflow-hidden">
+        <DialogHeader className="shrink-0 space-y-1 pb-2 border-b border-border/40">
+          <div className="flex items-center gap-1.5 text-[#942392] font-black text-[11px] uppercase tracking-widest">
+            <Sparkles className="w-3.5 h-3.5 text-[#942392]" />
             <span>Customize Identity</span>
           </div>
-          <DialogTitle className="text-xl sm:text-2xl font-black text-foreground tracking-tight">
+          <DialogTitle className="text-lg sm:text-xl font-black text-foreground tracking-tight">
             Choose Your Profile Avatar
           </DialogTitle>
           <DialogDescription className="text-xs text-muted-foreground font-medium">
-            Select an illustrated avatar icon to display across your profile card, header navigation, and team views.
+            Select an avatar to display across your profile, navigation, and team views.
           </DialogDescription>
         </DialogHeader>
 
-        {/* Live Preview Area */}
-        <div className="p-3.5 rounded-2xl bg-gradient-to-r from-purple-500/10 via-pink-500/10 to-blue-500/10 border border-purple-500/20 flex flex-col sm:flex-row items-center gap-4">
-          {/* Circular avatar with rainbow gradient ring */}
-          <div className="relative group shrink-0">
-            <div className="p-[3px] rounded-full bg-gradient-to-tr from-pink-500 via-purple-500 via-blue-500 via-emerald-400 to-amber-400 shadow-lg">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-card p-0.5 overflow-hidden flex items-center justify-center">
-                <UserAvatar avatarId={selectedId} name={userName} className="w-full h-full" />
-              </div>
+        {/* Live Preview Area - Compact and responsive */}
+        <div className="shrink-0 p-3 rounded-2xl bg-gradient-to-r from-purple-500/10 via-pink-500/10 to-blue-500/10 border border-purple-500/20 flex items-center gap-3.5">
+          <div className="p-0.5 rounded-full bg-gradient-to-tr from-pink-500 via-purple-500 via-blue-500 to-amber-400 shadow-md shrink-0">
+            <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-full bg-card p-0.5 overflow-hidden flex items-center justify-center">
+              <UserAvatar avatarId={selectedId} name={userName} className="w-full h-full text-lg" />
             </div>
           </div>
-          <div className="text-center sm:text-left flex-1 min-w-0">
-            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Selected Avatar</p>
-            <p className="text-base sm:text-lg font-black text-foreground truncate">{userName}</p>
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Selected Avatar</p>
+            <p className="text-sm sm:text-base font-black text-foreground truncate">{userName}</p>
+            <p className="text-[11px] text-[#942392] font-semibold truncate">
+              {selectedId === "initials" ? "Letter Initials" : selectedOpt.name}
+            </p>
           </div>
+          {selectedId !== "initials" && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setSelectedId("initials")}
+              className="shrink-0 h-7 text-[11px] font-bold border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 rounded-lg px-2.5"
+            >
+              <RefreshCw className="w-3 h-3 mr-1" />
+              Use Initials
+            </Button>
+          )}
         </div>
 
         {/* Filter Pills */}
-        <div className="flex items-center gap-2 pt-1">
-          <span className="text-[11px] font-bold text-muted-foreground mr-1">Filter:</span>
-          {(["all", "female", "male"] as const).map((filterKey) => (
-            <button
-              key={filterKey}
-              onClick={() => setActiveFilter(filterKey)}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-bold capitalize transition-all cursor-pointer ${
-                activeFilter === filterKey
-                  ? "bg-[#942392] text-white shadow-md shadow-[#942392]/30"
-                  : "bg-muted/50 text-muted-foreground hover:bg-muted"
-              }`}
-            >
-              {filterKey === "all" ? "All" : filterKey === "female" ? "Women / Hijab" : "Men"}
-            </button>
-          ))}
+        <div className="shrink-0 flex items-center justify-between gap-2 pt-0.5">
+          <div className="flex items-center gap-1.5">
+            <span className="text-[11px] font-bold text-muted-foreground mr-0.5">Filter:</span>
+            {(["all", "female", "male"] as const).map((filterKey) => (
+              <button
+                key={filterKey}
+                onClick={() => setActiveFilter(filterKey)}
+                className={`px-3 py-1 rounded-full text-[11px] font-bold capitalize transition-all cursor-pointer ${
+                  activeFilter === filterKey
+                    ? "bg-[#942392] text-white shadow-sm shadow-[#942392]/30"
+                    : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+                }`}
+              >
+                {filterKey === "all" ? "All (20)" : filterKey === "female" ? "Women / Hijab" : "Men"}
+              </button>
+            ))}
+          </div>
+          {selectedId === "initials" && (
+            <Badge variant="outline" className="text-[10px] font-bold text-[#942392] border-[#942392]/30 bg-[#942392]/5">
+              Initials Active
+            </Badge>
+          )}
         </div>
 
-        {/* Avatars Grid - Clean circular avatars with no cutoff square boxes */}
-        <div className="max-h-[360px] overflow-y-auto px-1.5 py-2 grid grid-cols-4 sm:grid-cols-5 gap-3.5 justify-items-center">
+        {/* Avatars Grid - Generous horizontal padding prevents any edge clipping */}
+        <div className="flex-1 min-h-[160px] max-h-[290px] overflow-y-auto px-4 py-3 sm:px-5 grid grid-cols-5 gap-3 justify-items-center">
           {filteredAvatars.map((opt) => {
             const isSelected = selectedId === opt.id;
             return (
@@ -107,26 +126,22 @@ export const AvatarPickerModal: React.FC<AvatarPickerModalProps> = ({
                 key={opt.id}
                 type="button"
                 onClick={() => setSelectedId(opt.id)}
-                className={`relative group p-1 rounded-full flex items-center justify-center transition-all cursor-pointer outline-none ${
+                className={`relative group p-0.5 rounded-full flex items-center justify-center transition-all cursor-pointer outline-none ${
                   isSelected
-                    ? "ring-4 ring-[#942392] ring-offset-2 ring-offset-background scale-105 shadow-lg"
-                    : "hover:scale-105 hover:ring-2 hover:ring-[#942392]/50"
+                    ? "ring-[3px] ring-[#942392] ring-offset-2 ring-offset-background shadow-md z-10"
+                    : "opacity-90 hover:opacity-100 hover:scale-105"
                 }`}
                 title={opt.name}
               >
                 {/* Avatar circle */}
-                <div className="w-16 h-16 sm:w-[72px] sm:h-[72px] rounded-full overflow-hidden relative shadow-sm border border-border/40 bg-card">
-                  {opt.id === "initials" ? (
-                    <UserAvatar avatarId="initials" name={userName} className="w-full h-full text-xl" />
-                  ) : (
-                    opt.render("100%")
-                  )}
+                <div className="w-[52px] h-[52px] sm:w-[60px] sm:h-[60px] rounded-full overflow-hidden relative shadow-xs border border-border/50 bg-card">
+                  {opt.render("100%")}
                 </div>
 
                 {/* Selected Checkmark Badge */}
                 {isSelected && (
-                  <span className="absolute top-0 right-0 w-6 h-6 rounded-full bg-[#942392] text-white flex items-center justify-center shadow-md ring-2 ring-background">
-                    <Check className="w-3.5 h-3.5 stroke-[3]" />
+                  <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-[#942392] text-white flex items-center justify-center shadow-md ring-2 ring-background z-20 pointer-events-none">
+                    <Check className="w-3 h-3 stroke-[3]" />
                   </span>
                 )}
               </button>
@@ -134,13 +149,13 @@ export const AvatarPickerModal: React.FC<AvatarPickerModalProps> = ({
           })}
         </div>
 
-        <DialogFooter className="pt-3 border-t border-border/40 flex items-center justify-between sm:justify-between gap-2">
+        <DialogFooter className="shrink-0 pt-2.5 border-t border-border/40 flex items-center justify-between sm:justify-between gap-2">
           <Button
             type="button"
             variant="ghost"
             size="sm"
             onClick={() => setSelectedId("initials")}
-            className="text-xs font-bold text-muted-foreground hover:text-foreground"
+            className="text-xs font-bold text-muted-foreground hover:text-foreground h-8"
           >
             <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
             Reset to Initials
@@ -152,7 +167,7 @@ export const AvatarPickerModal: React.FC<AvatarPickerModalProps> = ({
               variant="outline"
               size="sm"
               onClick={() => onOpenChange(false)}
-              className="rounded-xl text-xs font-bold"
+              className="rounded-xl text-xs font-bold h-8"
             >
               Cancel
             </Button>
@@ -160,7 +175,7 @@ export const AvatarPickerModal: React.FC<AvatarPickerModalProps> = ({
               type="button"
               size="sm"
               onClick={handleSave}
-              className="rounded-xl bg-[#942392] hover:bg-[#7a1c78] text-white text-xs font-black shadow-md shadow-[#942392]/30 px-5"
+              className="rounded-xl bg-[#942392] hover:bg-[#7a1c78] text-white text-xs font-black shadow-md shadow-[#942392]/30 px-5 h-8"
             >
               Save Avatar
             </Button>
