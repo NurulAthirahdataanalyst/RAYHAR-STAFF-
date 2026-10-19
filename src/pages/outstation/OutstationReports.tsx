@@ -492,7 +492,7 @@ export default function OutstationReports() {
                   className={`text-sm font-bold pb-2.5 translate-y-[1px] relative z-10 transition-colors border-b-2 ${
                     viewType === "month"
                       ? "text-[#942392] border-[#942392]"
-                      : "text-foreground/70 hover:text-foreground border-transparent hover:border-[#ffff00]"
+                      : "text-foreground/70 hover:text-[#ffff00] border-transparent hover:border-[#ffff00]"
                   }`}
                 >
                   Month
@@ -502,7 +502,7 @@ export default function OutstationReports() {
                   className={`text-sm font-bold pb-2.5 translate-y-[1px] relative z-10 transition-colors border-b-2 ${
                     viewType === "year"
                       ? "text-[#942392] border-[#942392]"
-                      : "text-foreground/70 hover:text-foreground border-transparent hover:border-[#ffff00]"
+                      : "text-foreground/70 hover:text-[#ffff00] border-transparent hover:border-[#ffff00]"
                   }`}
                 >
                   Year
