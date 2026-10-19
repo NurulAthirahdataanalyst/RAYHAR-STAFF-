@@ -1769,16 +1769,16 @@ export default function Employees() {
       <Dialog open={!!statusConfirmEmp} onOpenChange={(open) => !open && setStatusConfirmEmp(null)}>
         <DialogContent className={`sm:max-w-[425px] overflow-hidden p-0 border-0 border-none shadow-2xl rounded-2xl ${
           statusConfirmEmp?.status === "Active"
-            ? "bg-[#faf5fc] dark:bg-slate-900 [&>button]:text-yellow-400 [&>button]:hover:text-yellow-300 [&>button]:top-4 [&>button]:right-4"
+            ? "bg-[#faf5fc] dark:bg-slate-900 [&>button]:text-white [&>button]:hover:text-white/80 [&>button]:top-4 [&>button]:right-4"
             : "[&>button]:text-emerald-600 [&>button]:hover:text-emerald-700"
         }`}>
           <DialogHeader className={`p-5 ${
             statusConfirmEmp?.status === "Active"
-              ? "bg-[#942392] border-none"
+              ? "bg-[#942392] border-b-2 border-[#7a1d79]"
               : "bg-emerald-50 dark:bg-emerald-950/40 border-b border-emerald-100 dark:border-emerald-900/30"
           }`}>
             <DialogTitle className={`text-xl font-black ${
-              statusConfirmEmp?.status === "Active" ? "text-yellow-400" : "text-emerald-600 dark:text-emerald-400"
+              statusConfirmEmp?.status === "Active" ? "text-white" : "text-emerald-600 dark:text-emerald-400"
             }`}>
               {statusConfirmEmp?.status === "Active" ? "Inactive Employee?" : "Reactivate Employee?"}
             </DialogTitle>
@@ -1826,16 +1826,16 @@ export default function Employees() {
 
       {/* Delete Confirmation Modal */}
       <Dialog open={!!deleteConfirmEmp} onOpenChange={(open) => !open && setDeleteConfirmEmp(null)}>
-        <DialogContent className="sm:max-w-[425px] overflow-hidden p-0 border-0 border-none shadow-2xl rounded-2xl [&>button]:text-rose-600 [&>button]:hover:text-rose-700">
+        <DialogContent className="sm:max-w-[425px] overflow-hidden p-0 border-0 border-none shadow-2xl rounded-2xl [&>button]:text-[#ff0000] [&>button]:hover:text-[#cc0000]">
           <DialogHeader className="bg-rose-50 dark:bg-rose-950/40 p-5 border-b border-rose-100 dark:border-rose-900/30">
-            <DialogTitle className="text-xl font-black text-rose-600 dark:text-rose-400">Delete Employee?</DialogTitle>
+            <DialogTitle className="text-xl font-black text-[#ff0000]">Delete Employee?</DialogTitle>
           </DialogHeader>
           <div className="p-5 space-y-4">
             <p className="text-sm text-foreground dark:text-slate-300">
               Are you sure you want to permanently delete <strong>{deleteConfirmEmp?.name}</strong> from <strong>{deleteConfirmEmp?.branch}</strong>?
             </p>
             <div className="bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 rounded-lg p-3">
-              <p className="text-xs text-rose-600 dark:text-rose-400 font-medium leading-relaxed">
+              <p className="text-xs text-[#ff0000] font-medium leading-relaxed">
                 ⚠️ This action is permanent and cannot be undone or recovered. All employee records associated with this account will be deleted.
               </p>
             </div>
@@ -1844,7 +1844,7 @@ export default function Employees() {
             <Button variant="outline" onClick={() => setDeleteConfirmEmp(null)}>
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleDeleteEmployee} className="bg-rose-600 hover:bg-rose-700">
+            <Button variant="destructive" onClick={handleDeleteEmployee} className="bg-[#ff0000] hover:bg-[#cc0000] text-white">
               Delete Permanently
             </Button>
           </DialogFooter>
