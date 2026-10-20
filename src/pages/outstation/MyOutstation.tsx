@@ -301,7 +301,7 @@ export default function MyOutstation() {
                   key={s}
                   role="tab"
                   onClick={() => { setTab(s); setSearchParams({ tab: s.toLowerCase() }); }}
-                  className={`group text-sm font-black uppercase tracking-widest pb-3 translate-y-[1px] transition-colors border-b-[3px] whitespace-nowrap ${
+                  className={`group inline-flex items-center justify-center min-w-[130px] sm:min-w-[135px] px-2 text-sm font-black uppercase tracking-widest pb-3 translate-y-[1px] transition-colors border-b-[3px] whitespace-nowrap ${
                     tab === s 
                       ? `${item.color} ${item.border}`
                       : `text-foreground border-transparent ${item.hoverText} ${item.hoverBorder}`
