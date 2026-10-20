@@ -435,7 +435,7 @@ export default function LeaveFormView() {
                   key={tab.key}
                   role="tab"
                   onClick={() => setActiveTab(tab.key)}
-                  className={`group text-sm font-black uppercase tracking-widest pb-3 translate-y-[1px] transition-colors border-b-[3px] whitespace-nowrap ${
+                  className={`group inline-flex items-center justify-center min-w-[130px] sm:min-w-[135px] px-2 text-sm font-black uppercase tracking-widest pb-3 translate-y-[1px] transition-colors border-b-[3px] whitespace-nowrap ${
                     activeTab === tab.key 
                       ? `${tab.color} ${tab.border}`
                       : `text-foreground border-transparent ${tab.hoverText} ${tab.hoverBorder}`
