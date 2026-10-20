@@ -24,6 +24,30 @@ interface ApprovalHistoryTimelineProps {
   pendingApproverName?: string;
 }
 
+const getPendingRoleLabel = (status: string, department?: string, branch?: string, approverRole?: string) => {
+  const sUpper = (status || "").toUpperCase();
+  const isHQ = String(branch).toUpperCase() === 'HQ';
+
+  if (sUpper.includes("MANAGING DIRECTOR") || sUpper === "PENDING MD" || sUpper.includes("MD")) {
+    return "Managing Director";
+  }
+  if (sUpper.includes("OPERATION") || sUpper.includes("FINANCE")) {
+    return "Operation Manager";
+  }
+  if (sUpper.includes("HOD") || sUpper.includes("HEAD OF DEPARTMENT")) {
+    const d = department ? ` (${department})` : '';
+    const b = branch ? ` (${branch})` : '';
+    return `Head of Department${d}${b}`.replace(/\s+/g, ' ').trim();
+  }
+  if (sUpper.includes("BRANCH LEADER")) {
+    return branch ? `Branch Leader (${branch})` : "Branch Leader";
+  }
+  if (approverRole) {
+    return formatRoleWithContext(approverRole, department, branch);
+  }
+  return isHQ ? `Head of Department (${department || "HQ"})` : `Branch Leader (${branch || "Branch"})`;
+};
+
 const formatRoleWithContext = (role?: string, department?: string, branch?: string) => {
   if (!role) return "Management";
   const r = role.toLowerCase().trim();
@@ -95,22 +119,7 @@ export const ApprovalHistoryTimeline: React.FC<ApprovalHistoryTimelineProps> = (
 
     // If overall leave status is still Pending, append current pending step
     if (status && status.startsWith("Pending")) {
-      let pendingRoleName = "";
-      if (status === "Pending HOD") {
-        pendingRoleName = `Head of Department (${department}) (${branch})`;
-      } else if (status === "Pending Branch Leader") {
-        pendingRoleName = `Branch Leader (${branch})`;
-      } else if (status === "Pending Operation Manager" || status === "Pending Finance") {
-        pendingRoleName = "Operation Manager";
-      } else if (status === "Pending MD") {
-        pendingRoleName = "Managing Director";
-      } else if (approverRole) {
-        pendingRoleName = formatRoleWithContext(approverRole, department, branch);
-      } else {
-        pendingRoleName = isHQ ? `Head of Department (${department}) (${branch})` : `Branch Leader (${branch})`;
-      }
-      pendingRoleName = pendingRoleName.replace(' ()', '').trim();
-
+      const pendingRoleName = getPendingRoleLabel(status, department, branch, approverRole);
       displayItems.push({
         status: 'Pending',
         name: pendingApproverName || "Approver",
@@ -149,21 +158,7 @@ export const ApprovalHistoryTimeline: React.FC<ApprovalHistoryTimelineProps> = (
       });
     } else {
       // Pending
-      let pendingRoleName = "";
-      if (status === "Pending HOD") {
-        pendingRoleName = `Head of Department (${department}) (${branch})`;
-      } else if (status === "Pending Branch Leader") {
-        pendingRoleName = `Branch Leader (${branch})`;
-      } else if (status === "Pending Operation Manager" || status === "Pending Finance") {
-        pendingRoleName = "Operation Manager";
-      } else if (status === "Pending MD") {
-        pendingRoleName = "Managing Director";
-      } else if (approverRole) {
-        pendingRoleName = formatRoleWithContext(approverRole, department, branch);
-      } else {
-        pendingRoleName = isHQ ? `Head of Department (${department}) (${branch})` : `Branch Leader (${branch})`;
-      }
-      pendingRoleName = pendingRoleName.replace(' ()', '').trim();
+      const pendingRoleName = getPendingRoleLabel(status, department, branch, approverRole);
       displayItems.push({
         status: 'Pending',
         name: pendingApproverName || "Approver",
@@ -239,12 +234,20 @@ export const ApprovalHistoryTimeline: React.FC<ApprovalHistoryTimelineProps> = (
                     ) : (
                       <p className="font-bold text-foreground/80">
                         Pending approval by{' '}
-                        <span className="font-black text-foreground uppercase">
-                          {item.name}
-                        </span>{' '}
-                        <span className="font-bold text-foreground/80">
-                          ({item.roleLabel})
-                        </span>
+                        {item.name && item.name.toUpperCase() !== "APPROVER" && item.name.toUpperCase() !== "MANAGEMENT" ? (
+                          <>
+                            <span className="font-black text-foreground uppercase">
+                              {item.name}
+                            </span>{' '}
+                            <span className="font-bold text-foreground/80">
+                              ({item.roleLabel})
+                            </span>
+                          </>
+                        ) : (
+                          <span className="font-black text-foreground uppercase">
+                            {item.roleLabel}
+                          </span>
+                        )}
                       </p>
                     )}
                   </div>

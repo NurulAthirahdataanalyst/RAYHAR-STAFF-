@@ -69,7 +69,7 @@ type LeaveRequest = {
   days: number;
   reason: string;
   createdAt?: string;
-  status: "Pending HOD" | "Pending Branch Leader" | "Pending Operation Manager" | "Pending Finance" | "Pending MD" | "Approved" | "Rejected";
+  status: "Pending HOD" | "Pending Branch Leader" | "Pending Operation Manager" | "Pending Finance" | "Pending MD" | "Pending Managing Director" | "Approved" | "Rejected" | string;
   warisNama: string;
   warisPhone: string;
   warisAlamat: string;
@@ -415,7 +415,7 @@ export default function LeaveAdmin() {
     if (leaveId && requests.length > 0) {
       const match = requests.find(r => r.id === parseInt(leaveId, 10));
       if (match) {
-        if (match.status === "Pending HOD" || match.status === "Pending Finance" || match.status === "Pending MD" || (match.status as string) === "Pending HR") {
+        if (String(match.status).startsWith("Pending") || (match.status as string) === "Pending HR") {
           setActiveTab("pending");
         } else if (match.status === "Approved") {
           setActiveTab("approved");
@@ -426,7 +426,8 @@ export default function LeaveAdmin() {
         }
         setSelectedYear("all");
         setSelectedMonth("all");
-        setSelectedRequest(match);
+        // Do not automatically open the Leave Details view modal
+        // setSelectedRequest(match);
         newParams.delete("leaveId");
         updated = true;
       }
@@ -543,6 +544,8 @@ export default function LeaveAdmin() {
           cutiTanpaGajiSignature: request.cuti_tanpa_gaji_signature,
           mcFileUrl: request.mc_file_url,
           approvalHistory: request.approval_history || [],
+          pendingApproverName: request.pending_approver_name,
+          pendingApproverContext: request.pending_approver_context,
           replacementValidations: request.replacement_validations || [],
         }));
 
@@ -1105,7 +1108,7 @@ export default function LeaveAdmin() {
                             {((req.status.trim().startsWith("Pending HOD") && role === "head_of_department") ||
                               (req.status.trim() === "Pending Branch Leader" && role === "branch_leader") ||
                               ((req.status.trim() === "Pending Operation" || req.status.trim() === "Pending Operation Manager" || req.status.trim() === "Pending Finance" || req.status.trim() === "Pending Finance Manager") && (role === "operation_manager" || (role as string) === "finance_manager")) ||
-                              (req.status.trim() === "Pending MD" && role === "managing_director")) ? (
+                              ((req.status.trim() === "Pending MD" || req.status.trim() === "Pending Managing Director") && (role === "managing_director" || (role as string) === "md"))) ? (
                               <div className="flex justify-end gap-2">
                                 <Button
                                   size="sm"

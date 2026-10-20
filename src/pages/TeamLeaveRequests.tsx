@@ -561,6 +561,8 @@ export default function TeamLeaveRequests() {
                       approverRole={selectedRequest.approverRole || (selectedRequest.approvalHistory && selectedRequest.approvalHistory.length > 0 ? selectedRequest.approvalHistory[selectedRequest.approvalHistory.length - 1].approver_role : "")} 
                       approvalHistory={selectedRequest.approvalHistory}
                       branch={selectedRequest.branch || "HQ"} 
+                      department={selectedRequest.department || ""}
+                      pendingApproverName={selectedRequest.pendingApproverName || selectedRequest.pending_approver_name}
                     />
                     
                     {/* Render remarks below the timeline if they exist */}

@@ -455,7 +455,7 @@ export default function Notifications() {
       const isOtherStaff = isApprover && (notif.type === "leave_approval" || !isOwnLeave || notif.title.includes(":"));
 
       if (isOtherStaff) {
-        navigate(notif.related_leave_id ? `/leave/admin?leaveId=${notif.related_leave_id}` : `/leave/admin`);
+        navigate("/leave/admin");
         return;
       } else {
         navigate("/leave/apply");
