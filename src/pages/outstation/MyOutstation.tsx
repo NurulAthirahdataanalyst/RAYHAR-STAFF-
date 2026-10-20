@@ -288,7 +288,7 @@ export default function MyOutstation() {
 
         {/* Tabs & Export inside Card Header */}
         <div className="px-4 sm:px-6 pt-2 sm:pt-4 border-b border-gray-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
-          <div className="flex items-center gap-6 w-full sm:w-auto overflow-x-auto scrollbar-none">
+          <div className="flex items-end gap-4 sm:gap-6 w-full sm:w-auto overflow-x-auto scrollbar-none">
             {([
               { key: "Upcoming" as const, color: "text-[#ffff00]", border: "border-[#ffff00]", hoverText: "hover:text-[#ffff00]", hoverBorder: "hover:border-[#ffff00]", bgBadge: "bg-[#ffff00]", hoverBadge: "group-hover:bg-[#ffff00]" },
               { key: "Active" as const, color: "text-[#e4007c]", border: "border-[#e4007c]", hoverText: "hover:text-[#e4007c]", hoverBorder: "hover:border-[#e4007c]", bgBadge: "bg-[#e4007c]", hoverBadge: "group-hover:bg-[#e4007c]" },
@@ -301,7 +301,7 @@ export default function MyOutstation() {
                   key={s}
                   role="tab"
                   onClick={() => { setTab(s); setSearchParams({ tab: s.toLowerCase() }); }}
-                  className={`group inline-flex items-center justify-center min-w-[130px] sm:min-w-[135px] px-2 text-sm font-black uppercase tracking-widest pb-3 translate-y-[1px] transition-colors border-b-[3px] whitespace-nowrap ${
+                  className={`group inline-flex items-center justify-center w-[150px] sm:w-[155px] flex-shrink-0 h-11 pb-3 px-2 text-sm font-black uppercase tracking-widest transition-colors border-b-[3px] -mb-px whitespace-nowrap ${
                     tab === s 
                       ? `${item.color} ${item.border}`
                       : `text-foreground border-transparent ${item.hoverText} ${item.hoverBorder}`

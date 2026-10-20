@@ -424,7 +424,7 @@ export default function LeaveFormView() {
       <Card className="border-none shadow-[0_20px_50px_rgba(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.2)] bg-card/80 backdrop-blur-md rounded-[24px] sm:rounded-[32px] overflow-hidden">
         <CardContent className="p-0">
           <div className="px-6 pt-4 border-b border-gray-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
-            <div className="flex items-center gap-6 overflow-x-auto w-full sm:w-auto scrollbar-none">
+            <div className="flex items-end gap-4 sm:gap-6 overflow-x-auto w-full sm:w-auto scrollbar-none">
               {([
                 { key: "history" as FormTabFilter, label: "History", count: monthFilteredForms.length, color: "text-[#942392]", border: "border-[#942392]", hoverText: "hover:text-[#942392]", hoverBorder: "hover:border-[#942392]", bgBadge: "bg-[#942392]", hoverBadge: "group-hover:bg-[#942392]" },
                 { key: "pending" as FormTabFilter, label: "Pending", count: pendingCount, color: "text-[#ffff00]", border: "border-[#ffff00]", hoverText: "hover:text-[#ffff00]", hoverBorder: "hover:border-[#ffff00]", bgBadge: "bg-[#ffff00]", hoverBadge: "group-hover:bg-[#ffff00]" },
@@ -435,7 +435,7 @@ export default function LeaveFormView() {
                   key={tab.key}
                   role="tab"
                   onClick={() => setActiveTab(tab.key)}
-                  className={`group inline-flex items-center justify-center min-w-[130px] sm:min-w-[135px] px-2 text-sm font-black uppercase tracking-widest pb-3 translate-y-[1px] transition-colors border-b-[3px] whitespace-nowrap ${
+                  className={`group inline-flex items-center justify-center w-[150px] sm:w-[155px] flex-shrink-0 h-11 pb-3 px-2 text-sm font-black uppercase tracking-widest transition-colors border-b-[3px] -mb-px whitespace-nowrap ${
                     activeTab === tab.key 
                       ? `${tab.color} ${tab.border}`
                       : `text-foreground border-transparent ${tab.hoverText} ${tab.hoverBorder}`
