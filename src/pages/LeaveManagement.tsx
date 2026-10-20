@@ -525,7 +525,7 @@ export default function LeaveManagement() {
         <h1 className="text-4xl sm:text-5xl font-black text-[#942392] tracking-tighter italic decoration-4 decoration-primary/20">
           RAYHAR GROUP
         </h1>
-        <div className="h-1 sm:h-1.5 w-16 sm:w-24 bg-[#7c1b8a] mx-auto rounded-full mb-3 sm:mb-4"></div>
+        <div className="h-1 sm:h-1.5 w-16 sm:w-24 bg-[#942392] mx-auto rounded-full mb-3 sm:mb-4"></div>
         <h2 className="text-lg sm:text-2xl font-black text-[#942392] tracking-wide uppercase px-4">
           Portal Permohonan Cuti
         </h2>
