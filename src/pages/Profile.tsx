@@ -59,28 +59,34 @@ const Profile = () => {
   const [resetEmail, setResetEmail] = useState("");
   const [resetLoading, setResetLoading] = useState(false);
 
+  const currentUserId = userId || user?.user_id || user?.id;
+
   const [avatarModalOpen, setAvatarModalOpen] = useState(false);
-  const [avatarId, setAvatarId] = useState<string>(() => getSavedAvatar(userId || user?.id));
+  const [avatarId, setAvatarId] = useState<string>(() => getSavedAvatar(currentUserId, email));
 
   useEffect(() => {
     const handleAvatarUpdate = (e: any) => {
-      const newAvatarId = e?.detail?.avatarId;
-      if (newAvatarId) {
-        setAvatarId(newAvatarId);
-      } else {
-        setAvatarId(getSavedAvatar(userId || user?.id));
+      const { avatarId: newAvatarId, userId: eventUserId, email: eventEmail } = e?.detail || {};
+      if (eventUserId || eventEmail) {
+        const matches = 
+          (eventUserId && currentUserId && eventUserId === currentUserId) ||
+          (eventEmail && email && eventEmail.toLowerCase() === email.toLowerCase());
+        if (matches && newAvatarId) {
+          setAvatarId(newAvatarId);
+        } else if (matches) {
+          setAvatarId(getSavedAvatar(currentUserId, email));
+        }
+        return;
       }
+      setAvatarId(getSavedAvatar(currentUserId, email));
     };
     window.addEventListener("avatarChanged", handleAvatarUpdate);
     return () => window.removeEventListener("avatarChanged", handleAvatarUpdate);
-  }, [userId, user?.id]);
+  }, [currentUserId, email]);
 
   useEffect(() => {
-    const current = getSavedAvatar(userId || user?.id);
-    if (current && current !== "initials") {
-      setAvatarId(current);
-    }
-  }, [userId, user?.id]);
+    setAvatarId(getSavedAvatar(currentUserId, email));
+  }, [currentUserId, email]);
 
   const handlePasswordReset = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -370,7 +376,8 @@ const Profile = () => {
         onOpenChange={setAvatarModalOpen}
         currentAvatarId={avatarId}
         userName={userName || "User"}
-        userId={userId || user?.id}
+        userId={currentUserId}
+        userEmail={email}
         onAvatarSaved={(newId) => setAvatarId(newId)}
       />
     </div>

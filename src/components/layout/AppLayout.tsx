@@ -30,7 +30,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const { role: resolvedRole, userBranch, userDepartment, userName } = useRole();
+  const { role: resolvedRole, userBranch, userDepartment, userName, userId } = useRole();
   const { theme, toggleTheme } = useTheme();
   useShiftNotifications();
   useBackgroundLocation();
@@ -38,27 +38,34 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const displayName = userName || user?.full_name || user?.name || "Employee";
   const displayAvatar = (displayName || "E")[0].toUpperCase();
 
-  const [avatarId, setAvatarId] = useState<string>(() => getSavedAvatar(user?.id || user?.user_id));
+  const currentUserId = userId || user?.user_id || user?.id;
+  const currentUserEmail = user?.email;
+
+  const [avatarId, setAvatarId] = useState<string>(() => getSavedAvatar(currentUserId, currentUserEmail));
 
   useEffect(() => {
     const handleAvatarUpdate = (e: any) => {
-      const newAvatarId = e?.detail?.avatarId;
-      if (newAvatarId) {
-        setAvatarId(newAvatarId);
-      } else {
-        setAvatarId(getSavedAvatar(user?.id || user?.user_id));
+      const { avatarId: newAvatarId, userId: eventUserId, email: eventEmail } = e?.detail || {};
+      if (eventUserId || eventEmail) {
+        const matches = 
+          (eventUserId && currentUserId && eventUserId === currentUserId) ||
+          (eventEmail && currentUserEmail && eventEmail.toLowerCase() === currentUserEmail.toLowerCase());
+        if (matches && newAvatarId) {
+          setAvatarId(newAvatarId);
+        } else if (matches) {
+          setAvatarId(getSavedAvatar(currentUserId, currentUserEmail));
+        }
+        return;
       }
+      setAvatarId(getSavedAvatar(currentUserId, currentUserEmail));
     };
     window.addEventListener("avatarChanged", handleAvatarUpdate);
     return () => window.removeEventListener("avatarChanged", handleAvatarUpdate);
-  }, [user?.id, user?.user_id]);
+  }, [currentUserId, currentUserEmail]);
 
   useEffect(() => {
-    const current = getSavedAvatar(user?.id || user?.user_id);
-    if (current && current !== "initials") {
-      setAvatarId(current);
-    }
-  }, [user?.id, user?.user_id]);
+    setAvatarId(getSavedAvatar(currentUserId, currentUserEmail));
+  }, [currentUserId, currentUserEmail]);
 
   const [pendingApprovals, setPendingApprovals] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);

@@ -12,6 +12,7 @@ interface AvatarPickerModalProps {
   currentAvatarId?: string;
   userName?: string;
   userId?: string;
+  userEmail?: string;
   onAvatarSaved?: (avatarId: string) => void;
 }
 
@@ -21,6 +22,7 @@ export const AvatarPickerModal: React.FC<AvatarPickerModalProps> = ({
   currentAvatarId = "initials",
   userName = "User",
   userId,
+  userEmail,
   onAvatarSaved,
 }) => {
   const [selectedId, setSelectedId] = useState<string>(currentAvatarId);
@@ -34,7 +36,7 @@ export const AvatarPickerModal: React.FC<AvatarPickerModalProps> = ({
   }, [open, currentAvatarId]);
 
   const handleSave = () => {
-    saveSelectedAvatar(selectedId, userId);
+    saveSelectedAvatar(selectedId, userId, userEmail);
     toast.success("Profile avatar updated successfully!");
     if (onAvatarSaved) onAvatarSaved(selectedId);
     onOpenChange(false);

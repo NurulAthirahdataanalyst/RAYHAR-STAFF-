@@ -206,31 +206,60 @@ const LEGACY_AVATAR_MAP: Record<string, string> = {
 
 const STORAGE_KEY = "rayhar_selected_avatar";
 
-export function getSavedAvatar(userId?: string): string {
+// Clean up any stale global avatar choice that was polluting all users
+if (typeof window !== "undefined") {
   try {
-    if (userId) {
-      const userSpecific = localStorage.getItem(`${STORAGE_KEY}_${userId}`);
+    localStorage.removeItem(STORAGE_KEY);
+  } catch {}
+}
+
+export function getSavedAvatar(userId?: string, email?: string): string {
+  try {
+    const cleanId = (userId || "").trim();
+    const cleanEmail = (email || "").trim().toLowerCase();
+
+    // Check by user ID first (e.g. "E017", "E004", "E018")
+    if (cleanId) {
+      const userSpecific = localStorage.getItem(`${STORAGE_KEY}_${cleanId}`);
       if (userSpecific) {
         return LEGACY_AVATAR_MAP[userSpecific] || userSpecific;
       }
     }
-    const globalSaved = localStorage.getItem(STORAGE_KEY);
-    if (globalSaved) {
-      return LEGACY_AVATAR_MAP[globalSaved] || globalSaved;
+
+    // Check by email as secondary key (e.g. "mdkhan@gmail.com")
+    if (cleanEmail) {
+      const emailSpecific = localStorage.getItem(`${STORAGE_KEY}_${cleanEmail}`);
+      if (emailSpecific) {
+        return LEGACY_AVATAR_MAP[emailSpecific] || emailSpecific;
+      }
     }
   } catch (e) {
     console.error("Failed to get saved avatar", e);
   }
+  // Default to initials so other users NEVER inherit another user's avatar
   return "initials";
 }
 
-export function saveSelectedAvatar(avatarId: string, userId?: string): void {
+export function saveSelectedAvatar(avatarId: string, userId?: string, email?: string): void {
   try {
-    localStorage.setItem(STORAGE_KEY, avatarId);
-    if (userId) {
-      localStorage.setItem(`${STORAGE_KEY}_${userId}`, avatarId);
+    const cleanId = (userId || "").trim();
+    const cleanEmail = (email || "").trim().toLowerCase();
+
+    if (cleanId) {
+      localStorage.setItem(`${STORAGE_KEY}_${cleanId}`, avatarId);
     }
-    window.dispatchEvent(new CustomEvent("avatarChanged", { detail: { avatarId, userId } }));
+    if (cleanEmail && cleanEmail !== cleanId) {
+      localStorage.setItem(`${STORAGE_KEY}_${cleanEmail}`, avatarId);
+    }
+
+    // Always remove global legacy key to prevent leaking to other users
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch {}
+
+    window.dispatchEvent(new CustomEvent("avatarChanged", { 
+      detail: { avatarId, userId: cleanId, email: cleanEmail } 
+    }));
   } catch (e) {
     console.error("Failed to save avatar", e);
   }
