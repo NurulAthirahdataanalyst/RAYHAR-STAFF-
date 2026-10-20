@@ -75,6 +75,33 @@ function formatNotificationDisplayDate(dateStr: string): string {
   return clean;
 }
 
+function formatNotificationMessage(rawMessage: string, userRole?: string): string {
+  if (!rawMessage) return "";
+  const normRole = (userRole || "").toLowerCase().trim().replace(/ /g, "_");
+  let formatted = rawMessage
+    .replace(/under Temporary Assignment assignment\.?/gi, "under Temporary Branch Assignment")
+    .replace(/waiting for MD\.?/gi, "waiting for Managing Director.")
+    .replace(/[*_#]/g, "");
+
+  // If the logged-in user is Managing Director, customize "waiting for Managing Director" to "waiting for your approval"
+  if (normRole === "managing_director" || normRole === "md") {
+    formatted = formatted.replace(
+      /is currently waiting for Managing Director\.?/gi,
+      "is currently waiting for your approval."
+    );
+  }
+
+  // If the logged-in user is Operation Manager, customize "waiting for Operation Manager" to "waiting for your approval"
+  if (normRole === "operation_manager" || normRole === "finance_manager") {
+    formatted = formatted.replace(
+      /is currently waiting for Operation Manager\.?/gi,
+      "is currently waiting for your approval."
+    );
+  }
+
+  return formatted;
+}
+
 function formatNotificationTitle(title: string): string {
   if (!title) return "";
   let cleaned = title
@@ -826,10 +853,7 @@ export default function Notifications() {
                 </div>
 
                 <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-line mt-1">
-                  {(notif.message || "")
-                    .replace(/under Temporary Assignment assignment\.?/gi, "under Temporary Branch Assignment")
-                    .replace(/waiting for MD\.?/gi, "waiting for Managing Director.")
-                    .replace(/[*_#]/g, "")}
+                  {formatNotificationMessage(notif.message || "", role)}
                 </p>
 
                 {/* Footer Action Hint */}

@@ -1,3 +1,30 @@
+function formatNotificationMessage(rawMessage: string, userRole?: string): string {
+  if (!rawMessage) return "";
+  const normRole = (userRole || "").toLowerCase().trim().replace(/ /g, "_");
+  let formatted = rawMessage
+    .replace(/under Temporary Assignment assignment\.?/gi, "under Temporary Branch Assignment")
+    .replace(/waiting for MD\.?/gi, "waiting for Managing Director.")
+    .replace(/[*_#]/g, "");
+
+  // If the logged-in user is Managing Director, customize "waiting for Managing Director" to "waiting for your approval"
+  if (normRole === "managing_director" || normRole === "md") {
+    formatted = formatted.replace(
+      /is currently waiting for Managing Director\.?/gi,
+      "is currently waiting for your approval."
+    );
+  }
+
+  // If the logged-in user is Operation Manager, customize "waiting for Operation Manager" to "waiting for your approval"
+  if (normRole === "operation_manager" || normRole === "finance_manager") {
+    formatted = formatted.replace(
+      /is currently waiting for Operation Manager\.?/gi,
+      "is currently waiting for your approval."
+    );
+  }
+
+  return formatted;
+}
+
 import { safeRedirectUrl } from '@/utils/security';
 import { useState } from "react";
 import { 
@@ -399,10 +426,7 @@ export default function NotificationBell() {
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed whitespace-pre-line">
-                    {(notif.message || "")
-                      .replace(/under Temporary Assignment assignment\.?/gi, "under Temporary Branch Assignment")
-                      .replace(/waiting for MD\.?/gi, "waiting for Managing Director.")
-                      .replace(/[*_#]/g, "")}
+                    {formatNotificationMessage(notif.message || "", role)}
                   </p>
                   <p 
                     className="text-[10px] text-muted-foreground/80 mt-1 font-medium"

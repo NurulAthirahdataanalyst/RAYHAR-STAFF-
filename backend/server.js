@@ -3869,11 +3869,19 @@ app.post("/api/leave-requests", uploadLimiter, upload.single("lampiranMc"), asyn
             });
           }
           if (el.user_id) {
-            // Send "Leave Approval Progress: [Name]" (matches 3rd screenshot)
+            let userTeamMsg = teamMsg;
+            if (
+              ((el.role === 'managing_director' || el.role === 'md') && (initialStatus === 'Pending Managing Director' || initialStatus === 'Pending MD')) ||
+              ((el.role === 'operation_manager' || el.role === 'finance_manager') && (initialStatus === 'Pending Operation Manager' || initialStatus === 'Pending Operation' || initialStatus === 'Pending Finance'))
+            ) {
+              userTeamMsg = `${leaveData.full_name}'s leave application for ${leaveData.leave_type} (${leaveData.days} day(s)) is currently waiting for your approval.`;
+            }
+
+            // Send "Leave Approval Progress: [Name]" (matches 3rd screenshot, personalized for approver)
             notificationService.createNotification({
               userId: el.user_id,
               title: teamProgressTitle,
-              message: teamMsg,
+              message: userTeamMsg,
               type: 'leave_approval',
               scope: 'team',
               relatedLeaveId: result.insertId,
