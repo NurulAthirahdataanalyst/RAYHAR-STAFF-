@@ -1,4 +1,4 @@
-# Welcome to your Lovable project
+# Welcome to my Attendance and Leave Tracking project
 
 ## Backend environment setup
 
