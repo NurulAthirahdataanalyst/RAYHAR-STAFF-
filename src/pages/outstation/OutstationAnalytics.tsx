@@ -228,7 +228,10 @@ export default function OutstationAnalytics() {
 
   const totalEventsCount = eventGroups.length > 0 ? eventGroups.length : filteredAssignments.length;
   const activeStaffCount = useMemo(() => new Set(filteredAssignments.filter(a => a.status === "Active").map(a => a.user_id)).size, [filteredAssignments]);
-  const totalDestinations = useMemo(() => new Set(filteredAssignments.map(a => a.destination || "Unknown")).size, [filteredAssignments]);
+  const totalDestinations = useMemo(() => new Set(filteredAssignments.filter(a => {
+    const st = (a.status || "").toLowerCase().trim();
+    return st !== "cancelled" && st !== "canceled";
+  }).map(a => a.destination || "Unknown")).size, [filteredAssignments]);
   const activeCount = eventGroups.filter(e => e.status === "Active").length;
   const completedCount = eventGroups.filter(e => e.status === "Completed").length;
   const upcomingCount = eventGroups.filter(e => e.status === "Upcoming").length;
@@ -272,6 +275,8 @@ export default function OutstationAnalytics() {
   const destinationData = useMemo(() => {
     const counts: Record<string, any> = Object.create(null);
     filteredAssignments.forEach(a => {
+      const st = (a.status || "").toLowerCase().trim();
+      if (st === "cancelled" || st === "canceled") return;
       const destination = a.destination || "Unknown";
       counts[destination] = (counts[destination] || 0) + 1;
     });
