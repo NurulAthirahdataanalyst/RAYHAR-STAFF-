@@ -1194,36 +1194,53 @@ export default function Calendar() {
         {/* RIGHT COLUMN: MAIN CALENDAR GRID */}
         <div className="lg:col-span-9 flex flex-col h-[800px] bg-card border border-border/60 rounded-[16px] shadow-sm overflow-hidden">
           
-          <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-b border-border/60 gap-4">
-            <div className="flex items-center gap-3">
-              <Button variant="outline" className="h-9 px-4 font-bold bg-muted/30" onClick={() => {
-                const today = new Date();
-                setSelectedDate(today);
-                setCalendarMonth(today);
-              }}>Today</Button>
-              <div className="flex items-center gap-1 bg-muted/30 rounded-lg p-0.5 border border-border/50">
-                <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-card dark:hover:bg-card" onClick={() => {
-                  const newD = viewMode === 'week' ? new Date(selectedDate.getTime() - 7 * 24 * 60 * 60 * 1000) : subMonths(selectedDate, 1);
-                  setSelectedDate(newD);
-                  setCalendarMonth(newD);
-                }}>
-                  <ChevronLeft className="w-4 h-4" />
-                </Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-card dark:hover:bg-card" onClick={() => {
-                  const newD = viewMode === 'week' ? new Date(selectedDate.getTime() + 7 * 24 * 60 * 60 * 1000) : addMonths(selectedDate, 1);
-                  setSelectedDate(newD);
-                  setCalendarMonth(newD);
-                }}>
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between p-3.5 sm:p-4 border-b border-border/60 gap-3">
+            {/* Left section: Title & Navigation */}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 sm:gap-4">
+              <div className="flex items-center justify-between sm:justify-start gap-3">
+                <h2 className="text-base sm:text-xl font-bold text-foreground text-left tracking-tight">
+                  {viewMode === 'week' ? `${format(weekViewStart, "MMM d")} - ${format(weekViewEnd, "MMM d, yyyy")}` : format(selectedDate, "MMMM yyyy")}
+                </h2>
+
+                {/* Mobile View Toggle (aligned right on top row) */}
+                <div className="flex sm:hidden items-center bg-muted/40 rounded-lg p-0.5 border border-border/50 shrink-0">
+                  <button 
+                    onClick={() => setViewMode('month')}
+                    className={`px-3 py-1 rounded-md text-xs font-bold shadow-xs transition-colors ${viewMode === 'month' ? 'bg-[#FFFE00] text-[#942392] border-2 border-[#942392]' : 'text-foreground hover:text-foreground'}`}>Month</button>
+                  <button 
+                    onClick={() => setViewMode('week')}
+                    className={`px-3 py-1 rounded-md text-xs font-bold shadow-xs transition-colors ${viewMode === 'week' ? 'bg-[#FFFE00] text-[#942392] border-2 border-[#942392]' : 'text-foreground hover:text-foreground'}`}>Week</button>
+                </div>
+              </div>
+
+              {/* Navigation Controls: Today + Prev/Next */}
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" className="h-8 px-3 text-xs font-bold bg-muted/30 hover:bg-muted/60" onClick={() => {
+                  const today = new Date();
+                  setSelectedDate(today);
+                  setCalendarMonth(today);
+                }}>Today</Button>
+                <div className="flex items-center gap-0.5 bg-muted/30 rounded-lg p-0.5 border border-border/50">
+                  <Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-card dark:hover:bg-card" onClick={() => {
+                    const newD = viewMode === 'week' ? new Date(selectedDate.getTime() - 7 * 24 * 60 * 60 * 1000) : subMonths(selectedDate, 1);
+                    setSelectedDate(newD);
+                    setCalendarMonth(newD);
+                  }}>
+                    <ChevronLeft className="w-3.5 h-3.5" />
+                  </Button>
+                  <Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-card dark:hover:bg-card" onClick={() => {
+                    const newD = viewMode === 'week' ? new Date(selectedDate.getTime() + 7 * 24 * 60 * 60 * 1000) : addMonths(selectedDate, 1);
+                    setSelectedDate(newD);
+                    setCalendarMonth(newD);
+                  }}>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
               </div>
             </div>
-            
-            <h2 className="text-lg font-bold text-foreground w-full text-center sm:w-auto">
-              {viewMode === 'week' ? `${format(weekViewStart, "MMM d")} - ${format(weekViewEnd, "MMM d, yyyy")}` : format(selectedDate, "MMMM yyyy")}
-            </h2>
-            
-            <div className="flex items-center bg-muted/40 rounded-lg p-1 border border-border/50 w-full justify-center sm:w-auto">
+
+            {/* Desktop View Toggle (aligned right) */}
+            <div className="hidden sm:flex items-center bg-muted/40 rounded-lg p-1 border border-border/50 shrink-0">
               <button 
                 onClick={() => setViewMode('month')}
                 className={`px-5 py-1.5 rounded-md text-sm font-bold shadow-sm transition-colors ${viewMode === 'month' ? 'bg-[#FFFE00] text-[#942392] border-2 border-[#942392]' : 'text-foreground hover:text-foreground'}`}>Month</button>

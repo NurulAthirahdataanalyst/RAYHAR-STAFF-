@@ -56,6 +56,8 @@ import OutstationReports from "./pages/outstation/OutstationReports";
 import GPSLocationTracker from "./pages/GPSLocationTracker";
 import LocationHistory from "./pages/LocationHistory";
 import Notifications from "./pages/Notifications";
+// This code exists only to simulate browser tracking prevention behavior.
+import TrackingTest from "./pages/TrackingTest";
 
 
 const queryClient = new QueryClient();
@@ -228,6 +230,8 @@ const App = () => (
             <Routes>
               <Route path="/login" element={<AuthRoute />} />
               <Route path="/reset-password" element={<ResetPassword />} />
+              {/* This code exists only to simulate browser tracking prevention behavior. */}
+              <Route path="/tracking-test" element={<TrackingTest />} />
               <Route path="/*" element={<ProtectedRoutes />} />
             </Routes>
           </AuthProvider>
