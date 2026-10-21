@@ -67,10 +67,10 @@ export const AvatarPickerModal: React.FC<AvatarPickerModalProps> = ({
         </DialogHeader>
 
         {/* Live Preview Area - Compact and responsive */}
-        <div className="shrink-0 p-3 rounded-2xl bg-gradient-to-r from-purple-500/10 via-pink-500/10 to-blue-500/10 border border-purple-500/20 flex items-center gap-3.5">
-          <div className="p-0.5 rounded-full bg-gradient-to-tr from-pink-500 via-purple-500 via-blue-500 to-amber-400 shadow-md shrink-0">
-            <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-full bg-card p-0.5 overflow-hidden flex items-center justify-center">
-              <UserAvatar avatarId={selectedId} name={userName} className="w-full h-full text-lg" />
+        <div className="shrink-0 p-2.5 sm:p-3 rounded-2xl bg-gradient-to-r from-purple-500/10 via-pink-500/10 to-blue-500/10 border border-purple-500/20 flex items-center gap-3">
+          <div className="w-12 h-12 sm:w-14 sm:h-14 p-0.5 rounded-full bg-gradient-to-tr from-pink-500 via-purple-500 via-blue-500 to-amber-400 shadow-md shrink-0 flex items-center justify-center">
+            <div className="w-full h-full rounded-full bg-card p-0.5 overflow-hidden flex items-center justify-center">
+              <UserAvatar avatarId={selectedId} name={userName} className="w-full h-full text-base sm:text-lg" />
             </div>
           </div>
           <div className="flex-1 min-w-0">
@@ -86,7 +86,7 @@ export const AvatarPickerModal: React.FC<AvatarPickerModalProps> = ({
               variant="outline"
               size="sm"
               onClick={() => setSelectedId("initials")}
-              className="shrink-0 h-7 text-[11px] font-bold border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 rounded-lg px-2.5"
+              className="shrink-0 h-7 text-[10px] sm:text-[11px] font-bold border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 rounded-lg px-2 sm:px-2.5"
             >
               <RefreshCw className="w-3 h-3 mr-1" />
               Use Initials
@@ -95,14 +95,14 @@ export const AvatarPickerModal: React.FC<AvatarPickerModalProps> = ({
         </div>
 
         {/* Filter Pills */}
-        <div className="shrink-0 flex items-center justify-between gap-2 pt-0.5">
-          <div className="flex items-center gap-1.5">
-            <span className="text-[11px] font-bold text-muted-foreground mr-0.5">Filter:</span>
+        <div className="shrink-0 flex items-center justify-between gap-1.5 sm:gap-2 pt-0.5">
+          <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap">
+            <span className="text-[10px] sm:text-[11px] font-bold text-muted-foreground mr-0.5">Filter:</span>
             {(["all", "female", "male"] as const).map((filterKey) => (
               <button
                 key={filterKey}
                 onClick={() => setActiveFilter(filterKey)}
-                className={`px-3 py-1 rounded-full text-[11px] font-bold capitalize transition-all cursor-pointer ${
+                className={`px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-[11px] font-bold capitalize transition-all cursor-pointer ${
                   activeFilter === filterKey
                     ? "bg-[#942392] text-white shadow-sm shadow-[#942392]/30"
                     : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -120,7 +120,7 @@ export const AvatarPickerModal: React.FC<AvatarPickerModalProps> = ({
         </div>
 
         {/* Avatars Grid - Generous horizontal padding prevents any edge clipping */}
-        <div className="flex-1 min-h-[160px] max-h-[290px] overflow-y-auto px-4 py-3 sm:px-5 grid grid-cols-5 gap-3 justify-items-center">
+        <div className="flex-1 min-h-[160px] max-h-[290px] overflow-y-auto px-2 sm:px-5 py-3 grid grid-cols-5 gap-2 sm:gap-3 justify-items-center">
           {filteredAvatars.map((opt) => {
             const isSelected = selectedId === opt.id;
             return (
@@ -136,14 +136,14 @@ export const AvatarPickerModal: React.FC<AvatarPickerModalProps> = ({
                 title={opt.name}
               >
                 {/* Avatar circle */}
-                <div className="w-[52px] h-[52px] sm:w-[60px] sm:h-[60px] rounded-full overflow-hidden relative shadow-xs border border-border/50 bg-card">
+                <div className="w-11 h-11 xs:w-12 xs:h-12 sm:w-[58px] sm:h-[58px] rounded-full overflow-hidden relative shadow-xs border border-border/50 bg-card">
                   {opt.render("100%")}
                 </div>
 
                 {/* Selected Checkmark Badge */}
                 {isSelected && (
-                  <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-[#942392] text-white flex items-center justify-center shadow-md ring-2 ring-background z-20 pointer-events-none">
-                    <Check className="w-3 h-3 stroke-[3]" />
+                  <span className="absolute -top-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-[#942392] text-white flex items-center justify-center shadow-md ring-2 ring-background z-20 pointer-events-none">
+                    <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3 stroke-[3]" />
                   </span>
                 )}
               </button>
@@ -151,16 +151,16 @@ export const AvatarPickerModal: React.FC<AvatarPickerModalProps> = ({
           })}
         </div>
 
-        <DialogFooter className="shrink-0 pt-2.5 border-t border-border/40 flex items-center justify-between sm:justify-between gap-2">
+        <DialogFooter className="shrink-0 pt-2.5 border-t border-border/40 flex flex-row items-center justify-between sm:justify-between gap-2">
           <Button
             type="button"
             variant="ghost"
             size="sm"
             onClick={() => setSelectedId("initials")}
-            className="text-xs font-bold text-muted-foreground hover:text-foreground h-8"
+            className="text-xs font-bold text-muted-foreground hover:text-foreground h-8 px-2 sm:px-3"
           >
-            <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
-            Reset to Initials
+            <RefreshCw className="w-3.5 h-3.5 mr-1 sm:mr-1.5" />
+            <span className="hidden xs:inline">Reset to </span>Initials
           </Button>
 
           <div className="flex items-center gap-2">
@@ -169,7 +169,7 @@ export const AvatarPickerModal: React.FC<AvatarPickerModalProps> = ({
               variant="outline"
               size="sm"
               onClick={() => onOpenChange(false)}
-              className="rounded-xl text-xs font-bold h-8"
+              className="rounded-xl text-xs font-bold h-8 px-3"
             >
               Cancel
             </Button>
@@ -177,7 +177,7 @@ export const AvatarPickerModal: React.FC<AvatarPickerModalProps> = ({
               type="button"
               size="sm"
               onClick={handleSave}
-              className="rounded-xl bg-[#942392] hover:bg-[#7a1c78] text-white text-xs font-black shadow-md shadow-[#942392]/30 px-5 h-8"
+              className="rounded-xl bg-[#942392] hover:bg-[#7a1c78] text-white text-xs font-black shadow-md shadow-[#942392]/30 px-4 sm:px-5 h-8"
             >
               Save Avatar
             </Button>
