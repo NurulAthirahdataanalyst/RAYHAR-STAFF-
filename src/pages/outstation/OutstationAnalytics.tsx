@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { API_BASE_URL } from "@/config/api";
 import {
   Loader2, RefreshCw, MapPin, Users, Briefcase, Calendar, CheckCircle2, Clock, Filter,
-  Check, X, Hourglass, ChevronRight, TrendingUp, ArrowUpRight, ArrowRight
+  Check, X, Hourglass, ChevronRight, ChevronLeft, TrendingUp, ArrowUpRight, ArrowRight
 } from "lucide-react";
 import {
   PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip,
@@ -100,6 +100,7 @@ export default function OutstationAnalytics() {
   const [recentPage, setRecentPage] = useState(1);
   const [recentLimit, setRecentLimit] = useState(10);
   const [destinationLimit, setDestinationLimit] = useState(5);
+  const [destinationPage, setDestinationPage] = useState(1);
   const [hoveredMonth, setHoveredMonth] = useState<string | null>(null);
   const [hoveredDonutSlice, setHoveredDonutSlice] = useState<any | null>(null);
 
@@ -278,6 +279,15 @@ export default function OutstationAnalytics() {
       .map(([destination, count]) => ({ destination, count }))
       .sort((a, b) => b.count - a.count);
   }, [filteredAssignments]);
+
+  const totalDestinationPages = Math.max(1, Math.ceil(destinationData.length / destinationLimit));
+  const safeDestinationPage = Math.min(destinationPage, totalDestinationPages);
+  const destinationStartIndex = (safeDestinationPage - 1) * destinationLimit;
+  const paginatedDestinationData = destinationData.slice(destinationStartIndex, destinationStartIndex + destinationLimit);
+
+  useEffect(() => {
+    setDestinationPage(1);
+  }, [selectedMonth, selectedYear, destinationLimit]);
 
   // Detailed Outstation Status Summary for Redesigned Card
   const statusSummary = useMemo(() => {
@@ -833,7 +843,10 @@ export default function OutstationAnalytics() {
             </div>
             <Select
               value={destinationLimit.toString()}
-              onValueChange={(v) => setDestinationLimit(Number(v))}
+              onValueChange={(v) => {
+                setDestinationLimit(Number(v));
+                setDestinationPage(1);
+              }}
             >
               <SelectTrigger className="h-8 w-[72px] px-2 text-xs font-bold rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-foreground dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#942392] cursor-pointer shadow-xs">
                 <SelectValue placeholder="5" />
@@ -852,7 +865,7 @@ export default function OutstationAnalytics() {
             ) : (
               <>
                 <div className="space-y-4">
-                  {destinationData.slice(0, destinationLimit).map((item, index) => (
+                  {paginatedDestinationData.map((item, index) => (
                     <div key={index} className="flex items-center justify-between gap-3 sm:gap-4 text-xs">
                       <div className="w-36 sm:w-44 font-bold text-slate-800 dark:text-slate-200 text-xs truncate uppercase tracking-tight">
                         {item.destination}
@@ -871,6 +884,55 @@ export default function OutstationAnalytics() {
                   ))}
                 </div>
                 
+                {/* Pagination Controls */}
+                <div className="flex flex-col sm:flex-row items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800/80 gap-2">
+                  <span className="text-[10px] font-bold text-foreground uppercase tracking-wider">
+                    TOTAL SHOWING {destinationData.length === 0 ? 0 : destinationStartIndex + 1} TO {Math.min(destinationStartIndex + destinationLimit, destinationData.length)} OF {destinationData.length} ENTRIES
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <Button
+                      onClick={() => setDestinationPage((p) => Math.max(1, p - 1))}
+                      disabled={safeDestinationPage <= 1}
+                      variant="outline"
+                      size="sm"
+                      className="h-7 w-7 p-0 rounded-md border-gray-200 dark:border-slate-800 bg-card text-foreground hover:bg-[#942392] hover:text-white hover:border-[#942392] focus:bg-[#942392] focus:text-white disabled:opacity-40 transition-colors cursor-pointer"
+                      title="Previous page"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+
+                    {Array.from({ length: totalDestinationPages }, (_, i) => i + 1).map((pageNum) => {
+                      const isActive = safeDestinationPage === pageNum;
+                      return (
+                        <Button
+                          key={pageNum}
+                          onClick={() => setDestinationPage(pageNum)}
+                          variant={isActive ? "default" : "outline"}
+                          size="sm"
+                          className={`h-7 min-w-[28px] px-2 rounded-md text-[11px] font-bold cursor-pointer ${
+                            isActive
+                              ? "bg-[#942392] hover:bg-[#7b1d79] text-white border-[#942392]"
+                              : "border-gray-200 dark:border-slate-800 bg-card text-foreground hover:bg-slate-100 dark:hover:bg-slate-800"
+                          }`}
+                        >
+                          {pageNum}
+                        </Button>
+                      );
+                    })}
+
+                    <Button
+                      onClick={() => setDestinationPage((p) => Math.min(totalDestinationPages, p + 1))}
+                      disabled={safeDestinationPage >= totalDestinationPages}
+                      variant="outline"
+                      size="sm"
+                      className="h-7 w-7 p-0 rounded-md border-gray-200 dark:border-slate-800 bg-card text-foreground hover:bg-[#942392] hover:text-white hover:border-[#942392] focus:bg-[#942392] focus:text-white disabled:opacity-40 transition-colors cursor-pointer"
+                      title="Next page"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+
                 <div className="mt-auto pt-2">
                   <div className="rounded-2xl bg-slate-50/80 dark:bg-slate-900/60 p-2.5 sm:p-3 flex items-center justify-between border border-slate-100 dark:border-slate-800/80">
                     <div className="flex items-center">
