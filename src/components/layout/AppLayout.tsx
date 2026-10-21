@@ -372,7 +372,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* ═══════ MOBILE TOP BAR ═══════ */}
-        <div className="lg:hidden sticky top-0 z-30 p-1.5 safe-area-top">
+        <div 
+          className="lg:hidden sticky top-0 z-30 px-2.5 pb-2 pt-3.5 bg-background/95 backdrop-blur-md transition-colors duration-300"
+          style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 14px)' }}
+        >
           <div className="bg-[#942392] rounded-[16px] p-1.5 px-2.5 flex items-center justify-between shadow-lg border border-[#942392]/15 top-nav-bar">
             <div className="flex items-center gap-3">
               <button
