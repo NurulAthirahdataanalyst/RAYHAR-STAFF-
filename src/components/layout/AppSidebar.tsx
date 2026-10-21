@@ -265,8 +265,8 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
 
     { title: adminSectionTitle, isSection: true, roles: FULL_ADMIN_ROLES },
     {
-      title: "Leave Administration",
-      icon: ClipboardList,
+      title: (role === "managing_director" || role === "operation_manager") ? "Approval Center" : "Leave Administration",
+      icon: (role === "managing_director" || role === "operation_manager") ? CheckSquare : ClipboardList,
       path: "/leave/admin",
       roles: FULL_ADMIN_ROLES,
       children: [
