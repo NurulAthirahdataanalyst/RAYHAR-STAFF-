@@ -318,10 +318,10 @@ export default function NotificationBell() {
 
       <PopoverContent
         align="end"
-        className="w-80 sm:w-96 p-0 shadow-xl border-border bg-card overflow-hidden z-50 rounded-xl"
+        className="w-[calc(100vw-1.5rem)] sm:w-96 max-w-sm sm:max-w-none p-0 shadow-xl border-border bg-card overflow-hidden z-50 rounded-xl max-h-[calc(100dvh-5rem)] flex flex-col"
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 bg-[#942392] text-white">
+        <div className="flex items-center justify-between px-4 py-3 bg-[#942392] text-white shrink-0">
           <div className="flex items-center gap-2">
             <Bell className="w-4 h-4" />
             <span className="text-sm font-bold tracking-wide">Notifications</span>
@@ -343,7 +343,7 @@ export default function NotificationBell() {
 
         {/* Scope Pill Toggle (Elevated Roles only) */}
         {isElevatedRole && (
-          <div className="flex items-center p-2 bg-slate-50/80 dark:bg-slate-900/60 border-b border-border/60 gap-2">
+          <div className="flex items-center p-2 bg-slate-50/80 dark:bg-slate-900/60 border-b border-border/60 gap-2 shrink-0">
             <button
               onClick={() => {
                 setActiveScope("my");
@@ -392,7 +392,7 @@ export default function NotificationBell() {
         )}
 
         {/* Notifications List */}
-        <div className="max-h-[360px] overflow-y-auto divide-y divide-border/60">
+        <div className="max-h-[180px] lg:max-h-[360px] overflow-y-auto divide-y divide-border/60 flex-1">
           {displayedNotifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
               <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center mb-2">
@@ -450,7 +450,7 @@ export default function NotificationBell() {
         </div>
 
         {/* Footer */}
-        <div className="p-2 border-t border-border bg-muted/30">
+        <div className="p-2 border-t border-border bg-muted/30 shrink-0">
           <Button
             variant="ghost"
             size="sm"
