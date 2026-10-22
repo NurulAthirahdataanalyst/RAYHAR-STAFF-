@@ -22,11 +22,11 @@ const LeaveBtn3D = ({ children, onClick, disabled, type = "button", variant = "p
       className={`group relative border-none bg-transparent p-0 cursor-pointer focus:outline-none touch-manipulation select-none ${wrapperClass} ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:brightness-110'}`}
       style={{ WebkitTapHighlightColor: 'transparent' }}
     >
-      <span className={`absolute top-0 left-0 w-full h-full rounded-[inherit] bg-black/25 will-change-transform transform translate-y-[2px] transition-transform duration-[600ms] ease-[cubic-bezier(.3,.7,.4,1)] ${disabled ? '' : 'group-hover:translate-y-[4px] group-hover:duration-[250ms] group-hover:ease-[cubic-bezier(.3,.7,.4,1.5)] group-active:translate-y-[1px] group-active:duration-[34ms]'}`}></span>
+      <span className={`absolute top-0 left-0 w-full h-full rounded-[inherit] bg-black/25 will-change-transform transform translate-y-[2px] transition-transform duration-500 ease-out ${disabled ? '' : 'group-hover:translate-y-[4px] group-hover:duration-200 group-active:translate-y-[1px] group-active:duration-75'}`}></span>
       
       <span className={`absolute top-0 left-0 w-full h-full rounded-[inherit] ${isPrimary ? 'bg-gradient-to-l from-[#4a005c] via-[#63007a] to-[#4a005c]' : 'bg-gradient-to-l from-slate-300 via-slate-200 to-slate-300'}`}></span>
       
-      <span className={`relative flex items-center justify-center w-full h-full rounded-[inherit] will-change-transform transform -translate-y-[4px] transition-transform duration-[600ms] ease-[cubic-bezier(.3,.7,.4,1)] ${disabled ? '' : 'group-hover:-translate-y-[6px] group-hover:duration-[250ms] group-hover:ease-[cubic-bezier(.3,.7,.4,1.5)] group-active:-translate-y-[2px] group-active:duration-[34ms]'} ${innerClass}`}>
+      <span className={`relative flex items-center justify-center w-full h-full rounded-[inherit] will-change-transform transform -translate-y-[4px] transition-transform duration-500 ease-out ${disabled ? '' : 'group-hover:-translate-y-[6px] group-hover:duration-200 group-active:-translate-y-[2px] group-active:duration-75'} ${innerClass}`}>
         {children}
       </span>
     </button>
