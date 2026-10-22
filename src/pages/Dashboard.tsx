@@ -47,6 +47,7 @@ import { cn } from "@/lib/utils";
 import { LeaveDetailsModal } from "@/components/leave/LeaveDetailsModal";
 import { TablePagination } from "@/components/common/TablePagination";
 import { toast } from "sonner";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 
 const getStoredUser = () => {
@@ -62,6 +63,7 @@ export default function Dashboard() {
   const { role, userName, userId, userBranch, userDepartment } = useRole();
   const storedUser = getStoredUser();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   const dashboardUserId = user?.user_id || userId || user?.id || storedUser?.user_id;
 
@@ -745,7 +747,12 @@ export default function Dashboard() {
                 </span>
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0 overflow-hidden border-none shadow-xl z-[100]" align="end">
+            <PopoverContent
+              className="w-auto p-0 overflow-hidden border-none shadow-xl z-[100]"
+              align={isMobile ? "start" : "end"}
+              collisionPadding={16}
+              sideOffset={8}
+            >
               <Calendar
                 mode="single"
                 selected={selectedDate}

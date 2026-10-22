@@ -2245,9 +2245,10 @@ export default function Attendance() {
 
           {/* Pagination Controls */}
           {totalRows > 0 && (
-            <div className="flex items-center justify-between py-3 px-4 border-t border-border/50 bg-muted/10">
-              <div className="flex items-center gap-4 text-[10px] font-bold text-foreground uppercase tracking-widest"><span>TOTAL SHOWING {(page-1)*pageSize + 1} TO {Math.min(page*pageSize, totalRows)} OF {totalRows} ENTRIES</span>
-                <div className="flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 py-3 px-4 border-t border-border/50 bg-muted/10">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-[10px] font-bold text-foreground uppercase tracking-widest">
+                <span>TOTAL SHOWING {(page-1)*pageSize + 1} TO {Math.min(page*pageSize, totalRows)} OF {totalRows} ENTRIES</span>
+                <div className="flex items-center gap-1.5 shrink-0">
                   <span>Show</span>
                   <Select 
                     value={pageSize.toString()} 
@@ -2264,14 +2265,14 @@ export default function Attendance() {
                     </SelectContent>
                   </Select>
                 </div>
-            </div>
-              <div className="flex items-center gap-2">
+              </div>
+              <div className="flex items-center justify-end sm:justify-start gap-2 shrink-0 self-end sm:self-auto">
                 <button
                   onClick={() => setPage(p => Math.max(1, p - 1))}
                   disabled={page === 1}
                   className="px-3 py-1 text-[11px] font-black rounded-md border border-border bg-background hover:bg-[#942392] hover:text-white hover:border-[#942392] disabled:opacity-50 transition-colors"
                 >{"<"}</button>
-                <div className="text-sm font-bold">{page} / {totalPages}</div>
+                <div className="text-xs sm:text-sm font-bold whitespace-nowrap px-1">{page} / {totalPages}</div>
                 <button
                   onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
