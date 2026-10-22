@@ -2512,10 +2512,9 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                 <div className="flex items-center gap-1 sm:gap-2 self-end sm:self-auto">
                   {trendWeekStart.getTime() !== startOfWeek(new Date(), { weekStartsOn: 6 }).getTime() && (
                       <Button
-                        variant="outline"
                         size="sm"
                         onClick={() => setTrendWeekStart(startOfWeek(new Date(), { weekStartsOn: 6 }))}
-                        className="h-8 text-xs font-black px-4 mr-2 bg-[#FFD700] text-[#942392] border-2 border-[#942392] hover:bg-[#FFE55C] shadow-md"
+                        className="h-8 text-xs font-bold px-4 mr-2 bg-[#FFFE00] hover:bg-[#E6E500] text-[#942392] hover:text-[#942392] border-2 border-[#942392] shadow-sm shadow-[#FFFE00]/20 transition-colors"
                       >
                         This Week
                       </Button>
