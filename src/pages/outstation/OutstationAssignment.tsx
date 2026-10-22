@@ -438,7 +438,9 @@ export default function OutstationAssignment() {
       end_time: event.endTime || "",
     });
 
-    const parts: EditStaffParticipant[] = event.assignments.map(a => {
+    const parts: EditStaffParticipant[] = event.assignments
+      .filter(a => a.status !== "Cancelled")
+      .map(a => {
       const emp = employees.find(e => String(e.user_id) === String(a.user_id));
       return {
         assignment_id: a.id,
@@ -511,7 +513,7 @@ export default function OutstationAssignment() {
 
       const retainedOriginals = editParticipants.filter(p => p.isOriginal && p.assignment_id);
       const removedOriginals = editEventTarget.assignments.filter(
-        orig => !editParticipants.some(p => p.assignment_id === orig.id)
+        orig => orig.status !== "Cancelled" && !editParticipants.some(p => p.assignment_id === orig.id)
       );
       const newlyAddedStaff = editParticipants.filter(p => !p.isOriginal || !p.assignment_id);
 
