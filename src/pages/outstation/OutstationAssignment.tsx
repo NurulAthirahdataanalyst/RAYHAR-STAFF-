@@ -698,7 +698,7 @@ export default function OutstationAssignment() {
       const rows = filteredEvents.map(e => [
         e.eventName, e.destination || "",
         e.startDate?.slice(0, 10), e.endDate?.slice(0, 10),
-        e.totalDays, e.status, `${e.assignments.length} Staff`
+        e.totalDays, e.status, `${e.assignments.filter(a => a.status !== "Cancelled").length} Staff`
       ]);
       const csv = [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
       const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
@@ -1030,7 +1030,7 @@ export default function OutstationAssignment() {
                         {/* Participants */}
                         <td className="px-3 py-3 align-middle text-center">
                           <Badge variant="outline" className="text-foreground dark:text-slate-300 font-semibold px-2.5 py-0.5 rounded-full border-slate-200 dark:border-slate-700">
-                            {e.assignments.length} Staff
+                            {e.assignments.filter(a => a.status !== "Cancelled").length} Staff
                           </Badge>
                         </td>
 
@@ -1808,7 +1808,7 @@ export default function OutstationAssignment() {
                 {/* Employees Assigned */}
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-widest text-black dark:text-white mb-3 flex items-center gap-1.5">
-                    <Users className="w-3.5 h-3.5 text-[#942392]" /> Employees Assigned ({viewFormEvent.assignments.length})
+                    <Users className="w-3.5 h-3.5 text-[#942392]" /> Employees Assigned ({viewFormEvent.assignments.filter(a => a.status !== "Cancelled").length})
                   </p>
                   <div className="space-y-2">
                     {viewFormEvent.assignments.map((a) => (
@@ -1881,7 +1881,7 @@ export default function OutstationAssignment() {
                             </div>
                           </div>
 
-                          <h2>Employees Assigned (${viewFormEvent.assignments.length} Staff)</h2>
+                          <h2>Employees Assigned (${viewFormEvent.assignments.filter(a => a.status !== "Cancelled").length} Staff)</h2>
                           <table>
                             <tr>
                               <th>Name</th>

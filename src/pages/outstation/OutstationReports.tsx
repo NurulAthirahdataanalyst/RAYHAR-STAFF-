@@ -328,7 +328,7 @@ export default function OutstationReports() {
       const rows = filteredEvents.map(e => [
         e.eventName, e.destination || "",
         e.startDate?.slice(0,10), e.endDate?.slice(0,10),
-        e.totalDays, e.status, e.assignments.length
+        e.totalDays, e.status, e.assignments.filter(a => a.status !== "Cancelled").length
       ]);
       const csv = [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n");
       const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
@@ -438,7 +438,7 @@ export default function OutstationReports() {
               <Card className="border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm">
                 <CardContent className="p-6 flex flex-col justify-between h-full">
                   <p className="text-sm font-medium text-foreground">Total Staff</p>
-                  <p className="text-3xl font-bold text-foreground dark:text-gray-100 mt-2">{selectedEvent!.assignments.length}</p>
+                  <p className="text-3xl font-bold text-foreground dark:text-gray-100 mt-2">{selectedEvent!.assignments.filter(a => a.status !== "Cancelled").length}</p>
                 </CardContent>
               </Card>
               <Card className="border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm">
@@ -637,7 +637,7 @@ export default function OutstationReports() {
                         <td className="px-4 py-3 text-center font-black text-pink-600">{e.totalDays}</td>
                         <td className="px-4 py-3">{statusBadge(e.status)}</td>
                         <td className="px-4 py-3">
-                          <Badge variant="outline" className="text-foreground dark:text-slate-300 font-semibold">{e.assignments.length} Staff</Badge>
+                          <Badge variant="outline" className="text-foreground dark:text-slate-300 font-semibold">{e.assignments.filter(a => a.status !== "Cancelled").length} Staff</Badge>
                         </td>
                         <td className="px-4 py-3" onClick={(ev) => ev.stopPropagation()}>
                           <Button
