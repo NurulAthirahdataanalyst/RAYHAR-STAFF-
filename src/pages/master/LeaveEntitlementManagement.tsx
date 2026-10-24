@@ -1144,7 +1144,6 @@ function CarryForwardLeaveForm({
 
   const [selectedBranch, setSelectedBranch] = useState("All");
   const [selectedDept, setSelectedDept] = useState("All");
-  const [empType, setEmpType] = useState("Permanent");
   const [search, setSearch] = useState("");
   const [filterEligible, setFilterEligible] = useState("");
 
@@ -1311,7 +1310,7 @@ function CarryForwardLeaveForm({
 
         <div>
           <h4 className="text-xs font-black uppercase tracking-wider text-foreground mb-3 border-b pb-1">Employee Selection</h4>
-          <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             <div className="space-y-1.5">
               <Label className="text-sm font-bold">Department</Label>
               <Select value={selectedDept} onValueChange={setSelectedDept}>
@@ -1331,17 +1330,6 @@ function CarryForwardLeaveForm({
                       {b === 'All' ? 'All Branches' : (BRANCH_NAMES[b] ? `${b} - ${toProperCase(BRANCH_NAMES[b])}` : b)}
                     </SelectItem>
                   ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5 col-span-2 sm:col-span-1">
-              <Label className="text-sm font-bold">Employment Type</Label>
-              <Select value={empType} onValueChange={setEmpType}>
-                <SelectTrigger className="bg-card h-10 text-sm"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Permanent">Permanent</SelectItem>
-                  <SelectItem value="Contract">Contract</SelectItem>
-                  <SelectItem value="All">All types</SelectItem>
                 </SelectContent>
               </Select>
             </div>

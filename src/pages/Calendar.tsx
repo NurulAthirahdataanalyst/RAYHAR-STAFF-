@@ -1715,7 +1715,7 @@ export default function Calendar() {
       {/* Add New Event / Edit Event Modal Overlay */}
       {isAddEventModalOpen && createPortal(
         <div 
-          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in transition-all duration-300"
+          className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in transition-all duration-300"
           onClick={() => { setIsAddEventModalOpen(false); setEditingEventId(null); }}
         >
           <div 

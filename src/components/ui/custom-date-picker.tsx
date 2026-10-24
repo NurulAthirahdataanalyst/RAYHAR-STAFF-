@@ -59,7 +59,7 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
           <CalendarDays className="w-4 h-4 text-muted-foreground shrink-0" />
         </button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0 overflow-hidden border-none shadow-2xl rounded-xl bg-card z-[200]" align="start">
+      <PopoverContent className="w-auto p-0 overflow-hidden border-none shadow-2xl rounded-xl bg-card z-[100000]" style={{ zIndex: 100000 }} align="start">
         <Calendar
           mode="single"
           selected={parsedDate}

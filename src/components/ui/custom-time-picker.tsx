@@ -50,6 +50,62 @@ export const CustomTimePicker: React.FC<CustomTimePickerProps> = ({
   const minScrollRef = React.useRef<HTMLDivElement>(null);
   const isScrollingRef = React.useRef(false);
 
+  const hourSnapTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const minSnapTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const hourDragRef = React.useRef({ isDown: false, startY: 0, startScrollTop: 0, moved: false });
+  const minDragRef = React.useRef({ isDown: false, startY: 0, startScrollTop: 0, moved: false });
+
+  // Scroll wheel to time
+  const scrollToTime = React.useCallback((h: number, m: number, smooth = true) => {
+    isScrollingRef.current = true;
+    const hIdx = HOURS_LIST.indexOf(h);
+    if (hourScrollRef.current && hIdx !== -1) {
+      hourScrollRef.current.scrollTo({
+        top: hIdx * ITEM_HEIGHT,
+        behavior: smooth ? "smooth" : "auto",
+      });
+    }
+    const mIdx = MINUTES_LIST.indexOf(m);
+    if (minScrollRef.current && mIdx !== -1) {
+      minScrollRef.current.scrollTo({
+        top: mIdx * ITEM_HEIGHT,
+        behavior: smooth ? "smooth" : "auto",
+      });
+    }
+    setTimeout(() => {
+      isScrollingRef.current = false;
+    }, 250);
+  }, []);
+
+  // Snap hour to nearest item
+  const snapHour = React.useCallback(() => {
+    if (!hourScrollRef.current) return;
+    const top = hourScrollRef.current.scrollTop;
+    const index = Math.max(0, Math.min(HOURS_LIST.length - 1, Math.round(top / ITEM_HEIGHT)));
+    const targetTop = index * ITEM_HEIGHT;
+    hourScrollRef.current.scrollTo({ top: targetTop, behavior: "smooth" });
+    const h = HOURS_LIST[index];
+    if (h !== undefined) {
+      setSelectedHour(h);
+      setHourInput(String(h).padStart(2, "0"));
+    }
+  }, []);
+
+  // Snap minute to nearest item
+  const snapMin = React.useCallback(() => {
+    if (!minScrollRef.current) return;
+    const top = minScrollRef.current.scrollTop;
+    const index = Math.max(0, Math.min(MINUTES_LIST.length - 1, Math.round(top / ITEM_HEIGHT)));
+    const targetTop = index * ITEM_HEIGHT;
+    minScrollRef.current.scrollTo({ top: targetTop, behavior: "smooth" });
+    const m = MINUTES_LIST[index];
+    if (m !== undefined) {
+      setSelectedMinute(m);
+      setMinuteInput(String(m).padStart(2, "0"));
+    }
+  }, []);
+
   // Sync state when popover opens
   React.useEffect(() => {
     if (open) {
@@ -81,29 +137,7 @@ export const CustomTimePicker: React.FC<CustomTimePickerProps> = ({
         scrollToTime(h12, min, false);
       }, 60);
     }
-  }, [open, value]);
-
-  // Scroll wheel to time
-  const scrollToTime = (h: number, m: number, smooth = true) => {
-    isScrollingRef.current = true;
-    const hIdx = HOURS_LIST.indexOf(h);
-    if (hourScrollRef.current && hIdx !== -1) {
-      hourScrollRef.current.scrollTo({
-        top: hIdx * ITEM_HEIGHT,
-        behavior: smooth ? "smooth" : "auto",
-      });
-    }
-    const mIdx = MINUTES_LIST.indexOf(m);
-    if (minScrollRef.current && mIdx !== -1) {
-      minScrollRef.current.scrollTo({
-        top: mIdx * ITEM_HEIGHT,
-        behavior: smooth ? "smooth" : "auto",
-      });
-    }
-    setTimeout(() => {
-      isScrollingRef.current = false;
-    }, 250);
-  };
+  }, [open, value, scrollToTime]);
 
   // When switching to wheel mode, scroll into view
   React.useEffect(() => {
@@ -112,9 +146,43 @@ export const CustomTimePicker: React.FC<CustomTimePickerProps> = ({
         scrollToTime(selectedHour, selectedMinute, false);
       }, 50);
     }
-  }, [mode]);
+  }, [mode, open, selectedHour, selectedMinute, scrollToTime]);
 
-  // Handle Hour wheel scroll
+  // Native wheel handler to bypass Radix Dialog scroll locks and guarantee smooth wheeling
+  React.useEffect(() => {
+    if (!open || mode !== "wheel") return;
+    const hourEl = hourScrollRef.current;
+    const minEl = minScrollRef.current;
+    if (!hourEl || !minEl) return;
+
+    const onHourWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      hourEl.scrollTop += e.deltaY;
+      if (hourSnapTimerRef.current) clearTimeout(hourSnapTimerRef.current);
+      hourSnapTimerRef.current = setTimeout(snapHour, 120);
+    };
+
+    const onMinWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      minEl.scrollTop += e.deltaY;
+      if (minSnapTimerRef.current) clearTimeout(minSnapTimerRef.current);
+      minSnapTimerRef.current = setTimeout(snapMin, 120);
+    };
+
+    hourEl.addEventListener("wheel", onHourWheel, { passive: false });
+    minEl.addEventListener("wheel", onMinWheel, { passive: false });
+
+    return () => {
+      hourEl.removeEventListener("wheel", onHourWheel);
+      minEl.removeEventListener("wheel", onMinWheel);
+      if (hourSnapTimerRef.current) clearTimeout(hourSnapTimerRef.current);
+      if (minSnapTimerRef.current) clearTimeout(minSnapTimerRef.current);
+    };
+  }, [open, mode, snapHour, snapMin]);
+
+  // Handle Hour scroll
   const handleHourScroll = (e: React.UIEvent<HTMLDivElement>) => {
     if (isScrollingRef.current) return;
     const top = e.currentTarget.scrollTop;
@@ -128,7 +196,7 @@ export const CustomTimePicker: React.FC<CustomTimePickerProps> = ({
     }
   };
 
-  // Handle Minute wheel scroll
+  // Handle Minute scroll
   const handleMinuteScroll = (e: React.UIEvent<HTMLDivElement>) => {
     if (isScrollingRef.current) return;
     const top = e.currentTarget.scrollTop;
@@ -162,6 +230,61 @@ export const CustomTimePicker: React.FC<CustomTimePickerProps> = ({
       minScrollRef.current.scrollTo({ top: mIdx * ITEM_HEIGHT, behavior: "smooth" });
       setTimeout(() => { isScrollingRef.current = false; }, 250);
     }
+  };
+
+  // Pointer drag event handlers for mouse & touch drag-to-scroll
+  const handleHourPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.button !== 0) return;
+    hourDragRef.current = {
+      isDown: true,
+      startY: e.clientY,
+      startScrollTop: hourScrollRef.current?.scrollTop || 0,
+      moved: false,
+    };
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+  };
+
+  const handleHourPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!hourDragRef.current.isDown || !hourScrollRef.current) return;
+    const dy = e.clientY - hourDragRef.current.startY;
+    if (Math.abs(dy) > 3) hourDragRef.current.moved = true;
+    hourScrollRef.current.scrollTop = hourDragRef.current.startScrollTop - dy;
+  };
+
+  const handleHourPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!hourDragRef.current.isDown) return;
+    hourDragRef.current.isDown = false;
+    try {
+      (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+    } catch {}
+    snapHour();
+  };
+
+  const handleMinPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.button !== 0) return;
+    minDragRef.current = {
+      isDown: true,
+      startY: e.clientY,
+      startScrollTop: minScrollRef.current?.scrollTop || 0,
+      moved: false,
+    };
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+  };
+
+  const handleMinPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!minDragRef.current.isDown || !minScrollRef.current) return;
+    const dy = e.clientY - minDragRef.current.startY;
+    if (Math.abs(dy) > 3) minDragRef.current.moved = true;
+    minScrollRef.current.scrollTop = minDragRef.current.startScrollTop - dy;
+  };
+
+  const handleMinPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!minDragRef.current.isDown) return;
+    minDragRef.current.isDown = false;
+    try {
+      (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+    } catch {}
+    snapMin();
   };
 
   // Keypad / direct input handlers
@@ -252,7 +375,8 @@ export const CustomTimePicker: React.FC<CustomTimePickerProps> = ({
         </button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-[280px] sm:w-[300px] p-4 sm:p-5 overflow-hidden border border-border/80 shadow-2xl rounded-3xl bg-card z-[200]"
+        className="w-[280px] sm:w-[300px] p-4 sm:p-5 overflow-hidden border border-border/80 shadow-2xl rounded-3xl bg-card z-[100000]"
+        style={{ zIndex: 100000 }}
         align="start"
       >
         {/* Title */}
@@ -351,7 +475,11 @@ export const CustomTimePicker: React.FC<CustomTimePickerProps> = ({
             <div
               ref={hourScrollRef}
               onScroll={handleHourScroll}
-              className="h-full w-24 overflow-y-auto scrollbar-none snap-y snap-mandatory py-[72px] z-10 text-center"
+              onPointerDown={handleHourPointerDown}
+              onPointerMove={handleHourPointerMove}
+              onPointerUp={handleHourPointerUp}
+              onPointerCancel={handleHourPointerUp}
+              className="h-full w-24 overflow-y-auto scrollbar-none snap-y snap-mandatory py-[72px] z-10 text-center cursor-grab active:cursor-grabbing touch-none select-none"
               style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
             >
               {HOURS_LIST.map((h) => {
@@ -359,7 +487,11 @@ export const CustomTimePicker: React.FC<CustomTimePickerProps> = ({
                 return (
                   <div
                     key={h}
-                    onClick={() => selectHour(h)}
+                    onClick={() => {
+                      if (!hourDragRef.current.moved) {
+                        selectHour(h);
+                      }
+                    }}
                     className={cn(
                       "h-[36px] flex items-center justify-center snap-center cursor-pointer transition-all duration-150 select-none",
                       isSelected
@@ -377,7 +509,11 @@ export const CustomTimePicker: React.FC<CustomTimePickerProps> = ({
             <div
               ref={minScrollRef}
               onScroll={handleMinuteScroll}
-              className="h-full w-24 overflow-y-auto scrollbar-none snap-y snap-mandatory py-[72px] z-10 text-center"
+              onPointerDown={handleMinPointerDown}
+              onPointerMove={handleMinPointerMove}
+              onPointerUp={handleMinPointerUp}
+              onPointerCancel={handleMinPointerUp}
+              className="h-full w-24 overflow-y-auto scrollbar-none snap-y snap-mandatory py-[72px] z-10 text-center cursor-grab active:cursor-grabbing touch-none select-none"
               style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
             >
               {MINUTES_LIST.map((m) => {
@@ -385,7 +521,11 @@ export const CustomTimePicker: React.FC<CustomTimePickerProps> = ({
                 return (
                   <div
                     key={m}
-                    onClick={() => selectMinute(m)}
+                    onClick={() => {
+                      if (!minDragRef.current.moved) {
+                        selectMinute(m);
+                      }
+                    }}
                     className={cn(
                       "h-[36px] flex items-center justify-center snap-center cursor-pointer transition-all duration-150 select-none",
                       isSelected
