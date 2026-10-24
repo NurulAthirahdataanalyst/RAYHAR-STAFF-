@@ -1195,47 +1195,63 @@ export default function Calendar() {
         <div className="lg:col-span-9 flex flex-col h-[800px] bg-card border border-border/60 rounded-[16px] shadow-sm overflow-hidden">
           
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between p-3.5 sm:p-4 border-b border-border/60 gap-3">
-            {/* Left section: Title & Navigation */}
+            {/* Left section: Title & Navigation: < Month Year > Today */}
             <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 sm:gap-4">
-              <div className="flex items-center justify-between sm:justify-start gap-3">
-                <h2 className="text-base sm:text-xl font-bold text-foreground text-left tracking-tight">
-                  {viewMode === 'week' ? `${format(weekViewStart, "MMM d")} - ${format(weekViewEnd, "MMM d, yyyy")}` : format(selectedDate, "MMMM yyyy")}
-                </h2>
-
-                {/* Mobile View Toggle (aligned right on top row) */}
-                <div className="flex sm:hidden items-center bg-muted/40 rounded-lg p-0.5 border border-border/50 shrink-0">
-                  <button 
-                    onClick={() => setViewMode('month')}
-                    className={`px-3 py-1 rounded-md text-xs font-bold shadow-xs transition-colors ${viewMode === 'month' ? 'bg-[#FFFE00] text-[#942392] border-2 border-[#942392]' : 'text-foreground hover:text-foreground'}`}>Month</button>
-                  <button 
-                    onClick={() => setViewMode('week')}
-                    className={`px-3 py-1 rounded-md text-xs font-bold shadow-xs transition-colors ${viewMode === 'week' ? 'bg-[#FFFE00] text-[#942392] border-2 border-[#942392]' : 'text-foreground hover:text-foreground'}`}>Week</button>
-                </div>
-              </div>
-
-              {/* Navigation Controls: Today + Prev/Next */}
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" className="h-8 px-3 text-xs font-bold bg-muted/30 hover:bg-muted/60" onClick={() => {
-                  const today = new Date();
-                  setSelectedDate(today);
-                  setCalendarMonth(today);
-                }}>Today</Button>
-                <div className="flex items-center gap-0.5 bg-muted/30 rounded-lg p-0.5 border border-border/50">
-                  <Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-card dark:hover:bg-card" onClick={() => {
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  className="h-8 w-8 rounded-lg bg-muted/30 hover:bg-muted/60 border border-border/50 shrink-0" 
+                  onClick={() => {
                     const newD = viewMode === 'week' ? new Date(selectedDate.getTime() - 7 * 24 * 60 * 60 * 1000) : subMonths(selectedDate, 1);
                     setSelectedDate(newD);
                     setCalendarMonth(newD);
-                  }}>
-                    <ChevronLeft className="w-3.5 h-3.5" />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-card dark:hover:bg-card" onClick={() => {
+                  }}
+                  title="Previous"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+
+                <h2 className="text-base sm:text-xl font-bold text-foreground text-center tracking-tight min-w-[130px] sm:min-w-[170px] px-1 select-none">
+                  {viewMode === 'week' ? `${format(weekViewStart, "MMM d")} - ${format(weekViewEnd, "MMM d, yyyy")}` : format(selectedDate, "MMMM yyyy")}
+                </h2>
+
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  className="h-8 w-8 rounded-lg bg-muted/30 hover:bg-muted/60 border border-border/50 shrink-0" 
+                  onClick={() => {
                     const newD = viewMode === 'week' ? new Date(selectedDate.getTime() + 7 * 24 * 60 * 60 * 1000) : addMonths(selectedDate, 1);
                     setSelectedDate(newD);
                     setCalendarMonth(newD);
-                  }}>
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </Button>
-                </div>
+                  }}
+                  title="Next"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="h-8 px-3 text-xs font-bold bg-muted/30 hover:bg-muted/60 border border-border/50 shrink-0 ml-1" 
+                  onClick={() => {
+                    const today = new Date();
+                    setSelectedDate(today);
+                    setCalendarMonth(today);
+                  }}
+                >
+                  Today
+                </Button>
+              </div>
+
+              {/* Mobile View Toggle (aligned right on top row) */}
+              <div className="flex sm:hidden items-center bg-muted/40 rounded-lg p-0.5 border border-border/50 shrink-0 self-start">
+                <button 
+                  onClick={() => setViewMode('month')}
+                  className={`px-3 py-1 rounded-md text-xs font-bold shadow-xs transition-colors ${viewMode === 'month' ? 'bg-[#FFFE00] text-[#942392] border-2 border-[#942392]' : 'text-foreground hover:text-foreground'}`}>Month</button>
+                <button 
+                  onClick={() => setViewMode('week')}
+                  className={`px-3 py-1 rounded-md text-xs font-bold shadow-xs transition-colors ${viewMode === 'week' ? 'bg-[#FFFE00] text-[#942392] border-2 border-[#942392]' : 'text-foreground hover:text-foreground'}`}>Week</button>
               </div>
             </div>
 
