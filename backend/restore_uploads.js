@@ -201,19 +201,31 @@ async function runRestore() {
     let skippedCount = 0;
     let failCount = 0;
 
+    const uploadDir = path.resolve("./uploads");
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+
     for (const file of files) {
-      const safeTarget = resolveSafeUploadPath(file.name);
-      if (!safeTarget) {
+      if (!file || typeof file.name !== "string") {
+        failCount++;
+        continue;
+      }
+
+      const safeFileName = path.basename(file.name);
+      if (
+        !safeFileName ||
+        safeFileName !== file.name ||
+        safeFileName.includes("..")
+      ) {
         console.warn(`⚠️ Skipping unsafe file path: ${file.name}`);
         failCount++;
         continue;
       }
 
-      const { localSubdir, localFilePath } = safeTarget;
-
-      // Create folders locally if they don't exist
-      if (!fs.existsSync(localSubdir)) {
-        fs.mkdirSync(localSubdir, { recursive: true });
+      const localFilePath = path.resolve(uploadDir, safeFileName);
+      if (!localFilePath.startsWith(uploadDir + path.sep)) {
+        throw new Error("Invalid file path");
       }
 
       // Check if file already exists locally
@@ -226,8 +238,8 @@ async function runRestore() {
         }
       }
 
-      console.log(`⬇️ Downloading: ${file.name} (${(file.size / 1024).toFixed(1)} KB)...`);
-      const fileData = await downloadFile(file.name);
+      console.log(`⬇️ Downloading: ${safeFileName} (${(file.size / 1024).toFixed(1)} KB)...`);
+      const fileData = await downloadFile(safeFileName);
       if (fileData) {
         fs.writeFileSync(localFilePath, fileData);
         successCount++;

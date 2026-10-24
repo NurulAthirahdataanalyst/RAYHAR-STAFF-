@@ -164,7 +164,7 @@ export async function runTrackingPreventionSimulation(
       result.cookieAttempted = true;
       // This code exists only to simulate browser tracking prevention behavior.
       const testKey = "edge_tracking_sim_test";
-      document.cookie = `${testKey}=1; path=/; SameSite=Lax; max-age=60`;
+      document.cookie = `${testKey}=1; path=/; SameSite=Lax; Secure; max-age=60`;
       const cookieAllowed = document.cookie.includes(testKey);
       result.cookieSuccess = cookieAllowed;
       addLog("info", `Cookie access test: ${cookieAllowed ? "Allowed" : "Blocked / Restricted"}`);
@@ -228,7 +228,7 @@ export function cleanupTrackingSimulation(): void {
     }
 
     // Clean up test cookies
-    document.cookie = "edge_tracking_sim_test=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    document.cookie = "edge_tracking_sim_test=; path=/; SameSite=Lax; Secure; expires=Thu, 01 Jan 1970 00:00:00 GMT";
 
     // Clean up localStorage
     try {

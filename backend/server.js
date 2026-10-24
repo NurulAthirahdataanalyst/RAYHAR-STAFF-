@@ -27,7 +27,17 @@ const isString = (value) =>
   typeof value === "string";
 
 const safeString = (value) =>
-  isString(value) ? value.trim() : "";
+  typeof value === "string"
+    ? value.trim()
+    : "";
+
+const safeLower = (value) =>
+  safeString(value).toLowerCase();
+
+const safeArraySplit = (value) =>
+  typeof value === "string"
+    ? value.split(",").map(v => v.trim()).filter(Boolean)
+    : [];
 
 const uploadLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -1429,7 +1439,7 @@ async function getLiveAttendanceStats(queryDate, role, branch, department) {
   try {
     const lateTimeStr = getLateThresholdTime ? getLateThresholdTime() : '09:00:00';
 
-    const normRole = safeString(role).toLowerCase().replace(/ /g, "_");
+    const normRole = safeLower(role).replace(/ /g, "_");
     const cleanBranch = safeString(branch);
     const cleanDept = safeString(department);
     let filterP = "";
@@ -1541,11 +1551,11 @@ async function getLiveAttendanceStats(queryDate, role, branch, department) {
       const matchingLeave = companyLeaveRows.find(cl => {
         if (cl.applies_to === 'all') return true;
         if (cl.applies_to === 'branch' && cl.branch_id) {
-          return cl.branch_id.split(',').map(s => s.trim()).includes(p.branch);
+          return safeArraySplit(cl.branch_id).includes(p.branch);
         }
         if (cl.applies_to === 'department' && cl.department_id) {
-          const depts = cl.department_id.split(',').map(s => s.trim());
-          const normEmpDept = (p.department || '').toLowerCase().replace(/\bdepartment\b/g, '').trim();
+          const depts = safeArraySplit(cl.department_id);
+          const normEmpDept = safeLower(p.department).replace(/\bdepartment\b/g, '').trim();
           return depts.some(d => {
             const normClDept = d.toLowerCase().replace(/\bdepartment\b/g, '').trim();
             return normEmpDept === normClDept || p.department === d;
@@ -1813,7 +1823,7 @@ app.get("/api/presence/live-stats", async (req, res) => {
 async function computeDynamicWorkforceMetrics(dateStr, role, branch, department) {
   let profileFilter = "";
   let pFilterParams = [];
-  const normRole = safeString(role).toLowerCase().replace(/ /g, "_");
+  const normRole = safeLower(role).replace(/ /g, "_");
   const cleanBranch = safeString(branch);
   const cleanDept = safeString(department);
 
@@ -1930,7 +1940,7 @@ let workforceFeedClients = [];
 async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMonth, targetYear) {
   const lateTimeStr = getLateThresholdTime ? getLateThresholdTime() : '09:00:00';
 
-  const normRole = safeString(role).toLowerCase().replace(/ /g, "_");
+  const normRole = safeLower(role).replace(/ /g, "_");
   const cleanBranch = safeString(branch);
   const cleanDept = safeString(department);
   let filterP = "";
@@ -2042,11 +2052,11 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
     const isCompanyLeave = companyLeaveDays.some(cl => {
       if (cl.applies_to === 'all') return true;
       if (cl.applies_to === 'branch' && cl.branch_id) {
-        return cl.branch_id.split(',').map(s => s.trim()).includes(p.branch);
+        return safeArraySplit(cl.branch_id).includes(p.branch);
       }
       if (cl.applies_to === 'department' && cl.department_id) {
-        const depts = cl.department_id.split(',').map(s => s.trim());
-        const normEmpDept = (p.department || '').toLowerCase().replace(/\bdepartment\b/g, '').trim();
+        const depts = safeArraySplit(cl.department_id);
+        const normEmpDept = safeLower(p.department).replace(/\bdepartment\b/g, '').trim();
         return depts.some(d => {
           const normClDept = d.toLowerCase().replace(/\bdepartment\b/g, '').trim();
           return normEmpDept === normClDept || p.department === d;
@@ -2802,11 +2812,11 @@ app.get("/api/branch-employees", async (req, res) => {
       const matchingLeave = companyLeaves.find(cl => {
         if (cl.applies_to === 'all') return true;
         if (cl.applies_to === 'branch' && cl.branch_id) {
-          return cl.branch_id.split(',').map(s => s.trim()).includes(employee.branch);
+          return safeArraySplit(cl.branch_id).includes(employee.branch);
         }
         if (cl.applies_to === 'department' && cl.department_id) {
-          const depts = cl.department_id.split(',').map(s => s.trim());
-          const normEmpDept = (employee.department || '').toLowerCase().replace(/\bdepartment\b/g, '').trim();
+          const depts = safeArraySplit(cl.department_id);
+          const normEmpDept = safeLower(employee.department).replace(/\bdepartment\b/g, '').trim();
           return depts.some(d => {
             const normClDept = d.toLowerCase().replace(/\bdepartment\b/g, '').trim();
             return normEmpDept === normClDept || employee.department === d;
@@ -5274,11 +5284,11 @@ app.get("/api/attendance-status", async (req, res) => {
       const matchingLeave = companyLeaveTodayRows.find(cl => {
         if (cl.applies_to === 'all') return true;
         if (cl.applies_to === 'branch' && cl.branch_id) {
-          return cl.branch_id.split(',').map(s => s.trim()).includes(p.branch);
+          return safeArraySplit(cl.branch_id).includes(p.branch);
         }
         if (cl.applies_to === 'department' && cl.department_id) {
-          const depts = cl.department_id.split(',').map(s => s.trim());
-          const normEmpDept = (p.department || '').toLowerCase().replace(/\bdepartment\b/g, '').trim();
+          const depts = safeArraySplit(cl.department_id);
+          const normEmpDept = safeLower(p.department).replace(/\bdepartment\b/g, '').trim();
           return depts.some(d => {
             const normClDept = d.toLowerCase().replace(/\bdepartment\b/g, '').trim();
             return normEmpDept === normClDept || p.department === d;
@@ -5839,11 +5849,11 @@ app.post("/api/attendance", async (req, res) => {
       const matchingLeave = companyLeaveTodayRows.find(cl => {
         if (cl.applies_to === 'all') return true;
         if (cl.applies_to === 'branch' && cl.branch_id) {
-          return cl.branch_id.split(',').map(s => s.trim()).includes(p.branch);
+          return safeArraySplit(cl.branch_id).includes(p.branch);
         }
         if (cl.applies_to === 'department' && cl.department_id) {
-          const depts = cl.department_id.split(',').map(s => s.trim());
-          const normEmpDept = (p.department || '').toLowerCase().replace(/\bdepartment\b/g, '').trim();
+          const depts = safeArraySplit(cl.department_id);
+          const normEmpDept = safeLower(p.department).replace(/\bdepartment\b/g, '').trim();
           return depts.some(d => {
             const normClDept = d.toLowerCase().replace(/\bdepartment\b/g, '').trim();
             return normEmpDept === normClDept || p.department === d;
@@ -6360,11 +6370,11 @@ app.get("/api/attendance/history", async (req, res) => {
         
         if (cl.applies_to === 'all') return true;
         if (cl.applies_to === 'branch' && cl.branch_id) {
-          return cl.branch_id.split(',').map(s => s.trim()).includes(userProfile.branch);
+          return safeArraySplit(cl.branch_id).includes(userProfile.branch);
         }
         if (cl.applies_to === 'department' && cl.department_id) {
-          const depts = cl.department_id.split(',').map(s => s.trim());
-          const normEmpDept = (userProfile.department || '').toLowerCase().replace(/\bdepartment\b/g, '').trim();
+          const depts = safeArraySplit(cl.department_id);
+          const normEmpDept = safeLower(userProfile.department).replace(/\bdepartment\b/g, '').trim();
           return depts.some(d => {
             const normClDept = d.toLowerCase().replace(/\bdepartment\b/g, '').trim();
             return normEmpDept === normClDept || userProfile.department === d;
@@ -6527,7 +6537,7 @@ app.get("/api/attendance/history", async (req, res) => {
 // ===============================
 app.get("/api/dashboard-stats", async (req, res) => {
   const userId = safeString(req.query.userId);
-  let role = safeString(req.query.role).toLowerCase();
+  let role = safeLower(req.query.role);
     if (role.includes('hr admin') || role === 'hr_admin' || role.includes('hr ')) role = 'hr_admin';
     else if (role.includes('md') || role.includes('managing director')) role = 'managing_director';
     else if (role.includes('branch leader') || role === 'branch_leader') role = 'branch_leader';
@@ -6758,11 +6768,11 @@ app.get("/api/dashboard-stats", async (req, res) => {
           isCompanyLeave = companyLeaveDays.some(cl => {
             if (cl.applies_to === 'all') return true;
             if (cl.applies_to === 'branch' && cl.branch_id) {
-              return cl.branch_id.split(',').map(s => s.trim()).includes(p.branch);
+              return safeArraySplit(cl.branch_id).includes(p.branch);
             }
             if (cl.applies_to === 'department' && cl.department_id) {
-              const depts = cl.department_id.split(',').map(s => s.trim());
-              const normEmpDept = (p.department || '').toLowerCase().replace(/\bdepartment\b/g, '').trim();
+              const depts = safeArraySplit(cl.department_id);
+              const normEmpDept = safeLower(p.department).replace(/\bdepartment\b/g, '').trim();
               return depts.some(d => {
                 const normClDept = d.toLowerCase().replace(/\bdepartment\b/g, '').trim();
                 return normEmpDept === normClDept || p.department === d;
@@ -6785,11 +6795,11 @@ app.get("/api/dashboard-stats", async (req, res) => {
         companyLeaveDays.find(cl => {
           if (cl.applies_to === 'all') return true;
           if (isBranchLeader && branch && cl.applies_to === 'branch' && cl.branch_id) {
-            return cl.branch_id.split(',').map(s => s.trim()).includes(branch);
+            return safeArraySplit(cl.branch_id).includes(branch);
           }
           if (isHOD && department && cl.applies_to === 'department' && cl.department_id) {
-            const depts = cl.department_id.split(',').map(s => s.trim());
-            const normDept = (department || '').toLowerCase().replace(/\bdepartment\b/g, '').trim();
+            const depts = safeArraySplit(cl.department_id);
+            const normDept = safeLower(department).replace(/\bdepartment\b/g, '').trim();
             return depts.some(d => d.toLowerCase().replace(/\bdepartment\b/g, '').trim() === normDept || department === d);
           }
           return cl.applies_to === 'all';
@@ -6934,11 +6944,11 @@ app.get("/api/dashboard-stats", async (req, res) => {
       const matchingLeave = companyLeaveTodayRows.find(cl => {
         if (cl.applies_to === 'all') return true;
         if (cl.applies_to === 'branch' && cl.branch_id) {
-          return cl.branch_id.split(',').map(s => s.trim()).includes(p.branch);
+          return safeArraySplit(cl.branch_id).includes(p.branch);
         }
         if (cl.applies_to === 'department' && cl.department_id) {
-          const depts = cl.department_id.split(',').map(s => s.trim());
-          const normEmpDept = (p.department || '').toLowerCase().replace(/\bdepartment\b/g, '').trim();
+          const depts = safeArraySplit(cl.department_id);
+          const normEmpDept = safeLower(p.department).replace(/\bdepartment\b/g, '').trim();
           return depts.some(d => {
             const normClDept = d.toLowerCase().replace(/\bdepartment\b/g, '').trim();
             return normEmpDept === normClDept || p.department === d;
@@ -7005,11 +7015,11 @@ app.get("/api/dashboard-stats", async (req, res) => {
           if (checkDateStr >= startStr && checkDateStr <= endStr) {
             if (cl.applies_to === 'all') return true;
             if (cl.applies_to === 'branch' && cl.branch_id) {
-              return cl.branch_id.split(',').map(s => s.trim()).includes(p.branch);
+              return safeArraySplit(cl.branch_id).includes(p.branch);
             }
             if (cl.applies_to === 'department' && cl.department_id) {
-              const depts = cl.department_id.split(',').map(s => s.trim());
-              const normEmpDept = (p.department || '').toLowerCase().replace(/\bdepartment\b/g, '').trim();
+              const depts = safeArraySplit(cl.department_id);
+              const normEmpDept = safeLower(p.department).replace(/\bdepartment\b/g, '').trim();
               return depts.some(d => {
                 const normClDept = d.toLowerCase().replace(/\bdepartment\b/g, '').trim();
                 return normEmpDept === normClDept || p.department === d;
@@ -7733,9 +7743,9 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
           const clEnd = new Date(cl.end_date).toISOString().split('T')[0];
           if (dateStr >= clStart && dateStr <= clEnd) {
             if (cl.applies_to === 'all') return true;
-            if (cl.applies_to === 'branch' && cl.branch_id) return cl.branch_id.split(',').map(s=>s.trim()).includes(p.branch);
+            if (cl.applies_to === 'branch' && cl.branch_id) return safeArraySplit(cl.branch_id).includes(p.branch);
             if (cl.applies_to === 'department' && cl.department_id) {
-              const depts = cl.department_id.split(',').map(s=>s.trim());
+              const depts = safeArraySplit(cl.department_id);
               const normEmpDept = (p.department||'').toLowerCase().replace(/\bdepartment\b/g,'').trim();
               return depts.some(d => {
                 const normClDept = d.toLowerCase().replace(/\bdepartment\b/g,'').trim();
@@ -8078,11 +8088,11 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
       const matchingLeave = companyLeaves.find(cl => {
         if (cl.applies_to === 'all') return true;
         if (cl.applies_to === 'branch' && cl.branch_id) {
-          return cl.branch_id.split(',').map(s => s.trim()).includes(p.branch);
+          return safeArraySplit(cl.branch_id).includes(p.branch);
         }
         if (cl.applies_to === 'department' && cl.department_id) {
-          const depts = cl.department_id.split(',').map(s => s.trim());
-          const normEmpDept = (p.department || '').toLowerCase().replace(/\bdepartment\b/g, '').trim();
+          const depts = safeArraySplit(cl.department_id);
+          const normEmpDept = safeLower(p.department).replace(/\bdepartment\b/g, '').trim();
           return depts.some(d => {
             const normClDept = d.toLowerCase().replace(/\bdepartment\b/g, '').trim();
             return normEmpDept === normClDept || p.department === d;
@@ -8481,7 +8491,7 @@ app.get("/api/workforce-stats", async (req, res) => {
     const queryMonth = safeString(req.query.month);
     const queryYear = safeString(req.query.year);
     const queryDateParam = safeString(req.query.date);
-    const normRole = role.toLowerCase().replace(/ /g, "_");
+    const normRole = safeLower(role).replace(/ /g, "_");
 
     let profileFilter = "";
     let pFilterParams = [];
@@ -8548,8 +8558,8 @@ app.get("/api/workforce-stats", async (req, res) => {
         const e = cl.end_date instanceof Date ? cl.end_date.toISOString().split('T')[0] : String(cl.end_date).split('T')[0];
         if (targetDateStr >= s && targetDateStr <= e) {
           if (cl.applies_to === 'All' || cl.applies_to === 'all') onCL = true;
-          else if ((cl.applies_to === 'Specific Branch' || cl.applies_to === 'branch') && cl.branch_id && cl.branch_id.split(',').map(x=>x.trim()).includes(emp.branch)) onCL = true;
-          else if ((cl.applies_to === 'Specific Department' || cl.applies_to === 'department') && cl.department_id && cl.department_id.split(',').map(x=>x.trim()).includes(emp.department)) onCL = true;
+          else if ((cl.applies_to === 'Specific Branch' || cl.applies_to === 'branch') && cl.branch_id && safeArraySplit(cl.branch_id).includes(emp.branch)) onCL = true;
+          else if ((cl.applies_to === 'Specific Department' || cl.applies_to === 'department') && cl.department_id && safeArraySplit(cl.department_id).includes(emp.department)) onCL = true;
         }
       }
       if (onCL) {
@@ -8755,8 +8765,8 @@ app.get("/api/workforce-stats", async (req, res) => {
           const e = cl.end_date instanceof Date ? cl.end_date.toISOString().split('T')[0] : String(cl.end_date).split('T')[0];
           if (dateStr >= s && dateStr <= e) {
             if (cl.applies_to === 'All' || cl.applies_to === 'all') return true;
-            if ((cl.applies_to === 'Specific Branch' || cl.applies_to === 'branch') && cl.branch_id && cl.branch_id.split(',').map(x => x.trim()).includes(effectiveBranch)) return true;
-            if ((cl.applies_to === 'Specific Department' || cl.applies_to === 'department') && cl.department_id && cl.department_id.split(',').map(x => x.trim()).includes(p.department)) return true;
+            if ((cl.applies_to === 'Specific Branch' || cl.applies_to === 'branch') && cl.branch_id && safeArraySplit(cl.branch_id).includes(effectiveBranch)) return true;
+            if ((cl.applies_to === 'Specific Department' || cl.applies_to === 'department') && cl.department_id && safeArraySplit(cl.department_id).includes(p.department)) return true;
           }
           return false;
         });
@@ -10238,7 +10248,7 @@ app.get("/api/reports/generator", async (req, res) => {
     let year = safeString(req.query.year);
     let branch = safeString(req.query.branch);
     let department = safeString(req.query.department);
-    let requesterRole = safeString(req.query.requesterRole).toLowerCase();
+    let requesterRole = safeLower(req.query.requesterRole);
     let requesterBranch = safeString(req.query.requesterBranch);
     let requesterDept = safeString(req.query.requesterDept);
     let requesterId = safeString(req.query.requesterId);
@@ -11036,17 +11046,13 @@ app.post("/api/company-leaves", async (req, res) => {
       let targetUserQuery = "SELECT user_id FROM profiles WHERE status = 'Active'";
       const targetParams = [];
       if (applies_to === 'branch' && branch_id) {
-        const branches = typeof branch_id === "string"
-          ? branch_id.split(",").map(s => s.trim()).filter(Boolean)
-          : [];
+        const branches = safeArraySplit(branch_id);
         if (branches.length > 0) {
           targetUserQuery += " AND branch IN (?)";
           targetParams.push(branches);
         }
       } else if (applies_to === 'department' && department_id) {
-        const depts = typeof department_id === "string"
-          ? department_id.split(",").map(s => s.trim()).filter(Boolean)
-          : [];
+        const depts = safeArraySplit(department_id);
         if (depts.length > 0) {
           targetUserQuery += " AND department IN (?)";
           targetParams.push(depts);
@@ -11639,7 +11645,7 @@ app.delete('/api/outstation/:id', async (req, res) => {
     // 2. Verify creator matches authenticated user or HR/Admin
     req.user = req.user || {};
     req.user.userId = safeString(req.user.userId) || safeString(req.query.userId) || safeString(req.body?.userId) || safeString(req.headers['x-user-id']);
-    const deleteRole = (safeString(req.query.role) || safeString(req.body?.role) || safeString(req.headers['x-user-role'])).toLowerCase();
+    const deleteRole = safeLower(req.query.role || req.body?.role || req.headers['x-user-role']);
     const isHrOrAdminDelete = ['hr_admin', 'managing_director', 'operation_manager', 'finance_manager'].includes(deleteRole);
 
     if (!isHrOrAdminDelete && assignment.assigned_by !== req.user.userId) {
@@ -12293,12 +12299,12 @@ app.get("/api/work-assignments-all", async (req, res) => {
         const matchingLeave = companyLeaves.find(cl => {
           if (cl.applies_to === 'all') return true;
           if (cl.applies_to === 'branch' && cl.branch_id) {
-            const branchesList = cl.branch_id.split(',').map(s => s.trim());
+            const branchesList = safeArraySplit(cl.branch_id);
             return branchesList.includes(activeBranch) || branchesList.includes(row.primary_branch);
           }
           if (cl.applies_to === 'department' && cl.department_id) {
-            const depts = cl.department_id.split(',').map(s => s.trim());
-            const normEmpDept = (activeDept || '').toLowerCase().replace(/\bdepartment\b/g, '').trim();
+            const depts = safeArraySplit(cl.department_id);
+            const normEmpDept = safeLower(activeDept).replace(/\bdepartment\b/g, '').trim();
             return depts.some(d => {
               const normClDept = d.toLowerCase().replace(/\bdepartment\b/g, '').trim();
               return normEmpDept === normClDept || activeDept === d;

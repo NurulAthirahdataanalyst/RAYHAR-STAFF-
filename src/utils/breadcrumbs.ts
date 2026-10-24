@@ -5,7 +5,9 @@ export interface BreadcrumbSegment {
   path?: string;
 }
 
-export function getBreadcrumbs(pathname: string, search?: string, role?: string): BreadcrumbSegment[] {
+export function getBreadcrumbs(rawPathname: string, rawSearch?: string, role?: string): BreadcrumbSegment[] {
+  const pathname = typeof rawPathname === "string" ? rawPathname : "/";
+  const search = typeof rawSearch === "string" ? rawSearch : "";
   const home: BreadcrumbSegment = { label: "HOME", path: "/" };
 
   if (pathname === "/") return [home, { label: "DASHBOARD" }];

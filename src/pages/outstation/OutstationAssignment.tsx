@@ -131,10 +131,29 @@ const emptyForm = {
   end_time: "",
 };
 
+const isSafeInternalPath = (path: string) => {
+  return (
+    typeof path === "string" &&
+    path.startsWith("/") &&
+    !path.startsWith("//") &&
+    !path.startsWith("/\\") &&
+    !path.includes("://") &&
+    !/^(javascript|data|vbscript):/i.test(path.trim())
+  );
+};
+
 export default function OutstationAssignment() {
   const { role, userBranch, userDepartment, userId, userName, loading: roleLoading } = useRole();
   const navigate = useNavigate();
   const location = useLocation();
+
+  const safeNavigate = useCallback((path?: string) => {
+    if (path && isSafeInternalPath(path)) {
+      navigate(path);
+    } else {
+      navigate("/");
+    }
+  }, [navigate]);
 
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -376,7 +395,16 @@ export default function OutstationAssignment() {
 
   useEffect(() => {
     if (location.state?.openNew) {
-      navigate(sanitizeInternalPath(location.pathname, "/outstation/assignment"), { replace: true, state: {} });
+      const safePath =
+        typeof location.pathname === "string" &&
+        location.pathname.startsWith("/") &&
+        !location.pathname.startsWith("//") &&
+        !location.pathname.startsWith("/\\") &&
+        !location.pathname.includes("://") &&
+        !/^(javascript|data|vbscript):/i.test(location.pathname.trim())
+          ? location.pathname
+          : "/";
+      navigate(safePath, { replace: true, state: {} });
       setTimeout(() => openNew(), 50);
     }
   }, [location.state, location.pathname, navigate]);

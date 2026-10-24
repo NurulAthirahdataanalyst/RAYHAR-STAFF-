@@ -27,6 +27,17 @@ import { toast } from "sonner";
 import { UserAvatar, getSavedAvatar } from "@/utils/avatarUtils";
 import { GlobalScrollTopButton } from "../shared/GlobalScrollTopButton";
 
+const isSafeInternalPath = (path: string) => {
+  return (
+    typeof path === "string" &&
+    path.startsWith("/") &&
+    !path.startsWith("//") &&
+    !path.startsWith("/\\") &&
+    !path.includes("://") &&
+    !/^(javascript|data|vbscript):/i.test(path.trim())
+  );
+};
+
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
@@ -35,6 +46,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { theme, toggleTheme } = useTheme();
   useShiftNotifications();
   useBackgroundLocation();
+
+  const safeNavigate = (path?: string) => {
+    if (path && isSafeInternalPath(path)) {
+      navigate(path);
+    } else {
+      navigate("/");
+    }
+  };
 
   const displayName = userName || user?.full_name || user?.name || "Employee";
   const displayAvatar = (displayName || "E")[0].toUpperCase();
@@ -161,23 +180,24 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const weekdays = ["S", "M", "T", "W", "T", "F", "S"];
 
   const getRouteLabel = (pathname: string) => {
-    if (pathname === "/") return "DASHBOARD";
-    if (pathname.startsWith("/leave")) return "LEAVE MANAGEMENT";
-    if (pathname.includes("employees")) return "EMPLOYEE DIRECTORY";
-    if (pathname.includes("settings")) return "CONFIGURATION";
-    if (pathname.includes("reports")) return "REPORTS & ANALYTICS";
-    if (pathname.includes("analytics")) return "REPORTS & ANALYTICS";
-    if (pathname.includes("calendar")) return "WORK CALENDAR";
-    if (pathname.includes("attendance")) return "ATTENDANCE";
-    if (pathname.includes("branches")) return "BRANCHES";
-    if (pathname.includes("profile")) return "PROFILE";
-    if (pathname.includes("master")) return "ADMINISTRATION";
-    const lastSegment = pathname.split("/").filter(Boolean).pop();
+    const safePathname = typeof pathname === "string" ? pathname : "/";
+    if (safePathname === "/") return "DASHBOARD";
+    if (safePathname.startsWith("/leave")) return "LEAVE MANAGEMENT";
+    if (safePathname.includes("employees")) return "EMPLOYEE DIRECTORY";
+    if (safePathname.includes("settings")) return "CONFIGURATION";
+    if (safePathname.includes("reports")) return "REPORTS & ANALYTICS";
+    if (safePathname.includes("analytics")) return "REPORTS & ANALYTICS";
+    if (safePathname.includes("calendar")) return "WORK CALENDAR";
+    if (safePathname.includes("attendance")) return "ATTENDANCE";
+    if (safePathname.includes("branches")) return "BRANCHES";
+    if (safePathname.includes("profile")) return "PROFILE";
+    if (safePathname.includes("master")) return "ADMINISTRATION";
+    const lastSegment = safePathname.split("/").filter(Boolean).pop();
     return lastSegment ? lastSegment.replace(/-/g, " ").toUpperCase() : "PAGE";
   };
 
   const getBreadcrumb = () => {
-    const pathname = location.pathname;
+    const pathname = typeof location.pathname === "string" ? location.pathname : "/";
 
     if (pathname === "/") {
       return ["HOME", "DASHBOARD"];
@@ -294,7 +314,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     {crumb.path ? (
                       <span 
                         className="hover:text-purple-200 cursor-pointer transition-colors" 
-                        onClick={() => navigate(sanitizeInternalPath(crumb.path, "/"))}
+                        onClick={() => safeNavigate(crumb.path)}
                       >
                         {crumb.label}
                       </span>
