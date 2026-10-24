@@ -185,6 +185,7 @@ export default function WorkforceInsights() {
   const [feedConnected, setFeedConnected] = useState(false);
   const [liveEmployees, setLiveEmployees] = useState<any[]>([]);
   const [tempAssignments, setTempAssignments] = useState<any[]>([]);
+  const [outstationAssignments, setOutstationAssignments] = useState<any[]>([]);
 
   const isAdminRole = ["hr_admin", "managing_director", "operation_manager", "finance_manager"].includes(role || "");
 
@@ -338,9 +339,10 @@ export default function WorkforceInsights() {
         params.append('date', `${year}-${month}-${day}`);
       }
       
-      const [res, tempRes] = await Promise.all([
+      const [res, tempRes, outRes] = await Promise.all([
         fetch(`${API_BASE_URL}/api/workforce-stats?${params}`),
-        fetch(`${API_BASE_URL}/api/work-assignments-all?${params}`)
+        fetch(`${API_BASE_URL}/api/work-assignments-all?${params}`),
+        fetch(`${API_BASE_URL}/api/outstation?${params}`)
       ]);
       
       if (!res.ok) {
@@ -358,6 +360,13 @@ export default function WorkforceInsights() {
         const tempJson = await tempRes.json();
         if (tempJson.success) {
           setTempAssignments(tempJson.assignments);
+        }
+      }
+
+      if (outRes.ok) {
+        const outJson = await outRes.json();
+        if (outJson.success && Array.isArray(outJson.assignments)) {
+          setOutstationAssignments(outJson.assignments);
         }
       }
     } catch (err: any) {
@@ -2170,7 +2179,7 @@ export default function WorkforceInsights() {
         )}
         </>
         ) : (
-          <MonthViewDashboard data={data} clockInOut={clockInOut} absentList={absentList} tempAssignments={tempAssignments} outstationSummary={outstationSummary} feedConnected={feedConnected} liveMonthlyComp={liveMonthlyComp} liveHrAlerts={liveHrAlerts} liveLeaveTrend={liveLeaveTrend} month={month} year={year} day={day} liveWeeklyAttendanceTrend={liveWeeklyAttendanceTrend} trendWeekStart={trendWeekStart} setTrendWeekStart={setTrendWeekStart} onEmployeeClick={(id: string) => setSelectedStaffId(id)} viewMode={viewMode} />
+          <MonthViewDashboard data={data} clockInOut={clockInOut} absentList={absentList} tempAssignments={tempAssignments} outstationAssignments={outstationAssignments} upcomingOutstationList={upcomingOutstationList} outstationSummary={outstationSummary} feedConnected={feedConnected} liveMonthlyComp={liveMonthlyComp} liveHrAlerts={liveHrAlerts} liveLeaveTrend={liveLeaveTrend} month={month} year={year} day={day} liveWeeklyAttendanceTrend={liveWeeklyAttendanceTrend} trendWeekStart={trendWeekStart} setTrendWeekStart={setTrendWeekStart} onEmployeeClick={(id: string) => setSelectedStaffId(id)} viewMode={viewMode} />
         )}
   
       <StaffProfileDialog 
@@ -2181,7 +2190,7 @@ export default function WorkforceInsights() {
     </div>
   );
 }
-function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssignments, pendingApprovalsList, feedConnected, outstationSummary, liveMonthlyComp, liveHrAlerts, liveLeaveTrend, month, year, day, liveWeeklyAttendanceTrend, trendWeekStart, setTrendWeekStart, onEmployeeClick, viewMode }: any) {
+function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssignments, outstationAssignments, upcomingOutstationList, pendingApprovalsList, feedConnected, outstationSummary, liveMonthlyComp, liveHrAlerts, liveLeaveTrend, month, year, day, liveWeeklyAttendanceTrend, trendWeekStart, setTrendWeekStart, onEmployeeClick, viewMode }: any) {
     const [selectedRegion, setSelectedRegion] = useState<string>('All Regions');
   const navigate = useNavigate();
   const { role: currentRole } = useRole();
@@ -2202,6 +2211,66 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
     }
   }
   const outstation = data.outstationAnalytics || { popularRoutes: [] };
+  const computedOutstation = useMemo(() => {
+    if (!Array.isArray(outstationAssignments) || outstationAssignments.length === 0) return null;
+    const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kuala_Lumpur' });
+    const groups: Record<string, { eventName: string; destination: string; startDate: string; endDate: string; status: string; assignments: any[] }> = {};
+    outstationAssignments.forEach((a: any) => {
+      const rawName = (a.project && a.project.trim() !== '-' && a.project.trim() !== '')
+        ? a.project.trim()
+        : (a.meeting_title && a.meeting_title.trim() !== '-' && a.meeting_title.trim() !== '')
+        ? a.meeting_title.trim()
+        : (a.purpose && a.purpose.trim() !== '-' && a.purpose.trim() !== '')
+        ? a.purpose.trim()
+        : (a.destination ? `Trip to ${a.destination}` : 'General Event');
+      const dest = (a.destination || '').trim();
+      const sDate = a.start_date ? String(a.start_date).slice(0, 10) : '';
+      const eDate = a.end_date ? String(a.end_date).slice(0, 10) : '';
+      const key = `${rawName}:::${dest}:::${sDate}:::${eDate}`;
+      if (!groups[key]) {
+        groups[key] = { eventName: rawName, destination: dest, startDate: sDate, endDate: eDate, status: 'Upcoming', assignments: [] };
+      }
+      const g = groups[key];
+      g.assignments.push(a);
+      if (sDate && (!g.startDate || sDate < g.startDate)) g.startDate = sDate;
+      if (eDate && (!g.endDate || eDate > g.endDate)) g.endDate = eDate;
+    });
+
+    const allEvents = Object.values(groups).map(g => {
+      const s = g.startDate || today;
+      const e = g.endDate || today;
+      const allCancelled = g.assignments.length > 0 && g.assignments.every(a => a.status === 'Cancelled');
+      let status = 'Upcoming';
+      if (allCancelled) status = 'Cancelled';
+      else if (today > e) status = 'Completed';
+      else if (today >= s && today <= e) status = 'Active';
+      else status = 'Upcoming';
+      return { ...g, status };
+    });
+
+    const mNum = Number(month);
+    const yNum = Number(year);
+    const monthPrefix = `${yNum}-${String(mNum).padStart(2, '0')}`;
+    const monthStart = `${monthPrefix}-01`;
+    const daysInM = new Date(yNum, mNum, 0).getDate();
+    const monthEnd = `${monthPrefix}-${String(daysInM).padStart(2, '0')}`;
+
+    const monthEvents = allEvents.filter(ev => {
+      const s = ev.startDate;
+      const e = ev.endDate || ev.startDate;
+      return (s >= monthStart && s <= monthEnd) || (e >= monthStart && e <= monthEnd) || (s <= monthStart && e >= monthEnd);
+    });
+
+    const completed = monthEvents.filter(ev => ev.status === 'Completed').length;
+    const upcoming = monthEvents.filter(ev => ev.status === 'Upcoming' || ev.status === 'Active').length;
+    const cancelled = monthEvents.filter(ev => ev.status === 'Cancelled').length;
+    const upcomingEvents = allEvents
+      .filter(ev => ev.status === 'Upcoming')
+      .sort((a, b) => a.startDate.localeCompare(b.startDate))
+      .map(ev => ev.eventName);
+
+    return { completed, upcoming, cancelled, upcomingEvents };
+  }, [outstationAssignments, month, year]);
   const leave = data.leaveAnalytics || {};
   const movement = data.workforceMovement || {};
   
@@ -2661,9 +2730,9 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                       { label: 'Leave Requests', cur: (liveMonthlyComp || monthlyComp).leaveRequests?.current || 0, prev: (liveMonthlyComp || monthlyComp).leaveRequests?.previous || 0, diff: ((liveMonthlyComp || monthlyComp).leaveRequests?.current || 0) - ((liveMonthlyComp || monthlyComp).leaveRequests?.previous || 0), invert: true },
                       { 
                         label: 'Outstation Trip', 
-                        cur: outstationSummary ? ((outstationSummary.completed || 0) + (outstationSummary.upcoming || 0)) : ((liveMonthlyComp || monthlyComp).outstation?.current || 0), 
+                        cur: computedOutstation ? (computedOutstation.completed + computedOutstation.upcoming) : outstationSummary ? ((outstationSummary.completed || 0) + (outstationSummary.upcoming || 0)) : ((liveMonthlyComp || monthlyComp).outstation?.current || 0), 
                         prev: 0, 
-                        diff: outstationSummary ? ((outstationSummary.completed || 0) + (outstationSummary.upcoming || 0)) : (((liveMonthlyComp || monthlyComp).outstation?.current || 0) - ((liveMonthlyComp || monthlyComp).outstation?.previous || 0)) 
+                        diff: computedOutstation ? (computedOutstation.completed + computedOutstation.upcoming) : outstationSummary ? ((outstationSummary.completed || 0) + (outstationSummary.upcoming || 0)) : (((liveMonthlyComp || monthlyComp).outstation?.current || 0) - ((liveMonthlyComp || monthlyComp).outstation?.previous || 0)) 
                       },
 
                     ].map((row, idx) => {
@@ -2982,7 +3051,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
              
              <div className="grid grid-cols-3 gap-2 mb-8">
                {(() => {
-                 const currentOutstation = outstationSummary || data.outstationAnalytics || {};
+                 const currentOutstation = computedOutstation || outstationSummary || data.outstationAnalytics || {};
                  const completed = currentOutstation.completed ?? currentOutstation.completedEvents ?? currentOutstation.completedTrips ?? 0;
                  const upcoming = currentOutstation.upcoming ?? currentOutstation.upcomingEvents ?? currentOutstation.upcomingTrips ?? 0;
                  const cancelled = currentOutstation.cancelled ?? currentOutstation.cancelledEvents ?? currentOutstation.cancelledTrips ?? 0;
@@ -3007,16 +3076,22 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
              
              <p className="text-[10px] font-bold text-foreground uppercase tracking-widest mb-4">EVENT</p>
              <div className="space-y-4 flex-1 overflow-y-auto custom-scrollbar pr-1 mb-2">
-               {((outstationSummary?.popularRoutes || data.outstationAnalytics?.popularRoutes || [])).length === 0 ? (
+               {(() => {
+                 const upcomingEvents: string[] = computedOutstation?.upcomingEvents
+                   || outstationSummary?.upcomingEvents
+                   || data.outstationAnalytics?.upcomingEvents
+                   || (Array.isArray(upcomingOutstationList) ? upcomingOutstationList.map((u: any) => u.title || u.project || u.destination).filter(Boolean) : []);
+                 return upcomingEvents.length === 0 ? (
                  <div className="flex flex-col items-center justify-center h-full text-foreground py-4">
                    <Plane className="w-6 h-6 opacity-30 mb-2" />
                    <p className="text-[9px] font-bold uppercase tracking-widest">NO EVENTS RECORDED</p>
                  </div>
-               ) : (Array.isArray(outstationSummary?.popularRoutes || data.outstationAnalytics?.popularRoutes) ? (outstationSummary?.popularRoutes || data.outstationAnalytics?.popularRoutes) : []).map((r: any, i: number) => (
+                 ) : upcomingEvents.map((eventName: string, i: number) => (
                    <div key={i} className="flex items-center gap-3">
-                     <span className="text-[11px] font-bold text-[#3B66A7] truncate" title={r.route}>{r.route} &rarr; {r.trips}</span>
+                     <span className="text-[11px] font-bold text-[#3B66A7] truncate" title={eventName}>{eventName}</span>
                    </div>
-               ))}
+                 ));
+               })()}
              </div>
 
              <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-end items-center">

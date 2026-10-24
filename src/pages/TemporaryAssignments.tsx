@@ -597,7 +597,7 @@ const TemporaryAssignments = () => {
             {assignForm.location === "HQ" && (
               <div>
                 <Label className="text-xs font-bold uppercase tracking-widest text-foreground">Department</Label>
-                <Select value={assignForm.department || "all"} onValueChange={(val) => setAssignForm({...assignForm, department: val === "all" ? "" : val})}>
+                <Select disabled={Boolean(editId)} value={assignForm.department || "all"} onValueChange={(val) => { if (!editId) setAssignForm({...assignForm, department: val === "all" ? "" : val}); }}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select Department (optional)" />
                   </SelectTrigger>
@@ -632,7 +632,7 @@ const TemporaryAssignments = () => {
               <Button 
                 variant="outline" 
                 className="w-1/3 text-rose-500 border-rose-200 hover:bg-rose-50 dark:hover:bg-rose-950/30"
-                onClick={() => setAssignForm(prev => editId ? { ...prev, department: "", start_date: "", end_date: "", status: "Active", purpose: "", remarks: "" } : { user_id: "", location: "", department: "", start_date: "", end_date: "", status: "Active", purpose: "", remarks: "", assigned_by: userName || "" })}
+                onClick={() => setAssignForm(prev => editId ? { ...prev, start_date: "", end_date: "", status: "Active", purpose: "", remarks: "" } : { user_id: "", location: "", department: "", start_date: "", end_date: "", status: "Active", purpose: "", remarks: "", assigned_by: userName || "" })}
               >
                 Reset
               </Button>

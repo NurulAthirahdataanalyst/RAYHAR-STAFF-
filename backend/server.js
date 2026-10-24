@@ -1820,6 +1820,77 @@ app.get("/api/presence/live-stats", async (req, res) => {
 // ============================================================
 // DYNAMIC METRICS HELPER (Monthly Comparison, HR Alerts, Outstation Analytics)
 // ============================================================
+function computeOutstationEventMetrics(rows, monthStart, monthEnd) {
+  const todayKL = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kuala_Lumpur' });
+  const fmtDate = (d) => {
+    if (!d) return '';
+    if (d instanceof Date) return d.toLocaleDateString('en-CA', { timeZone: 'Asia/Kuala_Lumpur' });
+    return String(d).slice(0, 10);
+  };
+  const groups = {};
+  for (const a of (rows || [])) {
+    const rawName = (a.project && a.project.trim() !== '-' && a.project.trim() !== '')
+      ? a.project.trim()
+      : (a.meeting_title && a.meeting_title.trim() !== '-' && a.meeting_title.trim() !== '')
+      ? a.meeting_title.trim()
+      : (a.purpose && a.purpose.trim() !== '-' && a.purpose.trim() !== '')
+      ? a.purpose.trim()
+      : (a.destination ? `Trip to ${a.destination}` : 'General Event');
+    const dest = (a.destination || '').trim();
+    const sDate = fmtDate(a.start_date);
+    const eDate = fmtDate(a.end_date) || sDate;
+    const key = `${rawName}:::${dest}:::${sDate}:::${eDate}`;
+    if (!groups[key]) {
+      groups[key] = { eventName: rawName, destination: dest, startDate: sDate, endDate: eDate, status: 'Upcoming', assignments: [] };
+    }
+    groups[key].assignments.push(a);
+  }
+
+  const allEvents = Object.values(groups).map(g => {
+    const s = g.startDate || todayKL;
+    const e = g.endDate || todayKL;
+    const allCancelled = g.assignments.length > 0 && g.assignments.every(a => a.status === 'Cancelled');
+    let status = 'Upcoming';
+    if (allCancelled) status = 'Cancelled';
+    else if (todayKL > e) status = 'Completed';
+    else if (todayKL >= s && todayKL <= e) status = 'Active';
+    else status = 'Upcoming';
+    return { ...g, status };
+  });
+
+  const monthEvents = allEvents.filter(ev => {
+    const s = ev.startDate;
+    const e = ev.endDate || ev.startDate;
+    return (s >= monthStart && s <= monthEnd) || (e >= monthStart && e <= monthEnd) || (s <= monthStart && e >= monthEnd);
+  });
+
+  let completed = 0;
+  let upcoming = 0;
+  let cancelled = 0;
+  const routeCounts = {};
+
+  for (const ev of monthEvents) {
+    if (ev.status === 'Completed') completed++;
+    else if (ev.status === 'Upcoming' || ev.status === 'Active') upcoming++;
+    else if (ev.status === 'Cancelled') cancelled++;
+    if (ev.status !== 'Cancelled' && ev.destination) {
+      routeCounts[ev.destination] = (routeCounts[ev.destination] || 0) + 1;
+    }
+  }
+
+  const popularRoutes = Object.entries(routeCounts)
+    .map(([route, trips]) => ({ route: `KL → ${route}`, trips }))
+    .sort((a, b) => b.trips - a.trips)
+    .slice(0, 3);
+
+  const upcomingEvents = allEvents
+    .filter(ev => ev.status === 'Upcoming')
+    .sort((a, b) => a.startDate.localeCompare(b.startDate))
+    .map(ev => ev.eventName);
+
+  return { completed, upcoming, cancelled, popularRoutes, upcomingEvents };
+}
+
 async function computeDynamicWorkforceMetrics(dateStr, role, branch, department) {
   let profileFilter = "";
   let pFilterParams = [];
@@ -1920,11 +1991,22 @@ async function computeDynamicWorkforceMetrics(dateStr, role, branch, department)
 
   const [routes] = await pool.query(`SELECT o.destination, COUNT(*) as trips FROM outstation_assignments o JOIN profiles p ON p.user_id = o.user_id WHERE (DATE(o.start_date) BETWEEN ? AND ? OR DATE(o.end_date) BETWEEN ? AND ?) AND p.status = 'Active' ${profileFilter} GROUP BY o.destination ORDER BY trips DESC LIMIT 3`, [curStart, curEnd, curStart, curEnd, ...pFilterParams]);
 
-  const outstationAnalytics = {
+  const _legacyOutstationAnalytics = {
     completed: parseInt(outCur[0].completed || 0),
     upcoming: parseInt(outCur[0].active || 0),
     cancelled: parseInt(outCur[0].cancelled || 0),
     popularRoutes: routes.map(r => ({ route: r.destination || 'Unknown', trips: parseInt(r.trips || 0) }))
+  };
+
+  const [allOutstationForAnalytics] = await pool.query(
+    `SELECT o.project, o.meeting_title, o.purpose, o.destination, o.start_date, o.end_date, o.status FROM outstation_assignments o JOIN profiles p ON p.user_id = o.user_id WHERE p.status = 'Active' ${profileFilter}`,
+    pFilterParams
+  );
+  const outstationAnalytics = computeOutstationEventMetrics(allOutstationForAnalytics, curStart, curEnd);
+  const prevOutstationAnalytics = computeOutstationEventMetrics(allOutstationForAnalytics, prevStart, prevEnd);
+  monthlyComparison.outstation = {
+    current: outstationAnalytics.completed + outstationAnalytics.upcoming,
+    previous: prevOutstationAnalytics.completed + prevOutstationAnalytics.upcoming
   };
 
   return { monthlyComparison, hrAlerts, outstationAnalytics };
@@ -2288,7 +2370,28 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
     .sort((a, b) => b.trips - a.trips)
     .slice(0, 3);
 
-  const outstationSummary = {
+  const sumYear = targetYear || new Date(dateStr).getFullYear();
+  const sumMonth = targetMonth || (new Date(dateStr).getMonth() + 1);
+  const sumDaysInMonth = new Date(sumYear, sumMonth, 0).getDate();
+  const sumMonthStart = `${sumYear}-${String(sumMonth).padStart(2, '0')}-01`;
+  const sumMonthEnd = `${sumYear}-${String(sumMonth).padStart(2, '0')}-${String(sumDaysInMonth).padStart(2, '0')}`;
+  let allOutFilters = ["1=1"];
+  let allOutParams = [];
+  if (role === 'branch_leader') {
+    const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
+    allOutFilters.push("branch = ?");
+    allOutParams.push(safeBranch);
+  } else if (role === 'head_of_department') {
+    const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
+    allOutFilters.push("department = ?");
+    allOutParams.push(safeDept);
+  }
+  const [allOutRowsForSummary] = await pool.query(
+    `SELECT project, meeting_title, purpose, destination, start_date, end_date, status FROM outstation_assignments WHERE ${allOutFilters.join(' AND ')}`,
+    allOutParams
+  );
+  const outstationSummary = computeOutstationEventMetrics(allOutRowsForSummary, sumMonthStart, sumMonthEnd);
+  const _legacyOutstationSummary = {
     completed: completedCount,
     upcoming: upcomingCount,
     cancelled: cancelledCount,
