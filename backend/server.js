@@ -11034,29 +11034,32 @@ function computeOutstationStatus(row) {
   return 'Active';
 }
 
-// GET /api/outstation — list assignments (role-scoped)
+// GET /api/outstation — list assignments (role-scoped or user-scoped)
 app.get('/api/outstation', async (req, res) => {
   try {
     const { role, branch, department, user_id } = req.query;
     let whereClause = 'WHERE 1=1';
     const params = [];
 
-    if (role === 'branch_leader' && branch) {
+    if (user_id) {
+      params.push(user_id);
+      whereClause += ` AND oa.user_id = ?`;
+    } else if (role === 'branch_leader' && branch) {
       params.push(branch);
       whereClause += ` AND oa.branch = ?`;
     } else if (role === 'head_of_department' && department) {
       params.push(department);
       whereClause += ` AND oa.department = ?`;
-    } else if (role === 'employee' && user_id) {
-      params.push(user_id);
-      whereClause += ` AND oa.user_id = ?`;
     }
     // hr_admin, managing_director, finance_manager → see all (no extra filter)
 
     const [rawRows] = await pool.query(
-      `SELECT oa.*, p.full_name 
+      `SELECT oa.*, 
+              COALESCE(p.full_name, oa.full_name) as full_name,
+              COALESCE(oa.assigned_by_name, p_assigner.full_name, oa.assigned_by) as assigned_by_name 
        FROM outstation_assignments oa 
        LEFT JOIN profiles p ON oa.user_id = p.user_id 
+       LEFT JOIN profiles p_assigner ON oa.assigned_by = p_assigner.user_id 
        ${whereClause} 
        ORDER BY oa.start_date DESC, oa.created_at DESC`,
       params

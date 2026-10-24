@@ -24,7 +24,9 @@ import {
     RefreshCw,
     Wallet,
     Stethoscope,
-    BarChart3
+    BarChart3,
+  MapPin,
+  Plane
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
@@ -89,6 +91,64 @@ function getDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 
   return R * c; // in metres
+}
+
+
+function formatOutstationDate(d: string): string {
+  if (!d) return "—";
+  try {
+    return new Date(d).toLocaleDateString("en-MY", { day: "2-digit", month: "short", year: "numeric" }).toUpperCase();
+  } catch {
+    return d;
+  }
+}
+
+function calcDaysBetween(start: string, end: string): number {
+  if (!start || !end) return 1;
+  try {
+    const s = new Date(start.slice(0, 10));
+    const e = new Date(end.slice(0, 10));
+    const diff = Math.round((e.getTime() - s.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    return Math.max(1, diff);
+  } catch {
+    return 1;
+  }
+}
+
+function cleanAssignerName(fullName: string): string {
+  if (!fullName) return "—";
+  return fullName.split(/ BIN | BINTI /i)[0];
+}
+
+function computeClientOutstationStatus(row: any): string {
+  if (row.status === 'Cancelled') return 'Cancelled';
+  if (row.status === 'Completed') return 'Completed';
+  if (!row.start_date || !row.end_date) return row.status || 'Upcoming';
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const start = new Date(row.start_date);
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(row.end_date);
+  end.setHours(0, 0, 0, 0);
+  if (today < start) return 'Upcoming';
+  if (today > end) return 'Completed';
+  return 'Active';
+}
+
+function renderOutstationStatusBadge(status: string) {
+  const baseClasses = "inline-flex items-center justify-center px-2.5 py-0.5 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap";
+  switch (status) {
+    case "Active":
+      return <span className={`${baseClasses} bg-pink-50 dark:bg-pink-500/10 text-pink-700 dark:text-pink-300 border-pink-200 dark:border-pink-500/30`}>Active</span>;
+    case "Upcoming":
+      return <span className={`${baseClasses} bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-500/30`}>Upcoming</span>;
+    case "Completed":
+      return <span className={`${baseClasses} bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-500/30`}>Completed</span>;
+    case "Cancelled":
+      return <span className={`${baseClasses} bg-gray-50 dark:bg-gray-500/10 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-500/30`}>Cancelled</span>;
+    default:
+      return <span className={`${baseClasses} bg-gray-50 text-gray-700 border-gray-200`}>{status}</span>;
+  }
 }
 
 export function StaffProfileDialog({ 
@@ -210,12 +270,42 @@ export function StaffProfileDialog({
       fetchAnalytics(selectedEmployee.user_id, selectedMonthYear);
       fetchTodayStats(selectedEmployee.user_id);
       fetchAttendanceSettings(selectedEmployee.user_id);
+      fetchOutstationAssignments(selectedEmployee.user_id);
     } else {
       setAnalytics(null);
+      setOutstationAssignments([]);
+      setOutstationSearch("");
     }
   }, [selectedEmployee, isModalOpen, selectedMonthYear]);
 
-    const [tempAssignmentsHistory, setTempAssignmentsHistory] = useState<any[]>([]);
+    
+  const [outstationAssignments, setOutstationAssignments] = useState<any[]>([]);
+  const [loadingOutstation, setLoadingOutstation] = useState(false);
+  const [outstationSearch, setOutstationSearch] = useState("");
+  const [viewOutstationDetail, setViewOutstationDetail] = useState<any | null>(null);
+
+  const fetchOutstationAssignments = async (userId: string) => {
+    setLoadingOutstation(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/outstation?user_id=${encodeURIComponent(userId)}&role=employee`);
+      const data = await res.json();
+      if (data.success && Array.isArray(data.assignments)) {
+        const userAssignments = data.assignments.filter(
+          (a: any) => String(a.user_id) === String(userId)
+        );
+        setOutstationAssignments(userAssignments);
+      } else {
+        setOutstationAssignments([]);
+      }
+    } catch (err) {
+      console.error("Error fetching outstation assignments for user:", err);
+      setOutstationAssignments([]);
+    } finally {
+      setLoadingOutstation(false);
+    }
+  };
+
+  const [tempAssignmentsHistory, setTempAssignmentsHistory] = useState<any[]>([]);
   const [locationHistory, setLocationHistory] = useState<any[]>([]);
   const [locationHistoryTotal, setLocationHistoryTotal] = useState(0);
   const [locationHistoryPage, setLocationHistoryPage] = useState(1);
@@ -673,6 +763,7 @@ export function StaffProfileDialog({
                   <TabsTrigger value="attendance_settings" className="rounded-lg text-xs neumorphic-tab font-semibold">Attendance Settings</TabsTrigger>
                   <TabsTrigger value="temporary_assignment" className="rounded-lg text-xs neumorphic-tab font-semibold">Temporary Assignment</TabsTrigger>
                   <TabsTrigger value="multi_location" className="rounded-lg text-xs neumorphic-tab font-semibold">Multi Location Branch</TabsTrigger>
+                  <TabsTrigger value="outstation_assignment" className="rounded-lg text-xs neumorphic-tab font-semibold">Outstation Assignment</TabsTrigger>
                   <TabsTrigger value="location_history" className="rounded-lg text-xs neumorphic-tab font-semibold">Location History</TabsTrigger>
                 </TabsList>
                 
@@ -1344,7 +1435,168 @@ export function StaffProfileDialog({
                     </div>
                   )}
                 </TabsContent>
-                
+
+                <TabsContent value="outstation_assignment" className="mt-0">
+                  {loadingOutstation ? (
+                    <div className="flex flex-col items-center justify-center p-12 space-y-3">
+                      <Loader2 className="w-8 h-8 animate-spin text-[#942392]" />
+                      <p className="text-xs text-muted-foreground font-semibold">Loading outstation assignments...</p>
+                    </div>
+                  ) : (
+                    <div className="max-w-5xl mx-auto space-y-4">
+                      <Card className="border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-800 rounded-xl overflow-hidden">
+                        <CardContent className="p-4 space-y-4">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-700/60 pb-3">
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-8 h-8 rounded-lg bg-pink-100 dark:bg-pink-950/60 flex items-center justify-center text-[#942392]">
+                                <Plane className="w-4 h-4" />
+                              </div>
+                              <div>
+                                <h3 className="font-bold text-base text-slate-800 dark:text-slate-100 uppercase tracking-tight">
+                                  Outstation Assignment
+                                </h3>
+                                <p className="text-xs text-muted-foreground">
+                                  All outstation records for {selectedEmployee?.name || "this employee"}
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              {outstationAssignments.length > 3 && (
+                                <div className="relative w-48 sm:w-56">
+                                  <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                                  <Input 
+                                    placeholder="Search event or place..."
+                                    value={outstationSearch}
+                                    onChange={(e) => setOutstationSearch(e.target.value)}
+                                    className="pl-8 h-8 text-xs rounded-lg"
+                                  />
+                                </div>
+                              )}
+                              <Badge variant="outline" className="text-xs font-bold text-[#942392] border-[#942392]/30 bg-[#942392]/5 whitespace-nowrap">
+                                {outstationAssignments.length} {outstationAssignments.length === 1 ? 'Record' : 'Records'}
+                              </Badge>
+                            </div>
+                          </div>
+
+                          {outstationAssignments.length === 0 ? (
+                            <div className="text-center py-12 text-sm text-muted-foreground border rounded-xl border-dashed border-slate-200 dark:border-slate-700">
+                              <Plane className="w-9 h-9 text-slate-300 dark:text-slate-600 mx-auto mb-2 opacity-50" />
+                              <p className="font-semibold text-slate-700 dark:text-slate-300">No outstation assignments found</p>
+                              <p className="text-xs text-muted-foreground mt-1">This employee has not been assigned to any outstation events.</p>
+                            </div>
+                          ) : (
+                            <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700/80 shadow-sm">
+                              <table className="w-full text-xs text-left">
+                                <thead className="bg-slate-50 dark:bg-slate-900/80 border-b border-slate-200 dark:border-slate-700/80">
+                                  <tr>
+                                    <th className="px-4 py-3 font-black text-[10px] uppercase tracking-widest text-slate-600 dark:text-slate-300 min-w-[200px]">
+                                      Event
+                                    </th>
+                                    <th className="px-3 py-3 font-black text-[10px] uppercase tracking-widest text-slate-600 dark:text-slate-300 whitespace-nowrap">
+                                      Start
+                                    </th>
+                                    <th className="px-3 py-3 font-black text-[10px] uppercase tracking-widest text-slate-600 dark:text-slate-300 whitespace-nowrap">
+                                      End
+                                    </th>
+                                    <th className="px-3 py-3 font-black text-[10px] uppercase tracking-widest text-slate-600 dark:text-slate-300 text-center whitespace-nowrap">
+                                      Days
+                                    </th>
+                                    <th className="px-4 py-3 font-black text-[10px] uppercase tracking-widest text-slate-600 dark:text-slate-300 whitespace-nowrap">
+                                      Assigned By
+                                    </th>
+                                    <th className="px-3 py-3 font-black text-[10px] uppercase tracking-widest text-slate-600 dark:text-slate-300 text-center whitespace-nowrap">
+                                      Status
+                                    </th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-800">
+                                  {outstationAssignments
+                                    .filter((a) => {
+                                      if (!outstationSearch.trim()) return true;
+                                      const q = outstationSearch.toLowerCase();
+                                      const ev = (a.project || a.meeting_title || a.purpose || a.destination || '').toLowerCase();
+                                      const by = (a.assigned_by_name || a.assigned_by || '').toLowerCase();
+                                      return ev.includes(q) || by.includes(q);
+                                    })
+                                    .map((a, idx) => {
+                                      const eventName = (a.project && a.project.trim() !== '-' && a.project.trim() !== '')
+                                        ? a.project.trim()
+                                        : (a.meeting_title && a.meeting_title.trim() !== '-' && a.meeting_title.trim() !== '')
+                                        ? a.meeting_title.trim()
+                                        : (a.purpose && a.purpose.trim() !== '-' && a.purpose.trim() !== '')
+                                        ? a.purpose.trim()
+                                        : (a.destination ? `Trip to ${a.destination}` : 'General Event');
+
+                                      const totalDays = a.total_days != null ? Number(a.total_days) : calcDaysBetween(a.start_date, a.end_date);
+                                      const status = a.status || computeClientOutstationStatus(a);
+
+                                      return (
+                                        <tr key={a.id || idx} onClick={() => setViewOutstationDetail(a)} className="hover:bg-pink-50/20 dark:hover:bg-slate-700/30 transition-colors cursor-pointer" title="Click to view details">
+                                          {/* Event */}
+                                          <td className="px-4 py-3 align-middle">
+                                            <div className="font-bold text-slate-900 dark:text-slate-100">
+                                              {eventName}
+                                            </div>
+                                            {a.destination && (
+                                              <div className="flex items-center gap-1 text-[11px] text-muted-foreground mt-0.5">
+                                                <MapPin className="w-3 h-3 text-[#942392] shrink-0" />
+                                                <span>{a.destination}</span>
+                                                {a.client_company && <span>• {a.client_company}</span>}
+                                              </div>
+                                            )}
+                                          </td>
+
+                                          {/* Start */}
+                                          <td className="px-3 py-3 align-middle whitespace-nowrap font-medium text-slate-700 dark:text-slate-300">
+                                            {formatOutstationDate(a.start_date)}
+                                            {a.start_time && (
+                                              <span className="block text-[10px] text-muted-foreground">{a.start_time.slice(0, 5)}</span>
+                                            )}
+                                          </td>
+
+                                          {/* End */}
+                                          <td className="px-3 py-3 align-middle whitespace-nowrap font-medium text-slate-700 dark:text-slate-300">
+                                            {formatOutstationDate(a.end_date)}
+                                            {a.end_time && (
+                                              <span className="block text-[10px] text-muted-foreground">{a.end_time.slice(0, 5)}</span>
+                                            )}
+                                          </td>
+
+                                          {/* Days */}
+                                          <td className="px-3 py-3 align-middle text-center whitespace-nowrap">
+                                            <span className="font-black text-[#942392] text-xs">
+                                              {totalDays} {totalDays === 1 ? 'Day' : 'Days'}
+                                            </span>
+                                          </td>
+
+                                          {/* Assigned By */}
+                                          <td className="px-4 py-3 align-middle whitespace-nowrap text-slate-700 dark:text-slate-300 font-medium">
+                                            <div>{a.assigned_by_name ? cleanAssignerName(a.assigned_by_name) : (a.assigned_by || '—')}</div>
+                                            {a.assigned_by_role && (
+                                              <span className="text-[10px] text-muted-foreground block capitalize">
+                                                {a.assigned_by_role.replace(/_/g, ' ')}
+                                              </span>
+                                            )}
+                                          </td>
+
+                                          {/* Status */}
+                                          <td className="px-3 py-3 align-middle text-center whitespace-nowrap">
+                                            {renderOutstationStatusBadge(status)}
+                                          </td>
+                                        </tr>
+                                      );
+                                    })}
+                                </tbody>
+                              </table>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </div>
+                  )}
+                </TabsContent>
+
                 <TabsContent value="location_history">
                   <div className="p-4 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800/60">
                     <div className="flex items-center justify-between mb-3">
@@ -2012,6 +2264,92 @@ export function StaffProfileDialog({
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* OUTSTATION ASSIGNMENT DETAIL MODAL */}
+      <Dialog open={!!viewOutstationDetail} onOpenChange={() => setViewOutstationDetail(null)}>
+        <DialogContent className="max-w-lg w-[95vw] sm:w-full rounded-2xl p-0 overflow-hidden max-h-[90vh] flex flex-col">
+          {viewOutstationDetail && (
+            <>
+              <div className="bg-[#942392] px-6 py-5 text-white shrink-0">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 rounded-xl bg-white/20 shrink-0">
+                    <Plane className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-white/70 mb-1">Outstation Assignment Detail</p>
+                    <h2 className="text-base font-black truncate">
+                      {viewOutstationDetail.project || viewOutstationDetail.meeting_title || viewOutstationDetail.purpose || (viewOutstationDetail.destination ? `Trip to ${viewOutstationDetail.destination}` : 'General Event')}
+                    </h2>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-6 overflow-y-auto space-y-4 flex-1">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-3 border border-slate-100 dark:border-slate-800">
+                    <p className="text-[10px] text-muted-foreground font-bold uppercase">Destination</p>
+                    <p className="text-sm font-black text-slate-800 dark:text-slate-100 mt-0.5">{viewOutstationDetail.destination}</p>
+                    {viewOutstationDetail.client_company && (
+                      <p className="text-[11px] text-muted-foreground mt-0.5">{viewOutstationDetail.client_company}</p>
+                    )}
+                  </div>
+                  <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-3 border border-slate-100 dark:border-slate-800">
+                    <p className="text-[10px] text-muted-foreground font-bold uppercase">Status</p>
+                    <div className="mt-1">{renderOutstationStatusBadge(viewOutstationDetail.status || computeClientOutstationStatus(viewOutstationDetail))}</div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-3 border border-slate-100 dark:border-slate-800">
+                    <p className="text-[10px] text-muted-foreground font-bold uppercase">Start Date</p>
+                    <p className="text-sm font-black text-slate-800 dark:text-slate-100 mt-0.5">{formatOutstationDate(viewOutstationDetail.start_date)}</p>
+                    {viewOutstationDetail.start_time && (
+                      <p className="text-[10px] text-muted-foreground">{viewOutstationDetail.start_time.slice(0, 5)}</p>
+                    )}
+                  </div>
+                  <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-3 border border-slate-100 dark:border-slate-800">
+                    <p className="text-[10px] text-muted-foreground font-bold uppercase">End Date</p>
+                    <p className="text-sm font-black text-slate-800 dark:text-slate-100 mt-0.5">{formatOutstationDate(viewOutstationDetail.end_date)}</p>
+                    {viewOutstationDetail.end_time && (
+                      <p className="text-[10px] text-muted-foreground">{viewOutstationDetail.end_time.slice(0, 5)}</p>
+                    )}
+                  </div>
+                  <div className="bg-[#942392]/5 rounded-xl p-3 border border-[#942392]/20">
+                    <p className="text-[10px] text-[#942392] font-bold uppercase">Total Days</p>
+                    <p className="text-lg font-black text-[#942392] mt-0.5">
+                      {viewOutstationDetail.total_days != null ? Number(viewOutstationDetail.total_days) : calcDaysBetween(viewOutstationDetail.start_date, viewOutstationDetail.end_date)} Days
+                    </p>
+                  </div>
+                </div>
+
+                {viewOutstationDetail.purpose && (
+                  <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-3 border border-slate-100 dark:border-slate-800">
+                    <p className="text-[10px] text-muted-foreground font-bold uppercase">Purpose / Scope</p>
+                    <p className="text-xs text-slate-700 dark:text-slate-300 mt-1 whitespace-pre-wrap">{viewOutstationDetail.purpose}</p>
+                  </div>
+                )}
+
+                <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-3 border border-slate-100 dark:border-slate-800">
+                  <p className="text-[10px] text-muted-foreground font-bold uppercase">Assigned By</p>
+                  <p className="text-xs font-bold text-slate-800 dark:text-slate-200 mt-0.5">
+                    {viewOutstationDetail.assigned_by_name || viewOutstationDetail.assigned_by || '—'}
+                  </p>
+                  {viewOutstationDetail.assigned_by_role && (
+                    <p className="text-[10px] text-muted-foreground capitalize">{viewOutstationDetail.assigned_by_role.replace(/_/g, ' ')}</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="px-6 pb-5 flex justify-end">
+                <Button variant="outline" onClick={() => setViewOutstationDetail(null)} className="rounded-xl text-xs font-bold">
+                  Close
+                </Button>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
     </>
   );
 }
