@@ -1355,11 +1355,11 @@ export function StaffProfileDialog({
                               <table className="w-full text-sm text-left">
                                 <thead className="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
                                   <tr>
-                                    <th className="px-4 py-3 font-semibold text-slate-600 dark:text-slate-300">Branch</th>
+                                    <th className="px-4 py-3 font-semibold text-black dark:text-white">Branch</th>
                                     <th className="px-4 py-3 font-semibold text-slate-600 dark:text-slate-300">Assignment</th>
                                     <th className="px-4 py-3 font-semibold text-slate-600 dark:text-slate-300">Start Date</th>
                                     <th className="px-4 py-3 font-semibold text-slate-600 dark:text-slate-300">End Date</th>
-                                    <th className="px-4 py-3 font-semibold text-slate-600 dark:text-slate-300">Status</th>
+                                    <th className="px-4 py-3 font-semibold text-black dark:text-white">Status</th>
                                   </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
@@ -1398,9 +1398,9 @@ export function StaffProfileDialog({
                             <table className="w-full text-sm text-left">
                               <thead className="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
                                 <tr>
-                                  <th className="px-4 py-3 font-semibold text-slate-600 dark:text-slate-300">Type</th>
+                                  <th className="px-4 py-3 font-semibold text-black dark:text-white">Type</th>
                                   <th className="px-4 py-3 font-semibold text-slate-600 dark:text-slate-300">Branch</th>
-                                  <th className="px-4 py-3 font-semibold text-slate-600 dark:text-slate-300">Code</th>
+                                  <th className="px-4 py-3 font-semibold text-black dark:text-white">Code</th>
                                   <th className="px-4 py-3 font-semibold text-slate-600 dark:text-slate-300">Status</th>
                                 </tr>
                               </thead>
@@ -1446,15 +1446,8 @@ export function StaffProfileDialog({
                     <div className="max-w-5xl mx-auto space-y-4">
                       <Card className="border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-800 rounded-xl overflow-hidden">
                         <CardContent className="p-4 space-y-4">
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-700/60 pb-3">
-                            <div>
-                              <h3 className="font-bold text-base text-slate-800 dark:text-slate-100 tracking-tight">
-                                Outstation Assignment
-                              </h3>
-                              <p className="text-xs text-muted-foreground">
-                                All outstation records for {selectedEmployee?.name || "this employee"}
-                              </p>
-                            </div>
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-2 mb-4">
+                            <h3 className="font-bold text-lg">Outstation Assignment</h3>
 
                             <div className="flex items-center gap-2">
                               {outstationAssignments.length > 3 && (
@@ -1482,25 +1475,25 @@ export function StaffProfileDialog({
                             </div>
                           ) : (
                             <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700/80 shadow-sm">
-                              <table className="w-full text-xs text-left">
-                                <thead className="bg-slate-50 dark:bg-slate-900/80 border-b border-slate-200 dark:border-slate-700/80">
+                              <table className="w-full text-sm text-left">
+                                <thead className="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
                                   <tr>
-                                    <th className="px-4 py-3 font-black text-xs text-black dark:text-white min-w-[200px]">
+                                    <th className="px-4 py-3 font-semibold text-black dark:text-white min-w-[200px]">
                                       Event
                                     </th>
-                                    <th className="px-3 py-3 font-black text-xs text-black dark:text-white whitespace-nowrap">
+                                    <th className="px-4 py-3 font-semibold text-black dark:text-white whitespace-nowrap">
                                       Start
                                     </th>
-                                    <th className="px-3 py-3 font-black text-xs text-black dark:text-white whitespace-nowrap">
+                                    <th className="px-4 py-3 font-semibold text-black dark:text-white whitespace-nowrap">
                                       End
                                     </th>
-                                    <th className="px-3 py-3 font-black text-xs text-black dark:text-white text-center whitespace-nowrap">
+                                    <th className="px-4 py-3 font-semibold text-black dark:text-white text-center whitespace-nowrap">
                                       Days
                                     </th>
-                                    <th className="px-4 py-3 font-black text-xs text-black dark:text-white whitespace-nowrap">
+                                    <th className="px-4 py-3 font-semibold text-black dark:text-white whitespace-nowrap">
                                       Assigned By
                                     </th>
-                                    <th className="px-3 py-3 font-black text-xs text-black dark:text-white text-center whitespace-nowrap">
+                                    <th className="px-4 py-3 font-semibold text-black dark:text-white text-center whitespace-nowrap">
                                       Status
                                     </th>
                                   </tr>
