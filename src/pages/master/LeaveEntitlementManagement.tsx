@@ -1493,6 +1493,14 @@ function CarryForwardLeaveForm({
             <Table className="text-xs">
               <TableHeader className="bg-muted/30">
                 <TableRow>
+                  <TableHead className="w-12 text-center">
+                    <input
+                      type="checkbox"
+                      checked={currentItems.length > 0 && currentItems.every(e => selectedEmployees.includes(e.user_id))}
+                      onChange={(e) => handleSelectAll(e.target.checked)}
+                      className="cursor-pointer rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                    />
+                  </TableHead>
                   <TableHead>Employee</TableHead>
                   <TableHead>Department</TableHead>
                   <TableHead className="text-center">Unused</TableHead>
@@ -1511,7 +1519,7 @@ function CarryForwardLeaveForm({
 
                   return (
                     <TableRow key={emp.user_id} className={selected ? "bg-emerald-500/5" : ""}>
-                      <TableCell className="text-center">
+                      <TableCell className="w-12 text-center">
                         <input
                           type="checkbox"
                           checked={selected}
