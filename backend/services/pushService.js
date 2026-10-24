@@ -15,6 +15,7 @@ function initPushService(pool) {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
       CREATE INDEX IF NOT EXISTS idx_push_user_id ON user_push_tokens(user_id);
+      ALTER TABLE user_push_tokens ENABLE ROW LEVEL SECURITY;
     `).catch(err => console.warn('⚠️ Push tokens table init notice:', err.message));
   }
 }
