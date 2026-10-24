@@ -284,6 +284,51 @@ type BranchEmployee = {
   attendance_rate: number | null;
 };
 
+function renderTodayStatusBadge(status: string) {
+  const baseClasses = "inline-flex items-center justify-center px-2.5 py-0.5 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap";
+
+  if (status === "Present (On Time)" || status === "Present") {
+    return (
+      <span className={`${baseClasses} bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-500/30`}>
+        {status}
+      </span>
+    );
+  }
+  if (status === "Present (Late)") {
+    return (
+      <span className={`${baseClasses} bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-500/30`}>
+        {status}
+      </span>
+    );
+  }
+  if (status === "Outstation") {
+    return (
+      <span className={`${baseClasses} bg-pink-50 dark:bg-pink-500/10 text-pink-700 dark:text-pink-300 border-pink-200 dark:border-pink-500/30`}>
+        {status}
+      </span>
+    );
+  }
+  if (status === "On Leave") {
+    return (
+      <span className={`${baseClasses} bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-500/30`}>
+        {status}
+      </span>
+    );
+  }
+  if (status === "Company Leave") {
+    return (
+      <span className={`${baseClasses} bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-500/30`}>
+        {status}
+      </span>
+    );
+  }
+  return (
+    <span className={`${baseClasses} bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-500/30`}>
+      {status || "Absent"}
+    </span>
+  );
+}
+
 export default function Branches() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -822,23 +867,7 @@ export default function Branches() {
                               {employee.attendance_rate || 0}%
                             </td>
                             <td className="py-4 px-6">
-                              <span
-                                className={`inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap ${
-                                  employee.today_status === "Present (On Time)" || employee.today_status === "Present"
-                                    ? "bg-[#228b22] text-white border-transparent"
-                                    : employee.today_status === "Present (Late)"
-                                      ? "bg-amber-500 text-white border-transparent"
-                                      : employee.today_status === "Outstation"
-                                        ? "bg-pink-500 text-white border-transparent"
-                                        : employee.today_status === "On Leave"
-                                          ? "bg-blue-500 text-white border-transparent"
-                                          : employee.today_status === "Company Leave"
-                                            ? "bg-purple-500 text-white border-transparent"
-                                            : "bg-rose-500 text-white border-transparent"
-                                }`}
-                              >
-                                {employee.today_status}
-                              </span>
+                              {renderTodayStatusBadge(employee.today_status)}
                             </td>
                           </tr>
                         ))
@@ -880,23 +909,7 @@ export default function Branches() {
                             <p className="font-black text-sm text-foreground truncate">
                               {employee.full_name}
                             </p>
-                            <span
-                              className={`inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap shrink-0 ${
-                                employee.today_status === "Present (On Time)" || employee.today_status === "Present"
-                                  ? "bg-[#228b22] text-white border-transparent"
-                                  : employee.today_status === "Present (Late)"
-                                    ? "bg-amber-500 text-white border-transparent"
-                                    : employee.today_status === "Outstation"
-                                      ? "bg-pink-500 text-white border-transparent"
-                                      : employee.today_status === "On Leave"
-                                        ? "bg-blue-500 text-white border-transparent"
-                                        : employee.today_status === "Company Leave"
-                                          ? "bg-purple-500 text-white border-transparent"
-                                          : "bg-rose-500 text-white border-transparent"
-                              }`}
-                            >
-                              {employee.today_status}
-                            </span>
+                            {renderTodayStatusBadge(employee.today_status)}
                           </div>
                           <div className="flex items-center gap-2 text-[10px] print:text-[13px] font-bold text-foreground uppercase tracking-wider">
                             <span>ID: {employee.user_id}</span>
@@ -993,28 +1006,7 @@ export default function Branches() {
                                         {new Date(assignment.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()} - {new Date(assignment.end_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()}
                                       </td>
                                       <td className="py-4 px-6">
-                                        {(() => {
-                                          const todayStatus = assignment.today_status || "Absent";
-                                          return (
-                                            <span
-                                              className={`inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap ${
-                                                todayStatus === "Present (On Time)" || todayStatus === "Present"
-                                                  ? "bg-[#228b22] text-white border-transparent"
-                                                  : todayStatus === "Present (Late)"
-                                                    ? "bg-amber-500 text-white border-transparent"
-                                                    : todayStatus === "Outstation"
-                                                      ? "bg-pink-500 text-white border-transparent"
-                                                      : todayStatus === "On Leave"
-                                                        ? "bg-blue-500 text-white border-transparent"
-                                                        : todayStatus === "Company Leave"
-                                                          ? "bg-purple-500 text-white border-transparent"
-                                                          : "bg-rose-500 text-white border-transparent"
-                                              }`}
-                                            >
-                                              {todayStatus}
-                                            </span>
-                                          );
-                                        })()}
+                                        {renderTodayStatusBadge(assignment.today_status || "Absent")}
                                       </td>
                                     </tr>
                                   ))}
