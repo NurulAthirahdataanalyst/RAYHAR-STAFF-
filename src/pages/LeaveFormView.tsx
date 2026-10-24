@@ -506,10 +506,10 @@ export default function LeaveFormView() {
                           <Badge
                             className={`text-[10px] print:text-[13px] font-extrabold tracking-wider px-3 py-1 h-auto rounded-full border-[1.5px] whitespace-nowrap shadow-none ${
                               form.status === "Approved" ? "bg-green-50 text-[#228b22] border-green-200 hover:bg-green-100 dark:bg-green-500/10 dark:border-green-500/20" :
-                              form.status === "Rejected" ? "bg-rose-600 text-white hover:bg-rose-700 border-transparent shadow-sm" :
+                              form.status === "Rejected" ? "bg-[#ff0000] text-white hover:bg-[#d60000] border-transparent shadow-sm" :
                               "bg-[#C2410C] text-white hover:bg-[#A3370A] border-transparent shadow-sm"
                             }`}
-                            style={form.status !== "Approved" && form.status !== "Rejected" ? { backgroundColor: "#C2410C", color: "white" } : {}}
+                            style={form.status === "Rejected" ? { backgroundColor: "#ff0000", color: "#ffffff" } : form.status !== "Approved" ? { backgroundColor: "#C2410C", color: "white" } : {}}
                           >
                             {getDisplayStatus(form.status).toUpperCase()}
                           </Badge>
@@ -608,10 +608,10 @@ export default function LeaveFormView() {
                         <Badge
                           className={`text-[9px] print:text-[13px] font-extrabold tracking-wider px-2.5 py-1 h-auto rounded-full border-[1.5px] whitespace-nowrap shadow-none ${
                             form.status === "Approved" ? "bg-green-50 text-[#228b22] border-green-200 hover:bg-green-100 dark:bg-green-500/10 dark:border-green-500/20" :
-                            form.status === "Rejected" ? "bg-rose-600 text-white border-transparent shadow-sm" :
+                            form.status === "Rejected" ? "bg-[#ff0000] text-white border-transparent shadow-sm" :
                             "bg-[#C2410C] text-white border-transparent shadow-sm"
                           }`}
-                          style={form.status !== "Approved" && form.status !== "Rejected" ? { backgroundColor: "#C2410C", color: "white" } : {}}
+                          style={form.status === "Rejected" ? { backgroundColor: "#ff0000", color: "#ffffff" } : form.status !== "Approved" ? { backgroundColor: "#C2410C", color: "white" } : {}}
                         >
                           {getDisplayStatus(form.status).toUpperCase()}
                         </Badge>
@@ -691,10 +691,10 @@ export default function LeaveFormView() {
                     </div>
                     <div className="space-y-1 col-span-2 sm:col-span-1">
                       <span className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50">Status</span>
-                      <p className={`font-black uppercase ${selectedForm.status === "Rejected" ? "text-rose-600" : "text-[#942392]"}`}>
+                      <p className={`font-black uppercase ${selectedForm.status === "Rejected" ? "text-[#ff0000]" : "text-[#942392]"}`}>
                         {selectedForm.status}
                         {selectedForm.status === "Rejected" && selectedForm.approverRole && (
-                          <span className="block text-[8px] print:text-[13px] text-rose-500 mt-0.5 opacity-60">
+                          <span className="block text-[8px] print:text-[13px] text-[#ff0000] mt-0.5 opacity-75">
                             (by: {formatRole(selectedForm.approverRole)})
                           </span>
                         )}
