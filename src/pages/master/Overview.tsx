@@ -580,7 +580,7 @@ export default function MasterOverview() {
                     </Button>
                   </div>
                   
-                  <div className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-thin max-h-[160px]">
+                  <div className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-thin max-h-[220px]">
                     {activeAssignments.length === 0 ? (
                       <div className="text-center py-6 text-xs text-foreground font-semibold">No active assignments</div>
                     ) : (
@@ -590,17 +590,19 @@ export default function MasterOverview() {
                         const isUpcoming = startStr && startStr > todayStr;
                         return (
                         <div key={i} className="flex flex-col gap-1.5 pb-3 border-b border-border/40 last:border-0 relative">
-                          <div className="flex justify-between items-center">
-                            <div className="flex items-center gap-2">
-                              <Users className="w-3.5 h-3.5 text-foreground" />
-                              <span className="text-xs font-black truncate max-w-[120px]">{a.name}</span>
-                              {isUpcoming && (
-                                <span className="text-[8px] font-black tracking-widest uppercase bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-sm dark:bg-amber-500/20 dark:text-amber-300">
-                                  Upcoming
-                                </span>
-                              )}
+                          <div className="flex justify-between items-start gap-2">
+                            <div className="flex items-start gap-2 flex-1 min-w-0">
+                              <Users className="w-3.5 h-3.5 text-foreground shrink-0 mt-0.5" />
+                              <div className="flex flex-col gap-0.5 min-w-0">
+                                <span className="text-xs font-black text-foreground break-words leading-tight">{a.name}</span>
+                                {isUpcoming && (
+                                  <span className="self-start text-[8px] font-black tracking-widest uppercase bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-sm dark:bg-amber-500/20 dark:text-amber-300">
+                                    Upcoming
+                                  </span>
+                                )}
+                              </div>
                             </div>
-                            <div className="flex items-center gap-1.5 text-[10px] font-black tracking-widest text-foreground bg-muted/50 px-2 py-1 rounded-md">
+                            <div className="flex items-center gap-1.5 text-[10px] font-black tracking-widest text-foreground bg-muted/50 px-2 py-1 rounded-md shrink-0">
                               <span>{a.primary_branch}</span>
                               <span>→</span>
                               <span className="text-amber-600 dark:text-[#ffff00]">{a.temp_branch}</span>
