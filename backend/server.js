@@ -360,12 +360,34 @@ if (!fs.existsSync(tempDir)) {
 }
 
 // Multer Config (saves temporarily to uploads/temp)
+function getSafeUploadExtension(originalname) {
+  const rawExt = path.extname(path.basename(String(originalname || ""))).toLowerCase();
+  switch (rawExt) {
+    case ".pdf":
+      return ".pdf";
+    case ".jpg":
+      return ".jpg";
+    case ".jpeg":
+      return ".jpeg";
+    case ".png":
+      return ".png";
+    case ".webp":
+      return ".webp";
+    case ".doc":
+      return ".doc";
+    case ".docx":
+      return ".docx";
+    default:
+      return ".pdf";
+  }
+}
+
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, tempDir);
   },
   filename: function (req, file, cb) {
-    const safeExt = path.extname(file.originalname).replace(/[^a-zA-Z0-9.]/g, "");
+    const safeExt = getSafeUploadExtension(file.originalname);
     cb(null, crypto.randomBytes(16).toString("hex") + safeExt);
   }
 });
@@ -3327,19 +3349,7 @@ app.post("/api/leave-requests/:id/upload-mc", uploadLimiter, upload.single("lamp
 
     let mc_file_url = null;
     if (req.file) {
-      const rawExt = path.extname(path.basename(req.file.originalname || "")).toLowerCase();
-      const ALLOWED_EXTS = {
-        ".pdf": ".pdf",
-        ".jpg": ".jpg",
-        ".jpeg": ".jpeg",
-        ".png": ".png",
-        ".webp": ".webp",
-        ".doc": ".doc",
-        ".docx": ".docx"
-      };
-      const safeExt = Object.prototype.hasOwnProperty.call(ALLOWED_EXTS, rawExt)
-        ? ALLOWED_EXTS[rawExt]
-        : ".pdf";
+      const safeExt = getSafeUploadExtension(req.file.originalname);
       const safeFilename = `${crypto.randomUUID()}${safeExt}`;
       const filename = path.basename(safeFilename);
       if (!/^[a-zA-Z0-9._-]+$/.test(filename) || filename.includes("..")) {
@@ -3371,7 +3381,20 @@ app.post("/api/leave-requests/:id/upload-mc", uploadLimiter, upload.single("lamp
       }
 
       const resolvedTempDir = path.resolve(tempDir);
-      const resolvedSource = path.resolve(req.file.path);
+      const requestedTempFile = path.basename(String(req.file.filename || req.file.path || ""));
+      let verifiedTempFile = null;
+      for (const existingFile of fs.readdirSync(resolvedTempDir)) {
+        if (existingFile === requestedTempFile) {
+          verifiedTempFile = existingFile;
+          break;
+        }
+      }
+
+      if (!verifiedTempFile) {
+        return res.status(400).json({ success: false, error: "Invalid source file path" });
+      }
+
+      const resolvedSource = path.resolve(resolvedTempDir, verifiedTempFile);
       if (!resolvedSource.startsWith(resolvedTempDir + path.sep)) {
         return res.status(400).json({ success: false, error: "Invalid source file path" });
       }
@@ -3524,24 +3547,25 @@ app.post("/api/leave-requests", uploadLimiter, upload.single("lampiranMc"), asyn
 
     let mc_file_url = null;
     if (req.file) {
-      const rawExt = path.extname(path.basename(req.file.originalname || "")).toLowerCase();
-      const ALLOWED_EXTS = {
-        ".pdf": ".pdf",
-        ".jpg": ".jpg",
-        ".jpeg": ".jpeg",
-        ".png": ".png",
-        ".webp": ".webp",
-        ".doc": ".doc",
-        ".docx": ".docx"
-      };
-      const safeExt = Object.prototype.hasOwnProperty.call(ALLOWED_EXTS, rawExt)
-        ? ALLOWED_EXTS[rawExt]
-        : ".pdf";
+      const safeExt = getSafeUploadExtension(req.file.originalname);
       const safeFilename = `${crypto.randomUUID()}${safeExt}`;
       const filename = path.basename(safeFilename);
       const uploadsRoot = path.resolve(uploadsDir);
       const resolvedTempDir = path.resolve(tempDir);
-      const resolvedSource = path.resolve(req.file.path);
+      const requestedTempFile = path.basename(String(req.file.filename || req.file.path || ""));
+      let verifiedTempFile = null;
+      for (const existingFile of fs.readdirSync(resolvedTempDir)) {
+        if (existingFile === requestedTempFile) {
+          verifiedTempFile = existingFile;
+          break;
+        }
+      }
+
+      if (!verifiedTempFile) {
+        throw new Error("Invalid source file path");
+      }
+
+      const resolvedSource = path.resolve(resolvedTempDir, verifiedTempFile);
 
       if (!resolvedSource.startsWith(resolvedTempDir + path.sep)) {
         throw new Error("Invalid source file path");
