@@ -114,6 +114,7 @@
   "overrides": {
     "body-parser": "^2.4.0",
     "dompurify": "$dompurify",
+    "ip-address": "10.7.4",
     "proxy-addr": "2.0.8",
     "qs": "^6.16.1"
   }
