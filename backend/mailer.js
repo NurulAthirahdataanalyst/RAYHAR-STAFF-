@@ -1,4 +1,8 @@
 const nodemailer = require("nodemailer");
+const {
+  isValidEmailAddress,
+  validateEnvelopeRecipients,
+} = require("./utils/emailValidator");
 
 let transporter = null;
 
@@ -43,32 +47,58 @@ function initMailer() {
  * @param {string} to - The recipient email address.
  * @param {string} subject - The subject of the email.
  * @param {string} html - The HTML content of the email.
+ * @param {{ cc?: string, bcc?: string }} [options] - Optional validated CC/BCC recipients.
  */
-async function sendNotificationEmail(to, subject, html) {
+async function sendNotificationEmail(to, subject, html, options = {}) {
   try {
+    const validatedRecipients = validateEnvelopeRecipients(
+      {
+        to,
+        cc: options?.cc,
+        bcc: options?.bcc,
+      },
+      { allowArray: false }
+    );
+
     const tp = initMailer();
     if (!tp) {
-      console.warn("Mailer not initialized. Please set SMTP credentials in .env. Skipping email to:", to);
+      console.warn("Mailer not initialized. Please set SMTP credentials in .env. Skipping email to:", validatedRecipients.to);
       throw new Error("SMTP credentials not configured.");
     }
 
-    const fromAddress = process.env.SMTP_FROM || `"Rayhar Leave Portal" <${process.env.SMTP_USER}>`;
+    const safeSmtpUser = isValidEmailAddress(process.env.SMTP_USER)
+      ? process.env.SMTP_USER.trim()
+      : undefined;
+    const fromAddress =
+      process.env.SMTP_FROM ||
+      (safeSmtpUser ? `"Rayhar Leave Portal" <${safeSmtpUser}>` : undefined);
 
-    const info = await tp.sendMail({
+    const safeSubject = String(subject || "").replace(/[\r\n]+/g, " ").trim();
+
+    const mailOptions = {
       from: fromAddress,
-      to,
-      subject,
+      to: validatedRecipients.to,
+      subject: safeSubject,
       html,
-    });
+    };
+
+    if (validatedRecipients.cc) {
+      mailOptions.cc = validatedRecipients.cc;
+    }
+    if (validatedRecipients.bcc) {
+      mailOptions.bcc = validatedRecipients.bcc;
+    }
+
+    const info = await tp.sendMail(mailOptions);
 
     console.log("-----------------------------------------");
-    console.log(`Email sent to ${to} (Subject: ${subject})`);
+    console.log(`Email sent to ${validatedRecipients.to} (Subject: ${safeSubject})`);
     console.log(`Message ID: ${info.messageId}`);
     console.log("-----------------------------------------");
     
     return info;
   } catch (err) {
-    console.error(`Failed to send email to ${to}:`, err);
+    console.error(`Failed to send email to ${typeof to === "string" ? to : "[invalid-recipient]"}:`, err);
     throw err;
   }
 }

@@ -1,4 +1,5 @@
 const { BrevoClient } = require('@getbrevo/brevo');
+const { isValidEmailAddress } = require('./utils/emailValidator');
 require('dotenv').config();
 
 const apiInstance = new BrevoClient({
@@ -195,6 +196,10 @@ function getLeaveApprovalHtml(data) {
 
 async function sendLeaveApprovalEmail(data) {
   if (!process.env.BREVO_API_KEY) return;
+  if (!isValidEmailAddress(data?.approverEmail)) {
+    console.warn("Invalid approverEmail rejected in sendLeaveApprovalEmail.");
+    return;
+  }
 
   const email = {};
   
@@ -205,7 +210,7 @@ async function sendLeaveApprovalEmail(data) {
   
   email.to = [
     {
-      email: data.approverEmail,
+      email: data.approverEmail.trim(),
       name: data.approverName
     }
   ];
@@ -224,10 +229,14 @@ async function sendLeaveApprovalEmail(data) {
 
 async function sendLateEmail(data) {
   if (!process.env.BREVO_API_KEY) return;
+  if (!isValidEmailAddress(data?.employeeEmail)) {
+    console.warn("Invalid employeeEmail rejected in sendLateEmail.");
+    return;
+  }
 
   const email = {};
   email.sender = { name: "Rayhar Staff Portal", email: "nathirah.rahman98@gmail.com" };
-  email.to = [{ email: data.employeeEmail, name: data.employeeName }];
+  email.to = [{ email: data.employeeEmail.trim(), name: data.employeeName }];
   email.subject = "Attendance Notice: Late Clock-In";
   email.htmlContent = `
     <div style="font-family: sans-serif; color: #333;">
@@ -247,10 +256,14 @@ async function sendLateEmail(data) {
 
 async function sendLeaveApprovedEmail(data) {
   if (!process.env.BREVO_API_KEY) return;
+  if (!isValidEmailAddress(data?.employeeEmail)) {
+    console.warn("Invalid employeeEmail rejected in sendLeaveApprovedEmail.");
+    return;
+  }
 
   const email = {};
   email.sender = { name: "Rayhar Staff Portal", email: "nathirah.rahman98@gmail.com" };
-  email.to = [{ email: data.employeeEmail, name: data.employeeName }];
+  email.to = [{ email: data.employeeEmail.trim(), name: data.employeeName }];
   email.subject = "Leave Request Approved";
   email.htmlContent = `
     <div style="font-family: sans-serif; color: #333;">
@@ -269,10 +282,14 @@ async function sendLeaveApprovedEmail(data) {
 
 async function sendLeaveRejectedEmail(data) {
   if (!process.env.BREVO_API_KEY) return;
+  if (!isValidEmailAddress(data?.employeeEmail)) {
+    console.warn("Invalid employeeEmail rejected in sendLeaveRejectedEmail.");
+    return;
+  }
 
   const email = {};
   email.sender = { name: "Rayhar Staff Portal", email: "nathirah.rahman98@gmail.com" };
-  email.to = [{ email: data.employeeEmail, name: data.employeeName }];
+  email.to = [{ email: data.employeeEmail.trim(), name: data.employeeName }];
   email.subject = "Leave Request Rejected";
   email.htmlContent = `
     <div style="font-family: sans-serif; color: #333;">
@@ -293,10 +310,14 @@ async function sendLeaveRejectedEmail(data) {
 
 async function sendPasswordResetEmail(data) {
   if (!process.env.BREVO_API_KEY) return;
+  if (!isValidEmailAddress(data?.employeeEmail)) {
+    console.warn("Invalid employeeEmail rejected in sendPasswordResetEmail.");
+    return;
+  }
 
   const email = {};
   email.sender = { name: "Rayhar Staff Portal", email: "nathirah.rahman98@gmail.com" };
-  email.to = [{ email: data.employeeEmail, name: data.employeeName }];
+  email.to = [{ email: data.employeeEmail.trim(), name: data.employeeName }];
   email.subject = "Rayhar Staff Portal - Password Reset";
   email.htmlContent = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
@@ -321,10 +342,14 @@ async function sendPasswordResetEmail(data) {
 
 async function sendOutstationAssignedEmail(data) {
   if (!process.env.BREVO_API_KEY) return;
+  if (!isValidEmailAddress(data?.employeeEmail)) {
+    console.warn("Invalid employeeEmail rejected in sendOutstationAssignedEmail.");
+    return;
+  }
 
   const email = {};
   email.sender = { name: "Rayhar Staff Portal", email: "nathirah.rahman98@gmail.com" };
-  email.to = [{ email: data.employeeEmail, name: data.employeeName }];
+  email.to = [{ email: data.employeeEmail.trim(), name: data.employeeName }];
   const titleEvent = data.eventName ? `: ${data.eventName}` : (data.destination ? `: ${data.destination}` : '');
   email.subject = `Outstation Assignment${titleEvent}`;
   email.htmlContent = `
@@ -352,10 +377,14 @@ async function sendOutstationAssignedEmail(data) {
 
 async function sendOutstationUpdatedEmail(data) {
   if (!process.env.BREVO_API_KEY) return;
+  if (!isValidEmailAddress(data?.employeeEmail)) {
+    console.warn("Invalid employeeEmail rejected in sendOutstationUpdatedEmail.");
+    return;
+  }
 
   const email = {};
   email.sender = { name: "Rayhar Staff Portal", email: "nathirah.rahman98@gmail.com" };
-  email.to = [{ email: data.employeeEmail, name: data.employeeName }];
+  email.to = [{ email: data.employeeEmail.trim(), name: data.employeeName }];
   const titleEvent = data.eventName ? `: ${data.eventName}` : (data.destination ? `: ${data.destination}` : '');
   email.subject = `Update: Outstation Assignment${titleEvent}`;
   email.htmlContent = `
@@ -384,10 +413,14 @@ async function sendOutstationUpdatedEmail(data) {
 
 async function sendOutstationCancelledEmail(data) {
   if (!process.env.BREVO_API_KEY) return;
+  if (!isValidEmailAddress(data?.employeeEmail)) {
+    console.warn("Invalid employeeEmail rejected in sendOutstationCancelledEmail.");
+    return;
+  }
 
   const email = {};
   email.sender = { name: "Rayhar Staff Portal", email: "nathirah.rahman98@gmail.com" };
-  email.to = [{ email: data.employeeEmail, name: data.employeeName }];
+  email.to = [{ email: data.employeeEmail.trim(), name: data.employeeName }];
   const titleEvent = data.eventName ? `: ${data.eventName}` : (data.destination ? `: ${data.destination}` : '');
   email.subject = `Cancelled: Outstation Assignment${titleEvent}`;
   email.htmlContent = `
@@ -415,9 +448,13 @@ async function sendOutstationCancelledEmail(data) {
 
 async function sendLeaveSubmittedEmailToUser(data) {
   if (!process.env.BREVO_API_KEY) return;
+  if (!isValidEmailAddress(data?.employeeEmail)) {
+    console.warn("Invalid employeeEmail rejected in sendLeaveSubmittedEmailToUser.");
+    return;
+  }
   const email = {
     sender: { name: "Rayhar Staff Portal", email: "nathirah.rahman98@gmail.com" },
-    to: [{ email: data.employeeEmail, name: data.employeeName }],
+    to: [{ email: data.employeeEmail.trim(), name: data.employeeName }],
     subject: `Leave Request Submitted: ${data.leaveType}`,
     htmlContent: `
       <div style="font-family: sans-serif; color: #333;">

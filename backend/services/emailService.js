@@ -1,4 +1,5 @@
 const axios = require('axios');
+const { validateEnvelopeRecipients } = require('../utils/emailValidator');
 let mailer = null;
 try {
   mailer = require('../mailer');
@@ -13,9 +14,17 @@ const PORTAL_URL = process.env.PORTAL_URL || 'https://rayhar-staff.vercel.app';
 /**
  * Sends an email using Resend API (primary) with fallback to SMTP
  */
-async function sendEmail({ to, subject, html }) {
+async function sendEmail({ to, cc, bcc, subject, html }) {
   if (!to) {
     console.warn('⚠️ sendEmail: Missing recipient email address.');
+    return null;
+  }
+
+  let validatedRecipients;
+  try {
+    validatedRecipients = validateEnvelopeRecipients({ to, cc, bcc }, { allowArray: false });
+  } catch (validationErr) {
+    console.warn(`⚠️ sendEmail: Rejected invalid recipient:`, validationErr.message);
     return null;
   }
 
@@ -26,7 +35,9 @@ async function sendEmail({ to, subject, html }) {
         'https://api.resend.com/emails',
         {
           from: process.env.RESEND_FROM || 'Rayhar Leave Portal <onboarding@resend.dev>',
-          to: Array.isArray(to) ? to : [to],
+          to: [validatedRecipients.to],
+          ...(validatedRecipients.cc ? { cc: [validatedRecipients.cc] } : {}),
+          ...(validatedRecipients.bcc ? { bcc: [validatedRecipients.bcc] } : {}),
           subject,
           html,
         },
@@ -38,23 +49,26 @@ async function sendEmail({ to, subject, html }) {
           timeout: 10000,
         }
       );
-      console.log(`📧 [Resend] Email sent to ${to} (Subject: "${subject}") - ID: ${response.data?.id}`);
+      console.log(`📧 [Resend] Email sent to ${validatedRecipients.to} (Subject: "${subject}") - ID: ${response.data?.id}`);
       return response.data;
     } catch (err) {
-      console.error(`❌ [Resend] Error sending to ${to}:`, err.response?.data || err.message);
+      console.error(`❌ [Resend] Error sending to ${validatedRecipients.to}:`, err.response?.data || err.message);
     }
   }
 
   // 2. Fallback to Nodemailer
   if (mailer && typeof mailer.sendNotificationEmail === 'function') {
     try {
-      return await mailer.sendNotificationEmail(to, subject, html);
+      return await mailer.sendNotificationEmail(validatedRecipients.to, subject, html, {
+        cc: validatedRecipients.cc,
+        bcc: validatedRecipients.bcc,
+      });
     } catch (smtpErr) {
       console.warn(`⚠️ [EmailService] SMTP fallback failed:`, smtpErr.message);
     }
   }
 
-  console.log(`ℹ️ [EmailService simulated] Email to ${to} | Subject: "${subject}"`);
+  console.log(`ℹ️ [EmailService simulated] Email to ${validatedRecipients.to} | Subject: "${subject}"`);
   return { simulated: true };
 }
 

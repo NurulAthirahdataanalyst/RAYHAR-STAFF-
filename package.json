@@ -66,7 +66,7 @@
     "maplibre-gl": "^6.4.1",
     "mysql2": "^3.23.1",
     "next-themes": "^0.3.0",
-    "nodemailer": "^10.1.0",
+    "nodemailer": "^10.1.4",
     "puppeteer": "^25.8.0",
     "react": "^18.3.1",
     "react-day-picker": "^8.10.1",
@@ -112,6 +112,7 @@
     "vitest": "^3.2.4"
   },
   "overrides": {
+    "body-parser": "^2.4.0",
     "dompurify": "$dompurify",
     "proxy-addr": "2.0.8",
     "qs": "^6.16.1"

@@ -15,6 +15,13 @@ const emailService = require("./emailService");
 const helmet = require("helmet");
 const escapeHtml = require("escape-html");
 const rateLimit = require("express-rate-limit");
+const { isValidEmailAddress } = require("./utils/emailValidator");
+const {
+  MAX_UPLOAD_FILE_SIZE,
+  getSafeUploadExtension,
+  createSafeFileFilter,
+  validateUploadedFile,
+} = require("./utils/fileSecurity");
 
 const uploadLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -326,6 +333,28 @@ app.use(cors({
   credentials: true
 }));
 
+// Validate Content-Encoding & compressed body limits before body-parser (mitigates CVE-2026-111181)
+const ALLOWED_CONTENT_ENCODINGS = new Set(["identity", "gzip", "deflate", "br"]);
+app.use((req, res, next) => {
+  const rawEncoding = req.headers["content-encoding"];
+  if (rawEncoding !== undefined) {
+    if (typeof rawEncoding !== "string") {
+      return res.status(415).json({
+        success: false,
+        error: "Unsupported or malformed Content-Encoding header",
+      });
+    }
+    const normalizedEncoding = rawEncoding.trim().toLowerCase();
+    if (!ALLOWED_CONTENT_ENCODINGS.has(normalizedEncoding)) {
+      return res.status(415).json({
+        success: false,
+        error: "Unsupported Content-Encoding",
+      });
+    }
+  }
+  next();
+});
+
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 
@@ -360,28 +389,6 @@ if (!fs.existsSync(tempDir)) {
 }
 
 // Multer Config (saves temporarily to uploads/temp)
-function getSafeUploadExtension(originalname) {
-  const rawExt = path.extname(path.basename(String(originalname || ""))).toLowerCase();
-  switch (rawExt) {
-    case ".pdf":
-      return ".pdf";
-    case ".jpg":
-      return ".jpg";
-    case ".jpeg":
-      return ".jpeg";
-    case ".png":
-      return ".png";
-    case ".webp":
-      return ".webp";
-    case ".doc":
-      return ".doc";
-    case ".docx":
-      return ".docx";
-    default:
-      return ".pdf";
-  }
-}
-
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, tempDir);
@@ -391,7 +398,14 @@ const storage = multer.diskStorage({
     cb(null, crypto.randomBytes(16).toString("hex") + safeExt);
   }
 });
-const upload = multer({ storage: storage });
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: MAX_UPLOAD_FILE_SIZE,
+    files: 1,
+  },
+  fileFilter: createSafeFileFilter(),
+});
 
 // ===============================
 // ROLES API
@@ -3349,6 +3363,10 @@ app.post("/api/leave-requests/:id/upload-mc", uploadLimiter, upload.single("lamp
 
     let mc_file_url = null;
     if (req.file) {
+      const fileCheck = validateUploadedFile(req.file);
+      if (!fileCheck.valid) {
+        return res.status(400).json({ success: false, error: fileCheck.error });
+      }
       const safeExt = getSafeUploadExtension(req.file.originalname);
       const safeFilename = `${crypto.randomUUID()}${safeExt}`;
       const filename = path.basename(safeFilename);
@@ -3547,6 +3565,10 @@ app.post("/api/leave-requests", uploadLimiter, upload.single("lampiranMc"), asyn
 
     let mc_file_url = null;
     if (req.file) {
+      const fileCheck = validateUploadedFile(req.file);
+      if (!fileCheck.valid) {
+        return res.status(400).json({ success: false, error: fileCheck.error });
+      }
       const safeExt = getSafeUploadExtension(req.file.originalname);
       const safeFilename = `${crypto.randomUUID()}${safeExt}`;
       const filename = path.basename(safeFilename);
@@ -12296,6 +12318,66 @@ app.get("/api/replacement-leave-stats", async (req, res) => {
     console.error("Error fetching RL stats:", err);
     res.status(500).json({ success: false, error: err.message });
   }
+});
+
+// Global Multer, Body-Parser, and Express Error Handling Middleware
+app.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    return res.status(400).json({
+      success: false,
+      error: err.message
+    });
+  }
+
+  if (
+    err &&
+    (err.code === "INVALID_FILE_UPLOAD" ||
+      err.code === "INVALID_FILE_NAME" ||
+      err.code === "INVALID_FILE_EXTENSION" ||
+      err.code === "INVALID_FILE_MIMETYPE" ||
+      err.status === 400)
+  ) {
+    return res.status(400).json({
+      success: false,
+      error: err.message || "Invalid request"
+    });
+  }
+
+  if (err && (err.type === "entity.too.large" || err.status === 413)) {
+    return res.status(413).json({
+      success: false,
+      error: "Request payload too large"
+    });
+  }
+
+  if (
+    err &&
+    (err.type === "entity.parse.failed" ||
+      err.type === "encoding.unsupported" ||
+      err.type === "request.aborted" ||
+      err.code === "Z_DATA_ERROR" ||
+      err.code === "Z_BUF_ERROR" ||
+      err instanceof SyntaxError)
+  ) {
+    return res.status(400).json({
+      success: false,
+      error: "Malformed or invalid request body"
+    });
+  }
+
+  console.error("Unhandled Express Error:", err);
+  if (res.headersSent) {
+    return next(err);
+  }
+
+  const statusCode =
+    typeof err?.status === "number" && err.status >= 400 && err.status < 600
+      ? err.status
+      : 500;
+  return res.status(statusCode).json({
+    success: false,
+    error: statusCode === 500 ? "Internal server error" : err.message || "Request failed"
+  });
 });
 
 app.listen(PORT, "0.0.0.0", () => {
