@@ -568,7 +568,8 @@ export default function WorkforceCalendar() {
         {/* Daily Summary Popup */}
         {selectedDay && (() => {
           const dayEvts = getEventsForDay(selectedDay);
-          const leaveEvts = dayEvts.filter(e => !["Present (On Time)", "Present (Late)", "Absent"].includes(e.type) && e.status !== "Cancelled");
+          const leaveEvts = dayEvts.filter(e => e.source !== "outstation" && !["Present (On Time)", "Present (Late)", "Absent"].includes(e.type) && e.status !== "Cancelled");
+          const outstationEvts = dayEvts.filter(e => e.source === "outstation" && e.status !== "Cancelled");
 
           // Filter dailyAttendance based on current branch/dept if filters are active
           const filteredAtt = dailyAttendance.filter(a => {
@@ -615,7 +616,57 @@ export default function WorkforceCalendar() {
           const temporary = uniqueAtt.filter(a => a.temp_branch && (a.attendance_type === "Temporary Assignment" || a.attendance_type === "Temporary"));
           
           // Remaining regular attendees
-          const regulars = uniqueAtt.filter(a => a.status !== "Outstation" && !(a.temp_branch && (a.attendance_type === "Temporary Assignment" || a.attendance_type === "Temporary")));
+          // Dedicated Outstation List: combine authorized outstation assignments with live attendance data
+          const outstationStaffMap = new Map<string, any>();
+
+          outstationEvts.forEach(evt => {
+            const key = evt.user_id || evt.name;
+            if (!key) return;
+            const att = uniqueAtt.find(a => 
+              (evt.user_id && a.user_id === evt.user_id) || 
+              (evt.name && a.full_name && a.full_name.toLowerCase() === evt.name.toLowerCase())
+            );
+            outstationStaffMap.set(key, {
+              user_id: evt.user_id || att?.user_id,
+              full_name: evt.name || att?.full_name,
+              branch: evt.branch || att?.branch || att?.permanent_branch,
+              destination: evt.destination || att?.destination || null,
+              time_in: att?.time_in && att.time_in !== "-" ? att.time_in : "-",
+              time_out: att?.time_out && att.time_out !== "-" ? att.time_out : "-",
+              latitude: att?.latitude || null,
+              longitude: att?.longitude || null,
+            });
+          });
+
+          outstation.forEach(att => {
+            const key = att.user_id || att.full_name;
+            if (!key) return;
+            if (!outstationStaffMap.has(key)) {
+              outstationStaffMap.set(key, {
+                user_id: att.user_id,
+                full_name: att.full_name,
+                branch: att.branch || att.permanent_branch,
+                destination: att.destination || null,
+                time_in: att.time_in && att.time_in !== "-" ? att.time_in : "-",
+                time_out: att.time_out && att.time_out !== "-" ? att.time_out : "-",
+                latitude: att.latitude || null,
+                longitude: att.longitude || null,
+              });
+            } else {
+              const existing = outstationStaffMap.get(key);
+              if ((!existing.time_in || existing.time_in === "-") && att.time_in && att.time_in !== "-") existing.time_in = att.time_in;
+              if ((!existing.time_out || existing.time_out === "-") && att.time_out && att.time_out !== "-") existing.time_out = att.time_out;
+              if (!existing.latitude && att.latitude) existing.latitude = att.latitude;
+              if (!existing.longitude && att.longitude) existing.longitude = att.longitude;
+              if (!existing.branch && (att.branch || att.permanent_branch)) existing.branch = att.branch || att.permanent_branch;
+              if (!existing.destination && att.destination) existing.destination = att.destination;
+            }
+          });
+
+          const outstationStaffList = Array.from(outstationStaffMap.values());
+
+          // Remaining regular attendees
+          const regulars = uniqueAtt.filter(a => a.status !== "Outstation" && !(a.temp_branch && (a.attendance_type === "Temporary Assignment" || a.attendance_type === "Temporary")) && !outstationStaffMap.has(a.user_id));
           const presentOnTime = regulars.filter(a => a.status === "Present (On Time)" || (a.status === "Missing Clock-Out" && !a.is_late));
           const presentLate = regulars.filter(a => a.status === "Present (Late)" || a.is_late || (a.status === "Missing Clock-Out" && a.is_late));
           
@@ -631,6 +682,7 @@ export default function WorkforceCalendar() {
 
           const checkIsLeave = (a: any) => {
             if ((a.status || "").toLowerCase().includes("leave") || a.status === "Outstation") return true;
+            if (outstationStaffMap.has(a.user_id) || (a.full_name && outstationStaffMap.has(a.full_name))) return true;
             return leaveEvts.some(e => e.user_id === a.user_id || (e.name && a.full_name && e.name.toLowerCase() === a.full_name.toLowerCase()));
           };
 
@@ -658,11 +710,11 @@ export default function WorkforceCalendar() {
                 </div>
 
                 <div className="p-6 overflow-y-auto space-y-6">
-                  {/* Leaves Section */}
+                  {/* Approved Leave Section */}
                   <div>
                     <h4 className="text-[10px] font-black uppercase text-foreground mb-3 flex items-center gap-2 tracking-widest text-[#a01497]">
                       <div className="w-1.5 h-1.5 rounded-full bg-[#a01497]" />
-                      Approved Leave & Outstation ({leaveEvts.length})
+                      Approved Leave ({leaveEvts.length})
                     </h4>
                     {leaveEvts.length > 0 ? (
                       <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
@@ -677,7 +729,6 @@ export default function WorkforceCalendar() {
                                 <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${ec.dot}`} />
                                 <p className={`text-[10px] uppercase font-bold ${ec.text}`}>
                                   {e.type}
-                                  {e.destination ? ` - ${e.destination}` : ""}
                                 </p>
                               </div>
                             </div>
@@ -685,7 +736,52 @@ export default function WorkforceCalendar() {
                         })}
                       </div>
                     ) : (
-                      <div className="text-xs text-muted-foreground italic px-3 py-1">No approved leaves or outstation for this day.</div>
+                      <div className="text-xs text-muted-foreground italic px-3 py-1">No approved leaves for this day.</div>
+                    )}
+                  </div>
+
+                  {/* Outstation Section */}
+                  <div>
+                    <h4 className="text-[10px] font-black uppercase text-foreground mb-3 flex items-center gap-2 tracking-widest text-[#a01497]">
+                      <div className="w-1.5 h-1.5 rounded-full bg-[#a01497]" />
+                      Total Outstation ({outstationStaffList.length})
+                    </h4>
+                    {loadingDaily && outstationStaffList.length === 0 ? (
+                      <div className="flex justify-center py-3"><Loader2 className="w-4 h-4 animate-spin text-[#a01497]" /></div>
+                    ) : outstationStaffList.length > 0 ? (
+                      <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                        {outstationStaffList.map(a => {
+                          const hasCoords = a.latitude && a.longitude && !isNaN(Number(a.latitude)) && !isNaN(Number(a.longitude));
+                          const coordsStr = hasCoords ? `${Number(a.latitude).toFixed(6)}, ${Number(a.longitude).toFixed(6)}` : null;
+                          return (
+                            <div key={a.user_id || a.full_name} className="border border-gray-100 rounded-lg p-3 shadow-sm bg-white dark:bg-slate-900 dark:border-slate-800">
+                              <div className="flex justify-between items-start">
+                                <div className="flex flex-col">
+                                  <span className="text-xs font-bold uppercase truncate">{a.full_name} {a.branch ? `(${a.branch})` : ''}</span>
+                                  <div className="flex items-center gap-1.5 mt-1">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-pink-500" />
+                                    <span className="text-[10px] font-black uppercase text-pink-600 dark:text-pink-400">
+                                      Outstation{coordsStr ? ` • ${coordsStr}` : (a.destination ? ` • ${a.destination}` : '')}
+                                    </span>
+                                  </div>
+                                </div>
+                                <div className="flex gap-4 text-right">
+                                  <div className="flex flex-col items-center">
+                                    <span className="text-[9px] font-black uppercase text-black dark:text-white">Clock In</span>
+                                    <span className="text-xs font-mono mt-0.5">{a.time_in || "-"}</span>
+                                  </div>
+                                  <div className="flex flex-col items-center">
+                                    <span className="text-[9px] font-black uppercase text-black dark:text-white">Clock Out</span>
+                                    <span className="text-xs font-mono mt-0.5">{a.time_out || "-"}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="text-xs text-muted-foreground italic px-3 py-1">No outstation assigned for this day.</div>
                     )}
                   </div>
 
@@ -821,38 +917,7 @@ export default function WorkforceCalendar() {
                         </div>
                       )}
                       
-                      {outstation.length > 0 && (
-                        <div>
-                          <div className="text-[10px] font-black uppercase tracking-widest text-black dark:text-white mb-2 border-b pb-1">
-                            Total Outstation ({outstation.length})
-                          </div>
-                          <div className="space-y-2">
-                            {outstation.map(a => (
-                              <div key={a.user_id} className="border border-gray-100 rounded-lg p-3 shadow-sm bg-white dark:bg-slate-900 dark:border-slate-800">
-                                <div className="flex justify-between items-start">
-                                  <div className="flex flex-col">
-                                    <span className="text-xs font-bold uppercase truncate">{a.full_name} {a.branch ? `(${a.branch})` : ''}</span>
-                                    <div className="flex items-center gap-1.5 mt-1">
-                                      <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                                      <span className="text-[10px] font-black uppercase text-blue-600">Outstation {a.latitude && a.longitude ? ` • ${Number(a.latitude).toFixed(6)}, ${Number(a.longitude).toFixed(6)}` : ''}</span>
-                                    </div>
-                                  </div>
-                                  <div className="flex gap-4 text-right">
-                                    <div className="flex flex-col items-center">
-                                      <span className="text-[9px] font-black uppercase text-black dark:text-white opacity-50">Clock In</span>
-                                      <span className="text-xs font-bold font-mono mt-0.5">{a.time_in || '-'}</span>
-                                    </div>
-                                    <div className="flex flex-col items-center">
-                                      <span className="text-[9px] font-black uppercase text-black dark:text-white opacity-50">Clock Out</span>
-                                      <span className="text-xs font-bold font-mono mt-0.5">{a.time_out || '-'}</span>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
+
 
                       {absent.length > 0 && (
                         <div>
@@ -1067,38 +1132,7 @@ export default function WorkforceCalendar() {
                   </div>
                 )}
 
-                      {restDays.length > 0 && (
-                        <div>
-                          <div className="text-[10px] font-black uppercase tracking-widest text-black dark:text-white mb-2 border-b pb-1">
-                            Total Rest Day / Weekend ({restDays.length})
-                          </div>
-                          <div className="space-y-2">
-                            {restDays.map(a => (
-                              <div key={a.user_id} className="border border-gray-100 rounded-lg p-3 shadow-sm bg-white dark:bg-slate-900 dark:border-slate-800">
-                                <div className="flex justify-between items-start">
-                                  <div className="flex flex-col">
-                                    <span className="text-xs font-bold uppercase truncate">{a.full_name} {a.branch ? `(${a.branch})` : ''}</span>
-                                    <div className="flex items-center gap-1.5 mt-1">
-                                      <div className="w-1.5 h-1.5 rounded-full bg-slate-500" />
-                                      <span className="text-[10px] font-black uppercase text-slate-600">Rest Day</span>
-                                    </div>
-                                  </div>
-                                  <div className="flex gap-4 text-right">
-                                    <div className="flex flex-col items-center opacity-50">
-                                      <span className="text-[9px] font-black uppercase text-black dark:text-white">Clock In</span>
-                                      <span className="text-xs font-mono mt-0.5">-</span>
-                                    </div>
-                                    <div className="flex flex-col items-center opacity-50">
-                                      <span className="text-[9px] font-black uppercase text-black dark:text-white">Clock Out</span>
-                                      <span className="text-xs font-mono mt-0.5">-</span>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
+
               </div>
             </div>
           </div>
