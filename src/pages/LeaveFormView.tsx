@@ -1,5 +1,5 @@
 import { formatBranchName } from '@/utils/branchUtils';
-import { safeFileUrl, downloadUploadedFile, getMcAttachmentUrl, preloadImage, isPdfUrl } from '@/utils/security';
+import { sanitizeUrl, safeFileUrl, downloadUploadedFile, getMcAttachmentUrl, preloadImage, isPdfUrl } from '@/utils/security';
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -863,7 +863,7 @@ export default function LeaveFormView() {
                             <>
                               {/* View File button */}
                               <a
-                                href={getMcAttachmentUrl(selectedForm.mcFileUrl) || safeFileUrl(selectedForm.mcFileUrl)}
+                                href={sanitizeUrl(getMcAttachmentUrl(selectedForm.mcFileUrl) || safeFileUrl(selectedForm.mcFileUrl, "about:blank"))}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="flex items-center justify-center h-8 px-4 text-[10px] print:text-[13px] font-black uppercase tracking-widest bg-[#942392] text-white rounded-md hover:bg-[#5e0080] transition-colors shadow-sm"
@@ -1031,13 +1031,13 @@ export default function LeaveFormView() {
                       ) : (
                         <div className="w-full flex items-center justify-center max-h-[750px]">
                           <img 
-                            src={mcBlobUrl || getMcAttachmentUrl(selectedForm.mcFileUrl) || safeFileUrl(selectedForm.mcFileUrl, "about:blank")} 
+                            src={sanitizeUrl(mcBlobUrl || getMcAttachmentUrl(selectedForm.mcFileUrl) || safeFileUrl(selectedForm.mcFileUrl, "about:blank"))} 
                             alt="MC Attachment" 
                             className="max-w-full max-h-[750px] object-contain block mx-auto"
                             onError={(e) => {
                               const currentSrc = e.currentTarget.src;
                               if (currentSrc.includes('supabase.co')) {
-                                e.currentTarget.src = `${API_BASE_URL}${selectedForm.mcFileUrl}`;
+                                e.currentTarget.src = sanitizeUrl(safeFileUrl(selectedForm.mcFileUrl, "about:blank"));
                               }
                             }}
                           />

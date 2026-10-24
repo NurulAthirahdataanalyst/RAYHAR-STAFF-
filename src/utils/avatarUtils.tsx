@@ -1,4 +1,5 @@
 import React from "react";
+import { sanitizeUrl } from "@/utils/security";
 
 export interface AvatarOption {
   id: string;
@@ -10,9 +11,10 @@ export interface AvatarOption {
 
 // Helper to render an avatar image with proper sizing and accessibility
 const createAvatarRenderer = (src: string, alt: string) => {
+  const safeSrc = sanitizeUrl(src);
   return (size: number | string = "100%") => (
     <img
-      src={src}
+      src={safeSrc}
       alt={alt}
       className="w-full h-full object-cover rounded-full block select-none pointer-events-none"
       style={{ width: typeof size === "number" ? `${size}px` : size, height: typeof size === "number" ? `${size}px` : size }}
@@ -300,11 +302,12 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
   }
 
   // Fallback: Check if avatarId directly matches a png asset in public/avatars/
-  if (resolvedId && resolvedId !== "initials") {
+  if (resolvedId && resolvedId !== "initials" && /^[a-zA-Z0-9_-]+$/.test(resolvedId)) {
+    const safeAvatarSrc = sanitizeUrl(`/avatars/${encodeURIComponent(resolvedId)}.png`);
     return (
       <div className={`w-full h-full flex items-center justify-center overflow-hidden rounded-full ${className}`}>
         <img
-          src={`/avatars/${resolvedId}.png`}
+          src={safeAvatarSrc}
           alt={name}
           className="w-full h-full object-cover rounded-full block select-none pointer-events-none"
           style={{ width: typeof size === "number" ? `${size}px` : size, height: typeof size === "number" ? `${size}px` : size }}
@@ -312,7 +315,11 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
             const img = e.currentTarget;
             img.style.display = "none";
             if (img.parentElement) {
-              img.parentElement.innerHTML = `<span class="w-full h-full rounded-full bg-gradient-to-br from-[#942392] to-[#c026d3] flex items-center justify-center text-white font-black select-none">${initial}</span>`;
+              const fallbackSpan = document.createElement("span");
+              fallbackSpan.className =
+                "w-full h-full rounded-full bg-gradient-to-br from-[#942392] to-[#c026d3] flex items-center justify-center text-white font-black select-none";
+              fallbackSpan.textContent = initial;
+              img.parentElement.replaceChildren(fallbackSpan);
             }
           }}
         />

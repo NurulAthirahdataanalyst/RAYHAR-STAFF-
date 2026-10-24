@@ -1,4 +1,4 @@
-import { safeFileUrl, downloadUploadedFile, getMcAttachmentUrl, preloadImage, isPdfUrl } from '@/utils/security';
+import { sanitizeUrl, safeFileUrl, downloadUploadedFile, getMcAttachmentUrl, preloadImage, isPdfUrl } from '@/utils/security';
 import { formatBranchName } from '@/utils/branchUtils';
 import { useNavigate } from "react-router-dom";
 import { MonthPicker } from '@/components/shared/MonthPicker';
@@ -1571,7 +1571,7 @@ export default function Employees() {
                         </div>
                       <div className="flex items-center gap-2">
                         <a
-                          href={getMcAttachmentUrl(req.mc_file_url) || safeFileUrl(req.mc_file_url)}
+                          href={sanitizeUrl(getMcAttachmentUrl(req.mc_file_url) || safeFileUrl(req.mc_file_url, "about:blank"))}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-[10px] print:text-[13px] font-black uppercase tracking-widest bg-[#942392] text-white px-4 py-2 rounded-xl hover:bg-[#5e0080] transition-colors shadow-lg"
@@ -1743,13 +1743,13 @@ export default function Employees() {
                         ) : (
                           <div className="w-full flex items-center justify-center max-h-[750px]">
                             <img 
-                              src={getMcAttachmentUrl(req.mc_file_url) || safeFileUrl(req.mc_file_url, "about:blank")} 
+                              src={sanitizeUrl(getMcAttachmentUrl(req.mc_file_url) || safeFileUrl(req.mc_file_url, "about:blank"))} 
                               alt="MC Attachment" 
                               className="max-w-full max-h-[750px] object-contain block mx-auto"
                               onError={(e) => {
                                 const currentSrc = e.currentTarget.src;
                                 if (currentSrc.includes('supabase.co')) {
-                                  e.currentTarget.src = `${API_BASE_URL}${req.mc_file_url}`;
+                                  e.currentTarget.src = sanitizeUrl(safeFileUrl(req.mc_file_url, "about:blank"));
                                 }
                               }}
                             />

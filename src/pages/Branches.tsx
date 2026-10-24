@@ -1,4 +1,4 @@
-import { safeFileUrl } from '@/utils/security';
+import { sanitizeUrl, safeFileUrl } from '@/utils/security';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -1903,7 +1903,7 @@ export default function Branches() {
                                   </span>
                                 </div>
                                 <a
-                                  href={safeFileUrl(req.mc_file_url)}
+                                  href={sanitizeUrl(safeFileUrl(req.mc_file_url, "about:blank"))}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className="text-[10px] print:text-[13px] font-black uppercase tracking-widest bg-[#942392] text-white px-4 py-2 rounded-xl hover:bg-[#5e0080] transition-colors shadow-lg"

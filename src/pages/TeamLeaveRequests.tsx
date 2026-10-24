@@ -1,4 +1,4 @@
-import { safeFileUrl, downloadUploadedFile, getMcAttachmentUrl, preloadImage, isPdfUrl } from '@/utils/security';
+import { sanitizeUrl, safeFileUrl, downloadUploadedFile, getMcAttachmentUrl, preloadImage, isPdfUrl } from '@/utils/security';
 import { formatBranchName } from '@/utils/branchUtils';
 import { useRole } from "@/contexts/RoleContext";
 import { useState, useEffect } from "react";
@@ -488,7 +488,7 @@ export default function TeamLeaveRequests() {
                       </div>
                     <div className="flex items-center gap-2">
                       <a
-                        href={getMcAttachmentUrl(selectedRequest.mcFileUrl) || safeFileUrl(selectedRequest.mcFileUrl)}
+                        href={sanitizeUrl(getMcAttachmentUrl(selectedRequest.mcFileUrl) || safeFileUrl(selectedRequest.mcFileUrl, "about:blank"))}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-[10px] print:text-[13px] font-black uppercase tracking-widest bg-[#942392] text-white px-4 py-2 rounded-xl hover:bg-[#5e0080] transition-colors shadow-lg"
@@ -665,13 +665,13 @@ export default function TeamLeaveRequests() {
                     ) : (
                       <div className="w-full flex items-center justify-center max-h-[750px]">
                         <img 
-                          src={mcBlobUrl || getMcAttachmentUrl(selectedRequest.mcFileUrl) || safeFileUrl(selectedRequest.mcFileUrl, "about:blank")} 
+                          src={sanitizeUrl(mcBlobUrl || getMcAttachmentUrl(selectedRequest.mcFileUrl) || safeFileUrl(selectedRequest.mcFileUrl, "about:blank"))} 
                           alt="MC Attachment" 
                           className="max-w-full max-h-[750px] object-contain block mx-auto"
                           onError={(e) => {
                             const currentSrc = e.currentTarget.src;
                             if (currentSrc.includes('supabase.co')) {
-                              e.currentTarget.src = `${API_BASE_URL}${selectedRequest.mcFileUrl}`;
+                              e.currentTarget.src = sanitizeUrl(safeFileUrl(selectedRequest.mcFileUrl, "about:blank"));
                             }
                           }}
                         />

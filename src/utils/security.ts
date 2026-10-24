@@ -2,46 +2,223 @@ import DOMPurify from "dompurify";
 import { API_BASE_URL } from "@/config/api";
 
 /* ------------------------------------------------------------------ */
-/* URL helpers                                                         */
+/* URL Validation & Sanitization                                       */
 /* ------------------------------------------------------------------ */
 
-const ALLOWED_PROTOCOLS = new Set(["http:", "https:"]);
+const ALLOWED_HTTP_PROTOCOLS = new Set(["https:", "http:"]);
+const ALLOWED_ALL_PROTOCOLS = new Set(["https:", "http:", "blob:"]);
+
+export interface SanitizeUrlOptions {
+  /** Safe fallback returned when a URL is invalid or disallowed (default: "about:blank"). */
+  fallback?: string;
+  /** Whether http:// is permitted in addition to https:// (default: true). */
+  allowHttp?: boolean;
+  /** Whether external domains outside the application allowlist are permitted (default: false). */
+  allowExternal?: boolean;
+  /** Optional extra hostnames permitted for this specific check. */
+  allowedHosts?: string[];
+}
 
 /**
- * Returns a safe absolute URL (http/https only). Anything else —
- * `javascript:`, `data:`, `vbscript:`, malformed URLs — returns `fallback`.
+ * Builds the set of trusted application, API, and storage hostnames.
  */
-export const safeUrl = (url: string | null | undefined, fallback: string = "#"): string => {
-  if (!url || typeof url !== "string") return fallback;
-  const trimmed = url.trim();
-  if (!trimmed) return fallback;
+const getTrustedHosts = (extraHosts?: string[]): Set<string> => {
+  const hosts = new Set<string>([
+    "localhost",
+    "127.0.0.1",
+    "xvpebtompjcjfvuzeumo.supabase.co",
+    "rayhar-staff.onrender.com",
+  ]);
+
+  if (typeof window !== "undefined" && window.location?.hostname) {
+    hosts.add(window.location.hostname.toLowerCase());
+  }
+
   try {
-    const parsed = new URL(trimmed, window.location.origin);
-    return ALLOWED_PROTOCOLS.has(parsed.protocol) ? parsed.href : fallback;
+    if (API_BASE_URL) {
+      hosts.add(new URL(API_BASE_URL).hostname.toLowerCase());
+    }
+  } catch {
+    // Ignore malformed env URL
+  }
+
+  try {
+    const envSupabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    if (envSupabaseUrl && typeof envSupabaseUrl === "string") {
+      hosts.add(new URL(envSupabaseUrl).hostname.toLowerCase());
+    }
+  } catch {
+    // Ignore malformed env URL
+  }
+
+  if (Array.isArray(extraHosts)) {
+    for (const h of extraHosts) {
+      if (typeof h === "string" && h.trim()) {
+        hosts.add(h.trim().toLowerCase());
+      }
+    }
+  }
+
+  return hosts;
+};
+
+/**
+ * Checks if a parsed hostname belongs to the trusted host allowlist.
+ */
+const isTrustedHostname = (hostname: string, extraHosts?: string[]): boolean => {
+  if (!hostname) return false;
+  const lower = hostname.toLowerCase();
+  const trusted = getTrustedHosts(extraHosts);
+  if (trusted.has(lower)) return true;
+  if (lower.endsWith(".supabase.co") && lower !== "lhgfzerdekwxppzjngyg.supabase.co") {
+    return true;
+  }
+  if (
+    typeof window !== "undefined" &&
+    window.location?.hostname?.startsWith("192.168.") &&
+    lower.startsWith("192.168.")
+  ) {
+    return true;
+  }
+  return false;
+};
+
+/**
+ * Reusable OWASP-compliant URL validator & sanitizer.
+ *
+ * - Rejects `javascript:`, `data:`, `vbscript:`, `file:`, `ftp:`, and malformed URLs
+ * - Rejects protocol-relative URLs (`//evil.com`, `/\evil.com`) and backslash tricks
+ * - Rejects external domains unless `allowExternal: true` is explicitly configured
+ * - Allows only `https://`, `http://` (when configured), `blob:` (same/trusted origin),
+ *   and relative URLs beginning with a single `/`
+ * - Uses the browser `URL()` parser exclusively instead of string comparisons
+ * - Returns `"about:blank"` (or the configured safe fallback) for invalid URLs
+ */
+export const sanitizeUrl = (
+  rawUrl: string | null | undefined,
+  optionsOrFallback: SanitizeUrlOptions | string = "about:blank"
+): string => {
+  const options: SanitizeUrlOptions =
+    typeof optionsOrFallback === "string"
+      ? { fallback: optionsOrFallback }
+      : optionsOrFallback ?? {};
+
+  const fallback = options.fallback !== undefined ? options.fallback : "about:blank";
+  const allowHttp = options.allowHttp !== undefined ? options.allowHttp : true;
+  const allowExternal = options.allowExternal !== undefined ? options.allowExternal : false;
+
+  if (!rawUrl || typeof rawUrl !== "string") return fallback;
+
+  const trimmed = rawUrl.trim();
+  if (!trimmed) return fallback;
+
+  // Reject ASCII control characters and whitespace tricks inside the scheme/authority
+  if (/[\u0000-\u001F\u007F]/.test(trimmed)) return fallback;
+
+  if (trimmed === "about:blank") return "about:blank";
+
+  // Reject protocol-relative URLs (//evil.com, /\evil.com) and backslashes
+  if (trimmed.startsWith("//") || trimmed.startsWith("/\\") || trimmed.includes("\\")) {
+    return fallback;
+  }
+
+  const baseOrigin =
+    typeof window !== "undefined" && window.location?.origin && window.location.origin !== "null"
+      ? window.location.origin
+      : "https://localhost";
+
+  // 1. Relative URLs beginning with a single `/`
+  if (trimmed.startsWith("/")) {
+    if (trimmed.includes("..")) return fallback;
+    try {
+      const parsed = new URL(trimmed, baseOrigin);
+      if (parsed.origin !== baseOrigin || parsed.pathname.includes("..")) {
+        return fallback;
+      }
+      if (!ALLOWED_HTTP_PROTOCOLS.has(parsed.protocol)) {
+        return fallback;
+      }
+      return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+    } catch {
+      return fallback;
+    }
+  }
+
+  // 2. Absolute URLs (https:, http:, blob:) parsed strictly via URL() without base
+  try {
+    const parsed = new URL(trimmed);
+
+    if (!ALLOWED_ALL_PROTOCOLS.has(parsed.protocol)) {
+      return fallback;
+    }
+
+    if (parsed.protocol === "blob:") {
+      try {
+        const innerOriginUrl = new URL(parsed.pathname);
+        if (
+          !ALLOWED_HTTP_PROTOCOLS.has(innerOriginUrl.protocol) ||
+          (!allowExternal && !isTrustedHostname(innerOriginUrl.hostname, options.allowedHosts))
+        ) {
+          return fallback;
+        }
+        return parsed.href;
+      } catch {
+        return fallback;
+      }
+    }
+
+    if (parsed.protocol === "http:" && !allowHttp) {
+      return fallback;
+    }
+
+    if (!allowExternal && !isTrustedHostname(parsed.hostname, options.allowedHosts)) {
+      return fallback;
+    }
+
+    return parsed.href;
   } catch {
     return fallback;
   }
 };
 
 /**
- * Builds a link to an uploaded file served by the backend or Supabase storage.
+ * Returns a safe absolute URL (http/https only). Anything else —
+ * `javascript:`, `data:`, `vbscript:`, malformed URLs — returns `fallback`.
  */
-export const safeFileUrl = (file: string | null | undefined, fallback: string = "#"): string => {
+export const safeUrl = (url: string | null | undefined, fallback: string = "about:blank"): string => {
+  return sanitizeUrl(url, { fallback, allowHttp: true, allowExternal: true });
+};
+
+/**
+ * Builds a validated link to an uploaded file served by the backend or Supabase storage.
+ */
+export const safeFileUrl = (file: string | null | undefined, fallback: string = "about:blank"): string => {
   if (!file || typeof file !== "string") return fallback;
-  if (file.startsWith("blob:") || file.startsWith("data:image/")) return file;
-  if (file.includes("lhgfzerdekwxppzjngyg.supabase.co")) {
-    file = file.replace("lhgfzerdekwxppzjngyg.supabase.co", "xvpebtompjcjfvuzeumo.supabase.co");
+  let normalized = file.trim();
+  if (!normalized || /[\u0000-\u001F\u007F]/.test(normalized)) return fallback;
+
+  if (normalized.startsWith("blob:")) {
+    return sanitizeUrl(normalized, fallback);
   }
-  // Accept absolute https URLs that contain /uploads/ or Supabase storage
-  if (file.startsWith("https://") || file.startsWith("http://")) {
+
+  if (normalized.includes("lhgfzerdekwxppzjngyg.supabase.co")) {
+    normalized = normalized.replace("lhgfzerdekwxppzjngyg.supabase.co", "xvpebtompjcjfvuzeumo.supabase.co");
+  }
+
+  if (normalized.startsWith("https://") || normalized.startsWith("http://")) {
     try {
-      const parsed = new URL(file);
-      if (ALLOWED_PROTOCOLS.has(parsed.protocol)) {
+      const parsed = new URL(normalized);
+      if (ALLOWED_HTTP_PROTOCOLS.has(parsed.protocol)) {
         if (parsed.hostname.endsWith(".supabase.co") && parsed.pathname.startsWith("/storage/")) {
-          return file;
+          return sanitizeUrl(parsed.href, fallback);
         }
-        if (parsed.pathname.includes("/uploads/") && !file.includes("..") && !file.includes("\\")) {
-          return file;
+        if (
+          isTrustedHostname(parsed.hostname) &&
+          parsed.pathname.includes("/uploads/") &&
+          !normalized.includes("..") &&
+          !normalized.includes("\\")
+        ) {
+          return sanitizeUrl(parsed.href, fallback);
         }
       }
     } catch {
@@ -49,35 +226,50 @@ export const safeFileUrl = (file: string | null | undefined, fallback: string = 
     }
     return fallback;
   }
-  if (!file.startsWith("/uploads/") || file.includes("..") || file.includes("\\")) return fallback;
-  return safeUrl(`${API_BASE_URL}${file}`, fallback);
+
+  if (!normalized.startsWith("/uploads/") || normalized.includes("..") || normalized.includes("\\")) {
+    return fallback;
+  }
+  return sanitizeUrl(`${API_BASE_URL}${normalized}`, fallback);
 };
 
 /**
- * Resolves an MC attachment path into a direct, fast URL.
+ * Resolves an MC attachment path into a direct, validated URL.
  * Automatically prefers the Supabase storage CDN bucket for instant loading,
  * avoiding Render cold-start sleeps and redirect delays.
  */
 export const getMcAttachmentUrl = (file: string | null | undefined): string => {
   if (!file || typeof file !== "string") return "";
-  if (file.startsWith("blob:") || file.startsWith("data:image/")) return file;
-  if (file.includes("lhgfzerdekwxppzjngyg.supabase.co")) {
-    file = file.replace("lhgfzerdekwxppzjngyg.supabase.co", "xvpebtompjcjfvuzeumo.supabase.co");
+  let normalized = file.trim();
+  if (!normalized || /[\u0000-\u001F\u007F]/.test(normalized)) return "";
+
+  if (normalized.startsWith("blob:")) {
+    return sanitizeUrl(normalized, "");
   }
-  if (file.startsWith("http://") || file.startsWith("https://")) {
-    return safeFileUrl(file, "");
+
+  if (normalized.includes("lhgfzerdekwxppzjngyg.supabase.co")) {
+    normalized = normalized.replace("lhgfzerdekwxppzjngyg.supabase.co", "xvpebtompjcjfvuzeumo.supabase.co");
   }
-  if (file.startsWith("/uploads/")) {
-    if (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")) {
-      return `${API_BASE_URL}${file}`;
+
+  if (normalized.startsWith("http://") || normalized.startsWith("https://")) {
+    return safeFileUrl(normalized, "");
+  }
+
+  if (normalized.startsWith("/uploads/") && !normalized.includes("..") && !normalized.includes("\\")) {
+    if (
+      typeof window !== "undefined" &&
+      (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+    ) {
+      return sanitizeUrl(`${API_BASE_URL}${normalized}`, "");
     }
     const envUrl = import.meta.env.VITE_SUPABASE_URL;
-    const supabaseUrl = (envUrl && !envUrl.includes("lhgfzerdekwxppzjngyg"))
-      ? envUrl
-      : "https://xvpebtompjcjfvuzeumo.supabase.co";
-    const subpath = file.replace(/^\/uploads\//, "");
+    const supabaseUrl =
+      envUrl && !envUrl.includes("lhgfzerdekwxppzjngyg")
+        ? envUrl
+        : "https://xvpebtompjcjfvuzeumo.supabase.co";
+    const subpath = normalized.replace(/^\/uploads\//, "");
     const encoded = subpath.split("/").map(encodeURIComponent).join("/");
-    return `${supabaseUrl}/storage/v1/object/public/mc-attachments/${encoded}`;
+    return sanitizeUrl(`${supabaseUrl}/storage/v1/object/public/mc-attachments/${encoded}`, "");
   }
   return "";
 };
@@ -92,65 +284,66 @@ export const isPdfUrl = (url: string | null | undefined): boolean => {
 };
 
 /**
- * Preloads an image into memory, converting it into a base64 Data URL
+ * Preloads an image into memory, converting it into a validated `blob:` Object URL
  * so that window.print() and print preview can render it synchronously and reliably
- * without broken image icons or CORS issues.
+ * without `data:` URLs, broken image icons, or CORS issues.
  */
 export const preloadImage = async (url: string, fallbackUrl?: string): Promise<string> => {
-  if (!url || url === "#" || url === "about:blank" || isPdfUrl(url)) return url;
-  if (url.startsWith("data:image/")) return url;
+  const safePrimary = sanitizeUrl(url, "");
+  const safeFallback = fallbackUrl ? sanitizeUrl(fallbackUrl, "") : "";
 
-  const tryFetchDataUrl = async (targetUrl: string): Promise<string | null> => {
+  if (!safePrimary || safePrimary === "about:blank" || isPdfUrl(safePrimary)) {
+    return safePrimary || "about:blank";
+  }
+  if (safePrimary.startsWith("blob:")) {
+    return safePrimary;
+  }
+
+  const tryFetchBlobUrl = async (targetUrl: string): Promise<string | null> => {
+    const validatedTarget = sanitizeUrl(targetUrl, "");
+    if (!validatedTarget || validatedTarget === "about:blank") return null;
     try {
-      const res = await fetch(targetUrl);
+      const res = await fetch(validatedTarget);
       if (res.ok) {
         const blob = await res.blob();
-        return await new Promise<string>((resolve) => {
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            if (typeof reader.result === "string") {
-              resolve(reader.result);
-            } else {
-              resolve(targetUrl);
-            }
-          };
-          reader.onerror = () => resolve(targetUrl);
-          reader.readAsDataURL(blob);
-        });
+        if (blob.type && !blob.type.startsWith("image/")) {
+          return validatedTarget;
+        }
+        const objectUrl = URL.createObjectURL(blob);
+        return sanitizeUrl(objectUrl, validatedTarget);
       }
     } catch (err) {
-      console.warn("Failed to fetch image as data URL from:", targetUrl, err);
+      console.warn("Failed to fetch image as blob URL from:", validatedTarget, err);
     }
     return null;
   };
 
-  const loadedPrimary = await tryFetchDataUrl(url);
+  const loadedPrimary = await tryFetchBlobUrl(safePrimary);
   if (loadedPrimary) return loadedPrimary;
 
-  if (fallbackUrl && fallbackUrl !== url && !isPdfUrl(fallbackUrl)) {
-    const loadedFallback = await tryFetchDataUrl(fallbackUrl);
+  if (safeFallback && safeFallback !== safePrimary && !isPdfUrl(safeFallback)) {
+    const loadedFallback = await tryFetchBlobUrl(safeFallback);
     if (loadedFallback) return loadedFallback;
   }
 
   return new Promise<string>((resolve) => {
     const img = new Image();
-    img.onload = () => resolve(url);
+    img.onload = () => resolve(safePrimary);
     img.onerror = () => {
-      if (fallbackUrl && fallbackUrl !== url) {
+      if (safeFallback && safeFallback !== safePrimary) {
         const imgFallback = new Image();
-        imgFallback.onload = () => resolve(fallbackUrl);
-        imgFallback.onerror = () => resolve(url);
-        imgFallback.src = fallbackUrl;
+        imgFallback.onload = () => resolve(safeFallback);
+        imgFallback.onerror = () => resolve(safePrimary);
+        imgFallback.src = safeFallback;
       } else {
-        resolve(url);
+        resolve(safePrimary);
       }
     };
-    img.src = url;
-    if (img.complete) resolve(url);
-    setTimeout(() => resolve(url), 2000);
+    img.src = safePrimary;
+    if (img.complete) resolve(safePrimary);
+    setTimeout(() => resolve(safePrimary), 2000);
   });
 };
-
 
 /**
  * Only allows internal, relative app routes to prevent open redirects.
@@ -159,8 +352,8 @@ export const preloadImage = async (url: string, fallbackUrl?: string): Promise<s
 export const safeRedirectUrl = (url: string | null | undefined, fallback: string = "/"): string => {
   if (!url || typeof url !== "string") return fallback;
   if (!url.startsWith("/") || url.startsWith("//") || url.startsWith("/\\")) return fallback;
-  if (/[\u0000-\u001F]/.test(url)) return fallback;
-  return url;
+  if (/[\u0000-\u001F\u007F]/.test(url)) return fallback;
+  return sanitizeUrl(url, fallback);
 };
 
 /* ------------------------------------------------------------------ */
@@ -176,13 +369,12 @@ export const sanitizeFilename = (name: string): string =>
 
 /** Triggers a download for a blob: or validated http(s) URL. */
 export const triggerDownload = (href: string, filename: string): void => {
-  const isBlob = typeof href === "string" && href.startsWith("blob:");
-  const target = isBlob ? href : safeUrl(href, "");
-  if (!target) return;
+  const target = sanitizeUrl(href, "");
+  if (!target || target === "about:blank") return;
   const link = document.createElement("a");
   link.href = target;
   link.download = sanitizeFilename(filename);
-  link.rel = "noopener";
+  link.rel = "noopener noreferrer";
   link.click();
 };
 
@@ -196,7 +388,7 @@ export const downloadBlob = (blob: Blob, filename: string): void => {
 /** Fetches an uploaded file (must live under /uploads/) and downloads it. */
 export const downloadUploadedFile = async (file: string | null | undefined, filename: string): Promise<void> => {
   const url = safeFileUrl(file, "");
-  if (!url) throw new Error("Invalid file path");
+  if (!url || url === "about:blank") throw new Error("Invalid file path");
   const response = await fetch(url);
   if (!response.ok) throw new Error(`Download failed (${response.status})`);
   downloadBlob(await response.blob(), filename);
@@ -251,7 +443,7 @@ export const escapeHtml = (value: unknown): string =>
     .replace(/'/g, "&#39;");
 
 /* ------------------------------------------------------------------ */
-/* Prototype-pollution guards                                           */
+/* Prototype-pollution & Immutable State Guards                         */
 /* ------------------------------------------------------------------ */
 
 const FORBIDDEN_KEYS = new Set(["__proto__", "prototype", "constructor"]);
@@ -261,5 +453,20 @@ export const isSafeKey = (key: unknown): key is string =>
   typeof key === "string" && !FORBIDDEN_KEYS.has(key);
 
 /** True when `index` is a valid integer index for `arr`. */
-export const isValidIndex = (arr: unknown[], index: unknown): index is number =>
+export const isValidIndex = (arr: readonly unknown[], index: unknown): index is number =>
   Number.isInteger(index) && (index as number) >= 0 && (index as number) < arr.length;
+
+/**
+ * Immutably updates an element at a validated index in an array without
+ * direct indexed assignment (`arr[index].prop = val`), preventing CWE-1321.
+ */
+export const updateArrayItemAt = <T>(
+  arr: readonly T[],
+  index: number,
+  updater: (item: T) => T
+): T[] => {
+  if (!isValidIndex(arr, index)) {
+    return [...arr];
+  }
+  return arr.map((item, i) => (i === index ? updater(item) : item));
+};

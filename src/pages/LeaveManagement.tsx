@@ -1,4 +1,4 @@
-import { isValidIndex } from '@/utils/security';
+import { isValidIndex, updateArrayItemAt } from '@/utils/security';
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -153,16 +153,18 @@ export default function LeaveManagement() {
   });
 
   const addCutiGantiRow = () => {
-    setFormData({
-      ...formData,
-      cutiGantiRows: [...formData.cutiGantiRows, { tarikhCuti: "", tarikhGanti: "", keterangan: "", jamGanti: "--" }]
-    });
+    setFormData(prev => ({
+      ...prev,
+      cutiGantiRows: [...prev.cutiGantiRows, { tarikhCuti: "", tarikhGanti: "", keterangan: "", jamGanti: "--" }]
+    }));
   };
 
   const removeCutiGantiRow = (index: number) => {
     setFormData(prev => ({
       ...prev,
-      cutiGantiRows: prev.cutiGantiRows.filter((_, idx) => idx !== index)
+      cutiGantiRows: isValidIndex(prev.cutiGantiRows, index)
+        ? prev.cutiGantiRows.filter((_, idx) => idx !== index)
+        : prev.cutiGantiRows
     }));
   };
 
@@ -782,11 +784,7 @@ export default function LeaveManagement() {
                               {index > 0 && (
                                 <button
                                   type="button"
-                                  onClick={() => {
-                                    const newRows = [...formData.cutiGantiRows];
-                                    newRows.splice(index, 1);
-                                    setFormData({ ...formData, cutiGantiRows: newRows });
-                                  }}
+                                  onClick={() => removeCutiGantiRow(index)}
                                   className="absolute top-4 right-0 p-2 text-red-500 hover:text-red-700 transition-colors z-10"
                                 >
                                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
@@ -798,11 +796,14 @@ export default function LeaveManagement() {
                                   value={row.tarikhCuti}
                                   minDate={new Date().toISOString().split('T')[0]}
                                   onChange={(val) => {
-                                    const newRows = [...formData.cutiGantiRows];
-                                    if (isValidIndex(newRows, index)) {
-                                      newRows[index].tarikhCuti = val;
-                                    }
-                                    setFormData(prev => ({ ...prev, cutiGantiRows: newRows }));
+                                    setFormData(prev => ({
+                                      ...prev,
+                                      cutiGantiRows: updateArrayItemAt(
+                                        prev.cutiGantiRows,
+                                        index,
+                                        (item) => ({ ...item, tarikhCuti: val })
+                                      )
+                                    }));
                                   }}
                                   className="h-12 bg-card rounded-xl font-bold border border-[#942392]/20"
                                 />
@@ -814,11 +815,14 @@ export default function LeaveManagement() {
                                   value={row.tarikhGanti || ""}
                                   minDate={new Date().toISOString().split('T')[0]}
                                   onChange={(val) => {
-                                    const newRows = [...formData.cutiGantiRows];
-                                    if (isValidIndex(newRows, index)) {
-                                      newRows[index].tarikhGanti = val;
-                                    }
-                                    setFormData({ ...formData, cutiGantiRows: newRows });
+                                    setFormData(prev => ({
+                                      ...prev,
+                                      cutiGantiRows: updateArrayItemAt(
+                                        prev.cutiGantiRows,
+                                        index,
+                                        (item) => ({ ...item, tarikhGanti: val })
+                                      )
+                                    }));
                                   }}
                                   className="h-12 bg-card rounded-xl font-bold border border-[#942392]/20"
                                 />
@@ -829,11 +833,15 @@ export default function LeaveManagement() {
                                 <Input
                                   value={row.keterangan || ""}
                                   onChange={(e) => {
-                                    const newRows = [...formData.cutiGantiRows];
-                                    if (isValidIndex(newRows, index)) {
-                                      newRows[index].keterangan = e.target.value;
-                                    }
-                                    setFormData({ ...formData, cutiGantiRows: newRows });
+                                    const nextKeterangan = e.target.value;
+                                    setFormData(prev => ({
+                                      ...prev,
+                                      cutiGantiRows: updateArrayItemAt(
+                                        prev.cutiGantiRows,
+                                        index,
+                                        (item) => ({ ...item, keterangan: nextKeterangan })
+                                      )
+                                    }));
                                   }}
                                   placeholder="Contoh: Kerja lebih masa"
                                   className="h-12 bg-card rounded-xl font-bold border border-[#942392]/20 placeholder:text-muted-foreground placeholder:font-normal"
@@ -847,15 +855,7 @@ export default function LeaveManagement() {
                       <div className="flex justify-end mt-4">
                         <button
                           type="button"
-                          onClick={() => {
-                            setFormData(prev => ({
-                              ...prev,
-                              cutiGantiRows: [
-                                ...prev.cutiGantiRows,
-                                { tarikhCuti: "", tarikhGanti: "", keterangan: "", jamGanti: "" }
-                              ]
-                            }));
-                          }}
+                          onClick={addCutiGantiRow}
                           className="px-4 py-2 bg-[#942392]/10 text-[#942392] rounded-xl font-bold text-xs hover:bg-[#942392]/20 transition-all flex items-center gap-2"
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg> TAMBAH BARIS
