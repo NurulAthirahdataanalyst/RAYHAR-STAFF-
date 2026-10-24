@@ -1,3 +1,5 @@
+import { sanitizeInternalPath } from "@/utils/security";
+
 export interface BreadcrumbSegment {
   label: string;
   path?: string;
@@ -110,7 +112,7 @@ export function getBreadcrumbs(pathname: string, search?: string, role?: string)
   const result: BreadcrumbSegment[] = [home];
   segments.forEach((seg, i) => {
     const label = seg.replace(/-/g, " ").toUpperCase();
-    const path = "/" + segments.slice(0, i + 1).join("/");
+    const path = sanitizeInternalPath("/" + segments.slice(0, i + 1).join("/"), "/");
     result.push(i < segments.length - 1 ? { label, path } : { label });
   });
   return result;

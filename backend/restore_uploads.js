@@ -14,9 +14,60 @@ if (!supabaseUrl || !supabaseKey) {
   process.exit(1);
 }
 
-const uploadsDir = path.join(__dirname, 'uploads');
+const uploadsDir = path.resolve(__dirname, 'uploads');
 if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir);
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+/**
+ * Resolves a remote storage object name safely inside `uploadsDir` using
+ * `path.basename()` on every segment and verifying containment (CWE-23).
+ */
+function resolveSafeUploadPath(rawFileName) {
+  if (!rawFileName || typeof rawFileName !== 'string') {
+    return null;
+  }
+
+  const trimmed = rawFileName.trim();
+  if (!trimmed || trimmed.includes('\0') || trimmed.includes('..') || trimmed.includes('\\')) {
+    return null;
+  }
+
+  const safeBaseName = path.basename(trimmed);
+  if (!safeBaseName || safeBaseName === '.' || safeBaseName === '..') {
+    return null;
+  }
+
+  const rawDir = path.dirname(trimmed);
+  const safeSubdirName =
+    rawDir && rawDir !== '.' && rawDir !== '/' ? path.basename(rawDir) : '';
+
+  if (safeSubdirName === '.' || safeSubdirName === '..') {
+    return null;
+  }
+
+  // Reject multi-level paths where dirname had more than one segment
+  const expectedRelative = safeSubdirName ? `${safeSubdirName}/${safeBaseName}` : safeBaseName;
+  if (trimmed !== expectedRelative) {
+    return null;
+  }
+
+  const targetDir = safeSubdirName
+    ? path.resolve(uploadsDir, safeSubdirName)
+    : uploadsDir;
+  const finalFilePath = path.resolve(targetDir, safeBaseName);
+
+  const relativeToRoot = path.relative(uploadsDir, finalFilePath);
+  if (
+    !relativeToRoot ||
+    relativeToRoot.startsWith('..') ||
+    path.isAbsolute(relativeToRoot) ||
+    !finalFilePath.startsWith(uploadsDir + path.sep)
+  ) {
+    return null;
+  }
+
+  return { localSubdir: targetDir, localFilePath: finalFilePath };
 }
 
 // Helper: Make HTTP request using native https module
@@ -151,15 +202,14 @@ async function runRestore() {
     let failCount = 0;
 
     for (const file of files) {
-      // Local path setup (reject names that would escape uploadsDir)
-      const resolvedUploadsDir = path.resolve(uploadsDir);
-      const localFilePath = path.resolve(resolvedUploadsDir, String(file.name || ""));
-      if (!localFilePath.startsWith(resolvedUploadsDir + path.sep)) {
+      const safeTarget = resolveSafeUploadPath(file.name);
+      if (!safeTarget) {
         console.warn(`⚠️ Skipping unsafe file path: ${file.name}`);
         failCount++;
         continue;
       }
-      const localSubdir = path.dirname(localFilePath);
+
+      const { localSubdir, localFilePath } = safeTarget;
 
       // Create folders locally if they don't exist
       if (!fs.existsSync(localSubdir)) {

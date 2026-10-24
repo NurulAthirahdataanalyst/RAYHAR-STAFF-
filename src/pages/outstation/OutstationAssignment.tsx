@@ -1,4 +1,4 @@
-import { writePrintDocument } from '@/utils/security';
+import { writePrintDocument, sanitizeInternalPath } from '@/utils/security';
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { useRole } from "@/contexts/RoleContext";
@@ -376,7 +376,7 @@ export default function OutstationAssignment() {
 
   useEffect(() => {
     if (location.state?.openNew) {
-      navigate(location.pathname, { replace: true, state: {} });
+      navigate(sanitizeInternalPath(location.pathname, "/outstation/assignment"), { replace: true, state: {} });
       setTimeout(() => openNew(), 50);
     }
   }, [location.state, location.pathname, navigate]);

@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { initializePushNotifications } from "@/lib/pushNotifications";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { sanitizeInternalPath } from "@/utils/security";
 
 export interface NotificationItem {
   id: number;
@@ -212,7 +213,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
                   }
 
                   if (newNotif.action_url) {
-                    navigate(newNotif.action_url);
+                    navigate(sanitizeInternalPath(newNotif.action_url, "/notifications"));
                   } else {
                     navigate("/notifications");
                   }

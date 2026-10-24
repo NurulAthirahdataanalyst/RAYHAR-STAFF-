@@ -20,6 +20,7 @@ import { API_BASE_URL } from "../../config/api";
 import { useShiftNotifications } from "@/hooks/useShiftNotifications";
 import { useBackgroundLocation } from "@/hooks/useBackgroundLocation";
 import { getBreadcrumbs } from "@/utils/breadcrumbs";
+import { sanitizeInternalPath } from "@/utils/security";
 import PageHeader from "./PageHeader";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -293,7 +294,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     {crumb.path ? (
                       <span 
                         className="hover:text-purple-200 cursor-pointer transition-colors" 
-                        onClick={() => navigate(crumb.path!)}
+                        onClick={() => navigate(sanitizeInternalPath(crumb.path, "/"))}
                       >
                         {crumb.label}
                       </span>

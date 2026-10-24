@@ -345,15 +345,112 @@ export const preloadImage = async (url: string, fallbackUrl?: string): Promise<s
   });
 };
 
+const ALLOWED_INTERNAL_ROUTES = [
+  "/",
+  "/login",
+  "/reset-password",
+  "/tracking-test",
+  "/attendance",
+  "/attendance/team",
+  "/team-attendance",
+  "/calendar",
+  "/calendar/company-leave",
+  "/leave",
+  "/leave/apply",
+  "/leave/admin",
+  "/leave/calendar",
+  "/leave/entitlement",
+  "/leave/forms",
+  "/leave/team",
+  "/employees",
+  "/branches",
+  "/branches/temporary-assignment",
+  "/branches/temporary-assignments",
+  "/reports",
+  "/reports/attendance",
+  "/reports/leave",
+  "/reports/department",
+  "/gps-location-tracker",
+  "/gps-location-tracker/history",
+  "/settings",
+  "/notifications",
+  "/analytics",
+  "/hr-analytics",
+  "/hr-analytics/attendance",
+  "/hr-analytics/leave",
+  "/hr-analytics/workforce",
+  "/hr-analytics/calendar",
+  "/profile",
+  "/master",
+  "/master/department",
+  "/master/leave-entitlement",
+  "/master/designation",
+  "/master/role",
+  "/outstation",
+  "/outstation/assignment",
+  "/outstation/my",
+  "/outstation/my-calendar",
+  "/outstation/my_calendar",
+  "/outstation/calendar",
+  "/outstation/analytics",
+  "/outstation/reports",
+] as const;
+
+/**
+ * Validates and returns a safe internal route path starting with `/`.
+ * Blocks external URLs, protocol URLs (`http:`, `https:`, `javascript:`),
+ * and protocol-relative (`//`, `/\`) redirects (CWE-601).
+ */
+export const sanitizeInternalPath = (
+  path: string | null | undefined,
+  fallback: string = "/"
+): string => {
+  if (!path || typeof path !== "string") return fallback;
+  const trimmed = path.trim();
+  if (!trimmed) return fallback;
+  if (!trimmed.startsWith("/") || trimmed.startsWith("//") || trimmed.startsWith("/\\")) {
+    return fallback;
+  }
+  if (/[\u0000-\u001F\u007F\\:]/.test(trimmed) || trimmed.includes("..")) {
+    return fallback;
+  }
+
+  const exactMatch = ALLOWED_INTERNAL_ROUTES.find((route) => route === trimmed);
+  if (exactMatch) {
+    return exactMatch;
+  }
+
+  try {
+    const baseOrigin =
+      typeof window !== "undefined" && window.location?.origin && window.location.origin !== "null"
+        ? window.location.origin
+        : "https://localhost";
+    const parsed = new URL(trimmed, baseOrigin);
+    if (parsed.origin !== baseOrigin || !parsed.pathname.startsWith("/") || parsed.pathname.startsWith("//")) {
+      return fallback;
+    }
+    const matchedPathname = ALLOWED_INTERNAL_ROUTES.find((route) => route === parsed.pathname);
+    if (matchedPathname) {
+      return `${matchedPathname}${parsed.search}${parsed.hash}`;
+    }
+    if (parsed.pathname.startsWith("/master/department/")) {
+      const deptSegment = parsed.pathname.slice("/master/department/".length);
+      if (deptSegment && !deptSegment.includes("/") && !deptSegment.includes("..")) {
+        return `/master/department/${encodeURIComponent(decodeURIComponent(deptSegment))}${parsed.search}${parsed.hash}`;
+      }
+    }
+    return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+  } catch {
+    return fallback;
+  }
+};
+
 /**
  * Only allows internal, relative app routes to prevent open redirects.
  * Rejects absolute URLs, protocol-relative URLs (`//evil.com`) and `/\evil.com`.
  */
 export const safeRedirectUrl = (url: string | null | undefined, fallback: string = "/"): string => {
-  if (!url || typeof url !== "string") return fallback;
-  if (!url.startsWith("/") || url.startsWith("//") || url.startsWith("/\\")) return fallback;
-  if (/[\u0000-\u001F\u007F]/.test(url)) return fallback;
-  return sanitizeUrl(url, fallback);
+  return sanitizeInternalPath(url, fallback);
 };
 
 /* ------------------------------------------------------------------ */

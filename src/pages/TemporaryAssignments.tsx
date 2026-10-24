@@ -439,7 +439,7 @@ const TemporaryAssignments = () => {
                       </div>
                     </TableCell>
                     <TableCell>
-                      {statusBadge(assignment.computedStatus)}
+                      {statusBadge(assignment.computedStatus || assignment.status)}
                     </TableCell>
                     {isHRAdmin && (
                       <TableCell className="text-right">
@@ -527,7 +527,7 @@ const TemporaryAssignments = () => {
           <div className="space-y-4 p-6">
             <div>
               <Label className="text-xs font-bold uppercase tracking-widest text-foreground">Employee</Label>
-              <Select value={assignForm.user_id} onValueChange={(val) => { setAssignForm({...assignForm, user_id: val}); setEmployeeSearch(""); }}>
+              <Select disabled={Boolean(editId)} value={assignForm.user_id} onValueChange={(val) => { if (!editId) { setAssignForm({...assignForm, user_id: val}); setEmployeeSearch(""); } }}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select Employee" />
                 </SelectTrigger>
@@ -582,7 +582,7 @@ const TemporaryAssignments = () => {
             </div>
             <div>
               <Label className="text-xs font-bold uppercase tracking-widest text-foreground">Target Branch</Label>
-              <Select value={assignForm.location} onValueChange={(val) => setAssignForm({...assignForm, location: val, department: ""})}>
+              <Select disabled={Boolean(editId)} value={assignForm.location} onValueChange={(val) => { if (!editId) setAssignForm({...assignForm, location: val, department: ""}); }}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select Branch" />
                 </SelectTrigger>
@@ -624,7 +624,7 @@ const TemporaryAssignments = () => {
               <Label className="text-xs font-bold uppercase tracking-widest text-foreground mb-2 block">Assigned By (HR Admin)</Label>
               <Input 
                 value={assignForm.assigned_by || userName || ""} 
-                onChange={(e) => setAssignForm({...assignForm, assigned_by: e.target.value})}
+                readOnly disabled className="bg-muted/50 cursor-not-allowed opacity-80"
                 placeholder="HR Admin Full Name"
               />
             </div>
@@ -632,7 +632,7 @@ const TemporaryAssignments = () => {
               <Button 
                 variant="outline" 
                 className="w-1/3 text-rose-500 border-rose-200 hover:bg-rose-50 dark:hover:bg-rose-950/30"
-                onClick={() => setAssignForm({ user_id: "", location: "", department: "", start_date: "", end_date: "", status: "Active", purpose: "", remarks: "", assigned_by: userName || "" })}
+                onClick={() => setAssignForm(prev => editId ? { ...prev, department: "", start_date: "", end_date: "", status: "Active", purpose: "", remarks: "" } : { user_id: "", location: "", department: "", start_date: "", end_date: "", status: "Active", purpose: "", remarks: "", assigned_by: userName || "" })}
               >
                 Reset
               </Button>
@@ -754,7 +754,7 @@ const TemporaryAssignments = () => {
                   <div>
                     <p className="text-xs text-foreground font-medium">Status</p>
                     <div className="mt-1">
-                      {statusBadge(selectedAssignment.computedStatus)}
+                      {statusBadge(selectedAssignment.computedStatus || selectedAssignment.status)}
                     </div>
                   </div>
                 </div>
