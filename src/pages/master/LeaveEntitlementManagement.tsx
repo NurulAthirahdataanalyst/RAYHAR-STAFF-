@@ -1181,13 +1181,17 @@ function CarryForwardLeaveForm({
   const uniqueDepts = ["All", ...new Set(employees.map(e => e.department).filter(Boolean))];
 
   
+    const isAllSelected = filtered.length > 0 && filtered.every(e => selectedEmployees.includes(e.user_id));
+    const isSomeSelected = filtered.some(e => selectedEmployees.includes(e.user_id)) && !isAllSelected;
+
     const handleSelectAll = (checked: boolean) => {
-      if (checked) {
-        const toAdd = currentItems.map(e => e.user_id).filter(id => !selectedEmployees.includes(id));
-        setSelectedEmployees([...selectedEmployees, ...toAdd]);
+      if (checked || !isAllSelected) {
+        const allFilteredIds = filtered.map(e => e.user_id);
+        const toAdd = allFilteredIds.filter(id => !selectedEmployees.includes(id));
+        setSelectedEmployees(prev => [...prev, ...toAdd]);
       } else {
-        const toRemove = currentItems.map(e => e.user_id);
-        setSelectedEmployees(selectedEmployees.filter(id => !toRemove.includes(id)));
+        const filterIds = new Set(filtered.map(e => e.user_id));
+        setSelectedEmployees(prev => prev.filter(id => !filterIds.has(id)));
       }
     };
 
@@ -1495,8 +1499,11 @@ function CarryForwardLeaveForm({
                 <TableRow>
                   <TableHead className="w-12 text-center">
                     <input
+                      ref={(el) => {
+                        if (el) el.indeterminate = isSomeSelected;
+                      }}
                       type="checkbox"
-                      checked={currentItems.length > 0 && currentItems.every(e => selectedEmployees.includes(e.user_id))}
+                      checked={isAllSelected}
                       onChange={(e) => handleSelectAll(e.target.checked)}
                       className="cursor-pointer rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
                     />
