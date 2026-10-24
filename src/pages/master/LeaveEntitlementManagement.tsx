@@ -1505,7 +1505,8 @@ function CarryForwardLeaveForm({
                       type="checkbox"
                       checked={isAllSelected}
                       onChange={(e) => handleSelectAll(e.target.checked)}
-                      className="cursor-pointer rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                      className="w-4 h-4 cursor-pointer rounded border-gray-300 accent-[#942392] focus:ring-[#942392]"
+                      style={{ accentColor: '#942392' }}
                     />
                   </TableHead>
                   <TableHead>Employee</TableHead>
@@ -1525,13 +1526,14 @@ function CarryForwardLeaveForm({
                   const forfeit = unused - cf;
 
                   return (
-                    <TableRow key={emp.user_id} className={selected ? "bg-emerald-500/5" : ""}>
+                    <TableRow key={emp.user_id} className={selected ? "bg-[#942392]/5" : ""}>
                       <TableCell className="w-12 text-center">
                         <input
                           type="checkbox"
                           checked={selected}
                           onChange={() => handleToggleSelect(emp.user_id)}
-                          className="cursor-pointer rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                          className="w-4 h-4 cursor-pointer rounded border-gray-300 accent-[#942392] focus:ring-[#942392]"
+                          style={{ accentColor: '#942392' }}
                         />
                       </TableCell>
                       <TableCell>
@@ -1591,7 +1593,7 @@ function CarryForwardLeaveForm({
 
         <div className="flex justify-between items-center border-t pt-4">
           <div className="text-xs text-foreground">
-            Selected: <span className="font-bold text-emerald-600">{selectedEmployees.length}</span> / {filtered.length} employees
+            Selected: <span className="font-bold text-[#942392]">{selectedEmployees.length}</span> / {filtered.length} employees
           </div>
           <div className="flex gap-3">
             <Button variant="outline" size="sm" onClick={onCancel} className="text-xs uppercase font-black tracking-wider">Cancel</Button>
