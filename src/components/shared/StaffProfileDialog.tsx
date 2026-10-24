@@ -1356,26 +1356,36 @@ export function StaffProfileDialog({
                                 <thead className="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
                                   <tr>
                                     <th className="px-4 py-3 font-semibold text-black dark:text-white">Branch</th>
-                                    <th className="px-4 py-3 font-semibold text-slate-600 dark:text-slate-300">Assignment</th>
-                                    <th className="px-4 py-3 font-semibold text-slate-600 dark:text-slate-300">Start Date</th>
-                                    <th className="px-4 py-3 font-semibold text-slate-600 dark:text-slate-300">End Date</th>
+                                    <th className="px-4 py-3 font-semibold text-black dark:text-white">Assignment</th>
+                                    <th className="px-4 py-3 font-semibold text-black dark:text-white">Start Date</th>
+                                    <th className="px-4 py-3 font-semibold text-black dark:text-white">End Date</th>
                                     <th className="px-4 py-3 font-semibold text-black dark:text-white">Status</th>
                                   </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
-                                  {(Array.isArray(tempAssignmentsHistory) ? tempAssignmentsHistory : []).map((ta, idx) => (
-                                    <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/50">
-                                      <td className="px-4 py-3 font-bold text-slate-800 dark:text-slate-200">{ta.location}</td>
-                                      <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{toProperCase(branchMap[ta.location] || BRANCH_NAMES[ta.location as keyof typeof BRANCH_NAMES] || ta.location)}</td>
-                                      <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{ta.start_date ? new Date(ta.start_date).toLocaleDateString('en-GB') : '-'}</td>
-                                      <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{ta.end_date ? new Date(ta.end_date).toLocaleDateString('en-GB') : '-'}</td>
-                                      <td className="px-4 py-3">
-                                        <span className={`px-2 py-1 rounded-full text-[10px] print:text-[13px] font-bold ${ta.status === 'Active' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400'}`}>
-                                          {ta.status}
-                                        </span>
-                                      </td>
-                                    </tr>
-                                  ))}
+                                    {(Array.isArray(tempAssignmentsHistory) ? tempAssignmentsHistory : []).map((ta, idx) => (
+                                      <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/50">
+                                        <td className="px-4 py-3 font-bold text-black dark:text-white">{ta.location}</td>
+                                        <td className="px-4 py-3 text-black dark:text-white">{toProperCase(branchMap[ta.location] || BRANCH_NAMES[ta.location as keyof typeof BRANCH_NAMES] || ta.location)}</td>
+                                        <td className="px-4 py-3 text-black dark:text-white">{ta.start_date ? new Date(ta.start_date).toLocaleDateString('en-GB') : '-'}</td>
+                                        <td className="px-4 py-3 text-black dark:text-white">{ta.end_date ? new Date(ta.end_date).toLocaleDateString('en-GB') : '-'}</td>
+                                        <td className="px-4 py-3">
+                                          {ta.status === 'Active' ? (
+                                            <span className="inline-flex items-center justify-center px-2.5 py-0.5 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-500/30">
+                                              Active
+                                            </span>
+                                          ) : ta.status === 'Completed' ? (
+                                            <span className="inline-flex items-center justify-center px-2.5 py-0.5 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-500/30">
+                                              Completed
+                                            </span>
+                                          ) : (
+                                            <span className="inline-flex items-center justify-center px-2.5 py-0.5 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700">
+                                              {ta.status}
+                                            </span>
+                                          )}
+                                        </td>
+                                      </tr>
+                                    ))}
                                 </tbody>
                               </table>
                             </div>
@@ -1399,29 +1409,29 @@ export function StaffProfileDialog({
                               <thead className="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
                                 <tr>
                                   <th className="px-4 py-3 font-semibold text-black dark:text-white">Type</th>
-                                  <th className="px-4 py-3 font-semibold text-slate-600 dark:text-slate-300">Branch</th>
+                                  <th className="px-4 py-3 font-semibold text-black dark:text-white">Branch</th>
                                   <th className="px-4 py-3 font-semibold text-black dark:text-white">Code</th>
-                                  <th className="px-4 py-3 font-semibold text-slate-600 dark:text-slate-300">Status</th>
+                                  <th className="px-4 py-3 font-semibold text-black dark:text-white">Status</th>
                                 </tr>
                               </thead>
                               <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
                                 <tr className="hover:bg-slate-50/50 dark:hover:bg-slate-900/50">
-                                  <td className="px-4 py-3 font-bold text-slate-800 dark:text-slate-200 whitespace-nowrap uppercase">Permanent Branch</td>
-                                  <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{selectedEmployee?.branch ? toProperCase(branchMap[selectedEmployee.branch] || BRANCH_NAMES[selectedEmployee.branch as keyof typeof BRANCH_NAMES] || selectedEmployee.branch) : '-'}</td>
-                                  <td className="px-4 py-3 font-bold text-slate-800 dark:text-slate-200">{selectedEmployee?.branch || '-'}</td>
+                                  <td className="px-4 py-3 font-bold text-black dark:text-white whitespace-nowrap uppercase">Permanent Branch</td>
+                                  <td className="px-4 py-3 text-black dark:text-white">{selectedEmployee?.branch ? toProperCase(branchMap[selectedEmployee.branch] || BRANCH_NAMES[selectedEmployee.branch as keyof typeof BRANCH_NAMES] || selectedEmployee.branch) : '-'}</td>
+                                  <td className="px-4 py-3 font-bold text-black dark:text-white">{selectedEmployee?.branch || '-'}</td>
                                   <td className="px-4 py-3">
-                                    <span className="px-2 py-1 rounded-full text-[10px] print:text-[13px] font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400">
+                                    <span className="inline-flex items-center justify-center px-2.5 py-0.5 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-500/30">
                                       Permanent
                                     </span>
                                   </td>
                                 </tr>
                                 {(Array.isArray(allowedLocations) ? allowedLocations : []).filter(c => c !== selectedEmployee?.branch).map((loc, idx) => (
                                   <tr key={loc} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/50">
-                                    <td className="px-4 py-3 font-bold text-slate-800 dark:text-slate-200 whitespace-nowrap uppercase">Branch {idx + 2}</td>
-                                    <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{toProperCase(branchMap[loc] || BRANCH_NAMES[loc as keyof typeof BRANCH_NAMES] || loc)}</td>
-                                    <td className="px-4 py-3 font-bold text-slate-800 dark:text-slate-200">{loc}</td>
+                                    <td className="px-4 py-3 font-bold text-black dark:text-white whitespace-nowrap uppercase">Branch {idx + 2}</td>
+                                    <td className="px-4 py-3 text-black dark:text-white">{toProperCase(branchMap[loc] || BRANCH_NAMES[loc as keyof typeof BRANCH_NAMES] || loc)}</td>
+                                    <td className="px-4 py-3 font-bold text-black dark:text-white">{loc}</td>
                                     <td className="px-4 py-3">
-                                      <span className="px-2 py-1 rounded-full text-[10px] print:text-[13px] font-bold bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400">
+                                      <span className="inline-flex items-center justify-center px-2.5 py-0.5 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-500/30">
                                         Active
                                       </span>
                                     </td>
@@ -1523,7 +1533,7 @@ export function StaffProfileDialog({
                                         <tr key={a.id || idx} onClick={() => setViewOutstationDetail(a)} className="hover:bg-pink-50/20 dark:hover:bg-slate-700/30 transition-colors cursor-pointer" title="Click to view details">
                                           {/* Event */}
                                           <td className="px-4 py-3 align-middle">
-                                            <div className="font-bold text-slate-900 dark:text-slate-100">
+                                            <div className="font-bold text-black dark:text-white">
                                               {eventName}
                                             </div>
                                             {a.destination && (
@@ -1536,7 +1546,7 @@ export function StaffProfileDialog({
                                           </td>
 
                                           {/* Start */}
-                                          <td className="px-3 py-3 align-middle whitespace-nowrap font-medium text-slate-700 dark:text-slate-300">
+                                          <td className="px-3 py-3 align-middle whitespace-nowrap font-medium text-black dark:text-white">
                                             {formatOutstationDate(a.start_date)}
                                             {a.start_time && (
                                               <span className="block text-[10px] text-muted-foreground">{a.start_time.slice(0, 5)}</span>
@@ -1544,7 +1554,7 @@ export function StaffProfileDialog({
                                           </td>
 
                                           {/* End */}
-                                          <td className="px-3 py-3 align-middle whitespace-nowrap font-medium text-slate-700 dark:text-slate-300">
+                                          <td className="px-3 py-3 align-middle whitespace-nowrap font-medium text-black dark:text-white">
                                             {formatOutstationDate(a.end_date)}
                                             {a.end_time && (
                                               <span className="block text-[10px] text-muted-foreground">{a.end_time.slice(0, 5)}</span>
@@ -1559,7 +1569,7 @@ export function StaffProfileDialog({
                                           </td>
 
                                           {/* Assigned By */}
-                                          <td className="px-4 py-3 align-middle whitespace-nowrap text-slate-700 dark:text-slate-300 font-medium">
+                                          <td className="px-4 py-3 align-middle whitespace-nowrap text-black dark:text-white font-medium">
                                             <div>{a.assigned_by_name ? cleanAssignerName(a.assigned_by_name) : (a.assigned_by || '—')}</div>
                                             {a.assigned_by_role && (
                                               <span className="text-[10px] text-muted-foreground block capitalize">

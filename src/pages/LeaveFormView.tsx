@@ -506,10 +506,10 @@ export default function LeaveFormView() {
                           <Badge
                             className={`text-[10px] print:text-[13px] font-extrabold tracking-wider px-3 py-1 h-auto rounded-full border-[1.5px] whitespace-nowrap shadow-none ${
                               form.status === "Approved" ? "bg-green-50 text-[#228b22] border-green-200 hover:bg-green-100 dark:bg-green-500/10 dark:border-green-500/20" :
-                              form.status === "Rejected" ? "bg-[#ff0000] text-white hover:bg-[#d60000] border-transparent shadow-sm" :
+                              form.status === "Rejected" ? "bg-red-50 text-[#ff0000] border-red-200 hover:bg-red-100 dark:bg-red-500/10 dark:border-red-500/20 dark:text-[#ff0000]" :
                               "bg-[#C2410C] text-white hover:bg-[#A3370A] border-transparent shadow-sm"
                             }`}
-                            style={form.status === "Rejected" ? { backgroundColor: "#ff0000", color: "#ffffff" } : form.status !== "Approved" ? { backgroundColor: "#C2410C", color: "white" } : {}}
+                            style={form.status !== "Approved" && form.status !== "Rejected" ? { backgroundColor: "#C2410C", color: "white" } : {}}
                           >
                             {getDisplayStatus(form.status).toUpperCase()}
                           </Badge>
@@ -608,10 +608,10 @@ export default function LeaveFormView() {
                         <Badge
                           className={`text-[9px] print:text-[13px] font-extrabold tracking-wider px-2.5 py-1 h-auto rounded-full border-[1.5px] whitespace-nowrap shadow-none ${
                             form.status === "Approved" ? "bg-green-50 text-[#228b22] border-green-200 hover:bg-green-100 dark:bg-green-500/10 dark:border-green-500/20" :
-                            form.status === "Rejected" ? "bg-[#ff0000] text-white border-transparent shadow-sm" :
+                            form.status === "Rejected" ? "bg-red-50 text-[#ff0000] border-red-200 hover:bg-red-100 dark:bg-red-500/10 dark:border-red-500/20 dark:text-[#ff0000]" :
                             "bg-[#C2410C] text-white border-transparent shadow-sm"
                           }`}
-                          style={form.status === "Rejected" ? { backgroundColor: "#ff0000", color: "#ffffff" } : form.status !== "Approved" ? { backgroundColor: "#C2410C", color: "white" } : {}}
+                          style={form.status !== "Approved" && form.status !== "Rejected" ? { backgroundColor: "#C2410C", color: "white" } : {}}
                         >
                           {getDisplayStatus(form.status).toUpperCase()}
                         </Badge>
