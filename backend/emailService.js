@@ -8,6 +8,27 @@ if (!process.env.BREVO_API_KEY) {
   console.warn("BREVO_API_KEY is not set in environment variables");
 }
 
+
+function formatDMY(d) {
+  if (!d) return '';
+  if (typeof d === 'string') {
+    const trimmed = d.trim();
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(trimmed)) return trimmed;
+    const m = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (m) return `${m[3]}/${m[2]}/${m[1]}`;
+  }
+  const dt = new Date(d);
+  if (isNaN(dt.getTime())) return String(d);
+  try {
+    return dt.toLocaleDateString('en-GB', { timeZone: 'Asia/Kuala_Lumpur' });
+  } catch (e) {
+    const dd = String(dt.getDate()).padStart(2, '0');
+    const mm = String(dt.getMonth() + 1).padStart(2, '0');
+    const yyyy = dt.getFullYear();
+    return `${dd}/${mm}/${yyyy}`;
+  }
+}
+
 function getLeaveApprovalHtml(data) {
   return `
 <!DOCTYPE html>
@@ -146,7 +167,7 @@ function getLeaveApprovalHtml(data) {
         </div>
         <div class="card-row">
           <div class="card-label">📅 Leave Period:</div>
-          <div class="card-value">${data.startDate} - ${data.endDate}</div>
+          <div class="card-value">${formatDMY(data.startDate)} - ${formatDMY(data.endDate)}</div>
         </div>
         <div class="card-row">
           <div class="card-label">⏳ Total Days:</div>
@@ -235,7 +256,7 @@ async function sendLeaveApprovedEmail(data) {
     <div style="font-family: sans-serif; color: #333;">
       <h2 style="color: #7B0099;">Rayhar Staff Portal</h2>
       <p>Hello ${data.employeeName},</p>
-      <p>Your leave request for <strong>${data.leaveType}</strong> from <strong>${data.startDate}</strong> to <strong>${data.endDate}</strong> has been <strong>Approved</strong>.</p>
+      <p>Your leave request for <strong>${data.leaveType}</strong> from <strong>${formatDMY(data.startDate)}</strong> to <strong>${formatDMY(data.endDate)}</strong> has been <strong>Approved</strong>.</p>
       <p style="font-size: 12px; color: #888;">This is an automated notification. Please do not reply.</p>
     </div>
   `;
@@ -257,7 +278,7 @@ async function sendLeaveRejectedEmail(data) {
     <div style="font-family: sans-serif; color: #333;">
       <h2 style="color: #7B0099;">Rayhar Staff Portal</h2>
       <p>Hello ${data.employeeName},</p>
-      <p>Your leave request for <strong>${data.leaveType}</strong> from <strong>${data.startDate}</strong> to <strong>${data.endDate}</strong> has been <strong>Rejected</strong>.</p>
+      <p>Your leave request for <strong>${data.leaveType}</strong> from <strong>${formatDMY(data.startDate)}</strong> to <strong>${formatDMY(data.endDate)}</strong> has been <strong>Rejected</strong>.</p>
       <p>Reason: ${data.rejectionReason || 'No reason provided.'}</p>
       <p>Please contact your manager for further details.</p>
       <p style="font-size: 12px; color: #888;">This is an automated notification. Please do not reply.</p>
@@ -304,16 +325,18 @@ async function sendOutstationAssignedEmail(data) {
   const email = {};
   email.sender = { name: "Rayhar Staff Portal", email: "nathirah.rahman98@gmail.com" };
   email.to = [{ email: data.employeeEmail, name: data.employeeName }];
-  email.subject = `Temporary Branch Assignment: ${data.destination}`;
+  const titleEvent = data.eventName ? `: ${data.eventName}` : (data.destination ? `: ${data.destination}` : '');
+  email.subject = `Outstation Assignment${titleEvent}`;
   email.htmlContent = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
-      <h2 style="color: #7B0099;">Temporary Branch Assignment</h2>
+      <h2 style="color: #7B0099;">Outstation Assignment</h2>
       <p>Hello ${data.employeeName},</p>
-      <p>You have been assigned to a temporary branch/outstation duties.</p>
+      <p>You have been assigned to an upcoming outstation duties.</p>
       <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+        ${data.eventName ? `<tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Event Name:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${data.eventName}</td></tr>` : ''}
         <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Destination:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${data.destination}</td></tr>
-        <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Start Date:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${data.startDate}</td></tr>
-        <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>End Date:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${data.endDate}</td></tr>
+        <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Start Date:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${formatDMY(data.startDate)}</td></tr>
+        <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>End Date:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${formatDMY(data.endDate)}</td></tr>
         <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Purpose:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${data.purpose || 'N/A'}</td></tr>
       </table>
       <p>Please log in to the Employee Portal for more details.</p>
@@ -333,16 +356,18 @@ async function sendOutstationUpdatedEmail(data) {
   const email = {};
   email.sender = { name: "Rayhar Staff Portal", email: "nathirah.rahman98@gmail.com" };
   email.to = [{ email: data.employeeEmail, name: data.employeeName }];
-  email.subject = `Update: Temporary Branch Assignment to ${data.destination}`;
+  const titleEvent = data.eventName ? `: ${data.eventName}` : (data.destination ? `: ${data.destination}` : '');
+  email.subject = `Update: Outstation Assignment${titleEvent}`;
   email.htmlContent = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
-      <h2 style="color: #7B0099;">Temporary Branch Update</h2>
+      <h2 style="color: #7B0099;">Outstation Assignment Update</h2>
       <p>Hello ${data.employeeName},</p>
-      <p>Your temporary branch/outstation assignment has been <strong>Updated</strong>.</p>
+      <p>Your outstation assignment has been <strong>Updated</strong>.</p>
       <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+        ${data.eventName ? `<tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Event Name:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${data.eventName}</td></tr>` : ''}
         <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Destination:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${data.destination}</td></tr>
-        <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Start Date:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${data.startDate}</td></tr>
-        <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>End Date:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${data.endDate}</td></tr>
+        <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Start Date:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${formatDMY(data.startDate)}</td></tr>
+        <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>End Date:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${formatDMY(data.endDate)}</td></tr>
         <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Purpose:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${data.purpose || 'N/A'}</td></tr>
       </table>
       <p>Please log in to the Employee Portal to view the updated details.</p>
@@ -353,6 +378,38 @@ async function sendOutstationUpdatedEmail(data) {
     await apiInstance.transactionalEmails.sendTransacEmail(email);
   } catch (err) {
     console.error("Error sending outstation updated email:", err);
+  }
+}
+
+
+async function sendOutstationCancelledEmail(data) {
+  if (!process.env.BREVO_API_KEY) return;
+
+  const email = {};
+  email.sender = { name: "Rayhar Staff Portal", email: "nathirah.rahman98@gmail.com" };
+  email.to = [{ email: data.employeeEmail, name: data.employeeName }];
+  const titleEvent = data.eventName ? `: ${data.eventName}` : (data.destination ? `: ${data.destination}` : '');
+  email.subject = `Cancelled: Outstation Assignment${titleEvent}`;
+  email.htmlContent = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+      <h2 style="color: #D32F2F;">Outstation Assignment Cancelled</h2>
+      <p>Hello ${data.employeeName},</p>
+      <p>Your outstation assignment has been <strong style="color: #D32F2F;">CANCELLED</strong>${data.cancelledBy ? ` by ${data.cancelledBy}` : ''}.</p>
+      <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+        ${data.eventName ? `<tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Event Name:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${data.eventName}</td></tr>` : ''}
+        <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Destination:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${data.destination}</td></tr>
+        <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Start Date:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${formatDMY(data.startDate)}</td></tr>
+        <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>End Date:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${formatDMY(data.endDate)}</td></tr>
+        <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Purpose:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${data.purpose || 'N/A'}</td></tr>
+      </table>
+      <p>If you have any questions or require further clarification, please contact HR.</p>
+      <p style="font-size: 12px; color: #888; text-align: center; margin-top: 30px;">Rayhar Staff Portal</p>
+    </div>
+  `;
+  try {
+    await apiInstance.transactionalEmails.sendTransacEmail(email);
+  } catch (err) {
+    console.error("Error sending outstation cancelled email:", err);
   }
 }
 
@@ -368,7 +425,7 @@ async function sendLeaveSubmittedEmailToUser(data) {
         <p>Hello ${data.employeeName},</p>
         <p>Your leave request has been successfully submitted and is pending approval.</p>
         <p><strong>Leave Type:</strong> ${data.leaveType}</p>
-        <p><strong>Date:</strong> ${data.startDate} to ${data.endDate}</p>
+        <p><strong>Date:</strong> ${formatDMY(data.startDate)} to ${formatDMY(data.endDate)}</p>
         <p>You can check the status of your request in the Staff Portal dashboard.</p>
         <p style="font-size: 12px; color: #888; margin-top: 20px;">This is an automated notification. Please do not reply.</p>
       </div>
@@ -382,6 +439,7 @@ async function sendLeaveSubmittedEmailToUser(data) {
 }
 
 module.exports = {
+  formatDMY,
   sendLeaveSubmittedEmailToUser,
   sendLeaveApprovalEmail,
   sendLateEmail,
@@ -389,5 +447,6 @@ module.exports = {
   sendLeaveRejectedEmail,
   sendPasswordResetEmail,
   sendOutstationAssignedEmail,
-  sendOutstationUpdatedEmail
+  sendOutstationUpdatedEmail,
+  sendOutstationCancelledEmail
 };

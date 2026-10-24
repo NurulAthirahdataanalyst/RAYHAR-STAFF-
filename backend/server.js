@@ -7017,7 +7017,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
           'You' AS actor,
           'have been assigned to an upcoming outstation' AS action,
           NULL AS target,
-          CONCAT('for event ', oa.purpose, ' at ', oa.destination, ' from ', TO_CHAR(oa.start_date, 'DD/MM/YYYY'), ' - ', TO_CHAR(oa.end_date, 'DD/MM/YYYY')) AS context,
+          CONCAT('for event ', COALESCE(NULLIF(TRIM(oa.project), ''), NULLIF(TRIM(oa.meeting_title), ''), NULLIF(TRIM(oa.purpose), ''), 'Outstation Trip'), ' at ', oa.destination, ' from ', TO_CHAR(oa.start_date, 'DD/MM/YYYY'), ' - ', TO_CHAR(oa.end_date, 'DD/MM/YYYY')) AS context,
           TO_CHAR(oa.created_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time,
           oa.created_at AS sort_time,
           'Assigned' AS badge
@@ -7166,7 +7166,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
             oa.assigned_by_name AS actor,
             'created an upcoming outstation assignment for' AS action,
             emp.full_name AS target,
-            CONCAT('for event ', oa.purpose, ' at ', oa.destination, ' from ', TO_CHAR(oa.start_date, 'DD/MM/YYYY'), ' - ', TO_CHAR(oa.end_date, 'DD/MM/YYYY')) AS context,
+            CONCAT('for event ', COALESCE(NULLIF(TRIM(oa.project), ''), NULLIF(TRIM(oa.meeting_title), ''), NULLIF(TRIM(oa.purpose), ''), 'Outstation Trip'), ' at ', oa.destination, ' from ', TO_CHAR(oa.start_date, 'DD/MM/YYYY'), ' - ', TO_CHAR(oa.end_date, 'DD/MM/YYYY')) AS context,
             TO_CHAR(oa.created_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time,
             oa.created_at AS sort_time,
             'Assigned' AS badge
@@ -11249,10 +11249,11 @@ app.post('/api/outstation', async (req, res) => {
           emailService.sendOutstationAssignedEmail({
             employeeEmail: empProfile[0].email,
             employeeName: emp.full_name,
+            eventName: project || meeting_title || '',
             destination: destination,
-            startDate: new Date(start_date).toLocaleDateString(),
-            endDate: new Date(end_date).toLocaleDateString(),
-            purpose: purpose || meeting_title || project
+            startDate: start_date,
+            endDate: end_date,
+            purpose: purpose || 'N/A'
           }).catch(console.error);
         }
       } catch (emailErr) {
@@ -11314,10 +11315,11 @@ app.put('/api/outstation/:id', async (req, res) => {
         emailService.sendOutstationUpdatedEmail({
           employeeEmail: empProfile[0].email,
           employeeName: assigned.full_name,
+          eventName: assigned.project || assigned.meeting_title || '',
           destination: assigned.destination,
-          startDate: new Date(assigned.start_date).toLocaleDateString(),
-          endDate: new Date(assigned.end_date).toLocaleDateString(),
-          purpose: assigned.purpose || assigned.meeting_title || assigned.project
+          startDate: assigned.start_date,
+          endDate: assigned.end_date,
+          purpose: assigned.purpose || 'N/A'
         }).catch(console.error);
       }
     } catch (emailErr) {
@@ -11343,6 +11345,34 @@ app.put('/api/outstation/:id/cancel', async (req, res) => {
       [id]
     );
     if (rows.length === 0) return res.status(404).json({ success: false, error: 'Assignment not found' });
+    const cancelledAssignment = rows[0];
+
+    // Send Outstation Cancelled Email
+    try {
+      const [empProfile] = await pool.query(`SELECT email FROM profiles WHERE user_id = $1`, [cancelledAssignment.user_id]);
+      if (empProfile.length > 0 && empProfile[0].email) {
+        const eventName = (cancelledAssignment.project && String(cancelledAssignment.project).trim() !== '-' && String(cancelledAssignment.project).trim() !== '')
+          ? String(cancelledAssignment.project).trim()
+          : (cancelledAssignment.meeting_title && String(cancelledAssignment.meeting_title).trim() !== '-' && String(cancelledAssignment.meeting_title).trim() !== '')
+          ? String(cancelledAssignment.meeting_title).trim()
+          : (cancelledAssignment.purpose && String(cancelledAssignment.purpose).trim() !== '-' && String(cancelledAssignment.purpose).trim() !== '')
+          ? String(cancelledAssignment.purpose).trim()
+          : '';
+        emailService.sendOutstationCancelledEmail({
+          employeeEmail: empProfile[0].email,
+          employeeName: cancelledAssignment.full_name,
+          eventName: eventName,
+          destination: cancelledAssignment.destination,
+          startDate: cancelledAssignment.start_date,
+          endDate: cancelledAssignment.end_date,
+          purpose: cancelledAssignment.purpose || 'N/A',
+          cancelledBy: cancelledAssignment.assigned_by_name || 'HR'
+        }).catch(console.error);
+      }
+    } catch (emailErr) {
+      console.error('Error sending outstation cancelled email in PUT /cancel:', emailErr);
+    }
+
     try { broadcastPresenceUpdate({ type: 'outstation', action: 'cancelled', id: rows[0].id || rows[0].assignment_id }); } catch (e) { console.error('Error broadcasting outstation cancel:', e); }
     res.json({ success: true, assignment: rows[0] });
   } catch (err) {
@@ -11408,8 +11438,16 @@ app.delete('/api/outstation/:id', async (req, res) => {
     );
 
     // 4. Record the deletion in the activity log
+    const eventName = (assignment.project && String(assignment.project).trim() !== '-' && String(assignment.project).trim() !== '')
+      ? String(assignment.project).trim()
+      : (assignment.meeting_title && String(assignment.meeting_title).trim() !== '-' && String(assignment.meeting_title).trim() !== '')
+      ? String(assignment.meeting_title).trim()
+      : (assignment.purpose && String(assignment.purpose).trim() !== '-' && String(assignment.purpose).trim() !== '')
+      ? String(assignment.purpose).trim()
+      : 'Outstation Trip';
+
     const auditActor = assignment.assigned_by_name || approverRole;
-    const auditContext = `Event: ${assignment.purpose} — ${assignment.destination} • ${formattedStartDate} • ${assignment.total_days} Days`;
+    const auditContext = `Event: ${eventName} — ${assignment.destination} • ${formattedStartDate} • ${assignment.total_days} Days`;
     await pool.query(
       `INSERT INTO activity_logs (user_id, actor, action, target, context, type) VALUES ($1, $2, $3, $4, $5, $6)`,
       [assignment.user_id, auditActor, 'cancelled an outstation assignment for', assignment.full_name, auditContext, 'outstation']
@@ -11417,6 +11455,25 @@ app.delete('/api/outstation/:id', async (req, res) => {
 
     // 5. Update the status to 'Cancelled' instead of deleting
     await pool.query('UPDATE outstation_assignments SET status=$1 WHERE id=$2', ['Cancelled', id]);
+
+    // 6. Send Outstation Cancelled Email
+    try {
+      const [empProfile] = await pool.query(`SELECT email FROM profiles WHERE user_id = $1`, [assignment.user_id]);
+      if (empProfile.length > 0 && empProfile[0].email) {
+        emailService.sendOutstationCancelledEmail({
+          employeeEmail: empProfile[0].email,
+          employeeName: assignment.full_name,
+          eventName: eventName !== 'Outstation Trip' ? eventName : '',
+          destination: assignment.destination,
+          startDate: assignment.start_date,
+          endDate: assignment.end_date,
+          purpose: assignment.purpose || 'N/A',
+          cancelledBy: auditActor
+        }).catch(console.error);
+      }
+    } catch (emailErr) {
+      console.error('Error sending outstation cancelled email:', emailErr);
+    }
 
     try { 
       broadcastPresenceUpdate({ type: 'refresh', action: 'outstation_deleted', id }); 
