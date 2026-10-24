@@ -1393,7 +1393,7 @@ export default function Branches() {
                 return (
                   <Card
                     key={branch.code}
-                    className="cursor-pointer hover:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.18)] hover:-translate-y-1.5 transition-all duration-300 border border-slate-100 dark:border-slate-800/80 shadow-[0_16px_40px_rgba(0,0,0,0.07),0_4px_12px_rgba(0,0,0,0.03)] dark:shadow-[0_20px_45px_rgba(0,0,0,0.45)] bg-card overflow-visible group rounded-[32px] relative"
+                    className="cursor-pointer hover:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.18)] hover:-translate-y-1.5 transition-all duration-300 border border-slate-100 dark:border-slate-800/80 shadow-[0_16px_40px_rgba(0,0,0,0.07),0_4px_12px_rgba(0,0,0,0.03)] dark:shadow-[0_20px_45px_rgba(0,0,0,0.45)] bg-card overflow-visible group rounded-[32px] relative flex flex-col justify-between h-full"
                     onClick={() =>
                       handleSelectBranch({
                         ...branch,
@@ -1427,7 +1427,7 @@ export default function Branches() {
                       </Button>
                     </div>
 
-                    <CardContent className="p-0 pt-12 sm:pt-14 relative">
+                    <CardContent className="p-0 pt-12 sm:pt-14 relative flex-1 flex flex-col justify-between">
                       {/* Branch Info */}
                       <div className="flex flex-col items-center px-4 pt-1 pb-4">
                         <h3 className="font-semibold text-slate-800 dark:text-slate-100 text-lg leading-tight text-center">
@@ -1470,8 +1470,8 @@ export default function Branches() {
                       </div>
 
                       {/* Bottom Footer */}
-                      <div className="px-6 py-4 flex items-center justify-between">
-                        <div className="flex items-center gap-4">
+                      <div className="px-6 py-4 flex items-center justify-between gap-2 min-h-[58px]">
+                        <div className="flex items-center gap-3 shrink-0">
                           <div className="flex items-center gap-1.5">
                             <Users className="w-4 h-4 text-[#942392]" strokeWidth={2.2} />
                             <span className="text-sm font-black text-slate-800 dark:text-slate-200">{totalEmployees}</span>
@@ -1482,12 +1482,12 @@ export default function Branches() {
                             <span className="text-sm font-black text-slate-800 dark:text-slate-200">{attendanceRate}%</span>
                           </div>
                         </div>
-                        <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 mx-2" />
-                        <div className="text-right min-w-0">
+                        <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 mx-1 shrink-0" />
+                        <div className="text-right min-w-0 flex-1 max-w-[185px]">
                           <p className="text-[9px] print:text-[13px] font-black text-black dark:text-white uppercase tracking-widest leading-none">
                             LEADER:
                           </p>
-                          <p className="text-[10px] print:text-[13px] font-black text-black dark:text-white mt-0.5 truncate uppercase max-w-[160px]">
+                          <p className="text-[10px] print:text-[13px] font-black text-black dark:text-white mt-0.5 uppercase line-clamp-2 leading-tight break-words" title={leader}>
                             {leader}
                           </p>
                         </div>
@@ -1656,7 +1656,7 @@ export default function Branches() {
                               </Badge>
                             </TableCell>
                             <TableCell>
-                              <span className="text-sm italic text-foreground truncate block max-w-[150px]">
+                              <span className="text-sm italic text-foreground block max-w-[220px] line-clamp-2 leading-tight" title={leader}>
                                 {leader}
                               </span>
                             </TableCell>
