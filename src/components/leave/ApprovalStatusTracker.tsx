@@ -89,27 +89,9 @@ export function ApprovalStatusTracker({
     ? formatDept(lvl1History?.approver_department || pendingApproverContext || department) 
     : (lvl1History?.approver_branch || pendingApproverContext || branch || "HQ");
 
-  if (lvl1History) {
-    const isL1Approved = String(lvl1History.status).toLowerCase() === 'approved';
-    step1Status = isL1Approved ? 'Approved' : 'Rejected';
-    step1Subtitle = lvl1History.approver_name 
-      ? `${lvl1History.approver_name} • ${lvl1Context}` 
-      : `Approved • ${lvl1Context}`;
-    if (lvl1History.created_at) {
-      step1Date = new Date(lvl1History.created_at).toLocaleDateString('en-GB');
-    }
-  } else if (isApproved || isLvl2Pending) {
-    step1Status = 'Approved';
-    step1Subtitle = `Approved • ${lvl1Context}`;
-  } else if (isRejected && !lvl2History) {
-    step1Status = 'Rejected';
-    step1Subtitle = pendingApproverName ? `${pendingApproverName} • ${lvl1Context}` : `Rejected • ${lvl1Context}`;
-  } else if (isLvl1Pending) {
-    step1Status = 'Pending';
-    step1Subtitle = pendingApproverName 
-      ? `${pendingApproverName} • ${lvl1Context}` 
-      : 'Awaiting Approval';
-  }
+  const aRole = String(approverRole || "").toLowerCase();
+  const isLvl1ApproverRole = aRole.includes("branch") || aRole.includes("hod") || aRole.includes("department");
+  const isLvl2ApproverRole = aRole.includes("operation") || aRole.includes("finance") || aRole.includes("managing") || aRole.includes("director") || aRole.includes("md");
 
   // Step 2 status & details
   let step2Status: 'Approved' | 'Rejected' | 'Pending' | 'Future' = 'Future';
@@ -119,26 +101,75 @@ export function ApprovalStatusTracker({
   const lvl2RoleTitle = isHQ ? "OPERATION MANAGER" : "MANAGING DIRECTOR";
   const lvl2Context = lvl2History?.approver_branch || pendingApproverContext || 'HQ';
 
-  if (lvl2History) {
-    const isL2Approved = String(lvl2History.status).toLowerCase() === 'approved';
-    step2Status = isL2Approved ? 'Approved' : 'Rejected';
-    step2Subtitle = lvl2History.approver_name 
-      ? `${lvl2History.approver_name} • ${lvl2Context}` 
-      : `Approved • ${lvl2Context}`;
-    if (lvl2History.created_at) {
-      step2Date = new Date(lvl2History.created_at).toLocaleDateString('en-GB');
+  if (isRejected) {
+    // Check which stage rejected the request
+    const isL1Reject = String(lvl1History?.status).toLowerCase() === 'rejected' || isLvl1ApproverRole || (!lvl2History && !isLvl2ApproverRole);
+
+    if (isL1Reject) {
+      step1Status = 'Rejected';
+      step1Subtitle = lvl1History?.approver_name 
+        ? `${lvl1History.approver_name} • ${lvl1Context}` 
+        : (pendingApproverName ? `${pendingApproverName} • ${lvl1Context}` : `Rejected • ${lvl1Context}`);
+      if (lvl1History?.created_at) {
+        step1Date = new Date(lvl1History.created_at).toLocaleDateString('en-GB');
+      }
+      step2Status = 'Future';
+      step2Subtitle = undefined;
+    } else {
+      // Level 1 was approved, Level 2 was rejected
+      step1Status = 'Approved';
+      step1Subtitle = lvl1History?.approver_name 
+        ? `${lvl1History.approver_name} • ${lvl1Context}` 
+        : `Approved • ${lvl1Context}`;
+      if (lvl1History?.created_at) {
+        step1Date = new Date(lvl1History.created_at).toLocaleDateString('en-GB');
+      }
+
+      step2Status = 'Rejected';
+      step2Subtitle = lvl2History?.approver_name 
+        ? `${lvl2History.approver_name} • ${lvl2Context}` 
+        : (pendingApproverName ? `${pendingApproverName} • ${lvl2Context}` : `Rejected • ${lvl2Context}`);
+      if (lvl2History?.created_at) {
+        step2Date = new Date(lvl2History.created_at).toLocaleDateString('en-GB');
+      }
     }
   } else if (isApproved) {
+    step1Status = 'Approved';
+    step1Subtitle = lvl1History?.approver_name 
+      ? `${lvl1History.approver_name} • ${lvl1Context}` 
+      : `Approved • ${lvl1Context}`;
+    if (lvl1History?.created_at) {
+      step1Date = new Date(lvl1History.created_at).toLocaleDateString('en-GB');
+    }
+
     step2Status = 'Approved';
-    step2Subtitle = pendingApproverName ? `${pendingApproverName} • ${lvl2Context}` : `Approved • ${lvl2Context}`;
-  } else if (isRejected && (lvl2History || isLvl2Pending)) {
-    step2Status = 'Rejected';
-    step2Subtitle = pendingApproverName ? `${pendingApproverName} • ${lvl2Context}` : `Rejected • ${lvl2Context}`;
+    step2Subtitle = lvl2History?.approver_name 
+      ? `${lvl2History.approver_name} • ${lvl2Context}` 
+      : (pendingApproverName ? `${pendingApproverName} • ${lvl2Context}` : `Approved • ${lvl2Context}`);
+    if (lvl2History?.created_at) {
+      step2Date = new Date(lvl2History.created_at).toLocaleDateString('en-GB');
+    }
   } else if (isLvl2Pending) {
+    step1Status = 'Approved';
+    step1Subtitle = lvl1History?.approver_name 
+      ? `${lvl1History.approver_name} • ${lvl1Context}` 
+      : `Approved • ${lvl1Context}`;
+    if (lvl1History?.created_at) {
+      step1Date = new Date(lvl1History.created_at).toLocaleDateString('en-GB');
+    }
+
     step2Status = 'Pending';
     step2Subtitle = pendingApproverName 
       ? `${pendingApproverName} • ${lvl2Context}` 
       : 'Awaiting Approval';
+  } else {
+    // Level 1 pending
+    step1Status = 'Pending';
+    step1Subtitle = pendingApproverName 
+      ? `${pendingApproverName} • ${lvl1Context}` 
+      : 'Awaiting Approval';
+    step2Status = 'Future';
+    step2Subtitle = undefined;
   }
 
   const items: Array<{
@@ -207,7 +238,7 @@ export function ApprovalStatusTracker({
 
                 {/* Status Badge */}
                 <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded border mb-1 whitespace-nowrap ${badgeBg}`}>
-                  {item.status === 'Future' ? 'PENDING' : item.status.toUpperCase()}
+                  {item.status === 'Future' ? (isRejected ? '-' : 'PENDING') : item.status.toUpperCase()}
                 </span>
 
                 {/* Title (Role) */}
