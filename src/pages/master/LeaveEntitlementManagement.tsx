@@ -759,25 +759,31 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
         </div>
       </CardHeader>
       <CardContent className="space-y-4 pt-2">
-        {/* Toggle Mode */}
-        <div className="flex gap-2 p-1 bg-muted/30 border rounded-lg w-fit">
-          <Button
-            variant={allocMode === "base" ? "secondary" : "ghost"}
-            size="sm"
+        {/* Toggle Mode - Pill Redesign */}
+        <div className="flex items-center gap-1.5 p-1.5 bg-gradient-to-r from-[#800A7A] via-[#942392] to-[#3d0052] rounded-xl shadow-inner border border-[#942392]/20 w-fit mb-2">
+          <button
+            type="button"
             onClick={() => setAllocMode("base")}
-            className="text-xs font-bold uppercase tracking-wider h-8"
+            className={`flex items-center gap-1.5 py-2 px-3.5 text-[9px] sm:text-[10px] font-black uppercase tracking-wider whitespace-nowrap rounded-lg transition-all duration-300 ${
+              allocMode === "base"
+                ? "bg-[#ffff00] text-[#942392] shadow-md font-black"
+                : "text-white/90 hover:text-white hover:bg-white/10 font-bold"
+            }`}
           >
-            Base Entitlement
-          </Button>
-          <Button
-            variant={allocMode === "ot" ? "secondary" : "ghost"}
-            size="sm"
+            <span>Base Entitlement</span>
+          </button>
+          <button
+            type="button"
             onClick={() => setAllocMode("ot")}
-            className="text-xs font-bold uppercase tracking-wider h-8 gap-1.5"
+            className={`flex items-center gap-1.5 py-2 px-3.5 text-[9px] sm:text-[10px] font-black uppercase tracking-wider whitespace-nowrap rounded-lg transition-all duration-300 ${
+              allocMode === "ot"
+                ? "bg-[#ffff00] text-[#942392] shadow-md font-black"
+                : "text-white/90 hover:text-white hover:bg-white/10 font-bold"
+            }`}
           >
-            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-            OT to Replacement Leave
-          </Button>
+            <Sparkles className={`w-3.5 h-3.5 shrink-0 transition-colors ${allocMode === "ot" ? "text-[#942392]" : "text-amber-300"}`} />
+            <span>OT to Replacement Leave</span>
+          </button>
         </div>
 
         {allocMode === "base" ? (
