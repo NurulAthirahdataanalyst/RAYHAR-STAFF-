@@ -23,6 +23,12 @@ const {
   validateUploadedFile,
 } = require("./utils/fileSecurity");
 
+const isString = (value) =>
+  typeof value === "string";
+
+const safeString = (value) =>
+  isString(value) ? value.trim() : "";
+
 const uploadLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 50,
@@ -207,13 +213,15 @@ function getEmpCreatedDateStr(createdAt) {
 }
 
 function getCutiGantiDates(reason, fallbackTarikh) {
-  if (!reason && !fallbackTarikh) return null;
+  const safeReason = safeString(reason);
+  const safeFallbackTarikh = safeString(fallbackTarikh);
+  if (!safeReason && !safeFallbackTarikh) return null;
   let dates = [];
-  if (reason) {
-    const match = reason.match(/\[CUTI_GANTI_DATA:([\s\S]*?)\]\]/);
+  if (safeReason) {
+    const match = safeReason.match(/\[CUTI_GANTI_DATA:([\s\S]*?)\]\]/);
     if (match) {
       try {
-        const rawJson = reason.substring(reason.indexOf('[CUTI_GANTI_DATA:') + 17, reason.lastIndexOf(']]') + 1);
+        const rawJson = safeReason.substring(safeReason.indexOf('[CUTI_GANTI_DATA:') + 17, safeReason.lastIndexOf(']]') + 1);
         const rows = JSON.parse(rawJson);
         if (Array.isArray(rows)) {
           dates = rows.map(r => r.tarikhCuti || r.tarikh || r.cutiDate || r.date).filter(Boolean);
@@ -221,8 +229,8 @@ function getCutiGantiDates(reason, fallbackTarikh) {
       } catch (e) {}
     }
   }
-  if (dates.length === 0 && fallbackTarikh) {
-    dates = [String(fallbackTarikh).substring(0, 10)];
+  if (dates.length === 0 && safeFallbackTarikh) {
+    dates = [safeFallbackTarikh.substring(0, 10)];
   }
   return dates.length > 0 ? dates.map(d => String(d).substring(0, 10)) : null;
 }
@@ -361,12 +369,13 @@ app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 app.get("/api/settings", (req, res) => res.json({ success: true, settings: getSettings() }));
 app.post("/api/settings", async (req, res) => {
   const current = getSettings();
-  if (req.body && req.body.lateThreshold) current.lateThreshold = req.body.lateThreshold;
+  const safeLateThreshold = safeString(req.body?.lateThreshold);
+  if (safeLateThreshold) current.lateThreshold = safeLateThreshold;
   await saveSettingsToDB(current);
 
   // SSE broadcast for settings change
-  const operatorName = req.body.operatorName || "System";
-  const operatorRole = req.body.operatorRole || "admin";
+  const operatorName = safeString(req.body?.operatorName) || "System";
+  const operatorRole = safeString(req.body?.operatorRole) || "admin";
   broadcastPresenceUpdate({
     type: "config-change",
     timestamp: new Date().toISOString(),
@@ -436,7 +445,8 @@ app.get("/api/roles", async (req, res) => {
 });
 
 app.post("/api/roles", async (req, res) => {
-  const { name, status } = req.body;
+  const name = safeString(req.body?.name);
+  const status = safeString(req.body?.status);
   if (!name) return res.status(400).json({ success: false, error: "Role name is required" });
 
   try {
@@ -456,8 +466,9 @@ app.post("/api/roles", async (req, res) => {
 });
 
 app.put("/api/roles/:id", async (req, res) => {
-  const { id } = req.params;
-  const { name, status } = req.body;
+  const id = safeString(req.params.id);
+  const name = safeString(req.body?.name);
+  const status = safeString(req.body?.status);
   if (!name) return res.status(400).json({ success: false, error: "Role name is required" });
 
   try {
@@ -479,7 +490,7 @@ app.put("/api/roles/:id", async (req, res) => {
 });
 
 app.delete("/api/roles/:id", async (req, res) => {
-  const { id } = req.params;
+  const id = safeString(req.params.id);
   try {
     const result = await pgPool.query(
       "DELETE FROM roles WHERE id = $1 RETURNING *",
@@ -889,8 +900,8 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Fallback redirection for files wiped by Render ephemeral restart (supports nested folders)
 app.get(/^\/uploads\/(.+)$/, (req, res) => {
-  const fileSubpath = req.params[0];
-  if (fileSubpath.includes('..')) return res.status(400).send('Invalid path');
+  const fileSubpath = safeString(req.params[0]);
+  if (!fileSubpath || fileSubpath.includes('..')) return res.status(400).send('Invalid path');
   const { supabaseUrl } = getSupabaseConfig();
   if (supabaseUrl && fileSubpath) {
     const encodedSubpath = fileSubpath.split('/').map(segment => encodeURIComponent(segment)).join('/');
@@ -1414,19 +1425,21 @@ async function getEffectiveBranch(userId, dateStr) {
 }
 
 async function getLiveAttendanceStats(queryDate, role, branch, department) {
-  const dateStr = queryDate || new Date().toISOString().split('T')[0];
+  const dateStr = safeString(queryDate) || new Date().toISOString().split('T')[0];
   try {
     const lateTimeStr = getLateThresholdTime ? getLateThresholdTime() : '09:00:00';
 
-    const normRole = (role || "").toLowerCase().trim().replace(/ /g, "_");
+    const normRole = safeString(role).toLowerCase().replace(/ /g, "_");
+    const cleanBranch = safeString(branch);
+    const cleanDept = safeString(department);
     let filterP = "";
     let paramsTotal = [];
     if (normRole === 'branch_leader') {
-      const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
+      const safeBranch = (cleanBranch && cleanBranch !== "All") ? cleanBranch : "INVALID_BYPASS";
       filterP = " AND LOWER(p.branch) = LOWER(?)";
       paramsTotal.push(safeBranch);
     } else if (normRole === 'head_of_department' || normRole === 'hod') {
-      const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
+      const safeDept = (cleanDept && cleanDept !== "All") ? cleanDept : "INVALID_BYPASS";
       filterP = " AND LOWER(p.department) = LOWER(?)";
       paramsTotal.push(safeDept);
     } else if (['hr_admin', 'hr', 'admin', 'managing_director', 'md', 'operation_manager', 'finance_manager'].includes(normRole)) {
@@ -1719,8 +1732,9 @@ app.get('/api/employee-locations/stream', async (req, res) => {
   res.write(': connected\n\n');
 
   // Send initial payload
+  const streamBranch = safeString(req.query.branch) || undefined;
   try {
-    const rows = await getEmployeeLocations(req.query.branch ? String(req.query.branch) : undefined);
+    const rows = await getEmployeeLocations(streamBranch);
     res.write(`data: ${JSON.stringify({ type: 'employee-locations', timestamp: new Date().toISOString(), locations: rows })}\n\n`);
   } catch (e) {
     console.error('employee-locations stream initial send error', e);
@@ -1733,7 +1747,7 @@ app.get('/api/employee-locations/stream', async (req, res) => {
   // Periodic snapshot every 30s to keep client in sync
   const interval = setInterval(async () => {
     try {
-      const rows = await getEmployeeLocations(req.query.branch ? String(req.query.branch) : undefined);
+      const rows = await getEmployeeLocations(streamBranch);
       client.write(`data: ${JSON.stringify({ type: 'employee-locations', timestamp: new Date().toISOString(), locations: rows })}\n\n`);
     } catch (e) {
       console.error('employee-locations periodic error', e);
@@ -1759,8 +1773,10 @@ app.get("/api/presence/live-stats", async (req, res) => {
   // Send heartbeat comment to keep connection alive
   res.write(": connected\n\n");
 
-  const queryDate = req.query.date ? req.query.date.toString() : new Date().toISOString().split('T')[0];
-  const { role, branch, department } = req.query;
+  const queryDate = safeString(req.query.date) || new Date().toISOString().split('T')[0];
+  const role = safeString(req.query.role);
+  const branch = safeString(req.query.branch);
+  const department = safeString(req.query.department);
 
   // Send initial snapshot immediately
   try {
@@ -1797,14 +1813,16 @@ app.get("/api/presence/live-stats", async (req, res) => {
 async function computeDynamicWorkforceMetrics(dateStr, role, branch, department) {
   let profileFilter = "";
   let pFilterParams = [];
-  const normRole = (role || "").toLowerCase().trim().replace(/ /g, "_");
+  const normRole = safeString(role).toLowerCase().replace(/ /g, "_");
+  const cleanBranch = safeString(branch);
+  const cleanDept = safeString(department);
 
   if (normRole === 'branch_leader') {
-    const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
+    const safeBranch = (cleanBranch && cleanBranch !== "All") ? cleanBranch : "INVALID_BYPASS";
     profileFilter = " AND LOWER(p.branch) = LOWER(?)";
     pFilterParams.push(safeBranch);
   } else if (normRole === 'head_of_department' || normRole === 'hod') {
-    const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
+    const safeDept = (cleanDept && cleanDept !== "All") ? cleanDept : "INVALID_BYPASS";
     profileFilter = " AND LOWER(p.department) = LOWER(?)";
     pFilterParams.push(safeDept);
   }
@@ -1912,15 +1930,17 @@ let workforceFeedClients = [];
 async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMonth, targetYear) {
   const lateTimeStr = getLateThresholdTime ? getLateThresholdTime() : '09:00:00';
 
-  const normRole = (role || "").toLowerCase().trim().replace(/ /g, "_");
+  const normRole = safeString(role).toLowerCase().replace(/ /g, "_");
+  const cleanBranch = safeString(branch);
+  const cleanDept = safeString(department);
   let filterP = "";
   let paramsBase = [];
   if (normRole === 'branch_leader') {
-    const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
+    const safeBranch = (cleanBranch && cleanBranch !== "All") ? cleanBranch : "INVALID_BYPASS";
     filterP = " AND LOWER(p.branch) = LOWER(?)";
     paramsBase.push(safeBranch);
   } else if (normRole === 'head_of_department' || normRole === 'hod') {
-    const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
+    const safeDept = (cleanDept && cleanDept !== "All") ? cleanDept : "INVALID_BYPASS";
     filterP = " AND LOWER(p.department) = LOWER(?)";
     paramsBase.push(safeDept);
   } else if (['hr_admin', 'hr', 'admin', 'managing_director', 'md', 'operation_manager', 'finance_manager'].includes(normRole)) {
@@ -2502,10 +2522,15 @@ app.get("/api/workforce/live-feed", async (req, res) => {
 
   res.write(": connected\n\n");
 
-  const { date, role, branch, department, month, year } = req.query;
-  const targetDate = date ? date.toString() : new Date().toISOString().split('T')[0];
-  const targetMonth = month ? parseInt(month) : (new Date().getMonth() + 1);
-  const targetYear = year ? parseInt(year) : new Date().getFullYear();
+  const date = safeString(req.query.date);
+  const role = safeString(req.query.role);
+  const branch = safeString(req.query.branch);
+  const department = safeString(req.query.department);
+  const month = safeString(req.query.month);
+  const year = safeString(req.query.year);
+  const targetDate = date || new Date().toISOString().split('T')[0];
+  const targetMonth = month ? parseInt(month, 10) : (new Date().getMonth() + 1);
+  const targetYear = year ? parseInt(year, 10) : new Date().getFullYear();
 
   // Send initial snapshot
   try {
@@ -2574,7 +2599,15 @@ app.get("/api/health", async (req, res) => {
 
 // SIGN-UP API
 app.post("/api/signup", async (req, res) => {
-  const { full_name, email, password, branch, department, status, role, operatorName, operatorRole } = req.body;
+  const full_name = safeString(req.body?.full_name);
+  const email = safeString(req.body?.email);
+  const password = isString(req.body?.password) ? req.body.password : "";
+  const branch = safeString(req.body?.branch);
+  const department = safeString(req.body?.department);
+  const status = safeString(req.body?.status);
+  const role = safeString(req.body?.role);
+  const operatorName = safeString(req.body?.operatorName);
+  const operatorRole = safeString(req.body?.operatorRole);
 
   if (!full_name || !email || !password || !branch) {
     return res.status(400).json({ success: false, error: "All fields are required" });
@@ -2633,7 +2666,7 @@ app.post("/api/signup", async (req, res) => {
       timestamp: new Date().toISOString(),
       operatorName: operatorName || "System",
       operatorRole: operatorRole || "admin",
-      action: `Onboarded new staff: ${full_name.trim()} (${role || 'employee'})`
+      action: `Onboarded new staff: ${full_name} (${role || 'employee'})`
     });
 
     return res.status(201).json({
@@ -2658,7 +2691,7 @@ app.post("/api/signup", async (req, res) => {
 // BRANCH EMPLOYEE STATISTICS
 // ===============================
 app.get("/api/branch-employees", async (req, res) => {
-  const { branch } = req.query;
+  const branch = safeString(req.query.branch);
 
   if (!branch) {
     return res.status(400).json({ success: false, error: "Missing branch" });
@@ -2806,7 +2839,12 @@ app.get("/api/branch-employees", async (req, res) => {
 // LEAVE ENTITLEMENT DATA
 // ===============================
 app.get("/api/leave-entitlements", async (req, res) => {
-  const { branch, department, search, leaveType, year, status } = req.query;
+  const branch = safeString(req.query.branch);
+  const department = safeString(req.query.department);
+  const search = safeString(req.query.search);
+  const leaveType = safeString(req.query.leaveType);
+  const year = safeString(req.query.year);
+  const status = safeString(req.query.status);
 
   try {
     const params = [];
@@ -2903,8 +2941,15 @@ app.get("/api/leave-entitlements", async (req, res) => {
 // LEAVE ADJUSTMENTS
 // ===============================
 app.post("/api/profiles/:userId/leave-adjustments", async (req, res) => {
-  const { userId } = req.params;
-  const { leaveType, adjustmentDays, reason, approvedBy } = req.body;
+  const userId = safeString(req.params.userId);
+  const leaveType = safeString(req.body?.leaveType);
+  const adjustmentDays = req.body?.adjustmentDays;
+  const reason = safeString(req.body?.reason);
+  const approvedBy = safeString(req.body?.approvedBy);
+
+  if (!userId || !leaveType) {
+    return res.status(400).json({ error: "Invalid input format" });
+  }
 
   try {
     // Insert into leave_balance_adjustments
@@ -2922,7 +2967,7 @@ app.post("/api/profiles/:userId/leave-adjustments", async (req, res) => {
 });
 
 app.get(["/api/profiles/:userId/leave-balance", "/api/leave-balance/:userId"], async (req, res) => {
-  const { userId } = req.params;
+  const userId = safeString(req.params.userId);
   try {
     // 1. Get Base Entitlements
     const [profile] = await pool.query(`SELECT annual_leave_entitlement, medical_leave_entitlement FROM profiles WHERE user_id = ?`, [userId]);
@@ -3163,10 +3208,11 @@ function formatDeptForApprover(dept) {
 }
 
 app.get("/api/leave-requests", async (req, res) => {
-  const userId = req.query.userId;
-  const role = req.query.role ? req.query.role.toString().trim() : "";
-  const branch = req.query.branch ? req.query.branch.toString().trim() : "";
-  const date = req.query.date;
+  const userId = safeString(req.query.userId);
+  const role = safeString(req.query.role);
+  const branch = safeString(req.query.branch);
+  const date = safeString(req.query.date);
+  const department = safeString(req.query.department);
 
   try {
     const params = [];
@@ -3179,9 +3225,9 @@ app.get("/api/leave-requests", async (req, res) => {
       if (role === "branch_leader" && branch) {
         filters.push("LOWER(p.branch) = LOWER(?)");
         params.push(branch);
-      } else if (role === "head_of_department" && req.query.department) {
+      } else if (role === "head_of_department" && department) {
         filters.push("LOWER(p.department) = LOWER(?)");
-        params.push(req.query.department);
+        params.push(department);
       } else if (role === "head_of_department") {
         // Safety: HOD must have a department to see anything
         filters.push("1 = 0");
@@ -3321,7 +3367,9 @@ app.get("/api/leave-requests", async (req, res) => {
 // CALCULATE LEAVE DAYS (Excluding Weekends & Holidays)
 // ===============================
 app.get("/api/calculate-leave-days", async (req, res) => {
-  const { start, end, branch } = req.query;
+  const start = safeString(req.query.start);
+  const end = safeString(req.query.end);
+  const branch = safeString(req.query.branch);
   if (!start || !end) return res.status(400).json({ success: false, error: "Missing dates" });
 
   try {
@@ -3344,7 +3392,7 @@ app.get("/api/calculate-leave-days", async (req, res) => {
 });
 
 app.post("/api/leave-requests/:id/upload-mc", uploadLimiter, upload.single("lampiranMc"), async (req, res) => {
-  const leaveId = req.params.id;
+  const leaveId = safeString(req.params.id);
   try {
     const [rows] = await pool.query(`
       SELECT l.*, p.full_name AS name, p.branch 
@@ -3440,31 +3488,31 @@ app.post("/api/leave-requests/:id/upload-mc", uploadLimiter, upload.single("lamp
 });
 
 app.post("/api/leave-requests", uploadLimiter, upload.single("lampiranMc"), async (req, res) => {
-  const {
-    user_id,
-    leave_type,
-    start_date,
-    end_date,
-    days,
-    reason,
-    waris_nama,
-    waris_phone,
-    waris_alamat,
-    waris_hubungan,
-    cuti_ganti_tarikh,
-    cuti_ganti_hari,
-    cuti_ganti_jam,
-    cuti_tanpa_gaji_phone,
-    cuti_tanpa_gaji_signature,
-    phone,
-    no_telefon,
-    no_kad_pengenalan
-  } = req.body;
+  const user_id = safeString(req.body?.user_id);
+  const leave_type = safeString(req.body?.leave_type);
+  const start_date = safeString(req.body?.start_date);
+  const end_date = safeString(req.body?.end_date);
+  const days = req.body?.days;
+  const reason = req.body?.reason;
+  const safeReason = safeString(reason);
+  const waris_nama = safeString(req.body?.waris_nama) || null;
+  const waris_phone = safeString(req.body?.waris_phone) || null;
+  const waris_alamat = safeString(req.body?.waris_alamat) || null;
+  const waris_hubungan = safeString(req.body?.waris_hubungan) || null;
+  const cuti_ganti_tarikh = safeString(req.body?.cuti_ganti_tarikh) || null;
+  const cuti_ganti_hari = safeString(req.body?.cuti_ganti_hari) || null;
+  const cuti_ganti_jam = req.body?.cuti_ganti_jam ?? null;
+  const cuti_tanpa_gaji_phone = safeString(req.body?.cuti_tanpa_gaji_phone) || null;
+  const cuti_tanpa_gaji_signature = safeString(req.body?.cuti_tanpa_gaji_signature);
+  const phone = safeString(req.body?.phone);
+  const no_telefon = safeString(req.body?.no_telefon);
+  const no_kad_pengenalan = safeString(req.body?.no_kad_pengenalan);
 
   const applicantPhone = phone || no_telefon || no_kad_pengenalan || null;
 
-  if (req.body.action === 'Earn RL') {
-    const { user_id, replacement_date, description } = req.body;
+  if (safeString(req.body?.action) === 'Earn RL') {
+    const replacement_date = safeString(req.body?.replacement_date);
+    const description = safeString(req.body?.description);
     if (!user_id || !replacement_date || !description) {
       return res.status(400).json({ success: false, error: "Missing required fields for Earning RL" });
     }
@@ -3493,10 +3541,13 @@ app.post("/api/leave-requests", uploadLimiter, upload.single("lampiranMc"), asyn
   
   let cutiGantiData = [];
   if (leave_type === 'Replacement Leave' || leave_type === 'Cuti Ganti') {
-    const match = reason.match(/\[CUTI_GANTI_DATA:([\s\S]*?)\]\]/);
+    const match = safeReason.match(/\[CUTI_GANTI_DATA:([\s\S]*?)\]\]/);
     if (match) {
       try {
-        const rawJson = reason.substring(reason.indexOf('[CUTI_GANTI_DATA:') + 17, reason.lastIndexOf(']]') + 1);
+        const rawJson = safeReason.substring(
+          safeReason.indexOf('[CUTI_GANTI_DATA:') + 17,
+          safeReason.lastIndexOf(']]') + 1
+        );
         cutiGantiData = JSON.parse(rawJson);
       } catch(e) {
         console.error("Backend JSON parse failed for Cuti Ganti Data", e);
@@ -3535,7 +3586,7 @@ app.post("/api/leave-requests", uploadLimiter, upload.single("lampiranMc"), asyn
         const replaceDate = new Date(cg.tarikhGanti);
         
         // 0. Keterangan is required
-        if (!cg.keterangan && (!reason || reason.trim() === '')) {
+        if (!cg.keterangan && !safeReason) {
            return res.status(400).json({ success: false, error: "Keterangan/Tugasan is required for Replacement Leave." });
         }
 
@@ -3685,7 +3736,7 @@ app.post("/api/leave-requests", uploadLimiter, upload.single("lampiranMc"), asyn
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
       [
-        user_id, leave_type, start_date, end_date, days, reason, initialStatus, waris_nama, waris_phone, waris_alamat, waris_hubungan, cuti_ganti_tarikh || null, cuti_ganti_hari || null, cuti_ganti_jam || null, cuti_tanpa_gaji_phone || null, signature_val, mc_file_url, applicantPhone
+        user_id, leave_type, start_date, end_date, days, safeReason, initialStatus, waris_nama, waris_phone, waris_alamat, waris_hubungan, cuti_ganti_tarikh || null, cuti_ganti_hari || null, cuti_ganti_jam || null, cuti_tanpa_gaji_phone || null, signature_val, mc_file_url, applicantPhone
       ]
     );
 
@@ -3694,7 +3745,7 @@ app.post("/api/leave-requests", uploadLimiter, upload.single("lampiranMc"), asyn
         if (!cg.tarikhGanti) continue;
         const replaceDate = cg.tarikhGanti;
         const leaveDate = cg.tarikhCuti || start_date;
-        const description = cg.keterangan || reason.split('\n\n[CUTI_GANTI_DATA')[0];
+        const description = cg.keterangan || safeReason.split('\n\n[CUTI_GANTI_DATA')[0];
         // jamGanti is "--" from UI, fallback to 4
         const reqJam = cg.jamGanti && cg.jamGanti !== "--" ? Number(cg.jamGanti) : 4;
 
@@ -3711,11 +3762,12 @@ app.post("/api/leave-requests", uploadLimiter, upload.single("lampiranMc"), asyn
     );
 
     // Save Phone number to profile for auto-population on future leave requests
-    if (applicantPhone && applicantPhone.toString().trim()) {
+    const safeApplicantPhone = safeString(applicantPhone);
+    if (safeApplicantPhone) {
       try {
         await pool.query(
           `UPDATE profiles SET phone = ? WHERE user_id = ?`,
-          [applicantPhone.toString().trim(), user_id]
+          [safeApplicantPhone, user_id]
         );
       } catch (phoneErr) {
         console.error("Warning: could not save phone to profile:", phoneErr);
@@ -4001,9 +4053,13 @@ app.post("/api/leave-requests", uploadLimiter, upload.single("lampiranMc"), asyn
 });
 
 app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
-  const { leaveId } = req.params;
-  const { status, approver_id, approver_note, remarks, action } = req.body;
-  const role = req.body.role ? req.body.role.toString().trim() : "";
+  const leaveId = safeString(req.params.leaveId);
+  const status = safeString(req.body?.status);
+  const approver_id = safeString(req.body?.approver_id);
+  const approver_note = safeString(req.body?.approver_note);
+  const remarks = safeString(req.body?.remarks);
+  const action = safeString(req.body?.action);
+  const role = safeString(req.body?.role);
 
   // status can be 'Approved', 'Rejected', etc.
   // action can be 'Approve' or 'Reject'
@@ -4336,13 +4392,13 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
 // ===============================
 
 app.get("/api/notifications", async (req, res) => {
-  const { user_id } = req.query;
-  const limit = parseInt(String(req.query.limit || "50"), 10) || 50;
-  const offset = parseInt(String(req.query.offset || "0"), 10) || 0;
-  const type = req.query.type ? String(req.query.type) : null;
-  const unreadOnly = req.query.unreadOnly === "true" || req.query.unread === "1";
-  const scope = req.query.scope ? String(req.query.scope) : null;
-  const month = req.query.month ? String(req.query.month) : null;
+  const user_id = safeString(req.query.user_id);
+  const limit = parseInt(safeString(req.query.limit) || "50", 10) || 50;
+  const offset = parseInt(safeString(req.query.offset) || "0", 10) || 0;
+  const type = safeString(req.query.type) || null;
+  const unreadOnly = safeString(req.query.unreadOnly) === "true" || safeString(req.query.unread) === "1";
+  const scope = safeString(req.query.scope) || null;
+  const month = safeString(req.query.month) || null;
 
   if (!user_id) return res.status(400).json({ success: false, error: "user_id required" });
 
@@ -4371,7 +4427,7 @@ app.get("/api/notifications", async (req, res) => {
 });
 
 app.get("/api/notifications/unread-count", async (req, res) => {
-  const { user_id } = req.query;
+  const user_id = safeString(req.query.user_id);
   if (!user_id) return res.status(400).json({ success: false, error: "user_id required" });
 
   try {
@@ -4389,7 +4445,13 @@ app.get("/api/notifications/unread-count", async (req, res) => {
 });
 
 app.post("/api/notifications", async (req, res) => {
-  const { userId, user_id, title, message, type, scope, relatedLeaveId, related_leave_id, sendEmail, emailData, sendPush } = req.body;
+  const userId = safeString(req.body?.userId);
+  const user_id = safeString(req.body?.user_id);
+  const title = safeString(req.body?.title);
+  const message = safeString(req.body?.message);
+  const type = safeString(req.body?.type);
+  const scope = safeString(req.body?.scope);
+  const { relatedLeaveId, related_leave_id, sendEmail, emailData, sendPush } = req.body || {};
   const targetUser = userId || user_id;
 
   if (!targetUser || !title || !message) {
@@ -4416,8 +4478,8 @@ app.post("/api/notifications", async (req, res) => {
 });
 
 app.patch("/api/notifications/:id/read", async (req, res) => {
-  const { id } = req.params;
-  const userId = req.body.user_id || req.body.userId || req.query.user_id;
+  const id = safeString(req.params.id);
+  const userId = safeString(req.body?.user_id) || safeString(req.body?.userId) || safeString(req.query.user_id);
   try {
     await notificationService.markAsRead(id, userId);
     res.json({ success: true });
@@ -4428,8 +4490,8 @@ app.patch("/api/notifications/:id/read", async (req, res) => {
 });
 
 app.patch("/api/notifications/read-all", async (req, res) => {
-  const userId = req.body.user_id || req.body.userId;
-  const scope = req.body.scope || req.query.scope || null;
+  const userId = safeString(req.body?.user_id) || safeString(req.body?.userId);
+  const scope = safeString(req.body?.scope) || safeString(req.query.scope) || null;
   if (!userId) return res.status(400).json({ success: false, error: "user_id required" });
   try {
     await notificationService.markAllAsRead(userId, scope);
@@ -4441,8 +4503,8 @@ app.patch("/api/notifications/read-all", async (req, res) => {
 });
 
 app.delete("/api/notifications/:id", async (req, res) => {
-  const { id } = req.params;
-  const userId = req.query.user_id || req.body.user_id || req.body.userId;
+  const id = safeString(req.params.id);
+  const userId = safeString(req.query.user_id) || safeString(req.body?.user_id) || safeString(req.body?.userId);
   try {
     await notificationService.deleteNotification(id, userId);
     res.json({ success: true });
@@ -4454,7 +4516,10 @@ app.delete("/api/notifications/:id", async (req, res) => {
 
 // Register FCM Push Token
 app.post("/api/notifications/fcm-token", async (req, res) => {
-  const { userId, user_id, token, platform } = req.body;
+  const userId = safeString(req.body?.userId);
+  const user_id = safeString(req.body?.user_id);
+  const token = safeString(req.body?.token);
+  const platform = safeString(req.body?.platform);
   const targetUser = userId || user_id;
   if (!targetUser || !token) {
     return res.status(400).json({ success: false, error: "user_id and token are required" });
@@ -4472,8 +4537,11 @@ app.post("/api/notifications/fcm-token", async (req, res) => {
 
 // HR Adjust Attendance & Notify Employee
 app.patch("/api/attendances/:id/adjust", async (req, res) => {
-  const { id } = req.params;
-  const { clock_in, clock_out, attendance_type, remarks } = req.body;
+  const id = safeString(req.params.id);
+  const clock_in = safeString(req.body?.clock_in);
+  const clock_out = safeString(req.body?.clock_out);
+  const attendance_type = safeString(req.body?.attendance_type);
+  const remarks = safeString(req.body?.remarks);
 
   try {
     const [attRows] = await pool.query("SELECT * FROM attendances WHERE attendance_id = ?", [id]);
@@ -4512,13 +4580,14 @@ app.patch("/api/attendances/:id/adjust", async (req, res) => {
 // ===============================
 
 app.get("/api/employees/:userId/analytics", async (req, res) => {
-  const { userId } = req.params;
+  const userId = safeString(req.params.userId);
   try {
     const [empRows] = await pool.query("SELECT * FROM profiles WHERE user_id = ?", [userId]);
     if (empRows.length === 0) return res.status(404).json({ success: false, error: "Employee not found" });
     const employee = empRows[0];
 
-    const { month, year } = req.query;
+    const month = safeString(req.query.month);
+    const year = safeString(req.query.year);
     const now = new Date();
     
     // Parse month (format: "YYYY-MM" or "all")
@@ -4669,7 +4738,11 @@ app.get("/api/employees/:userId/analytics", async (req, res) => {
 // EMPLOYEES
 // ===============================
 app.get("/api/employees", async (req, res) => {
-  const { role, branch, date, status } = req.query;
+  const role = safeString(req.query.role);
+  const branch = safeString(req.query.branch);
+  const date = safeString(req.query.date);
+  const status = safeString(req.query.status);
+  const department = safeString(req.query.department);
 
   try {
     const params = [];
@@ -4678,9 +4751,9 @@ app.get("/api/employees", async (req, res) => {
     if (role === "branch_leader" && branch) {
       filters.push("LOWER(p.branch) = LOWER(?)");
       params.push(branch);
-    } else if (role === "head_of_department" && req.query.department) {
+    } else if (role === "head_of_department" && department) {
       filters.push("LOWER(p.department) = LOWER(?)");
-      params.push(req.query.department);
+      params.push(department);
     } else if (!["hr_admin", "admin", "hr", "managing_director", "md", "finance_manager", "operation_manager"].includes(role) && branch) {
       filters.push("LOWER(p.branch) = LOWER(?)");
       params.push(branch);
@@ -4841,14 +4914,16 @@ app.get("/api/employees", async (req, res) => {
 // UPDATE EMPLOYEE STATUS
 // ===============================
 app.post("/api/employees/status", async (req, res) => {
-  const { user_id, status, changer_role } = req.body;
+  const user_id = safeString(req.body?.user_id);
+  const status = safeString(req.body?.status);
+  const changer_role = safeString(req.body?.changer_role);
 
   if (!user_id || !status) {
     return res.status(400).json({ success: false, error: "Missing required fields: user_id or status" });
   }
 
   // Security check: Only authorized roles can modify employee status
-  const normalizedRole = (changer_role || "").toLowerCase();
+  const normalizedRole = changer_role.toLowerCase();
   const allowedRoles = ["hr_admin", "hr", "admin", "managing_director", "md", "operation_manager"];
   if (changer_role && !allowedRoles.includes(normalizedRole)) {
     return res.status(403).json({ success: false, error: "Unauthorized: Only HR Admins, Managing Directors, or Operation Managers can change employee status." });
@@ -4891,7 +4966,10 @@ app.post("/api/employees/status", async (req, res) => {
 // DEPARTMENT HOD TRANSFER
 // ===============================
 app.post("/api/departments/hod-transfer", async (req, res) => {
-  const { departmentName, newHodUserId, changedByUserId, branch } = req.body;
+  const departmentName = safeString(req.body?.departmentName);
+  const newHodUserId = safeString(req.body?.newHodUserId);
+  const changedByUserId = safeString(req.body?.changedByUserId);
+  const branch = safeString(req.body?.branch);
 
   if (!departmentName || !newHodUserId || !changedByUserId) {
     return res.status(400).json({ success: false, error: "Missing required fields" });
@@ -4961,7 +5039,11 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 
 app.post("/api/login", async (req, res) => {
-  const { email, password } = req.body;
+  const email = safeString(req.body?.email);
+  const password = isString(req.body?.password) ? req.body.password : "";
+  if (!email || !password) {
+    return res.status(400).json({ success: false, error: "Email and password are required", message: "Email and password are required" });
+  }
 
   try {
     const [rows] = await pool.query(
@@ -5072,7 +5154,7 @@ app.post("/api/login", async (req, res) => {
 // USER DETAILS
 // ===============================
 app.get("/api/user-details/:identifier", async (req, res) => {
-  const { identifier } = req.params;
+  const identifier = safeString(req.params.identifier);
 
   try {
     const [rows] = await pool.query(
@@ -5143,7 +5225,7 @@ app.get("/api/user-details/:identifier", async (req, res) => {
 // ATTENDANCE STATUS
 // ===============================
 app.get("/api/attendance-status", async (req, res) => {
-  const { empId } = req.query;
+  const empId = safeString(req.query.empId);
   if (!empId) {
     return res.status(400).json({ success: false, error: "Missing empId" });
   }
@@ -5245,7 +5327,9 @@ app.get("/api/attendance-status", async (req, res) => {
 // ===============================
 app.get("/api/employee-locations", async (req, res) => {
   try {
-    const { branch, department, role } = req.query || {};
+    const branch = safeString(req.query?.branch);
+    const department = safeString(req.query?.department);
+    const role = safeString(req.query?.role);
 
     let params = [];
     let filter = "";
@@ -5300,8 +5384,9 @@ app.get("/api/employee-locations", async (req, res) => {
 });
 app.post('/api/employee-location-update', async (req, res) => {
   try {
-    const { user_id, latitude, longitude, accuracy, timestamp } = req.body || {};
-    const uid = user_id || (req.user && req.user.user_id) || null;
+    const { latitude, longitude, accuracy, timestamp } = req.body || {};
+    const user_id = safeString(req.body?.user_id);
+    const uid = user_id || safeString(req.user?.user_id) || null;
     if (!uid || latitude == null || longitude == null) {
       return res.status(400).json({ success: false, error: 'Missing required fields' });
     }
@@ -5402,9 +5487,9 @@ app.post('/api/employee-location-update', async (req, res) => {
 // Location history for an employee
 app.get('/api/employee-location-history', async (req, res) => {
 try {
-  const userId = req.query.userId || req.query.user_id;
-  const page = Math.max(1, parseInt(req.query.page || '1', 10));
-  const limit = Math.min(200, Math.max(1, parseInt(req.query.limit || '50', 10)));
+  const userId = safeString(req.query.userId) || safeString(req.query.user_id);
+  const page = Math.max(1, parseInt(safeString(req.query.page) || '1', 10));
+  const limit = Math.min(200, Math.max(1, parseInt(safeString(req.query.limit) || '50', 10)));
   const offset = (page - 1) * limit;
 
   if (!userId) return res.status(400).json({ success: false, error: 'Missing userId' });
@@ -5542,7 +5627,7 @@ try {
   // The total we show is the count of unique minute-buckets.
   // Easiest: fetch all timestamps (just timestamps), build dedup count, then paginate that.
   
-  const monthStr = req.query.month; // e.g. '2026-09'
+  const monthStr = safeString(req.query.month); // e.g. '2026-09'
   let timeFilterLog = '';
   let timeFilterAtt = '';
   let queryParams = [String(userId), String(userId), String(userId), String(userId)];
@@ -5680,7 +5765,8 @@ try {
 // Outstation arrival/area check endpoint
 app.post('/api/outstation/check-arrival', async (req, res) => {
   try {
-    const { user_id, latitude, longitude } = req.body || {};
+    const user_id = safeString(req.body?.user_id);
+    const { latitude, longitude } = req.body || {};
     if (!user_id || latitude == null || longitude == null) return res.status(400).json({ success: false, error: 'Missing fields' });
 
     // Find active outstation assignment for today
@@ -5724,7 +5810,10 @@ app.post('/api/outstation/check-arrival', async (req, res) => {
 // CLOCK IN
 // ===============================
 app.post("/api/attendance", async (req, res) => {
-  const { user_id, location, attendance_type, latitude, longitude, accuracy, distance } = req.body;
+  const user_id = safeString(req.body?.user_id);
+  const location = safeString(req.body?.location);
+  const attendance_type = safeString(req.body?.attendance_type);
+  const { latitude, longitude, accuracy, distance } = req.body || {};
 
   if (!user_id) {
     return res
@@ -5958,7 +6047,8 @@ app.post("/api/attendance", async (req, res) => {
 // CLOCK OUT
 // ===============================
 app.post("/api/clock-out", async (req, res) => {
-  const { user_id, latitude, longitude, accuracy, distance } = req.body;
+  const user_id = safeString(req.body?.user_id);
+  const { latitude, longitude, accuracy, distance } = req.body || {};
   if (!user_id) {
     return res.status(400).json({ success: false, error: "Missing user_id" });
   }
@@ -6053,7 +6143,9 @@ app.post("/api/clock-out", async (req, res) => {
 // PERSONAL ATTENDANCE HISTORY
 // ===============================
 app.get("/api/attendance/history", async (req, res) => {
-  const { userId, month, year } = req.query;
+  const userId = safeString(req.query.userId);
+  const month = safeString(req.query.month);
+  const year = safeString(req.query.year);
 
   const isAllMonth = month === 'all';
   const requestedYear = parseInt(year) || new Date().getFullYear();
@@ -6434,21 +6526,21 @@ app.get("/api/attendance/history", async (req, res) => {
 // DASHBOARD STATS
 // ===============================
 app.get("/api/dashboard-stats", async (req, res) => {
-  const userId = req.query.userId;
-  let role = req.query.role ? req.query.role.toString().trim().toLowerCase() : "";
+  const userId = safeString(req.query.userId);
+  let role = safeString(req.query.role).toLowerCase();
     if (role.includes('hr admin') || role === 'hr_admin' || role.includes('hr ')) role = 'hr_admin';
     else if (role.includes('md') || role.includes('managing director')) role = 'managing_director';
     else if (role.includes('branch leader') || role === 'branch_leader') role = 'branch_leader';
     else if (role.includes('finance manager') || role.includes('operation manager') || role.includes('operations manager')) role = 'operation_manager';
     else if (role.includes('head of department') || role.includes('hod') || role === 'head_of_department') role = 'head_of_department';
 
-  const branch = req.query.branch ? req.query.branch.toString().trim() : "";
+  const branch = safeString(req.query.branch);
 
   if (!userId) {
     return res.status(400).json({ success: false, error: "Missing userId" });
   }
 
-  let queryDate = req.query.date ? req.query.date.toString() : null;
+  let queryDate = safeString(req.query.date) || null;
   if (!queryDate) {
     const now = new Date();
     const klOffset = 8 * 60; // UTC+8
@@ -6468,7 +6560,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
       try {
         const isBranchLeader = role === "branch_leader";
       const isHOD = role === "head_of_department";
-      const department = req.query.department;
+      const department = safeString(req.query.department);
 
       const queryParams = [];
       let profileFilter = "";
@@ -7101,7 +7193,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
     const isElevatedRole = ["hr_admin", "branch_leader", "managing_director", "operation_manager", "finance_manager", "head_of_department"].includes(role);
 
     if (isElevatedRole) {
-      const department = req.query.department ? req.query.department.toString().trim() : "";
+      const department = safeString(req.query.department);
       let teamFilter = "";
       let teamParams = [];
 
@@ -7262,7 +7354,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
     const canSeeSystem = ["hr_admin", "managing_director", "operation_manager", "finance_manager", "head_of_department"].includes(role);
 
     if (canSeeSystem) {
-      const department = req.query.department ? req.query.department.toString().trim() : "";
+      const department = safeString(req.query.department);
       let sysFilter = "AND DATE(cl.updated_at AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date";
       let sysParams = [queryDate];
 
@@ -7349,8 +7441,11 @@ app.get("/api/dashboard-stats", async (req, res) => {
 // ABSENT EMPLOYEES REPORT
 // ===============================
 app.get("/api/reports/absent-employees", async (req, res) => {
-  let { date, role, branch, department } = req.query;
-  const queryDate = date ? date : new Date().toISOString().split('T')[0];
+  let date = safeString(req.query.date);
+  let role = safeString(req.query.role);
+  let branch = safeString(req.query.branch);
+  let department = safeString(req.query.department);
+  const queryDate = date || new Date().toISOString().split('T')[0];
 
   try {
     const [leaveCandRows] = await pool.query(
@@ -7445,8 +7540,11 @@ app.get("/api/reports/absent-employees", async (req, res) => {
 // ON LEAVE EMPLOYEES REPORT
 // ===============================
 app.get("/api/reports/on-leave-employees", async (req, res) => {
-  let { date, role, branch, department } = req.query;
-  const queryDate = date ? date : new Date().toISOString().split('T')[0];
+  let date = safeString(req.query.date);
+  let role = safeString(req.query.role);
+  let branch = safeString(req.query.branch);
+  let department = safeString(req.query.department);
+  const queryDate = date || new Date().toISOString().split('T')[0];
 
   try {
     let profileFilter = "";
@@ -7505,7 +7603,11 @@ app.get("/api/reports/on-leave-employees", async (req, res) => {
 // MONTHLY ATTENDANCE REPORT
 // ===============================
 app.get("/api/reports/monthly-attendance", async (req, res) => {
-  const { month, year, role, branch, department } = req.query;
+  const month = safeString(req.query.month);
+  const year = safeString(req.query.year);
+  const role = safeString(req.query.role);
+  const branch = safeString(req.query.branch);
+  const department = safeString(req.query.department);
   
   if (!month || !year) {
     return res.status(400).json({ success: false, error: "Month and year are required" });
@@ -7826,8 +7928,11 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
 // DAILY ATTENDANCE REPORT
 // ===============================
 app.get("/api/reports/daily-attendance", async (req, res) => {
-  let { date, role, branch, department } = req.query;
-  const queryDate = date ? date.toString() : new Date().toISOString().split('T')[0];
+  let date = safeString(req.query.date);
+  let role = safeString(req.query.role);
+  let branch = safeString(req.query.branch);
+  let department = safeString(req.query.department);
+  const queryDate = date || new Date().toISOString().split('T')[0];
 
   try {
     let profileFilter = "";
@@ -8114,7 +8219,9 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
 // ===============================
 app.get("/api/reports/total-leave-requests", async (req, res) => {
   try {
-    let { role, branch, department } = req.query;
+    let role = safeString(req.query.role);
+    let branch = safeString(req.query.branch);
+    let department = safeString(req.query.department);
     let filter = "";
     let params = [];
 
@@ -8147,10 +8254,12 @@ app.get("/api/reports/total-leave-requests", async (req, res) => {
 // EMPLOYEE RANK API
 // ===============================
 app.get("/api/reports/employee-rank", async (req, res) => {
-  const userId = req.query.userId;
-  const isAllMonth = req.query.month === 'all';
-  const requestedMonth = parseInt(req.query.month) || (new Date().getMonth() + 1);
-  const requestedYear = parseInt(req.query.year) || new Date().getFullYear();
+  const userId = safeString(req.query.userId);
+  const monthQuery = safeString(req.query.month);
+  const yearQuery = safeString(req.query.year);
+  const isAllMonth = monthQuery === 'all';
+  const requestedMonth = parseInt(monthQuery, 10) || (new Date().getMonth() + 1);
+  const requestedYear = parseInt(yearQuery, 10) || new Date().getFullYear();
 
   if (!userId) {
     return res.status(400).json({ success: false, error: "Missing userId" });
@@ -8222,10 +8331,12 @@ app.get("/api/reports/employee-rank", async (req, res) => {
 // ===============================
 app.get("/api/reports/analytics", async (req, res) => {
   try {
-    const requestedMonth = parseInt(req.query.month) || (new Date().getMonth() + 1);
-    const requestedYear = parseInt(req.query.year) || new Date().getFullYear();
-    const requestedDateStr = req.query.date || new Date().toISOString().split('T')[0];
-    let { role, branch, department } = req.query;
+    const requestedMonth = parseInt(safeString(req.query.month), 10) || (new Date().getMonth() + 1);
+    const requestedYear = parseInt(safeString(req.query.year), 10) || new Date().getFullYear();
+    const requestedDateStr = safeString(req.query.date) || new Date().toISOString().split('T')[0];
+    let role = safeString(req.query.role);
+    let branch = safeString(req.query.branch);
+    let department = safeString(req.query.department);
     
     let profileFilter = "";
     let pFilterParams = [];
@@ -8364,8 +8475,13 @@ app.get("/api/reports/analytics", async (req, res) => {
 // ===============================
 app.get("/api/workforce-stats", async (req, res) => {
   try {
-    const { role, branch, department } = req.query;
-    const normRole = (role || "").toLowerCase().trim().replace(/ /g, "_");
+    const role = safeString(req.query.role);
+    const branch = safeString(req.query.branch);
+    const department = safeString(req.query.department);
+    const queryMonth = safeString(req.query.month);
+    const queryYear = safeString(req.query.year);
+    const queryDateParam = safeString(req.query.date);
+    const normRole = role.toLowerCase().replace(/ /g, "_");
 
     let profileFilter = "";
     let pFilterParams = [];
@@ -8384,18 +8500,18 @@ app.get("/api/workforce-stats", async (req, res) => {
       pFilterParams = [];
     }
 
-    const requestedMonth = parseInt(req.query.month) || (new Date().getMonth() + 1);
-    const requestedYear = parseInt(req.query.year) || new Date().getFullYear();
+    const requestedMonth = parseInt(queryMonth, 10) || (new Date().getMonth() + 1);
+    const requestedYear = parseInt(queryYear, 10) || new Date().getFullYear();
     const daysInMonth = new Date(requestedYear, requestedMonth, 0).getDate();
     const monthStartStr = `${requestedYear}-${String(requestedMonth).padStart(2, '0')}-01`;
     const monthEndStr = `${requestedYear}-${String(requestedMonth).padStart(2, '0')}-${String(daysInMonth).padStart(2, '0')}`;
 
     const nowKL = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Kuala_Lumpur"}));
     const todayStr = `${nowKL.getFullYear()}-${String(nowKL.getMonth() + 1).padStart(2, '0')}-${String(nowKL.getDate()).padStart(2, '0')}`;
-    const isDayView = !!req.query.date && req.query.date !== "undefined" && req.query.date !== "null";
+    const isDayView = !!queryDateParam && queryDateParam !== "undefined" && queryDateParam !== "null";
     let targetDateStr;
     if (isDayView) {
-      targetDateStr = req.query.date;
+      targetDateStr = queryDateParam;
     } else {
       const isCurrentMonth = (requestedYear === nowKL.getFullYear() && requestedMonth === (nowKL.getMonth() + 1));
       targetDateStr = isCurrentMonth ? todayStr : monthStartStr;
@@ -8826,7 +8942,8 @@ app.get("/api/workforce-stats", async (req, res) => {
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     
     // Find Saturday of the target date's week
-    const targetD = req.query.weekStartDate ? new Date(req.query.weekStartDate) : new Date(targetDateStr);
+    const weekStartDateParam = safeString(req.query.weekStartDate);
+    const targetD = weekStartDateParam ? new Date(weekStartDateParam) : new Date(targetDateStr);
     const dayOfWeek = targetD.getDay();
     const diffToSat = dayOfWeek === 6 ? 0 : -1 - dayOfWeek;
     const weekStartD = new Date(targetD);
@@ -9399,22 +9516,27 @@ app.get("/api/workforce-stats", async (req, res) => {
 // ==========================================
 app.get("/api/reports/workforce-leave-balance", async (req, res) => {
   try {
-    const { role, branch, department, year, monthYear, search } = req.query;
+    const role = safeString(req.query.role);
+    const branch = safeString(req.query.branch);
+    const department = safeString(req.query.department);
+    const year = safeString(req.query.year);
+    const monthYear = safeString(req.query.monthYear);
+    const search = safeString(req.query.search);
 
     // Support monthYear (e.g., "2026-09" or "2026-all")
-    let requestedYear = parseInt(year || new Date().getFullYear());
+    let requestedYear = parseInt(year || new Date().getFullYear(), 10);
     let yearStartStr = `${requestedYear}-01-01`;
     let yearEndStr = `${requestedYear}-12-31`;
 
     if (monthYear) {
       if (monthYear.endsWith("-all")) {
-        requestedYear = parseInt(monthYear.split("-")[0]);
+        requestedYear = parseInt(monthYear.split("-")[0], 10);
         yearStartStr = `${requestedYear}-01-01`;
         yearEndStr = `${requestedYear}-12-31`;
       } else if (monthYear.includes("-")) {
         const [yStr, mStr] = monthYear.split("-");
-        requestedYear = parseInt(yStr);
-        const monthNum = parseInt(mStr);
+        requestedYear = parseInt(yStr, 10);
+        const monthNum = parseInt(mStr, 10);
         if (!isNaN(requestedYear) && !isNaN(monthNum)) {
           const lastDay = new Date(requestedYear, monthNum, 0).getDate();
           yearStartStr = `${requestedYear}-${mStr.padStart(2, '0')}-01`;
@@ -9424,7 +9546,7 @@ app.get("/api/reports/workforce-leave-balance", async (req, res) => {
     }
 
     // Role-based Access Control Scope
-    const rawRole = (role || "").toLowerCase();
+    const rawRole = role.toLowerCase();
     const normalizedRole = rawRole.replace(/_/g, " ");
     const isAllAccessRole = [
       "hr admin", "hr_admin", "hr", "admin",
@@ -9641,7 +9763,9 @@ app.get("/api/reports/workforce-leave-balance", async (req, res) => {
 
 app.post("/api/outstation/log-location", async (req, res) => {
   try {
-    const { employee_id, user_id, attendance_id, latitude, longitude, accuracy, distance } = req.body;
+    const employee_id = safeString(req.body?.employee_id);
+    const user_id = safeString(req.body?.user_id);
+    const { attendance_id, latitude, longitude, accuracy, distance } = req.body || {};
     const uid = user_id || employee_id;
     await pool.query(
         `INSERT INTO employee_location_logs (user_id, employee_id, attendance_id, latitude, longitude, accuracy, location_type, ip_address) VALUES (?, ?, ?, ?, ?, ?, 'UPDATE', ?)`,
@@ -9700,12 +9824,13 @@ app.get("/api/outstation/today", async (req, res) => {
 });
 
 app.get("/api/outstation/history/:user_id", async (req, res) => {
+  const userIdParam = safeString(req.params.user_id);
   try {
     const [logs] = await pool.query(`
       SELECT * FROM employee_location_logs
       WHERE (user_id = ? OR employee_id = ?) AND (recorded_at AT TIME ZONE 'Asia/Kuala_Lumpur')::date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date
       ORDER BY recorded_at ASC
-    `, [req.params.user_id, req.params.user_id]);
+    `, [userIdParam, userIdParam]);
     res.json({ success: true, history: logs });
   } catch(e) {
     console.error(e);
@@ -9715,10 +9840,18 @@ app.get("/api/outstation/history/:user_id", async (req, res) => {
 
 app.put("/api/branches/:code", async (req, res) => {
   try {
-    const { name, location, latitude, longitude, radius, zone, operating_zone } = req.body;
+    const codeParam = safeString(req.params.code);
+    const name = safeString(req.body?.name);
+    const location = safeString(req.body?.location);
+    const zone = safeString(req.body?.zone);
+    const operating_zone = safeString(req.body?.operating_zone);
+    const { latitude, longitude, radius } = req.body || {};
+    if (!codeParam || !name) {
+      return res.status(400).json({ success: false, error: "Invalid input format" });
+    }
     await pool.query(
       `UPDATE branches SET name = ?, location = ?, latitude = ?, longitude = ?, radius = ?, operating_zone = ? WHERE code = ?`,
-      [name, location, latitude || null, longitude || null, radius || 50, zone || operating_zone || 'ZONE_B', req.params.code]
+      [name, location, latitude || null, longitude || null, radius || 50, zone || operating_zone || 'ZONE_B', codeParam]
     );
     res.json({ success: true });
   } catch (e) {
@@ -9808,34 +9941,38 @@ app.get("/api/branches", async (req, res) => {
 });
 
 app.post("/api/branches", async (req, res) => {
-  const { code, name, location, operating_zone, operatorName, operatorRole } = req.body;
+  const { code, name, location, operating_zone, operatorName, operatorRole } = req.body || {};
+  const safeCode = safeString(code).toUpperCase();
+  const safeName = safeString(name);
+  const safeOperatorName = safeString(operatorName);
+  const safeOperatorRole = safeString(operatorRole);
 
-  if (!code || !name) {
+  if (!safeCode || !safeName) {
     return res.status(400).json({ success: false, error: "Code and name are required" });
   }
 
   try {
-    const cleanCode = code.trim().toUpperCase();
+    const cleanCode = safeCode;
     const [existing] = await pool.query("SELECT code FROM branches WHERE code = ?", [cleanCode]);
     if (existing.length > 0) {
       return res.status(409).json({ success: false, error: "Branch code already exists" });
     }
 
-    const branchLocation = location ? location.trim() : 'RAYHAR BRANCH';
-    const zone = operating_zone || 'ZONE_B';
+    const branchLocation = safeString(location) || 'RAYHAR BRANCH';
+    const zone = safeString(operating_zone) || 'ZONE_B';
 
     await pool.query(
       "INSERT INTO branches (branch, code, name, location, operating_zone) VALUES (?, ?, ?, ?, ?)",
-      [cleanCode, cleanCode, name.trim(), branchLocation, zone]
+      [cleanCode, cleanCode, safeName, branchLocation, zone]
     );
 
     // Broadcast branch registration event via SSE
     broadcastPresenceUpdate({
       type: "config-change",
       timestamp: new Date().toISOString(),
-      operatorName: operatorName || "System",
-      operatorRole: operatorRole || "admin",
-      action: `Registered new branch: ${name.trim()} (${cleanCode})`
+      operatorName: safeOperatorName || "System",
+      operatorRole: safeOperatorRole || "admin",
+      action: `Registered new branch: ${safeName} (${cleanCode})`
     });
 
     res.json({ success: true, message: "Branch created successfully" });
@@ -9846,8 +9983,8 @@ app.post("/api/branches", async (req, res) => {
 });
 
 app.delete("/api/branches/:id", async (req, res) => {
-  const { id } = req.params;
-  const operatorName = req.query.operatorName || 'HR';
+  const id = safeString(req.params.id);
+  const operatorName = safeString(req.query.operatorName) || 'HR';
   try {
     const [branchRow] = await pool.query("SELECT name FROM branches WHERE code = ?", [id]);
     const branchName = branchRow.length > 0 ? branchRow[0].name : id;
@@ -9935,16 +10072,20 @@ app.get("/api/departments", async (req, res) => {
 });
 
 app.post("/api/departments", async (req, res) => {
-  const { code, name, operatorName, operatorRole } = req.body;
+  const { code, name, operatorName, operatorRole } = req.body || {};
+  const safeCode = safeString(code).toUpperCase();
+  const safeName = safeString(name);
+  const safeOperatorName = safeString(operatorName);
+  const safeOperatorRole = safeString(operatorRole);
   
-  if (!code || !name) {
+  if (!safeCode || !safeName) {
     return res.status(400).json({ success: false, error: "Code and name are required" });
   }
 
   try {
     const [existing] = await pool.query(
       "SELECT * FROM departments WHERE code = ? OR name = ?", 
-      [code.toUpperCase(), name]
+      [safeCode, safeName]
     );
 
     if (existing.length > 0) {
@@ -9955,9 +10096,9 @@ app.post("/api/departments", async (req, res) => {
     broadcastPresenceUpdate({
       type: "config-change",
       timestamp: new Date().toISOString(),
-      operatorName: operatorName || "System",
-      operatorRole: operatorRole || "admin",
-      action: `Created department: ${name.trim()} (${code.toUpperCase()})`
+      operatorName: safeOperatorName || "System",
+      operatorRole: safeOperatorRole || "admin",
+      action: `Created department: ${safeName} (${safeCode})`
     });
 
     res.json({ success: true, message: "Department registered successfully" });
@@ -9968,8 +10109,8 @@ app.post("/api/departments", async (req, res) => {
 });
 
 app.delete("/api/departments/:id", async (req, res) => {
-  const { id } = req.params;
-  const operatorName = req.query.operatorName || 'HR';
+  const id = safeString(req.params.id);
+  const operatorName = safeString(req.query.operatorName) || 'HR';
   try {
     await pool.query("DELETE FROM departments WHERE name = ?", [id]);
     
@@ -9990,9 +10131,12 @@ app.delete("/api/departments/:id", async (req, res) => {
 // WHO'S OUT TODAY
 // ===============================
 app.get("/api/who-out-today", async (req, res) => {
-  const { role, branch, department, date } = req.query;
+  const role = safeString(req.query.role);
+  const branch = safeString(req.query.branch);
+  const department = safeString(req.query.department);
+  const date = safeString(req.query.date);
 
-  let targetDate = date ? date.toString() : null;
+  let targetDate = date || null;
   if (!targetDate) {
     const now = new Date();
     const klOffset = 8 * 60; // UTC+8
@@ -10089,7 +10233,15 @@ app.get("/api/who-out-today", async (req, res) => {
 // ===============================
 app.get("/api/reports/generator", async (req, res) => {
   try {
-    let { type, month, year, branch, department, requesterRole, requesterBranch, requesterDept, requesterId } = req.query;
+    let type = safeString(req.query.type);
+    let month = safeString(req.query.month);
+    let year = safeString(req.query.year);
+    let branch = safeString(req.query.branch);
+    let department = safeString(req.query.department);
+    let requesterRole = safeString(req.query.requesterRole).toLowerCase();
+    let requesterBranch = safeString(req.query.requesterBranch);
+    let requesterDept = safeString(req.query.requesterDept);
+    let requesterId = safeString(req.query.requesterId);
     
     // Normalize role string
     if (requesterRole.includes('hr admin') || requesterRole === 'hr_admin' || requesterRole.includes('hr ')) requesterRole = 'hr_admin';
@@ -10495,7 +10647,9 @@ app.get("/api/reports/generator", async (req, res) => {
 // ===============================
 app.get("/api/reports/leave-utilization", async (req, res) => {
   try {
-    let { role, branch, department } = req.query;
+    let role = safeString(req.query.role);
+    let branch = safeString(req.query.branch);
+    let department = safeString(req.query.department);
     let filter = "";
     let params = [];
 
@@ -10570,7 +10724,7 @@ app.get("/api/reports/leave-utilization", async (req, res) => {
 // PASSWORD RESET API
 // ===============================
 app.post("/api/request-password-reset", passwordResetLimiter, async (req, res) => {
-  const { email } = req.body;
+  const email = safeString(req.body?.email);
   if (!email) {
     return res.status(400).json({ success: false, error: "Email is required" });
   }
@@ -10618,7 +10772,10 @@ app.post("/api/request-password-reset", passwordResetLimiter, async (req, res) =
 });
 
 app.post("/api/reset-password", passwordResetLimiter, async (req, res) => {
-  const { token, accessToken, email, newPassword } = req.body;
+  const token = safeString(req.body?.token);
+  const accessToken = safeString(req.body?.accessToken);
+  const email = safeString(req.body?.email);
+  const newPassword = isString(req.body?.newPassword) ? req.body.newPassword : "";
 
   if (!newPassword) {
     return res.status(400).json({ success: false, error: "New password is required" });
@@ -10730,7 +10887,7 @@ app.post("/api/reset-password", passwordResetLimiter, async (req, res) => {
 // Get personal notes for a user
 app.get("/api/personal-notes", async (req, res) => {
   try {
-    const userId = req.query.userId;
+    const userId = safeString(req.query.userId);
     if (!userId) {
       return res.status(400).json({ success: false, error: "Missing userId" });
     }
@@ -10748,7 +10905,10 @@ app.get("/api/personal-notes", async (req, res) => {
 // Add or update a personal note
 app.post("/api/personal-notes", async (req, res) => {
   try {
-    const { userId, date, note_text, type } = req.body;
+    const userId = safeString(req.body?.userId);
+    const date = safeString(req.body?.date);
+    const note_text = safeString(req.body?.note_text);
+    const type = safeString(req.body?.type);
     
     if (!userId || !date || !note_text) {
       return res.status(400).json({ success: false, error: "UserId, Date and note text are required" });
@@ -10770,8 +10930,11 @@ app.post("/api/personal-notes", async (req, res) => {
 // Update a personal note
 app.put("/api/personal-notes/:id", async (req, res) => {
   try {
-    const noteId = req.params.id;
-    const { userId, date, note_text, type } = req.body;
+    const noteId = safeString(req.params.id);
+    const userId = safeString(req.body?.userId);
+    const date = safeString(req.body?.date);
+    const note_text = safeString(req.body?.note_text);
+    const type = safeString(req.body?.type);
 
     if (!userId || !date || !note_text) {
       return res.status(400).json({ success: false, error: "UserId, Date and note text are required" });
@@ -10793,8 +10956,8 @@ app.put("/api/personal-notes/:id", async (req, res) => {
 // Delete a personal note
 app.delete("/api/personal-notes/:id", async (req, res) => {
   try {
-    const userId = req.query.userId;
-    const noteId = req.params.id;
+    const userId = safeString(req.query.userId);
+    const noteId = safeString(req.params.id);
 
     if (!userId) {
       return res.status(400).json({ success: false, error: "Missing userId" });
@@ -10839,22 +11002,19 @@ app.get("/api/company-leaves", async (req, res) => {
 });
 
 app.post("/api/company-leaves", async (req, res) => {
-  const {
-    leave_name,
-    leave_type,
-    start_date,
-    end_date,
-    applies_to,
-    branch_id,
-    department_id,
-    is_paid,
-    attendance_required,
-    status,
-    remarks,
-    created_by
-  } = req.body;
+  const leave_name = safeString(req.body?.leave_name);
+  const leave_type = safeString(req.body?.leave_type);
+  const start_date = safeString(req.body?.start_date);
+  const end_date = safeString(req.body?.end_date);
+  const applies_to = safeString(req.body?.applies_to);
+  const branch_id = safeString(req.body?.branch_id);
+  const department_id = safeString(req.body?.department_id);
+  const status = safeString(req.body?.status);
+  const remarks = safeString(req.body?.remarks);
+  const created_by = safeString(req.body?.created_by);
+  const { is_paid, attendance_required } = req.body || {};
 
-  const formattedLeaveName = (leave_name || '').toUpperCase().trim();
+  const formattedLeaveName = safeString(leave_name).toUpperCase();
 
   try {
     const [result] = await pool.query(
@@ -10876,13 +11036,21 @@ app.post("/api/company-leaves", async (req, res) => {
       let targetUserQuery = "SELECT user_id FROM profiles WHERE status = 'Active'";
       const targetParams = [];
       if (applies_to === 'branch' && branch_id) {
-        const branches = branch_id.split(',').map(s => s.trim());
-        targetUserQuery += " AND branch IN (?)";
-        targetParams.push(branches);
+        const branches = typeof branch_id === "string"
+          ? branch_id.split(",").map(s => s.trim()).filter(Boolean)
+          : [];
+        if (branches.length > 0) {
+          targetUserQuery += " AND branch IN (?)";
+          targetParams.push(branches);
+        }
       } else if (applies_to === 'department' && department_id) {
-        const depts = department_id.split(',').map(s => s.trim());
-        targetUserQuery += " AND department IN (?)";
-        targetParams.push(depts);
+        const depts = typeof department_id === "string"
+          ? department_id.split(",").map(s => s.trim()).filter(Boolean)
+          : [];
+        if (depts.length > 0) {
+          targetUserQuery += " AND department IN (?)";
+          targetParams.push(depts);
+        }
       }
       const [affectedRows] = await pool.query(targetUserQuery, targetParams);
       if (affectedRows && affectedRows.length > 0) {
@@ -10918,22 +11086,19 @@ app.post("/api/company-leaves", async (req, res) => {
 });
 
 app.put("/api/company-leaves/:id", async (req, res) => {
-  const { id } = req.params;
-  const {
-    leave_name,
-    leave_type,
-    start_date,
-    end_date,
-    applies_to,
-    branch_id,
-    department_id,
-    is_paid,
-    attendance_required,
-    status,
-    remarks
-  } = req.body;
+  const id = safeString(req.params.id);
+  const leave_name = safeString(req.body?.leave_name);
+  const leave_type = safeString(req.body?.leave_type);
+  const start_date = safeString(req.body?.start_date);
+  const end_date = safeString(req.body?.end_date);
+  const applies_to = safeString(req.body?.applies_to);
+  const branch_id = safeString(req.body?.branch_id);
+  const department_id = safeString(req.body?.department_id);
+  const status = safeString(req.body?.status);
+  const remarks = safeString(req.body?.remarks);
+  const { is_paid, attendance_required } = req.body || {};
 
-  const formattedLeaveName = (leave_name || '').toUpperCase().trim();
+  const formattedLeaveName = safeString(leave_name).toUpperCase();
 
   try {
     const [existing] = await pool.query(`SELECT * FROM company_leave_calendar WHERE id = ?`, [id]);
@@ -10971,7 +11136,7 @@ app.put("/api/company-leaves/:id", async (req, res) => {
 });
 
 app.delete("/api/company-leaves/:id", async (req, res) => {
-  const { id } = req.params;
+  const id = safeString(req.params.id);
   try {
     const [existing] = await pool.query(`SELECT * FROM company_leave_calendar WHERE id = ?`, [id]);
     if (existing && existing.length > 0) {
@@ -11002,7 +11167,7 @@ app.delete("/api/company-leaves/:id", async (req, res) => {
 
 // GET: Fetch saved Phone number for a user
 app.get("/api/user-phone", async (req, res) => {
-  const { userId } = req.query;
+  const userId = safeString(req.query.userId);
   if (!userId) return res.status(400).json({ success: false, error: "Missing userId" });
   try {
     await pool.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS phone VARCHAR(50)`);
@@ -11017,7 +11182,7 @@ app.get("/api/user-phone", async (req, res) => {
 
 // GET: Fetch saved IC / Phone number for a user (legacy support)
 app.get("/api/user-ic", async (req, res) => {
-  const { userId } = req.query;
+  const userId = safeString(req.query.userId);
   if (!userId) return res.status(400).json({ success: false, error: "Missing userId" });
   try {
     await pool.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS ic_number VARCHAR(20)`);
@@ -11083,7 +11248,10 @@ function computeOutstationStatus(row) {
 // GET /api/outstation — list assignments (role-scoped or user-scoped)
 app.get('/api/outstation', async (req, res) => {
   try {
-    const { role, branch, department, user_id } = req.query;
+    const role = safeString(req.query.role);
+    const branch = safeString(req.query.branch);
+    const department = safeString(req.query.department);
+    const user_id = safeString(req.query.user_id);
     let whereClause = 'WHERE 1=1';
     const params = [];
 
@@ -11121,7 +11289,9 @@ app.get('/api/outstation', async (req, res) => {
 // GET /api/outstation/stats — KPI stats for dashboard
 app.get('/api/outstation/stats', async (req, res) => {
   try {
-    const { role, branch, department } = req.query;
+    const role = safeString(req.query.role);
+    const branch = safeString(req.query.branch);
+    const department = safeString(req.query.department);
     let scopeWhere = '1=1';
     const params = [];
 
@@ -11195,12 +11365,20 @@ app.get('/api/outstation/active-today', async (req, res) => {
 // POST /api/outstation — create assignment(s) — supports multiple user_ids
 app.post('/api/outstation', async (req, res) => {
   try {
-    const {
-      user_ids, // array of { user_id, full_name, branch, department, position }
-      destination, client_company, purpose, project, meeting_title,
-      start_date, start_time, end_date, end_time, total_days,
-      assigned_by, assigned_by_name, assigned_by_role
-    } = req.body;
+    const user_ids = req.body?.user_ids;
+    const destination = safeString(req.body?.destination);
+    const client_company = safeString(req.body?.client_company);
+    const purpose = safeString(req.body?.purpose);
+    const project = safeString(req.body?.project);
+    const meeting_title = safeString(req.body?.meeting_title);
+    const start_date = safeString(req.body?.start_date);
+    const start_time = safeString(req.body?.start_time);
+    const end_date = safeString(req.body?.end_date);
+    const end_time = safeString(req.body?.end_time);
+    const total_days = req.body?.total_days;
+    const assigned_by = safeString(req.body?.assigned_by);
+    const assigned_by_name = safeString(req.body?.assigned_by_name);
+    const assigned_by_role = safeString(req.body?.assigned_by_role);
 
     if (!user_ids || !Array.isArray(user_ids) || user_ids.length === 0) {
       return res.status(400).json({ success: false, error: 'At least one employee must be selected' });
@@ -11210,7 +11388,8 @@ app.post('/api/outstation', async (req, res) => {
     }
 
     const formatApproverRole = (r) => {
-      if (!r) return "";
+      const safeR = safeString(r);
+      if (!safeR) return "";
       const map = {
         'managing_director': 'Managing Director',
         'hr_admin': 'HR',
@@ -11219,7 +11398,7 @@ app.post('/api/outstation', async (req, res) => {
         'operation_manager': 'Operation Manager',
         'finance_manager': 'Operation Manager'
       };
-      return map[r.toLowerCase()] || r;
+      return map[safeR.toLowerCase()] || safeR;
     };
 
     const inserted = [];
@@ -11274,7 +11453,7 @@ app.post('/api/outstation', async (req, res) => {
         const daysStr = daysNum === 1 ? '1 Day' : `${daysNum % 1 === 0 ? Math.round(daysNum) : daysNum} Days`;
 
         const eventPart = eventName ? `: ${eventName}` : '';
-        const cleanDest = (destination || '').trim();
+        const cleanDest = safeString(destination);
         const destPart = cleanDest ? ` at ${cleanDest}` : '';
         const outstationMsg = `${formattedRole} created an upcoming outstation assignment for you${eventPart}${destPart} ${dateRangeStr} , ${daysStr}.`.replace(/\s+/g, ' ');
 
@@ -11327,9 +11506,9 @@ app.post('/api/outstation', async (req, res) => {
 // PUT /api/outstation/:id — edit assignment
 app.put('/api/outstation/:id', async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = safeString(req.params.id);
 
-    const userRole = (req.query.role || req.body.role || req.headers['x-user-role'] || '').toLowerCase();
+    const userRole = (safeString(req.query.role) || safeString(req.body?.role) || safeString(req.headers['x-user-role'])).toLowerCase();
     const isHrOrAdmin = ['hr_admin', 'managing_director', 'operation_manager', 'finance_manager'].includes(userRole);
 
     const [checkRows] = await pool.query('SELECT status FROM outstation_assignments WHERE id = $1', [id]);
@@ -11338,10 +11517,17 @@ app.put('/api/outstation/:id', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Completed outstation assignments cannot be edited.' });
     }
 
-    const {
-      destination, client_company, purpose, project, meeting_title,
-      start_date, start_time, end_date, end_time, total_days, status
-    } = req.body;
+    const destination = safeString(req.body?.destination);
+    const client_company = safeString(req.body?.client_company);
+    const purpose = safeString(req.body?.purpose);
+    const project = safeString(req.body?.project);
+    const meeting_title = safeString(req.body?.meeting_title);
+    const start_date = safeString(req.body?.start_date);
+    const start_time = safeString(req.body?.start_time);
+    const end_date = safeString(req.body?.end_date);
+    const end_time = safeString(req.body?.end_time);
+    const total_days = req.body?.total_days;
+    const status = safeString(req.body?.status);
 
     const [rows] = await pool.query(
       `UPDATE outstation_assignments 
@@ -11388,7 +11574,7 @@ app.put('/api/outstation/:id', async (req, res) => {
 // PUT /api/outstation/:id/cancel — cancel assignment
 app.put('/api/outstation/:id/cancel', async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = safeString(req.params.id);
     const [rows] = await pool.query(
       `UPDATE outstation_assignments SET status='Cancelled', updated_at=NOW() WHERE id=$1 RETURNING *`,
       [id]
@@ -11433,7 +11619,7 @@ app.put('/api/outstation/:id/cancel', async (req, res) => {
 // DELETE /api/outstation/:id — delete assignment
 app.delete('/api/outstation/:id', async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = safeString(req.params.id);
 
     // 1. Retrieve the assignment
     const [assignments] = await pool.query('SELECT * FROM outstation_assignments WHERE id = $1', [id]);
@@ -11452,8 +11638,8 @@ app.delete('/api/outstation/:id', async (req, res) => {
 
     // 2. Verify creator matches authenticated user or HR/Admin
     req.user = req.user || {};
-    req.user.userId = req.user.userId || req.query.userId || req.body.userId || req.headers['x-user-id'];
-    const deleteRole = (req.query.role || req.body.role || req.headers['x-user-role'] || '').toLowerCase();
+    req.user.userId = safeString(req.user.userId) || safeString(req.query.userId) || safeString(req.body?.userId) || safeString(req.headers['x-user-id']);
+    const deleteRole = (safeString(req.query.role) || safeString(req.body?.role) || safeString(req.headers['x-user-role'])).toLowerCase();
     const isHrOrAdminDelete = ['hr_admin', 'managing_director', 'operation_manager', 'finance_manager'].includes(deleteRole);
 
     if (!isHrOrAdminDelete && assignment.assigned_by !== req.user.userId) {
@@ -11806,7 +11992,11 @@ async function getWorkforceCalendarData(role, branch, department, month, year) {
 // GET /api/workforce-calendar — consolidated workforce availability
 app.get('/api/workforce-calendar', async (req, res) => {
     try {
-      const { role, branch, department, month, year } = req.query;
+      const role = safeString(req.query.role);
+      const branch = safeString(req.query.branch);
+      const department = safeString(req.query.department);
+      const month = safeString(req.query.month);
+      const year = safeString(req.query.year);
       const events = await getWorkforceCalendarData(role, branch, department, month, year);
     res.json({ success: true, events });
   } catch (err) {
@@ -11921,7 +12111,7 @@ app.post("/api/cron/validate-replacement-leaves", async (req, res) => {
 // Endpoint to fetch replacement leaves for a user
 app.get("/api/employees/:userId/replacement-leaves", async (req, res) => {
   try {
-    const userId = req.params.userId;
+    const userId = safeString(req.params.userId);
     const [rows] = await pool.query(
       `SELECT * FROM replacement_leave_requests WHERE employee_id = ? ORDER BY replacement_date DESC`,
       [userId]
@@ -11972,7 +12162,7 @@ app.get("/api/replacement-leaves", async (req, res) => {
 
 app.get("/api/attendance/allowed-locations/:user_id", async (req, res) => {
   try {
-    const { user_id } = req.params;
+    const user_id = safeString(req.params.user_id);
     
     // Check for active temporary assignment
     const [tempAssignment] = await pool.query(
@@ -12023,7 +12213,9 @@ app.get("/api/work-assignments-all", async (req, res) => {
         AND end_date <= CURRENT_TIMESTAMP
       `);
 
-      const { role, branch, department } = req.query;
+      const role = safeString(req.query.role);
+      const branch = safeString(req.query.branch);
+      const department = safeString(req.query.department);
       let filterP = "";
       let paramsTotal = [];
 
@@ -12134,13 +12326,14 @@ app.get("/api/work-assignments-all", async (req, res) => {
 
 app.get("/api/work-assignments/:user_id", async (req, res) => {
   try {
+    const userIdParam = safeString(req.params.user_id);
     await pool.query(`
       UPDATE employee_work_assignment 
       SET status = 'Completed' 
       WHERE status = 'Active' 
       AND end_date <= CURRENT_TIMESTAMP
     `);
-    const [rows] = await pool.query(`SELECT * FROM employee_work_assignment WHERE user_id = ? ORDER BY created_at DESC`, [req.params.user_id]);
+    const [rows] = await pool.query(`SELECT * FROM employee_work_assignment WHERE user_id = ? ORDER BY created_at DESC`, [userIdParam]);
     res.json({ success: true, assignments: rows });
   } catch(e) {
     res.status(500).json({ success: false, error: e.message });
@@ -12149,7 +12342,15 @@ app.get("/api/work-assignments/:user_id", async (req, res) => {
 
 app.post("/api/work-assignments", async (req, res) => {
   try {
-    const { user_id, location, department, start_date, end_date, status, purpose, remarks, assigned_by } = req.body;
+    const user_id = safeString(req.body?.user_id);
+    const location = safeString(req.body?.location);
+    const department = safeString(req.body?.department);
+    const start_date = safeString(req.body?.start_date);
+    const end_date = safeString(req.body?.end_date);
+    const status = safeString(req.body?.status);
+    const purpose = safeString(req.body?.purpose);
+    const remarks = safeString(req.body?.remarks);
+    const assigned_by = safeString(req.body?.assigned_by);
     let returningClause = "";
     // Note: RETURNING is for Postgres, wait, this pool is custom or standard. Let's just do a normal insert
     const [result] = await pool.query(
@@ -12181,16 +12382,24 @@ app.post("/api/work-assignments", async (req, res) => {
 });
 
 app.put("/api/work-assignments/:id", async (req, res) => {
-  const operatorName = req.body.operatorName || req.body.assigned_by || 'HR';
+  const operatorName = safeString(req.body?.operatorName) || safeString(req.body?.assigned_by) || 'HR';
   try {
-    const { location, department, start_date, end_date, status, purpose, remarks, assigned_by } = req.body;
+    const id = safeString(req.params.id);
+    const location = safeString(req.body?.location);
+    const department = safeString(req.body?.department);
+    const start_date = safeString(req.body?.start_date);
+    const end_date = safeString(req.body?.end_date);
+    const status = safeString(req.body?.status);
+    const purpose = safeString(req.body?.purpose);
+    const remarks = safeString(req.body?.remarks);
+    const assigned_by = safeString(req.body?.assigned_by);
     
     // Get employee info before update for logging
-    const [assignRows] = await pool.query("SELECT ewa.user_id, p.full_name FROM employee_work_assignment ewa JOIN profiles p ON p.user_id = ewa.user_id WHERE ewa.id = ?", [req.params.id]);
+    const [assignRows] = await pool.query("SELECT ewa.user_id, p.full_name FROM employee_work_assignment ewa JOIN profiles p ON p.user_id = ewa.user_id WHERE ewa.id = ?", [id]);
     
     await pool.query(
       `UPDATE employee_work_assignment SET location = ?, department = ?, start_date = ?, end_date = ?, status = ?, purpose = ?, remarks = ?, assigned_by = COALESCE(?, assigned_by) WHERE id = ?`,
-      [location, department || null, start_date, end_date || null, status, purpose || null, remarks || null, assigned_by || null, req.params.id]
+      [location, department || null, start_date, end_date || null, status, purpose || null, remarks || null, assigned_by || null, id]
     );
     
     // Log activity
@@ -12209,9 +12418,9 @@ app.put("/api/work-assignments/:id", async (req, res) => {
 });
 
 app.delete("/api/work-assignments/:id", async (req, res) => {
-  const operatorName = req.query.operatorName || 'HR';
+  const operatorName = safeString(req.query.operatorName) || 'HR';
   try {
-    const { id } = req.params;
+    const id = safeString(req.params.id);
     const [assignRows] = await pool.query("SELECT ewa.user_id, p.full_name, ewa.location FROM employee_work_assignment ewa JOIN profiles p ON p.user_id = ewa.user_id WHERE ewa.id = ?", [id]);
     const empName = assignRows.length > 0 ? assignRows[0].full_name : id;
     const empLocation = assignRows.length > 0 ? assignRows[0].location : '';
@@ -12244,7 +12453,8 @@ app.get("/api/multi-location-users", async (req, res) => {
 
 app.get("/api/allowed-locations/:user_id", async (req, res) => {
   try {
-    const [rows] = await pool.query(`SELECT allowed_branch FROM employee_allowed_locations WHERE user_id = ?`, [req.params.user_id]);
+    const userIdParam = safeString(req.params.user_id);
+    const [rows] = await pool.query(`SELECT allowed_branch FROM employee_allowed_locations WHERE user_id = ?`, [userIdParam]);
     res.json({ success: true, allowedLocations: rows.map(r => r.allowed_branch) });
   } catch(e) {
     res.status(500).json({ success: false, error: e.message });
@@ -12253,10 +12463,14 @@ app.get("/api/allowed-locations/:user_id", async (req, res) => {
 
 app.post("/api/allowed-locations", async (req, res) => {
   try {
-    const { user_id, branches } = req.body;
+    const user_id = safeString(req.body?.user_id);
+    const branches = Array.isArray(req.body?.branches) ? req.body.branches : [];
     await pool.query(`DELETE FROM employee_allowed_locations WHERE user_id = ?`, [user_id]);
     for (const branch of branches) {
-      await pool.query(`INSERT INTO employee_allowed_locations (user_id, allowed_branch) VALUES (?, ?)`, [user_id, branch]);
+      const safeBranch = safeString(branch);
+      if (safeBranch) {
+        await pool.query(`INSERT INTO employee_allowed_locations (user_id, allowed_branch) VALUES (?, ?)`, [user_id, safeBranch]);
+      }
     }
     res.json({ success: true });
   } catch(e) {
@@ -12286,7 +12500,7 @@ pool.query(`
 
 // REPLACEMENT LEAVE STATS
 app.get("/api/replacement-leave-stats", async (req, res) => {
-  const { user_id } = req.query;
+  const user_id = safeString(req.query.user_id);
   if (!user_id) return res.status(400).json({ success: false, error: "user_id required" });
   try {
     const [rows] = await pool.query(`
