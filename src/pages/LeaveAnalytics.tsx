@@ -531,13 +531,28 @@ export default function LeaveAnalytics() {
         setAllEmployees(empData.employees);
       }
 
-      if (entData.success && Array.isArray(entData.data)) {
-        const entMap: Record<string, any> = Object.create(null);
-        entData.data.forEach((e: any) => {
-          entMap[e.user_id] = Number(e.balance || 0) + Number(e.annual_days_used || 0);
+      const entList = entData.entitlements || entData.data;
+      const entMap: Record<string, any> = Object.create(null);
+      if (entData.success && Array.isArray(entList)) {
+        entList.forEach((e: any) => {
+          const quota = Number(e.total_entitled ?? (Number(e.balance || 0) + Number(e.annual_days_used || 0)));
+          if (e.user_id) entMap[e.user_id] = quota;
+          if (e.employee) entMap[e.employee] = quota;
+          if (e.id) entMap[e.id] = quota;
         });
-        setEntitlements(entMap);
       }
+      if (empData.success && Array.isArray(empData.employees)) {
+        empData.employees.forEach((emp: any) => {
+          if (entMap[emp.user_id] === undefined) {
+            const ent = Number(emp.annual_leave_entitlement ?? 14) + Number(emp.annual_adj || 0);
+            entMap[emp.user_id] = ent;
+          }
+          if (emp.full_name && entMap[emp.full_name] === undefined) {
+            entMap[emp.full_name] = entMap[emp.user_id];
+          }
+        });
+      }
+      setEntitlements(entMap);
 
       if (data.success && Array.isArray(data.leaveRequests)) {
         const formatted: LeaveRecord[] = (Array.isArray(data.leaveRequests) ? data.leaveRequests : []).map((r: any) => ({
@@ -610,6 +625,11 @@ export default function LeaveAnalytics() {
     const map: Record<string, any> = Object.create(null);
     
     allEmployees.forEach(emp => {
+      const annualEnt = entitlements[emp.user_id] ?? 
+        ((emp.annual_leave_entitlement !== undefined && emp.annual_leave_entitlement !== null) 
+          ? (Number(emp.annual_leave_entitlement) + Number(emp.annual_adj || 0))
+          : QUOTA_PER_EMPLOYEE);
+
       map[emp.user_id] = {
         id: emp.user_id,
         name: emp.full_name,
@@ -618,14 +638,16 @@ export default function LeaveAnalytics() {
         rejected: 0,
         pending: 0,
         days: 0,
+        annualDays: 0,
         department: emp.department || "General",
         branch: emp.branch || "HQ",
-        quota: entitlements[emp.user_id] || QUOTA_PER_EMPLOYEE,
+        quota: annualEnt,
         rawRole: emp.role || "employee"
       };
     });
     records.forEach((r) => {
       if (!map[r.user_id]) {
+        const annualEnt = entitlements[r.user_id] || QUOTA_PER_EMPLOYEE;
         map[r.user_id] = { 
           id: r.user_id,
           name: r.full_name, 
@@ -634,16 +656,21 @@ export default function LeaveAnalytics() {
           rejected: 0, 
           pending: 0,
           days: 0,
+          annualDays: 0,
           department: r.department || "General",
           branch: r.branch || "HQ",
-          quota: entitlements[r.user_id] || 14,
-            rawRole: r.role || "employee"
-          };
-        }
+          quota: annualEnt,
+          rawRole: r.role || "employee"
+        };
+      }
       map[r.user_id].total++;
       if (r.status === "Approved") {
         map[r.user_id].approved++;
         map[r.user_id].days += r.days;
+        const lt = (r.leave_type || "").toLowerCase();
+        if (lt.includes("annual") || lt.includes("emergency") || lt.includes("tahunan") || lt.includes("kecemasan")) {
+          map[r.user_id].annualDays += r.days;
+        }
       } else if (r.status === "Rejected") {
         map[r.user_id].rejected++;
       } else {
@@ -1312,7 +1339,8 @@ export default function LeaveAnalytics() {
     let highRisk = 0; // 90-100%
     let mediumRisk = 0; // 80-90%
     staffSummary.forEach(s => {
-      const pct = (s.days / QUOTA_PER_EMPLOYEE) * 100;
+      const q = s.quota || QUOTA_PER_EMPLOYEE;
+      const pct = (s.days / q) * 100;
       if (pct > 100) overQuota++;
       else if (pct >= 90) highRisk++;
       else if (pct >= 80) mediumRisk++;
@@ -1331,7 +1359,7 @@ export default function LeaveAnalytics() {
         dept: s.department,
         branch: s.branch,
         taken: s.days,
-        total: QUOTA_PER_EMPLOYEE
+        total: s.quota || QUOTA_PER_EMPLOYEE
       }));
   }, [staffSummary, QUOTA_PER_EMPLOYEE]);
 

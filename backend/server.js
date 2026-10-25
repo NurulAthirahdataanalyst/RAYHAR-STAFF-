@@ -3525,12 +3525,12 @@ app.get("/api/leave-entitlements", async (req, res) => {
     const params = [];
     const filters = ["p.status = 'Active'"];
 
-    if (branch) {
+    if (branch && branch.toLowerCase() !== "all" && branch.toLowerCase() !== "all branches") {
       filters.push("LOWER(p.branch) = LOWER(?)");
       params.push(branch);
     }
 
-    if (department) {
+    if (department && department.toLowerCase() !== "all" && department.toLowerCase() !== "all departments") {
       filters.push("LOWER(p.department) = LOWER(?)");
       params.push(department);
     }
@@ -3555,6 +3555,7 @@ app.get("/api/leave-entitlements", async (req, res) => {
         p.branch,
         p.department,
         COALESCE(lr.annual_days_used, 0) AS annual_days_used,
+        (COALESCE(p.annual_leave_entitlement, 14) + COALESCE(adj.total_adjustment, 0)) AS total_entitled,
         GREATEST((COALESCE(p.annual_leave_entitlement, 14) + COALESCE(adj.total_adjustment, 0)) - COALESCE(lr.annual_days_used, 0), 0) AS balance,
         COALESCE(lr.pending_count, 0) AS pending,
         CASE
@@ -3567,7 +3568,7 @@ app.get("/api/leave-entitlements", async (req, res) => {
       LEFT JOIN (
         SELECT
           user_id,
-          SUM(CASE WHEN leave_type IN ('Cuti Tahunan', 'Annual/Emergency Leave') AND status = 'Approved' THEN days ELSE 0 END) AS annual_days_used,
+          SUM(CASE WHEN (leave_type ILIKE '%Annual%' OR leave_type ILIKE '%Emergency%' OR leave_type ILIKE '%Tahunan%' OR leave_type ILIKE '%Kecemasan%') AND status = 'Approved' THEN days ELSE 0 END) AS annual_days_used,
           SUM(CASE WHEN status LIKE 'Pending%' THEN 1 ELSE 0 END) AS pending_count
         FROM leave_requests
         GROUP BY user_id
@@ -3588,6 +3589,7 @@ app.get("/api/leave-entitlements", async (req, res) => {
 
     const entitlements = rows.map((row) => ({
       ...row,
+      total_entitled: Number(row.total_entitled || (Number(row.balance || 0) + Number(row.annual_days_used || 0))),
       balance: Number(row.balance || 0),
       pending: Number(row.pending || 0),
       annual_days_used: Number(row.annual_days_used || 0),
@@ -3601,7 +3603,7 @@ app.get("/api/leave-entitlements", async (req, res) => {
       expiringSoon: entitlements.filter((row) => row.balance <= 4).length
     };
 
-    res.json({ success: true, entitlements, summary });
+    res.json({ success: true, entitlements, data: entitlements, summary });
   } catch (err) {
     console.error("Leave entitlements error:", err);
     res.status(500).json({ success: false, error: err.message });
@@ -4019,7 +4021,7 @@ app.get("/api/leave-requests", async (req, res) => {
       ) adj ON adj.employee_id = lr.user_id
       LEFT JOIN (
         SELECT user_id,
-               SUM(CASE WHEN leave_type IN ('Cuti Tahunan', 'Annual/Emergency Leave') AND status = 'Approved' THEN days ELSE 0 END) AS annual_days_used,
+               SUM(CASE WHEN (leave_type ILIKE '%Annual%' OR leave_type ILIKE '%Emergency%' OR leave_type ILIKE '%Tahunan%' OR leave_type ILIKE '%Kecemasan%') AND status = 'Approved' THEN days ELSE 0 END) AS annual_days_used,
                SUM(CASE WHEN leave_type IN ('Cuti Sakit', 'Sick Leave', 'Medical Leave') AND status = 'Approved' THEN days ELSE 0 END) AS medical_days_used,
                SUM(CASE WHEN UPPER(leave_type) IN ('REPLACEMENT LEAVE', 'CUTI GANTI') AND status = 'Approved' THEN days ELSE 0 END) AS replacement_days_used
         FROM leave_requests
@@ -5352,12 +5354,12 @@ app.get("/api/employees/:userId/analytics", async (req, res) => {
       if (leaveYear === yearNum) {
         const days = parseFloat(l.days || 0);
         const lt = (l.leave_type || '').toLowerCase();
-        if (lt.includes('annual')) annualTaken += days;
+        if (lt.includes('annual') || lt.includes('tahunan') || lt.includes('emergency') || lt.includes('kecemasan')) annualTaken += days;
         else if (lt.includes('medical') || lt.includes('sick') || lt.includes('mc')) sickTaken += days;
         else if (lt.includes('replacement') || lt.includes('cuti ganti') || lt.includes('ganti')) replacementTaken += days;
-        else if (lt.includes('emergency')) emergencyTaken += days;
         else if (lt.includes('unpaid') || lt.includes('tanpa gaji')) unpaidTaken += days;
         else unpaidTaken += days;
+        if (lt.includes('emergency') || lt.includes('kecemasan')) emergencyTaken += days;
       }
     });
 
@@ -5465,6 +5467,7 @@ app.get("/api/employees", async (req, res) => {
         COALESCE(adj.annual_adj, 0) AS annual_adj,
         COALESCE(adj.medical_adj, 0) AS medical_adj,
         COALESCE(adj.replacement_adj, 0) AS replacement_adj,
+        COALESCE(lr.annual_days_used, 0) AS annual_days_used,
         GREATEST((COALESCE(p.annual_leave_entitlement, 14) + COALESCE(adj.annual_adj, 0)) - COALESCE(lr.annual_days_used, 0), 0)::int AS annual_leave_balance,
         GREATEST((COALESCE(p.medical_leave_entitlement, 14) + COALESCE(adj.medical_adj, 0)) - COALESCE(lr.medical_days_used, 0), 0)::int AS medical_leave_balance,
         GREATEST(COALESCE(adj.replacement_adj, 0) - COALESCE(lr.replacement_days_used, 0), 0)::int AS replacement_leave_balance,
@@ -5490,7 +5493,7 @@ app.get("/api/employees", async (req, res) => {
       LEFT JOIN (
         SELECT
           user_id,
-          SUM(CASE WHEN leave_type IN ('Cuti Tahunan', 'Annual/Emergency Leave') AND status = 'Approved' THEN days ELSE 0 END) AS annual_days_used,
+          SUM(CASE WHEN (leave_type ILIKE '%Annual%' OR leave_type ILIKE '%Emergency%' OR leave_type ILIKE '%Tahunan%' OR leave_type ILIKE '%Kecemasan%') AND status = 'Approved' THEN days ELSE 0 END) AS annual_days_used,
           SUM(CASE WHEN leave_type IN ('Cuti Sakit', 'Sick Leave', 'Medical Leave') AND status = 'Approved' THEN days ELSE 0 END) AS medical_days_used,
           SUM(CASE WHEN UPPER(leave_type) IN ('REPLACEMENT LEAVE', 'CUTI GANTI') AND status = 'Approved' THEN days ELSE 0 END) AS replacement_days_used,
           SUM(CASE WHEN status LIKE 'Pending%' THEN 1 ELSE 0 END) AS pending_leaves,
@@ -10063,9 +10066,9 @@ app.get("/api/workforce-stats", async (req, res) => {
        ) adj ON adj.employee_id = p.user_id
        LEFT JOIN (
          SELECT user_id, 
-                SUM(CASE WHEN leave_type IN ('Annual Leave', 'Annual & Emergency Leave', 'Annual/Emergency Leave', 'Cuti Tahunan') AND status = 'Approved' THEN days ELSE 0 END) as annual_days_used
+                SUM(CASE WHEN (leave_type ILIKE '%Annual%' OR leave_type ILIKE '%Emergency%' OR leave_type ILIKE '%Tahunan%' OR leave_type ILIKE '%Kecemasan%') AND status = 'Approved' THEN days ELSE 0 END) as annual_days_used
          FROM leave_requests
-         WHERE leave_type IN ('Annual Leave', 'Annual & Emergency Leave', 'Annual/Emergency Leave', 'Cuti Tahunan')
+         WHERE (leave_type ILIKE '%Annual%' OR leave_type ILIKE '%Emergency%' OR leave_type ILIKE '%Tahunan%' OR leave_type ILIKE '%Kecemasan%')
          GROUP BY user_id
        ) lr ON lr.user_id = p.user_id
        WHERE p.status = 'Active' ${profileFilter}
