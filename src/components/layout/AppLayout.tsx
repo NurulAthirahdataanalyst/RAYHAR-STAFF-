@@ -42,9 +42,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const { role: resolvedRole, userBranch, userDepartment, userName, userId, isSystemRole } = useRole();
+  const { role: resolvedRole, roleName, userBranch, userDepartment, userName, userId, isSystemRole } = useRole();
   const normRole = (resolvedRole || "").toLowerCase().trim();
-  const hasRightSidebar = Boolean(
+  const normRoleName = (roleName || "").toLowerCase().trim();
+  const isCustomRole = !isSystemRole || (
+    !["hr_admin", "branch_leader", "head_of_department", "managing_director", "operation_manager", "finance_manager", "employee", "branch_officer"].includes(normRole) ||
+    !["hr admin", "branch leader", "head of department", "managing director", "operation manager", "employee", "branch officer"].includes(normRoleName)
+  );
+  const hasRightSidebar = !isCustomRole && Boolean(
     isSystemRole &&
     ["hr_admin", "branch_leader", "head_of_department", "managing_director", "operation_manager", "finance_manager"].includes(normRole)
   );

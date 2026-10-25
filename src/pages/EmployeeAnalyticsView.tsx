@@ -35,7 +35,15 @@ const getLocalDateString = (dVal: any) => {
 export default function EmployeeAnalyticsView({ userId, userName, month, year, myLogs: rawMyLogs, leaveRequests: propLeaveRequests }: EmployeeAnalyticsViewProps) {
   const [rankData, setRankData] = useState<{ rank: number | null, total: number, score: number }>({ rank: null, total: 0, score: 0 });
   const [lastMonthLogs, setLastMonthLogs] = useState<any[]>([]);
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<any>(() => {
+    try {
+      const s = JSON.parse(sessionStorage.getItem("user") || "null");
+      if (s && (String(s.user_id) === String(userId) || String(s.id) === String(userId))) {
+        return s;
+      }
+    } catch {}
+    return null;
+  });
   const [rlStats, setRlStats] = useState<{available: number, earned: number, used: number, latest: string|null}>({available: 0, earned: 0, used: 0, latest: null});
 
   const [companyLeaves, setCompanyLeaves] = useState<any[]>([]);
@@ -127,11 +135,31 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
     fetch(`${API_BASE_URL}/api/user-details/${userId}`)
       .then(res => res.json())
       .then(data => {
-        if (data.success) {
+        if (data.success && data.profile) {
           setProfile(data.profile);
+        } else {
+          fetch(`${API_BASE_URL}/api/employees`)
+            .then(r => r.json())
+            .then(empData => {
+              if (empData.success && Array.isArray(empData.employees)) {
+                const found = empData.employees.find((e: any) => String(e.user_id) === String(userId) || String(e.id) === String(userId));
+                if (found) setProfile((prev: any) => ({ ...prev, ...found }));
+              }
+            })
+            .catch(() => {});
         }
       })
-      .catch(console.error);
+      .catch(() => {
+        fetch(`${API_BASE_URL}/api/employees`)
+          .then(r => r.json())
+          .then(empData => {
+            if (empData.success && Array.isArray(empData.employees)) {
+              const found = empData.employees.find((e: any) => String(e.user_id) === String(userId) || String(e.id) === String(userId));
+              if (found) setProfile((prev: any) => ({ ...prev, ...found }));
+            }
+          })
+          .catch(() => {});
+      });
 
     fetch(`${API_BASE_URL}/api/employees/${userId}/replacement-leaves`)
       .then(res => res.json())
@@ -373,19 +401,23 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
         const date = new Date(targetYear, m - 1, d);
         const dayOfWeek = date.getDay();
         const isPastOrToday = date <= new Date();
+        const dateStr = `${targetYear}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
         let isBeforeCreation = false;
-        if (profile && profile.created_at) {
-          const joinDate = new Date(profile.created_at);
-          joinDate.setHours(0, 0, 0, 0);
-          if (date < joinDate) isBeforeCreation = true;
+        const staffCreatedAt = profile?.created_at;
+        if (staffCreatedAt) {
+          const joinDateStr = getLocalDateString(staffCreatedAt);
+          if (joinDateStr && dateStr < joinDateStr) {
+            isBeforeCreation = true;
+          }
         }
 
         // Friday & Saturday are off days for the first week (days 1-7), Friday only for remaining weeks
         const zone = profile?.operating_zone || (profile?.branch === 'HQ' ? 'ZONE_A' : 'ZONE_B');
         const isWeekendDay = zone === 'ZONE_A' ? (dayOfWeek === 0 || dayOfWeek === 6) : ((dayOfWeek === 5) || (dayOfWeek === 6 && d <= 7));
 
-        if (!isWeekendDay) {
-          const dateStr = `${targetYear}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        if (isBeforeCreation) {
+          // Skip completely, do not count as working days or absences before date created
+        } else if (!isWeekendDay) {
           let hasCompanyLeave = false;
           if (profile) {
             hasCompanyLeave = companyLeaves.some((cl: any) => {
@@ -471,15 +503,19 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
         ? (dayOfWeek === 5 || (dayOfWeek === 6 && d <= 7)) 
         : (dayOfWeek === 0 || (dayOfWeek === 6 && d <= 7));
 
+      const dateStr = `${year}-${month.padStart(2, '0')}-${String(d).padStart(2, '0')}`;
       let isBeforeCreation = false;
-      if (profile && profile.created_at) {
-        const joinDate = new Date(profile.created_at);
-        joinDate.setHours(0, 0, 0, 0);
-        if (date < joinDate) isBeforeCreation = true;
+      const staffCreatedAt = profile?.created_at;
+      if (staffCreatedAt) {
+        const joinDateStr = getLocalDateString(staffCreatedAt);
+        if (joinDateStr && dateStr < joinDateStr) {
+          isBeforeCreation = true;
+        }
       }
       
-      if (!isWeekendDay) { // Working day
-        const dateStr = `${year}-${month.padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      if (isBeforeCreation) {
+        heatmapData[d] = 'N/A';
+      } else if (!isWeekendDay) { // Working day on or after creation
         let hasCompanyLeave = false;
         if (profile) {
           hasCompanyLeave = companyLeaves.some((cl: any) => {
@@ -546,12 +582,10 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
           } else {
             heatmapData[d] = 'Present (On Time)';
           }
-        } else if (isPastOrToday && !isBeforeCreation) {
+        } else if (isPastOrToday) {
           totalWorkingDaysPassed++;
           absentDays++;
           heatmapData[d] = 'Absent';
-        } else if (isBeforeCreation) {
-          heatmapData[d] = 'N/A';
         }
       }
     }
