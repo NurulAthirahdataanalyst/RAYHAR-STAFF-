@@ -100,7 +100,8 @@ export const EmployeesRequiringAttentionCard = ({ data = [], variant = 'grid', o
     if (!allLeaves.length) return breakdown;
 
     const empLeaves = allLeaves.filter((l: any) => {
-      if (l.user_id !== empId) return false;
+      const matchId = String(l.user_id || '').toLowerCase() === String(empId || '').toLowerCase();
+      if (!matchId) return false;
       if (onlyApproved) return l.status === "Approved";
       return l.status !== "Rejected" && l.status !== "Cancelled";
     });
