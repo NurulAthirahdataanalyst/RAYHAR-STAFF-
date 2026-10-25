@@ -675,10 +675,9 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       }
     }
     if (activeParentKey) {
-      setExpandedMenus(prev => {
-        if (prev[activeParentKey]) return prev;
-        return { ...prev, [activeParentKey]: true };
-      });
+      setExpandedMenus({ [activeParentKey]: true });
+    } else {
+      setExpandedMenus({});
     }
   }, [location.pathname, filteredItems]);
 
@@ -771,10 +770,9 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                         const targetPath = item.path || visibleChildren[0]?.path;
                         if (hasChildren) {
                           e.preventDefault();
-                          setExpandedMenus(prev => ({
-                            ...prev,
+                          setExpandedMenus({
                             [menuKey]: true
-                          }));
+                          });
                           if (targetPath) {
                             if (isMobile) {
                               onMobileClose();
@@ -783,6 +781,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                           }
                           return;
                         }
+                        setExpandedMenus({});
                         if (isMobile) {
                           onMobileClose();
                         }
@@ -827,10 +826,9 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            setExpandedMenus(prev => ({
-                              ...prev,
-                              [menuKey]: !prev[menuKey]
-                            }));
+                            setExpandedMenus(prev => (
+                              prev[menuKey] ? {} : { [menuKey]: true }
+                            ));
                           }}
                           className="ml-auto p-1 rounded-md text-white/70 hover:text-white hover:bg-white/10 transition-all"
                           aria-label={isMenuExpanded ? "Collapse submenu" : "Expand submenu"}
@@ -851,7 +849,10 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                           <Link
                             key={child.title}
                             to={child.path}
-                            onClick={isMobile ? onMobileClose : undefined}
+                            onClick={() => {
+                              setExpandedMenus({ [menuKey]: true });
+                              if (isMobile) onMobileClose();
+                            }}
                             className={`group relative flex items-center gap-3 rounded-[14px] px-4 py-2 text-[11px] transition-all duration-300 touch-target ${
                               isChildActive
                                 ? "bg-[#FDE047]/10 font-semibold text-white"
