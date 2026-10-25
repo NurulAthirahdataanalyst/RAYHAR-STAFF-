@@ -17,6 +17,7 @@ import {
   Eye,
   Loader2,
   ArrowLeft,
+  Check,
   CheckCircle2,
   Lock,
   ChevronDown,
@@ -1025,25 +1026,29 @@ export default function Role() {
                               title={allModuleChecked ? "Deselect all" : "Select all module permissions"}
                             >
                               {allModuleChecked ? (
-                                <CheckSquare className="w-5 h-5 text-[#942392]" />
+                                <div className="w-5 h-5 border-2 border-[#942392] bg-[#942392] rounded flex items-center justify-center shadow-sm">
+                                  <Check className="w-3.5 h-3.5 text-white stroke-[3.5]" />
+                                </div>
                               ) : someModuleChecked ? (
                                 <div className="w-5 h-5 border-2 border-[#942392] bg-[#942392]/20 rounded flex items-center justify-center">
                                   <div className="w-2.5 h-1 bg-[#942392] rounded" />
                                 </div>
                               ) : (
-                                <Square className="w-5 h-5 text-muted-foreground/60" />
+                                <div className="w-5 h-5 border-2 border-gray-300 dark:border-gray-600 hover:border-[#942392] bg-background rounded transition-colors" />
                               )}
                             </button>
                           ) : (
                             <span className="text-muted-foreground shrink-0">
                               {allModuleChecked ? (
-                                <CheckSquare className="w-5 h-5 text-[#942392]" />
+                                <div className="w-5 h-5 border-2 border-[#942392] bg-[#942392] rounded flex items-center justify-center shadow-sm">
+                                  <Check className="w-3.5 h-3.5 text-white stroke-[3.5]" />
+                                </div>
                               ) : someModuleChecked ? (
                                 <div className="w-5 h-5 border-2 border-[#942392] bg-[#942392]/20 rounded flex items-center justify-center">
                                   <div className="w-2.5 h-1 bg-[#942392] rounded" />
                                 </div>
                               ) : (
-                                <Square className="w-5 h-5 text-muted-foreground/40" />
+                                <div className="w-5 h-5 border-2 border-gray-300 dark:border-gray-600 bg-background rounded opacity-60" />
                               )}
                             </span>
                           )}
@@ -1091,13 +1096,24 @@ export default function Role() {
                                     : "hover:bg-muted/40 border border-transparent"
                                 } ${formMode === "view" ? "cursor-default" : ""}`}
                               >
-                                <input
-                                  type="checkbox"
-                                  checked={isChecked}
-                                  onChange={() => handleTogglePermission(perm.permission_key)}
-                                  disabled={formMode === "view"}
-                                  className="mt-0.5 h-4 w-4 rounded border-gray-300 text-[#942392] focus:ring-[#942392] transition shrink-0"
-                                />
+                                <div className="relative mt-0.5 shrink-0">
+                                  <input
+                                    type="checkbox"
+                                    checked={isChecked}
+                                    onChange={() => handleTogglePermission(perm.permission_key)}
+                                    disabled={formMode === "view"}
+                                    className="sr-only"
+                                  />
+                                  <div
+                                    className={`w-4 h-4 rounded flex items-center justify-center transition-all border ${
+                                      isChecked
+                                        ? "bg-[#942392] border-[#942392] text-white shadow-sm"
+                                        : "border-gray-300 dark:border-gray-600 bg-background hover:border-[#942392]"
+                                    } ${formMode === "view" ? "opacity-70" : ""}`}
+                                  >
+                                    {isChecked && <Check className="w-3 h-3 text-white stroke-[3.5]" />}
+                                  </div>
+                                </div>
                                 <div className="min-w-0 flex-1">
                                   <div className="flex items-center justify-between gap-1">
                                     <span className={`text-xs font-semibold ${
