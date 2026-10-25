@@ -379,12 +379,11 @@ const TemporaryAssignments = () => {
           <Table>
             <TableHeader className="bg-slate-100 dark:bg-slate-800">
               <TableRow>
-                <TableHead>Employee</TableHead>
-
-                <TableHead>Temporary Branch</TableHead>
-                <TableHead>Duration</TableHead>
-                <TableHead>Status</TableHead>
-                {isHRAdmin && <TableHead className="text-right">Action</TableHead>}
+                <TableHead className="pl-6 w-[28%]">Employee</TableHead>
+                <TableHead className="w-[22%]">Temporary Branch</TableHead>
+                <TableHead className="w-[24%]">Duration</TableHead>
+                <TableHead className="w-[13%] text-center">Status</TableHead>
+                {isHRAdmin && <TableHead className="pr-6 w-[13%] text-center">Action</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -410,7 +409,7 @@ const TemporaryAssignments = () => {
                       setShowDetailsModal(true);
                     }}
                   >
-                    <TableCell>
+                    <TableCell className="pl-6">
                       <div className="font-bold">{assignment.name}</div>
                       <div className="text-xs text-foreground">
                         {assignment.primary_branch === 'HQ' 
@@ -438,24 +437,26 @@ const TemporaryAssignments = () => {
                         </span>
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="text-center">
                       {statusBadge(assignment.computedStatus || assignment.status)}
                     </TableCell>
                     {isHRAdmin && (
-                      <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            {assignment.computedStatus !== 'Completed' && assignment.computedStatus !== 'Cancelled' && (
-                              <>
-                                <Button variant="ghost" size="icon" onClick={(e) => handleEditClick(e, assignment)} className="h-8 w-8 text-foreground hover:text-[#a01497]">
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                                <Button variant="ghost" size="icon" onClick={(e) => handleDeleteClick(e, assignment)} className="h-8 w-8 text-foreground hover:text-red-600">
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </>
-                            )}
-                          </div>
-                        </TableCell>
+                      <TableCell className="pr-6 text-center">
+                        <div className="flex items-center justify-center gap-1.5">
+                          {assignment.computedStatus !== 'Completed' && assignment.computedStatus !== 'Cancelled' ? (
+                            <>
+                              <Button variant="ghost" size="icon" onClick={(e) => handleEditClick(e, assignment)} className="h-8 w-8 text-foreground hover:text-[#a01497]">
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button variant="ghost" size="icon" onClick={(e) => handleDeleteClick(e, assignment)} className="h-8 w-8 text-foreground hover:text-red-600">
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </>
+                          ) : (
+                            <span className="text-xs text-muted-foreground select-none">—</span>
+                          )}
+                        </div>
+                      </TableCell>
                     )}
                   </TableRow>
                 ))
