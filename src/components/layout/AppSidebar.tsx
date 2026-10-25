@@ -96,15 +96,372 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
 
   // Comprehensive RBAC-driven menu definition
   const allMenuItems: any[] = useMemo(() => {
-    const isHOD_BL = role === "head_of_department" || role === "branch_leader";
+    const norm = (role || "employee").toLowerCase().trim();
+    const isHRAdmin = norm === "hr_admin" || norm === "admin" || norm === "hr";
+    const isBL = norm === "branch_leader";
+    const isHOD = norm === "head_of_department" || norm === "hod";
+    const isMD_OM = norm === "managing_director" || norm === "operation_manager" || norm === "finance_manager" || norm === "md";
+    const isEmployee = norm === "employee" || norm === "branch_officer";
 
+    // 1. EMPLOYEE ROLE
+    if (isEmployee) {
+      return [
+        { title: "Main Navigation", isSection: true },
+        { title: "Dashboard", icon: LayoutDashboard, path: "/" },
+        {
+          title: "Calendar",
+          icon: Calendar,
+          children: [
+            { title: "Work Calendar", icon: Calendar, path: "/calendar" },
+            { title: "Company Leave Calendar", icon: CalendarDays, path: "/calendar/company-leave" },
+          ],
+        },
+        {
+          title: "Attendance",
+          icon: Clock,
+          children: [
+            { title: "My Attendance", icon: Clock, path: "/attendance" },
+          ],
+        },
+        {
+          id: "main_outstation",
+          title: "Outstation Management",
+          icon: Plane,
+          children: [
+            { title: "My Outstation", icon: Plane, path: "/outstation/my" },
+            { title: "My Outstation Calendar", icon: Calendar, path: "/outstation/my-calendar" },
+          ],
+        },
+        {
+          title: "Leave Management",
+          icon: CalendarDays,
+          children: [
+            { title: "Leave Application", icon: FilePlus2, path: "/leave/apply" },
+            { title: "My Leave Requests", icon: FileText, path: "/leave/forms" },
+          ],
+        },
+        { title: "Analytics", icon: BarChart3, path: "/analytics" },
+        { title: "Reports", icon: FileSearch, path: "/reports" },
+        { title: "GPS Location Tracker", icon: MapPinned, path: "/gps-location-tracker/history" },
+      ];
+    }
+
+    // 2. HR ADMIN ROLE
+    if (isHRAdmin) {
+      return [
+        { title: "Main Navigation", isSection: true },
+        { title: "Dashboard", icon: LayoutDashboard, path: "/" },
+        {
+          title: "Calendar",
+          icon: Calendar,
+          children: [
+            { title: "Work Calendar", icon: Calendar, path: "/calendar" },
+          ],
+        },
+        {
+          title: "Attendance",
+          icon: Clock,
+          children: [
+            { title: "My Attendance", icon: Clock, path: "/attendance" },
+          ],
+        },
+        {
+          id: "main_outstation",
+          title: "Outstation Management",
+          icon: Plane,
+          children: [
+            { title: "My Outstation", icon: Plane, path: "/outstation/my" },
+            { title: "My Outstation Calendar", icon: Calendar, path: "/outstation/my-calendar" },
+          ],
+        },
+        {
+          title: "Leave Management",
+          icon: CalendarDays,
+          children: [
+            { title: "Leave Application", icon: FilePlus2, path: "/leave/apply" },
+            { title: "My Leave Requests", icon: FileText, path: "/leave/forms" },
+          ],
+        },
+        { title: "Analytics", icon: BarChart3, path: "/analytics" },
+
+        { title: "HR ADMINISTRATION", isSection: true },
+        {
+          title: "Leave Administration",
+          icon: ClipboardList,
+          children: [
+            { title: "Leave Approval", icon: ClipboardList, path: "/leave/admin" },
+            { title: "Company Leave Calendar", icon: CalendarDays, path: "/calendar/company-leave" },
+            { title: "Leave Entitlement Management", icon: CalendarDays, path: "/leave/entitlement" },
+            { title: "Leave Calendar", icon: Calendar, path: "/leave/calendar" },
+          ],
+        },
+        {
+          id: "admin_outstation",
+          title: "Outstation Management",
+          icon: Plane,
+          children: [
+            { title: "Outstation Dashboard", icon: Plane, path: "/outstation" },
+            { title: "Outstation Assignment", icon: Plane, path: "/outstation/assignment" },
+            { title: "Outstation Analytics", icon: BarChart3, path: "/outstation/analytics" },
+            { title: "Outstation Calendar", icon: Calendar, path: "/outstation/calendar" },
+          ],
+        },
+        {
+          title: "Employee Management",
+          icon: Users,
+          children: [
+            { title: "Employee Directory", icon: Users, path: "/employees" },
+            { title: "Department", icon: Building2, path: "/master/department" },
+            { title: "Role", icon: Settings, path: "/master/role" },
+          ],
+        },
+        {
+          title: "Branch Management",
+          icon: Building2,
+          children: [
+            { title: "Overview", path: "/branches" },
+            { title: "Temporary Assignment", icon: Briefcase, path: "/branches/temporary-assignments" },
+          ],
+        },
+        {
+          title: "Workforce Analytics",
+          icon: PieChart,
+          children: [
+            { title: "Attendance Dashboard", icon: BarChart3, path: "/hr-analytics/attendance" },
+            { title: "Leave Analytics", icon: BarChart3, path: "/hr-analytics/leave" },
+            { title: "Workforce Insights", icon: PieChart, path: "/hr-analytics/workforce" },
+            { title: "Workforce Calendar", icon: Calendar, path: "/hr-analytics/calendar" },
+          ],
+        },
+        {
+          title: "Reports",
+          icon: FileSearch,
+          children: [
+            { title: "Attendance Reports", icon: FileSearch, path: "/reports/attendance" },
+            { title: "Leave Reports", icon: FileSearch, path: "/reports/leave" },
+            { title: "Outstation Reports", icon: FileSearch, path: "/outstation/reports" },
+            { title: "Department & Branch Report", icon: Building2, path: "/reports/department" },
+          ],
+        },
+        {
+          title: "GPS Location Tracker",
+          icon: MapPinned,
+          children: [
+            { title: "Live Tracker", icon: MapPinned, path: "/gps-location-tracker" },
+          ],
+        },
+        { title: "Settings", icon: Settings, path: "/settings" },
+      ];
+    }
+
+    // 3. BRANCH LEADER & 4. HEAD OF DEPARTMENT
+    if (isBL || isHOD) {
+      const sectionTitle = isBL ? "BRANCH ADMINISTRATION" : "HOD ADMINISTRATION";
+      return [
+        { title: "Main Navigation", isSection: true },
+        { title: "Dashboard", icon: LayoutDashboard, path: "/" },
+        {
+          title: "Calendar",
+          icon: Calendar,
+          children: [
+            { title: "Work Calendar", icon: Calendar, path: "/calendar" },
+            { title: "Company Leave Calendar", icon: CalendarDays, path: "/calendar/company-leave" },
+          ],
+        },
+        {
+          title: "Attendance",
+          icon: Clock,
+          children: [
+            { title: "My Attendance", icon: Clock, path: "/attendance" },
+            { title: "Team Attendance", icon: Users, path: "/team-attendance" },
+          ],
+        },
+        {
+          id: "main_outstation",
+          title: "Outstation Management",
+          icon: Plane,
+          children: [
+            { title: "My Outstation", icon: Plane, path: "/outstation/my" },
+            { title: "My Outstation Calendar", icon: Calendar, path: "/outstation/my-calendar" },
+          ],
+        },
+        {
+          title: "Leave Management",
+          icon: CalendarDays,
+          children: [
+            { title: "Leave Application", icon: FilePlus2, path: "/leave/apply" },
+            { title: "My Leave Requests", icon: FileText, path: "/leave/forms" },
+          ],
+        },
+        { title: "Analytics", icon: BarChart3, path: "/analytics" },
+
+        { title: sectionTitle, isSection: true },
+        {
+          title: "Approval Center",
+          icon: CheckSquare,
+          children: [
+            { title: "Leave Approval", icon: ClipboardList, path: "/leave/admin" },
+            { title: "Team Leave Requests", icon: FileCheck, path: "/leave/team" },
+            { title: "Leave Calendar", icon: Calendar, path: "/leave/calendar" },
+          ],
+        },
+        { title: "Employee Directory", icon: Users, path: "/employees" },
+        {
+          id: "admin_outstation",
+          title: "Outstation Management",
+          icon: Plane,
+          children: [
+            { title: "Outstation Dashboard", icon: Plane, path: "/outstation" },
+            { title: "Outstation Assignment", icon: Plane, path: "/outstation/assignment" },
+            { title: "Outstation Analytics", icon: BarChart3, path: "/outstation/analytics" },
+            { title: "Outstation Calendar", icon: Calendar, path: "/outstation/calendar" },
+          ],
+        },
+        { title: "Temporary Assignments", icon: Building2, path: "/branches/temporary-assignments" },
+        {
+          title: "Workforce Analytics",
+          icon: PieChart,
+          children: [
+            { title: "Attendance Dashboard", icon: BarChart3, path: "/hr-analytics/attendance" },
+            { title: "Leave Analytics", icon: BarChart3, path: "/hr-analytics/leave" },
+            { title: "Workforce Insights", icon: PieChart, path: "/hr-analytics/workforce" },
+            { title: "Workforce Calendar", icon: Calendar, path: "/hr-analytics/calendar" },
+          ],
+        },
+        {
+          title: "Reports",
+          icon: FileSearch,
+          children: [
+            { title: "Attendance Reports", icon: FileSearch, path: "/reports/attendance" },
+            { title: "Leave Reports", icon: FileSearch, path: "/reports/leave" },
+            { title: "Outstation Reports", icon: FileSearch, path: "/outstation/reports" },
+          ],
+        },
+        {
+          title: "GPS Location Tracker",
+          icon: MapPinned,
+          children: [
+            { title: "Live Tracker", icon: MapPinned, path: "/gps-location-tracker" },
+            { title: "Location History", icon: History, path: "/gps-location-tracker/history" },
+          ],
+        },
+      ];
+    }
+
+    // 5. MANAGING DIRECTOR & OPERATION MANAGER
+    if (isMD_OM) {
+      return [
+        { title: "Main Navigation", isSection: true },
+        { title: "Dashboard", icon: LayoutDashboard, path: "/" },
+        {
+          title: "Calendar",
+          icon: Calendar,
+          children: [
+            { title: "Work Calendar", icon: Calendar, path: "/calendar" },
+            { title: "Company Leave Calendar", icon: CalendarDays, path: "/calendar/company-leave" },
+          ],
+        },
+        {
+          title: "Attendance",
+          icon: Clock,
+          children: [
+            { title: "My Attendance", icon: Clock, path: "/attendance" },
+          ],
+        },
+        {
+          id: "main_outstation",
+          title: "Outstation Management",
+          icon: Plane,
+          children: [
+            { title: "My Outstation", icon: Plane, path: "/outstation/my" },
+            { title: "My Outstation Calendar", icon: Calendar, path: "/outstation/my-calendar" },
+          ],
+        },
+        {
+          title: "Leave Management",
+          icon: CalendarDays,
+          children: [
+            { title: "Leave Application", icon: FilePlus2, path: "/leave/apply" },
+            { title: "My Leave Requests", icon: FileText, path: "/leave/forms" },
+          ],
+        },
+        { title: "Analytics", icon: BarChart3, path: "/analytics" },
+
+        { title: "MANAGEMENT & ADMINISTRATION", isSection: true },
+        {
+          title: "Approval Center",
+          icon: CheckSquare,
+          children: [
+            { title: "Leave Approval", icon: ClipboardList, path: "/leave/admin" },
+            { title: "Leave Entitlement Management", icon: CalendarDays, path: "/leave/entitlement" },
+            { title: "Leave Calendar", icon: Calendar, path: "/leave/calendar" },
+          ],
+        },
+        {
+          id: "admin_outstation",
+          title: "Outstation Management",
+          icon: Plane,
+          children: [
+            { title: "Outstation Dashboard", icon: Plane, path: "/outstation" },
+            { title: "Outstation Assignment", icon: Plane, path: "/outstation/assignment" },
+            { title: "Outstation Analytics", icon: BarChart3, path: "/outstation/analytics" },
+            { title: "Outstation Calendar", icon: Calendar, path: "/outstation/calendar" },
+          ],
+        },
+        {
+          title: "Employee Management",
+          icon: Users,
+          children: [
+            { title: "Employee Directory", icon: Users, path: "/employees" },
+            { title: "Department", icon: Building2, path: "/master/department" },
+            { title: "Role", icon: Settings, path: "/master/role" },
+          ],
+        },
+        {
+          title: "Branch Management",
+          icon: Building2,
+          children: [
+            { title: "Overview", path: "/branches" },
+            { title: "Temporary Assignment", icon: Briefcase, path: "/branches/temporary-assignments" },
+          ],
+        },
+        {
+          title: "Workforce Analytics",
+          icon: PieChart,
+          children: [
+            { title: "Attendance Dashboard", icon: BarChart3, path: "/hr-analytics/attendance" },
+            { title: "Leave Analytics", icon: BarChart3, path: "/hr-analytics/leave" },
+            { title: "Workforce Insights", icon: PieChart, path: "/hr-analytics/workforce" },
+            { title: "Workforce Calendar", icon: Calendar, path: "/hr-analytics/calendar" },
+          ],
+        },
+        {
+          title: "Reports",
+          icon: FileSearch,
+          children: [
+            { title: "Attendance Reports", icon: FileSearch, path: "/reports/attendance" },
+            { title: "Leave Reports", icon: FileSearch, path: "/reports/leave" },
+            { title: "Outstation Reports", icon: FileSearch, path: "/outstation/reports" },
+            { title: "Department & Branch Report", icon: Building2, path: "/reports/department" },
+          ],
+        },
+        {
+          title: "GPS Location Tracker",
+          icon: MapPinned,
+          children: [
+            { title: "Live Tracker", icon: MapPinned, path: "/gps-location-tracker" },
+          ],
+        },
+      ];
+    }
+
+    // 6. CUSTOM ROLES (Dynamic Permission Fallback)
     return [
       { title: "Main Navigation", isSection: true },
       { title: "Dashboard", icon: LayoutDashboard, path: "/", permission: "dashboard.view" },
       {
         title: "Calendar",
         icon: Calendar,
-        path: "/calendar",
         children: [
           { title: "Work Calendar", icon: Calendar, path: "/calendar", permission: "calendar.work" },
           { title: "Company Leave Calendar", icon: CalendarDays, path: "/calendar/company-leave", permission: "calendar.company_leave" },
@@ -113,17 +470,15 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       {
         title: "Attendance",
         icon: Clock,
-        path: "/attendance",
         children: [
-          { title: isHOD_BL ? "Attendance Overview" : "My Attendance", icon: Clock, path: "/attendance", permission: "attendance.my" },
-          ...(isHOD_BL ? [{ title: "Team Attendance", icon: Users, path: "/team-attendance", permission: "attendance.team" }] : []),
+          { title: "My Attendance", icon: Clock, path: "/attendance", permission: "attendance.my" },
+          { title: "Team Attendance", icon: Users, path: "/team-attendance", permission: "attendance.team" },
         ],
       },
       {
         id: "main_outstation",
         title: "Outstation Management",
         icon: Plane,
-        path: "/outstation/my",
         children: [
           { title: "My Outstation", icon: Plane, path: "/outstation/my", permission: "outstation.my" },
           { title: "My Outstation Calendar", icon: Calendar, path: "/outstation/my-calendar", permission: "outstation.my_calendar" },
@@ -132,33 +487,26 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       {
         title: "Leave Management",
         icon: CalendarDays,
-        path: "/leave",
         children: [
           { title: "Leave Application", icon: FilePlus2, path: "/leave/apply", permission: "leave.apply" },
           { title: "My Leave Requests", icon: FileText, path: "/leave/forms", permission: "leave.my_requests" },
         ],
       },
-      { title: "Analytics", icon: BarChart3, path: "/analytics" },
+      { title: "Analytics", icon: BarChart3, path: "/analytics", permission: "analytics.attendance" },
 
-      { title: adminSectionTitle, isSection: true },
+      { title: "ADMINISTRATION", isSection: true },
       {
-        title: (role === "managing_director" || role === "operation_manager" || isHOD_BL) ? "Approval Center" : "Leave Administration",
-        icon: (role === "managing_director" || role === "operation_manager" || isHOD_BL) ? CheckSquare : ClipboardList,
+        title: "Approval Center",
+        icon: CheckSquare,
         children: [
           { title: "Leave Approval", icon: ClipboardList, path: "/leave/admin", permission: "leave.approval" },
-          ...(isHOD_BL ? [
-            { title: "Team Leave Requests", icon: FileCheck, path: "/leave/team", permission: "leave.team_requests" },
-            { title: "Leave Calendar", icon: Calendar, path: "/leave/calendar", permission: "leave.calendar" },
-          ] : [
-            { title: "Company Leave Calendar", icon: CalendarDays, path: "/calendar/company-leave", permission: "calendar.company_leave" },
-            { title: "Leave Entitlement Management", icon: CalendarDays, path: "/leave/entitlement", permission: "leave.entitlement" },
-            { title: "Leave Calendar", icon: Calendar, path: "/leave/calendar", permission: "leave.calendar" },
-          ]),
+          { title: "Team Leave Requests", icon: FileCheck, path: "/leave/team", permission: "leave.team_requests" },
+          { title: "Company Leave Calendar", icon: CalendarDays, path: "/calendar/company-leave", permission: "calendar.company_leave" },
+          { title: "Leave Entitlement Management", icon: CalendarDays, path: "/leave/entitlement", permission: "leave.entitlement" },
+          { title: "Leave Calendar", icon: Calendar, path: "/leave/calendar", permission: "leave.calendar" },
         ],
       },
-      ...(isHOD_BL ? [
-        { title: "Employee Directory", icon: Users, path: "/employees", permission: "employee.directory" },
-      ] : []),
+      { title: "Employee Directory", icon: Users, path: "/employees", permission: "employee.directory" },
       {
         id: "admin_outstation",
         title: "Outstation Management",
@@ -170,37 +518,28 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
           { title: "Outstation Calendar", icon: Calendar, path: "/outstation/calendar", permission: "outstation.calendar" },
         ],
       },
-      ...(isHOD_BL ? [
-        {
-          title: "Temporary Assignments",
-          icon: Building2,
-          path: "/branches/temporary-assignments",
-          permission: "employee.temporary_assignment",
-        },
-      ] : [
-        {
-          title: "Employee Management",
-          icon: Users,
-          children: [
-            { title: "Employee Directory", icon: Users, path: "/employees", permission: "employee.directory" },
-            { title: "Department", icon: Building2, path: "/master/department", permission: "employee.department" },
-            { title: "Role", icon: Settings, path: "/master/role", permission: "employee.role" },
-          ],
-        },
-        {
-          title: "Branch Management",
-          icon: Building2,
-          children: [
-            { title: "Overview", path: "/branches", permission: "employee.branch" },
-            { title: "Temporary Assignments", path: "/branches/temporary-assignments", permission: "employee.temporary_assignment" },
-          ],
-        },
-      ]),
+      {
+        title: "Employee Management",
+        icon: Users,
+        children: [
+          { title: "Employee Directory", icon: Users, path: "/employees", permission: "employee.directory" },
+          { title: "Department", icon: Building2, path: "/master/department", permission: "employee.department" },
+          { title: "Role", icon: Settings, path: "/master/role", permission: "employee.role" },
+        ],
+      },
+      {
+        title: "Branch Management",
+        icon: Building2,
+        children: [
+          { title: "Overview", path: "/branches", permission: "employee.branch" },
+          { title: "Temporary Assignment", icon: Briefcase, path: "/branches/temporary-assignments", permission: "employee.temporary_assignment" },
+        ],
+      },
       {
         title: "Workforce Analytics",
         icon: PieChart,
         children: [
-          { title: isHOD_BL ? "Attendance Analytics" : "Attendance Dashboard", icon: BarChart3, path: "/hr-analytics/attendance", permission: "analytics.attendance" },
+          { title: "Attendance Dashboard", icon: BarChart3, path: "/hr-analytics/attendance", permission: "analytics.attendance" },
           { title: "Leave Analytics", icon: BarChart3, path: "/hr-analytics/leave", permission: "analytics.leave" },
           { title: "Workforce Insights", icon: PieChart, path: "/hr-analytics/workforce", permission: "analytics.workforce" },
           { title: "Workforce Calendar", icon: Calendar, path: "/hr-analytics/calendar", permission: "analytics.workforce_calendar" },
@@ -213,7 +552,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
           { title: "Attendance Reports", icon: FileSearch, path: "/reports/attendance", permission: "report.attendance" },
           { title: "Leave Reports", icon: FileSearch, path: "/reports/leave", permission: "report.leave" },
           { title: "Outstation Reports", icon: FileSearch, path: "/outstation/reports", permission: "report.outstation" },
-          ...(!isHOD_BL ? [{ title: "Department & Branch Reports", icon: Building2, path: "/reports/department", permission: "report.department" }] : []),
+          { title: "Department & Branch Report", icon: Building2, path: "/reports/department", permission: "report.department" },
         ],
       },
       {
@@ -224,9 +563,9 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
           { title: "Location History", icon: History, path: "/gps-location-tracker/history", permission: "gps.location_history" },
         ],
       },
-      ...(!isHOD_BL ? [{ title: "Settings", icon: Settings, path: "/settings", permission: "settings.manage" }] : []),
+      { title: "Settings", icon: Settings, path: "/settings", permission: "settings.manage" },
     ];
-  }, [adminSectionTitle, role]);
+  }, [role]);
 
   // RBAC Permission Filter: Filter menu items and children based on granted permissions
   const filteredItems = useMemo(() => {
