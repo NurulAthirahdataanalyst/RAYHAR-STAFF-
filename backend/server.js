@@ -1885,31 +1885,37 @@ async function getEmployeeLocations(branch, department, role) {
       params.push(branch);
     }
     const sql = `
-      SELECT a.user_id, p.full_name, p.branch, p.department,
+      SELECT p.user_id, p.full_name, p.branch, p.department,
              COALESCE(el.recorded_at, a.clock_in) AS last_updated,
              COALESCE(el.latitude, a.clock_in_latitude) AS latitude,
              COALESCE(el.longitude, a.clock_in_longitude) AS longitude,
              COALESCE(el.accuracy, a.clock_in_accuracy) AS accuracy,
              a.distance_meters AS distance,
              CASE WHEN oa.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_outstation
-      FROM attendances a
-      JOIN (
-        SELECT user_id, MAX(clock_in) AS max_in
-        FROM attendances
-        WHERE (clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date
-        GROUP BY user_id
-      ) m ON a.user_id = m.user_id AND a.clock_in = m.max_in
+      FROM profiles p
+      LEFT JOIN (
+        SELECT a1.*
+        FROM attendances a1
+        JOIN (
+          SELECT user_id, MAX(clock_in) AS max_in
+          FROM attendances
+          WHERE (clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date
+          GROUP BY user_id
+        ) m ON a1.user_id = m.user_id AND a1.clock_in = m.max_in
+      ) a ON a.user_id = p.user_id
       LEFT JOIN (
         SELECT COALESCE(el1.user_id, el1.employee_id) as user_id, el1.latitude, el1.longitude, el1.accuracy, el1.recorded_at
         FROM employee_location_logs el1
         JOIN (SELECT COALESCE(user_id, employee_id) as uid, MAX(id) as max_id FROM employee_location_logs GROUP BY COALESCE(user_id, employee_id)) el2
           ON el1.id = el2.max_id
-      ) el ON el.user_id = a.user_id
-      LEFT JOIN profiles p ON p.user_id = a.user_id
-      LEFT JOIN outstation_assignments oa ON oa.user_id = a.user_id 
+      ) el ON el.user_id = p.user_id
+      LEFT JOIN outstation_assignments oa ON oa.user_id = p.user_id 
            AND oa.status != 'Cancelled' 
            AND CURRENT_DATE BETWEEN (oa.start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (oa.end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date
-      WHERE 1=1 ${filter}
+      WHERE p.status = 'Active' ${filter}
+      ORDER BY 
+        CASE WHEN COALESCE(el.latitude, a.clock_in_latitude) IS NOT NULL THEN 0 ELSE 1 END,
+        p.full_name ASC
     `;
     const [rows] = await pool.query(sql, params);
     return rows || [];
@@ -6135,31 +6141,37 @@ app.get("/api/employee-locations", async (req, res) => {
     }
 
     const sql = `
-      SELECT a.user_id, p.full_name, p.branch, p.department,
+      SELECT p.user_id, p.full_name, p.branch, p.department,
              COALESCE(el.recorded_at, a.clock_in) AS last_updated,
              COALESCE(el.latitude, a.clock_in_latitude) AS latitude,
              COALESCE(el.longitude, a.clock_in_longitude) AS longitude,
              COALESCE(el.accuracy, a.clock_in_accuracy) AS accuracy,
              a.distance_meters AS distance,
              CASE WHEN oa.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_outstation
-      FROM attendances a
-      JOIN (
-        SELECT user_id, MAX(clock_in) AS max_in
-        FROM attendances
-        WHERE (clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date
-        GROUP BY user_id
-      ) m ON a.user_id = m.user_id AND a.clock_in = m.max_in
+      FROM profiles p
+      LEFT JOIN (
+        SELECT a1.*
+        FROM attendances a1
+        JOIN (
+          SELECT user_id, MAX(clock_in) AS max_in
+          FROM attendances
+          WHERE (clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date
+          GROUP BY user_id
+        ) m ON a1.user_id = m.user_id AND a1.clock_in = m.max_in
+      ) a ON a.user_id = p.user_id
       LEFT JOIN (
         SELECT COALESCE(el1.user_id, el1.employee_id) as user_id, el1.latitude, el1.longitude, el1.accuracy, el1.recorded_at
         FROM employee_location_logs el1
         JOIN (SELECT COALESCE(user_id, employee_id) as uid, MAX(id) as max_id FROM employee_location_logs GROUP BY COALESCE(user_id, employee_id)) el2
           ON el1.id = el2.max_id
-      ) el ON el.user_id = a.user_id
-      LEFT JOIN profiles p ON p.user_id = a.user_id
-      LEFT JOIN outstation_assignments oa ON oa.user_id = a.user_id 
+      ) el ON el.user_id = p.user_id
+      LEFT JOIN outstation_assignments oa ON oa.user_id = p.user_id 
         AND oa.status != 'Cancelled'
         AND CURRENT_DATE BETWEEN (oa.start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (oa.end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date
-      WHERE 1=1 ${filter}
+      WHERE p.status = 'Active' ${filter}
+      ORDER BY 
+        CASE WHEN COALESCE(el.latitude, a.clock_in_latitude) IS NOT NULL THEN 0 ELSE 1 END,
+        p.full_name ASC
     `;
     const [rows] = await pool.query(sql, params);
 
