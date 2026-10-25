@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import { useRole } from "@/contexts/RoleContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -400,6 +401,7 @@ const YEARS = ["2027", "2026", "2025", "2024"];
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function EmployeeAnalytics() {
   const { role, userId, userName, userBranch, userDepartment } = useRole();
+  const { user } = useAuth();
 
   const normRole = (role || "").toLowerCase().trim().replace(/ /g, "_");
   const isAdminView = !["hr", "hr_admin"].includes(normRole) && ["branch_leader", "managing_director", "md", "finance_manager", "head_of_department", "hod", "operation_manager", "admin"].includes(normRole);
@@ -681,6 +683,7 @@ export default function EmployeeAnalytics() {
         year={selectedYear}
         myLogs={myLogs}
         leaveRequests={leaveRequests}
+        createdAt={user?.created_at}
       />
 
       {/* ═══════════════════════════════════════════════════════════════════

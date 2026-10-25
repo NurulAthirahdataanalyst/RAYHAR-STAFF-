@@ -15,24 +15,26 @@ interface EmployeeAnalyticsViewProps {
   year: string;
   myLogs: any[];
   leaveRequests: any[];
+  createdAt?: string;
 }
 
 const COLORS = ['#16A34A', '#3b82f6', '#EAB308', '#DC2626', '#8b5cf6'];
 
 const getLocalDateString = (dVal: any) => {
   if (!dVal) return "";
-  if (typeof dVal === 'string') {
-    return dVal.slice(0, 10);
+  if (typeof dVal === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dVal.trim())) {
+    return dVal.trim();
   }
-  const d = new Date(dVal);
-  if (isNaN(d.getTime())) return "";
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
+  const timeMs = new Date(dVal).getTime();
+  if (isNaN(timeMs)) return "";
+  const d = new Date(timeMs + 8 * 60 * 60 * 1000);
+  const y = d.getUTCFullYear();
+  const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(d.getUTCDate()).padStart(2, '0');
   return `${y}-${m}-${day}`;
 };
 
-export default function EmployeeAnalyticsView({ userId, userName, month, year, myLogs: rawMyLogs, leaveRequests: propLeaveRequests }: EmployeeAnalyticsViewProps) {
+export default function EmployeeAnalyticsView({ userId, userName, month, year, myLogs: rawMyLogs, leaveRequests: propLeaveRequests, createdAt: propCreatedAt }: EmployeeAnalyticsViewProps) {
   const [rankData, setRankData] = useState<{ rank: number | null, total: number, score: number }>({ rank: null, total: 0, score: 0 });
   const [lastMonthLogs, setLastMonthLogs] = useState<any[]>([]);
   const [profile, setProfile] = useState<any>(() => {
@@ -403,7 +405,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
         const isPastOrToday = date <= new Date();
         const dateStr = `${targetYear}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
         let isBeforeCreation = false;
-        const staffCreatedAt = profile?.created_at;
+        const staffCreatedAt = propCreatedAt || profile?.created_at;
         if (staffCreatedAt) {
           const joinDateStr = getLocalDateString(staffCreatedAt);
           if (joinDateStr && dateStr < joinDateStr) {
@@ -505,7 +507,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
 
       const dateStr = `${year}-${month.padStart(2, '0')}-${String(d).padStart(2, '0')}`;
       let isBeforeCreation = false;
-      const staffCreatedAt = profile?.created_at;
+      const staffCreatedAt = propCreatedAt || profile?.created_at;
       if (staffCreatedAt) {
         const joinDateStr = getLocalDateString(staffCreatedAt);
         if (joinDateStr && dateStr < joinDateStr) {
