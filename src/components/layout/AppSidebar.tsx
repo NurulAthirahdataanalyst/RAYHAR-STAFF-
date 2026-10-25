@@ -44,7 +44,7 @@ interface AppSidebarProps {
 }
 
 const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
-  const { role } = useRole();
+  const { role, hasPermission } = useRole();
   const { signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
@@ -88,154 +88,32 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
-  // Roles that can see admin-level menus
-  const ADMIN_ROLES = ["branch_leader", "hr_admin", "managing_director", "operation_manager", "finance_manager", "head_of_department"];
-  const ALL_ROLES = ["employee", "branch_officer", ...ADMIN_ROLES];
-  const HOD_BL_ROLES = ["branch_leader", "head_of_department"];
-  const FULL_ADMIN_ROLES = ["hr_admin", "managing_director", "operation_manager", "finance_manager"];
-
-  // ── HOD / BRANCH LEADER sidebar ──────────────────────────────────────────
   const adminSectionTitle = 
     role === "branch_leader" ? "BRANCH ADMINISTRATION" :
     role === "head_of_department" ? "HOD ADMINISTRATION" :
     (role === "managing_director" || role === "operation_manager") ? "MANAGEMENT & ADMINISTRATION" :
     "HR ADMINISTRATION";
 
-  const hodMenuItems = [
-    { title: "Main Navigation", isSection: true, roles: HOD_BL_ROLES },
-    { title: "Dashboard", icon: LayoutDashboard, path: "/", roles: HOD_BL_ROLES },
+  // Comprehensive RBAC-driven menu definition
+  const allMenuItems: any[] = [
+    { title: "Main Navigation", isSection: true },
+    { title: "Dashboard", icon: LayoutDashboard, path: "/", permission: "dashboard.view" },
     {
       title: "Calendar",
       icon: Calendar,
       path: "/calendar",
-      roles: HOD_BL_ROLES,
       children: [
-        { title: "Work Calendar", icon: Calendar, path: "/calendar", roles: HOD_BL_ROLES },
-        { title: "Company Leave Calendar", icon: CalendarDays, path: "/calendar/company-leave", roles: HOD_BL_ROLES },
+        { title: "Work Calendar", icon: Calendar, path: "/calendar", permission: "calendar.work" },
+        { title: "Company Leave Calendar", icon: CalendarDays, path: "/calendar/company-leave", permission: "calendar.company_leave" },
       ],
     },
     {
       title: "Attendance",
       icon: Clock,
       path: "/attendance",
-      roles: HOD_BL_ROLES,
       children: [
-        { title: "Attendance Overview", icon: Clock, path: "/attendance", roles: HOD_BL_ROLES },
-        { title: "Team Attendance", icon: Users, path: "/team-attendance", roles: HOD_BL_ROLES },
-      ],
-    },
-    {
-      id: "hod_main_outstation",
-      title: "Outstation Management",
-      icon: Plane,
-      path: "/outstation/my",
-      roles: HOD_BL_ROLES,
-      children: [
-        { title: "My Outstation", icon: Plane, path: "/outstation/my", roles: HOD_BL_ROLES },
-        { title: "My Outstation Calendar", icon: Calendar, path: "/outstation/my-calendar", roles: HOD_BL_ROLES },
-      ],
-    },
-    {
-      title: "Leave Management",
-      icon: CalendarDays,
-      path: "/leave",
-      roles: HOD_BL_ROLES,
-      children: [
-        { title: "Leave Application", icon: FilePlus2, path: "/leave/apply", roles: HOD_BL_ROLES },
-        { title: "My Leave Requests", icon: FileSearch, path: "/leave/forms", roles: HOD_BL_ROLES },
-      ],
-    },
-    { title: "Analytics", icon: BarChart3, path: "/analytics", roles: HOD_BL_ROLES },
-    { title: adminSectionTitle, isSection: true, roles: HOD_BL_ROLES },
-    {
-      title: "Approval Center",
-      icon: CheckSquare,
-      path: "/leave/admin",
-      roles: HOD_BL_ROLES,
-      children: [
-        { title: "Leave Approval", icon: ClipboardList, path: "/leave/admin", roles: HOD_BL_ROLES },
-        { title: "Team Leave Requests", icon: FileCheck, path: "/leave/team", roles: HOD_BL_ROLES },
-        { title: "Leave Calendar", icon: Calendar, path: "/leave/calendar", roles: HOD_BL_ROLES },
-      ],
-    },
-    { title: "Employee Directory", icon: Users, path: "/employees", roles: HOD_BL_ROLES },
-    {
-      id: "hod_admin_outstation",
-      title: "Outstation Management",
-      icon: Plane,
-      path: "/outstation",
-      roles: HOD_BL_ROLES,
-      children: [
-        { title: "Outstation Dashboard", icon: Plane, path: "/outstation", roles: HOD_BL_ROLES },
-        { title: "Outstation Assignment", icon: Plane, path: "/outstation/assignment", roles: HOD_BL_ROLES },
-        { title: "Outstation Analytics", icon: BarChart3, path: "/outstation/analytics", roles: HOD_BL_ROLES },
-        { title: "Outstation Calendar", icon: Calendar, path: "/outstation/calendar", roles: HOD_BL_ROLES },
-      ],
-    },
-    {
-      title: "Temporary Assignments",
-      icon: Building2,
-      path: "/branches/temporary-assignments",
-      roles: HOD_BL_ROLES,
-    },
-    {
-      title: "Workforce Analytics",
-      icon: PieChart,
-      path: "/hr-analytics/attendance",
-      roles: HOD_BL_ROLES,
-      children: [
-        { title: "Attendance Analytics", icon: BarChart3, path: "/hr-analytics/attendance", roles: HOD_BL_ROLES },
-        { title: "Leave Analytics", icon: BarChart3, path: "/hr-analytics/leave", roles: HOD_BL_ROLES },
-        { title: "Workforce Insights", icon: PieChart, path: "/hr-analytics/workforce", roles: HOD_BL_ROLES },
-        { title: "Workforce Calendar", icon: Calendar, path: "/hr-analytics/calendar", roles: HOD_BL_ROLES },
-      ],
-    },
-    {
-      title: "Reports",
-      icon: FileSearch,
-      path: "/reports",
-      roles: HOD_BL_ROLES,
-      children: [
-        { title: "Attendance Reports", icon: FileSearch, path: "/reports/attendance", roles: HOD_BL_ROLES },
-        { title: "Leave Reports", icon: FileSearch, path: "/reports/leave", roles: HOD_BL_ROLES },
-        { title: "Outstation Reports", icon: FileSearch, path: "/outstation/reports", roles: HOD_BL_ROLES },
-
-      ],
-    },
-    {
-      title: "GPS Location Tracker",
-      icon: MapPinned,
-      path: "/gps-location-tracker",
-      roles: HOD_BL_ROLES,
-      children: [
-        { title: "Live Tracker", icon: MapPinned, path: "/gps-location-tracker", roles: HOD_BL_ROLES },
-        { title: "Location History", icon: History, path: "/gps-location-tracker/history", roles: HOD_BL_ROLES },
-      ]
-    },
-  ];
-
-
-  // ── Standard sidebar (employee, branch_officer, hr_admin, MD, finance) ───
-  const menuItems = [
-    { title: "Main Navigation", isSection: true, roles: ALL_ROLES },
-    { title: "Dashboard", icon: LayoutDashboard, path: "/", roles: ALL_ROLES },
-    {
-      title: "Calendar",
-      icon: Calendar,
-      path: "/calendar",
-      roles: ALL_ROLES,
-      children: [
-        { title: "Work Calendar", icon: Calendar, path: "/calendar", roles: ALL_ROLES },
-        { title: "Company Leave Calendar", icon: CalendarDays, path: "/calendar/company-leave", roles: ALL_ROLES.filter((r) => r !== "hr_admin") },
-      ],
-    },
-    {
-      title: "Attendance",
-      icon: Clock,
-      path: "/attendance",
-      roles: ALL_ROLES,
-      children: [
-        { title: "My Attendance", icon: Clock, path: "/attendance", roles: ALL_ROLES },
+        { title: "My Attendance", icon: Clock, path: "/attendance", permission: "attendance.my" },
+        { title: "Team Attendance", icon: Users, path: "/team-attendance", permission: "attendance.team" },
       ],
     },
     {
@@ -243,127 +121,141 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       title: "Outstation Management",
       icon: Plane,
       path: "/outstation/my",
-      roles: ALL_ROLES,
       children: [
-        { title: "My Outstation", icon: Plane, path: "/outstation/my", roles: ALL_ROLES },
-        { title: "My Outstation Calendar", icon: Calendar, path: "/outstation/my-calendar", roles: ALL_ROLES },
+        { title: "My Outstation", icon: Plane, path: "/outstation/my", permission: "outstation.my" },
+        { title: "My Outstation Calendar", icon: Calendar, path: "/outstation/my-calendar", permission: "outstation.my_calendar" },
       ],
     },
     {
       title: "Leave Management",
       icon: CalendarDays,
       path: "/leave",
-      roles: ALL_ROLES,
       children: [
-        { title: "Leave Application", icon: CalendarDays, path: "/leave/apply", roles: ALL_ROLES },
-        { title: "My Leave Requests", icon: FileText, path: "/leave/forms", roles: ALL_ROLES },
-        { title: "Team Leave Requests", icon: Users, path: "/leave/team", roles: ["manager", "hod", "branch_leader"] },
-        { title: "Leave Approval", icon: CheckSquare, path: "/leave/approval", roles: ["manager", "hod", "branch_leader"] },
+        { title: "Leave Application", icon: FilePlus2, path: "/leave/apply", permission: "leave.apply" },
+        { title: "My Leave Requests", icon: FileText, path: "/leave/forms", permission: "leave.my_requests" },
       ],
     },
-    { title: "Analytics", icon: BarChart3, path: "/analytics", roles: ALL_ROLES },
 
-    { title: adminSectionTitle, isSection: true, roles: FULL_ADMIN_ROLES },
+    { title: adminSectionTitle, isSection: true },
     {
-      title: (role === "managing_director" || role === "operation_manager") ? "Approval Center" : "Leave Administration",
-      icon: (role === "managing_director" || role === "operation_manager") ? CheckSquare : ClipboardList,
+      title: (role === "managing_director" || role === "operation_manager" || role === "head_of_department" || role === "branch_leader") ? "Approval Center" : "Leave Administration",
+      icon: CheckSquare,
       path: "/leave/admin",
-      roles: FULL_ADMIN_ROLES,
       children: [
-        { title: "Leave Approval", icon: ClipboardList, path: "/leave/admin", roles: FULL_ADMIN_ROLES },
-        { title: "Company Leave Calendar", icon: CalendarDays, path: "/calendar/company-leave", roles: ["hr_admin"] },
-        { title: "Leave Entitlement Management", icon: CalendarDays, path: "/leave/entitlement", roles: ["hr_admin"] },
-        { title: "Leave Calendar", icon: Calendar, path: "/leave/calendar", roles: FULL_ADMIN_ROLES },
+        { title: "Leave Approval", icon: ClipboardList, path: "/leave/admin", permission: "leave.approval" },
+        { title: "Team Leave Requests", icon: FileCheck, path: "/leave/team", permission: "leave.team_requests" },
+        { title: "Leave Calendar", icon: Calendar, path: "/leave/calendar", permission: "leave.calendar" },
+        { title: "Leave Entitlement Management", icon: CalendarDays, path: "/leave/entitlement", permission: "leave.entitlement" },
       ],
     },
+    { title: "Employee Directory", icon: Users, path: "/employees", permission: "employee.directory" },
     {
       id: "admin_outstation",
       title: "Outstation Management",
       icon: Plane,
       path: "/outstation",
-      roles: FULL_ADMIN_ROLES,
       children: [
-        { title: "Outstation Dashboard", icon: Plane, path: "/outstation", roles: FULL_ADMIN_ROLES },
-        { title: "Outstation Assignment", icon: Plane, path: "/outstation/assignment", roles: FULL_ADMIN_ROLES },
-        { title: "Outstation Analytics", icon: BarChart3, path: "/outstation/analytics", roles: FULL_ADMIN_ROLES },
-        { title: "Outstation Calendar", icon: Calendar, path: "/outstation/calendar", roles: FULL_ADMIN_ROLES },
+        { title: "Outstation Dashboard", icon: Plane, path: "/outstation", permission: "outstation.dashboard" },
+        { title: "Outstation Assignment", icon: Plane, path: "/outstation/assignment", permission: "outstation.assignment" },
+        { title: "Outstation Analytics", icon: BarChart3, path: "/outstation/analytics", permission: "outstation.analytics" },
+        { title: "Outstation Calendar", icon: Calendar, path: "/outstation/calendar", permission: "outstation.calendar" },
       ],
     },
     {
       title: "Employee Management",
       icon: Users,
       path: "/master",
-      roles: FULL_ADMIN_ROLES,
       children: [
-        { title: "Employee Directory", icon: Users, path: "/employees", roles: FULL_ADMIN_ROLES },
-        { title: "Department", icon: Building2, path: "/master/department", roles: ["hr_admin", "managing_director", "operation_manager"] },
-        { title: "Role", icon: Settings, path: "/master/role", roles: ["hr_admin", "managing_director", "operation_manager"] },
+        { title: "Employee Directory", icon: Users, path: "/employees", permission: "employee.directory" },
+        { title: "Department", icon: Building2, path: "/master/department", permission: "employee.department" },
+        { title: "Role Management", icon: Settings, path: "/master/role", permission: "employee.role" },
       ],
     },
     {
       title: "Branch Management",
       icon: Building2,
       path: "/branches",
-      roles: FULL_ADMIN_ROLES,
       children: [
-        { title: "Overview", path: "/branches", roles: FULL_ADMIN_ROLES },
-        { title: "Temporary Assignments", path: "/branches/temporary-assignments", roles: FULL_ADMIN_ROLES },
-      ]
+        { title: "Overview", path: "/branches", permission: "employee.branch" },
+        { title: "Temporary Assignments", path: "/branches/temporary-assignments", permission: "employee.temporary_assignment" },
+      ],
     },
     {
       title: "Workforce Analytics",
       icon: PieChart,
       path: "/hr-analytics",
-      roles: FULL_ADMIN_ROLES,
       children: [
-        { title: "Attendance Dashboard", icon: BarChart3, path: "/hr-analytics/attendance", roles: FULL_ADMIN_ROLES },
-        { title: "Leave Analytics", icon: BarChart3, path: "/hr-analytics/leave", roles: FULL_ADMIN_ROLES },
-        { title: "Workforce Insights", icon: PieChart, path: "/hr-analytics/workforce", roles: FULL_ADMIN_ROLES },
-        { title: "Workforce Calendar", icon: Calendar, path: "/hr-analytics/calendar", roles: FULL_ADMIN_ROLES },
-      ]
+        { title: "Attendance Dashboard", icon: BarChart3, path: "/hr-analytics/attendance", permission: "analytics.attendance" },
+        { title: "Leave Analytics", icon: BarChart3, path: "/hr-analytics/leave", permission: "analytics.leave" },
+        { title: "Workforce Insights", icon: PieChart, path: "/hr-analytics/workforce", permission: "analytics.workforce" },
+        { title: "Workforce Calendar", icon: Calendar, path: "/hr-analytics/calendar", permission: "analytics.workforce_calendar" },
+      ],
     },
     {
       title: "Reports",
       icon: FileSearch,
       path: "/reports",
-      roles: ALL_ROLES,
       children: [
-        { title: "Attendance Reports", icon: FileSearch, path: "/reports/attendance", roles: FULL_ADMIN_ROLES },
-        { title: "Leave Reports", icon: FileSearch, path: "/reports/leave", roles: FULL_ADMIN_ROLES },
-        { title: "Outstation Reports", icon: FileSearch, path: "/outstation/reports", roles: FULL_ADMIN_ROLES },
-        { title: "Department & Branch Reports", icon: Building2, path: "/reports/department", roles: FULL_ADMIN_ROLES },
-      ]
+        { title: "Attendance Reports", icon: FileSearch, path: "/reports/attendance", permission: "report.attendance" },
+        { title: "Leave Reports", icon: FileSearch, path: "/reports/leave", permission: "report.leave" },
+        { title: "Outstation Reports", icon: FileSearch, path: "/outstation/reports", permission: "report.outstation" },
+        { title: "Department & Branch Reports", icon: Building2, path: "/reports/department", permission: "report.department" },
+      ],
     },
     {
       title: "GPS Location Tracker",
       icon: MapPinned,
       path: "/gps-location-tracker",
-      roles: ALL_ROLES,
       children: [
-        { title: "Live Tracker", icon: MapPinned, path: "/gps-location-tracker", roles: ["hr_admin", "admin", "managing_director", "operation_manager", "finance_manager"] },
-        { title: "Location History", icon: History, path: "/gps-location-tracker/history", roles: ["employee"] },
-      ]
+        { title: "Live Tracker", icon: MapPinned, path: "/gps-location-tracker", permission: "gps.live_tracker" },
+        { title: "Location History", icon: History, path: "/gps-location-tracker/history", permission: "gps.location_history" },
+      ],
     },
-
-    { title: "Settings", icon: Settings, path: "/settings", roles: ["hr_admin"] },
+    { title: "Settings", icon: Settings, path: "/settings", permission: "settings.manage" },
   ];
 
-  // Pick the right menu based on role
-  const activeMenu = HOD_BL_ROLES.includes(role || "") ? hodMenuItems : menuItems;
+  // RBAC Permission Filter: Filter menu items and children based on granted permissions
+  const filteredItems: any[] = [];
+  let currentSection: any = null;
+  let sectionHasItems = false;
 
-  const filteredItems = activeMenu.filter((item) =>
-    item.roles.includes(role || "employee")
-  );
+  for (const item of allMenuItems) {
+    if (item.isSection) {
+      currentSection = item;
+      sectionHasItems = false;
+      continue;
+    }
+
+    let isVisible = false;
+    let resolvedItem = { ...item };
+
+    if (item.children) {
+      const visibleChildren = item.children.filter((child: any) =>
+        !child.permission || hasPermission(child.permission)
+      );
+      if (visibleChildren.length > 0) {
+        isVisible = true;
+        resolvedItem.children = visibleChildren;
+      }
+    } else {
+      isVisible = !item.permission || hasPermission(item.permission);
+    }
+
+    if (isVisible) {
+      if (currentSection && !sectionHasItems) {
+        filteredItems.push(currentSection);
+        sectionHasItems = true;
+      }
+      filteredItems.push(resolvedItem);
+    }
+  }
 
   // Automatically expand submenus if any child page is active
   useEffect(() => {
     let activeParentKey = "";
     filteredItems.forEach(item => {
       if (item.children) {
-        const visibleChildren = item.children.filter((child) =>
-          child.roles.includes(role || "employee")
-        );
-        const hasActiveChild = visibleChildren.some(child =>
+        const hasActiveChild = item.children.some((child: any) =>
           child.path && (location.pathname === child.path || (child.path !== item.path && location.pathname.startsWith(`${child.path}/`)))
         );
         const isParentActive = item.path && location.pathname === item.path;
@@ -375,7 +267,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
     if (activeParentKey) {
       setExpandedMenus({ [activeParentKey]: true });
     }
-  }, [location.pathname, role]);
+  }, [location.pathname, role, filteredItems]);
 
   const sidebarContent = (isMobile: boolean) => (
     <>
@@ -443,9 +335,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
               );
             }
 
-            const visibleChildren = item.children?.filter((child) =>
-              child.roles.includes(role || "employee")
-            );
+            const visibleChildren = item.children || [];
             const hasChildren = !!visibleChildren?.length;
             const hasActiveChild = hasChildren && visibleChildren.some(child =>
               child.path && (location.pathname === child.path || (child.path !== item.path && location.pathname.startsWith(`${child.path}/`)))

@@ -1,22 +1,36 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { useAuth } from "./AuthContext";
 import { API_BASE_URL } from "../config/api";
 
-export type UserRole = "employee" | "branch_leader" | "hr_admin" | "managing_director" | "operation_manager" | "branch_officer" | "head_of_department";
+export type UserRole =
+  | "employee"
+  | "branch_leader"
+  | "hr_admin"
+  | "managing_director"
+  | "operation_manager"
+  | "branch_officer"
+  | "head_of_department"
+  | (string & {});
 
 interface RoleContextType {
-  role: UserRole;
-  setRole: (role: UserRole) => void;
+  role: string;
+  roleName: string;
+  roleId?: string;
+  isSystemRole: boolean;
+  permissions: string[];
+  hasPermission: (permission: string | string[]) => boolean;
+  setRole: (role: string) => void;
   userName: string;
   userBranch: string;
   userDepartment: string;
   userId: string | undefined;
   loading: boolean;
+  refreshPermissions: () => Promise<void>;
 }
 
 const RoleContext = createContext<RoleContextType | undefined>(undefined);
 
-export const normalizeRole = (rawRole?: string): UserRole => {
+export const normalizeRole = (rawRole?: string): string => {
   if (!rawRole) return "employee";
   const r = String(rawRole).trim().toLowerCase();
   if (r === 'hr' || r === 'hr admin' || r === 'hr_admin' || r === 'admin') return 'hr_admin';
@@ -25,20 +39,58 @@ export const normalizeRole = (rawRole?: string): UserRole => {
   if (r === 'branch officer' || r === 'branch_officer') return 'branch_officer';
   if (r === 'finance manager' || r === 'finance_manager' || r === 'operation manager' || r === 'operations manager' || r === 'operation_manager') return 'operation_manager';
   if (r === 'head of department' || r === 'hod' || r === 'head_of_department') return 'head_of_department';
-  return "employee";
+  return r;
+};
+
+export const formatRoleDisplayName = (roleStr?: string): string => {
+  if (!roleStr) return "Employee";
+  const norm = normalizeRole(roleStr);
+  switch (norm) {
+    case 'hr_admin': return 'HR Admin';
+    case 'managing_director': return 'Managing Director';
+    case 'operation_manager': return 'Operation Manager';
+    case 'head_of_department': return 'Head of Department';
+    case 'branch_leader': return 'Branch Leader';
+    case 'employee': return 'Employee';
+    default:
+      return roleStr.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  }
 };
 
 export const RoleProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, updateUserLocal } = useAuth();
   const resolvedUserId = user?.user_id || user?.id;
 
-  const getInitialRole = (): UserRole => {
+  const getInitialRole = (): string => {
     if (user?.role) return normalizeRole(user.role);
     try {
       const cached = sessionStorage.getItem("presence_cached_role");
       if (cached) return normalizeRole(cached);
     } catch {}
     return "employee";
+  };
+
+  const getInitialRoleName = (): string => {
+    if (user?.role_name) return user.role_name;
+    try {
+      const cached = sessionStorage.getItem("presence_cached_role_name");
+      if (cached) return cached;
+    } catch {}
+    return formatRoleDisplayName(user?.role || "employee");
+  };
+
+  const getInitialPermissions = (): string[] => {
+    if (Array.isArray(user?.permissions) && user.permissions.length > 0) {
+      return user.permissions;
+    }
+    try {
+      const cached = sessionStorage.getItem("presence_cached_permissions");
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch {}
+    return [];
   };
 
   const getInitialBranch = (): string => {
@@ -65,106 +117,137 @@ export const RoleProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return "";
   };
 
-  const [role, setRole] = useState<UserRole>(getInitialRole);
+  const [role, setRole] = useState<string>(getInitialRole);
+  const [roleName, setRoleName] = useState<string>(getInitialRoleName);
+  const [roleId, setRoleId] = useState<string | undefined>(user?.role_id);
+  const [isSystemRole, setIsSystemRole] = useState<boolean>(user?.is_system_role ?? true);
+  const [permissions, setPermissions] = useState<string[]>(getInitialPermissions);
   const [userName, setUserName] = useState<string>(getInitialName);
   const [userBranch, setUserBranch] = useState<string>(getInitialBranch);
   const [userDepartment, setUserDepartment] = useState<string>(getInitialDept);
   const [loading, setLoading] = useState(!user);
 
+  const hasPermission = useCallback((permission: string | string[]): boolean => {
+    // HR Admin super-bypass
+    const norm = (role || "").toLowerCase();
+    if (norm === "hr_admin" || norm === "hr admin" || norm === "admin") {
+      return true;
+    }
+    if (permissions.includes("*")) {
+      return true;
+    }
+    if (Array.isArray(permission)) {
+      return permission.some(p => permissions.includes(p));
+    }
+    return permissions.includes(permission);
+  }, [role, permissions]);
+
+  const fetchUserData = useCallback(async () => {
+    if (!resolvedUserId && !user?.email) return;
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/user-details/${resolvedUserId || user.email}`);
+      const data = await response.json();
+
+      if (response.ok && data.success && data.profile) {
+        const fetchedName = data.profile.full_name || user.full_name || user.name || user.email || "User";
+        const fetchedBranch = data.profile.branch || "HQ";
+        const fetchedDept = data.profile.department || "";
+        const parsedRole = normalizeRole(data.role || user.role);
+        const resolvedRName = data.role_name || data.profile.role_name || formatRoleDisplayName(parsedRole);
+        const resolvedRId = data.role_id || data.profile.role_id;
+        const resolvedIsSys = data.is_system_role ?? data.profile.is_system_role ?? true;
+        const fetchedPerms = Array.isArray(data.permissions) ? data.permissions : [];
+
+        setUserName(fetchedName);
+        setUserBranch(fetchedBranch);
+        setUserDepartment(fetchedDept);
+        setRole(parsedRole);
+        setRoleName(resolvedRName);
+        setRoleId(resolvedRId);
+        setIsSystemRole(resolvedIsSys);
+        setPermissions(fetchedPerms);
+
+        try {
+          sessionStorage.setItem("presence_cached_role", parsedRole);
+          sessionStorage.setItem("presence_cached_role_name", resolvedRName);
+          sessionStorage.setItem("presence_cached_branch", fetchedBranch);
+          sessionStorage.setItem("presence_cached_department", fetchedDept);
+          sessionStorage.setItem("presence_cached_name", fetchedName);
+          sessionStorage.setItem("presence_cached_permissions", JSON.stringify(fetchedPerms));
+          if (resolvedRId) sessionStorage.setItem("presence_cached_role_id", resolvedRId);
+        } catch {}
+
+        if (updateUserLocal) {
+          updateUserLocal({
+            full_name: fetchedName,
+            name: fetchedName,
+            branch: fetchedBranch,
+            department: fetchedDept,
+            role: parsedRole,
+            role_name: resolvedRName,
+            role_id: resolvedRId,
+            is_system_role: resolvedIsSys,
+            permissions: fetchedPerms
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Role & permission fetch error:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [resolvedUserId, user?.email, user?.full_name, user?.name, user?.role, updateUserLocal]);
+
   useEffect(() => {
     if (!user) {
       setLoading(false);
-      setUserName(""); // Clear name on logout
+      setUserName("");
       setUserBranch("");
       setUserDepartment("");
       setRole("employee");
+      setRoleName("Employee");
+      setPermissions([]);
       return;
     }
 
-    // 1. IMMEDIATE SYNCHRONOUS SYNC from user object
+    // Immediate sync from session user
     if (user.role) {
       const norm = normalizeRole(user.role);
       setRole(norm);
-      try { sessionStorage.setItem("presence_cached_role", norm); } catch {}
     }
-    if (user.branch) {
-      setUserBranch(user.branch);
-      try { sessionStorage.setItem("presence_cached_branch", user.branch); } catch {}
+    if (user.role_name) {
+      setRoleName(user.role_name);
     }
-    if (user.department) {
-      setUserDepartment(user.department);
-      try { sessionStorage.setItem("presence_cached_department", user.department); } catch {}
+    if (Array.isArray(user.permissions)) {
+      setPermissions(user.permissions);
     }
+    if (user.branch) setUserBranch(user.branch);
+    if (user.department) setUserDepartment(user.department);
     if (user.full_name || user.name || user.email) {
-      const name = user.full_name || user.name || user.email;
-      setUserName(name);
-      try { sessionStorage.setItem("presence_cached_name", name); } catch {}
+      setUserName(user.full_name || user.name || user.email);
     }
-
-    const fetchUserData = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/user-details/${resolvedUserId || user.email}`);
-        const data = await response.json();
-
-        if (response.ok && data.success && data.profile) {
-          const fetchedName = data.profile.full_name || user.full_name || user.name || user.email || "User";
-          const fetchedBranch = data.profile.branch || "HQ";
-          const fetchedDept = data.profile.department || "";
-          const parsedRole = normalizeRole(data.role || user.role);
-
-          setUserName(fetchedName);
-          setUserBranch(fetchedBranch);
-          setUserDepartment(fetchedDept);
-          setRole(parsedRole);
-
-          try {
-            sessionStorage.setItem("presence_cached_role", parsedRole);
-            sessionStorage.setItem("presence_cached_branch", fetchedBranch);
-            sessionStorage.setItem("presence_cached_department", fetchedDept);
-            sessionStorage.setItem("presence_cached_name", fetchedName);
-          } catch {}
-
-          if (updateUserLocal) {
-            const hasChanged = 
-              (user?.full_name || user?.name) !== fetchedName ||
-              user?.branch !== fetchedBranch ||
-              user?.department !== fetchedDept ||
-              normalizeRole(user?.role) !== parsedRole;
-
-            if (hasChanged) {
-              updateUserLocal({
-                full_name: fetchedName,
-                name: fetchedName,
-                branch: fetchedBranch,
-                department: fetchedDept,
-                role: parsedRole
-              });
-            }
-          }
-        } else {
-          setUserName(user?.full_name || user?.name || user?.email || "User");
-          setUserBranch(user?.branch || "HQ");
-          setUserDepartment(user?.department || "");
-          if (user?.role) {
-            setRole(normalizeRole(user.role));
-          }
-        }
-      } catch (error) {
-        console.error("Role fetch error:", error);
-        setUserName(user?.full_name || user?.name || user?.email || "User");
-        if (user?.branch) setUserBranch(user.branch);
-        if (user?.department) setUserDepartment(user.department);
-        if (user?.role) setRole(normalizeRole(user.role));
-      } finally {
-        setLoading(false);
-      }
-    };
 
     fetchUserData();
-  }, [resolvedUserId, user?.email]);
+  }, [resolvedUserId, user?.email, fetchUserData]);
 
   return (
-    <RoleContext.Provider value={{ role, setRole, userName, userBranch, userDepartment, userId: resolvedUserId, loading }}>
+    <RoleContext.Provider
+      value={{
+        role,
+        roleName,
+        roleId,
+        isSystemRole,
+        permissions,
+        hasPermission,
+        setRole,
+        userName,
+        userBranch,
+        userDepartment,
+        userId: resolvedUserId,
+        loading,
+        refreshPermissions: fetchUserData
+      }}
+    >
       {children}
     </RoleContext.Provider>
   );

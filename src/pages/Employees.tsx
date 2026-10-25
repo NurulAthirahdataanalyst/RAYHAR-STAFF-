@@ -39,7 +39,7 @@ import { Popover, PopoverContent, PopoverTrigger, PopoverAnchor } from "@/compon
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectSeparator, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { parseCutiGantiRows, getCleanReason } from "@/lib/leaveStorage";
 import { API_BASE_URL } from "../config/api";
@@ -390,12 +390,29 @@ export default function Employees() {
           (!a.end_date || new Date(a.end_date) >= new Date())
         );
 
+        let empPosition = "Employee";
+        if (employee.role_name) {
+          empPosition = employee.role_name;
+        } else if (employee.role === "operation_manager" || employee.role === "finance_manager") {
+          empPosition = "Operation Manager";
+        } else if (employee.role === "hr_admin") {
+          empPosition = "HR Admin";
+        } else if (employee.role === "managing_director") {
+          empPosition = "Managing Director";
+        } else if (employee.role === "head_of_department") {
+          empPosition = "Head of Department";
+        } else if (employee.role === "branch_leader") {
+          empPosition = "Branch Leader";
+        } else if (employee.role) {
+          empPosition = String(employee.role).split('_').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+        }
+
         return {
           ...employee,
           id: employee.user_id,
           name: employee.full_name || "New User",
           email: employee.email || "Account Active",
-          position: (employee.role === "operation_manager" || employee.role === "finance_manager" || employee.position === "Finance Manager" || employee.position === "finance_manager") ? "Operation Manager" : employee.role === "hr_admin" ? "HR Admin" : employee.role ? String(employee.role).split('_').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') : "Employee",
+          position: empPosition,
           branch: employee.branch || "HQ",
           department: employee.department || "General",
           status: employee.status || "Active",
@@ -457,17 +474,27 @@ export default function Employees() {
     ].filter(Boolean))
   ).sort((a, b) => (a as string).localeCompare(b as string)) as string[];
 
-  const uniquePositions = Array.from(
-    new Set((Array.isArray(dbEmployees) ? dbEmployees : []).map((emp) => emp.position).filter(Boolean))
-  ).sort() as string[];
+  // Dynamic Position/Role list incorporating all newly created active roles
+  const uniquePositions = useMemo(() => {
+    const fromRoles = (Array.isArray(availableRoles) ? availableRoles : [])
+      .filter((r) => r.status === "Active")
+      .map((r) => r.name);
+    const fromEmployees = (Array.isArray(dbEmployees) ? dbEmployees : [])
+      .map((emp) => emp.position)
+      .filter(Boolean);
+    return Array.from(new Set([...fromRoles, ...fromEmployees])).sort();
+  }, [availableRoles, dbEmployees]);
 
   const filtered = dbEmployees.filter((e) => {
     const matchesSearch = checkedEmployees.length > 0
         ? checkedEmployees.includes(e.id?.toString() || e.user_id || e.name)
-        : (!search || e.name.toLowerCase().includes(search.toLowerCase()) || e.position.toLowerCase().includes(search.toLowerCase()));
+        : (!search || e.name.toLowerCase().includes(search.toLowerCase()) || e.position?.toLowerCase().includes(search.toLowerCase()));
     const matchesBranch = selectedBranch === "All" || e.branch === selectedBranch;
     const matchesDepartment = selectedDepartment === "All" || e.department === selectedDepartment;
-    const matchesPosition = selectedPosition === "All" || e.position === selectedPosition;
+    const matchesPosition = selectedPosition === "All" ||
+      e.position?.toLowerCase() === selectedPosition.toLowerCase() ||
+      e.role?.toLowerCase() === selectedPosition.toLowerCase() ||
+      (e.role_name && e.role_name.toLowerCase() === selectedPosition.toLowerCase());
     const matchesStatus = selectedStatus === "All" || e.status === selectedStatus;
     return matchesSearch && matchesBranch && matchesDepartment && matchesPosition && matchesStatus;
   });
@@ -662,6 +689,10 @@ export default function Employees() {
     setIsSubmitting(true);
 
     try {
+      const matchedRole = availableRoles.find(
+        (r) => r.name.toLowerCase() === signupRole.toLowerCase()
+      );
+      const chosenRoleName = matchedRole ? matchedRole.name : (signupRole || 'Employee');
       const response = await fetch(`${API_BASE_URL}/api/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -671,8 +702,7 @@ export default function Employees() {
           password: signupPassword,
           branch: signupBranch,
           department: signupBranch === "HQ" ? signupDepartment : null,
-          // Convert Proper Case display name (e.g. "Branch Leader") to snake_case (e.g. "branch_leader") for user_role table
-          role: signupRole.toLowerCase().replace(/ /g, '_'),
+          role: chosenRoleName,
           status: 'Active'
         }),
       });
@@ -1919,12 +1949,32 @@ export default function Employees() {
                   <SelectValue placeholder="Select Role" />
                 </SelectTrigger>
                 <SelectContent>
-                  {(Array.isArray(availableRoles) ? availableRoles : []).filter(r => r.status === 'Active').map(r => (
-                    <SelectItem key={r.id} value={r.name}>{r.name}</SelectItem>
-                  ))}
-                  {availableRoles.filter(r => r.status === 'Active').length === 0 && (
-                    <SelectItem value="Employee" disabled>No roles available</SelectItem>
-                  )}
+                  <SelectGroup>
+                    <SelectLabel className="text-xs font-bold text-slate-500 uppercase tracking-wider">System Roles</SelectLabel>
+                    {(Array.isArray(availableRoles) ? availableRoles : [])
+                      .filter((r) => r.is_system_role && r.status === 'Active')
+                      .map((r) => (
+                        <SelectItem key={r.id} value={r.name}>
+                          {r.name}
+                        </SelectItem>
+                      ))}
+                  </SelectGroup>
+                  <SelectSeparator />
+                  <SelectGroup>
+                    <SelectLabel className="text-xs font-bold text-slate-500 uppercase tracking-wider">Custom Roles</SelectLabel>
+                    {(Array.isArray(availableRoles) ? availableRoles : [])
+                      .filter((r) => !r.is_system_role && r.status === 'Active')
+                      .map((r) => (
+                        <SelectItem key={r.id} value={r.name}>
+                          {r.name}
+                        </SelectItem>
+                      ))}
+                    {(Array.isArray(availableRoles) ? availableRoles : []).filter((r) => !r.is_system_role && r.status === 'Active').length === 0 && (
+                      <SelectItem value="__no_custom__" disabled className="text-xs text-muted-foreground italic">
+                        No custom roles created yet
+                      </SelectItem>
+                    )}
+                  </SelectGroup>
                 </SelectContent>
               </Select>
             </div>

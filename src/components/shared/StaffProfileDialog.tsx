@@ -28,7 +28,7 @@ import {
   MapPin,
   Plane
 } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { useReactToPrint } from "react-to-print";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -38,7 +38,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectSeparator, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { parseCutiGantiRows, getCleanReason } from "@/lib/leaveStorage";
 import { API_BASE_URL } from "@/config/api";
@@ -524,7 +524,7 @@ export function StaffProfileDialog({
           id: employee.user_id,
           name: employee.full_name || "New User",
           email: employee.email || "Account Active",
-          position: (employee.role === "operation_manager" || employee.role === "finance_manager" || employee.position === "Finance Manager" || employee.position === "finance_manager") ? "Operation Manager" : employee.role === "hr_admin" ? "HR Admin" : employee.role ? employee.role.split('_').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') : "Employee",
+          position: employee.role_name || ((employee.role === "operation_manager" || employee.role === "finance_manager" || employee.position === "Finance Manager" || employee.position === "finance_manager") ? "Operation Manager" : employee.role === "hr_admin" ? "HR Admin" : employee.role === "managing_director" ? "Managing Director" : employee.role === "head_of_department" ? "Head of Department" : employee.role === "branch_leader" ? "Branch Leader" : employee.role ? employee.role.split('_').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') : "Employee"),
           branch: employee.branch || "HQ",
           department: employee.department || "General",
           status: employee.status || "Active",
@@ -571,7 +571,7 @@ export function StaffProfileDialog({
   ).sort() as string[];
 
   const uniquePositions = Array.from(
-    new Set((Array.isArray(dbEmployees) ? dbEmployees : []).map((emp) => emp.position).filter(Boolean))
+    new Set([...((Array.isArray(availableRoles) ? availableRoles : []).filter(r => r.status === 'Active').map(r => r.name)), ...((Array.isArray(dbEmployees) ? dbEmployees : []).map((emp) => emp.position))].filter(Boolean))
   ).sort() as string[];
 
   const filtered = dbEmployees.filter((e) => {
@@ -579,7 +579,7 @@ export function StaffProfileDialog({
       e.name.toLowerCase().includes(search.toLowerCase()) ||
       e.position.toLowerCase().includes(search.toLowerCase());
     const matchesBranch = selectedBranch === "All" || e.branch === selectedBranch;
-    const matchesPosition = selectedPosition === "All" || e.position === selectedPosition;
+    const matchesPosition = selectedPosition === "All" || e.position?.toLowerCase() === selectedPosition.toLowerCase() || e.role?.toLowerCase() === selectedPosition.toLowerCase() || (e.role_name && e.role_name.toLowerCase() === selectedPosition.toLowerCase());
     const matchesStatus = selectedStatus === "All" || e.status === selectedStatus;
     return matchesSearch && matchesBranch && matchesPosition && matchesStatus;
   });
@@ -716,8 +716,7 @@ export function StaffProfileDialog({
           password: signupPassword,
           branch: signupBranch,
           department: signupBranch === "HQ" ? signupDepartment : null,
-          // Convert Proper Case display name (e.g. "Branch Leader") to snake_case (e.g. "branch_leader") for user_role table
-          role: signupRole.toLowerCase().replace(/ /g, '_'),
+          role: (availableRoles.find(r => r.name.toLowerCase() === signupRole.toLowerCase())?.name || signupRole || "Employee"),
           status: 'Active'
         }),
       });
@@ -2237,12 +2236,23 @@ export function StaffProfileDialog({
                   <SelectValue placeholder="Select Role" />
                 </SelectTrigger>
                 <SelectContent>
-                  {(Array.isArray(availableRoles) ? availableRoles : []).filter(r => r.status === 'Active').map(r => (
-                    <SelectItem key={r.id} value={r.name}>{r.name}</SelectItem>
-                  ))}
-                  {availableRoles.filter(r => r.status === 'Active').length === 0 && (
-                    <SelectItem value="Employee" disabled>No roles available</SelectItem>
-                  )}
+                  <SelectGroup>
+                    <SelectLabel className="text-xs font-bold text-slate-500 uppercase tracking-wider">System Roles</SelectLabel>
+                    {(Array.isArray(availableRoles) ? availableRoles : [])
+                      .filter((r) => r.is_system_role && r.status === 'Active')
+                      .map((r) => (
+                        <SelectItem key={r.id} value={r.name}>{r.name}</SelectItem>
+                      ))}
+                  </SelectGroup>
+                  <SelectSeparator />
+                  <SelectGroup>
+                    <SelectLabel className="text-xs font-bold text-slate-500 uppercase tracking-wider">Custom Roles</SelectLabel>
+                    {(Array.isArray(availableRoles) ? availableRoles : [])
+                      .filter((r) => !r.is_system_role && r.status === 'Active')
+                      .map((r) => (
+                        <SelectItem key={r.id} value={r.name}>{r.name}</SelectItem>
+                      ))}
+                  </SelectGroup>
                 </SelectContent>
               </Select>
             </div>

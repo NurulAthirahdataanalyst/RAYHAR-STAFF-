@@ -427,92 +427,567 @@ const upload = multer({
 });
 
 // ===============================
-// ROLES API
+// RBAC MIDDLEWARE & HELPERS
 // ===============================
 
+// Helper to resolve user permissions by userId, email, or role
+async function getUserPermissions(userIdOrEmail, rawRole) {
+  try {
+    let permissions = [];
+    if (userIdOrEmail) {
+      const [rows] = await pool.query(
+        `SELECT DISTINCT p.permission_key 
+         FROM permissions p
+         JOIN role_permissions rp ON rp.permission_id = p.id
+         JOIN profiles prof ON prof.role_id = rp.role_id
+         WHERE prof.user_id = ? OR prof.email = ?`,
+        [userIdOrEmail, userIdOrEmail]
+      );
+      if (rows && rows.length > 0) {
+        return rows.map(r => r.permission_key);
+      }
+    }
+
+    if (rawRole) {
+      const cleanRole = rawRole.trim().toLowerCase();
+      const [rows] = await pool.query(
+        `SELECT DISTINCT p.permission_key 
+         FROM permissions p
+         JOIN role_permissions rp ON rp.permission_id = p.id
+         JOIN roles r ON r.id = rp.role_id
+         WHERE LOWER(r.name) = LOWER(?) 
+            OR LOWER(REPLACE(r.name, ' ', '_')) = LOWER(?)
+            OR (r.is_system_role = TRUE AND (
+              (? IN ('hr_admin', 'admin', 'hr') AND r.name = 'HR Admin') OR
+              (? IN ('managing_director', 'md') AND r.name = 'Managing Director') OR
+              (? IN ('operation_manager', 'finance_manager') AND r.name = 'Operation Manager') OR
+              (? IN ('branch_leader') AND r.name = 'Branch Leader') OR
+              (? IN ('head_of_department', 'hod') AND r.name = 'Head of Department') OR
+              (? IN ('employee') AND r.name = 'Employee')
+            ))`,
+        [cleanRole, cleanRole, cleanRole, cleanRole, cleanRole, cleanRole, cleanRole, cleanRole]
+      );
+      if (rows && rows.length > 0) {
+        return rows.map(r => r.permission_key);
+      }
+    }
+
+    // Default fallback to Employee role permissions
+    const [fallback] = await pool.query(
+      `SELECT DISTINCT p.permission_key 
+       FROM permissions p
+       JOIN role_permissions rp ON rp.permission_id = p.id
+       JOIN roles r ON r.id = rp.role_id
+       WHERE r.name = 'Employee'`
+    );
+    return fallback ? fallback.map(r => r.permission_key) : [];
+  } catch (err) {
+    console.error("Error in getUserPermissions helper:", err);
+    return [];
+  }
+}
+
+// Middleware: requirePermission
+function requirePermission(permissionKey) {
+  return async (req, res, next) => {
+    try {
+      const tokenHeader = req.headers.authorization;
+      let tokenPayload = null;
+      if (tokenHeader && tokenHeader.startsWith("Bearer ") && jwtSecret) {
+        try {
+          const rawToken = tokenHeader.split(" ")[1];
+          tokenPayload = jwt.verify(rawToken, jwtSecret);
+        } catch (e) {}
+      }
+
+      const userId = safeString(
+        tokenPayload?.id ||
+        req.user?.userId ||
+        req.user?.id ||
+        req.headers['x-user-id'] ||
+        req.query.userId ||
+        req.body?.userId
+      );
+
+      const rawRole = safeString(
+        tokenPayload?.role ||
+        req.user?.role ||
+        req.headers['x-user-role'] ||
+        req.query.role ||
+        req.body?.role
+      );
+
+      // Superuser bypass for HR Admin
+      const normRole = rawRole.toLowerCase();
+      if (normRole === 'hr_admin' || normRole === 'hr admin' || normRole === 'admin') {
+        req.userPermissions = ['*'];
+        return next();
+      }
+
+      if (!userId && !rawRole) {
+        return res.status(403).json({
+          success: false,
+          error: `Forbidden: Missing authentication credentials for permission '${permissionKey}'`,
+          requiredPermission: permissionKey
+        });
+      }
+
+      const permissions = await getUserPermissions(userId, rawRole);
+      if (permissions.includes(permissionKey) || permissions.includes('*')) {
+        req.userPermissions = permissions;
+        return next();
+      }
+
+      return res.status(403).json({
+        success: false,
+        error: `Forbidden: You lack the required permission '${permissionKey}'`,
+        requiredPermission: permissionKey
+      });
+    } catch (err) {
+      console.error("requirePermission middleware error:", err);
+      return res.status(500).json({ success: false, error: "Authorization error" });
+    }
+  };
+}
+
+// ===============================
+// PERMISSIONS API
+// ===============================
+
+app.get("/api/permissions", async (req, res) => {
+  try {
+    const result = await pgPool.query(
+      "SELECT id, module, permission_key, display_name FROM permissions ORDER BY module ASC, id ASC"
+    );
+    const grouped = {};
+    for (const p of result.rows) {
+      if (!grouped[p.module]) {
+        grouped[p.module] = [];
+      }
+      grouped[p.module].push(p);
+    }
+    res.json({
+      success: true,
+      permissions: result.rows,
+      grouped
+    });
+  } catch (err) {
+    console.error("Error fetching permissions:", err);
+    res.status(500).json({ success: false, error: "Database error fetching permissions" });
+  }
+});
+
+// ===============================
+// ROLES API (RBAC)
+// ===============================
+
+// GET /api/roles — List all roles with user count and permission keys
 app.get("/api/roles", async (req, res) => {
   try {
-    const result = await pgPool.query("SELECT * FROM roles ORDER BY created_at ASC");
-    const formattedRoles = result.rows.map(row => {
-      let displayName = row.name;
-      if (row.name === 'hr_admin') {
-        displayName = 'HR Admin';
-      } else if (row.name === 'finance_manager' || row.name === 'operation_manager' || row.name === 'Finance Manager') {
-        displayName = 'Operation Manager';
-      } else if (row.name) {
-        displayName = row.name.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-      }
-      return {
-        ...row,
-        name: displayName
-      };
-    });
-    res.json({ success: true, roles: formattedRoles });
+    const result = await pgPool.query(`
+      SELECT 
+        r.id,
+        r.name,
+        r.description,
+        COALESCE(r.is_system_role, FALSE) AS is_system_role,
+        COALESCE(r.status, 'Active') AS status,
+        r.created_at,
+        r.updated_at,
+        COUNT(DISTINCT p.user_id)::int AS total_users,
+        COUNT(DISTINCT rp.permission_id)::int AS permission_count,
+        COALESCE(
+          json_agg(
+            json_build_object(
+              'id', perm.id,
+              'permission_key', perm.permission_key,
+              'module', perm.module,
+              'display_name', perm.display_name
+            ) ORDER BY perm.module ASC, perm.id ASC
+          ) FILTER (WHERE perm.id IS NOT NULL),
+          '[]'::json
+        ) AS permissions,
+        COALESCE(
+          array_agg(perm.permission_key ORDER BY perm.permission_key ASC) FILTER (WHERE perm.permission_key IS NOT NULL),
+          '{}'::varchar[]
+        ) AS permission_keys
+      FROM roles r
+      LEFT JOIN profiles p ON p.role_id = r.id OR LOWER(p.role) = LOWER(r.name) OR LOWER(REPLACE(p.role, '_', ' ')) = LOWER(r.name)
+      LEFT JOIN role_permissions rp ON rp.role_id = r.id
+      LEFT JOIN permissions perm ON perm.id = rp.permission_id
+      GROUP BY r.id, r.name, r.description, r.is_system_role, r.status, r.created_at, r.updated_at
+      ORDER BY r.is_system_role DESC, r.created_at ASC, r.name ASC
+    `);
+
+    res.json({ success: true, roles: result.rows });
   } catch (err) {
     console.error("Error fetching roles:", err);
     res.status(500).json({ success: false, error: "Database error fetching roles" });
   }
 });
 
-app.post("/api/roles", async (req, res) => {
-  const name = safeString(req.body?.name);
-  const status = safeString(req.body?.status);
-  if (!name) return res.status(400).json({ success: false, error: "Role name is required" });
-
+// GET /api/roles/:id — Get details of a single role
+app.get("/api/roles/:id", async (req, res) => {
+  const id = safeString(req.params.id);
   try {
-    const result = await pgPool.query(
-      "INSERT INTO roles (name, status) VALUES ($1, $2) RETURNING *",
-      [name, status || "Active"]
-    );
+    const result = await pgPool.query(`
+      SELECT 
+        r.id,
+        r.name,
+        r.description,
+        COALESCE(r.is_system_role, FALSE) AS is_system_role,
+        COALESCE(r.status, 'Active') AS status,
+        r.created_at,
+        r.updated_at,
+        COUNT(DISTINCT p.user_id)::int AS total_users,
+        COALESCE(
+          json_agg(
+            json_build_object(
+              'id', perm.id,
+              'permission_key', perm.permission_key,
+              'module', perm.module,
+              'display_name', perm.display_name
+            ) ORDER BY perm.module ASC, perm.id ASC
+          ) FILTER (WHERE perm.id IS NOT NULL),
+          '[]'::json
+        ) AS permissions,
+        COALESCE(
+          array_agg(perm.permission_key ORDER BY perm.permission_key ASC) FILTER (WHERE perm.permission_key IS NOT NULL),
+          '{}'::varchar[]
+        ) AS permission_keys
+      FROM roles r
+      LEFT JOIN profiles p ON p.role_id = r.id OR LOWER(p.role) = LOWER(r.name) OR LOWER(REPLACE(p.role, '_', ' ')) = LOWER(r.name)
+      LEFT JOIN role_permissions rp ON rp.role_id = r.id
+      LEFT JOIN permissions perm ON perm.id = rp.permission_id
+      WHERE r.id = $1
+      GROUP BY r.id, r.name, r.description, r.is_system_role, r.status, r.created_at, r.updated_at
+    `, [id]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: "Role not found" });
+    }
+
     res.json({ success: true, role: result.rows[0] });
   } catch (err) {
-    console.error("Error adding role:", err);
-    // Handle unique constraint violation (duplicate role name)
-    if (err.code === '23505') {
-      return res.status(400).json({ success: false, error: "Role name already exists" });
-    }
-    res.status(500).json({ success: false, error: "Database error adding role" });
+    console.error("Error fetching role by id:", err);
+    res.status(500).json({ success: false, error: "Database error fetching role" });
   }
 });
 
+// POST /api/roles — Create a new custom role with permissions
+app.post("/api/roles", async (req, res) => {
+  const name = safeString(req.body?.name);
+  const description = safeString(req.body?.description);
+  const status = safeString(req.body?.status) || "Active";
+  const permissions = Array.isArray(req.body?.permissions) ? req.body.permissions : [];
+
+  if (!name) {
+    return res.status(400).json({ success: false, error: "Role name is required" });
+  }
+
+  const client = await pgPool.connect();
+  try {
+    await client.query("BEGIN");
+
+    // Check duplicate name
+    const existing = await client.query(
+      "SELECT id FROM roles WHERE LOWER(TRIM(name)) = LOWER(TRIM($1))",
+      [name]
+    );
+    if (existing.rows.length > 0) {
+      await client.query("ROLLBACK");
+      return res.status(400).json({ success: false, error: `Role '${name}' already exists` });
+    }
+
+    // Insert custom role
+    const insertRoleRes = await client.query(
+      `INSERT INTO roles (name, description, is_system_role, status, created_at, updated_at)
+       VALUES ($1, $2, FALSE, $3, NOW(), NOW())
+       RETURNING *`,
+      [name, description || null, status]
+    );
+    const newRole = insertRoleRes.rows[0];
+
+    // Assign permissions
+    if (permissions.length > 0) {
+      // Find matching permission IDs whether permission keys or integer IDs were passed
+      const permRes = await client.query(
+        `SELECT id, permission_key FROM permissions 
+         WHERE permission_key = ANY($1::text[]) OR id = ANY($2::int[])`,
+        [permissions.map(String), permissions.map(p => Number(p)).filter(n => !isNaN(n))]
+      );
+
+      for (const p of permRes.rows) {
+        await client.query(
+          `INSERT INTO role_permissions (role_id, permission_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+          [newRole.id, p.id]
+        );
+      }
+    }
+
+    await client.query("COMMIT");
+    res.status(201).json({ success: true, role: newRole, message: "Custom role created successfully" });
+  } catch (err) {
+    await client.query("ROLLBACK");
+    console.error("Error creating custom role:", err);
+    if (err.code === '23505') {
+      return res.status(400).json({ success: false, error: "Role name already exists" });
+    }
+    res.status(500).json({ success: false, error: "Database error creating role" });
+  } finally {
+    client.release();
+  }
+});
+
+// PUT /api/roles/:id — Edit a role
 app.put("/api/roles/:id", async (req, res) => {
   const id = safeString(req.params.id);
   const name = safeString(req.body?.name);
+  const description = safeString(req.body?.description);
   const status = safeString(req.body?.status);
-  if (!name) return res.status(400).json({ success: false, error: "Role name is required" });
+  const permissions = Array.isArray(req.body?.permissions) ? req.body.permissions : null;
 
+  if (!name) {
+    return res.status(400).json({ success: false, error: "Role name is required" });
+  }
+
+  const client = await pgPool.connect();
   try {
-    const result = await pgPool.query(
-      "UPDATE roles SET name = $1, status = $2 WHERE id = $3 RETURNING *",
-      [name, status || "Active", id]
-    );
-    if (rows.length === 0) {
+    await client.query("BEGIN");
+
+    // Fetch existing role
+    const existing = await client.query("SELECT * FROM roles WHERE id = $1", [id]);
+    if (existing.rows.length === 0) {
+      await client.query("ROLLBACK");
       return res.status(404).json({ success: false, error: "Role not found" });
     }
-    res.json({ success: true, role: result.rows[0] });
-  } catch (err) {
-    console.error("Error updating role:", err);
-    if (err.code === '23505') {
-      return res.status(400).json({ success: false, error: "Role name already exists" });
+    const currentRole = existing.rows[0];
+
+    // Protect system roles from renaming or modifying is_system_role
+    if (currentRole.is_system_role) {
+      if (name.toLowerCase().trim() !== currentRole.name.toLowerCase().trim()) {
+        await client.query("ROLLBACK");
+        return res.status(400).json({
+          success: false,
+          error: "System roles are protected and cannot be renamed."
+        });
+      }
+    } else {
+      // Check duplicate name on another role
+      const nameCheck = await client.query(
+        "SELECT id FROM roles WHERE LOWER(TRIM(name)) = LOWER(TRIM($1)) AND id != $2",
+        [name, id]
+      );
+      if (nameCheck.rows.length > 0) {
+        await client.query("ROLLBACK");
+        return res.status(400).json({ success: false, error: `Role name '${name}' is already taken` });
+      }
     }
+
+    // Update role metadata
+    const updateRes = await client.query(
+      `UPDATE roles 
+       SET name = $1, description = $2, status = COALESCE($3, status), updated_at = NOW() 
+       WHERE id = $4 
+       RETURNING *`,
+      [currentRole.is_system_role ? currentRole.name : name, description, status || currentRole.status, id]
+    );
+
+    // Update permissions if provided and not a system role (system roles have immutable templates)
+    if (permissions !== null && !currentRole.is_system_role) {
+      await client.query("DELETE FROM role_permissions WHERE role_id = $1", [id]);
+
+      if (permissions.length > 0) {
+        const permRes = await client.query(
+          `SELECT id, permission_key FROM permissions 
+           WHERE permission_key = ANY($1::text[]) OR id = ANY($2::int[])`,
+          [permissions.map(String), permissions.map(p => Number(p)).filter(n => !isNaN(n))]
+        );
+
+        for (const p of permRes.rows) {
+          await client.query(
+            `INSERT INTO role_permissions (role_id, permission_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+            [id, p.id]
+          );
+        }
+      }
+    }
+
+    await client.query("COMMIT");
+    res.json({ success: true, role: updateRes.rows[0], message: "Role updated successfully" });
+  } catch (err) {
+    await client.query("ROLLBACK");
+    console.error("Error updating role:", err);
     res.status(500).json({ success: false, error: "Database error updating role" });
+  } finally {
+    client.release();
   }
 });
 
-app.delete("/api/roles/:id", async (req, res) => {
+// POST /api/roles/:id/duplicate — Duplicate an existing role
+app.post("/api/roles/:id/duplicate", async (req, res) => {
   const id = safeString(req.params.id);
+  const customName = safeString(req.body?.name);
+  const customDesc = safeString(req.body?.description);
+
+  const client = await pgPool.connect();
   try {
-    const result = await pgPool.query(
-      "DELETE FROM roles WHERE id = $1 RETURNING *",
-      [id]
+    await client.query("BEGIN");
+
+    const sourceRes = await client.query("SELECT * FROM roles WHERE id = $1", [id]);
+    if (sourceRes.rows.length === 0) {
+      await client.query("ROLLBACK");
+      return res.status(404).json({ success: false, error: "Source role not found" });
+    }
+    const sourceRole = sourceRes.rows[0];
+
+    // Determine unique duplicate name
+    let targetName = customName || `${sourceRole.name} (Copy)`;
+    let counter = 1;
+    while (true) {
+      const check = await client.query("SELECT id FROM roles WHERE LOWER(TRIM(name)) = LOWER(TRIM($1))", [targetName]);
+      if (check.rows.length === 0) break;
+      counter++;
+      targetName = customName ? `${customName} (${counter})` : `${sourceRole.name} (Copy ${counter})`;
+    }
+
+    const desc = customDesc || sourceRole.description || `Duplicated from ${sourceRole.name}`;
+
+    // Insert new custom role
+    const insertRes = await client.query(
+      `INSERT INTO roles (name, description, is_system_role, status, created_at, updated_at)
+       VALUES ($1, $2, FALSE, 'Active', NOW(), NOW())
+       RETURNING *`,
+      [targetName, desc]
     );
-    if (rows.length === 0) {
+    const newRole = insertRes.rows[0];
+
+    // Copy permissions
+    await client.query(
+      `INSERT INTO role_permissions (role_id, permission_id)
+       SELECT $1, permission_id FROM role_permissions WHERE role_id = $2
+       ON CONFLICT DO NOTHING`,
+      [newRole.id, id]
+    );
+
+    await client.query("COMMIT");
+    res.status(201).json({
+      success: true,
+      role: newRole,
+      message: `Role duplicated successfully as '${targetName}'`
+    });
+  } catch (err) {
+    await client.query("ROLLBACK");
+    console.error("Error duplicating role:", err);
+    res.status(500).json({ success: false, error: "Database error duplicating role" });
+  } finally {
+    client.release();
+  }
+});
+
+// PATCH /api/roles/:id/status — Toggle or set status (Active / Inactive)
+app.patch("/api/roles/:id/status", async (req, res) => {
+  const id = safeString(req.params.id);
+  const requestedStatus = safeString(req.body?.status);
+
+  try {
+    const roleRes = await pgPool.query("SELECT * FROM roles WHERE id = $1", [id]);
+    if (roleRes.rows.length === 0) {
       return res.status(404).json({ success: false, error: "Role not found" });
     }
-    res.json({ success: true, message: "Role deleted successfully" });
+    const role = roleRes.rows[0];
+
+    if (role.is_system_role) {
+      return res.status(400).json({ success: false, error: "System roles must remain Active." });
+    }
+
+    const nextStatus = requestedStatus || (role.status === "Active" ? "Inactive" : "Active");
+
+    const updateRes = await pgPool.query(
+      "UPDATE roles SET status = $1, updated_at = NOW() WHERE id = $2 RETURNING *",
+      [nextStatus, id]
+    );
+
+    res.json({ success: true, role: updateRes.rows[0], message: `Role status set to ${nextStatus}` });
+  } catch (err) {
+    console.error("Error toggling role status:", err);
+    res.status(500).json({ success: false, error: "Database error updating role status" });
+  }
+});
+
+// DELETE /api/roles/:id — Delete custom role (only if 0 users assigned)
+app.delete("/api/roles/:id", async (req, res) => {
+  const id = safeString(req.params.id);
+
+  try {
+    const roleRes = await pgPool.query("SELECT * FROM roles WHERE id = $1", [id]);
+    if (roleRes.rows.length === 0) {
+      return res.status(404).json({ success: false, error: "Role not found" });
+    }
+    const role = roleRes.rows[0];
+
+    // Rule 1: Prevent deleting system roles
+    if (role.is_system_role) {
+      return res.status(400).json({
+        success: false,
+        error: "System Roles are permanent system templates and cannot be deleted."
+      });
+    }
+
+    // Rule 2: Prevent deleting roles assigned to users
+    const userCountRes = await pgPool.query(
+      `SELECT COUNT(*)::int AS count FROM profiles 
+       WHERE role_id = $1 
+          OR LOWER(role) = LOWER($2) 
+          OR LOWER(REPLACE(role, '_', ' ')) = LOWER($2)`,
+      [id, role.name]
+    );
+    const assignedUsers = userCountRes.rows[0]?.count || 0;
+
+    if (assignedUsers > 0) {
+      return res.status(400).json({
+        success: false,
+        error: `Cannot delete role '${role.name}' because ${assignedUsers} employee(s) are currently assigned to it. Please reassign them to another role first.`,
+        assignedUsers
+      });
+    }
+
+    // Safe to delete
+    await pgPool.query("DELETE FROM roles WHERE id = $1", [id]);
+    res.json({ success: true, message: `Role '${role.name}' deleted successfully.` });
   } catch (err) {
     console.error("Error deleting role:", err);
     res.status(500).json({ success: false, error: "Database error deleting role" });
+  }
+});
+
+// GET /api/roles/:id/users — List employees assigned to this role
+app.get("/api/roles/:id/users", async (req, res) => {
+  const id = safeString(req.params.id);
+  try {
+    const roleRes = await pgPool.query("SELECT * FROM roles WHERE id = $1", [id]);
+    if (roleRes.rows.length === 0) {
+      return res.status(404).json({ success: false, error: "Role not found" });
+    }
+    const role = roleRes.rows[0];
+
+    const usersRes = await pgPool.query(
+      `SELECT user_id, full_name, email, branch, department, status, role
+       FROM profiles
+       WHERE role_id = $1 
+          OR LOWER(role) = LOWER($2) 
+          OR LOWER(REPLACE(role, '_', ' ')) = LOWER($2)
+       ORDER BY full_name ASC`,
+      [id, role.name]
+    );
+
+    res.json({
+      success: true,
+      role: { id: role.id, name: role.name, is_system_role: role.is_system_role },
+      users: usersRes.rows
+    });
+  } catch (err) {
+    console.error("Error fetching role users:", err);
+    res.status(500).json({ success: false, error: "Database error fetching role users" });
   }
 });
 
@@ -1113,13 +1588,41 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
     `);
     console.log('âœ… Auto-migration for branches completed.');
 
-    // Auto-migrate roles table
+    // Auto-migrate roles and RBAC tables
     await connection.query(`
       CREATE TABLE IF NOT EXISTS roles (
         id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
         name VARCHAR(255) NOT NULL UNIQUE,
+        description TEXT,
+        is_system_role BOOLEAN DEFAULT FALSE,
         status VARCHAR(50) DEFAULT 'Active',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    await connection.query(`ALTER TABLE roles ADD COLUMN IF NOT EXISTS description TEXT;`);
+    await connection.query(`ALTER TABLE roles ADD COLUMN IF NOT EXISTS is_system_role BOOLEAN DEFAULT FALSE;`);
+    await connection.query(`ALTER TABLE roles ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'Active';`);
+    await connection.query(`ALTER TABLE roles ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP;`);
+    await connection.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS role_id UUID REFERENCES roles(id) ON DELETE SET NULL;`);
+    await connection.query(`ALTER TABLE user_role ADD COLUMN IF NOT EXISTS role_id UUID REFERENCES roles(id) ON DELETE SET NULL;`);
+
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS permissions (
+        id SERIAL PRIMARY KEY,
+        module VARCHAR(100) NOT NULL,
+        permission_key VARCHAR(100) NOT NULL UNIQUE,
+        display_name VARCHAR(255) NOT NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS role_permissions (
+        role_id UUID NOT NULL REFERENCES roles(id) ON DELETE CASCADE,
+        permission_id INTEGER NOT NULL REFERENCES permissions(id) ON DELETE CASCADE,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (role_id, permission_id)
       );
     `);
 
@@ -2760,15 +3263,39 @@ app.post("/api/signup", async (req, res) => {
     // Hash password before storing it in the database
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Resolve role_id from roles table
+    let resolvedRoleId = null;
+    let resolvedRoleName = role || 'employee';
+    try {
+      const [roleLookup] = await connection.query(
+        `SELECT id, name FROM roles 
+         WHERE LOWER(TRIM(name)) = LOWER(TRIM(?))
+            OR LOWER(REPLACE(name, ' ', '_')) = LOWER(TRIM(?))
+            OR (name = 'HR Admin' AND LOWER(?) IN ('hr_admin', 'hr admin', 'admin'))
+            OR (name = 'Head of Department' AND LOWER(?) IN ('head_of_department', 'hod'))
+            OR (name = 'Operation Manager' AND LOWER(?) IN ('operation_manager', 'finance_manager'))
+            OR (name = 'Branch Leader' AND LOWER(?) = 'branch_leader')
+            OR (name = 'Employee' AND LOWER(?) = 'employee')
+         LIMIT 1`,
+        [resolvedRoleName, resolvedRoleName, resolvedRoleName, resolvedRoleName, resolvedRoleName, resolvedRoleName, resolvedRoleName]
+      );
+      if (roleLookup && roleLookup.length > 0) {
+        resolvedRoleId = roleLookup[0].id;
+        resolvedRoleName = roleLookup[0].name;
+      }
+    } catch (e) {
+      console.warn("Could not resolve role_id in signup:", e);
+    }
+
     await connection.query(
-      `INSERT INTO profiles (user_id, full_name, email, password, branch, department, status, role)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [userId, full_name, email, hashedPassword, branch, department || null, status || "Active", role || 'employee']
+      `INSERT INTO profiles (user_id, full_name, email, password, branch, department, status, role, role_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [userId, full_name, email, hashedPassword, branch, department || null, status || "Active", role || 'employee', resolvedRoleId]
     );
 
     await connection.query(
-      "INSERT INTO user_role (user_id, role, department) VALUES (?, ?, ?)",
-      [userId, role || 'employee', department || null]
+      "INSERT INTO user_role (user_id, role, department, role_id) VALUES (?, ?, ?, ?)",
+      [userId, role || 'employee', department || null, resolvedRoleId]
     );
 
     connection.release();
@@ -2835,6 +3362,7 @@ app.get("/api/branch-employees", async (req, res) => {
         CASE WHEN COALESCE(outstation_today.outstation_count, 0) > 0 THEN 1 ELSE 0 END AS is_outstation
       FROM profiles p
       LEFT JOIN user_role ur ON ur.user_id = p.user_id
+      LEFT JOIN roles r ON (r.id = p.role_id OR r.id = ur.role_id OR LOWER(TRIM(r.name)) = LOWER(TRIM(REPLACE(ur.role, '_', ' '))))
       LEFT JOIN (
         SELECT employee_id, SUM(adjustment_days) as total_adjustment 
         FROM leave_balance_adjustments 
@@ -4888,7 +5416,11 @@ app.get("/api/employees", async (req, res) => {
         COALESCE(temp_ewa.temp_branch, p.branch) AS branch,
         p.branch AS permanent_branch,
         temp_ewa.temp_branch AS temp_branch,
-        p.department, p.status, p.created_at, p.updated_at, COALESCE(ur.role, 'employee') AS role,
+        p.department, p.status, p.created_at, p.updated_at,
+        COALESCE(r.name, ur.role, 'Employee') AS role_name,
+        COALESCE(p.role_id, ur.role_id, r.id) AS role_id,
+        COALESCE(r.is_system_role, true) AS is_system_role,
+        COALESCE(ur.role, 'employee') AS role,
         COALESCE(lr.pending_leaves, 0) AS pending_leaves,
         COALESCE(lr.approved_leaves, 0) AS approved_leaves,
         COALESCE(lr.rejected_leaves, 0) AS rejected_leaves,
@@ -4912,6 +5444,7 @@ app.get("/api/employees", async (req, res) => {
         today.location AS today_location
       FROM profiles p
       LEFT JOIN user_role ur ON ur.user_id = p.user_id
+      LEFT JOIN roles r ON (r.id = p.role_id OR r.id = ur.role_id OR LOWER(TRIM(r.name)) = LOWER(TRIM(REPLACE(ur.role, '_', ' '))))
       LEFT JOIN (
         SELECT employee_id, 
                SUM(CASE WHEN UPPER(leave_type) IN ('ANNUAL LEAVE', 'ANNUAL & EMERGENCY LEAVE', 'ANNUAL/EMERGENCY LEAVE', 'CUTI TAHUNAN') THEN adjustment_days ELSE 0 END) AS annual_adj,
@@ -5075,6 +5608,83 @@ app.post("/api/employees/status", async (req, res) => {
   }
 });
 
+// Update Employee Role (Custom or System Role)
+app.patch("/api/employees/:userId/role", async (req, res) => {
+  const userId = safeString(req.params.userId);
+  const roleName = safeString(req.body?.role_name || req.body?.role);
+  const roleId = safeString(req.body?.role_id);
+  const operatorName = safeString(req.body?.operatorName || 'HR Admin');
+
+  if (!userId || (!roleName && !roleId)) {
+    return res.status(400).json({ success: false, error: "User ID and Role are required" });
+  }
+
+  try {
+    let roleRow = null;
+    if (roleId) {
+      const [rows] = await pool.query("SELECT id, name, is_system_role FROM roles WHERE id = ?", [roleId]);
+      if (rows && rows.length > 0) roleRow = rows[0];
+    }
+    if (!roleRow && roleName) {
+      const [rows] = await pool.query(
+        `SELECT id, name, is_system_role FROM roles 
+         WHERE LOWER(TRIM(name)) = LOWER(TRIM(?))
+            OR LOWER(REPLACE(name, ' ', '_')) = LOWER(TRIM(?))
+         LIMIT 1`,
+        [roleName, roleName]
+      );
+      if (rows && rows.length > 0) roleRow = rows[0];
+    }
+
+    if (!roleRow) {
+      return res.status(404).json({ success: false, error: "Specified role not found" });
+    }
+
+    const legacyRole = roleRow.name.toLowerCase().replace(/\s+/g, '_');
+
+    await pool.query(
+      `UPDATE profiles SET role_id = ?, role = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?`,
+      [roleRow.id, legacyRole, userId]
+    );
+
+    const [urRows] = await pool.query("SELECT id FROM user_role WHERE user_id = ?", [userId]);
+    if (urRows && urRows.length > 0) {
+      await pool.query(
+        `UPDATE user_role SET role_id = ?, role = ? WHERE user_id = ?`,
+        [roleRow.id, legacyRole, userId]
+      );
+    } else {
+      await pool.query(
+        "INSERT INTO user_role (user_id, role, role_id) VALUES (?, ?, ?)",
+        [userId, legacyRole, roleRow.id]
+      );
+    }
+
+    const [pRows] = await pool.query("SELECT full_name FROM profiles WHERE user_id = ?", [userId]);
+    const empName = pRows && pRows.length > 0 ? pRows[0].full_name : userId;
+
+    await pool.query(
+      `INSERT INTO activity_logs (user_id, actor, action, target, context, type) VALUES ($1, $2, $3, $4, $5, $6)`,
+      [userId, operatorName, 'role change', empName, `Assigned role '${roleRow.name}'`, 'system']
+    );
+
+    broadcastPresenceUpdate({
+      type: "config-change",
+      timestamp: new Date().toISOString(),
+      action: `Role updated for ${empName} to ${roleRow.name}`
+    });
+
+    res.json({
+      success: true,
+      message: `Employee role updated to ${roleRow.name} successfully.`,
+      role: roleRow
+    });
+  } catch (err) {
+    console.error("Update Employee Role Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // ===============================
 // DEPARTMENT HOD TRANSFER
 // ===============================
@@ -5201,9 +5811,13 @@ app.post("/api/login", async (req, res) => {
       return res.status(401).json({ success: false, error: "Wrong password", message: "Wrong password" });
     }
 
-    // get role
+    // get role and role_id from user_role and roles table
     const [roleRows] = await pool.query(
-      "SELECT role FROM user_role WHERE user_id = ? OR user_id = ?",
+      `SELECT ur.role, ur.role_id, r.name as role_name, r.is_system_role 
+       FROM user_role ur 
+       LEFT JOIN roles r ON r.id = ur.role_id OR LOWER(r.name) = LOWER(ur.role) OR LOWER(REPLACE(r.name, ' ', '_')) = LOWER(ur.role)
+       WHERE ur.user_id = ? OR ur.user_id = ?
+       LIMIT 1`,
       [user.user_id, user.email]
     );
 
@@ -5216,6 +5830,12 @@ app.post("/api/login", async (req, res) => {
     if (cleanRole === 'head of department' || cleanRole === 'hod' || cleanRole === 'head_of_department') cleanRole = 'head_of_department';
 
     const role = cleanRole;
+    const roleId = roleRows[0]?.role_id || user.role_id || null;
+    const roleName = roleRows[0]?.role_name || (role === 'hr_admin' ? 'HR Admin' : role === 'managing_director' ? 'Managing Director' : role === 'operation_manager' ? 'Operation Manager' : role === 'head_of_department' ? 'Head of Department' : role === 'branch_leader' ? 'Branch Leader' : 'Employee');
+    const isSystemRole = roleRows[0]?.is_system_role ?? true;
+
+    // Fetch user permissions
+    const userPerms = await getUserPermissions(user.user_id, role);
 
     // create token
     if (!jwtSecret) {
@@ -5229,7 +5849,9 @@ app.post("/api/login", async (req, res) => {
     const token = jwt.sign(
       {
         id: user.user_id,
-        role: role
+        role: role,
+        role_id: roleId,
+        permissions: userPerms
       },
       jwtSecret,
       { expiresIn: "1d" }
@@ -5237,7 +5859,7 @@ app.post("/api/login", async (req, res) => {
 
     // Fetch additional profile fields needed by the frontend
     const [profileRows] = await pool.query(
-      "SELECT full_name, email, branch, department, status FROM profiles WHERE user_id = ? LIMIT 1",
+      "SELECT full_name, email, branch, department, status, role_id FROM profiles WHERE user_id = ? LIMIT 1",
       [user.user_id]
     );
     const profile = profileRows[0] || {};
@@ -5254,7 +5876,11 @@ app.post("/api/login", async (req, res) => {
         branch: profile.branch,
         department: profile.department,
         status: profile.status,
-        role: role
+        role: role,
+        role_id: roleId,
+        role_name: roleName,
+        is_system_role: isSystemRole,
+        permissions: userPerms
       }
     });
 
@@ -5284,11 +5910,19 @@ app.get("/api/user-details/:identifier", async (req, res) => {
         COALESCE(p.annual_leave_entitlement, 14)::int AS annual_leave_entitlement,
         b.operating_zone,
         COALESCE(adj.total_adjustment, 0)::int AS total_adjustment,
-          COALESCE(adj.medical_adj, 0)::int AS medical_adj,
-          COALESCE(adj.replacement_adj, 0)::int AS replacement_adj,
-        COALESCE(ur.role, 'employee') AS role
+        COALESCE(adj.medical_adj, 0)::int AS medical_adj,
+        COALESCE(adj.replacement_adj, 0)::int AS replacement_adj,
+        COALESCE(ur.role, p.role, 'employee') AS role,
+        COALESCE(p.role_id, ur.role_id, r.id) AS role_id,
+        COALESCE(r.name, ur.role, p.role, 'Employee') AS role_name,
+        COALESCE(r.is_system_role, TRUE) AS is_system_role
       FROM profiles p
       LEFT JOIN user_role ur ON ur.user_id = p.user_id
+      LEFT JOIN roles r ON (r.id = p.role_id OR r.id = ur.role_id OR LOWER(TRIM(r.name)) = LOWER(TRIM(REPLACE(ur.role, '_', ' '))))
+      LEFT JOIN roles r ON r.id = p.role_id 
+                        OR r.id = ur.role_id 
+                        OR LOWER(r.name) = LOWER(ur.role) 
+                        OR LOWER(REPLACE(r.name, ' ', '_')) = LOWER(ur.role)
       LEFT JOIN branches b ON b.code = p.branch
       LEFT JOIN (
           SELECT employee_id, 
@@ -5309,6 +5943,7 @@ app.get("/api/user-details/:identifier", async (req, res) => {
     }
 
     const user = rows[0];
+    const userPerms = await getUserPermissions(user.user_id, user.role);
 
     res.json({
       success: true,
@@ -5318,15 +5953,24 @@ app.get("/api/user-details/:identifier", async (req, res) => {
         email: user.email,
         status: user.status,
         branch: user.branch,
-        department: user.department, created_at: user.created_at, updated_at: user.updated_at,
+        department: user.department, 
+        created_at: user.created_at, 
+        updated_at: user.updated_at,
         annual_leave_entitlement: user.annual_leave_entitlement,
         operating_zone: user.operating_zone || 'ZONE_B',
         total_adjustment: user.total_adjustment,
-          medical_adj: user.medical_adj,
-          replacement_adj: user.replacement_adj,
-          medical_leave_entitlement: user.medical_leave_entitlement || 14,
+        medical_adj: user.medical_adj,
+        replacement_adj: user.replacement_adj,
+        medical_leave_entitlement: user.medical_leave_entitlement || 14,
+        role_id: user.role_id,
+        role_name: user.role_name,
+        is_system_role: user.is_system_role
       },
       role: user.role,
+      role_id: user.role_id,
+      role_name: user.role_name,
+      is_system_role: user.is_system_role,
+      permissions: userPerms
     });
   } catch (err) {
     console.error("User Details Error:", err);
@@ -7597,6 +8241,7 @@ app.get("/api/reports/absent-employees", async (req, res) => {
         COALESCE(ur.role, 'employee') AS role
       FROM profiles p
       LEFT JOIN user_role ur ON ur.user_id = p.user_id
+      LEFT JOIN roles r ON (r.id = p.role_id OR r.id = ur.role_id OR LOWER(TRIM(r.name)) = LOWER(TRIM(REPLACE(ur.role, '_', ' '))))
       LEFT JOIN employee_work_assignment ewa ON ewa.user_id = p.user_id 
         AND ewa.status = 'Active' 
         AND ?::date BETWEEN (ewa.start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND COALESCE((ewa.end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date, '2099-12-31'::date)
@@ -7691,6 +8336,7 @@ app.get("/api/reports/on-leave-employees", async (req, res) => {
         lr.end_date
       FROM profiles p
       LEFT JOIN user_role ur ON ur.user_id = p.user_id
+      LEFT JOIN roles r ON (r.id = p.role_id OR r.id = ur.role_id OR LOWER(TRIM(r.name)) = LOWER(TRIM(REPLACE(ur.role, '_', ' '))))
       INNER JOIN leave_requests lr ON lr.user_id = p.user_id 
         AND lr.status = 'Approved' 
         AND ? BETWEEN lr.start_date AND lr.end_date
