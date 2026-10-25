@@ -135,136 +135,153 @@ const branches = [
     code: "HQ",
     name: "Rayhar HQ",
     location: "Kemaman,Terengganu",
-    leader: "Maria Santos",
+    leader: "MD KHAN IDRIS BIN MD KHAN IBRAHIM",
   },
   {
     code: "KMM",
     name: "Kemaman",
     location: "Kemaman,Terengganu",
-    leader: "Maria Santos",
+    leader: "-",
   },
   {
     code: "CNH",
     name: "Cheneh",
     location: "Kemaman,Terengganu",
-    leader: "Roberto Lim",
+    leader: "-",
   },
   {
     code: "KBG",
     name: "Kuala Berang",
     location: "Hulu Terengganu,Terengganu",
-    leader: "David Chen",
+    leader: "-",
   },
   {
     code: "TGG",
     name: "Kuala Terengganu",
     location: "Kuala Terengganu,Terengganu",
-    leader: "David Chen",
+    leader: "-",
   },
   {
     code: "DGN",
     name: "Dungun",
     location: "Dungun,Terengganu",
-    leader: "Roberto Lim",
+    leader: "-",
   },
   {
     code: "JTH",
     name: "Jertih",
     location: "Besut,Terengganu",
-    leader: "Roberto Lim",
+    leader: "-",
   },
   {
     code: "KBR",
     name: "Kota Bharu",
     location: "Kota Bharu,Kelantan",
-    leader: "Roberto Lim",
+    leader: "-",
   },
   {
     code: "RMP",
     name: "Rompin",
     location: "Rompin,Pahang",
-    leader: "Roberto Lim",
+    leader: "-",
   },
   {
     code: "MZM",
     name: "Muadzam Shah",
     location: "Muadzam Shah,Pahang",
-    leader: "Roberto Lim",
+    leader: "-",
   },
   {
     code: "SHA",
     name: "Shah Alam",
     location: "Shah Alam,Selangor",
-    leader: "Roberto Lim",
+    leader: "-",
   },
   {
     code: "BBB",
     name: "Bandar Baru Bangi",
     location: "Bandar Baru Bangi,Selangor",
-    leader: "Roberto Lim",
+    leader: "-",
   },
   {
     code: "KUL",
     name: "Kuala Lumpur",
     location: "Kuala Lumpur,Wilayah Persekutuan",
-    leader: "Roberto Lim",
+    leader: "-",
   },
-  { code: "IPH", name: "Ipoh", location: "Ipoh,Perak", leader: "Roberto Lim" },
+  { code: "IPH", name: "Ipoh", location: "Ipoh,Perak", leader: "-" },
   {
     code: "MJG",
     name: "Manjung",
     location: "Manjung,Perak",
-    leader: "Roberto Lim",
+    leader: "-",
   },
   {
     code: "KKS",
     name: "Kuala Kangsar",
     location: "Kuala Kangsar,Perak",
-    leader: "Roberto Lim",
+    leader: "-",
   },
   {
     code: "MLK",
     name: "Melaka",
     location: "Melaka,Melaka",
-    leader: "Roberto Lim",
+    leader: "-",
   },
   {
     code: "AOR",
     name: "Alor Setar",
     location: "Alor Setar,Kedah",
-    leader: "Roberto Lim",
+    leader: "-",
   },
   {
     code: "BTM",
     name: "Bertam",
     location: "Bertam,Pulau Pinang",
-    leader: "Roberto Lim",
+    leader: "-",
   },
   {
     code: "SNS",
     name: "Seremban",
     location: "Seremban,Negeri Sembilan",
-    leader: "Roberto Lim",
+    leader: "-",
   },
   {
     code: "BTP",
     name: "Batu Pahat",
     location: "Batu Pahat,Johor",
-    leader: "Roberto Lim",
+    leader: "-",
   },
   {
     code: "JB",
     name: "Johor Bharu",
     location: "Johor Bharu,Johor",
-    leader: "Roberto Lim",
+    leader: "-",
   },
   {
     code: "TWU",
     name: "Tawau",
     location: "Tawau,Sabah",
-    leader: "Roberto Lim",
+    leader: "-",
   },
 ];
+
+const getBranchLeaderInfo = (branch: any) => {
+  const isHQ = (branch?.code || "").toUpperCase() === "HQ";
+  const roleLabel = isHQ ? "MANAGING DIRECTOR:" : "BRANCH LEADER:";
+  const tableRoleLabel = isHQ ? "Managing Director" : "Branch Leader";
+
+  let name = (branch?.leader_name || "").trim();
+  if (!name) {
+    if (isHQ) {
+      name = "MD KHAN IDRIS BIN MD KHAN IBRAHIM";
+    } else {
+      name = "-";
+    }
+  }
+  return { isHQ, roleLabel, tableRoleLabel, name };
+};
+
 
 type BranchEmployee = {
   department?: string;
@@ -614,7 +631,8 @@ export default function Branches() {
             found.location !== ""
               ? found.location
               : staticInfo?.location || "Rayhar Branch";
-          const leader = found.leader_name || staticInfo?.leader || "Branch Leader";
+          const leaderInfo = getBranchLeaderInfo(found);
+          const leader = leaderInfo.name;
 
           setSelectedBranch({
             ...found,
@@ -1379,8 +1397,8 @@ export default function Branches() {
                   branch.location !== ""
                     ? branch.location
                     : staticInfo?.location || "Rayhar Branch";
-                const leader =
-                  branch.leader_name || staticInfo?.leader || "Branch Leader";
+                const leaderInfo = getBranchLeaderInfo(branch);
+                const leader = leaderInfo.name;
 
                 return (
                   <Card
@@ -1477,7 +1495,7 @@ export default function Branches() {
                         <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 mx-1 shrink-0" />
                         <div className="text-right min-w-0 flex-1 max-w-[185px]">
                           <p className="text-[9px] print:text-[13px] font-black text-black dark:text-white uppercase tracking-widest leading-none">
-                            LEADER:
+                            {leaderInfo.roleLabel}
                           </p>
                           <p className="text-[10px] print:text-[13px] font-black text-black dark:text-white mt-0.5 uppercase line-clamp-2 leading-tight break-words" title={leader}>
                             {leader}
@@ -1505,7 +1523,7 @@ export default function Branches() {
                         <TableHead className="text-center">
                           Attendance
                         </TableHead>
-                        <TableHead>Leader</TableHead>
+                        <TableHead>Branch Leader / MD</TableHead>
                         <TableHead className="text-right pr-6">
                           Action
                         </TableHead>
@@ -1538,10 +1556,8 @@ export default function Branches() {
                           branch.location !== ""
                             ? branch.location
                             : staticInfo?.location || "Rayhar Branch";
-                        const leader =
-                          branch.leader_name ||
-                          staticInfo?.leader ||
-                          "Branch Leader";
+                        const leaderInfo = getBranchLeaderInfo(branch);
+                        const leader = leaderInfo.name;
 
                         return (
                           <TableRow
@@ -1648,9 +1664,14 @@ export default function Branches() {
                               </Badge>
                             </TableCell>
                             <TableCell>
-                              <span className="text-sm italic text-foreground block max-w-[220px] line-clamp-2 leading-tight" title={leader}>
-                                {leader}
-                              </span>
+                              <div className="flex flex-col">
+                                <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                  {leaderInfo.tableRoleLabel}
+                                </span>
+                                <span className="text-sm font-semibold text-foreground block max-w-[220px] line-clamp-2 leading-tight" title={leader}>
+                                  {leader}
+                                </span>
+                              </div>
                             </TableCell>
                             <TableCell
                               className="text-right pr-6"

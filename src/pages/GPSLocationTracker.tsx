@@ -11,7 +11,7 @@ import { TablePagination } from "@/components/common/TablePagination";
 import { API_BASE_URL } from "../config/api";
 import { RefreshCw, MapPin , X} from 'lucide-react';
 import { useAuth } from "@/contexts/AuthContext";
-import { useRole } from "@/contexts/RoleContext";
+import { useRole, normalizeRole } from "@/contexts/RoleContext";
 import { useToast } from "@/hooks/use-toast";
 import { escapeHtml } from "@/utils/security";
 
@@ -174,7 +174,16 @@ export default function GPSLocationTracker() {
 
     // Subscribe to dedicated employee-locations SSE stream for direct location payloads and events
     try {
-      const es = new EventSource(`${API_BASE_URL}/api/employee-locations/stream`);
+      const normRole = normalizeRole(role || user?.role);
+      const userBranch = user?.branch || "";
+      const userDepartment = user?.department || "";
+      let streamParams = `?role=${encodeURIComponent(normRole)}`;
+      if (normRole === "branch_leader" && userBranch) {
+        streamParams += `&branch=${encodeURIComponent(userBranch)}`;
+      } else if (normRole === "head_of_department" && userDepartment) {
+        streamParams += `&department=${encodeURIComponent(userDepartment)}`;
+      }
+      const es = new EventSource(`${API_BASE_URL}/api/employee-locations/stream${streamParams}`);
       es.onmessage = (ev) => {
         try {
           const payload = JSON.parse(ev.data || "{}");
@@ -227,21 +236,20 @@ export default function GPSLocationTracker() {
     } catch (e) {
       return () => clearInterval(iv);
     }
-  }, []);
+  }, [role, user?.branch, user?.department]);
 
   const fetchData = async (showToast = false) => {
     setLoading(true);
     try {
       // Use aggregated endpoint to fetch all locations at once
-            let queryParams = "";
-      const userRole = role || user?.role || "";
+            const normRole = normalizeRole(role || user?.role);
       const userBranch = user?.branch || "";
       const userDepartment = user?.department || "";
-      
-      if (userRole === "branch_leader" && userBranch) {
-        queryParams = `?role=branch_leader&branch=${encodeURIComponent(userBranch)}`;
-      } else if (userRole === "head_of_department" && userDepartment) {
-        queryParams = `?role=head_of_department&department=${encodeURIComponent(userDepartment)}`;
+      let queryParams = `?role=${encodeURIComponent(normRole)}`;
+      if (normRole === "branch_leader" && userBranch) {
+        queryParams += `&branch=${encodeURIComponent(userBranch)}`;
+      } else if (normRole === "head_of_department" && userDepartment) {
+        queryParams += `&department=${encodeURIComponent(userDepartment)}`;
       }
       
       const res = await fetch(`${API_BASE_URL}/api/employee-locations${queryParams}`);
@@ -285,14 +293,24 @@ export default function GPSLocationTracker() {
   const visibleEmployees = useMemo(() => {
     let list = employees;
     const currentUserId = user?.user_id || user?.id;
-    if (role === 'employee' || role === 'branch_officer') {
-      list = list.filter(e => e.user_id === currentUserId);
-    } else if (role === 'branch_leader') {
-      list = list.filter(e => (e.branch || '').trim().toLowerCase() === (user?.branch || '').trim().toLowerCase());
-    } else if (role === 'head_of_department') {
-      list = list.filter(e => (e.department || '').trim().toLowerCase() === (user?.department || '').trim().toLowerCase());
+    const normRole = normalizeRole(role || user?.role);
+    const userBranch = (user?.branch || "").trim().toLowerCase();
+    const userDept = (user?.department || "").trim().toLowerCase();
+
+    // HR Admin, Managing Director, and Operation Manager see all staff
+    if (normRole === 'hr_admin' || normRole === 'managing_director' || normRole === 'operation_manager') {
+      return list;
     }
-    return list;
+    // Branch Leader can see own branch staff only
+    if (normRole === 'branch_leader') {
+      return list.filter(e => (e.branch || '').trim().toLowerCase() === userBranch);
+    }
+    // Head of Department (HOD) can see own department staff only
+    if (normRole === 'head_of_department') {
+      return list.filter(e => (e.department || '').trim().toLowerCase() === userDept);
+    }
+    // Standard employee: see self only
+    return list.filter(e => e.user_id === currentUserId);
   }, [employees, role, user]);
 
   const branches = useMemo(() => {

@@ -1857,12 +1857,31 @@ let sseClients = [];
 let liveStatsClients = [];
 let employeeLocationsClients = [];
 
-async function getEmployeeLocations(branch) {
+async function getEmployeeLocations(branch, department, role) {
   try {
     let params = [];
-    let branchFilter = "";
-    if (branch && branch !== "All") {
-      branchFilter = "AND LOWER(p.branch) = LOWER(?)";
+    let filter = "";
+
+    const normRole = (role || "").toLowerCase().replace(/\s+/g, '_');
+    if (normRole === 'branch_leader') {
+      const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
+      filter = "AND LOWER(p.branch) = LOWER(?)";
+      params.push(safeBranch);
+    } else if (normRole === 'head_of_department' || normRole === 'hod') {
+      const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
+      filter = "AND LOWER(p.department) = LOWER(?)";
+      params.push(safeDept);
+    } else if (['hr_admin', 'hr', 'admin', 'managing_director', 'md', 'operation_manager', 'finance_manager'].includes(normRole)) {
+      if (branch && branch !== "All") {
+        filter = "AND LOWER(p.branch) = LOWER(?)";
+        params.push(branch);
+      }
+      if (department && department !== "All") {
+        filter += " AND LOWER(p.department) = LOWER(?)";
+        params.push(department);
+      }
+    } else if (branch && branch !== "All") {
+      filter = "AND LOWER(p.branch) = LOWER(?)";
       params.push(branch);
     }
     const sql = `
@@ -1890,7 +1909,7 @@ async function getEmployeeLocations(branch) {
       LEFT JOIN outstation_assignments oa ON oa.user_id = a.user_id 
            AND oa.status != 'Cancelled' 
            AND CURRENT_DATE BETWEEN (oa.start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (oa.end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date
-      WHERE 1=1 ${branchFilter}
+      WHERE 1=1 ${filter}
     `;
     const [rows] = await pool.query(sql, params);
     return rows || [];
@@ -2182,18 +2201,19 @@ function broadcastPresenceUpdate(payload = { type: 'refresh' }) {
   // Also forward the original payload to employee-locations stream clients (so they receive events)
   if (employeeLocationsClients.length > 0) {
     employeeLocationsClients.forEach((c) => {
-      try { c.write(`data: ${JSON.stringify(payload)}\n\n`); } catch (e) { /* ignore */ }
+      try { (c.res || c).write(`data: ${JSON.stringify(payload)}\n\n`); } catch (e) { /* ignore */ }
     });
   }
   // Also push full employee locations to any registered clients
   if (employeeLocationsClients.length > 0) {
     (async () => {
       try {
-        const rows = await getEmployeeLocations();
-        const payload = { type: 'employee-locations', timestamp: new Date().toISOString(), locations: rows };
-        employeeLocationsClients.forEach((c) => {
-          try { c.write(`data: ${JSON.stringify(payload)}\n\n`); } catch (e) { /* ignore */ }
-        });
+        for (const c of employeeLocationsClients) {
+          const clientRes = c.res || c;
+          const rows = await getEmployeeLocations(c.branch, c.department, c.role);
+          const p = { type: 'employee-locations', timestamp: new Date().toISOString(), locations: rows };
+          try { clientRes.write(`data: ${JSON.stringify(p)}\n\n`); } catch (e) { /* ignore */ }
+        }
       } catch (e) {
         console.error('Error broadcasting employee locations:', e.message || e);
       }
@@ -2246,22 +2266,24 @@ app.get('/api/employee-locations/stream', async (req, res) => {
 
   // Send initial payload
   const streamBranch = safeString(req.query.branch) || undefined;
+  const streamDept = safeString(req.query.department) || undefined;
+  const streamRole = safeString(req.query.role) || undefined;
   try {
-    const rows = await getEmployeeLocations(streamBranch);
+    const rows = await getEmployeeLocations(streamBranch, streamDept, streamRole);
     res.write(`data: ${JSON.stringify({ type: 'employee-locations', timestamp: new Date().toISOString(), locations: rows })}\n\n`);
   } catch (e) {
     console.error('employee-locations stream initial send error', e);
   }
 
-  const client = res;
+  const client = { res, branch: streamBranch, department: streamDept, role: streamRole };
   employeeLocationsClients.push(client);
   console.log(`📡 Employee-locations SSE client connected. Total: ${employeeLocationsClients.length}`);
 
   // Periodic snapshot every 30s to keep client in sync
   const interval = setInterval(async () => {
     try {
-      const rows = await getEmployeeLocations(streamBranch);
-      client.write(`data: ${JSON.stringify({ type: 'employee-locations', timestamp: new Date().toISOString(), locations: rows })}\n\n`);
+      const rows = await getEmployeeLocations(streamBranch, streamDept, streamRole);
+      res.write(`data: ${JSON.stringify({ type: 'employee-locations', timestamp: new Date().toISOString(), locations: rows })}\n\n`);
     } catch (e) {
       console.error('employee-locations periodic error', e);
     }
@@ -2269,7 +2291,7 @@ app.get('/api/employee-locations/stream', async (req, res) => {
 
   req.on('close', () => {
     clearInterval(interval);
-    employeeLocationsClients = employeeLocationsClients.filter(c => c !== client);
+    employeeLocationsClients = employeeLocationsClients.filter(c => c.res !== res && c !== res);
     console.log(`📡 Employee-locations SSE client disconnected. Total: ${employeeLocationsClients.length}`);
   });
 });
@@ -3956,11 +3978,11 @@ app.get("/api/leave-requests", async (req, res) => {
         ) as approval_history,
         (
           CASE 
-            WHEN lr.status = 'Pending Branch Leader' THEN (SELECT UPPER(full_name) FROM profiles p2 JOIN user_role ur2 ON p2.user_id = ur2.user_id WHERE ur2.role = 'branch_leader' AND p2.branch = p.branch AND p2.status = 'Active' LIMIT 1)
-            WHEN lr.status = 'Pending HOD' THEN (SELECT UPPER(full_name) FROM profiles p2 JOIN user_role ur2 ON p2.user_id = ur2.user_id WHERE ur2.role = 'head_of_department' AND p2.department = p.department AND p2.status = 'Active' LIMIT 1)
-            WHEN lr.status IN ('Pending Operation Manager', 'Pending Operation', 'Pending Finance', 'Pending Finance Manager') THEN (SELECT UPPER(full_name) FROM profiles p2 JOIN user_role ur2 ON p2.user_id = ur2.user_id WHERE ur2.role IN ('operation_manager', 'finance_manager') AND p2.status = 'Active' LIMIT 1)
-            WHEN lr.status IN ('Pending MD', 'Pending Managing Director') THEN (SELECT UPPER(full_name) FROM profiles p2 JOIN user_role ur2 ON p2.user_id = ur2.user_id WHERE ur2.role = 'managing_director' AND p2.status = 'Active' LIMIT 1)
-            WHEN lr.status = 'Pending HR' THEN (SELECT UPPER(full_name) FROM profiles p2 JOIN user_role ur2 ON p2.user_id = ur2.user_id WHERE ur2.role = 'hr_admin' AND p2.status = 'Active' LIMIT 1)
+            WHEN lr.status = 'Pending Branch Leader' THEN (SELECT UPPER(full_name) FROM profiles p2 LEFT JOIN user_role ur2 ON p2.user_id = ur2.user_id LEFT JOIN roles r2 ON p2.role_id = r2.id WHERE (LOWER(COALESCE(ur2.role, '')) IN ('branch_leader', 'branch leader') OR LOWER(COALESCE(r2.name, '')) IN ('branch_leader', 'branch leader')) AND UPPER(p2.branch) = UPPER(p.branch) AND p2.status = 'Active' LIMIT 1)
+            WHEN lr.status = 'Pending HOD' THEN (SELECT UPPER(full_name) FROM profiles p2 LEFT JOIN user_role ur2 ON p2.user_id = ur2.user_id LEFT JOIN roles r2 ON p2.role_id = r2.id WHERE (LOWER(COALESCE(ur2.role, '')) IN ('head_of_department', 'head of department', 'hod') OR LOWER(COALESCE(r2.name, '')) IN ('head_of_department', 'head of department', 'hod')) AND UPPER(p2.department) = UPPER(p.department) AND p2.status = 'Active' LIMIT 1)
+            WHEN lr.status IN ('Pending Operation Manager', 'Pending Operation', 'Pending Finance', 'Pending Finance Manager') THEN (SELECT UPPER(full_name) FROM profiles p2 LEFT JOIN user_role ur2 ON p2.user_id = ur2.user_id LEFT JOIN roles r2 ON p2.role_id = r2.id WHERE (LOWER(COALESCE(ur2.role, '')) IN ('operation_manager', 'operation manager', 'finance_manager', 'finance manager') OR LOWER(COALESCE(r2.name, '')) IN ('operation_manager', 'operation manager', 'finance_manager', 'finance manager')) AND p2.status = 'Active' LIMIT 1)
+            WHEN lr.status IN ('Pending MD', 'Pending Managing Director') THEN (SELECT UPPER(full_name) FROM profiles p2 LEFT JOIN user_role ur2 ON p2.user_id = ur2.user_id LEFT JOIN roles r2 ON p2.role_id = r2.id WHERE (LOWER(COALESCE(ur2.role, '')) IN ('managing_director', 'managing director', 'md') OR LOWER(COALESCE(r2.name, '')) IN ('managing_director', 'managing director', 'md')) AND p2.status = 'Active' LIMIT 1)
+            WHEN lr.status = 'Pending HR' THEN (SELECT UPPER(full_name) FROM profiles p2 LEFT JOIN user_role ur2 ON p2.user_id = ur2.user_id LEFT JOIN roles r2 ON p2.role_id = r2.id WHERE (LOWER(COALESCE(ur2.role, '')) IN ('hr_admin', 'hr admin', 'hr', 'admin') OR LOWER(COALESCE(r2.name, '')) IN ('hr_admin', 'hr admin', 'hr', 'admin')) AND p2.status = 'Active' LIMIT 1)
             ELSE NULL
           END
         ) AS pending_approver_name,
@@ -4463,7 +4485,7 @@ app.post("/api/leave-requests", uploadLimiter, upload.single("lampiranMc"), asyn
         // Find approver according to workflow stage
         if (initialStatus === "Pending Managing Director" || initialStatus === "Pending MD") {
           const [mdRows] = await pool.query(
-            `SELECT p.email, p.user_id, p.full_name FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'managing_director' AND p.status = 'Active' LIMIT 1`
+            `SELECT p.email, p.user_id, p.full_name FROM profiles p LEFT JOIN user_role ur ON p.user_id = ur.user_id LEFT JOIN roles r ON p.role_id = r.id WHERE (LOWER(COALESCE(ur.role, '')) IN ('managing_director', 'managing director', 'md') OR LOWER(COALESCE(r.name, '')) IN ('managing_director', 'managing director', 'md')) AND p.status = 'Active' LIMIT 1`
           );
           if (mdRows && mdRows.length > 0) {
             approverEmail = mdRows[0].email;
@@ -4473,7 +4495,7 @@ app.post("/api/leave-requests", uploadLimiter, upload.single("lampiranMc"), asyn
           }
         } else if (initialStatus === "Pending Operation Manager" || initialStatus === "Pending Operation" || initialStatus === "Pending Finance") {
           const [omRows] = await pool.query(
-            `SELECT p.email, p.user_id, p.full_name FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role IN ('operation_manager', 'finance_manager') AND p.status = 'Active' LIMIT 1`
+            `SELECT p.email, p.user_id, p.full_name FROM profiles p LEFT JOIN user_role ur ON p.user_id = ur.user_id LEFT JOIN roles r ON p.role_id = r.id WHERE (LOWER(COALESCE(ur.role, '')) IN ('operation_manager', 'operation manager', 'finance_manager', 'finance manager') OR LOWER(COALESCE(r.name, '')) IN ('operation_manager', 'operation manager', 'finance_manager', 'finance manager')) AND p.status = 'Active' LIMIT 1`
           );
           if (omRows && omRows.length > 0) {
             approverEmail = omRows[0].email;
@@ -4483,7 +4505,7 @@ app.post("/api/leave-requests", uploadLimiter, upload.single("lampiranMc"), asyn
           }
         } else if (initialStatus === "Pending Branch Leader") {
           const [blRows] = await pool.query(
-            `SELECT p.email, p.user_id, p.full_name FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'branch_leader' AND LOWER(p.branch) = LOWER(?) AND p.status = 'Active' LIMIT 1`,
+            `SELECT p.email, p.user_id, p.full_name FROM profiles p LEFT JOIN user_role ur ON p.user_id = ur.user_id LEFT JOIN roles r ON p.role_id = r.id WHERE (LOWER(COALESCE(ur.role, '')) IN ('branch_leader', 'branch leader') OR LOWER(COALESCE(r.name, '')) IN ('branch_leader', 'branch leader')) AND UPPER(p.branch) = UPPER(?) AND p.status = 'Active' LIMIT 1`,
             [leaveData.branch]
           );
           if (blRows && blRows.length > 0) {
@@ -4495,7 +4517,7 @@ app.post("/api/leave-requests", uploadLimiter, upload.single("lampiranMc"), asyn
         } else {
           // Pending HOD
           const [hodRows] = await pool.query(
-            `SELECT p.email, p.user_id, p.full_name FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'head_of_department' AND (LOWER(p.department) = LOWER(?) OR ? IS NULL) AND p.status = 'Active' LIMIT 1`,
+            `SELECT p.email, p.user_id, p.full_name FROM profiles p LEFT JOIN user_role ur ON p.user_id = ur.user_id LEFT JOIN roles r ON p.role_id = r.id WHERE (LOWER(COALESCE(ur.role, '')) IN ('head_of_department', 'head of department', 'hod') OR LOWER(COALESCE(r.name, '')) IN ('head_of_department', 'head of department', 'hod')) AND (LOWER(p.department) = LOWER(?) OR ? IS NULL) AND p.status = 'Active' LIMIT 1`,
             [employeeDept, employeeDept]
           );
           if (hodRows && hodRows.length > 0) {
@@ -4809,7 +4831,7 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
         let notificationMessage = "";
 
         if (nextStatus === "Pending Operation" || nextStatus === "Pending Operation Manager" || nextStatus === "Pending Finance") {
-          const [omRows] = await pool.query(`SELECT p.email, p.user_id FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role IN ('operation_manager', 'finance_manager') AND p.status = 'Active' LIMIT 1`);
+          const [omRows] = await pool.query(`SELECT p.email, p.user_id FROM profiles p LEFT JOIN user_role ur ON p.user_id = ur.user_id LEFT JOIN roles r ON p.role_id = r.id WHERE (LOWER(COALESCE(ur.role, '')) IN ('operation_manager', 'operation manager', 'finance_manager', 'finance manager') OR LOWER(COALESCE(r.name, '')) IN ('operation_manager', 'operation manager', 'finance_manager', 'finance manager')) AND p.status = 'Active' LIMIT 1`);
           if (omRows.length > 0) {
             targetEmail = omRows[0].email;
             targetUserId = omRows[0].user_id;
@@ -4819,7 +4841,7 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
             notificationMessage = `${leaveData.employee_name} requires your Operation Manager approval for a leave request.`;
           }
         } else if (nextStatus === "Pending MD" || nextStatus === "Pending Managing Director") {
-          const [mdRows] = await pool.query(`SELECT p.email, p.user_id FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'managing_director' AND p.status = 'Active' LIMIT 1`);
+          const [mdRows] = await pool.query(`SELECT p.email, p.user_id FROM profiles p LEFT JOIN user_role ur ON p.user_id = ur.user_id LEFT JOIN roles r ON p.role_id = r.id WHERE (LOWER(COALESCE(ur.role, '')) IN ('managing_director', 'managing director', 'md') OR LOWER(COALESCE(r.name, '')) IN ('managing_director', 'managing director', 'md')) AND p.status = 'Active' LIMIT 1`);
           if (mdRows.length > 0) {
             targetEmail = mdRows[0].email;
             targetUserId = mdRows[0].user_id;
@@ -4908,7 +4930,7 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
             progressMsg = "Your leave application is currently waiting for Operation Manager.";
           } else if (sUpper.includes("HOD") || sUpper.includes("HEAD OF DEPARTMENT")) {
             const [hodRows] = await pool.query(
-              `SELECT UPPER(p.full_name) AS full_name, p.department FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'head_of_department' AND (LOWER(p.department) = LOWER(?) OR ? IS NULL) AND p.status = 'Active' LIMIT 1`,
+              `SELECT UPPER(p.full_name) AS full_name, p.department FROM profiles p LEFT JOIN user_role ur ON p.user_id = ur.user_id LEFT JOIN roles r ON p.role_id = r.id WHERE (LOWER(COALESCE(ur.role, '')) IN ('head_of_department', 'head of department', 'hod') OR LOWER(COALESCE(r.name, '')) IN ('head_of_department', 'head of department', 'hod')) AND (LOWER(p.department) = LOWER(?) OR ? IS NULL) AND p.status = 'Active' LIMIT 1`,
               [leaveData.department, leaveData.department]
             );
             const hName = (hodRows && hodRows.length > 0 && hodRows[0].full_name) ? hodRows[0].full_name : "";
@@ -4918,7 +4940,7 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
               : `Your leave application is currently waiting for Head of Department (${dCode}).`;
           } else if (sUpper.includes("BRANCH LEADER")) {
             const [blRows] = await pool.query(
-              `SELECT UPPER(p.full_name) AS full_name FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'branch_leader' AND LOWER(p.branch) = LOWER(?) AND p.status = 'Active' LIMIT 1`,
+              `SELECT UPPER(p.full_name) AS full_name FROM profiles p LEFT JOIN user_role ur ON p.user_id = ur.user_id LEFT JOIN roles r ON p.role_id = r.id WHERE (LOWER(COALESCE(ur.role, '')) IN ('branch_leader', 'branch leader') OR LOWER(COALESCE(r.name, '')) IN ('branch_leader', 'branch leader')) AND UPPER(p.branch) = UPPER(?) AND p.status = 'Active' LIMIT 1`,
               [leaveData.branch]
             );
             const bName = (blRows && blRows.length > 0 && blRows[0].full_name) ? blRows[0].full_name : "";
@@ -5859,7 +5881,7 @@ app.post("/api/login", async (req, res) => {
 
     // Fetch additional profile fields needed by the frontend
     const [profileRows] = await pool.query(
-      "SELECT full_name, email, branch, department, status, role_id FROM profiles WHERE user_id = ? LIMIT 1",
+      "SELECT full_name, email, branch, department, status, role_id, created_at FROM profiles WHERE user_id = ? LIMIT 1",
       [user.user_id]
     );
     const profile = profileRows[0] || {};
@@ -5880,7 +5902,8 @@ app.post("/api/login", async (req, res) => {
         role_id: roleId,
         role_name: roleName,
         is_system_role: isSystemRole,
-        permissions: userPerms
+        permissions: userPerms,
+        created_at: profile.created_at
       }
     });
 
@@ -5919,10 +5942,6 @@ app.get("/api/user-details/:identifier", async (req, res) => {
       FROM profiles p
       LEFT JOIN user_role ur ON ur.user_id = p.user_id
       LEFT JOIN roles r ON (r.id = p.role_id OR r.id = ur.role_id OR LOWER(TRIM(r.name)) = LOWER(TRIM(REPLACE(ur.role, '_', ' '))))
-      LEFT JOIN roles r ON r.id = p.role_id 
-                        OR r.id = ur.role_id 
-                        OR LOWER(r.name) = LOWER(ur.role) 
-                        OR LOWER(REPLACE(r.name, ' ', '_')) = LOWER(ur.role)
       LEFT JOIN branches b ON b.code = p.branch
       LEFT JOIN (
           SELECT employee_id, 
@@ -6091,14 +6110,25 @@ app.get("/api/employee-locations", async (req, res) => {
     let params = [];
     let filter = "";
 
-    if (role === 'branch_leader') {
+    const normRole = role.toLowerCase().replace(/\s+/g, '_');
+
+    if (normRole === 'branch_leader') {
         const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
         filter = "AND LOWER(p.branch) = LOWER(?)";
         params.push(safeBranch);
-    } else if (role === 'head_of_department') {
+    } else if (normRole === 'head_of_department' || normRole === 'hod') {
         const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
         filter = "AND LOWER(p.department) = LOWER(?)";
         params.push(safeDept);
+    } else if (['hr_admin', 'hr', 'admin', 'managing_director', 'md', 'operation_manager', 'finance_manager'].includes(normRole)) {
+        if (branch && branch !== "All") {
+          filter = "AND LOWER(p.branch) = LOWER(?)";
+          params.push(branch);
+        }
+        if (department && department !== "All") {
+          filter += " AND LOWER(p.department) = LOWER(?)";
+          params.push(department);
+        }
     } else if (branch && branch !== "All") {
         filter = "AND LOWER(p.branch) = LOWER(?)";
         params.push(branch);
@@ -10634,10 +10664,17 @@ app.get("/api/branches", async (req, res) => {
         (
           SELECT p.full_name 
           FROM profiles p
-          JOIN user_role ur ON p.user_id = ur.user_id
+          LEFT JOIN user_role ur ON p.user_id = ur.user_id
+          LEFT JOIN roles r ON p.role_id = r.id
           WHERE p.status = 'Active' AND (
-            (b.code = 'HQ' AND ur.role = 'managing_director') 
-            OR (b.code != 'HQ' AND p.branch = b.code AND ur.role = 'branch_leader') 
+            (b.code = 'HQ' AND (
+              LOWER(COALESCE(ur.role, '')) IN ('managing_director', 'managing director', 'md')
+              OR LOWER(COALESCE(r.name, '')) IN ('managing_director', 'managing director', 'md')
+            )) 
+            OR (b.code != 'HQ' AND UPPER(p.branch) = UPPER(b.code) AND (
+              LOWER(COALESCE(ur.role, '')) IN ('branch_leader', 'branch leader')
+              OR LOWER(COALESCE(r.name, '')) IN ('branch_leader', 'branch leader')
+            )) 
           )
           LIMIT 1
         ) AS leader_name

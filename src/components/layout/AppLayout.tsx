@@ -42,7 +42,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const { role: resolvedRole, userBranch, userDepartment, userName, userId } = useRole();
+  const { role: resolvedRole, userBranch, userDepartment, userName, userId, isSystemRole } = useRole();
+  const normRole = (resolvedRole || "").toLowerCase().trim();
+  const hasRightSidebar = Boolean(
+    isSystemRole &&
+    ["hr_admin", "branch_leader", "head_of_department", "managing_director", "operation_manager", "finance_manager"].includes(normRole)
+  );
   const { theme, toggleTheme } = useTheme();
   useShiftNotifications();
   useBackgroundLocation();
@@ -481,7 +486,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </div>
 
             {/* Panel Sisi (Collapsible Sidebar - 30% or slim) */}
-            {resolvedRole !== "employee" && (
+            {hasRightSidebar && (
               <aside 
                 className={`hidden lg:flex flex-col shrink-0 transition-all duration-500 ease-in-out py-1 sticky top-4 max-h-[calc(100vh-32px)] overflow-visible ${
                   sidebarCollapsed 
