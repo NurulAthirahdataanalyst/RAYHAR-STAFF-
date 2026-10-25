@@ -67,7 +67,7 @@ const getColors = (percent: number, idx: number) => {
 
 export const EmployeesRequiringAttentionCard = ({ data = [], variant = 'grid', onEmployeeClick }: { data?: EmployeeAttentionData[], variant?: 'compact' | 'grid', onEmployeeClick?: (id: string) => void }) => {
   const [allLeaves, setAllLeaves] = useState<any[]>([]);
-
+  const [entitlements, setEntitlements] = useState<Record<string, number>>({});
   useEffect(() => {
     if (!data || data.length === 0) return;
     fetch(`${API_BASE_URL}/api/leave-requests`)
@@ -76,21 +76,42 @@ export const EmployeesRequiringAttentionCard = ({ data = [], variant = 'grid', o
         if (json.success) setAllLeaves(json.leaveRequests || []);
       })
       .catch(console.error);
+
+    fetch(`${API_BASE_URL}/api/leave-entitlements`)
+      .then(res => res.json())
+      .then(json => {
+        const entList = json.entitlements || json.data;
+        if (json.success && Array.isArray(entList)) {
+          const map: Record<string, number> = {};
+          entList.forEach((e: any) => {
+            const quota = Number(e.total_entitled ?? (Number(e.balance || 0) + Number(e.annual_days_used || 0)));
+            if (e.user_id) map[e.user_id] = quota;
+            if (e.employee) map[e.employee] = quota;
+            if (e.id) map[e.id] = quota;
+          });
+          setEntitlements(map);
+        }
+      })
+      .catch(console.error);
   }, [data]);
 
-  const getLeaveBreakdown = (empId: string) => {
+  const getLeaveBreakdown = (empId: string, onlyApproved: boolean = false) => {
     const breakdown = { AL: 0, UL: 0, RL: 0, MC: 0 };
     if (!allLeaves.length) return breakdown;
 
-    const empLeaves = allLeaves.filter((l: any) => l.user_id === empId && l.status !== "Rejected" && l.status !== "Cancelled");
+    const empLeaves = allLeaves.filter((l: any) => {
+      if (l.user_id !== empId) return false;
+      if (onlyApproved) return l.status === "Approved";
+      return l.status !== "Rejected" && l.status !== "Cancelled";
+    });
     
     empLeaves.forEach((l: any) => {
-       const type = l.leave_type || l.type || "";
+       const type = (l.leave_type || l.type || "").toLowerCase();
        const days = parseFloat(l.days) || 0;
-       if (type.includes("Annual") || type.includes("Emergency")) breakdown.AL += days;
-       else if (type.includes("Unpaid")) breakdown.UL += days;
-       else if (type.includes("Replacement") || type.includes("Cuti Ganti")) breakdown.RL += days;
-       else if (type.includes("Medical") || type.includes("Sick") || type.includes("MC")) breakdown.MC += days;
+       if (type.includes("annual") || type.includes("emergency") || type.includes("tahunan") || type.includes("kecemasan")) breakdown.AL += days;
+       else if (type.includes("unpaid") || type.includes("tanpa gaji")) breakdown.UL += days;
+       else if (type.includes("replacement") || type.includes("cuti ganti") || type.includes("ganti")) breakdown.RL += days;
+       else if (type.includes("medical") || type.includes("sick") || type.includes("mc") || type.includes("cuti sakit")) breakdown.MC += days;
     });
     return breakdown;
   };
@@ -135,8 +156,11 @@ export const EmployeesRequiringAttentionCard = ({ data = [], variant = 'grid', o
             {/* Rows */}
             <div className="flex flex-col">
               {data.map((emp, idx) => {
-                const percent = emp.total > 0 ? Math.round((emp.taken / emp.total) * 100) : 0;
-                const left = Math.max(0, emp.total - emp.taken);
+                const approvedAL = getLeaveBreakdown(emp.id, true).AL;
+                const taken = allLeaves.length > 0 ? approvedAL : (emp.taken ?? 0);
+                const total = entitlements[emp.id] || entitlements[emp.name] || emp.total || 14;
+                const percent = total > 0 ? Math.round((taken / total) * 100) : 0;
+                const left = Math.max(0, total - taken);
                 const initials = getInitials(emp.name);
                 const { progressColor, badgeColor, takenColor, avatarColor, iconColor } = getColors(percent, idx);
 
@@ -177,8 +201,8 @@ export const EmployeesRequiringAttentionCard = ({ data = [], variant = 'grid', o
                       <div className="col-span-3 pr-4">
                         <div className="flex justify-between items-baseline mb-1.5">
                           <div>
-                            <span className={`text-base font-black ${takenColor}`}>{emp.taken}</span>
-                            <span className="text-xs font-semibold text-foreground"> / {emp.total} days</span>
+                            <span className={`text-base font-black ${takenColor}`}>{taken}</span>
+                            <span className="text-xs font-semibold text-foreground"> / {total} days</span>
                           </div>
                           <span className="text-xs font-bold text-slate-800 dark:text-slate-100">{percent}%</span>
                         </div>
@@ -211,8 +235,13 @@ export const EmployeesRequiringAttentionCard = ({ data = [], variant = 'grid', o
           /* Grid Variant */
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mt-4">
             {data.map((emp, idx) => {
-              const percent = emp.total > 0 ? Math.round((emp.taken / emp.total) * 100) : 0;
-              const left = Math.max(0, emp.total - emp.taken);
+                const breakdown = getLeaveBreakdown(emp.id);
+                // Progress bar is for Annual and Emergency Leave taken vs total entitlement
+                const approvedAL = getLeaveBreakdown(emp.id, true).AL;
+                const taken = allLeaves.length > 0 ? approvedAL : (emp.taken ?? 0);
+                const total = entitlements[emp.id] || entitlements[emp.name] || emp.total || 14;
+                const percent = total > 0 ? Math.round((taken / total) * 100) : 0;
+                const left = Math.max(0, total - taken);
               const initials = getInitials(emp.name);
               const { progressColor, badgeColor, takenColor, avatarColor, iconColor } = getColors(percent, idx);
 
@@ -255,8 +284,8 @@ export const EmployeesRequiringAttentionCard = ({ data = [], variant = 'grid', o
                   <div className="mt-auto">
                     <div className="flex justify-between items-baseline mb-1.5">
                       <div>
-                        <span className={`text-sm font-black ${takenColor}`}>{emp.taken}</span>
-                        <span className="text-[10px] font-semibold text-foreground uppercase tracking-wider ml-1">Taken of {emp.total}</span>
+                        <span className={`text-sm font-black ${takenColor}`}>{taken}</span>
+                        <span className="text-[10px] font-semibold text-foreground uppercase tracking-wider ml-1">Taken of {total}</span>
                       </div>
                       <span className="text-xs font-bold text-slate-800 dark:text-slate-100">{percent}%</span>
                     </div>
