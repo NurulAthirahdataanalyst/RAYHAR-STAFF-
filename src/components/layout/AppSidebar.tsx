@@ -224,7 +224,6 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
           icon: Users,
           path: "/master",
           children: [
-            { title: "Master Hub", icon: Database, path: "/master" },
             { title: "Employee Directory", icon: Users, path: "/employees" },
             { title: "Department", icon: Building2, path: "/master/department" },
             { title: "Role", icon: Settings, path: "/master/role" },
@@ -447,7 +446,6 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
           icon: Users,
           path: "/master",
           children: [
-            { title: "Master Hub", icon: Database, path: "/master" },
             { title: "Employee Directory", icon: Users, path: "/employees" },
             { title: "Department", icon: Building2, path: "/master/department" },
             { title: "Role", icon: Settings, path: "/master/role" },
@@ -570,7 +568,6 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         icon: Users,
         path: "/master",
         children: [
-          { title: "Master Hub", icon: Database, path: "/master", permission: "employee.directory" },
           { title: "Employee Directory", icon: Users, path: "/employees", permission: "employee.directory" },
           { title: "Department", icon: Building2, path: "/master/department", permission: "employee.department" },
           { title: "Role", icon: Settings, path: "/master/role", permission: "employee.role" },
