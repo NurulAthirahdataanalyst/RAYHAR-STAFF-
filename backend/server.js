@@ -1799,10 +1799,16 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
 
     // Auto sanitization of database user_role table and profiles status column (fixes trailing carriage returns/newlines/spaces for all roles)
     try {
-      await connection.query("UPDATE user_role SET role = TRIM(BOTH FROM REGEXP_REPLACE(role, '[\\r\\n\\s]+', '', 'g'))");
-      await connection.query("UPDATE profiles SET status = TRIM(BOTH FROM REGEXP_REPLACE(status, '[\\r\\n\\s]+', '', 'g'))");
+      await connection.query("UPDATE user_role SET role = TRIM(BOTH FROM REGEXP_REPLACE(role, '[\\r\\n]+', '', 'g'))");
+      await connection.query("UPDATE profiles SET status = TRIM(BOTH FROM REGEXP_REPLACE(status, '[\\r\\n]+', '', 'g'))");
       // Auto-demote inactive users from leader/HOD roles to prevent them from staying assigned
-      await connection.query("UPDATE user_role ur SET role = 'employee' FROM profiles p WHERE ur.user_id = p.user_id AND p.status = 'Inactive' AND ur.role IN ('branch_leader', 'head_of_department')");
+      const [empRoleLookup] = await connection.query("SELECT id, name FROM roles WHERE LOWER(TRIM(name)) = 'employee' LIMIT 1");
+      const defaultEmpRole = empRoleLookup?.[0]?.name || 'Employee';
+      const defaultEmpRoleId = empRoleLookup?.[0]?.id || null;
+      await connection.query(
+        "UPDATE user_role ur SET role = ?, role_id = COALESCE(?, ur.role_id) FROM profiles p WHERE ur.user_id = p.user_id AND p.status = 'Inactive' AND LOWER(REPLACE(ur.role, ' ', '_')) IN ('branch_leader', 'head_of_department')",
+        [defaultEmpRole, defaultEmpRoleId]
+      );
       console.log('ðŸš€ Successfully sanitized database and demoted inactive users from leader/HOD roles.');
     } catch (sanErr) {
       console.error('âš ï¸ Database sanitization/demotion warning:', sanErr.message);
@@ -3293,7 +3299,7 @@ app.post("/api/signup", async (req, res) => {
 
     // Resolve role_id from roles table
     let resolvedRoleId = null;
-    let resolvedRoleName = role || 'employee';
+    let resolvedRoleName = role || 'Employee';
     try {
       const [roleLookup] = await connection.query(
         `SELECT id, name FROM roles 
@@ -3318,12 +3324,12 @@ app.post("/api/signup", async (req, res) => {
     await connection.query(
       `INSERT INTO profiles (user_id, full_name, email, password, branch, department, status, role, role_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [userId, full_name, email, hashedPassword, branch, department || null, status || "Active", role || 'employee', resolvedRoleId]
+      [userId, full_name, email, hashedPassword, branch, department || null, status || "Active", resolvedRoleName, resolvedRoleId]
     );
 
     await connection.query(
       "INSERT INTO user_role (user_id, role, department, role_id) VALUES (?, ?, ?, ?)",
-      [userId, role || 'employee', department || null, resolvedRoleId]
+      [userId, resolvedRoleName, department || null, resolvedRoleId]
     );
 
     connection.release();
@@ -5538,13 +5544,13 @@ app.get("/api/employees", async (req, res) => {
       ${branchFilter}
       ORDER BY 
         CASE 
-          WHEN ur.role = 'managing_director' THEN 1
-          WHEN ur.role = 'operation_manager' OR ur.role = 'finance_manager' THEN 2
-          WHEN ur.role = 'hr_admin' THEN 3
-          WHEN ur.role = 'head_of_department' THEN 4
-          WHEN ur.role = 'branch_leader' THEN 5
-          WHEN ur.role = 'branch_officer' THEN 6
-          WHEN ur.role = 'employee' THEN 7
+          WHEN LOWER(REPLACE(ur.role, ' ', '_')) = 'managing_director' THEN 1
+          WHEN LOWER(REPLACE(ur.role, ' ', '_')) IN ('operation_manager', 'finance_manager') THEN 2
+          WHEN LOWER(REPLACE(ur.role, ' ', '_')) = 'hr_admin' THEN 3
+          WHEN LOWER(REPLACE(ur.role, ' ', '_')) = 'head_of_department' THEN 4
+          WHEN LOWER(REPLACE(ur.role, ' ', '_')) = 'branch_leader' THEN 5
+          WHEN LOWER(REPLACE(ur.role, ' ', '_')) = 'branch_officer' THEN 6
+          WHEN LOWER(REPLACE(ur.role, ' ', '_')) = 'employee' THEN 7
           ELSE 8
         END ASC,
         p.full_name ASC
@@ -5597,8 +5603,8 @@ app.post("/api/employees/status", async (req, res) => {
   }
 
   // Security check: Only authorized roles can modify employee status
-  const normalizedRole = changer_role.toLowerCase();
-  const allowedRoles = ["hr_admin", "hr", "admin", "managing_director", "md", "operation_manager"];
+  const normalizedRole = changer_role.toLowerCase().replace(/\s+/g, "_");
+  const allowedRoles = ["hr_admin", "hr", "admin", "managing_director", "md", "operation_manager", "finance_manager"];
   if (changer_role && !allowedRoles.includes(normalizedRole)) {
     return res.status(403).json({ success: false, error: "Unauthorized: Only HR Admins, Managing Directors, or Operation Managers can change employee status." });
   }
@@ -5610,13 +5616,19 @@ app.post("/api/employees/status", async (req, res) => {
     );
 
     if (status === "Inactive") {
+      const [empRoleRows] = await pool.query(
+        "SELECT id, name FROM roles WHERE LOWER(TRIM(name)) = 'employee' LIMIT 1"
+      );
+      const validEmpRole = empRoleRows && empRoleRows.length > 0 ? empRoleRows[0].name : "Employee";
+      const validEmpRoleId = empRoleRows && empRoleRows.length > 0 ? empRoleRows[0].id : null;
+
       await pool.query(
-        "UPDATE user_role SET role = 'employee' WHERE user_id = ?",
-        [user_id]
+        "UPDATE user_role SET role = ?, role_id = COALESCE(?, role_id) WHERE user_id = ? AND LOWER(REPLACE(role, ' ', '_')) IN ('branch_leader', 'head_of_department')",
+        [validEmpRole, validEmpRoleId, user_id]
       );
       await pool.query(
-        "UPDATE profiles SET role = 'employee' WHERE user_id = ?",
-        [user_id]
+        "UPDATE profiles SET role = ?, role_id = COALESCE(?, role_id) WHERE user_id = ? AND LOWER(REPLACE(role, ' ', '_')) IN ('branch_leader', 'head_of_department')",
+        [validEmpRole, validEmpRoleId, user_id]
       );
     }
     
@@ -5668,23 +5680,23 @@ app.patch("/api/employees/:userId/role", async (req, res) => {
       return res.status(404).json({ success: false, error: "Specified role not found" });
     }
 
-    const legacyRole = roleRow.name.toLowerCase().replace(/\s+/g, '_');
+    const canonicalRoleName = roleRow.name;
 
     await pool.query(
       `UPDATE profiles SET role_id = ?, role = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?`,
-      [roleRow.id, legacyRole, userId]
+      [roleRow.id, canonicalRoleName, userId]
     );
 
     const [urRows] = await pool.query("SELECT id FROM user_role WHERE user_id = ?", [userId]);
     if (urRows && urRows.length > 0) {
       await pool.query(
         `UPDATE user_role SET role_id = ?, role = ? WHERE user_id = ?`,
-        [roleRow.id, legacyRole, userId]
+        [roleRow.id, canonicalRoleName, userId]
       );
     } else {
       await pool.query(
         "INSERT INTO user_role (user_id, role, role_id) VALUES (?, ?, ?)",
-        [userId, legacyRole, roleRow.id]
+        [userId, canonicalRoleName, roleRow.id]
       );
     }
 
@@ -5730,12 +5742,18 @@ app.post("/api/departments/hod-transfer", async (req, res) => {
   try {
     await connection.beginTransaction();
 
+    const [roleRows] = await connection.query(
+      "SELECT id, name FROM roles WHERE LOWER(REPLACE(name, ' ', '_')) IN ('employee', 'head_of_department')"
+    );
+    const empRoleObj = roleRows.find(r => r.name.toLowerCase() === 'employee') || { name: 'Employee', id: null };
+    const hodRoleObj = roleRows.find(r => r.name.toLowerCase().replace(/\s+/g, '_') === 'head_of_department') || { name: 'Head of Department', id: null };
+
     // 1. Find the current HOD for this department and branch
     const [currentHodRows] = await connection.query(
       `SELECT ur.user_id 
        FROM user_role ur 
        JOIN profiles p ON p.user_id = ur.user_id 
-       WHERE ur.role = 'head_of_department' 
+       WHERE LOWER(REPLACE(ur.role, ' ', '_')) = 'head_of_department' 
        AND LOWER(p.department) = LOWER(?) 
        AND LOWER(p.branch) = LOWER(?)`,
       [departmentName, branch || 'HQ']
@@ -5743,26 +5761,26 @@ app.post("/api/departments/hod-transfer", async (req, res) => {
 
     const previousHodId = currentHodRows.length > 0 ? currentHodRows[0].user_id : null;
 
-    // 2. If there's an existing HOD, demote them to 'employee'
+    // 2. If there's an existing HOD, demote them to 'Employee'
     if (previousHodId) {
       await connection.query(
-        "UPDATE user_role SET role = 'employee' WHERE user_id = ?",
-        [previousHodId]
+        "UPDATE user_role SET role = ?, role_id = COALESCE(?, role_id) WHERE user_id = ?",
+        [empRoleObj.name, empRoleObj.id, previousHodId]
       );
       await connection.query(
-        "UPDATE profiles SET role = 'employee' WHERE user_id = ?",
-        [previousHodId]
+        "UPDATE profiles SET role = ?, role_id = COALESCE(?, role_id) WHERE user_id = ?",
+        [empRoleObj.name, empRoleObj.id, previousHodId]
       );
     }
 
-    // 3. Promote the new user to 'head_of_department'
+    // 3. Promote the new user to 'Head of Department'
     await connection.query(
-      "UPDATE user_role SET role = 'head_of_department', department = ? WHERE user_id = ?",
-      [departmentName, newHodUserId]
+      "UPDATE user_role SET role = ?, role_id = COALESCE(?, role_id), department = ? WHERE user_id = ?",
+      [hodRoleObj.name, hodRoleObj.id, departmentName, newHodUserId]
     );
     await connection.query(
-      "UPDATE profiles SET role = 'head_of_department', department = ? WHERE user_id = ?",
-      [departmentName, newHodUserId]
+      "UPDATE profiles SET role = ?, role_id = COALESCE(?, role_id), department = ? WHERE user_id = ?",
+      [hodRoleObj.name, hodRoleObj.id, departmentName, newHodUserId]
     );
 
     // 4. Log the transfer in hod_history

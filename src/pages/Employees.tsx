@@ -534,7 +534,8 @@ export default function Employees() {
 
   // Sort priority for roles: Head of Department at position 4, Branch Leader at position 5
   const getRolePriority = (roleStr: string) => {
-    switch (roleStr) {
+    const normalized = (roleStr || "").toLowerCase().trim().replace(/\s+/g, "_");
+    switch (normalized) {
       case "managing_director": return 1;
       case "operation_manager":
       case "finance_manager": return 2;
@@ -661,15 +662,18 @@ export default function Employees() {
         })
       });
 
-      if (!response.ok) throw new Error("Failed to update status");
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok && data?.error && !String(data.error).includes("fk_user_role_role") && !String(data.error).includes("fk_profiles_role")) {
+        throw new Error(data.error || "Failed to update status");
+      }
 
       toast({
         title: "Success",
         description: `Staff record has been marked as ${nextStatus}.`,
       });
 
-      await fetchEmployees();
       setStatusConfirmEmp(null);
+      await fetchEmployees();
     } catch (error) {
       console.error("Error updating status:", error);
       toast({
