@@ -140,7 +140,6 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
     {
       title: (role === "managing_director" || role === "operation_manager" || role === "head_of_department" || role === "branch_leader") ? "Approval Center" : "Leave Administration",
       icon: CheckSquare,
-      path: "/leave/admin",
       children: [
         { title: "Leave Approval", icon: ClipboardList, path: "/leave/admin", permission: "leave.approval" },
         { title: "Team Leave Requests", icon: FileCheck, path: "/leave/team", permission: "leave.team_requests" },
@@ -148,12 +147,10 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         { title: "Leave Entitlement Management", icon: CalendarDays, path: "/leave/entitlement", permission: "leave.entitlement" },
       ],
     },
-    { title: "Employee Directory", icon: Users, path: "/employees", permission: "employee.directory" },
     {
       id: "admin_outstation",
       title: "Outstation Management",
       icon: Plane,
-      path: "/outstation",
       children: [
         { title: "Outstation Dashboard", icon: Plane, path: "/outstation", permission: "outstation.dashboard" },
         { title: "Outstation Assignment", icon: Plane, path: "/outstation/assignment", permission: "outstation.assignment" },
@@ -164,20 +161,12 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
     {
       title: "Employee Management",
       icon: Users,
-      path: "/master",
       children: [
         { title: "Employee Directory", icon: Users, path: "/employees", permission: "employee.directory" },
         { title: "Department", icon: Building2, path: "/master/department", permission: "employee.department" },
         { title: "Role Management", icon: Settings, path: "/master/role", permission: "employee.role" },
-      ],
-    },
-    {
-      title: "Branch Management",
-      icon: Building2,
-      path: "/branches",
-      children: [
-        { title: "Overview", path: "/branches", permission: "employee.branch" },
-        { title: "Temporary Assignments", path: "/branches/temporary-assignments", permission: "employee.temporary_assignment" },
+        { title: "Branch Management", icon: Building2, path: "/branches", permission: "employee.branch" },
+        { title: "Temporary Assignment", icon: Briefcase, path: "/branches/temporary-assignments", permission: "employee.temporary_assignment" },
       ],
     },
     {
@@ -360,7 +349,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                 <div className="relative group/menu-item space-y-1">
                   <HoverCardTrigger asChild>
                     <Link
-                      to={item.path || "#"}
+                      to={hasChildren ? "#" : (item.path || "#")}
                       onClick={(e) => {
                         if (hasChildren) {
                           e.preventDefault();
@@ -419,7 +408,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                               [menuKey]: !prev[menuKey]
                             }));
                           }}
-                          className="ml-auto p-0.5 rounded-md text-foreground dark:text-foreground hover:text-[#942392] dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5 transition-all"
+                          className="ml-auto p-1 rounded-md text-white/70 hover:text-white hover:bg-white/10 transition-all"
                           aria-label={isMenuExpanded ? "Collapse submenu" : "Expand submenu"}
                         >
                           {isMenuExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
