@@ -738,8 +738,11 @@ export default function LeaveAnalytics() {
   const total = filtered.length;
   const approved = filtered.filter((r) => r.status === "Approved").length;
   const rejected = filtered.filter((r) => r.status === "Rejected").length;
-  const pending = filtered.filter((r) => r.status.startsWith("Pending")).length;
+  const pending = filtered.filter((r) => (r.status || "").startsWith("Pending")).length;
   const totalDays = filtered.reduce((sum, r) => sum + r.days, 0);
+  const uniqueEmployees = staffSummary.length;
+  const avgLeaveDays = total > 0 && uniqueEmployees > 0 ? (totalDays / uniqueEmployees).toFixed(1) : "0";
+  const sickLeaveRate = total > 0 ? Math.round((filtered.filter(r => r.leave_type === "Sick Leave").length / total) * 100) : 0;
 
   // Leave type distribution
   const typeDistribution = useMemo(() => {
@@ -818,7 +821,7 @@ export default function LeaveAnalytics() {
       if (selectedType !== "All Types" && r.leave_type !== selectedType) return false;
       if (selectedStatus === "Approved" && r.status !== "Approved") return false;
       if (selectedStatus === "Rejected" && r.status !== "Rejected") return false;
-      if (selectedStatus === "Pending" && !r.status.startsWith("Pending")) return false;
+      if (selectedStatus === "Pending" && !(r.status && r.status.startsWith("Pending"))) return false;
       return true;
     });
 
@@ -958,7 +961,7 @@ export default function LeaveAnalytics() {
     const prevTotal = prevFiltered.length;
     const prevApproved = prevFiltered.filter((r) => r.status === "Approved").length;
     const prevRejected = prevFiltered.filter((r) => r.status === "Rejected").length;
-    const prevPending = prevFiltered.filter((r) => r.status.startsWith("Pending")).length;
+    const prevPending = prevFiltered.filter((r) => (r.status || "").startsWith("Pending")).length;
     const prevTotalDays = prevFiltered.reduce((sum, r) => sum + r.days, 0);
     const prevAvgDays = prevTotal > 0 && uniqueEmployees > 0 ? (prevTotalDays / uniqueEmployees) : 0;
     const prevSickCount = prevFiltered.filter((r) => r.leave_type === "Sick Leave").length;
@@ -1075,7 +1078,6 @@ export default function LeaveAnalytics() {
   }, [filtered]);
 
   // Leave balance usage estimate
-  const uniqueEmployees = staffSummary.length;
   const totalQuota = staffSummary.reduce((sum, s) => sum + s.quota, 0);
   const approvedDays = useMemo(
     () =>
@@ -1350,7 +1352,7 @@ export default function LeaveAnalytics() {
 
   const attentionEmployees = useMemo(() => {
     return [...staffSummary]
-      .sort((a, b) => b.days - a.days || a.name.localeCompare(b.name))
+      .sort((a, b) => (b.annualDays - a.annualDays) || (b.days - a.days) || a.name.localeCompare(b.name))
       .slice(0, 6)
       .map(s => ({
         id: s.id,
@@ -1415,9 +1417,6 @@ export default function LeaveAnalytics() {
     }
     return insights.length > 0 ? insights : ["Analyzing workforce leave patterns..."];
   }, [typeDistribution, heatmapData, balanceRisk, deptComparison]);
-
-  const avgLeaveDays = total > 0 && uniqueEmployees > 0 ? (totalDays / uniqueEmployees).toFixed(1) : "0";
-  const sickLeaveRate = total > 0 ? Math.round((filtered.filter(r => r.leave_type === "Sick Leave").length / total) * 100) : 0;
 
   if (roleLoading) {
     return (
