@@ -1340,7 +1340,7 @@ export default function LeaveAnalytics() {
     let mediumRisk = 0; // 80-90%
     staffSummary.forEach(s => {
       const q = s.quota || QUOTA_PER_EMPLOYEE;
-      const pct = (s.days / q) * 100;
+      const pct = q > 0 ? (s.annualDays / q) * 100 : 0;
       if (pct > 100) overQuota++;
       else if (pct >= 90) highRisk++;
       else if (pct >= 80) mediumRisk++;
@@ -1358,7 +1358,7 @@ export default function LeaveAnalytics() {
         role: (s.rawRole === "head_of_department" || s.rawRole === "hod") ? `Head Of Department (${s.department})` : s.rawRole === "branch_leader" ? "Branch Leader" : "Employee",
         dept: s.department,
         branch: s.branch,
-        taken: s.days,
+        taken: s.annualDays,
         total: s.quota || QUOTA_PER_EMPLOYEE
       }));
   }, [staffSummary, QUOTA_PER_EMPLOYEE]);
