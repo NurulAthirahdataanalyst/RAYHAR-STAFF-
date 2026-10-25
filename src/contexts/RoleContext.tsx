@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useAuth } from "./AuthContext";
 import { API_BASE_URL } from "../config/api";
 
@@ -126,6 +126,8 @@ export const RoleProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [userBranch, setUserBranch] = useState<string>(getInitialBranch);
   const [userDepartment, setUserDepartment] = useState<string>(getInitialDept);
   const [loading, setLoading] = useState(!user);
+  const lastFetchedUserRef = useRef<string>("");
+  const isFetchingRef = useRef<boolean>(false);
 
   const hasPermission = useCallback((permission: string | string[]): boolean => {
     // HR Admin super-bypass
@@ -142,17 +144,23 @@ export const RoleProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return permissions.includes(permission);
   }, [role, permissions]);
 
-  const fetchUserData = useCallback(async () => {
-    if (!resolvedUserId && !user?.email) return;
+  const fetchUserData = useCallback(async (force = false) => {
+    const targetId = resolvedUserId || user?.email;
+    if (!targetId) return;
+    if (!force && lastFetchedUserRef.current === targetId) return;
+    if (isFetchingRef.current) return;
+
+    lastFetchedUserRef.current = targetId;
+    isFetchingRef.current = true;
     try {
-      const response = await fetch(`${API_BASE_URL}/api/user-details/${resolvedUserId || user.email}`);
+      const response = await fetch(`${API_BASE_URL}/api/user-details/${targetId}`);
       const data = await response.json();
 
       if (response.ok && data.success && data.profile) {
-        const fetchedName = data.profile.full_name || user.full_name || user.name || user.email || "User";
+        const fetchedName = data.profile.full_name || user?.full_name || user?.name || user?.email || "User";
         const fetchedBranch = data.profile.branch || "HQ";
         const fetchedDept = data.profile.department || "";
-        const parsedRole = normalizeRole(data.role || user.role);
+        const parsedRole = normalizeRole(data.role || user?.role);
         const resolvedRName = data.role_name || data.profile.role_name || formatRoleDisplayName(parsedRole);
         const resolvedRId = data.role_id || data.profile.role_id;
         const resolvedIsSys = data.is_system_role ?? data.profile.is_system_role ?? true;
@@ -194,9 +202,10 @@ export const RoleProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error) {
       console.error("Role & permission fetch error:", error);
     } finally {
+      isFetchingRef.current = false;
       setLoading(false);
     }
-  }, [resolvedUserId, user?.email, user?.full_name, user?.name, user?.role, updateUserLocal]);
+  }, [resolvedUserId, user?.email, updateUserLocal]);
 
   useEffect(() => {
     if (!user) {
@@ -230,24 +239,38 @@ export const RoleProvider: React.FC<{ children: React.ReactNode }> = ({ children
     fetchUserData();
   }, [resolvedUserId, user?.email, fetchUserData]);
 
+  const contextValue = useMemo(() => ({
+    role,
+    roleName,
+    roleId,
+    isSystemRole,
+    permissions,
+    hasPermission,
+    setRole,
+    userName,
+    userBranch,
+    userDepartment,
+    userId: resolvedUserId,
+    loading,
+    refreshPermissions: () => fetchUserData(true)
+  }), [
+    role,
+    roleName,
+    roleId,
+    isSystemRole,
+    permissions,
+    hasPermission,
+    setRole,
+    userName,
+    userBranch,
+    userDepartment,
+    resolvedUserId,
+    loading,
+    fetchUserData
+  ]);
+
   return (
-    <RoleContext.Provider
-      value={{
-        role,
-        roleName,
-        roleId,
-        isSystemRole,
-        permissions,
-        hasPermission,
-        setRole,
-        userName,
-        userBranch,
-        userDepartment,
-        userId: resolvedUserId,
-        loading,
-        refreshPermissions: fetchUserData
-      }}
-    >
+    <RoleContext.Provider value={contextValue}>
       {children}
     </RoleContext.Provider>
   );

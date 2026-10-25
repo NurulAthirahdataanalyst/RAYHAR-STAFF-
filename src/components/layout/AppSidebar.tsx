@@ -30,7 +30,7 @@ import {
   Plane,
   MapPinned
 } from "lucide-react";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRole } from "@/contexts/RoleContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -95,7 +95,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
     "HR ADMINISTRATION";
 
   // Comprehensive RBAC-driven menu definition
-  const allMenuItems: any[] = [
+  const allMenuItems: any[] = useMemo(() => [
     { title: "Main Navigation", isSection: true },
     { title: "Dashboard", icon: LayoutDashboard, path: "/", permission: "dashboard.view" },
     {
@@ -212,48 +212,51 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       ],
     },
     { title: "Settings", icon: Settings, path: "/settings", permission: "settings.manage" },
-  ];
+  ], [adminSectionTitle, role]);
 
   // RBAC Permission Filter: Filter menu items and children based on granted permissions
-  const filteredItems: any[] = [];
-  let currentSection: any = null;
-  let sectionHasItems = false;
+  const filteredItems = useMemo(() => {
+    const items: any[] = [];
+    let currentSection: any = null;
+    let sectionHasItems = false;
 
-  for (const item of allMenuItems) {
-    if (item.isSection) {
-      currentSection = item;
-      sectionHasItems = false;
-      continue;
-    }
-
-    let isVisible = false;
-    let resolvedItem = { ...item };
-
-    if (item.children) {
-      const visibleChildren = item.children.filter((child: any) =>
-        !child.permission || hasPermission(child.permission)
-      );
-      if (visibleChildren.length > 0) {
-        isVisible = true;
-        resolvedItem.children = visibleChildren;
+    for (const item of allMenuItems) {
+      if (item.isSection) {
+        currentSection = item;
+        sectionHasItems = false;
+        continue;
       }
-    } else {
-      isVisible = !item.permission || hasPermission(item.permission);
-    }
 
-    if (isVisible) {
-      if (currentSection && !sectionHasItems) {
-        filteredItems.push(currentSection);
-        sectionHasItems = true;
+      let isVisible = false;
+      let resolvedItem = { ...item };
+
+      if (item.children) {
+        const visibleChildren = item.children.filter((child: any) =>
+          !child.permission || hasPermission(child.permission)
+        );
+        if (visibleChildren.length > 0) {
+          isVisible = true;
+          resolvedItem.children = visibleChildren;
+        }
+      } else {
+        isVisible = !item.permission || hasPermission(item.permission);
       }
-      filteredItems.push(resolvedItem);
+
+      if (isVisible) {
+        if (currentSection && !sectionHasItems) {
+          items.push(currentSection);
+          sectionHasItems = true;
+        }
+        items.push(resolvedItem);
+      }
     }
-  }
+    return items;
+  }, [allMenuItems, hasPermission]);
 
   // Automatically expand submenus if any child page is active
   useEffect(() => {
     let activeParentKey = "";
-    filteredItems.forEach(item => {
+    for (const item of filteredItems) {
       if (item.children) {
         const hasActiveChild = item.children.some((child: any) =>
           child.path && (location.pathname === child.path || (child.path !== item.path && location.pathname.startsWith(`${child.path}/`)))
@@ -261,13 +264,17 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         const isParentActive = item.path && location.pathname === item.path;
         if (hasActiveChild || isParentActive) {
           activeParentKey = (item as any).id || item.title;
+          break;
         }
       }
-    });
-    if (activeParentKey) {
-      setExpandedMenus({ [activeParentKey]: true });
     }
-  }, [location.pathname, role, filteredItems]);
+    if (activeParentKey) {
+      setExpandedMenus(prev => {
+        if (prev[activeParentKey]) return prev;
+        return { ...prev, [activeParentKey]: true };
+      });
+    }
+  }, [location.pathname, filteredItems]);
 
   const sidebarContent = (isMobile: boolean) => (
     <>
@@ -355,11 +362,16 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                     <Link
                       to={item.path || "#"}
                       onClick={(e) => {
-                        if (isMobile && !hasChildren) {
-                          onMobileClose();
+                        if (hasChildren) {
+                          e.preventDefault();
+                          setExpandedMenus(prev => ({
+                            ...prev,
+                            [menuKey]: !prev[menuKey]
+                          }));
+                          return;
                         }
-                        if (hasChildren && !effectiveCollapsed) {
-                          setExpandedMenus(prev => prev[menuKey] ? {} : { [menuKey]: true });
+                        if (isMobile) {
+                          onMobileClose();
                         }
                       }}
                       className={`group relative flex items-center gap-2.5 transition-all duration-300 touch-target ${
@@ -402,7 +414,10 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            setExpandedMenus(prev => prev[menuKey] ? {} : { [menuKey]: true });
+                            setExpandedMenus(prev => ({
+                              ...prev,
+                              [menuKey]: !prev[menuKey]
+                            }));
                           }}
                           className="ml-auto p-0.5 rounded-md text-foreground dark:text-foreground hover:text-[#942392] dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5 transition-all"
                           aria-label={isMenuExpanded ? "Collapse submenu" : "Expand submenu"}
