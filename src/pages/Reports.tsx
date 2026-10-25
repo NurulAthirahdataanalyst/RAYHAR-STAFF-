@@ -171,14 +171,31 @@ export default function Reports() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [previewCount, setPreviewCount] = useState(0);
 
+  // Sync role-based default scope
+  useEffect(() => {
+    const norm = (role || "").toLowerCase().trim();
+    if (norm === "branch_leader" && userBranch) {
+      setGeneratorBranch(userBranch);
+    } else if ((norm === "head_of_department" || norm === "hod") && userDepartment) {
+      setGeneratorDept(userDepartment);
+    }
+  }, [role, userBranch, userDepartment]);
+
   const fetchPreviewCount = useCallback(async () => {
     try {
+      const norm = (role || "").toLowerCase().trim();
+      const isBL = norm === "branch_leader";
+      const isHOD = norm === "head_of_department" || norm === "hod";
+
+      const effectiveBranch = isBL ? (userBranch || generatorBranch) : generatorBranch;
+      const effectiveDept = isHOD ? (userDepartment || generatorDept) : generatorDept;
+
       const params = new URLSearchParams({
         type: generatorType,
         month: selectedMonth,
         year: selectedYear,
-        branch: generatorBranch,
-        department: generatorDept,
+        branch: effectiveBranch || "all",
+        department: effectiveDept || "all",
         requesterRole: role || "",
         requesterBranch: userBranch || "",
         requesterDept: userDepartment || "",
@@ -493,12 +510,19 @@ export default function Reports() {
   const triggerGenerateReport = async () => {
     setIsGenerating(true);
     try {
+      const norm = (role || "").toLowerCase().trim();
+      const isBL = norm === "branch_leader";
+      const isHOD = norm === "head_of_department" || norm === "hod";
+
+      const effectiveBranch = isBL ? (userBranch || generatorBranch) : generatorBranch;
+      const effectiveDept = isHOD ? (userDepartment || generatorDept) : generatorDept;
+
       const params = new URLSearchParams({
         type: generatorType,
         month: selectedMonth,
         year: selectedYear,
-        branch: generatorBranch,
-        department: generatorDept,
+        branch: effectiveBranch || "all",
+        department: effectiveDept || "all",
         requesterRole: role || "",
         requesterBranch: userBranch || "",
         requesterDept: userDepartment || "",
@@ -840,16 +864,18 @@ export default function Reports() {
                   <div className="space-y-2">
                     <span className="text-[10px] font-black text-foreground uppercase tracking-widest">2. Scope Selection</span>
                     {(() => {
-                      const isEmployee = role === 'employee';
-                      const isBranchLeader = role === 'branch_leader';
-                      const isHOD = role === 'head_of_department';
-
-                      const showBranchFilter = !isEmployee && !isHOD && !isBranchLeader;
-                      const showDeptFilter = !isEmployee && !isBranchLeader && !isHOD;
+                      const norm = (role || "").toLowerCase().trim();
+                      const isHRAdmin = norm === 'hr_admin' || norm === 'admin' || norm === 'hr';
+                      const isMD_OM = norm === 'managing_director' || norm === 'operation_manager' || norm === 'finance_manager' || norm === 'md';
+                      const isFullAdmin = isHRAdmin || isMD_OM;
+                      const isBranchLeader = norm === 'branch_leader';
+                      const isHOD = norm === 'head_of_department' || norm === 'hod';
+                      const isEmployee = norm === 'employee' || norm === 'branch_officer';
 
                       return (
                         <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                          {showBranchFilter && (
+                          {/* Branch Selection or Locked Branch */}
+                          {isFullAdmin ? (
                             <div className="space-y-1.5 min-w-0">
                               <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Branch Location</label>
                               <Select value={generatorBranch} onValueChange={setGeneratorBranch}>
@@ -866,9 +892,35 @@ export default function Reports() {
                                 </SelectContent>
                               </Select>
                             </div>
-                          )}
+                          ) : isBranchLeader ? (
+                            <div className="space-y-1.5 min-w-0">
+                              <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Branch Location (Locked)</label>
+                              <div className="w-full h-11 px-3.5 flex items-center justify-between text-xs font-black uppercase tracking-widest rounded-xl border border-[#942392]/30 bg-[#942392]/5 text-[#942392] truncate shadow-xs">
+                                <span>{userBranch || "Your Branch"}</span>
+                                <Badge variant="outline" className="text-[8px] border-[#942392]/40 text-[#942392] font-black uppercase tracking-wider">YOUR BRANCH</Badge>
+                              </div>
+                            </div>
+                          ) : isHOD ? (
+                            <div className="space-y-1.5 min-w-0">
+                              <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Branch Location</label>
+                              <Select value={generatorBranch} onValueChange={setGeneratorBranch}>
+                                <SelectTrigger className="w-full h-11 text-xs font-black uppercase tracking-widest rounded-xl border-border bg-background/30">
+                                  <SelectValue placeholder="All Branches" />
+                                </SelectTrigger>
+                                <SelectContent className="rounded-xl">
+                                  <SelectItem value="all" className="text-[10px] font-black uppercase tracking-widest">All Branches</SelectItem>
+                                   {branches.map(b => (
+                                     <SelectItem key={b.code} value={b.code} className="text-[10px] font-black uppercase tracking-widest">
+                                       {b.code} - {b.name ? b.name.toLowerCase().replace(/\b\w/g, (c: string) => c.toUpperCase()) : b.name}
+                                     </SelectItem>
+                                   ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          ) : null}
 
-                          {showDeptFilter && (
+                          {/* Department Selection or Locked Department */}
+                          {isFullAdmin ? (
                             <div className="space-y-1.5 min-w-0">
                               <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Department</label>
                               <Select value={generatorDept} onValueChange={setGeneratorDept}>
@@ -883,7 +935,30 @@ export default function Reports() {
                                 </SelectContent>
                               </Select>
                             </div>
-                          )}
+                          ) : isHOD ? (
+                            <div className="space-y-1.5 min-w-0">
+                              <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Department (Locked)</label>
+                              <div className="w-full h-11 px-3.5 flex items-center justify-between text-xs font-black uppercase tracking-widest rounded-xl border border-[#942392]/30 bg-[#942392]/5 text-[#942392] truncate shadow-xs">
+                                <span>{userDepartment || "Your Department"}</span>
+                                <Badge variant="outline" className="text-[8px] border-[#942392]/40 text-[#942392] font-black uppercase tracking-wider">YOUR DEPT</Badge>
+                              </div>
+                            </div>
+                          ) : isBranchLeader ? (
+                            <div className="space-y-1.5 min-w-0">
+                              <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Department</label>
+                              <Select value={generatorDept} onValueChange={setGeneratorDept}>
+                                <SelectTrigger className="w-full h-11 text-xs font-black uppercase tracking-widest rounded-xl border-border bg-background/30">
+                                  <SelectValue placeholder="All Departments" />
+                                </SelectTrigger>
+                                <SelectContent className="rounded-xl">
+                                  <SelectItem value="all" className="text-[10px] font-black uppercase tracking-widest">All Departments</SelectItem>
+                                   {departments.map(d => (
+                                     <SelectItem key={d} value={d} className="text-[10px] font-black uppercase tracking-widest">{d ? d.toLowerCase().replace(/\b\w/g, (c: string) => c.toUpperCase()) : d}</SelectItem>
+                                   ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          ) : null}
 
                           <div className="space-y-1.5 col-span-2 sm:col-span-1 min-w-0">
                             <div className="flex items-center justify-between">

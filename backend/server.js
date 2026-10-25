@@ -11071,22 +11071,22 @@ app.get("/api/reports/generator", async (req, res) => {
     let requesterId = safeString(req.query.requesterId);
     
     // Normalize role string
-    if (requesterRole.includes('hr admin') || requesterRole === 'hr_admin' || requesterRole.includes('hr ')) requesterRole = 'hr_admin';
+    if (requesterRole.includes('hr admin') || requesterRole === 'hr_admin' || requesterRole.includes('hr ') || requesterRole === 'admin') requesterRole = 'hr_admin';
     else if (requesterRole.includes('md') || requesterRole.includes('managing director')) requesterRole = 'managing_director';
     else if (requesterRole.includes('branch leader') || requesterRole === 'branch_leader') requesterRole = 'branch_leader';
-    else if (requesterRole.includes('finance manager') || requesterRole.includes('operation manager') || requesterRole.includes('operations manager')) requesterRole = 'operation_manager';
+    else if (requesterRole.includes('finance manager') || requesterRole.includes('operation manager') || requesterRole.includes('operations manager') || requesterRole === 'operation_manager') requesterRole = 'operation_manager';
     else if (requesterRole.includes('head of department') || requesterRole.includes('hod') || requesterRole === 'head_of_department') requesterRole = 'head_of_department';
     
-    // Enforce role-based scoping
+    // Enforce role-based scoping:
+    // HR Admin, Operation Manager, and Managing Director can see ALL staff records
+    // HOD can see ONLY their OWN department staff records
+    // Branch Leader can see ONLY their OWN branch staff records
     if (requesterRole === 'employee') {
       // Employees can only export their own records
-      // We will add the p.user_id filter to all query filters
     } else if (requesterRole === 'branch_leader') {
-      // Branch leaders can only export their branch records
-      branch = requesterBranch;
+      branch = requesterBranch || branch;
     } else if (requesterRole === 'head_of_department') {
-      // HODs can only export their department records
-      department = requesterDept;
+      department = requesterDept || department;
     }
 
     let filters = [];
@@ -11098,8 +11098,8 @@ app.get("/api/reports/generator", async (req, res) => {
     }
     
     if (department && department !== 'all') {
-      filters.push("LOWER(p.department) = LOWER(?)");
-      params.push(department);
+      filters.push("(LOWER(p.department) = LOWER(?) OR LOWER(REPLACE(p.department, ' department', '')) = LOWER(REPLACE(?, ' department', '')))");
+      params.push(department, department);
     }
     
     if (month && month !== 'all') {
@@ -11129,8 +11129,8 @@ app.get("/api/reports/generator", async (req, res) => {
         profParams.push(branch);
       }
       if (department && department !== 'all') {
-        profFilters.push("LOWER(p.department) = LOWER(?)");
-        profParams.push(department);
+        profFilters.push("(LOWER(p.department) = LOWER(?) OR LOWER(REPLACE(p.department, ' department', '')) = LOWER(REPLACE(?, ' department', '')))");
+        profParams.push(department, department);
       }
       if (requesterRole === 'employee' && requesterId) {
         profFilters.push("p.user_id = ?");
@@ -11337,8 +11337,8 @@ app.get("/api/reports/generator", async (req, res) => {
          outParams.push(branch);
       }
       if (department && department !== 'all') {
-         outFilters.push("LOWER(p.department) = LOWER(?)");
-         outParams.push(department);
+         outFilters.push("(LOWER(p.department) = LOWER(?) OR LOWER(REPLACE(p.department, ' department', '')) = LOWER(REPLACE(?, ' department', '')))");
+         outParams.push(department, department);
       }
       if (month && month !== 'all') {
          outFilters.push("EXTRACT(MONTH FROM o.start_date) = ?");
@@ -11392,6 +11392,15 @@ app.get("/api/reports/generator", async (req, res) => {
          clFilters.push("EXTRACT(YEAR FROM start_date) = ?");
          clParams.push(year);
       }
+      if (requesterRole === 'branch_leader' && (requesterBranch || branch) && (requesterBranch || branch) !== 'all') {
+         const b = requesterBranch || branch;
+         clFilters.push("(applies_to = 'all' OR (applies_to = 'branch' AND (LOWER(branch_id) = LOWER(?) OR LOWER(branch_id) LIKE LOWER(CONCAT('%', ?, '%')))))");
+         clParams.push(b, b);
+      } else if (requesterRole === 'head_of_department' && (requesterDept || department) && (requesterDept || department) !== 'all') {
+         const d = requesterDept || department;
+         clFilters.push("(applies_to = 'all' OR (applies_to = 'department' AND (LOWER(department_id) = LOWER(?) OR LOWER(REPLACE(department_id, ' department', '')) = LOWER(REPLACE(?, ' department', '')) OR LOWER(department_id) LIKE LOWER(CONCAT('%', ?, '%')))))");
+         clParams.push(d, d, d);
+      }
       
       let clWhere = clFilters.length > 0 ? "WHERE " + clFilters.join(" AND ") : "";
       
@@ -11421,8 +11430,8 @@ app.get("/api/reports/generator", async (req, res) => {
       }
       
       if (department && department !== 'all') {
-         leaveFilters.push("LOWER(p.department) = LOWER(?)");
-         leaveParams.push(department);
+         leaveFilters.push("(LOWER(p.department) = LOWER(?) OR LOWER(REPLACE(p.department, ' department', '')) = LOWER(REPLACE(?, ' department', '')))");
+         leaveParams.push(department, department);
       }
       
       if (month && month !== 'all') {

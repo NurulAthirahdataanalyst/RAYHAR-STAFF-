@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import type { LucideIcon } from "lucide-react";
 import { 
   LayoutDashboard, 
@@ -28,7 +28,9 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Plane,
-  MapPinned
+  MapPinned,
+  Database,
+  History
 } from "lucide-react";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRole } from "@/contexts/RoleContext";
@@ -48,6 +50,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
   const { signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
+  const navigate = useNavigate();
   const [isCollapsed, setIsCollapsed] = useState(() => {
     if (typeof window !== "undefined") {
       return localStorage.getItem("appSidebarCollapsed") === "true";
@@ -111,6 +114,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         {
           title: "Calendar",
           icon: Calendar,
+          path: "/calendar",
           children: [
             { title: "Work Calendar", icon: Calendar, path: "/calendar" },
             { title: "Company Leave Calendar", icon: CalendarDays, path: "/calendar/company-leave" },
@@ -119,6 +123,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         {
           title: "Attendance",
           icon: Clock,
+          path: "/attendance",
           children: [
             { title: "My Attendance", icon: Clock, path: "/attendance" },
           ],
@@ -127,6 +132,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
           id: "main_outstation",
           title: "Outstation Management",
           icon: Plane,
+          path: "/outstation/my",
           children: [
             { title: "My Outstation", icon: Plane, path: "/outstation/my" },
             { title: "My Outstation Calendar", icon: Calendar, path: "/outstation/my-calendar" },
@@ -135,6 +141,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         {
           title: "Leave Management",
           icon: CalendarDays,
+          path: "/leave",
           children: [
             { title: "Leave Application", icon: FilePlus2, path: "/leave/apply" },
             { title: "My Leave Requests", icon: FileText, path: "/leave/forms" },
@@ -154,6 +161,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         {
           title: "Calendar",
           icon: Calendar,
+          path: "/calendar",
           children: [
             { title: "Work Calendar", icon: Calendar, path: "/calendar" },
           ],
@@ -161,6 +169,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         {
           title: "Attendance",
           icon: Clock,
+          path: "/attendance",
           children: [
             { title: "My Attendance", icon: Clock, path: "/attendance" },
           ],
@@ -169,6 +178,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
           id: "main_outstation",
           title: "Outstation Management",
           icon: Plane,
+          path: "/outstation/my",
           children: [
             { title: "My Outstation", icon: Plane, path: "/outstation/my" },
             { title: "My Outstation Calendar", icon: Calendar, path: "/outstation/my-calendar" },
@@ -177,6 +187,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         {
           title: "Leave Management",
           icon: CalendarDays,
+          path: "/leave",
           children: [
             { title: "Leave Application", icon: FilePlus2, path: "/leave/apply" },
             { title: "My Leave Requests", icon: FileText, path: "/leave/forms" },
@@ -188,6 +199,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         {
           title: "Leave Administration",
           icon: ClipboardList,
+          path: "/leave/admin",
           children: [
             { title: "Leave Approval", icon: ClipboardList, path: "/leave/admin" },
             { title: "Company Leave Calendar", icon: CalendarDays, path: "/calendar/company-leave" },
@@ -199,6 +211,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
           id: "admin_outstation",
           title: "Outstation Management",
           icon: Plane,
+          path: "/outstation",
           children: [
             { title: "Outstation Dashboard", icon: Plane, path: "/outstation" },
             { title: "Outstation Assignment", icon: Plane, path: "/outstation/assignment" },
@@ -209,7 +222,9 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         {
           title: "Employee Management",
           icon: Users,
+          path: "/master",
           children: [
+            { title: "Master Hub", icon: Database, path: "/master" },
             { title: "Employee Directory", icon: Users, path: "/employees" },
             { title: "Department", icon: Building2, path: "/master/department" },
             { title: "Role", icon: Settings, path: "/master/role" },
@@ -218,14 +233,16 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         {
           title: "Branch Management",
           icon: Building2,
+          path: "/branches",
           children: [
-            { title: "Overview", path: "/branches" },
+            { title: "Overview", icon: Building2, path: "/branches" },
             { title: "Temporary Assignment", icon: Briefcase, path: "/branches/temporary-assignments" },
           ],
         },
         {
           title: "Workforce Analytics",
           icon: PieChart,
+          path: "/hr-analytics/attendance",
           children: [
             { title: "Attendance Dashboard", icon: BarChart3, path: "/hr-analytics/attendance" },
             { title: "Leave Analytics", icon: BarChart3, path: "/hr-analytics/leave" },
@@ -236,6 +253,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         {
           title: "Reports",
           icon: FileSearch,
+          path: "/reports",
           children: [
             { title: "Attendance Reports", icon: FileSearch, path: "/reports/attendance" },
             { title: "Leave Reports", icon: FileSearch, path: "/reports/leave" },
@@ -246,6 +264,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         {
           title: "GPS Location Tracker",
           icon: MapPinned,
+          path: "/gps-location-tracker",
           children: [
             { title: "Live Tracker", icon: MapPinned, path: "/gps-location-tracker" },
           ],
@@ -263,6 +282,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         {
           title: "Calendar",
           icon: Calendar,
+          path: "/calendar",
           children: [
             { title: "Work Calendar", icon: Calendar, path: "/calendar" },
             { title: "Company Leave Calendar", icon: CalendarDays, path: "/calendar/company-leave" },
@@ -271,6 +291,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         {
           title: "Attendance",
           icon: Clock,
+          path: "/attendance",
           children: [
             { title: "My Attendance", icon: Clock, path: "/attendance" },
             { title: "Team Attendance", icon: Users, path: "/team-attendance" },
@@ -280,6 +301,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
           id: "main_outstation",
           title: "Outstation Management",
           icon: Plane,
+          path: "/outstation/my",
           children: [
             { title: "My Outstation", icon: Plane, path: "/outstation/my" },
             { title: "My Outstation Calendar", icon: Calendar, path: "/outstation/my-calendar" },
@@ -288,6 +310,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         {
           title: "Leave Management",
           icon: CalendarDays,
+          path: "/leave",
           children: [
             { title: "Leave Application", icon: FilePlus2, path: "/leave/apply" },
             { title: "My Leave Requests", icon: FileText, path: "/leave/forms" },
@@ -299,6 +322,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         {
           title: "Approval Center",
           icon: CheckSquare,
+          path: "/leave/admin",
           children: [
             { title: "Leave Approval", icon: ClipboardList, path: "/leave/admin" },
             { title: "Team Leave Requests", icon: FileCheck, path: "/leave/team" },
@@ -310,6 +334,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
           id: "admin_outstation",
           title: "Outstation Management",
           icon: Plane,
+          path: "/outstation",
           children: [
             { title: "Outstation Dashboard", icon: Plane, path: "/outstation" },
             { title: "Outstation Assignment", icon: Plane, path: "/outstation/assignment" },
@@ -321,6 +346,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         {
           title: "Workforce Analytics",
           icon: PieChart,
+          path: "/hr-analytics/attendance",
           children: [
             { title: "Attendance Dashboard", icon: BarChart3, path: "/hr-analytics/attendance" },
             { title: "Leave Analytics", icon: BarChart3, path: "/hr-analytics/leave" },
@@ -331,6 +357,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         {
           title: "Reports",
           icon: FileSearch,
+          path: "/reports",
           children: [
             { title: "Attendance Reports", icon: FileSearch, path: "/reports/attendance" },
             { title: "Leave Reports", icon: FileSearch, path: "/reports/leave" },
@@ -340,6 +367,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         {
           title: "GPS Location Tracker",
           icon: MapPinned,
+          path: "/gps-location-tracker",
           children: [
             { title: "Live Tracker", icon: MapPinned, path: "/gps-location-tracker" },
             { title: "Location History", icon: History, path: "/gps-location-tracker/history" },
@@ -356,6 +384,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         {
           title: "Calendar",
           icon: Calendar,
+          path: "/calendar",
           children: [
             { title: "Work Calendar", icon: Calendar, path: "/calendar" },
             { title: "Company Leave Calendar", icon: CalendarDays, path: "/calendar/company-leave" },
@@ -364,6 +393,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         {
           title: "Attendance",
           icon: Clock,
+          path: "/attendance",
           children: [
             { title: "My Attendance", icon: Clock, path: "/attendance" },
           ],
@@ -372,6 +402,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
           id: "main_outstation",
           title: "Outstation Management",
           icon: Plane,
+          path: "/outstation/my",
           children: [
             { title: "My Outstation", icon: Plane, path: "/outstation/my" },
             { title: "My Outstation Calendar", icon: Calendar, path: "/outstation/my-calendar" },
@@ -380,6 +411,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         {
           title: "Leave Management",
           icon: CalendarDays,
+          path: "/leave",
           children: [
             { title: "Leave Application", icon: FilePlus2, path: "/leave/apply" },
             { title: "My Leave Requests", icon: FileText, path: "/leave/forms" },
@@ -391,6 +423,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         {
           title: "Approval Center",
           icon: CheckSquare,
+          path: "/leave/admin",
           children: [
             { title: "Leave Approval", icon: ClipboardList, path: "/leave/admin" },
             { title: "Leave Entitlement Management", icon: CalendarDays, path: "/leave/entitlement" },
@@ -401,6 +434,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
           id: "admin_outstation",
           title: "Outstation Management",
           icon: Plane,
+          path: "/outstation",
           children: [
             { title: "Outstation Dashboard", icon: Plane, path: "/outstation" },
             { title: "Outstation Assignment", icon: Plane, path: "/outstation/assignment" },
@@ -411,7 +445,9 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         {
           title: "Employee Management",
           icon: Users,
+          path: "/master",
           children: [
+            { title: "Master Hub", icon: Database, path: "/master" },
             { title: "Employee Directory", icon: Users, path: "/employees" },
             { title: "Department", icon: Building2, path: "/master/department" },
             { title: "Role", icon: Settings, path: "/master/role" },
@@ -420,14 +456,16 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         {
           title: "Branch Management",
           icon: Building2,
+          path: "/branches",
           children: [
-            { title: "Overview", path: "/branches" },
+            { title: "Overview", icon: Building2, path: "/branches" },
             { title: "Temporary Assignment", icon: Briefcase, path: "/branches/temporary-assignments" },
           ],
         },
         {
           title: "Workforce Analytics",
           icon: PieChart,
+          path: "/hr-analytics/attendance",
           children: [
             { title: "Attendance Dashboard", icon: BarChart3, path: "/hr-analytics/attendance" },
             { title: "Leave Analytics", icon: BarChart3, path: "/hr-analytics/leave" },
@@ -438,6 +476,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         {
           title: "Reports",
           icon: FileSearch,
+          path: "/reports",
           children: [
             { title: "Attendance Reports", icon: FileSearch, path: "/reports/attendance" },
             { title: "Leave Reports", icon: FileSearch, path: "/reports/leave" },
@@ -448,10 +487,12 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         {
           title: "GPS Location Tracker",
           icon: MapPinned,
+          path: "/gps-location-tracker",
           children: [
             { title: "Live Tracker", icon: MapPinned, path: "/gps-location-tracker" },
           ],
         },
+        { title: "Settings", icon: Settings, path: "/settings" },
       ];
     }
 
@@ -462,6 +503,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       {
         title: "Calendar",
         icon: Calendar,
+        path: "/calendar",
         children: [
           { title: "Work Calendar", icon: Calendar, path: "/calendar", permission: "calendar.work" },
           { title: "Company Leave Calendar", icon: CalendarDays, path: "/calendar/company-leave", permission: "calendar.company_leave" },
@@ -470,6 +512,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       {
         title: "Attendance",
         icon: Clock,
+        path: "/attendance",
         children: [
           { title: "My Attendance", icon: Clock, path: "/attendance", permission: "attendance.my" },
           { title: "Team Attendance", icon: Users, path: "/team-attendance", permission: "attendance.team" },
@@ -479,6 +522,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         id: "main_outstation",
         title: "Outstation Management",
         icon: Plane,
+        path: "/outstation/my",
         children: [
           { title: "My Outstation", icon: Plane, path: "/outstation/my", permission: "outstation.my" },
           { title: "My Outstation Calendar", icon: Calendar, path: "/outstation/my-calendar", permission: "outstation.my_calendar" },
@@ -487,6 +531,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       {
         title: "Leave Management",
         icon: CalendarDays,
+        path: "/leave",
         children: [
           { title: "Leave Application", icon: FilePlus2, path: "/leave/apply", permission: "leave.apply" },
           { title: "My Leave Requests", icon: FileText, path: "/leave/forms", permission: "leave.my_requests" },
@@ -498,6 +543,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       {
         title: "Approval Center",
         icon: CheckSquare,
+        path: "/leave/admin",
         children: [
           { title: "Leave Approval", icon: ClipboardList, path: "/leave/admin", permission: "leave.approval" },
           { title: "Team Leave Requests", icon: FileCheck, path: "/leave/team", permission: "leave.team_requests" },
@@ -511,6 +557,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         id: "admin_outstation",
         title: "Outstation Management",
         icon: Plane,
+        path: "/outstation",
         children: [
           { title: "Outstation Dashboard", icon: Plane, path: "/outstation", permission: "outstation.dashboard" },
           { title: "Outstation Assignment", icon: Plane, path: "/outstation/assignment", permission: "outstation.assignment" },
@@ -521,7 +568,9 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       {
         title: "Employee Management",
         icon: Users,
+        path: "/master",
         children: [
+          { title: "Master Hub", icon: Database, path: "/master", permission: "employee.directory" },
           { title: "Employee Directory", icon: Users, path: "/employees", permission: "employee.directory" },
           { title: "Department", icon: Building2, path: "/master/department", permission: "employee.department" },
           { title: "Role", icon: Settings, path: "/master/role", permission: "employee.role" },
@@ -530,14 +579,16 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       {
         title: "Branch Management",
         icon: Building2,
+        path: "/branches",
         children: [
-          { title: "Overview", path: "/branches", permission: "employee.branch" },
+          { title: "Overview", icon: Building2, path: "/branches", permission: "employee.branch" },
           { title: "Temporary Assignment", icon: Briefcase, path: "/branches/temporary-assignments", permission: "employee.temporary_assignment" },
         ],
       },
       {
         title: "Workforce Analytics",
         icon: PieChart,
+        path: "/hr-analytics/attendance",
         children: [
           { title: "Attendance Dashboard", icon: BarChart3, path: "/hr-analytics/attendance", permission: "analytics.attendance" },
           { title: "Leave Analytics", icon: BarChart3, path: "/hr-analytics/leave", permission: "analytics.leave" },
@@ -548,6 +599,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       {
         title: "Reports",
         icon: FileSearch,
+        path: "/reports",
         children: [
           { title: "Attendance Reports", icon: FileSearch, path: "/reports/attendance", permission: "report.attendance" },
           { title: "Leave Reports", icon: FileSearch, path: "/reports/leave", permission: "report.leave" },
@@ -558,6 +610,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       {
         title: "GPS Location Tracker",
         icon: MapPinned,
+        path: "/gps-location-tracker",
         children: [
           { title: "Live Tracker", icon: MapPinned, path: "/gps-location-tracker", permission: "gps.live_tracker" },
           { title: "Location History", icon: History, path: "/gps-location-tracker/history", permission: "gps.location_history" },
@@ -697,7 +750,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
 
             const visibleChildren = item.children || [];
             const hasChildren = !!visibleChildren?.length;
-            const hasActiveChild = hasChildren && visibleChildren.some(child =>
+            const hasActiveChild = hasChildren && visibleChildren.some((child: any) =>
               child.path && (location.pathname === child.path || (child.path !== item.path && location.pathname.startsWith(`${child.path}/`)))
             );
             const isActive =
@@ -713,14 +766,21 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                 <div className="relative group/menu-item space-y-1">
                   <HoverCardTrigger asChild>
                     <Link
-                      to={hasChildren ? "#" : (item.path || "#")}
+                      to={item.path || visibleChildren[0]?.path || "#"}
                       onClick={(e) => {
+                        const targetPath = item.path || visibleChildren[0]?.path;
                         if (hasChildren) {
                           e.preventDefault();
                           setExpandedMenus(prev => ({
                             ...prev,
-                            [menuKey]: !prev[menuKey]
+                            [menuKey]: true
                           }));
+                          if (targetPath) {
+                            if (isMobile) {
+                              onMobileClose();
+                            }
+                            navigate(targetPath);
+                          }
                           return;
                         }
                         if (isMobile) {
@@ -785,7 +845,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                   {hasChildren && isMenuExpanded && (!effectiveCollapsed || isMobile) && (
                     <div className="relative pl-[2.25rem] pr-6 py-1 space-y-1 animate-in fade-in slide-in-from-top-1 duration-200">
                       <div className="absolute left-[1.1rem] top-0 bottom-4 w-px bg-sidebar-border"></div>
-                      {visibleChildren.map((child) => {
+                      {visibleChildren.map((child: any) => {
                         const isChildActive = child.path && (location.pathname === child.path || (child.path !== item.path && location.pathname.startsWith(`${child.path}/`)));
                         return (
                           <Link
@@ -817,7 +877,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                           </div>
                           {/* Submenu Items */}
                           <div className="space-y-1">
-                            {visibleChildren.map((child) => {
+                            {visibleChildren.map((child: any) => {
                               const isChildActive = child.path && (location.pathname === child.path || (child.path !== item.path && location.pathname.startsWith(`${child.path}/`)));
                               return (
                                 <Link
