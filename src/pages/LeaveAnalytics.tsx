@@ -739,6 +739,269 @@ export default function LeaveAnalytics() {
     }).length;
   }, [records]);
 
+  // Previous period records matching active filters (for accurate trend comparisons)
+  const { prevFiltered, periodLabel } = useMemo(() => {
+    let prevMatcher: (d: Date) => boolean;
+    let label = "vs last month";
+
+    if (viewType === "year") {
+      const yr = parseInt(selectedYear, 10) || new Date().getFullYear();
+      prevMatcher = (d: Date) => d.getFullYear() === yr - 1;
+      label = "vs last year";
+    } else if (viewType === "day") {
+      const dObj = new Date(selectedDate);
+      dObj.setDate(dObj.getDate() - 1);
+      const tzOffset = dObj.getTimezoneOffset() * 60000;
+      const prevDateStr = new Date(dObj.getTime() - tzOffset).toISOString().slice(0, 10);
+      prevMatcher = (d: Date) => {
+        const offset = d.getTimezoneOffset() * 60000;
+        return new Date(d.getTime() - offset).toISOString().slice(0, 10) === prevDateStr;
+      };
+      label = "vs yesterday";
+    } else {
+      // Month view
+      let yr: number;
+      let mo: number;
+      if (selectedMonthYear && !selectedMonthYear.endsWith("-all")) {
+        const parts = selectedMonthYear.split("-");
+        yr = parseInt(parts[0], 10);
+        mo = parseInt(parts[1], 10);
+      } else {
+        const now = new Date();
+        yr = now.getFullYear();
+        mo = now.getMonth() + 1;
+      }
+      const prevYr = mo === 1 ? yr - 1 : yr;
+      const prevMo = mo === 1 ? 12 : mo - 1;
+      const prevStr = `${prevYr}-${String(prevMo).padStart(2, "0")}`;
+
+      prevMatcher = (d: Date) => {
+        const offset = d.getTimezoneOffset() * 60000;
+        return new Date(d.getTime() - offset).toISOString().slice(0, 7) === prevStr;
+      };
+      label = "vs last month";
+    }
+
+    const prevList = records.filter((r) => {
+      if (!r.start_date) return false;
+      const d = new Date(r.start_date);
+      if (isNaN(d.getTime()) || !prevMatcher(d)) return false;
+
+      if (selectedBranch !== "All Branches" && r.branch !== selectedBranch) return false;
+      if (selectedType !== "All Types" && r.leave_type !== selectedType) return false;
+      if (selectedStatus === "Approved" && r.status !== "Approved") return false;
+      if (selectedStatus === "Rejected" && r.status !== "Rejected") return false;
+      if (selectedStatus === "Pending" && !r.status.startsWith("Pending")) return false;
+      return true;
+    });
+
+    return { prevFiltered: prevList, periodLabel: label };
+  }, [records, viewType, selectedYear, selectedDate, selectedMonthYear, selectedBranch, selectedType, selectedStatus]);
+
+  // Top Growing Type (Leave category with highest volume increase compared to previous period)
+  const topGrowingData = useMemo(() => {
+    let curMatcher: (d: Date) => boolean;
+    let prevMatcher: (d: Date) => boolean;
+    let label = "vs last month";
+
+    if (viewType === "year") {
+      const yr = parseInt(selectedYear, 10) || new Date().getFullYear();
+      curMatcher = (d: Date) => d.getFullYear() === yr;
+      prevMatcher = (d: Date) => d.getFullYear() === yr - 1;
+      label = "vs last year";
+    } else if (viewType === "day") {
+      const curDateStr = selectedDate;
+      const dObj = new Date(selectedDate);
+      dObj.setDate(dObj.getDate() - 1);
+      const tzOffset = dObj.getTimezoneOffset() * 60000;
+      const prevDateStr = new Date(dObj.getTime() - tzOffset).toISOString().slice(0, 10);
+      curMatcher = (d: Date) => {
+        const offset = d.getTimezoneOffset() * 60000;
+        return new Date(d.getTime() - offset).toISOString().slice(0, 10) === curDateStr;
+      };
+      prevMatcher = (d: Date) => {
+        const offset = d.getTimezoneOffset() * 60000;
+        return new Date(d.getTime() - offset).toISOString().slice(0, 10) === prevDateStr;
+      };
+      label = "vs yesterday";
+    } else {
+      let yr: number;
+      let mo: number;
+      if (selectedMonthYear && !selectedMonthYear.endsWith("-all")) {
+        const parts = selectedMonthYear.split("-");
+        yr = parseInt(parts[0], 10);
+        mo = parseInt(parts[1], 10);
+      } else {
+        const now = new Date();
+        yr = now.getFullYear();
+        mo = now.getMonth() + 1;
+      }
+      const prevYr = mo === 1 ? yr - 1 : yr;
+      const prevMo = mo === 1 ? 12 : mo - 1;
+      const curStr = `${yr}-${String(mo).padStart(2, "0")}`;
+      const prevStr = `${prevYr}-${String(prevMo).padStart(2, "0")}`;
+
+      curMatcher = (d: Date) => {
+        const offset = d.getTimezoneOffset() * 60000;
+        return new Date(d.getTime() - offset).toISOString().slice(0, 7) === curStr;
+      };
+      prevMatcher = (d: Date) => {
+        const offset = d.getTimezoneOffset() * 60000;
+        return new Date(d.getTime() - offset).toISOString().slice(0, 7) === prevStr;
+      };
+      label = "vs last month";
+    }
+
+    const branchMatch = (r: LeaveRecord) =>
+      selectedBranch === "All Branches" || r.branch === selectedBranch;
+
+    const allTypes = new Set<string>(LEAVE_TYPES);
+    records.forEach((r) => {
+      if (r.leave_type) allTypes.add(r.leave_type);
+    });
+
+    const categoryStats = Array.from(allTypes).map((type) => {
+      let curCount = 0;
+      let prevCount = 0;
+
+      records.forEach((r) => {
+        if (!r.start_date || !branchMatch(r) || r.leave_type !== type) return;
+        const d = new Date(r.start_date);
+        if (isNaN(d.getTime())) return;
+        if (curMatcher(d)) curCount++;
+        if (prevMatcher(d)) prevCount++;
+      });
+
+      const diff = curCount - prevCount;
+      let pct = 0;
+      if (prevCount > 0) {
+        pct = Math.round((diff / prevCount) * 100);
+      } else if (curCount > 0) {
+        pct = 100;
+      }
+
+      return { type, curCount, prevCount, diff, pct };
+    });
+
+    const activeStats = categoryStats.filter((c) => c.curCount > 0 || c.prevCount > 0);
+
+    if (activeStats.length === 0) {
+      return {
+        name: typeDistribution[0]?.name || "N/A",
+        text: "—",
+        colorClass: "text-slate-500",
+        periodLabel: label,
+      };
+    }
+
+    activeStats.sort((a, b) => {
+      if (b.diff !== a.diff) return b.diff - a.diff;
+      if (b.pct !== a.pct) return b.pct - a.pct;
+      return b.curCount - a.curCount;
+    });
+
+    const top = activeStats[0];
+    let text = "0%";
+    let colorClass = "text-slate-500";
+
+    if (top.prevCount === 0 && top.curCount > 0) {
+      text = `+${top.curCount} new`;
+      colorClass = "text-emerald-600";
+    } else if (top.pct > 0) {
+      text = `↑ ${top.pct}%`;
+      colorClass = "text-emerald-600";
+    } else if (top.pct < 0) {
+      text = `↓ ${Math.abs(top.pct)}%`;
+      colorClass = "text-rose-600";
+    } else {
+      text = "0%";
+      colorClass = "text-slate-500";
+    }
+
+    return {
+      name: top.type,
+      text,
+      colorClass,
+      periodLabel: label,
+    };
+  }, [records, viewType, selectedYear, selectedDate, selectedMonthYear, selectedBranch, typeDistribution]);
+
+  // Dynamic KPI trends compared to previous period
+  const kpiTrends = useMemo(() => {
+    const prevTotal = prevFiltered.length;
+    const prevApproved = prevFiltered.filter((r) => r.status === "Approved").length;
+    const prevRejected = prevFiltered.filter((r) => r.status === "Rejected").length;
+    const prevPending = prevFiltered.filter((r) => r.status.startsWith("Pending")).length;
+    const prevTotalDays = prevFiltered.reduce((sum, r) => sum + r.days, 0);
+    const prevAvgDays = prevTotal > 0 && uniqueEmployees > 0 ? (prevTotalDays / uniqueEmployees) : 0;
+    const prevSickCount = prevFiltered.filter((r) => r.leave_type === "Sick Leave").length;
+    const prevSickRate = prevTotal > 0 ? Math.round((prevSickCount / prevTotal) * 100) : 0;
+
+    const curRate = total > 0 ? Math.round((approved / total) * 100) : 0;
+    const prevRate = prevTotal > 0 ? Math.round((prevApproved / prevTotal) * 100) : 0;
+
+    const curRejRate = total > 0 ? Math.round((rejected / total) * 100) : 0;
+    const prevRejRate = prevTotal > 0 ? Math.round((prevRejected / prevTotal) * 100) : 0;
+
+    const curAvgDaysNum = parseFloat(avgLeaveDays) || 0;
+
+    let totalTrend = "—";
+    if (prevTotal > 0) {
+      const diff = total - prevTotal;
+      const pct = Math.round((diff / prevTotal) * 100);
+      totalTrend = pct > 0 ? `↑ ${pct}% ${periodLabel}` : pct < 0 ? `↓ ${Math.abs(pct)}% ${periodLabel}` : `0% ${periodLabel}`;
+    } else if (total > 0) {
+      totalTrend = `+${total} ${periodLabel}`;
+    }
+
+    let approvalTrend = "—";
+    if (prevTotal > 0) {
+      const diff = curRate - prevRate;
+      approvalTrend = diff > 0 ? `↑ ${diff}% ${periodLabel}` : diff < 0 ? `↓ ${Math.abs(diff)}% ${periodLabel}` : `0% ${periodLabel}`;
+    } else if (total > 0) {
+      approvalTrend = `${curRate}% ${periodLabel}`;
+    }
+
+    let pendingTrend = "—";
+    if (prevTotal > 0) {
+      const diff = pending - prevPending;
+      pendingTrend = diff > 0 ? `↑ ${diff} ${periodLabel}` : diff < 0 ? `↓ ${Math.abs(diff)} ${periodLabel}` : `0 ${periodLabel}`;
+    } else if (pending > 0) {
+      pendingTrend = `+${pending} ${periodLabel}`;
+    }
+
+    let rejectedTrend = "—";
+    if (prevTotal > 0) {
+      const diff = curRejRate - prevRejRate;
+      rejectedTrend = diff > 0 ? `↑ ${diff}% ${periodLabel}` : diff < 0 ? `↓ ${Math.abs(diff)}% ${periodLabel}` : `0% ${periodLabel}`;
+    } else if (total > 0) {
+      rejectedTrend = `${curRejRate}% ${periodLabel}`;
+    }
+
+    let avgDaysTrend = "—";
+    if (prevTotal > 0) {
+      const diff = parseFloat((curAvgDaysNum - prevAvgDays).toFixed(1));
+      avgDaysTrend = diff > 0 ? `↑ ${diff} ${periodLabel}` : diff < 0 ? `↓ ${Math.abs(diff)} ${periodLabel}` : `0 ${periodLabel}`;
+    }
+
+    let sickRateTrend = "—";
+    if (prevTotal > 0) {
+      const diff = sickLeaveRate - prevSickRate;
+      sickRateTrend = diff > 0 ? `↑ ${diff}% ${periodLabel}` : diff < 0 ? `↓ ${Math.abs(diff)}% ${periodLabel}` : `0% ${periodLabel}`;
+    } else if (total > 0) {
+      sickRateTrend = `${sickLeaveRate}% ${periodLabel}`;
+    }
+
+    return {
+      totalTrend,
+      approvalTrend,
+      pendingTrend,
+      rejectedTrend,
+      avgDaysTrend,
+      sickRateTrend,
+    };
+  }, [prevFiltered, periodLabel, total, approved, rejected, pending, avgLeaveDays, sickLeaveRate, uniqueEmployees]);
+
   // Approved vs rejected by leave type
   const approvalByType = useMemo(() => {
     const map: Record<
@@ -1260,12 +1523,12 @@ export default function LeaveAnalytics() {
       {/* 2. Executive KPI Cards (Row 1) */}
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 mb-4">
         {[
-          { label: "Total Leave Applications", val: total, color: "text-blue-600", bg: "bg-blue-50", icon: <FileText className="w-5 h-5"/>, trend: "↑ 12% vs last month" },
-          { label: "Approval Rate", val: `${total > 0 ? Math.round((approved / total) * 100) : 0}%`, color: "text-emerald-600", bg: "bg-emerald-50", icon: <CheckCircle2 className="w-5 h-5"/>, trend: "↑ 5% vs last month" },
-          { label: "Pending Approval", val: pending, color: "text-amber-600", bg: "bg-amber-50", icon: <AlertCircle className="w-5 h-5"/>, trend: "↓ 2 vs last month" },
-          { label: "Rejected Rate", val: `${total > 0 ? Math.round((rejected / total) * 100) : 0}%`, color: "text-rose-600", bg: "bg-rose-50", icon: <XCircle className="w-5 h-5"/>, trend: "↓ 1% vs last month" },
-          { label: "Avg Leave Days / Employee", val: avgLeaveDays, color: "text-indigo-600", bg: "bg-indigo-50", icon: <CalendarIcon className="w-5 h-5"/>, trend: "↓ 0.5 vs last month" },
-          { label: "Sick Leave Rate", val: `${sickLeaveRate}%`, color: "text-pink-600", bg: "bg-pink-50", icon: <BriefcaseMedical className="w-5 h-5"/>, trend: "↑ 2% vs last month" },
+          { label: "Total Leave Applications", val: total, color: "text-blue-600", bg: "bg-blue-50", icon: <FileText className="w-5 h-5"/>, trend: kpiTrends.totalTrend },
+          { label: "Approval Rate", val: `${total > 0 ? Math.round((approved / total) * 100) : 0}%`, color: "text-emerald-600", bg: "bg-emerald-50", icon: <CheckCircle2 className="w-5 h-5"/>, trend: kpiTrends.approvalTrend },
+          { label: "Pending Approval", val: pending, color: "text-amber-600", bg: "bg-amber-50", icon: <AlertCircle className="w-5 h-5"/>, trend: kpiTrends.pendingTrend },
+          { label: "Rejected Rate", val: `${total > 0 ? Math.round((rejected / total) * 100) : 0}%`, color: "text-rose-600", bg: "bg-rose-50", icon: <XCircle className="w-5 h-5"/>, trend: kpiTrends.rejectedTrend },
+          { label: "Avg Leave Days / Employee", val: avgLeaveDays, color: "text-indigo-600", bg: "bg-indigo-50", icon: <CalendarIcon className="w-5 h-5"/>, trend: kpiTrends.avgDaysTrend },
+          { label: "Sick Leave Rate", val: `${sickLeaveRate}%`, color: "text-pink-600", bg: "bg-pink-50", icon: <BriefcaseMedical className="w-5 h-5"/>, trend: kpiTrends.sickRateTrend },
         ].map((k, i) => (
           <Card key={i} className={`group border border-slate-200 dark:border-slate-800 bg-card rounded-[24px] shadow-sm p-4 flex flex-col justify-between transition-all duration-300 cursor-pointer hover:-translate-y-1 hover:shadow-lg ${
             k.color.includes('emerald') ? 'hover:border-emerald-500 hover:bg-emerald-50/50 dark:hover:bg-emerald-900/20' : 
@@ -1286,7 +1549,15 @@ export default function LeaveAnalytics() {
             <div>
               <p className="text-2xl font-black text-slate-800 dark:text-slate-200 leading-none mt-2">{k.val}</p>
               <p className="text-[10px] font-semibold text-foreground dark:text-foreground uppercase tracking-wide mt-1 line-clamp-2 min-leading-tight">{k.label}</p>
-              <p className="text-[9px] text-emerald-600 font-medium mt-1">{k.trend}</p>
+              <p className={`text-[9px] font-medium mt-1 ${
+                k.trend?.startsWith('↓')
+                  ? 'text-rose-600'
+                  : k.trend?.startsWith('↑') || k.trend?.startsWith('+')
+                  ? 'text-emerald-600'
+                  : 'text-foreground'
+              }`}>
+                {k.trend}
+              </p>
             </div>
           </Card>
         ))}
@@ -1449,13 +1720,13 @@ export default function LeaveAnalytics() {
             <div>
               <div className="flex flex-col">
               <p className="text-[10px] text-foreground dark:text-foreground uppercase tracking-wide font-semibold">Top Growing Type</p>
-              <div className="text-[9px] text-foreground mt-0.5 mb-1 italic">Identify leave categories with the highest increase compared to previous month.</div>
-              <p className="text-sm font-bold text-emerald-600">{typeDistribution[0]?.name || "N/A"}</p>
+              <div className="text-[9px] text-foreground mt-0.5 mb-1 italic">Identify leave categories with the highest increase compared to previous period.</div>
+              <p className={`text-sm font-bold ${topGrowingData.colorClass}`}>{topGrowingData.name}</p>
             </div>
             </div>
             <div className="text-right">
-              <p className="text-sm font-bold text-emerald-600">↑ 18%</p>
-              <p className="text-[9px] text-foreground">vs last month</p>
+              <p className={`text-sm font-bold ${topGrowingData.colorClass}`}>{topGrowingData.text}</p>
+              <p className="text-[9px] text-foreground">{topGrowingData.periodLabel}</p>
             </div>
           </div>
         </Card>
