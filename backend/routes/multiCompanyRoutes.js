@@ -17,6 +17,13 @@ function createMultiCompanyRouter(pgPool) {
   pgPool.query("SELECT setval('companies_id_seq', COALESCE((SELECT GREATEST(MAX(id), 1) FROM companies), 1), true)")
     .catch((err) => console.warn('Could not sync companies_id_seq:', err.message));
 
+  // Ensure employee_company_history has start_date, end_date, and status columns
+  pgPool.query(`
+    ALTER TABLE employee_company_history ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'Transferred';
+    ALTER TABLE employee_company_history ADD COLUMN IF NOT EXISTS start_date DATE DEFAULT CURRENT_DATE;
+    ALTER TABLE employee_company_history ADD COLUMN IF NOT EXISTS end_date DATE;
+  `).catch((err) => console.warn('Could not alter employee_company_history columns:', err.message));
+
   const logoStorage = multer.diskStorage({
     destination: (req, file, cb) => cb(null, logoUploadDir),
     filename: (req, file, cb) => {
@@ -874,8 +881,9 @@ function createMultiCompanyRouter(pgPool) {
       await pgPool.query(`
         INSERT INTO employee_company_history (
           employee_id, previous_company, new_company, previous_role, new_role,
-          previous_branch, new_branch, previous_department, new_department, reason, approved_by
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11);
+          previous_branch, new_branch, previous_department, new_department, reason, approved_by,
+          status, start_date, end_date
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'Transferred', CURRENT_DATE, CURRENT_DATE);
       `, [
         employee_id,
         emp.current_company_name || 'Rayhar Travels',

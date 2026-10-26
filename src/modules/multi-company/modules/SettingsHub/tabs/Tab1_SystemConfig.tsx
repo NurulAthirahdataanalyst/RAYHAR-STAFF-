@@ -67,7 +67,7 @@ export const Tab1_SystemConfig: React.FC = () => {
             value={selectedCompanyId ? selectedCompanyId.toString() : "1"} 
             onValueChange={(val) => setSelectedCompanyId(parseInt(val, 10))}
           >
-            <SelectTrigger className="w-72 min-w-[260px] text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-black text-black dark:text-white shadow-xs">
+            <SelectTrigger className="w-72 min-w-[260px] text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium data-[placeholder]:font-normal text-black dark:text-white shadow-xs">
               <SelectValue placeholder="Select company scope...">
                 {currentCompanyObj ? `${currentCompanyObj.company_name} (${currentCompanyObj.company_type === 'main' ? 'Main Company' : 'Subsidiary'})` : 'Rayhar Travels (Main Company)'}
               </SelectValue>
@@ -147,7 +147,7 @@ export const Tab1_SystemConfig: React.FC = () => {
           <div className="space-y-1.5">
             <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Distribution Frequency</Label>
             <Select value={reportFrequency} onValueChange={setReportFrequency}>
-              <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white">
+              <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium data-[placeholder]:font-normal text-black dark:text-white">
                 <SelectValue placeholder="Select cadence..." />
               </SelectTrigger>
               <SelectContent>
@@ -194,7 +194,7 @@ export const Tab1_SystemConfig: React.FC = () => {
               max={60}
               value={lateWindowMinutes}
               onChange={(e) => setLateWindowMinutes(Number(e.target.value))}
-              className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 w-36 font-black text-center text-black dark:text-white"
+              className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 w-36 font-semibold text-center text-black dark:text-white placeholder:font-normal"
             />
           </div>
 

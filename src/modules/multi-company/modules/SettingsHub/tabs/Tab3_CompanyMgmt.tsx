@@ -285,7 +285,7 @@ export const Tab3_CompanyMgmt: React.FC<Tab3CompanyMgmtProps> = ({ onNavigateToT
                 value={companyName}
                 onChange={(e) => setCompanyName(e.target.value)}
                 placeholder="e.g. RayRent Sdn Bhd"
-                className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white"
+                className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium placeholder:font-normal text-black dark:text-white"
                 required
               />
             </div>
@@ -294,7 +294,7 @@ export const Tab3_CompanyMgmt: React.FC<Tab3CompanyMgmtProps> = ({ onNavigateToT
               <div className="space-y-1.5">
                 <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Company Type</Label>
                 <Select value={companyType} onValueChange={(val: any) => setCompanyType(val)}>
-                  <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white">
+                  <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium data-[placeholder]:font-normal text-black dark:text-white">
                     <SelectValue placeholder="Type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -311,7 +311,7 @@ export const Tab3_CompanyMgmt: React.FC<Tab3CompanyMgmtProps> = ({ onNavigateToT
                   onValueChange={(val) => setParentCompanyId(val === 'root' ? null : parseInt(val, 10))}
                   disabled={companyType === 'main'}
                 >
-                  <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white">
+                  <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium data-[placeholder]:font-normal text-black dark:text-white">
                     <SelectValue placeholder="Parent Entity" />
                   </SelectTrigger>
                   <SelectContent>
@@ -334,14 +334,14 @@ export const Tab3_CompanyMgmt: React.FC<Tab3CompanyMgmtProps> = ({ onNavigateToT
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="contact@company.com"
-                  className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white"
+                  className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium placeholder:font-normal text-black dark:text-white"
                 />
               </div>
 
               <div className="space-y-1.5">
                 <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Status</Label>
                 <Select value={status} onValueChange={(val: any) => setStatus(val)}>
-                  <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white">
+                  <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium data-[placeholder]:font-normal text-black dark:text-white">
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -358,7 +358,7 @@ export const Tab3_CompanyMgmt: React.FC<Tab3CompanyMgmtProps> = ({ onNavigateToT
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
                 placeholder="Enter physical address..."
-                className="text-xs bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 min-h-[70px] font-bold text-black dark:text-white"
+                className="text-xs bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 min-h-[70px] font-medium placeholder:font-normal text-black dark:text-white"
               />
             </div>
 

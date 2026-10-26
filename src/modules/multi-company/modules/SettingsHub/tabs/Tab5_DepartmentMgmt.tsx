@@ -77,7 +77,7 @@ export const Tab5_DepartmentMgmt: React.FC = () => {
             value={selectedCompanyId ? selectedCompanyId.toString() : "1"} 
             onValueChange={(val) => setSelectedCompanyId(parseInt(val, 10))}
           >
-            <SelectTrigger className="w-72 min-w-[260px] text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-black text-black dark:text-white shadow-xs">
+            <SelectTrigger className="w-72 min-w-[260px] text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium data-[placeholder]:font-normal text-black dark:text-white shadow-xs">
               <SelectValue placeholder="Select company...">
                 {companies.find(c => c.id === selectedCompanyId)?.company_name ? `${companies.find(c => c.id === selectedCompanyId)?.company_name} (${companies.find(c => c.id === selectedCompanyId)?.company_type === 'main' ? 'Main Company' : 'Subsidiary'})` : 'Rayhar Travels (Main Company)'}
               </SelectValue>
@@ -177,7 +177,7 @@ export const Tab5_DepartmentMgmt: React.FC = () => {
                 value={deptName}
                 onChange={(e) => setDeptName(e.target.value)}
                 placeholder="e.g. Marketing & Media, Fleet Operations"
-                className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white"
+                className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium placeholder:font-normal text-black dark:text-white"
                 required
               />
             </div>
@@ -188,7 +188,7 @@ export const Tab5_DepartmentMgmt: React.FC = () => {
                 value={deptCode}
                 onChange={(e) => setDeptCode(e.target.value.toUpperCase())}
                 placeholder="e.g. MKT, OPS, IT"
-                className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-mono font-bold text-black dark:text-white"
+                className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-mono font-medium placeholder:font-normal text-black dark:text-white"
               />
             </div>
 

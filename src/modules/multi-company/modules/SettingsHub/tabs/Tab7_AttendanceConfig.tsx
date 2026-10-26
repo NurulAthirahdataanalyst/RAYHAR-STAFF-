@@ -94,7 +94,7 @@ export const Tab7_AttendanceConfig: React.FC = () => {
             value={selectedCompanyId ? selectedCompanyId.toString() : "1"} 
             onValueChange={(val) => setSelectedCompanyId(parseInt(val, 10))}
           >
-            <SelectTrigger className="w-72 min-w-[260px] text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-black text-black dark:text-white shadow-xs">
+            <SelectTrigger className="w-72 min-w-[260px] text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium data-[placeholder]:font-normal text-black dark:text-white shadow-xs">
               <SelectValue placeholder="Select company...">
                 {currentCompany ? `${currentCompany.company_name} (${currentCompany.company_type === 'main' ? 'Main Company' : 'Subsidiary'})` : 'Rayhar Travels (Main Company)'}
               </SelectValue>
@@ -143,7 +143,7 @@ export const Tab7_AttendanceConfig: React.FC = () => {
                   type="number"
                   value={lateThreshold}
                   onChange={(e) => setLateThreshold(Number(e.target.value))}
-                  className="w-20 text-xs h-8 text-center font-black text-black dark:text-white"
+                  className="w-20 text-xs h-8 text-center font-semibold placeholder:font-normal text-black dark:text-white"
                 />
                 <span className="text-xs font-bold text-muted-foreground">min</span>
               </div>
@@ -159,7 +159,7 @@ export const Tab7_AttendanceConfig: React.FC = () => {
                   type="number"
                   value={earlyCheckout}
                   onChange={(e) => setEarlyCheckout(Number(e.target.value))}
-                  className="w-20 text-xs h-8 text-center font-black text-black dark:text-white"
+                  className="w-20 text-xs h-8 text-center font-semibold placeholder:font-normal text-black dark:text-white"
                 />
                 <span className="text-xs font-bold text-muted-foreground">min</span>
               </div>
@@ -176,7 +176,7 @@ export const Tab7_AttendanceConfig: React.FC = () => {
                   step="0.5"
                   value={minHours}
                   onChange={(e) => setMinHours(Number(e.target.value))}
-                  className="w-20 text-xs h-8 text-center font-black text-black dark:text-white"
+                  className="w-20 text-xs h-8 text-center font-semibold placeholder:font-normal text-black dark:text-white"
                 />
                 <span className="text-xs font-bold text-muted-foreground">hrs</span>
               </div>
@@ -214,7 +214,7 @@ export const Tab7_AttendanceConfig: React.FC = () => {
             <div className="space-y-1.5">
               <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Geofence Enforcement Strictness</Label>
               <Select value={geofenceEnforce} onValueChange={(val: any) => setGeofenceEnforce(val)}>
-                <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-black text-black dark:text-white">
+                <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium data-[placeholder]:font-normal text-black dark:text-white">
                   <SelectValue placeholder="Strictness" />
                 </SelectTrigger>
                 <SelectContent>

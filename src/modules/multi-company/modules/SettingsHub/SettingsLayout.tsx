@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { 
   Settings, 
   SlidersHorizontal, 
@@ -14,6 +14,7 @@ import {
   History,
   PanelLeftClose,
   PanelLeftOpen,
+  ChevronRight,
   Info,
   Building
 } from 'lucide-react';
@@ -63,6 +64,7 @@ const SETTINGS_TABS: TabDefinition[] = [
 
 export const SettingsLayout: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const initialTab = (searchParams.get('tab') as SettingsTabId) || 'system';
   const [activeTab, setActiveTab] = useState<SettingsTabId>(initialTab);
   const [auditModalOpen, setAuditModalOpen] = useState(false);
@@ -192,6 +194,32 @@ export const SettingsLayout: React.FC = () => {
 
         {/* ACTIVE TAB CONTENTS */}
         <div className="flex-1 min-w-0 w-full space-y-4">
+          {/* Forwarding Banner to New Organization & Entities Menu */}
+          {['company', 'iam', 'branch', 'department'].includes(activeTab) && (
+            <div className="p-3.5 bg-gradient-to-r from-[#800A7A]/10 via-[#942392]/15 to-transparent rounded-2xl border border-[#942392]/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-2.5">
+                <div className="p-1.5 rounded-lg bg-[#942392] text-white shrink-0">
+                  <Building2 className="w-4 h-4" />
+                </div>
+                <div>
+                  <span className="font-black text-black dark:text-white uppercase tracking-wider block">
+                    Now available in dedicated "Organization & Entities" module
+                  </span>
+                  <p className="text-[11px] text-muted-foreground">
+                    Corporate entities, company roles, branches, and verified employee transfers can now be managed directly in the dedicated module.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => navigate('/organization')}
+                className="bg-[#942392] hover:bg-[#800A7A] text-white font-black text-xs uppercase tracking-wider h-8 px-4 rounded-xl shrink-0 flex items-center gap-1.5 transition-all shadow-xs cursor-pointer self-start sm:self-auto"
+              >
+                <span>Open Organization & Entities</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
           {activeTab === 'system' && <Tab1_SystemConfig />}
           {activeTab === 'employee' && <Tab2_EmployeeConfig />}
           {activeTab === 'company' && <Tab3_CompanyMgmt onNavigateToTab={(t) => handleTabChange(t as SettingsTabId)} />}

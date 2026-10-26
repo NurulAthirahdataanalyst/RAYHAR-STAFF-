@@ -68,7 +68,7 @@ export const Tab8_LeaveWorkflowConfig: React.FC = () => {
             value={selectedCompanyId ? selectedCompanyId.toString() : "1"} 
             onValueChange={(val) => setSelectedCompanyId(parseInt(val, 10))}
           >
-            <SelectTrigger className="w-72 min-w-[260px] text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-black text-black dark:text-white shadow-xs">
+            <SelectTrigger className="w-72 min-w-[260px] text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium data-[placeholder]:font-normal text-black dark:text-white shadow-xs">
               <SelectValue placeholder="Select company...">
                 {companies.find(c => c.id === selectedCompanyId)?.company_name ? `${companies.find(c => c.id === selectedCompanyId)?.company_name} (${companies.find(c => c.id === selectedCompanyId)?.company_type === 'main' ? 'Main Company' : 'Subsidiary'})` : 'Rayhar Travels (Main Company)'}
               </SelectValue>
@@ -112,7 +112,7 @@ export const Tab8_LeaveWorkflowConfig: React.FC = () => {
                 type="number"
                 value={annualDays}
                 onChange={(e) => setAnnualDays(Number(e.target.value))}
-                className="w-16 h-7 text-xs text-center font-bold text-black dark:text-white"
+                className="w-16 h-7 text-xs text-center font-semibold placeholder:font-normal text-black dark:text-white"
               />
             </div>
             <span className="text-[10px] text-muted-foreground block">Days per annum</span>
@@ -125,7 +125,7 @@ export const Tab8_LeaveWorkflowConfig: React.FC = () => {
                 type="number"
                 value={sickDays}
                 onChange={(e) => setSickDays(Number(e.target.value))}
-                className="w-16 h-7 text-xs text-center font-bold text-black dark:text-white"
+                className="w-16 h-7 text-xs text-center font-semibold placeholder:font-normal text-black dark:text-white"
               />
             </div>
             <span className="text-[10px] text-muted-foreground block">Days per annum</span>
@@ -138,7 +138,7 @@ export const Tab8_LeaveWorkflowConfig: React.FC = () => {
                 type="number"
                 value={emergencyDays}
                 onChange={(e) => setEmergencyDays(Number(e.target.value))}
-                className="w-16 h-7 text-xs text-center font-bold text-black dark:text-white"
+                className="w-16 h-7 text-xs text-center font-semibold placeholder:font-normal text-black dark:text-white"
               />
             </div>
             <span className="text-[10px] text-muted-foreground block">Days per annum</span>

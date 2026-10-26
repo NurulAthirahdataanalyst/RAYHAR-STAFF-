@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,6 +17,7 @@ import { CompanyTransferWizard } from '../../../employee-assignment/CompanyTrans
 import { EmployeeCompanyHistory } from '../../../employee-assignment/EmployeeCompanyHistory';
 
 export const Tab2_EmployeeConfig: React.FC = () => {
+  const navigate = useNavigate();
   const { companies, activeCompany } = useCompany();
   const [subTab, setSubTab] = useState<'onboard' | 'transfer' | 'history'>('onboard');
 
@@ -184,7 +186,7 @@ export const Tab2_EmployeeConfig: React.FC = () => {
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="e.g. Nurul Athirah Abdul Rahman"
-                  className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white"
+                  className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium placeholder:font-normal text-black dark:text-white"
                   required
                 />
               </div>
@@ -196,7 +198,7 @@ export const Tab2_EmployeeConfig: React.FC = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="athirah@rayhar.com"
-                  className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white"
+                  className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium placeholder:font-normal text-black dark:text-white"
                   required
                 />
               </div>
@@ -207,7 +209,7 @@ export const Tab2_EmployeeConfig: React.FC = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••••••"
-                  className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white"
+                  className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium placeholder:font-normal text-black dark:text-white"
                   required
                 />
               </div>
@@ -227,7 +229,7 @@ export const Tab2_EmployeeConfig: React.FC = () => {
                     value={selectedCompanyId.toString()} 
                     onValueChange={(val) => setSelectedCompanyId(parseInt(val, 10))}
                   >
-                    <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-black text-black dark:text-white">
+                    <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium data-[placeholder]:font-normal text-black dark:text-white">
                       <SelectValue placeholder="Select company..." />
                     </SelectTrigger>
                     <SelectContent>
@@ -243,7 +245,7 @@ export const Tab2_EmployeeConfig: React.FC = () => {
                 <div className="space-y-1.5">
                   <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Assigned Branch</Label>
                   <Select value={selectedBranch} onValueChange={setSelectedBranch} disabled={branches.length === 0}>
-                    <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white">
+                    <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium data-[placeholder]:font-normal text-black dark:text-white">
                       <SelectValue placeholder={branches.length === 0 ? "No branches" : "Choose branch..."} />
                     </SelectTrigger>
                     <SelectContent>
@@ -259,7 +261,7 @@ export const Tab2_EmployeeConfig: React.FC = () => {
                 <div className="space-y-1.5">
                   <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Department</Label>
                   <Select value={selectedDepartment} onValueChange={setSelectedDepartment} disabled={departments.length === 0}>
-                    <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white">
+                    <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium data-[placeholder]:font-normal text-black dark:text-white">
                       <SelectValue placeholder={departments.length === 0 ? "No departments" : "Choose department..."} />
                     </SelectTrigger>
                     <SelectContent>
@@ -278,7 +280,7 @@ export const Tab2_EmployeeConfig: React.FC = () => {
                     value={position}
                     onChange={(e) => setPosition(e.target.value)}
                     placeholder="e.g. Senior Executive"
-                    className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white"
+                    className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium placeholder:font-normal text-black dark:text-white"
                   />
                 </div>
               </div>
@@ -289,7 +291,7 @@ export const Tab2_EmployeeConfig: React.FC = () => {
               <div className="space-y-1.5">
                 <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">System Authorization Role *</Label>
                 <Select value={selectedRoleId} onValueChange={setSelectedRoleId} disabled={roles.length === 0}>
-                  <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white">
+                  <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium data-[placeholder]:font-normal text-black dark:text-white">
                     <SelectValue placeholder={roles.length === 0 ? "No roles in entity" : "Select authorized role..."} />
                   </SelectTrigger>
                   <SelectContent>
@@ -308,7 +310,7 @@ export const Tab2_EmployeeConfig: React.FC = () => {
               <div className="space-y-1.5">
                 <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Employment Status</Label>
                 <Select value={employmentStatus} onValueChange={setEmploymentStatus}>
-                  <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white">
+                  <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium data-[placeholder]:font-normal text-black dark:text-white">
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -348,15 +350,45 @@ export const Tab2_EmployeeConfig: React.FC = () => {
       )}
 
       {subTab === 'transfer' && (
-        <Card className="border border-border dark:border-neutral-800 shadow-xs bg-white/70 dark:bg-card/70 backdrop-blur-md rounded-2xl p-6">
-          <CompanyTransferWizard onTransferComplete={() => setSubTab('history')} />
-        </Card>
+        <div className="space-y-4">
+          <div className="p-3 bg-[#942392]/10 rounded-xl border border-[#942392]/20 flex items-center justify-between text-xs">
+            <span className="font-bold text-foreground">
+              Tip: Company Transfer is now accessible directly under <strong className="text-[#942392]">Organization & Entities</strong> in the sidebar.
+            </span>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => navigate('/organization?tab=transfer')}
+              className="text-xs h-7 border-[#942392]/30 text-[#942392] font-bold"
+            >
+              Open Dedicated Page
+            </Button>
+          </div>
+          <Card className="border border-border dark:border-neutral-800 shadow-xs bg-white/70 dark:bg-card/70 backdrop-blur-md rounded-2xl p-6">
+            <CompanyTransferWizard onTransferComplete={() => setSubTab('history')} />
+          </Card>
+        </div>
       )}
 
       {subTab === 'history' && (
-        <Card className="border border-border dark:border-neutral-800 shadow-xs bg-white/70 dark:bg-card/70 backdrop-blur-md rounded-2xl p-6">
-          <EmployeeCompanyHistory />
-        </Card>
+        <div className="space-y-4">
+          <div className="p-3 bg-[#942392]/10 rounded-xl border border-[#942392]/20 flex items-center justify-between text-xs">
+            <span className="font-bold text-foreground">
+              Tip: Transfer history is also available under <strong className="text-[#942392]">Organization & Entities</strong>.
+            </span>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => navigate('/organization?tab=history')}
+              className="text-xs h-7 border-[#942392]/30 text-[#942392] font-bold"
+            >
+              Open Dedicated Page
+            </Button>
+          </div>
+          <Card className="border border-border dark:border-neutral-800 shadow-xs bg-white/70 dark:bg-card/70 backdrop-blur-md rounded-2xl p-6">
+            <EmployeeCompanyHistory />
+          </Card>
+        </div>
       )}
     </div>
   );

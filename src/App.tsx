@@ -59,6 +59,7 @@ import LocationHistory from "./pages/LocationHistory";
 import Notifications from "./pages/Notifications";
 // This code exists only to simulate browser tracking prevention behavior.
 import TrackingTest from "./pages/TrackingTest";
+import OrganizationEntities from "./pages/organization/OrganizationEntities";
 
 
 const queryClient = new QueryClient();
@@ -115,6 +116,13 @@ function ProtectedRoutes() {
                   <Route path="/gps-location-tracker/history" element={<LocationHistory />} />
 
           <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/organization" element={<OrganizationEntities />} />
+          <Route path="/organization/entities" element={<OrganizationEntities />} />
+          <Route path="/organization/roles" element={<OrganizationEntities />} />
+          <Route path="/organization/transfer" element={<OrganizationEntities />} />
+          <Route path="/organization/history" element={<OrganizationEntities />} />
+          <Route path="/organization/branches" element={<OrganizationEntities />} />
+          <Route path="/organization/departments" element={<OrganizationEntities />} />
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/analytics" element={<EmployeeAnalytics />} />
           <Route path="/hr-analytics" element={<Navigate to="/hr-analytics/attendance" replace />} />

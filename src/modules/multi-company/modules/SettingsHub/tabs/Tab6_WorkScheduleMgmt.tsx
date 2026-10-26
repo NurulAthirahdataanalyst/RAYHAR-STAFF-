@@ -131,7 +131,7 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
             value={selectedCompanyId ? selectedCompanyId.toString() : "1"} 
             onValueChange={(val) => setSelectedCompanyId(parseInt(val, 10))}
           >
-            <SelectTrigger className="w-72 min-w-[260px] text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-black text-black dark:text-white shadow-xs">
+            <SelectTrigger className="w-72 min-w-[260px] text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium data-[placeholder]:font-normal text-black dark:text-white shadow-xs">
               <SelectValue placeholder="Select company...">
                 {companies.find(c => c.id === selectedCompanyId)?.company_name ? `${companies.find(c => c.id === selectedCompanyId)?.company_name} (${companies.find(c => c.id === selectedCompanyId)?.company_type === 'main' ? 'Main Company' : 'Subsidiary'})` : 'Rayhar Travels (Main Company)'}
               </SelectValue>
@@ -273,7 +273,7 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
                 value={scheduleName}
                 onChange={(e) => setScheduleName(e.target.value)}
                 placeholder="e.g. Marketing Shift, Depot Early Timetable"
-                className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white"
+                className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium placeholder:font-normal text-black dark:text-white"
                 required
               />
             </div>
@@ -282,7 +282,7 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
               <div className="space-y-1.5">
                 <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Department Assignment</Label>
                 <Select value={selectedDept} onValueChange={setSelectedDept}>
-                  <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white">
+                  <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium data-[placeholder]:font-normal text-black dark:text-white">
                     <SelectValue placeholder="Department" />
                   </SelectTrigger>
                   <SelectContent>
@@ -297,7 +297,7 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
               <div className="space-y-1.5">
                 <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Branch Assignment</Label>
                 <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-                  <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white">
+                  <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium data-[placeholder]:font-normal text-black dark:text-white">
                     <SelectValue placeholder="Branch" />
                   </SelectTrigger>
                   <SelectContent>
