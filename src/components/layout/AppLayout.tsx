@@ -26,6 +26,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { UserAvatar, getSavedAvatar } from "@/utils/avatarUtils";
 import { GlobalScrollTopButton } from "../shared/GlobalScrollTopButton";
+import { CompanySwitcher } from "@/modules/multi-company/components/CompanySwitcher";
 
 const isSafeInternalPath = (path: string) => {
   return (
@@ -337,7 +338,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               </div>
             </div>
             
-            <div className="flex items-center gap-4 relative z-10 ml-auto shrink-0">
+            <div className="flex items-center gap-3 sm:gap-4 relative z-10 ml-auto shrink-0">
+              <CompanySwitcher variant="header" />
               <button 
                 onClick={handleRefresh} 
                 disabled={isRefreshing}
@@ -417,7 +419,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 <Menu className="h-4.5 w-4.5" />
               </button>
               <div className="flex items-center gap-2">
-                <img src={rayharLogo} className="h-6 w-auto object-contain filter brightness-110" alt="Rayhar" />
+                <CompanySwitcher variant="header" className="max-w-[130px] sm:max-w-[160px] text-[10px] px-2 py-1" />
               </div>
             </div>
 

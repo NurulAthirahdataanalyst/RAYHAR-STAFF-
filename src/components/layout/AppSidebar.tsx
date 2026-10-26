@@ -39,6 +39,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { Button } from "@/components/ui/button";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import rayharLogo from "@/assets/rayhar-logo.png";
+import { DynamicSidebarLogo } from "@/modules/multi-company/components/DynamicSidebarLogo";
 
 interface AppSidebarProps {
   mobileOpen: boolean;
@@ -686,12 +687,8 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         {/* Mobile or Expanded Desktop view: show logo (and toggle on right for desktop) */}
         {(!effectiveCollapsed || isMobile) ? (
           <div className="flex items-center justify-between w-full h-full gap-2">
-            <Link to="/" className="flex items-center justify-start h-full animate-in fade-in duration-300" onClick={isMobile ? onMobileClose : undefined}>
-              <img 
-                src={rayharLogo} 
-                alt="Rayhar Group" 
-                className="h-[80%] max-h-[50px] w-auto object-contain" 
-              />
+            <Link to="/" className="flex items-center justify-start h-full animate-in fade-in duration-300 max-w-[210px] overflow-hidden" onClick={isMobile ? onMobileClose : undefined}>
+              <DynamicSidebarLogo isCollapsed={false} variant="sidebar" />
             </Link>
             
             {/* Desktop Menu toggle button on the right */}

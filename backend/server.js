@@ -1423,6 +1423,10 @@ const pgPool = connectionString ? new Pool({
   max: 10
 }) : new Pool(dbConfig);
 
+// Mount Multi-Company and IAM Routes
+const { createMultiCompanyRouter } = require('./routes/multiCompanyRoutes');
+app.use('/api', createMultiCompanyRouter(pgPool));
+
 // Helper: replace ? placeholders with $1, $2, ... for PostgreSQL and expand array params for IN (?)
 function mysqlToPostgres(sql, params) {
   if (!params || params.length === 0) return { sql, params: [] };

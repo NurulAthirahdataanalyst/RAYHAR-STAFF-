@@ -10,6 +10,7 @@ import { RoleProvider } from "@/contexts/RoleContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import AppLayout from "@/components/layout/AppLayout";
+import { CompanyProvider } from "@/modules/multi-company/contexts/CompanyContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -89,7 +90,8 @@ function ProtectedRoutes() {
 
   return (
     <RoleProvider>
-      <NotificationProvider>
+      <CompanyProvider>
+        <NotificationProvider>
         <ErrorBoundary>
           <AppLayout>
           <Routes>
@@ -153,6 +155,7 @@ function ProtectedRoutes() {
       </AppLayout>
       </ErrorBoundary>
       </NotificationProvider>
+      </CompanyProvider>
     </RoleProvider>
   );
 }
