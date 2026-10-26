@@ -53,6 +53,68 @@ function createMultiCompanyRouter(pgPool) {
     END $$;
   `).catch((err) => console.warn('Could not auto-seed work schedules:', err.message));
 
+  // Initialize modules, company_modules, and role_permissions access_level
+  pgPool.query(`
+    CREATE TABLE IF NOT EXISTS modules (
+      id SERIAL PRIMARY KEY,
+      module_key VARCHAR(50) UNIQUE NOT NULL,
+      module_name VARCHAR(100) NOT NULL,
+      description TEXT,
+      icon_name VARCHAR(50),
+      sort_order INT DEFAULT 0,
+      status VARCHAR(20) DEFAULT 'active',
+      created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS company_modules (
+      id SERIAL PRIMARY KEY,
+      company_id INT NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+      module_key VARCHAR(50) NOT NULL REFERENCES modules(module_key) ON DELETE CASCADE,
+      is_enabled BOOLEAN DEFAULT TRUE,
+      updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+      updated_by VARCHAR(100),
+      CONSTRAINT uq_company_module UNIQUE (company_id, module_key)
+    );
+
+    ALTER TABLE role_permissions ADD COLUMN IF NOT EXISTS access_level VARCHAR(20) DEFAULT 'edit';
+  `).then(async () => {
+    // Seed 11 modules
+    const modules = [
+      { key: 'dashboard', name: 'Dashboard', desc: 'Main executive overview and real-time operations', icon: 'LayoutDashboard', order: 1 },
+      { key: 'calendar', name: 'Calendar', desc: 'Work calendar and company holidays schedule', icon: 'Calendar', order: 2 },
+      { key: 'attendance', name: 'Attendance', desc: 'Personal clock-in, timesheets, and team attendance', icon: 'Clock', order: 3 },
+      { key: 'leave_management', name: 'Leave Management', desc: 'Employee leave application and personal requests', icon: 'CalendarDays', order: 4 },
+      { key: 'leave_admin', name: 'Leave Administration', desc: 'Leave approvals, company entitlement policies, and balances', icon: 'ClipboardList', order: 5 },
+      { key: 'employee_management', name: 'Employee Management', desc: 'Staff directory, departments, roles, and branch assignment', icon: 'Users', order: 6 },
+      { key: 'outstation', name: 'Outstation', desc: 'Outstation requests, assignments, itinerary, and travel dashboard', icon: 'Plane', order: 7 },
+      { key: 'analytics', name: 'Analytics', desc: 'Attendance, leave, and workforce insight analytics', icon: 'PieChart', order: 8 },
+      { key: 'reports', name: 'Reports', desc: 'Exportable attendance, leave, and outstation formal reports', icon: 'FileSearch', order: 9 },
+      { key: 'gps', name: 'GPS', desc: 'Live location tracker and staff route history', icon: 'MapPinned', order: 10 },
+      { key: 'settings', name: 'Settings', desc: 'Corporate branding, branches, shifts, and IAM configurations', icon: 'Settings', order: 11 },
+    ];
+
+    for (const m of modules) {
+      await pgPool.query(`
+        INSERT INTO modules (module_key, module_name, description, icon_name, sort_order, status)
+        VALUES ($1, $2, $3, $4, $5, 'active')
+        ON CONFLICT (module_key) DO UPDATE SET
+          module_name = EXCLUDED.module_name,
+          description = EXCLUDED.description,
+          icon_name = EXCLUDED.icon_name,
+          sort_order = EXCLUDED.sort_order;
+      `, [m.key, m.name, m.desc, m.icon, m.order]);
+    }
+
+    // Auto-seed company_modules for any companies missing them
+    await pgPool.query(`
+      INSERT INTO company_modules (company_id, module_key, is_enabled)
+      SELECT c.id, m.module_key, TRUE
+      FROM companies c
+      CROSS JOIN modules m
+      ON CONFLICT (company_id, module_key) DO NOTHING;
+    `);
+  }).catch((err) => console.warn('Could not auto-seed modules or company_modules:', err.message));
+
   const logoStorage = multer.diskStorage({
     destination: (req, file, cb) => cb(null, logoUploadDir),
     filename: (req, file, cb) => {
@@ -200,6 +262,14 @@ function createMultiCompanyRouter(pgPool) {
             ($1, 'Lunch Break', 'lunch', '12:30:00', '14:00:00');
         `, [newSchedId]);
       }
+
+      // Automatically initialize company modules for the new company
+      await pgPool.query(`
+        INSERT INTO company_modules (company_id, module_key, is_enabled)
+        SELECT $1, module_key, TRUE
+        FROM modules
+        ON CONFLICT (company_id, module_key) DO NOTHING;
+      `, [newCompany.id]);
 
       await logAudit(req, 'COMPANY_CREATE', `Created company ${newCompany.company_name} (ID: ${newCompany.id})`, null, newCompany, newCompany.id);
 
