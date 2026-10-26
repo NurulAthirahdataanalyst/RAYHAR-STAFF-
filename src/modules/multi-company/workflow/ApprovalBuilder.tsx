@@ -154,22 +154,22 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 flex-1 sm:flex-initial">
                       <div>
-                        <Label className="text-[10px] font-bold text-muted-foreground uppercase">Step Label</Label>
+                        <Label className="text-[10px] font-black text-black dark:text-white uppercase tracking-wider">Step Label</Label>
                         <Input
                           value={step.step_label}
                           onChange={(e) => handleUpdateStep(idx, 'step_label', e.target.value)}
                           placeholder="e.g. Branch Endorsement"
-                          className="text-xs h-8 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 w-44"
+                          className="text-xs h-8 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 w-44 font-bold text-black dark:text-white"
                         />
                       </div>
 
                       <div>
-                        <Label className="text-[10px] font-bold text-muted-foreground uppercase">Approver Role</Label>
+                        <Label className="text-[10px] font-black text-black dark:text-white uppercase tracking-wider">Approver Role</Label>
                         <Select
                           value={step.approver_role_id}
                           onValueChange={(val) => handleUpdateStep(idx, 'approver_role_id', val)}
                         >
-                          <SelectTrigger className="text-xs h-8 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 w-52">
+                          <SelectTrigger className="text-xs h-8 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 w-52 font-bold text-black dark:text-white">
                             <SelectValue placeholder="Select approver..." />
                           </SelectTrigger>
                           <SelectContent>

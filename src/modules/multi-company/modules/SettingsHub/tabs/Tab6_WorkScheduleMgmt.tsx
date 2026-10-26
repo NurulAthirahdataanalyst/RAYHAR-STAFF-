@@ -122,22 +122,24 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
     <div className="space-y-6">
       {/* Top Filter & Action */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-muted/30 dark:bg-neutral-900/40 rounded-xl border border-border dark:border-neutral-800">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2.5">
           <CalendarClock className="w-4 h-4 text-[#942392]" />
-          <span className="text-xs font-black uppercase tracking-wider text-foreground dark:text-neutral-200">
+          <span className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
             Work Schedule Scope:
           </span>
           <Select 
             value={selectedCompanyId.toString()} 
             onValueChange={(val) => setSelectedCompanyId(parseInt(val, 10))}
           >
-            <SelectTrigger className="w-56 text-xs h-8 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold ml-1">
-              <SelectValue placeholder="Select company..." />
+            <SelectTrigger className="w-72 text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-black text-black dark:text-white shadow-xs">
+              <SelectValue placeholder="Select company...">
+                {companies.find(c => c.id === selectedCompanyId)?.company_name ? `${companies.find(c => c.id === selectedCompanyId)?.company_name} (${companies.find(c => c.id === selectedCompanyId)?.company_type === 'main' ? 'Main Company' : 'Subsidiary'})` : 'Select company...'}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {companies.map(c => (
-                <SelectItem key={c.id} value={c.id.toString()} className="text-xs">
-                  {c.company_name} ({c.company_type === 'main' ? 'Main' : 'Sub'})
+                <SelectItem key={c.id} value={c.id.toString()} className="text-xs font-bold">
+                  {c.company_name} ({c.company_type === 'main' ? 'Main Company' : 'Subsidiary'})
                 </SelectItem>
               ))}
             </SelectContent>
@@ -146,7 +148,7 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
 
         <Button
           onClick={() => setModalOpen(true)}
-          className="bg-[#942392] hover:bg-[#800A7A] text-white font-black text-xs uppercase tracking-wider shadow-sm h-8 px-3.5 rounded-xl self-start sm:self-auto"
+          className="bg-[#942392] hover:bg-[#800A7A] text-white font-black text-xs uppercase tracking-wider shadow-sm h-9 px-4 rounded-xl self-start sm:self-auto"
         >
           <Plus className="w-3.5 h-3.5 mr-1" />
           Create Work Schedule
@@ -260,21 +262,21 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
 
             <div className="px-6 py-4 overflow-y-auto flex-1 space-y-4">
             <div className="space-y-1.5">
-              <Label className="text-xs font-bold text-muted-foreground">Schedule Name *</Label>
+              <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Schedule Name *</Label>
               <Input
                 value={scheduleName}
                 onChange={(e) => setScheduleName(e.target.value)}
                 placeholder="e.g. Marketing Shift, Depot Early Timetable"
-                className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800"
+                className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white"
                 required
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-muted-foreground">Department Assignment</Label>
+                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Department Assignment</Label>
                 <Select value={selectedDept} onValueChange={setSelectedDept}>
-                  <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800">
+                  <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white">
                     <SelectValue placeholder="Department" />
                   </SelectTrigger>
                   <SelectContent>
@@ -287,9 +289,9 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-muted-foreground">Branch Assignment</Label>
+                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Branch Assignment</Label>
                 <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-                  <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800">
+                  <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white">
                     <SelectValue placeholder="Branch" />
                   </SelectTrigger>
                   <SelectContent>
@@ -304,7 +306,7 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
 
             {/* 7-Day Timetable Grid */}
             <div className="p-3.5 bg-muted/30 dark:bg-neutral-800/40 rounded-xl border border-border/50 space-y-3">
-              <Label className="text-xs font-bold text-foreground uppercase tracking-wider block">
+              <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white block">
                 7-Day Monday through Sunday Timetable
               </Label>
 

@@ -59,22 +59,24 @@ export const Tab8_LeaveWorkflowConfig: React.FC = () => {
     <div className="space-y-6">
       {/* Top Company Scope */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-muted/30 dark:bg-neutral-900/40 rounded-xl border border-border dark:border-neutral-800">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2.5">
           <CalendarDays className="w-4 h-4 text-[#942392]" />
-          <span className="text-xs font-black uppercase tracking-wider text-foreground dark:text-neutral-200">
+          <span className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
             Company Leave Policy Scope:
           </span>
           <Select 
             value={selectedCompanyId.toString()} 
             onValueChange={(val) => setSelectedCompanyId(parseInt(val, 10))}
           >
-            <SelectTrigger className="w-56 text-xs h-8 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold ml-1">
-              <SelectValue placeholder="Select company..." />
+            <SelectTrigger className="w-72 text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-black text-black dark:text-white shadow-xs">
+              <SelectValue placeholder="Select company...">
+                {companies.find(c => c.id === selectedCompanyId)?.company_name ? `${companies.find(c => c.id === selectedCompanyId)?.company_name} (${companies.find(c => c.id === selectedCompanyId)?.company_type === 'main' ? 'Main Company' : 'Subsidiary'})` : 'Select company...'}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {companies.map(c => (
-                <SelectItem key={c.id} value={c.id.toString()} className="text-xs">
-                  {c.company_name} ({c.company_type === 'main' ? 'Main' : 'Sub'})
+                <SelectItem key={c.id} value={c.id.toString()} className="text-xs font-bold">
+                  {c.company_name} ({c.company_type === 'main' ? 'Main Company' : 'Subsidiary'})
                 </SelectItem>
               ))}
             </SelectContent>
@@ -82,7 +84,7 @@ export const Tab8_LeaveWorkflowConfig: React.FC = () => {
         </div>
 
         <span className="text-xs text-muted-foreground">
-          Configuring entitlements & approval ladder for <strong>{currentCompanyName}</strong>
+          Configuring entitlements & approval ladder for <strong className="text-black dark:text-white">{currentCompanyName}</strong>
         </span>
       </div>
 
@@ -99,12 +101,12 @@ export const Tab8_LeaveWorkflowConfig: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
           <div className="p-3 rounded-xl border border-border/50 bg-background dark:bg-neutral-900 space-y-2">
             <div className="flex justify-between items-center">
-              <Label className="text-xs font-bold text-foreground">Annual Leave</Label>
+              <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Annual Leave</Label>
               <Input
                 type="number"
                 value={annualDays}
                 onChange={(e) => setAnnualDays(Number(e.target.value))}
-                className="w-16 h-7 text-xs text-center font-bold"
+                className="w-16 h-7 text-xs text-center font-bold text-black dark:text-white"
               />
             </div>
             <span className="text-[10px] text-muted-foreground block">Days per annum</span>
@@ -112,12 +114,12 @@ export const Tab8_LeaveWorkflowConfig: React.FC = () => {
 
           <div className="p-3 rounded-xl border border-border/50 bg-background dark:bg-neutral-900 space-y-2">
             <div className="flex justify-between items-center">
-              <Label className="text-xs font-bold text-foreground">Medical / Sick Leave</Label>
+              <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Medical / Sick Leave</Label>
               <Input
                 type="number"
                 value={sickDays}
                 onChange={(e) => setSickDays(Number(e.target.value))}
-                className="w-16 h-7 text-xs text-center font-bold"
+                className="w-16 h-7 text-xs text-center font-bold text-black dark:text-white"
               />
             </div>
             <span className="text-[10px] text-muted-foreground block">Days per annum</span>
@@ -125,12 +127,12 @@ export const Tab8_LeaveWorkflowConfig: React.FC = () => {
 
           <div className="p-3 rounded-xl border border-border/50 bg-background dark:bg-neutral-900 space-y-2">
             <div className="flex justify-between items-center">
-              <Label className="text-xs font-bold text-foreground">Emergency Leave</Label>
+              <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Emergency Leave</Label>
               <Input
                 type="number"
                 value={emergencyDays}
                 onChange={(e) => setEmergencyDays(Number(e.target.value))}
-                className="w-16 h-7 text-xs text-center font-bold"
+                className="w-16 h-7 text-xs text-center font-bold text-black dark:text-white"
               />
             </div>
             <span className="text-[10px] text-muted-foreground block">Days per annum</span>

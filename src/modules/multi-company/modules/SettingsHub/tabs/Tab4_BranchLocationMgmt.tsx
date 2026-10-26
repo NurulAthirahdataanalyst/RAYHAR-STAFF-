@@ -288,72 +288,72 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
           <form onSubmit={handleSaveBranch} className="space-y-4 pt-2">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-muted-foreground">Branch Code *</Label>
+                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Branch Code *</Label>
                 <Input
                   value={branchCode}
                   onChange={(e) => setBranchCode(e.target.value.toUpperCase())}
                   placeholder="e.g. KEM, KL, RR-01"
-                  className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-mono"
+                  className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-mono font-bold text-black dark:text-white"
                   required
                 />
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-muted-foreground">Operating Zone</Label>
+                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Operating Zone</Label>
                 <Select value={operatingZone} onValueChange={(val: any) => setOperatingZone(val)}>
-                  <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800">
+                  <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white">
                     <SelectValue placeholder="Zone" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Zone A" className="text-xs">Zone A (Kelantan, Terengganu, Kedah, Johor)</SelectItem>
-                    <SelectItem value="Zone B" className="text-xs">Zone B (KL, Selangor, Melaka, etc.)</SelectItem>
+                    <SelectItem value="Zone A" className="text-xs font-bold">Zone A (Kelantan, Terengganu, Kedah, Johor)</SelectItem>
+                    <SelectItem value="Zone B" className="text-xs font-bold">Zone B (KL, Selangor, Melaka, etc.)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs font-bold text-muted-foreground">Branch Name *</Label>
+              <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Branch Name *</Label>
               <Input
                 value={branchName}
                 onChange={(e) => setBranchName(e.target.value)}
                 placeholder="e.g. Kuala Lumpur Depot & Hub"
-                className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800"
+                className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white"
                 required
               />
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs font-bold text-muted-foreground">Location / District</Label>
+              <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Location / District</Label>
               <Input
                 value={locationDistrict}
                 onChange={(e) => setLocationDistrict(e.target.value)}
                 placeholder="e.g. Bangsar South, Kuala Lumpur"
-                className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800"
+                className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white"
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-muted-foreground">Latitude *</Label>
+                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Latitude *</Label>
                 <Input
                   type="number"
                   step="any"
                   value={latitude}
                   onChange={(e) => setLatitude(e.target.value)}
-                  className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-mono"
+                  className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-mono font-bold text-black dark:text-white"
                   required
                 />
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-muted-foreground">Longitude *</Label>
+                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Longitude *</Label>
                 <Input
                   type="number"
                   step="any"
                   value={longitude}
                   onChange={(e) => setLongitude(e.target.value)}
-                  className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-mono"
+                  className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-mono font-bold text-black dark:text-white"
                   required
                 />
               </div>
@@ -362,7 +362,7 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
             {/* Geofence Radius Slider */}
             <div className="p-3.5 bg-muted/30 dark:bg-neutral-800/40 rounded-xl border border-border/50 space-y-3">
               <div className="flex items-center justify-between">
-                <Label className="text-xs font-bold text-foreground">
+                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
                   GPS Geofence Clock-in Radius
                 </Label>
                 <span className="text-xs font-black text-[#942392] dark:text-[#f885d5] px-2 py-0.5 rounded-md bg-[#942392]/10">
