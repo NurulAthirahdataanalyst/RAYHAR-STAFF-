@@ -141,22 +141,24 @@ export const Tab9_IAM: React.FC = () => {
     <div className="space-y-6">
       {/* Top Filter & Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-muted/30 dark:bg-neutral-900/40 rounded-xl border border-border dark:border-neutral-800">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2.5">
           <ShieldCheck className="w-4 h-4 text-[#942392]" />
-          <span className="text-xs font-black uppercase tracking-wider text-foreground dark:text-neutral-200">
+          <span className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
             Company IAM Scope:
           </span>
           <Select 
             value={selectedCompanyId.toString()} 
             onValueChange={(val) => setSelectedCompanyId(parseInt(val, 10))}
           >
-            <SelectTrigger className="w-56 text-xs h-8 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold ml-1">
-              <SelectValue placeholder="Select company..." />
+            <SelectTrigger className="w-72 text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-black text-black dark:text-white shadow-xs">
+              <SelectValue placeholder="Select company...">
+                {currentCompany ? `${currentCompany.company_name} (${currentCompany.company_type === 'main' ? 'Main Company' : 'Subsidiary'})` : 'Select company...'}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {companies.map(c => (
-                <SelectItem key={c.id} value={c.id.toString()} className="text-xs">
-                  {c.company_name} ({c.company_type === 'main' ? 'Main' : 'Sub'})
+                <SelectItem key={c.id} value={c.id.toString()} className="text-xs font-bold">
+                  {c.company_name} ({c.company_type === 'main' ? 'Main Company' : 'Subsidiary'})
                 </SelectItem>
               ))}
             </SelectContent>
@@ -165,7 +167,7 @@ export const Tab9_IAM: React.FC = () => {
 
         <Button
           onClick={handleOpenAdd}
-          className="bg-[#942392] hover:bg-[#800A7A] text-white font-black text-xs uppercase tracking-wider shadow-sm h-8 px-3.5 rounded-xl self-start sm:self-auto"
+          className="bg-[#942392] hover:bg-[#800A7A] text-white font-black text-xs uppercase tracking-wider shadow-sm h-9 px-4 rounded-xl self-start sm:self-auto"
         >
           <Plus className="w-3.5 h-3.5 mr-1" />
           Add Company Role
@@ -319,27 +321,27 @@ export const Tab9_IAM: React.FC = () => {
             <div className="px-6 py-4 overflow-y-auto flex-1 space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-bold text-muted-foreground">Role Name *</Label>
+                  <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Role Name *</Label>
                   <Input
                     value={roleName}
                     onChange={(e) => setRoleName(e.target.value)}
                     placeholder="e.g. Fleet Supervisor, Cashier"
-                    className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800"
+                    className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white"
                     required
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-bold text-muted-foreground">Role Type</Label>
+                  <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Role Type</Label>
                   <Select value={roleType} onValueChange={(val: any) => setRoleType(val)}>
-                    <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800">
+                    <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white">
                       <SelectValue placeholder="Role Type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Management Role" className="text-xs">Management Role (Director, OM, HOD)</SelectItem>
-                      <SelectItem value="Department Role" className="text-xs">Department Role (HR, Finance)</SelectItem>
-                      <SelectItem value="Operational Role" className="text-xs">Operational Role (Supervisor, Leader)</SelectItem>
-                      <SelectItem value="Employee Role" className="text-xs">Employee Role (Staff, Driver)</SelectItem>
+                      <SelectItem value="Management Role" className="text-xs font-bold">Management Role (Director, OM, HOD)</SelectItem>
+                      <SelectItem value="Department Role" className="text-xs font-bold">Department Role (HR, Finance)</SelectItem>
+                      <SelectItem value="Operational Role" className="text-xs font-bold">Operational Role (Supervisor, Leader)</SelectItem>
+                      <SelectItem value="Employee Role" className="text-xs font-bold">Employee Role (Staff, Driver)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -347,32 +349,32 @@ export const Tab9_IAM: React.FC = () => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-bold text-muted-foreground">Access Scope Boundary</Label>
+                  <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Access Scope Boundary</Label>
                   <Select value={scopeType} onValueChange={(val: any) => setScopeType(val)}>
-                    <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800">
+                    <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white">
                       <SelectValue placeholder="Scope" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Current Company Only" className="text-xs">Current Company Only (Sandboxed)</SelectItem>
-                      <SelectItem value="Parent Group Access" className="text-xs">Parent Group Access (Main Company Cross-Access)</SelectItem>
+                      <SelectItem value="Current Company Only" className="text-xs font-bold">Current Company Only (Sandboxed)</SelectItem>
+                      <SelectItem value="Parent Group Access" className="text-xs font-bold">Parent Group Access (Main Company Cross-Access)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-bold text-muted-foreground">Role Description</Label>
+                  <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Role Description</Label>
                   <Input
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Operational responsibilities and scope"
-                    className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800"
+                    className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white"
                   />
                 </div>
               </div>
 
               {/* Permissions Matrix */}
               <div className="space-y-2 pt-1">
-                <Label className="text-xs font-bold text-foreground uppercase tracking-wider block">
+                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white block">
                   Assigned Permissions Checklist
                 </Label>
                 <PermissionMatrix
