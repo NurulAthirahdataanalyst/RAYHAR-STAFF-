@@ -150,7 +150,7 @@ export const Tab9_IAM: React.FC = () => {
             value={selectedCompanyId ? selectedCompanyId.toString() : "1"} 
             onValueChange={(val) => setSelectedCompanyId(parseInt(val, 10))}
           >
-            <SelectTrigger className="w-72 min-w-[260px] text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-black text-black dark:text-white shadow-xs">
+            <SelectTrigger className="w-72 min-w-[260px] text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium data-[placeholder]:font-normal text-black dark:text-white shadow-xs">
               <SelectValue placeholder="Select company...">
                 {currentCompany ? `${currentCompany.company_name} (${currentCompany.company_type === 'main' ? 'Main Company' : 'Subsidiary'})` : 'Rayhar Travels (Main Company)'}
               </SelectValue>
@@ -332,7 +332,7 @@ export const Tab9_IAM: React.FC = () => {
                     value={roleName}
                     onChange={(e) => setRoleName(e.target.value)}
                     placeholder="e.g. Fleet Supervisor, Cashier"
-                    className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white"
+                    className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium placeholder:font-normal text-black dark:text-white"
                     required
                   />
                 </div>
@@ -340,7 +340,7 @@ export const Tab9_IAM: React.FC = () => {
                 <div className="space-y-1.5">
                   <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Role Type</Label>
                   <Select value={roleType} onValueChange={(val: any) => setRoleType(val)}>
-                    <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white">
+                    <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium data-[placeholder]:font-normal text-black dark:text-white">
                       <SelectValue placeholder="Role Type" />
                     </SelectTrigger>
                     <SelectContent>
@@ -357,7 +357,7 @@ export const Tab9_IAM: React.FC = () => {
                 <div className="space-y-1.5">
                   <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Access Scope Boundary</Label>
                   <Select value={scopeType} onValueChange={(val: any) => setScopeType(val)}>
-                    <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white">
+                    <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium data-[placeholder]:font-normal text-black dark:text-white">
                       <SelectValue placeholder="Scope" />
                     </SelectTrigger>
                     <SelectContent>
@@ -373,7 +373,7 @@ export const Tab9_IAM: React.FC = () => {
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Operational responsibilities and scope"
-                    className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white"
+                    className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium placeholder:font-normal text-black dark:text-white"
                   />
                 </div>
               </div>
