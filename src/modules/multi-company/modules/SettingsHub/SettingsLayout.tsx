@@ -141,17 +141,18 @@ export const SettingsLayout: React.FC = () => {
         }`}>
           <div className="bg-gradient-to-b from-[#800A7A] via-[#942392] to-[#3d0052] p-2.5 sm:p-3 rounded-2xl shadow-lg border border-[#942392]/20 flex flex-row lg:flex-col gap-1.5 overflow-x-auto lg:overflow-visible scrollbar-none">
             {/* Header row with Title and Collapse/Expand Toggle */}
-            <div className={`px-2 pt-1 pb-1 hidden lg:flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} border-b border-white/10 mb-1`}>
+            <div className={`px-2 pt-1.5 pb-2 flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} border-b border-white/15 mb-2`}>
               {!isCollapsed && (
-                <span className="text-[9px] font-black tracking-widest uppercase text-white/70">
+                <span className="text-[10px] font-black tracking-widest uppercase text-white/80">
                   Configuration Tabs
                 </span>
               )}
               <button
                 type="button"
                 onClick={toggleCollapsed}
-                className="p-1 rounded-lg hover:bg-white/15 text-white/80 hover:text-white transition-all cursor-pointer"
-                title={isCollapsed ? "Expand Configuration Tabs" : "Collapse Configuration Tabs"}
+                className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-all cursor-pointer shadow-xs flex items-center justify-center"
+                title={isCollapsed ? "Expand Tabs Bar" : "Collapse Tabs Bar"}
+                aria-label={isCollapsed ? "Expand Tabs Bar" : "Collapse Tabs Bar"}
               >
                 {isCollapsed ? (
                   <PanelLeftOpen className="w-4 h-4 text-white" />

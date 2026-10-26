@@ -91,20 +91,26 @@ export const Tab7_AttendanceConfig: React.FC = () => {
             </span>
           </div>
           <Select 
-            value={selectedCompanyId ? selectedCompanyId.toString() : ""} 
+            value={selectedCompanyId ? selectedCompanyId.toString() : "1"} 
             onValueChange={(val) => setSelectedCompanyId(parseInt(val, 10))}
           >
-            <SelectTrigger className="w-64 text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-black text-black dark:text-white shadow-xs">
+            <SelectTrigger className="w-72 min-w-[260px] text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-black text-black dark:text-white shadow-xs">
               <SelectValue placeholder="Select company...">
-                {currentCompany ? `${currentCompany.company_name} (${currentCompany.company_type === 'main' ? 'Main' : 'Sub'})` : 'Select company...'}
+                {currentCompany ? `${currentCompany.company_name} (${currentCompany.company_type === 'main' ? 'Main Company' : 'Subsidiary'})` : 'Rayhar Travels (Main Company)'}
               </SelectValue>
             </SelectTrigger>
             <SelectContent>
-              {companies.map(c => (
-                <SelectItem key={c.id} value={c.id.toString()} className="text-xs font-bold">
-                  {c.company_name} ({c.company_type === 'main' ? 'Main Company' : 'Subsidiary'})
+              {companies.length > 0 ? (
+                companies.map(c => (
+                  <SelectItem key={c.id} value={c.id.toString()} className="text-xs font-bold">
+                    {c.company_name} ({c.company_type === 'main' ? 'Main Company' : 'Subsidiary'})
+                  </SelectItem>
+                ))
+              ) : (
+                <SelectItem value="1" className="text-xs font-bold">
+                  Rayhar Travels (Main Company)
                 </SelectItem>
-              ))}
+              )}
             </SelectContent>
           </Select>
         </div>
