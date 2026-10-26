@@ -193,6 +193,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const getRouteLabel = (pathname: string) => {
     const safePathname = typeof pathname === "string" ? pathname : "/";
     if (safePathname === "/") return "DASHBOARD";
+    if (safePathname.startsWith("/organization")) return "ORGANIZATION & ENTITIES";
     if (safePathname.startsWith("/leave")) return "LEAVE MANAGEMENT";
     if (safePathname.includes("employees")) return "EMPLOYEE DIRECTORY";
     if (safePathname.includes("settings")) return "CONFIGURATION";
@@ -226,6 +227,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       };
 
       return ["HOME", "LEAVE MANAGEMENT", leavePageLabels[pathname] || "PAGE"];
+    }
+
+    if (pathname.startsWith("/organization")) {
+      let sub = "CORPORATE ENTITIES";
+      if (pathname.includes("/transfer")) sub = "EMPLOYEE TRANSFER WIZARD";
+      else if (pathname.includes("/roles")) sub = "COMPANY ROLES & RBAC";
+      else if (pathname.includes("/history")) sub = "TRANSFER CAREER HISTORY";
+      else if (pathname.includes("/branches")) sub = "BRANCHES & GEOFENCE";
+      else if (pathname.includes("/departments")) sub = "DEPARTMENTS";
+      return ["HOME", "ORGANIZATION & ENTITIES", sub];
     }
 
     if (pathname.includes("employees")) {

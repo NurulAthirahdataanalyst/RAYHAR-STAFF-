@@ -5,7 +5,11 @@ import {
   CalendarCheck2, WalletCards, ShieldEllipsis, ContactRound, Building2, UserCog,
   Building, ArrowRightLeft, MonitorSmartphone, ChartNoAxesCombined, ScanSearch,
   CalendarClock, FileClock, FileCheck2, FileBarChart2, Settings, User, LucideIcon,
-  Bell
+  Bell,
+  ShieldCheck,
+  History,
+  MapPin,
+  Layers
 } from "lucide-react";
 
 export interface PageInfo {
@@ -242,6 +246,40 @@ export function getPageTitleInfo(pathname: string, userRole?: string): PageInfo 
     subtitle: "Stay updated with leave approvals, attendance updates, assignments, and announcements.",
     icon: Bell
   };
+
+  // Organization & Entities Module
+  if (pathname.startsWith("/organization")) {
+    if (pathname.includes("/roles")) return {
+      title: "Company Roles & RBAC",
+      subtitle: "Configure company-specific roles, permissions, and multi-tenant security scopes.",
+      icon: ShieldCheck
+    };
+    if (pathname.includes("/transfer")) return {
+      title: "Employee Transfer Wizard",
+      subtitle: "Execute multi-step verified company transfers with role compatibility checks.",
+      icon: ArrowRightLeft
+    };
+    if (pathname.includes("/history")) return {
+      title: "Transfer Career History",
+      subtitle: "Inspect historical records and career transition audit logs across entities.",
+      icon: History
+    };
+    if (pathname.includes("/branches")) return {
+      title: "Branches & Geofence",
+      subtitle: "Manage branch office locations, geofence perimeters, and night shifts.",
+      icon: MapPin
+    };
+    if (pathname.includes("/departments")) return {
+      title: "Departments",
+      subtitle: "Manage departments, divisions, and operational hierarchies per entity.",
+      icon: Layers
+    };
+    return {
+      title: "Corporate Entities",
+      subtitle: "Manage corporate entities, holding structures, subsidiaries, and company branding.",
+      icon: Building2
+    };
+  }
 
   const last = pathname.split("/").filter(Boolean).pop() || "Page";
   const fallbackTitle = last.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());

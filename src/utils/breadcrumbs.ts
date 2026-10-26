@@ -90,6 +90,38 @@ export function getBreadcrumbs(rawPathname: string, rawSearch?: string, role?: s
   if (pathname === "/reports/leave") return [home, { label: "REPORTS", path: "/reports" }, { label: "LEAVE REPORTS" }];
   if (pathname === "/reports/department") return [home, { label: "REPORTS", path: "/reports" }, { label: "DEPARTMENT & BRANCH REPORTS" }];
 
+  // Organization & Entities Module Pages
+  if (pathname.startsWith("/organization")) {
+    const base: BreadcrumbSegment[] = [
+      home,
+      { label: "ORGANIZATION & ENTITIES", path: "/organization/entities" }
+    ];
+
+    let sub = "";
+    if (pathname === "/organization/entities" || pathname.endsWith("/entities")) sub = "CORPORATE ENTITIES";
+    else if (pathname === "/organization/roles" || pathname.endsWith("/roles")) sub = "COMPANY ROLES & RBAC";
+    else if (pathname === "/organization/transfer" || pathname.endsWith("/transfer")) sub = "EMPLOYEE TRANSFER WIZARD";
+    else if (pathname === "/organization/history" || pathname.endsWith("/history")) sub = "TRANSFER CAREER HISTORY";
+    else if (pathname === "/organization/branches" || pathname.endsWith("/branches")) sub = "BRANCHES & GEOFENCE";
+    else if (pathname === "/organization/departments" || pathname.endsWith("/departments")) sub = "DEPARTMENTS";
+
+    if (!sub && search) {
+      const params = new URLSearchParams(search);
+      const tab = params.get("tab");
+      if (tab === "entities") sub = "CORPORATE ENTITIES";
+      else if (tab === "roles") sub = "COMPANY ROLES & RBAC";
+      else if (tab === "transfer") sub = "EMPLOYEE TRANSFER WIZARD";
+      else if (tab === "history") sub = "TRANSFER CAREER HISTORY";
+      else if (tab === "branches") sub = "BRANCHES & GEOFENCE";
+      else if (tab === "departments") sub = "DEPARTMENTS";
+    }
+
+    if (sub) {
+      base.push({ label: sub });
+    }
+    return base;
+  }
+
   // Setting Pages
   if (pathname === "/settings") {
     const base: BreadcrumbSegment[] = [home, { label: "HR ADMINISTRATOR" }, { label: "SETTINGS", path: "/settings" }];

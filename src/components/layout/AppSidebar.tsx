@@ -227,12 +227,12 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         {
           title: "Organization & Entities",
           icon: Building2,
-          path: "/organization",
+          path: "/organization/entities",
           children: [
             { title: "Corporate Entities", icon: Building2, path: "/organization/entities" },
             { title: "Company Roles & RBAC", icon: ShieldCheck, path: "/organization/roles" },
-            { title: "Employee Transfer", icon: ArrowRightLeft, path: "/organization/transfer" },
-            { title: "Transfer History", icon: History, path: "/organization/history" },
+            { title: "Employee Transfer Wizard", icon: ArrowRightLeft, path: "/organization/transfer" },
+            { title: "Transfer Career History", icon: History, path: "/organization/history" },
             { title: "Branches & Geofence", icon: MapPin, path: "/organization/branches" },
             { title: "Departments", icon: Layers, path: "/organization/departments" },
           ],
@@ -462,12 +462,12 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         {
           title: "Organization & Entities",
           icon: Building2,
-          path: "/organization",
+          path: "/organization/entities",
           children: [
             { title: "Corporate Entities", icon: Building2, path: "/organization/entities" },
             { title: "Company Roles & RBAC", icon: ShieldCheck, path: "/organization/roles" },
-            { title: "Employee Transfer", icon: ArrowRightLeft, path: "/organization/transfer" },
-            { title: "Transfer History", icon: History, path: "/organization/history" },
+            { title: "Employee Transfer Wizard", icon: ArrowRightLeft, path: "/organization/transfer" },
+            { title: "Transfer Career History", icon: History, path: "/organization/history" },
             { title: "Branches & Geofence", icon: MapPin, path: "/organization/branches" },
             { title: "Departments", icon: Layers, path: "/organization/departments" },
           ],
