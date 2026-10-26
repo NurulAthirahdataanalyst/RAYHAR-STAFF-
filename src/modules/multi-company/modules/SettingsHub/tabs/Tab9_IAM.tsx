@@ -290,112 +290,119 @@ export const Tab9_IAM: React.FC = () => {
 
       {/* Add / Edit Role Dialog */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="max-w-2xl bg-card dark:bg-neutral-900 border border-border dark:border-neutral-800 rounded-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-sm font-black uppercase tracking-wider text-foreground dark:text-white flex items-center justify-between">
-              <span className="flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-[#942392]" />
-                {editingRole ? `Edit Role (${editingRole.name})` : `Create Role for ${currentCompany?.company_name}`}
-              </span>
+        <DialogContent className="max-w-2xl bg-card dark:bg-neutral-900 border border-border dark:border-neutral-800 rounded-2xl max-h-[88vh] flex flex-col p-0 overflow-hidden shadow-2xl">
+          <form onSubmit={handleSaveRole} className="flex flex-col h-full max-h-[88vh] overflow-hidden">
+            {/* Modal Header */}
+            <div className="px-6 py-4 border-b border-border/40 shrink-0 bg-card dark:bg-neutral-900">
+              <DialogHeader>
+                <DialogTitle className="text-sm font-black uppercase tracking-wider text-foreground dark:text-white flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <ShieldCheck className="w-4 h-4 text-[#942392]" />
+                    {editingRole ? `Edit Role (${editingRole.name})` : `Create Role for ${currentCompany?.company_name}`}
+                  </span>
 
-              {templates.length > 0 && !editingRole && (
-                <div className="flex items-center gap-1.5 text-xs">
-                  <Sparkles className="w-3.5 h-3.5 text-[#942392]" />
-                  <Select onValueChange={handleApplyTemplate}>
-                    <SelectTrigger className="w-40 text-xs h-7 bg-muted/60 border-border/50">
-                      <SelectValue placeholder="Use Role Template..." />
+                  {templates.length > 0 && !editingRole && (
+                    <div className="flex items-center gap-1.5 text-xs">
+                      <Sparkles className="w-3.5 h-3.5 text-[#942392]" />
+                      <Select onValueChange={handleApplyTemplate}>
+                        <SelectTrigger className="w-40 text-xs h-7 bg-muted/60 border-border/50">
+                          <SelectValue placeholder="Use Role Template..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {templates.map(t => (
+                            <SelectItem key={t.id} value={t.template_name} className="text-xs">
+                              {t.template_name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                </DialogTitle>
+              </DialogHeader>
+            </div>
+
+            {/* Scrollable Form Body */}
+            <div className="px-6 py-4 overflow-y-auto flex-1 space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold text-muted-foreground">Role Name *</Label>
+                  <Input
+                    value={roleName}
+                    onChange={(e) => setRoleName(e.target.value)}
+                    placeholder="e.g. Fleet Supervisor, Cashier"
+                    className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold text-muted-foreground">Role Type</Label>
+                  <Select value={roleType} onValueChange={(val: any) => setRoleType(val)}>
+                    <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800">
+                      <SelectValue placeholder="Role Type" />
                     </SelectTrigger>
                     <SelectContent>
-                      {templates.map(t => (
-                        <SelectItem key={t.id} value={t.template_name} className="text-xs">
-                          {t.template_name}
-                        </SelectItem>
-                      ))}
+                      <SelectItem value="Management Role" className="text-xs">Management Role (Director, OM, HOD)</SelectItem>
+                      <SelectItem value="Department Role" className="text-xs">Department Role (HR, Finance)</SelectItem>
+                      <SelectItem value="Operational Role" className="text-xs">Operational Role (Supervisor, Leader)</SelectItem>
+                      <SelectItem value="Employee Role" className="text-xs">Employee Role (Staff, Driver)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-              )}
-            </DialogTitle>
-          </DialogHeader>
-
-          <form onSubmit={handleSaveRole} className="space-y-4 pt-2">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-muted-foreground">Role Name *</Label>
-                <Input
-                  value={roleName}
-                  onChange={(e) => setRoleName(e.target.value)}
-                  placeholder="e.g. Fleet Supervisor, Cashier"
-                  className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800"
-                  required
-                />
               </div>
 
-              <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-muted-foreground">Role Type</Label>
-                <Select value={roleType} onValueChange={(val: any) => setRoleType(val)}>
-                  <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800">
-                    <SelectValue placeholder="Role Type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Management Role" className="text-xs">Management Role (Director, OM, HOD)</SelectItem>
-                    <SelectItem value="Department Role" className="text-xs">Department Role (HR, Finance)</SelectItem>
-                    <SelectItem value="Operational Role" className="text-xs">Operational Role (Supervisor, Leader)</SelectItem>
-                    <SelectItem value="Employee Role" className="text-xs">Employee Role (Staff, Driver)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold text-muted-foreground">Access Scope Boundary</Label>
+                  <Select value={scopeType} onValueChange={(val: any) => setScopeType(val)}>
+                    <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800">
+                      <SelectValue placeholder="Scope" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Current Company Only" className="text-xs">Current Company Only (Sandboxed)</SelectItem>
+                      <SelectItem value="Parent Group Access" className="text-xs">Parent Group Access (Main Company Cross-Access)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-muted-foreground">Access Scope Boundary</Label>
-                <Select value={scopeType} onValueChange={(val: any) => setScopeType(val)}>
-                  <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800">
-                    <SelectValue placeholder="Scope" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Current Company Only" className="text-xs">Current Company Only (Sandboxed)</SelectItem>
-                    <SelectItem value="Parent Group Access" className="text-xs">Parent Group Access (Main Company Cross-Access)</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold text-muted-foreground">Role Description</Label>
+                  <Input
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Operational responsibilities and scope"
+                    className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800"
+                  />
+                </div>
               </div>
 
-              <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-muted-foreground">Role Description</Label>
-                <Input
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Operational responsibilities and scope"
-                  className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800"
+              {/* Permissions Matrix */}
+              <div className="space-y-2 pt-1">
+                <Label className="text-xs font-bold text-foreground uppercase tracking-wider block">
+                  Assigned Permissions Checklist
+                </Label>
+                <PermissionMatrix
+                  selectedKeys={selectedPermissions}
+                  onChange={setSelectedPermissions}
                 />
               </div>
             </div>
 
-            {/* Permissions Matrix */}
-            <div className="space-y-2 pt-2">
-              <Label className="text-xs font-bold text-foreground uppercase tracking-wider block">
-                Assigned Permissions Checklist
-              </Label>
-              <PermissionMatrix
-                selectedKeys={selectedPermissions}
-                onChange={setSelectedPermissions}
-              />
-            </div>
-
-            <DialogFooter className="pt-2">
-              <Button type="button" variant="ghost" onClick={() => setModalOpen(false)}>
+            {/* Modal Footer (Always pinned at bottom with zero extra white space) */}
+            <div className="px-6 py-3 bg-muted/30 dark:bg-neutral-800/40 border-t border-border/40 shrink-0 flex items-center justify-end gap-2">
+              <Button type="button" variant="ghost" onClick={() => setModalOpen(false)} className="h-8 text-xs font-bold">
                 Cancel
               </Button>
               <Button
                 type="submit"
                 disabled={saving || !roleName.trim()}
-                className="bg-[#942392] hover:bg-[#800A7A] text-white font-black text-xs uppercase h-8 px-4 rounded-xl"
+                className="bg-[#942392] hover:bg-[#800A7A] text-white font-black text-xs uppercase h-8 px-4 rounded-xl shadow-xs"
               >
                 {saving ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Check className="w-3 h-3 mr-1" />}
                 Save Role
               </Button>
-            </DialogFooter>
+            </div>
           </form>
         </DialogContent>
       </Dialog>

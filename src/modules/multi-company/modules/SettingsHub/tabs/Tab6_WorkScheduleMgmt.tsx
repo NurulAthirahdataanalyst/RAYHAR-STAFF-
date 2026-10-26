@@ -247,15 +247,18 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
 
       {/* Create Work Schedule Dialog */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="max-w-2xl bg-card dark:bg-neutral-900 border border-border dark:border-neutral-800 rounded-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-sm font-black uppercase tracking-wider text-foreground dark:text-white flex items-center gap-2">
-              <CalendarClock className="w-4 h-4 text-[#942392]" />
-              Create Work Schedule Timetable
-            </DialogTitle>
-          </DialogHeader>
+        <DialogContent className="max-w-2xl bg-card dark:bg-neutral-900 border border-border dark:border-neutral-800 rounded-2xl max-h-[88vh] flex flex-col p-0 overflow-hidden shadow-2xl">
+          <form onSubmit={handleCreateSchedule} className="flex flex-col h-full max-h-[88vh] overflow-hidden">
+            <div className="px-6 py-4 border-b border-border/40 shrink-0 bg-card dark:bg-neutral-900">
+              <DialogHeader>
+                <DialogTitle className="text-sm font-black uppercase tracking-wider text-foreground dark:text-white flex items-center gap-2">
+                  <CalendarClock className="w-4 h-4 text-[#942392]" />
+                  Create Work Schedule Timetable
+                </DialogTitle>
+              </DialogHeader>
+            </div>
 
-          <form onSubmit={handleCreateSchedule} className="space-y-4 pt-2">
+            <div className="px-6 py-4 overflow-y-auto flex-1 space-y-4">
             <div className="space-y-1.5">
               <Label className="text-xs font-bold text-muted-foreground">Schedule Name *</Label>
               <Input
@@ -373,19 +376,21 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
               </div>
             </div>
 
-            <DialogFooter className="pt-2">
-              <Button type="button" variant="ghost" onClick={() => setModalOpen(false)}>
+            </div>
+
+            <div className="px-6 py-3 bg-muted/30 dark:bg-neutral-800/40 border-t border-border/40 shrink-0 flex items-center justify-end gap-2">
+              <Button type="button" variant="ghost" onClick={() => setModalOpen(false)} className="h-8 text-xs font-bold">
                 Cancel
               </Button>
               <Button
                 type="submit"
                 disabled={saving || !scheduleName.trim()}
-                className="bg-[#942392] hover:bg-[#800A7A] text-white font-black text-xs uppercase h-8 px-4 rounded-xl"
+                className="bg-[#942392] hover:bg-[#800A7A] text-white font-black text-xs uppercase h-8 px-4 rounded-xl shadow-xs"
               >
                 {saving ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Check className="w-3 h-3 mr-1" />}
                 Save Schedule
               </Button>
-            </DialogFooter>
+            </div>
           </form>
         </DialogContent>
       </Dialog>

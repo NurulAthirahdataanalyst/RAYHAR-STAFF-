@@ -66,7 +66,7 @@ function createMultiCompanyRouter(pgPool) {
           c.*,
           p.company_name AS parent_company_name,
           (SELECT COUNT(*)::int FROM company_user_roles cur WHERE cur.company_id = c.id AND cur.status = 'active') AS active_employees_count,
-          (SELECT COUNT(*)::int FROM branches b WHERE b.company_id = c.id AND b.status = 'Active') AS branches_count
+          (SELECT COUNT(*)::int FROM branches b WHERE b.company_id = c.id) AS branches_count
         FROM companies c
         LEFT JOIN companies p ON c.parent_company_id = p.id
         ORDER BY c.id ASC;

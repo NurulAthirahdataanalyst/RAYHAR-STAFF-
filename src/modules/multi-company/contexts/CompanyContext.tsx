@@ -89,11 +89,18 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, [companies]);
 
   const refreshCompanies = useCallback(async () => {
-    const all = await multiCompanyApi.getCompanies();
-    setCompanies(all);
-    if (activeCompany) {
-      const refreshed = all.find(c => c.id === activeCompany.id);
-      if (refreshed) setActiveCompany(refreshed);
+    try {
+      const all = await multiCompanyApi.getCompanies();
+      setCompanies(all);
+      if (activeCompany) {
+        const refreshed = all.find(c => c.id === activeCompany.id);
+        if (refreshed) setActiveCompany(refreshed);
+      } else if (all.length > 0) {
+        const defaultComp = all.find(c => c.company_type === 'main') || all[0];
+        setActiveCompany(defaultComp);
+      }
+    } catch (err) {
+      console.error('Error refreshing companies:', err);
     }
   }, [activeCompany]);
 

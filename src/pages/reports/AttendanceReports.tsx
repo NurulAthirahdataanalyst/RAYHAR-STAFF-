@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Fragment } from "react";
 import { API_BASE_URL } from "@/config/api";
+import { writePrintDocument } from "@/utils/security";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, Search, X, Users, CheckCircle, Briefcase, CalendarOff, AlertCircle, XCircle, Percent, Clock, MapPin, RotateCcw } from "lucide-react";
@@ -7,25 +8,55 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
-import PageActions from "@/components/layout/PageActions";
 import { useRole } from "@/contexts/RoleContext";
 import { YearPopover } from "@/components/shared/YearPopover";
 import { MonthPicker } from "@/components/shared/MonthPicker";
 import { CustomDatePicker, TablePagination } from "@/components/common/TablePagination";
 
-const calculateWorkingHours = (clockIn: string | null | undefined, clockOut: string | null | undefined) => {
-  if (!clockIn) return "--";
+interface ClockSession {
+  clock_in: string | null;
+  clock_out: string | null;
+  time_in: string | null;
+  time_out: string | null;
+  location?: string | null;
+  distance_meters?: number | null;
+  latitude?: number | string | null;
+  longitude?: number | string | null;
+}
+
+const formatSessionTime = (timeStr?: string | null, isoStr?: string | null): string | null => {
+  if (timeStr && timeStr !== "-" && timeStr !== "N/A") {
+    return String(timeStr).trim().replace(/^0(\d:)/, "$1");
+  }
+  if (isoStr) {
+    const d = new Date(isoStr);
+    if (!isNaN(d.getTime())) {
+      return d.toLocaleTimeString("en-US", {
+        timeZone: "Asia/Kuala_Lumpur",
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      });
+    }
+  }
+  return null;
+};
+
+const calculateSessionDurationMs = (clockIn: string | null | undefined, clockOut: string | null | undefined): number => {
+  if (!clockIn) return 0;
   const start = new Date(clockIn).getTime();
-  let end;
+  if (isNaN(start)) return 0;
+  let end: number;
   if (clockOut) {
     end = new Date(clockOut).getTime();
   } else {
     const clockInDate = new Date(clockIn);
     const klNow = new Date(Date.now() + 8 * 60 * 60 * 1000);
     const klClockInTime = new Date(clockInDate.getTime() + 8 * 60 * 60 * 1000);
-    const isToday = klNow.getUTCFullYear() === klClockInTime.getUTCFullYear() &&
-                    klNow.getUTCMonth() === klClockInTime.getUTCMonth() &&
-                    klNow.getUTCDate() === klClockInTime.getUTCDate();
+    const isToday =
+      klNow.getUTCFullYear() === klClockInTime.getUTCFullYear() &&
+      klNow.getUTCMonth() === klClockInTime.getUTCMonth() &&
+      klNow.getUTCDate() === klClockInTime.getUTCDate();
     if (isToday) {
       end = Date.now();
     } else {
@@ -35,9 +66,34 @@ const calculateWorkingHours = (clockIn: string | null | undefined, clockOut: str
     }
   }
   const diffMs = end - start;
-  if (diffMs < 0) return "--";
+  return diffMs > 0 ? diffMs : 0;
+};
+
+const calculateWorkingHours = (clockIn: string | null | undefined, clockOut: string | null | undefined) => {
+  if (!clockIn) return "--";
+  const diffMs = calculateSessionDurationMs(clockIn, clockOut);
+  if (diffMs <= 0) return "0h 0m";
   const hours = Math.floor(diffMs / (1000 * 60 * 60));
   const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+  return `${hours}h ${minutes}m`;
+};
+
+const calculateTotalWorkingHours = (record: any): string => {
+  const sessions: ClockSession[] = Array.isArray(record?.sessions) ? record.sessions : [];
+  if (sessions.length === 0) {
+    return calculateWorkingHours(record?.clock_in, record?.clock_out);
+  }
+  let totalMs = 0;
+  let hasValidSession = false;
+  sessions.forEach((s) => {
+    if (s.clock_in) {
+      hasValidSession = true;
+      totalMs += calculateSessionDurationMs(s.clock_in, s.clock_out);
+    }
+  });
+  if (!hasValidSession) return "--";
+  const hours = Math.floor(totalMs / (1000 * 60 * 60));
+  const minutes = Math.floor((totalMs % (1000 * 60 * 60)) / (1000 * 60));
   return `${hours}h ${minutes}m`;
 };
 
@@ -64,8 +120,6 @@ export default function AttendanceReports() {
   const [selectedMonth, setSelectedMonth] = useState((new Date().getMonth() + 1).toString());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
   const [statusFilter, setStatusFilter] = useState("All");
-  const [apiBranches, setApiBranches] = useState<any[]>([]);
-  const [locationsMap, setLocationsMap] = useState<Record<string, any>>({});
 
   const months = [
     { value: "1", label: "January" }, { value: "2", label: "February" }, { value: "3", label: "March" },
@@ -91,7 +145,6 @@ export default function AttendanceReports() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      let url = "";
       const params = new URLSearchParams({
         role: role || "",
         branch: userBranch || "",
@@ -129,25 +182,25 @@ export default function AttendanceReports() {
           if (res.success && Array.isArray(res.data)) {
             allData = allData.concat(res.data);
             if (res.summary) {
-                aggSummary.totalEmployees = Math.max(aggSummary.totalEmployees, res.summary.totalEmployees || 0); // Max employees seen in a month
-                aggSummary.present += res.summary.present || 0;
-                aggSummary.late += res.summary.late || 0;
-                aggSummary.outstation += res.summary.outstation || 0;
-                aggSummary.leave += res.summary.leave || 0;
-                aggSummary.missingClockOut += res.summary.missingClockOut || 0;
-                aggSummary.absent += res.summary.absent || 0;
-                if (res.summary.complianceRate) {
-                    sumCompliance += res.summary.complianceRate;
-                    monthsWithData++;
-                }
+              aggSummary.totalEmployees = Math.max(aggSummary.totalEmployees, res.summary.totalEmployees || 0);
+              aggSummary.present += res.summary.present || 0;
+              aggSummary.late += res.summary.late || 0;
+              aggSummary.outstation += res.summary.outstation || 0;
+              aggSummary.leave += res.summary.leave || 0;
+              aggSummary.missingClockOut += res.summary.missingClockOut || 0;
+              aggSummary.absent += res.summary.absent || 0;
+              if (res.summary.complianceRate) {
+                sumCompliance += res.summary.complianceRate;
+                monthsWithData++;
+              }
             }
           }
         });
         if (monthsWithData > 0) aggSummary.complianceRate = Math.round(sumCompliance / monthsWithData);
         data = { success: true, data: allData, summary: aggSummary };
       }
-      const assignments = (workAssignData.success && Array.isArray(workAssignData.assignments)) 
-        ? workAssignData.assignments 
+      const assignments = (workAssignData.success && Array.isArray(workAssignData.assignments))
+        ? workAssignData.assignments
         : [];
 
       const toDateOnly = (val: any): string => {
@@ -186,45 +239,115 @@ export default function AttendanceReports() {
         return match ? (match.temp_branch || match.temporary_branch || match.location || null) : null;
       };
 
-      if (data.success) {
-        let processedData = data.data.map((r: any) => {
-          const recDate = r.date || (viewType === "day" ? date : r.clock_in);
-          return {
-            ...r,
-            temporary_branch: undefined,
-            status: r.status || "Unknown",
-            temp_branch: getTempBranchForRecord(r.user_id, recDate)
+      if (data.success && Array.isArray(data.data)) {
+        // Group multiple clock-in/out records for the same employee on the same date into 1 single row
+        const groupedMap = new Map<string, any>();
+
+        data.data.forEach((r: any) => {
+          const recDate = toDateOnly(r.date || (viewType === "day" ? date : r.clock_in));
+          const normUid = String(r.user_id || "").trim().toUpperCase();
+          const groupKey = viewType === "day" ? normUid : `${normUid}__${recDate}`;
+
+          const addSessionToList = (list: ClockSession[], raw: any) => {
+            if (!raw || (!raw.clock_in && !raw.time_in)) return;
+            const cIn = raw.clock_in || null;
+            const cOut = raw.clock_out || null;
+            const tIn = formatSessionTime(raw.time_in, cIn);
+            const tOut = formatSessionTime(raw.time_out, cOut);
+            const isDuplicate = list.some(
+              (existing) =>
+                (cIn && existing.clock_in === cIn) ||
+                (!cIn && existing.time_in === tIn && existing.time_out === tOut)
+            );
+            if (!isDuplicate) {
+              list.push({
+                clock_in: cIn,
+                clock_out: cOut,
+                time_in: tIn,
+                time_out: tOut,
+                location: raw.location || raw.clock_in_location || null,
+                distance_meters: raw.distance_meters ?? null,
+                latitude: raw.latitude ?? raw.clock_in_latitude ?? null,
+                longitude: raw.longitude ?? raw.clock_in_longitude ?? null,
+              });
+            }
           };
+
+          if (!groupedMap.has(groupKey)) {
+            const sessions: ClockSession[] = [];
+            if (Array.isArray(r.sessions) && r.sessions.length > 0) {
+              r.sessions.forEach((s: any) => addSessionToList(sessions, s));
+            } else {
+              addSessionToList(sessions, r);
+            }
+
+            groupedMap.set(groupKey, {
+              ...r,
+              date: recDate || r.date,
+              temporary_branch: undefined,
+              status: r.status || "Unknown",
+              temp_branch: getTempBranchForRecord(r.user_id, recDate),
+              sessions,
+            });
+          } else {
+            const existing = groupedMap.get(groupKey);
+            if (Array.isArray(r.sessions) && r.sessions.length > 0) {
+              r.sessions.forEach((s: any) => addSessionToList(existing.sessions, s));
+            } else {
+              addSessionToList(existing.sessions, r);
+            }
+            if (r.is_late) existing.is_late = true;
+            if (r.missing_clock_out) existing.missing_clock_out = true;
+            if (existing.status === "Absent" && r.status && r.status !== "Absent") {
+              existing.status = r.status;
+            }
+          }
+        });
+
+        let processedData = Array.from(groupedMap.values()).map((item: any) => {
+          if (Array.isArray(item.sessions) && item.sessions.length > 0) {
+            item.sessions.sort((a: ClockSession, b: ClockSession) => {
+              const tA = a.clock_in ? new Date(a.clock_in).getTime() : 0;
+              const tB = b.clock_in ? new Date(b.clock_in).getTime() : 0;
+              return tA - tB;
+            });
+            const first = item.sessions[0];
+            const last = item.sessions[item.sessions.length - 1];
+            item.clock_in = first.clock_in;
+            item.time_in = first.time_in;
+            item.clock_out = last.clock_out;
+            item.time_out = last.time_out;
+            item.latitude = first.latitude ?? item.latitude;
+            item.longitude = first.longitude ?? item.longitude;
+            item.distance_meters = first.distance_meters ?? item.distance_meters;
+            item.location = first.location || item.location;
+          }
+          return item;
         });
 
         if (viewType === "day") {
-          // Day view: sort by full_name A-Z
           processedData.sort((a: any, b: any) =>
             (a.full_name || "").localeCompare(b.full_name || "")
           );
         } else if (viewType === "month") {
           const today = new Date();
-          // Adjust to Malaysia Time roughly for "today"
           const myTime = new Date(today.getTime() + (8 * 60 * 60 * 1000));
           const todayStr = myTime.toISOString().slice(0, 10);
-          
+
           const selM = parseInt(selectedMonth);
           const selY = parseInt(selectedYear);
           const isCurrentMonth = (myTime.getMonth() + 1 === selM && myTime.getFullYear() === selY);
 
-          // Filter out future dates if we are viewing the current month
           if (isCurrentMonth) {
-             processedData = processedData.filter((r: any) => r.date <= todayStr);
+            processedData = processedData.filter((r: any) => r.date <= todayStr);
           }
-          
-          // Sort: date DESC, then full_name ASC within same date
+
           processedData.sort((a: any, b: any) => {
             const dateCmp = (b.date || "").localeCompare(a.date || "");
             if (dateCmp !== 0) return dateCmp;
             return (a.full_name || "").localeCompare(b.full_name || "");
           });
         } else if (viewType === "year") {
-          // Sort: date DESC, then full_name ASC within same date
           processedData.sort((a: any, b: any) => {
             const aDate = a.date || (a.clock_in ? a.clock_in.slice(0, 10) : "");
             const bDate = b.date || (b.clock_in ? b.clock_in.slice(0, 10) : "");
@@ -256,6 +379,13 @@ export default function AttendanceReports() {
     return matchesSearch && matchesStatus;
   });
 
+  // Determine how many Clock In / Clock Out session column pairs to display (at least 2 pairs, or more if any employee has >2 sessions)
+  const maxSessions = Math.max(
+    2,
+    ...attendanceData.map((r: any) => (Array.isArray(r.sessions) ? r.sessions.length : 0))
+  );
+  const sessionIndices = Array.from({ length: maxSessions }, (_, idx) => idx);
+
   const pageCount = Math.max(1, Math.ceil(filteredList.length / pageSize));
   const pagedList = filteredList.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
@@ -263,7 +393,7 @@ export default function AttendanceReports() {
     setCurrentPage(1);
   }, [searchQuery, statusFilter, viewType, date, selectedMonth, selectedYear, pageSize]);
 
-  // KPI Calculations
+  // KPI Calculations (each employee is 1 single row in Day view)
   const totalEmployeesDay = filteredList.length;
   const presentCountDay = filteredList.filter(a => a.status === "Present (On Time)" || a.status === "Present (Late)" || a.status === "Missing Clock-Out").length;
   const lateCountDay = filteredList.filter(a => a.status === "Present (Late)" || a.is_late).length;
@@ -272,7 +402,7 @@ export default function AttendanceReports() {
   const missingClockOutCountDay = filteredList.filter(a => a.status === "Missing Clock-Out" || a.missing_clock_out).length;
   const absentCountDay = filteredList.filter(a => a.status === "Absent").length;
   const workingEmployeesDay = totalEmployeesDay - leaveCountDay;
-  const attendedEmployeesDay = presentCountDay + outstationCountDay; // missingClockOut is already included in presentCountDay
+  const attendedEmployeesDay = presentCountDay + outstationCountDay;
   const attendanceRateDay = workingEmployeesDay > 0 ? Math.round((attendedEmployeesDay / workingEmployeesDay) * 100) : 0;
 
   const totalEmployees = viewType === "day" ? totalEmployeesDay : (monthlySummary?.totalEmployees || 0);
@@ -293,13 +423,8 @@ export default function AttendanceReports() {
     setCurrentPage(1);
   };
 
-  const handleExportCSV = () => {
-    const headers = viewType === "day"
-      ? ["Employee ID", "Name", "Branch", "Clock In", "Clock Out", "Status", "Working Hours", "Coordinate (Latitude&Longitude)", "Distance", "Location Status"]
-      : ["Date", "Employee ID", "Name", "Branch", "Clock In", "Clock Out", "Status", "Working Hours", "Coordinate (Latitude&Longitude)", "Distance", "Location Status"];
-
-    // Sort export: for month/year — date DESC then name ASC; for day — name ASC
-    const sortedList = [...filteredList].sort((a, b) => {
+  const getSortedExportList = () => {
+    return [...filteredList].sort((a, b) => {
       if (viewType === "day") {
         return (a.full_name || "").localeCompare(b.full_name || "");
       }
@@ -309,44 +434,58 @@ export default function AttendanceReports() {
       if (dateCmp !== 0) return dateCmp;
       return (a.full_name || "").localeCompare(b.full_name || "");
     });
+  };
+
+  const handleExportCSV = () => {
+    const sessionHeaders = sessionIndices.flatMap((idx) => [
+      `Clock In ${idx + 1}`,
+      `Clock Out ${idx + 1}`,
+    ]);
+
+    const headers = viewType === "day"
+      ? ["Employee ID", "Name", "Location", ...sessionHeaders, "Status", "Duration", "Coordinate (Latitude&Longitude)", "Distance", "Location Status"]
+      : ["Date", "Employee ID", "Name", "Location", ...sessionHeaders, "Status", "Duration", "Coordinate (Latitude&Longitude)", "Distance", "Location Status"];
+
+    const sortedList = getSortedExportList();
 
     const rows = sortedList.map(a => {
-      const workingHrs = calculateWorkingHours(a.clock_in, a.clock_out);
+      const workingHrs = calculateTotalWorkingHours(a);
       const coords = a.latitude && a.longitude ? `${Number(a.latitude).toFixed(6)}, ${Number(a.longitude).toFixed(6)}` : "-";
       const distance = a.distance_meters !== null && a.distance_meters !== undefined ? `${Math.round(a.distance_meters)}m` : "-";
       const locationStatus = a.location || a.clock_in_location || "-";
-      
       const branchText = a.temp_branch ? `${a.permanent_branch || a.branch || 'HQ'} (TEMP: ${a.temp_branch})` : (a.permanent_branch || a.branch || 'HQ');
-      
+
+      const sessions: ClockSession[] = Array.isArray(a.sessions) ? a.sessions : [];
+      const sessionCells = sessionIndices.flatMap((idx) => {
+        const s = sessions[idx];
+        if (s && (s.clock_in || s.time_in)) {
+          const tIn = s.time_in || "N/A";
+          const tOut = s.time_out || "N/A";
+          return [`"${tIn.replace(/"/g, '""')}"`, `"${tOut.replace(/"/g, '""')}"`];
+        }
+        const emptyVal = idx === 0 && sessions.length === 0 ? "N/A" : "-";
+        return [`"${emptyVal}"`, `"${emptyVal}"`];
+      });
+
+      const baseCells = [
+        `"${(a.user_id || '').replace(/"/g, '""')}"`,
+        `"${(a.full_name || '').replace(/"/g, '""')}"`,
+        `"${branchText.replace(/"/g, '""')}"`,
+        ...sessionCells,
+        `"${(a.status || '').replace(/"/g, '""')}"`,
+        `"${workingHrs}"`,
+        `"${coords}"`,
+        `"${distance}"`,
+        `"${locationStatus}"`
+      ];
+
       if (viewType === "day") {
-        return [
-          `"${(a.user_id || '').replace(/"/g, '""')}"`,
-          `"${(a.full_name || '').replace(/"/g, '""')}"`,
-          `"${branchText.replace(/"/g, '""')}"`,
-          `"${(a.time_in || 'N/A').replace(/"/g, '""')}"`,
-          `"${(a.time_out || 'N/A').replace(/"/g, '""')}"`,
-          `"${(a.status || '').replace(/"/g, '""')}"`,
-          `"${workingHrs}"`,
-          `"${coords}"`,
-          `"${distance}"`,
-          `"${locationStatus}"`
-        ];
+        return baseCells;
       } else {
-        return [
-          `"${(a.date || '').replace(/"/g, '""')}"`,
-          `"${(a.user_id || '').replace(/"/g, '""')}"`,
-          `"${(a.full_name || '').replace(/"/g, '""')}"`,
-          `"${branchText.replace(/"/g, '""')}"`,
-          `"${(a.time_in || 'N/A').replace(/"/g, '""')}"`,
-          `"${(a.time_out || 'N/A').replace(/"/g, '""')}"`,
-          `"${(a.status || '').replace(/"/g, '""')}"`,
-          `"${workingHrs}"`,
-          `"${coords}"`,
-          `"${distance}"`,
-          `"${locationStatus}"`
-        ];
+        return [`"${(a.date || '').replace(/"/g, '""')}"`, ...baseCells];
       }
     });
+
     const csvContent = "\ufeff" + [headers.join(","), ...rows.map(row => row.join(","))].join("\n");
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -356,6 +495,97 @@ export default function AttendanceReports() {
     link.style.visibility = 'hidden';
     link.click();
   };
+
+  const handleExportPDF = () => {
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) return;
+
+    const sortedList = getSortedExportList();
+    const sessionThs = sessionIndices
+      .map((idx) => `<th>Clock In ${idx + 1}</th><th>Clock Out ${idx + 1}</th>`)
+      .join("");
+
+    const rowsHtml = sortedList
+      .map((a) => {
+        const workingHrs = calculateTotalWorkingHours(a);
+        const branchText = a.temp_branch
+          ? `${a.permanent_branch || a.branch || "HQ"} (TEMP: ${a.temp_branch})`
+          : a.permanent_branch || a.branch || "HQ";
+        const sessions: ClockSession[] = Array.isArray(a.sessions) ? a.sessions : [];
+        const sessionTds = sessionIndices
+          .map((idx) => {
+            const s = sessions[idx];
+            if (s && (s.clock_in || s.time_in)) {
+              return `<td>${s.time_in || "N/A"}</td><td>${s.time_out || "N/A"}</td>`;
+            }
+            const emptyVal = idx === 0 && sessions.length === 0 ? "N/A" : "-";
+            return `<td>${emptyVal}</td><td>${emptyVal}</td>`;
+          })
+          .join("");
+
+        return `
+          <tr>
+            ${viewType !== "day" ? `<td>${formatDate(a.date)}</td>` : ""}
+            <td>${a.user_id || "-"}</td>
+            <td>${a.full_name || "-"}</td>
+            <td>${branchText}</td>
+            ${sessionTds}
+            <td>${a.status || "-"}</td>
+            <td>${workingHrs}</td>
+          </tr>
+        `;
+      })
+      .join("");
+
+    const periodTitle =
+      viewType === "day"
+        ? `Date: ${formatDate(date)}`
+        : viewType === "month"
+        ? `Month: ${months.find((m) => m.value === selectedMonth)?.label || selectedMonth} ${selectedYear}`
+        : `Year: ${selectedYear}`;
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Attendance Report - ${periodTitle}</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 20px; color: #0f172a; }
+            h1 { font-size: 18px; margin-bottom: 4px; color: #7b0099; text-transform: uppercase; }
+            p { font-size: 12px; color: #475569; margin-top: 0; margin-bottom: 16px; }
+            table { width: 100%; border-collapse: collapse; font-size: 11px; }
+            th, td { border: 1px solid #cbd5e1; padding: 6px 8px; text-align: left; }
+            th { background-color: #f8fafc; font-weight: 700; text-transform: uppercase; font-size: 10px; }
+            tr:nth-child(even) { background-color: #f8fafc; }
+          </style>
+        </head>
+        <body>
+          <h1>Rayhar Attendance Report</h1>
+          <p>${periodTitle} | Total Records: ${sortedList.length}</p>
+          <table>
+            <thead>
+              <tr>
+                ${viewType !== "day" ? "<th>Date</th>" : ""}
+                <th>Employee ID</th>
+                <th>Name</th>
+                <th>Location</th>
+                ${sessionThs}
+                <th>Status</th>
+                <th>Duration</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rowsHtml}
+            </tbody>
+          </table>
+          <script>window.onload = () => { window.print(); };</script>
+        </body>
+      </html>
+    `;
+    writePrintDocument(printWindow, html);
+  };
+
+  const totalTableColumns = (viewType !== "day" ? 1 : 0) + 8 + maxSessions * 2;
 
   return (
     <div className="min-h-screen bg-background">
@@ -455,7 +685,7 @@ export default function AttendanceReports() {
             </Button>
 
             <div className="shrink-0 ml-auto sm:ml-0">
-              <ExportDropdown onExportCSV={handleExportCSV} />
+              <ExportDropdown onExportCSV={handleExportCSV} onExportPDF={handleExportPDF} />
             </div>
           </div>
         </div>
@@ -570,7 +800,7 @@ export default function AttendanceReports() {
           </Card>
         </div>
 
-        {/* Table Card — search bar is INSIDE the white card header, same line as title */}
+        {/* Table Card */}
         <Card className="border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm">
           <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <CardTitle className="text-lg">
@@ -584,14 +814,6 @@ export default function AttendanceReports() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
-                {searchQuery && (
-                  <button 
-                    onClick={() => setSearchQuery('')} 
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground/40 hover:text-foreground z-10 transition-colors"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                )}
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery("")}
@@ -610,95 +832,112 @@ export default function AttendanceReports() {
                 <Loader2 className="w-6 h-6 animate-spin text-primary" />
               </div>
             ) : (
-              <div className="rounded-md border overflow-hidden">
+              <div className="rounded-md border overflow-x-auto">
                 <Table ref={tableRef} className="text-xs">
                   <TableHeader>
                     <TableRow>
-                      {viewType !== "day" && <TableHead className="w-[100px]">Date</TableHead>}
-                      <TableHead className="w-[100px]">Employee ID</TableHead>
-                      <TableHead className="min-w-[150px] max-w-[200px]">Name</TableHead>
-                      <TableHead className="w-[80px]">Branch</TableHead>
-                      <TableHead className="w-[140px]">Status</TableHead>
-                      <TableHead className="w-[90px]">Clock In</TableHead>
-                        <TableHead className="w-[90px]">Clock Out</TableHead>
-                        <TableHead className="w-[100px]">Working Hours</TableHead>
-                        <TableHead className="min-w-[180px]">Coordinate (Latitude&Longitude)</TableHead>
-                        <TableHead className="w-[120px]">Distance</TableHead>
-                        <TableHead className="w-[120px]">Location Status</TableHead>
-                      </TableRow>
+                      {viewType !== "day" && <TableHead className="w-[100px] whitespace-nowrap">Date</TableHead>}
+                      <TableHead className="w-[100px] whitespace-nowrap">Employee ID</TableHead>
+                      <TableHead className="min-w-[160px] max-w-[220px]">Name</TableHead>
+                      <TableHead className="w-[90px] whitespace-nowrap">Location</TableHead>
+                      {sessionIndices.map((idx) => (
+                        <Fragment key={`head-session-${idx}`}>
+                          <TableHead className="w-[95px] whitespace-nowrap">{`Clock In ${idx + 1}`}</TableHead>
+                          <TableHead className="w-[95px] whitespace-nowrap">{`Clock Out ${idx + 1}`}</TableHead>
+                        </Fragment>
+                      ))}
+                      <TableHead className="w-[140px] whitespace-nowrap">Status</TableHead>
+                      <TableHead className="w-[95px] whitespace-nowrap">Duration</TableHead>
+                      <TableHead className="min-w-[180px] whitespace-nowrap">Coordinate (Latitude&Longitude)</TableHead>
+                      <TableHead className="w-[100px] whitespace-nowrap">Distance</TableHead>
+                      <TableHead className="w-[120px] whitespace-nowrap">Location Status</TableHead>
+                    </TableRow>
                   </TableHeader>
                   <TableBody>
                     {pagedList.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={viewType !== "day" ? 11 : 10} className="text-center py-8 text-foreground">
+                        <TableCell colSpan={totalTableColumns} className="text-center py-8 text-foreground">
                           No attendance records found for this {viewType}.
                         </TableCell>
                       </TableRow>
                     ) : (
-                      pagedList.map((req, idx) => (
-                        <TableRow key={idx}>
-                          {viewType !== "day" && <TableCell>{formatDate(req.date)}</TableCell>}
-                          <TableCell className="font-medium">{req.user_id}</TableCell>
-                          <TableCell className="max-w-[180px] truncate" title={req.full_name}>{req.full_name}</TableCell>
-                          <TableCell>
-                            <div className="flex flex-col gap-0.5">
-                              <span className="font-medium text-xs">{req.permanent_branch || req.branch || "-"}</span>
-                              {req.temp_branch && (
-                                <span className="inline-flex items-center gap-1 text-[9px] font-black text-amber-800 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/70 px-1.5 py-0.5 rounded border border-amber-300 dark:border-amber-700 w-fit shadow-xs">
-                                  <MapPin className="w-2.5 h-2.5 text-amber-600 dark:text-amber-400" /> TEMP ASSIGNMENT : {req.temp_branch}
-                                </span>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex flex-col items-start gap-1">
-                              <span className={`whitespace-nowrap px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] ${
-                                req.status === 'Present (On Time)' ? 'bg-[#fdf4ff] text-[#942392] border-[#942392]/20 dark:bg-[#942392]/10' :
-                                req.status === 'Present (Late)' ? 'bg-yellow-50 text-yellow-600 border-yellow-200 dark:bg-yellow-500/10 dark:border-yellow-500/20' :
-                                req.status === 'Missing Clock-Out' ? 'bg-orange-50 text-orange-600 border-orange-200 dark:bg-orange-500/10 dark:border-orange-500/20' :
-                                req.status === 'Outstation' ? 'bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/10 dark:border-blue-500/20' :
-                                req.status === 'Approved Leave' || req.status === 'Company Leave' ? 'bg-[#fdf4ff] text-[#942392] border-[#942392]/20 dark:bg-[#942392]/10' :
-                                req.status === 'Weekend' || req.status === 'Rest Day' ? 'bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-500/10 dark:border-slate-500/20 dark:text-slate-300' :
-                                req.status === 'Absent' ? 'bg-red-50 text-red-600 border-red-200 dark:bg-red-500/10 dark:border-red-500/20' :
-                                'bg-slate-50 text-slate-400 border-slate-200 dark:bg-slate-500/10 dark:border-slate-500/20'
-                              }`}>
-                                {req.status}
-                              </span>
-                              {req.status === 'Missing Clock-Out' && (
+                      pagedList.map((req, idx) => {
+                        const sessions: ClockSession[] = Array.isArray(req.sessions) ? req.sessions : [];
+                        return (
+                          <TableRow key={`${req.user_id}-${req.date || idx}`}>
+                            {viewType !== "day" && <TableCell className="whitespace-nowrap">{formatDate(req.date)}</TableCell>}
+                            <TableCell className="font-medium whitespace-nowrap">{req.user_id}</TableCell>
+                            <TableCell className="max-w-[200px] truncate" title={req.full_name}>{req.full_name}</TableCell>
+                            <TableCell>
+                              <div className="flex flex-col gap-0.5">
+                                <span className="font-medium text-xs">{req.permanent_branch || req.branch || "-"}</span>
+                                {req.temp_branch && (
+                                  <span className="inline-flex items-center gap-1 text-[9px] font-black text-amber-800 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/70 px-1.5 py-0.5 rounded border border-amber-300 dark:border-amber-700 w-fit shadow-xs">
+                                    <MapPin className="w-2.5 h-2.5 text-amber-600 dark:text-amber-400" /> TEMP ASSIGNMENT : {req.temp_branch}
+                                  </span>
+                                )}
+                              </div>
+                            </TableCell>
+                            {sessionIndices.map((sIdx) => {
+                              const s = sessions[sIdx];
+                              const hasSession = Boolean(s && (s.clock_in || s.time_in));
+                              const inText = hasSession ? (s.time_in || "N/A") : "-";
+                              const outText = hasSession ? (s.time_out || "N/A") : "-";
+                              return (
+                                <Fragment key={`cell-session-${req.user_id}-${sIdx}`}>
+                                  <TableCell className="whitespace-nowrap">{inText}</TableCell>
+                                  <TableCell className="whitespace-nowrap">{outText}</TableCell>
+                                </Fragment>
+                              );
+                            })}
+                            <TableCell>
+                              <div className="flex flex-col items-start gap-1">
                                 <span className={`whitespace-nowrap px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] ${
-                                  req.is_late ? 'bg-yellow-50 text-yellow-600 border-yellow-200 dark:bg-yellow-500/10 dark:border-yellow-500/20' : 'bg-[#fdf4ff] text-[#942392] border-[#942392]/20 dark:bg-[#942392]/10'
+                                  req.status === 'Present (On Time)' ? 'bg-[#fdf4ff] text-[#942392] border-[#942392]/20 dark:bg-[#942392]/10' :
+                                  req.status === 'Present (Late)' ? 'bg-yellow-50 text-yellow-600 border-yellow-200 dark:bg-yellow-500/10 dark:border-yellow-500/20' :
+                                  req.status === 'Missing Clock-Out' ? 'bg-orange-50 text-orange-600 border-orange-200 dark:bg-orange-500/10 dark:border-orange-500/20' :
+                                  req.status === 'Outstation' ? 'bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/10 dark:border-blue-500/20' :
+                                  req.status === 'Approved Leave' || req.status === 'Company Leave' ? 'bg-[#fdf4ff] text-[#942392] border-[#942392]/20 dark:bg-[#942392]/10' :
+                                  req.status === 'Weekend' || req.status === 'Rest Day' ? 'bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-500/10 dark:border-slate-500/20 dark:text-slate-300' :
+                                  req.status === 'Absent' ? 'bg-red-50 text-red-600 border-red-200 dark:bg-red-500/10 dark:border-red-500/20' :
+                                  'bg-slate-50 text-slate-400 border-slate-200 dark:bg-slate-500/10 dark:border-slate-500/20'
                                 }`}>
-                                  {req.is_late ? 'Present (Late)' : 'Present (On Time)'}
+                                  {req.status}
                                 </span>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell>{req.time_in || "-"}</TableCell>
-                          <TableCell>{req.time_out || "-"}</TableCell>
-                          <TableCell>{calculateWorkingHours(req.clock_in, req.clock_out)}</TableCell>
-                          <TableCell>
-                            {req.latitude && req.longitude 
-                              ? `${Number(req.latitude).toFixed(6)}, ${Number(req.longitude).toFixed(6)}` 
-                              : "-"}
-                          </TableCell>
-                          <TableCell>
-                            {req.distance_meters !== null && req.distance_meters !== undefined 
-                              ? `${Math.round(req.distance_meters)}m` 
-                              : "-"}
-                          </TableCell>
-                          <TableCell>
-                            {(req.location || req.clock_in_location) ? (
-                              <span className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-semibold rounded-full ${
-                                (req.location || req.clock_in_location).includes('ON-SITE') 
-                                  ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
-                                  : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
-                              }`}>
-                                {req.location || req.clock_in_location}
-                              </span>
-                            ) : "-"}
-                          </TableCell>
-                        </TableRow>
-                      ))
+                                {req.status === 'Missing Clock-Out' && (
+                                  <span className={`whitespace-nowrap px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] ${
+                                    req.is_late ? 'bg-yellow-50 text-yellow-600 border-yellow-200 dark:bg-yellow-500/10 dark:border-yellow-500/20' : 'bg-[#fdf4ff] text-[#942392] border-[#942392]/20 dark:bg-[#942392]/10'
+                                  }`}>
+                                    {req.is_late ? 'Present (Late)' : 'Present (On Time)'}
+                                  </span>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell className="whitespace-nowrap font-medium">{calculateTotalWorkingHours(req)}</TableCell>
+                            <TableCell className="whitespace-nowrap">
+                              {req.latitude && req.longitude
+                                ? `${Number(req.latitude).toFixed(6)}, ${Number(req.longitude).toFixed(6)}`
+                                : "-"}
+                            </TableCell>
+                            <TableCell className="whitespace-nowrap">
+                              {req.distance_meters !== null && req.distance_meters !== undefined
+                                ? `${Math.round(req.distance_meters)}m`
+                                : "-"}
+                            </TableCell>
+                            <TableCell className="whitespace-nowrap">
+                              {(req.location || req.clock_in_location) ? (
+                                <span className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-semibold rounded-full ${
+                                  (req.location || req.clock_in_location).includes('ON-SITE')
+                                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                    : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
+                                }`}>
+                                  {req.location || req.clock_in_location}
+                                </span>
+                              ) : "-"}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
                     )}
                   </TableBody>
                 </Table>
@@ -723,5 +962,3 @@ export default function AttendanceReports() {
     </div>
   );
 }
-
-

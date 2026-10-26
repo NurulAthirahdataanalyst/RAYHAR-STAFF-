@@ -8712,7 +8712,17 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
             location: clockData.location || p.branch || 'HQ',
             distance_meters: clockData.distance_meters,
             latitude: clockData.clock_in_latitude,
-            longitude: clockData.clock_in_longitude
+            longitude: clockData.clock_in_longitude,
+            sessions: matchingClocks.map(c => ({
+              clock_in: c.clock_in,
+              clock_out: c.clock_out,
+              time_in: c.time_in,
+              time_out: c.time_out,
+              location: c.location || p.branch || 'HQ',
+              distance_meters: c.distance_meters,
+              latitude: c.clock_in_latitude,
+              longitude: c.clock_in_longitude
+            }))
           });
         } else {
           summary.absent++;
@@ -9024,7 +9034,17 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
         is_early_leaver: isEarlyLeaver,
         is_overtime: isOvertime,
         is_first_clock_in: idx === 0,
-        is_subsequent: idx > 0
+        is_subsequent: idx > 0,
+        sessions: clockRowsForUser.map(c => ({
+          clock_in: c.clock_in,
+          clock_out: c.clock_out,
+          time_in: c.time_in,
+          time_out: c.time_out,
+          location: c.location || p.branch || 'HQ',
+          distance_meters: c.distance_meters,
+          latitude: c.clock_in_latitude,
+          longitude: c.clock_in_longitude
+        }))
       };
       };
 

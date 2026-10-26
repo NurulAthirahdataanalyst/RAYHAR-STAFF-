@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,6 +20,10 @@ interface Tab3CompanyMgmtProps {
 
 export const Tab3_CompanyMgmt: React.FC<Tab3CompanyMgmtProps> = ({ onNavigateToTab }) => {
   const { companies, refreshCompanies, activeCompany, setActiveCompanyId } = useCompany();
+
+  useEffect(() => {
+    void refreshCompanies();
+  }, [refreshCompanies]);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingCompany, setEditingCompany] = useState<Company | null>(null);
@@ -136,7 +140,16 @@ export const Tab3_CompanyMgmt: React.FC<Tab3CompanyMgmtProps> = ({ onNavigateToT
               </tr>
             </thead>
             <tbody className="divide-y divide-border/40 dark:divide-neutral-800/40">
-              {companies.map((c) => {
+              {companies.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="px-4 py-12 text-center text-muted-foreground">
+                    <Building2 className="w-8 h-8 text-[#942392]/40 mx-auto mb-2" />
+                    <p className="font-bold text-xs uppercase tracking-wider text-foreground">No corporate entities found</p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">Click "Register New Company" to create an entity.</p>
+                  </td>
+                </tr>
+              ) : (
+                companies.map((c) => {
                 const isMain = c.company_type === 'main' || !c.parent_company_id;
                 const isSelected = c.id === activeCompany?.id;
 
@@ -247,7 +260,8 @@ export const Tab3_CompanyMgmt: React.FC<Tab3CompanyMgmtProps> = ({ onNavigateToT
                     </td>
                   </tr>
                 );
-              })}
+              })
+            )}
             </tbody>
           </table>
         </div>

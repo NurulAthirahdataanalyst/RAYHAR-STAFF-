@@ -37,7 +37,7 @@ export const PermissionMatrix: React.FC<PermissionMatrixProps> = ({
   };
 
   return (
-    <div className="space-y-4 max-h-[500px] overflow-y-auto pr-1 scrollbar-thin">
+    <div className="space-y-3">
       {Object.entries(PERMISSION_MODULES).map(([category, perms]) => {
         const catKeys = perms.map(p => p.key);
         const allSelected = catKeys.every(k => selectedKeys.includes(k));
