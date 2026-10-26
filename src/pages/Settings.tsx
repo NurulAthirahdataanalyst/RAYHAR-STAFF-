@@ -557,43 +557,50 @@ export default function SettingsPage() {
         </button>
       </div>
 
-      <div className="max-w-5xl mx-auto space-y-4 sm:space-y-5">
-      {/* HORIZONTAL NAVIGATION TABS - PILL REDESIGN */}
-      <div className="flex flex-wrap bg-gradient-to-r from-[#800A7A] via-[#942392] to-[#3d0052] p-2 rounded-xl shadow-inner gap-1 scrollbar-none items-center justify-center w-full max-w-full mx-auto border border-[#942392]/20 relative z-10 mb-6">
-        {[
-          { id: "system", label: "SYSTEM CONFIGURATION", icon: SlidersHorizontal },
-          { id: "staff", label: "PERSONNEL MANAGEMENT", icon: UserPlus },
-          { id: "branch", label: "BRANCH MANAGEMENT", icon: MapPin },
-          { id: "department", label: "DEPARTMENT MANAGEMENT", icon: Layers }
-        ].map((tab) => {
-          const Icon = tab.icon;
-          const isActive = activeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => handleTabChange(tab.id as SettingsTab)}
-              className={`flex flex-1 sm:flex-none justify-center items-center gap-1.5 py-2.5 px-3 text-[9px] sm:text-[10px] font-black uppercase tracking-wider whitespace-nowrap rounded-lg transition-all duration-300 ${
-                isActive 
-                  ? "bg-[#ffff00] text-[#942392] shadow-md font-black" 
-                  : "text-white/90 hover:text-white hover:bg-white/10 font-bold"
-              }`}
-            >
-              <Icon className={`w-3.5 h-3.5 shrink-0 transition-colors ${isActive ? "text-[#942392]" : "text-white/90"}`} />
-              <span>{tab.label}</span>
-            </button>
-          );
-        })}
-      </div>
+      {/* 2-COLUMN LAYOUT: ASIDE TABS ON LEFT, ACTIVE CARD ON RIGHT */}
+      <div className="flex flex-col lg:flex-row gap-6 items-start w-full">
+        {/* ASIDE NAVIGATION TABS */}
+        <aside className="w-full lg:w-64 xl:w-72 shrink-0 lg:sticky lg:top-4 z-10">
+          <div className="bg-gradient-to-b from-[#800A7A] via-[#942392] to-[#3d0052] p-2.5 sm:p-3 rounded-2xl shadow-lg border border-[#942392]/20 flex flex-row lg:flex-col gap-1.5 overflow-x-auto lg:overflow-visible scrollbar-none">
+            <div className="px-3 pt-2 pb-1 text-[9px] font-black tracking-widest uppercase text-white/60 hidden lg:block">
+              Configuration Tabs
+            </div>
+            {[
+              { id: "system", label: "SYSTEM CONFIGURATION", icon: SlidersHorizontal },
+              { id: "staff", label: "PERSONNEL MANAGEMENT", icon: UserPlus },
+              { id: "branch", label: "BRANCH MANAGEMENT", icon: MapPin },
+              { id: "department", label: "DEPARTMENT MANAGEMENT", icon: Layers }
+            ].map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => handleTabChange(tab.id as SettingsTab)}
+                  className={`flex items-center gap-2.5 sm:gap-3 py-2.5 lg:py-3 px-3 sm:px-3.5 text-[9px] sm:text-[10px] font-black uppercase tracking-wider rounded-xl transition-all duration-300 text-left shrink-0 lg:shrink lg:w-full whitespace-nowrap lg:whitespace-normal group ${
+                    isActive 
+                      ? "bg-[#ffff00] text-[#942392] shadow-md font-black lg:translate-x-1" 
+                      : "text-white/90 hover:text-white hover:bg-white/10 font-bold"
+                  }`}
+                >
+                  <div className={`p-1.5 rounded-lg shrink-0 transition-colors ${
+                    isActive ? "bg-[#942392]/10 text-[#942392]" : "bg-white/10 text-white/90 group-hover:text-white"
+                  }`}>
+                    <Icon className="w-3.5 h-3.5 shrink-0" />
+                  </div>
+                  <span className="truncate">{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </aside>
 
-      {/* ACTIVE TAB CONTENTS */}
-      <div className="flex flex-col gap-4 sm:gap-5 items-center w-full">
-        
-        {/* MAIN CONTAINER */}
-        <div className="w-full max-w-4xl space-y-4">
+        {/* ACTIVE TAB CONTENTS */}
+        <div className="flex-1 min-w-0 w-full space-y-4">
           
           {/* TAB 1: SYSTEM CONFIGURATION */}
           {activeTab === "system" && (
-            <Card className="border-none shadow-sm bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-[20px] overflow-hidden p-6 space-y-6">
+            <Card className="border-none shadow-sm bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-[20px] overflow-hidden p-6 space-y-6 animate-in slide-in-from-left duration-300">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="p-2.5 bg-[#942392]/10 rounded-xl text-[#942392]">
@@ -1266,7 +1273,6 @@ export default function SettingsPage() {
           )}
 
         </div>
-      </div>
       </div>
     </div>
   );
