@@ -195,7 +195,6 @@ export const Tab9_IAM: React.FC = () => {
                   <th className="px-4 py-3">Role Type</th>
                   <th className="px-4 py-3">Scope Boundary</th>
                   <th className="px-4 py-3">Assigned Staff</th>
-                  <th className="px-4 py-3">Permissions</th>
                   <th className="px-4 py-3">Status</th>
                   <th className="px-4 py-3 text-right">Actions</th>
                 </tr>
@@ -240,12 +239,6 @@ export const Tab9_IAM: React.FC = () => {
                         <span className="flex items-center gap-1.5 text-muted-foreground font-medium">
                           <Users className="w-3 h-3 text-[#942392]" />
                           {r.total_users || 0} Staff
-                        </span>
-                      </td>
-
-                      <td className="px-4 py-3">
-                        <span className="font-mono text-xs font-bold text-foreground">
-                          {r.permission_keys?.length || 0} granted
                         </span>
                       </td>
 
