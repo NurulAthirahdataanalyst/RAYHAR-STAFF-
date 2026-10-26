@@ -246,6 +246,13 @@ export const multiCompanyApi = {
     return data.success ? data.history : [];
   },
 
+  async getAllTransferHistory(limit = 200): Promise<EmployeeTransferRecord[]> {
+    const res = await fetch(`${API_BASE_URL}/api/employee-company-history?limit=${limit}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    return data.success ? data.history : [];
+  },
+
   // Audit Logs
   async getAuditLogs(companyId?: number, limit = 100): Promise<AuditLogItem[]> {
     const query = new URLSearchParams();

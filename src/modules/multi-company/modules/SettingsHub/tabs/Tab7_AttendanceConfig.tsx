@@ -26,8 +26,12 @@ export const Tab7_AttendanceConfig: React.FC = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (activeCompany) setSelectedCompanyId(activeCompany.id);
-  }, [activeCompany]);
+    if (activeCompany) {
+      setSelectedCompanyId(activeCompany.id);
+    } else if (companies.length > 0) {
+      setSelectedCompanyId(companies[0].id);
+    }
+  }, [activeCompany, companies]);
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -79,22 +83,26 @@ export const Tab7_AttendanceConfig: React.FC = () => {
     <div className="space-y-6">
       {/* Top Filter */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-muted/30 dark:bg-neutral-900/40 rounded-xl border border-border dark:border-neutral-800">
-        <div className="flex items-center gap-2">
-          <Clock className="w-4 h-4 text-[#942392]" />
-          <span className="text-xs font-black uppercase tracking-wider text-foreground dark:text-neutral-200">
-            Attendance Policy Scope:
-          </span>
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2">
+            <Clock className="w-4 h-4 text-[#942392]" />
+            <span className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
+              Attendance Policy Scope:
+            </span>
+          </div>
           <Select 
-            value={selectedCompanyId.toString()} 
+            value={selectedCompanyId ? selectedCompanyId.toString() : ""} 
             onValueChange={(val) => setSelectedCompanyId(parseInt(val, 10))}
           >
-            <SelectTrigger className="w-56 text-xs h-8 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold ml-1">
-              <SelectValue placeholder="Select company..." />
+            <SelectTrigger className="w-64 text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-black text-black dark:text-white shadow-xs">
+              <SelectValue placeholder="Select company...">
+                {currentCompany ? `${currentCompany.company_name} (${currentCompany.company_type === 'main' ? 'Main' : 'Sub'})` : 'Select company...'}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {companies.map(c => (
-                <SelectItem key={c.id} value={c.id.toString()} className="text-xs">
-                  {c.company_name} ({c.company_type === 'main' ? 'Main' : 'Sub'})
+                <SelectItem key={c.id} value={c.id.toString()} className="text-xs font-bold">
+                  {c.company_name} ({c.company_type === 'main' ? 'Main Company' : 'Subsidiary'})
                 </SelectItem>
               ))}
             </SelectContent>
@@ -103,7 +111,7 @@ export const Tab7_AttendanceConfig: React.FC = () => {
 
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <ShieldCheck className="w-3.5 h-3.5 text-[#942392]" />
-          <span>Rule Version: <strong>v{ruleVersion}</strong></span>
+          <span>Rule Version: <strong className="text-black dark:text-white">v{ruleVersion}</strong></span>
         </div>
       </div>
 
@@ -111,7 +119,7 @@ export const Tab7_AttendanceConfig: React.FC = () => {
         {/* Card 1: Time Parameters */}
         <Card className="border border-border dark:border-neutral-800 shadow-xs bg-white/70 dark:bg-card/70 backdrop-blur-md rounded-2xl p-5 space-y-4">
           <div className="space-y-1">
-            <h4 className="text-xs font-black uppercase tracking-wider text-foreground dark:text-white flex items-center gap-2">
+            <h4 className="text-xs font-black uppercase tracking-wider text-black dark:text-white flex items-center gap-2">
               <Clock className="w-4 h-4 text-[#942392]" />
               Time Boundaries & Overtime Rules
             </h4>
@@ -121,7 +129,7 @@ export const Tab7_AttendanceConfig: React.FC = () => {
           <div className="space-y-3 pt-2">
             <div className="flex items-center justify-between">
               <div>
-                <Label className="text-xs font-bold text-foreground">Late Arrival Window</Label>
+                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Late Arrival Window</Label>
                 <span className="text-[10px] text-muted-foreground block">Grace period before mark as Late</span>
               </div>
               <div className="flex items-center gap-1.5">
@@ -129,15 +137,15 @@ export const Tab7_AttendanceConfig: React.FC = () => {
                   type="number"
                   value={lateThreshold}
                   onChange={(e) => setLateThreshold(Number(e.target.value))}
-                  className="w-20 text-xs h-8 text-center font-bold"
+                  className="w-20 text-xs h-8 text-center font-black text-black dark:text-white"
                 />
-                <span className="text-xs text-muted-foreground">min</span>
+                <span className="text-xs font-bold text-muted-foreground">min</span>
               </div>
             </div>
 
             <div className="flex items-center justify-between">
               <div>
-                <Label className="text-xs font-bold text-foreground">Early Checkout Threshold</Label>
+                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Early Checkout Threshold</Label>
                 <span className="text-[10px] text-muted-foreground block">Permissible early departure allowance</span>
               </div>
               <div className="flex items-center gap-1.5">
@@ -145,15 +153,15 @@ export const Tab7_AttendanceConfig: React.FC = () => {
                   type="number"
                   value={earlyCheckout}
                   onChange={(e) => setEarlyCheckout(Number(e.target.value))}
-                  className="w-20 text-xs h-8 text-center font-bold"
+                  className="w-20 text-xs h-8 text-center font-black text-black dark:text-white"
                 />
-                <span className="text-xs text-muted-foreground">min</span>
+                <span className="text-xs font-bold text-muted-foreground">min</span>
               </div>
             </div>
 
             <div className="flex items-center justify-between">
               <div>
-                <Label className="text-xs font-bold text-foreground">Minimum Daily Working Hours</Label>
+                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Minimum Daily Working Hours</Label>
                 <span className="text-[10px] text-muted-foreground block">Hours required for full-day attendance</span>
               </div>
               <div className="flex items-center gap-1.5">
@@ -162,15 +170,15 @@ export const Tab7_AttendanceConfig: React.FC = () => {
                   step="0.5"
                   value={minHours}
                   onChange={(e) => setMinHours(Number(e.target.value))}
-                  className="w-20 text-xs h-8 text-center font-bold"
+                  className="w-20 text-xs h-8 text-center font-black text-black dark:text-white"
                 />
-                <span className="text-xs text-muted-foreground">hrs</span>
+                <span className="text-xs font-bold text-muted-foreground">hrs</span>
               </div>
             </div>
 
             <div className="flex items-center justify-between pt-1">
               <div>
-                <Label className="text-xs font-bold text-foreground">Overtime (OT) Automatic Calculation</Label>
+                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Overtime (OT) Automatic Calculation</Label>
                 <span className="text-[10px] text-muted-foreground block">Track hours logged beyond schedule end time</span>
               </div>
               <Switch checked={otEnabled} onCheckedChange={setOtEnabled} className="data-[state=checked]:bg-[#942392]" />
@@ -181,7 +189,7 @@ export const Tab7_AttendanceConfig: React.FC = () => {
         {/* Card 2: GPS Geofencing & Biometrics */}
         <Card className="border border-border dark:border-neutral-800 shadow-xs bg-white/70 dark:bg-card/70 backdrop-blur-md rounded-2xl p-5 space-y-4">
           <div className="space-y-1">
-            <h4 className="text-xs font-black uppercase tracking-wider text-foreground dark:text-white flex items-center gap-2">
+            <h4 className="text-xs font-black uppercase tracking-wider text-black dark:text-white flex items-center gap-2">
               <MapPin className="w-4 h-4 text-[#942392]" />
               GPS Geofencing & Biometric Validation
             </h4>
@@ -191,16 +199,16 @@ export const Tab7_AttendanceConfig: React.FC = () => {
           <div className="space-y-3 pt-2">
             <div className="flex items-center justify-between">
               <div>
-                <Label className="text-xs font-bold text-foreground">Require GPS Location Capture</Label>
+                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Require GPS Location Capture</Label>
                 <span className="text-[10px] text-muted-foreground block">Mandatory location permission on device</span>
               </div>
               <Switch checked={gpsRequired} onCheckedChange={setGpsRequired} className="data-[state=checked]:bg-[#942392]" />
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs font-bold text-foreground">Geofence Enforcement Strictness</Label>
+              <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Geofence Enforcement Strictness</Label>
               <Select value={geofenceEnforce} onValueChange={(val: any) => setGeofenceEnforce(val)}>
-                <SelectTrigger className="text-xs h-8 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800">
+                <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-black text-black dark:text-white">
                   <SelectValue placeholder="Strictness" />
                 </SelectTrigger>
                 <SelectContent>
@@ -210,7 +218,7 @@ export const Tab7_AttendanceConfig: React.FC = () => {
                   <SelectItem value="relaxed" className="text-xs">
                     Relaxed (Allow check-in but flag with warning badge)
                   </SelectItem>
-                  <SelectItem value="disabled" className="text-xs text-rose-500">
+                  <SelectItem value="disabled" className="text-xs text-rose-500 font-bold">
                     Disabled (Allow anywhere check-in)
                   </SelectItem>
                 </SelectContent>
@@ -219,7 +227,7 @@ export const Tab7_AttendanceConfig: React.FC = () => {
 
             <div className="flex items-center justify-between pt-2">
               <div>
-                <Label className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white flex items-center gap-1.5">
                   <Camera className="w-3.5 h-3.5 text-[#942392]" />
                   Biometric Face Snapshot Verification
                 </Label>

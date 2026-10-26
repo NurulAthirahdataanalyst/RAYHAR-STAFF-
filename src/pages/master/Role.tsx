@@ -594,7 +594,6 @@ export default function Role() {
                   <th className="px-6 py-3.5 text-[10px] font-black uppercase tracking-wider">Description</th>
                   <th className="px-6 py-3.5 text-[10px] font-black uppercase tracking-wider text-center">Total Users</th>
                   <th className="px-6 py-3.5 text-[10px] font-black uppercase tracking-wider text-center">Role Type</th>
-                  <th className="px-6 py-3.5 text-[10px] font-black uppercase tracking-wider text-center">Permissions</th>
                   <th className="px-6 py-3.5 text-[10px] font-black uppercase tracking-wider text-center">Status</th>
                   <th className="px-6 py-3.5 text-[10px] font-black uppercase tracking-wider">Created Date</th>
                   <th className="px-6 py-3.5 text-right text-[10px] font-black uppercase tracking-wider">Actions</th>
@@ -603,14 +602,14 @@ export default function Role() {
               <tbody className="divide-y divide-border/40">
                 {loading ? (
                   <tr>
-                    <td colSpan={8} className="px-6 py-12 text-center text-muted-foreground">
+                    <td colSpan={7} className="px-6 py-12 text-center text-muted-foreground">
                       <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-[#942392]" />
                       Loading roles & permissions matrix...
                     </td>
                   </tr>
                 ) : filteredRoles.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="px-6 py-12 text-center text-muted-foreground">
+                    <td colSpan={7} className="px-6 py-12 text-center text-muted-foreground">
                       No roles matching your criteria.
                     </td>
                   </tr>
@@ -676,14 +675,6 @@ export default function Role() {
                             Custom
                           </span>
                         )}
-                      </td>
-
-                      {/* Permissions Count */}
-                      <td className="px-6 py-4 text-center">
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-muted/60 text-foreground">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-green-600 dark:text-green-400" />
-                          <span>{r.permission_count || (r.permission_keys ? r.permission_keys.length : 0)} of {totalAvailablePerms}</span>
-                        </span>
                       </td>
 
                       {/* Status */}

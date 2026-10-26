@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useCompany } from '../contexts/CompanyContext';
 import { multiCompanyApi } from '../services/multiCompanyApi';
+import { API_BASE_URL } from '@/config/api';
 import { Company, CompanyBranch, CompanyRole } from '../types/multiCompany.types';
 import { ArrowRight, UserCheck, Building2, MapPin, Shield, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -33,7 +34,8 @@ export const CompanyTransferWizard: React.FC<EmployeeTransferWizardProps> = ({ o
     const loadEmps = async () => {
       try {
         setLoadingEmployees(true);
-        const res = await fetch('/api/employees');
+        const res = await fetch(`${API_BASE_URL}/api/employees`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         if (data.success) {
           setEmployees(data.employees || []);

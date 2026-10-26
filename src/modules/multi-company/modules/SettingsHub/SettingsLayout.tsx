@@ -12,6 +12,8 @@ import {
   FileCheck2, 
   ShieldCheck, 
   History,
+  PanelLeftClose,
+  PanelLeftOpen,
   Info,
   Building
 } from 'lucide-react';
@@ -67,6 +69,20 @@ export const SettingsLayout: React.FC = () => {
   const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>([]);
   const [loadingAudit, setLoadingAudit] = useState(false);
   const { activeCompany } = useCompany();
+  const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('settings_tabs_collapsed') === 'true';
+    }
+    return false;
+  });
+
+  const toggleCollapsed = () => {
+    setIsCollapsed(prev => {
+      const next = !prev;
+      localStorage.setItem('settings_tabs_collapsed', String(next));
+      return next;
+    });
+  };
 
   useEffect(() => {
     const tabParam = searchParams.get('tab') as SettingsTabId;
@@ -119,12 +135,32 @@ export const SettingsLayout: React.FC = () => {
 
       {/* 2-COLUMN ENTERPRISE LAYOUT: ASIDE TABS ON LEFT, ACTIVE CARD ON RIGHT */}
       <div className="flex flex-col lg:flex-row gap-6 items-start w-full">
-        {/* ASIDE NAVIGATION TABS (Rayhar Purple Gradient, Yellow Active Accent) */}
-        <aside className="w-full lg:w-64 xl:w-72 shrink-0 lg:sticky lg:top-4 z-10">
+        {/* ASIDE NAVIGATION TABS (Collapsible, Rayhar Purple Gradient, Yellow Active Accent) */}
+        <aside className={`w-full shrink-0 lg:sticky lg:top-4 z-10 transition-all duration-300 ${
+          isCollapsed ? 'lg:w-20' : 'lg:w-64 xl:w-72'
+        }`}>
           <div className="bg-gradient-to-b from-[#800A7A] via-[#942392] to-[#3d0052] p-2.5 sm:p-3 rounded-2xl shadow-lg border border-[#942392]/20 flex flex-row lg:flex-col gap-1.5 overflow-x-auto lg:overflow-visible scrollbar-none">
-            <div className="px-3 pt-2 pb-1 text-[9px] font-black tracking-widest uppercase text-white/60 hidden lg:block">
-              Configuration Tabs
+            {/* Header row with Title and Collapse/Expand Toggle */}
+            <div className={`px-2 pt-1 pb-1 hidden lg:flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} border-b border-white/10 mb-1`}>
+              {!isCollapsed && (
+                <span className="text-[9px] font-black tracking-widest uppercase text-white/70">
+                  Configuration Tabs
+                </span>
+              )}
+              <button
+                type="button"
+                onClick={toggleCollapsed}
+                className="p-1 rounded-lg hover:bg-white/15 text-white/80 hover:text-white transition-all cursor-pointer"
+                title={isCollapsed ? "Expand Configuration Tabs" : "Collapse Configuration Tabs"}
+              >
+                {isCollapsed ? (
+                  <PanelLeftOpen className="w-4 h-4 text-white" />
+                ) : (
+                  <PanelLeftClose className="w-4 h-4 text-white" />
+                )}
+              </button>
             </div>
+
             {SETTINGS_TABS.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -132,18 +168,21 @@ export const SettingsLayout: React.FC = () => {
                 <button
                   key={tab.id}
                   onClick={() => handleTabChange(tab.id)}
-                  className={`flex items-center gap-2.5 sm:gap-3 py-2.5 lg:py-3 px-3 sm:px-3.5 text-[9px] sm:text-[10px] font-black uppercase tracking-wider rounded-xl transition-all duration-300 text-left shrink-0 lg:shrink lg:w-full whitespace-nowrap lg:whitespace-normal group cursor-pointer ${
+                  title={isCollapsed ? tab.label : undefined}
+                  className={`flex items-center ${
+                    isCollapsed ? 'justify-center py-3 px-0' : 'gap-2.5 sm:gap-3 py-2.5 lg:py-3 px-3 sm:px-3.5'
+                  } text-[9px] sm:text-[10px] font-black uppercase tracking-wider rounded-xl transition-all duration-300 text-left shrink-0 lg:shrink lg:w-full whitespace-nowrap lg:whitespace-normal group cursor-pointer ${
                     isActive 
-                      ? "bg-[#ffff00] text-[#942392] shadow-md font-black lg:translate-x-1" 
+                      ? "bg-[#ffff00] text-[#942392] shadow-md font-black" 
                       : "text-white/90 hover:text-white hover:bg-white/10 font-bold"
                   }`}
                 >
                   <div className={`p-1.5 rounded-lg shrink-0 transition-colors ${
                     isActive ? "bg-[#942392]/10 text-[#942392]" : "bg-white/10 text-white/90 group-hover:text-white"
                   }`}>
-                    <Icon className="w-3.5 h-3.5 shrink-0" />
+                    <Icon className="w-4 h-4 shrink-0" />
                   </div>
-                  <span className="truncate">{tab.label}</span>
+                  {!isCollapsed && <span className="truncate">{tab.label}</span>}
                 </button>
               );
             })}

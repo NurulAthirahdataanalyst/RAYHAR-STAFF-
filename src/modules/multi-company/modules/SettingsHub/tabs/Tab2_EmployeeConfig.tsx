@@ -10,6 +10,7 @@ import { UserPlus, ArrowRightLeft, History, Building2, MapPin, Layers, Briefcase
 import { toast } from 'sonner';
 import { useCompany } from '../../../contexts/CompanyContext';
 import { multiCompanyApi } from '../../../services/multiCompanyApi';
+import { API_BASE_URL } from '@/config/api';
 import { CompanyBranch, CompanyDepartment, CompanyRole } from '../../../types/multiCompany.types';
 import { CompanyTransferWizard } from '../../../employee-assignment/CompanyTransferWizard';
 import { EmployeeCompanyHistory } from '../../../employee-assignment/EmployeeCompanyHistory';
@@ -88,7 +89,7 @@ export const Tab2_EmployeeConfig: React.FC = () => {
 
     try {
       setSubmitting(true);
-      const res = await fetch('/api/employees', {
+      const res = await fetch(`${API_BASE_URL}/api/employees`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

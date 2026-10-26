@@ -22,9 +22,8 @@ export const EmployeeCompanyHistory: React.FC<EmployeeCompanyHistoryProps> = ({ 
           setRecords(res);
         } else {
           // Fetch from audit logs or history endpoint
-          const res = await fetch('/api/employees/all-company-history');
-          const data = await res.json();
-          if (data.success) setRecords(data.history || []);
+          const res = await multiCompanyApi.getAllTransferHistory();
+          setRecords(res);
         }
       } catch (err) {
         console.error('Failed to load transfer history:', err);
