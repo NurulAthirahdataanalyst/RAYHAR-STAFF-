@@ -226,8 +226,8 @@ export const CompanyTransferWizard: React.FC<EmployeeTransferWizardProps> = ({ o
   return (
     <div className="space-y-6">
       {/* Top Stepper Indicator */}
-      <div className="p-4 sm:p-5 bg-muted/30 dark:bg-neutral-900/40 rounded-2xl border border-border dark:border-neutral-800">
-        <div className="flex items-center justify-between w-full max-w-5xl mx-auto">
+      <div className="p-3.5 sm:p-5 bg-muted/30 dark:bg-neutral-900/40 rounded-2xl border border-border dark:border-neutral-800">
+        <div className="flex items-center justify-between w-full mx-auto">
           {[
             { num: 1, label: 'Employee & Entity' },
             { num: 2, label: 'Role & Permissions' },
@@ -260,9 +260,9 @@ export const CompanyTransferWizard: React.FC<EmployeeTransferWizardProps> = ({ o
                   </span>
                 </div>
                 {idx < 3 && (
-                  <div className="flex-1 min-w-[20px] sm:min-w-[32px] md:min-w-[48px] mx-2 sm:mx-3 md:mx-4 flex items-center">
-                    <div className={`h-[2px] w-full rounded-full transition-all duration-300 ${
-                      currentStep > s.num ? 'bg-emerald-500' : 'bg-border dark:bg-neutral-700'
+                  <div className="flex-1 min-w-[16px] sm:min-w-[24px] md:min-w-[36px] mx-2 sm:mx-3 md:mx-4 flex items-center">
+                    <div className={`h-[3px] w-full rounded-full transition-all duration-300 ${
+                      currentStep > s.num ? 'bg-emerald-500' : 'bg-neutral-300 dark:bg-neutral-700'
                     }`} />
                   </div>
                 )}
