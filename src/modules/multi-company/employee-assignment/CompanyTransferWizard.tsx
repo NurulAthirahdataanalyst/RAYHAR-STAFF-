@@ -294,7 +294,7 @@ export const CompanyTransferWizard: React.FC<EmployeeTransferWizardProps> = ({ o
               </div>
 
               <Select value={selectedEmployeeId} onValueChange={setSelectedEmployeeId}>
-                <SelectTrigger className="text-xs bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white h-10">
+                <SelectTrigger className="text-xs bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium data-[placeholder]:font-normal text-black dark:text-white h-10">
                   <SelectValue placeholder={loadingEmployees ? "Loading personnel list..." : "Choose staff member..."} />
                 </SelectTrigger>
                 <SelectContent className="max-h-60">
@@ -340,7 +340,7 @@ export const CompanyTransferWizard: React.FC<EmployeeTransferWizardProps> = ({ o
                 value={targetCompanyId ? targetCompanyId.toString() : ''} 
                 onValueChange={(val) => setTargetCompanyId(parseInt(val, 10))}
               >
-                <SelectTrigger className="text-xs bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white h-10">
+                <SelectTrigger className="text-xs bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium data-[placeholder]:font-normal text-black dark:text-white h-10">
                   <SelectValue placeholder="Select target entity..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -449,7 +449,7 @@ export const CompanyTransferWizard: React.FC<EmployeeTransferWizardProps> = ({ o
                 Assigned Role in {targetCompany?.company_name} *
               </Label>
               <Select value={targetRoleId} onValueChange={setTargetRoleId}>
-                <SelectTrigger className="text-xs bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white h-10">
+                <SelectTrigger className="text-xs bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium data-[placeholder]:font-normal text-black dark:text-white h-10">
                   <SelectValue placeholder="Choose role available in destination entity..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -539,7 +539,7 @@ export const CompanyTransferWizard: React.FC<EmployeeTransferWizardProps> = ({ o
               <div className="space-y-1.5">
                 <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Assigned Branch Location *</Label>
                 <Select value={targetBranchCode} onValueChange={setTargetBranchCode} disabled={targetBranches.length === 0}>
-                  <SelectTrigger className="text-xs bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white h-10">
+                  <SelectTrigger className="text-xs bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium data-[placeholder]:font-normal text-black dark:text-white h-10">
                     <SelectValue placeholder={targetBranches.length === 0 ? "No branches registered in entity" : "Choose branch..."} />
                   </SelectTrigger>
                   <SelectContent>
@@ -555,7 +555,7 @@ export const CompanyTransferWizard: React.FC<EmployeeTransferWizardProps> = ({ o
               <div className="space-y-1.5">
                 <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Department *</Label>
                 <Select value={targetDepartmentName} onValueChange={setTargetDepartmentName} disabled={targetDepartments.length === 0}>
-                  <SelectTrigger className="text-xs bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white h-10">
+                  <SelectTrigger className="text-xs bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium data-[placeholder]:font-normal text-black dark:text-white h-10">
                     <SelectValue placeholder={targetDepartments.length === 0 ? "General Operations" : "Choose department..."} />
                   </SelectTrigger>
                   <SelectContent>
@@ -574,7 +574,7 @@ export const CompanyTransferWizard: React.FC<EmployeeTransferWizardProps> = ({ o
                   value={reportingManager}
                   onChange={(e) => setReportingManager(e.target.value)}
                   placeholder="e.g. Encik Roslan (Operation Manager)"
-                  className="text-xs h-10 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white"
+                  className="text-xs h-10 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium placeholder:font-normal text-black dark:text-white"
                 />
               </div>
 
@@ -586,7 +586,7 @@ export const CompanyTransferWizard: React.FC<EmployeeTransferWizardProps> = ({ o
                   max={60}
                   value={leaveEntitlement}
                   onChange={(e) => setLeaveEntitlement(Number(e.target.value))}
-                  className="text-xs h-10 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white"
+                  className="text-xs h-10 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium placeholder:font-normal text-black dark:text-white"
                 />
               </div>
             </div>
@@ -597,7 +597,7 @@ export const CompanyTransferWizard: React.FC<EmployeeTransferWizardProps> = ({ o
                 value={transferReason}
                 onChange={(e) => setTransferReason(e.target.value)}
                 placeholder="e.g. Secondment to RayRent for fleet management expansion and driver oversight"
-                className="text-xs h-10 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white"
+                className="text-xs h-10 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium placeholder:font-normal text-black dark:text-white"
                 required
               />
             </div>
