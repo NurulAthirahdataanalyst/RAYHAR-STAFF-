@@ -383,7 +383,20 @@ export default function Employees() {
         throw new Error(data.error || "Failed to fetch employees");
       }
 
-      const formattedData = (Array.isArray(data.employees) ? data.employees : []).map((employee: any) => {
+      const rawEmployees = Array.isArray(data.employees) ? data.employees : [];
+      // Guarantee each staff appears exactly once: 1 name, 1 email, no duplicates
+      const seenUsers = new Set<string>();
+      const uniqueEmployees = rawEmployees.filter((emp: any) => {
+        const idKey = emp.user_id ? `id:${String(emp.user_id).trim().toLowerCase()}` : null;
+        const emailKey = emp.email ? `email:${String(emp.email).trim().toLowerCase()}` : null;
+        if (idKey && seenUsers.has(idKey)) return false;
+        if (emailKey && seenUsers.has(emailKey)) return false;
+        if (idKey) seenUsers.add(idKey);
+        if (emailKey) seenUsers.add(emailKey);
+        return true;
+      });
+
+      const formattedData = uniqueEmployees.map((employee: any) => {
         const activeAssignment = assignments.find((a: any) => 
           a.user_id === employee.user_id && a.status === 'Active' && 
           (!a.start_date || new Date(a.start_date) <= new Date()) &&
@@ -1012,7 +1025,7 @@ export default function Employees() {
                     {currentItems.length > 0 ? (
                       (Array.isArray(currentItems) ? currentItems : []).map((emp) => (
                         <TableRow 
-                          key={emp.id} 
+                          key={emp.user_id || emp.id || emp.email} 
                           className="hover:bg-[#942392]/5 transition-colors cursor-pointer group"
                           onClick={() => handleEmployeeClick(emp)}
                         >
@@ -1085,7 +1098,7 @@ export default function Employees() {
                 {currentItems.length > 0 ? (
                   (Array.isArray(currentItems) ? currentItems : []).map((emp) => (
                     <div 
-                      key={emp.id} 
+                      key={emp.user_id || emp.id || emp.email} 
                       className="p-4 active:bg-[#942392]/5 transition-colors flex items-center gap-4 cursor-pointer"
                       onClick={() => handleEmployeeClick(emp)}
                     >

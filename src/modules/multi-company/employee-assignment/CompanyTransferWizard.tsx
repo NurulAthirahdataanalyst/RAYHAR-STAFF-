@@ -226,8 +226,8 @@ export const CompanyTransferWizard: React.FC<EmployeeTransferWizardProps> = ({ o
   return (
     <div className="space-y-6">
       {/* Top Stepper Indicator */}
-      <div className="p-4 bg-muted/30 dark:bg-neutral-900/40 rounded-2xl border border-border dark:border-neutral-800">
-        <div className="flex items-center justify-between max-w-3xl mx-auto">
+      <div className="p-4 sm:p-5 bg-muted/30 dark:bg-neutral-900/40 rounded-2xl border border-border dark:border-neutral-800">
+        <div className="flex items-center justify-between w-full max-w-5xl mx-auto">
           {[
             { num: 1, label: 'Employee & Entity' },
             { num: 2, label: 'Role & Permissions' },
@@ -239,8 +239,8 @@ export const CompanyTransferWizard: React.FC<EmployeeTransferWizardProps> = ({ o
 
             return (
               <React.Fragment key={s.num}>
-                <div className="flex items-center gap-2">
-                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-black transition-all ${
+                <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-black transition-all shrink-0 ${
                     isCompleted
                       ? 'bg-emerald-500 text-white shadow-xs'
                       : isActive
@@ -249,16 +249,22 @@ export const CompanyTransferWizard: React.FC<EmployeeTransferWizardProps> = ({ o
                   }`}>
                     {isCompleted ? <CheckCircle2 className="w-4 h-4" /> : s.num}
                   </div>
-                  <span className={`text-[11px] font-black uppercase tracking-wider hidden sm:inline ${
-                    isActive ? 'text-black dark:text-white font-black' : 'text-muted-foreground'
+                  <span className={`text-xs md:text-[13px] tracking-tight whitespace-nowrap hidden sm:inline ${
+                    isActive
+                      ? 'text-foreground font-black'
+                      : isCompleted
+                      ? 'text-emerald-600 dark:text-emerald-400 font-bold'
+                      : 'text-muted-foreground font-semibold'
                   }`}>
                     {s.label}
                   </span>
                 </div>
                 {idx < 3 && (
-                  <div className={`flex-1 h-0.5 mx-2 rounded-full transition-all ${
-                    currentStep > s.num ? 'bg-emerald-500' : 'bg-border dark:bg-neutral-800'
-                  }`} />
+                  <div className="flex-1 min-w-[20px] sm:min-w-[32px] md:min-w-[48px] mx-2 sm:mx-3 md:mx-4 flex items-center">
+                    <div className={`h-[2px] w-full rounded-full transition-all duration-300 ${
+                      currentStep > s.num ? 'bg-emerald-500' : 'bg-border dark:bg-neutral-700'
+                    }`} />
+                  </div>
                 )}
               </React.Fragment>
             );

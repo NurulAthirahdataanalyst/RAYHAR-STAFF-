@@ -609,18 +609,41 @@ function createMultiCompanyRouter(pgPool) {
   router.delete('/roles/:id', async (req, res) => {
     try {
       const roleId = req.params.id;
-      // Check if users are assigned
-      const assigned = await pgPool.query('SELECT COUNT(*)::int as count FROM company_user_roles WHERE role_id = $1', [roleId]);
-      if (assigned.rows[0].count > 0) {
-        return res.status(400).json({ success: false, error: 'Cannot delete role: active users are assigned to it' });
+      const roleRes = await pgPool.query('SELECT * FROM roles WHERE id = $1', [roleId]);
+      if (roleRes.rows.length === 0) {
+        return res.status(404).json({ success: false, error: 'Role not found' });
+      }
+      const role = roleRes.rows[0];
+
+      if (role.is_system_role) {
+        return res.status(400).json({ success: false, error: 'System Roles are permanent system templates and cannot be deleted.' });
       }
 
+      // Check if active users are assigned in company_user_roles or profiles
+      const assigned = await pgPool.query("SELECT COUNT(*)::int as count FROM company_user_roles WHERE role_id = $1 AND status = 'active'", [roleId]);
+      const profAssigned = await pgPool.query(
+        `SELECT COUNT(*)::int as count FROM profiles 
+         WHERE (role_id = $1 OR LOWER(role) = LOWER($2) OR LOWER(REPLACE(role, '_', ' ')) = LOWER($2)) 
+           AND status != 'Deleted'`,
+        [roleId, role.name]
+      );
+      const totalAssigned = Math.max(assigned.rows[0]?.count || 0, profAssigned.rows[0]?.count || 0);
+      if (totalAssigned > 0) {
+        return res.status(400).json({ success: false, error: `Cannot delete role '${role.name}': ${totalAssigned} active user(s) are currently assigned to it.` });
+      }
+
+      // Clean up any historical/inactive references before deleting role to avoid foreign key violations
+      await pgPool.query("UPDATE user_role SET role = 'Employee', role_id = NULL WHERE role_id = $1 OR LOWER(role) = LOWER($2)", [roleId, role.name]);
+      await pgPool.query("UPDATE profiles SET role = 'Employee', role_id = NULL WHERE role_id = $1", [roleId]);
+      await pgPool.query('DELETE FROM company_user_roles WHERE role_id = $1', [roleId]);
       await pgPool.query('DELETE FROM role_permissions WHERE role_id = $1', [roleId]);
+      await pgPool.query('DELETE FROM approval_workflow WHERE approver_role_id = $1', [roleId]);
       await pgPool.query('DELETE FROM roles WHERE id = $1', [roleId]);
 
-      res.json({ success: true, message: 'Role deleted' });
+      res.json({ success: true, message: `Role '${role.name}' deleted successfully.` });
     } catch (err) {
-      res.status(500).json({ success: false, error: err.message });
+      console.error('Error deleting role:', err);
+      res.status(500).json({ success: false, error: err.message || 'Database error deleting role' });
     }
   });
 
@@ -988,6 +1011,11 @@ function createMultiCompanyRouter(pgPool) {
       const newRoleRes = new_role_id ? await pgPool.query('SELECT name FROM roles WHERE id = $1', [new_role_id]) : { rows: [] };
       const newRoleName = newRoleRes.rows[0]?.name || emp.role;
 
+      const finalRoleId = new_role_id || emp.role_id;
+      const finalRoleName = newRoleName;
+      const finalBranch = new_branch_id || emp.branch;
+      const finalDept = new_department_id || emp.department;
+
       // 1. Write immutable transfer history
       await pgPool.query(`
         INSERT INTO employee_company_history (
@@ -1000,42 +1028,60 @@ function createMultiCompanyRouter(pgPool) {
         emp.current_company_name || 'Rayhar Travels',
         newCompanyName,
         emp.current_role_name || emp.role,
-        newRoleName,
+        finalRoleName,
         emp.branch,
-        new_branch_id || emp.branch,
+        finalBranch,
         emp.department,
-        new_department_id || emp.department,
+        finalDept,
         reason,
         req.user?.user_id || 'system'
       ]);
 
-      // 2. Set previous company_user_roles is_default to false
+      // 2. Set previous company_user_roles to inactive and non-default
       await pgPool.query(`
-        UPDATE company_user_roles SET is_default = FALSE WHERE user_id = $1;
-      `, [employee_id]);
+        UPDATE company_user_roles 
+        SET is_default = FALSE, status = 'inactive', updated_at = CURRENT_TIMESTAMP
+        WHERE user_id = $1 AND NOT (company_id = $2 AND role_id = $3);
+      `, [employee_id, new_company_id, finalRoleId]);
 
       // 3. Upsert into company_user_roles for new company
       await pgPool.query(`
-        INSERT INTO company_user_roles (user_id, company_id, role_id, branch_id, department_id, is_default, status)
-        VALUES ($1, $2, $3, $4, $5, TRUE, 'active')
+        INSERT INTO company_user_roles (user_id, company_id, role_id, branch_id, department_id, is_default, status, updated_at)
+        VALUES ($1, $2, $3, $4, $5, TRUE, 'active', CURRENT_TIMESTAMP)
         ON CONFLICT (user_id, company_id, role_id) DO UPDATE SET
           branch_id = EXCLUDED.branch_id,
           department_id = EXCLUDED.department_id,
           is_default = TRUE,
-          status = 'active';
-      `, [employee_id, new_company_id, new_role_id || emp.role_id, new_branch_id || emp.branch, new_department_id || emp.department]);
+          status = 'active',
+          updated_at = CURRENT_TIMESTAMP;
+      `, [employee_id, new_company_id, finalRoleId, finalBranch, finalDept]);
 
       // 4. Update profile pointer
       await pgPool.query(`
         UPDATE profiles
         SET 
-          role_id = COALESCE($1, role_id),
-          role = COALESCE($2, role),
+          role_id = $1,
+          role = $2,
           branch = COALESCE($3, branch),
           department = COALESCE($4, department),
           updated_at = CURRENT_TIMESTAMP
         WHERE user_id = $5;
-      `, [new_role_id, newRoleName, new_branch_id, new_department_id, employee_id]);
+      `, [finalRoleId, finalRoleName, finalBranch, finalDept, employee_id]);
+
+      // 5. Synchronize user_role table
+      const urCheck = await pgPool.query('SELECT id FROM user_role WHERE user_id = $1', [employee_id]);
+      if (urCheck.rows.length > 0) {
+        await pgPool.query(`
+          UPDATE user_role
+          SET role = $1, role_id = $2, department = COALESCE($3, department)
+          WHERE user_id = $4;
+        `, [finalRoleName, finalRoleId, finalDept, employee_id]);
+      } else {
+        await pgPool.query(`
+          INSERT INTO user_role (user_id, role, role_id, department)
+          VALUES ($1, $2, $3, $4);
+        `, [employee_id, finalRoleName, finalRoleId, finalDept]);
+      }
 
       await logAudit(req, 'EMPLOYEE_TRANSFER', `Transferred employee ${emp.full_name} (${employee_id}) to ${newCompanyName}`, { company: emp.current_company_name }, { company: newCompanyName }, new_company_id);
 

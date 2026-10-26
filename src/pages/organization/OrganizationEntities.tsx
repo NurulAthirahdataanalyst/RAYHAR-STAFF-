@@ -7,7 +7,6 @@ import { Tab4_BranchLocationMgmt } from '@/modules/multi-company/modules/Setting
 import { Tab5_DepartmentMgmt } from '@/modules/multi-company/modules/SettingsHub/tabs/Tab5_DepartmentMgmt';
 import { CompanyTransferWizard } from '@/modules/multi-company/employee-assignment/CompanyTransferWizard';
 import { EmployeeCompanyHistory } from '@/modules/multi-company/employee-assignment/EmployeeCompanyHistory';
-import PageHeader from '@/components/layout/PageHeader';
 
 export type OrganizationSection = 'entities' | 'roles' | 'transfer' | 'history' | 'branches' | 'departments';
 
@@ -36,9 +35,6 @@ export default function OrganizationEntities() {
 
   return (
     <div className="space-y-6 pb-12">
-      {/* Page Title & Breadcrumb-aligned Header */}
-      <PageHeader />
-
       {/* Main Section Content Area - Navigated directly via Sidebar Submenu */}
       <div className="min-h-[500px]">
         {currentSection === 'entities' && (

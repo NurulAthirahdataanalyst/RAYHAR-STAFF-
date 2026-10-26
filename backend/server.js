@@ -933,15 +933,20 @@ app.delete("/api/roles/:id", async (req, res) => {
       });
     }
 
-    // Rule 2: Prevent deleting roles assigned to users
+    // Rule 2: Prevent deleting roles assigned to active users
     const userCountRes = await pgPool.query(
       `SELECT COUNT(*)::int AS count FROM profiles 
-       WHERE role_id = $1 
+       WHERE (role_id = $1 
           OR LOWER(role) = LOWER($2) 
-          OR LOWER(REPLACE(role, '_', ' ')) = LOWER($2)`,
+          OR LOWER(REPLACE(role, '_', ' ')) = LOWER($2))
+         AND status != 'Deleted'`,
       [id, role.name]
     );
-    const assignedUsers = userCountRes.rows[0]?.count || 0;
+    const activeCurRes = await pgPool.query(
+      "SELECT COUNT(*)::int AS count FROM company_user_roles WHERE role_id = $1 AND status = 'active'",
+      [id]
+    );
+    const assignedUsers = Math.max(userCountRes.rows[0]?.count || 0, activeCurRes.rows[0]?.count || 0);
 
     if (assignedUsers > 0) {
       return res.status(400).json({
@@ -951,12 +956,18 @@ app.delete("/api/roles/:id", async (req, res) => {
       });
     }
 
-    // Safe to delete
+    // Safe to delete: clean up child references first to prevent foreign key constraint violations
+    await pgPool.query("UPDATE user_role SET role = 'Employee', role_id = NULL WHERE role_id = $1 OR LOWER(role) = LOWER($2)", [id, role.name]);
+    await pgPool.query("UPDATE profiles SET role = 'Employee', role_id = NULL WHERE role_id = $1", [id]);
+    await pgPool.query("DELETE FROM company_user_roles WHERE role_id = $1", [id]);
+    await pgPool.query("DELETE FROM role_permissions WHERE role_id = $1", [id]);
+    await pgPool.query("DELETE FROM approval_workflow WHERE approver_role_id = $1", [id]);
     await pgPool.query("DELETE FROM roles WHERE id = $1", [id]);
+
     res.json({ success: true, message: `Role '${role.name}' deleted successfully.` });
   } catch (err) {
     console.error("Error deleting role:", err);
-    res.status(500).json({ success: false, error: "Database error deleting role" });
+    res.status(500).json({ success: false, error: err.message || "Database error deleting role" });
   }
 });
 
@@ -3399,8 +3410,27 @@ app.get("/api/branch-employees", async (req, res) => {
         CASE WHEN COALESCE(leave_today.leave_count, 0) > 0 THEN 1 ELSE 0 END AS is_on_leave,
         CASE WHEN COALESCE(outstation_today.outstation_count, 0) > 0 THEN 1 ELSE 0 END AS is_outstation
       FROM profiles p
-      LEFT JOIN user_role ur ON ur.user_id = p.user_id
-      LEFT JOIN roles r ON (r.id = p.role_id OR r.id = ur.role_id OR LOWER(TRIM(r.name)) = LOWER(TRIM(REPLACE(ur.role, '_', ' '))))
+      LEFT JOIN LATERAL (
+        SELECT ur.role, ur.role_id, ur.department
+        FROM user_role ur
+        WHERE ur.user_id = p.user_id
+        ORDER BY ur.id DESC
+        LIMIT 1
+      ) ur ON true
+      LEFT JOIN LATERAL (
+        SELECT r.id, r.name, r.is_system_role
+        FROM roles r
+        WHERE r.id = p.role_id
+           OR (p.role_id IS NULL AND r.id = ur.role_id)
+           OR (p.role_id IS NULL AND ur.role_id IS NULL AND LOWER(TRIM(r.name)) = LOWER(TRIM(REPLACE(ur.role, '_', ' '))))
+        ORDER BY 
+          CASE 
+            WHEN r.id = p.role_id THEN 1
+            WHEN r.id = ur.role_id THEN 2
+            ELSE 3
+          END ASC
+        LIMIT 1
+      ) r ON true
       LEFT JOIN (
         SELECT employee_id, SUM(adjustment_days) as total_adjustment 
         FROM leave_balance_adjustments 
@@ -5484,8 +5514,27 @@ app.get("/api/employees", async (req, res) => {
         today.attendance_type AS today_attendance_type,
         today.location AS today_location
       FROM profiles p
-      LEFT JOIN user_role ur ON ur.user_id = p.user_id
-      LEFT JOIN roles r ON (r.id = p.role_id OR r.id = ur.role_id OR LOWER(TRIM(r.name)) = LOWER(TRIM(REPLACE(ur.role, '_', ' '))))
+      LEFT JOIN LATERAL (
+        SELECT ur.role, ur.role_id, ur.department
+        FROM user_role ur
+        WHERE ur.user_id = p.user_id
+        ORDER BY ur.id DESC
+        LIMIT 1
+      ) ur ON true
+      LEFT JOIN LATERAL (
+        SELECT r.id, r.name, r.is_system_role
+        FROM roles r
+        WHERE r.id = p.role_id
+           OR (p.role_id IS NULL AND r.id = ur.role_id)
+           OR (p.role_id IS NULL AND ur.role_id IS NULL AND LOWER(TRIM(r.name)) = LOWER(TRIM(REPLACE(ur.role, '_', ' '))))
+        ORDER BY 
+          CASE 
+            WHEN r.id = p.role_id THEN 1
+            WHEN r.id = ur.role_id THEN 2
+            ELSE 3
+          END ASC
+        LIMIT 1
+      ) r ON true
       LEFT JOIN (
         SELECT employee_id, 
                SUM(CASE WHEN UPPER(leave_type) IN ('ANNUAL LEAVE', 'ANNUAL & EMERGENCY LEAVE', 'ANNUAL/EMERGENCY LEAVE', 'CUTI TAHUNAN') THEN adjustment_days ELSE 0 END) AS annual_adj,
@@ -5590,7 +5639,19 @@ app.get("/api/employees", async (req, res) => {
       };
     });
 
-    res.json({ success: true, employees });
+    // Defensive guarantee: Ensure one entry per staff member (1 name, 1 email, no duplicates)
+    const uniqueEmployeesMap = new Map();
+    for (const emp of employees) {
+      const key = emp.user_id ? `id:${emp.user_id}` : (emp.email ? `email:${String(emp.email).toLowerCase().trim()}` : null);
+      if (key && !uniqueEmployeesMap.has(key)) {
+        uniqueEmployeesMap.set(key, emp);
+      } else if (!key) {
+        uniqueEmployeesMap.set(`idx:${uniqueEmployeesMap.size}`, emp);
+      }
+    }
+    const deduplicatedEmployees = Array.from(uniqueEmployeesMap.values());
+
+    res.json({ success: true, employees: deduplicatedEmployees });
   } catch (err) {
     console.error("Employees Error:", err);
     res.status(500).json({ success: false, error: err.message });
@@ -5637,6 +5698,17 @@ app.post("/api/employees/status", async (req, res) => {
         "UPDATE profiles SET role = ?, role_id = COALESCE(?, role_id) WHERE user_id = ? AND LOWER(REPLACE(role, ' ', '_')) IN ('branch_leader', 'head_of_department')",
         [validEmpRole, validEmpRoleId, user_id]
       );
+    }
+
+    // Sync status with company_user_roles
+    try {
+      if (status === "Inactive" || status === "Deleted") {
+        await pool.query("UPDATE company_user_roles SET status = 'inactive', updated_at = CURRENT_TIMESTAMP WHERE user_id = ?", [user_id]);
+      } else if (status === "Active") {
+        await pool.query("UPDATE company_user_roles SET status = 'active', updated_at = CURRENT_TIMESTAMP WHERE user_id = ? AND is_default = TRUE", [user_id]);
+      }
+    } catch (curStatusErr) {
+      console.warn("company_user_roles status sync warning:", curStatusErr.message);
     }
     
     // Log the activity
@@ -5705,6 +5777,26 @@ app.patch("/api/employees/:userId/role", async (req, res) => {
         "INSERT INTO user_role (user_id, role, role_id) VALUES (?, ?, ?)",
         [userId, canonicalRoleName, roleRow.id]
       );
+    }
+
+    // Sync with company_user_roles so old role is deactivated and new role is active
+    try {
+      await pool.query(
+        "UPDATE company_user_roles SET is_default = FALSE, status = 'inactive', updated_at = CURRENT_TIMESTAMP WHERE user_id = ? AND role_id != ?",
+        [userId, roleRow.id]
+      );
+      await pool.query(
+        `INSERT INTO company_user_roles (user_id, company_id, role_id, branch_id, department_id, is_default, status, updated_at)
+         SELECT ?, 1, ?, p.branch, p.department, TRUE, 'active', CURRENT_TIMESTAMP
+         FROM profiles p WHERE p.user_id = ?
+         ON CONFLICT (user_id, company_id, role_id) DO UPDATE SET
+           is_default = TRUE,
+           status = 'active',
+           updated_at = CURRENT_TIMESTAMP`,
+        [userId, roleRow.id, userId]
+      );
+    } catch (curErr) {
+      console.warn("company_user_roles role sync warning:", curErr.message);
     }
 
     const [pRows] = await pool.query("SELECT full_name FROM profiles WHERE user_id = ?", [userId]);
@@ -5971,8 +6063,27 @@ app.get("/api/user-details/:identifier", async (req, res) => {
         COALESCE(r.name, ur.role, p.role, 'Employee') AS role_name,
         COALESCE(r.is_system_role, TRUE) AS is_system_role
       FROM profiles p
-      LEFT JOIN user_role ur ON ur.user_id = p.user_id
-      LEFT JOIN roles r ON (r.id = p.role_id OR r.id = ur.role_id OR LOWER(TRIM(r.name)) = LOWER(TRIM(REPLACE(ur.role, '_', ' '))))
+      LEFT JOIN LATERAL (
+        SELECT ur.role, ur.role_id, ur.department
+        FROM user_role ur
+        WHERE ur.user_id = p.user_id
+        ORDER BY ur.id DESC
+        LIMIT 1
+      ) ur ON true
+      LEFT JOIN LATERAL (
+        SELECT r.id, r.name, r.is_system_role
+        FROM roles r
+        WHERE r.id = p.role_id
+           OR (p.role_id IS NULL AND r.id = ur.role_id)
+           OR (p.role_id IS NULL AND ur.role_id IS NULL AND LOWER(TRIM(r.name)) = LOWER(TRIM(REPLACE(ur.role, '_', ' '))))
+        ORDER BY 
+          CASE 
+            WHEN r.id = p.role_id THEN 1
+            WHEN r.id = ur.role_id THEN 2
+            ELSE 3
+          END ASC
+        LIMIT 1
+      ) r ON true
       LEFT JOIN branches b ON b.code = p.branch
       LEFT JOIN (
           SELECT employee_id, 
@@ -8307,8 +8418,27 @@ app.get("/api/reports/absent-employees", async (req, res) => {
         p.department,
         COALESCE(ur.role, 'employee') AS role
       FROM profiles p
-      LEFT JOIN user_role ur ON ur.user_id = p.user_id
-      LEFT JOIN roles r ON (r.id = p.role_id OR r.id = ur.role_id OR LOWER(TRIM(r.name)) = LOWER(TRIM(REPLACE(ur.role, '_', ' '))))
+      LEFT JOIN LATERAL (
+        SELECT ur.role, ur.role_id, ur.department
+        FROM user_role ur
+        WHERE ur.user_id = p.user_id
+        ORDER BY ur.id DESC
+        LIMIT 1
+      ) ur ON true
+      LEFT JOIN LATERAL (
+        SELECT r.id, r.name, r.is_system_role
+        FROM roles r
+        WHERE r.id = p.role_id
+           OR (p.role_id IS NULL AND r.id = ur.role_id)
+           OR (p.role_id IS NULL AND ur.role_id IS NULL AND LOWER(TRIM(r.name)) = LOWER(TRIM(REPLACE(ur.role, '_', ' '))))
+        ORDER BY 
+          CASE 
+            WHEN r.id = p.role_id THEN 1
+            WHEN r.id = ur.role_id THEN 2
+            ELSE 3
+          END ASC
+        LIMIT 1
+      ) r ON true
       LEFT JOIN employee_work_assignment ewa ON ewa.user_id = p.user_id 
         AND ewa.status = 'Active' 
         AND ?::date BETWEEN (ewa.start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND COALESCE((ewa.end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date, '2099-12-31'::date)
@@ -8402,8 +8532,27 @@ app.get("/api/reports/on-leave-employees", async (req, res) => {
         lr.start_date,
         lr.end_date
       FROM profiles p
-      LEFT JOIN user_role ur ON ur.user_id = p.user_id
-      LEFT JOIN roles r ON (r.id = p.role_id OR r.id = ur.role_id OR LOWER(TRIM(r.name)) = LOWER(TRIM(REPLACE(ur.role, '_', ' '))))
+      LEFT JOIN LATERAL (
+        SELECT ur.role, ur.role_id, ur.department
+        FROM user_role ur
+        WHERE ur.user_id = p.user_id
+        ORDER BY ur.id DESC
+        LIMIT 1
+      ) ur ON true
+      LEFT JOIN LATERAL (
+        SELECT r.id, r.name, r.is_system_role
+        FROM roles r
+        WHERE r.id = p.role_id
+           OR (p.role_id IS NULL AND r.id = ur.role_id)
+           OR (p.role_id IS NULL AND ur.role_id IS NULL AND LOWER(TRIM(r.name)) = LOWER(TRIM(REPLACE(ur.role, '_', ' '))))
+        ORDER BY 
+          CASE 
+            WHEN r.id = p.role_id THEN 1
+            WHEN r.id = ur.role_id THEN 2
+            ELSE 3
+          END ASC
+        LIMIT 1
+      ) r ON true
       INNER JOIN leave_requests lr ON lr.user_id = p.user_id 
         AND lr.status = 'Approved' 
         AND ? BETWEEN lr.start_date AND lr.end_date

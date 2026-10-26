@@ -443,8 +443,8 @@ export default function AttendanceReports() {
     ]);
 
     const headers = viewType === "day"
-      ? ["Employee ID", "Name", "Location", ...sessionHeaders, "Status", "Duration", "Coordinate (Latitude&Longitude)", "Distance", "Location Status"]
-      : ["Date", "Employee ID", "Name", "Location", ...sessionHeaders, "Status", "Duration", "Coordinate (Latitude&Longitude)", "Distance", "Location Status"];
+      ? ["Employee ID", "Name", "Location", ...sessionHeaders, "Status", "Working Hours", "Coordinate (Latitude&Longitude)", "Distance", "Location Status"]
+      : ["Date", "Employee ID", "Name", "Location", ...sessionHeaders, "Status", "Working Hours", "Coordinate (Latitude&Longitude)", "Distance", "Location Status"];
 
     const sortedList = getSortedExportList();
 
@@ -571,7 +571,7 @@ export default function AttendanceReports() {
                 <th>Location</th>
                 ${sessionThs}
                 <th>Status</th>
-                <th>Duration</th>
+                <th>Working Hours</th>
               </tr>
             </thead>
             <tbody>
@@ -847,7 +847,7 @@ export default function AttendanceReports() {
                         </Fragment>
                       ))}
                       <TableHead className="w-[140px] whitespace-nowrap">Status</TableHead>
-                      <TableHead className="w-[95px] whitespace-nowrap">Duration</TableHead>
+                      <TableHead className="w-[110px] whitespace-nowrap">Working Hours</TableHead>
                       <TableHead className="min-w-[180px] whitespace-nowrap">Coordinate (Latitude&Longitude)</TableHead>
                       <TableHead className="w-[100px] whitespace-nowrap">Distance</TableHead>
                       <TableHead className="w-[120px] whitespace-nowrap">Location Status</TableHead>
