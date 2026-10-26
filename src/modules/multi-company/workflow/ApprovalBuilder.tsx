@@ -159,7 +159,7 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
                           value={step.step_label}
                           onChange={(e) => handleUpdateStep(idx, 'step_label', e.target.value)}
                           placeholder="e.g. Branch Endorsement"
-                          className="text-xs h-8 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 w-44 font-bold text-black dark:text-white"
+                          className="text-xs h-8 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 w-44 font-medium placeholder:font-normal text-black dark:text-white"
                         />
                       </div>
 
@@ -169,7 +169,7 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
                           value={step.approver_role_id}
                           onValueChange={(val) => handleUpdateStep(idx, 'approver_role_id', val)}
                         >
-                          <SelectTrigger className="text-xs h-8 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 w-52 font-bold text-black dark:text-white">
+                          <SelectTrigger className="text-xs h-8 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 w-52 font-medium data-[placeholder]:font-normal text-black dark:text-white">
                             <SelectValue placeholder="Select approver..." />
                           </SelectTrigger>
                           <SelectContent>

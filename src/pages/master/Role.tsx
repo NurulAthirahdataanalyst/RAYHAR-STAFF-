@@ -862,7 +862,7 @@ export default function Role() {
                   onChange={(e) => setFormName(e.target.value)}
                   disabled={formMode === "view"}
                   placeholder="e.g. Finance Manager, IT Support"
-                  className="h-10 text-xs font-bold rounded-xl border-border/60 bg-background text-black dark:text-white"
+                  className="h-10 text-xs font-medium placeholder:font-normal rounded-xl border-border/60 bg-background text-black dark:text-white"
                 />
               </div>
 
@@ -876,7 +876,7 @@ export default function Role() {
                   onValueChange={(val: "Active" | "Inactive") => setFormStatus(val)}
                   disabled={formMode === "view"}
                 >
-                  <SelectTrigger className="h-10 text-xs font-bold rounded-xl border-border/60 bg-background text-black dark:text-white">
+                  <SelectTrigger className="h-10 text-xs font-medium rounded-xl border-border/60 bg-background text-black dark:text-white">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl">
@@ -894,7 +894,7 @@ export default function Role() {
                     <span>Copy Permissions From</span>
                   </Label>
                   <Select value={selectedTemplate} onValueChange={handleSelectTemplate}>
-                    <SelectTrigger className="h-10 text-xs font-bold rounded-xl border-border/60 bg-background focus:ring-[#942392] text-black dark:text-white">
+                    <SelectTrigger className="h-10 text-xs font-medium data-[placeholder]:font-normal rounded-xl border-border/60 bg-background focus:ring-[#942392] text-black dark:text-white">
                       <SelectValue placeholder="Choose Role Template" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl max-h-60">
