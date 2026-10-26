@@ -179,35 +179,35 @@ export const Tab2_EmployeeConfig: React.FC = () => {
             {/* Row 1: Personal Credentials */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-muted-foreground">Full Name *</Label>
+                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Full Name *</Label>
                 <Input
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="e.g. Nurul Athirah Abdul Rahman"
-                  className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800"
+                  className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white"
                   required
                 />
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-muted-foreground">Corporate Email Address *</Label>
+                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Corporate Email Address *</Label>
                 <Input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="athirah@rayhar.com"
-                  className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800"
+                  className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white"
                   required
                 />
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-muted-foreground">Portal Access Password *</Label>
+                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Portal Access Password *</Label>
                 <PasswordInput
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••••••"
-                  className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800"
+                  className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white"
                   required
                 />
               </div>
@@ -215,24 +215,24 @@ export const Tab2_EmployeeConfig: React.FC = () => {
 
             {/* Row 2: Company & Placement */}
             <div className="p-4 rounded-xl border border-border/50 dark:border-neutral-800 bg-muted/20 dark:bg-neutral-900/40 space-y-4">
-              <h4 className="text-xs font-black uppercase tracking-wider text-foreground dark:text-neutral-200 flex items-center gap-2">
+              <h4 className="text-xs font-black uppercase tracking-wider text-black dark:text-white flex items-center gap-2">
                 <Building2 className="w-3.5 h-3.5 text-[#942392]" />
                 Organizational Placement & Company Binding
               </h4>
 
               <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-bold text-muted-foreground">Company Entity *</Label>
+                  <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Company Entity *</Label>
                   <Select 
                     value={selectedCompanyId.toString()} 
                     onValueChange={(val) => setSelectedCompanyId(parseInt(val, 10))}
                   >
-                    <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold">
+                    <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-black text-black dark:text-white">
                       <SelectValue placeholder="Select company..." />
                     </SelectTrigger>
                     <SelectContent>
                       {companies.map(c => (
-                        <SelectItem key={c.id} value={c.id.toString()} className="text-xs">
+                        <SelectItem key={c.id} value={c.id.toString()} className="text-xs font-bold">
                           {c.company_name} ({c.company_type === 'main' ? 'Parent' : 'Sub'})
                         </SelectItem>
                       ))}
@@ -241,14 +241,14 @@ export const Tab2_EmployeeConfig: React.FC = () => {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-bold text-muted-foreground">Assigned Branch</Label>
+                  <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Assigned Branch</Label>
                   <Select value={selectedBranch} onValueChange={setSelectedBranch} disabled={branches.length === 0}>
-                    <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800">
+                    <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white">
                       <SelectValue placeholder={branches.length === 0 ? "No branches" : "Choose branch..."} />
                     </SelectTrigger>
                     <SelectContent>
                       {branches.map(b => (
-                        <SelectItem key={b.code} value={b.code} className="text-xs">
+                        <SelectItem key={b.code} value={b.code} className="text-xs font-bold">
                           {b.name} ({b.code})
                         </SelectItem>
                       ))}
@@ -257,14 +257,14 @@ export const Tab2_EmployeeConfig: React.FC = () => {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-bold text-muted-foreground">Department</Label>
+                  <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Department</Label>
                   <Select value={selectedDepartment} onValueChange={setSelectedDepartment} disabled={departments.length === 0}>
-                    <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800">
+                    <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white">
                       <SelectValue placeholder={departments.length === 0 ? "No departments" : "Choose department..."} />
                     </SelectTrigger>
                     <SelectContent>
                       {departments.map(d => (
-                        <SelectItem key={d.name} value={d.name} className="text-xs">
+                        <SelectItem key={d.name} value={d.name} className="text-xs font-bold">
                           {d.name}
                         </SelectItem>
                       ))}
@@ -273,12 +273,12 @@ export const Tab2_EmployeeConfig: React.FC = () => {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-bold text-muted-foreground">Designation / Position</Label>
+                  <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Designation / Position</Label>
                   <Input
                     value={position}
                     onChange={(e) => setPosition(e.target.value)}
                     placeholder="e.g. Senior Executive"
-                    className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800"
+                    className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white"
                   />
                 </div>
               </div>
@@ -287,14 +287,14 @@ export const Tab2_EmployeeConfig: React.FC = () => {
             {/* Row 3: Role & Status */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-muted-foreground">System Authorization Role *</Label>
+                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">System Authorization Role *</Label>
                 <Select value={selectedRoleId} onValueChange={setSelectedRoleId} disabled={roles.length === 0}>
-                  <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800">
+                  <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white">
                     <SelectValue placeholder={roles.length === 0 ? "No roles in entity" : "Select authorized role..."} />
                   </SelectTrigger>
                   <SelectContent>
                     {roles.map(r => (
-                      <SelectItem key={r.id} value={r.id} className="text-xs">
+                      <SelectItem key={r.id} value={r.id} className="text-xs font-bold">
                         {r.name} ({r.role_type || 'Role'})
                       </SelectItem>
                     ))}
@@ -306,15 +306,15 @@ export const Tab2_EmployeeConfig: React.FC = () => {
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-muted-foreground">Employment Status</Label>
+                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Employment Status</Label>
                 <Select value={employmentStatus} onValueChange={setEmploymentStatus}>
-                  <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800">
+                  <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white">
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Active Personnel" className="text-xs">Active Personnel</SelectItem>
-                    <SelectItem value="Inactive Personnel" className="text-xs">Inactive Personnel</SelectItem>
-                    <SelectItem value="Resigned" className="text-xs">Resigned</SelectItem>
+                    <SelectItem value="Active Personnel" className="text-xs font-bold">Active Personnel</SelectItem>
+                    <SelectItem value="Inactive Personnel" className="text-xs font-bold">Inactive Personnel</SelectItem>
+                    <SelectItem value="Resigned" className="text-xs font-bold">Resigned</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

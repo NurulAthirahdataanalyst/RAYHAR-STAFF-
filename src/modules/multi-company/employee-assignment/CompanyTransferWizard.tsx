@@ -121,14 +121,14 @@ export const CompanyTransferWizard: React.FC<EmployeeTransferWizardProps> = ({ o
           Step 1: Select Employee to Transfer
         </h4>
         <div className="space-y-2">
-          <Label className="text-xs font-bold text-muted-foreground">Employee Name</Label>
+          <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Employee Name</Label>
           <Select value={selectedEmployeeId} onValueChange={setSelectedEmployeeId}>
-            <SelectTrigger className="text-xs bg-background dark:bg-neutral-900 border-border dark:border-neutral-800">
+            <SelectTrigger className="text-xs bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white">
               <SelectValue placeholder={loadingEmployees ? "Loading staff directory..." : "Choose staff member..."} />
             </SelectTrigger>
             <SelectContent className="max-h-56">
               {employees.map(e => (
-                <SelectItem key={e.user_id || e.id} value={e.user_id || e.id} className="text-xs">
+                <SelectItem key={e.user_id || e.id} value={e.user_id || e.id} className="text-xs font-bold">
                   {e.full_name || e.name} ({e.user_id || e.id}) — {e.branch || 'HQ'}
                 </SelectItem>
               ))}
@@ -163,17 +163,17 @@ export const CompanyTransferWizard: React.FC<EmployeeTransferWizardProps> = ({ o
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="space-y-1.5">
-            <Label className="text-xs font-bold text-muted-foreground">Destination Company *</Label>
+            <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Destination Company *</Label>
             <Select 
               value={targetCompanyId ? targetCompanyId.toString() : ''} 
               onValueChange={(val) => setTargetCompanyId(parseInt(val, 10))}
             >
-              <SelectTrigger className="text-xs bg-background dark:bg-neutral-900 border-border dark:border-neutral-800">
+              <SelectTrigger className="text-xs bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white">
                 <SelectValue placeholder="Select target entity..." />
               </SelectTrigger>
               <SelectContent>
                 {companies.map(c => (
-                  <SelectItem key={c.id} value={c.id.toString()} className="text-xs">
+                  <SelectItem key={c.id} value={c.id.toString()} className="text-xs font-bold">
                     {c.company_name} ({c.company_type === 'main' ? 'Parent' : 'Subsidiary'})
                   </SelectItem>
                 ))}
@@ -182,18 +182,18 @@ export const CompanyTransferWizard: React.FC<EmployeeTransferWizardProps> = ({ o
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-xs font-bold text-muted-foreground">New Branch Placement</Label>
+            <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">New Branch Placement</Label>
             <Select 
               value={targetBranchCode} 
               onValueChange={setTargetBranchCode}
               disabled={!targetCompanyId || targetBranches.length === 0}
             >
-              <SelectTrigger className="text-xs bg-background dark:bg-neutral-900 border-border dark:border-neutral-800">
+              <SelectTrigger className="text-xs bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white">
                 <SelectValue placeholder={targetBranches.length === 0 ? "No branches in entity" : "Select branch..."} />
               </SelectTrigger>
               <SelectContent>
                 {targetBranches.map(b => (
-                  <SelectItem key={b.code} value={b.code} className="text-xs">
+                  <SelectItem key={b.code} value={b.code} className="text-xs font-bold">
                     {b.name} ({b.code})
                   </SelectItem>
                 ))}
@@ -202,18 +202,18 @@ export const CompanyTransferWizard: React.FC<EmployeeTransferWizardProps> = ({ o
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-xs font-bold text-muted-foreground">Assigned Role in Entity</Label>
+            <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Assigned Role in Entity</Label>
             <Select 
               value={targetRoleId} 
               onValueChange={setTargetRoleId}
               disabled={!targetCompanyId || targetRoles.length === 0}
             >
-              <SelectTrigger className="text-xs bg-background dark:bg-neutral-900 border-border dark:border-neutral-800">
+              <SelectTrigger className="text-xs bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white">
                 <SelectValue placeholder={targetRoles.length === 0 ? "No roles configured" : "Select role..."} />
               </SelectTrigger>
               <SelectContent>
                 {targetRoles.map(r => (
-                  <SelectItem key={r.id} value={r.id} className="text-xs">
+                  <SelectItem key={r.id} value={r.id} className="text-xs font-bold">
                     {r.name} ({r.role_type || 'Role'})
                   </SelectItem>
                 ))}
@@ -223,12 +223,12 @@ export const CompanyTransferWizard: React.FC<EmployeeTransferWizardProps> = ({ o
         </div>
 
         <div className="space-y-1.5">
-          <Label className="text-xs font-bold text-muted-foreground">Transfer Reason & Authorization Notes *</Label>
+          <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Transfer Reason & Authorization Notes *</Label>
           <Input
             value={transferReason}
             onChange={(e) => setTransferReason(e.target.value)}
             placeholder="e.g. Secondment to RayRent for fleet management expansion"
-            className="text-xs bg-background dark:bg-neutral-900 border-border dark:border-neutral-800"
+            className="text-xs bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white"
           />
         </div>
       </div>

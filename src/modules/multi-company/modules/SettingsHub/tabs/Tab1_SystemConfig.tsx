@@ -58,27 +58,29 @@ export const Tab1_SystemConfig: React.FC = () => {
     <div className="space-y-6">
       {/* Top Scope Filter */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-muted/30 dark:bg-neutral-900/40 rounded-xl border border-border dark:border-neutral-800">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2.5">
           <SlidersHorizontal className="w-4 h-4 text-[#942392]" />
-          <span className="text-xs font-black uppercase tracking-wider text-foreground dark:text-neutral-200">
+          <span className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
             Target Company Scope:
           </span>
+          <Select 
+            value={selectedCompanyId ? selectedCompanyId.toString() : ""} 
+            onValueChange={(val) => setSelectedCompanyId(parseInt(val, 10))}
+          >
+            <SelectTrigger className="w-72 text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-black text-black dark:text-white shadow-xs">
+              <SelectValue placeholder="Select company scope...">
+                {currentCompanyObj ? `${currentCompanyObj.company_name} (${currentCompanyObj.company_type === 'main' ? 'Main Company' : 'Subsidiary'})` : 'Select company scope...'}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {companies.map(c => (
+                <SelectItem key={c.id} value={c.id.toString()} className="text-xs font-bold">
+                  {c.company_name} ({c.company_type === 'main' ? 'Main Company' : 'Subsidiary'})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
-        <Select 
-          value={selectedCompanyId.toString()} 
-          onValueChange={(val) => setSelectedCompanyId(parseInt(val, 10))}
-        >
-          <SelectTrigger className="w-56 text-xs h-8 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold">
-            <SelectValue placeholder="Select company scope..." />
-          </SelectTrigger>
-          <SelectContent>
-            {companies.map(c => (
-              <SelectItem key={c.id} value={c.id.toString()} className="text-xs">
-                {c.company_name} ({c.company_type === 'main' ? 'Main' : 'Subsidiary'})
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
       </div>
 
       {/* Card A: Real-Time Alerts */}
@@ -137,9 +139,9 @@ export const Tab1_SystemConfig: React.FC = () => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
           <div className="space-y-1.5">
-            <Label className="text-xs font-bold text-muted-foreground">Distribution Frequency</Label>
+            <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Distribution Frequency</Label>
             <Select value={reportFrequency} onValueChange={setReportFrequency}>
-              <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800">
+              <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white">
                 <SelectValue placeholder="Select cadence..." />
               </SelectTrigger>
               <SelectContent>
@@ -151,11 +153,11 @@ export const Tab1_SystemConfig: React.FC = () => {
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-xs font-bold text-muted-foreground">Authorized Recipients</Label>
+            <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Authorized Recipients</Label>
             <div className="flex flex-wrap gap-2 pt-1 text-[11px]">
-              <span className="px-2 py-1 rounded-md bg-[#942392]/10 text-[#942392] font-bold">HR Admin</span>
-              <span className="px-2 py-1 rounded-md bg-muted text-foreground font-bold">Operation Manager</span>
-              <span className="px-2 py-1 rounded-md bg-muted text-foreground font-bold">Managing Director</span>
+              <span className="px-2 py-1 rounded-md bg-[#942392]/10 text-[#942392] font-black">HR Admin</span>
+              <span className="px-2 py-1 rounded-md bg-muted text-black dark:text-white font-black">Operation Manager</span>
+              <span className="px-2 py-1 rounded-md bg-muted text-black dark:text-white font-black">Managing Director</span>
             </div>
           </div>
         </div>
@@ -179,14 +181,14 @@ export const Tab1_SystemConfig: React.FC = () => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center pt-1">
           <div className="space-y-1.5">
-            <Label className="text-xs font-bold text-muted-foreground">Grace Window (Minutes)</Label>
+            <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Grace Window (Minutes)</Label>
             <Input
               type="number"
               min={0}
               max={60}
               value={lateWindowMinutes}
               onChange={(e) => setLateWindowMinutes(Number(e.target.value))}
-              className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 w-36 font-black text-center"
+              className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 w-36 font-black text-center text-black dark:text-white"
             />
           </div>
 

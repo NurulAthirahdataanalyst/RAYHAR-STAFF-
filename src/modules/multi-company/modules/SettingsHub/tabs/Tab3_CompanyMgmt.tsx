@@ -23,7 +23,8 @@ export const Tab3_CompanyMgmt: React.FC<Tab3CompanyMgmtProps> = ({ onNavigateToT
 
   useEffect(() => {
     void refreshCompanies();
-  }, [refreshCompanies]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingCompany, setEditingCompany] = useState<Company | null>(null);
@@ -279,44 +280,44 @@ export const Tab3_CompanyMgmt: React.FC<Tab3CompanyMgmtProps> = ({ onNavigateToT
 
           <form onSubmit={handleSaveCompany} className="space-y-4 pt-2">
             <div className="space-y-1.5">
-              <Label className="text-xs font-bold text-muted-foreground">Company Name *</Label>
+              <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Company Name *</Label>
               <Input
                 value={companyName}
                 onChange={(e) => setCompanyName(e.target.value)}
                 placeholder="e.g. RayRent Sdn Bhd"
-                className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800"
+                className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white"
                 required
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-muted-foreground">Company Type</Label>
+                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Company Type</Label>
                 <Select value={companyType} onValueChange={(val: any) => setCompanyType(val)}>
-                  <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800">
+                  <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white">
                     <SelectValue placeholder="Type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="main" className="text-xs">Main Holding Company</SelectItem>
-                    <SelectItem value="subsidiary" className="text-xs">Subsidiary Company</SelectItem>
+                    <SelectItem value="main" className="text-xs font-bold">Main Holding Company</SelectItem>
+                    <SelectItem value="subsidiary" className="text-xs font-bold">Subsidiary Company</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-muted-foreground">Parent Holding Entity</Label>
+                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Parent Holding Entity</Label>
                 <Select 
                   value={parentCompanyId ? parentCompanyId.toString() : 'root'} 
                   onValueChange={(val) => setParentCompanyId(val === 'root' ? null : parseInt(val, 10))}
                   disabled={companyType === 'main'}
                 >
-                  <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800">
+                  <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white">
                     <SelectValue placeholder="Parent Entity" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="root" className="text-xs">None (Root Holding Entity)</SelectItem>
+                    <SelectItem value="root" className="text-xs font-bold">None (Root Holding Entity)</SelectItem>
                     {companies.filter(c => !editingCompany || c.id !== editingCompany.id).map(c => (
-                      <SelectItem key={c.id} value={c.id.toString()} className="text-xs">
+                      <SelectItem key={c.id} value={c.id.toString()} className="text-xs font-bold">
                         {c.company_name}
                       </SelectItem>
                     ))}
@@ -327,37 +328,37 @@ export const Tab3_CompanyMgmt: React.FC<Tab3CompanyMgmtProps> = ({ onNavigateToT
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-muted-foreground">Contact Email</Label>
+                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Contact Email</Label>
                 <Input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="contact@company.com"
-                  className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800"
+                  className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-muted-foreground">Status</Label>
+                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Status</Label>
                 <Select value={status} onValueChange={(val: any) => setStatus(val)}>
-                  <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800">
+                  <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white">
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="active" className="text-xs">Active Entity</SelectItem>
-                    <SelectItem value="inactive" className="text-xs">Inactive Entity</SelectItem>
+                    <SelectItem value="active" className="text-xs font-bold">Active Entity</SelectItem>
+                    <SelectItem value="inactive" className="text-xs font-bold">Inactive Entity</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs font-bold text-muted-foreground">Registered Office Address</Label>
+              <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Registered Office Address</Label>
               <Textarea
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
                 placeholder="Enter physical address..."
-                className="text-xs bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 min-h-[70px]"
+                className="text-xs bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 min-h-[70px] font-bold text-black dark:text-white"
               />
             </div>
 

@@ -13,6 +13,10 @@ function createMultiCompanyRouter(pgPool) {
     fs.mkdirSync(logoUploadDir, { recursive: true });
   }
 
+  // Ensure companies sequence is safely in sync with max(id)
+  pgPool.query("SELECT setval('companies_id_seq', COALESCE((SELECT GREATEST(MAX(id), 1) FROM companies), 1), true)")
+    .catch((err) => console.warn('Could not sync companies_id_seq:', err.message));
+
   const logoStorage = multer.diskStorage({
     destination: (req, file, cb) => cb(null, logoUploadDir),
     filename: (req, file, cb) => {
@@ -923,7 +927,7 @@ function createMultiCompanyRouter(pgPool) {
     }
   });
 
-  // GET employee transfer history
+  // GET employee transfer history (single employee)
   router.get('/employees/:employeeId/company-history', async (req, res) => {
     try {
       const history = await pgPool.query(`
@@ -931,6 +935,42 @@ function createMultiCompanyRouter(pgPool) {
         WHERE employee_id = $1
         ORDER BY effective_date DESC, id DESC;
       `, [req.params.employeeId]);
+
+      res.json({ success: true, history: history.rows });
+    } catch (err) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  // GET all employee transfer history
+  router.get('/employee-company-history', async (req, res) => {
+    try {
+      const { limit = 200 } = req.query;
+      const history = await pgPool.query(`
+        SELECT ech.*, p.full_name as employee_name
+        FROM employee_company_history ech
+        LEFT JOIN profiles p ON ech.employee_id = p.user_id
+        ORDER BY ech.created_at DESC, ech.id DESC
+        LIMIT $1;
+      `, [limit]);
+
+      res.json({ success: true, history: history.rows });
+    } catch (err) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  // Alias for backward compatibility
+  router.get('/employees/all-company-history', async (req, res) => {
+    try {
+      const { limit = 200 } = req.query;
+      const history = await pgPool.query(`
+        SELECT ech.*, p.full_name as employee_name
+        FROM employee_company_history ech
+        LEFT JOIN profiles p ON ech.employee_id = p.user_id
+        ORDER BY ech.created_at DESC, ech.id DESC
+        LIMIT $1;
+      `, [limit]);
 
       res.json({ success: true, history: history.rows });
     } catch (err) {

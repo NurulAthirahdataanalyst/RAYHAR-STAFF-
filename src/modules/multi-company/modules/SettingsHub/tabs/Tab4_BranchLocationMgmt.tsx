@@ -157,22 +157,24 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
     <div className="space-y-6">
       {/* Top Filter & Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-muted/30 dark:bg-neutral-900/40 rounded-xl border border-border dark:border-neutral-800">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2.5">
           <MapPin className="w-4 h-4 text-[#942392]" />
-          <span className="text-xs font-black uppercase tracking-wider text-foreground dark:text-neutral-200">
+          <span className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
             Company Branch Scope:
           </span>
           <Select 
             value={selectedCompanyId.toString()} 
             onValueChange={(val) => setSelectedCompanyId(parseInt(val, 10))}
           >
-            <SelectTrigger className="w-56 text-xs h-8 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold ml-1">
-              <SelectValue placeholder="Select company..." />
+            <SelectTrigger className="w-72 text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-black text-black dark:text-white shadow-xs">
+              <SelectValue placeholder="Select company...">
+                {companies.find(c => c.id === selectedCompanyId)?.company_name ? `${companies.find(c => c.id === selectedCompanyId)?.company_name} (${companies.find(c => c.id === selectedCompanyId)?.company_type === 'main' ? 'Main Company' : 'Subsidiary'})` : 'Select company...'}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {companies.map(c => (
-                <SelectItem key={c.id} value={c.id.toString()} className="text-xs">
-                  {c.company_name} ({c.company_type === 'main' ? 'Main' : 'Sub'})
+                <SelectItem key={c.id} value={c.id.toString()} className="text-xs font-bold">
+                  {c.company_name} ({c.company_type === 'main' ? 'Main Company' : 'Subsidiary'})
                 </SelectItem>
               ))}
             </SelectContent>
@@ -181,7 +183,7 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
 
         <Button
           onClick={handleOpenAddModal}
-          className="bg-[#942392] hover:bg-[#800A7A] text-white font-black text-xs uppercase tracking-wider shadow-sm h-8 px-3.5 rounded-xl self-start sm:self-auto"
+          className="bg-[#942392] hover:bg-[#800A7A] text-white font-black text-xs uppercase tracking-wider shadow-sm h-9 px-4 rounded-xl self-start sm:self-auto"
         >
           <Plus className="w-3.5 h-3.5 mr-1" />
           Register Branch

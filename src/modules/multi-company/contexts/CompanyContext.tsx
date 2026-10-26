@@ -92,17 +92,33 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
     try {
       const all = await multiCompanyApi.getCompanies();
       setCompanies(all);
-      if (activeCompany) {
-        const refreshed = all.find(c => c.id === activeCompany.id);
-        if (refreshed) setActiveCompany(refreshed);
-      } else if (all.length > 0) {
-        const defaultComp = all.find(c => c.company_type === 'main') || all[0];
-        setActiveCompany(defaultComp);
-      }
+      setActiveCompany((prev) => {
+        if (prev) {
+          const refreshed = all.find((c) => c.id === prev.id);
+          if (refreshed) {
+            // Only update reference if actual contents changed
+            if (
+              refreshed.company_name !== prev.company_name ||
+              refreshed.company_type !== prev.company_type ||
+              refreshed.logo_url !== prev.logo_url ||
+              refreshed.status !== prev.status ||
+              refreshed.branches_count !== prev.branches_count ||
+              refreshed.active_employees_count !== prev.active_employees_count
+            ) {
+              return refreshed;
+            }
+            return prev;
+          }
+        }
+        if (all.length > 0) {
+          return all.find((c) => c.company_type === 'main') || all[0];
+        }
+        return null;
+      });
     } catch (err) {
       console.error('Error refreshing companies:', err);
     }
-  }, [activeCompany]);
+  }, []);
 
   // Active role for user in current company
   const userActiveRole = userCompanies.find(uc => uc.company_id === activeCompany?.id) || null;
