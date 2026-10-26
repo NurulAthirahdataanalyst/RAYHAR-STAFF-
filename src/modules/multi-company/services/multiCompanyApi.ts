@@ -185,6 +185,17 @@ export const multiCompanyApi = {
     return data.schedule;
   },
 
+  async updateWorkSchedule(companyId: number, scheduleId: number, scheduleData: any): Promise<WorkSchedule> {
+    const res = await fetch(`${API_BASE_URL}/api/companies/${companyId}/work-schedules/${scheduleId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(scheduleData)
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.error || 'Failed to update schedule');
+    return data.schedule;
+  },
+
   // Attendance Settings
   async getAttendanceSettings(companyId: number): Promise<AttendanceSettings | null> {
     const res = await fetch(`${API_BASE_URL}/api/companies/${companyId}/attendance-settings`);

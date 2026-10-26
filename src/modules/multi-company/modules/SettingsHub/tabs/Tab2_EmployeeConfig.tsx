@@ -350,45 +350,15 @@ export const Tab2_EmployeeConfig: React.FC = () => {
       )}
 
       {subTab === 'transfer' && (
-        <div className="space-y-4">
-          <div className="p-3 bg-[#942392]/10 rounded-xl border border-[#942392]/20 flex items-center justify-between text-xs">
-            <span className="font-bold text-foreground">
-              Tip: Company Transfer is now accessible directly under <strong className="text-[#942392]">Organization & Entities</strong> in the sidebar.
-            </span>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => navigate('/organization?tab=transfer')}
-              className="text-xs h-7 border-[#942392]/30 text-[#942392] font-bold"
-            >
-              Open Dedicated Page
-            </Button>
-          </div>
-          <Card className="border border-border dark:border-neutral-800 shadow-xs bg-white/70 dark:bg-card/70 backdrop-blur-md rounded-2xl p-6">
-            <CompanyTransferWizard onTransferComplete={() => setSubTab('history')} />
-          </Card>
-        </div>
+        <Card className="border border-border dark:border-neutral-800 shadow-xs bg-white/70 dark:bg-card/70 backdrop-blur-md rounded-2xl p-6">
+          <CompanyTransferWizard onTransferComplete={() => setSubTab('history')} />
+        </Card>
       )}
 
       {subTab === 'history' && (
-        <div className="space-y-4">
-          <div className="p-3 bg-[#942392]/10 rounded-xl border border-[#942392]/20 flex items-center justify-between text-xs">
-            <span className="font-bold text-foreground">
-              Tip: Transfer history is also available under <strong className="text-[#942392]">Organization & Entities</strong>.
-            </span>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => navigate('/organization?tab=history')}
-              className="text-xs h-7 border-[#942392]/30 text-[#942392] font-bold"
-            >
-              Open Dedicated Page
-            </Button>
-          </div>
-          <Card className="border border-border dark:border-neutral-800 shadow-xs bg-white/70 dark:bg-card/70 backdrop-blur-md rounded-2xl p-6">
-            <EmployeeCompanyHistory />
-          </Card>
-        </div>
+        <Card className="border border-border dark:border-neutral-800 shadow-xs bg-white/70 dark:bg-card/70 backdrop-blur-md rounded-2xl p-6">
+          <EmployeeCompanyHistory />
+        </Card>
       )}
     </div>
   );

@@ -24,6 +24,35 @@ function createMultiCompanyRouter(pgPool) {
     ALTER TABLE employee_company_history ADD COLUMN IF NOT EXISTS end_date DATE;
   `).catch((err) => console.warn('Could not alter employee_company_history columns:', err.message));
 
+  // Ensure all companies have baseline work schedules and active hours
+  pgPool.query(`
+    DO $$
+    DECLARE
+      c RECORD;
+      sched_id INT;
+    BEGIN
+      FOR c IN SELECT id FROM companies LOOP
+        IF NOT EXISTS (SELECT 1 FROM work_schedules WHERE company_id = c.id) THEN
+          INSERT INTO work_schedules (company_id, schedule_name, effective_date, status)
+          VALUES (c.id, 'Standard Office Hours', CURRENT_DATE, 'active')
+          RETURNING id INTO sched_id;
+
+          INSERT INTO work_schedule_days (schedule_id, day_of_week, start_time, end_time, is_working_day) VALUES
+            (sched_id, 'Monday', '08:30:00', '17:30:00', TRUE),
+            (sched_id, 'Tuesday', '08:30:00', '17:30:00', TRUE),
+            (sched_id, 'Wednesday', '08:30:00', '17:30:00', TRUE),
+            (sched_id, 'Thursday', '08:30:00', '17:30:00', TRUE),
+            (sched_id, 'Friday', '08:30:00', '17:30:00', TRUE),
+            (sched_id, 'Saturday', NULL, NULL, FALSE),
+            (sched_id, 'Sunday', NULL, NULL, FALSE);
+
+          INSERT INTO break_schedules (schedule_id, break_name, break_type, start_time, end_time) VALUES
+            (sched_id, 'Lunch Break', 'lunch', '12:30:00', '14:00:00');
+        END IF;
+      END LOOP;
+    END $$;
+  `).catch((err) => console.warn('Could not auto-seed work schedules:', err.message));
+
   const logoStorage = multer.diskStorage({
     destination: (req, file, cb) => cb(null, logoUploadDir),
     filename: (req, file, cb) => {
@@ -147,6 +176,30 @@ function createMultiCompanyRouter(pgPool) {
           ($1, 'Emergency Leave', 5, TRUE, FALSE)
         ON CONFLICT (company_id, leave_type) DO NOTHING;
       `, [newCompany.id]);
+
+      // Automatically initialize baseline work schedule (Standard Office Hours 08:30 - 17:30)
+      const schedInsert = await pgPool.query(`
+        INSERT INTO work_schedules (company_id, schedule_name, effective_date, status)
+        VALUES ($1, 'Standard Office Hours', CURRENT_DATE, 'active')
+        RETURNING id;
+      `, [newCompany.id]);
+
+      const newSchedId = schedInsert.rows[0]?.id;
+      if (newSchedId) {
+        await pgPool.query(`
+          INSERT INTO work_schedule_days (schedule_id, day_of_week, start_time, end_time, is_working_day) VALUES
+            ($1, 'Monday', '08:30:00', '17:30:00', TRUE),
+            ($1, 'Tuesday', '08:30:00', '17:30:00', TRUE),
+            ($1, 'Wednesday', '08:30:00', '17:30:00', TRUE),
+            ($1, 'Thursday', '08:30:00', '17:30:00', TRUE),
+            ($1, 'Friday', '08:30:00', '17:30:00', TRUE),
+            ($1, 'Saturday', NULL, NULL, FALSE),
+            ($1, 'Sunday', NULL, NULL, FALSE);
+
+          INSERT INTO break_schedules (schedule_id, break_name, break_type, start_time, end_time) VALUES
+            ($1, 'Lunch Break', 'lunch', '12:30:00', '14:00:00');
+        `, [newSchedId]);
+      }
 
       await logAudit(req, 'COMPANY_CREATE', `Created company ${newCompany.company_name} (ID: ${newCompany.id})`, null, newCompany, newCompany.id);
 
@@ -705,6 +758,64 @@ function createMultiCompanyRouter(pgPool) {
       res.status(201).json({ success: true, schedule: schedRes.rows[0] });
     } catch (err) {
       console.error('Error creating work schedule:', err);
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  // PUT update work schedule
+  router.put('/companies/:companyId/work-schedules/:scheduleId', async (req, res) => {
+    try {
+      const { companyId, scheduleId } = req.params;
+      const {
+        schedule_name,
+        department_id = null,
+        branch_id = null,
+        days = [],
+        breaks = []
+      } = req.body;
+
+      if (!schedule_name) {
+        return res.status(400).json({ success: false, error: 'Schedule name is required' });
+      }
+
+      const updateRes = await pgPool.query(`
+        UPDATE work_schedules
+        SET schedule_name = $1, department_id = $2, branch_id = $3, updated_at = CURRENT_TIMESTAMP
+        WHERE id = $4 AND company_id = $5
+        RETURNING *;
+      `, [schedule_name.trim(), department_id, branch_id, scheduleId, companyId]);
+
+      if (updateRes.rows.length === 0) {
+        return res.status(404).json({ success: false, error: 'Work schedule not found' });
+      }
+
+      // Re-insert days if provided
+      if (Array.isArray(days) && days.length > 0) {
+        await pgPool.query('DELETE FROM work_schedule_days WHERE schedule_id = $1', [scheduleId]);
+        for (const d of days) {
+          await pgPool.query(`
+            INSERT INTO work_schedule_days (schedule_id, day_of_week, start_time, end_time, is_working_day)
+            VALUES ($1, $2, $3, $4, $5);
+          `, [scheduleId, d.day_of_week, d.start_time, d.end_time, d.is_working_day]);
+        }
+      }
+
+      // Re-insert breaks if provided
+      if (Array.isArray(breaks)) {
+        await pgPool.query('DELETE FROM break_schedules WHERE schedule_id = $1', [scheduleId]);
+        for (const b of breaks) {
+          if (b.start_time && b.end_time) {
+            await pgPool.query(`
+              INSERT INTO break_schedules (schedule_id, break_name, break_type, start_time, end_time)
+              VALUES ($1, $2, $3, $4, $5);
+            `, [scheduleId, b.break_name || 'Break', b.break_type || 'lunch', b.start_time, b.end_time]);
+          }
+        }
+      }
+
+      res.json({ success: true, schedule: updateRes.rows[0] });
+    } catch (err) {
+      console.error('Error updating work schedule:', err);
       res.status(500).json({ success: false, error: err.message });
     }
   });

@@ -21,6 +21,7 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
   const [loading, setLoading] = useState(false);
 
   const [modalOpen, setModalOpen] = useState(false);
+  const [editingScheduleId, setEditingScheduleId] = useState<number | null>(null);
   const [scheduleName, setScheduleName] = useState('');
   const [selectedDept, setSelectedDept] = useState('ALL');
   const [selectedBranch, setSelectedBranch] = useState('ALL');
@@ -83,7 +84,64 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
     setDaysState(updated);
   };
 
-  const handleCreateSchedule = async (e: React.FormEvent) => {
+  const handleOpenCreate = () => {
+    setEditingScheduleId(null);
+    setScheduleName('');
+    setSelectedDept('ALL');
+    setSelectedBranch('ALL');
+    setLunchStart('12:30');
+    setLunchEnd('14:00');
+    setDaysState([
+      { day_of_week: 'Monday', start_time: '08:30:00', end_time: '17:30:00', is_working_day: true },
+      { day_of_week: 'Tuesday', start_time: '08:30:00', end_time: '17:30:00', is_working_day: true },
+      { day_of_week: 'Wednesday', start_time: '08:30:00', end_time: '17:30:00', is_working_day: true },
+      { day_of_week: 'Thursday', start_time: '08:30:00', end_time: '17:30:00', is_working_day: true },
+      { day_of_week: 'Friday', start_time: '08:30:00', end_time: '17:30:00', is_working_day: true },
+      { day_of_week: 'Saturday', start_time: null, end_time: null, is_working_day: false },
+      { day_of_week: 'Sunday', start_time: null, end_time: null, is_working_day: false }
+    ]);
+    setModalOpen(true);
+  };
+
+  const handleOpenEdit = (s: WorkSchedule) => {
+    setEditingScheduleId(s.id);
+    setScheduleName(s.schedule_name);
+    setSelectedDept(s.department_id || 'ALL');
+    setSelectedBranch(s.branch_id || 'ALL');
+
+    if (s.breaks && s.breaks.length > 0) {
+      const b = s.breaks[0];
+      setLunchStart(b.start_time?.slice(0, 5) || '12:30');
+      setLunchEnd(b.end_time?.slice(0, 5) || '14:00');
+    } else {
+      setLunchStart('12:30');
+      setLunchEnd('14:00');
+    }
+
+    const standardWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const daysMap = new Map((s.days || []).map(d => [d.day_of_week, d]));
+    const parsedDays: WorkScheduleDay[] = standardWeek.map(dayName => {
+      const found = daysMap.get(dayName);
+      if (found) {
+        return {
+          day_of_week: dayName,
+          start_time: found.start_time,
+          end_time: found.end_time,
+          is_working_day: found.is_working_day
+        };
+      }
+      return {
+        day_of_week: dayName,
+        start_time: dayName === 'Saturday' || dayName === 'Sunday' ? null : '08:30:00',
+        end_time: dayName === 'Saturday' || dayName === 'Sunday' ? null : '17:30:00',
+        is_working_day: dayName !== 'Saturday' && dayName !== 'Sunday'
+      };
+    });
+    setDaysState(parsedDays);
+    setModalOpen(true);
+  };
+
+  const handleSaveSchedule = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!scheduleName.trim()) {
       toast.error('Schedule name is required');
@@ -92,7 +150,7 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
 
     try {
       setSaving(true);
-      await multiCompanyApi.createWorkSchedule(selectedCompanyId, {
+      const payload = {
         schedule_name: scheduleName.trim(),
         department_id: selectedDept === 'ALL' ? null : selectedDept,
         branch_id: selectedBranch === 'ALL' ? null : selectedBranch,
@@ -105,14 +163,22 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
             end_time: `${lunchEnd}:00`
           }
         ]
-      });
+      };
 
-      toast.success(`Schedule "${scheduleName}" created successfully!`);
+      if (editingScheduleId) {
+        await multiCompanyApi.updateWorkSchedule(selectedCompanyId, editingScheduleId, payload);
+        toast.success(`Schedule "${scheduleName}" updated successfully!`);
+      } else {
+        await multiCompanyApi.createWorkSchedule(selectedCompanyId, payload);
+        toast.success(`Schedule "${scheduleName}" created successfully!`);
+      }
+
       setModalOpen(false);
+      setEditingScheduleId(null);
       setScheduleName('');
       await loadSchedules(selectedCompanyId);
     } catch (err: any) {
-      toast.error(err.message || 'Error creating schedule');
+      toast.error(err.message || 'Error saving schedule');
     } finally {
       setSaving(false);
     }
@@ -153,7 +219,7 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
         </div>
 
         <Button
-          onClick={() => setModalOpen(true)}
+          onClick={handleOpenCreate}
           className="bg-[#942392] hover:bg-[#800A7A] text-white font-black text-xs uppercase tracking-wider shadow-sm h-9 px-4 rounded-xl self-start sm:self-auto"
         >
           <Plus className="w-3.5 h-3.5 mr-1" />
@@ -205,6 +271,7 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
                   <th className="px-4 py-3">Core Hours</th>
                   <th className="px-4 py-3">Break Timing</th>
                   <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/40 dark:divide-neutral-800/40">
@@ -244,6 +311,17 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
                           Active
                         </span>
                       </td>
+                      <td className="px-4 py-3 text-right">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleOpenEdit(s)}
+                          className="h-7 px-2.5 text-xs font-bold border-border/60 hover:bg-muted"
+                        >
+                          <Edit className="w-3 h-3 mr-1" />
+                          Edit Hours
+                        </Button>
+                      </td>
                     </tr>
                   );
                 })}
@@ -253,15 +331,18 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
         )}
       </Card>
 
-      {/* Create Work Schedule Dialog */}
+      {/* Create / Edit Work Schedule Dialog */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogContent className="max-w-2xl bg-card dark:bg-neutral-900 border border-border dark:border-neutral-800 rounded-2xl max-h-[88vh] flex flex-col p-0 overflow-hidden shadow-2xl">
-          <form onSubmit={handleCreateSchedule} className="flex flex-col h-full max-h-[88vh] overflow-hidden">
+          <form onSubmit={handleSaveSchedule} className="flex flex-col h-full max-h-[88vh] overflow-hidden">
             <div className="px-6 py-4 border-b border-border/40 shrink-0 bg-card dark:bg-neutral-900">
               <DialogHeader>
                 <DialogTitle className="text-sm font-black uppercase tracking-wider text-foreground dark:text-white flex items-center gap-2">
                   <CalendarClock className="w-4 h-4 text-[#942392]" />
-                  Create Work Schedule Timetable
+                  {editingScheduleId ? 'Edit Work Schedule Timetable' : 'Create Work Schedule Timetable'}
+                  <span className="text-[#942392] font-normal normal-case text-xs ml-1">
+                    ({companies.find(c => c.id === selectedCompanyId)?.company_name || 'Selected Entity'})
+                  </span>
                 </DialogTitle>
               </DialogHeader>
             </div>
@@ -395,8 +476,17 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
                 disabled={saving || !scheduleName.trim()}
                 className="bg-[#942392] hover:bg-[#800A7A] text-white font-black text-xs uppercase h-8 px-4 rounded-xl shadow-xs"
               >
-                {saving ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Check className="w-3 h-3 mr-1" />}
-                Save Schedule
+                {saving ? (
+                  <>
+                    <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                    Saving Timetable...
+                  </>
+                ) : (
+                  <>
+                    <Check className="w-3 h-3 mr-1" />
+                    {editingScheduleId ? 'Save Changes' : 'Create Schedule'}
+                  </>
+                )}
               </Button>
             </div>
           </form>
