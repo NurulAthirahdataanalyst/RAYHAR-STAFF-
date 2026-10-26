@@ -853,7 +853,7 @@ export default function Role() {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 p-4 rounded-xl bg-muted/20 border border-border/50">
               {/* Role Name */}
               <div className="space-y-1.5">
-                <Label htmlFor="form-role-name" className="text-xs font-bold text-gray-700 dark:text-gray-200">
+                <Label htmlFor="form-role-name" className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
                   Role Name <span className="text-rose-500">*</span>
                 </Label>
                 <Input
@@ -862,13 +862,13 @@ export default function Role() {
                   onChange={(e) => setFormName(e.target.value)}
                   disabled={formMode === "view"}
                   placeholder="e.g. Finance Manager, IT Support"
-                  className="h-10 text-xs font-medium rounded-xl border-border/60 bg-background"
+                  className="h-10 text-xs font-bold rounded-xl border-border/60 bg-background text-black dark:text-white"
                 />
               </div>
 
               {/* Status */}
               <div className="space-y-1.5">
-                <Label htmlFor="form-status" className="text-xs font-bold text-gray-700 dark:text-gray-200">
+                <Label htmlFor="form-status" className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
                   Status
                 </Label>
                 <Select
@@ -876,12 +876,12 @@ export default function Role() {
                   onValueChange={(val: "Active" | "Inactive") => setFormStatus(val)}
                   disabled={formMode === "view"}
                 >
-                  <SelectTrigger className="h-10 text-xs font-medium rounded-xl border-border/60 bg-background">
+                  <SelectTrigger className="h-10 text-xs font-bold rounded-xl border-border/60 bg-background text-black dark:text-white">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl">
-                    <SelectItem value="Active">Active</SelectItem>
-                    <SelectItem value="Inactive">Inactive</SelectItem>
+                    <SelectItem value="Active" className="font-bold">Active</SelectItem>
+                    <SelectItem value="Inactive" className="font-bold">Inactive</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -889,12 +889,12 @@ export default function Role() {
               {/* Copy Permissions From Template Dropdown */}
               {formMode !== "view" && (
                 <div className="space-y-1.5 sm:col-span-2 md:col-span-1">
-                  <Label htmlFor="copy-template" className="text-xs font-bold text-gray-700 dark:text-gray-200 flex items-center gap-1.5">
+                  <Label htmlFor="copy-template" className="text-xs font-black uppercase tracking-wider text-black dark:text-white flex items-center gap-1.5">
                     <Sparkles className="w-3.5 h-3.5 text-[#942392]" />
                     <span>Copy Permissions From</span>
                   </Label>
                   <Select value={selectedTemplate} onValueChange={handleSelectTemplate}>
-                    <SelectTrigger className="h-10 text-xs font-bold rounded-xl border-border/60 bg-background focus:ring-[#942392]">
+                    <SelectTrigger className="h-10 text-xs font-bold rounded-xl border-border/60 bg-background focus:ring-[#942392] text-black dark:text-white">
                       <SelectValue placeholder="Choose Role Template" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl max-h-60">
@@ -928,7 +928,7 @@ export default function Role() {
 
               {/* Description */}
               <div className="space-y-1.5 sm:col-span-2 md:col-span-3">
-                <Label htmlFor="form-desc" className="text-xs font-bold text-gray-700 dark:text-gray-200">
+                <Label htmlFor="form-desc" className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
                   Role Description
                 </Label>
                 <Textarea
