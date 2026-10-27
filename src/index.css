@@ -73,8 +73,10 @@
     --sidebar-border: 230 25% 15%;
     --sidebar-ring: 289 100% 30%;
 
-    --font-heading: 'Outfit', system-ui, sans-serif;
-    --font-body: 'Outfit', system-ui, sans-serif;
+    --font-heading: 'Inter', sans-serif;
+    --font-body: 'Inter', sans-serif;
+    --font-sans: 'Inter', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
   }
 
   .dark {
