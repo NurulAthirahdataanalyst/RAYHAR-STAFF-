@@ -18,6 +18,7 @@ import {
   TrendingUp, 
   Clock,
   CalendarDays,
+  ArrowLeft,
   Edit,
   Save, 
   FileText, 
@@ -167,12 +168,16 @@ function renderOutstationStatusBadge(status: string) {
 
 export function StaffProfileDialog({ 
   employeeId, 
-  isOpen, 
-  onClose 
+  isOpen = true, 
+  onClose,
+  isPage = false,
+  onBack,
 }: { 
   employeeId: string | null; 
-  isOpen: boolean; 
-  onClose: () => void; 
+  isOpen?: boolean; 
+  onClose?: () => void; 
+  isPage?: boolean;
+  onBack?: () => void;
 }) {
   const { role, userBranch, userDepartment } = useRole();
   const isHrOrAdmin = role === "hr_admin" || role === "admin" || (typeof role === "string" && role.toLowerCase().includes("hr"));
@@ -886,17 +891,9 @@ export function StaffProfileDialog({
     }
   };
 
-  return (
+  const renderTabsContent = () => (
     <>
-      {/* Employee Details Modal */}
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-6xl w-full overflow-hidden border-0 border-none shadow-2xl rounded-2xl p-0 gap-0 bg-slate-50 dark:bg-slate-900 print:hidden flex flex-col max-h-[90vh]">
-          <DialogHeader className="p-4 pb-3 bg-[#942392] shrink-0 z-10 shadow-sm text-white border-none">
-            <DialogTitle className="text-xl font-black tracking-tight text-white uppercase">Staff Profile {selectedEmployee ? `- ${selectedEmployee.name} (${selectedEmployee.branch})` : ""}</DialogTitle>
-          </DialogHeader>
-          
-          <div className="p-4 overflow-y-auto flex-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-            {selectedEmployee ? (
+      {selectedEmployee ? (
               <Tabs defaultValue="basic" className="w-full">
                 <TabsList className="mb-4 flex w-fit mx-auto flex-wrap h-auto gap-1 bg-slate-100 dark:bg-slate-900 p-2 rounded-xl shadow-inner border border-slate-200 dark:border-slate-800">
                   <TabsTrigger value="basic" className="rounded-lg text-xs neumorphic-tab font-semibold">Employee Detail</TabsTrigger>
@@ -2043,9 +2040,56 @@ export function StaffProfileDialog({
                 <p>Loading profile details...</p>
               </div>
             )}
+    </>
+  );
+
+  return (
+    <>
+      {isPage ? (
+        <div className="w-full space-y-4 animate-in fade-in duration-300">
+          {/* Top navigation with left side arrow */}
+          <div className="flex items-center justify-between pb-3 border-b border-border/40">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="group gap-2 px-0 text-[#942392] hover:bg-transparent hover:text-[#5e0080] transition-all duration-200 touch-target cursor-pointer active:scale-95"
+              onClick={() => {
+                if (onBack) onBack();
+                else if (onClose) onClose();
+              }}
+            >
+              <ArrowLeft className="h-4 w-4 transition-transform duration-200 group-hover:-translate-x-1" />
+              <span className="text-xs font-black uppercase tracking-widest">
+                BACK TO EMPLOYEE DIRECTORY
+              </span>
+            </Button>
+            {selectedEmployee && (
+              <div className="flex items-center gap-2">
+                <Badge className="bg-[#942392]/10 text-[#942392] dark:bg-[#942392]/20 dark:text-purple-300 border-none text-[10px] font-black uppercase px-2.5 py-1">
+                  {selectedEmployee.branch}
+                </Badge>
+                <span className="text-xs font-mono font-bold text-muted-foreground">
+                  {selectedEmployee.user_id}
+                </span>
+              </div>
+            )}
           </div>
-        </DialogContent>
-      </Dialog>
+          <div className="w-full">
+            {renderTabsContent()}
+          </div>
+        </div>
+      ) : (
+        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+          <DialogContent className="max-w-6xl w-full overflow-hidden border-0 border-none shadow-2xl rounded-2xl p-0 gap-0 bg-slate-50 dark:bg-slate-900 print:hidden flex flex-col max-h-[90vh]">
+            <DialogHeader className="p-4 pb-3 bg-[#942392] shrink-0 z-10 shadow-sm text-white border-none">
+              <DialogTitle className="text-xl font-black tracking-tight text-white uppercase">Staff Profile {selectedEmployee ? `- ${selectedEmployee.name} (${selectedEmployee.branch})` : ""}</DialogTitle>
+            </DialogHeader>
+            <div className="p-4 overflow-y-auto flex-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+              {renderTabsContent()}
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
       {/* LEAVE FORMS DIALOG */}
       <Dialog open={!!viewLeaveStatus} onOpenChange={(open) => !open && setViewLeaveStatus(null)}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden p-0 border-0 border-none shadow-2xl rounded-2xl flex flex-col">

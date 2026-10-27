@@ -336,7 +336,7 @@ export default function Employees() {
 
   const fetchBranchesAndDepartments = async (companyId?: number) => {
     try {
-      const cId = companyId || activeCompany?.id || 1;
+      const cId = companyId || signupCompanyId || activeCompany?.id || 1;
       const bRes = await fetch(`${API_BASE_URL}/api/branches?company_id=${cId}`);
       const bData = await bRes.json();
       if (bData.success) {
@@ -346,23 +346,39 @@ export default function Employees() {
           newMap[b.code] = toProperCase(b.name);
         });
         setBranchMap(newMap);
+        if (bData.branches && bData.branches.length > 0) {
+          if (!bData.branches.some((b: any) => b.code === signupBranch)) {
+            setSignupBranch(bData.branches[0].code);
+          }
+        }
       }
-      const dRes = await fetch(`${API_BASE_URL}/api/departments`);
+      const dRes = await fetch(`${API_BASE_URL}/api/departments?company_id=${cId}`);
       const dData = await dRes.json();
       if (dData.success) {
         setDepartmentsList(dData.departments || []);
+        if (dData.departments && dData.departments.length > 0) {
+          if (!dData.departments.some((d: any) => (d.name || d.department_name) === signupDepartment)) {
+            setSignupDepartment(dData.departments[0].name || dData.departments[0].department_name || "");
+          }
+        }
       }
     } catch (error) {
       console.error("Error fetching branches/departments:", error);
     }
   };
 
-  const fetchRoles = async () => {
+  const fetchRoles = async (companyId?: number) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/roles`);
+      const cId = companyId || signupCompanyId || activeCompany?.id || 1;
+      const response = await fetch(`${API_BASE_URL}/api/roles?company_id=${cId}`);
       const data = await response.json();
-      if (data.success) {
+      if (data.success && Array.isArray(data.roles)) {
         setAvailableRoles(data.roles);
+        if (data.roles.length > 0) {
+          if (!data.roles.some((r: any) => r.name.toLowerCase() === signupRole.toLowerCase())) {
+            setSignupRole(data.roles[0].name);
+          }
+        }
       }
     } catch (error) {
       console.error("Error fetching roles:", error);
@@ -692,7 +708,7 @@ export default function Employees() {
 
   const handleEmployeeClick = (emp: any) => {
     setSelectedEmployee(emp);
-    setIsModalOpen(true);
+    setSelectedEmployeeDetailId(emp.user_id || emp.id);
   };
 
   
@@ -792,15 +808,15 @@ export default function Employees() {
           email: signupEmail, 
           password: signupPassword,
           branch: signupBranch,
-          department: signupBranch === "HQ" ? signupDepartment : null,
+          department: signupDepartment || null,
           role: chosenRoleName,
           status: 'Active',
+          company_id: signupCompanyId,
           ic_number: signupIc ? formatMyKad(signupIc) : null,
           phone: signupPhone ? formatMalaysianPhone(signupPhone) : null,
           gender: parsedSignupIc.gender || null,
           dob: parsedSignupIc.dob || null,
           join_date: signupJoinDate || null,
-          company_id: signupCompanyId || activeCompany?.id || 1,
         }),
       });
 
@@ -830,6 +846,20 @@ export default function Employees() {
       setIsSubmitting(false);
     }
   };
+
+  if (selectedEmployeeDetailId) {
+    return (
+      <div className="w-full space-y-4 animate-in fade-in duration-300">
+        <StaffProfileDialog
+          employeeId={selectedEmployeeDetailId}
+          isOpen={true}
+          isPage={true}
+          onClose={() => setSelectedEmployeeDetailId(null)}
+          onBack={() => setSelectedEmployeeDetailId(null)}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4 sm:space-y-4 animate-in fade-in duration-500">
@@ -2079,19 +2109,47 @@ export default function Employees() {
         </DialogContent>
       </Dialog>
 
-      {/* Add User Modal */}
+      {/* Add User Modal - 4-Column Desktop Layout */}
       <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
-        <DialogContent className="sm:max-w-xl md:max-w-2xl overflow-hidden p-0 border-0 border-none shadow-2xl rounded-3xl [&>button]:text-white [&>button]:hover:text-white/80 bg-card">
+        <DialogContent className="sm:max-w-4xl md:max-w-5xl lg:max-w-6xl w-full overflow-hidden p-0 border-0 border-none shadow-2xl rounded-3xl [&>button]:text-white [&>button]:hover:text-white/80 bg-card">
           <DialogHeader className="bg-[#942392] p-6 text-white border-b border-white/20 shrink-0 text-left">
             <DialogTitle className="text-white font-black uppercase tracking-tight text-lg m-0">Add New Staff</DialogTitle>
             <DialogDescription className="text-white/80 text-xs font-bold uppercase tracking-wider m-0 mt-1">
-              Create a new user account for an employee. They will be assigned to the selected branch.
+              Create a new user account for an employee with designated company, branch, and role.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSignup} className="p-6 space-y-4 bg-card">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Company Entity Filter */}
+              <div className="space-y-1.5 col-span-1 sm:col-span-2 lg:col-span-2">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-foreground flex items-center gap-1.5">
+                  <Building2 className="w-3.5 h-3.5 text-[#942392]" />
+                  Company Entity <span className="text-rose-500">*</span>
+                </Label>
+                <Select 
+                  value={String(signupCompanyId)} 
+                  onValueChange={(val) => {
+                    const cId = Number(val);
+                    setSignupCompanyId(cId);
+                    fetchBranchesAndDepartments(cId);
+                    fetchRoles(cId);
+                  }}
+                >
+                  <SelectTrigger className="h-11 px-4 rounded-xl border border-input bg-background/50 text-xs font-black shadow-xs text-foreground">
+                    <SelectValue placeholder="Select Company" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl">
+                    {(companies && companies.length > 0 ? companies : [{ id: 1, company_name: "Rayhar Travels" }, { id: 2, company_name: "Ray Rent" }]).map((c: any) => (
+                      <SelectItem key={c.id} value={String(c.id)} className="text-xs font-black">
+                        {c.company_name} {c.id === 1 ? "(HQ)" : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
               {/* Full Name */}
-              <div className="space-y-1.5 md:col-span-2">
+              <div className="space-y-1.5 col-span-1 sm:col-span-2 lg:col-span-2">
                 <Label htmlFor="signup-name" className="text-[10px] font-black uppercase tracking-widest text-foreground">
                   Full Name <span className="text-rose-500">*</span>
                 </Label>
@@ -2107,13 +2165,10 @@ export default function Employees() {
               </div>
 
               {/* IC Number */}
-              <div className="space-y-1.5 col-span-1">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="signup-ic" className="text-[10px] font-black uppercase tracking-widest text-foreground">
-                    IC Number (MyKad)
-                  </Label>
-                  <span className="text-[9px] font-bold text-muted-foreground uppercase">YYMMDD-SS-####</span>
-                </div>
+              <div className="space-y-1.5 col-span-1 sm:col-span-1 lg:col-span-2">
+                <Label htmlFor="signup-ic" className="text-[10px] font-black uppercase tracking-widest text-foreground">
+                  ID Card (IC) Number
+                </Label>
                 <Input
                   id="signup-ic"
                   type="text"
@@ -2126,13 +2181,10 @@ export default function Employees() {
               </div>
 
               {/* Phone Number */}
-              <div className="space-y-1.5 col-span-1">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="signup-phone" className="text-[10px] font-black uppercase tracking-widest text-foreground">
-                    Phone Number
-                  </Label>
-                  <span className="text-[9px] font-bold text-muted-foreground uppercase">01X-XXXXXXX</span>
-                </div>
+              <div className="space-y-1.5 col-span-1 sm:col-span-1 lg:col-span-2">
+                <Label htmlFor="signup-phone" className="text-[10px] font-black uppercase tracking-widest text-foreground">
+                  Phone Number
+                </Label>
                 <Input
                   id="signup-phone"
                   type="text"
@@ -2146,7 +2198,7 @@ export default function Employees() {
 
               {/* Real-time Dynamic Info Bar from IC */}
               {signupIc && (
-                <div className="md:col-span-2 p-3 bg-purple-50/70 dark:bg-purple-950/30 border border-purple-200/80 dark:border-purple-800/60 rounded-xl flex items-center justify-between flex-wrap gap-2 animate-in fade-in slide-in-from-top-1 text-xs">
+                <div className="col-span-1 sm:col-span-2 lg:col-span-4 p-3 bg-purple-50/70 dark:bg-purple-950/30 border border-purple-200/80 dark:border-purple-800/60 rounded-xl flex items-center justify-between flex-wrap gap-2 animate-in fade-in slide-in-from-top-1 text-xs">
                   <div className="flex items-center gap-1.5">
                     <span className="text-[10px] font-black uppercase tracking-wider text-[#942392]">Date of Birth:</span>
                     <span className="font-bold text-slate-800 dark:text-slate-200">{parsedSignupIc.formattedDob || "Calculating..."}</span>
@@ -2199,7 +2251,7 @@ export default function Employees() {
                 </Popover>
               </div>
 
-              {/* Branch */}
+              {/* Branch Assignment */}
               <div className="space-y-1.5 col-span-1">
                 <Label htmlFor="signup-branch" className="text-[10px] font-black uppercase tracking-widest text-foreground">
                   Branch Assignment
@@ -2215,38 +2267,36 @@ export default function Employees() {
                       </SelectItem>
                     ))}
                     {branchesList.length === 0 && (
-                      <SelectItem value="HQ" disabled className="text-xs">Loading branches...</SelectItem>
+                      <SelectItem value="HQ" disabled className="text-xs">No branches found</SelectItem>
                     )}
                   </SelectContent>
                 </Select>
               </div>
 
-              {/* Department - only shown if HQ */}
-              {signupBranch === "HQ" && (
-                <div className="space-y-1.5 col-span-1 animate-in fade-in slide-in-from-top-2">
-                  <Label htmlFor="signup-department" className="text-[10px] font-black uppercase tracking-widest text-foreground">
-                    Department
-                  </Label>
-                  <Select value={signupDepartment} onValueChange={setSignupDepartment} required>
-                    <SelectTrigger className="h-11 px-4 rounded-xl border border-input bg-background/50 text-xs font-bold shadow-xs">
-                      <SelectValue placeholder="Select Department" />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl">
-                      {(Array.isArray(departmentsList) ? departmentsList : []).map((d) => {
-                        const dName = d.name || d.department_name || d;
-                        return (
-                          <SelectItem key={dName} value={dName} className="text-xs font-bold">
-                            {toProperCase(dName)}
-                          </SelectItem>
-                        );
-                      })}
-                      {departmentsList.length === 0 && (
-                        <SelectItem value="IT" disabled className="text-xs">Loading departments...</SelectItem>
-                      )}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
+              {/* Department */}
+              <div className="space-y-1.5 col-span-1">
+                <Label htmlFor="signup-department" className="text-[10px] font-black uppercase tracking-widest text-foreground">
+                  Department
+                </Label>
+                <Select value={signupDepartment} onValueChange={setSignupDepartment}>
+                  <SelectTrigger className="h-11 px-4 rounded-xl border border-input bg-background/50 text-xs font-bold shadow-xs">
+                    <SelectValue placeholder="Select Department" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl">
+                    {(Array.isArray(departmentsList) ? departmentsList : []).map((d) => {
+                      const dName = d.name || d.department_name || d;
+                      return (
+                        <SelectItem key={dName} value={dName} className="text-xs font-bold">
+                          {toProperCase(dName)}
+                        </SelectItem>
+                      );
+                    })}
+                    {departmentsList.length === 0 && (
+                      <SelectItem value="Operations" className="text-xs font-bold">Operations</SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
 
               {/* Role */}
               <div className="space-y-1.5 col-span-1">
@@ -2259,39 +2309,23 @@ export default function Employees() {
                   </SelectTrigger>
                   <SelectContent className="rounded-xl max-h-64">
                     <SelectGroup>
-                      <SelectLabel className="text-xs font-bold text-slate-500 uppercase tracking-wider">System Roles</SelectLabel>
+                      <SelectLabel className="text-xs font-bold text-slate-500 uppercase tracking-wider">Available Roles</SelectLabel>
                       {(Array.isArray(availableRoles) ? availableRoles : [])
-                        .filter((r) => r.is_system_role && r.status === 'Active')
+                        .filter((r) => r.status === 'Active')
                         .map((r) => (
                           <SelectItem key={r.id} value={r.name} className="text-xs font-bold">
                             {r.name}
                           </SelectItem>
                         ))}
-                    </SelectGroup>
-                    <SelectSeparator />
-                    <SelectGroup>
-                      <SelectLabel className="text-xs font-bold text-slate-500 uppercase tracking-wider">Custom Roles</SelectLabel>
-                      {(Array.isArray(availableRoles) ? availableRoles : [])
-                        .filter((r) => !r.is_system_role && r.status === 'Active')
-                        .map((r) => (
-                          <SelectItem key={r.id} value={r.name} className="text-xs font-bold">
-                            {r.name}
-                          </SelectItem>
-                        ))}
-                      {(Array.isArray(availableRoles) ? availableRoles : []).filter((r) => !r.is_system_role && r.status === 'Active').length === 0 && (
-                        <SelectItem value="__no_custom__" disabled className="text-xs text-muted-foreground italic">
-                          No custom roles created yet
-                        </SelectItem>
-                      )}
                     </SelectGroup>
                   </SelectContent>
                 </Select>
               </div>
 
               {/* Email Address */}
-              <div className="space-y-1.5 col-span-1">
+              <div className="space-y-1.5 col-span-1 sm:col-span-2 lg:col-span-2">
                 <Label htmlFor="signup-email" className="text-[10px] font-black uppercase tracking-widest text-foreground">
-                  Email Address <span className="text-rose-500">*</span>
+                  Official Email Address <span className="text-rose-500">*</span>
                 </Label>
                 <Input
                   id="signup-email"
@@ -2305,9 +2339,9 @@ export default function Employees() {
               </div>
 
               {/* Password */}
-              <div className="space-y-1.5 col-span-1">
+              <div className="space-y-1.5 col-span-1 sm:col-span-2 lg:col-span-2">
                 <Label htmlFor="signup-password" className="text-[10px] font-black uppercase tracking-widest text-foreground">
-                  Password <span className="text-rose-500">*</span>
+                  Initial Password <span className="text-rose-500">*</span>
                 </Label>
                 <div className="relative">
                   <Input
