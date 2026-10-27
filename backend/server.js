@@ -5741,7 +5741,26 @@ app.post("/api/employees/:userId/today-attendance", async (req, res) => {
   const location = safeString(req.body?.location);
 
   try {
-    const todayDateStr = req.body?.date || new Date().toISOString().split('T')[0];
+    const klNow = new Date(Date.now() + 8 * 60 * 60 * 1000);
+    let todayDateStr = req.body?.date || klNow.toISOString().split('T')[0];
+
+    let existingHasClockIn = false;
+    if (attendance_id) {
+      const [attDateRows] = await pool.query(
+        `SELECT TO_CHAR(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'YYYY-MM-DD') AS kl_date,
+                clock_in IS NOT NULL AS has_clock_in
+         FROM attendances
+         WHERE attendance_id = ? AND LOWER(user_id) = LOWER(?)
+         LIMIT 1`,
+        [attendance_id, userId]
+      );
+      if (attDateRows.length > 0) {
+        if (attDateRows[0].kl_date) {
+          todayDateStr = attDateRows[0].kl_date;
+        }
+        existingHasClockIn = Boolean(attDateRows[0].has_clock_in);
+      }
+    }
 
     const formatTimestamp = (val) => {
       if (!val) return null;
@@ -5779,7 +5798,7 @@ app.post("/api/employees/:userId/today-attendance", async (req, res) => {
       return `${datePart}T${hhStr}:${mmStr}:${ssStr}+08:00`;
     };
 
-    const finalClockIn = formatTimestamp(clock_in);
+    const finalClockIn = existingHasClockIn ? null : formatTimestamp(clock_in);
     const finalClockOut = formatTimestamp(clock_out);
 
     const [bRows] = await pool.query(
@@ -5796,8 +5815,8 @@ app.post("/api/employees/:userId/today-attendance", async (req, res) => {
     if (attendance_id) {
       await pool.query(
         `UPDATE attendances
-         SET clock_out = COALESCE(NULLIF(?::timestamp, NULL), clock_out),
-             clock_in = COALESCE(NULLIF(?::timestamp, NULL), clock_in),
+         SET clock_out = COALESCE(NULLIF(?::timestamptz, NULL), clock_out),
+             clock_in = COALESCE(NULLIF(?::timestamptz, NULL), clock_in),
              attendance_type = 'Present',
              location = COALESCE(NULLIF(?, ''), location)
          WHERE attendance_id = ? AND LOWER(user_id) = LOWER(?)`,
@@ -5816,8 +5835,8 @@ app.post("/api/employees/:userId/today-attendance", async (req, res) => {
       if (existing.length > 0 && !existing[0].clock_out && finalClockOut) {
         await pool.query(
           `UPDATE attendances
-           SET clock_out = NULLIF(?::timestamp, NULL),
-               clock_in = COALESCE(NULLIF(?::timestamp, NULL), clock_in),
+           SET clock_out = NULLIF(?::timestamptz, NULL),
+               clock_in = COALESCE(NULLIF(?::timestamptz, NULL), clock_in),
                attendance_type = 'Present',
                location = COALESCE(NULLIF(?, ''), location)
            WHERE attendance_id = ?`,
@@ -5826,7 +5845,7 @@ app.post("/api/employees/:userId/today-attendance", async (req, res) => {
       } else {
         await pool.query(
           `INSERT INTO attendances (user_id, clock_in, clock_out, attendance_type, location, date, clock_in_latitude, clock_in_longitude)
-           VALUES (?, COALESCE(NULLIF(?::timestamp, NULL), CURRENT_TIMESTAMP), NULLIF(?::timestamp, NULL), 'Present', ?, ?::date, ?, ?)`,
+           VALUES (?, COALESCE(NULLIF(?::timestamptz, NULL), CURRENT_TIMESTAMP), NULLIF(?::timestamptz, NULL), 'Present', ?, ?::date, ?, ?)`,
           [userId, finalClockIn || null, finalClockOut || null, bName || "HQ", todayDateStr, bLat, bLng]
         );
       }
@@ -9602,7 +9621,7 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
               TO_CHAR(a.clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_out
        FROM attendances a
        JOIN profiles p ON p.user_id = a.user_id
-       WHERE DATE(a.clock_in) = ?::date ${profileFilter}`,
+       WHERE (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::date = ?::date ${profileFilter}`,
       [queryDate, ...queryParams]
     );
 

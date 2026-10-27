@@ -465,19 +465,37 @@ export function StaffProfileDialog({
     if (!selectedEmployee?.user_id) return;
     setIsUpdatingTodayAttendance(true);
     try {
-      const todayDateStr = new Date().toISOString().split('T')[0];
-      const clockInVal = editClockIn ? (editClockIn.includes('T') ? editClockIn : `${todayDateStr}T${editClockIn}:00`) : null;
-      const clockOutVal = editClockOut ? (editClockOut.includes('T') ? editClockOut : `${todayDateStr}T${editClockOut}:00`) : null;
+      const currentSess = attendanceSessions[currentSessionIdx];
+      let sessionDateStr = new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString().split('T')[0];
+      if (currentSess?.clock_in) {
+        const parsedIn = new Date(currentSess.clock_in);
+        if (!isNaN(parsedIn.getTime())) {
+          sessionDateStr = new Date(parsedIn.getTime() + 8 * 60 * 60 * 1000).toISOString().split('T')[0];
+        }
+      }
+      const clockInVal = currentSess?.has_recorded_clock_in
+        ? null
+        : editClockIn
+        ? editClockIn.includes('T')
+          ? editClockIn
+          : `${sessionDateStr}T${editClockIn}:00+08:00`
+        : null;
+      const clockOutVal = editClockOut
+        ? editClockOut.includes('T')
+          ? editClockOut
+          : `${sessionDateStr}T${editClockOut}:00+08:00`
+        : null;
 
       const res = await fetch(`${API_BASE_URL}/api/employees/${selectedEmployee.user_id}/today-attendance`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          date: sessionDateStr,
           clock_in: clockInVal,
           clock_out: clockOutVal,
-          attendance_id: attendanceSessions[currentSessionIdx]?.attendance_id || null,
+          attendance_id: currentSess?.attendance_id || null,
           attendance_type: "Present",
-          location: attendanceSessions[currentSessionIdx]?.location || "HQ",
+          location: currentSess?.location || "HQ",
         }),
       });
       const data = await res.json();
