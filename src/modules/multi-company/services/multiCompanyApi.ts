@@ -282,6 +282,24 @@ export const multiCompanyApi = {
     return data.success ? data.user_companies : [];
   },
 
+  async assignCompany(payload: {
+    user_id: string;
+    company_id: number;
+    role_id?: string;
+    branch_id?: string;
+    department_id?: string;
+    status?: 'active' | 'inactive';
+    is_default?: boolean;
+  }): Promise<void> {
+    const res = await fetch(`${API_BASE_URL}/api/employees/assign-company`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.error || 'Failed to update workspace assignment');
+  },
+
   async transferEmployee(payload: { employee_id: string; new_company_id: number; new_role_id?: string; new_branch_id?: string; new_department_id?: string; reason?: string }): Promise<void> {
     const res = await fetch(`${API_BASE_URL}/api/employees/transfer-company`, {
       method: 'POST',

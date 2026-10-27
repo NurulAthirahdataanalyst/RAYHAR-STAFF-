@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { useCompany } from '../../../contexts/CompanyContext';
 import { multiCompanyApi } from '../../../services/multiCompanyApi';
 import { CompanyBranch } from '../../../types/multiCompany.types';
+import { toProperCase, formatBranchDisplayName } from '@/utils/branchUtils';
 import Map, { Marker as MapMarker, NavigationControl, useMap as useMapLibre } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
@@ -114,8 +115,19 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
   const [emergencyRadius, setEmergencyRadius] = useState<number>(500);
 
   useEffect(() => {
-    if (activeCompany) setSelectedCompanyId(activeCompany.id);
-  }, [activeCompany]);
+    if (activeCompany?.id) setSelectedCompanyId(activeCompany.id);
+  }, [activeCompany?.id]);
+
+  useEffect(() => {
+    const handler = (e: any) => {
+      if (e.detail?.company?.id) {
+        setSelectedCompanyId(e.detail.company.id);
+        void fetchBranches(e.detail.company.id);
+      }
+    };
+    window.addEventListener('rayhar_company_switched', handler);
+    return () => window.removeEventListener('rayhar_company_switched', handler);
+  }, []);
 
   const fetchBranches = async (cId: number) => {
     try {
@@ -200,7 +212,7 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
       setSaving(true);
       const payload: Partial<CompanyBranch> = {
         code: branchCode.trim().toUpperCase(),
-        name: branchName.trim(),
+        name: toProperCase(branchName.trim()),
         location: locationDistrict.trim(),
         operating_zone: operatingZone,
         latitude: parseFloat(latitude),
@@ -275,16 +287,22 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
             value={selectedCompanyId ? selectedCompanyId.toString() : "1"} 
             onValueChange={(val) => setSelectedCompanyId(parseInt(val, 10))}
           >
-            <SelectTrigger className="w-72 min-w-[260px] text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium data-[placeholder]:font-normal text-black dark:text-white shadow-xs">
+            <SelectTrigger className="w-72 min-w-[260px] text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white shadow-xs">
               <SelectValue placeholder="Select company...">
-                {companies.find(c => c.id === selectedCompanyId)?.company_name ? `${companies.find(c => c.id === selectedCompanyId)?.company_name} (${companies.find(c => c.id === selectedCompanyId)?.company_type === 'main' ? 'Main Company' : 'Subsidiary'})` : 'Rayhar Travels (Main Company)'}
+                {(() => {
+                  const found = companies.find(c => c.id === selectedCompanyId);
+                  if (!found) return 'Rayhar Travels (Main Company)';
+                  const cName = toProperCase(found.company_name);
+                  const cType = found.company_type === 'main' ? 'Main Company' : 'Subsidiary';
+                  return `${cName} (${cType})`;
+                })()}
               </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {companies.length > 0 ? (
                 companies.map(c => (
                   <SelectItem key={c.id} value={c.id.toString()} className="text-xs font-bold">
-                    {c.company_name} ({c.company_type === 'main' ? 'Main Company' : 'Subsidiary'})
+                    {toProperCase(c.company_name)} ({c.company_type === 'main' ? 'Main Company' : 'Subsidiary'})
                   </SelectItem>
                 ))
               ) : (
@@ -342,7 +360,7 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
                       </span>
                     </td>
                     <td className="px-4 py-3.5 text-sm font-bold text-black dark:text-white">
-                      {b.name || b.branch}
+                      {formatBranchDisplayName(b) || toProperCase(b.name || b.branch)}
                     </td>
                     <td className="px-4 py-3.5 text-xs text-muted-foreground">
                       {b.location || '—'}

@@ -1,5 +1,7 @@
 import { sanitizeUrl, safeFileUrl, downloadUploadedFile, getMcAttachmentUrl, preloadImage, isPdfUrl } from '@/utils/security';
-import { formatBranchName } from '@/utils/branchUtils';
+import { formatBranchName, toProperCase } from '@/utils/branchUtils';
+import { useCompany } from '@/modules/multi-company/contexts/CompanyContext';
+import { multiCompanyApi } from '@/modules/multi-company/services/multiCompanyApi';
 import { useNavigate } from "react-router-dom";
 import { MonthPicker } from '@/components/shared/MonthPicker';
 import { TableScrollTopButton } from '@/components/shared/TableScrollTopButton';
@@ -17,6 +19,7 @@ import {
   FileText, 
   Users,
   Briefcase,
+  Building2,
   X,
   PhoneCall,
   Download,
@@ -76,11 +79,7 @@ const BRANCH_NAMES: Record<string, string> = {
   SEP: "Sepang",
 };
 
-// Convert any string to Proper Case (title case), e.g. "SEPANG" -> "Sepang"
-function toProperCase(str: string): string {
-  if (!str) return str;
-  return str.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
-}
+// Using toProperCase from @/utils/branchUtils
 
 function getDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
   const R = 6371e3;
@@ -96,7 +95,13 @@ function getDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
 export default function Employees() {
   const navigate = useNavigate();
 
+  const { activeCompany, companies } = useCompany();
   const { role, userBranch, userDepartment, canEdit } = useRole();
+  const [workspaceModalOpen, setWorkspaceModalOpen] = useState(false);
+  const [workspaceEmployee, setWorkspaceEmployee] = useState<any>(null);
+  const [userCompanyAssignments, setUserCompanyAssignments] = useState<any[]>([]);
+  const [loadingWorkspaceModal, setLoadingWorkspaceModal] = useState(false);
+  const [savingWorkspaceAccess, setSavingWorkspaceAccess] = useState(false);
   const canEditEmployees = canEdit("employee.directory") || role === "hr_admin" || role === "admin";
   const printRef = useRef<HTMLDivElement>(null);
   
@@ -308,6 +313,8 @@ export default function Employees() {
   const [signupPassword, setSignupPassword] = useState("");
   const [signupIc, setSignupIc] = useState("");
   const [signupPhone, setSignupPhone] = useState("");
+  const [selectedEmployeeDetailId, setSelectedEmployeeDetailId] = useState<string | null>(null);
+  const [signupCompanyId, setSignupCompanyId] = useState<number>(1);
   const [signupJoinDate, setSignupJoinDate] = useState<string>(() => new Date().toISOString().split("T")[0]);
   const parsedSignupIc = useMemo(() => parseMyKad(signupIc), [signupIc]);
   const [showPassword, setShowPassword] = useState(false);
@@ -325,25 +332,25 @@ export default function Employees() {
 
   useEffect(() => {
     fetchRoles();
-    fetchBranchesAndDepartments();
   }, []);
 
-  const fetchBranchesAndDepartments = async () => {
+  const fetchBranchesAndDepartments = async (companyId?: number) => {
     try {
-      const bRes = await fetch(`${API_BASE_URL}/api/branches`);
+      const cId = companyId || activeCompany?.id || 1;
+      const bRes = await fetch(`${API_BASE_URL}/api/branches?company_id=${cId}`);
       const bData = await bRes.json();
       if (bData.success) {
-        setBranchesList(bData.branches);
-        const newMap = { ...BRANCH_NAMES };
-        bData.branches.forEach((b: any) => {
-          newMap[b.code] = b.name;
+        setBranchesList(bData.branches || []);
+        const newMap: Record<string, string> = { ...BRANCH_NAMES };
+        (bData.branches || []).forEach((b: any) => {
+          newMap[b.code] = toProperCase(b.name);
         });
         setBranchMap(newMap);
       }
       const dRes = await fetch(`${API_BASE_URL}/api/departments`);
       const dData = await dRes.json();
       if (dData.success) {
-        setDepartmentsList(dData.departments);
+        setDepartmentsList(dData.departments || []);
       }
     } catch (error) {
       console.error("Error fetching branches/departments:", error);
@@ -363,16 +370,75 @@ export default function Employees() {
   };
 
   useEffect(() => {
-    fetchEmployees();
-  }, [role, userBranch, userDepartment]);
+    const cId = activeCompany?.id || 1;
+    void fetchEmployees(cId);
+    void fetchBranchesAndDepartments(cId);
+  }, [activeCompany?.id, role, userBranch, userDepartment]);
 
-  const fetchEmployees = async () => {
+  useEffect(() => {
+    const handler = (e: any) => {
+      if (e.detail?.company?.id) {
+        void fetchEmployees(e.detail.company.id);
+        void fetchBranchesAndDepartments(e.detail.company.id);
+      }
+    };
+    window.addEventListener('rayhar_company_switched', handler);
+    return () => window.removeEventListener('rayhar_company_switched', handler);
+  }, []);
+
+  const handleOpenWorkspaceModal = async (emp: any) => {
+    const uid = emp.user_id || emp.id;
+    setWorkspaceEmployee(emp);
+    setWorkspaceModalOpen(true);
+    setLoadingWorkspaceModal(true);
+    try {
+      const userComps = await multiCompanyApi.getUserCompanies(uid);
+      setUserCompanyAssignments(userComps || []);
+    } catch (e) {
+      console.error('Failed to load user companies:', e);
+      setUserCompanyAssignments([]);
+    } finally {
+      setLoadingWorkspaceModal(false);
+    }
+  };
+
+  const handleToggleCompanyAccess = async (companyId: number, currentActive: boolean) => {
+    if (!workspaceEmployee) return;
+    const uid = workspaceEmployee.user_id || workspaceEmployee.id;
+    try {
+      setSavingWorkspaceAccess(true);
+      await multiCompanyApi.assignCompany({
+        user_id: uid,
+        company_id: companyId,
+        status: currentActive ? 'inactive' : 'active'
+      });
+      const updated = await multiCompanyApi.getUserCompanies(uid);
+      setUserCompanyAssignments(updated || []);
+      toast({
+        title: "Workspace Access Updated",
+        description: `Successfully updated access for ${companies.find(c => c.id === companyId)?.company_name}`
+      });
+      void fetchEmployees(activeCompany?.id || 1);
+    } catch (e: any) {
+      toast({
+        title: "Error",
+        description: e.message || "Failed to update workspace assignment",
+        variant: "destructive"
+      });
+    } finally {
+      setSavingWorkspaceAccess(false);
+    }
+  };
+
+  const fetchEmployees = async (companyId?: number) => {
     setLoading(true);
     try {
+      const cId = companyId || activeCompany?.id || 1;
       const params = new URLSearchParams({
         role,
         branch: userBranch || "",
         department: userDepartment || "",
+        company_id: cId.toString()
       });
 
       const [empRes, assignRes] = await Promise.all([
@@ -734,6 +800,7 @@ export default function Employees() {
           gender: parsedSignupIc.gender || null,
           dob: parsedSignupIc.dob || null,
           join_date: signupJoinDate || null,
+          company_id: signupCompanyId || activeCompany?.id || 1,
         }),
       });
 
@@ -1063,11 +1130,20 @@ export default function Employees() {
                           </TableCell>
                           <TableCell className="py-4 px-6 text-xs print:text-[11px] font-bold text-foreground">
                             <div className="flex flex-col gap-1 items-start">
-                              <span>{emp.branch}</span>
+                              <span>{toProperCase(branchMap[emp.branch] || emp.branch)}</span>
                               {emp.tempBranch && (
                                 <Badge variant="outline" className="text-[9px] print:text-[13px] bg-[#a01497]/10 text-[#a01497] border-[#a01497]/20 whitespace-nowrap">
-                                  Temp: {emp.tempBranch}
+                                  Temp: {toProperCase(branchMap[emp.tempBranch] || emp.tempBranch)}
                                 </Badge>
+                              )}
+                              {emp.assigned_companies && emp.assigned_companies.length > 1 && (
+                                <div className="flex flex-wrap gap-1 mt-0.5">
+                                  {emp.assigned_companies.map((c: any) => (
+                                    <Badge key={c.company_id} variant="outline" className="text-[8px] font-extrabold px-1.5 py-0 h-4 bg-purple-50 text-[#942392] border-purple-200 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-800">
+                                      {c.company_name}
+                                    </Badge>
+                                  ))}
+                                </div>
                               )}
                             </div>
                           </TableCell>
@@ -1085,6 +1161,17 @@ export default function Employees() {
                                 >
                                   {emp.status === "Active" ? "Inactive" : "Re-activate"}
                                 </Button>
+                                )}
+                                {canEditEmployees && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    title="Manage Workspace Access (Dual / Multi-Company)"
+                                    onClick={(e) => { e.stopPropagation(); handleOpenWorkspaceModal(emp); }}
+                                    className="h-7 w-7 p-0 text-[#942392] hover:bg-[#942392]/10 rounded-md"
+                                  >
+                                    <Building2 className="w-4 h-4" />
+                                  </Button>
                                 )}
                                 {canEditEmployees && emp.status !== "Deleted" && (
                                   <Button
@@ -1371,6 +1458,84 @@ export default function Employees() {
           </div>
         </div>
       )}
+
+      {/* Manage Workspace Access Dialog (Assign staff to 1 or both workspaces) */}
+      <Dialog open={workspaceModalOpen} onOpenChange={setWorkspaceModalOpen}>
+        <DialogContent className="max-w-md p-0 overflow-hidden rounded-2xl border-none shadow-2xl">
+          <DialogHeader className="bg-[#942392] p-5 text-white">
+            <DialogTitle className="text-base font-black uppercase tracking-tight text-white flex items-center gap-2">
+              <Building2 className="w-5 h-5" />
+              <span>Workspace Access Assignment</span>
+            </DialogTitle>
+            <DialogDescription className="text-xs text-white/80 font-medium">
+              Assign {workspaceEmployee?.name} to one or both company workspaces.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="p-5 space-y-4">
+            <div className="p-3 rounded-xl bg-purple-50/60 dark:bg-purple-950/20 border border-purple-200/60 dark:border-purple-800/40 text-xs">
+              <p className="font-bold text-[#942392] mb-1">Dual Workspace Access</p>
+              <p className="text-muted-foreground text-[11px] leading-relaxed">
+                If checked, this staff member will appear in both workspaces and can access operations across entities.
+              </p>
+            </div>
+
+            {loadingWorkspaceModal ? (
+              <div className="py-8 flex justify-center">
+                <Loader2 className="w-6 h-6 animate-spin text-[#942392]" />
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {companies.map((c) => {
+                  const assignment = userCompanyAssignments.find(a => a.company_id === c.id);
+                  const isAssigned = Boolean(assignment && assignment.status === 'active');
+                  return (
+                    <div
+                      key={c.id}
+                      className="flex items-center justify-between p-3.5 rounded-xl border border-border/70 hover:border-[#942392]/50 bg-background transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-lg bg-[#942392]/10 text-[#942392] font-black flex items-center justify-center text-xs">
+                          {c.company_name.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="text-xs font-black text-foreground">{c.company_name}</p>
+                          <p className="text-[10px] text-muted-foreground font-medium">
+                            {c.company_type === 'main' ? 'Main Company' : 'Subsidiary Entity'}
+                          </p>
+                        </div>
+                      </div>
+
+                      <Button
+                        size="sm"
+                        disabled={savingWorkspaceAccess}
+                        variant={isAssigned ? "default" : "outline"}
+                        onClick={() => handleToggleCompanyAccess(c.id, isAssigned)}
+                        className={isAssigned 
+                          ? "bg-[#942392] hover:bg-[#7b1d7a] text-white font-bold text-xs h-8 px-3 rounded-xl"
+                          : "font-bold text-xs h-8 px-3 rounded-xl border-dashed"
+                        }
+                      >
+                        {isAssigned ? "Assigned (Active)" : "+ Assign Access"}
+                      </Button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="p-4 border-t border-border/50 bg-muted/20">
+            <Button
+              variant="outline"
+              onClick={() => setWorkspaceModalOpen(false)}
+              className="w-full rounded-xl font-bold text-xs h-9"
+            >
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Employee Details */}
       <StaffProfileDialog 

@@ -52,6 +52,7 @@ export const PERMISSION_MODULES: Record<string, PermissionDefinition[]> = {
     { key: 'outstation.calendar', label: 'Outstation Calendar', module: 'Outstation', description: 'Company-wide outstation movement schedule' }
   ],
   'Analytics': [
+    { key: 'analytics.employee', label: 'Performance Insights', module: 'Analytics', description: 'Personal attendance, punctuality, and leave insights' },
     { key: 'analytics.attendance', label: 'Attendance Dashboard', module: 'Analytics', description: 'Clock-in trends, punctuality, and tardiness metrics' },
     { key: 'analytics.leave', label: 'Leave Analytics', module: 'Analytics', description: 'Leave utilization and absence trends' },
     { key: 'analytics.workforce', label: 'Workforce Insights', module: 'Analytics', description: 'Staffing metrics, headcount, and turnover overview' },

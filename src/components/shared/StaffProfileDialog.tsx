@@ -1,3 +1,6 @@
+import profileSkyBanner from "@/assets/profile-sky-banner.png";
+import { UserAvatar, getSavedAvatar } from "@/utils/avatarUtils";
+import { AvatarPickerModal } from "@/components/profile/AvatarPickerModal";
 import { sanitizeUrl, safeFileUrl, downloadUploadedFile, getMcAttachmentUrl, preloadImage, isPdfUrl } from '@/utils/security';
 import { formatBranchName } from '@/utils/branchUtils';
 import { MonthPicker } from '@/components/shared/MonthPicker';
@@ -15,12 +18,18 @@ import {
   TrendingUp, 
   Clock,
   CalendarDays,
-  Edit, 
+  Edit,
+  Save, 
   FileText, 
   Users,
   Briefcase,
   X,
   PhoneCall,
+  Sparkles,
+  Plus,
+  User,
+  Mail,
+  ShieldCheck,
   Download,
   Printer,
     RefreshCw,
@@ -166,6 +175,7 @@ export function StaffProfileDialog({
   onClose: () => void; 
 }) {
   const { role, userBranch, userDepartment } = useRole();
+  const isHrOrAdmin = role === "hr_admin" || role === "admin" || (typeof role === "string" && role.toLowerCase().includes("hr"));
   const printRef = useRef<HTMLDivElement>(null);
   
   const handlePrint = useReactToPrint({
@@ -196,8 +206,12 @@ export function StaffProfileDialog({
   const [editFullName, setEditFullName] = useState("");
   const [editIcNumber, setEditIcNumber] = useState("");
   const [editPhone, setEditPhone] = useState("");
+  const [editBranch, setEditBranch] = useState("HQ");
+  const [editDepartment, setEditDepartment] = useState("");
+  const [editStatus, setEditStatus] = useState("Active");
   const [editJoinDate, setEditJoinDate] = useState<string>("");
   const [isUpdatingPersonalInfo, setIsUpdatingPersonalInfo] = useState(false);
+  const [avatarModalOpen, setAvatarModalOpen] = useState(false);
   const parsedEditIc = useMemo(() => parseMyKad(editIcNumber), [editIcNumber]);
 
   // Edit Today's Attendance State
@@ -213,6 +227,9 @@ export function StaffProfileDialog({
       setEditFullName(selectedEmployee.name || "");
       setEditIcNumber(selectedEmployee.ic_number ? formatMyKad(selectedEmployee.ic_number) : "");
       setEditPhone(selectedEmployee.phone ? formatMalaysianPhone(selectedEmployee.phone) : "");
+      setEditBranch(selectedEmployee.branch || "HQ");
+      setEditDepartment(selectedEmployee.department || "");
+      setEditStatus(selectedEmployee.status || "Active");
       setEditJoinDate(selectedEmployee.join_date ? new Date(selectedEmployee.join_date).toISOString().split('T')[0] : (selectedEmployee.created_at ? new Date(selectedEmployee.created_at).toISOString().split('T')[0] : ""));
     }
   }, [selectedEmployee]);
@@ -242,6 +259,9 @@ export function StaffProfileDialog({
           gender: parsed.gender || null,
           dob: parsed.dob || null,
           join_date: editJoinDate || null,
+          branch: editBranch || null,
+          department: editDepartment || null,
+          status: editStatus || "Active",
         }),
       });
       const data = await res.json();
@@ -250,11 +270,15 @@ export function StaffProfileDialog({
         setSelectedEmployee((prev: any) => ({
           ...prev,
           name: editFullName,
+          full_name: editFullName,
           ic_number: editIcNumber ? formatMyKad(editIcNumber) : prev.ic_number,
           phone: editPhone ? formatMalaysianPhone(editPhone) : prev.phone,
           gender: parsed.gender || prev.gender,
           dob: parsed.dob || prev.dob,
           join_date: editJoinDate || prev.join_date,
+          branch: editBranch || prev.branch,
+          department: editDepartment || prev.department,
+          status: editStatus || prev.status,
         }));
         setIsEditPersonalModalOpen(false);
       } else {
@@ -875,7 +899,7 @@ export function StaffProfileDialog({
             {selectedEmployee ? (
               <Tabs defaultValue="basic" className="w-full">
                 <TabsList className="mb-4 flex w-fit mx-auto flex-wrap h-auto gap-1 bg-slate-100 dark:bg-slate-900 p-2 rounded-xl shadow-inner border border-slate-200 dark:border-slate-800">
-                  <TabsTrigger value="basic" className="rounded-lg text-xs neumorphic-tab font-semibold">Staff Profile</TabsTrigger>
+                  <TabsTrigger value="basic" className="rounded-lg text-xs neumorphic-tab font-semibold">Employee Detail</TabsTrigger>
                   <TabsTrigger value="attendance_settings" className="rounded-lg text-xs neumorphic-tab font-semibold">Attendance Settings</TabsTrigger>
                   <TabsTrigger value="temporary_assignment" className="rounded-lg text-xs neumorphic-tab font-semibold">Temporary Assignment</TabsTrigger>
                   <TabsTrigger value="multi_location" className="rounded-lg text-xs neumorphic-tab font-semibold">Multi Location Branch</TabsTrigger>
@@ -884,171 +908,327 @@ export function StaffProfileDialog({
                   <TabsTrigger value="analytics" className="rounded-lg text-xs neumorphic-tab font-semibold">Performance Analytics</TabsTrigger>
                 </TabsList>
                 
-                <TabsContent value="basic" className="mt-0">
+                <TabsContent value="basic" className="mt-0 space-y-6">
+                  {(() => {
+                    const parsedEmpMyKad = parseMyKad(selectedEmployee?.ic_number || '');
+                    return (
+                      <div className="flex flex-col lg:flex-row gap-6 items-start">
+                        {/* ================================================== */}
+                        {/* LEFT COLUMN: Profile Summary Card + Today's Attendance (Screenshot 5 & 3) */}
+                        {/* ================================================== */}
+                        <div className="w-full lg:w-1/3 flex flex-col gap-5">
+                          {/* Sky Banner Card (Screenshot 5) */}
+                          <Card className="border-none shadow-xl bg-card rounded-[28px] overflow-hidden">
+                            <div className="relative h-36 sm:h-40 w-full overflow-hidden bg-sky-200 dark:bg-slate-900">
+                              <img
+                                src={profileSkyBanner}
+                                alt="Sky Clouds Banner"
+                                className="absolute inset-0 w-full h-full object-cover object-center pointer-events-none select-none"
+                              />
+                              <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/10 dark:from-black/30 dark:to-black/30 pointer-events-none" />
+                              <button
+                                type="button"
+                                onClick={() => setAvatarModalOpen(true)}
+                                className="absolute top-3.5 right-3.5 w-8 h-8 rounded-full bg-white/90 dark:bg-slate-900/90 text-slate-800 dark:text-slate-100 shadow-md backdrop-blur-md flex items-center justify-center hover:scale-110 active:scale-95 transition-all cursor-pointer border border-white/60 dark:border-slate-700"
+                                title="Change Avatar"
+                              >
+                                <Plus className="w-4 h-4 font-black" />
+                              </button>
+                            </div>
+
+                            {/* Overlapping Avatar Circle */}
+                            <div className="relative px-6 pb-6 pt-0 text-center">
+                              <div className="relative -mt-16 sm:-mt-18 mb-3 flex justify-center">
+                                <div className="relative group p-1.5 rounded-full bg-white dark:bg-slate-800 shadow-xl ring-4 ring-purple-100 dark:ring-purple-900/30">
+                                  <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden border-2 border-white dark:border-slate-700 bg-slate-100 flex items-center justify-center">
+                                    <UserAvatar
+                                      avatarId={getSavedAvatar(selectedEmployee.user_id, selectedEmployee.email)}
+                                      name={selectedEmployee.name}
+                                      className="w-full h-full"
+                                    />
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => setAvatarModalOpen(true)}
+                                    className="absolute bottom-1 right-1 p-2 bg-[#942392] hover:bg-[#800A7A] text-white rounded-full shadow-lg border-2 border-white transition-all transform hover:scale-110 active:scale-95 cursor-pointer"
+                                    title="Change Avatar"
+                                  >
+                                    <Sparkles className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+
+                              <h2 className="text-lg font-black text-slate-900 dark:text-slate-100 uppercase tracking-tight">
+                                {selectedEmployee.name}
+                              </h2>
+                              <div className="mt-1 flex justify-center">
+                                <Badge variant="secondary" className="text-xs uppercase font-bold tracking-wider px-3 py-0.5 bg-purple-50 dark:bg-purple-950/40 text-[#942392] dark:text-purple-300 border border-purple-200 dark:border-purple-800">
+                                  {selectedEmployee.position?.replace(/_/g, ' ') || 'Staff'}
+                                </Badge>
+                              </div>
+                              <p className="text-xs font-semibold text-muted-foreground mt-2">
+                                {selectedEmployee.department ? `${selectedEmployee.department} · ` : ''}{selectedEmployee.branch}
+                              </p>
+
+                              {/* 3 Quick Badges (Screenshot 5) */}
+                              <div className="grid grid-cols-3 gap-2 mt-5 p-2 bg-slate-50 dark:bg-slate-900/60 rounded-2xl border border-slate-100 dark:border-slate-800">
+                                <div className="text-center p-2">
+                                  <span className="text-[10px] font-black uppercase text-foreground dark:text-foreground tracking-wider block">Branch</span>
+                                  <span className="text-xs font-bold text-foreground">{selectedEmployee.branch}</span>
+                                </div>
+                                <div className="text-center p-2 border-x border-slate-200/60 dark:border-slate-800">
+                                  <span className="text-[10px] font-black uppercase text-foreground dark:text-foreground tracking-wider block">User ID</span>
+                                  <span className="text-xs font-mono font-black text-foreground">{selectedEmployee.user_id}</span>
+                                </div>
+                                <div className="text-center p-2">
+                                  <span className="text-[10px] font-black uppercase text-foreground dark:text-foreground tracking-wider block">Status</span>
+                                  <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                    {selectedEmployee.status}
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Change Profile Avatar Button */}
+                              <div className="mt-4">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setAvatarModalOpen(true)}
+                                  className="w-full rounded-xl border-[#942392]/30 text-[#942392] hover:bg-[#942392]/10 font-black text-xs uppercase tracking-wider h-9"
+                                >
+                                  <Sparkles className="w-3.5 h-3.5 mr-1.5" />
+                                  Change Profile Avatar
+                                </Button>
+                              </div>
+                            </div>
+                          </Card>
+
+                          {/* Today's Attendance Snapshot Card (Screenshot 3) */}
+                          <Card className="border-none shadow-xl bg-card rounded-[28px] p-5 space-y-4">
+                            <div className="flex items-center justify-between border-b border-border/60 pb-3">
+                              <div className="flex items-center gap-2.5">
+                                <div className="p-2 bg-purple-50 dark:bg-purple-950/40 text-[#942392] rounded-xl border border-purple-200 dark:border-purple-800">
+                                  <Clock className="w-4 h-4" />
+                                </div>
+                                <div>
+                                  <h3 className="text-xs font-black uppercase tracking-widest text-foreground">Today's Attendance</h3>
+                                  <p className="text-[9px] font-bold text-muted-foreground uppercase">Live real-time punch snapshot</p>
+                                </div>
+                              </div>
+                              {isHrOrAdmin && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => setIsEditTodayAttendanceOpen(true)}
+                                  className="h-8 px-2.5 rounded-xl border-[#942392]/30 text-[#942392] hover:bg-[#942392]/10 font-black text-[10px] uppercase tracking-wider"
+                                  title="Edit Attendance (HR Only)"
+                                >
+                                  <Edit className="w-3.5 h-3.5 mr-1" />
+                                  Edit
+                                </Button>
+                              )}
+                            </div>
+
+                            <div className="space-y-3 text-xs">
+                              <div className="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-slate-900/40 rounded-xl">
+                                <span className="text-[10px] font-black uppercase text-foreground">📍 Clock In</span>
+                                <span className="font-mono font-black text-foreground">
+                                  {(todayStats?.clockInTime && todayStats.clockInTime !== "--:--") ? todayStats.clockInTime : "--"}
+                                </span>
+                              </div>
+                              <div className="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-slate-900/40 rounded-xl">
+                                <span className="text-[10px] font-black uppercase text-foreground">📍 Clock Out</span>
+                                <span className="font-mono font-black text-foreground">
+                                  {(todayStats?.clockOutTime && todayStats.clockOutTime !== "--:--") ? todayStats.clockOutTime : "--"}
+                                </span>
+                              </div>
+                              <div className="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-slate-900/40 rounded-xl">
+                                <span className="text-[10px] font-black uppercase text-foreground">Working Status</span>
+                                <span className="font-bold text-foreground">
+                                  {todayStats?.todayStatus || "Present"}
+                                </span>
+                              </div>
+                              <div className="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-slate-900/40 rounded-xl">
+                                <span className="text-[10px] font-black uppercase text-foreground">Distance</span>
+                                <span className="font-mono font-bold text-foreground">
+                                  {todayStats?.distanceMeters !== undefined && todayStats?.distanceMeters !== null
+                                    ? (Number(todayStats.distanceMeters) >= 1000 ? `${(Number(todayStats.distanceMeters) / 1000).toFixed(2)} km` : `${todayStats.distanceMeters} m`)
+                                    : "4.00 m"}
+                                </span>
+                              </div>
+                              <div className="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-slate-900/40 rounded-xl">
+                                <span className="text-[10px] font-black uppercase text-foreground">Location</span>
+                                <span className="font-bold text-foreground truncate max-w-[150px]">
+                                  {todayStats?.attendanceLocation ? (BRANCH_NAMES[todayStats.attendanceLocation] || todayStats.attendanceLocation) : "Rayhar HQ"}
+                                </span>
+                              </div>
+                              <div className="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-slate-900/40 rounded-xl">
+                                <span className="text-[10px] font-black uppercase text-foreground">Attendance Status</span>
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                  {todayStats?.todayStatus ? todayStats.todayStatus.replace(/\(.*?\)/g, '').trim() : "Present"}
+                                </span>
+                              </div>
+                            </div>
+                          </Card>
+                        </div>
+
+                        {/* ================================================== */}
+                        {/* RIGHT COLUMN: Account & Personal Information (Screenshot 5) */}
+                        {/* ================================================== */}
+                        <div className="w-full lg:w-2/3 flex flex-col gap-5">
+                          <Card className="border-none shadow-xl bg-card rounded-[28px] p-6 space-y-6">
+                            <div className="flex items-center justify-between border-b border-border/60 pb-4">
+                              <div className="flex items-center gap-3">
+                                <div className="p-2.5 bg-purple-50 dark:bg-purple-950/40 text-[#942392] rounded-2xl border border-purple-200 dark:border-purple-800">
+                                  <User className="w-5 h-5" />
+                                </div>
+                                <div>
+                                  <h3 className="text-base font-black uppercase tracking-tight text-foreground">Account & Personal Information</h3>
+                                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Official employment records & identity details</p>
+                                </div>
+                              </div>
+                              {isHrOrAdmin && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => setIsEditPersonalModalOpen(true)}
+                                  className="h-9 px-4 rounded-xl border-[#942392]/30 text-[#942392] hover:bg-[#942392]/10 font-black text-xs uppercase tracking-wider shadow-xs"
+                                  title="Edit Employee Details (HR Only)"
+                                >
+                                  <Edit className="w-3.5 h-3.5 mr-1.5" />
+                                  Edit Information
+                                </Button>
+                              )}
+                            </div>
+
+                            {/* Information Grid (2 Columns on MD) */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div className="p-4 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-start gap-3">
+                                <User className="w-4 h-4 text-[#942392] mt-0.5 shrink-0" />
+                                <div>
+                                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block">Full Name</span>
+                                  <span className="text-xs font-black text-foreground uppercase">{selectedEmployee.name}</span>
+                                </div>
+                              </div>
+
+                              <div className="p-4 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-start gap-3">
+                                <Mail className="w-4 h-4 text-[#942392] mt-0.5 shrink-0" />
+                                <div className="min-w-0">
+                                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block">Email Address</span>
+                                  <span className="text-xs font-bold text-foreground truncate block">{selectedEmployee.email}</span>
+                                </div>
+                              </div>
+
+                              <div className="p-4 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-start gap-3">
+                                <ShieldCheck className="w-4 h-4 text-[#942392] mt-0.5 shrink-0" />
+                                <div>
+                                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block">User ID</span>
+                                  <span className="text-xs font-mono font-black text-foreground">{selectedEmployee.user_id}</span>
+                                </div>
+                              </div>
+
+                              <div className="p-4 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-start gap-3">
+                                <Briefcase className="w-4 h-4 text-[#942392] mt-0.5 shrink-0" />
+                                <div>
+                                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block">Branch</span>
+                                  <span className="text-xs font-bold text-foreground">{selectedEmployee.branch}</span>
+                                </div>
+                              </div>
+
+                              <div className="p-4 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-start gap-3">
+                                <MapPin className="w-4 h-4 text-[#942392] mt-0.5 shrink-0" />
+                                <div>
+                                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block">Department</span>
+                                  <span className="text-xs font-bold text-foreground">{selectedEmployee.department || "—"}</span>
+                                </div>
+                              </div>
+
+                              <div className="p-4 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-start gap-3">
+                                <CalendarCheck className="w-4 h-4 text-[#942392] mt-0.5 shrink-0" />
+                                <div>
+                                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block">Status</span>
+                                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-black uppercase ${selectedEmployee.status === 'Active' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'}`}>
+                                    {selectedEmployee.status}
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div className="p-4 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-start gap-3">
+                                <FileText className="w-4 h-4 text-[#942392] mt-0.5 shrink-0" />
+                                <div>
+                                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block">IC Number (MyKad)</span>
+                                  <span className="text-xs font-mono font-black text-foreground">
+                                    {selectedEmployee.ic_number ? formatMyKad(selectedEmployee.ic_number) : (parsedEmpMyKad.formatted || "—")}
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div className="p-4 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-start gap-3">
+                                <CalendarDays className="w-4 h-4 text-[#942392] mt-0.5 shrink-0" />
+                                <div>
+                                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block">Date of Birth (From IC)</span>
+                                  <span className="text-xs font-bold text-foreground">
+                                    {parsedEmpMyKad.formattedDob || (selectedEmployee.dob ? new Date(selectedEmployee.dob).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }) : "—")}
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div className="p-4 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-start gap-3">
+                                <Clock className="w-4 h-4 text-[#942392] mt-0.5 shrink-0" />
+                                <div>
+                                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block">Age (Dynamic Calculation)</span>
+                                  <span className="text-xs font-black text-[#942392]">
+                                    {parsedEmpMyKad.age !== null ? `${parsedEmpMyKad.age} years old` : "—"}
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div className="p-4 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-start gap-3">
+                                <User className="w-4 h-4 text-[#942392] mt-0.5 shrink-0" />
+                                <div>
+                                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block">Gender (Auto from IC)</span>
+                                  <span className="text-xs font-bold text-foreground">
+                                    {selectedEmployee.gender || parsedEmpMyKad.gender || "—"}
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div className="p-4 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-start gap-3">
+                                <PhoneCall className="w-4 h-4 text-[#942392] mt-0.5 shrink-0" />
+                                <div>
+                                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block">Phone Number</span>
+                                  <span className="text-xs font-mono font-bold text-foreground">
+                                    {selectedEmployee.phone ? formatMalaysianPhone(selectedEmployee.phone) : "—"}
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div className="p-4 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-start gap-3">
+                                <CalendarCheck className="w-4 h-4 text-[#942392] mt-0.5 shrink-0" />
+                                <div>
+                                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block">Date of Join</span>
+                                  <span className="text-xs font-bold text-foreground">
+                                    {selectedEmployee.join_date ? new Date(selectedEmployee.join_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }).toUpperCase() : (selectedEmployee.created_at ? new Date(selectedEmployee.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }).toUpperCase() : "—")}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </Card>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </TabsContent>
+
+                {/* ================================================== */}
+                {/* PERFORMANCE ANALYTICS TAB (Screenshot 2) */}
+                {/* ================================================== */}
+                <TabsContent value="analytics" className="mt-0">
                   <TooltipProvider>
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-                  {/* Left Column: Bio & Info (4 cols) */}
-                  <div className="lg:col-span-4 space-y-4">
-                    <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-800/60 dark:border-slate-700 shadow-sm flex flex-col items-center text-center">
-                      <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#942392] to-indigo-600 flex items-center justify-center text-white text-3xl font-black shadow-md shadow-[#942392]/20 mb-3 border-4 border-white">
-                        {selectedEmployee.name.charAt(0)}
-                      </div>
-                      <h2 className="text-lg font-black text-slate-900 dark:text-slate-100 leading-tight mb-1">{selectedEmployee.name}</h2>
-                      <p className="text-xs font-semibold text-foreground dark:text-foreground mb-3">{selectedEmployee.email}</p>
-                      
-                      <Badge variant="secondary" className="text-[8px] print:text-[13px] uppercase font-bold tracking-wider px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200">
-                        {selectedEmployee.position === "Finance Manager" || selectedEmployee.position === "finance_manager" ? "Operation Manager" : selectedEmployee.position?.replace(/_/g, ' ')}
-                      </Badge>
-                      
-                      <div className="mt-5 w-full flex flex-col gap-2">
-                        <div className="flex justify-between items-center px-3 py-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800">
-                          <span className="text-[10px] print:text-[13px] font-bold text-foreground uppercase tracking-widest">User ID</span>
-                          <span className="text-xs font-black text-slate-700 dark:text-slate-200">{selectedEmployee.user_id}</span>
-                        </div>
-                        <div className="flex justify-between items-center px-3 py-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800">
-                          <span className="text-[10px] print:text-[13px] font-bold text-foreground uppercase tracking-widest">Branch</span>
-                          <span className="text-xs font-black text-slate-700 dark:text-slate-200">{selectedEmployee.branch}</span>
-                        </div>
-                        <div className="flex justify-between items-center px-3 py-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800">
-                          <span className="text-[10px] print:text-[13px] font-bold text-foreground uppercase tracking-widest">Department</span>
-                          <span className="text-xs font-black text-slate-700 dark:text-slate-200 truncate max-w-[120px]">{selectedEmployee.department}</span>
-                        </div>
-                        <div className="flex justify-between items-center px-3 py-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800">
-                          <span className="text-[10px] print:text-[13px] font-bold text-foreground uppercase tracking-widest">Status</span>
-                          <Badge className={`text-white font-black text-[9px] print:text-[13px] uppercase tracking-wider ${selectedEmployee.status === 'Active' ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-rose-500 hover:bg-rose-600'}`}>
-                            {selectedEmployee.status}
-                          </Badge>
-                        </div>
-                        <div className="flex justify-between items-center px-3 py-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800">
-                          <span className="text-[10px] print:text-[13px] font-bold text-foreground uppercase tracking-widest">Date Created</span>
-                          <span className="text-xs font-black text-slate-700 dark:text-slate-200">
-                            {selectedEmployee.created_at ? new Date(selectedEmployee.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase() : "N/A"}
-                          </span>
-                        </div>
-                        {(selectedEmployee.status === 'Deleted' || selectedEmployee.status === 'Inactive') && (
-                          <div className="flex justify-between items-center px-3 py-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800">
-                            <span className="text-[10px] print:text-[13px] font-bold text-rose-500 uppercase tracking-widest">Date Deleted</span>
-                            <span className="text-xs font-black text-rose-600">
-                              {selectedEmployee.updated_at ? new Date(selectedEmployee.updated_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase() : "N/A"}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Today's Attendance Card */}
-                    <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-800/60 dark:border-slate-700 shadow-sm flex flex-col gap-3">
-                      <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-700 pb-2">
-                        <span className="text-[10px] print:text-[13px] font-black tracking-widest uppercase text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
-                          <Clock className="w-3.5 h-3.5 text-[#942392]" />
-                          TODAY'S ATTENDANCE
-                        </span>
-                      </div>
-
-                      <div className="space-y-2 text-xs">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[9px] print:text-[13px] font-semibold text-foreground flex items-center gap-1.5">
-                            📍 Clock In
-                          </span>
-                          <span className="font-bold text-slate-800 dark:text-slate-200">
-                            {todayStats?.todayStatus === "On Leave" || todayStats?.todayStatus === "Absent" || todayStats?.todayStatus === "Rest Day"
-                              ? "--"
-                              : (todayStats?.clockInTime && todayStats.clockInTime !== "--:--")
-                              ? todayStats.clockInTime
-                              : "--"}
-                          </span>
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                          <span className="text-[9px] print:text-[13px] font-semibold text-foreground flex items-center gap-1.5">
-                            📍 Clock Out
-                          </span>
-                          <span className="font-bold text-slate-800 dark:text-slate-200">
-                            {(todayStats?.clockOutTime && todayStats.clockOutTime !== "--:--")
-                              ? todayStats.clockOutTime
-                              : "--"}
-                          </span>
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                          <span className="text-[9px] print:text-[13px] font-semibold text-foreground flex items-center gap-1.5">
-                            📏 Distance
-                          </span>
-                          <span className="font-bold text-slate-800 dark:text-slate-200">
-                            {todayStats?.distanceMeters !== undefined && todayStats?.distanceMeters !== null
-                              ? Number(todayStats.distanceMeters) >= 1000
-                                ? `${(Number(todayStats.distanceMeters) / 1000).toFixed(2)} km`
-                                : `${todayStats.distanceMeters} m`
-                              : "--"}
-                          </span>
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                          <span className="text-[9px] print:text-[13px] font-semibold text-foreground flex items-center gap-1.5">
-                            📌 Location
-                          </span>
-                          <span className="font-bold text-slate-800 dark:text-slate-200 truncate max-w-[140px]" title={
-                            todayStats?.todayStatus === "On Leave"
-                              ? "--"
-                              : todayStats?.isOutstationToday
-                              ? "Outstation"
-                              : todayStats?.activeTemporaryAssignment
-                              ? (BRANCH_NAMES[todayStats.activeTemporaryAssignment.location] || todayStats.activeTemporaryAssignment.location)
-                              : (todayStats?.clockInTime && todayStats.clockInTime !== "--:--")
-                              ? (todayStats?.attendanceLocation ? (BRANCH_NAMES[todayStats.attendanceLocation] || todayStats.attendanceLocation) : "Permanent Branch")
-                              : "--"
-                          }>
-                            {todayStats?.todayStatus === "On Leave"
-                              ? "--"
-                              : todayStats?.isOutstationToday
-                              ? "Outstation"
-                              : todayStats?.activeTemporaryAssignment
-                              ? (BRANCH_NAMES[todayStats.activeTemporaryAssignment.location] || todayStats.activeTemporaryAssignment.location)
-                              : (todayStats?.clockInTime && todayStats.clockInTime !== "--:--")
-                              ? (todayStats?.attendanceLocation ? (BRANCH_NAMES[todayStats.attendanceLocation] || todayStats.attendanceLocation) : "Permanent Branch")
-                              : "--"}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="pt-2 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between flex-wrap gap-1.5">
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-[10px] print:text-[13px] font-bold text-foreground">Status:</span>
-                          <span className="flex items-center gap-1 text-xs print:text-[11px] font-bold text-slate-800 dark:text-slate-200">
-                            <span className={`w-2 h-2 rounded-full ${
-                              todayStats?.todayStatus?.includes("Present") || todayStats?.todayStatus?.includes("Clocked Out") ? "bg-emerald-500" :
-                              todayStats?.todayStatus?.includes("On Leave") ? "bg-purple-500" :
-                              todayStats?.todayStatus?.includes("Outstation") ? "bg-blue-500" :
-                              todayStats?.todayStatus?.includes("Rest Day") ? "bg-slate-400" : "bg-rose-500"
-                            }`} />
-                            {todayStats?.todayStatus ? todayStats.todayStatus.replace(/\(.*?\)/g, '').trim() : "Absent"}
-                          </span>
-                        </div>
-
-                        {/* Dynamic Tag */}
-                        {todayStats?.isOutstationToday ? (
-                          <Badge className="bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 text-xs print:text-[11px] font-bold">
-                            Outstation
-                          </Badge>
-                        ) : todayStats?.activeTemporaryAssignment ? (
-                          <Badge className="bg-purple-100 text-[#942392] border border-purple-200 dark:bg-purple-900/40 dark:text-purple-300 dark:border-purple-800 text-xs print:text-[11px] font-bold">
-                            (TEMPORARY BRANCH)
-                          </Badge>
-                        ) : todayStats?.isMultiLocation ? (
-                          <Badge className="bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-300 text-xs print:text-[11px] font-bold">
-                            Multi Location
-                          </Badge>
-                        ) : todayStats?.todayStatus === "On Leave" && todayStats?.onLeaveType ? (
-                          <Badge className="bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 text-xs print:text-[11px] font-bold">
-                            {todayStats.onLeaveType}
-                          </Badge>
-                        ) : null}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Right Columns: Advanced Analytics (8 cols) */}
-                  <div className="lg:col-span-8 space-y-5">
+                    <div className="bg-white dark:bg-slate-800 p-6 rounded-[28px] border border-slate-200 dark:border-slate-800/80 shadow-xl">
+                      <div className="space-y-6">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-0 gap-3">
                       <div className="flex items-center gap-2">
                         <div className="p-1 bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 rounded">
@@ -1342,9 +1522,9 @@ export function StaffProfileDialog({
                       </div>
                     )}
                   </div>
-                </div>
-              </TooltipProvider>
-            </TabsContent>
+                    </div>
+                  </TooltipProvider>
+                </TabsContent>
 
                 <TabsContent value="attendance_settings" className="mt-0">
                   {loadingSettings ? (
@@ -1368,7 +1548,7 @@ export function StaffProfileDialog({
                             <div className="space-y-3">
                               <div>
                                 <Label className="text-xs print:text-[11px] font-bold text-foreground uppercase">Working Branch</Label>
-                                <Select value={tempAssignment.location} onValueChange={(val) => setTempAssignment({...tempAssignment, location: val})()}>
+                                <Select value={tempAssignment.location} onValueChange={(val) => setTempAssignment({...tempAssignment, location: val})}>
                                   <SelectTrigger>
                                     <SelectValue placeholder="Select Branch" />
                                   </SelectTrigger>
@@ -1398,7 +1578,7 @@ export function StaffProfileDialog({
                               
                               <div>
                                 <Label className="text-xs print:text-[11px] font-bold text-foreground uppercase">Status</Label>
-                                <Select value={tempAssignment.status} onValueChange={(val) => setTempAssignment({...tempAssignment, status: val})()}>
+                                <Select value={tempAssignment.status} onValueChange={(val) => setTempAssignment({...tempAssignment, status: val})}>
                                   <SelectTrigger>
                                     <SelectValue />
                                   </SelectTrigger>
@@ -2133,8 +2313,8 @@ export function StaffProfileDialog({
                             e.preventDefault();
                             e.stopPropagation();
                             try {
-                              const empName = req.employee || req.full_name || staffData?.full_name || "UNKNOWN";
-                              const branchName = req.branch || staffData?.branch || "HQ";
+                              const empName = req.employee || req.full_name || selectedEmployee?.name || "UNKNOWN";
+                              const branchName = req.branch || selectedEmployee?.branch || "HQ";
                               const leaveType = req.type || req.leave_type || "MC";
                               
                               let originalExt = "pdf";
@@ -2525,6 +2705,246 @@ export function StaffProfileDialog({
               </div>
             </>
           )}
+        </DialogContent>
+      </Dialog>
+
+
+      {/* EDIT PERSONAL INFO MODAL (HR ONLY) */}
+      <Dialog open={isEditPersonalModalOpen} onOpenChange={setIsEditPersonalModalOpen}>
+        <DialogContent className="sm:max-w-xl md:max-w-2xl overflow-hidden p-0 border-0 border-none shadow-2xl rounded-3xl [&>button]:text-white [&>button]:hover:text-white/80 bg-card">
+          <DialogHeader className="bg-[#942392] p-6 text-white border-b border-white/20 shrink-0 text-left">
+            <DialogTitle className="text-white font-black uppercase tracking-tight text-lg m-0 flex items-center gap-2">
+              <Edit className="w-5 h-5 text-white" />
+              Edit Employee Details
+            </DialogTitle>
+            <DialogDescription className="text-white/80 text-xs font-bold uppercase tracking-wider m-0 mt-1">
+              Update personal & employment records for {selectedEmployee?.name || "Employee"} ({selectedEmployee?.user_id})
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleSavePersonalInfo} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Full Name */}
+              <div className="space-y-1.5">
+                <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground">Full Name *</Label>
+                <Input
+                  value={editFullName}
+                  onChange={(e) => setEditFullName(e.target.value)}
+                  placeholder="e.g. AHMAD BIN ALI"
+                  required
+                  className="h-10 text-xs font-bold uppercase"
+                />
+              </div>
+
+              {/* IC Number */}
+              <div className="space-y-1.5">
+                <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground">IC Number (MyKad)</Label>
+                <Input
+                  value={editIcNumber}
+                  onChange={(e) => setEditIcNumber(formatMyKad(e.target.value))}
+                  placeholder="YYMMDD-SS-####"
+                  className="h-10 text-xs font-mono font-bold"
+                />
+              </div>
+
+              {/* Dynamic DOB (Auto from IC) */}
+              <div className="space-y-1.5">
+                <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground">Date of Birth (Auto from IC)</Label>
+                <Input
+                  value={parsedEditIc.formattedDob || "Auto calculated from IC"}
+                  readOnly
+                  className="h-10 text-xs bg-slate-50 dark:bg-slate-900/50 font-bold text-muted-foreground cursor-not-allowed"
+                />
+              </div>
+
+              {/* Dynamic Age & Gender (Auto from IC) */}
+              <div className="space-y-1.5 grid grid-cols-2 gap-2">
+                <div>
+                  <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground">Age</Label>
+                  <Input
+                    value={parsedEditIc.age !== null ? `${parsedEditIc.age} yrs` : "—"}
+                    readOnly
+                    className="h-10 text-xs bg-slate-50 dark:bg-slate-900/50 font-bold text-[#942392] cursor-not-allowed"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground">Gender</Label>
+                  <Input
+                    value={parsedEditIc.gender || selectedEmployee?.gender || "—"}
+                    readOnly
+                    className="h-10 text-xs bg-slate-50 dark:bg-slate-900/50 font-bold text-muted-foreground cursor-not-allowed"
+                  />
+                </div>
+              </div>
+
+              {/* Phone Number */}
+              <div className="space-y-1.5">
+                <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground">Phone Number</Label>
+                <Input
+                  value={editPhone}
+                  onChange={(e) => setEditPhone(formatMalaysianPhone(e.target.value))}
+                  placeholder="01X-XXXXXXX"
+                  className="h-10 text-xs font-mono font-bold"
+                />
+              </div>
+
+              {/* Date of Join */}
+              <div className="space-y-1.5">
+                <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground">Date of Join</Label>
+                <Input
+                  type="date"
+                  value={editJoinDate}
+                  onChange={(e) => setEditJoinDate(e.target.value)}
+                  className="h-10 text-xs font-bold"
+                />
+              </div>
+
+              {/* Branch */}
+              <div className="space-y-1.5">
+                <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground">Branch</Label>
+                <Select value={editBranch} onValueChange={setEditBranch}>
+                  <SelectTrigger className="h-10 text-xs font-bold">
+                    <SelectValue placeholder="Select Branch" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(branchMap || BRANCH_NAMES).map(([code, name]) => (
+                      <SelectItem key={code} value={code} className="text-xs font-bold">
+                        {name} ({code})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Department */}
+              <div className="space-y-1.5">
+                <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground">Department</Label>
+                <Input
+                  value={editDepartment}
+                  onChange={(e) => setEditDepartment(e.target.value)}
+                  placeholder="e.g. IT Department, Haji Umrah"
+                  className="h-10 text-xs font-bold"
+                />
+              </div>
+
+              {/* Status */}
+              <div className="space-y-1.5 sm:col-span-2">
+                <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground">Employment Status</Label>
+                <Select value={editStatus} onValueChange={setEditStatus}>
+                  <SelectTrigger className="h-10 text-xs font-bold">
+                    <SelectValue placeholder="Select Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Active" className="text-xs font-bold text-emerald-600">Active</SelectItem>
+                    <SelectItem value="Inactive" className="text-xs font-bold text-rose-600">Inactive</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <DialogFooter className="pt-4 border-t border-border flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsEditPersonalModalOpen(false)}
+                className="rounded-xl text-xs font-bold cursor-pointer"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={isUpdatingPersonalInfo}
+                className="bg-[#942392] hover:bg-[#7a1c78] text-white rounded-xl text-xs font-black uppercase tracking-wider cursor-pointer"
+              >
+                {isUpdatingPersonalInfo ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+                Save Changes
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* EDIT TODAY ATTENDANCE MODAL (HR ONLY) */}
+      <Dialog open={isEditTodayAttendanceOpen} onOpenChange={setIsEditTodayAttendanceOpen}>
+        <DialogContent className="sm:max-w-md overflow-hidden p-0 border-0 border-none shadow-2xl rounded-3xl [&>button]:text-white [&>button]:hover:text-white/80 bg-card">
+          <DialogHeader className="bg-[#942392] p-6 text-white border-b border-white/20 shrink-0 text-left">
+            <DialogTitle className="text-white font-black uppercase tracking-tight text-lg m-0 flex items-center gap-2">
+              <Clock className="w-5 h-5 text-white" />
+              Edit Today's Attendance
+            </DialogTitle>
+            <DialogDescription className="text-white/80 text-xs font-bold uppercase tracking-wider m-0 mt-1">
+              Update live attendance punch for {selectedEmployee?.name || "Employee"}
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleSaveTodayAttendance} className="p-6 space-y-4">
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground">Clock In Time</Label>
+                <Input
+                  type="time"
+                  value={editClockIn}
+                  onChange={(e) => setEditClockIn(e.target.value)}
+                  className="h-10 text-xs font-mono font-bold"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground">Clock Out Time</Label>
+                <Input
+                  type="time"
+                  value={editClockOut}
+                  onChange={(e) => setEditClockOut(e.target.value)}
+                  className="h-10 text-xs font-mono font-bold"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground">Working Status</Label>
+                <Select value={editAttendanceType} onValueChange={setEditAttendanceType}>
+                  <SelectTrigger className="h-10 text-xs font-bold">
+                    <SelectValue placeholder="Select Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Present" className="text-xs font-bold text-emerald-600">Present</SelectItem>
+                    <SelectItem value="Late" className="text-xs font-bold text-amber-600">Late</SelectItem>
+                    <SelectItem value="Absent" className="text-xs font-bold text-rose-600">Absent</SelectItem>
+                    <SelectItem value="Half Day" className="text-xs font-bold text-blue-600">Half Day</SelectItem>
+                    <SelectItem value="On Leave" className="text-xs font-bold text-purple-600">On Leave</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground">Location</Label>
+                <Input
+                  value={editAttendanceLocation}
+                  onChange={(e) => setEditAttendanceLocation(e.target.value)}
+                  placeholder="e.g. Rayhar HQ"
+                  className="h-10 text-xs font-bold"
+                />
+              </div>
+            </div>
+
+            <DialogFooter className="pt-4 border-t border-border flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsEditTodayAttendanceOpen(false)}
+                className="rounded-xl text-xs font-bold cursor-pointer"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={isUpdatingTodayAttendance}
+                className="bg-[#942392] hover:bg-[#7a1c78] text-white rounded-xl text-xs font-black uppercase tracking-wider cursor-pointer"
+              >
+                {isUpdatingTodayAttendance ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+                Save Attendance
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
 

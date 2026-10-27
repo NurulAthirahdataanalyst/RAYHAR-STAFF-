@@ -1298,6 +1298,79 @@ function createMultiCompanyRouter(pgPool) {
     }
   });
 
+  // POST assign / update company workspace access for an employee (Dual / Multi-workspace assignment)
+  router.post('/employees/assign-company', async (req, res) => {
+    try {
+      const {
+        user_id,
+        company_id,
+        role_id,
+        branch_id,
+        department_id,
+        status = 'active',
+        is_default = false
+      } = req.body;
+
+      if (!user_id || !company_id) {
+        return res.status(400).json({ success: false, error: 'User ID and Company ID are required' });
+      }
+
+      const userRes = await pgPool.query('SELECT user_id, full_name, role_id, branch, department FROM profiles WHERE user_id = $1', [user_id]);
+      if (userRes.rows.length === 0) {
+        return res.status(404).json({ success: false, error: 'Employee not found' });
+      }
+      const userObj = userRes.rows[0];
+
+      let targetRoleId = role_id || userObj.role_id;
+      if (!targetRoleId) {
+        const defaultRole = await pgPool.query('SELECT id FROM roles WHERE company_id = $1 ORDER BY id ASC LIMIT 1', [company_id]);
+        targetRoleId = defaultRole.rows[0]?.id || null;
+      }
+
+      // Check if user already has a record for this company
+      const existing = await pgPool.query(
+        'SELECT id FROM company_user_roles WHERE user_id = $1 AND company_id = $2',
+        [user_id, company_id]
+      );
+
+      if (existing.rows.length > 0) {
+        await pgPool.query(`
+          UPDATE company_user_roles
+          SET 
+            role_id = COALESCE($1, role_id),
+            branch_id = COALESCE($2, branch_id),
+            department_id = COALESCE($3, department_id),
+            status = $4,
+            is_default = COALESCE($5, is_default),
+            updated_at = CURRENT_TIMESTAMP
+          WHERE id = $6;
+        `, [targetRoleId, branch_id || null, department_id || null, status, is_default, existing.rows[0].id]);
+      } else {
+        await pgPool.query(`
+          INSERT INTO company_user_roles (user_id, company_id, role_id, branch_id, department_id, status, is_default)
+          VALUES ($1, $2, $3, $4, $5, $6, $7);
+        `, [user_id, company_id, targetRoleId, branch_id || null, department_id || null, status, is_default]);
+      }
+
+      const compRes = await pgPool.query('SELECT company_name FROM companies WHERE id = $1', [company_id]);
+      const compName = compRes.rows[0]?.company_name || `Company #${company_id}`;
+
+      await logAudit(
+        req, 
+        'WORKSPACE_ASSIGNMENT', 
+        `Updated workspace assignment for ${userObj.full_name} (${user_id}) in ${compName} (Status: ${status})`,
+        null, 
+        { company_id, status }, 
+        company_id
+      );
+
+      res.json({ success: true, message: `Successfully updated workspace access for ${compName}` });
+    } catch (err) {
+      console.error('Error assigning company workspace:', err);
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
   // POST transfer employee to another company
   router.post('/employees/transfer-company', async (req, res) => {
     try {

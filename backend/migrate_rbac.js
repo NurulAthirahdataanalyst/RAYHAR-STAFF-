@@ -53,6 +53,7 @@ const PERMISSION_DEFINITIONS = [
   { module: "Outstation", permission_key: "outstation.calendar", display_name: "Outstation Calendar" },
   
   // Analytics
+  { module: "Analytics", permission_key: "analytics.employee", display_name: "Performance Insights" },
   { module: "Analytics", permission_key: "analytics.attendance", display_name: "Attendance Dashboard" },
   { module: "Analytics", permission_key: "analytics.leave", display_name: "Leave Analytics" },
   { module: "Analytics", permission_key: "analytics.workforce", display_name: "Workforce Insights" },

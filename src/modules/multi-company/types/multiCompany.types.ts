@@ -48,7 +48,13 @@ export interface CompanyDepartment {
 }
 
 export type RoleType = 'Management Role' | 'Department Role' | 'Operational Role' | 'Employee Role';
-export type ScopeType = 'Current Company Only' | 'Parent Group Access';
+export type ScopeType = 
+  | 'Own Data Only' 
+  | 'Branch Data Only' 
+  | 'Company Staff Data' 
+  | 'Parent Group Data' 
+  | 'Current Company Only' 
+  | 'Parent Group Access';
 
 export interface CompanyRole {
   id: string; // uuid

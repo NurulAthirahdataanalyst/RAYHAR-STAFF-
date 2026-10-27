@@ -572,7 +572,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
           { title: "My Leave Requests", icon: FileText, path: "/leave/forms", permission: "leave.my_requests" },
         ],
       },
-      { title: "Analytics", icon: BarChart3, path: "/analytics", permission: "analytics.attendance" },
+      { title: "Analytics", icon: BarChart3, path: "/analytics", permission: "analytics.employee" },
 
       { title: "ADMINISTRATION", isSection: true },
       {

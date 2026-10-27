@@ -651,6 +651,8 @@ app.get("/api/roles", async (req, res) => {
         r.description,
         COALESCE(r.is_system_role, FALSE) AS is_system_role,
         COALESCE(r.status, 'Active') AS status,
+        r.scope_type,
+        r.company_id,
         r.created_at,
         r.updated_at,
         COUNT(DISTINCT p.user_id)::int AS total_users,
@@ -681,7 +683,7 @@ app.get("/api/roles", async (req, res) => {
       LEFT JOIN profiles p ON p.role_id = r.id OR LOWER(p.role) = LOWER(r.name) OR LOWER(REPLACE(p.role, '_', ' ')) = LOWER(r.name)
       LEFT JOIN role_permissions rp ON rp.role_id = r.id
       LEFT JOIN permissions perm ON perm.id = rp.permission_id
-      GROUP BY r.id, r.name, r.description, r.is_system_role, r.status, r.created_at, r.updated_at
+      GROUP BY r.id, r.name, r.description, r.is_system_role, r.status, r.scope_type, r.company_id, r.created_at, r.updated_at
       ORDER BY r.is_system_role DESC, r.created_at ASC, r.name ASC
     `);
 
@@ -752,6 +754,8 @@ app.post("/api/roles", async (req, res) => {
   const name = safeString(req.body?.name);
   const description = safeString(req.body?.description);
   const status = safeString(req.body?.status) || "Active";
+  const scope_type = safeString(req.body?.scope_type) || "Own Data Only";
+  const company_id = req.body?.company_id || 1;
   const permissions = Array.isArray(req.body?.permissions) ? req.body.permissions : [];
 
   if (!name) {
@@ -774,10 +778,10 @@ app.post("/api/roles", async (req, res) => {
 
     // Insert custom role
     const insertRoleRes = await client.query(
-      `INSERT INTO roles (name, description, is_system_role, status, created_at, updated_at)
-       VALUES ($1, $2, FALSE, $3, NOW(), NOW())
+      `INSERT INTO roles (name, description, is_system_role, status, scope_type, company_id, created_at, updated_at)
+       VALUES ($1, $2, FALSE, $3, $4, $5, NOW(), NOW())
        RETURNING *`,
-      [name, description || null, status]
+      [name, description || null, status, scope_type, company_id]
     );
     const newRole = insertRoleRes.rows[0];
 
@@ -837,6 +841,7 @@ app.put("/api/roles/:id", async (req, res) => {
   const name = safeString(req.body?.name);
   const description = safeString(req.body?.description);
   const status = safeString(req.body?.status);
+  const scope_type = safeString(req.body?.scope_type);
   const permissions = Array.isArray(req.body?.permissions) ? req.body.permissions : null;
 
   if (!name) {
@@ -879,10 +884,10 @@ app.put("/api/roles/:id", async (req, res) => {
     // Update role metadata
     const updateRes = await client.query(
       `UPDATE roles 
-       SET name = $1, description = $2, status = COALESCE($3, status), updated_at = NOW() 
+       SET name = $1, description = $2, status = COALESCE($3, status), scope_type = COALESCE($5, scope_type), updated_at = NOW() 
        WHERE id = $4 
        RETURNING *`,
-      [currentRole.is_system_role ? currentRole.name : name, description, status || currentRole.status, id]
+      [currentRole.is_system_role ? currentRole.name : name, description, status || currentRole.status, id, scope_type || null]
     );
 
     // Update permissions if provided and not a system role (system roles have immutable templates)
@@ -3480,6 +3485,16 @@ app.post("/api/signup", async (req, res) => {
       [userId, resolvedRoleName, department || null, resolvedRoleId]
     );
 
+    const signupCompanyId = req.body.company_id ? parseInt(req.body.company_id, 10) : 1;
+    try {
+      await connection.query(
+        "INSERT INTO company_user_roles (user_id, company_id, role_id, branch_id, department_id, is_default, status) VALUES (?, ?, ?, ?, ?, TRUE, 'active')",
+        [userId, signupCompanyId, resolvedRoleId, branch, department || null]
+      );
+    } catch (curErr) {
+      console.warn("Could not insert company_user_roles in signup:", curErr.message);
+    }
+
     connection.release();
 
     // Broadcast onboard staff event via SSE
@@ -5432,6 +5447,27 @@ app.patch("/api/attendances/:id/adjust", async (req, res) => {
 // ==========================================
 // EMPLOYEE PERSONAL INFORMATION & TODAY ATTENDANCE
 // ==========================================
+app.get("/api/employees/:userId", async (req, res) => {
+  const userId = safeString(req.params.userId);
+  try {
+    const [rows] = await pool.query(
+      `SELECT p.user_id, p.full_name as name, p.full_name, p.email, p.ic_number, p.phone, p.gender, p.dob, p.join_date,
+              p.branch, p.department, p.status, p.created_at, p.updated_at
+       FROM profiles p
+       WHERE LOWER(p.user_id) = LOWER(?) OR LOWER(p.email) = LOWER(?)
+       LIMIT 1`,
+      [userId, userId]
+    );
+    if (!rows || rows.length === 0) {
+      return res.status(404).json({ success: false, error: "Employee not found" });
+    }
+    res.json({ success: true, employee: rows[0] });
+  } catch (err) {
+    console.error("Get employee by id error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 app.put("/api/employees/:userId/personal-info", async (req, res) => {
   const userId = safeString(req.params.userId);
   const full_name = safeString(req.body?.full_name);
@@ -5440,6 +5476,9 @@ app.put("/api/employees/:userId/personal-info", async (req, res) => {
   const gender = safeString(req.body?.gender);
   const dob = safeString(req.body?.dob);
   const join_date = safeString(req.body?.join_date);
+  const branch = safeString(req.body?.branch);
+  const department = safeString(req.body?.department);
+  const status = safeString(req.body?.status);
 
   try {
     await pool.query(
@@ -5450,9 +5489,12 @@ app.put("/api/employees/:userId/personal-info", async (req, res) => {
            gender = COALESCE(NULLIF(?, ''), gender),
            dob = COALESCE(NULLIF(?::date, NULL), dob),
            join_date = COALESCE(NULLIF(?::date, NULL), join_date),
+           branch = COALESCE(NULLIF(?, ''), branch),
+           department = COALESCE(NULLIF(?, ''), department),
+           status = COALESCE(NULLIF(?, ''), status),
            updated_at = CURRENT_TIMESTAMP
-       WHERE user_id = ?`,
-      [full_name, ic_number, phone, gender, dob || null, join_date || null, userId]
+       WHERE LOWER(user_id) = LOWER(?)`,
+      [full_name, ic_number, phone, gender, dob || null, join_date || null, branch, department, status, userId]
     );
 
     res.json({ success: true, message: "Personal information updated successfully" });
@@ -5667,6 +5709,8 @@ app.get("/api/employees", async (req, res) => {
   const date = safeString(req.query.date);
   const status = safeString(req.query.status);
   const department = safeString(req.query.department);
+  const rawCompanyId = req.query.company_id || req.query.companyId;
+  const companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
 
   try {
     const params = [];
@@ -5701,10 +5745,17 @@ app.get("/api/employees", async (req, res) => {
         p.gender,
         p.dob,
         p.join_date,
-        COALESCE(temp_ewa.temp_branch, p.branch) AS branch,
+        ${companyId ? 'COALESCE(cur_scope.branch_id, temp_ewa.temp_branch, p.branch)' : 'COALESCE(temp_ewa.temp_branch, p.branch)'} AS branch,
         p.branch AS permanent_branch,
         temp_ewa.temp_branch AS temp_branch,
-        p.department, p.status, p.created_at, p.updated_at,
+        ${companyId ? 'COALESCE(cur_scope.department_id, p.department)' : 'p.department'} AS department,
+        p.status, p.created_at, p.updated_at,
+        (
+          SELECT COALESCE(json_agg(json_build_object('company_id', c2.id, 'company_name', c2.company_name, 'company_type', c2.company_type, 'is_default', cur2.is_default)), '[]'::json)
+          FROM company_user_roles cur2
+          JOIN companies c2 ON cur2.company_id = c2.id
+          WHERE cur2.user_id = p.user_id AND cur2.status = 'active'
+        ) AS assigned_companies,
         COALESCE(r.name, ur.role, 'Employee') AS role_name,
         COALESCE(p.role_id, ur.role_id, r.id) AS role_id,
         COALESCE(r.is_system_role, true) AS is_system_role,
@@ -5732,6 +5783,7 @@ app.get("/api/employees", async (req, res) => {
         today.attendance_type AS today_attendance_type,
         today.location AS today_location
       FROM profiles p
+      ${companyId ? "INNER JOIN company_user_roles cur_scope ON cur_scope.user_id = p.user_id AND cur_scope.company_id = ? AND cur_scope.status = 'active'" : ""}
       LEFT JOIN LATERAL (
         SELECT ur.role, ur.role_id, ur.department
         FROM user_role ur
@@ -5829,7 +5881,7 @@ app.get("/api/employees", async (req, res) => {
         END ASC,
         p.full_name ASC
       `,
-      [...(date ? [date, date, date, date, date, date] : []), ...params]
+      [...(companyId ? [companyId] : []), ...(date ? [date, date, date, date, date, date] : []), ...params]
     );
 
     const branchZoneMap = await getBranchZoneMap();
@@ -11015,6 +11067,16 @@ app.put("/api/branches/:code", async (req, res) => {
 
 app.get("/api/branches", async (req, res) => {
   try {
+    const rawCompanyId = req.query.company_id || req.query.companyId;
+    const companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
+    let whereClause = "";
+    let queryParams = [];
+
+    if (companyId) {
+      whereClause = "WHERE b.company_id = ?";
+      queryParams.push(companyId);
+    }
+
     const queryStr = `
       SELECT 
         b.code, 
@@ -11024,6 +11086,7 @@ app.get("/api/branches", async (req, res) => {
         b.longitude,
         b.radius,
         b.operating_zone,
+        b.company_id,
         (
           SELECT p.full_name 
           FROM profiles p
@@ -11042,11 +11105,12 @@ app.get("/api/branches", async (req, res) => {
           LIMIT 1
         ) AS leader_name
       FROM branches b 
+      ${whereClause}
       ORDER BY 
         CASE WHEN b.code = 'HQ' THEN 0 ELSE 1 END,
         b.name ASC
     `;
-    let [rows] = await pool.query(queryStr);
+    let [rows] = await pool.query(queryStr, queryParams);
     
     if (rows.length === 0) {
       const fallbackBranches = [
@@ -11101,7 +11165,7 @@ app.get("/api/branches", async (req, res) => {
 });
 
 app.post("/api/branches", async (req, res) => {
-  const { code, name, location, operating_zone, operatorName, operatorRole } = req.body || {};
+  const { code, name, location, operating_zone, company_id, operatorName, operatorRole } = req.body || {};
   const safeCode = safeString(code).toUpperCase();
   const safeName = safeString(name);
   const safeOperatorName = safeString(operatorName);
@@ -11120,10 +11184,11 @@ app.post("/api/branches", async (req, res) => {
 
     const branchLocation = safeString(location) || 'RAYHAR BRANCH';
     const zone = safeString(operating_zone) || 'ZONE_B';
+    const branchCompanyId = company_id ? parseInt(company_id, 10) : 1;
 
     await pool.query(
-      "INSERT INTO branches (branch, code, name, location, operating_zone) VALUES (?, ?, ?, ?, ?)",
-      [cleanCode, cleanCode, safeName, branchLocation, zone]
+      "INSERT INTO branches (branch, code, name, location, operating_zone, company_id) VALUES (?, ?, ?, ?, ?, ?)",
+      [cleanCode, cleanCode, safeName, branchLocation, zone, branchCompanyId]
     );
 
     // Broadcast branch registration event via SSE
@@ -11171,8 +11236,30 @@ app.delete("/api/branches/:id", async (req, res) => {
 app.get("/api/branches-stats", async (req, res) => {
   try {
     const todayStr = new Date().toLocaleDateString('en-CA');
-    const [branchRows] = await pool.query(`SELECT code FROM branches ORDER BY code ASC`);
-    const [allProfiles] = await pool.query(`SELECT user_id, branch FROM profiles WHERE status = 'Active' AND (created_at IS NULL OR (created_at AT TIME ZONE 'Asia/Kuala_Lumpur')::date <= CURRENT_DATE)`);
+    const rawCompanyId = req.query.company_id || req.query.companyId;
+    const companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
+
+    let branchQuery = `SELECT code, company_id FROM branches`;
+    let branchParams = [];
+    if (companyId) {
+      branchQuery += ` WHERE company_id = ?`;
+      branchParams.push(companyId);
+    }
+    branchQuery += ` ORDER BY code ASC`;
+    const [branchRows] = await pool.query(branchQuery, branchParams);
+
+    let profileQuery = `SELECT user_id, branch FROM profiles WHERE status = 'Active' AND (created_at IS NULL OR (created_at AT TIME ZONE 'Asia/Kuala_Lumpur')::date <= CURRENT_DATE)`;
+    let profileParams = [];
+    if (companyId) {
+      profileQuery = `
+        SELECT p.user_id, COALESCE(cur.branch_id, p.branch) AS branch
+        FROM profiles p
+        JOIN company_user_roles cur ON cur.user_id = p.user_id AND cur.company_id = ? AND cur.status = 'active'
+        WHERE p.status = 'Active' AND (p.created_at IS NULL OR (p.created_at AT TIME ZONE 'Asia/Kuala_Lumpur')::date <= CURRENT_DATE)
+      `;
+      profileParams.push(companyId);
+    }
+    const [allProfiles] = await pool.query(profileQuery, profileParams);
     const [attRows] = await pool.query(`SELECT DISTINCT user_id FROM attendances WHERE DATE(clock_in) = CURRENT_DATE`);
     const [rawLeaveRows] = await pool.query(`
       SELECT lr.user_id, lr.leave_type, lr.reason, lr.cuti_ganti_tarikh, lr.start_date, lr.end_date, p.branch

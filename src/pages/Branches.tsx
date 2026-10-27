@@ -107,12 +107,8 @@ async function smartGeocode(address: string): Promise<{lat: string, lon: string}
 }
 
 // Convert any string to Proper Case (title case), e.g. "SEPANG" -> "Sepang"
-function toProperCase(str: string): string {
-  if (!str) return str;
-  return str
-    .toLowerCase()
-    .replace(/\b\w/g, (char) => char.toUpperCase());
-}
+import { toProperCase } from "@/utils/branchUtils";
+import { useCompany } from "@/modules/multi-company/contexts/CompanyContext";
 
 function MapController({ lat, lng }: { lat: number, lng: number }) {
   const { current: map } = useMapLibre();
@@ -348,6 +344,7 @@ function renderTodayStatusBadge(status: string) {
 
 export default function Branches() {
   const navigate = useNavigate();
+  const { activeCompany } = useCompany();
   const { user } = useAuth();
   const [selectedBranch, setSelectedBranch] = useState<any | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -432,12 +429,13 @@ export default function Branches() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           code: addBranchData.code.trim().toUpperCase(),
-          name: addBranchData.name.trim(),
+          name: toProperCase(addBranchData.name.trim()),
           location: addBranchData.location.trim(),
           operating_zone: addBranchData.operating_zone,
           latitude: parseFloat(addBranchData.latitude) || null,
           longitude: parseFloat(addBranchData.longitude) || null,
           radius: parseFloat(addBranchData.radius) || 50,
+          company_id: activeCompany?.id || 1,
         })
       });
       const data = await response.json();
@@ -561,26 +559,41 @@ export default function Branches() {
     localStorage.setItem("branchesViewMode", viewMode);
   }, [viewMode]);
 
+  const fetchBranches = async (companyId?: number) => {
+    try {
+      const cId = companyId || activeCompany?.id || 1;
+      const response = await fetch(`${API_BASE_URL}/api/branches?company_id=${cId}`);
+      const data = await response.json();
+      if (data.success) {
+        setAllBranches(data.branches);
+      }
+    } catch (err) {
+      console.error("Error fetching branches", err);
+    } finally {
+      setLoadingBranches(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchBranches = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/branches`);
-        const data = await response.json();
-        if (data.success) {
-          setAllBranches(data.branches);
-        }
-      } catch (err) {
-        console.error("Error fetching branches", err);
-      } finally {
-        setLoadingBranches(false);
+    const cId = activeCompany?.id || 1;
+    void fetchBranches(cId);
+  }, [activeCompany?.id]);
+
+  useEffect(() => {
+    const handler = (e: any) => {
+      if (e.detail?.company?.id) {
+        void fetchBranches(e.detail.company.id);
+        void fetchStats(e.detail.company.id);
       }
     };
-    fetchBranches();
+    window.addEventListener('rayhar_company_switched', handler);
+    return () => window.removeEventListener('rayhar_company_switched', handler);
   }, []);
 
   const fetchBranchesList = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/branches`);
+      const cId = activeCompany?.id || 1;
+      const response = await fetch(`${API_BASE_URL}/api/branches?company_id=${cId}`);
       const data = await response.json();
       if (data.success) setAllBranches(data.branches);
     } catch (err) {}
@@ -687,22 +700,27 @@ export default function Branches() {
     }
   };
 
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/branches-stats`);
-        const data = await response.json();
-        if (data.success) {
-          setBranchStats(data.stats || []);
-        }
-      } catch (err) {
-        console.error("Error fetching branch stats", err);
+  const fetchStats = async (companyId?: number) => {
+    try {
+      const cId = companyId || activeCompany?.id || 1;
+      const response = await fetch(`${API_BASE_URL}/api/branches-stats?company_id=${cId}`);
+      const data = await response.json();
+      if (data.success) {
+        setBranchStats(data.stats || []);
       }
-    };
-    fetchStats();
-    const interval = setInterval(fetchStats, 10000);
+    } catch (err) {
+      console.error("Error fetching branch stats", err);
+    }
+  };
+
+  useEffect(() => {
+    const cId = activeCompany?.id || 1;
+    void fetchStats(cId);
+    const interval = setInterval(() => {
+      void fetchStats(activeCompany?.id || 1);
+    }, 10000);
     return () => clearInterval(interval);
-  }, []);
+  }, [activeCompany?.id]);
 
   useEffect(() => {
     const fetchLeaves = async () => {

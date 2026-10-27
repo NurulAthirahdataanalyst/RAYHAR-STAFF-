@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRole } from "@/contexts/RoleContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,7 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { User, Mail, Building2, ShieldCheck, Calendar, MapPin, Lock, Loader2, ArrowLeft, ArrowRight, Plus, Sparkles } from "lucide-react";
+import { formatMyKad, parseMyKad, formatMalaysianPhone } from "@/utils/mykadUtils";
+import { FileText, CalendarDays, Clock as ClockIcon, PhoneCall, CalendarCheck, User, Mail, Building2, ShieldCheck, Calendar, MapPin, Lock, Loader2, ArrowLeft, ArrowRight, Plus, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { API_BASE_URL } from "@/config/api";
 import { supabase } from "@/integrations/supabase/client";
@@ -63,6 +64,49 @@ const Profile = () => {
 
   const [avatarModalOpen, setAvatarModalOpen] = useState(false);
   const [avatarId, setAvatarId] = useState<string>(() => getSavedAvatar(currentUserId, email));
+  const [profileData, setProfileData] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchFullProfile = async () => {
+      try {
+        if (currentUserId) {
+          try {
+            const singleRes = await fetch(`${API_BASE_URL}/api/employees/${encodeURIComponent(currentUserId)}`);
+            if (singleRes.ok) {
+              const singleData = await singleRes.json();
+              if (singleData?.success && singleData.employee) {
+                setProfileData(singleData.employee);
+                return;
+              }
+            }
+          } catch (e) {
+            // fallback to list fetch
+          }
+        }
+        const res = await fetch(`${API_BASE_URL}/api/employees`);
+        const data = await res.json();
+        if (data && Array.isArray(data.employees)) {
+          const matched = data.employees.find(
+            (e: any) =>
+              (currentUserId && String(e.user_id).trim().toLowerCase() === String(currentUserId).trim().toLowerCase()) ||
+              (email && String(e.email).trim().toLowerCase() === String(email).trim().toLowerCase())
+          );
+          if (matched) {
+            setProfileData(matched);
+          }
+        }
+      } catch (err) {
+        console.warn("Could not fetch user profile details:", err);
+      }
+    };
+    if (currentUserId || email) {
+      fetchFullProfile();
+    }
+  }, [currentUserId, email]);
+
+  const parsedIc = useMemo(() => {
+    return parseMyKad(profileData?.ic_number || "");
+  }, [profileData?.ic_number]);
 
   useEffect(() => {
     const handleAvatarUpdate = (e: any) => {
@@ -140,12 +184,18 @@ const Profile = () => {
   if (!user) return null;
 
   const profileItems = [
-    { label: "Full Name", value: userName || "N/A", icon: User },
-    { label: "Email Address", value: email || "N/A", icon: Mail },
-    { label: "User ID", value: userId || "N/A", icon: ShieldCheck },
-    { label: "Branch", value: getFullBranchName(userBranch || "HQ"), icon: Building2 },
-    { label: "Department", value: userDepartment || "N/A", icon: MapPin },
-    { label: "Status", value: "Active", icon: Calendar },
+    { label: "Full Name", value: profileData?.name || userName || "N/A", icon: User },
+    { label: "Email Address", value: profileData?.email || email || "N/A", icon: Mail },
+    { label: "User ID", value: profileData?.user_id || userId || "N/A", icon: ShieldCheck, isMono: true },
+    { label: "Branch", value: getFullBranchName(profileData?.branch || userBranch || "HQ"), icon: Building2 },
+    { label: "Department", value: profileData?.department || userDepartment || "N/A", icon: MapPin },
+    { label: "Status", value: profileData?.status || "Active", icon: Calendar },
+    { label: "IC Number (MyKad)", value: profileData?.ic_number ? formatMyKad(profileData.ic_number) : (parsedIc.formatted || "—"), icon: FileText, isMono: true },
+    { label: "Date of Birth", value: parsedIc.formattedDob || (profileData?.dob ? new Date(profileData.dob).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }) : "—"), icon: CalendarDays },
+    { label: "Age", value: parsedIc.age !== null ? `${parsedIc.age} years old` : "—", icon: ClockIcon, highlight: true },
+    { label: "Gender", value: profileData?.gender || parsedIc.gender || "—", icon: User },
+    { label: "Phone Number", value: profileData?.phone ? formatMalaysianPhone(profileData.phone) : "—", icon: PhoneCall, isMono: true },
+    { label: "Date of Join", value: profileData?.join_date ? new Date(profileData.join_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }).toUpperCase() : (profileData?.created_at ? new Date(profileData.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }).toUpperCase() : "—"), icon: CalendarCheck },
   ];
 
   return (
@@ -363,7 +413,7 @@ const Profile = () => {
                   <item.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-foreground group-hover:text-primary dark:group-hover:text-purple-400 transition-colors" />
                   <p className="text-[10px] font-black uppercase tracking-widest text-foreground/60">{item.label}</p>
                 </div>
-                <p className="text-sm sm:text-base font-black text-foreground pl-5 sm:pl-6 break-words">{item.value}</p>
+                <p className={`text-sm sm:text-base font-black pl-5 sm:pl-6 break-words ${item.isMono ? "font-mono" : ""} ${item.highlight ? "text-[#942392]" : "text-foreground"}`}>{item.value}</p>
               </div>
             ))}
           </CardContent>

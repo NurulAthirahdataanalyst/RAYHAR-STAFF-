@@ -53,6 +53,34 @@ const MODULE_ICONS: Record<string, React.ElementType> = {
   settings: SettingsIcon,
 };
 
+
+export const AUTHORIZATION_SCOPES = [
+  {
+    value: 'Own Data Only' as ScopeType,
+    title: 'Own Data Only',
+    desc: 'User can only view their own attendance, leave, profile, reports',
+    badge: 'Self'
+  },
+  {
+    value: 'Branch Data Only' as ScopeType,
+    title: 'Branch Data Only',
+    desc: 'User can view employees under the same branch only',
+    badge: 'Branch'
+  },
+  {
+    value: 'Company Staff Data' as ScopeType,
+    title: 'Company Staff Data',
+    desc: 'User can view all employees within the same company',
+    badge: 'Company'
+  },
+  {
+    value: 'Parent Group Data' as ScopeType,
+    title: 'Parent Group Data',
+    desc: 'User can view multiple companies',
+    badge: 'Group HQ'
+  }
+];
+
 export const Tab9_IAM: React.FC = () => {
   const { companies, activeCompany } = useCompany();
   const [selectedCompanyId, setSelectedCompanyId] = useState<number>(activeCompany?.id || 1);
@@ -71,6 +99,9 @@ export const Tab9_IAM: React.FC = () => {
   const [scopeType, setScopeType] = useState<ScopeType>('Current Company Only');
   const [roleStatus, setRoleStatus] = useState<'Active' | 'Inactive'>('Active');
   const [selectedTemplate, setSelectedTemplate] = useState('blank');
+  const [copySourceCompanyId, setCopySourceCompanyId] = useState<number>(1);
+  const [copySourceRoleId, setCopySourceRoleId] = useState<string>('');
+  const [allCompaniesRoles, setAllCompaniesRoles] = useState<Record<number, CompanyRole[]>>({});
   const [selectedPermissions, setSelectedPermissions] = useState<Set<string>>(new Set());
   const [selectedPermissionLevels, setSelectedPermissionLevels] = useState<Record<string, 'view' | 'edit'>>({});
   const [collapsedModules, setCollapsedModules] = useState<Record<string, boolean>>({});
@@ -103,6 +134,38 @@ export const Tab9_IAM: React.FC = () => {
     void fetchRolesAndModules(selectedCompanyId);
   }, [selectedCompanyId]);
 
+
+  const fetchAllCompanyRoles = async () => {
+    try {
+      const entries = await Promise.all(
+        companies.map(async (c) => {
+          const rList = await multiCompanyApi.getCompanyRoles(c.id);
+          return [c.id, rList] as const;
+        })
+      );
+      const roleMap: Record<number, CompanyRole[]> = {};
+      entries.forEach(([cId, rList]) => {
+        roleMap[cId] = rList || [];
+      });
+      setAllCompaniesRoles(roleMap);
+    } catch (e) {
+      console.error('Failed to load roles for companies:', e);
+    }
+  };
+
+  useEffect(() => {
+    if (companies.length > 0) {
+      void fetchAllCompanyRoles();
+    }
+  }, [companies]);
+
+  const availableRolesForCopy = useMemo(() => {
+    const fromMap = allCompaniesRoles[copySourceCompanyId];
+    if (fromMap && fromMap.length > 0) return fromMap;
+    if (copySourceCompanyId === 1 && mainCompanyRoles.length > 0) return mainCompanyRoles;
+    return [];
+  }, [allCompaniesRoles, copySourceCompanyId, mainCompanyRoles]);
+
   const currentCompany = companies.find(c => c.id === selectedCompanyId) || activeCompany;
 
   // Filter modules to only those enabled for this company
@@ -120,8 +183,10 @@ export const Tab9_IAM: React.FC = () => {
     setDisplayName('');
     setDescription('');
     setRoleType('Operational Role');
-    setScopeType('Current Company Only');
+    setScopeType('Own Data Only');
     setRoleStatus('Active');
+    setCopySourceCompanyId(1);
+    setCopySourceRoleId('');
     setSelectedTemplate('blank');
     setSelectedPermissions(new Set());
     setSelectedPermissionLevels({});
@@ -135,8 +200,23 @@ export const Tab9_IAM: React.FC = () => {
     setDisplayName(r.name);
     setDescription(r.description || '');
     setRoleType(r.role_type || 'Operational Role');
-    setScopeType(r.scope_type || 'Current Company Only');
+    let sType: ScopeType = (r.scope_type as any) || 'Company Staff Data';
+    if (sType === 'Current Company Only') {
+      const lower = r.name.toLowerCase();
+      if (lower.includes('employee') || lower.includes('driver') || lower.includes('staff')) {
+        sType = 'Own Data Only';
+      } else if (lower.includes('branch') || lower.includes('department') || lower.includes('hod') || lower.includes('leader')) {
+        sType = 'Branch Data Only';
+      } else {
+        sType = 'Company Staff Data';
+      }
+    } else if (sType === 'Parent Group Access') {
+      sType = 'Parent Group Data';
+    }
+    setScopeType(sType);
     setRoleStatus(r.status || 'Active');
+    setCopySourceCompanyId(r.company_id || 1);
+    setCopySourceRoleId(String(r.id));
     setSelectedTemplate(r.name);
 
     const keys = r.permission_keys || [];
@@ -151,38 +231,79 @@ export const Tab9_IAM: React.FC = () => {
     setModalOpen(true);
   };
 
-  // Copy Permissions From Main Company Role
-  const handleSelectTemplate = (templateName: string) => {
-    setSelectedTemplate(templateName);
-    if (templateName === 'blank') {
+  // Copy Permissions From Selected Company Role & Auto-Update Authorization Scope
+  const handleApplyRoleCopy = (sourceRoleId: string) => {
+    setCopySourceRoleId(sourceRoleId);
+    setSelectedTemplate(sourceRoleId);
+    if (sourceRoleId === 'blank') {
       setSelectedPermissions(new Set());
       setSelectedPermissionLevels({});
       toast.info('Cleared permissions (Blank Role)');
       return;
     }
 
-    const mainRole = mainCompanyRoles.find(r => r.name.toLowerCase() === templateName.toLowerCase());
-    if (mainRole && Array.isArray(mainRole.permission_keys)) {
-      if (!roleName.trim()) {
-        setRoleName(mainRole.name);
+    // Find role in available roles or across all companies
+    let sourceRole: any = availableRolesForCopy.find((r: any) => String(r.id) === String(sourceRoleId) || r.name.toLowerCase() === sourceRoleId.toLowerCase());
+    if (!sourceRole) {
+      for (const cId in allCompaniesRoles) {
+        const found = allCompaniesRoles[cId]?.find((r: any) => String(r.id) === String(sourceRoleId) || r.name.toLowerCase() === sourceRoleId.toLowerCase());
+        if (found) { sourceRole = found; break; }
       }
-      // Filter permissions to only those enabled for the target company
-      const allowedCompanyPerms = new Set(
-        visibleModules.flatMap(m => (m.permissions || []).map(p => p.permission_key))
-      );
-
-      const filteredKeys = mainRole.permission_keys.filter((k: string) => allowedCompanyPerms.has(k));
-      const sourceLevels = mainRole.permission_levels || {};
-      const nextLevels: Record<string, 'view' | 'edit'> = {};
-      filteredKeys.forEach((k: string) => {
-        nextLevels[k] = sourceLevels[k] || 'edit';
-      });
-
-      setSelectedPermissions(new Set(filteredKeys));
-      setSelectedPermissionLevels(nextLevels);
-      toast.success(`Copied ${filteredKeys.length} permissions from Main Company (${mainRole.name})`);
     }
+    if (!sourceRole && mainCompanyRoles.length > 0) {
+      sourceRole = mainCompanyRoles.find((r: any) => String(r.id) === String(sourceRoleId) || r.name.toLowerCase() === sourceRoleId.toLowerCase());
+    }
+    if (!sourceRole) return;
+
+    if (!roleName.trim()) {
+      setRoleName(sourceRole.name);
+    }
+
+    // Filter permissions to only those enabled for the target company
+    const allowedCompanyPerms = new Set(
+      visibleModules.flatMap(m => (m.permissions || []).map(p => p.permission_key))
+    );
+
+    const rawKeys: string[] = sourceRole.permission_keys || [];
+    const filteredKeys = rawKeys.filter((k: string) => allowedCompanyPerms.has(k));
+    const sourceLevels = sourceRole.permission_levels || {};
+    const nextLevels: Record<string, 'view' | 'edit'> = {};
+    filteredKeys.forEach((k: string) => {
+      nextLevels[k] = sourceLevels[k] || 'edit';
+    });
+
+    setSelectedPermissions(new Set(filteredKeys));
+    setSelectedPermissionLevels(nextLevels);
+
+    // Auto-update Authorization Scope based on role
+    const lowerName = (sourceRole.name || '').toLowerCase();
+    let autoScope: ScopeType = 'Own Data Only';
+
+    if (sourceRole.scope_type === 'Own Data Only') {
+      autoScope = 'Own Data Only';
+    } else if (sourceRole.scope_type === 'Branch Data Only') {
+      autoScope = 'Branch Data Only';
+    } else if (sourceRole.scope_type === 'Company Staff Data') {
+      autoScope = 'Company Staff Data';
+    } else if (sourceRole.scope_type === 'Parent Group Data') {
+      autoScope = 'Parent Group Data';
+    } else if (lowerName.includes('employee') || lowerName.includes('driver') || lowerName.includes('staff')) {
+      autoScope = 'Own Data Only';
+    } else if (lowerName.includes('branch leader') || lowerName.includes('branch manager') || lowerName.includes('head of department') || lowerName.includes('hod') || lowerName.includes('supervisor')) {
+      autoScope = 'Branch Data Only';
+    } else if (lowerName.includes('hr admin') || lowerName.includes('operation manager') || lowerName.includes('finance manager')) {
+      autoScope = 'Company Staff Data';
+    } else if (lowerName.includes('managing director') || lowerName.includes('super admin') || lowerName.includes('director')) {
+      autoScope = 'Parent Group Data';
+    } else {
+      autoScope = sourceRole.scope_type === 'Parent Group Access' ? 'Parent Group Data' : 'Company Staff Data';
+    }
+
+    setScopeType(autoScope);
+    toast.success(`Copied permissions from "${sourceRole.name}". Authorization Scope auto-updated to: ${autoScope}`);
   };
+
+  const handleSelectTemplate = handleApplyRoleCopy;
 
   // Toggle submodule
   const handleTogglePermission = (permKey: string) => {
@@ -400,11 +521,15 @@ export const Tab9_IAM: React.FC = () => {
                       {/* Scope Boundary Pill Badge */}
                       <td className="px-4 py-3.5">
                         <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border ${
-                          isGroup 
+                          r.scope_type === 'Parent Group Data' || r.scope_type === 'Parent Group Access'
                             ? 'border-[#942392]/30 bg-[#942392]/10 text-[#942392] dark:text-[#f885d5]' 
-                            : 'border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
+                            : r.scope_type === 'Branch Data Only'
+                            ? 'border-amber-200 dark:border-amber-800/60 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300'
+                            : r.scope_type === 'Own Data Only'
+                            ? 'border-emerald-200 dark:border-emerald-800/60 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300'
+                            : 'border-blue-200 dark:border-blue-800/60 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300'
                         }`}>
-                          {r.scope_type || 'Current Company Only'}
+                          {r.scope_type === 'Parent Group Access' ? 'Parent Group Data' : (r.scope_type || 'Company Staff Data')}
                         </span>
                       </td>
 
@@ -490,108 +615,166 @@ export const Tab9_IAM: React.FC = () => {
             {/* Scrollable Form Body */}
             <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6">
               {/* Role Metadata Box */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 p-4 rounded-xl bg-muted/20 border border-border/50">
-                {/* Role Name */}
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
-                    Role Name <span className="text-rose-500">*</span>
-                  </Label>
-                  <Input
-                    value={roleName}
-                    onChange={(e) => setRoleName(e.target.value)}
-                    placeholder="e.g. Finance Manager, Fleet Supervisor"
-                    className="h-10 text-xs font-medium placeholder:font-normal rounded-xl border-border/60 bg-background text-black dark:text-white"
-                    required
-                  />
+              <div className="space-y-4 p-5 rounded-2xl bg-muted/20 border border-border/50">
+                {/* Copy Access By Role Card */}
+                <div className="p-4 rounded-xl border border-purple-200/80 dark:border-purple-800/50 bg-purple-50/50 dark:bg-purple-950/20 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-black uppercase tracking-wider text-[#942392] flex items-center gap-1.5">
+                      <Sparkles className="w-4 h-4 text-[#942392]" />
+                      <span>Copy Access By Role</span>
+                    </Label>
+                    <span className="text-[11px] text-muted-foreground font-medium">
+                      Copy permissions & auto-update authorization scope
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {/* Company Selector */}
+                    <div className="space-y-1">
+                      <Label className="text-[11px] font-black uppercase tracking-wider text-muted-foreground">
+                        Company:
+                      </Label>
+                      <Select 
+                        value={copySourceCompanyId.toString()} 
+                        onValueChange={(val) => {
+                          setCopySourceCompanyId(Number(val));
+                          setCopySourceRoleId('');
+                        }}
+                      >
+                        <SelectTrigger className="h-9 text-xs font-bold rounded-xl border-border/60 bg-background text-foreground">
+                          <SelectValue placeholder="▼ Select Company" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl">
+                          {companies.map(c => (
+                            <SelectItem key={c.id} value={c.id.toString()} className="font-bold text-xs">
+                              {c.company_type === 'main' ? `🏛️ MAIN COMPANY (${c.company_name.toUpperCase()})` : `🏢 COMPANY ROLE (${c.company_name.toUpperCase()})`}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Role Selector */}
+                    <div className="space-y-1">
+                      <Label className="text-[11px] font-black uppercase tracking-wider text-muted-foreground">
+                        Role:
+                      </Label>
+                      <Select value={copySourceRoleId} onValueChange={handleApplyRoleCopy}>
+                        <SelectTrigger className="h-9 text-xs font-bold rounded-xl border-border/60 bg-background text-foreground">
+                          <SelectValue placeholder="▼ Select Role" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl max-h-60">
+                          <SelectItem value="blank" className="font-bold text-muted-foreground text-xs">
+                            ⚪ Blank Template (Clear Permissions)
+                          </SelectItem>
+                          {availableRolesForCopy.map(r => (
+                            <SelectItem key={r.id} value={String(r.id)} className="font-bold text-xs">
+                              🛡️ {r.name} ({r.permission_keys ? r.permission_keys.length : 0} perms)
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Status */}
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
-                    Status
-                  </Label>
-                  <Select value={roleStatus} onValueChange={(val: any) => setRoleStatus(val)}>
-                    <SelectTrigger className="h-10 text-xs font-bold rounded-xl border-border/60 bg-background text-black dark:text-white">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl">
-                      <SelectItem value="Active" className="font-bold">Active</SelectItem>
-                      <SelectItem value="Inactive" className="font-bold">Inactive</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                {/* Role Details & Authorization Scope */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                  {/* Role Name */}
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
+                      Role Name <span className="text-rose-500">*</span>
+                    </Label>
+                    <Input
+                      value={roleName}
+                      onChange={(e) => setRoleName(e.target.value)}
+                      placeholder="e.g. Finance Manager, Fleet Supervisor"
+                      className="h-10 text-xs font-medium placeholder:font-normal rounded-xl border-border/60 bg-background text-black dark:text-white"
+                      required
+                    />
+                  </div>
 
-                {/* Copy Permissions From (Main Company Roles) */}
-                <div className="space-y-1.5 sm:col-span-2 md:col-span-1">
-                  <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-[#942392]" />
-                    <span>Copy Permissions From</span>
-                  </Label>
-                  <Select value={selectedTemplate} onValueChange={handleSelectTemplate}>
-                    <SelectTrigger className="h-10 text-xs font-bold rounded-xl border-border/60 bg-background text-black dark:text-white">
-                      <SelectValue placeholder="Choose Role Template" />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl max-h-60">
-                      <SelectItem value="blank" className="font-bold text-muted-foreground">
-                        ⚪ Blank Role (0 Permissions)
-                      </SelectItem>
-                      <div className="px-2 py-1 text-[10px] font-black uppercase text-muted-foreground tracking-wider">
-                        Main Company Roles (Rayhar Travels)
+                  {/* Status */}
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
+                      Status
+                    </Label>
+                    <Select value={roleStatus} onValueChange={(val: any) => setRoleStatus(val)}>
+                      <SelectTrigger className="h-10 text-xs font-bold rounded-xl border-border/60 bg-background text-black dark:text-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl">
+                        <SelectItem value="Active" className="font-bold">Active</SelectItem>
+                        <SelectItem value="Inactive" className="font-bold">Inactive</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Role Type */}
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
+                      Role Type
+                    </Label>
+                    <Select value={roleType} onValueChange={(val: any) => setRoleType(val)}>
+                      <SelectTrigger className="h-10 text-xs font-bold rounded-xl border-border/60 bg-background text-black dark:text-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl">
+                        <SelectItem value="Management Role" className="font-bold">Management Role (Director, OM, HOD)</SelectItem>
+                        <SelectItem value="Department Role" className="font-bold">Department Role (HR, Finance)</SelectItem>
+                        <SelectItem value="Operational Role" className="font-bold">Operational Role (Supervisor, Leader)</SelectItem>
+                        <SelectItem value="Employee Role" className="font-bold">Employee Role (Staff, Driver)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Authorization Scope */}
+                  <div className="space-y-1.5 sm:col-span-2">
+                    <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <ShieldCheck className="w-3.5 h-3.5 text-[#942392]" />
+                        <span>Authorization Scope</span>
                       </div>
-                      {mainCompanyRoles.map(r => (
-                        <SelectItem key={r.id} value={r.name} className="font-bold">
-                          🛡️ {r.name} ({r.permission_keys ? r.permission_keys.length : 0} perms)
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                      <span className="text-[10px] font-medium text-muted-foreground normal-case">
+                        Defines employee visibility boundaries
+                      </span>
+                    </Label>
+                    <Select value={scopeType} onValueChange={(val: any) => setScopeType(val)}>
+                      <SelectTrigger className="h-auto min-h-10 py-2 text-xs font-bold rounded-xl border-border/60 bg-background text-black dark:text-white">
+                        <SelectValue placeholder="▼ Select Authorization" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl">
+                        {AUTHORIZATION_SCOPES.map(s => (
+                          <SelectItem key={s.value} value={s.value} className="py-2.5">
+                            <div className="flex flex-col items-start gap-0.5 text-left">
+                              <span className="font-black text-xs text-foreground flex items-center gap-1.5">
+                                <span>{s.title}</span>
+                                <span className="text-[9px] px-1.5 py-0.2 rounded bg-purple-100 dark:bg-purple-950 text-[#942392] font-bold">
+                                  {s.badge}
+                                </span>
+                              </span>
+                              <span className="text-[11px] text-muted-foreground font-normal">
+                                - {s.desc}
+                              </span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                {/* Role Type */}
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
-                    Role Type
-                  </Label>
-                  <Select value={roleType} onValueChange={(val: any) => setRoleType(val)}>
-                    <SelectTrigger className="h-10 text-xs font-bold rounded-xl border-border/60 bg-background text-black dark:text-white">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl">
-                      <SelectItem value="Management Role" className="font-bold">Management Role (Director, OM, HOD)</SelectItem>
-                      <SelectItem value="Department Role" className="font-bold">Department Role (HR, Finance)</SelectItem>
-                      <SelectItem value="Operational Role" className="font-bold">Operational Role (Supervisor, Leader)</SelectItem>
-                      <SelectItem value="Employee Role" className="font-bold">Employee Role (Staff, Driver)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Scope Boundary */}
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
-                    Access Scope Boundary
-                  </Label>
-                  <Select value={scopeType} onValueChange={(val: any) => setScopeType(val)}>
-                    <SelectTrigger className="h-10 text-xs font-bold rounded-xl border-border/60 bg-background text-black dark:text-white">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl">
-                      <SelectItem value="Current Company Only" className="font-bold">Current Company Only (Sandboxed)</SelectItem>
-                      <SelectItem value="Parent Group Access" className="font-bold">Parent Group Access (HQ Cross-Access)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Description */}
-                <div className="space-y-1.5 sm:col-span-2 md:col-span-1">
-                  <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
-                    Role Description
-                  </Label>
-                  <Input
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Responsibilities for this role..."
-                    className="h-10 text-xs font-medium placeholder:font-normal rounded-xl border-border/60 bg-background text-black dark:text-white"
-                  />
+                  {/* Role Description */}
+                  <div className="space-y-1.5 sm:col-span-2 md:col-span-1">
+                    <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
+                      Role Description
+                    </Label>
+                    <Input
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder="Responsibilities for this role..."
+                      className="h-10 text-xs font-medium placeholder:font-normal rounded-xl border-border/60 bg-background text-black dark:text-white"
+                    />
+                  </div>
                 </div>
               </div>
 

@@ -11,6 +11,7 @@ import {
   Plus,
   Search,
   Shield,
+  ShieldCheck,
   Edit,
   Trash2,
   Copy,
@@ -62,12 +63,42 @@ interface PermissionItem {
   access_level?: 'view' | 'edit';
 }
 
+
+export const AUTHORIZATION_SCOPES = [
+  {
+    value: 'Own Data Only',
+    title: 'Own Data Only',
+    desc: 'User can only view their own attendance, leave, profile, reports',
+    badge: 'Self'
+  },
+  {
+    value: 'Branch Data Only',
+    title: 'Branch Data Only',
+    desc: 'User can view employees under the same branch only',
+    badge: 'Branch'
+  },
+  {
+    value: 'Company Staff Data',
+    title: 'Company Staff Data',
+    desc: 'User can view all employees within the same company',
+    badge: 'Company'
+  },
+  {
+    value: 'Parent Group Data',
+    title: 'Parent Group Data',
+    desc: 'User can view multiple companies',
+    badge: 'Group HQ'
+  }
+];
+
 interface RoleItem {
   id: string;
   name: string;
   description?: string;
   is_system_role: boolean;
   status: "Active" | "Inactive";
+  scope_type?: string;
+  company_id?: number | null;
   total_users: number;
   permission_count: number;
   permissions?: PermissionItem[];
@@ -95,7 +126,7 @@ const MODULE_ICONS: Record<string, any> = {
 export default function Role() {
   const navigate = useNavigate();
   const { role: currentUserRole, hasPermission } = useRole();
-  const { isModuleEnabled, activeCompany } = useCompany();
+  const { isModuleEnabled, activeCompany, companies } = useCompany();
 
   const [roles, setRoles] = useState<RoleItem[]>([]);
   const [permissions, setPermissions] = useState<PermissionItem[]>([]);
@@ -117,7 +148,9 @@ export default function Role() {
   // Form Fields
   const [formName, setFormName] = useState("");
   const [formDescription, setFormDescription] = useState("");
-  const [formStatus, setFormStatus] = useState<"Active" | "Inactive">("Active");
+    const [formStatus, setFormStatus] = useState<"Active" | "Inactive">("Active");
+  const [formScopeType, setFormScopeType] = useState<string>("Own Data Only");
+  const [copyCompanyId, setCopyCompanyId] = useState<number>(1);
   const [selectedTemplate, setSelectedTemplate] = useState("blank");
   const [selectedPermissionKeys, setSelectedPermissionKeys] = useState<Set<string>>(new Set());
   const [selectedPermissionLevels, setSelectedPermissionLevels] = useState<Record<string, 'view' | 'edit'>>({});
@@ -194,7 +227,9 @@ export default function Role() {
     setFormName("");
     setFormDescription("");
     setFormStatus("Active");
+    setFormScopeType("Own Data Only");
     setSelectedTemplate("blank");
+    setCopyCompanyId(activeCompany?.id || 1);
     setSelectedPermissionKeys(new Set());
     setSelectedPermissionLevels({});
     setCollapsedModules({});
@@ -208,7 +243,18 @@ export default function Role() {
     setFormName(roleItem.name);
     setFormDescription(roleItem.description || "");
     setFormStatus(roleItem.status || "Active");
+    let sType = roleItem.scope_type || "Company Staff Data";
+    if (sType === "Current Company Only") {
+      const lower = roleItem.name.toLowerCase();
+      if (lower.includes("employee") || lower.includes("driver") || lower.includes("staff")) sType = "Own Data Only";
+      else if (lower.includes("branch") || lower.includes("department") || lower.includes("hod") || lower.includes("leader")) sType = "Branch Data Only";
+      else sType = "Company Staff Data";
+    } else if (sType === "Parent Group Access") {
+      sType = "Parent Group Data";
+    }
+    setFormScopeType(sType);
     setSelectedTemplate(roleItem.name);
+    setCopyCompanyId(roleItem.company_id || 1);
     setSelectedPermissionKeys(new Set(roleItem.permission_keys || []));
     setSelectedPermissionLevels(extractLevels(roleItem));
     setCollapsedModules({});
@@ -243,7 +289,7 @@ export default function Role() {
     setIsFormModalOpen(true);
   };
 
-  // Handle Template Selection
+  // Handle Template Selection & Auto-update Authorization Scope
   const handleSelectTemplate = (templateName: string) => {
     setSelectedTemplate(templateName);
     if (templateName === "blank") {
@@ -253,11 +299,42 @@ export default function Role() {
       return;
     }
 
-    const templateRole = roles.find(r => r.name.toLowerCase() === templateName.toLowerCase());
+    const templateRole = roles.find(
+      r => r.name.toLowerCase() === templateName.toLowerCase() || String(r.id) === templateName
+    );
     if (templateRole && Array.isArray(templateRole.permission_keys)) {
+      if (!formName.trim() && formMode === "add") {
+        setFormName(templateRole.name);
+      }
       setSelectedPermissionKeys(new Set(templateRole.permission_keys));
       setSelectedPermissionLevels(extractLevels(templateRole));
-      toast.success(`Copied ${templateRole.permission_keys.length} permissions from ${templateRole.name}`);
+
+      // Auto-update Authorization Scope
+      const lowerName = templateRole.name.toLowerCase();
+      let autoScope = "Own Data Only";
+
+      if (templateRole.scope_type === "Own Data Only") {
+        autoScope = "Own Data Only";
+      } else if (templateRole.scope_type === "Branch Data Only") {
+        autoScope = "Branch Data Only";
+      } else if (templateRole.scope_type === "Company Staff Data") {
+        autoScope = "Company Staff Data";
+      } else if (templateRole.scope_type === "Parent Group Data") {
+        autoScope = "Parent Group Data";
+      } else if (lowerName.includes("employee") || lowerName.includes("driver") || lowerName.includes("staff")) {
+        autoScope = "Own Data Only";
+      } else if (lowerName.includes("branch leader") || lowerName.includes("branch manager") || lowerName.includes("head of department") || lowerName.includes("hod") || lowerName.includes("supervisor")) {
+        autoScope = "Branch Data Only";
+      } else if (lowerName.includes("hr admin") || lowerName.includes("operation manager") || lowerName.includes("finance manager")) {
+        autoScope = "Company Staff Data";
+      } else if (lowerName.includes("managing director") || lowerName.includes("super admin") || lowerName.includes("director")) {
+        autoScope = "Parent Group Data";
+      } else {
+        autoScope = templateRole.scope_type === "Parent Group Access" ? "Parent Group Data" : "Company Staff Data";
+      }
+
+      setFormScopeType(autoScope);
+      toast.success(`Copied permissions from "${templateRole.name}". Authorization Scope auto-updated to: ${autoScope}`);
     }
   };
 
@@ -357,6 +434,8 @@ export default function Role() {
             name: formName.trim(),
             description: formDescription.trim(),
             status: formStatus,
+            scope_type: formScopeType,
+            company_id: copyCompanyId || activeCompany?.id || 1,
             permissions: permsArray,
             permission_levels: selectedPermissionLevels
           })
@@ -377,6 +456,8 @@ export default function Role() {
             name: formName.trim(),
             description: formDescription.trim(),
             status: formStatus,
+            scope_type: formScopeType,
+            company_id: copyCompanyId || activeCompany?.id || 1,
             permissions: permsArray,
             permission_levels: selectedPermissionLevels
           })
@@ -714,18 +795,31 @@ export default function Role() {
                         </button>
                       </td>
 
-                      {/* Role Type */}
+                      {/* Role Type & Scope */}
                       <td className="px-6 py-4 text-center">
-                        {r.is_system_role ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border bg-purple-50 text-[#942392] border-purple-200 dark:bg-purple-950/30 dark:border-purple-800">
-                            <Lock className="w-3 h-3" />
-                            System
+                        <div className="flex flex-col items-center gap-1">
+                          {r.is_system_role ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[10px] tracking-wider font-extrabold uppercase rounded-full border bg-purple-50 text-[#942392] border-purple-200 dark:bg-purple-950/30 dark:border-purple-800">
+                              <Lock className="w-3 h-3" />
+                              System
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[10px] tracking-wider font-extrabold uppercase rounded-full border bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-950/30 dark:border-blue-800">
+                              Custom
+                            </span>
+                          )}
+                          <span className={`inline-flex items-center px-2 py-0.5 text-[9px] font-bold rounded-full border ${
+                            r.scope_type === 'Parent Group Data' || r.scope_type === 'Parent Group Access'
+                              ? 'border-[#942392]/30 bg-[#942392]/10 text-[#942392]'
+                              : r.scope_type === 'Branch Data Only'
+                              ? 'border-amber-200 bg-amber-50 text-amber-700'
+                              : r.scope_type === 'Own Data Only'
+                              ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                              : 'border-slate-200 bg-slate-100 text-slate-700'
+                          }`}>
+                            {r.scope_type || 'Company Staff Data'}
                           </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-950/30 dark:border-blue-800">
-                            Custom
-                          </span>
-                        )}
+                        </div>
                       </td>
 
                       {/* Status */}
@@ -939,27 +1033,48 @@ export default function Role() {
                     <span>Copy Permissions From</span>
                   </Label>
                   <Select value={selectedTemplate} onValueChange={handleSelectTemplate}>
-                    <SelectTrigger className="h-10 text-xs font-medium data-[placeholder]:font-normal rounded-xl border-border/60 bg-background focus:ring-[#942392] text-black dark:text-white">
-                      <SelectValue placeholder="Choose Role Template" />
+                    <SelectTrigger className="h-10 text-xs font-bold rounded-xl border-border/60 bg-background focus:ring-[#942392] text-black dark:text-white">
+                      <div className="flex items-center gap-2 truncate">
+                        <Sparkles className="w-3.5 h-3.5 text-[#942392] shrink-0" />
+                        <SelectValue placeholder="▼ Select Template" />
+                      </div>
                     </SelectTrigger>
                     <SelectContent className="rounded-xl max-h-60">
                       <SelectItem value="blank" className="font-semibold text-muted-foreground">
                         ⚪ Blank Role (0 Permissions)
                       </SelectItem>
-                      <div className="px-2 py-1 text-[10px] font-black uppercase text-muted-foreground tracking-wider">
-                        System Templates
+
+                      {/* Main Company Roles */}
+                      <div className="px-2 py-1 text-[10px] font-black uppercase text-[#942392] tracking-wider bg-purple-50 dark:bg-purple-950/40 mt-1">
+                        🏛️ System Templates (Rayhar Travels)
                       </div>
-                      {roles.filter(r => r.is_system_role).map(r => (
+                      {roles.filter(r => r.is_system_role || r.company_id === 1 || !r.company_id).map(r => (
                         <SelectItem key={r.id} value={r.name} className="font-bold">
                           🛡️ {r.name} ({r.permission_keys ? r.permission_keys.length : 0} perms)
                         </SelectItem>
                       ))}
-                      {roles.filter(r => !r.is_system_role).length > 0 && (
+
+                      {/* Subsidiary Roles */}
+                      {roles.filter(r => r.company_id === 2 || r.name.toLowerCase().includes('ray rent')).length > 0 && (
                         <>
-                          <div className="px-2 py-1 text-[10px] font-black uppercase text-muted-foreground tracking-wider">
-                            Custom Roles
+                          <div className="px-2 py-1 text-[10px] font-black uppercase text-amber-700 dark:text-amber-300 tracking-wider bg-amber-50 dark:bg-amber-950/40 mt-1">
+                            🏢 Company Roles (Rayhar Rent)
                           </div>
-                          {roles.filter(r => !r.is_system_role).map(r => (
+                          {roles.filter(r => r.company_id === 2 || r.name.toLowerCase().includes('ray rent')).map(r => (
+                            <SelectItem key={r.id} value={r.name} className="font-bold">
+                              ✨ {r.name} ({r.permission_keys ? r.permission_keys.length : 0} perms)
+                            </SelectItem>
+                          ))}
+                        </>
+                      )}
+
+                      {/* Other Custom Roles */}
+                      {roles.filter(r => !r.is_system_role && r.company_id !== 2 && !r.name.toLowerCase().includes('ray rent')).length > 0 && (
+                        <>
+                          <div className="px-2 py-1 text-[10px] font-black uppercase text-muted-foreground tracking-wider mt-1">
+                            ✨ Custom Roles
+                          </div>
+                          {roles.filter(r => !r.is_system_role && r.company_id !== 2 && !r.name.toLowerCase().includes('ray rent')).map(r => (
                             <SelectItem key={r.id} value={r.name} className="font-semibold">
                               ✨ {r.name}
                             </SelectItem>
@@ -970,6 +1085,44 @@ export default function Role() {
                   </Select>
                 </div>
               )}
+
+              {/* Authorization Scope Dropdown */}
+              <div className="space-y-1.5 sm:col-span-2">
+                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <ShieldCheck className="w-3.5 h-3.5 text-[#942392]" />
+                    <span>Authorization Scope</span>
+                  </div>
+                  <span className="text-[10px] font-medium text-muted-foreground normal-case">
+                    Defines employee data visibility boundary
+                  </span>
+                </Label>
+                <Select value={formScopeType} onValueChange={setFormScopeType} disabled={formMode === "view"}>
+                  <SelectTrigger className="h-auto min-h-10 py-2 text-xs font-bold rounded-xl border-border/60 bg-background text-black dark:text-white">
+                    <div className="flex items-center gap-2">
+                      <ShieldCheck className="w-4 h-4 text-[#942392] shrink-0" />
+                      <SelectValue placeholder="▼ Select Authorization" />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl">
+                    {AUTHORIZATION_SCOPES.map(s => (
+                      <SelectItem key={s.value} value={s.value} className="py-2.5">
+                        <div className="flex flex-col items-start gap-0.5 text-left">
+                          <span className="font-black text-xs text-foreground flex items-center gap-1.5">
+                            <span>{s.title}</span>
+                            <span className="text-[9px] px-1.5 py-0.2 rounded bg-purple-100 dark:bg-purple-950 text-[#942392] font-bold">
+                              {s.badge}
+                            </span>
+                          </span>
+                          <span className="text-[11px] text-muted-foreground font-normal">
+                            - {s.desc}
+                          </span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
               {/* Description */}
               <div className="space-y-1.5 sm:col-span-2 md:col-span-3">
