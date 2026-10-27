@@ -11,6 +11,7 @@ interface CompanyContextType {
   companyModules: CompanyModuleSetting[];
   enabledModuleKeys: string[];
   isModuleEnabled: (moduleKey: string) => boolean;
+  isPermissionEnabled: (permKey: string) => boolean;
   refreshCompanyModules: () => Promise<void>;
   loading: boolean;
   setActiveCompanyId: (companyId: number) => void;
@@ -72,15 +73,40 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const cleanKey = moduleKey.toLowerCase().trim();
     // Normalize aliases
     let normalized = cleanKey;
-    if (cleanKey === 'leave' || cleanKey === 'leave_management') normalized = 'leave_management';
-    if (cleanKey === 'leave_admin' || cleanKey === 'leaveadmin') normalized = 'leave_admin';
-    if (cleanKey === 'employee' || cleanKey === 'employee_management' || cleanKey === 'master') normalized = 'employee_management';
+    if (cleanKey === 'leave' || cleanKey === 'leave_management' || cleanKey === 'leave management') normalized = 'leave_management';
+    if (cleanKey === 'leave_admin' || cleanKey === 'leaveadmin' || cleanKey === 'leave administration') normalized = 'leave_admin';
+    if (cleanKey === 'employee' || cleanKey === 'employee_management' || cleanKey === 'employee management' || cleanKey === 'master') normalized = 'employee_management';
+    if (cleanKey === 'organization' || cleanKey === 'organization_entities' || cleanKey === 'organization & entities') normalized = 'organization_entities';
+    if (cleanKey === 'outstation' || cleanKey === 'outstation management') normalized = 'outstation';
+    if (cleanKey === 'gps' || cleanKey === 'gps location tracker') normalized = 'gps';
 
     // If no company context yet or main company with no records yet, default allow
     if (enabledModuleKeys.length === 0) return true;
 
     return enabledModuleKeys.includes(normalized) || enabledModuleKeys.includes(cleanKey);
   }, [enabledModuleKeys]);
+
+  // Check if a specific submodule/feature is enabled for the active company
+  const isPermissionEnabled = useCallback((permKey: string): boolean => {
+    if (!permKey) return true;
+    if (companyModules.length === 0) return true;
+    
+    // Find parent module of this permission
+    for (const mod of companyModules) {
+      if (!mod.is_enabled) {
+        // If module is disabled and this perm belongs to it, return false
+        if (mod.permissions?.some(p => p.permission_key === permKey)) return false;
+      } else {
+        // If module is enabled, check if granular enabled_permissions exists
+        if (Array.isArray(mod.enabled_permissions) && mod.enabled_permissions.length > 0) {
+          if (mod.permissions?.some(p => p.permission_key === permKey)) {
+            return mod.enabled_permissions.includes(permKey);
+          }
+        }
+      }
+    }
+    return true;
+  }, [companyModules]);
 
   const fetchAllData = useCallback(async () => {
     try {
@@ -198,6 +224,7 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
         companyModules,
         enabledModuleKeys,
         isModuleEnabled,
+        isPermissionEnabled,
         refreshCompanyModules,
         loading,
         setActiveCompanyId,

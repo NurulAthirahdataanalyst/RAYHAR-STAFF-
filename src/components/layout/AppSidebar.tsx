@@ -54,7 +54,7 @@ interface AppSidebarProps {
 
 const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
   const { role, hasPermission } = useRole();
-  const { isModuleEnabled } = useCompany();
+  const { isModuleEnabled, isPermissionEnabled } = useCompany();
   const { signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
@@ -171,7 +171,8 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
           icon: Calendar,
           path: "/calendar",
           children: [
-            { title: "Work Calendar", icon: Calendar, path: "/calendar" },
+            { title: "Work Calendar", icon: Calendar, path: "/calendar", permission: "calendar.work" },
+            { title: "Company Leave Calendar", icon: CalendarDays, path: "/calendar/company-leave", permission: "calendar.company_leave" },
           ],
         },
         {
@@ -232,13 +233,13 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
           icon: Building2,
           path: "/organization/entities",
           children: [
-            { title: "Corporate Entities", icon: Building2, path: "/organization/entities" },
-            { title: "Company Modules", icon: Boxes, path: "/organization/modules" },
-            { title: "Company Roles & RBAC", icon: ShieldCheck, path: "/organization/roles" },
-            { title: "Employee Transfer Wizard", icon: ArrowRightLeft, path: "/organization/transfer" },
-            { title: "Transfer Career History", icon: History, path: "/organization/history" },
-            { title: "Branches & Geofence", icon: MapPin, path: "/organization/branches" },
-            { title: "Departments", icon: Layers, path: "/organization/departments" },
+            { title: "Corporate Entities", icon: Building2, path: "/organization/entities", permission: "organization.entities" },
+            { title: "Company Modules", icon: Boxes, path: "/organization/modules", permission: "organization.modules" },
+            { title: "Company Roles & RBAC", icon: ShieldCheck, path: "/organization/roles", permission: "organization.roles" },
+            { title: "Employee Transfer Wizard", icon: ArrowRightLeft, path: "/organization/transfer", permission: "organization.transfer" },
+            { title: "Transfer Career History", icon: History, path: "/organization/history", permission: "organization.history" },
+            { title: "Branches & Geofence", icon: MapPin, path: "/organization/branches", permission: "organization.branches" },
+            { title: "Departments", icon: Layers, path: "/organization/departments", permission: "organization.departments" },
           ],
         },
         {
@@ -468,13 +469,13 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
           icon: Building2,
           path: "/organization/entities",
           children: [
-            { title: "Corporate Entities", icon: Building2, path: "/organization/entities" },
-            { title: "Company Modules", icon: Boxes, path: "/organization/modules" },
-            { title: "Company Roles & RBAC", icon: ShieldCheck, path: "/organization/roles" },
-            { title: "Employee Transfer Wizard", icon: ArrowRightLeft, path: "/organization/transfer" },
-            { title: "Transfer Career History", icon: History, path: "/organization/history" },
-            { title: "Branches & Geofence", icon: MapPin, path: "/organization/branches" },
-            { title: "Departments", icon: Layers, path: "/organization/departments" },
+            { title: "Corporate Entities", icon: Building2, path: "/organization/entities", permission: "organization.entities" },
+            { title: "Company Modules", icon: Boxes, path: "/organization/modules", permission: "organization.modules" },
+            { title: "Company Roles & RBAC", icon: ShieldCheck, path: "/organization/roles", permission: "organization.roles" },
+            { title: "Employee Transfer Wizard", icon: ArrowRightLeft, path: "/organization/transfer", permission: "organization.transfer" },
+            { title: "Transfer Career History", icon: History, path: "/organization/history", permission: "organization.history" },
+            { title: "Branches & Geofence", icon: MapPin, path: "/organization/branches", permission: "organization.branches" },
+            { title: "Departments", icon: Layers, path: "/organization/departments", permission: "organization.departments" },
           ],
         },
         {
@@ -671,7 +672,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
     if (t.includes("reports") || p.includes("/reports")) return "reports";
     if (t.includes("gps") || p.includes("gps")) return "gps";
     if (t === "settings" || p === "/settings") return "settings";
-    if (t === "organization & entities" || p.startsWith("/organization")) return "settings";
+    if (t === "organization & entities" || p.startsWith("/organization")) return "organization_entities";
     return null;
   }, []);
 
@@ -701,6 +702,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         const visibleChildren = item.children.filter((child: any) => {
           const childMod = getModuleKeyForMenuItem(child);
           if (childMod && !isModuleEnabled(childMod)) return false;
+          if (child.permission && !isPermissionEnabled(child.permission)) return false;
           return !child.permission || hasPermission(child.permission);
         });
         if (visibleChildren.length > 0) {
@@ -720,7 +722,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       }
     }
     return items;
-  }, [allMenuItems, hasPermission, isModuleEnabled, getModuleKeyForMenuItem]);
+  }, [allMenuItems, hasPermission, isModuleEnabled, isPermissionEnabled, getModuleKeyForMenuItem]);
 
   // Automatically expand submenus if any child page is active
   useEffect(() => {

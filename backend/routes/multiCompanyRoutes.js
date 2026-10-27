@@ -77,21 +77,45 @@ function createMultiCompanyRouter(pgPool) {
     );
 
     ALTER TABLE role_permissions ADD COLUMN IF NOT EXISTS access_level VARCHAR(20) DEFAULT 'edit';
+    ALTER TABLE company_modules ADD COLUMN IF NOT EXISTS enabled_permissions JSONB DEFAULT '[]'::jsonb;
+    ALTER TABLE company_modules ADD COLUMN IF NOT EXISTS permission_levels JSONB DEFAULT '{}'::jsonb;
   `).then(async () => {
-    // Seed 11 modules
+    // Seed 12 modules
     const modules = [
       { key: 'dashboard', name: 'Dashboard', desc: 'Main executive overview and real-time operations', icon: 'LayoutDashboard', order: 1 },
       { key: 'calendar', name: 'Calendar', desc: 'Work calendar and company holidays schedule', icon: 'Calendar', order: 2 },
       { key: 'attendance', name: 'Attendance', desc: 'Personal clock-in, timesheets, and team attendance', icon: 'Clock', order: 3 },
       { key: 'leave_management', name: 'Leave Management', desc: 'Employee leave application and personal requests', icon: 'CalendarDays', order: 4 },
       { key: 'leave_admin', name: 'Leave Administration', desc: 'Leave approvals, company entitlement policies, and balances', icon: 'ClipboardList', order: 5 },
-      { key: 'employee_management', name: 'Employee Management', desc: 'Staff directory, departments, roles, and branch assignment', icon: 'Users', order: 6 },
-      { key: 'outstation', name: 'Outstation', desc: 'Outstation requests, assignments, itinerary, and travel dashboard', icon: 'Plane', order: 7 },
-      { key: 'analytics', name: 'Analytics', desc: 'Attendance, leave, and workforce insight analytics', icon: 'PieChart', order: 8 },
-      { key: 'reports', name: 'Reports', desc: 'Exportable attendance, leave, and outstation formal reports', icon: 'FileSearch', order: 9 },
-      { key: 'gps', name: 'GPS', desc: 'Live location tracker and staff route history', icon: 'MapPinned', order: 10 },
-      { key: 'settings', name: 'Settings', desc: 'Corporate branding, branches, shifts, and IAM configurations', icon: 'Settings', order: 11 },
+      { key: 'organization_entities', name: 'Organization & Entities', desc: 'Corporate entities, company modules, roles & RBAC, staff transfer, branches, and departments', icon: 'Building2', order: 6 },
+      { key: 'employee_management', name: 'Employee Management', desc: 'Staff directory, departments, roles, and branch assignment', icon: 'Users', order: 7 },
+      { key: 'outstation', name: 'Outstation', desc: 'Outstation requests, assignments, itinerary, and travel dashboard', icon: 'Plane', order: 8 },
+      { key: 'analytics', name: 'Analytics', desc: 'Attendance, leave, and workforce insight analytics', icon: 'PieChart', order: 9 },
+      { key: 'reports', name: 'Reports', desc: 'Exportable attendance, leave, and outstation formal reports', icon: 'FileSearch', order: 10 },
+      { key: 'gps', name: 'GPS', desc: 'Live location tracker and staff route history', icon: 'MapPinned', order: 11 },
+      { key: 'settings', name: 'Settings', desc: 'Corporate branding, branches, shifts, and IAM configurations', icon: 'Settings', order: 12 },
     ];
+
+    // Seed Organization & Entities permissions in permissions table
+    const orgPerms = [
+      { key: 'organization.entities', name: 'Corporate Entities', module: 'Organization & Entities' },
+      { key: 'organization.modules', name: 'Company Modules', module: 'Organization & Entities' },
+      { key: 'organization.roles', name: 'Company Roles & RBAC', module: 'Organization & Entities' },
+      { key: 'organization.transfer', name: 'Employee Transfer Wizard', module: 'Organization & Entities' },
+      { key: 'organization.history', name: 'Transfer Career History', module: 'Organization & Entities' },
+      { key: 'organization.branches', name: 'Branches & Geofence', module: 'Organization & Entities' },
+      { key: 'organization.departments', name: 'Departments', module: 'Organization & Entities' },
+    ];
+
+    for (const p of orgPerms) {
+      await pgPool.query(`
+        INSERT INTO permissions (permission_key, display_name, module)
+        VALUES ($1, $2, $3)
+        ON CONFLICT (permission_key) DO UPDATE SET
+          display_name = EXCLUDED.display_name,
+          module = EXCLUDED.module;
+      `, [p.key, p.name, p.module]).catch(() => {});
+    }
 
     for (const m of modules) {
       await pgPool.query(`
@@ -601,6 +625,8 @@ function createMultiCompanyRouter(pgPool) {
           m.icon_name,
           m.sort_order,
           COALESCE(cm.is_enabled, TRUE) AS is_enabled,
+          COALESCE(cm.enabled_permissions, '[]'::jsonb) AS enabled_permissions,
+          COALESCE(cm.permission_levels, '{}'::jsonb) AS permission_levels,
           cm.updated_at,
           cm.updated_by,
           COALESCE(
@@ -617,7 +643,7 @@ function createMultiCompanyRouter(pgPool) {
         FROM modules m
         LEFT JOIN company_modules cm ON cm.module_key = m.module_key AND cm.company_id = $1
         LEFT JOIN permissions p ON LOWER(TRIM(p.module)) = LOWER(TRIM(m.module_name))
-        GROUP BY m.id, m.module_key, m.module_name, m.description, m.icon_name, m.sort_order, cm.is_enabled, cm.updated_at, cm.updated_by
+        GROUP BY m.id, m.module_key, m.module_name, m.description, m.icon_name, m.sort_order, cm.is_enabled, cm.enabled_permissions, cm.permission_levels, cm.updated_at, cm.updated_by
         ORDER BY m.sort_order ASC, m.id ASC;
       `, [companyId]);
 
@@ -651,15 +677,20 @@ function createMultiCompanyRouter(pgPool) {
       for (const item of moduleList) {
         if (!item.module_key) continue;
         const isEnabled = item.is_enabled !== false;
+        const enabledPerms = Array.isArray(item.enabled_permissions) ? JSON.stringify(item.enabled_permissions) : null;
+        const permLevels = item.permission_levels && typeof item.permission_levels === 'object' ? JSON.stringify(item.permission_levels) : null;
+
         await pgPool.query(`
-          INSERT INTO company_modules (company_id, module_key, is_enabled, updated_at, updated_by)
-          VALUES ($1, $2, $3, CURRENT_TIMESTAMP, $4)
+          INSERT INTO company_modules (company_id, module_key, is_enabled, enabled_permissions, permission_levels, updated_at, updated_by)
+          VALUES ($1, $2, $3, COALESCE($4::jsonb, '[]'::jsonb), COALESCE($5::jsonb, '{}'::jsonb), CURRENT_TIMESTAMP, $6)
           ON CONFLICT (company_id, module_key)
           DO UPDATE SET 
             is_enabled = EXCLUDED.is_enabled,
+            enabled_permissions = CASE WHEN $4::jsonb IS NOT NULL THEN $4::jsonb ELSE company_modules.enabled_permissions END,
+            permission_levels = CASE WHEN $5::jsonb IS NOT NULL THEN $5::jsonb ELSE company_modules.permission_levels END,
             updated_at = CURRENT_TIMESTAMP,
             updated_by = EXCLUDED.updated_by;
-        `, [companyId, item.module_key, isEnabled, updater]);
+        `, [companyId, item.module_key, isEnabled, enabledPerms, permLevels, updater]);
       }
 
       await logAudit(

@@ -74,40 +74,46 @@ export const EmployeeCompanyHistory: React.FC<EmployeeCompanyHistoryProps> = ({ 
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-muted/50 dark:bg-neutral-800/60 border-b border-border dark:border-neutral-800 text-[10px] font-black uppercase tracking-wider text-muted-foreground">
+              <thead className="bg-muted/50 dark:bg-neutral-800/60 border-b border-border dark:border-neutral-800 text-xs font-black uppercase tracking-wider text-black dark:text-white">
                 <tr>
-                  <th className="px-4 py-2.5">Date</th>
-                  <th className="px-4 py-2.5">Staff</th>
-                  <th className="px-4 py-2.5">Transition Route</th>
-                  <th className="px-4 py-2.5">Role Change</th>
-                  <th className="px-4 py-2.5">Transfer Reason</th>
-                  <th className="px-4 py-2.5">Authorized By</th>
+                  <th className="px-4 py-3.5">Date</th>
+                  <th className="px-4 py-3.5">Staff</th>
+                  <th className="px-4 py-3.5">Transition Route</th>
+                  <th className="px-4 py-3.5">Role Change</th>
+                  <th className="px-4 py-3.5">Transfer Reason</th>
+                  <th className="px-4 py-3.5">Authorized By</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/40 dark:divide-neutral-800/40">
                 {filtered.map(r => (
                   <tr key={r.id} className="hover:bg-muted/40 dark:hover:bg-neutral-800/40 transition-colors">
-                    <td className="px-4 py-2.5 text-muted-foreground font-medium whitespace-nowrap">
+                    <td className="px-4 py-3.5 text-xs text-muted-foreground font-medium whitespace-nowrap">
                       {new Date(r.effective_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
                     </td>
-                    <td className="px-4 py-2.5 font-bold text-foreground dark:text-neutral-200">
+                    <td className="px-4 py-3.5 text-sm font-bold text-black dark:text-white">
                       {r.employee_id}
                     </td>
-                    <td className="px-4 py-2.5">
-                      <div className="flex items-center gap-1.5 font-bold text-xs">
-                        <span className="text-muted-foreground">{r.previous_company}</span>
+                    <td className="px-4 py-3.5">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border border-purple-200 dark:border-purple-800/60 bg-purple-50 dark:bg-purple-950/40 text-[#942392] dark:text-[#f885d5]">
+                        <span>{r.previous_company}</span>
                         <ArrowRight className="w-3 h-3 text-[#942392]" />
-                        <span className="text-[#942392] dark:text-[#f885d5]">{r.new_company}</span>
-                      </div>
+                        <span>{r.new_company}</span>
+                      </span>
                     </td>
-                    <td className="px-4 py-2.5 text-[11px] text-muted-foreground">
-                      {r.previous_role || 'Staff'} <span className="text-[#942392]">→</span> {r.new_role || 'Staff'}
+                    <td className="px-4 py-3.5">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border border-blue-200 dark:border-blue-800/60 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300">
+                        <span>{r.previous_role || 'Staff'}</span>
+                        <ArrowRight className="w-3 h-3 text-blue-500" />
+                        <span>{r.new_role || 'Staff'}</span>
+                      </span>
                     </td>
-                    <td className="px-4 py-2.5 text-foreground max-w-xs truncate" title={r.reason}>
+                    <td className="px-4 py-3.5 text-xs text-black dark:text-white max-w-xs truncate" title={r.reason}>
                       {r.reason}
                     </td>
-                    <td className="px-4 py-2.5 text-muted-foreground text-[11px]">
-                      {r.approved_by || 'Admin'}
+                    <td className="px-4 py-3.5">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                        {r.approved_by || 'Admin'}
+                      </span>
                     </td>
                   </tr>
                 ))}

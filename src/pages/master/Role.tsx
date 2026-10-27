@@ -83,6 +83,7 @@ const MODULE_ICONS: Record<string, any> = {
   "Attendance": Clock,
   "Leave Management": CalendarDays,
   "Leave Administration": CheckSquare,
+  "Organization & Entities": Building2,
   "Employee Management": Users,
   "Outstation": Plane,
   "Analytics": BarChart3,
@@ -638,15 +639,15 @@ export default function Role() {
           {/* Table */}
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left whitespace-nowrap">
-              <thead className="text-gray-700 dark:text-gray-200 font-bold bg-muted/40 border-b border-border/60">
+              <thead className="text-black dark:text-white font-black bg-muted/40 border-b border-border/60 text-xs uppercase tracking-wider">
                 <tr>
-                  <th className="px-6 py-3.5 text-[10px] font-black uppercase tracking-wider">Role Name</th>
-                  <th className="px-6 py-3.5 text-[10px] font-black uppercase tracking-wider">Description</th>
-                  <th className="px-6 py-3.5 text-[10px] font-black uppercase tracking-wider text-center">Total Users</th>
-                  <th className="px-6 py-3.5 text-[10px] font-black uppercase tracking-wider text-center">Role Type</th>
-                  <th className="px-6 py-3.5 text-[10px] font-black uppercase tracking-wider text-center">Status</th>
-                  <th className="px-6 py-3.5 text-[10px] font-black uppercase tracking-wider">Created Date</th>
-                  <th className="px-6 py-3.5 text-right text-[10px] font-black uppercase tracking-wider">Actions</th>
+                  <th className="px-6 py-3.5">Role Name</th>
+                  <th className="px-6 py-3.5">Description</th>
+                  <th className="px-6 py-3.5 text-center">Total Users</th>
+                  <th className="px-6 py-3.5 text-center">Role Type</th>
+                  <th className="px-6 py-3.5 text-center">Status</th>
+                  <th className="px-6 py-3.5">Created Date</th>
+                  <th className="px-6 py-3.5 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/40">

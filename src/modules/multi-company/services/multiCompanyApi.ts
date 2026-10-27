@@ -88,7 +88,12 @@ export const multiCompanyApi = {
 
   async saveCompanyModules(
     companyId: number, 
-    modules: Array<{ module_key: string; is_enabled: boolean }>,
+    modules: Array<{ 
+      module_key: string; 
+      is_enabled: boolean;
+      enabled_permissions?: string[];
+      permission_levels?: Record<string, 'view' | 'edit'>;
+    }>,
     operatorName?: string
   ): Promise<{ modules: CompanyModuleSetting[]; enabled_module_keys: string[] }> {
     const res = await fetch(`${API_BASE_URL}/api/companies/${companyId}/modules`, {

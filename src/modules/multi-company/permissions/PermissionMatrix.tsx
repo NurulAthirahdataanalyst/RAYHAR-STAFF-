@@ -88,15 +88,15 @@ export const PermissionMatrix: React.FC<PermissionMatrixProps> = ({
             className="rounded-xl border border-border dark:border-neutral-800 bg-card dark:bg-card/90 overflow-hidden shadow-xs"
           >
             {/* Category Header */}
-            <div className="flex items-center justify-between px-3.5 py-2 bg-muted/50 dark:bg-neutral-800/60 border-b border-border dark:border-neutral-800">
-              <span className="text-xs font-black uppercase tracking-wider text-foreground dark:text-neutral-200">
+            <div className="flex items-center justify-between px-3.5 py-2.5 bg-muted/50 dark:bg-neutral-800/60 border-b border-border dark:border-neutral-800">
+              <span className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
                 {category}
               </span>
               <button
                 type="button"
                 onClick={() => handleSelectAllCategory(category)}
                 disabled={disabled}
-                className="text-[10px] font-bold text-[#942392] dark:text-[#f885d5] hover:underline"
+                className="text-xs font-bold text-[#942392] dark:text-[#f885d5] hover:underline"
               >
                 {allSelected ? 'Deselect All' : 'Select All'}
               </button>
@@ -112,7 +112,7 @@ export const PermissionMatrix: React.FC<PermissionMatrixProps> = ({
                   <div
                     key={p.key}
                     onClick={() => handleToggle(p.key)}
-                    className={`flex items-start justify-between gap-2 p-2.5 rounded-lg border cursor-pointer transition-colors ${
+                    className={`flex items-start justify-between gap-2 p-2.5 rounded-xl border cursor-pointer transition-colors ${
                       isChecked
                         ? 'bg-[#942392]/5 border-[#942392]/30 dark:bg-[#942392]/10'
                         : 'border-border/40 hover:bg-muted/40 dark:hover:bg-neutral-800/40'
@@ -125,26 +125,28 @@ export const PermissionMatrix: React.FC<PermissionMatrixProps> = ({
                         className="mt-0.5 data-[state=checked]:bg-[#942392] data-[state=checked]:border-[#942392]"
                       />
                       <div className="flex flex-col text-left min-w-0">
-                        <span className="text-xs font-bold text-foreground dark:text-neutral-200 leading-tight truncate">
+                        <span className={`text-xs font-bold leading-tight truncate ${
+                          isChecked ? 'text-black dark:text-white' : 'text-muted-foreground'
+                        }`}>
                           {p.label}
                         </span>
-                        <span className="text-[10px] text-muted-foreground dark:text-neutral-400 mt-0.5 leading-snug line-clamp-1">
+                        <span className="text-xs text-muted-foreground mt-0.5 leading-snug line-clamp-1">
                           {p.description}
                         </span>
                       </div>
                     </div>
 
                     {/* Segmented View | Edit Toggle */}
-                    <div className="inline-flex items-center p-0.5 rounded-md bg-muted/80 dark:bg-neutral-800 border border-border/50 shrink-0">
+                    <div className="inline-flex items-center p-0.5 rounded-full bg-muted/80 dark:bg-neutral-800 border border-border/60 shrink-0">
                       <button
                         type="button"
                         disabled={disabled}
                         onClick={(e) => handleSetLevel(e, p.key, 'view')}
-                        className={`px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider transition-all ${
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider transition-all ${
                           isChecked && currentLevel === 'view'
                             ? 'bg-[#942392] text-white shadow-2xs'
                             : isChecked
-                            ? 'text-muted-foreground hover:text-foreground'
+                            ? 'text-muted-foreground hover:text-black dark:hover:text-white'
                             : 'text-muted-foreground/40'
                         }`}
                         title="View access"
@@ -155,11 +157,11 @@ export const PermissionMatrix: React.FC<PermissionMatrixProps> = ({
                         type="button"
                         disabled={disabled}
                         onClick={(e) => handleSetLevel(e, p.key, 'edit')}
-                        className={`px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider transition-all ${
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider transition-all ${
                           isChecked && currentLevel === 'edit'
                             ? 'bg-[#942392] text-white shadow-2xs'
                             : isChecked
-                            ? 'text-muted-foreground hover:text-foreground'
+                            ? 'text-muted-foreground hover:text-black dark:hover:text-white'
                             : 'text-muted-foreground/40'
                         }`}
                         title="Edit access"

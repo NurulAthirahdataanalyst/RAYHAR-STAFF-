@@ -124,31 +124,34 @@ export const Tab5_DepartmentMgmt: React.FC = () => {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-muted/50 dark:bg-neutral-800/60 border-b border-border dark:border-neutral-800 text-[10px] font-black uppercase tracking-wider text-muted-foreground">
+              <thead className="bg-muted/50 dark:bg-neutral-800/60 border-b border-border dark:border-neutral-800 text-xs font-black uppercase tracking-wider text-black dark:text-white">
                 <tr>
-                  <th className="px-4 py-3">Code</th>
-                  <th className="px-4 py-3">Department Name</th>
-                  <th className="px-4 py-3">Headcount</th>
-                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3.5">Code</th>
+                  <th className="px-4 py-3.5">Department Name</th>
+                  <th className="px-4 py-3.5">Headcount</th>
+                  <th className="px-4 py-3.5">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/40 dark:divide-neutral-800/40">
                 {departments.map((d) => (
                   <tr key={d.id} className="hover:bg-muted/40 dark:hover:bg-neutral-800/40 transition-colors">
-                    <td className="px-4 py-3 font-mono font-bold text-foreground">
-                      {d.code || '—'}
-                    </td>
-                    <td className="px-4 py-3 font-bold text-foreground dark:text-neutral-200">
-                      {d.name}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className="flex items-center gap-1.5 text-muted-foreground">
-                        <Users className="w-3 h-3 text-[#942392]" />
-                        {d.employee_count || 0} Staff
+                    <td className="px-4 py-3.5">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full font-mono text-xs font-bold border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800 text-black dark:text-white">
+                        {d.code || '—'}
                       </span>
                     </td>
-                    <td className="px-4 py-3">
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                    <td className="px-4 py-3.5 text-sm font-bold text-black dark:text-white">
+                      {d.name}
+                    </td>
+                    <td className="px-4 py-3.5">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border border-purple-200 dark:border-purple-800/60 bg-purple-50 dark:bg-purple-950/40 text-[#942392] dark:text-[#f885d5]">
+                        <Users className="w-3.5 h-3.5" />
+                        <span>{d.employee_count || 0} Staff</span>
+                      </span>
+                    </td>
+                    <td className="px-4 py-3.5">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border border-emerald-200 dark:border-emerald-800/60 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500" />
                         Active
                       </span>
                     </td>

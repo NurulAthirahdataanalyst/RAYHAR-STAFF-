@@ -84,6 +84,8 @@ export interface ModuleDefinition {
   status: string;
   features_count?: number;
   permissions?: ModulePermission[];
+  enabled_permissions?: string[];
+  permission_levels?: Record<string, 'view' | 'edit'>;
 }
 
 export interface CompanyModuleSetting {
@@ -98,6 +100,8 @@ export interface CompanyModuleSetting {
   updated_by?: string;
   features_count?: number;
   permissions?: ModulePermission[];
+  enabled_permissions?: string[];
+  permission_levels?: Record<string, 'view' | 'edit'>;
 }
 
 export interface RoleTemplate {

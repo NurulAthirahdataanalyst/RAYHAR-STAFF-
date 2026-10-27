@@ -296,14 +296,14 @@ export const CompanyTransferWizard: React.FC<EmployeeTransferWizardProps> = ({ o
                   <UserCheck className="w-4 h-4 text-[#942392]" />
                   Select Employee to Transfer *
                 </Label>
-                <p className="text-[11px] text-muted-foreground">Choose the staff member who will be transferred to another company.</p>
+                <p className="text-xs text-muted-foreground">Choose the staff member who will be transferred to another company.</p>
               </div>
 
               <Select value={selectedEmployeeId} onValueChange={setSelectedEmployeeId}>
-                <SelectTrigger className="text-xs bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium data-[placeholder]:font-normal text-black dark:text-white h-10">
+                <SelectTrigger className="text-xs bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold data-[placeholder]:font-normal text-black dark:text-white h-10 rounded-xl">
                   <SelectValue placeholder={loadingEmployees ? "Loading personnel list..." : "Choose staff member..."} />
                 </SelectTrigger>
-                <SelectContent className="max-h-60">
+                <SelectContent className="max-h-60 rounded-xl">
                   {employees.map(e => (
                     <SelectItem key={e.user_id || e.id} value={e.user_id || e.id} className="text-xs font-bold">
                       {e.full_name || e.name} ({e.user_id || e.id}) — {e.branch || 'HQ'}
@@ -314,19 +314,19 @@ export const CompanyTransferWizard: React.FC<EmployeeTransferWizardProps> = ({ o
 
               {selectedEmployee && (
                 <div className="p-3.5 bg-muted/40 dark:bg-neutral-800/40 rounded-xl border border-border/50 text-xs space-y-2">
-                  <div className="flex justify-between items-center text-[11px]">
+                  <div className="flex justify-between items-center text-xs">
                     <span className="text-muted-foreground uppercase font-bold">Current Company:</span>
                     <strong className="text-black dark:text-white">{selectedEmployee.company_name || 'Rayhar Travels'}</strong>
                   </div>
-                  <div className="flex justify-between items-center text-[11px]">
+                  <div className="flex justify-between items-center text-xs">
                     <span className="text-muted-foreground uppercase font-bold">Current Role:</span>
-                    <Badge variant="outline" className="font-bold text-[10px] bg-[#942392]/10 text-[#942392] border-[#942392]/30">
+                    <Badge variant="outline" className="font-bold text-xs bg-[#942392]/10 text-[#942392] border-[#942392]/30 rounded-full px-2.5 py-0.5">
                       {selectedEmployee.role || 'Staff'}
                     </Badge>
                   </div>
-                  <div className="flex justify-between items-center text-[11px]">
+                  <div className="flex justify-between items-center text-xs">
                     <span className="text-muted-foreground uppercase font-bold">Branch & Dept:</span>
-                    <span className="font-medium text-foreground">{selectedEmployee.branch || 'HQ'} · {selectedEmployee.department || 'General'}</span>
+                    <span className="font-bold text-black dark:text-white">{selectedEmployee.branch || 'HQ'} · {selectedEmployee.department || 'General'}</span>
                   </div>
                 </div>
               )}
@@ -339,17 +339,17 @@ export const CompanyTransferWizard: React.FC<EmployeeTransferWizardProps> = ({ o
                   <Building2 className="w-4 h-4 text-[#942392]" />
                   Destination Company / Subsidiary *
                 </Label>
-                <p className="text-[11px] text-muted-foreground">Select the business entity where this employee will be relocated.</p>
+                <p className="text-xs text-muted-foreground">Select the business entity where this employee will be relocated.</p>
               </div>
 
               <Select 
                 value={targetCompanyId ? targetCompanyId.toString() : ''} 
                 onValueChange={(val) => setTargetCompanyId(parseInt(val, 10))}
               >
-                <SelectTrigger className="text-xs bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium data-[placeholder]:font-normal text-black dark:text-white h-10">
+                <SelectTrigger className="text-xs bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold data-[placeholder]:font-normal text-black dark:text-white h-10 rounded-xl">
                   <SelectValue placeholder="Select target entity..." />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="rounded-xl">
                   {companies.map(c => (
                     <SelectItem key={c.id} value={c.id.toString()} className="text-xs font-bold">
                       {c.company_name} ({c.company_type === 'main' ? 'Parent Holding' : 'Subsidiary'})
@@ -410,7 +410,7 @@ export const CompanyTransferWizard: React.FC<EmployeeTransferWizardProps> = ({ o
                 <Shield className="w-4 h-4 text-[#942392]" />
                 Role Compatibility & RBAC Validation
               </h4>
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 Every company owns its independent role structure. Roles are never automatically copied or assumed.
               </p>
             </div>

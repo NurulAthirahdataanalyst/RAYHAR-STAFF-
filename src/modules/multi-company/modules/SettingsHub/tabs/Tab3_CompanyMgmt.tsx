@@ -131,15 +131,15 @@ export const Tab3_CompanyMgmt: React.FC<Tab3CompanyMgmtProps> = ({ onNavigateToT
       <Card className="border border-border dark:border-neutral-800 shadow-xs bg-white/70 dark:bg-card/70 backdrop-blur-md rounded-2xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-muted/50 dark:bg-neutral-800/60 border-b border-border dark:border-neutral-800 text-[10px] font-black uppercase tracking-wider text-muted-foreground">
+            <thead className="bg-muted/50 dark:bg-neutral-800/60 border-b border-border dark:border-neutral-800 text-xs font-black uppercase tracking-wider text-black dark:text-white">
               <tr>
-                <th className="px-4 py-3">Branding</th>
-                <th className="px-4 py-3">Company Name</th>
-                <th className="px-4 py-3">Structure Tier</th>
-                <th className="px-4 py-3">Parent Holding</th>
-                <th className="px-4 py-3">Branches & Geofence</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3 text-right">Actions</th>
+                <th className="px-4 py-3.5">Branding</th>
+                <th className="px-4 py-3.5">Company Name</th>
+                <th className="px-4 py-3.5">Structure Tier</th>
+                <th className="px-4 py-3.5">Parent Holding</th>
+                <th className="px-4 py-3.5">Branches & Geofence</th>
+                <th className="px-4 py-3.5">Status</th>
+                <th className="px-4 py-3.5 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/40 dark:divide-neutral-800/40">
@@ -177,66 +177,63 @@ export const Tab3_CompanyMgmt: React.FC<Tab3CompanyMgmtProps> = ({ onNavigateToT
                     </td>
 
                     {/* Company Name */}
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3.5">
                       <div className="flex flex-col">
-                        <span className="font-bold text-foreground dark:text-neutral-200">
+                        <span className="text-sm font-bold text-black dark:text-white">
                           {c.company_name}
                         </span>
-                        <span className="text-[10px] text-muted-foreground">{c.email}</span>
+                        <span className="text-xs text-muted-foreground">{c.email}</span>
                       </div>
                     </td>
 
                     {/* Structure Tier */}
-                    <td className="px-4 py-3">
-                      <Badge 
-                        variant="outline" 
-                        className={`text-[9px] font-bold px-2 py-0.5 ${
-                          isMain 
-                            ? 'bg-[#942392]/10 text-[#942392] border-[#942392]/30' 
-                            : 'bg-muted text-foreground border-border'
-                        }`}
-                      >
+                    <td className="px-4 py-3.5">
+                      <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-bold border ${
+                        isMain 
+                          ? 'border-[#942392]/30 bg-[#942392]/10 text-[#942392] dark:border-[#942392]/40 dark:bg-[#942392]/20 dark:text-[#f885d5]' 
+                          : 'border-blue-200 dark:border-blue-800/50 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300'
+                      }`}>
                         {isMain ? 'Main Company' : 'Subsidiary'}
-                      </Badge>
+                      </span>
                     </td>
 
                     {/* Parent Holding */}
-                    <td className="px-4 py-3 text-muted-foreground font-medium">
+                    <td className="px-4 py-3.5 text-xs text-muted-foreground font-medium">
                       {isMain ? '— (Root Holding)' : c.parent_company_name || 'Rayhar Travels'}
                     </td>
 
                     {/* Branches Summary Pill (Touchpoint) */}
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3.5">
                       <button
                         type="button"
                         onClick={() => {
                           setActiveCompanyId(c.id);
                           if (onNavigateToTab) onNavigateToTab('branch', c.id);
                         }}
-                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-muted/70 hover:bg-muted dark:bg-neutral-800 dark:hover:bg-neutral-700 text-[10px] font-bold text-foreground transition-colors border border-border/50"
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors shadow-2xs"
                         title="Click to view & configure branches for this company"
                       >
-                        <MapPin className="w-3 h-3 text-[#942392]" />
+                        <MapPin className="w-3.5 h-3.5 text-[#942392]" />
                         <span>{c.branches_count || 0} Branches</span>
-                        <ArrowRight className="w-2.5 h-2.5 text-muted-foreground ml-0.5" />
+                        <ArrowRight className="w-3 h-3 text-muted-foreground ml-0.5" />
                       </button>
                     </td>
 
                     {/* Status */}
-                    <td className="px-4 py-3">
-                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                    <td className="px-4 py-3.5">
+                      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${
                         c.status === 'active' 
-                          ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' 
-                          : 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
+                          ? 'border-emerald-200 dark:border-emerald-800/60 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300' 
+                          : 'border-rose-200 dark:border-rose-800/60 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300'
                       }`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${c.status === 'active' ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+                        <span className={`w-2 h-2 rounded-full ${c.status === 'active' ? 'bg-emerald-500' : 'bg-rose-500'}`} />
                         {c.status === 'active' ? 'Active' : 'Inactive'}
                       </span>
                     </td>
 
                     {/* Actions */}
-                    <td className="px-4 py-3 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
+                    <td className="px-4 py-3.5 text-right">
+                      <div className="flex items-center justify-end gap-2">
                         <Button
                           variant="ghost"
                           size="sm"
@@ -244,10 +241,10 @@ export const Tab3_CompanyMgmt: React.FC<Tab3CompanyMgmtProps> = ({ onNavigateToT
                             setSelectedForLogo(c);
                             setLogoModalOpen(true);
                           }}
-                          className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
+                          className="h-8 w-8 p-0 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted"
                           title="Upload or change logo"
                         >
-                          <ImageIcon className="w-3.5 h-3.5" />
+                          <ImageIcon className="w-4 h-4" />
                         </Button>
 
                         <Button
@@ -257,10 +254,10 @@ export const Tab3_CompanyMgmt: React.FC<Tab3CompanyMgmtProps> = ({ onNavigateToT
                             setActiveCompanyId(c.id);
                             navigate('/organization/modules');
                           }}
-                          className="h-7 px-2 text-xs font-bold text-[#942392] border-[#942392]/30 bg-[#942392]/5 hover:bg-[#942392]/10"
+                          className="h-8 px-3 rounded-full text-xs font-bold text-[#942392] border-[#942392]/30 bg-[#942392]/5 hover:bg-[#942392]/10"
                           title="Configure modules enabled for this company"
                         >
-                          <Boxes className="w-3 h-3 mr-1" />
+                          <Boxes className="w-3.5 h-3.5 mr-1" />
                           Modules
                         </Button>
 
@@ -268,9 +265,9 @@ export const Tab3_CompanyMgmt: React.FC<Tab3CompanyMgmtProps> = ({ onNavigateToT
                           variant="outline"
                           size="sm"
                           onClick={() => handleOpenEditModal(c)}
-                          className="h-7 px-2.5 text-xs font-bold border-border/60 hover:bg-muted"
+                          className="h-8 px-3 rounded-full text-xs font-bold border-border/80 hover:bg-muted"
                         >
-                          <Edit className="w-3 h-3 mr-1" />
+                          <Edit className="w-3.5 h-3.5 mr-1" />
                           Edit
                         </Button>
                       </div>
