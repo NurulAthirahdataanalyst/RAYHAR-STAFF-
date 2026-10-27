@@ -41,6 +41,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectSeparator, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { formatMyKad, parseMyKad, formatMalaysianPhone } from "@/utils/mykadUtils";
+import { Calendar } from "@/components/ui/calendar";
+import { CalendarDays } from "lucide-react";
 import { parseCutiGantiRows, getCleanReason } from "@/lib/leaveStorage";
 import { API_BASE_URL } from "../config/api";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
@@ -303,6 +306,10 @@ export default function Employees() {
   const [signupBranch, setSignupBranch] = useState("HQ");
   const [signupDepartment, setSignupDepartment] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
+  const [signupIc, setSignupIc] = useState("");
+  const [signupPhone, setSignupPhone] = useState("");
+  const [signupJoinDate, setSignupJoinDate] = useState<string>(() => new Date().toISOString().split("T")[0]);
+  const parsedSignupIc = useMemo(() => parseMyKad(signupIc), [signupIc]);
   const [showPassword, setShowPassword] = useState(false);
   const [signupRole, setSignupRole] = useState("");
   const [availableRoles, setAvailableRoles] = useState<any[]>([]);
@@ -721,7 +728,12 @@ export default function Employees() {
           branch: signupBranch,
           department: signupBranch === "HQ" ? signupDepartment : null,
           role: chosenRoleName,
-          status: 'Active'
+          status: 'Active',
+          ic_number: signupIc ? formatMyKad(signupIc) : null,
+          phone: signupPhone ? formatMalaysianPhone(signupPhone) : null,
+          gender: parsedSignupIc.gender || null,
+          dob: parsedSignupIc.dob || null,
+          join_date: signupJoinDate || null,
         }),
       });
 
@@ -734,6 +746,9 @@ export default function Employees() {
         setSignupName("");
         setSignupEmail("");
         setSignupPassword("");
+        setSignupIc("");
+        setSignupPhone("");
+        setSignupJoinDate(new Date().toISOString().split("T")[0]);
         setSignupBranch("HQ");
         setSignupDepartment("");
         setSignupRole(""); // reset so placeholder shows
@@ -1913,7 +1928,7 @@ export default function Employees() {
               {/* Full Name */}
               <div className="space-y-1.5 md:col-span-2">
                 <Label htmlFor="signup-name" className="text-[10px] font-black uppercase tracking-widest text-foreground">
-                  Full Name
+                  Full Name <span className="text-rose-500">*</span>
                 </Label>
                 <Input
                   id="signup-name"
@@ -1926,20 +1941,97 @@ export default function Employees() {
                 />
               </div>
 
-              {/* Email */}
+              {/* IC Number */}
               <div className="space-y-1.5 col-span-1">
-                <Label htmlFor="signup-email" className="text-[10px] font-black uppercase tracking-widest text-foreground">
-                  Email Address
-                </Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="signup-ic" className="text-[10px] font-black uppercase tracking-widest text-foreground">
+                    IC Number (MyKad)
+                  </Label>
+                  <span className="text-[9px] font-bold text-muted-foreground uppercase">YYMMDD-SS-####</span>
+                </div>
                 <Input
-                  id="signup-email"
-                  type="email"
-                  className="h-11 px-4 bg-background/50 border border-border/80 focus:border-[#942392] focus:ring-2 focus:ring-[#942392]/10 rounded-xl text-xs font-bold"
-                  placeholder="ahmad@rayhar.com"
-                  value={signupEmail}
-                  onChange={(e) => setSignupEmail(e.target.value)}
-                  required
+                  id="signup-ic"
+                  type="text"
+                  maxLength={14}
+                  className="h-11 px-4 bg-background/50 border border-border/80 focus:border-[#942392] focus:ring-2 focus:ring-[#942392]/10 rounded-xl text-xs font-mono font-bold"
+                  placeholder="e.g. 900101-14-5678"
+                  value={signupIc}
+                  onChange={(e) => setSignupIc(formatMyKad(e.target.value))}
                 />
+              </div>
+
+              {/* Phone Number */}
+              <div className="space-y-1.5 col-span-1">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="signup-phone" className="text-[10px] font-black uppercase tracking-widest text-foreground">
+                    Phone Number
+                  </Label>
+                  <span className="text-[9px] font-bold text-muted-foreground uppercase">01X-XXXXXXX</span>
+                </div>
+                <Input
+                  id="signup-phone"
+                  type="text"
+                  maxLength={12}
+                  className="h-11 px-4 bg-background/50 border border-border/80 focus:border-[#942392] focus:ring-2 focus:ring-[#942392]/10 rounded-xl text-xs font-mono font-bold"
+                  placeholder="e.g. 012-3456789"
+                  value={signupPhone}
+                  onChange={(e) => setSignupPhone(formatMalaysianPhone(e.target.value))}
+                />
+              </div>
+
+              {/* Real-time Dynamic Info Bar from IC */}
+              {signupIc && (
+                <div className="md:col-span-2 p-3 bg-purple-50/70 dark:bg-purple-950/30 border border-purple-200/80 dark:border-purple-800/60 rounded-xl flex items-center justify-between flex-wrap gap-2 animate-in fade-in slide-in-from-top-1 text-xs">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-[#942392]">Date of Birth:</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-200">{parsedSignupIc.formattedDob || "Calculating..."}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-[#942392]">Age:</span>
+                    <span className="font-black text-[#942392]">{parsedSignupIc.age !== null ? `${parsedSignupIc.age} years old` : "—"}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-[#942392]">Gender:</span>
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-white dark:bg-purple-900 border border-purple-200 text-[#942392] dark:text-purple-200">
+                      {parsedSignupIc.gender || "—"}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Date of Join (Day Picker Popover) */}
+              <div className="space-y-1.5 col-span-1">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-foreground">
+                  Date of Join
+                </Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button
+                      type="button"
+                      className="flex items-center justify-between w-full h-11 px-4 bg-background/50 border border-border/80 focus:border-[#942392] focus:ring-2 focus:ring-[#942392]/10 rounded-xl text-xs font-bold text-foreground text-left shadow-xs hover:bg-muted/50"
+                    >
+                      <span>
+                        {signupJoinDate
+                          ? new Date(signupJoinDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()
+                          : "SELECT DATE"}
+                      </span>
+                      <CalendarDays className="w-4 h-4 text-foreground/60" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0 border-none shadow-2xl rounded-2xl overflow-hidden z-[80]" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={signupJoinDate ? new Date(signupJoinDate) : new Date()}
+                      onSelect={(d) => {
+                        if (d) {
+                          const localIso = new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+                          setSignupJoinDate(localIso);
+                        }
+                      }}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
 
               {/* Branch */}
@@ -2031,10 +2123,26 @@ export default function Employees() {
                 </Select>
               </div>
 
+              {/* Email Address */}
+              <div className="space-y-1.5 col-span-1">
+                <Label htmlFor="signup-email" className="text-[10px] font-black uppercase tracking-widest text-foreground">
+                  Email Address <span className="text-rose-500">*</span>
+                </Label>
+                <Input
+                  id="signup-email"
+                  type="email"
+                  className="h-11 px-4 bg-background/50 border border-border/80 focus:border-[#942392] focus:ring-2 focus:ring-[#942392]/10 rounded-xl text-xs font-bold"
+                  placeholder="ahmad@rayhar.com"
+                  value={signupEmail}
+                  onChange={(e) => setSignupEmail(e.target.value)}
+                  required
+                />
+              </div>
+
               {/* Password */}
               <div className="space-y-1.5 col-span-1">
                 <Label htmlFor="signup-password" className="text-[10px] font-black uppercase tracking-widest text-foreground">
-                  Password
+                  Password <span className="text-rose-500">*</span>
                 </Label>
                 <div className="relative">
                   <Input

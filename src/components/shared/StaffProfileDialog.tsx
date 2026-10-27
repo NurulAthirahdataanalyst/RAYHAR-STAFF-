@@ -13,7 +13,9 @@ import {
   Loader2, 
   CalendarCheck, 
   TrendingUp, 
-  Clock, 
+  Clock,
+  CalendarDays,
+  Edit, 
   FileText, 
   Users,
   Briefcase,
@@ -40,6 +42,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectSeparator, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { formatMyKad, parseMyKad, formatMalaysianPhone } from "@/utils/mykadUtils";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { parseCutiGantiRows, getCleanReason } from "@/lib/leaveStorage";
 import { API_BASE_URL } from "@/config/api";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
@@ -185,6 +190,118 @@ export function StaffProfileDialog({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [analytics, setAnalytics] = useState<any>(null);
   const [todayStats, setTodayStats] = useState<any>(null);
+
+  // Edit Personal Info State
+  const [isEditPersonalModalOpen, setIsEditPersonalModalOpen] = useState(false);
+  const [editFullName, setEditFullName] = useState("");
+  const [editIcNumber, setEditIcNumber] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+  const [editJoinDate, setEditJoinDate] = useState<string>("");
+  const [isUpdatingPersonalInfo, setIsUpdatingPersonalInfo] = useState(false);
+  const parsedEditIc = useMemo(() => parseMyKad(editIcNumber), [editIcNumber]);
+
+  // Edit Today's Attendance State
+  const [isEditTodayAttendanceOpen, setIsEditTodayAttendanceOpen] = useState(false);
+  const [editClockIn, setEditClockIn] = useState("");
+  const [editClockOut, setEditClockOut] = useState("");
+  const [editAttendanceType, setEditAttendanceType] = useState("Present");
+  const [editAttendanceLocation, setEditAttendanceLocation] = useState("Rayhar HQ");
+  const [isUpdatingTodayAttendance, setIsUpdatingTodayAttendance] = useState(false);
+
+  useEffect(() => {
+    if (selectedEmployee) {
+      setEditFullName(selectedEmployee.name || "");
+      setEditIcNumber(selectedEmployee.ic_number ? formatMyKad(selectedEmployee.ic_number) : "");
+      setEditPhone(selectedEmployee.phone ? formatMalaysianPhone(selectedEmployee.phone) : "");
+      setEditJoinDate(selectedEmployee.join_date ? new Date(selectedEmployee.join_date).toISOString().split('T')[0] : (selectedEmployee.created_at ? new Date(selectedEmployee.created_at).toISOString().split('T')[0] : ""));
+    }
+  }, [selectedEmployee]);
+
+  useEffect(() => {
+    if (todayStats) {
+      setEditClockIn(todayStats.clockInTime && todayStats.clockInTime !== "--:--" ? todayStats.clockInTime : "");
+      setEditClockOut(todayStats.clockOutTime && todayStats.clockOutTime !== "--:--" ? todayStats.clockOutTime : "");
+      setEditAttendanceType(todayStats.todayStatus ? todayStats.todayStatus.replace(/\(.*?\)/g, '').trim() : "Present");
+      setEditAttendanceLocation(todayStats.attendanceLocation ? (BRANCH_NAMES[todayStats.attendanceLocation] || todayStats.attendanceLocation) : (selectedEmployee?.branch ? (BRANCH_NAMES[selectedEmployee.branch] || selectedEmployee.branch) : "Rayhar HQ"));
+    }
+  }, [todayStats, selectedEmployee]);
+
+  const handleSavePersonalInfo = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedEmployee?.user_id) return;
+    setIsUpdatingPersonalInfo(true);
+    try {
+      const parsed = parseMyKad(editIcNumber);
+      const res = await fetch(`${API_BASE_URL}/api/employees/${selectedEmployee.user_id}/personal-info`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          full_name: editFullName,
+          ic_number: editIcNumber ? formatMyKad(editIcNumber) : null,
+          phone: editPhone ? formatMalaysianPhone(editPhone) : null,
+          gender: parsed.gender || null,
+          dob: parsed.dob || null,
+          join_date: editJoinDate || null,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        toast({ title: "Updated!", description: "Personal information saved successfully." });
+        setSelectedEmployee((prev: any) => ({
+          ...prev,
+          name: editFullName,
+          ic_number: editIcNumber ? formatMyKad(editIcNumber) : prev.ic_number,
+          phone: editPhone ? formatMalaysianPhone(editPhone) : prev.phone,
+          gender: parsed.gender || prev.gender,
+          dob: parsed.dob || prev.dob,
+          join_date: editJoinDate || prev.join_date,
+        }));
+        setIsEditPersonalModalOpen(false);
+      } else {
+        toast({ title: "Update Failed", description: data.error || "Could not update information.", variant: "destructive" });
+      }
+    } catch (err: any) {
+      toast({ title: "Network Error", description: err.message, variant: "destructive" });
+    } finally {
+      setIsUpdatingPersonalInfo(false);
+    }
+  };
+
+  const handleSaveTodayAttendance = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedEmployee?.user_id) return;
+    setIsUpdatingTodayAttendance(true);
+    try {
+      const todayDateStr = new Date().toISOString().split('T')[0];
+      const clockInVal = editClockIn ? (editClockIn.includes('T') ? editClockIn : `${todayDateStr}T${editClockIn}:00`) : null;
+      const clockOutVal = editClockOut ? (editClockOut.includes('T') ? editClockOut : `${todayDateStr}T${editClockOut}:00`) : null;
+
+      const res = await fetch(`${API_BASE_URL}/api/employees/${selectedEmployee.user_id}/today-attendance`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          clock_in: clockInVal,
+          clock_out: clockOutVal,
+          attendance_type: editAttendanceType,
+          location: editAttendanceLocation,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        toast({ title: "Attendance Updated!", description: "Today's attendance record saved." });
+        if (selectedEmployee?.user_id) {
+          fetchTodayStats(selectedEmployee.user_id);
+        }
+        setIsEditTodayAttendanceOpen(false);
+      } else {
+        toast({ title: "Failed", description: data.error || "Could not update attendance.", variant: "destructive" });
+      }
+    } catch (err: any) {
+      toast({ title: "Network Error", description: err.message, variant: "destructive" });
+    } finally {
+      setIsUpdatingTodayAttendance(false);
+    }
+  };
 
   useEffect(() => {
     if (isOpen && employeeId) {
@@ -751,19 +868,20 @@ export function StaffProfileDialog({
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="max-w-6xl w-full overflow-hidden border-0 border-none shadow-2xl rounded-2xl p-0 gap-0 bg-slate-50 dark:bg-slate-900 print:hidden flex flex-col max-h-[90vh]">
           <DialogHeader className="p-4 pb-3 bg-[#942392] shrink-0 z-10 shadow-sm text-white border-none">
-            <DialogTitle className="text-xl font-black tracking-tight text-white uppercase">Staff Profile & Analytics {selectedEmployee ? `- ${selectedEmployee.name} (${selectedEmployee.branch})` : ""}</DialogTitle>
+            <DialogTitle className="text-xl font-black tracking-tight text-white uppercase">Staff Profile {selectedEmployee ? `- ${selectedEmployee.name} (${selectedEmployee.branch})` : ""}</DialogTitle>
           </DialogHeader>
           
           <div className="p-4 overflow-y-auto flex-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             {selectedEmployee ? (
               <Tabs defaultValue="basic" className="w-full">
                 <TabsList className="mb-4 flex w-fit mx-auto flex-wrap h-auto gap-1 bg-slate-100 dark:bg-slate-900 p-2 rounded-xl shadow-inner border border-slate-200 dark:border-slate-800">
-                  <TabsTrigger value="basic" className="rounded-lg text-xs neumorphic-tab font-semibold">Staff Profile & Analytics</TabsTrigger>
+                  <TabsTrigger value="basic" className="rounded-lg text-xs neumorphic-tab font-semibold">Staff Profile</TabsTrigger>
                   <TabsTrigger value="attendance_settings" className="rounded-lg text-xs neumorphic-tab font-semibold">Attendance Settings</TabsTrigger>
                   <TabsTrigger value="temporary_assignment" className="rounded-lg text-xs neumorphic-tab font-semibold">Temporary Assignment</TabsTrigger>
                   <TabsTrigger value="multi_location" className="rounded-lg text-xs neumorphic-tab font-semibold">Multi Location Branch</TabsTrigger>
                   <TabsTrigger value="outstation_assignment" className="rounded-lg text-xs neumorphic-tab font-semibold">Outstation Assignment</TabsTrigger>
                   <TabsTrigger value="location_history" className="rounded-lg text-xs neumorphic-tab font-semibold">Location History</TabsTrigger>
+                  <TabsTrigger value="analytics" className="rounded-lg text-xs neumorphic-tab font-semibold">Performance Analytics</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="basic" className="mt-0">

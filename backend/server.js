@@ -3401,6 +3401,11 @@ app.post("/api/signup", async (req, res) => {
   const role = safeString(req.body?.role);
   const operatorName = safeString(req.body?.operatorName);
   const operatorRole = safeString(req.body?.operatorRole);
+  const ic_number = safeString(req.body?.ic_number);
+  const phone = safeString(req.body?.phone);
+  const gender = safeString(req.body?.gender);
+  const dob = safeString(req.body?.dob);
+  const join_date = safeString(req.body?.join_date);
 
   if (!full_name || !email || !password || !branch) {
     return res.status(400).json({ success: false, error: "All fields are required" });
@@ -3465,9 +3470,9 @@ app.post("/api/signup", async (req, res) => {
     }
 
     await connection.query(
-      `INSERT INTO profiles (user_id, full_name, email, password, branch, department, status, role, role_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [userId, full_name, email, hashedPassword, branch, department || null, status || "Active", resolvedRoleName, resolvedRoleId]
+      `INSERT INTO profiles (user_id, full_name, email, password, branch, department, status, role, role_id, ic_number, phone, gender, dob, join_date)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [userId, full_name, email, hashedPassword, branch, department || null, status || "Active", resolvedRoleName, resolvedRoleId, ic_number || null, phone || null, gender || null, dob || null, join_date || null]
     );
 
     await connection.query(
@@ -3494,7 +3499,12 @@ app.post("/api/signup", async (req, res) => {
         full_name,
         email,
         branch,
-        department: department
+        department: department,
+        ic_number,
+        phone,
+        gender,
+        dob,
+        join_date
       }
     });
 
@@ -5418,6 +5428,81 @@ app.patch("/api/attendances/:id/adjust", async (req, res) => {
 
 // ===============================
 
+
+// ==========================================
+// EMPLOYEE PERSONAL INFORMATION & TODAY ATTENDANCE
+// ==========================================
+app.put("/api/employees/:userId/personal-info", async (req, res) => {
+  const userId = safeString(req.params.userId);
+  const full_name = safeString(req.body?.full_name);
+  const ic_number = safeString(req.body?.ic_number);
+  const phone = safeString(req.body?.phone);
+  const gender = safeString(req.body?.gender);
+  const dob = safeString(req.body?.dob);
+  const join_date = safeString(req.body?.join_date);
+
+  try {
+    await pool.query(
+      `UPDATE profiles
+       SET full_name = COALESCE(NULLIF(?, ''), full_name),
+           ic_number = COALESCE(NULLIF(?, ''), ic_number),
+           phone = COALESCE(NULLIF(?, ''), phone),
+           gender = COALESCE(NULLIF(?, ''), gender),
+           dob = COALESCE(NULLIF(?::date, NULL), dob),
+           join_date = COALESCE(NULLIF(?::date, NULL), join_date),
+           updated_at = CURRENT_TIMESTAMP
+       WHERE user_id = ?`,
+      [full_name, ic_number, phone, gender, dob || null, join_date || null, userId]
+    );
+
+    res.json({ success: true, message: "Personal information updated successfully" });
+  } catch (err) {
+    console.error("Update personal info error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post("/api/employees/:userId/today-attendance", async (req, res) => {
+  const userId = safeString(req.params.userId);
+  const clock_in = safeString(req.body?.clock_in);
+  const clock_out = safeString(req.body?.clock_out);
+  const attendance_type = safeString(req.body?.attendance_type || "Present");
+  const location = safeString(req.body?.location);
+
+  try {
+    const [existing] = await pool.query(
+      `SELECT attendance_id FROM attendances
+       WHERE user_id = ?
+       AND (clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date
+       LIMIT 1`,
+      [userId]
+    );
+
+    if (existing.length > 0) {
+      await pool.query(
+        `UPDATE attendances
+         SET clock_in = COALESCE(NULLIF(?::timestamp, NULL), clock_in),
+             clock_out = COALESCE(NULLIF(?::timestamp, NULL), clock_out),
+             attendance_type = COALESCE(NULLIF(?, ''), attendance_type),
+             location = COALESCE(NULLIF(?, ''), location)
+         WHERE attendance_id = ?`,
+        [clock_in || null, clock_out || null, attendance_type, location, existing[0].attendance_id]
+      );
+    } else {
+      await pool.query(
+        `INSERT INTO attendances (user_id, clock_in, clock_out, attendance_type, location, date)
+         VALUES (?, COALESCE(NULLIF(?::timestamp, NULL), CURRENT_TIMESTAMP), NULLIF(?::timestamp, NULL), ?, ?, CURRENT_DATE)`,
+        [userId, clock_in || null, clock_out || null, attendance_type, location || "HQ"]
+      );
+    }
+
+    res.json({ success: true, message: "Today's attendance record updated" });
+  } catch (err) {
+    console.error("Adjust Today Attendance Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 app.get("/api/employees/:userId/analytics", async (req, res) => {
   const userId = safeString(req.params.userId);
   try {
@@ -5611,6 +5696,11 @@ app.get("/api/employees", async (req, res) => {
         p.user_id,
         p.full_name,
         p.email,
+        p.ic_number,
+        p.phone,
+        p.gender,
+        p.dob,
+        p.join_date,
         COALESCE(temp_ewa.temp_branch, p.branch) AS branch,
         p.branch AS permanent_branch,
         temp_ewa.temp_branch AS temp_branch,
