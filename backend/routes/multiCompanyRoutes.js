@@ -1251,40 +1251,72 @@ function createMultiCompanyRouter(pgPool) {
 
   router.get('/companies/:companyId/work-schedules', async (req, res) => {
     try {
-      const companyId = req.params.companyId;
-      const schedules = await pgPool.query(`
-        SELECT 
-          ws.*,
-          COALESCE(
-            json_agg(
-              json_build_object(
-                'day_of_week', wsd.day_of_week,
-                'start_time', wsd.start_time,
-                'end_time', wsd.end_time,
-                'is_working_day', wsd.is_working_day
-              ) ORDER BY 
-                CASE wsd.day_of_week
-                  WHEN 'Monday' THEN 1
-                  WHEN 'Tuesday' THEN 2
-                  WHEN 'Wednesday' THEN 3
-                  WHEN 'Thursday' THEN 4
-                  WHEN 'Friday' THEN 5
-                  WHEN 'Saturday' THEN 6
-                  WHEN 'Sunday' THEN 7
-                END
-            ) FILTER (WHERE wsd.id IS NOT NULL), '[]'::json
-          ) AS days,
-          COALESCE(
-            (SELECT json_agg(bs.*) FROM break_schedules bs WHERE bs.schedule_id = ws.id), '[]'::json
-          ) AS breaks
-        FROM work_schedules ws
-        LEFT JOIN work_schedule_days wsd ON ws.id = wsd.schedule_id
-        WHERE ws.company_id = $1
-        GROUP BY ws.id
-        ORDER BY ws.id ASC;
-      `, [companyId]);
+      const companyId = parseInt(req.params.companyId, 10) || 1;
+      const [schedulesRes, branchesRes] = await Promise.all([
+        pgPool.query(`
+          SELECT 
+            ws.*,
+            COALESCE(
+              json_agg(
+                json_build_object(
+                  'day_of_week', wsd.day_of_week,
+                  'start_time', wsd.start_time,
+                  'end_time', wsd.end_time,
+                  'is_working_day', wsd.is_working_day
+                ) ORDER BY 
+                  CASE wsd.day_of_week
+                    WHEN 'Monday' THEN 1
+                    WHEN 'Tuesday' THEN 2
+                    WHEN 'Wednesday' THEN 3
+                    WHEN 'Thursday' THEN 4
+                    WHEN 'Friday' THEN 5
+                    WHEN 'Saturday' THEN 6
+                    WHEN 'Sunday' THEN 7
+                  END
+              ) FILTER (WHERE wsd.id IS NOT NULL), '[]'::json
+            ) AS days,
+            COALESCE(
+              (SELECT json_agg(bs.*) FROM break_schedules bs WHERE bs.schedule_id = ws.id), '[]'::json
+            ) AS breaks
+          FROM work_schedules ws
+          LEFT JOIN work_schedule_days wsd ON ws.id = wsd.schedule_id
+          WHERE ws.company_id = $1
+          GROUP BY ws.id
+          ORDER BY ws.id ASC;
+        `, [companyId]),
+        pgPool.query(
+          `SELECT UPPER(code) AS code, operating_zone
+           FROM branches
+           WHERE company_id = $1 OR ($1 = 1 AND company_id IS NULL)
+           ORDER BY code ASC`,
+          [companyId]
+        )
+      ]);
 
-      res.json({ success: true, schedules: schedules.rows });
+      const normalizedSchedules = schedulesRes.rows.map((ws) => {
+        const normZone = normalizeZoneCode(ws.operating_zone);
+        let branchIds = parseBranchIds(ws.branch_ids, ws.branch_id);
+        if (branchIds.length === 0 && normZone) {
+          branchIds = branchesRes.rows
+            .filter((b) => normalizeZoneCode(b.operating_zone) === normZone)
+            .map((b) => b.code);
+        }
+        let specialRules = Array.isArray(ws.special_rules) ? ws.special_rules : [];
+        if (specialRules.length === 0 && normZone === 'ZONE_A') {
+          specialRules = ['first_thursday_full', 'first_saturday_closed'];
+        } else if (specialRules.length === 0 && normZone === 'ZONE_B') {
+          specialRules = ['first_saturday_closed'];
+        }
+        return {
+          ...ws,
+          operating_zone: normZone,
+          branch_ids: branchIds,
+          branch_id: branchIds.length > 0 ? branchIds.join(',') : null,
+          special_rules: specialRules
+        };
+      });
+
+      res.json({ success: true, schedules: normalizedSchedules });
     } catch (err) {
       res.status(500).json({ success: false, error: err.message });
     }
@@ -1295,8 +1327,11 @@ function createMultiCompanyRouter(pgPool) {
       const companyId = req.params.companyId;
       const {
         schedule_name,
+        operating_zone = null,
         department_id = null,
         branch_id = null,
+        branch_ids = [],
+        special_rules = [],
         effective_date = new Date().toISOString().split('T')[0],
         days = [],
         breaks = []
@@ -1306,13 +1341,23 @@ function createMultiCompanyRouter(pgPool) {
         return res.status(400).json({ success: false, error: 'Schedule name is required' });
       }
 
+      const normZone = normalizeZoneCode(operating_zone);
+      const parsedBranches = parseBranchIds(branch_ids, branch_id);
+      const branchIdText = parsedBranches.length > 0 ? parsedBranches.join(',') : null;
+      const cleanRules = Array.isArray(special_rules) ? special_rules : [];
+
       const schedRes = await pgPool.query(`
-        INSERT INTO work_schedules (company_id, department_id, branch_id, schedule_name, effective_date, status)
-        VALUES ($1, $2, $3, $4, $5, 'active')
+        INSERT INTO work_schedules (company_id, operating_zone, department_id, branch_id, branch_ids, special_rules, schedule_name, effective_date, status)
+        VALUES ($1, $2, $3, $4, $5::jsonb, $6::jsonb, $7, $8, 'active')
         RETURNING *;
-      `, [companyId, department_id, branch_id, schedule_name.trim(), effective_date]);
+      `, [companyId, normZone, department_id, branchIdText, JSON.stringify(parsedBranches), JSON.stringify(cleanRules), schedule_name.trim(), effective_date]);
 
       const scheduleId = schedRes.rows[0].id;
+
+      // Sync assigned branches to this schedule's zone
+      if (parsedBranches.length > 0) {
+        await syncScheduleBranchesToZone(companyId, scheduleId, normZone, parsedBranches);
+      }
 
       // Insert days
       const standardDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -1349,8 +1394,11 @@ function createMultiCompanyRouter(pgPool) {
       const { companyId, scheduleId } = req.params;
       const {
         schedule_name,
+        operating_zone = null,
         department_id = null,
         branch_id = null,
+        branch_ids = [],
+        special_rules = [],
         days = [],
         breaks = []
       } = req.body;
@@ -1359,15 +1407,31 @@ function createMultiCompanyRouter(pgPool) {
         return res.status(400).json({ success: false, error: 'Schedule name is required' });
       }
 
+      const normZone = normalizeZoneCode(operating_zone);
+      const parsedBranches = parseBranchIds(branch_ids, branch_id);
+      const branchIdText = parsedBranches.length > 0 ? parsedBranches.join(',') : null;
+      const cleanRules = Array.isArray(special_rules) ? special_rules : [];
+
       const updateRes = await pgPool.query(`
         UPDATE work_schedules
-        SET schedule_name = $1, department_id = $2, branch_id = $3, updated_at = CURRENT_TIMESTAMP
-        WHERE id = $4 AND company_id = $5
+        SET schedule_name = $1,
+            operating_zone = $2,
+            department_id = $3,
+            branch_id = $4,
+            branch_ids = $5::jsonb,
+            special_rules = $6::jsonb,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = $7 AND company_id = $8
         RETURNING *;
-      `, [schedule_name.trim(), department_id, branch_id, scheduleId, companyId]);
+      `, [schedule_name.trim(), normZone, department_id, branchIdText, JSON.stringify(parsedBranches), JSON.stringify(cleanRules), scheduleId, companyId]);
 
       if (updateRes.rows.length === 0) {
         return res.status(404).json({ success: false, error: 'Work schedule not found' });
+      }
+
+      // Sync assigned branches to this schedule's zone
+      if (parsedBranches.length > 0) {
+        await syncScheduleBranchesToZone(companyId, scheduleId, normZone, parsedBranches);
       }
 
       // Re-insert days if provided
@@ -1397,6 +1461,17 @@ function createMultiCompanyRouter(pgPool) {
       res.json({ success: true, schedule: updateRes.rows[0] });
     } catch (err) {
       console.error('Error updating work schedule:', err);
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  // DELETE work schedule
+  router.delete('/companies/:companyId/work-schedules/:scheduleId', async (req, res) => {
+    try {
+      const { companyId, scheduleId } = req.params;
+      await pgPool.query('DELETE FROM work_schedules WHERE id = $1 AND company_id = $2', [scheduleId, companyId]);
+      res.json({ success: true });
+    } catch (err) {
       res.status(500).json({ success: false, error: err.message });
     }
   });

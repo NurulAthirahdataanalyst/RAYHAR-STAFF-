@@ -11604,7 +11604,7 @@ app.get("/api/branches", async (req, res) => {
 });
 
 app.post("/api/branches", async (req, res) => {
-  const { code, name, location, operating_zone, company_id, operatorName, operatorRole } = req.body || {};
+  const { code, name, location, operating_zone, latitude, longitude, radius, company_id, operatorName, operatorRole } = req.body || {};
   const safeCode = safeString(code).toUpperCase();
   const safeName = safeString(name);
   const safeOperatorName = safeString(operatorName);
@@ -11622,13 +11622,46 @@ app.post("/api/branches", async (req, res) => {
     }
 
     const branchLocation = safeString(location) || 'RAYHAR BRANCH';
-    const zone = safeString(operating_zone) || 'ZONE_B';
+    const rawZone = safeString(operating_zone) || 'ZONE_B';
+    const upperZone = rawZone.trim().toUpperCase().replace(/\s+/g, '_');
+    const zone = upperZone === 'ZONE_A' ? 'ZONE_A' : upperZone === 'ZONE_B' ? 'ZONE_B' : rawZone.trim();
     const branchCompanyId = parseInt(company_id || req.companyId || req.query?.company_id || 1, 10) || 1;
+    const latVal = latitude !== undefined && latitude !== null && latitude !== '' ? parseFloat(latitude) : null;
+    const lngVal = longitude !== undefined && longitude !== null && longitude !== '' ? parseFloat(longitude) : null;
+    const radVal = radius !== undefined && radius !== null && radius !== '' ? parseFloat(radius) : 50;
 
     await pool.query(
-      "INSERT INTO branches (branch, code, name, location, operating_zone, company_id) VALUES (?, ?, ?, ?, ?, ?)",
-      [cleanCode, cleanCode, safeName, branchLocation, zone, branchCompanyId]
+      "INSERT INTO branches (branch, code, name, location, operating_zone, latitude, longitude, radius, company_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      [cleanCode, cleanCode, safeName, branchLocation, zone, latVal, lngVal, radVal, branchCompanyId]
     );
+
+    // Sync new branch into matching work_schedules.branch_ids
+    try {
+      const [schedRows] = await pool.query(
+        "SELECT id, operating_zone, branch_ids, branch_id FROM work_schedules WHERE company_id = ?",
+        [branchCompanyId]
+      );
+      for (const ws of schedRows) {
+        const wsZoneRaw = safeString(ws.operating_zone).trim();
+        const wsZoneUpper = wsZoneRaw.toUpperCase().replace(/\s+/g, '_');
+        const wsZone = wsZoneUpper === 'ZONE_A' ? 'ZONE_A' : wsZoneUpper === 'ZONE_B' ? 'ZONE_B' : wsZoneRaw;
+        if (wsZone === zone) {
+          let codes = Array.isArray(ws.branch_ids)
+            ? ws.branch_ids.map((c) => String(c).trim().toUpperCase()).filter(Boolean)
+            : (ws.branch_id ? String(ws.branch_id).split(',').map((c) => c.trim().toUpperCase()).filter(Boolean) : []);
+          if (!codes.includes(cleanCode)) {
+            codes.push(cleanCode);
+            codes.sort();
+            await pgPool.query(
+              "UPDATE work_schedules SET branch_ids = $1::jsonb, branch_id = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3",
+              [JSON.stringify(codes), codes.join(','), ws.id]
+            );
+          }
+        }
+      }
+    } catch (syncErr) {
+      console.warn("Could not sync new branch to work_schedules:", syncErr.message);
+    }
 
     // Broadcast branch registration event via SSE
     broadcastPresenceUpdate({
@@ -11647,14 +11680,34 @@ app.post("/api/branches", async (req, res) => {
 });
 
 app.delete("/api/branches/:id", async (req, res) => {
-  const id = safeString(req.params.id);
+  const id = safeString(req.params.id).toUpperCase();
   const operatorName = safeString(req.query.operatorName) || 'HR';
   try {
-    const [branchRow] = await pool.query("SELECT name FROM branches WHERE code = ?", [id]);
+    const [branchRow] = await pool.query("SELECT name, company_id FROM branches WHERE UPPER(code) = ?", [id]);
     const branchName = branchRow.length > 0 ? branchRow[0].name : id;
+    const branchCompId = branchRow.length > 0 ? (branchRow[0].company_id || 1) : 1;
     
     // Note: The param name is code
-    await pool.query("DELETE FROM branches WHERE code = ?", [id]);
+    await pool.query("DELETE FROM branches WHERE UPPER(code) = ?", [id]);
+
+    // Remove deleted branch code from work_schedules.branch_ids
+    try {
+      const [schedRows] = await pool.query("SELECT id, branch_ids, branch_id FROM work_schedules WHERE company_id = ?", [branchCompId]);
+      for (const ws of schedRows) {
+        let codes = Array.isArray(ws.branch_ids)
+          ? ws.branch_ids.map((c) => String(c).trim().toUpperCase()).filter(Boolean)
+          : (ws.branch_id ? String(ws.branch_id).split(',').map((c) => c.trim().toUpperCase()).filter(Boolean) : []);
+        if (codes.includes(id)) {
+          codes = codes.filter((c) => c !== id);
+          await pgPool.query(
+            "UPDATE work_schedules SET branch_ids = $1::jsonb, branch_id = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3",
+            [JSON.stringify(codes), codes.length > 0 ? codes.join(',') : null, ws.id]
+          );
+        }
+      }
+    } catch (syncErr) {
+      console.warn("Could not remove deleted branch from work_schedules:", syncErr.message);
+    }
     
     // Log activity
     await pool.query(

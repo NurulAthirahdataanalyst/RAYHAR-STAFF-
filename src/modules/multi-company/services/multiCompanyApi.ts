@@ -237,6 +237,14 @@ export const multiCompanyApi = {
     return data.schedule;
   },
 
+  async deleteWorkSchedule(companyId: number, scheduleId: number): Promise<void> {
+    const res = await fetch(`${API_BASE_URL}/api/companies/${companyId}/work-schedules/${scheduleId}`, {
+      method: 'DELETE'
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.error || 'Failed to delete schedule');
+  },
+
   // Attendance Settings
   async getAttendanceSettings(companyId: number): Promise<AttendanceSettings | null> {
     const res = await fetch(`${API_BASE_URL}/api/companies/${companyId}/attendance-settings`);

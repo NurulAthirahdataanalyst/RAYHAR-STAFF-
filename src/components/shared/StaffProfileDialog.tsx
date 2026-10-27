@@ -2308,11 +2308,11 @@ export function StaffProfileDialog({
             onClose();
           }
         }}>
-          <DialogContent className="max-w-6xl w-full overflow-hidden border-0 border-none shadow-2xl rounded-2xl p-0 gap-0 bg-slate-50 dark:bg-slate-900 print:hidden flex flex-col max-h-[90vh]">
-            <DialogHeader className="p-4 pb-3 bg-[#942392] shrink-0 z-10 shadow-sm text-white border-none">
+          <DialogContent className="w-[96vw] max-w-7xl overflow-hidden border-0 border-none shadow-2xl rounded-3xl p-0 gap-0 bg-slate-50 dark:bg-slate-900 print:hidden flex flex-col max-h-[92vh]">
+            <DialogHeader className="px-6 py-4 bg-[#942392] shrink-0 z-10 shadow-sm text-white border-none">
               <DialogTitle className="text-xl font-black tracking-tight text-white uppercase">Staff Profile {selectedEmployee ? `- ${selectedEmployee.name} (${selectedEmployee.branch})` : ""}</DialogTitle>
             </DialogHeader>
-            <div className="p-4 overflow-y-auto flex-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            <div className="p-6 overflow-y-auto flex-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
               {renderTabsContent()}
             </div>
           </DialogContent>

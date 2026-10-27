@@ -30,7 +30,7 @@ export interface CompanyBranch {
   name: string;
   branch?: string;
   location?: string;
-  operating_zone: 'Zone A' | 'Zone B';
+  operating_zone: string;
   latitude: number;
   longitude: number;
   radius: number;
@@ -156,8 +156,11 @@ export interface WorkSchedule {
   id: number;
   company_id: number;
   schedule_name: string;
+  operating_zone?: string | null;
   department_id?: string | null;
   branch_id?: string | null;
+  branch_ids?: string[];
+  special_rules?: string[];
   effective_date: string;
   status: 'active' | 'inactive';
   days?: WorkScheduleDay[];
