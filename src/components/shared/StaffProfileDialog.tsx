@@ -168,12 +168,14 @@ function renderOutstationStatusBadge(status: string) {
 
 export function StaffProfileDialog({ 
   employeeId, 
+  initialEmployee,
   isOpen = true, 
   onClose,
   isPage = false,
   onBack,
 }: { 
   employeeId: string | null; 
+  initialEmployee?: any;
   isOpen?: boolean; 
   onClose?: () => void; 
   isPage?: boolean;
@@ -194,7 +196,7 @@ export function StaffProfileDialog({
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [dbEmployees, setDbEmployees] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedEmployee, setSelectedEmployee] = useState<any | null>(null);
+  const [selectedEmployee, setSelectedEmployee] = useState<any | null>(initialEmployee || null);
   const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
   const [employeeLeaves, setEmployeeLeaves] = useState<any[]>([]);
 
@@ -202,7 +204,7 @@ export function StaffProfileDialog({
   const [viewLeaveStatus, setViewLeaveStatus] = useState<"Approved" | "Pending" | "Rejected" | null>(null);
   const [selectedLeaveFormDetail, setSelectedLeaveFormDetail] = useState<any>(null);
   const [printingLeaveId, setPrintingLeaveId] = useState<string | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(isOpen);
   const [analytics, setAnalytics] = useState<any>(null);
   const [todayStats, setTodayStats] = useState<any>(null);
 
@@ -333,15 +335,34 @@ export function StaffProfileDialog({
   };
 
   useEffect(() => {
-    if (isOpen && employeeId) {
-      // Fetch employee basic info
+    setIsModalOpen(isOpen);
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (initialEmployee) {
+      const formatted = {
+        ...initialEmployee,
+        id: initialEmployee.user_id || initialEmployee.id,
+        name: initialEmployee.full_name || initialEmployee.name || "Employee",
+        email: initialEmployee.email || "Account Active",
+        position: (initialEmployee.role === "operation_manager" || initialEmployee.role === "finance_manager" || initialEmployee.position === "Finance Manager" || initialEmployee.position === "finance_manager") ? "Operation Manager" : initialEmployee.role === "hr_admin" ? "HR Admin" : initialEmployee.role ? String(initialEmployee.role).split('_').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') : (initialEmployee.position || "Employee"),
+        branch: initialEmployee.branch || "HQ",
+        department: initialEmployee.department || "General",
+        status: initialEmployee.status || "Active",
+      };
+      setSelectedEmployee(formatted);
+      setIsModalOpen(true);
+    }
+  }, [initialEmployee]);
+
+  useEffect(() => {
+    if ((isOpen || isPage) && employeeId) {
       fetch(`${API_BASE_URL}/api/employees`)
         .then(r => r.json())
         .then(data => {
            if(data.success) {
               const emp = data.employees.find((e: any) => e.user_id === employeeId || e.id === employeeId);
               if(emp) {
-                 // Format the raw API employee to match the shape expected by the render code
                  const formatted = {
                    ...emp,
                    id: emp.user_id,
@@ -356,19 +377,10 @@ export function StaffProfileDialog({
                  setIsModalOpen(true);
               }
            }
-        });
-    } else {
-      setIsModalOpen(false);
-      setSelectedEmployee(null);
+        })
+        .catch(err => console.warn("Could not fetch employee details:", err));
     }
-  }, [employeeId, isOpen]);
-
-  // Sync internal modal state with onClose
-  useEffect(() => {
-    if (!isModalOpen && isOpen) {
-      onClose();
-    }
-  }, [isModalOpen]);
+  }, [employeeId, isOpen, isPage]);
   const currentYear = new Date().getFullYear();
   const [selectedMonthYear, setSelectedMonthYear] = useState<string>(`${currentYear}-all`);
   const availableYears = [currentYear - 2, currentYear - 1, currentYear, currentYear + 1];
@@ -2079,7 +2091,12 @@ export function StaffProfileDialog({
           </div>
         </div>
       ) : (
-        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <Dialog open={isModalOpen} onOpenChange={(open) => {
+          setIsModalOpen(open);
+          if (!open && onClose) {
+            onClose();
+          }
+        }}>
           <DialogContent className="max-w-6xl w-full overflow-hidden border-0 border-none shadow-2xl rounded-2xl p-0 gap-0 bg-slate-50 dark:bg-slate-900 print:hidden flex flex-col max-h-[90vh]">
             <DialogHeader className="p-4 pb-3 bg-[#942392] shrink-0 z-10 shadow-sm text-white border-none">
               <DialogTitle className="text-xl font-black tracking-tight text-white uppercase">Staff Profile {selectedEmployee ? `- ${selectedEmployee.name} (${selectedEmployee.branch})` : ""}</DialogTitle>

@@ -852,10 +852,17 @@ export default function Employees() {
       <div className="w-full space-y-4 animate-in fade-in duration-300">
         <StaffProfileDialog
           employeeId={selectedEmployeeDetailId}
+          initialEmployee={selectedEmployee}
           isOpen={true}
           isPage={true}
-          onClose={() => setSelectedEmployeeDetailId(null)}
-          onBack={() => setSelectedEmployeeDetailId(null)}
+          onClose={() => {
+            setSelectedEmployeeDetailId(null);
+            setSelectedEmployee(null);
+          }}
+          onBack={() => {
+            setSelectedEmployeeDetailId(null);
+            setSelectedEmployee(null);
+          }}
         />
       </div>
     );

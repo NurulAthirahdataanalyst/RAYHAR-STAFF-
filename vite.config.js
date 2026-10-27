@@ -11,6 +11,7 @@ export default defineConfig(({ mode }) => ({
   plugins: [],
 
   resolve: {
+    preserveSymlinks: true,
     alias: {
       "@": path.resolve(process.cwd(), "src"),
     },
