@@ -9,6 +9,7 @@ import {
   TrendingUp, Loader2, Key, MapPin, RefreshCw, BarChart3
 } from "lucide-react";
 import { API_BASE_URL } from "@/config/api";
+import { useCompany } from "@/modules/multi-company/contexts/CompanyContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -38,6 +39,7 @@ interface DepartmentData {
 
 export default function MasterOverview() {
   const { role, userBranch, loading: roleLoading } = useRole();
+  const { activeCompany } = useCompany();
   const navigate = useNavigate();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [departments, setDepartments] = useState<string[]>([]);
@@ -80,7 +82,7 @@ export default function MasterOverview() {
     setLoading(true);
     try {
       // Fetch departments
-      const deptRes = await fetch(`${API_BASE_URL}/api/departments`);
+      const deptRes = await fetch(`${API_BASE_URL}/api/departments?company_id=${activeCompany?.id || 1}`);
       const deptData = await deptRes.json();
       let deptsList: string[] = [];
       if (deptData.success) {
@@ -89,14 +91,14 @@ export default function MasterOverview() {
       }
 
       // Fetch branches
-      const branchRes = await fetch(`${API_BASE_URL}/api/branches`);
+      const branchRes = await fetch(`${API_BASE_URL}/api/branches?company_id=${activeCompany?.id || 1}`);
       const branchData = await branchRes.json();
       if (branchData.success) {
         setBranches(branchData.branches);
       }
 
       // Fetch employees (All employees for HR Admin view)
-      const empRes = await fetch(`${API_BASE_URL}/api/employees?role=hr_admin&branch=&status=Active`);
+      const empRes = await fetch(`${API_BASE_URL}/api/employees?role=hr_admin&branch=&status=Active&company_id=${activeCompany?.id || 1}`);
       const empData = await empRes.json();
       if (empData.success) {
         setEmployees(empData.employees);
@@ -120,7 +122,7 @@ export default function MasterOverview() {
 
   useEffect(() => {
     void fetchData();
-  }, [role, userBranch]);
+  }, [role, userBranch, activeCompany?.id]);
 
   const handleAssignSubmit = async () => {
     if (!assignForm.user_id || !assignForm.location) {

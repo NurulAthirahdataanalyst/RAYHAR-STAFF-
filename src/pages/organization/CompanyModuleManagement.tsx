@@ -15,7 +15,10 @@ import {
   PieChart, 
   FileSearch, 
   MapPinned, 
-  Settings as SettingsIcon, 
+  Settings as SettingsIcon,
+  User,
+  Briefcase,
+  Crown, 
   Check, 
   Save, 
   Building2, 
@@ -37,6 +40,45 @@ import { multiCompanyApi } from '@/modules/multi-company/services/multiCompanyAp
 import { CompanyModuleSetting, CompanyRole, ModulePermission } from '@/modules/multi-company/types/multiCompany.types';
 import { useRole } from '@/contexts/RoleContext';
 import { API_BASE_URL } from '@/config/api';
+
+
+export const AUTHORIZATION_SCOPES = [
+  {
+    value: 'Own Data Only',
+    title: 'Own Data Only',
+    desc: 'User can only view their own attendance, leave, profile, reports',
+    badge: 'Self'
+  },
+  {
+    value: 'Branch Data Only',
+    title: 'Branch Data Only',
+    desc: 'User can view employees under the same branch only',
+    badge: 'Branch'
+  },
+  {
+    value: 'Company Staff Data',
+    title: 'Company Staff Data',
+    desc: 'User can view all employees within the same company',
+    badge: 'Company'
+  },
+  {
+    value: 'Parent Group Data',
+    title: 'Parent Group Data',
+    desc: 'User can view multiple companies',
+    badge: 'Group HQ'
+  }
+];
+
+const getRoleIcon = (roleName: string) => {
+  const lower = (roleName || '').toLowerCase();
+  if (lower.includes('employee') || lower.includes('staff') || lower.includes('driver')) return User;
+  if (lower.includes('branch leader') || lower.includes('branch manager') || lower.includes('supervisor')) return Users;
+  if (lower.includes('head of department') || lower.includes('hod')) return Briefcase;
+  if (lower.includes('hr admin') || lower.includes('admin')) return ShieldCheck;
+  if (lower.includes('managing director') || lower.includes('director') || lower.includes('ceo')) return Crown;
+  if (lower.includes('operation manager') || lower.includes('operation')) return SettingsIcon;
+  return Shield;
+};
 
 const MODULE_ICONS: Record<string, React.ElementType> = {
   dashboard: LayoutDashboard,
@@ -71,6 +113,8 @@ export const CompanyModuleManagement: React.FC = () => {
   // Role-specific permission editing states
   const [rolePermissions, setRolePermissions] = useState<Set<string>>(new Set());
   const [rolePermissionLevels, setRolePermissionLevels] = useState<Record<string, 'view' | 'edit'>>({});
+  const [roleScope, setRoleScope] = useState<string>('Own Data Only');
+  const [copyCompanyId, setCopyCompanyId] = useState<number>(1);
 
   // Sync selected company when active company changes
   useEffect(() => {
@@ -123,6 +167,7 @@ export const CompanyModuleManagement: React.FC = () => {
       if (targetRole) {
         const keys = targetRole.permission_keys || [];
         setRolePermissions(new Set(keys));
+        setRoleScope(targetRole.scope_type || 'Own Data Only');
         const levels: Record<string, 'view' | 'edit'> = { ...(targetRole.permission_levels || {}) };
         keys.forEach(k => {
           if (!levels[k]) levels[k] = 'edit';
@@ -330,8 +375,22 @@ export const CompanyModuleManagement: React.FC = () => {
 
     setRolePermissions(new Set(filteredKeys));
     setRolePermissionLevels(nextLevels);
+
+    // Auto-update Authorization Scope
+    const lowerName = mainRole.name.toLowerCase();
+    let autoScope = 'Own Data Only';
+    if (mainRole.scope_type === 'Own Data Only') autoScope = 'Own Data Only';
+    else if (mainRole.scope_type === 'Branch Data Only') autoScope = 'Branch Data Only';
+    else if (mainRole.scope_type === 'Company Staff Data') autoScope = 'Company Staff Data';
+    else if (mainRole.scope_type === 'Parent Group Data') autoScope = 'Parent Group Data';
+    else if (lowerName.includes('employee') || lowerName.includes('staff') || lowerName.includes('driver')) autoScope = 'Own Data Only';
+    else if (lowerName.includes('branch leader') || lowerName.includes('branch manager') || lowerName.includes('head of department') || lowerName.includes('hod')) autoScope = 'Branch Data Only';
+    else if (lowerName.includes('hr admin') || lowerName.includes('operation manager')) autoScope = 'Company Staff Data';
+    else if (lowerName.includes('managing director') || lowerName.includes('director')) autoScope = 'Parent Group Data';
+
+    setRoleScope(autoScope);
     setHasChanges(true);
-    toast.success(`Copied ${filteredKeys.length} permissions from Main Company (${mainRole.name})`);
+    toast.success(`Copied ${filteredKeys.length} permissions from Main Company (${mainRole.name}). Authorization Scope auto-updated to: ${autoScope}`);
   };
 
   // Save changes
@@ -348,7 +407,7 @@ export const CompanyModuleManagement: React.FC = () => {
           name: targetRole.name,
           description: targetRole.description || '',
           role_type: targetRole.role_type || 'Operational Role',
-          scope_type: targetRole.scope_type || 'Current Company Only',
+          scope_type: roleScope,
           permissions: Array.from(rolePermissions),
           permission_levels: rolePermissionLevels,
           company_id: selectedCompanyId
@@ -579,20 +638,68 @@ export const CompanyModuleManagement: React.FC = () => {
             <div className="flex flex-wrap items-center gap-3">
               {/* Copy From Main Company Role (when role selected) */}
               {selectedRoleId !== 'all' && mainCompanyRoles.length > 0 && (
-                <div className="flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-[#942392]" />
-                  <Select onValueChange={handleCopyFromMainRole}>
-                    <SelectTrigger className="h-8 text-xs font-bold rounded-full border-border bg-background text-black dark:text-white w-52 shadow-2xs">
-                      <SelectValue placeholder="Copy From Main Role..." />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl max-h-56">
-                      {mainCompanyRoles.map(mr => (
-                        <SelectItem key={mr.id} value={mr.name} className="text-xs font-bold">
-                          {mr.name} ({mr.permission_keys ? mr.permission_keys.length : 0} perms)
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-[#942392]" />
+                    <Select onValueChange={handleCopyFromMainRole}>
+                      <SelectTrigger className="h-8 text-xs font-bold rounded-full border-border bg-background text-black dark:text-white w-56 shadow-2xs">
+                        <div className="flex items-center gap-1.5 truncate">
+                          <Sparkles className="w-3 h-3 text-[#942392] shrink-0" />
+                          <SelectValue placeholder="Copy Permission From..." />
+                        </div>
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl max-h-60">
+                        <div className="px-2 py-1 text-[10px] font-black uppercase text-muted-foreground tracking-wider">
+                          🏛️ Main Company Roles (Template)
+                        </div>
+                        {mainCompanyRoles.map(mr => {
+                          const RoleIcon = getRoleIcon(mr.name);
+                          return (
+                            <SelectItem key={mr.id} value={mr.name} className="text-xs font-bold py-1.5">
+                              <div className="flex items-center gap-2">
+                                <RoleIcon className="w-3.5 h-3.5 text-[#942392] shrink-0" />
+                                <span>{mr.name}</span>
+                                <span className="text-[10px] text-muted-foreground font-normal">
+                                  ({mr.permission_keys ? mr.permission_keys.length : 0} perms)
+                                </span>
+                              </div>
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Authorization Scope Selector in Edit Mode */}
+                  <div className="flex items-center gap-1.5">
+                    <ShieldCheck className="w-3.5 h-3.5 text-[#942392]" />
+                    <Select value={roleScope} onValueChange={(val) => { setRoleScope(val); setHasChanges(true); }}>
+                      <SelectTrigger className="h-8 text-xs font-bold rounded-full border-border bg-background text-black dark:text-white w-52 shadow-2xs">
+                        <div className="flex items-center gap-1.5 truncate">
+                          <ShieldCheck className="w-3 h-3 text-[#942392] shrink-0" />
+                          <SelectValue placeholder="▼ Select Authorization" />
+                        </div>
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl w-[320px]">
+                        {AUTHORIZATION_SCOPES.map(s => (
+                          <SelectItem key={s.value} value={s.value} className="py-2">
+                            <div className="flex flex-col items-start gap-0.5 text-left">
+                              <span className="font-black text-xs text-foreground flex items-center gap-1.5">
+                                <span className="w-2 h-2 rounded-full bg-[#942392]" />
+                                <span>{s.title}</span>
+                                <span className="text-[9px] px-1.5 py-0.2 rounded bg-purple-100 dark:bg-purple-950 text-[#942392] font-bold">
+                                  {s.badge}
+                                </span>
+                              </span>
+                              <span className="text-[11px] text-muted-foreground font-normal pl-3.5">
+                                - {s.desc}
+                              </span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               )}
 
@@ -756,11 +863,22 @@ export const CompanyModuleManagement: React.FC = () => {
                                 </div>
                               )}
 
-                              <span className={`text-xs font-bold leading-tight truncate ${
-                                isChecked ? 'text-black dark:text-white' : 'text-muted-foreground'
-                              }`}>
-                                {p.display_name}
-                              </span>
+                              <div className="flex items-center gap-2 truncate">
+                                <span className={`text-xs font-bold leading-tight truncate ${
+                                  isChecked ? 'text-black dark:text-white' : 'text-muted-foreground'
+                                }`}>
+                                  {p.display_name}
+                                </span>
+                                {mod.module_key === 'analytics' && (
+                                  <span className={`text-[9px] px-1.5 py-0.2 rounded font-bold uppercase tracking-wider shrink-0 ${
+                                    p.permission_key === 'analytics.employee'
+                                      ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300/40'
+                                      : 'bg-purple-100 text-[#942392] dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200/50'
+                                  }`}>
+                                    {p.permission_key === 'analytics.employee' ? 'Personal (Own Data)' : 'Workforce Analytics'}
+                                  </span>
+                                )}
+                              </div>
                             </div>
 
                             {/* Granular View | Edit Segmented Control (in Edit Mode) or Tag Badge (in Overview Mode) */}

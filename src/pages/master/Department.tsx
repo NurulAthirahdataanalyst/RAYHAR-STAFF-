@@ -8,11 +8,13 @@ import { Building2, Users, Loader2, Trash2, Search, Plus , X, ArrowLeft } from "
 import { useRole } from "@/contexts/RoleContext";
 import { useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "@/config/api";
+import { useCompany } from "@/modules/multi-company/contexts/CompanyContext";
 import { toast } from "sonner";
 import PageActions from "@/components/layout/PageActions";
 
 export default function Department() {
   const { role, userBranch } = useRole();
+  const { activeCompany } = useCompany();
   const navigate = useNavigate();
   const [employees, setEmployees] = useState<any[]>([]);
   const [departments, setDepartments] = useState<string[]>([]);
@@ -27,11 +29,11 @@ export default function Department() {
       setLoading(false);
     };
     fetchAll();
-  }, [role, userBranch]);
+  }, [role, userBranch, activeCompany?.id]);
 
   const fetchDepartments = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/departments`);
+      const response = await fetch(`${API_BASE_URL}/api/departments?company_id=${activeCompany?.id || 1}`);
       const data = await response.json();
       if (data.success) {
         setDepartments(data.departments.map((d: any) => d.name));
@@ -83,7 +85,7 @@ export default function Department() {
 
   const fetchEmployees = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/employees`);
+      const response = await fetch(`${API_BASE_URL}/api/employees?company_id=${activeCompany?.id || 1}`);
       const data = await response.json();
 
       if (response.ok && data.success) {

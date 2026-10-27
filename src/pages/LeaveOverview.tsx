@@ -13,6 +13,7 @@ import { YearPopover } from "@/components/shared/YearPopover";
 import { Check, X, CheckCircle2, Clock3, FileText, Plus, XCircle, Calendar } from "lucide-react";
 import { useRole } from "@/contexts/RoleContext";
 import { API_BASE_URL } from "../config/api";
+import { useCompany } from "@/modules/multi-company/contexts/CompanyContext";
 import {
   getLeaveFormFileName,
   getLeaveRequests,
@@ -137,7 +138,7 @@ export default function LeaveOverview() {
         }
       })
       .catch(console.error);
-  }, [userId, refreshKey]);
+  }, [userId, refreshKey, activeCompany?.id]);
 
   const filteredLeaveRequests = useMemo(() => {
     return leaveRequests.filter(req => {
@@ -200,7 +201,7 @@ export default function LeaveOverview() {
       }
 
       try {
-        const response = await fetch(`${API_BASE_URL}/api/leave-requests?userId=${encodeURIComponent(userId)}`);
+        const response = await fetch(`${API_BASE_URL}/api/leave-requests?userId=${encodeURIComponent(userId)}&company_id=${activeCompany?.id || 1}`);
         const data = await response.json();
 
         if (!response.ok || !data.success) {
@@ -286,7 +287,7 @@ export default function LeaveOverview() {
     if (!userId) return;
     const fetchProfile = async () => {
       try {
-        const res = await fetch(`${API_BASE_URL}/api/user-details/${encodeURIComponent(userId)}`);
+        const res = await fetch(`${API_BASE_URL}/api/user-details/${encodeURIComponent(userId)}?company_id=${activeCompany?.id || 1}`);
         const data = await res.json();
         if (data.success && data.profile) {
             const annualBase = Number(data.profile.annual_leave_entitlement) || 14;

@@ -48,6 +48,7 @@ import { LeaveDetailsModal } from "@/components/leave/LeaveDetailsModal";
 import { TablePagination } from "@/components/common/TablePagination";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useCompany } from "@/modules/multi-company/contexts/CompanyContext";
 
 
 const getStoredUser = () => {
@@ -61,6 +62,7 @@ const getStoredUser = () => {
 export default function Dashboard() {
   const { user } = useAuth();
   const { role, userName, userId, userBranch, userDepartment } = useRole();
+  const { activeCompany } = useCompany();
   const isEmployee = role === "employee" || 
     (typeof role === "string" && (role.toLowerCase().includes("employee") || role.toLowerCase().includes("staff"))) || 
     !["hr_admin", "branch_leader", "head_of_department", "managing_director", "operation_manager", "finance_manager"].includes(role);
@@ -180,7 +182,7 @@ export default function Dashboard() {
 
       try {
         const dateStr = selectedDate.toLocaleDateString("en-CA");
-        const url = `${API_BASE_URL}/api/dashboard-stats?userId=${dashboardUserId}&role=${role}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}&date=${dateStr}`;
+        const url = `${API_BASE_URL}/api/dashboard-stats?userId=${dashboardUserId}&role=${role}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}&date=${dateStr}&company_id=${activeCompany?.id || 1}`;
 
         let response: Response;
         try {
@@ -314,7 +316,7 @@ export default function Dashboard() {
         setIsRefreshing(false);
       }
     },
-    [applyAttendanceUpdate, dashboardUserId, role, userBranch, userDepartment, selectedDate]
+    [applyAttendanceUpdate, dashboardUserId, role, userBranch, userDepartment, selectedDate, activeCompany?.id]
   );
 
   const fetchWhoOutToday = useCallback(async () => {
@@ -452,13 +454,24 @@ export default function Dashboard() {
 
   // Fetch data whenever selectedDate changes
   useEffect(() => {
+    const handleCompSwitched = () => {
+      fetchDashboardData(true);
+      if (["hr_admin", "branch_leader", "managing_director", "operation_manager", "head_of_department"].includes(role)) {
+        fetchWhoOutToday();
+      }
+    };
+    window.addEventListener('rayhar_company_switched', handleCompSwitched);
+    return () => window.removeEventListener('rayhar_company_switched', handleCompSwitched);
+  }, [fetchDashboardData, fetchWhoOutToday, role]);
+
+  useEffect(() => {
     fetchDashboardData();
     fetchUpcomingOutstations();
     if (["hr_admin", "branch_leader", "managing_director", "operation_manager", "head_of_department"].includes(role)) {
       fetchWhoOutToday();
       fetchTemporaryStaff();
     }
-  }, [selectedDate, fetchDashboardData, fetchUpcomingOutstations, fetchWhoOutToday, fetchTemporaryStaff, role]);
+  }, [selectedDate, fetchDashboardData, fetchUpcomingOutstations, fetchWhoOutToday, fetchTemporaryStaff, role, activeCompany?.id]);
 
   // Initial local storage update + event listeners for real-time focus / custom updates
   useEffect(() => {

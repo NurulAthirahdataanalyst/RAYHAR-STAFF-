@@ -1561,6 +1561,18 @@ const pgPool = connectionString ? new Pool({
   max: 10
 }) : new Pool(dbConfig);
 
+// Global Workspace / Multi-Company Context Middleware
+app.use((req, res, next) => {
+  const rawCompanyId = req.headers['x-company-id'] || req.query.company_id || req.query.companyId;
+  if (rawCompanyId) {
+    const parsed = parseInt(rawCompanyId, 10);
+    if (!isNaN(parsed) && parsed > 0) {
+      req.companyId = parsed;
+    }
+  }
+  next();
+});
+
 // Mount Multi-Company and IAM Routes
 const { createMultiCompanyRouter } = require('./routes/multiCompanyRoutes');
 app.use('/api', createMultiCompanyRouter(pgPool));
@@ -4091,6 +4103,17 @@ app.get("/api/leave-requests", async (req, res) => {
     const params = [];
     const filters = [];
 
+    const rawCompanyId = req.companyId || req.query.company_id || req.query.companyId;
+    const companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
+    if (companyId) {
+      if (companyId === 1) {
+        filters.push("(lr.user_id IN (SELECT user_id FROM company_user_roles WHERE company_id = 1 AND status = 'active') OR lr.user_id NOT IN (SELECT user_id FROM company_user_roles WHERE status = 'active'))");
+      } else {
+        filters.push("lr.user_id IN (SELECT user_id FROM company_user_roles WHERE company_id = ? AND status = 'active')");
+        params.push(companyId);
+      }
+    }
+
     if (userId) {
       filters.push("lr.user_id = ?");
       params.push(userId);
@@ -5513,7 +5536,218 @@ app.put("/api/employees/:userId/personal-info", async (req, res) => {
   }
 });
 
+// GET TODAY'S ATTENDANCE SESSIONS (Ordered latest session first: Page 1 = latest)
+app.get("/api/employees/:userId/today-attendance", async (req, res) => {
+  const userId = safeString(req.params.userId);
+  let queryDate = safeString(req.query.date);
+  if (!queryDate) {
+    const now = new Date();
+    const klOffset = 8 * 60; // UTC+8
+    const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+    const klTime = new Date(utc + (klOffset * 60000));
+    const yyyy = klTime.getFullYear();
+    const mm = String(klTime.getMonth() + 1).padStart(2, '0');
+    const dd = String(klTime.getDate()).padStart(2, '0');
+    queryDate = `${yyyy}-${mm}-${dd}`;
+  }
+
+  try {
+    const [branchRows] = await pool.query(
+      `SELECT p.branch, p.full_name, b.code, b.name AS branch_name, b.latitude, b.longitude
+       FROM profiles p
+       LEFT JOIN branches b ON (UPPER(b.code) = UPPER(p.branch) OR UPPER(b.name) = UPPER(p.branch))
+       WHERE LOWER(p.user_id) = LOWER(?)
+       LIMIT 1`,
+      [userId]
+    );
+    const branchInfo = branchRows.length > 0 ? branchRows[0] : null;
+    const defaultBranchCode = branchInfo?.branch || "HQ";
+    const defaultBranchName = branchInfo?.branch_name || (defaultBranchCode === "HQ" ? "Rayhar HQ" : defaultBranchCode);
+    const defaultLat = branchInfo?.latitude != null ? Number(branchInfo.latitude) : 4.6778;
+    const defaultLng = branchInfo?.longitude != null ? Number(branchInfo.longitude) : 10.78758646;
+
+    const [attRows] = await pool.query(
+      `SELECT 
+         attendance_id,
+         user_id,
+         clock_in,
+         clock_out,
+         location,
+         attendance_type,
+         distance_meters,
+         clock_in_latitude,
+         clock_in_longitude,
+         clock_out_latitude,
+         clock_out_longitude,
+         TO_CHAR(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS clock_in_time_12,
+         TO_CHAR(clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS clock_out_time_12,
+         TO_CHAR(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH24:MI') AS clock_in_time_24,
+         TO_CHAR(clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH24:MI') AS clock_out_time_24
+       FROM attendances
+       WHERE LOWER(user_id) = LOWER(?)
+         AND (
+           (clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::date = ?::date
+           OR (date IS NOT NULL AND date = ?::date)
+         )
+       ORDER BY clock_in DESC`,
+      [userId, queryDate, queryDate]
+    );
+
+    let totalDurationMinutes = 0;
+    const sessions = attRows.map((row, idx) => {
+      const lat = row.clock_in_latitude != null ? Number(row.clock_in_latitude) : (row.clock_out_latitude != null ? Number(row.clock_out_latitude) : defaultLat);
+      const lng = row.clock_in_longitude != null ? Number(row.clock_in_longitude) : (row.clock_out_longitude != null ? Number(row.clock_out_longitude) : defaultLng);
+      const locName = row.location || defaultBranchName || "HQ";
+      
+      let durationMinutes = 0;
+      let workingHoursStr = "0 H 00 M";
+      if (row.clock_in && row.clock_out) {
+        const inMs = new Date(row.clock_in).getTime();
+        const outMs = new Date(row.clock_out).getTime();
+        if (outMs > inMs) {
+          durationMinutes = Math.round((outMs - inMs) / 60000);
+          const hrs = Math.floor(durationMinutes / 60);
+          const mins = durationMinutes % 60;
+          workingHoursStr = `${hrs} H ${String(mins).padStart(2, '0')} M`;
+        }
+      } else if (row.clock_in && !row.clock_out) {
+        workingHoursStr = "In Progress";
+      }
+
+      totalDurationMinutes += durationMinutes;
+
+      return {
+        attendance_id: row.attendance_id,
+        session_number: idx + 1,
+        clock_in: row.clock_in,
+        clock_out: row.clock_out,
+        clock_in_time_12: row.clock_in_time_12 ? row.clock_in_time_12.replace(':', '.') : "--:--",
+        clock_out_time_12: row.clock_out_time_12 ? row.clock_out_time_12.replace(':', '.') : "--:--",
+        clock_in_time_24: row.clock_in_time_24 || "",
+        clock_out_time_24: row.clock_out_time_24 || "",
+        working_status: "PRESENT",
+        location: locName,
+        latitude: lat,
+        longitude: lng,
+        location_formatted: `${locName} ( ${Number(lat).toFixed(4)}, ${Number(lng).toFixed(8)} )`,
+        working_hours: workingHoursStr,
+        duration_minutes: durationMinutes,
+        has_recorded_clock_in: !!row.clock_in,
+        has_recorded_clock_out: !!row.clock_out,
+      };
+    });
+
+    const totHrs = Math.floor(totalDurationMinutes / 60);
+    const totMins = totalDurationMinutes % 60;
+    const totalWorkingHoursStr = `${totHrs} H ${String(totMins).padStart(2, '0')} M`;
+
+    return res.json({
+      success: true,
+      queryDate,
+      employee_id: userId,
+      defaultLocation: {
+        name: defaultBranchName,
+        code: defaultBranchCode,
+        latitude: defaultLat,
+        longitude: defaultLng,
+        location_formatted: `${defaultBranchName} ( ${Number(defaultLat).toFixed(4)}, ${Number(defaultLng).toFixed(8)} )`
+      },
+      sessions,
+      total_working_hours: totalWorkingHoursStr,
+      total_duration_minutes: totalDurationMinutes
+    });
+  } catch (err) {
+    console.error("Get Today Attendance Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 app.post("/api/employees/:userId/today-attendance", async (req, res) => {
+  const userId = safeString(req.params.userId);
+  const attendance_id = req.body?.attendance_id ? parseInt(req.body.attendance_id) : null;
+  const clock_in = safeString(req.body?.clock_in);
+  const clock_out = safeString(req.body?.clock_out);
+  const attendance_type = "Present";
+  const location = safeString(req.body?.location);
+
+  try {
+    const todayDateStr = req.body?.date || new Date().toISOString().split('T')[0];
+
+    const formatTimestamp = (val) => {
+      if (!val) return null;
+      if (val.includes('T')) return val;
+      if (/^\d{1,2}:\d{2}(:\d{2})?$/.test(val)) {
+        const parts = val.split(':');
+        const hh = parts[0].padStart(2, '0');
+        const mm = parts[1];
+        const ss = parts[2] || '00';
+        return `${todayDateStr}T${hh}:${mm}:${ss}`;
+      }
+      return val;
+    };
+
+    const finalClockIn = formatTimestamp(clock_in);
+    const finalClockOut = formatTimestamp(clock_out);
+
+    const [bRows] = await pool.query(
+      `SELECT b.latitude, b.longitude, b.code, b.name 
+       FROM profiles p 
+       LEFT JOIN branches b ON (UPPER(b.code) = UPPER(p.branch) OR UPPER(b.name) = UPPER(p.branch))
+       WHERE LOWER(p.user_id) = LOWER(?) LIMIT 1`,
+      [userId]
+    );
+    const bLat = bRows.length > 0 && bRows[0].latitude != null ? Number(bRows[0].latitude) : 4.6778;
+    const bLng = bRows.length > 0 && bRows[0].longitude != null ? Number(bRows[0].longitude) : 10.78758646;
+    const bName = location || (bRows.length > 0 ? (bRows[0].name || bRows[0].code) : "HQ");
+
+    if (attendance_id) {
+      await pool.query(
+        `UPDATE attendances
+         SET clock_out = COALESCE(NULLIF(?::timestamp, NULL), clock_out),
+             clock_in = COALESCE(NULLIF(?::timestamp, NULL), clock_in),
+             attendance_type = 'Present',
+             location = COALESCE(NULLIF(?, ''), location)
+         WHERE attendance_id = ? AND LOWER(user_id) = LOWER(?)`,
+        [finalClockOut || null, finalClockIn || null, location || null, attendance_id, userId]
+      );
+    } else {
+      const [existing] = await pool.query(
+        `SELECT attendance_id, clock_in, clock_out FROM attendances
+         WHERE LOWER(user_id) = LOWER(?)
+         AND (clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::date = ?::date
+         ORDER BY clock_in DESC
+         LIMIT 1`,
+        [userId, todayDateStr]
+      );
+
+      if (existing.length > 0 && !existing[0].clock_out && finalClockOut) {
+        await pool.query(
+          `UPDATE attendances
+           SET clock_out = NULLIF(?::timestamp, NULL),
+               clock_in = COALESCE(NULLIF(?::timestamp, NULL), clock_in),
+               attendance_type = 'Present',
+               location = COALESCE(NULLIF(?, ''), location)
+           WHERE attendance_id = ?`,
+          [finalClockOut, finalClockIn || null, location || null, existing[0].attendance_id]
+        );
+      } else {
+        await pool.query(
+          `INSERT INTO attendances (user_id, clock_in, clock_out, attendance_type, location, date, clock_in_latitude, clock_in_longitude)
+           VALUES (?, COALESCE(NULLIF(?::timestamp, NULL), CURRENT_TIMESTAMP), NULLIF(?::timestamp, NULL), 'Present', ?, ?::date, ?, ?)`,
+          [userId, finalClockIn || null, finalClockOut || null, bName || "HQ", todayDateStr, bLat, bLng]
+        );
+      }
+    }
+
+    res.json({ success: true, message: "Today's attendance record updated" });
+  } catch (err) {
+    console.error("Save Today Attendance Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+/* Legacy handler removed */
+const _legacy_dummy = (async (req, res) => {
   const userId = safeString(req.params.userId);
   const clock_in = safeString(req.body?.clock_in);
   const clock_out = safeString(req.body?.clock_out);
@@ -5549,7 +5783,7 @@ app.post("/api/employees/:userId/today-attendance", async (req, res) => {
 
     res.json({ success: true, message: "Today's attendance record updated" });
   } catch (err) {
-    console.error("Adjust Today Attendance Error:", err);
+    console.error("Save Today Attendance Error:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 });
@@ -7716,9 +7950,21 @@ app.get("/api/dashboard-stats", async (req, res) => {
       const isHOD = role === "head_of_department";
       const department = safeString(req.query.department);
 
+      const rawCompanyId = req.companyId || req.query.company_id || req.query.companyId;
+      const companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
+
+      let companyUserFilter = "";
+      if (companyId) {
+        if (companyId === 1) {
+          companyUserFilter = " AND (user_id IN (SELECT user_id FROM company_user_roles WHERE company_id = 1 AND status = 'active') OR user_id NOT IN (SELECT user_id FROM company_user_roles WHERE status = 'active'))";
+        } else {
+          companyUserFilter = ` AND user_id IN (SELECT user_id FROM company_user_roles WHERE company_id = ${companyId} AND status = 'active')`;
+        }
+      }
+
       const queryParams = [];
-      let profileFilter = "";
-      let attendanceFilter = "AND user_id IN (SELECT user_id FROM profiles WHERE status = 'Active')";
+      let profileFilter = companyUserFilter ? companyUserFilter : "";
+      let attendanceFilter = `AND user_id IN (SELECT user_id FROM profiles WHERE status = 'Active')${companyUserFilter}`;
 
       if (isBranchLeader) {
         const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
@@ -7736,7 +7982,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
       const profileQueryParams = [queryDate, ...queryParams];
 
       // Check if any attendance records exist for this branch/department/general on this day
-      let attendanceCheckFilter = "";
+      let attendanceCheckFilter = companyUserFilter ? companyUserFilter : "";
       let attendanceCheckParams = [queryDate];
       if (isBranchLeader) {
         attendanceCheckFilter = " AND user_id IN (SELECT user_id FROM profiles WHERE branch = ?)";
@@ -7977,7 +8223,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
     // 1. TODAY ATTENDANCE STATUS
     const [todayRows] = await pool.query(
       `
-      SELECT clock_in, clock_out, location, attendance_type, distance_meters,
+      SELECT clock_in, clock_out, location, attendance_type, distance_meters, clock_in_latitude, clock_in_longitude, clock_out_latitude, clock_out_longitude,
              TO_CHAR(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS clock_in_time, 
              TO_CHAR(clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS clock_out_time
       FROM attendances WHERE user_id = ? AND DATE(clock_in) = ?::date ORDER BY clock_in DESC LIMIT 1
@@ -8003,6 +8249,27 @@ app.get("/api/dashboard-stats", async (req, res) => {
     let todayStatusTime = "--:--";
     let distanceMeters = todayRows.length > 0 && todayRows[0].distance_meters !== null ? todayRows[0].distance_meters : null;
     let attendanceLocation = todayRows.length > 0 && todayRows[0].location ? todayRows[0].location : null;
+    let workingHours = "0 H 00 M";
+    let attendanceLat = todayRows.length > 0 && todayRows[0].clock_in_latitude != null ? Number(todayRows[0].clock_in_latitude) : null;
+    let attendanceLng = todayRows.length > 0 && todayRows[0].clock_in_longitude != null ? Number(todayRows[0].clock_in_longitude) : null;
+    if (todayRows.length > 0 && todayRows[0].clock_in && todayRows[0].clock_out) {
+      const inMs = new Date(todayRows[0].clock_in).getTime();
+      const outMs = new Date(todayRows[0].clock_out).getTime();
+      if (outMs > inMs) {
+        const totalMins = Math.round((outMs - inMs) / 60000);
+        const hrs = Math.floor(totalMins / 60);
+        const mins = totalMins % 60;
+        workingHours = `${hrs} H ${String(mins).padStart(2, '0')} M`;
+      }
+    } else if (todayRows.length > 0 && todayRows[0].clock_in && !todayRows[0].clock_out) {
+      workingHours = "In Progress";
+    }
+    const displayBranch = attendanceLocation || (empProfileZone && empProfileZone[0]?.operating_zone ? "HQ" : "HQ");
+    const [bCoord] = await pool.query("SELECT latitude, longitude, name FROM branches WHERE code = ? OR name = ? LIMIT 1", [displayBranch, displayBranch]);
+    const finalLat = attendanceLat != null ? attendanceLat : (bCoord.length > 0 && bCoord[0].latitude != null ? Number(bCoord[0].latitude) : 4.6778);
+    const finalLng = attendanceLng != null ? attendanceLng : (bCoord.length > 0 && bCoord[0].longitude != null ? Number(bCoord[0].longitude) : 10.78758646);
+    const finalBranchName = (bCoord.length > 0 && bCoord[0].name) ? bCoord[0].name : displayBranch;
+    const attendanceLocationFormatted = `${finalBranchName} ( ${Number(finalLat).toFixed(4)}, ${Number(finalLng).toFixed(8)} )`;
     let attendanceType = todayRows.length > 0 && todayRows[0].attendance_type ? todayRows[0].attendance_type : null;
 
     if (todayRows.length > 0) {
@@ -8568,6 +8835,8 @@ app.get("/api/dashboard-stats", async (req, res) => {
         todayStatusTime,
         distanceMeters,
         attendanceLocation,
+        workingHours,
+        attendanceLocationFormatted,
         attendanceType,
         activeTemporaryAssignment,
         isMultiLocation,
@@ -8612,7 +8881,18 @@ app.get("/api/reports/absent-employees", async (req, res) => {
       leaveCandRows.filter(lr => isEmployeeOnLeaveOnDate(lr, queryDate)).map(lr => lr.user_id)
     );
 
-    let profileFilter = "";
+    const rawCompanyId = req.companyId || req.query.company_id || req.query.companyId;
+    const companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
+    let companyUserFilter = "";
+    if (companyId) {
+      if (companyId === 1) {
+        companyUserFilter = " AND (p.user_id IN (SELECT user_id FROM company_user_roles WHERE company_id = 1 AND status = 'active') OR p.user_id NOT IN (SELECT user_id FROM company_user_roles WHERE status = 'active'))";
+      } else {
+        companyUserFilter = ` AND p.user_id IN (SELECT user_id FROM company_user_roles WHERE company_id = ${companyId} AND status = 'active')`;
+      }
+    }
+
+    let profileFilter = companyUserFilter ? companyUserFilter : "";
     let queryParams = [queryDate, queryDate, queryDate, queryDate];
 
     if (role === 'branch_leader') {
@@ -8721,7 +9001,18 @@ app.get("/api/reports/on-leave-employees", async (req, res) => {
   const queryDate = date || new Date().toISOString().split('T')[0];
 
   try {
-    let profileFilter = "";
+    const rawCompanyId = req.companyId || req.query.company_id || req.query.companyId;
+    const companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
+    let companyUserFilter = "";
+    if (companyId) {
+      if (companyId === 1) {
+        companyUserFilter = " AND (p.user_id IN (SELECT user_id FROM company_user_roles WHERE company_id = 1 AND status = 'active') OR p.user_id NOT IN (SELECT user_id FROM company_user_roles WHERE status = 'active'))";
+      } else {
+        companyUserFilter = ` AND p.user_id IN (SELECT user_id FROM company_user_roles WHERE company_id = ${companyId} AND status = 'active')`;
+      }
+    }
+
+    let profileFilter = companyUserFilter ? companyUserFilter : "";
     let queryParams = [queryDate, queryDate];
 
     if (role === 'branch_leader') {
@@ -8808,7 +9099,18 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
   }
 
   try {
-    let profileFilter = "";
+    const rawCompanyId = req.companyId || req.query.company_id || req.query.companyId;
+    const companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
+    let companyUserFilter = "";
+    if (companyId) {
+      if (companyId === 1) {
+        companyUserFilter = " AND (p.user_id IN (SELECT user_id FROM company_user_roles WHERE company_id = 1 AND status = 'active') OR p.user_id NOT IN (SELECT user_id FROM company_user_roles WHERE status = 'active'))";
+      } else {
+        companyUserFilter = ` AND p.user_id IN (SELECT user_id FROM company_user_roles WHERE company_id = ${companyId} AND status = 'active')`;
+      }
+    }
+
+    let profileFilter = companyUserFilter ? companyUserFilter : "";
     let queryParams = [];
 
     if (role === 'branch_leader') {
@@ -11077,14 +11379,18 @@ app.put("/api/branches/:code", async (req, res) => {
 
 app.get("/api/branches", async (req, res) => {
   try {
-    const rawCompanyId = req.query.company_id || req.query.companyId;
+    const rawCompanyId = req.companyId || req.query.company_id || req.query.companyId;
     const companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
     let whereClause = "";
     let queryParams = [];
 
     if (companyId) {
-      whereClause = "WHERE b.company_id = ?";
-      queryParams.push(companyId);
+      if (companyId === 1) {
+        whereClause = "WHERE (b.company_id = 1 OR b.company_id IS NULL)";
+      } else {
+        whereClause = "WHERE b.company_id = ?";
+        queryParams.push(companyId);
+      }
     }
 
     const queryStr = `
@@ -11320,13 +11626,17 @@ app.get("/api/branches-stats", async (req, res) => {
 // ===============================
 app.get("/api/departments", async (req, res) => {
   try {
-    const rawCompanyId = req.query.company_id || req.query.companyId;
+    const rawCompanyId = req.companyId || req.query.company_id || req.query.companyId;
     const companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
     let query = "SELECT * FROM departments ORDER BY id ASC";
     let params = [];
     if (companyId) {
-      query = "SELECT * FROM departments WHERE company_id = ? OR company_id IS NULL ORDER BY id ASC";
-      params = [companyId];
+      if (companyId === 1) {
+        query = "SELECT * FROM departments WHERE company_id = 1 OR company_id IS NULL ORDER BY id ASC";
+      } else {
+        query = "SELECT * FROM departments WHERE company_id = ? ORDER BY id ASC";
+        params = [companyId];
+      }
     }
     const [rows] = await pool.query(query, params);
     res.json({ success: true, departments: rows });
@@ -11356,6 +11666,12 @@ app.post("/api/departments", async (req, res) => {
     if (existing.length > 0) {
       return res.status(409).json({ success: false, error: "Department with this code or name already exists" });
     }
+
+    const targetCompanyId = parseInt(req.body?.company_id || req.companyId || req.query.company_id || 1, 10) || 1;
+    await pool.query(
+      "INSERT INTO departments (code, name, company_id) VALUES (?, ?, ?)",
+      [safeCode, safeName, targetCompanyId]
+    );
 
     // Broadcast department registration event via SSE
     broadcastPresenceUpdate({

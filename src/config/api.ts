@@ -3,3 +3,51 @@ export const API_BASE_URL =
   (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || window.location.hostname.startsWith("192.168."))
     ? "http://localhost:5000"
     : "https://rayhar-staff.onrender.com");
+
+export const STORAGE_ACTIVE_COMPANY_KEY = 'rayhar_active_company_id';
+
+export function getActiveCompanyId(): string {
+  if (typeof window === 'undefined') return '1';
+  return (
+    sessionStorage.getItem(STORAGE_ACTIVE_COMPANY_KEY) ||
+    localStorage.getItem(STORAGE_ACTIVE_COMPANY_KEY) ||
+    '1'
+  );
+}
+
+// Global fetch interceptor to automatically attach X-Company-Id and company_id query param
+if (typeof window !== 'undefined' && !((window as any).__rayhar_fetch_interceptor_installed)) {
+  (window as any).__rayhar_fetch_interceptor_installed = true;
+  const originalFetch = window.fetch.bind(window);
+
+  window.fetch = async function (input: RequestInfo | URL, init?: RequestInit) {
+    try {
+      let url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
+
+      // Only intercept requests directed to our backend API endpoints
+      if (url && (url.includes('/api/') || (API_BASE_URL && url.startsWith(API_BASE_URL)))) {
+        const activeCompanyId = getActiveCompanyId();
+
+        init = init ? { ...init } : {};
+        const headers = new Headers(init.headers || {});
+        if (!headers.has('X-Company-Id')) {
+          headers.set('X-Company-Id', activeCompanyId);
+        }
+        init.headers = headers;
+
+        // For GET requests that do not already have company_id or companyId, append it
+        const method = (init.method || 'GET').toUpperCase();
+        if (method === 'GET' && !url.includes('company_id=') && !url.includes('companyId=')) {
+          const separator = url.includes('?') ? '&' : '?';
+          url = `${url}${separator}company_id=${encodeURIComponent(activeCompanyId)}`;
+        }
+
+        return originalFetch(url, init);
+      }
+    } catch (e) {
+      console.warn('Fetch interceptor error:', e);
+    }
+
+    return originalFetch(input, init);
+  };
+}

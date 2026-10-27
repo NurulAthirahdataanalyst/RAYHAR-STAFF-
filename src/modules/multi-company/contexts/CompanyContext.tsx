@@ -181,8 +181,11 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (target) {
       setActiveCompany(target);
       sessionStorage.setItem(STORAGE_ACTIVE_COMPANY_KEY, target.id.toString());
+      try {
+        localStorage.setItem(STORAGE_ACTIVE_COMPANY_KEY, target.id.toString());
+      } catch (e) {}
       // Emit synthetic event so components know company context changed
-      window.dispatchEvent(new CustomEvent('rayhar_company_switched', { detail: { company: target } }));
+      window.dispatchEvent(new CustomEvent('rayhar_company_switched', { detail: { company: target, company_id: target.id } }));
     }
   }, [companies, user?.role]);
 

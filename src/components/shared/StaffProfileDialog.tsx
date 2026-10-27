@@ -38,7 +38,10 @@ import {
     Stethoscope,
     BarChart3,
   MapPin,
-  Plane
+  Plane,
+  ChevronLeft,
+  ChevronRight,
+  Lock
 } from "lucide-react";
 import { useState, useEffect, useRef, useMemo } from "react";
 import { createPortal } from "react-dom";
@@ -225,8 +228,11 @@ export function StaffProfileDialog({
   const [isEditTodayAttendanceOpen, setIsEditTodayAttendanceOpen] = useState(false);
   const [editClockIn, setEditClockIn] = useState("");
   const [editClockOut, setEditClockOut] = useState("");
-  const [editAttendanceType, setEditAttendanceType] = useState("Present");
-  const [editAttendanceLocation, setEditAttendanceLocation] = useState("Rayhar HQ");
+  const [attendanceSessions, setAttendanceSessions] = useState<any[]>([]);
+  const [currentSessionIdx, setCurrentSessionIdx] = useState(0);
+  const [defaultLocationData, setDefaultLocationData] = useState<any>(null);
+  const [isLoadingSessions, setIsLoadingSessions] = useState(false);
+  // attendance location is fixed from session coordinates
   const [isUpdatingTodayAttendance, setIsUpdatingTodayAttendance] = useState(false);
 
   useEffect(() => {
@@ -245,10 +251,157 @@ export function StaffProfileDialog({
     if (todayStats) {
       setEditClockIn(todayStats.clockInTime && todayStats.clockInTime !== "--:--" ? todayStats.clockInTime : "");
       setEditClockOut(todayStats.clockOutTime && todayStats.clockOutTime !== "--:--" ? todayStats.clockOutTime : "");
-      setEditAttendanceType(todayStats.todayStatus ? todayStats.todayStatus.replace(/\(.*?\)/g, '').trim() : "Present");
-      setEditAttendanceLocation(todayStats.attendanceLocation ? (BRANCH_NAMES[todayStats.attendanceLocation] || todayStats.attendanceLocation) : (selectedEmployee?.branch ? (BRANCH_NAMES[selectedEmployee.branch] || selectedEmployee.branch) : "Rayhar HQ"));
+// attendance status and location are fixed
     }
-  }, [todayStats, selectedEmployee]);
+  }, [todayStats]);
+
+
+  const formatTimeToDotAmPm = (timeStr?: string | null) => {
+    if (!timeStr) return "--:--";
+    if (timeStr.includes("AM") || timeStr.includes("PM")) {
+      return timeStr.replace(':', '.');
+    }
+    const parts = timeStr.split(':');
+    let h = parseInt(parts[0], 10);
+    const m = parts[1] || "00";
+    if (isNaN(h)) return timeStr;
+    const ampm = h >= 12 ? "PM" : "AM";
+    h = h % 12 || 12;
+    return `${h}.${m} ${ampm}`;
+  };
+
+  const calculateDiffHoursAndMinutes = (inStr?: string | null, outStr?: string | null) => {
+    if (!inStr || !outStr || inStr === "--:--" || outStr === "--:--") return { str: "0 H 00 M", mins: 0 };
+    const getMinutes = (str: string) => {
+      let clean = str.trim();
+      if (clean.includes("AM") || clean.includes("PM")) {
+        const isPM = clean.includes("PM");
+        clean = clean.replace(/AM|PM/g, '').trim().replace('.', ':');
+        const [h, m] = clean.split(':').map(Number);
+        let hours = isNaN(h) ? 0 : h;
+        if (isPM && hours < 12) hours += 12;
+        if (!isPM && hours === 12) hours = 0;
+        return hours * 60 + (isNaN(m) ? 0 : m);
+      }
+      const [h, m] = clean.replace('.', ':').split(':').map(Number);
+      return (isNaN(h) ? 0 : h) * 60 + (isNaN(m) ? 0 : m);
+    };
+    const m1 = getMinutes(inStr);
+    const m2 = getMinutes(outStr);
+    let diff = m2 - m1;
+    if (diff < 0) diff += 24 * 60;
+    const hours = Math.floor(diff / 60);
+    const minutes = diff % 60;
+    return {
+      str: `${hours} H ${String(minutes).padStart(2, '0')} M`,
+      mins: diff
+    };
+  };
+
+  const getTotalWorkingHours = () => {
+    if (!attendanceSessions || attendanceSessions.length === 0) {
+      if (editClockIn && editClockOut) {
+        return calculateDiffHoursAndMinutes(editClockIn, editClockOut).str;
+      }
+      return "0 H 00 M";
+    }
+    let totalMins = 0;
+    attendanceSessions.forEach((sess, idx) => {
+      const inVal = idx === currentSessionIdx ? (editClockIn || sess.clock_in_time_24 || sess.clock_in_time_12) : (sess.clock_in_time_24 || sess.clock_in_time_12);
+      const outVal = idx === currentSessionIdx ? (editClockOut || sess.clock_out_time_24 || sess.clock_out_time_12) : (sess.clock_out_time_24 || sess.clock_out_time_12);
+      if (inVal && outVal && inVal !== "--:--" && outVal !== "--:--") {
+        const { mins } = calculateDiffHoursAndMinutes(inVal, outVal);
+        totalMins += mins;
+      }
+    });
+    const hrs = Math.floor(totalMins / 60);
+    const mins = totalMins % 60;
+    return `${hrs} H ${String(mins).padStart(2, '0')} M`;
+  };
+
+  const fetchTodaySessions = async (uid: string) => {
+    setIsLoadingSessions(true);
+    try {
+      const todayDateStr = new Date().toISOString().split('T')[0];
+      const res = await fetch(`${API_BASE_URL}/api/employees/${uid}/today-attendance?date=${todayDateStr}`);
+      const data = await res.json();
+      if (data.success && Array.isArray(data.sessions) && data.sessions.length > 0) {
+        setAttendanceSessions(data.sessions);
+        setCurrentSessionIdx(0);
+        setEditClockIn(data.sessions[0].clock_in_time_24 || "");
+        setEditClockOut(data.sessions[0].clock_out_time_24 || "");
+        setDefaultLocationData(data.defaultLocation);
+      } else {
+        const defLoc = data?.defaultLocation || {
+          name: selectedEmployee?.branch ? (BRANCH_NAMES[selectedEmployee.branch] || selectedEmployee.branch) : "HQ",
+          location_formatted: `${selectedEmployee?.branch ? (BRANCH_NAMES[selectedEmployee.branch] || selectedEmployee.branch) : "HQ"} ( 4.6778, 10.78758646 )`
+        };
+        setDefaultLocationData(defLoc);
+        const initialDraft = {
+          attendance_id: null,
+          session_number: 1,
+          clock_in: null,
+          clock_out: null,
+          clock_in_time_12: "--:--",
+          clock_out_time_12: "--:--",
+          clock_in_time_24: "",
+          clock_out_time_24: "",
+          working_status: "PRESENT",
+          location: defLoc.name || "HQ",
+          location_formatted: defLoc.location_formatted || "HQ ( 4.6778, 10.78758646 )",
+          working_hours: "0 H 00 M",
+          duration_minutes: 0,
+          has_recorded_clock_in: false,
+          has_recorded_clock_out: false,
+        };
+        setAttendanceSessions([initialDraft]);
+        setCurrentSessionIdx(0);
+        setEditClockIn("");
+        setEditClockOut("");
+      }
+    } catch (err) {
+      console.error("Error fetching today sessions:", err);
+    } finally {
+      setIsLoadingSessions(false);
+    }
+  };
+
+  const handleSelectSession = (newIdx: number) => {
+    if (newIdx < 0 || newIdx >= attendanceSessions.length) return;
+    setCurrentSessionIdx(newIdx);
+    const sess = attendanceSessions[newIdx];
+    setEditClockIn(sess.clock_in_time_24 || "");
+    setEditClockOut(sess.clock_out_time_24 || "");
+  };
+
+  useEffect(() => {
+    if (selectedEmployee?.user_id && isEditTodayAttendanceOpen) {
+      fetchTodaySessions(selectedEmployee.user_id);
+    }
+  }, [selectedEmployee?.user_id, isEditTodayAttendanceOpen]);
+  const handleAddNewSession = () => {
+    const newSession = {
+      attendance_id: null,
+      session_number: attendanceSessions.length + 1,
+      clock_in: null,
+      clock_out: null,
+      clock_in_time_12: "--:--",
+      clock_out_time_12: "--:--",
+      clock_in_time_24: "",
+      clock_out_time_24: "",
+      working_status: "PRESENT",
+      location: defaultLocationData?.name || "HQ",
+      location_formatted: defaultLocationData?.location_formatted || "HQ ( 4.6778, 10.78758646 )",
+      working_hours: "0 H 00 M",
+      duration_minutes: 0,
+      has_recorded_clock_in: false,
+      has_recorded_clock_out: false,
+    };
+    setAttendanceSessions(prev => [newSession, ...prev]);
+    setCurrentSessionIdx(0);
+    setEditClockIn("");
+    setEditClockOut("");
+  };
 
   const handleSavePersonalInfo = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -313,8 +466,9 @@ export function StaffProfileDialog({
         body: JSON.stringify({
           clock_in: clockInVal,
           clock_out: clockOutVal,
-          attendance_type: editAttendanceType,
-          location: editAttendanceLocation,
+          attendance_id: attendanceSessions[currentSessionIdx]?.attendance_id || null,
+          attendance_type: "Present",
+          location: attendanceSessions[currentSessionIdx]?.location || "HQ",
         }),
       });
       const data = await res.json();
@@ -322,6 +476,7 @@ export function StaffProfileDialog({
         toast({ title: "Attendance Updated!", description: "Today's attendance record saved." });
         if (selectedEmployee?.user_id) {
           fetchTodayStats(selectedEmployee.user_id);
+          fetchTodaySessions(selectedEmployee.user_id);
         }
         setIsEditTodayAttendanceOpen(false);
       } else {
@@ -1069,7 +1224,13 @@ export function StaffProfileDialog({
                               <div className="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-slate-900/40 rounded-xl">
                                 <span className="text-[10px] font-black uppercase text-foreground">Location</span>
                                 <span className="font-bold text-foreground truncate max-w-[150px]">
-                                  {todayStats?.attendanceLocation ? (BRANCH_NAMES[todayStats.attendanceLocation] || todayStats.attendanceLocation) : "Rayhar HQ"}
+                                  {todayStats?.attendanceLocationFormatted || (todayStats?.attendanceLocation ? `${BRANCH_NAMES[todayStats.attendanceLocation] || todayStats.attendanceLocation} ( 4.2248, 103.41972330 )` : "HQ ( 4.2248, 103.41972330 )")}
+                                </span>
+                              </div>
+                              <div className="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-slate-900/40 rounded-xl">
+                                <span className="text-[10px] font-black uppercase text-foreground">Working Hours</span>
+                                <span className="font-mono font-black text-[#942392]">
+                                  {todayStats?.workingHours || "0 H 00 M"}
                                 </span>
                               </div>
                               <div className="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-slate-900/40 rounded-xl">
@@ -2938,56 +3099,200 @@ export function StaffProfileDialog({
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleSaveTodayAttendance} className="p-6 space-y-4">
-            <div className="space-y-4">
-              <div className="space-y-1.5">
-                <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground">Clock In Time</Label>
-                <Input
-                  type="time"
-                  value={editClockIn}
-                  onChange={(e) => setEditClockIn(e.target.value)}
-                  className="h-10 text-xs font-mono font-bold"
-                />
+          {/* SESSIONS PAGINATION BAR (< 1 2 3 >) */}
+          <div className="px-6 pt-5 pb-2">
+            <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-900/60 p-3 rounded-2xl border border-border/60">
+              <div className="flex items-center gap-1.5">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  disabled={currentSessionIdx === 0}
+                  onClick={() => handleSelectSession(currentSessionIdx - 1)}
+                  className="h-8 w-8 p-0 rounded-lg text-xs font-black cursor-pointer"
+                  title="Previous Session"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                {attendanceSessions.map((_, idx) => (
+                  <Button
+                    key={idx}
+                    type="button"
+                    size="sm"
+                    onClick={() => handleSelectSession(idx)}
+                    className={`h-8 min-w-[32px] px-2.5 rounded-lg text-xs font-black transition-all cursor-pointer ${
+                      currentSessionIdx === idx
+                        ? "bg-[#942392] text-white shadow-md hover:bg-[#7a1c78]"
+                        : "bg-background hover:bg-muted text-foreground border border-border"
+                    }`}
+                  >
+                    {idx + 1}
+                  </Button>
+                ))}
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  disabled={currentSessionIdx >= attendanceSessions.length - 1}
+                  onClick={() => handleSelectSession(currentSessionIdx + 1)}
+                  className="h-8 w-8 p-0 rounded-lg text-xs font-black cursor-pointer"
+                  title="Next Session"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
               </div>
-
-              <div className="space-y-1.5">
-                <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground">Clock Out Time</Label>
-                <Input
-                  type="time"
-                  value={editClockOut}
-                  onChange={(e) => setEditClockOut(e.target.value)}
-                  className="h-10 text-xs font-mono font-bold"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground">Working Status</Label>
-                <Select value={editAttendanceType} onValueChange={setEditAttendanceType}>
-                  <SelectTrigger className="h-10 text-xs font-bold">
-                    <SelectValue placeholder="Select Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Present" className="text-xs font-bold text-emerald-600">Present</SelectItem>
-                    <SelectItem value="Late" className="text-xs font-bold text-amber-600">Late</SelectItem>
-                    <SelectItem value="Absent" className="text-xs font-bold text-rose-600">Absent</SelectItem>
-                    <SelectItem value="Half Day" className="text-xs font-bold text-blue-600">Half Day</SelectItem>
-                    <SelectItem value="On Leave" className="text-xs font-bold text-purple-600">On Leave</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground">Location</Label>
-                <Input
-                  value={editAttendanceLocation}
-                  onChange={(e) => setEditAttendanceLocation(e.target.value)}
-                  placeholder="e.g. Rayhar HQ"
-                  className="h-10 text-xs font-bold"
-                />
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">
+                  {currentSessionIdx === 0 ? "1st Page (Latest)" : `Session ${currentSessionIdx + 1} of ${attendanceSessions.length}`}
+                </span>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  onClick={handleAddNewSession}
+                  className="h-7 px-2 text-[10px] font-black text-[#942392] hover:bg-[#942392]/10 rounded-lg uppercase tracking-wider cursor-pointer"
+                  title="Add another punch session"
+                >
+                  <Plus className="w-3 h-3 mr-1" />
+                  Add
+                </Button>
               </div>
             </div>
+          </div>
 
-            <DialogFooter className="pt-4 border-t border-border flex justify-end gap-2">
+          <form onSubmit={handleSaveTodayAttendance} className="px-6 pb-6 pt-2 space-y-4">
+            {isLoadingSessions ? (
+              <div className="py-8 flex flex-col items-center justify-center gap-2 text-muted-foreground">
+                <Loader2 className="w-6 h-6 animate-spin text-[#942392]" />
+                <span className="text-xs font-bold uppercase tracking-wider">Loading punches...</span>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {/* 1. CLOCK IN TIME */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground">Clock In Time</Label>
+                    {attendanceSessions[currentSessionIdx]?.has_recorded_clock_in ? (
+                      <span className="text-[9px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded border border-amber-200">
+                        Fixed (Staff Clocked In)
+                      </span>
+                    ) : (
+                      <span className="text-[9px] font-bold text-indigo-600 bg-indigo-50 dark:bg-indigo-950/40 px-2 py-0.5 rounded border border-indigo-200">
+                        Forgot Clock In (HR Editable)
+                      </span>
+                    )}
+                  </div>
+                  {attendanceSessions[currentSessionIdx]?.has_recorded_clock_in ? (
+                    <div className="h-10 px-3.5 bg-slate-100 dark:bg-slate-900/60 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between font-mono font-black text-xs text-foreground">
+                      <span>
+                        {attendanceSessions[currentSessionIdx]?.clock_in_time_12
+                          ? formatTimeToDotAmPm(attendanceSessions[currentSessionIdx].clock_in_time_12)
+                          : (editClockIn ? formatTimeToDotAmPm(editClockIn) : "8.40 AM")}
+                      </span>
+                      <Lock className="w-3.5 h-3.5 text-muted-foreground" />
+                    </div>
+                  ) : (
+                    <Input
+                      type="time"
+                      value={editClockIn}
+                      onChange={(e) => setEditClockIn(e.target.value)}
+                      className="h-10 text-xs font-mono font-bold"
+                    />
+                  )}
+                </div>
+
+                {/* 2. CLOCK OUT TIME */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground">Clock Out Time</Label>
+                    {!attendanceSessions[currentSessionIdx]?.has_recorded_clock_out && !editClockOut ? (
+                      <span className="text-[9px] font-bold text-rose-600 bg-rose-50 dark:bg-rose-950/40 px-2 py-0.5 rounded border border-rose-200">
+                        Forgot Clock Out (Set by HR)
+                      </span>
+                    ) : (
+                      <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-200">
+                        HR Editable
+                      </span>
+                    )}
+                  </div>
+                  <Input
+                    type="time"
+                    value={editClockOut}
+                    onChange={(e) => setEditClockOut(e.target.value)}
+                    placeholder="Set Clock Out Time"
+                    className="h-10 text-xs font-mono font-bold"
+                  />
+                  {editClockOut && (
+                    <p className="text-[10px] font-bold text-muted-foreground">
+                      Selected: <span className="font-mono text-foreground font-black">{formatTimeToDotAmPm(editClockOut)}</span>
+                    </p>
+                  )}
+                </div>
+
+                {/* 3. WORKING STATUS (NOT EDITABLE) */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground">Working Status</Label>
+                    <span className="text-[9px] font-bold uppercase text-muted-foreground bg-muted px-2 py-0.5 rounded">
+                      Non-Editable
+                    </span>
+                  </div>
+                  <div className="h-10 px-3.5 bg-slate-100 dark:bg-slate-900/60 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between font-bold text-xs text-foreground">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                      <span className="text-emerald-700 dark:text-emerald-400 font-black tracking-wide uppercase">
+                        PRESENT (DONT EDITABLE)
+                      </span>
+                    </div>
+                    <Lock className="w-3.5 h-3.5 text-muted-foreground" />
+                  </div>
+                </div>
+
+                {/* 4. LOCATION (NOT EDITABLE & HAVE COORDINATE) */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground">Location (With Coordinates)</Label>
+                    <span className="text-[9px] font-bold uppercase text-muted-foreground bg-muted px-2 py-0.5 rounded">
+                      Non-Editable
+                    </span>
+                  </div>
+                  <div className="h-10 px-3.5 bg-slate-100 dark:bg-slate-900/60 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between font-bold text-xs text-foreground">
+                    <span className="truncate max-w-[280px]">
+                      {attendanceSessions[currentSessionIdx]?.location_formatted || (todayStats?.attendanceLocationFormatted || "HQ ( 4.6778, 10.78758646 )")}
+                    </span>
+                    <MapPin className="w-3.5 h-3.5 text-rose-500 shrink-0 ml-2" />
+                  </div>
+                </div>
+
+                {/* 5. SESSION WORKING HOURS */}
+                <div className="p-3 bg-purple-50/70 dark:bg-purple-950/30 rounded-xl border border-purple-200 dark:border-purple-800/60 flex items-center justify-between">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-[#942392]">Session Working Hours</span>
+                  <span className="font-mono font-black text-xs text-[#942392]">
+                    {calculateDiffHoursAndMinutes(
+                      editClockIn || attendanceSessions[currentSessionIdx]?.clock_in_time_24 || attendanceSessions[currentSessionIdx]?.clock_in_time_12,
+                      editClockOut
+                    ).str}
+                  </span>
+                </div>
+
+                {/* 6. TOTAL WORKING HOURS (BOTTOM OF PAGE) */}
+                <div className="p-3.5 bg-gradient-to-r from-purple-50 via-purple-100/60 to-pink-50 dark:from-purple-950/40 dark:to-pink-950/30 rounded-2xl border border-[#942392]/30 flex items-center justify-between">
+                  <div>
+                    <span className="text-[10px] font-black uppercase tracking-wider text-foreground block">
+                      Total Working Hours (Today)
+                    </span>
+                    <span className="text-[9px] font-bold text-muted-foreground">
+                      Sum of all {attendanceSessions.length} session{attendanceSessions.length > 1 ? 's' : ''}
+                    </span>
+                  </div>
+                  <span className="font-mono font-black text-sm text-[#942392]">
+                    {getTotalWorkingHours()}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            <DialogFooter className="pt-3 border-t border-border flex justify-end gap-2">
               <Button
                 type="button"
                 variant="outline"

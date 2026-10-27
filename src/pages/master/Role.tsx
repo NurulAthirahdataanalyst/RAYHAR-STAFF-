@@ -37,6 +37,9 @@ import {
   Building2,
   MapPinned,
   Settings as SettingsIcon,
+  User,
+  Briefcase,
+  Crown,
   HelpCircle
 } from "lucide-react";
 import {
@@ -63,6 +66,17 @@ interface PermissionItem {
   access_level?: 'view' | 'edit';
 }
 
+
+const getRoleIcon = (roleName: string) => {
+  const lower = (roleName || '').toLowerCase();
+  if (lower.includes('employee') || lower.includes('staff') || lower.includes('driver')) return User;
+  if (lower.includes('branch leader') || lower.includes('branch manager') || lower.includes('supervisor')) return Users;
+  if (lower.includes('head of department') || lower.includes('hod')) return Briefcase;
+  if (lower.includes('hr admin') || lower.includes('admin')) return ShieldCheck;
+  if (lower.includes('managing director') || lower.includes('director') || lower.includes('ceo')) return Crown;
+  if (lower.includes('operation manager') || lower.includes('operation')) return SettingsIcon;
+  return Shield;
+};
 
 export const AUTHORIZATION_SCOPES = [
   {
@@ -1025,13 +1039,13 @@ export default function Role() {
                 </Select>
               </div>
 
-              {/* Copy Access By Role (Company Section & Role Selection) */}
+              {/* Copy Permission From (Company Section & Role Selection) */}
               {formMode !== "view" && (
                 <div className="p-3.5 rounded-xl border border-purple-200/80 dark:border-purple-800/50 bg-purple-50/50 dark:bg-purple-950/20 sm:col-span-2 md:col-span-3 space-y-3">
                   <div className="flex items-center justify-between">
                     <Label className="text-xs font-black uppercase tracking-wider text-[#942392] flex items-center gap-1.5">
                       <Sparkles className="w-4 h-4 text-[#942392]" />
-                      <span>Copy Access By Role</span>
+                      <span>Copy Permission From</span>
                     </Label>
                     <span className="text-[11px] text-muted-foreground font-medium">
                       Select company & role to copy permissions and auto-update authorization scope
@@ -1053,19 +1067,27 @@ export default function Role() {
                         }}
                       >
                         <SelectTrigger className="h-9 text-xs font-bold rounded-xl border-border/60 bg-background text-foreground">
-                          <SelectValue placeholder="▼ Select Company" />
+                          <div className="flex items-center gap-2 truncate">
+                            <Building2 className="w-3.5 h-3.5 text-[#942392] shrink-0" />
+                            <SelectValue placeholder="▼ Select Company" />
+                          </div>
                         </SelectTrigger>
                         <SelectContent className="rounded-xl">
                           {companies.map(c => (
-                            <SelectItem key={c.id} value={c.id.toString()} className="font-bold text-xs">
-                              {c.company_type === 'main' ? `🏛️ MAIN COMPANY (${c.company_name.toUpperCase()})` : `🏢 COMPANY ROLE (${c.company_name.toUpperCase()})`}
+                            <SelectItem key={c.id} value={c.id.toString()} className="font-bold text-xs py-2">
+                              <div className="flex items-center gap-2">
+                                <Building2 className={`w-3.5 h-3.5 shrink-0 ${c.company_type === 'main' ? 'text-[#942392]' : 'text-blue-600'}`} />
+                                <span>
+                                  {c.company_type === 'main' ? `🏛️ MAIN COMPANY (${c.company_name.toUpperCase()})` : `🏢 COMPANY ROLE (${c.company_name.toUpperCase()})`}
+                                </span>
+                              </div>
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                     </div>
 
-                    {/* Role Selector */}
+                    {/* Role Selector with Icons */}
                     <div className="space-y-1">
                       <Label className="text-[11px] font-black uppercase tracking-wider text-muted-foreground flex items-center gap-1">
                         <Shield className="w-3.5 h-3.5 text-[#942392]" />
@@ -1074,65 +1096,43 @@ export default function Role() {
                       <Select value={selectedTemplate} onValueChange={handleSelectTemplate}>
                         <SelectTrigger className="h-9 text-xs font-bold rounded-xl border-border/60 bg-background text-foreground">
                           <div className="flex items-center gap-2 truncate">
-                            <Sparkles className="w-3.5 h-3.5 text-[#942392] shrink-0" />
+                            {selectedTemplate && selectedTemplate !== 'blank' ? (
+                              React.createElement(getRoleIcon(selectedTemplate), { className: "w-3.5 h-3.5 text-[#942392] shrink-0" })
+                            ) : (
+                              <Sparkles className="w-3.5 h-3.5 text-[#942392] shrink-0" />
+                            )}
                             <SelectValue placeholder="▼ Select Role" />
                           </div>
                         </SelectTrigger>
                         <SelectContent className="rounded-xl max-h-60">
-                          <SelectItem value="blank" className="font-bold text-muted-foreground text-xs">
-                            ⚪ Blank Role (0 Permissions)
+                          <SelectItem value="blank" className="font-bold text-muted-foreground text-xs py-2">
+                            <div className="flex items-center gap-2">
+                              <Square className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                              <span>Blank Role (0 Permissions)</span>
+                            </div>
                           </SelectItem>
                           {roles
                             .filter(r => (copyCompanyId === 1 ? (r.is_system_role || r.company_id === 1 || !r.company_id) : (r.company_id === copyCompanyId || r.name.toLowerCase().includes('ray rent'))))
-                            .map(r => (
-                              <SelectItem key={r.id} value={r.name} className="font-bold text-xs">
-                                🛡️ {r.name} ({r.permission_keys ? r.permission_keys.length : 0} perms)
-                              </SelectItem>
-                            ))}
+                            .map(r => {
+                              const RoleIcon = getRoleIcon(r.name);
+                              return (
+                                <SelectItem key={r.id} value={r.name} className="font-bold text-xs py-2">
+                                  <div className="flex items-center gap-2">
+                                    <RoleIcon className="w-4 h-4 text-[#942392] shrink-0" />
+                                    <span className="text-foreground">{r.name}</span>
+                                    <span className="text-[10px] text-muted-foreground font-normal">
+                                      ({r.permission_keys ? r.permission_keys.length : 0} perms)
+                                    </span>
+                                  </div>
+                                </SelectItem>
+                              );
+                            })}
                         </SelectContent>
                       </Select>
                     </div>
                   </div>
                 </div>
               )}
-
-              {/* Authorization Scope Dropdown */}
-              <div className="space-y-1.5 sm:col-span-2">
-                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white flex items-center justify-between">
-                  <div className="flex items-center gap-1.5">
-                    <ShieldCheck className="w-3.5 h-3.5 text-[#942392]" />
-                    <span>Authorization Scope</span>
-                  </div>
-                  <span className="text-[10px] font-medium text-muted-foreground normal-case">
-                    Defines employee data visibility boundary
-                  </span>
-                </Label>
-                <Select value={formScopeType} onValueChange={setFormScopeType} disabled={formMode === "view"}>
-                  <SelectTrigger className="h-auto min-h-10 py-2 text-xs font-bold rounded-xl border-border/60 bg-background text-black dark:text-white">
-                    <div className="flex items-center gap-2">
-                      <ShieldCheck className="w-4 h-4 text-[#942392] shrink-0" />
-                      <SelectValue placeholder="▼ Select Authorization" />
-                    </div>
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl">
-                    {AUTHORIZATION_SCOPES.map(s => (
-                      <SelectItem key={s.value} value={s.value} className="py-2.5">
-                        <div className="flex flex-col items-start gap-0.5 text-left">
-                          <span className="font-black text-xs text-foreground flex items-center gap-1.5">
-                            <span>{s.title}</span>
-                            <span className="text-[9px] px-1.5 py-0.2 rounded bg-purple-100 dark:bg-purple-950 text-[#942392] font-bold">
-                              {s.badge}
-                            </span>
-                          </span>
-                          <span className="text-[11px] text-muted-foreground font-normal">
-                            - {s.desc}
-                          </span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
 
               {/* Description */}
               <div className="space-y-1.5 sm:col-span-2 md:col-span-3">
@@ -1197,6 +1197,53 @@ export default function Role() {
                     </Button>
                   </div>
                 )}
+              </div>
+
+              {/* FILTER AUTHORIZATION SCOPE DROPDOWN INSIDE MODULE MATRIX */}
+              <div className="p-3.5 rounded-xl border border-purple-200/80 dark:border-purple-800/50 bg-gradient-to-r from-purple-50/70 via-background to-purple-50/40 dark:from-purple-950/30 dark:via-background dark:to-purple-950/20 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-2xs">
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className="w-4 h-4 text-[#942392]" />
+                    <span className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
+                      Authorization Scope
+                    </span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-[#942392]/10 text-[#942392] border border-[#942392]/20">
+                      {formScopeType}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">
+                    Defines employee data visibility boundary across the portal
+                  </p>
+                </div>
+
+                <div className="w-full md:w-[320px] shrink-0">
+                  <Select value={formScopeType} onValueChange={setFormScopeType} disabled={formMode === "view"}>
+                    <SelectTrigger className="h-10 text-xs font-bold rounded-xl border-border/80 bg-background text-black dark:text-white shadow-2xs">
+                      <div className="flex items-center gap-2 truncate">
+                        <ShieldCheck className="w-4 h-4 text-[#942392] shrink-0" />
+                        <SelectValue placeholder="▼ Select Authorization" />
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl w-[320px]">
+                      {AUTHORIZATION_SCOPES.map(s => (
+                        <SelectItem key={s.value} value={s.value} className="py-2.5">
+                          <div className="flex flex-col items-start gap-0.5 text-left">
+                            <span className="font-black text-xs text-foreground flex items-center gap-1.5">
+                              <span className="w-2 h-2 rounded-full bg-[#942392]" />
+                              <span>{s.title}</span>
+                              <span className="text-[9px] px-1.5 py-0.2 rounded bg-purple-100 dark:bg-purple-950 text-[#942392] font-bold">
+                                {s.badge}
+                              </span>
+                            </span>
+                            <span className="text-[11px] text-muted-foreground font-normal pl-3.5">
+                              - {s.desc}
+                            </span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               {/* Modules Grid (Responsive 1 or 2 Columns on PC) */}

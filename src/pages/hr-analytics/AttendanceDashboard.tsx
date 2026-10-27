@@ -29,6 +29,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { API_BASE_URL } from "../../config/api";
+import { useCompany } from "@/modules/multi-company/contexts/CompanyContext";
 import PageActions from "@/components/layout/PageActions";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
 import { TablePagination } from "@/components/common/TablePagination";
@@ -116,6 +117,7 @@ const parseThreshold = (thresholdStr: string) => {
 };
 
 export default function AttendanceDashboard() {
+  const { activeCompany } = useCompany();
   const { role, userBranch, userDepartment, loading } = useRole();
   const location = useLocation();
   const navigate = useNavigate();
@@ -322,7 +324,13 @@ export default function AttendanceDashboard() {
 
   useEffect(() => {
     fetchLists();
-  }, [fetchLists]);
+    const handleSwitch = () => {
+      fetchLists();
+      void fetchDailyAttendance(true);
+    };
+    window.addEventListener('rayhar_company_switched', handleSwitch);
+    return () => window.removeEventListener('rayhar_company_switched', handleSwitch);
+  }, [fetchLists, activeCompany?.id]);
 
   // Fetch Attendance Data
   const fetchDailyAttendance = async (isInitial = false) => {
@@ -332,11 +340,11 @@ export default function AttendanceDashboard() {
     }
     try {
       const [resDaily, resStats, resAbsent, resOutstation, resLeave, resWorkAssign, resMultiLoc] = await Promise.all([
-        fetch(`${API_BASE_URL}/api/reports/daily-attendance?date=${encodeURIComponent(selectedDate)}&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}`),
-        fetch(`${API_BASE_URL}/api/dashboard-stats?userId=ADMIN&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(userBranch || "All")}&department=${encodeURIComponent(userDepartment || "All")}&date=${encodeURIComponent(selectedDate)}`),
-        fetch(`${API_BASE_URL}/api/reports/absent-employees?date=${encodeURIComponent(selectedDate)}&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}`),
-        fetch(`${API_BASE_URL}/api/outstation?role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}`),
-        fetch(`${API_BASE_URL}/api/reports/on-leave-employees?date=${encodeURIComponent(selectedDate)}&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}`),
+        fetch(`${API_BASE_URL}/api/reports/daily-attendance?date=${encodeURIComponent(selectedDate)}&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}&company_id=${activeCompany?.id || 1}`),
+        fetch(`${API_BASE_URL}/api/dashboard-stats?userId=ADMIN&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(userBranch || "All")}&department=${encodeURIComponent(userDepartment || "All")}&date=${encodeURIComponent(selectedDate)}&company_id=${activeCompany?.id || 1}`),
+        fetch(`${API_BASE_URL}/api/reports/absent-employees?date=${encodeURIComponent(selectedDate)}&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}&company_id=${activeCompany?.id || 1}`),
+        fetch(`${API_BASE_URL}/api/outstation?role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}&company_id=${activeCompany?.id || 1}`),
+        fetch(`${API_BASE_URL}/api/reports/on-leave-employees?date=${encodeURIComponent(selectedDate)}&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}&company_id=${activeCompany?.id || 1}`),
         fetch(`${API_BASE_URL}/api/work-assignments-all`),
         fetch(`${API_BASE_URL}/api/multi-location-users`)
       ]);
@@ -514,7 +522,7 @@ export default function AttendanceDashboard() {
     } else if (activeTab === "leave") {
       fetchLeaveUtilization();
     }
-  }, [activeTab, selectedMonth, selectedYear, selectedDate, role, userBranch, userDepartment, loading]);
+  }, [activeTab, selectedMonth, selectedYear, selectedDate, role, userBranch, userDepartment, loading, activeCompany?.id]);
 
   // ── LIVE-STATS SSE CONNECTION ─────────────────────────────────────────
   useEffect(() => {
