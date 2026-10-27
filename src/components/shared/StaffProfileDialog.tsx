@@ -1,6 +1,7 @@
 import profileSkyBanner from "@/assets/profile-sky-banner.png";
 import { UserAvatar, getSavedAvatar } from "@/utils/avatarUtils";
 import { AvatarPickerModal } from "@/components/profile/AvatarPickerModal";
+import { CustomTimePicker } from "@/components/ui/custom-time-picker";
 import { sanitizeUrl, safeFileUrl, downloadUploadedFile, getMcAttachmentUrl, preloadImage, isPdfUrl } from '@/utils/security';
 import { formatBranchName } from '@/utils/branchUtils';
 import { MonthPicker } from '@/components/shared/MonthPicker';
@@ -184,7 +185,17 @@ export function StaffProfileDialog({
   isPage?: boolean;
   onBack?: () => void;
 }) {
-  const { role, userBranch, userDepartment } = useRole();
+  const { role, userBranch, userDepartment, userId: currentUserId } = useRole();
+  const storedUserId = typeof window !== 'undefined' ? (localStorage.getItem("user_id") || localStorage.getItem("userId")) : null;
+  const storedUserEmail = typeof window !== 'undefined' ? (localStorage.getItem("user_email") || localStorage.getItem("email")) : null;
+
+  const isOwnProfile = Boolean(
+    selectedEmployee && (
+      (currentUserId && String(currentUserId).trim().toLowerCase() === String(selectedEmployee.user_id).trim().toLowerCase()) ||
+      (storedUserId && String(storedUserId).trim().toLowerCase() === String(selectedEmployee.user_id).trim().toLowerCase()) ||
+      (storedUserEmail && selectedEmployee.email && String(storedUserEmail).trim().toLowerCase() === String(selectedEmployee.email).trim().toLowerCase())
+    )
+  );
   const isHrOrAdmin = role === "hr_admin" || role === "admin" || (typeof role === "string" && role.toLowerCase().includes("hr"));
   const printRef = useRef<HTMLDivElement>(null);
   
@@ -1101,14 +1112,16 @@ export function StaffProfileDialog({
                                 className="absolute inset-0 w-full h-full object-cover object-center pointer-events-none select-none"
                               />
                               <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/10 dark:from-black/30 dark:to-black/30 pointer-events-none" />
-                              <button
-                                type="button"
-                                onClick={() => setAvatarModalOpen(true)}
-                                className="absolute top-3.5 right-3.5 w-8 h-8 rounded-full bg-white/90 dark:bg-slate-900/90 text-slate-800 dark:text-slate-100 shadow-md backdrop-blur-md flex items-center justify-center hover:scale-110 active:scale-95 transition-all cursor-pointer border border-white/60 dark:border-slate-700"
-                                title="Change Avatar"
-                              >
-                                <Plus className="w-4 h-4 font-black" />
-                              </button>
+                              {isOwnProfile && (
+                                <button
+                                  type="button"
+                                  onClick={() => setAvatarModalOpen(true)}
+                                  className="absolute top-3.5 right-3.5 w-8 h-8 rounded-full bg-white/90 dark:bg-slate-900/90 text-slate-800 dark:text-slate-100 shadow-md backdrop-blur-md flex items-center justify-center hover:scale-110 active:scale-95 transition-all cursor-pointer border border-white/60 dark:border-slate-700"
+                                  title="Change Avatar"
+                                >
+                                  <Plus className="w-4 h-4 font-black" />
+                                </button>
+                              )}
                             </div>
 
                             {/* Overlapping Avatar Circle */}
@@ -1122,14 +1135,16 @@ export function StaffProfileDialog({
                                       className="w-full h-full"
                                     />
                                   </div>
-                                  <button
-                                    type="button"
-                                    onClick={() => setAvatarModalOpen(true)}
-                                    className="absolute bottom-1 right-1 p-2 bg-[#942392] hover:bg-[#800A7A] text-white rounded-full shadow-lg border-2 border-white transition-all transform hover:scale-110 active:scale-95 cursor-pointer"
-                                    title="Change Avatar"
-                                  >
-                                    <Sparkles className="w-3.5 h-3.5" />
-                                  </button>
+                                  {isOwnProfile && (
+                                    <button
+                                      type="button"
+                                      onClick={() => setAvatarModalOpen(true)}
+                                      className="absolute bottom-1 right-1 p-2 bg-[#942392] hover:bg-[#800A7A] text-white rounded-full shadow-lg border-2 border-white transition-all transform hover:scale-110 active:scale-95 cursor-pointer"
+                                      title="Change Avatar"
+                                    >
+                                      <Sparkles className="w-3.5 h-3.5" />
+                                    </button>
+                                  )}
                                 </div>
                               </div>
 
@@ -1164,18 +1179,20 @@ export function StaffProfileDialog({
                                 </div>
                               </div>
 
-                              {/* Change Profile Avatar Button */}
-                              <div className="mt-4">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => setAvatarModalOpen(true)}
-                                  className="w-full rounded-xl border-[#942392]/30 text-[#942392] hover:bg-[#942392]/10 font-black text-xs uppercase tracking-wider h-9"
-                                >
-                                  <Sparkles className="w-3.5 h-3.5 mr-1.5" />
-                                  Change Profile Avatar
-                                </Button>
-                              </div>
+                              {/* Change Profile Avatar Button (Owner only) */}
+                              {isOwnProfile && (
+                                <div className="mt-4">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setAvatarModalOpen(true)}
+                                    className="w-full rounded-xl border-[#942392]/30 text-[#942392] hover:bg-[#942392]/10 font-black text-xs uppercase tracking-wider h-9"
+                                  >
+                                    <Sparkles className="w-3.5 h-3.5 mr-1.5" />
+                                    Change Profile Avatar
+                                  </Button>
+                                </div>
+                              )}
                             </div>
                           </Card>
 
@@ -3204,11 +3221,11 @@ export function StaffProfileDialog({
                     </div>
                   ) : (
                     <div className="space-y-1">
-                      <Input
-                        type="time"
+                      <CustomTimePicker
                         value={editClockIn}
-                        onChange={(e) => setEditClockIn(e.target.value)}
-                        className="h-10 text-xs font-mono font-bold"
+                        onChange={(val) => setEditClockIn(val)}
+                        placeholder="Select Clock In Time"
+                        className="w-full h-10 font-mono font-bold text-xs"
                       />
                       {editClockIn && (
                         <p className="text-[10px] font-bold text-muted-foreground">
@@ -3233,13 +3250,14 @@ export function StaffProfileDialog({
                       </span>
                     )}
                   </div>
-                  <Input
-                    type="time"
-                    value={editClockOut}
-                    onChange={(e) => setEditClockOut(e.target.value)}
-                    placeholder="Set Clock Out Time"
-                    className="h-10 text-xs font-mono font-bold"
-                  />
+                  <div className="space-y-1">
+                    <CustomTimePicker
+                      value={editClockOut}
+                      onChange={(val) => setEditClockOut(val)}
+                      placeholder="Select Clock Out Time"
+                      className="w-full h-10 font-mono font-bold text-xs"
+                    />
+                  </div>
                   {editClockOut && (
                     <p className="text-[10px] font-bold text-muted-foreground">
                       Selected: <span className="font-mono text-foreground font-black">{formatTimeToDotAmPm(editClockOut)}</span>

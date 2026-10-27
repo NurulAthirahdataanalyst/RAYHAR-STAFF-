@@ -14,6 +14,27 @@ const ITEM_HEIGHT = 30;
 const HOURS_LIST = [12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
 const MINUTES_LIST = Array.from({ length: 60 }, (_, i) => i);
 
+export const parseTimeValue = (val?: string | null) => {
+  if (!val) return { hour12: 12, minute: 0, period: "AM" as "AM" | "PM", hour24: 12 };
+  let str = String(val).trim();
+  const isPM = /pm/i.test(str);
+  const isAM = /am/i.test(str);
+  str = str.replace(/am|pm/gi, '').trim().replace(/\./g, ':');
+  const [hStr, mStr] = str.split(':');
+  let h = parseInt(hStr || "12", 10);
+  let m = parseInt(mStr || "0", 10);
+  if (isNaN(h)) h = 12;
+  if (isNaN(m)) m = 0;
+
+  let period: "AM" | "PM" = isPM ? "PM" : (isAM ? "AM" : (h >= 12 ? "PM" : "AM"));
+  let h24 = h;
+  if (isPM && h < 12) h24 += 12;
+  if (isAM && h === 12) h24 = 0;
+
+  let h12 = h24 === 0 ? 12 : (h24 > 12 ? h24 - 12 : h24);
+  return { hour12: h12, minute: m, period, hour24: h24 };
+};
+
 export const CustomTimePicker: React.FC<CustomTimePickerProps> = ({
   value,
   onChange,
@@ -25,13 +46,8 @@ export const CustomTimePicker: React.FC<CustomTimePickerProps> = ({
   // Formatted 12-hr display for trigger button
   const display12Hr = React.useMemo(() => {
     if (!value) return placeholder;
-    const [hStr, mStr] = value.split(":");
-    let h = parseInt(hStr || "12", 10);
-    const m = parseInt(mStr || "0", 10);
-    const p = h >= 12 ? "PM" : "AM";
-    if (h === 0) h = 12;
-    else if (h > 12) h -= 12;
-    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")} ${p}`;
+    const { hour12, minute, period } = parseTimeValue(value);
+    return `${String(hour12).padStart(2, "0")}:${String(minute).padStart(2, "0")} ${period}`;
   }, [value, placeholder]);
 
   // Local state while popover is open
@@ -84,19 +100,7 @@ export const CustomTimePicker: React.FC<CustomTimePickerProps> = ({
   // Initialize values when popover opens (ONLY runs on open change)
   React.useEffect(() => {
     if (open) {
-      let h12 = 12;
-      let min = 0;
-      let p: "AM" | "PM" = "AM";
-
-      if (value) {
-        const [hStr, mStr] = value.split(":");
-        let h = parseInt(hStr || "12", 10);
-        min = parseInt(mStr || "0", 10);
-        p = h >= 12 ? "PM" : "AM";
-        if (h === 0) h12 = 12;
-        else if (h > 12) h12 = h - 12;
-        else h12 = h;
-      }
+      const { hour12: h12, minute: min, period: p } = parseTimeValue(value);
 
       setSelectedHour(h12);
       setSelectedMinute(min);
@@ -362,7 +366,7 @@ export const CustomTimePicker: React.FC<CustomTimePickerProps> = ({
         collisionPadding={12}
       >
         {/* Title */}
-        <div className="text-xs font-semibold text-muted-foreground/80 mb-2.5 select-none">
+        <div className="text-xs font-bold text-black dark:text-white mb-2.5 select-none">
           {mode === "wheel" ? "Select time" : "Enter Time"}
         </div>
 

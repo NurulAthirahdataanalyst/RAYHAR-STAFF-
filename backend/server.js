@@ -5675,20 +5675,38 @@ app.post("/api/employees/:userId/today-attendance", async (req, res) => {
 
     const formatTimestamp = (val) => {
       if (!val) return null;
-      if (val.includes('T')) {
-        if (!val.includes('+') && !val.includes('Z')) {
-          return `${val}+08:00`;
+      let str = String(val).trim();
+      let datePart = todayDateStr;
+      if (str.includes('T')) {
+        const tSplit = str.split('T');
+        if (/^\d{4}-\d{2}-\d{2}$/.test(tSplit[0].trim())) {
+          datePart = tSplit[0].trim();
         }
-        return val;
+        str = tSplit[1].trim();
       }
-      if (/^\d{1,2}:\d{2}(:\d{2})?$/.test(val)) {
-        const parts = val.split(':');
-        const hh = parts[0].padStart(2, '0');
-        const mm = parts[1];
-        const ss = parts[2] || '00';
-        return `${todayDateStr}T${hh}:${mm}:${ss}+08:00`;
-      }
-      return val;
+
+      str = str.replace(/(\+|-)\d{2}:?\d{2}$/, '').replace(/Z$/, '').trim();
+      const isAM = /am/i.test(str);
+      const isPM = /pm/i.test(str);
+      str = str.replace(/am|pm/gi, '').trim().replace(/\./g, ':');
+
+      const parts = str.split(':').map(p => p.trim());
+      let h = parseInt(parts[0], 10);
+      let m = parts[1] ? parseInt(parts[1], 10) : 0;
+      let s = parts[2] ? parseInt(parts[2], 10) : 0;
+
+      if (isNaN(h)) return null;
+      if (isNaN(m)) m = 0;
+      if (isNaN(s)) s = 0;
+
+      if (isPM && h < 12) h += 12;
+      if (isAM && h === 12) h = 0;
+
+      const hhStr = String(h).padStart(2, '0');
+      const mmStr = String(m).padStart(2, '0');
+      const ssStr = String(s).padStart(2, '0');
+
+      return `${datePart}T${hhStr}:${mmStr}:${ssStr}+08:00`;
     };
 
     const finalClockIn = formatTimestamp(clock_in);
