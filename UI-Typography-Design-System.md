@@ -23,21 +23,133 @@ The **Rayhar Staff Portal HRMS** UI Typography & Layout Design System establishe
 
 ## 2. Global Typography System
 
-### 2.1 Font Family Stack
+### 2.1 Font Family Architecture (Strict Two-Font System)
+
+The Rayhar Staff Portal HRMS strictly enforces **ONLY TWO FONT FAMILIES** across the entire application to guarantee a cohesive, professional GLC/MNC corporate standard. All secondary display fonts and unnecessary fallbacks are permanently banned.
 
 ```css
-/* Primary Application Font (Default for all UI, data tables, and forms) */
-font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+/* Primary Application Font (Default for universal UI, dashboards, data tables, and forms) */
+font-family: 'Inter', sans-serif;
 
-/* Secondary / Display Font (Optional for executive KPI counters and page titles) */
-font-family: 'Inter', 'Plus Jakarta Sans', system-ui, sans-serif;
-
-/* Monospace Stack (For GPS coordinates, timestamp logs, employee IDs, audit codes) */
-font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+/* Technical Monospace Font (Strictly for GPS coordinates, timestamp logs, employee IDs, audit codes) */
+font-family: 'JetBrains Mono', monospace;
 ```
 
-- **Primary:** `Inter` (Variable font supporting weights 400, 500, 600, 700, 800, 900)
-- **Fallback:** `-apple-system`, `BlinkMacSystemFont`, `system-ui`, `sans-serif`
+#### Primary Application Font: `Inter`
+Used for all normal user interface content:
+- Login page & authentication
+- Dashboard & Executive KPI cards
+- Page titles & Section headings
+- Navigation menus, Sidebar & Breadcrumbs
+- Forms, Input fields & Buttons
+- Tables, Cards & Reports
+- Analytics & Employee administration
+- Leave management & Attendance rosters
+- Settings & All general UI components
+
+**Banned Fallbacks & Secondary Fonts:**
+Do NOT use: `Arial`, `Helvetica Neue`, `Roboto`, `Segoe UI`, `BlinkMacSystemFont`, `Plus Jakarta Sans`, `Outfit`, `Montserrat`.  
+*Rationale:* `Inter` provides high corporate authority, micro-legibility in dense tables, consistent visual hierarchy, and superior tabular data presentation.
+
+#### Technical Monospace Font: `JetBrains Mono`
+Applied **ONLY** for structured technical information:
+- Employee ID (`EMP-00088`, `STF-2026-019`)
+- Staff Code
+- GPS Coordinates (`4.2250107, 103.4195093`, `5.3297° N, 103.1370° E`)
+- Latitude and Longitude
+- Timestamp logs (`2026-10-27 09:15:43`)
+- Audit records (`AUDIT-20261027-000182`)
+- Transaction IDs
+- System references & Technical identifiers
+
+**Negative Boundary Rules:**
+Do NOT use JetBrains Mono for:
+- Employee names
+- Page titles
+- Buttons
+- Forms & Form labels
+- Navigation
+- Descriptions & Normal text
+
+**Banned Programming Fonts:**
+Do NOT use: `Fira Code`, `Menlo`, `Monaco`, `Consolas`, `Courier New`, or other programming fonts.
+
+---
+
+### 2.2 Typography Principle
+
+The entire application maintains **one consistent visual language**. No separate display fonts exist. All visual hierarchy must be created strictly using:
+- **Font Weight**
+- **Color**
+- **Letter Spacing (Tracking)**
+- **Line Height (Leading)**
+- **Spacing (Padding & Margins)**
+
+---
+
+### 2.3 Font Weight System (6-Tier Hierarchy)
+
+- **Black / Extra Strong (`900` / `font-black`):**
+  * Executive metrics & KPI hero numbers
+  * Important dashboard values
+  * Main page titles
+  * Critical urgency information
+- **Extra Bold (`800` / `font-extrabold`):**
+  * Card titles
+  * Table column headers
+  * Form group labels
+  * Primary action buttons (`+ ADD BRANCH`, `REGISTER ENTITY`)
+  * Section headings
+- **Bold (`700` / `font-bold`):**
+  * Employee full names
+  * Active navigation tabs & sidebar items
+  * Important state information
+  * Status emphasis
+- **Semi Bold (`600` / `font-semibold`):**
+  * Secondary metadata
+  * Input field values
+  * Supporting data points
+- **Medium (`500` / `font-medium`):**
+  * Navigation links
+  * Table content & data cells
+  * Form values
+- **Regular (`400` / `font-normal`):**
+  * Descriptive text & captions
+  * Helper text & tooltips
+  * Supporting audit commentary
+
+---
+
+### 2.4 Typography Component Usage Rules
+
+- **PAGE TITLES:** `Inter` | Strong corporate emphasis | Uppercase style where suitable for enterprise pages
+- **SECTION HEADERS:** `Inter` | Clear hierarchy | Professional appearance
+- **CARD TITLES:** `Inter` | Strong emphasis | Consistent enterprise style
+- **TABLES:**
+  * Header: `Inter` | Strong emphasis | Uppercase labels (`tracking-wider`) | High readability
+  * Content: `Inter` | Normal readable data presentation (IDs use `JetBrains Mono`)
+- **FORMS:**
+  * Labels: `Inter` | Strong identification style (`font-extrabold` uppercase)
+  * Input values: `Inter` | Clear readable text
+- **BUTTONS:** `Inter` | Strong action emphasis | Uppercase for enterprise actions
+- **STATUS BADGES:** `Inter` | Compact | Strong emphasis | Easy scanning
+- **TECHNICAL DATA:** `JetBrains Mono` | Structured alignment | Easy comparison
+
+---
+
+### 2.5 Corporate Visual Style & Density Rules
+
+- **Maintain:**
+  * Compact enterprise layout
+  * High information density
+  * Clear hierarchy
+  * Professional spacing
+  * Minimal visual noise
+- **Avoid:**
+  * Large empty spaces
+  * Oversized text
+  * Excessive rounded components
+  * Decorative typography
 
 ---
 
