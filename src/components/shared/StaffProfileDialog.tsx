@@ -411,29 +411,6 @@ export function StaffProfileDialog({
       fetchTodaySessions(selectedEmployee.user_id);
     }
   }, [selectedEmployee?.user_id, isEditTodayAttendanceOpen]);
-  const handleAddNewSession = () => {
-    const newSession = {
-      attendance_id: null,
-      session_number: attendanceSessions.length + 1,
-      clock_in: null,
-      clock_out: null,
-      clock_in_time_12: "--:--",
-      clock_out_time_12: "--:--",
-      clock_in_time_24: "",
-      clock_out_time_24: "",
-      working_status: "PRESENT",
-      location: defaultLocationData?.name || "HQ",
-      location_formatted: defaultLocationData?.location_formatted || "HQ ( 4.6778, 10.78758646 )",
-      working_hours: "0 H 00 M",
-      duration_minutes: 0,
-      has_recorded_clock_in: false,
-      has_recorded_clock_out: false,
-    };
-    setAttendanceSessions(prev => [newSession, ...prev]);
-    setCurrentSessionIdx(0);
-    setEditClockIn("");
-    setEditClockOut("");
-  };
 
   const handleSavePersonalInfo = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -3126,8 +3103,8 @@ export function StaffProfileDialog({
 
       {/* EDIT TODAY ATTENDANCE MODAL (HR ONLY) */}
       <Dialog open={isEditTodayAttendanceOpen} onOpenChange={setIsEditTodayAttendanceOpen}>
-        <DialogContent className="sm:max-w-md overflow-hidden p-0 border-0 border-none shadow-2xl rounded-3xl [&>button]:text-white [&>button]:hover:text-white/80 bg-card">
-          <DialogHeader className="bg-[#942392] p-6 text-white border-b border-white/20 shrink-0 text-left">
+        <DialogContent className="w-[95vw] sm:max-w-xl md:max-w-2xl max-h-[90vh] flex flex-col gap-0 overflow-hidden p-0 border-0 border-none shadow-2xl rounded-3xl [&>button]:text-white [&>button]:hover:text-white/80 bg-card">
+          <DialogHeader className="bg-[#942392] px-6 py-4 text-white border-b border-white/20 shrink-0 text-left">
             <DialogTitle className="text-white font-black uppercase tracking-tight text-lg m-0 flex items-center gap-2">
               <Clock className="w-5 h-5 text-white" />
               Edit Today's Attendance
@@ -3137,9 +3114,9 @@ export function StaffProfileDialog({
             </DialogDescription>
           </DialogHeader>
 
-          {/* SESSIONS PAGINATION BAR (< 1 2 3 >) */}
-          <div className="px-6 pt-5 pb-2">
-            <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-900/60 p-3 rounded-2xl border border-border/60">
+          {/* SESSIONS PAGINATION BAR (< 1 2 3 >) - Sessions appear automatically from user clock-in/out logs */}
+          <div className="px-6 pt-4 pb-2 shrink-0">
+            <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-900/60 px-3.5 py-2.5 rounded-2xl border border-border/60">
               <div className="flex items-center gap-1.5">
                 <Button
                   type="button"
@@ -3181,24 +3158,13 @@ export function StaffProfileDialog({
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">
-                  {currentSessionIdx === 0 ? "1st Page (Latest)" : `Session ${currentSessionIdx + 1} of ${attendanceSessions.length}`}
+                  {`Session ${currentSessionIdx + 1} of ${attendanceSessions.length}${currentSessionIdx === 0 && attendanceSessions.length > 1 ? " (Latest)" : ""}`}
                 </span>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="ghost"
-                  onClick={handleAddNewSession}
-                  className="h-7 px-2 text-[10px] font-black text-[#942392] hover:bg-[#942392]/10 rounded-lg uppercase tracking-wider cursor-pointer"
-                  title="Add another punch session"
-                >
-                  <Plus className="w-3 h-3 mr-1" />
-                  Add
-                </Button>
               </div>
             </div>
           </div>
 
-          <form onSubmit={handleSaveTodayAttendance} className="px-6 pb-6 pt-2 space-y-4">
+          <form onSubmit={handleSaveTodayAttendance} className="px-6 pb-5 pt-2 space-y-4 overflow-y-auto flex-1">
             {isLoadingSessions ? (
               <div className="py-8 flex flex-col items-center justify-center gap-2 text-muted-foreground">
                 <Loader2 className="w-6 h-6 animate-spin text-[#942392]" />
@@ -3206,134 +3172,111 @@ export function StaffProfileDialog({
               </div>
             ) : (
               <div className="space-y-4">
-                {/* 1. CLOCK IN TIME */}
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* 1. CLOCK IN TIME */}
+                  <div className="space-y-1.5">
                     <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground">CLOCK IN TIME</Label>
                     {attendanceSessions[currentSessionIdx]?.has_recorded_clock_in ? (
-                      <span className="text-[9px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded border border-amber-200">
-                        Fixed (Staff Clocked In)
-                      </span>
+                      <div className="h-10 px-3.5 bg-slate-100 dark:bg-slate-900/60 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between font-mono font-black text-xs text-foreground">
+                        <span>
+                          {attendanceSessions[currentSessionIdx]?.clock_in_time_12
+                            ? formatTimeToDotAmPm(attendanceSessions[currentSessionIdx].clock_in_time_12)
+                            : (editClockIn ? formatTimeToDotAmPm(editClockIn) : "8.40 AM")}
+                        </span>
+                        <Lock className="w-3.5 h-3.5 text-muted-foreground" />
+                      </div>
                     ) : (
-                      <span className="text-[9px] font-bold text-indigo-600 bg-indigo-50 dark:bg-indigo-950/40 px-2 py-0.5 rounded border border-indigo-200">
-                        Forgot Clock In (HR Editable)
-                      </span>
+                      <div className="space-y-1">
+                        <CustomTimePicker
+                          value={editClockIn}
+                          onChange={(val) => setEditClockIn(val)}
+                          placeholder="Select Clock In Time"
+                          className="w-full h-10 font-mono font-bold text-xs"
+                        />
+                        {editClockIn && (
+                          <p className="text-[10px] font-bold text-muted-foreground">
+                            Selected: <span className="font-mono text-foreground font-black">{formatTimeToDotAmPm(editClockIn)}</span>
+                          </p>
+                        )}
+                      </div>
                     )}
                   </div>
-                  {attendanceSessions[currentSessionIdx]?.has_recorded_clock_in ? (
-                    <div className="h-10 px-3.5 bg-slate-100 dark:bg-slate-900/60 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between font-mono font-black text-xs text-foreground">
-                      <span>
-                        {attendanceSessions[currentSessionIdx]?.clock_in_time_12
-                          ? formatTimeToDotAmPm(attendanceSessions[currentSessionIdx].clock_in_time_12)
-                          : (editClockIn ? formatTimeToDotAmPm(editClockIn) : "8.40 AM")}
-                      </span>
-                      <Lock className="w-3.5 h-3.5 text-muted-foreground" />
-                    </div>
-                  ) : (
+
+                  {/* 2. CLOCK OUT TIME */}
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground">CLOCK OUT TIME</Label>
                     <div className="space-y-1">
                       <CustomTimePicker
-                        value={editClockIn}
-                        onChange={(val) => setEditClockIn(val)}
-                        placeholder="Select Clock In Time"
+                        value={editClockOut}
+                        onChange={(val) => setEditClockOut(val)}
+                        placeholder="Select Clock Out Time"
                         className="w-full h-10 font-mono font-bold text-xs"
                       />
-                      {editClockIn && (
-                        <p className="text-[10px] font-bold text-muted-foreground">
-                          Selected: <span className="font-mono text-foreground font-black">{formatTimeToDotAmPm(editClockIn)}</span>
-                        </p>
-                      )}
                     </div>
-                  )}
-                </div>
-
-                {/* 2. CLOCK OUT TIME */}
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground">CLOCK OUT TIME</Label>
-                    {!attendanceSessions[currentSessionIdx]?.has_recorded_clock_out && !editClockOut ? (
-                      <span className="text-[9px] font-bold text-rose-600 bg-rose-50 dark:bg-rose-950/40 px-2 py-0.5 rounded border border-rose-200">
-                        Forgot Clock Out (Set by HR)
-                      </span>
-                    ) : (
-                      <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-200">
-                        HR Editable
-                      </span>
+                    {editClockOut && (
+                      <p className="text-[10px] font-bold text-muted-foreground">
+                        Selected: <span className="font-mono text-foreground font-black">{formatTimeToDotAmPm(editClockOut)}</span>
+                      </p>
                     )}
                   </div>
-                  <div className="space-y-1">
-                    <CustomTimePicker
-                      value={editClockOut}
-                      onChange={(val) => setEditClockOut(val)}
-                      placeholder="Select Clock Out Time"
-                      className="w-full h-10 font-mono font-bold text-xs"
-                    />
+
+                  {/* 3. WORKING STATUS (NOT EDITABLE) */}
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground">WORKING STATUS</Label>
+                    <div className="h-10 px-3.5 bg-slate-100 dark:bg-slate-900/60 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between font-bold text-xs text-foreground">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                        <span className="text-emerald-700 dark:text-emerald-400 font-black tracking-wide uppercase">
+                          {attendanceSessions[currentSessionIdx]?.working_status || "PRESENT"}
+                        </span>
+                      </div>
+                      <Lock className="w-3.5 h-3.5 text-muted-foreground" />
+                    </div>
                   </div>
-                  {editClockOut && (
-                    <p className="text-[10px] font-bold text-muted-foreground">
-                      Selected: <span className="font-mono text-foreground font-black">{formatTimeToDotAmPm(editClockOut)}</span>
-                    </p>
-                  )}
+
+                  {/* 4. LOCATION (NOT EDITABLE & HAVE COORDINATE) */}
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground">LOCATION (WITH COORDINATES)</Label>
+                    <div className="h-10 px-3.5 bg-slate-100 dark:bg-slate-900/60 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between font-bold text-xs text-foreground">
+                      <span className="truncate">
+                        {attendanceSessions[currentSessionIdx]?.location_formatted || (todayStats?.attendanceLocationFormatted || "HQ ( 4.6778, 10.78758646 )")}
+                      </span>
+                      <MapPin className="w-3.5 h-3.5 text-rose-500 shrink-0 ml-2" />
+                    </div>
+                  </div>
                 </div>
 
-                {/* 3. WORKING STATUS (NOT EDITABLE) */}
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground">WORKING STATUS</Label>
-                    <span className="text-[9px] font-bold uppercase text-muted-foreground bg-muted px-2 py-0.5 rounded">
-                      Non-Editable
-                    </span>
-                  </div>
-                  <div className="h-10 px-3.5 bg-slate-100 dark:bg-slate-900/60 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between font-bold text-xs text-foreground">
-                    <div className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                      <span className="text-emerald-700 dark:text-emerald-400 font-black tracking-wide uppercase">
-                        PRESENT (DONT EDITABLE)
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* 5. SESSION WORKING HOURS */}
+                  <div className="p-3.5 bg-purple-50/70 dark:bg-purple-950/30 rounded-2xl border border-purple-200 dark:border-purple-800/60 flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] font-black uppercase tracking-wider text-[#942392] block">WORKING HOURS</span>
+                      <span className="text-[9px] font-bold text-muted-foreground">
+                        Session {currentSessionIdx + 1} duration
                       </span>
                     </div>
-                    <Lock className="w-3.5 h-3.5 text-muted-foreground" />
+                    <span className="font-mono font-black text-sm text-[#942392]">
+                      {calculateDiffHoursAndMinutes(
+                        editClockIn || attendanceSessions[currentSessionIdx]?.clock_in_time_24 || attendanceSessions[currentSessionIdx]?.clock_in_time_12,
+                        editClockOut
+                      ).str}
+                    </span>
                   </div>
-                </div>
 
-                {/* 4. LOCATION (NOT EDITABLE & HAVE COORDINATE) */}
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground">LOCATION (WITH COORDINATES)</Label>
-                    <span className="text-[9px] font-bold uppercase text-muted-foreground bg-muted px-2 py-0.5 rounded">
-                      Non-Editable
+                  {/* 6. TOTAL WORKING HOURS (BOTTOM OF PAGE) */}
+                  <div className="p-3.5 bg-gradient-to-r from-purple-50 via-purple-100/60 to-pink-50 dark:from-purple-950/40 dark:to-pink-950/30 rounded-2xl border border-[#942392]/30 flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] font-black uppercase tracking-wider text-foreground block">
+                        TOTAL WORKING HOURS
+                      </span>
+                      <span className="text-[9px] font-bold text-muted-foreground">
+                        Sum of all {attendanceSessions.length} session{attendanceSessions.length > 1 ? 's' : ''} today
+                      </span>
+                    </div>
+                    <span className="font-mono font-black text-sm text-[#942392]">
+                      {getTotalWorkingHours()}
                     </span>
                   </div>
-                  <div className="h-10 px-3.5 bg-slate-100 dark:bg-slate-900/60 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between font-bold text-xs text-foreground">
-                    <span className="truncate max-w-[280px]">
-                      {attendanceSessions[currentSessionIdx]?.location_formatted || (todayStats?.attendanceLocationFormatted || "HQ ( 4.6778, 10.78758646 )")}
-                    </span>
-                    <MapPin className="w-3.5 h-3.5 text-rose-500 shrink-0 ml-2" />
-                  </div>
-                </div>
-
-                {/* 5. SESSION WORKING HOURS */}
-                <div className="p-3 bg-purple-50/70 dark:bg-purple-950/30 rounded-xl border border-purple-200 dark:border-purple-800/60 flex items-center justify-between">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-[#942392]">WORKING HOURS</span>
-                  <span className="font-mono font-black text-xs text-[#942392]">
-                    {calculateDiffHoursAndMinutes(
-                      editClockIn || attendanceSessions[currentSessionIdx]?.clock_in_time_24 || attendanceSessions[currentSessionIdx]?.clock_in_time_12,
-                      editClockOut
-                    ).str}
-                  </span>
-                </div>
-
-                {/* 6. TOTAL WORKING HOURS (BOTTOM OF PAGE) */}
-                <div className="p-3.5 bg-gradient-to-r from-purple-50 via-purple-100/60 to-pink-50 dark:from-purple-950/40 dark:to-pink-950/30 rounded-2xl border border-[#942392]/30 flex items-center justify-between">
-                  <div>
-                    <span className="text-[10px] font-black uppercase tracking-wider text-foreground block">
-                      TOTAL WORKING HOURS
-                    </span>
-                    <span className="text-[9px] font-bold text-muted-foreground">
-                      Sum of all {attendanceSessions.length} session{attendanceSessions.length > 1 ? 's' : ''} today
-                    </span>
-                  </div>
-                  <span className="font-mono font-black text-sm text-[#942392]">
-                    {getTotalWorkingHours()}
-                  </span>
                 </div>
               </div>
             )}
