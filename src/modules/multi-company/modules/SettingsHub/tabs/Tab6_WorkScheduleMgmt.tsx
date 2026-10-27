@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { CustomTimePicker } from '@/components/ui/custom-time-picker';
 import { CalendarClock, Plus, Edit, Clock, Layers, Coffee, Check, Loader2, Sparkles, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCompany } from '../../../contexts/CompanyContext';
@@ -80,7 +81,7 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
 
   const handleTimeChange = (index: number, field: 'start_time' | 'end_time', val: string) => {
     const updated = [...daysState];
-    updated[index][field] = val ? `${val}:00` : null;
+    updated[index][field] = val ? (val.length === 5 ? `${val}:00` : val) : null;
     setDaysState(updated);
   };
 
@@ -417,18 +418,16 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
 
                     {d.is_working_day ? (
                       <div className="flex items-center gap-2">
-                        <Input
-                          type="time"
+                        <CustomTimePicker
                           value={d.start_time?.slice(0, 5) || '08:30'}
-                          onChange={(e) => handleTimeChange(idx, 'start_time', e.target.value)}
-                          className="text-xs h-7 w-24 text-center font-mono"
+                          onChange={(val) => handleTimeChange(idx, 'start_time', val)}
+                          className="text-xs h-8 w-[116px] px-2 font-mono font-medium"
                         />
-                        <span className="text-muted-foreground">to</span>
-                        <Input
-                          type="time"
+                        <span className="text-muted-foreground text-xs font-medium">to</span>
+                        <CustomTimePicker
                           value={d.end_time?.slice(0, 5) || '17:30'}
-                          onChange={(e) => handleTimeChange(idx, 'end_time', e.target.value)}
-                          className="text-xs h-7 w-24 text-center font-mono"
+                          onChange={(val) => handleTimeChange(idx, 'end_time', val)}
+                          className="text-xs h-8 w-[116px] px-2 font-mono font-medium"
                         />
                       </div>
                     ) : (
@@ -450,18 +449,16 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
                 </Label>
               </div>
               <div className="flex items-center gap-2 text-xs">
-                <Input
-                  type="time"
+                <CustomTimePicker
                   value={lunchStart}
-                  onChange={(e) => setLunchStart(e.target.value)}
-                  className="text-xs h-8 w-28 text-center font-mono"
+                  onChange={(val) => setLunchStart(val)}
+                  className="text-xs h-8 w-[116px] px-2 font-mono font-medium"
                 />
-                <span className="text-muted-foreground">to</span>
-                <Input
-                  type="time"
+                <span className="text-muted-foreground text-xs font-medium">to</span>
+                <CustomTimePicker
                   value={lunchEnd}
-                  onChange={(e) => setLunchEnd(e.target.value)}
-                  className="text-xs h-8 w-28 text-center font-mono"
+                  onChange={(val) => setLunchEnd(val)}
+                  className="text-xs h-8 w-[116px] px-2 font-mono font-medium"
                 />
                 <span className="text-[10px] text-muted-foreground ml-2">(Default: 12:30 PM - 02:00 PM)</span>
               </div>
