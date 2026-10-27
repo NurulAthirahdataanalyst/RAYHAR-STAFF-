@@ -130,15 +130,19 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
       const activeList = allCompanies && allCompanies.length > 0 ? allCompanies : [DEFAULT_MAIN_COMPANY];
 
+      const normUserRole = (user?.role || '').trim().toLowerCase();
+      const isHR = ['hr', 'hr admin', 'hr_admin', 'admin'].includes(normUserRole);
+
       // Determine initial active company
       const cachedId = sessionStorage.getItem(STORAGE_ACTIVE_COMPANY_KEY);
       let selected: Company | undefined;
 
-      if (cachedId) {
+      // Only HR users can restore a previously switched company from sessionStorage
+      if (isHR && cachedId) {
         selected = activeList.find(c => c.id === parseInt(cachedId, 10));
       }
 
-      // If no valid cached company, default to user's assigned default or Main Company (id = 1)
+      // If no valid cached company or non-HR user, default to user's assigned default or Main Company (id = 1)
       if (!selected) {
         const userDefault = uCompanies.find(uc => uc.is_default);
         if (userDefault) {
@@ -166,6 +170,13 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, [fetchAllData]);
 
   const setActiveCompanyId = useCallback((companyId: number) => {
+    // Only HR role is authorized to switch active company context
+    const normUserRole = (user?.role || '').trim().toLowerCase();
+    const isHR = ['hr', 'hr admin', 'hr_admin', 'admin'].includes(normUserRole);
+    if (!isHR) {
+      console.warn('Switching company context is restricted to HR Admin role.');
+      return;
+    }
     const target = companies.find(c => c.id === companyId);
     if (target) {
       setActiveCompany(target);
@@ -173,7 +184,7 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
       // Emit synthetic event so components know company context changed
       window.dispatchEvent(new CustomEvent('rayhar_company_switched', { detail: { company: target } }));
     }
-  }, [companies]);
+  }, [companies, user?.role]);
 
   const refreshCompanies = useCallback(async () => {
     try {

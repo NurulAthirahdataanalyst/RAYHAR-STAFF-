@@ -1,15 +1,13 @@
 import React, { useState, useMemo } from 'react';
 import { useCompany } from '../contexts/CompanyContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useRole, normalizeRole } from '@/contexts/RoleContext';
 import { 
   Building2, 
   ChevronDown, 
   Check, 
   Search, 
-  Plus, 
-  ExternalLink,
-  ShieldCheck,
-  Building
+  Plus
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -32,14 +30,19 @@ export const CompanySwitcher: React.FC<CompanySwitcherProps> = ({
   variant = 'header',
   className = ''
 }) => {
-  const { activeCompany, companies, setActiveCompanyId, isParentGroupAdmin, userActiveRole } = useCompany();
+  const { activeCompany, companies, setActiveCompanyId, isParentGroupAdmin } = useCompany();
   const { user } = useAuth();
+  const { role: contextRole } = useRole();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [open, setOpen] = useState(false);
 
   const activeCompanyName = activeCompany?.company_name || 'Rayhar Travels';
   const isMain = activeCompany?.company_type === 'main' || !activeCompany?.parent_company_id;
+
+  // Determine if current user has HR role - only HR role can choose / switch active company context
+  const resolvedRole = normalizeRole(contextRole || user?.role);
+  const isHR = resolvedRole === 'hr_admin';
 
   const filteredCompanies = useMemo(() => {
     return companies.filter(c => 
@@ -49,12 +52,54 @@ export const CompanySwitcher: React.FC<CompanySwitcherProps> = ({
   }, [companies, searchTerm]);
 
   const handleSelectCompany = (id: number, name: string) => {
+    if (!isHR) {
+      toast.error('Only HR roles are authorized to switch companies.');
+      return;
+    }
     setActiveCompanyId(id);
     setOpen(false);
     toast.success(`Switched active context to ${name}`);
   };
 
   const isHeader = variant === 'header';
+
+  // If not HR role, render static indicator without dropdown trigger or switching capability
+  if (!isHR) {
+    return (
+      <div
+        className={
+          isHeader
+            ? `flex items-center gap-2 px-3 py-1.5 rounded-xl text-white font-semibold text-xs border border-white/15 bg-white/5 select-none cursor-default shadow-xs ${className}`
+            : `flex items-center gap-2 px-3 py-1.5 bg-background dark:bg-card border border-border dark:border-neutral-800 rounded-lg text-foreground dark:text-neutral-100 select-none cursor-default shadow-xs ${className}`
+        }
+        title={`Current Entity: ${activeCompanyName} (Assigned)`}
+      >
+        <div className={
+          isHeader
+            ? "w-5 h-5 rounded-md bg-white/20 text-white flex items-center justify-center shrink-0 border border-white/30 font-black text-[10px]"
+            : "w-5 h-5 rounded-md bg-[#942392]/10 dark:bg-[#942392]/20 text-[#942392] flex items-center justify-center shrink-0 border border-[#942392]/20 font-black text-[10px]"
+        }>
+          {activeCompanyName.charAt(0).toUpperCase()}
+        </div>
+        <div className="flex flex-col text-left">
+          <span className={
+            isHeader
+              ? "text-[11px] font-black uppercase tracking-tight text-white max-w-[120px] sm:max-w-[160px] truncate leading-tight"
+              : "text-[11px] font-black uppercase tracking-tight text-foreground dark:text-neutral-100 max-w-[120px] sm:max-w-[160px] truncate leading-tight"
+          }>
+            {activeCompanyName}
+          </span>
+          <span className={
+            isHeader
+              ? "text-[9px] text-purple-200/80 font-medium leading-none mt-0.5"
+              : "text-[9px] text-muted-foreground dark:text-neutral-400 font-medium leading-none mt-0.5"
+          }>
+            {isMain ? 'Main Company' : 'Subsidiary'}
+          </span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
@@ -181,7 +226,7 @@ export const CompanySwitcher: React.FC<CompanySwitcherProps> = ({
             <DropdownMenuItem
               onClick={() => {
                 setOpen(false);
-                navigate('/settings?tab=company');
+                navigate('/organization/entities');
               }}
               className="flex items-center gap-2 px-2.5 py-2 text-xs text-[#942392] dark:text-purple-300 hover:bg-[#942392]/10 rounded-lg cursor-pointer font-bold"
             >

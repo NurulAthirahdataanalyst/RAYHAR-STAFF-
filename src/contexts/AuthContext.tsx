@@ -79,6 +79,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       sessionStorage.removeItem("presence_cached_name");
       sessionStorage.removeItem("activeAttendanceSession");
       sessionStorage.removeItem("latestAttendanceUpdate");
+      sessionStorage.removeItem("rayhar_active_company_id");
     } catch {}
     setUser(null);
   };
