@@ -5618,7 +5618,7 @@ app.get("/api/employees", async (req, res) => {
         COALESCE(r.name, ur.role, 'Employee') AS role_name,
         COALESCE(p.role_id, ur.role_id, r.id) AS role_id,
         COALESCE(r.is_system_role, true) AS is_system_role,
-        COALESCE(ur.role, 'employee') AS role,
+        LOWER(REPLACE(COALESCE(ur.role, r.name, 'employee'), ' ', '_')) AS role,
         COALESCE(lr.pending_leaves, 0) AS pending_leaves,
         COALESCE(lr.approved_leaves, 0) AS approved_leaves,
         COALESCE(lr.rejected_leaves, 0) AS rejected_leaves,

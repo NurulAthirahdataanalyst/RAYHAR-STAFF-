@@ -59,18 +59,35 @@ export default function Department() {
     }
   };
 
+  const isHeadOfDepartment = (emp: any): boolean => {
+    if (!emp) return false;
+    const r = (emp.role || "").toLowerCase().trim();
+    const rn = (emp.role_name || "").toLowerCase().trim();
+    const pos = (emp.position || "").toLowerCase().trim();
+    const cleaned = r.replace(/[\s_-]+/g, "");
+    const cleanedRn = rn.replace(/[\s_-]+/g, "");
+    return (
+      cleaned === "headofdepartment" ||
+      cleaned === "hod" ||
+      cleanedRn === "headofdepartment" ||
+      cleanedRn === "hod" ||
+      r === "head_of_department" ||
+      rn === "head of department" ||
+      pos === "head of department"
+    );
+  };
+
+  const isActiveEmployee = (emp: any): boolean => {
+    return (emp?.status || "").toLowerCase() === "active";
+  };
+
   const fetchEmployees = async () => {
     try {
-      const params = new URLSearchParams({
-        role: role || "",
-        branch: userBranch || "",
-      });
-
-      const response = await fetch(`${API_BASE_URL}/api/employees?${params}`);
+      const response = await fetch(`${API_BASE_URL}/api/employees`);
       const data = await response.json();
 
       if (response.ok && data.success) {
-        setEmployees(data.employees);
+        setEmployees(data.employees || []);
       }
     } catch (error) {
       console.error("Error fetching employees:", error);
@@ -82,13 +99,13 @@ export default function Department() {
       if (!e.department) return false;
       const normEmpDept = e.department.toLowerCase().replace(/\bdepartment\b/g, '').trim();
       const normDeptName = deptName.toLowerCase().replace(/\bdepartment\b/g, '').trim();
-      return normEmpDept === normDeptName || e.department === deptName;
+      return normEmpDept === normDeptName || e.department.trim().toLowerCase() === deptName.trim().toLowerCase();
     });
     
     return {
       count: deptEmployees.length,
-      active: deptEmployees.filter(e => e.status === "Active").length,
-      hods: deptEmployees.filter(e => e.role === "head_of_department" && e.status === "Active")
+      active: deptEmployees.filter(e => isActiveEmployee(e)).length,
+      hods: deptEmployees.filter(e => isHeadOfDepartment(e) && isActiveEmployee(e))
     };
   };
 

@@ -157,20 +157,54 @@ export default function MasterOverview() {
   const activeUsers = employees.filter(e => e.status === "Active").length;
   const inactiveUsers = totalUsers - activeUsers;
 
+  const isHeadOfDepartment = (emp: any): boolean => {
+    if (!emp) return false;
+    const r = (emp.role || "").toLowerCase().trim();
+    const rn = (emp.role_name || "").toLowerCase().trim();
+    const pos = (emp.position || "").toLowerCase().trim();
+    const cleaned = r.replace(/[\s_-]+/g, "");
+    const cleanedRn = rn.replace(/[\s_-]+/g, "");
+    return (
+      cleaned === "headofdepartment" ||
+      cleaned === "hod" ||
+      cleanedRn === "headofdepartment" ||
+      cleanedRn === "hod" ||
+      r === "head_of_department" ||
+      rn === "head of department" ||
+      pos === "head of department"
+    );
+  };
+
   // HOD Assignments check: count of departments that have at least 1 HOD assigned
   const departmentsWithHOD = departments.filter(dept => {
-    return employees.some(e => e.department === dept && e.role === "head_of_department" && e.status === "Active");
+    return employees.some(e => {
+      const normEmpDept = (e.department || "").toLowerCase().replace(/\bdepartment\b/g, '').trim();
+      const normDept = dept.toLowerCase().replace(/\bdepartment\b/g, '').trim();
+      return (normEmpDept === normDept || e.department === dept) && isHeadOfDepartment(e) && (e.status || "").toLowerCase() === "active";
+    });
   }).length;
 
   const hodCoveragePct = totalDepartments > 0 ? Math.round((departmentsWithHOD / totalDepartments) * 100) : 0;
 
   // Access Roles summary
   const roleCounts = {
-    admin_licenses: employees.filter(e => ["hr_admin", "managing_director", "operation_manager", "finance_manager"].includes(e.role) && e.status === "Active").length,
-    head_of_department: employees.filter(e => e.role === "head_of_department" && e.status === "Active").length,
-    branch_leader: employees.filter(e => e.role === "branch_leader" && e.status === "Active").length,
-    managing_director: employees.filter(e => e.role === "managing_director" && e.status === "Active").length,
-    employee: employees.filter(e => (e.role === "employee" || (!e.role)) && e.status === "Active").length,
+    admin_licenses: employees.filter(e => {
+      const r = (e.role || e.role_name || "").toLowerCase().replace(/[\s_-]+/g, "");
+      return ["hradmin", "managingdirector", "operationmanager", "financemanager", "admin", "hr", "md", "om"].includes(r) && (e.status || "").toLowerCase() === "active";
+    }).length,
+    head_of_department: employees.filter(e => isHeadOfDepartment(e) && (e.status || "").toLowerCase() === "active").length,
+    branch_leader: employees.filter(e => {
+      const r = (e.role || e.role_name || "").toLowerCase().replace(/[\s_-]+/g, "");
+      return (r === "branchleader" || r === "leader") && (e.status || "").toLowerCase() === "active";
+    }).length,
+    managing_director: employees.filter(e => {
+      const r = (e.role || e.role_name || "").toLowerCase().replace(/[\s_-]+/g, "");
+      return (r === "managingdirector" || r === "md") && (e.status || "").toLowerCase() === "active";
+    }).length,
+    employee: employees.filter(e => {
+      const r = (e.role || e.role_name || "").toLowerCase().replace(/[\s_-]+/g, "");
+      return (r === "employee" || !r) && (e.status || "").toLowerCase() === "active";
+    }).length,
   };
 
   // Branch statistics

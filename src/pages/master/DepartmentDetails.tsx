@@ -122,11 +122,29 @@ export default function DepartmentDetails() {
     };
   }, [deptName]);
 
-  const currentHod = employees.find(e => e.role === "head_of_department" && e.status === "Active");
-  const activeStaff = employees.filter(e => e.status === "Active");
+  const isHeadOfDepartment = (emp: any): boolean => {
+    if (!emp) return false;
+    const r = (emp.role || "").toLowerCase().trim();
+    const rn = (emp.role_name || "").toLowerCase().trim();
+    const pos = (emp.position || "").toLowerCase().trim();
+    const cleaned = r.replace(/[\s_-]+/g, "");
+    const cleanedRn = rn.replace(/[\s_-]+/g, "");
+    return (
+      cleaned === "headofdepartment" ||
+      cleaned === "hod" ||
+      cleanedRn === "headofdepartment" ||
+      cleanedRn === "hod" ||
+      r === "head_of_department" ||
+      rn === "head of department" ||
+      pos === "head of department"
+    );
+  };
+
+  const currentHod = employees.find(e => isHeadOfDepartment(e) && (e.status || "").toLowerCase() === "active");
+  const activeStaff = employees.filter(e => (e.status || "").toLowerCase() === "active");
   
   // Potential new HODs are active staff in the same department who aren't currently the HOD
-  const candidateHods = activeStaff.filter(e => e.role !== "head_of_department");
+  const candidateHods = activeStaff.filter(e => !isHeadOfDepartment(e));
 
   const isDeptMatch = (assignedDept: string | undefined | null) => {
     if (!assignedDept || !deptName) return false;
@@ -332,7 +350,7 @@ export default function DepartmentDetails() {
                     </td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-bold ${
-                        emp.role === 'head_of_department' 
+                        (emp.role === 'head_of_department' || isHeadOfDepartment(emp)) 
                           ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
                           : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
                       }`}>
