@@ -403,92 +403,89 @@ export const CompanyModuleManagement: React.FC = () => {
     <div className="space-y-6">
       {/* Top Banner / Company & Role Selector Bar */}
       <Card className="border border-border dark:border-neutral-800 shadow-xs bg-white dark:bg-card p-5 rounded-2xl">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div className="flex flex-col xl:flex-row xl:items-start justify-between gap-4">
           <div className="flex items-center gap-3.5">
             <div className="w-12 h-12 rounded-2xl bg-[#942392]/10 border border-[#942392]/20 flex items-center justify-center shrink-0">
               <Boxes className="w-6 h-6 text-[#942392]" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-base font-black uppercase tracking-wider text-black dark:text-white">
-                  Company Module Management
-                </h2>
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border border-[#942392]/30 bg-[#942392]/10 text-[#942392] dark:text-[#f885d5]">
-                  Multi-Tenant RBAC
-                </span>
-              </div>
+              <h2 className="text-base font-black uppercase tracking-wider text-black dark:text-white">
+                Company Module Management
+              </h2>
               <p className="text-xs text-muted-foreground mt-0.5">
                 Configure operational modules, submodules, and granular View | Edit access per company and role
               </p>
             </div>
           </div>
 
-          {/* Filter Controls Bar */}
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Target Entity Selector */}
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-black uppercase tracking-wider text-black dark:text-white whitespace-nowrap">
-                Target Entity:
-              </span>
-              <Select 
-                value={String(selectedCompanyId)} 
-                onValueChange={(val) => setSelectedCompanyId(parseInt(val, 10))}
-              >
-                <SelectTrigger className="w-[210px] h-10 rounded-xl font-bold text-xs bg-background dark:bg-neutral-900 border-border text-black dark:text-white">
-                  <SelectValue placeholder="Select Company" />
-                </SelectTrigger>
-                <SelectContent className="rounded-xl">
-                  {companies.map(c => (
-                    <SelectItem key={c.id} value={String(c.id)} className="font-bold text-xs">
-                      <div className="flex items-center gap-2">
-                        <Building2 className="w-3.5 h-3.5 text-[#942392]" />
-                        <span>{c.company_name}</span>
-                        {c.company_type === 'main' && (
-                          <span className="text-[9px] bg-purple-100 text-[#942392] px-1.5 py-0.2 rounded font-extrabold uppercase">HQ</span>
-                        )}
+          {/* Filter Controls Bar & Save Button */}
+          <div className="flex flex-col items-end gap-3 shrink-0">
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Target Entity Selector */}
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-black uppercase tracking-wider text-black dark:text-white whitespace-nowrap">
+                  Target Entity:
+                </span>
+                <Select 
+                  value={String(selectedCompanyId)} 
+                  onValueChange={(val) => setSelectedCompanyId(parseInt(val, 10))}
+                >
+                  <SelectTrigger className="w-[230px] h-10 rounded-xl font-bold text-xs bg-background dark:bg-neutral-900 border-border text-black dark:text-white shadow-2xs">
+                    <SelectValue placeholder="Select Company" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl">
+                    {companies.map(c => (
+                      <SelectItem key={c.id} value={String(c.id)} className="font-bold text-xs">
+                        <div className="flex items-center gap-2">
+                          <Building2 className="w-3.5 h-3.5 text-[#942392]" />
+                          <span>{c.company_name}</span>
+                          {c.company_type === 'main' && (
+                            <span className="text-[9px] bg-purple-100 text-[#942392] px-1.5 py-0.2 rounded font-extrabold uppercase">HQ</span>
+                          )}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Role Selector */}
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-black uppercase tracking-wider text-black dark:text-white whitespace-nowrap">
+                  Role:
+                </span>
+                <Select 
+                  value={selectedRoleId} 
+                  onValueChange={setSelectedRoleId}
+                >
+                  <SelectTrigger className="w-[230px] h-10 rounded-xl font-bold text-xs bg-background dark:bg-neutral-900 border-border text-black dark:text-white shadow-2xs">
+                    <SelectValue placeholder="All Company Modules" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl max-h-64">
+                    <SelectItem value="all" className="font-bold text-xs">
+                      All Modules (Company Master)
+                    </SelectItem>
+                    {companyRoles.length > 0 && (
+                      <div className="px-2 py-1 text-[10px] font-black uppercase text-muted-foreground tracking-wider">
+                        Company Roles
                       </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                    )}
+                    {companyRoles.map(r => (
+                      <SelectItem key={r.id} value={r.id} className="font-semibold text-xs">
+                        {r.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
-            {/* Role Filter Beside Target Entity */}
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-black uppercase tracking-wider text-black dark:text-white whitespace-nowrap">
-                Role Filter:
-              </span>
-              <Select 
-                value={selectedRoleId} 
-                onValueChange={setSelectedRoleId}
-              >
-                <SelectTrigger className="w-[210px] h-10 rounded-xl font-bold text-xs bg-background dark:bg-neutral-900 border-border text-black dark:text-white">
-                  <SelectValue placeholder="All Company Modules" />
-                </SelectTrigger>
-                <SelectContent className="rounded-xl max-h-64">
-                  <SelectItem value="all" className="font-bold text-xs">
-                    All Modules (Company Master)
-                  </SelectItem>
-                  {companyRoles.length > 0 && (
-                    <div className="px-2 py-1 text-[10px] font-black uppercase text-muted-foreground tracking-wider">
-                      Company Roles
-                    </div>
-                  )}
-                  {companyRoles.map(r => (
-                    <SelectItem key={r.id} value={r.id} className="font-semibold text-xs">
-                      {r.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Save Button */}
+            {/* Save Button placed right-most under Role dropdown */}
             <Button
               type="button"
               onClick={handleSave}
               disabled={saving}
-              className="h-10 px-5 rounded-full font-black text-xs uppercase tracking-wider shadow-md flex items-center gap-2 bg-[#942392] hover:bg-[#800A7A] text-white cursor-pointer active:scale-95 disabled:opacity-60"
+              className="h-10 px-6 rounded-xl font-black text-xs uppercase tracking-wider shadow-md flex items-center justify-center gap-2 bg-[#942392] hover:bg-[#800A7A] text-white cursor-pointer active:scale-95 disabled:opacity-60"
             >
               {saving ? (
                 <>
@@ -608,46 +605,46 @@ export const CompanyModuleManagement: React.FC = () => {
                 }`}
               >
                 {/* Module Header Bar */}
-                <div className="p-3.5 bg-muted/40 dark:bg-neutral-800/50 border-b border-border/60 flex items-center justify-between gap-2">
+                <div className="p-3.5 bg-[#942392] border-b border-[#7a1b78] flex items-center justify-between gap-2 text-white shadow-2xs">
                   <div className="flex items-center gap-2.5 min-w-0">
                     {/* Module Checkbox */}
                     <button
                       type="button"
                       onClick={() => handleToggleModuleAll(mod.module_key)}
-                      className="text-[#942392] hover:opacity-80 transition-opacity shrink-0"
+                      className="text-white hover:opacity-90 transition-opacity shrink-0"
                       title={allChecked ? "Deselect all submodules" : "Select all submodules"}
                     >
                       {allChecked ? (
-                        <div className="w-5 h-5 border-2 border-[#942392] bg-[#942392] rounded flex items-center justify-center shadow-xs">
-                          <Check className="w-3.5 h-3.5 text-white stroke-[3.5]" />
+                        <div className="w-5 h-5 border-2 border-white bg-white rounded flex items-center justify-center shadow-xs">
+                          <Check className="w-3.5 h-3.5 text-[#942392] stroke-[3.5]" />
                         </div>
                       ) : someChecked ? (
-                        <div className="w-5 h-5 border-2 border-[#942392] bg-[#942392]/20 rounded flex items-center justify-center">
-                          <div className="w-2.5 h-1 bg-[#942392] rounded" />
+                        <div className="w-5 h-5 border-2 border-white/80 bg-white/20 rounded flex items-center justify-center">
+                          <div className="w-2.5 h-1 bg-white rounded" />
                         </div>
                       ) : (
-                        <div className="w-5 h-5 border-2 border-gray-300 dark:border-gray-600 hover:border-[#942392] bg-background rounded transition-colors" />
+                        <div className="w-5 h-5 border-2 border-white/60 hover:border-white bg-white/10 rounded transition-colors" />
                       )}
                     </button>
 
-                    <div className="p-1.5 rounded-xl bg-background dark:bg-neutral-900 text-[#942392] shrink-0 border border-border/50">
+                    <div className="p-1.5 rounded-xl bg-white/20 text-white shrink-0 border border-white/20">
                       <IconComponent className="w-4 h-4" />
                     </div>
 
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
-                        <h3 className="text-xs font-black uppercase tracking-wider text-black dark:text-white truncate">
+                        <h3 className="text-xs font-black uppercase tracking-wider text-white truncate">
                           {mod.module_name}
                         </h3>
-                        <span className={`inline-flex items-center px-2 py-0.2 rounded-full text-[10px] font-bold border ${
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border ${
                           activeInModCount > 0
-                            ? 'border-emerald-200 dark:border-emerald-800/60 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300'
-                            : 'border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-800 text-neutral-500'
+                            ? 'border-emerald-300/40 bg-emerald-500/20 text-emerald-200'
+                            : 'border-white/20 bg-white/10 text-white/70'
                         }`}>
                           {activeInModCount > 0 ? 'Enabled' : 'Disabled'}
                         </span>
                       </div>
-                      <span className="text-[10px] text-muted-foreground font-medium">
+                      <span className="text-[10px] text-white/80 font-bold">
                         {activeInModCount} of {perms.length} active
                       </span>
                     </div>
@@ -657,7 +654,7 @@ export const CompanyModuleManagement: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => toggleCollapse(mod.module_key)}
-                    className="p-1.5 hover:bg-background rounded-lg text-black dark:text-white transition-colors shrink-0"
+                    className="p-1.5 hover:bg-white/20 rounded-lg text-white transition-colors shrink-0"
                     title={isCollapsed ? "Expand module" : "Collapse module"}
                   >
                     {isCollapsed ? (
