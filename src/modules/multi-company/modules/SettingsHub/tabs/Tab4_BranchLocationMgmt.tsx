@@ -394,7 +394,7 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
 
       {/* Add / Edit Branch Dialog (Matching Screenshot 3 / Branches.tsx) */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="sm:max-w-[425px] md:max-w-xl overflow-hidden [&>button]:text-white [&>button]:hover:text-white/80 border-none shadow-2xl rounded-3xl p-0 bg-card">
+        <DialogContent className="sm:max-w-xl md:max-w-2xl overflow-hidden [&>button]:text-white [&>button]:hover:text-white/80 border-none shadow-2xl rounded-3xl p-0 bg-card">
           <DialogHeader className="bg-[#942392] p-6 sm:rounded-t-lg m-0 text-left border-b border-white/20">
             <DialogTitle className="text-white font-black uppercase tracking-tight m-0 text-lg">
               {editingBranch ? 'Edit Branch' : 'Add New Branch'}

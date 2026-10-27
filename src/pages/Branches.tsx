@@ -1137,7 +1137,7 @@ export default function Branches() {
 
           <Dialog open={isStatsOpen} onOpenChange={setIsStatsOpen}>
             <DialogContent className="max-w-2xl w-full overflow-hidden max-h-[90vh] p-0 flex flex-col">
-              <div className="p-6 bg-gradient-to-r from-[#942392] to-purple-500 text-white flex justify-between items-start shrink-0">
+              <div className="p-6 bg-gradient-to-r from-[#942392] to-purple-500 text-white flex justify-between items-start shrink-0 border-b border-white/20">
                 <div className="flex items-center gap-3">
                   <div className="p-3 bg-white/20 rounded-xl">
                     <User className="w-6 h-6 text-white" />
@@ -2047,8 +2047,8 @@ export default function Branches() {
 
       {/* Add Branch Modal */}
       <Dialog open={isAddBranchModalOpen} onOpenChange={setIsAddBranchModalOpen}>
-        <DialogContent className="sm:max-w-[425px] md:max-w-xl overflow-hidden [&>button]:text-white [&>button]:hover:text-white/80 border-none shadow-2xl rounded-3xl p-0">
-          <DialogHeader className="bg-[#942392] p-6 sm:rounded-t-lg m-0">
+        <DialogContent className="sm:max-w-xl md:max-w-2xl overflow-hidden [&>button]:text-white [&>button]:hover:text-white/80 border-none shadow-2xl rounded-3xl p-0">
+          <DialogHeader className="bg-[#942392] p-6 sm:rounded-t-lg m-0 border-b border-white/20 text-left">
             <DialogTitle className="text-white font-black uppercase tracking-tight m-0 text-lg">Add New Branch</DialogTitle>
             <DialogDescription className="text-xs font-bold uppercase tracking-wider text-white/80 m-0 mt-1">
               Insert a new regional branch office into the database
@@ -2202,7 +2202,7 @@ export default function Branches() {
 
       <Dialog open={isEditBranchModalOpen} onOpenChange={setIsEditBranchModalOpen}>
         <DialogContent className="max-w-2xl p-0 border-none shadow-2xl rounded-3xl overflow-hidden">
-          <div className="p-6 bg-gradient-to-r from-[#942392] to-purple-500 text-white flex justify-between items-start">
+          <div className="p-6 bg-gradient-to-r from-[#942392] to-purple-500 text-white flex justify-between items-start border-b border-white/20">
             <div className="flex items-center gap-3">
               <div className="p-3 bg-white/20 rounded-xl">
                 <Building2 className="w-6 h-6 text-white" />

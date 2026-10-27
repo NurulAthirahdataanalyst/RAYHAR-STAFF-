@@ -2170,105 +2170,157 @@ export function StaffProfileDialog({
 
       {/* Add User Modal */}
       <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
-        <DialogContent className="sm:max-w-[425px] border-0 border-none shadow-2xl rounded-2xl overflow-hidden">
-          <DialogHeader>
-            <DialogTitle>Add New Staff</DialogTitle>
-            <DialogDescription>
+        <DialogContent className="sm:max-w-xl md:max-w-2xl overflow-hidden p-0 border-0 border-none shadow-2xl rounded-3xl [&>button]:text-white [&>button]:hover:text-white/80 bg-card">
+          <DialogHeader className="bg-[#942392] p-6 text-white border-b border-white/20 shrink-0 text-left">
+            <DialogTitle className="text-white font-black uppercase tracking-tight text-lg m-0">Add New Staff</DialogTitle>
+            <DialogDescription className="text-white/80 text-xs font-bold uppercase tracking-wider m-0 mt-1">
               Create a new user account for an employee. They will be assigned to the selected branch.
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleSignup} className="space-y-4 pt-4">
-            <div className="space-y-2">
-              <Label htmlFor="signup-name">Full Name</Label>
-              <Input id="signup-name" type="text" placeholder="e.g. AHMAD ALBAB" value={signupName} onChange={(e) => setSignupName(e.target.value.toUpperCase())} required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="signup-email">Email</Label>
-              <Input id="signup-email" type="email" placeholder="ahmad@rayhar.com" value={signupEmail} onChange={(e) => setSignupEmail(e.target.value)} required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="signup-branch">Branch</Label>
-              <Select value={signupBranch} onValueChange={setSignupBranch}>
-                <SelectTrigger className="rounded-md">
-                  <SelectValue placeholder="Select Branch" />
-                </SelectTrigger>
-                <SelectContent>
-                  {(Array.isArray(branchesList) ? branchesList : []).map((b) => (
-                    <SelectItem key={b.code} value={b.code}>
-                      {b.code} - {toProperCase(b.name)}
-                    </SelectItem>
-                  ))}
-                  {branchesList.length === 0 && (
-                    <SelectItem value="HQ" disabled>Loading branches...</SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
+          <form onSubmit={handleSignup} className="p-6 space-y-4 bg-card">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Full Name */}
+              <div className="space-y-1.5 md:col-span-2">
+                <Label htmlFor="signup-name" className="text-[10px] font-black uppercase tracking-widest text-foreground">
+                  Full Name
+                </Label>
+                <Input
+                  id="signup-name"
+                  type="text"
+                  className="h-11 px-4 bg-background/50 border border-border/80 focus:border-[#942392] focus:ring-2 focus:ring-[#942392]/10 rounded-xl text-xs font-bold uppercase placeholder:normal-case"
+                  placeholder="e.g. AHMAD ALBAB"
+                  value={signupName}
+                  onChange={(e) => setSignupName(e.target.value.toUpperCase())}
+                  required
+                />
+              </div>
 
-            {signupBranch === "HQ" && (
-              <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
-                <Label htmlFor="signup-department">Department</Label>
-                <Select value={signupDepartment} onValueChange={setSignupDepartment} required>
-                  <SelectTrigger className="rounded-md">
-                    <SelectValue placeholder="Select Department" />
+              {/* Email */}
+              <div className="space-y-1.5 col-span-1">
+                <Label htmlFor="signup-email" className="text-[10px] font-black uppercase tracking-widest text-foreground">
+                  Email Address
+                </Label>
+                <Input
+                  id="signup-email"
+                  type="email"
+                  className="h-11 px-4 bg-background/50 border border-border/80 focus:border-[#942392] focus:ring-2 focus:ring-[#942392]/10 rounded-xl text-xs font-bold"
+                  placeholder="ahmad@rayhar.com"
+                  value={signupEmail}
+                  onChange={(e) => setSignupEmail(e.target.value)}
+                  required
+                />
+              </div>
+
+              {/* Branch */}
+              <div className="space-y-1.5 col-span-1">
+                <Label htmlFor="signup-branch" className="text-[10px] font-black uppercase tracking-widest text-foreground">
+                  Branch Assignment
+                </Label>
+                <Select value={signupBranch} onValueChange={setSignupBranch}>
+                  <SelectTrigger className="h-11 px-4 rounded-xl border border-input bg-background/50 text-xs font-bold shadow-xs">
+                    <SelectValue placeholder="Select Branch" />
                   </SelectTrigger>
-                  <SelectContent>
-                    {(Array.isArray(departmentsList) ? departmentsList : []).map((d) => {
-                      const dName = d.name || d.department_name || d;
-                      return (
-                        <SelectItem key={dName} value={dName}>
-                          {dName}
-                        </SelectItem>
-                      );
-                    })}
-                    {departmentsList.length === 0 && (
-                      <SelectItem value="IT" disabled>Loading departments...</SelectItem>
+                  <SelectContent className="rounded-xl">
+                    {(Array.isArray(branchesList) ? branchesList : []).map((b) => (
+                      <SelectItem key={b.code} value={b.code} className="text-xs font-bold">
+                        {b.code} - {toProperCase(b.name)}
+                      </SelectItem>
+                    ))}
+                    {branchesList.length === 0 && (
+                      <SelectItem value="HQ" disabled className="text-xs">Loading branches...</SelectItem>
                     )}
                   </SelectContent>
                 </Select>
               </div>
-            )}
 
-            <div className="space-y-2">
-              <Label htmlFor="signup-role">Role</Label>
-              <Select value={signupRole} onValueChange={setSignupRole}>
-                <SelectTrigger className="rounded-md">
-                  <SelectValue placeholder="Select Role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel className="text-xs font-bold text-slate-500 uppercase tracking-wider">System Roles</SelectLabel>
-                    {(Array.isArray(availableRoles) ? availableRoles : [])
-                      .filter((r) => r.is_system_role && r.status === 'Active')
-                      .map((r) => (
-                        <SelectItem key={r.id} value={r.name}>{r.name}</SelectItem>
-                      ))}
-                  </SelectGroup>
-                  <SelectSeparator />
-                  <SelectGroup>
-                    <SelectLabel className="text-xs font-bold text-slate-500 uppercase tracking-wider">Custom Roles</SelectLabel>
-                    {(Array.isArray(availableRoles) ? availableRoles : [])
-                      .filter((r) => !r.is_system_role && r.status === 'Active')
-                      .map((r) => (
-                        <SelectItem key={r.id} value={r.name}>{r.name}</SelectItem>
-                      ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
+              {/* Department - only shown if HQ */}
+              {signupBranch === "HQ" && (
+                <div className="space-y-1.5 col-span-1 animate-in fade-in slide-in-from-top-2">
+                  <Label htmlFor="signup-department" className="text-[10px] font-black uppercase tracking-widest text-foreground">
+                    Department
+                  </Label>
+                  <Select value={signupDepartment} onValueChange={setSignupDepartment} required>
+                    <SelectTrigger className="h-11 px-4 rounded-xl border border-input bg-background/50 text-xs font-bold shadow-xs">
+                      <SelectValue placeholder="Select Department" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      {(Array.isArray(departmentsList) ? departmentsList : []).map((d) => {
+                        const dName = d.name || d.department_name || d;
+                        return (
+                          <SelectItem key={dName} value={dName} className="text-xs font-bold">
+                            {toProperCase(dName)}
+                          </SelectItem>
+                        );
+                      })}
+                      {departmentsList.length === 0 && (
+                        <SelectItem value="IT" disabled className="text-xs">Loading departments...</SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
-            <div className="space-y-2">
-              <Label htmlFor="signup-password">Password</Label>
-              <Input id="signup-password" type="password" placeholder="Min. 6 characters" value={signupPassword} onChange={(e) => setSignupPassword(e.target.value)} required />
+              {/* Role */}
+              <div className="space-y-1.5 col-span-1">
+                <Label htmlFor="signup-role" className="text-[10px] font-black uppercase tracking-widest text-foreground">
+                  Role
+                </Label>
+                <Select value={signupRole} onValueChange={setSignupRole}>
+                  <SelectTrigger className="h-11 px-4 rounded-xl border border-input bg-background/50 text-xs font-bold shadow-xs">
+                    <SelectValue placeholder="Select Role" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl max-h-64">
+                    <SelectGroup>
+                      <SelectLabel className="text-xs font-bold text-slate-500 uppercase tracking-wider">System Roles</SelectLabel>
+                      {(Array.isArray(availableRoles) ? availableRoles : [])
+                        .filter((r) => r.is_system_role && r.status === 'Active')
+                        .map((r) => (
+                          <SelectItem key={r.id} value={r.name} className="text-xs font-bold">
+                            {r.name}
+                          </SelectItem>
+                        ))}
+                    </SelectGroup>
+                    <SelectSeparator />
+                    <SelectGroup>
+                      <SelectLabel className="text-xs font-bold text-slate-500 uppercase tracking-wider">Custom Roles</SelectLabel>
+                      {(Array.isArray(availableRoles) ? availableRoles : [])
+                        .filter((r) => !r.is_system_role && r.status === 'Active')
+                        .map((r) => (
+                          <SelectItem key={r.id} value={r.name} className="text-xs font-bold">
+                            {r.name}
+                          </SelectItem>
+                        ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Password */}
+              <div className={`space-y-1.5 ${signupBranch === "HQ" ? "col-span-2 md:col-span-2" : "col-span-1"}`}>
+                <Label htmlFor="signup-password" className="text-[10px] font-black uppercase tracking-widest text-foreground">
+                  Password
+                </Label>
+                <Input
+                  id="signup-password"
+                  type="password"
+                  placeholder="Min. 6 characters"
+                  className="h-11 px-4 bg-background/50 border border-border/80 focus:border-[#942392] focus:ring-2 focus:ring-[#942392]/10 rounded-xl text-xs font-bold"
+                  value={signupPassword}
+                  onChange={(e) => setSignupPassword(e.target.value)}
+                  required
+                />
+              </div>
             </div>
             
-            <DialogFooter className="pt-4">
-              <Button type="button" variant="outline" onClick={() => setIsAddModalOpen(false)}>Cancel</Button>
-              <Button type="submit" className="bg-[#1dc8cc] hover:bg-[#15a3a6] text-white" disabled={isSubmitting}>
+            <div className="border-t border-border/60 pt-4 mt-6 flex items-center justify-end gap-3">
+              <Button type="button" variant="outline" onClick={() => setIsAddModalOpen(false)} className="rounded-xl px-5 h-10 text-xs font-bold uppercase tracking-wider">
+                Cancel
+              </Button>
+              <Button type="submit" className="bg-[#942392] hover:bg-[#800A7A] text-white rounded-xl px-6 h-10 text-xs font-black uppercase tracking-wider shadow-sm transition-all" disabled={isSubmitting}>
                 {isSubmitting && <Loader2 className="animate-spin mr-2 h-4 w-4" />}
                 {isSubmitting ? "Creating..." : "Create User"}
               </Button>
-            </DialogFooter>
+            </div>
           </form>
         </DialogContent>
       </Dialog>
