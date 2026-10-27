@@ -1071,14 +1071,49 @@ export function StaffProfileDialog({
     <>
       {selectedEmployee ? (
               <Tabs defaultValue="basic" className="w-full">
-                <TabsList className="mb-4 flex w-fit mx-auto flex-wrap h-auto gap-1 bg-slate-100 dark:bg-slate-900 p-2 rounded-xl shadow-inner border border-slate-200 dark:border-slate-800">
-                  <TabsTrigger value="basic" className="rounded-lg text-xs neumorphic-tab font-semibold">Employee Detail</TabsTrigger>
-                  <TabsTrigger value="attendance_settings" className="rounded-lg text-xs neumorphic-tab font-semibold">Attendance Settings</TabsTrigger>
-                  <TabsTrigger value="temporary_assignment" className="rounded-lg text-xs neumorphic-tab font-semibold">Temporary Assignment</TabsTrigger>
-                  <TabsTrigger value="multi_location" className="rounded-lg text-xs neumorphic-tab font-semibold">Multi Location Branch</TabsTrigger>
-                  <TabsTrigger value="outstation_assignment" className="rounded-lg text-xs neumorphic-tab font-semibold">Outstation Assignment</TabsTrigger>
-                  <TabsTrigger value="location_history" className="rounded-lg text-xs neumorphic-tab font-semibold">Location History</TabsTrigger>
-                  <TabsTrigger value="analytics" className="rounded-lg text-xs neumorphic-tab font-semibold">Performance Analytics</TabsTrigger>
+                <TabsList className="mb-5 flex w-fit mx-auto flex-wrap h-auto gap-1.5 bg-slate-100/90 dark:bg-slate-900/90 p-1.5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
+                  <TabsTrigger 
+                    value="basic" 
+                    className="rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all text-slate-600 dark:text-slate-300 hover:text-[#942392] dark:hover:text-[#ffff00] hover:bg-[#942392]/10 data-[state=active]:bg-[#942392] data-[state=active]:text-[#ffff00] data-[state=active]:shadow-sm data-[state=active]:font-black border border-transparent hover:border-[#942392]/20 data-[state=active]:border-[#ffff00]/30"
+                  >
+                    Employee Detail
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="attendance_settings" 
+                    className="rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all text-slate-600 dark:text-slate-300 hover:text-[#942392] dark:hover:text-[#ffff00] hover:bg-[#942392]/10 data-[state=active]:bg-[#942392] data-[state=active]:text-[#ffff00] data-[state=active]:shadow-sm data-[state=active]:font-black border border-transparent hover:border-[#942392]/20 data-[state=active]:border-[#ffff00]/30"
+                  >
+                    Attendance Settings
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="temporary_assignment" 
+                    className="rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all text-slate-600 dark:text-slate-300 hover:text-[#942392] dark:hover:text-[#ffff00] hover:bg-[#942392]/10 data-[state=active]:bg-[#942392] data-[state=active]:text-[#ffff00] data-[state=active]:shadow-sm data-[state=active]:font-black border border-transparent hover:border-[#942392]/20 data-[state=active]:border-[#ffff00]/30"
+                  >
+                    Temporary Assignment
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="multi_location" 
+                    className="rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all text-slate-600 dark:text-slate-300 hover:text-[#942392] dark:hover:text-[#ffff00] hover:bg-[#942392]/10 data-[state=active]:bg-[#942392] data-[state=active]:text-[#ffff00] data-[state=active]:shadow-sm data-[state=active]:font-black border border-transparent hover:border-[#942392]/20 data-[state=active]:border-[#ffff00]/30"
+                  >
+                    Multi Location Branch
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="outstation_assignment" 
+                    className="rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all text-slate-600 dark:text-slate-300 hover:text-[#942392] dark:hover:text-[#ffff00] hover:bg-[#942392]/10 data-[state=active]:bg-[#942392] data-[state=active]:text-[#ffff00] data-[state=active]:shadow-sm data-[state=active]:font-black border border-transparent hover:border-[#942392]/20 data-[state=active]:border-[#ffff00]/30"
+                  >
+                    Outstation Assignment
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="location_history" 
+                    className="rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all text-slate-600 dark:text-slate-300 hover:text-[#942392] dark:hover:text-[#ffff00] hover:bg-[#942392]/10 data-[state=active]:bg-[#942392] data-[state=active]:text-[#ffff00] data-[state=active]:shadow-sm data-[state=active]:font-black border border-transparent hover:border-[#942392]/20 data-[state=active]:border-[#ffff00]/30"
+                  >
+                    Location History
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="analytics" 
+                    className="rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all text-slate-600 dark:text-slate-300 hover:text-[#942392] dark:hover:text-[#ffff00] hover:bg-[#942392]/10 data-[state=active]:bg-[#942392] data-[state=active]:text-[#ffff00] data-[state=active]:shadow-sm data-[state=active]:font-black border border-transparent hover:border-[#942392]/20 data-[state=active]:border-[#ffff00]/30"
+                  >
+                    Performance Analytics
+                  </TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="basic" className="mt-0 space-y-6">
@@ -1089,7 +1124,7 @@ export function StaffProfileDialog({
                         {/* ================================================== */}
                         {/* LEFT COLUMN: Profile Summary Card + Today's Attendance (Screenshot 5 & 3) */}
                         {/* ================================================== */}
-                        <div className="w-full lg:w-1/3 flex flex-col gap-5">
+                        <div className="w-full lg:w-[38%] xl:w-[36%] flex flex-col gap-5 shrink-0">
                           {/* Sky Banner Card (Screenshot 5) */}
                           <Card className="border-none shadow-xl bg-card rounded-[28px] overflow-hidden">
                             <div className="relative h-36 sm:h-40 w-full overflow-hidden bg-sky-200 dark:bg-slate-900">
@@ -1185,14 +1220,14 @@ export function StaffProfileDialog({
 
                           {/* Today's Attendance Snapshot Card (Screenshot 3) */}
                           <Card className="border-none shadow-xl bg-card rounded-[28px] p-5 space-y-4">
-                            <div className="flex items-center justify-between border-b border-border/60 pb-3">
-                              <div className="flex items-center gap-2.5">
-                                <div className="p-2 bg-purple-50 dark:bg-purple-950/40 text-[#942392] rounded-xl border border-purple-200 dark:border-purple-800">
+                            <div className="flex items-center justify-between gap-4 border-b border-border/60 pb-3">
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <div className="p-2 bg-purple-50 dark:bg-purple-950/40 text-[#942392] rounded-xl border border-purple-200 dark:border-purple-800 shrink-0">
                                   <Clock className="w-4 h-4" />
                                 </div>
-                                <div>
-                                  <h3 className="text-xs font-black uppercase tracking-widest text-foreground">Today's Attendance</h3>
-                                  <p className="text-[9px] font-bold text-muted-foreground uppercase">Live real-time punch snapshot</p>
+                                <div className="min-w-0 pr-1">
+                                  <h3 className="text-xs font-black uppercase tracking-wider text-foreground truncate">Today's Attendance</h3>
+                                  <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-tight truncate">Live real-time punch snapshot</p>
                                 </div>
                               </div>
                               {isHrOrAdmin && (
@@ -1200,7 +1235,7 @@ export function StaffProfileDialog({
                                   size="sm"
                                   variant="outline"
                                   onClick={() => setIsEditTodayAttendanceOpen(true)}
-                                  className="h-8 px-2.5 rounded-xl border-[#942392]/30 text-[#942392] hover:bg-[#942392]/10 font-black text-[10px] uppercase tracking-wider"
+                                  className="h-8 px-3 rounded-xl border-[#942392]/30 text-[#942392] hover:bg-[#942392] hover:text-white font-black text-[10px] uppercase tracking-wider shrink-0 transition-all shadow-xs"
                                   title="Edit Attendance (HR Only)"
                                 >
                                   <Edit className="w-3.5 h-3.5 mr-1" />
@@ -1236,9 +1271,9 @@ export function StaffProfileDialog({
                                     : "4.00 m"}
                                 </span>
                               </div>
-                              <div className="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-slate-900/40 rounded-xl">
-                                <span className="text-[10px] font-black uppercase text-foreground">Location</span>
-                                <span className="font-bold text-foreground truncate max-w-[150px]">
+                              <div className="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-slate-900/40 rounded-xl gap-2">
+                                <span className="text-[10px] font-black uppercase text-foreground shrink-0">Location</span>
+                                <span className="font-bold text-foreground truncate max-w-[200px] text-right">
                                   {todayStats?.attendanceLocationFormatted || (todayStats?.attendanceLocation ? `${BRANCH_NAMES[todayStats.attendanceLocation] || todayStats.attendanceLocation} ( 4.6778, 10.78758646 )` : "HQ ( 4.6778, 10.78758646 )")}
                                 </span>
                               </div>
@@ -1262,7 +1297,7 @@ export function StaffProfileDialog({
                         {/* ================================================== */}
                         {/* RIGHT COLUMN: Account & Personal Information (Screenshot 5) */}
                         {/* ================================================== */}
-                        <div className="w-full lg:w-2/3 flex flex-col gap-5">
+                        <div className="w-full lg:flex-1 flex flex-col gap-5 min-w-0">
                           <Card className="border-none shadow-xl bg-card rounded-[28px] p-6 space-y-6">
                             <div className="flex items-center justify-between border-b border-border/60 pb-4">
                               <div className="flex items-center gap-3">

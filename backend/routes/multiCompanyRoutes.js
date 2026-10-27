@@ -24,34 +24,257 @@ function createMultiCompanyRouter(pgPool) {
     ALTER TABLE employee_company_history ADD COLUMN IF NOT EXISTS end_date DATE;
   `).catch((err) => console.warn('Could not alter employee_company_history columns:', err.message));
 
-  // Ensure all companies have baseline work schedules and active hours
-  pgPool.query(`
-    DO $$
-    DECLARE
-      c RECORD;
-      sched_id INT;
-    BEGIN
-      FOR c IN SELECT id FROM companies LOOP
-        IF NOT EXISTS (SELECT 1 FROM work_schedules WHERE company_id = c.id) THEN
-          INSERT INTO work_schedules (company_id, schedule_name, effective_date, status)
-          VALUES (c.id, 'Standard Office Hours', CURRENT_DATE, 'active')
-          RETURNING id INTO sched_id;
+  // Helper to normalize zone codes consistently ('Zone A' -> 'ZONE_A', 'Zone B' -> 'ZONE_B')
+  function normalizeZoneCode(zone) {
+    if (!zone || typeof zone !== 'string') return null;
+    const trimmed = zone.trim();
+    if (!trimmed || trimmed.toUpperCase() === 'ALL' || trimmed.toUpperCase() === 'NONE') return null;
+    const upper = trimmed.toUpperCase().replace(/\s+/g, '_');
+    if (upper === 'ZONE_A' || upper.startsWith('ZONE_A_')) return 'ZONE_A';
+    if (upper === 'ZONE_B' || upper.startsWith('ZONE_B_')) return 'ZONE_B';
+    return trimmed;
+  }
 
-          INSERT INTO work_schedule_days (schedule_id, day_of_week, start_time, end_time, is_working_day) VALUES
-            (sched_id, 'Monday', '08:30:00', '17:30:00', TRUE),
-            (sched_id, 'Tuesday', '08:30:00', '17:30:00', TRUE),
-            (sched_id, 'Wednesday', '08:30:00', '17:30:00', TRUE),
-            (sched_id, 'Thursday', '08:30:00', '17:30:00', TRUE),
-            (sched_id, 'Friday', '08:30:00', '17:30:00', TRUE),
-            (sched_id, 'Saturday', NULL, NULL, FALSE),
-            (sched_id, 'Sunday', NULL, NULL, FALSE);
+  // Helper to parse branch_ids array from request body or DB row
+  function parseBranchIds(branchIdsInput, branchIdFallback) {
+    if (Array.isArray(branchIdsInput)) {
+      return Array.from(
+        new Set(
+          branchIdsInput
+            .map((c) => String(c || '').trim().toUpperCase())
+            .filter((c) => c && c !== 'ALL')
+        )
+      ).sort();
+    }
+    if (typeof branchIdFallback === 'string' && branchIdFallback.trim() && branchIdFallback.trim().toUpperCase() !== 'ALL') {
+      return Array.from(
+        new Set(
+          branchIdFallback
+            .split(',')
+            .map((c) => c.trim().toUpperCase())
+            .filter((c) => c && c !== 'ALL')
+        )
+      ).sort();
+    }
+    return [];
+  }
 
-          INSERT INTO break_schedules (schedule_id, break_name, break_type, start_time, end_time) VALUES
-            (sched_id, 'Lunch Break', 'lunch', '12:30:00', '14:00:00');
-        END IF;
-      END LOOP;
-    END $$;
-  `).catch((err) => console.warn('Could not auto-seed work schedules:', err.message));
+  // Sync a single branch's operating_zone into company work_schedules.branch_ids
+  async function syncBranchToWorkSchedules(companyId, branchCode, operatingZone) {
+    try {
+      const cId = parseInt(companyId, 10) || 1;
+      const cleanCode = String(branchCode || '').trim().toUpperCase();
+      const normZone = normalizeZoneCode(operatingZone);
+      if (!cleanCode || !normZone) return;
+
+      const schedRes = await pgPool.query('SELECT id, operating_zone, branch_ids, branch_id FROM work_schedules WHERE company_id = $1 ORDER BY id ASC', [cId]);
+      for (const ws of schedRes.rows) {
+        const wsZone = normalizeZoneCode(ws.operating_zone);
+        if (!wsZone) continue;
+        let currentCodes = parseBranchIds(ws.branch_ids, ws.branch_id);
+        if (wsZone === normZone) {
+          if (!currentCodes.includes(cleanCode)) {
+            currentCodes.push(cleanCode);
+            currentCodes.sort();
+            await pgPool.query(
+              'UPDATE work_schedules SET branch_ids = $1::jsonb, branch_id = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3',
+              [JSON.stringify(currentCodes), currentCodes.join(','), ws.id]
+            );
+          }
+        } else {
+          if (currentCodes.includes(cleanCode)) {
+            currentCodes = currentCodes.filter((c) => c !== cleanCode);
+            await pgPool.query(
+              'UPDATE work_schedules SET branch_ids = $1::jsonb, branch_id = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3',
+              [JSON.stringify(currentCodes), currentCodes.length > 0 ? currentCodes.join(',') : null, ws.id]
+            );
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Could not sync branch to work_schedules:', e.message);
+    }
+  }
+
+  // Sync work_schedule's branch_ids to branches.operating_zone and remove from conflicting zone schedules
+  async function syncScheduleBranchesToZone(companyId, scheduleId, operatingZone, branchIdsArray) {
+    try {
+      const cId = parseInt(companyId, 10) || 1;
+      const sId = parseInt(scheduleId, 10);
+      const normZone = normalizeZoneCode(operatingZone);
+      if (!Array.isArray(branchIdsArray) || branchIdsArray.length === 0) return;
+
+      if (normZone) {
+        await pgPool.query(
+          `UPDATE branches
+           SET operating_zone = $1
+           WHERE UPPER(code) = ANY($2::text[])
+             AND (company_id = $3 OR ($3 = 1 AND company_id IS NULL))`,
+          [normZone, branchIdsArray, cId]
+        );
+      }
+
+      // Remove these branches from other zone schedules of the same company
+      const otherScheds = await pgPool.query(
+        'SELECT id, branch_ids, branch_id FROM work_schedules WHERE company_id = $1 AND id != $2',
+        [cId, sId]
+      );
+      for (const other of otherScheds.rows) {
+        const otherCodes = parseBranchIds(other.branch_ids, other.branch_id);
+        const filtered = otherCodes.filter((c) => !branchIdsArray.includes(c));
+        if (filtered.length !== otherCodes.length) {
+          await pgPool.query(
+            'UPDATE work_schedules SET branch_ids = $1::jsonb, branch_id = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3',
+            [JSON.stringify(filtered), filtered.length > 0 ? filtered.join(',') : null, other.id]
+          );
+        }
+      }
+    } catch (e) {
+      console.warn('Could not sync schedule branches to zone:', e.message);
+    }
+  }
+
+  // Ensure work_schedules supports operating_zone, multiple branch_ids, and Zone A / Zone B for Main Company
+  (async () => {
+    try {
+      await pgPool.query(`
+        ALTER TABLE work_schedules DROP CONSTRAINT IF EXISTS work_schedules_branch_id_fkey;
+        ALTER TABLE work_schedules ALTER COLUMN branch_id TYPE TEXT;
+        ALTER TABLE work_schedules ADD COLUMN IF NOT EXISTS operating_zone VARCHAR(100);
+        ALTER TABLE work_schedules ADD COLUMN IF NOT EXISTS branch_ids JSONB DEFAULT '[]'::jsonb;
+        ALTER TABLE work_schedules ADD COLUMN IF NOT EXISTS special_rules JSONB DEFAULT '[]'::jsonb;
+      `);
+
+      // Standardize branches.operating_zone values
+      await pgPool.query(`
+        UPDATE branches SET operating_zone = 'ZONE_A' WHERE UPPER(REPLACE(TRIM(COALESCE(operating_zone, '')), ' ', '_')) = 'ZONE_A';
+        UPDATE branches SET operating_zone = 'ZONE_B' WHERE UPPER(REPLACE(TRIM(COALESCE(operating_zone, '')), ' ', '_')) = 'ZONE_B' OR operating_zone IS NULL OR TRIM(operating_zone) = '';
+      `);
+
+      // Get Zone A and Zone B branches for Main Company (id = 1)
+      const bRes = await pgPool.query(`
+        SELECT UPPER(code) AS code, operating_zone
+        FROM branches
+        WHERE company_id = 1 OR company_id IS NULL
+        ORDER BY code ASC
+      `);
+      const zoneACodes = bRes.rows.filter((r) => r.operating_zone === 'ZONE_A').map((r) => r.code);
+      const zoneBCodes = bRes.rows.filter((r) => r.operating_zone === 'ZONE_B').map((r) => r.code);
+
+      // Check existing schedules for Main Company (id = 1)
+      const mainScheds = await pgPool.query('SELECT * FROM work_schedules WHERE company_id = 1 ORDER BY id ASC');
+      const hasZoneA = mainScheds.rows.some((r) => normalizeZoneCode(r.operating_zone) === 'ZONE_A');
+      const hasZoneB = mainScheds.rows.some((r) => normalizeZoneCode(r.operating_zone) === 'ZONE_B');
+
+      if (!hasZoneA) {
+        let zoneASchedId = null;
+        const genericSched = mainScheds.rows.find((r) => !r.operating_zone);
+        if (genericSched) {
+          zoneASchedId = genericSched.id;
+          await pgPool.query(
+            `UPDATE work_schedules
+             SET schedule_name = 'Standard Office Hours (Zone A)',
+                 operating_zone = 'ZONE_A',
+                 branch_ids = $1::jsonb,
+                 branch_id = $2,
+                 special_rules = $3::jsonb,
+                 updated_at = CURRENT_TIMESTAMP
+             WHERE id = $4`,
+            [JSON.stringify(zoneACodes), zoneACodes.join(','), JSON.stringify(['first_thursday_full', 'first_saturday_closed']), zoneASchedId]
+          );
+        } else {
+          const insA = await pgPool.query(
+            `INSERT INTO work_schedules (company_id, schedule_name, operating_zone, branch_ids, branch_id, special_rules, effective_date, status)
+             VALUES (1, 'Standard Office Hours (Zone A)', 'ZONE_A', $1::jsonb, $2, $3::jsonb, CURRENT_DATE, 'active')
+             RETURNING id`,
+            [JSON.stringify(zoneACodes), zoneACodes.join(','), JSON.stringify(['first_thursday_full', 'first_saturday_closed'])]
+          );
+          zoneASchedId = insA.rows[0].id;
+        }
+
+        // Seed Zone A 7-day timetable (Sat-Wed 08:30-17:30, Thu 08:30-13:00, Fri Off)
+        await pgPool.query('DELETE FROM work_schedule_days WHERE schedule_id = $1', [zoneASchedId]);
+        await pgPool.query(
+          `INSERT INTO work_schedule_days (schedule_id, day_of_week, start_time, end_time, is_working_day) VALUES
+            ($1, 'Monday', '08:30:00', '17:30:00', TRUE),
+            ($1, 'Tuesday', '08:30:00', '17:30:00', TRUE),
+            ($1, 'Wednesday', '08:30:00', '17:30:00', TRUE),
+            ($1, 'Thursday', '08:30:00', '13:00:00', TRUE),
+            ($1, 'Friday', NULL, NULL, FALSE),
+            ($1, 'Saturday', '08:30:00', '17:30:00', TRUE),
+            ($1, 'Sunday', '08:30:00', '17:30:00', TRUE)`,
+          [zoneASchedId]
+        );
+        await pgPool.query('DELETE FROM break_schedules WHERE schedule_id = $1', [zoneASchedId]);
+        await pgPool.query(
+          `INSERT INTO break_schedules (schedule_id, break_name, break_type, start_time, end_time)
+           VALUES ($1, 'Lunch Break', 'lunch', '13:00:00', '14:00:00')`,
+          [zoneASchedId]
+        );
+      }
+
+      if (!hasZoneB) {
+        const insB = await pgPool.query(
+          `INSERT INTO work_schedules (company_id, schedule_name, operating_zone, branch_ids, branch_id, special_rules, effective_date, status)
+           VALUES (1, 'Standard Office Hours (Zone B)', 'ZONE_B', $1::jsonb, $2, $3::jsonb, CURRENT_DATE, 'active')
+           RETURNING id`,
+          [JSON.stringify(zoneBCodes), zoneBCodes.join(','), JSON.stringify(['first_saturday_closed'])]
+        );
+        const zoneBSchedId = insB.rows[0].id;
+
+        // Seed Zone B 7-day timetable (Mon-Fri 08:30-17:30, Sat 08:30-13:00, Sun Off)
+        await pgPool.query(
+          `INSERT INTO work_schedule_days (schedule_id, day_of_week, start_time, end_time, is_working_day) VALUES
+            ($1, 'Monday', '08:30:00', '17:30:00', TRUE),
+            ($1, 'Tuesday', '08:30:00', '17:30:00', TRUE),
+            ($1, 'Wednesday', '08:30:00', '17:30:00', TRUE),
+            ($1, 'Thursday', '08:30:00', '17:30:00', TRUE),
+            ($1, 'Friday', '08:30:00', '17:30:00', TRUE),
+            ($1, 'Saturday', '08:30:00', '13:00:00', TRUE),
+            ($1, 'Sunday', NULL, NULL, FALSE)`,
+          [zoneBSchedId]
+        );
+        await pgPool.query(
+          `INSERT INTO break_schedules (schedule_id, break_name, break_type, start_time, end_time)
+           VALUES ($1, 'Lunch Break', 'lunch', '13:00:00', '14:00:00')`,
+          [zoneBSchedId]
+        );
+      }
+
+      // Ensure subsidiary companies also have baseline schedule
+      const compRes = await pgPool.query('SELECT id FROM companies WHERE id != 1');
+      for (const comp of compRes.rows) {
+        const cSched = await pgPool.query('SELECT id FROM work_schedules WHERE company_id = $1', [comp.id]);
+        if (cSched.rows.length === 0) {
+          const ins = await pgPool.query(
+            `INSERT INTO work_schedules (company_id, schedule_name, operating_zone, effective_date, status)
+             VALUES ($1, 'Standard Office Hours', 'ZONE_B', CURRENT_DATE, 'active')
+             RETURNING id`,
+            [comp.id]
+          );
+          const sId = ins.rows[0].id;
+          await pgPool.query(
+            `INSERT INTO work_schedule_days (schedule_id, day_of_week, start_time, end_time, is_working_day) VALUES
+              ($1, 'Monday', '08:30:00', '17:30:00', TRUE),
+              ($1, 'Tuesday', '08:30:00', '17:30:00', TRUE),
+              ($1, 'Wednesday', '08:30:00', '17:30:00', TRUE),
+              ($1, 'Thursday', '08:30:00', '17:30:00', TRUE),
+              ($1, 'Friday', '08:30:00', '17:30:00', TRUE),
+              ($1, 'Saturday', NULL, NULL, FALSE),
+              ($1, 'Sunday', NULL, NULL, FALSE)`,
+            [sId]
+          );
+          await pgPool.query(
+            `INSERT INTO break_schedules (schedule_id, break_name, break_type, start_time, end_time)
+             VALUES ($1, 'Lunch Break', 'lunch', '12:30:00', '14:00:00')`,
+            [sId]
+          );
+        }
+      }
+    } catch (err) {
+      console.warn('Could not auto-seed work schedules with zones:', err.message);
+    }
+  })();
 
   // Initialize modules, company_modules, and role_permissions access_level
   pgPool.query(`
@@ -453,7 +676,7 @@ function createMultiCompanyRouter(pgPool) {
         code,
         name,
         location = '',
-        operating_zone = 'Zone B',
+        operating_zone = 'ZONE_B',
         latitude,
         longitude,
         radius = 50
@@ -464,6 +687,7 @@ function createMultiCompanyRouter(pgPool) {
       }
 
       const branchCode = code.trim().toUpperCase();
+      const normZone = normalizeZoneCode(operating_zone) || 'ZONE_B';
 
       const insBranch = await pgPool.query(`
         INSERT INTO branches (code, branch, name, location, operating_zone, latitude, longitude, radius, company_id)
@@ -477,7 +701,7 @@ function createMultiCompanyRouter(pgPool) {
           radius = EXCLUDED.radius,
           company_id = EXCLUDED.company_id
         RETURNING *;
-      `, [branchCode, name.trim(), name.trim(), location, operating_zone, latitude, longitude, radius, companyId]);
+      `, [branchCode, name.trim(), name.trim(), location, normZone, latitude, longitude, radius, companyId]);
 
       // Ensure normal geofence record exists
       await pgPool.query(`
@@ -485,6 +709,8 @@ function createMultiCompanyRouter(pgPool) {
         VALUES ($1, $2, 'normal', $3)
         ON CONFLICT (branch_code, mode) DO UPDATE SET radius_meter = EXCLUDED.radius_meter;
       `, [branchCode, companyId, radius]);
+
+      await syncBranchToWorkSchedules(companyId, branchCode, normZone);
 
       await logAudit(req, 'BRANCH_CREATE', `Created branch ${name} (${branchCode}) for company ${companyId}`, null, insBranch.rows[0], companyId);
 
@@ -500,6 +726,7 @@ function createMultiCompanyRouter(pgPool) {
     try {
       const code = req.params.code.toUpperCase();
       const { name, location, operating_zone, latitude, longitude, radius, company_id } = req.body;
+      const normZone = operating_zone ? normalizeZoneCode(operating_zone) : null;
 
       const updateRes = await pgPool.query(`
         UPDATE branches
@@ -514,21 +741,27 @@ function createMultiCompanyRouter(pgPool) {
           company_id = COALESCE($7, company_id)
         WHERE UPPER(code) = $8
         RETURNING *;
-      `, [name, location, operating_zone, latitude, longitude, radius, company_id, code]);
+      `, [name, location, normZone, latitude, longitude, radius, company_id, code]);
 
       if (updateRes.rows.length === 0) {
         return res.status(404).json({ success: false, error: 'Branch not found' });
       }
+
+      const updatedBranch = updateRes.rows[0];
 
       if (radius !== undefined) {
         await pgPool.query(`
           INSERT INTO branch_geofence_settings (branch_code, company_id, mode, radius_meter)
           VALUES ($1, $2, 'normal', $3)
           ON CONFLICT (branch_code, mode) DO UPDATE SET radius_meter = EXCLUDED.radius_meter;
-        `, [code, updateRes.rows[0].company_id || 1, radius]);
+        `, [code, updatedBranch.company_id || 1, radius]);
       }
 
-      res.json({ success: true, branch: updateRes.rows[0] });
+      if (updatedBranch.operating_zone) {
+        await syncBranchToWorkSchedules(updatedBranch.company_id || 1, code, updatedBranch.operating_zone);
+      }
+
+      res.json({ success: true, branch: updatedBranch });
     } catch (err) {
       res.status(500).json({ success: false, error: err.message });
     }
