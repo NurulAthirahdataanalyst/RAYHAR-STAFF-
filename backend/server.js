@@ -644,13 +644,15 @@ app.get("/api/permissions", async (req, res) => {
 // GET /api/roles — List all roles with user count and permission keys
 app.get("/api/roles", async (req, res) => {
   try {
-    const rawCompanyId = req.query.company_id || req.query.companyId;
+    const rawCompanyId = req.companyId || req.query.company_id || req.query.companyId;
     const companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
     let whereFilter = "";
     if (companyId === 2) {
       whereFilter = "WHERE (r.company_id = 2 OR LOWER(r.name) LIKE '%ray rent%')";
     } else if (companyId === 1) {
       whereFilter = "WHERE (r.company_id = 1 OR r.company_id IS NULL) AND LOWER(r.name) NOT LIKE '%ray rent%'";
+    } else if (companyId && companyId > 2) {
+      whereFilter = `WHERE r.company_id = ${companyId}`;
     }
 
     const result = await pgPool.query(`
@@ -764,7 +766,7 @@ app.post("/api/roles", async (req, res) => {
   const description = safeString(req.body?.description);
   const status = safeString(req.body?.status) || "Active";
   const scope_type = safeString(req.body?.scope_type) || "Own Data Only";
-  const company_id = req.body?.company_id || 1;
+  const company_id = parseInt(req.body?.company_id || req.companyId || req.query?.company_id || 1, 10) || 1;
   const permissions = Array.isArray(req.body?.permissions) ? req.body.permissions : [];
 
   if (!name) {
@@ -3548,7 +3550,7 @@ app.post(["/api/signup", "/api/employees"], async (req, res) => {
       [userId, resolvedRoleName, department || null, resolvedRoleId]
     );
 
-    const signupCompanyId = req.body.company_id ? parseInt(req.body.company_id, 10) : 1;
+    const signupCompanyId = parseInt(req.body?.company_id || req.companyId || req.query?.company_id || 1, 10) || 1;
     try {
       await connection.query(
         "INSERT INTO company_user_roles (user_id, company_id, role_id, branch_id, department_id, is_default, status) VALUES (?, ?, ?, ?, ?, TRUE, 'active')",
@@ -11621,7 +11623,7 @@ app.post("/api/branches", async (req, res) => {
 
     const branchLocation = safeString(location) || 'RAYHAR BRANCH';
     const zone = safeString(operating_zone) || 'ZONE_B';
-    const branchCompanyId = company_id ? parseInt(company_id, 10) : 1;
+    const branchCompanyId = parseInt(company_id || req.companyId || req.query?.company_id || 1, 10) || 1;
 
     await pool.query(
       "INSERT INTO branches (branch, code, name, location, operating_zone, company_id) VALUES (?, ?, ?, ?, ?, ?)",
