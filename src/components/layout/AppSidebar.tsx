@@ -710,7 +710,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
           resolvedItem.children = visibleChildren;
         }
       } else {
-        isVisible = !item.permission || hasPermission(item.permission);
+        isVisible = (!item.permission || (isPermissionEnabled(item.permission) && hasPermission(item.permission)));
       }
 
       if (isVisible) {

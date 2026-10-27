@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
 import { exportToCSV } from "@/utils/export";
 import { Button } from "@/components/ui/button";
@@ -1225,22 +1225,27 @@ export default function Role() {
                       </div>
                     </SelectTrigger>
                     <SelectContent className="rounded-xl w-[320px]">
-                      {AUTHORIZATION_SCOPES.map(s => (
-                        <SelectItem key={s.value} value={s.value} className="py-2.5">
-                          <div className="flex flex-col items-start gap-0.5 text-left">
-                            <span className="font-black text-xs text-foreground flex items-center gap-1.5">
-                              <span className="w-2 h-2 rounded-full bg-[#942392]" />
-                              <span>{s.title}</span>
-                              <span className="text-[9px] px-1.5 py-0.2 rounded bg-purple-100 dark:bg-purple-950 text-[#942392] font-bold">
-                                {s.badge}
+                      {AUTHORIZATION_SCOPES.map(s => {
+                        const isSelectedScope = formScopeType === s.value;
+                        return (
+                          <SelectItem key={s.value} value={s.value} className="py-2.5">
+                            <div className="flex flex-col items-start gap-0.5 text-left">
+                              <span className="font-black text-xs text-foreground flex items-center gap-1.5">
+                                <span className="text-[#942392] font-black text-xs leading-none">
+                                  {isSelectedScope ? "●" : "○"}
+                                </span>
+                                <span>{s.title}</span>
+                                <span className="text-[9px] px-1.5 py-0.2 rounded bg-purple-100 dark:bg-purple-950 text-[#942392] font-bold">
+                                  {s.badge}
+                                </span>
                               </span>
-                            </span>
-                            <span className="text-[11px] text-muted-foreground font-normal pl-3.5">
-                              - {s.desc}
-                            </span>
-                          </div>
-                        </SelectItem>
-                      ))}
+                              <span className="text-[11px] text-muted-foreground font-normal pl-4">
+                                - {s.desc}
+                              </span>
+                            </div>
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
                 </div>

@@ -95,6 +95,7 @@ const YEARS = ["2027", "2026", "2025", "2024"];
 export default function LeaveOverview() {
   const navigate = useNavigate();
   const { userId, userName } = useRole();
+  const { activeCompany } = useCompany();
   const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([]);
   const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
   const [leaveTypeFilter, setLeaveTypeFilter] = useState<string>("all");
@@ -274,7 +275,7 @@ export default function LeaveOverview() {
       window.removeEventListener("storage", handleStorageChange);
       if (bc) bc.close();
     };
-  }, [userId, userName]);
+  }, [userId, userName, activeCompany?.id]);
 
   const [currentBalances, setCurrentBalances] = useState({ 
     "Annual & Emergency Leave": 14, 
@@ -307,7 +308,7 @@ export default function LeaveOverview() {
       }
     };
     void fetchProfile();
-  }, [userId, refreshKey]);
+  }, [userId, refreshKey, activeCompany?.id]);
 
   const mapTypeToBalanceKey = (type: LeaveType): "Annual & Emergency Leave" | "Replacement Leave" | "Sick Leave (MC)" | "Unpaid Leave" => {
     if (type === "Annual/Emergency Leave" || type === "Cuti Tahunan") {

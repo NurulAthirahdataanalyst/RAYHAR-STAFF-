@@ -185,9 +185,10 @@ export default function AttendanceDashboard() {
   // Attendance & Punctuality State
   const hasLoadedRef = useRef(false);
 
+  const companyCacheSuffix = `_${activeCompany?.id || 1}`;
   const [dailyAttendance, setDailyAttendance] = useState<AttendanceRecord[]>(() => {
     try {
-      const cached = sessionStorage.getItem("attendance_dashboard_daily");
+      const cached = sessionStorage.getItem(`attendance_dashboard_daily${companyCacheSuffix}`);
       if (cached) {
         hasLoadedRef.current = true;
         return JSON.parse(cached);
@@ -199,7 +200,7 @@ export default function AttendanceDashboard() {
 
   const [absentEmployees, setAbsentEmployees] = useState<any[]>(() => {
     try {
-      const cached = sessionStorage.getItem("attendance_dashboard_absent");
+      const cached = sessionStorage.getItem(`attendance_dashboard_absent${companyCacheSuffix}`);
       if (cached) return JSON.parse(cached);
     } catch {}
     return [];
@@ -213,7 +214,7 @@ export default function AttendanceDashboard() {
 
   const [attendanceStats, setAttendanceStats] = useState(() => {
     try {
-      const cached = sessionStorage.getItem("attendance_dashboard_stats");
+      const cached = sessionStorage.getItem(`attendance_dashboard_stats${companyCacheSuffix}`);
       if (cached) return JSON.parse(cached);
     } catch {}
     return {
@@ -391,16 +392,16 @@ export default function AttendanceDashboard() {
         }));
         setDailyAttendance(enrichedReport);
         try {
-          sessionStorage.setItem("attendance_dashboard_daily", JSON.stringify(enrichedReport));
+          sessionStorage.setItem(`attendance_dashboard_daily${companyCacheSuffix}`, JSON.stringify(enrichedReport));
         } catch {}
       }
 
       let combinedAbsentees: any[] = [];
-      if (absentData.success && absentData.report) {
-        combinedAbsentees = [...combinedAbsentees, ...absentData.report];
+      if (absentData.success && (absentData.report || absentData.data)) {
+        combinedAbsentees = [...combinedAbsentees, ...(absentData.report || absentData.data)];
       }
-      if (leaveData.success && leaveData.report) {
-        combinedAbsentees = [...combinedAbsentees, ...leaveData.report];
+      if (leaveData.success && (leaveData.report || leaveData.data)) {
+        combinedAbsentees = [...combinedAbsentees, ...(leaveData.report || leaveData.data)];
       }
       const enrichedAbsentees = combinedAbsentees.map((e: any) => ({
         ...e,
@@ -408,7 +409,7 @@ export default function AttendanceDashboard() {
       }));
       setAbsentEmployees(enrichedAbsentees);
       try {
-        sessionStorage.setItem("attendance_dashboard_absent", JSON.stringify(enrichedAbsentees));
+        sessionStorage.setItem(`attendance_dashboard_absent${companyCacheSuffix}`, JSON.stringify(enrichedAbsentees));
       } catch {}
       
       if (outstationData.success) {
@@ -432,7 +433,7 @@ export default function AttendanceDashboard() {
         };
         setAttendanceStats(newStats);
         try {
-          sessionStorage.setItem("attendance_dashboard_stats", JSON.stringify(newStats));
+          sessionStorage.setItem(`attendance_dashboard_stats${companyCacheSuffix}`, JSON.stringify(newStats));
         } catch {}
       }
       hasLoadedRef.current = true;
@@ -554,7 +555,7 @@ export default function AttendanceDashboard() {
     es.onerror = () => setLiveConnected(false);
 
     return () => { es.close(); liveEsRef.current = null; };
-  }, [selectedDate, role, userBranch, userDepartment, loading]);
+  }, [selectedDate, role, userBranch, userDepartment, loading, activeCompany?.id]);
 
   // Handle SSE live stream refresh (table data)
   useEffect(() => {

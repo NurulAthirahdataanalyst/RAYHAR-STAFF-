@@ -27,6 +27,7 @@ import { toast } from "sonner";
 import { UserAvatar, getSavedAvatar } from "@/utils/avatarUtils";
 import { GlobalScrollTopButton } from "../shared/GlobalScrollTopButton";
 import { CompanySwitcher } from "@/modules/multi-company/components/CompanySwitcher";
+import { useCompany } from "@/modules/multi-company/contexts/CompanyContext";
 
 const isSafeInternalPath = (path: string) => {
   return (
@@ -41,6 +42,7 @@ const isSafeInternalPath = (path: string) => {
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, signOut } = useAuth();
+  const { activeCompany } = useCompany();
   const navigate = useNavigate();
   const location = useLocation();
   const { role: resolvedRole, roleName, userBranch, userDepartment, userName, userId, isSystemRole } = useRole();
@@ -176,7 +178,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     const interval = setInterval(fetchPendingApprovals, 10000);
 
     return () => clearInterval(interval);
-  }, [resolvedRole, user?.id, user?.user_id, userBranch, userDepartment]);
+  }, [resolvedRole, user?.id, user?.user_id, userBranch, userDepartment, activeCompany?.id]);
+
+  useEffect(() => {
+    try {
+      sessionStorage.removeItem("attendance_dashboard_daily");
+      sessionStorage.removeItem("attendance_dashboard_absent");
+      sessionStorage.removeItem("attendance_dashboard_stats");
+    } catch {}
+    void queryClient.invalidateQueries();
+  }, [activeCompany?.id, queryClient]);
 
   const today = new Date();
   const calendarYear = today.getFullYear();
@@ -498,7 +509,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             {/* Ruang Kerja Utama (70% - 90%) */}
             <div className="flex-1 min-w-0 space-y-2.5 sm:space-y-3 transition-all duration-500 ease-in-out w-full">
               {location.pathname !== "/" && location.pathname !== "/analytics" && location.pathname !== "/settings" && <PageHeader />}
-              <div key={refreshKey} className="w-full">
+              <div key={`${refreshKey}-${activeCompany?.id || 1}`} className="w-full">
                 {children}
               </div>
             </div>
@@ -558,7 +569,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
                     {/* ═══════ SECONDARY CARD: PRESENCE FEED ═══════ */}
                     {["hr_admin", "managing_director"].includes(resolvedRole) && (
-                      <PresenceFeed isCollapsed={false} />
+                      <PresenceFeed key={`presence-exp-${activeCompany?.id || 1}`} isCollapsed={false} />
                     )}
                   </>
                 ) : (
@@ -584,7 +595,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     )}
 
                     {["hr_admin", "managing_director"].includes(resolvedRole) && (
-                      <PresenceFeed isCollapsed={true} />
+                      <PresenceFeed key={`presence-col-${activeCompany?.id || 1}`} isCollapsed={true} />
                     )}
                   </div>
                 )}

@@ -617,7 +617,7 @@ function requirePermission(permissionKey) {
 app.get("/api/permissions", async (req, res) => {
   try {
     const result = await pgPool.query(
-      "SELECT id, module, permission_key, display_name FROM permissions ORDER BY module ASC, id ASC"
+      "SELECT id, module, permission_key, display_name FROM permissions ORDER BY module ASC, CASE WHEN permission_key = 'analytics.employee' THEN 0 ELSE id END ASC"
     );
     const grouped = {};
     for (const p of result.rows) {
@@ -1573,6 +1573,20 @@ app.use((req, res, next) => {
   next();
 });
 
+function getCompanyUserSqlFilterById(companyId, columnExpr = "user_id") {
+  const cid = companyId ? parseInt(companyId, 10) : null;
+  if (!cid || isNaN(cid)) return "";
+  if (cid === 1) {
+    return ` AND (${columnExpr} IN (SELECT cur_s.user_id FROM company_user_roles cur_s WHERE cur_s.company_id = 1 AND cur_s.status = 'active') OR ${columnExpr} NOT IN (SELECT cur_s2.user_id FROM company_user_roles cur_s2 WHERE cur_s2.status = 'active'))`;
+  }
+  return ` AND ${columnExpr} IN (SELECT cur_s.user_id FROM company_user_roles cur_s WHERE cur_s.company_id = ${cid} AND cur_s.status = 'active')`;
+}
+
+function getCompanyUserSqlFilter(req, columnExpr = "user_id") {
+  const raw = req?.companyId || req?.query?.company_id || req?.query?.companyId;
+  return getCompanyUserSqlFilterById(raw, columnExpr);
+}
+
 // Mount Multi-Company and IAM Routes
 const { createMultiCompanyRouter } = require('./routes/multiCompanyRoutes');
 app.use('/api', createMultiCompanyRouter(pgPool));
@@ -2026,23 +2040,23 @@ let sseClients = [];
 let liveStatsClients = [];
 let employeeLocationsClients = [];
 
-async function getEmployeeLocations(branch, department, role) {
+async function getEmployeeLocations(branch, department, role, companyId = null) {
   try {
     let params = [];
-    let filter = "";
+    let filter = getCompanyUserSqlFilterById(companyId, "p.user_id");
 
     const normRole = (role || "").toLowerCase().replace(/\s+/g, '_');
     if (normRole === 'branch_leader') {
       const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
-      filter = "AND LOWER(p.branch) = LOWER(?)";
+      filter += " AND LOWER(p.branch) = LOWER(?)";
       params.push(safeBranch);
     } else if (normRole === 'head_of_department' || normRole === 'hod') {
       const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
-      filter = "AND LOWER(p.department) = LOWER(?)";
+      filter += " AND LOWER(p.department) = LOWER(?)";
       params.push(safeDept);
     } else if (['hr_admin', 'hr', 'admin', 'managing_director', 'md', 'operation_manager', 'finance_manager'].includes(normRole)) {
       if (branch && branch !== "All") {
-        filter = "AND LOWER(p.branch) = LOWER(?)";
+        filter += " AND LOWER(p.branch) = LOWER(?)";
         params.push(branch);
       }
       if (department && department !== "All") {
@@ -2050,7 +2064,7 @@ async function getEmployeeLocations(branch, department, role) {
         params.push(department);
       }
     } else if (branch && branch !== "All") {
-      filter = "AND LOWER(p.branch) = LOWER(?)";
+      filter += " AND LOWER(p.branch) = LOWER(?)";
       params.push(branch);
     }
     const sql = `
@@ -2137,7 +2151,7 @@ async function getEffectiveBranch(userId, dateStr) {
   }
 }
 
-async function getLiveAttendanceStats(queryDate, role, branch, department) {
+async function getLiveAttendanceStats(queryDate, role, branch, department, companyId = null) {
   const dateStr = safeString(queryDate) || new Date().toISOString().split('T')[0];
   try {
     const lateTimeStr = getLateThresholdTime ? getLateThresholdTime() : '09:00:00';
@@ -2145,18 +2159,19 @@ async function getLiveAttendanceStats(queryDate, role, branch, department) {
     const normRole = safeLower(role).replace(/ /g, "_");
     const cleanBranch = safeString(branch);
     const cleanDept = safeString(department);
-    let filterP = "";
+    const companyFilter = getCompanyUserSqlFilterById(companyId, "p.user_id");
+    let filterP = companyFilter;
     let paramsTotal = [];
     if (normRole === 'branch_leader') {
       const safeBranch = (cleanBranch && cleanBranch !== "All") ? cleanBranch : "INVALID_BYPASS";
-      filterP = " AND LOWER(p.branch) = LOWER(?)";
+      filterP = `${companyFilter} AND LOWER(p.branch) = LOWER(?)`;
       paramsTotal.push(safeBranch);
     } else if (normRole === 'head_of_department' || normRole === 'hod') {
       const safeDept = (cleanDept && cleanDept !== "All") ? cleanDept : "INVALID_BYPASS";
-      filterP = " AND LOWER(p.department) = LOWER(?)";
+      filterP = `${companyFilter} AND LOWER(p.department) = LOWER(?)`;
       paramsTotal.push(safeDept);
     } else if (['hr_admin', 'hr', 'admin', 'managing_director', 'md', 'operation_manager', 'finance_manager'].includes(normRole)) {
-      filterP = "";
+      filterP = companyFilter;
       paramsTotal = [];
     }
 
@@ -2391,7 +2406,7 @@ function broadcastPresenceUpdate(payload = { type: 'refresh' }) {
       try {
         for (const c of employeeLocationsClients) {
           const clientRes = c.res || c;
-          const rows = await getEmployeeLocations(c.branch, c.department, c.role);
+          const rows = await getEmployeeLocations(c.branch, c.department, c.role, c.companyId);
           const p = { type: 'employee-locations', timestamp: new Date().toISOString(), locations: rows };
           try { clientRes.write(`data: ${JSON.stringify(p)}\n\n`); } catch (e) { /* ignore */ }
         }
@@ -2404,7 +2419,7 @@ function broadcastPresenceUpdate(payload = { type: 'refresh' }) {
   if (liveStatsClients.length > 0) {
     const today = new Date().toISOString().split('T')[0];
     liveStatsClients.forEach(c => {
-      getLiveAttendanceStats(today, c.role, c.branch, c.department).then(data => {
+      getLiveAttendanceStats(today, c.role, c.branch, c.department, c.companyId).then(data => {
         c.res.write(`data: ${JSON.stringify(data)}\n\n`);
       }).catch(console.error);
     });
@@ -2449,21 +2464,22 @@ app.get('/api/employee-locations/stream', async (req, res) => {
   const streamBranch = safeString(req.query.branch) || undefined;
   const streamDept = safeString(req.query.department) || undefined;
   const streamRole = safeString(req.query.role) || undefined;
+  const streamCompanyId = req.companyId || req.query.company_id || req.query.companyId;
   try {
-    const rows = await getEmployeeLocations(streamBranch, streamDept, streamRole);
+    const rows = await getEmployeeLocations(streamBranch, streamDept, streamRole, streamCompanyId);
     res.write(`data: ${JSON.stringify({ type: 'employee-locations', timestamp: new Date().toISOString(), locations: rows })}\n\n`);
   } catch (e) {
     console.error('employee-locations stream initial send error', e);
   }
 
-  const client = { res, branch: streamBranch, department: streamDept, role: streamRole };
+  const client = { res, branch: streamBranch, department: streamDept, role: streamRole, companyId: streamCompanyId };
   employeeLocationsClients.push(client);
   console.log(`📡 Employee-locations SSE client connected. Total: ${employeeLocationsClients.length}`);
 
   // Periodic snapshot every 30s to keep client in sync
   const interval = setInterval(async () => {
     try {
-      const rows = await getEmployeeLocations(streamBranch, streamDept, streamRole);
+      const rows = await getEmployeeLocations(streamBranch, streamDept, streamRole, streamCompanyId);
       res.write(`data: ${JSON.stringify({ type: 'employee-locations', timestamp: new Date().toISOString(), locations: rows })}\n\n`);
     } catch (e) {
       console.error('employee-locations periodic error', e);
@@ -2493,10 +2509,11 @@ app.get("/api/presence/live-stats", async (req, res) => {
   const role = safeString(req.query.role);
   const branch = safeString(req.query.branch);
   const department = safeString(req.query.department);
+  const companyId = req.companyId || req.query.company_id || req.query.companyId;
 
   // Send initial snapshot immediately
   try {
-    const snapshot = await getLiveAttendanceStats(queryDate, role, branch, department);
+    const snapshot = await getLiveAttendanceStats(queryDate, role, branch, department, companyId);
     res.write(`data: ${JSON.stringify(snapshot)}\n\n`);
   } catch (e) {
     console.error("live-stats initial send error:", e);
@@ -2505,14 +2522,14 @@ app.get("/api/presence/live-stats", async (req, res) => {
   // Refresh every 30 seconds
   const interval = setInterval(async () => {
     try {
-      const data = await getLiveAttendanceStats(queryDate, role, branch, department);
+      const data = await getLiveAttendanceStats(queryDate, role, branch, department, companyId);
       res.write(`data: ${JSON.stringify(data)}\n\n`);
     } catch (e) {
       console.error("live-stats interval error:", e);
     }
   }, 30000);
 
-  const clientEntry = { res, role, branch, department };
+  const clientEntry = { res, role, branch, department, companyId };
   liveStatsClients.push(clientEntry);
   console.log(`ðŸ“Š Live-stats SSE client connected. Total: ${liveStatsClients.length}`);
 
@@ -2597,8 +2614,9 @@ function computeOutstationEventMetrics(rows, monthStart, monthEnd) {
   return { completed, upcoming, cancelled, popularRoutes, upcomingEvents };
 }
 
-async function computeDynamicWorkforceMetrics(dateStr, role, branch, department) {
-  let profileFilter = "";
+async function computeDynamicWorkforceMetrics(dateStr, role, branch, department, companyId = null) {
+  const companyFilter = getCompanyUserSqlFilterById(companyId, "p.user_id");
+  let profileFilter = companyFilter;
   let pFilterParams = [];
   const normRole = safeLower(role).replace(/ /g, "_");
   const cleanBranch = safeString(branch);
@@ -2606,11 +2624,11 @@ async function computeDynamicWorkforceMetrics(dateStr, role, branch, department)
 
   if (normRole === 'branch_leader') {
     const safeBranch = (cleanBranch && cleanBranch !== "All") ? cleanBranch : "INVALID_BYPASS";
-    profileFilter = " AND LOWER(p.branch) = LOWER(?)";
+    profileFilter = `${companyFilter} AND LOWER(p.branch) = LOWER(?)`;
     pFilterParams.push(safeBranch);
   } else if (normRole === 'head_of_department' || normRole === 'hod') {
     const safeDept = (cleanDept && cleanDept !== "All") ? cleanDept : "INVALID_BYPASS";
-    profileFilter = " AND LOWER(p.department) = LOWER(?)";
+    profileFilter = `${companyFilter} AND LOWER(p.department) = LOWER(?)`;
     pFilterParams.push(safeDept);
   }
 
@@ -2725,24 +2743,26 @@ async function computeDynamicWorkforceMetrics(dateStr, role, branch, department)
 // ============================================================
 let workforceFeedClients = [];
 
-async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMonth, targetYear) {
+async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMonth, targetYear, companyId = null) {
   const lateTimeStr = getLateThresholdTime ? getLateThresholdTime() : '09:00:00';
 
   const normRole = safeLower(role).replace(/ /g, "_");
   const cleanBranch = safeString(branch);
   const cleanDept = safeString(department);
-  let filterP = "";
+  const companyFilter = getCompanyUserSqlFilterById(companyId, "p.user_id");
+  const companyFilterPlain = getCompanyUserSqlFilterById(companyId, "user_id");
+  let filterP = companyFilter;
   let paramsBase = [];
   if (normRole === 'branch_leader') {
     const safeBranch = (cleanBranch && cleanBranch !== "All") ? cleanBranch : "INVALID_BYPASS";
-    filterP = " AND LOWER(p.branch) = LOWER(?)";
+    filterP = `${companyFilter} AND LOWER(p.branch) = LOWER(?)`;
     paramsBase.push(safeBranch);
   } else if (normRole === 'head_of_department' || normRole === 'hod') {
     const safeDept = (cleanDept && cleanDept !== "All") ? cleanDept : "INVALID_BYPASS";
-    filterP = " AND LOWER(p.department) = LOWER(?)";
+    filterP = `${companyFilter} AND LOWER(p.department) = LOWER(?)`;
     paramsBase.push(safeDept);
   } else if (['hr_admin', 'hr', 'admin', 'managing_director', 'md', 'operation_manager', 'finance_manager'].includes(normRole)) {
-    filterP = "";
+    filterP = companyFilter;
     paramsBase = [];
   }
 
@@ -2879,6 +2899,7 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
 
   // Pending approvals — role-filtered
   let pendingFilters = ["lr.status IN ('Pending', 'Pending Finance', 'Pending MD', 'Pending HOD')"];
+  if (companyFilter) pendingFilters.push(companyFilter.replace(/^\s*AND\s+/i, ""));
   let pendingParams = [];
   if (!['hr_admin', 'managing_director', 'operation_manager', 'finance_manager'].includes(role)) {
     if (branch) { pendingFilters.push("LOWER(p.branch) = LOWER(?)"); pendingParams.push(branch); }
@@ -2957,6 +2978,7 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
 
   // Upcoming Outstation — role-filtered
   let outstationFilters = ["status != 'Cancelled'", "?::date <= DATE(end_date)"];
+  if (companyFilterPlain) outstationFilters.push(companyFilterPlain.replace(/^\s*AND\s+/i, ""));
   let outstationParams = [dateStr];
   if (role === 'branch_leader') {
       const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
@@ -3032,6 +3054,7 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
   const monthEnd = nextMonthDate.toISOString().substring(0, 10);
 
   let summaryFilters = ["start_date >= ?", "start_date < ?"];
+  if (companyFilterPlain) summaryFilters.push(companyFilterPlain.replace(/^\s*AND\s+/i, ""));
   let summaryParams = [monthStart, monthEnd];
   if (role === 'branch_leader') {
       const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
@@ -3082,6 +3105,7 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
   const sumMonthStart = `${sumYear}-${String(sumMonth).padStart(2, '0')}-01`;
   const sumMonthEnd = `${sumYear}-${String(sumMonth).padStart(2, '0')}-${String(sumDaysInMonth).padStart(2, '0')}`;
   let allOutFilters = ["1=1"];
+  if (companyFilterPlain) allOutFilters.push(companyFilterPlain.replace(/^\s*AND\s+/i, ""));
   let allOutParams = [];
   if (role === 'branch_leader') {
     const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
@@ -3110,7 +3134,7 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
   const tYear = targetYear || new Date().getFullYear();
   const tMonth = targetMonth || (new Date().getMonth() + 1);
 
-  let leaveTrendFilterClauses = [];
+  let leaveTrendFilterClauses = companyFilter ? [companyFilter] : [];
   let leaveTrendFilterParams = [];
   if (role === 'branch_leader' && branch && branch !== 'All') {
     leaveTrendFilterClauses.push('AND LOWER(p.branch) = LOWER(?)');
@@ -3208,7 +3232,7 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
   };
   
   const branchZoneMapLive = await getBranchZoneMap();
-  const [allProfilesLive] = await pool.query(`SELECT user_id, branch FROM profiles WHERE status = 'Active'`);
+  const [allProfilesLive] = await pool.query(`SELECT user_id, branch FROM profiles WHERE status = 'Active' ${companyFilterPlain}`);
   
   const dIterLive = new Date(weekStartDLive);
   const dEndLive = new Date(dateStr);
@@ -3350,10 +3374,11 @@ app.get("/api/workforce/live-feed", async (req, res) => {
   const targetDate = date || new Date().toISOString().split('T')[0];
   const targetMonth = month ? parseInt(month, 10) : (new Date().getMonth() + 1);
   const targetYear = year ? parseInt(year, 10) : new Date().getFullYear();
+  const companyId = req.companyId || req.query.company_id || req.query.companyId;
 
   // Send initial snapshot
   try {
-    const snapshot = await getWorkforceLiveFeed(targetDate, role, branch, department, targetMonth, targetYear);
+    const snapshot = await getWorkforceLiveFeed(targetDate, role, branch, department, targetMonth, targetYear, companyId);
     res.write(`data: ${JSON.stringify(snapshot)}\n\n`);
   } catch (e) {
     console.error("workforce live-feed initial send error:", e);
@@ -3362,14 +3387,14 @@ app.get("/api/workforce/live-feed", async (req, res) => {
   // Refresh every 30 seconds
   const interval = setInterval(async () => {
     try {
-      const data = await getWorkforceLiveFeed(targetDate, role, branch, department, targetMonth, targetYear);
+      const data = await getWorkforceLiveFeed(targetDate, role, branch, department, targetMonth, targetYear, companyId);
       res.write(`data: ${JSON.stringify(data)}\n\n`);
     } catch (e) {
       console.error("workforce live-feed interval error:", e);
     }
   }, 30000);
 
-  const clientEntry = { res, role, branch, department };
+  const clientEntry = { res, role, branch, department, companyId };
   workforceFeedClients.push(clientEntry);
   console.log(`ðŸ¢ Workforce-feed SSE client connected. Total: ${workforceFeedClients.length}`);
 
@@ -3749,6 +3774,10 @@ app.get("/api/leave-entitlements", async (req, res) => {
   try {
     const params = [];
     const filters = ["p.status = 'Active'"];
+    const companyFilter = getCompanyUserSqlFilter(req, "p.user_id");
+    if (companyFilter) {
+      filters.push(companyFilter.replace(/^\s*AND\s+/i, ""));
+    }
 
     if (branch && branch.toLowerCase() !== "all" && branch.toLowerCase() !== "all branches") {
       filters.push("LOWER(p.branch) = LOWER(?)");
@@ -6761,7 +6790,8 @@ app.get("/api/employee-locations", async (req, res) => {
     const branch = safeString(req.query?.branch);
     const department = safeString(req.query?.department);
     const role = safeString(req.query?.role);
-    const rows = await getEmployeeLocations(branch, department, role);
+    const companyId = req.companyId || req.query.company_id || req.query.companyId;
+    const rows = await getEmployeeLocations(branch, department, role, companyId);
     res.json({ success: true, locations: rows });
   } catch (err) {
     console.error("/api/employee-locations error:", err);
@@ -7942,169 +7972,175 @@ app.get("/api/dashboard-stats", async (req, res) => {
   try {
     let adminStats = null;
     let globalRecentActivities = null;
+    const rawCompanyId = req.companyId || req.query.company_id || req.query.companyId;
+    const companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
 
     if (["hr_admin", "branch_leader", "managing_director", "operation_manager", "finance_manager", "head_of_department"].includes(role)) {
       try {
         const isBranchLeader = role === "branch_leader";
-      const isHOD = role === "head_of_department";
-      const department = safeString(req.query.department);
+        const isHOD = role === "head_of_department";
+        const department = safeString(req.query.department);
 
-      const rawCompanyId = req.companyId || req.query.company_id || req.query.companyId;
-      const companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
+        const companyUserFilter = getCompanyUserSqlFilterById(companyId, "user_id");
+        const companyProfileFilter = getCompanyUserSqlFilterById(companyId, "p.user_id");
+        const companyLrFilter = getCompanyUserSqlFilterById(companyId, "lr.user_id");
+        const companyFcFilter = getCompanyUserSqlFilterById(companyId, "fc.user_id");
+        const companyEalFilter = getCompanyUserSqlFilterById(companyId, "eal.user_id");
 
-      let companyUserFilter = "";
-      if (companyId) {
-        if (companyId === 1) {
-          companyUserFilter = " AND (user_id IN (SELECT user_id FROM company_user_roles WHERE company_id = 1 AND status = 'active') OR user_id NOT IN (SELECT user_id FROM company_user_roles WHERE status = 'active'))";
-        } else {
-          companyUserFilter = ` AND user_id IN (SELECT user_id FROM company_user_roles WHERE company_id = ${companyId} AND status = 'active')`;
+        const queryParams = [];
+        let profileFilter = companyUserFilter;
+        let profileAliasFilter = companyProfileFilter;
+        let attendanceFilter = `AND user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE p_s.status = 'Active')${companyUserFilter}`;
+        let leaveAttendanceFilter = `AND lr.user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE p_s.status = 'Active')${companyLrFilter}`;
+        let lateFilter = `AND fc.user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE p_s.status = 'Active')${companyFcFilter}`;
+        let ealFilter = `AND eal.user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE p_s.status = 'Active')${companyEalFilter}`;
+
+        if (isBranchLeader) {
+          const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
+          profileFilter = `${companyUserFilter} AND branch = ?`;
+          profileAliasFilter = `${companyProfileFilter} AND p.branch = ?`;
+          attendanceFilter = `AND user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE p_s.branch = ? AND p_s.status = 'Active')${companyUserFilter}`;
+          leaveAttendanceFilter = `AND lr.user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE p_s.branch = ? AND p_s.status = 'Active')${companyLrFilter}`;
+          lateFilter = `AND fc.user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE p_s.branch = ? AND p_s.status = 'Active')${companyFcFilter}`;
+          ealFilter = `AND eal.user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE p_s.branch = ? AND p_s.status = 'Active')${companyEalFilter}`;
+          queryParams.push(safeBranch);
+        } else if (isHOD) {
+          const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
+          profileFilter = `${companyUserFilter} AND department = ?`;
+          profileAliasFilter = `${companyProfileFilter} AND p.department = ?`;
+          attendanceFilter = `AND user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE p_s.department = ? AND p_s.status = 'Active')${companyUserFilter}`;
+          leaveAttendanceFilter = `AND lr.user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE p_s.department = ? AND p_s.status = 'Active')${companyLrFilter}`;
+          lateFilter = `AND fc.user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE p_s.department = ? AND p_s.status = 'Active')${companyFcFilter}`;
+          ealFilter = `AND eal.user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE p_s.department = ? AND p_s.status = 'Active')${companyEalFilter}`;
+          queryParams.push(safeDept);
         }
-      }
 
-      const queryParams = [];
-      let profileFilter = companyUserFilter ? companyUserFilter : "";
-      let attendanceFilter = `AND user_id IN (SELECT user_id FROM profiles WHERE status = 'Active')${companyUserFilter}`;
+        const dateCondition = "?::date";
+        const profileQueryParams = [queryDate, ...queryParams];
 
-      if (isBranchLeader) {
-        const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
-        profileFilter = "AND branch = ?";
-        attendanceFilter = "AND user_id IN (SELECT user_id FROM profiles WHERE branch = ? AND status = 'Active')";
-        queryParams.push(safeBranch);
-      } else if (isHOD) {
-        const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
-        profileFilter = "AND department = ?";
-        attendanceFilter = "AND user_id IN (SELECT user_id FROM profiles WHERE department = ? AND status = 'Active')";
-        queryParams.push(safeDept);
-      }
+        // Check if any attendance records exist for this branch/department/general on this day
+        let attendanceCheckFilter = companyUserFilter;
+        let attendanceCheckParams = [queryDate];
+        if (isBranchLeader) {
+          attendanceCheckFilter = `${companyUserFilter} AND user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE p_s.branch = ?)`;
+          attendanceCheckParams.push(branch);
+        } else if (isHOD) {
+          attendanceCheckFilter = `${companyUserFilter} AND user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE p_s.department = ?)`;
+          attendanceCheckParams.push(department);
+        }
 
-      const dateCondition = "?::date";
-      const profileQueryParams = [queryDate, ...queryParams];
+        const [attendanceCheck] = await pool.query(
+          `SELECT COUNT(*) AS count FROM attendances WHERE DATE(clock_in) = ?::date${attendanceCheckFilter}`,
+          attendanceCheckParams
+        );
+        const totalDayAttendances = parseInt(attendanceCheck[0].count || 0);
+        const hasRecords = totalDayAttendances > 0;
 
-      // Check if any attendance records exist for this branch/department/general on this day
-      let attendanceCheckFilter = companyUserFilter ? companyUserFilter : "";
-      let attendanceCheckParams = [queryDate];
-      if (isBranchLeader) {
-        attendanceCheckFilter = " AND user_id IN (SELECT user_id FROM profiles WHERE branch = ?)";
-        attendanceCheckParams.push(branch);
-      } else if (isHOD) {
-        attendanceCheckFilter = " AND user_id IN (SELECT user_id FROM profiles WHERE department = ?)";
-        attendanceCheckParams.push(department);
-      }
+        const [employeeRows] = await pool.query(
+          `SELECT COUNT(*) AS total_employees FROM profiles WHERE status = 'Active' AND (created_at IS NULL OR (created_at AT TIME ZONE 'Asia/Kuala_Lumpur')::date <= ${dateCondition}::date) ${profileFilter}`,
+          profileQueryParams
+        );
 
-      const [attendanceCheck] = await pool.query(
-        `SELECT COUNT(*) AS count FROM attendances WHERE DATE(clock_in) = ?::date${attendanceCheckFilter}`,
-        attendanceCheckParams
-      );
-      const totalDayAttendances = parseInt(attendanceCheck[0].count || 0);
-      const hasRecords = totalDayAttendances > 0;
+        const presentParams = [queryDate, queryDate, ...queryParams];
+        const onLeaveParams = [queryDate, ...queryParams];
 
-      const [employeeRows] = await pool.query(
-        `SELECT COUNT(*) AS total_employees FROM profiles WHERE status = 'Active' AND (created_at IS NULL OR (created_at AT TIME ZONE 'Asia/Kuala_Lumpur')::date <= ${dateCondition}::date) ${profileFilter}`,
-        profileQueryParams
-      );
+        // Fetch leave candidates overlapping date, then accurately verify leave dates
+        const [rawLeaveRows] = await pool.query(
+          `SELECT lr.user_id, lr.leave_type, lr.reason, lr.cuti_ganti_tarikh, lr.start_date, lr.end_date
+           FROM leave_requests lr
+           JOIN profiles p ON p.user_id = lr.user_id
+           WHERE lr.status = 'Approved' AND ${dateCondition} BETWEEN DATE(lr.start_date) AND DATE(lr.end_date) ${leaveAttendanceFilter}`,
+          onLeaveParams
+        );
 
-      const presentParams = [queryDate, queryDate, ...queryParams];
-      const onLeaveParams = [queryDate, ...queryParams];
+        const activeOnLeaveUsers = rawLeaveRows.filter(lr => isEmployeeOnLeaveOnDate(lr, queryDate));
+        const onLeaveUserIdsSet = new Set(activeOnLeaveUsers.map(lr => lr.user_id));
+        const onLeaveRows = Array.from(onLeaveUserIdsSet).map(uid => ({ user_id: uid }));
 
-      const leaveAttendanceFilter = attendanceFilter ? attendanceFilter.replace(/\buser_id\b/g, 'lr.user_id') : "";
-      // Fetch leave candidates overlapping date, then accurately verify leave dates
-      const [rawLeaveRows] = await pool.query(
-        `SELECT lr.user_id, lr.leave_type, lr.reason, lr.cuti_ganti_tarikh, lr.start_date, lr.end_date
-         FROM leave_requests lr
-         JOIN profiles p ON p.user_id = lr.user_id
-         WHERE lr.status = 'Approved' AND ${dateCondition} BETWEEN DATE(lr.start_date) AND DATE(lr.end_date) ${leaveAttendanceFilter}`,
-        onLeaveParams
-      );
+        const [rawPresentRows] = await pool.query(
+          `SELECT DISTINCT user_id FROM attendances 
+           WHERE DATE(clock_in) = ${dateCondition} 
+           AND user_id NOT IN (SELECT user_id FROM outstation_assignments WHERE status != 'Cancelled' AND ${dateCondition} BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date)
+           ${attendanceFilter}`,
+          presentParams
+        );
+        const presentRows = rawPresentRows.filter(r => !onLeaveUserIdsSet.has(r.user_id));
 
-      const activeOnLeaveUsers = rawLeaveRows.filter(lr => isEmployeeOnLeaveOnDate(lr, queryDate));
-      const onLeaveUserIdsSet = new Set(activeOnLeaveUsers.map(lr => lr.user_id));
-      const onLeaveRows = Array.from(onLeaveUserIdsSet).map(uid => ({ user_id: uid }));
+        const [outstationRows] = await pool.query(
+          `SELECT COUNT(DISTINCT user_id) AS outstation FROM outstation_assignments WHERE status != 'Cancelled' AND ${dateCondition} BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date ${attendanceFilter}`,
+          onLeaveParams
+        );
 
-      const [rawPresentRows] = await pool.query(
-        `SELECT DISTINCT user_id FROM attendances 
-         WHERE DATE(clock_in) = ${dateCondition} 
-         AND user_id NOT IN (SELECT user_id FROM outstation_assignments WHERE status != 'Cancelled' AND ${dateCondition} BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date)
-         ${attendanceFilter}`,
-        presentParams
-      );
-      const presentRows = rawPresentRows.filter(r => !onLeaveUserIdsSet.has(r.user_id));
+        const lateTimeStr = getLateThresholdTime();
+        const lateParams = [queryDate, queryDate, ...queryParams];
+        const [rawLateRows] = await pool.query(
+          `WITH first_clocks AS (
+             SELECT user_id, MIN(clock_in) AS first_clock_in
+             FROM attendances
+             WHERE DATE(clock_in) = ${dateCondition}
+             GROUP BY user_id
+           )
+           SELECT DISTINCT fc.user_id 
+           FROM first_clocks fc
+           WHERE (fc.first_clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::time > '${lateTimeStr}' 
+           AND NOT EXISTS (
+             SELECT 1 FROM outstation_assignments oa 
+             WHERE oa.user_id = fc.user_id AND oa.status != 'Cancelled' 
+             AND ${dateCondition} BETWEEN (oa.start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (oa.end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date
+           )
+           ${lateFilter}`,
+          lateParams
+        );
+        const lateArrivalsCount = rawLateRows.filter(r => !onLeaveUserIdsSet.has(r.user_id)).length;
+        const lateRows = [{ late_arrivals: lateArrivalsCount }];
 
-      const [outstationRows] = await pool.query(
-        `SELECT COUNT(DISTINCT user_id) AS outstation FROM outstation_assignments WHERE status != 'Cancelled' AND ${dateCondition} BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date ${attendanceFilter}`,
-        onLeaveParams
-      );
+        let statusToCount = "Pending%";
+        if (role === "head_of_department") {
+          statusToCount = "Pending HOD%";
+        } else if (role === "branch_leader") {
+          statusToCount = "Pending Branch Leader";
+        } else if (role === "finance_manager") {
+          statusToCount = "Pending Finance";
+        } else if (role === "managing_director") {
+          statusToCount = "Pending MD";
+        }
 
-      const lateTimeStr = getLateThresholdTime();
-      const lateFilter = attendanceFilter ? attendanceFilter.replace(/\buser_id\b/g, 'fc.user_id') : "";
-      const lateParams = [queryDate, queryDate, ...queryParams];
-      const [rawLateRows] = await pool.query(
-        `WITH first_clocks AS (
-           SELECT user_id, MIN(clock_in) AS first_clock_in
-           FROM attendances
-           WHERE DATE(clock_in) = ${dateCondition}
-           GROUP BY user_id
-         )
-         SELECT DISTINCT fc.user_id 
-         FROM first_clocks fc
-         WHERE (fc.first_clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::time > '${lateTimeStr}' 
-         AND NOT EXISTS (
-           SELECT 1 FROM outstation_assignments oa 
-           WHERE oa.user_id = fc.user_id AND oa.status != 'Cancelled' 
-           AND ${dateCondition} BETWEEN (oa.start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (oa.end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date
-         )
-         ${lateFilter}`,
-        lateParams
-      );
-      const lateArrivalsCount = rawLateRows.filter(r => !onLeaveUserIdsSet.has(r.user_id)).length;
-      const lateRows = [{ late_arrivals: lateArrivalsCount }];
+        const [pendingRows] = await pool.query(
+          `SELECT COUNT(*) AS pending_approvals FROM leave_requests WHERE status LIKE ? ${attendanceFilter}`,
+          [statusToCount, ...queryParams]
+        );
 
-      let statusToCount = "Pending%";
-      if (role === "head_of_department") {
-        statusToCount = "Pending HOD%";
-      } else if (role === "branch_leader") {
-        statusToCount = "Pending Branch Leader";
-      } else if (role === "finance_manager") {
-        statusToCount = "Pending Finance";
-      } else if (role === "managing_director") {
-        statusToCount = "Pending MD";
-      }
+        const outstationParams = queryDate ? [queryDate, ...queryParams] : queryParams;
+        const [outstationTodayRows] = await pool.query(
+          `SELECT DISTINCT user_id FROM outstation_assignments WHERE status != 'Cancelled' AND ${dateCondition} BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date ${attendanceFilter}`,
+          outstationParams
+        );
 
-      const [pendingRows] = await pool.query(
-        `SELECT COUNT(*) AS pending_approvals FROM leave_requests WHERE status LIKE ? ${attendanceFilter}`,
-        [statusToCount, ...queryParams]
-      );
+        const [upcomingOutstationRows] = await pool.query(
+          `SELECT COUNT(DISTINCT user_id) AS upcoming_outstation FROM outstation_assignments WHERE status != 'Cancelled' AND (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date > ${dateCondition} ${attendanceFilter}`,
+          outstationParams
+        );
 
-      const outstationParams = queryDate ? [queryDate, ...queryParams] : queryParams;
-      const [outstationTodayRows] = await pool.query(
-        `SELECT DISTINCT user_id FROM outstation_assignments WHERE status != 'Cancelled' AND ${dateCondition} BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date ${attendanceFilter}`,
-        outstationParams
-      );
+        const [temporaryRows] = await pool.query(
+          `SELECT COUNT(DISTINCT user_id) AS total_temporary FROM employee_work_assignment WHERE status = 'Active' AND ${dateCondition} BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date ${attendanceFilter}`,
+          onLeaveParams
+        );
 
-      const [upcomingOutstationRows] = await pool.query(
-        `SELECT COUNT(DISTINCT user_id) AS upcoming_outstation FROM outstation_assignments WHERE status != 'Cancelled' AND (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date > ${dateCondition} ${attendanceFilter}`,
-        outstationParams
-      );
+        const [multiLocationRows] = await pool.query(
+          `SELECT COUNT(DISTINCT eal.user_id) AS total_multi_location FROM employee_allowed_locations eal JOIN profiles p ON p.user_id = eal.user_id WHERE eal.allowed_branch != p.branch ${ealFilter}`,
+          [...queryParams]
+        );
 
-      const [temporaryRows] = await pool.query(
-        `SELECT COUNT(DISTINCT user_id) AS total_temporary FROM employee_work_assignment WHERE status = 'Active' AND ${dateCondition} BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date ${attendanceFilter}`,
-        onLeaveParams
-      );
-
-      const [multiLocationRows] = await pool.query(
-        `SELECT COUNT(DISTINCT eal.user_id) AS total_multi_location FROM employee_allowed_locations eal JOIN profiles p ON p.user_id = eal.user_id WHERE eal.allowed_branch != p.branch ${attendanceFilter.replace(/user_id/g, 'eal.user_id')}`,
-        [...queryParams]
-      );
-
-      const [recentRows] = await pool.query(
-        `
-        SELECT p.full_name AS name, 'Leave' AS action, CONCAT('Leave ', lr.status) AS status, TO_CHAR(lr.created_at, 'HH12:MI AM') AS time
-        FROM leave_requests lr
-        JOIN profiles p ON p.user_id = lr.user_id
-        ${profileFilter ? "WHERE 1=1 " + profileFilter : ""}
-        ORDER BY lr.created_at DESC LIMIT 5
-        `,
-        queryParams
-      );
+        const [recentRows] = await pool.query(
+          `
+          SELECT p.full_name AS name, 'Leave' AS action, CONCAT('Leave ', lr.status) AS status, TO_CHAR(lr.created_at, 'HH12:MI AM') AS time
+          FROM leave_requests lr
+          JOIN profiles p ON p.user_id = lr.user_id
+          ${profileAliasFilter ? "WHERE 1=1 " + profileAliasFilter : ""}
+          ORDER BY lr.created_at DESC LIMIT 5
+          `,
+          queryParams
+        );
 
       const [companyLeaveDays] = await pool.query(
         `SELECT * FROM company_leave_calendar WHERE status = 'Active' AND ?::date BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date`,
@@ -8614,6 +8650,8 @@ app.get("/api/dashboard-stats", async (req, res) => {
 
     if (isElevatedRole) {
       const department = safeString(req.query.department);
+      const teamCompanyP = getCompanyUserSqlFilterById(companyId, "p.user_id");
+      const teamCompanyEmp = getCompanyUserSqlFilterById(companyId, "emp.user_id");
       let teamFilter = "";
       let teamParams = [];
 
@@ -8629,7 +8667,9 @@ app.get("/api/dashboard-stats", async (req, res) => {
           teamParams = [department];
         }
       }
-      // hr_admin, managing_director, finance_manager see all — no filter
+      const teamFilterP = `${teamCompanyP} ${teamFilter}`;
+      const teamFilterEmp = `${teamCompanyEmp} ${teamFilter.replace(/p\./g, 'emp.')}`;
+      const teamFilterOa = `${teamCompanyEmp} ${teamFilter.replace(/p\./g, 'oa.')}`;
 
       const [teamRows] = await pool.query(
         `WITH team_acts AS (
@@ -8645,7 +8685,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
           FROM attendances a
           JOIN profiles p ON p.user_id = a.user_id
           WHERE DATE(a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
-            AND p.status = 'Active' ${teamFilter}
+            AND p.status = 'Active' ${teamFilterP}
             AND a.clock_in IS NOT NULL
 
           UNION ALL
@@ -8662,7 +8702,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
           FROM attendances a
           JOIN profiles p ON p.user_id = a.user_id
           WHERE DATE(a.clock_out AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
-            AND p.status = 'Active' ${teamFilter}
+            AND p.status = 'Active' ${teamFilterP}
             AND a.clock_out IS NOT NULL
 
           UNION ALL
@@ -8682,7 +8722,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
           JOIN profiles emp ON emp.user_id = lr.user_id
           LEFT JOIN profiles approver ON approver.user_id = la.approver_id
           WHERE DATE(la.created_at AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
-            AND emp.status = 'Active' ${teamFilter.replace(/p\./g, 'emp.')}
+            AND emp.status = 'Active' ${teamFilterEmp}
 
           UNION ALL
 
@@ -8699,7 +8739,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
           FROM leave_balance_adjustments lba
           JOIN profiles emp ON emp.user_id = lba.employee_id
           WHERE DATE(lba.created_at AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
-            AND emp.status = 'Active' ${teamFilter.replace(/p\./g, 'emp.')}
+            AND emp.status = 'Active' ${teamFilterEmp}
           UNION ALL
 
           -- Leave Submissions
@@ -8715,7 +8755,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
           FROM leave_requests lr
           JOIN profiles emp ON emp.user_id = lr.user_id
           WHERE DATE(lr.created_at AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
-            AND emp.status = 'Active' ${teamFilter.replace(/p\./g, 'emp.')}
+            AND emp.status = 'Active' ${teamFilterEmp}
 
           UNION ALL
 
@@ -8731,7 +8771,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
           FROM outstation_assignments oa
           JOIN profiles emp ON emp.user_id = oa.user_id
           WHERE DATE(oa.created_at AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
-            AND emp.status = 'Active' ${teamFilter.replace(/p\./g, 'oa.')}
+            AND emp.status = 'Active' ${teamFilterOa}
           
           UNION ALL
 
@@ -8743,7 +8783,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
           FROM activity_logs al
           JOIN profiles emp ON emp.user_id = al.user_id
           WHERE DATE(al.created_at AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
-            AND emp.status = 'Active' ${teamFilter.replace(/p\./g, 'emp.')}
+            AND emp.status = 'Active' ${teamFilterEmp}
 
           UNION ALL
 
@@ -8759,7 +8799,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
           FROM employee_work_assignment ewa
           JOIN profiles emp ON emp.user_id = ewa.user_id
           WHERE DATE(ewa.created_at AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
-            AND emp.status = 'Active' ${teamFilter.replace(/p\./g, 'emp.')}
+            AND emp.status = 'Active' ${teamFilterEmp}
         )
 
         SELECT type, actor, action, target, context, time, badge FROM team_acts
@@ -8897,12 +8937,12 @@ app.get("/api/reports/absent-employees", async (req, res) => {
     if (role === 'branch_leader') {
       const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
       branch = safeBranch;
-      profileFilter = " AND LOWER(p.branch) = LOWER(?)";
+      profileFilter += " AND LOWER(p.branch) = LOWER(?)";
       queryParams.push(branch);
     } else if (role === 'head_of_department') {
       const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
       department = safeDept;
-      profileFilter = " AND LOWER(p.department) = LOWER(?)";
+      profileFilter += " AND LOWER(p.department) = LOWER(?)";
       queryParams.push(department);
     }
 
@@ -9114,11 +9154,11 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
 
     if (role === 'branch_leader') {
       const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
-      profileFilter = " AND LOWER(p.branch) = LOWER(?)";
+      profileFilter += " AND LOWER(p.branch) = LOWER(?)";
       queryParams.push(safeBranch);
     } else if (role === 'head_of_department') {
       const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
-      profileFilter = " AND LOWER(p.department) = LOWER(?)";
+      profileFilter += " AND LOWER(p.department) = LOWER(?)";
       queryParams.push(safeDept);
     }
 
@@ -9738,18 +9778,18 @@ app.get("/api/reports/total-leave-requests", async (req, res) => {
     let role = safeString(req.query.role);
     let branch = safeString(req.query.branch);
     let department = safeString(req.query.department);
-    let filter = "";
+    let filter = getCompanyUserSqlFilter(req, "p.user_id");
     let params = [];
 
     if (role === 'branch_leader') {
       const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
       branch = safeBranch;
-      filter = " AND LOWER(p.branch) = LOWER(?)";
+      filter += " AND LOWER(p.branch) = LOWER(?)";
       params.push(branch);
     } else if (role === 'head_of_department') {
       const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
       department = safeDept;
-      filter = " AND LOWER(p.department) = LOWER(?)";
+      filter += " AND LOWER(p.department) = LOWER(?)";
       params.push(department);
     }
 
@@ -9854,18 +9894,18 @@ app.get("/api/reports/analytics", async (req, res) => {
     let branch = safeString(req.query.branch);
     let department = safeString(req.query.department);
     
-    let profileFilter = "";
+    let profileFilter = getCompanyUserSqlFilter(req, "p.user_id");
     let pFilterParams = [];
 
     if (role === 'branch_leader') {
       const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
       branch = safeBranch;
-      profileFilter = " AND LOWER(p.branch) = LOWER(?)";
+      profileFilter += " AND LOWER(p.branch) = LOWER(?)";
       pFilterParams.push(branch);
     } else if (role === 'head_of_department') {
       const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
       department = safeDept;
-      profileFilter = " AND LOWER(p.department) = LOWER(?)";
+      profileFilter += " AND LOWER(p.department) = LOWER(?)";
       pFilterParams.push(department);
     }
     
@@ -9999,20 +10039,21 @@ app.get("/api/workforce-stats", async (req, res) => {
     const queryDateParam = safeString(req.query.date);
     const normRole = safeLower(role).replace(/ /g, "_");
 
-    let profileFilter = "";
+    const rawCompanyId = req.companyId || req.query.company_id || req.query.companyId;
+    const companyFilter = getCompanyUserSqlFilterById(rawCompanyId, "p.user_id");
+    let profileFilter = companyFilter;
     let pFilterParams = [];
 
     if (normRole === 'branch_leader') {
       const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
-      profileFilter = " AND LOWER(p.branch) = LOWER(?)";
+      profileFilter = `${companyFilter} AND LOWER(p.branch) = LOWER(?)`;
       pFilterParams.push(safeBranch);
     } else if (normRole === 'head_of_department' || normRole === 'hod') {
       const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
-      profileFilter = " AND LOWER(p.department) = LOWER(?)";
+      profileFilter = `${companyFilter} AND LOWER(p.department) = LOWER(?)`;
       pFilterParams.push(safeDept);
     } else if (['hr_admin', 'hr', 'admin', 'managing_director', 'md', 'operation_manager', 'finance_manager'].includes(normRole)) {
-      // HR Admin, Managing Director, Operation Manager see ALL employees across all branches and departments
-      profileFilter = "";
+      profileFilter = companyFilter;
       pFilterParams = [];
     }
 
@@ -10885,7 +10926,7 @@ app.get("/api/workforce-stats", async (req, res) => {
       // Note: outstationTodayCount in topKpi uses the local variable `outstationTodayCount`
     }
 
-    const dynamicMetrics = await computeDynamicWorkforceMetrics(targetDateStr, role, branch, department);
+    const dynamicMetrics = await computeDynamicWorkforceMetrics(targetDateStr, role, branch, department, rawCompanyId);
 
     const sseInitialPayload = {
       attendance: uniqueAttRows.filter(a => a.dStr === targetDateStr).map(a => ({
@@ -11071,7 +11112,7 @@ app.get("/api/reports/workforce-leave-balance", async (req, res) => {
       "finance manager", "finance_manager"
     ].some(r => rawRole.includes(r) || normalizedRole.includes(r));
 
-    let profileFilter = " WHERE LOWER(p.status) = 'active'";
+    let profileFilter = ` WHERE LOWER(p.status) = 'active'${getCompanyUserSqlFilter(req, "p.user_id")}`;
     let pParams = [];
 
     if (!isAllAccessRole) {
@@ -11731,6 +11772,10 @@ app.get("/api/who-out-today", async (req, res) => {
   try {
     const filters = [];
     const params = [];
+    const companyFilter = getCompanyUserSqlFilter(req, "p.user_id");
+    if (companyFilter) {
+      filters.push(companyFilter.replace(/^\s*AND\s+/i, ""));
+    }
 
     if (role === "branch_leader" && branch) {
       filters.push("LOWER(p.branch) = LOWER(?)");
@@ -11842,7 +11887,9 @@ app.get("/api/reports/generator", async (req, res) => {
       department = requesterDept || department;
     }
 
-    let filters = [];
+    const companyFilter = getCompanyUserSqlFilter(req, "p.user_id");
+    const companyClause = companyFilter ? companyFilter.replace(/^\s*AND\s+/i, "") : "";
+    let filters = companyClause ? [companyClause] : [];
     let params = [];
     
     if (branch && branch !== 'all') {
@@ -11874,7 +11921,7 @@ app.get("/api/reports/generator", async (req, res) => {
     
     if (type === 'trends' || type === 'stability') {
       // 1. Fetch matching employee profiles based on filters & role scoping
-      let profFilters = [];
+      let profFilters = companyClause ? [companyClause] : [];
       let profParams = [];
       
       if (branch && branch !== 'all') {
@@ -12082,7 +12129,7 @@ app.get("/api/reports/generator", async (req, res) => {
 
       res.json({ success: true, data: resultRows });
     } else if (type === 'outstation') {
-      let outFilters = [];
+      let outFilters = companyClause ? [companyClause] : [];
       let outParams = [];
       
       if (branch && branch !== 'all') {
@@ -12174,7 +12221,7 @@ app.get("/api/reports/generator", async (req, res) => {
       
       res.json({ success: true, data: rows });
     } else {
-      let leaveFilters = [];
+      let leaveFilters = companyClause ? [companyClause] : [];
       let leaveParams = [];
       
       if (branch && branch !== 'all') {
@@ -12239,18 +12286,18 @@ app.get("/api/reports/leave-utilization", async (req, res) => {
     let role = safeString(req.query.role);
     let branch = safeString(req.query.branch);
     let department = safeString(req.query.department);
-    let filter = "";
+    let filter = getCompanyUserSqlFilter(req, "p.user_id");
     let params = [];
 
     if (role === 'branch_leader') {
       const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
       branch = safeBranch;
-      filter = " AND LOWER(p.branch) = LOWER(?)";
+      filter += " AND LOWER(p.branch) = LOWER(?)";
       params.push(branch);
     } else if (role === 'head_of_department') {
       const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
       department = safeDept;
-      filter = " AND LOWER(p.department) = LOWER(?)";
+      filter += " AND LOWER(p.department) = LOWER(?)";
       params.push(department);
     }
 
@@ -12837,7 +12884,7 @@ app.get('/api/outstation', async (req, res) => {
     const branch = safeString(req.query.branch);
     const department = safeString(req.query.department);
     const user_id = safeString(req.query.user_id);
-    let whereClause = 'WHERE 1=1';
+    let whereClause = 'WHERE 1=1' + getCompanyUserSqlFilter(req, "oa.user_id");
     const params = [];
 
     if (user_id) {
@@ -12877,15 +12924,16 @@ app.get('/api/outstation/stats', async (req, res) => {
     const role = safeString(req.query.role);
     const branch = safeString(req.query.branch);
     const department = safeString(req.query.department);
-    let scopeWhere = '1=1';
+    const companyFilter = getCompanyUserSqlFilter(req, "user_id");
+    let scopeWhere = '1=1' + companyFilter;
     const params = [];
 
     if (role === 'branch_leader' && branch) {
       params.push(branch);
-      scopeWhere = `branch = ?`;
+      scopeWhere = `branch = ?${companyFilter}`;
     } else if (role === 'head_of_department' && department) {
       params.push(department);
-      scopeWhere = `department = ?`;
+      scopeWhere = `department = ?${companyFilter}`;
     }
 
     const today = new Date().toISOString().split('T')[0];
@@ -12933,10 +12981,11 @@ app.get('/api/outstation/stats', async (req, res) => {
 app.get('/api/outstation/active-today', async (req, res) => {
   try {
     const today = new Date().toISOString().split('T')[0];
+    const companyFilter = getCompanyUserSqlFilter(req, "user_id");
     const [rows] = await pool.query(
       `SELECT user_id, full_name, branch, department, destination, start_date, end_date 
        FROM outstation_assignments 
-       WHERE status != 'Cancelled' AND start_date <= $1 AND end_date >= $1
+       WHERE status != 'Cancelled' AND start_date <= $1 AND end_date >= $1 ${companyFilter}
        ORDER BY full_name`,
       [today]
     );
@@ -13327,17 +13376,20 @@ function broadcastWorkforceCalendarUpdate(payload = { type: 'refresh' }) {
 }
 
 // Helper to compute workforce calendar data for a given role/branch/dept
-async function getWorkforceCalendarData(role, branch, department, month, year) {
+async function getWorkforceCalendarData(role, branch, department, month, year, companyId = null) {
   const params = [];
-  let leaveWhere = '';
-  let outstationWhere = "WHERE oa.status != 'Cancelled'";
+  const companyFilterP = getCompanyUserSqlFilterById(companyId, "p.user_id");
+  const companyFilterOa = getCompanyUserSqlFilterById(companyId, "oa.user_id");
+  const companyFilterPlain = getCompanyUserSqlFilterById(companyId, "user_id");
+  let leaveWhere = companyFilterP;
+  let outstationWhere = `WHERE oa.status != 'Cancelled' ${companyFilterOa}`;
 
   if (role === 'branch_leader' && branch) {
-    leaveWhere = `AND p.branch = $${params.length + 1}`;
+    leaveWhere += ` AND p.branch = ${params.length + 1}`;
     params.push(branch);
     outstationWhere += ` AND oa.branch = ?`;
   } else if (role === 'head_of_department' && department) {
-    leaveWhere = `AND p.department = $${params.length + 1}`;
+    leaveWhere += ` AND p.department = ${params.length + 1}`;
     params.push(department);
     outstationWhere += ` AND oa.department = ?`;
   } else if (role === 'head_of_department' && !department) {
@@ -13440,12 +13492,12 @@ async function getWorkforceCalendarData(role, branch, department, month, year) {
     if (month && year) {
       const lateTimeStr = typeof getLateThresholdTime === 'function' ? getLateThresholdTime() : '09:00:00';
       const attParams = [lateTimeStr, month, year];
-      let attWhere = '';
+      let attWhere = companyFilterP;
       if (role === 'branch_leader' && branch) {
-        attWhere = `AND p.branch = $4`;
+        attWhere += ` AND p.branch = $4`;
         attParams.push(branch);
       } else if (role === 'head_of_department' && department) {
-        attWhere = `AND p.department = $4`;
+        attWhere += ` AND p.department = $4`;
         attParams.push(department);
       }
 
@@ -13534,12 +13586,12 @@ async function getWorkforceCalendarData(role, branch, department, month, year) {
 
         // Get active employees for the scope
         const empParams = [];
-        let empWhere = '';
+        let empWhere = companyFilterPlain;
         if (role === 'branch_leader' && branch) {
-          empWhere = `AND branch = $1`;
+          empWhere += ` AND branch = $1`;
           empParams.push(branch);
         } else if (role === 'head_of_department' && department) {
-          empWhere = `AND department = $1`;
+          empWhere += ` AND department = $1`;
           empParams.push(department);
         }
         const [empRows] = await pool.query(`SELECT user_id, full_name FROM profiles WHERE status = 'Active' ${empWhere}`, empParams);
@@ -13582,7 +13634,8 @@ app.get('/api/workforce-calendar', async (req, res) => {
       const department = safeString(req.query.department);
       const month = safeString(req.query.month);
       const year = safeString(req.query.year);
-      const events = await getWorkforceCalendarData(role, branch, department, month, year);
+      const companyId = req.companyId || req.query.company_id || req.query.companyId;
+      const events = await getWorkforceCalendarData(role, branch, department, month, year, companyId);
     res.json({ success: true, events });
   } catch (err) {
     console.error('GET /api/workforce-calendar error:', err);
@@ -13801,16 +13854,17 @@ app.get("/api/work-assignments-all", async (req, res) => {
       const role = safeString(req.query.role);
       const branch = safeString(req.query.branch);
       const department = safeString(req.query.department);
-      let filterP = "";
+      const companyFilter = getCompanyUserSqlFilter(req, "p.user_id");
+      let filterP = companyFilter ? ` WHERE 1=1 ${companyFilter}` : "";
       let paramsTotal = [];
 
       if (role === 'branch_leader') {
         const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
-        filterP = " WHERE (LOWER(p.branch) = LOWER(?) OR LOWER(ewa.location) = LOWER(?))";
+        filterP = ` WHERE (LOWER(p.branch) = LOWER(?) OR LOWER(ewa.location) = LOWER(?)) ${companyFilter}`;
         paramsTotal.push(safeBranch, safeBranch);
       } else if (role === 'head_of_department') {
         const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
-        filterP = " WHERE (LOWER(p.department) = LOWER(?) OR (LOWER(ewa.location) = 'hq' AND LOWER(COALESCE(ewa.department, '')) = LOWER(?)))";
+        filterP = ` WHERE (LOWER(p.department) = LOWER(?) OR (LOWER(ewa.location) = 'hq' AND LOWER(COALESCE(ewa.department, '')) = LOWER(?))) ${companyFilter}`;
         paramsTotal.push(safeDept, safeDept);
       }
 
@@ -14028,7 +14082,8 @@ app.delete("/api/work-assignments/:id", async (req, res) => {
 
 app.get("/api/multi-location-users", async (req, res) => {
   try {
-    const [rows] = await pool.query("SELECT DISTINCT eal.user_id FROM employee_allowed_locations eal JOIN profiles p ON p.user_id = eal.user_id WHERE eal.allowed_branch != p.branch");
+    const companyFilter = getCompanyUserSqlFilter(req, "p.user_id");
+    const [rows] = await pool.query(`SELECT DISTINCT eal.user_id FROM employee_allowed_locations eal JOIN profiles p ON p.user_id = eal.user_id WHERE eal.allowed_branch != p.branch ${companyFilter}`);
     res.json({ success: true, users: rows.map(r => r.user_id) });
   } catch (err) {
     console.error("Multi location users error:", err);
