@@ -14,8 +14,10 @@ export default {
     },
     extend: {
       fontFamily: {
-        heading: ['var(--font-heading)'],
-        body: ['var(--font-body)'],
+        sans: ['Inter', 'sans-serif'],
+        heading: ['Inter', 'sans-serif'],
+        body: ['Inter', 'sans-serif'],
+        mono: ['JetBrains Mono', 'monospace'],
       },
       colors: {
         pink: {
