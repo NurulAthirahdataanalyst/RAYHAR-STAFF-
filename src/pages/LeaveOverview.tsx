@@ -236,7 +236,7 @@ export default function LeaveOverview() {
         setLeaveRequests(formattedRequests);
       } catch (error) {
         console.error("Unable to fetch leave requests:", error);
-        setLeaveRequests(getLeaveRequests());
+        setLeaveRequests([]);
       }
     };
 
@@ -291,9 +291,17 @@ export default function LeaveOverview() {
         const res = await fetch(`${API_BASE_URL}/api/user-details/${encodeURIComponent(userId)}?company_id=${activeCompany?.id || 1}`);
         const data = await res.json();
         if (data.success && data.profile) {
-            const annualBase = Number(data.profile.annual_leave_entitlement) || 14;
+          if (data.profile.belongs_to_company === false) {
+            setCurrentBalances({
+              "Annual & Emergency Leave": 0,
+              "Sick Leave (MC)": 0,
+              "Replacement Leave": 0,
+              "Unpaid Leave": 0
+            });
+          } else {
+            const annualBase = Number(data.profile.annual_leave_entitlement) ?? 14;
             const annualAdj = Number(data.profile.annual_adj || data.profile.total_adjustment) || 0;
-            const medicalBase = Number(data.profile.medical_leave_entitlement) || 14;
+            const medicalBase = Number(data.profile.medical_leave_entitlement) ?? 14;
             const medicalAdj = Number(data.profile.medical_adj) || 0;
             const replAdj = Number(data.profile.replacement_adj) || 0;
             setCurrentBalances(prev => ({
@@ -302,6 +310,7 @@ export default function LeaveOverview() {
               "Sick Leave (MC)": medicalBase + medicalAdj,
               "Replacement Leave": replAdj
             }));
+          }
         }
       } catch (err) {
         console.error("Failed to fetch user details for leave balances:", err);

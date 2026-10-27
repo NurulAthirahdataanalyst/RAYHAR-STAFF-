@@ -3697,7 +3697,7 @@ app.get("/api/branch-employees", async (req, res) => {
         AND (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date
         GROUP BY user_id
       ) outstation_today ON outstation_today.user_id = p.user_id
-      WHERE LOWER(p.branch) = LOWER(?) AND p.status = 'Active'
+      WHERE LOWER(p.branch) = LOWER(?) AND p.status = 'Active' ${getCompanyUserSqlFilter(req, "p.user_id")}
       ORDER BY 
         CASE 
           WHEN ur.role = 'managing_director' THEN 1
@@ -3900,9 +3900,20 @@ app.post("/api/profiles/:userId/leave-adjustments", async (req, res) => {
 app.get(["/api/profiles/:userId/leave-balance", "/api/leave-balance/:userId"], async (req, res) => {
   const userId = safeString(req.params.userId);
   try {
+    const compFilter = getCompanyUserSqlFilter(req, "user_id");
     // 1. Get Base Entitlements
-    const [profile] = await pool.query(`SELECT annual_leave_entitlement, medical_leave_entitlement FROM profiles WHERE user_id = ?`, [userId]);
-    if (!profile.length) return res.status(404).json({ error: "Profile not found" });
+    const [profile] = await pool.query(`SELECT annual_leave_entitlement, medical_leave_entitlement FROM profiles WHERE user_id = ? ${compFilter}`, [userId]);
+    if (!profile.length) {
+      return res.json({
+        success: true,
+        data: {
+          annual: { base: 0, adjustment: 0, used: 0, balance: 0 },
+          medical: { base: 0, adjustment: 0, used: 0, balance: 0 },
+          replacement: { base: 0, adjustment: 0, used: 0, balance: 0 }
+        },
+        balances: { annual: 0, medical: 0, replacement: 0 }
+      });
+    }
     
     const baseAnnual = parseFloat(profile[0].annual_leave_entitlement || 14);
     const baseMedical = parseFloat(profile[0].medical_leave_entitlement || 14);
@@ -3992,10 +4003,12 @@ app.get(["/api/profiles/:userId/leave-balance", "/api/leave-balance/:userId"], a
 });// --- Replacement Leaves ---
 app.get("/api/replacement-leaves", async (req, res) => {
   try {
+    const compFilter = getCompanyUserSqlFilter(req, "p.user_id");
     const [rows] = await pool.query(`
       SELECT r.*, p.full_name as employee_name 
       FROM replacement_leave_requests r
       JOIN profiles p ON p.user_id = r.employee_id
+      WHERE 1=1 ${compFilter}
       ORDER BY r.leave_date DESC
     `);
     res.json({ success: true, data: rows });
@@ -5819,8 +5832,34 @@ app.post("/api/employees/:userId/today-attendance", async (req, res) => {
 app.get("/api/employees/:userId/analytics", async (req, res) => {
   const userId = safeString(req.params.userId);
   try {
-    const [empRows] = await pool.query("SELECT * FROM profiles WHERE user_id = ?", [userId]);
-    if (empRows.length === 0) return res.status(404).json({ success: false, error: "Employee not found" });
+    const compFilter = getCompanyUserSqlFilter(req, "user_id");
+    const [empRows] = await pool.query(`SELECT * FROM profiles WHERE user_id = ? ${compFilter}`, [userId]);
+    if (empRows.length === 0) {
+      return res.json({
+        success: true,
+        analytics: {
+          attendance: {
+            monthly: { rate: 0, present: 0, late: 0, absent: 0 },
+            yearly: { rate: 0, present: 0, late: 0, absent: 0 }
+          },
+          leave: {
+            annual: { taken: 0, balance: 0, entitlement: 0, adjustment: 0 },
+            sick: { taken: 0, balance: 0, entitlement: 0, adjustment: 0 },
+            replacement: { taken: 0, balance: 0, entitlement: 0, adjustment: 0 },
+            unpaid: { taken: 0, balance: 0 },
+            emergency: { taken: 0, balance: 0 },
+            entitlement: 0,
+            totalTaken: 0,
+            used: 0,
+            remaining: 0,
+            utilizationRate: 0,
+            pending: 0,
+            rejected: 0,
+            approvedApplications: 0
+          }
+        }
+      });
+    }
     const employee = empRows[0];
 
     const month = safeString(req.query.month);
@@ -6003,6 +6042,11 @@ app.get("/api/employees", async (req, res) => {
       params.push(status);
     }
 
+    const companyFilter = getCompanyUserSqlFilter(req, "p.user_id");
+    if (companyFilter) {
+      filters.push(companyFilter.replace(/^\s*AND\s+/i, ""));
+    }
+
     const branchFilter = filters.length > 0 ? "WHERE " + filters.join(" AND ") : "";
 
     const [rows] = await pool.query(
@@ -6027,10 +6071,10 @@ app.get("/api/employees", async (req, res) => {
           JOIN companies c2 ON cur2.company_id = c2.id
           WHERE cur2.user_id = p.user_id AND cur2.status = 'active'
         ) AS assigned_companies,
-        COALESCE(r.name, ur.role, 'Employee') AS role_name,
-        COALESCE(p.role_id, ur.role_id, r.id) AS role_id,
-        COALESCE(r.is_system_role, true) AS is_system_role,
-        LOWER(REPLACE(COALESCE(ur.role, r.name, 'employee'), ' ', '_')) AS role,
+        ${companyId ? "COALESCE(r_comp.name, r.name, ur.role, 'Employee')" : "COALESCE(r.name, ur.role, 'Employee')"} AS role_name,
+        ${companyId ? "COALESCE(cur_scope.role_id, p.role_id, ur.role_id, r.id)" : "COALESCE(p.role_id, ur.role_id, r.id)"} AS role_id,
+        ${companyId ? "COALESCE(r_comp.is_system_role, r.is_system_role, true)" : "COALESCE(r.is_system_role, true)"} AS is_system_role,
+        LOWER(REPLACE(COALESCE(${companyId ? "r_comp.name, " : ""}ur.role, r.name, 'employee'), ' ', '_')) AS role,
         COALESCE(lr.pending_leaves, 0) AS pending_leaves,
         COALESCE(lr.approved_leaves, 0) AS approved_leaves,
         COALESCE(lr.rejected_leaves, 0) AS rejected_leaves,
@@ -6054,7 +6098,7 @@ app.get("/api/employees", async (req, res) => {
         today.attendance_type AS today_attendance_type,
         today.location AS today_location
       FROM profiles p
-      ${companyId ? "INNER JOIN company_user_roles cur_scope ON cur_scope.user_id = p.user_id AND cur_scope.company_id = ? AND cur_scope.status = 'active'" : ""}
+      ${companyId ? "LEFT JOIN company_user_roles cur_scope ON cur_scope.user_id = p.user_id AND cur_scope.company_id = ? AND cur_scope.status = 'active' LEFT JOIN roles r_comp ON r_comp.id = cur_scope.role_id" : ""}
       LEFT JOIN LATERAL (
         SELECT ur.role, ur.role_id, ur.department
         FROM user_role ur
@@ -6647,6 +6691,17 @@ app.get("/api/user-details/:identifier", async (req, res) => {
     const user = rows[0];
     const userPermsDetail = await getUserPermissionsWithLevels(user.user_id, user.role);
 
+    const rawCompanyId = req.companyId || req.query.company_id || req.query.companyId;
+    const companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
+    let belongsToCompany = true;
+    if (companyId && companyId !== 1) {
+      const [compCheck] = await pool.query(
+        `SELECT 1 FROM company_user_roles WHERE user_id = ? AND company_id = ? AND status = 'active' LIMIT 1`,
+        [user.user_id, companyId]
+      );
+      belongsToCompany = compCheck.length > 0;
+    }
+
     res.json({
       success: true,
       profile: {
@@ -6658,12 +6713,13 @@ app.get("/api/user-details/:identifier", async (req, res) => {
         department: user.department, 
         created_at: user.created_at, 
         updated_at: user.updated_at,
-        annual_leave_entitlement: user.annual_leave_entitlement,
+        annual_leave_entitlement: belongsToCompany ? user.annual_leave_entitlement : 0,
         operating_zone: user.operating_zone || 'ZONE_B',
-        total_adjustment: user.total_adjustment,
-        medical_adj: user.medical_adj,
-        replacement_adj: user.replacement_adj,
-        medical_leave_entitlement: user.medical_leave_entitlement || 14,
+        total_adjustment: belongsToCompany ? user.total_adjustment : 0,
+        medical_adj: belongsToCompany ? user.medical_adj : 0,
+        replacement_adj: belongsToCompany ? user.replacement_adj : 0,
+        medical_leave_entitlement: belongsToCompany ? (user.medical_leave_entitlement || 14) : 0,
+        belongs_to_company: belongsToCompany,
         role_id: user.role_id,
         role_name: user.role_name,
         is_system_role: user.is_system_role
@@ -6690,10 +6746,26 @@ app.get("/api/attendance-status", async (req, res) => {
     return res.status(400).json({ success: false, error: "Missing empId" });
   }
   try {
+    const compFilter = getCompanyUserSqlFilter(req, "user_id");
     const [empProfile] = await pool.query(
-      `SELECT branch, department FROM profiles WHERE user_id = ?`,
+      `SELECT branch, department FROM profiles WHERE user_id = ? ${compFilter}`,
       [empId]
     );
+    if (empProfile.length === 0) {
+      return res.json({
+        success: true,
+        active: false,
+        record: null,
+        isOnLeave: false,
+        isOutstation: false,
+        attendanceStatus: {
+          type: "NORMAL",
+          name: null,
+          attendanceRequired: true,
+          clockInAllowed: true
+        }
+      });
+    }
 
     const [leaveRows] = await pool.query(`
       SELECT status FROM leave_requests 
@@ -7567,13 +7639,14 @@ app.get("/api/attendance/history", async (req, res) => {
   const requestedYear = parseInt(year) || new Date().getFullYear();
 
   try {
+    const compFilter = getCompanyUserSqlFilter(req, "user_id");
     // 1. Fetch user profile to check branch and department
     const [profileRows] = await pool.query(
-      "SELECT branch, department, created_at FROM profiles WHERE user_id = ?",
+      `SELECT branch, department, created_at FROM profiles WHERE user_id = ? ${compFilter}`,
       [userId]
     );
     if (profileRows.length === 0) {
-      return res.status(404).json({ success: false, error: "User profile not found" });
+      return res.json({ success: true, history: [] });
     }
     const userProfile = profileRows[0];
 
@@ -8255,20 +8328,26 @@ app.get("/api/dashboard-stats", async (req, res) => {
       }
     }
 
+    const personalCompUserFilter = getCompanyUserSqlFilterById(companyId, "user_id");
+    const personalCompPFilter = getCompanyUserSqlFilterById(companyId, "p.user_id");
+    const personalCompLrFilter = getCompanyUserSqlFilterById(companyId, "lr.user_id");
+    const personalCompLbaFilter = getCompanyUserSqlFilterById(companyId, "lba.employee_id");
+    const personalCompOaFilter = getCompanyUserSqlFilterById(companyId, "oa.user_id");
+
     // 1. TODAY ATTENDANCE STATUS
     const [todayRows] = await pool.query(
       `
       SELECT clock_in, clock_out, location, attendance_type, distance_meters, clock_in_latitude, clock_in_longitude, clock_out_latitude, clock_out_longitude,
              TO_CHAR(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS clock_in_time, 
              TO_CHAR(clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS clock_out_time
-      FROM attendances WHERE user_id = ? AND DATE(clock_in) = ?::date ORDER BY clock_in DESC LIMIT 1
+      FROM attendances WHERE user_id = ? ${personalCompUserFilter} AND DATE(clock_in) = ?::date ORDER BY clock_in DESC LIMIT 1
       `,
       [userId, queryDate]
     );
 
     let todayStatus = "Absent";
     const [empProfileZone] = await pool.query(
-      `SELECT b.operating_zone FROM branches b JOIN profiles p ON b.code = p.branch WHERE p.user_id = ?`,
+      `SELECT b.operating_zone FROM branches b JOIN profiles p ON b.code = p.branch WHERE p.user_id = ? ${personalCompPFilter}`,
       [userId]
     );
     if (empProfileZone.length > 0) {
@@ -8339,21 +8418,21 @@ app.get("/api/dashboard-stats", async (req, res) => {
 
     // Check temporary assignment active today
     const [tempAssignmentRows] = await pool.query(
-      `SELECT location, start_date, end_date FROM employee_work_assignment WHERE user_id = ? AND status = 'Active' AND ?::date BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND COALESCE((end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date, '2099-12-31'::date) LIMIT 1`,
+      `SELECT location, start_date, end_date FROM employee_work_assignment WHERE user_id = ? ${personalCompUserFilter} AND status = 'Active' AND ?::date BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND COALESCE((end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date, '2099-12-31'::date) LIMIT 1`,
       [userId, queryDate]
     );
     const activeTemporaryAssignment = tempAssignmentRows.length > 0 ? tempAssignmentRows[0] : null;
 
     // Check allowed locations (multi location)
     const [allowedLocationsRows] = await pool.query(
-      `SELECT allowed_branch FROM employee_allowed_locations WHERE user_id = ?`,
+      `SELECT allowed_branch FROM employee_allowed_locations WHERE user_id = ? ${personalCompUserFilter}`,
       [userId]
     );
     const isMultiLocation = allowedLocationsRows.length > 0;
 
     // OVERRIDE IF ON LEAVE TODAY
     const [rawOnLeaveTodayRows] = await pool.query(
-      `SELECT status, leave_type, reason, cuti_ganti_tarikh, start_date, end_date FROM leave_requests WHERE user_id = ? AND status = 'Approved' AND ?::date BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date`,
+      `SELECT status, leave_type, reason, cuti_ganti_tarikh, start_date, end_date FROM leave_requests WHERE user_id = ? ${personalCompUserFilter} AND status = 'Approved' AND ?::date BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date`,
       [userId, queryDate]
     );
     const onLeaveTodayRows = rawOnLeaveTodayRows.filter(lr => isEmployeeOnLeaveOnDate(lr, queryDate));
@@ -8373,7 +8452,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
          p.created_at,
          p.annual_leave_entitlement,
          COALESCE((SELECT SUM(adjustment_days) FROM leave_balance_adjustments WHERE employee_id = p.user_id AND UPPER(leave_type) IN ('ANNUAL LEAVE', 'ANNUAL & EMERGENCY LEAVE', 'ANNUAL/EMERGENCY LEAVE', 'CUTI TAHUNAN')), 0)::int AS annual_adjustment
-       FROM profiles p WHERE p.user_id = ?`,
+       FROM profiles p WHERE p.user_id = ? ${personalCompPFilter}`,
       [userId]
     );
     let companyLeaveCountCurrentMonth = 0;
@@ -8483,7 +8562,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
 
     // 2. MONTHLY ATTENDANCE RATE
     const [monthlyRows] = await pool.query(
-      `SELECT COUNT(DISTINCT DATE(clock_in)) AS days_present FROM attendances WHERE user_id = ? AND EXTRACT(YEAR FROM clock_in) = EXTRACT(YEAR FROM ?::date) AND EXTRACT(MONTH FROM clock_in) = EXTRACT(MONTH FROM ?::date)`,
+      `SELECT COUNT(DISTINCT DATE(clock_in)) AS days_present FROM attendances WHERE user_id = ? ${personalCompUserFilter} AND EXTRACT(YEAR FROM clock_in) = EXTRACT(YEAR FROM ?::date) AND EXTRACT(MONTH FROM clock_in) = EXTRACT(MONTH FROM ?::date)`,
       [userId, queryDate, queryDate]
     );
 
@@ -8518,12 +8597,12 @@ app.get("/api/dashboard-stats", async (req, res) => {
     }
     
     const totalDaysExcludingCoLeave = Math.max(totalWorkingDaysPassed - companyLeaveCountCurrentMonth, 1);
-    const attendanceRate = Math.min(100, Math.round((daysPresent / totalDaysExcludingCoLeave) * 100));
+    const attendanceRate = empProfile.length > 0 ? Math.min(100, Math.round((daysPresent / totalDaysExcludingCoLeave) * 100)) : 0;
 
     // 3. PENDING LEAVES & LEAVE BALANCE
     const [leaveRows] = await pool.query(
       `SELECT SUM(days) AS used_days FROM leave_requests 
-       WHERE user_id = ? 
+       WHERE user_id = ? ${personalCompUserFilter}
        AND status != 'Rejected' 
        AND (
          UPPER(leave_type) IN ('CUTI TAHUNAN', 'ANNUAL LEAVE', 'ANNUAL/EMERGENCY LEAVE', 'ANNUAL & EMERGENCY LEAVE', 'KECEMASAN', 'EMERGENCY')
@@ -8539,12 +8618,12 @@ app.get("/api/dashboard-stats", async (req, res) => {
     );
     const quotaLeavesUsed = parseFloat(leaveRows[0].used_days || 0);
     const empData = empProfile[0] || {};
-    const baseEntitlement = parseFloat(empData.annual_leave_entitlement || 14);
-    const annualAdjustment = parseFloat(empData.annual_adjustment || 0);
-    const leaveBalance = Math.max((baseEntitlement + annualAdjustment) - quotaLeavesUsed, 0);
+    const baseEntitlement = empProfile.length > 0 ? parseFloat(empData.annual_leave_entitlement || 14) : 0;
+    const annualAdjustment = empProfile.length > 0 ? parseFloat(empData.annual_adjustment || 0) : 0;
+    const leaveBalance = empProfile.length > 0 ? Math.max((baseEntitlement + annualAdjustment) - quotaLeavesUsed, 0) : 0;
 
     const [pendingRows] = await pool.query(
-      `SELECT COUNT(*) AS pending FROM leave_requests WHERE user_id = ? AND status LIKE 'Pending%'`,
+      `SELECT COUNT(*) AS pending FROM leave_requests WHERE user_id = ? ${personalCompUserFilter} AND status LIKE 'Pending%'`,
       [userId]
     );
     const pendingLeaves = parseInt(pendingRows[0].pending || 0);
@@ -8562,14 +8641,14 @@ app.get("/api/dashboard-stats", async (req, res) => {
           clock_in AS sort_time,
           'Present' AS badge
         FROM attendances
-        WHERE user_id = ? AND clock_in IS NOT NULL
+        WHERE user_id = ? ${personalCompUserFilter} AND clock_in IS NOT NULL
           AND DATE(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
         UNION ALL
         SELECT 'attendance', 'You', 'Clocked Out', NULL, NULL,
           TO_CHAR(clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM'),
           clock_out, 'Clocked Out'
         FROM attendances
-        WHERE user_id = ? AND clock_out IS NOT NULL
+        WHERE user_id = ? ${personalCompUserFilter} AND clock_out IS NOT NULL
           AND DATE(clock_out AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
         UNION ALL
         SELECT 'approval' AS type, 'Your Leave Request' AS actor,
@@ -8582,7 +8661,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
         FROM leave_approvals la
         JOIN leave_requests lr ON lr.leave_id = la.leave_id
         LEFT JOIN profiles approver ON approver.user_id = la.approver_id
-        WHERE lr.user_id = ?
+        WHERE lr.user_id = ? ${personalCompLrFilter}
           AND DATE(la.created_at AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
         UNION ALL
         SELECT 'leave' AS type, 'Your leave balance' AS actor,
@@ -8593,7 +8672,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
           lba.created_at AS sort_time,
           'Adjustment' AS badge
         FROM leave_balance_adjustments lba
-        WHERE lba.employee_id = ?
+        WHERE lba.employee_id = ? ${personalCompLbaFilter}
           AND DATE(lba.created_at AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
         UNION ALL
         SELECT
@@ -8604,7 +8683,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
           TO_CHAR(created_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM'),
           created_at,
           CASE WHEN type = 'reminder' THEN 'Reminder' ELSE 'Note' END
-        FROM personal_notes WHERE user_id = ?
+        FROM personal_notes WHERE user_id = ? ${personalCompUserFilter}
           AND DATE(created_at AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
         UNION ALL
         SELECT 'outstation' AS type,
@@ -8616,7 +8695,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
           oa.created_at AS sort_time,
           'Assigned' AS badge
         FROM outstation_assignments oa
-        WHERE oa.user_id = ?
+        WHERE oa.user_id = ? ${personalCompOaFilter}
           AND DATE(oa.created_at AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
         UNION ALL
         SELECT type, actor, action, target, context,
@@ -8624,7 +8703,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
           created_at AS sort_time,
           'Cancelled' AS badge
         FROM activity_logs
-        WHERE user_id = ?
+        WHERE user_id = ? ${personalCompUserFilter}
           AND DATE(created_at AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
         UNION ALL
         SELECT 'leave' AS type,
@@ -8636,7 +8715,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
           lr.created_at AS sort_time,
           'Pending' AS badge
         FROM leave_requests lr
-        WHERE lr.user_id = ?
+        WHERE lr.user_id = ? ${personalCompLrFilter}
           AND DATE(lr.created_at AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
       )
       SELECT type, actor, action, target, context, time, badge FROM acts
@@ -9480,18 +9559,18 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
   const queryDate = date || new Date().toISOString().split('T')[0];
 
   try {
-    let profileFilter = "";
+    let profileFilter = getCompanyUserSqlFilter(req, "p.user_id");
     let queryParams = [];
 
     if (role === 'branch_leader') {
       const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
       branch = safeBranch;
-      profileFilter = " AND LOWER(p.branch) = LOWER(?)";
+      profileFilter += " AND LOWER(p.branch) = LOWER(?)";
       queryParams.push(branch);
     } else if (role === 'head_of_department') {
       const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
       department = safeDept;
-      profileFilter = " AND LOWER(p.department) = LOWER(?)";
+      profileFilter += " AND LOWER(p.department) = LOWER(?)";
       queryParams.push(department);
     }
 
@@ -9823,6 +9902,8 @@ app.get("/api/reports/employee-rank", async (req, res) => {
 
   try {
     const lateTimeStr = getLateThresholdTime();
+    const companyFilter = getCompanyUserSqlFilter(req, "p.user_id");
+    const companyUserFilter = getCompanyUserSqlFilter(req, "user_id");
     
     let query = `
       WITH daily_first AS (
@@ -9833,7 +9914,7 @@ app.get("/api/reports/employee-rank", async (req, res) => {
         FROM attendances a
         JOIN profiles p ON p.user_id = a.user_id
         WHERE EXTRACT(YEAR FROM (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')) = ?
-          AND p.status = 'Active'
+          AND p.status = 'Active' ${companyFilter}
           ${!isAllMonth ? `AND EXTRACT(MONTH FROM (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')) = ?` : ''}
         GROUP BY a.user_id, (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::date
       )
@@ -9862,7 +9943,7 @@ app.get("/api/reports/employee-rank", async (req, res) => {
     const rankIndex = rankings.findIndex(r => r.user_id === userId);
     
     // Also get total active employees for "of 58"
-    const [empRows] = await pool.query(`SELECT COUNT(*) as total_active FROM profiles WHERE status = 'Active'`);
+    const [empRows] = await pool.query(`SELECT COUNT(*) as total_active FROM profiles WHERE status = 'Active' ${companyUserFilter}`);
     const totalActive = parseInt(empRows[0].total_active || rankings.length);
     
     if (rankIndex === -1) {
@@ -11468,7 +11549,7 @@ app.get("/api/branches", async (req, res) => {
     `;
     let [rows] = await pool.query(queryStr, queryParams);
     
-    if (rows.length === 0) {
+    if (rows.length === 0 && (!companyId || companyId === 1)) {
       const fallbackBranches = [
         { code: "HQ", name: "Rayhar HQ", location: "Kemaman,Terengganu" },
         { code: "KMM", name: "Kemaman", location: "Kemaman,Terengganu" },
@@ -11502,7 +11583,7 @@ app.get("/api/branches", async (req, res) => {
         );
       }
       
-      const [reFetch] = await pool.query(queryStr);
+      const [reFetch] = await pool.query(queryStr, queryParams);
       rows = reFetch;
     }
 
@@ -11592,21 +11673,26 @@ app.delete("/api/branches/:id", async (req, res) => {
 app.get("/api/branches-stats", async (req, res) => {
   try {
     const todayStr = new Date().toLocaleDateString('en-CA');
-    const rawCompanyId = req.query.company_id || req.query.companyId;
+    const rawCompanyId = req.companyId || req.query.company_id || req.query.companyId;
     const companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
 
     let branchQuery = `SELECT code, company_id FROM branches`;
     let branchParams = [];
     if (companyId) {
-      branchQuery += ` WHERE company_id = ?`;
-      branchParams.push(companyId);
+      if (companyId === 1) {
+        branchQuery += ` WHERE (company_id = 1 OR company_id IS NULL)`;
+      } else {
+        branchQuery += ` WHERE company_id = ?`;
+        branchParams.push(companyId);
+      }
     }
     branchQuery += ` ORDER BY code ASC`;
     const [branchRows] = await pool.query(branchQuery, branchParams);
 
-    let profileQuery = `SELECT user_id, branch FROM profiles WHERE status = 'Active' AND (created_at IS NULL OR (created_at AT TIME ZONE 'Asia/Kuala_Lumpur')::date <= CURRENT_DATE)`;
+    const companyFilter = getCompanyUserSqlFilter(req, "p.user_id");
+    let profileQuery = `SELECT p.user_id, p.branch FROM profiles p WHERE p.status = 'Active' AND (p.created_at IS NULL OR (p.created_at AT TIME ZONE 'Asia/Kuala_Lumpur')::date <= CURRENT_DATE) ${companyFilter}`;
     let profileParams = [];
-    if (companyId) {
+    if (companyId && companyId !== 1) {
       profileQuery = `
         SELECT p.user_id, COALESCE(cur.branch_id, p.branch) AS branch
         FROM profiles p
@@ -13785,8 +13871,9 @@ app.get("/api/employees/:userId/replacement-leaves", async (req, res) => {
 // Endpoint to fetch ALL replacement leaves (for HR)
 app.get("/api/replacement-leaves", async (req, res) => {
   try {
+    const compFilter = getCompanyUserSqlFilter(req, "employee_id");
     const [rows] = await pool.query(
-      `SELECT * FROM replacement_leave_requests ORDER BY replacement_date DESC`
+      `SELECT * FROM replacement_leave_requests WHERE 1=1 ${compFilter} ORDER BY replacement_date DESC`
     );
     res.json({ success: true, replacementLeaves: rows });
   } catch(e) {
@@ -14143,6 +14230,7 @@ app.get("/api/replacement-leave-stats", async (req, res) => {
   const user_id = safeString(req.query.user_id);
   if (!user_id) return res.status(400).json({ success: false, error: "user_id required" });
   try {
+    const compFilter = getCompanyUserSqlFilter(req, "employee_id");
     const [rows] = await pool.query(`
       SELECT 
         SUM(CASE WHEN validation_status = 'Validated' THEN 1 ELSE 0 END) as earned,
@@ -14151,13 +14239,13 @@ app.get("/api/replacement-leave-stats", async (req, res) => {
         ) THEN 1 ELSE 0 END) as used,
         MAX(CASE WHEN validation_status = 'Validated' THEN replacement_date ELSE NULL END) as latest_earned
       FROM replacement_leave_requests 
-      WHERE employee_id = ?
+      WHERE employee_id = ? ${compFilter}
     `, [user_id]);
     
     const [adjRows] = await pool.query(`
       SELECT SUM(adjustment_days) as adj
       FROM leave_balance_adjustments
-      WHERE employee_id = ? AND UPPER(leave_type) IN ('REPLACEMENT LEAVE', 'CUTI GANTI')
+      WHERE employee_id = ? ${compFilter} AND UPPER(leave_type) IN ('REPLACEMENT LEAVE', 'CUTI GANTI')
     `, [user_id]);
     
     const adj = parseFloat(adjRows[0]?.adj) || 0;

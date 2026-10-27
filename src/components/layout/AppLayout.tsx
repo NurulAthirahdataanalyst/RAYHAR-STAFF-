@@ -185,6 +185,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       sessionStorage.removeItem("attendance_dashboard_daily");
       sessionStorage.removeItem("attendance_dashboard_absent");
       sessionStorage.removeItem("attendance_dashboard_stats");
+      if (activeCompany?.id && activeCompany.id !== 1) {
+        sessionStorage.removeItem("latestAttendanceUpdate");
+      }
     } catch {}
     void queryClient.invalidateQueries();
   }, [activeCompany?.id, queryClient]);

@@ -220,7 +220,8 @@ export default function Dashboard() {
           if (
             serverHasNoAttendance &&
             localUpdate &&
-            String(localUpdate.userId) === String(dashboardUserId)
+            String(localUpdate.userId) === String(dashboardUserId) &&
+            (!activeCompany?.id || activeCompany.id === 1)
           ) {
             setStats((current) => ({ ...current, ...(data.stats || {}) }));
             setActivities(data.recentActivities || []);
@@ -476,7 +477,7 @@ export default function Dashboard() {
   // Initial local storage update + event listeners for real-time focus / custom updates
   useEffect(() => {
     const latestUpdate = sessionStorage.getItem("latestAttendanceUpdate");
-    if (latestUpdate) {
+    if (latestUpdate && (!activeCompany?.id || activeCompany.id === 1)) {
       try {
         applyAttendanceUpdate(JSON.parse(latestUpdate));
       } catch {

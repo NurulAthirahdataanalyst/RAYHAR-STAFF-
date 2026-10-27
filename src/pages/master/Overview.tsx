@@ -105,7 +105,7 @@ export default function MasterOverview() {
       }
 
       // Fetch active assignments
-      const assignRes = await fetch(`${API_BASE_URL}/api/work-assignments-all`);
+      const assignRes = await fetch(`${API_BASE_URL}/api/work-assignments-all?company_id=${activeCompany?.id || 1}`);
       const assignData = await assignRes.json();
       if (assignData.success) {
         setActiveAssignments(assignData.assignments.filter((a: any) => a.status === 'Active'));
@@ -154,7 +154,7 @@ export default function MasterOverview() {
 
   // Calculations
   const totalDepartments = departments.length;
-  const totalBranches = branches.length > 0 ? branches.length : 24;
+  const totalBranches = branches.length;
   const totalUsers = employees.length;
   const activeUsers = employees.filter(e => e.status === "Active").length;
   const inactiveUsers = totalUsers - activeUsers;
