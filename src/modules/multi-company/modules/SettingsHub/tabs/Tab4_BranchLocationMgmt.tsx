@@ -11,6 +11,35 @@ import { toast } from 'sonner';
 import { useCompany } from '../../../contexts/CompanyContext';
 import { multiCompanyApi } from '../../../services/multiCompanyApi';
 import { CompanyBranch } from '../../../types/multiCompany.types';
+import Map, { Marker as MapMarker, NavigationControl, useMap as useMapLibre } from 'react-map-gl/maplibre';
+import 'maplibre-gl/dist/maplibre-gl.css';
+
+const MAPLIBRE_STYLE = {
+  version: 8 as const,
+  sources: {
+    osm: {
+      type: "raster" as const,
+      tiles: [
+        "https://a.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "https://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "https://c.tile.openstreetmap.org/{z}/{x}/{y}.png",
+      ],
+      tileSize: 256,
+      attribution: "&copy; OpenStreetMap contributors",
+    },
+  },
+  layers: [{ id: "osm-layer", type: "raster" as const, source: "osm", minzoom: 0, maxzoom: 19 }],
+};
+
+function MapController({ lat, lng }: { lat: number; lng: number }) {
+  const { current: map } = useMapLibre();
+  useEffect(() => {
+    if (map && !isNaN(lat) && !isNaN(lng)) {
+      map.flyTo({ center: [lng, lat], zoom: map.getZoom() || 16, duration: 1000 });
+    }
+  }, [lat, lng, map]);
+  return null;
+}
 
 async function smartGeocode(address: string): Promise<{ lat: string; lon: string } | null> {
   const trySearch = async (q: string) => {
@@ -71,6 +100,12 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
   const [longitude, setLongitude] = useState('103.1370');
   const [radius, setRadius] = useState<number>(50); // Default 50m
   const [saving, setSaving] = useState(false);
+
+  // Map Picker Modal states
+  const [isMapModalOpen, setIsMapModalOpen] = useState(false);
+  const [mapLat, setMapLat] = useState('5.3297');
+  const [mapLng, setMapLng] = useState('103.1370');
+  const [mapAddress, setMapAddress] = useState('');
 
   // Geofence modes modal
   const [geofenceModalOpen, setGeofenceModalOpen] = useState(false);
@@ -141,37 +176,17 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
     }
   };
 
+  const handleOpenMapModal = () => {
+    const curLat = latitude && !isNaN(parseFloat(latitude)) ? latitude : '5.3297';
+    const curLng = longitude && !isNaN(parseFloat(longitude)) ? longitude : '103.1370';
+    setMapLat(curLat);
+    setMapLng(curLng);
+    setMapAddress(locationDistrict || '');
+    setIsMapModalOpen(true);
+  };
+
   const handleSelectCoords = () => {
-    if (navigator.geolocation) {
-      toast.loading("Detecting current GPS coordinates...");
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          toast.dismiss();
-          setLatitude(pos.coords.latitude.toFixed(4));
-          setLongitude(pos.coords.longitude.toFixed(4));
-          toast.success("GPS Location detected!");
-        },
-        () => {
-          toast.dismiss();
-          const manual = prompt("Enter GPS Coordinates (latitude, longitude):", `${latitude}, ${longitude}`);
-          if (manual && manual.includes(',')) {
-            const [lat, lng] = manual.split(',').map(s => s.trim());
-            setLatitude(lat);
-            setLongitude(lng);
-            toast.success("Coordinates updated!");
-          }
-        },
-        { timeout: 8000, enableHighAccuracy: true }
-      );
-    } else {
-      const manual = prompt("Enter GPS Coordinates (latitude, longitude):", `${latitude}, ${longitude}`);
-      if (manual && manual.includes(',')) {
-        const [lat, lng] = manual.split(',').map(s => s.trim());
-        setLatitude(lat);
-        setLongitude(lng);
-        toast.success("Coordinates updated!");
-      }
-    }
+    handleOpenMapModal();
   };
 
   const handleSaveBranch = async (e: React.FormEvent) => {
@@ -465,6 +480,7 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
                   <Input
                     placeholder="Lat, Lng"
                     value={latitude && longitude ? `${parseFloat(latitude).toFixed(4)}, ${parseFloat(longitude).toFixed(4)}` : ""}
+                    onClick={handleOpenMapModal}
                     onChange={(e) => {
                       const val = e.target.value;
                       if (val.includes(',')) {
@@ -473,13 +489,13 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
                         setLongitude(lng);
                       }
                     }}
-                    className="w-full h-11 px-3 bg-muted/50 rounded-xl text-xs font-bold opacity-80"
+                    className="w-full h-11 px-3 bg-muted/50 rounded-xl text-xs font-bold opacity-80 cursor-pointer"
                   />
                   <button
                     type="button"
-                    onClick={handleSelectCoords}
-                    className="h-11 px-3 shrink-0 flex items-center justify-center gap-1.5 rounded-xl bg-[#942392] text-white font-black uppercase text-[10px] tracking-wider hover:bg-[#800A7A] shadow-sm"
-                    title="Select GPS coordinates"
+                    onClick={handleOpenMapModal}
+                    className="h-11 px-3 shrink-0 flex items-center justify-center gap-1.5 rounded-xl bg-[#942392] text-white font-black uppercase text-[10px] tracking-wider hover:bg-[#800A7A] shadow-sm transition-colors"
+                    title="Select GPS coordinates on Map"
                   >
                     <MapPin className="w-3.5 h-3.5" /> Select
                   </button>
@@ -521,6 +537,209 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
               </Button>
             </div>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Map Picker Modal - Identical to Branches Overview (1st Screenshot) */}
+      <Dialog open={isMapModalOpen} onOpenChange={setIsMapModalOpen}>
+        <DialogContent className="max-w-4xl p-0 border-none shadow-2xl overflow-hidden rounded-[24px] flex flex-col [&>button]:text-white [&>button]:hover:text-white/80 z-[70]">
+          <div className="p-6 bg-gradient-to-r from-[#942392] to-purple-500 text-white flex justify-between items-start shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-white/20 rounded-xl">
+                <MapPin className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <DialogTitle className="text-lg font-black uppercase tracking-tight m-0 text-white">
+                  UPDATE BRANCH LOCATION
+                </DialogTitle>
+                <DialogDescription className="text-xs print:text-[11px] font-bold uppercase tracking-wider text-white/80 m-0 mt-1">
+                  UPDATE GPS COORDINATES AND ADDRESS
+                </DialogDescription>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 h-[500px]">
+            {/* Map Area */}
+            <div className="md:col-span-2 relative h-full">
+              <Map
+                initialViewState={{
+                  longitude: (() => {
+                    const v = parseFloat(String(mapLng));
+                    return !isNaN(v) ? v : 103.1370;
+                  })(),
+                  latitude: (() => {
+                    const v = parseFloat(String(mapLat));
+                    return !isNaN(v) ? v : 5.3297;
+                  })(),
+                  zoom: 16,
+                }}
+                style={{ height: "100%", width: "100%" }}
+                mapStyle={MAPLIBRE_STYLE}
+                onLoad={(e) => {
+                  const map = e.target;
+                  if (map && !(map as any)._removePatched) {
+                    const originalRemove = map.remove.bind(map);
+                    map.remove = () => {
+                      try {
+                        originalRemove();
+                      } catch (err) {
+                        console.warn("Suppressed maplibre remove error:", err);
+                      }
+                    };
+                    (map as any)._removePatched = true;
+                  }
+                }}
+                onClick={(e) => {
+                  const { lat, lng } = e.lngLat;
+                  setMapLat(lat.toFixed(6));
+                  setMapLng(lng.toFixed(6));
+                  fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+                    .then((res) => res.json())
+                    .then((data) => {
+                      if (data && data.display_name) {
+                        setMapAddress(data.display_name);
+                      }
+                    })
+                    .catch(console.error);
+                }}
+              >
+                <NavigationControl position="top-right" />
+                {(() => {
+                  const _lat = parseFloat(String(mapLat));
+                  const _lng = parseFloat(String(mapLng));
+                  return !isNaN(_lat) && !isNaN(_lng) ? (
+                    <MapMarker longitude={_lng} latitude={_lat} anchor="bottom">
+                      <div style={{ width: 24, height: 36 }}>
+                        <svg viewBox="0 0 24 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path
+                            d="M12 0C5.373 0 0 5.373 0 12c0 9 12 24 12 24s12-15 12-24C24 5.373 18.627 0 12 0z"
+                            fill="#942392"
+                          />
+                          <circle cx="12" cy="12" r="5" fill="white" />
+                        </svg>
+                      </div>
+                    </MapMarker>
+                  ) : null;
+                })()}
+                {(() => {
+                  const _lat = parseFloat(String(mapLat));
+                  const _lng = parseFloat(String(mapLng));
+                  if (!isNaN(_lat) && !isNaN(_lng)) return <MapController lat={_lat} lng={_lng} />;
+                  return null;
+                })()}
+              </Map>
+            </div>
+
+            {/* Sidebar Controls */}
+            <div className="p-6 bg-slate-50 dark:bg-slate-900 flex flex-col h-full overflow-y-auto">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-[10px] print:text-[13px] font-black uppercase tracking-widest text-foreground">
+                    MANUAL COORDINATES
+                  </label>
+                  <Input
+                    value={mapLat || ""}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val.includes(',')) {
+                        const [pLat, pLng] = val.split(',').map((s) => s.trim());
+                        if (pLat) setMapLat(pLat);
+                        if (pLng) setMapLng(pLng);
+                      } else {
+                        setMapLat(val);
+                      }
+                    }}
+                    placeholder="Latitude"
+                    className="h-10 rounded-xl text-xs font-bold placeholder:text-slate-400 dark:placeholder:text-slate-500 placeholder:font-normal border-purple-400 focus-visible:ring-purple-400"
+                  />
+                  <Input
+                    value={mapLng || ""}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val.includes(',')) {
+                        const [pLat, pLng] = val.split(',').map((s) => s.trim());
+                        if (pLat) setMapLat(pLat);
+                        if (pLng) setMapLng(pLng);
+                      } else {
+                        setMapLng(val);
+                      }
+                    }}
+                    placeholder="Longitude"
+                    className="h-10 rounded-xl text-xs font-bold placeholder:text-slate-400 dark:placeholder:text-slate-500 placeholder:font-normal"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full h-10 rounded-xl text-xs font-bold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/60 border-purple-200 dark:border-purple-800"
+                    onClick={() => {
+                      const lat = parseFloat(String(mapLat));
+                      const lng = parseFloat(String(mapLng));
+                      if (!isNaN(lat) && !isNaN(lng)) {
+                        setMapLat(String(lat));
+                        setMapLng(String(lng));
+                        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+                          .then((r) => r.json())
+                          .then((data) => {
+                            if (data && data.display_name) {
+                              setMapAddress(data.display_name);
+                            }
+                          })
+                          .catch(console.error);
+                      } else {
+                        toast.error("Please enter valid latitude and longitude numbers");
+                      }
+                    }}
+                  >
+                    Apply Location
+                  </Button>
+                </div>
+
+                <div className="space-y-2 pt-4">
+                  <label className="text-[10px] print:text-[13px] font-black uppercase tracking-widest text-foreground">
+                    ADDRESS / DISPLAY NAME
+                  </label>
+                  <div
+                    className={`p-4 bg-card border rounded-xl shadow-xs text-xs leading-relaxed ${
+                      mapAddress ? "text-foreground font-medium" : "text-slate-400 dark:text-slate-500"
+                    }`}
+                  >
+                    {mapAddress || "Select a location on the map"}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-auto flex gap-3 pt-6">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsMapModalOpen(false)}
+                  className="flex-1 h-11 rounded-xl text-[10px] print:text-[13px] font-black uppercase tracking-wider bg-white dark:bg-neutral-800"
+                >
+                  CANCEL
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => {
+                    const lat = parseFloat(String(mapLat));
+                    const lng = parseFloat(String(mapLng));
+                    if (!isNaN(lat) && !isNaN(lng)) {
+                      setLatitude(lat.toFixed(6));
+                      setLongitude(lng.toFixed(6));
+                    }
+                    if (mapAddress) {
+                      setLocationDistrict(mapAddress);
+                    }
+                    setIsMapModalOpen(false);
+                    toast.success("Branch coordinates and address updated!");
+                  }}
+                  className="flex-1 h-11 rounded-xl bg-[#942392] text-white hover:bg-[#800A7A] text-[10px] print:text-[13px] font-black uppercase tracking-wider shadow-md"
+                >
+                  SAVE
+                </Button>
+              </div>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 
