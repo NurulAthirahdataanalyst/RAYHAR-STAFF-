@@ -3417,14 +3417,15 @@ app.get("/api/health", async (req, res) => {
 });
 
 // SIGN-UP API
-app.post("/api/signup", async (req, res) => {
+app.post(["/api/signup", "/api/employees"], async (req, res) => {
   const full_name = safeString(req.body?.full_name);
   const email = safeString(req.body?.email);
   const password = isString(req.body?.password) ? req.body.password : "";
-  const branch = safeString(req.body?.branch);
+  const branch = safeString(req.body?.branch) || "HQ";
   const department = safeString(req.body?.department);
-  const status = safeString(req.body?.status);
+  const status = safeString(req.body?.status) || "Active";
   const role = safeString(req.body?.role);
+  const incomingRoleId = safeString(req.body?.role_id);
   const operatorName = safeString(req.body?.operatorName);
   const operatorRole = safeString(req.body?.operatorRole);
   const ic_number = safeString(req.body?.ic_number);
@@ -3433,8 +3434,8 @@ app.post("/api/signup", async (req, res) => {
   const dob = safeString(req.body?.dob);
   const join_date = safeString(req.body?.join_date);
 
-  if (!full_name || !email || !password || !branch) {
-    return res.status(400).json({ success: false, error: "All fields are required" });
+  if (!full_name || !email || !password) {
+    return res.status(400).json({ success: false, error: "Full Name, Email Address, and Password are required" });
   }
 
   // Allow department for all branches now
@@ -3472,27 +3473,43 @@ app.post("/api/signup", async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Resolve role_id from roles table
-    let resolvedRoleId = null;
+    let resolvedRoleId = incomingRoleId || null;
     let resolvedRoleName = role || 'Employee';
-    try {
-      const [roleLookup] = await connection.query(
-        `SELECT id, name FROM roles 
-         WHERE LOWER(TRIM(name)) = LOWER(TRIM(?))
-            OR LOWER(REPLACE(name, ' ', '_')) = LOWER(TRIM(?))
-            OR (name = 'HR Admin' AND LOWER(?) IN ('hr_admin', 'hr admin', 'admin'))
-            OR (name = 'Head of Department' AND LOWER(?) IN ('head_of_department', 'hod'))
-            OR (name = 'Operation Manager' AND LOWER(?) IN ('operation_manager', 'finance_manager'))
-            OR (name = 'Branch Leader' AND LOWER(?) = 'branch_leader')
-            OR (name = 'Employee' AND LOWER(?) = 'employee')
-         LIMIT 1`,
-        [resolvedRoleName, resolvedRoleName, resolvedRoleName, resolvedRoleName, resolvedRoleName, resolvedRoleName, resolvedRoleName]
-      );
-      if (roleLookup && roleLookup.length > 0) {
-        resolvedRoleId = roleLookup[0].id;
-        resolvedRoleName = roleLookup[0].name;
+
+    if (incomingRoleId) {
+      try {
+        const [roleLookupById] = await connection.query(
+          "SELECT id, name FROM roles WHERE id = ? LIMIT 1",
+          [incomingRoleId]
+        );
+        if (roleLookupById && roleLookupById.length > 0) {
+          resolvedRoleId = roleLookupById[0].id;
+          resolvedRoleName = roleLookupById[0].name;
+        }
+      } catch (e) {
+        console.warn("Could not resolve role by role_id:", e);
       }
-    } catch (e) {
-      console.warn("Could not resolve role_id in signup:", e);
+    } else {
+      try {
+        const [roleLookup] = await connection.query(
+          `SELECT id, name FROM roles 
+           WHERE LOWER(TRIM(name)) = LOWER(TRIM(?))
+              OR LOWER(REPLACE(name, ' ', '_')) = LOWER(TRIM(?))
+              OR (name = 'HR Admin' AND LOWER(?) IN ('hr_admin', 'hr admin', 'admin'))
+              OR (name = 'Head of Department' AND LOWER(?) IN ('head_of_department', 'hod'))
+              OR (name = 'Operation Manager' AND LOWER(?) IN ('operation_manager', 'finance_manager'))
+              OR (name = 'Branch Leader' AND LOWER(?) = 'branch_leader')
+              OR (name = 'Employee' AND LOWER(?) = 'employee')
+           LIMIT 1`,
+          [resolvedRoleName, resolvedRoleName, resolvedRoleName, resolvedRoleName, resolvedRoleName, resolvedRoleName, resolvedRoleName]
+        );
+        if (roleLookup && roleLookup.length > 0) {
+          resolvedRoleId = roleLookup[0].id;
+          resolvedRoleName = roleLookup[0].name;
+        }
+      } catch (e) {
+        console.warn("Could not resolve role_id in signup:", e);
+      }
     }
 
     await connection.query(

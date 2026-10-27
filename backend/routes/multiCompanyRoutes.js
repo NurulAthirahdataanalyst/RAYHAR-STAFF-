@@ -96,8 +96,9 @@ function createMultiCompanyRouter(pgPool) {
       { key: 'settings', name: 'Settings', desc: 'Corporate branding, branches, shifts, and IAM configurations', icon: 'Settings', order: 12 },
     ];
 
-    // Seed Organization & Entities permissions in permissions table
+    // Seed Organization & Entities and Employee Analytics permissions in permissions table
     const orgPerms = [
+      { key: 'analytics.employee', name: 'Analytics - Performance Insights (Own Data)', module: 'Analytics' },
       { key: 'organization.entities', name: 'Corporate Entities', module: 'Organization & Entities' },
       { key: 'organization.modules', name: 'Company Modules', module: 'Organization & Entities' },
       { key: 'organization.roles', name: 'Company Roles & RBAC', module: 'Organization & Entities' },
@@ -585,7 +586,7 @@ function createMultiCompanyRouter(pgPool) {
                 'permission_key', p.permission_key,
                 'display_name', p.display_name,
                 'module', p.module
-              ) ORDER BY p.id ASC
+              ) ORDER BY CASE WHEN p.permission_key = 'analytics.employee' THEN 0 ELSE p.id END ASC
             ) FILTER (WHERE p.id IS NOT NULL), '[]'::json
           ) AS permissions,
           COUNT(p.id)::int AS features_count
@@ -636,7 +637,7 @@ function createMultiCompanyRouter(pgPool) {
                 'permission_key', p.permission_key,
                 'display_name', p.display_name,
                 'module', p.module
-              ) ORDER BY p.id ASC
+              ) ORDER BY CASE WHEN p.permission_key = 'analytics.employee' THEN 0 ELSE p.id END ASC
             ) FILTER (WHERE p.id IS NOT NULL), '[]'::json
           ) AS permissions,
           COUNT(p.id)::int AS features_count

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,8 +6,26 @@ import { Input } from '@/components/ui/input';
 import { PasswordInput } from '@/components/ui/password-input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { UserPlus, ArrowRightLeft, History, Building2, MapPin, Layers, Briefcase, Shield, CheckCircle2, RotateCcw, Loader2 } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { 
+  UserPlus, 
+  ArrowRightLeft, 
+  History, 
+  Building2, 
+  MapPin, 
+  Layers, 
+  Briefcase, 
+  Shield, 
+  CheckCircle2, 
+  RotateCcw, 
+  Loader2,
+  CalendarDays,
+  User,
+  Phone,
+  CreditCard,
+  Lock
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { useCompany } from '../../../contexts/CompanyContext';
 import { multiCompanyApi } from '../../../services/multiCompanyApi';
@@ -15,16 +33,24 @@ import { API_BASE_URL } from '@/config/api';
 import { CompanyBranch, CompanyDepartment, CompanyRole } from '../../../types/multiCompany.types';
 import { CompanyTransferWizard } from '../../../employee-assignment/CompanyTransferWizard';
 import { EmployeeCompanyHistory } from '../../../employee-assignment/EmployeeCompanyHistory';
+import { formatMyKad, parseMyKad, formatMalaysianPhone } from '@/utils/mykadUtils';
 
 export const Tab2_EmployeeConfig: React.FC = () => {
   const navigate = useNavigate();
   const { companies, activeCompany } = useCompany();
   const [subTab, setSubTab] = useState<'onboard' | 'transfer' | 'history'>('onboard');
 
-  // Form states
+  // Form states - Personal & Identity
   const [fullName, setFullName] = useState('');
+  const [icNumber, setIcNumber] = useState('');
+  const [phone, setPhone] = useState('');
+  const [joinDate, setJoinDate] = useState(() => new Date().toISOString().split('T')[0]);
+
+  // Form states - Credentials
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
+  // Form states - Organization & Roles
   const [selectedCompanyId, setSelectedCompanyId] = useState<number>(activeCompany?.id || 1);
   const [branches, setBranches] = useState<CompanyBranch[]>([]);
   const [departments, setDepartments] = useState<CompanyDepartment[]>([]);
@@ -34,9 +60,12 @@ export const Tab2_EmployeeConfig: React.FC = () => {
   const [selectedDepartment, setSelectedDepartment] = useState('');
   const [position, setPosition] = useState('');
   const [selectedRoleId, setSelectedRoleId] = useState('');
-  const [employmentStatus, setEmploymentStatus] = useState('Active Personnel');
+  const [employmentStatus, setEmploymentStatus] = useState('Active');
   const [loadingContext, setLoadingContext] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  // Real-time dynamic IC calculations (DOB, Age, Gender)
+  const parsedIc = useMemo(() => parseMyKad(icNumber), [icNumber]);
 
   // When selected company changes, fetch its branches, departments, and roles dynamically
   useEffect(() => {
@@ -75,10 +104,13 @@ export const Tab2_EmployeeConfig: React.FC = () => {
 
   const handleReset = () => {
     setFullName('');
+    setIcNumber('');
+    setPhone('');
+    setJoinDate(new Date().toISOString().split('T')[0]);
     setEmail('');
     setPassword('');
     setPosition('');
-    setEmploymentStatus('Active Personnel');
+    setEmploymentStatus('Active');
     toast.info('Onboarding form cleared');
   };
 
@@ -89,21 +121,34 @@ export const Tab2_EmployeeConfig: React.FC = () => {
       return;
     }
 
+    if (password.length < 6) {
+      toast.error('Password must be at least 6 characters');
+      return;
+    }
+
+    const selectedRoleObj = roles.find(r => r.id === selectedRoleId);
+
     try {
       setSubmitting(true);
-      const res = await fetch(`${API_BASE_URL}/api/employees`, {
+      const res = await fetch(`${API_BASE_URL}/api/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          full_name: fullName.trim(),
+          full_name: fullName.trim().toUpperCase(),
           email: email.trim(),
           password: password,
           company_id: selectedCompanyId,
-          branch: selectedBranch,
-          department: selectedDepartment,
+          branch: selectedBranch || 'HQ',
+          department: selectedDepartment || null,
           position: position.trim() || undefined,
-          role_id: selectedRoleId,
-          status: employmentStatus
+          role: selectedRoleObj?.name || 'Employee',
+          role_id: selectedRoleId || undefined,
+          status: employmentStatus || 'Active',
+          ic_number: icNumber ? formatMyKad(icNumber) : null,
+          phone: phone ? formatMalaysianPhone(phone) : null,
+          gender: parsedIc.gender || null,
+          dob: parsedIc.dob || null,
+          join_date: joinDate || null,
         })
       });
 
@@ -112,7 +157,7 @@ export const Tab2_EmployeeConfig: React.FC = () => {
         throw new Error(data.error || 'Failed to onboard employee');
       }
 
-      toast.success(`Staff ${fullName} successfully onboarded into ${companies.find(c => c.id === selectedCompanyId)?.company_name}!`);
+      toast.success(`Staff ${fullName} successfully onboarded into ${companies.find(c => c.id === selectedCompanyId)?.company_name || 'selected company'}!`);
       handleReset();
     } catch (err: any) {
       toast.error(err.message || 'Onboarding error');
@@ -173,58 +218,169 @@ export const Tab2_EmployeeConfig: React.FC = () => {
               Staff Onboarding & Company Role Allocation
             </h3>
             <p className="text-xs text-muted-foreground dark:text-neutral-400">
-              Provision employee credentials, map their company entity, branch location, department, and custom authorized role.
+              Provision employee credentials, identity records (MyKad, phone, DOB, age, gender), map their company entity, branch location, department, and custom authorized role.
             </p>
           </div>
 
-          <form onSubmit={handleOnboardSubmit} className="space-y-5">
-            {/* Row 1: Personal Credentials */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="space-y-1.5">
-                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Full Name *</Label>
-                <Input
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  placeholder="e.g. Nurul Athirah Abdul Rahman"
-                  className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium placeholder:font-normal text-black dark:text-white"
-                  required
-                />
+          <form onSubmit={handleOnboardSubmit} className="space-y-6">
+            {/* Section 1: Personal & Identity Details */}
+            <div className="p-4 rounded-xl border border-border/50 dark:border-neutral-800 bg-muted/20 dark:bg-neutral-900/40 space-y-4">
+              <h4 className="text-xs font-black uppercase tracking-wider text-black dark:text-white flex items-center gap-2">
+                <User className="w-3.5 h-3.5 text-[#942392]" />
+                Personal Information & Identity Records
+              </h4>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Full Name */}
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
+                    Full Name <span className="text-rose-500">*</span>
+                  </Label>
+                  <Input
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value.toUpperCase())}
+                    placeholder="e.g. AHMAD ALBAB"
+                    className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold uppercase placeholder:normal-case placeholder:font-normal text-black dark:text-white"
+                    required
+                  />
+                </div>
+
+                {/* IC Number */}
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
+                    ID Card (IC) Number
+                  </Label>
+                  <Input
+                    type="text"
+                    maxLength={14}
+                    value={icNumber}
+                    onChange={(e) => setIcNumber(formatMyKad(e.target.value))}
+                    placeholder="e.g. 900101-14-5678"
+                    className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-mono font-bold placeholder:font-normal text-black dark:text-white"
+                  />
+                </div>
+
+                {/* Phone Number */}
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
+                    Phone Number
+                  </Label>
+                  <Input
+                    type="text"
+                    maxLength={12}
+                    value={phone}
+                    onChange={(e) => setPhone(formatMalaysianPhone(e.target.value))}
+                    placeholder="e.g. 012-3456789"
+                    className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-mono font-bold placeholder:font-normal text-black dark:text-white"
+                  />
+                </div>
+
+                {/* Date of Join */}
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
+                    Date of Join
+                  </Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button
+                        type="button"
+                        className="flex items-center justify-between w-full h-9 px-3 bg-background dark:bg-neutral-900 border border-border dark:border-neutral-800 rounded-lg text-xs font-bold text-black dark:text-white text-left shadow-xs hover:bg-muted/50 transition-colors"
+                      >
+                        <span>
+                          {joinDate
+                            ? new Date(joinDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()
+                            : "SELECT DATE"}
+                        </span>
+                        <CalendarDays className="w-3.5 h-3.5 text-muted-foreground" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0 border border-border dark:border-neutral-800 shadow-2xl rounded-2xl overflow-hidden z-[80]" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={joinDate ? new Date(joinDate) : new Date()}
+                        onSelect={(d) => {
+                          if (d) {
+                            const localIso = new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+                            setJoinDate(localIso);
+                          }
+                        }}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
               </div>
 
-              <div className="space-y-1.5">
-                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Corporate Email Address *</Label>
-                <Input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="athirah@rayhar.com"
-                  className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium placeholder:font-normal text-black dark:text-white"
-                  required
-                />
-              </div>
+              {/* Real-time Dynamic Info Bar from IC */}
+              {icNumber && (
+                <div className="p-3 bg-purple-50/70 dark:bg-purple-950/30 border border-purple-200/80 dark:border-purple-800/60 rounded-xl flex items-center justify-between flex-wrap gap-2 animate-in fade-in slide-in-from-top-1 text-xs">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-[#942392]">Date of Birth:</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-200">{parsedIc.formattedDob || "Calculating..."}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-[#942392]">Age:</span>
+                    <span className="font-black text-[#942392]">{parsedIc.age !== null ? `${parsedIc.age} years old` : "—"}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-[#942392]">Gender:</span>
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-white dark:bg-purple-900 border border-purple-200 text-[#942392] dark:text-purple-200">
+                      {parsedIc.gender || "—"}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
 
-              <div className="space-y-1.5">
-                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Portal Access Password *</Label>
-                <PasswordInput
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••••••"
-                  className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium placeholder:font-normal text-black dark:text-white"
-                  required
-                />
+            {/* Section 2: Account & Access Credentials */}
+            <div className="p-4 rounded-xl border border-border/50 dark:border-neutral-800 bg-muted/20 dark:bg-neutral-900/40 space-y-4">
+              <h4 className="text-xs font-black uppercase tracking-wider text-black dark:text-white flex items-center gap-2">
+                <Lock className="w-3.5 h-3.5 text-[#942392]" />
+                Portal Access Credentials
+              </h4>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
+                    Corporate Email Address <span className="text-rose-500">*</span>
+                  </Label>
+                  <Input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="athirah@rayhar.com"
+                    className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium placeholder:font-normal text-black dark:text-white"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
+                    Portal Access Password <span className="text-rose-500">*</span>
+                  </Label>
+                  <PasswordInput
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••••••"
+                    className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium placeholder:font-normal text-black dark:text-white"
+                    required
+                  />
+                </div>
               </div>
             </div>
 
-            {/* Row 2: Company & Placement */}
+            {/* Section 3: Company & Organizational Placement */}
             <div className="p-4 rounded-xl border border-border/50 dark:border-neutral-800 bg-muted/20 dark:bg-neutral-900/40 space-y-4">
               <h4 className="text-xs font-black uppercase tracking-wider text-black dark:text-white flex items-center gap-2">
                 <Building2 className="w-3.5 h-3.5 text-[#942392]" />
                 Organizational Placement & Company Binding
               </h4>
 
-              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Company Entity *</Label>
+                  <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
+                    Company Entity <span className="text-rose-500">*</span>
+                  </Label>
                   <Select 
                     value={selectedCompanyId.toString()} 
                     onValueChange={(val) => setSelectedCompanyId(parseInt(val, 10))}
@@ -286,10 +442,12 @@ export const Tab2_EmployeeConfig: React.FC = () => {
               </div>
             </div>
 
-            {/* Row 3: Role & Status */}
+            {/* Section 4: Role Authorization & Status */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">System Authorization Role *</Label>
+                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
+                  System Authorization Role <span className="text-rose-500">*</span>
+                </Label>
                 <Select value={selectedRoleId} onValueChange={setSelectedRoleId} disabled={roles.length === 0}>
                   <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium data-[placeholder]:font-normal text-black dark:text-white">
                     <SelectValue placeholder={roles.length === 0 ? "No roles in entity" : "Select authorized role..."} />
@@ -314,8 +472,8 @@ export const Tab2_EmployeeConfig: React.FC = () => {
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Active Personnel" className="text-xs font-bold">Active Personnel</SelectItem>
-                    <SelectItem value="Inactive Personnel" className="text-xs font-bold">Inactive Personnel</SelectItem>
+                    <SelectItem value="Active" className="text-xs font-bold">Active</SelectItem>
+                    <SelectItem value="Inactive" className="text-xs font-bold">Inactive</SelectItem>
                     <SelectItem value="Resigned" className="text-xs font-bold">Resigned</SelectItem>
                   </SelectContent>
                 </Select>

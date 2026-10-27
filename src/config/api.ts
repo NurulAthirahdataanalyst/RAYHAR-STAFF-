@@ -50,4 +50,25 @@ if (typeof window !== 'undefined' && !((window as any).__rayhar_fetch_intercepto
 
     return originalFetch(input, init);
   };
+
+  // Also intercept EventSource (SSE) so /api/ streams automatically carry company_id
+  if (typeof window.EventSource !== 'undefined') {
+    const OriginalEventSource = window.EventSource;
+    const PatchedEventSource = function (url: string | URL, eventSourceInitDict?: EventSourceInit) {
+      let urlStr = typeof url === 'string' ? url : url.toString();
+      if (urlStr && (urlStr.includes('/api/') || (API_BASE_URL && urlStr.startsWith(API_BASE_URL)))) {
+        if (!urlStr.includes('company_id=') && !urlStr.includes('companyId=')) {
+          const activeCompanyId = getActiveCompanyId();
+          const separator = urlStr.includes('?') ? '&' : '?';
+          urlStr = `${urlStr}${separator}company_id=${encodeURIComponent(activeCompanyId)}`;
+        }
+      }
+      return new OriginalEventSource(urlStr, eventSourceInitDict);
+    } as unknown as typeof EventSource;
+    PatchedEventSource.prototype = OriginalEventSource.prototype;
+    (PatchedEventSource as any).CONNECTING = OriginalEventSource.CONNECTING;
+    (PatchedEventSource as any).OPEN = OriginalEventSource.OPEN;
+    (PatchedEventSource as any).CLOSED = OriginalEventSource.CLOSED;
+    window.EventSource = PatchedEventSource;
+  }
 }
