@@ -488,7 +488,7 @@ export const CompanyModuleManagement: React.FC = () => {
               type="button"
               onClick={handleSave}
               disabled={saving}
-              className="h-10 px-5 rounded-full font-black text-xs uppercase tracking-wider transition-all shadow-md flex items-center gap-2 bg-[#942392] hover:bg-[#800A7A] text-white cursor-pointer active:scale-95 disabled:opacity-60"
+              className="h-10 px-5 rounded-full font-black text-xs uppercase tracking-wider shadow-md flex items-center gap-2 bg-[#942392] hover:bg-[#800A7A] text-white cursor-pointer active:scale-95 disabled:opacity-60"
             >
               {saving ? (
                 <>
