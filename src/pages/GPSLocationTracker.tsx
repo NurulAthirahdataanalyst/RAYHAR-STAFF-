@@ -87,6 +87,7 @@ type EmpLocation = {
   department?: string | null;
   distance?: number | null;
   is_outstation?: boolean;
+  clock_in?: string | null;
 };
 
 const getMarkerHTML = (loc: EmpLocation, isSelected: boolean) => {
@@ -193,7 +194,8 @@ export default function GPSLocationTracker() {
             const locMap: Record<string, any> = Object.create(null);
             payload.locations.forEach((r: any) => {
               const userId = r.user_id || r.userId || r.id;
-              if (userId) {
+              // Only include employees who have clocked in today
+              if (userId && (r.clock_in || r.last_updated)) {
                 locMap[userId] = {
                   user_id: userId,
                   full_name: r.full_name || r.fullName || null,
@@ -206,6 +208,7 @@ export default function GPSLocationTracker() {
                   department: r.department || null,
                   distance: r.distance != null ? Number(r.distance) : null,
                   is_outstation: !!r.is_outstation,
+                  clock_in: r.clock_in ? new Date(r.clock_in).toISOString() : null,
                 };
                 list.push({ user_id: userId, full_name: r.full_name || r.fullName || "", branch: r.branch || "", department: r.department || "" });
               }
@@ -259,7 +262,8 @@ export default function GPSLocationTracker() {
       if (j && j.success && Array.isArray(j.locations)) {
         j.locations.forEach((r: any) => {
           const userId = r.user_id || r.userId || r.id;
-          if (userId) {
+          // Only include employees who have clocked in today
+          if (userId && (r.clock_in || r.last_updated)) {
             locMap[userId] = {
               user_id: userId,
               full_name: r.full_name || r.fullName || null,
@@ -272,6 +276,7 @@ export default function GPSLocationTracker() {
               department: r.department || null,
               distance: r.distance != null ? Number(r.distance) : null,
               is_outstation: !!r.is_outstation,
+              clock_in: r.clock_in ? new Date(r.clock_in).toISOString() : null,
             };
             list.push({ user_id: userId, full_name: r.full_name || r.fullName || "", branch: r.branch || "", department: r.department || "" });
           }
@@ -291,7 +296,24 @@ export default function GPSLocationTracker() {
   };
 
   const visibleEmployees = useMemo(() => {
-    let list = employees;
+    // Only show employees who have clocked in today
+    const clockedInStaff = employees.filter((e) => {
+      const loc = locations[e.user_id];
+      if (!loc) return false;
+      if (loc.clock_in) return true;
+      if (loc.last_updated) {
+        const updatedDate = new Date(loc.last_updated);
+        const now = new Date();
+        return (
+          updatedDate.getFullYear() === now.getFullYear() &&
+          updatedDate.getMonth() === now.getMonth() &&
+          updatedDate.getDate() === now.getDate()
+        );
+      }
+      return false;
+    });
+
+    let list = clockedInStaff;
     const currentUserId = user?.user_id || user?.id;
     const normRole = normalizeRole(role || user?.role);
     const userBranch = (user?.branch || "").trim().toLowerCase();
@@ -311,7 +333,7 @@ export default function GPSLocationTracker() {
     }
     // Standard employee: see self only
     return list.filter(e => e.user_id === currentUserId);
-  }, [employees, role, user]);
+  }, [employees, locations, role, user]);
 
   const branches = useMemo(() => {
     const set = new Set<string>();
@@ -694,7 +716,7 @@ export default function GPSLocationTracker() {
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
               <div className="shrink-0">
                 <h3 className="text-sm font-black">Employee List</h3>
-                <p className="text-xs text-foreground">Showing {filtered.length} employees</p>
+                <p className="text-xs text-foreground">Showing {filtered.length} clocked-in {filtered.length === 1 ? 'employee' : 'employees'}</p>
               </div>
               <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto sm:ml-auto">
                 <div className="relative w-full sm:w-48 shrink-0">
@@ -754,7 +776,14 @@ export default function GPSLocationTracker() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {currentItems.map((e) => {
+                {currentItems.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground text-xs">
+                      No employees have clocked in yet today.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  currentItems.map((e) => {
                   const loc = locations[e.user_id];
                   return (
                     <TableRow key={e.user_id} className="hover:bg-muted/50">
@@ -782,7 +811,8 @@ export default function GPSLocationTracker() {
                       </TableCell>
                     </TableRow>
                   );
-                })}
+                })
+              )}
               </TableBody>
             </Table>
           </div>
