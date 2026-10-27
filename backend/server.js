@@ -644,6 +644,15 @@ app.get("/api/permissions", async (req, res) => {
 // GET /api/roles — List all roles with user count and permission keys
 app.get("/api/roles", async (req, res) => {
   try {
+    const rawCompanyId = req.query.company_id || req.query.companyId;
+    const companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
+    let whereFilter = "";
+    if (companyId === 2) {
+      whereFilter = "WHERE (r.company_id = 2 OR LOWER(r.name) LIKE '%ray rent%')";
+    } else if (companyId === 1) {
+      whereFilter = "WHERE (r.company_id = 1 OR r.company_id IS NULL) AND LOWER(r.name) NOT LIKE '%ray rent%'";
+    }
+
     const result = await pgPool.query(`
       SELECT 
         r.id,
@@ -683,6 +692,7 @@ app.get("/api/roles", async (req, res) => {
       LEFT JOIN profiles p ON p.role_id = r.id OR LOWER(p.role) = LOWER(r.name) OR LOWER(REPLACE(p.role, '_', ' ')) = LOWER(r.name)
       LEFT JOIN role_permissions rp ON rp.role_id = r.id
       LEFT JOIN permissions perm ON perm.id = rp.permission_id
+      ${whereFilter}
       GROUP BY r.id, r.name, r.description, r.is_system_role, r.status, r.scope_type, r.company_id, r.created_at, r.updated_at
       ORDER BY r.is_system_role DESC, r.created_at ASC, r.name ASC
     `);
@@ -11310,7 +11320,15 @@ app.get("/api/branches-stats", async (req, res) => {
 // ===============================
 app.get("/api/departments", async (req, res) => {
   try {
-    const [rows] = await pool.query("SELECT * FROM departments ORDER BY id ASC");
+    const rawCompanyId = req.query.company_id || req.query.companyId;
+    const companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
+    let query = "SELECT * FROM departments ORDER BY id ASC";
+    let params = [];
+    if (companyId) {
+      query = "SELECT * FROM departments WHERE company_id = ? OR company_id IS NULL ORDER BY id ASC";
+      params = [companyId];
+    }
+    const [rows] = await pool.query(query, params);
     res.json({ success: true, departments: rows });
   } catch (error) {
     console.error("Fetch departments error:", error);
