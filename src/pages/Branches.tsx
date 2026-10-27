@@ -109,6 +109,14 @@ async function smartGeocode(address: string): Promise<{lat: string, lon: string}
 // Convert any string to Proper Case (title case), e.g. "SEPANG" -> "Sepang"
 import { toProperCase } from "@/utils/branchUtils";
 import { useCompany } from "@/modules/multi-company/contexts/CompanyContext";
+import { multiCompanyApi } from "@/modules/multi-company/services/multiCompanyApi";
+import { WorkSchedule } from "@/modules/multi-company/types/multiCompany.types";
+import {
+  getBranchOperatingHoursDisplay,
+  getOperatingZoneOptionsFromSchedules,
+  normalizeZoneCode,
+  formatZoneDisplayName,
+} from "@/utils/scheduleZoneUtils";
 
 function MapController({ lat, lng }: { lat: number, lng: number }) {
   const { current: map } = useMapLibre();
@@ -386,6 +394,12 @@ export default function Branches() {
     );
   });
   const [searchQuery, setSearchQuery] = useState("");
+  const [zoneFilter, setZoneFilter] = useState<string>("ALL");
+  const [workSchedules, setWorkSchedules] = useState<WorkSchedule[]>([]);
+  const zoneOptions = useMemo(
+    () => getOperatingZoneOptionsFromSchedules(workSchedules),
+    [workSchedules]
+  );
   const [isEditBranchModalOpen, setIsEditBranchModalOpen] = useState(false);
   const [editBranchData, setEditBranchData] = useState<any>({});
 
@@ -408,7 +422,7 @@ export default function Branches() {
       code: selectedBranch.code,
       name: selectedBranch.name,
       location: selectedBranch.location || "",
-      operating_zone: selectedBranch.operating_zone || "ZONE_B",
+      operating_zone: normalizeZoneCode(selectedBranch.operating_zone) || zoneOptions[0]?.value || "ZONE_B",
       latitude: selectedBranch.latitude || "",
       longitude: selectedBranch.longitude || "",
       radius: selectedBranch.radius || 50
@@ -484,19 +498,23 @@ export default function Branches() {
   };
 
   const filteredBranches = useMemo(() => {
-    return allBranches.filter(
-      (b) =>
+    return allBranches.filter((b) => {
+      const matchesSearch =
         b.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         b.code?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        b.location?.toLowerCase().includes(searchQuery.toLowerCase()),
-    );
-  }, [allBranches, searchQuery]);
+        b.location?.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesZone =
+        zoneFilter === "ALL" ||
+        normalizeZoneCode(b.operating_zone) === normalizeZoneCode(zoneFilter);
+      return matchesSearch && matchesZone;
+    });
+  }, [allBranches, searchQuery, zoneFilter]);
 
   const [pageSize, setPageSize] = useState<number>(10);
   const [currentPage, setCurrentPage] = useState<number>(1);
 
-  // Reset to page 1 whenever search or pageSize changes
-  useEffect(() => { setCurrentPage(1); }, [searchQuery, pageSize]);
+  // Reset to page 1 whenever search, zoneFilter or pageSize changes
+  useEffect(() => { setCurrentPage(1); }, [searchQuery, zoneFilter, pageSize]);
 
   const totalPages = Math.max(1, Math.ceil(filteredBranches.length / pageSize));
   const paginatedBranches = viewMode === "grid" ? filteredBranches : filteredBranches.slice((currentPage - 1) * pageSize, currentPage * pageSize);
@@ -562,11 +580,15 @@ export default function Branches() {
   const fetchBranches = async (companyId?: number) => {
     try {
       const cId = companyId || activeCompany?.id || 1;
-      const response = await fetch(`${API_BASE_URL}/api/branches?company_id=${cId}`);
+      const [response, schedulesData] = await Promise.all([
+        fetch(`${API_BASE_URL}/api/branches?company_id=${cId}`),
+        multiCompanyApi.getCompanyWorkSchedules(cId).catch(() => []),
+      ]);
       const data = await response.json();
       if (data.success) {
         setAllBranches(data.branches);
       }
+      setWorkSchedules(schedulesData || []);
     } catch (err) {
       console.error("Error fetching branches", err);
     } finally {
@@ -593,9 +615,13 @@ export default function Branches() {
   const fetchBranchesList = async () => {
     try {
       const cId = activeCompany?.id || 1;
-      const response = await fetch(`${API_BASE_URL}/api/branches?company_id=${cId}`);
+      const [response, schedulesData] = await Promise.all([
+        fetch(`${API_BASE_URL}/api/branches?company_id=${cId}`),
+        multiCompanyApi.getCompanyWorkSchedules(cId).catch(() => []),
+      ]);
       const data = await response.json();
       if (data.success) setAllBranches(data.branches);
+      setWorkSchedules(schedulesData || []);
     } catch (err) {}
   };
 
@@ -794,37 +820,39 @@ export default function Branches() {
               </p>
             </div>
             
-            {selectedBranch.operating_zone && (
-              <div className="flex-shrink-0 bg-card border-2 border-slate-200 dark:border-slate-700 rounded-xl p-3 shadow-md self-start">
-                <p className="mb-2"><span className="text-[10px] print:text-[13px] font-bold text-foreground uppercase tracking-wider">Operating Hours ({selectedBranch.operating_zone === 'ZONE_A' ? 'Zone A' : 'Zone B'})</span></p>
-                <div className="flex flex-wrap sm:flex-nowrap gap-4 sm:gap-6 text-[9px] print:text-[13px] text-foreground">
-                  {selectedBranch.operating_zone === 'ZONE_A' ? (
-                    <>
-                      <div className="space-y-1 border-l-2 border-[#942392] pl-2.5">
-                        <p className="flex items-center gap-2"><Clock className="w-3 h-3 text-[#942392]" /> 8:30 AM – 5:30 PM (Saturday – Wednesday)</p>
-                        <p className="flex items-center gap-2"><Clock className="w-3 h-3 text-[#942392]" /> 8:30 AM – 1:00 PM (Thursday)</p>
-                        <p className="flex items-center gap-2"><Clock className="w-3 h-3 text-[#942392]" /> 8:30 AM – 5:30 PM (First Thursday of the Month)</p>
-                      </div>
+            {selectedBranch.operating_zone && (() => {
+              const hoursDisplay = getBranchOperatingHoursDisplay(selectedBranch, workSchedules);
+              return (
+                <div className="flex-shrink-0 bg-card border-2 border-slate-200 dark:border-slate-700 rounded-xl p-3 shadow-md self-start">
+                  <p className="mb-2 flex items-center gap-2">
+                    <span className="text-[10px] print:text-[13px] font-bold text-foreground uppercase tracking-wider">
+                      Operating Hours ({hoursDisplay.zoneLabel})
+                    </span>
+                    <Badge variant="outline" className="text-[8px] font-black uppercase px-1.5 py-0 border-[#942392]/30 text-[#942392]">
+                      {hoursDisplay.scheduleName}
+                    </Badge>
+                  </p>
+                  <div className="flex flex-wrap sm:flex-nowrap gap-4 sm:gap-6 text-[9px] print:text-[13px] text-foreground">
+                    <div className="space-y-1 border-l-2 border-[#942392] pl-2.5">
+                      {hoursDisplay.openLines.map((line, idx) => (
+                        <p key={idx} className="flex items-center gap-2">
+                          <Clock className="w-3 h-3 text-[#942392]" /> {line}
+                        </p>
+                      ))}
+                    </div>
+                    {hoursDisplay.closedLines.length > 0 && (
                       <div className="space-y-1 border-l-2 border-rose-500 pl-2.5">
-                        <p className="flex items-center gap-2 text-rose-500/90"><X className="w-3 h-3" /> Closed (Friday)</p>
-                        <p className="flex items-center gap-2 text-rose-500/90"><X className="w-3 h-3" /> Closed (First Saturday of the Month)</p>
+                        {hoursDisplay.closedLines.map((line, idx) => (
+                          <p key={idx} className="flex items-center gap-2 text-rose-500/90">
+                            <X className="w-3 h-3" /> {line}
+                          </p>
+                        ))}
                       </div>
-                    </>
-                  ) : (
-                    <>
-                      <div className="space-y-1 border-l-2 border-[#942392] pl-2.5">
-                        <p className="flex items-center gap-2"><Clock className="w-3 h-3 text-[#942392]" /> 8:30 AM – 5:30 PM (Monday – Friday)</p>
-                        <p className="flex items-center gap-2"><Clock className="w-3 h-3 text-[#942392]" /> 8:30 AM – 1:00 PM (Saturday)</p>
-                      </div>
-                      <div className="space-y-1 border-l-2 border-rose-500 pl-2.5">
-                        <p className="flex items-center gap-2 text-rose-500/90"><X className="w-3 h-3" /> Closed (Sunday)</p>
-                        <p className="flex items-center gap-2 text-rose-500/90"><X className="w-3 h-3" /> Closed (First Saturday of the Month)</p>
-                      </div>
-                    </>
-                  )}
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
           </div>
 
           {loading ? (
@@ -1337,6 +1365,19 @@ export default function Branches() {
                     </button>
                   )}
                 </div>
+                <Select value={zoneFilter} onValueChange={setZoneFilter}>
+                  <SelectTrigger className="w-full sm:w-52 h-9 px-3 rounded-xl border-border/60 bg-muted/30 text-xs font-bold shrink-0">
+                    <SelectValue placeholder="All Operating Zones" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl">
+                    <SelectItem value="ALL" className="text-xs font-bold">All Operating Zones</SelectItem>
+                    {zoneOptions.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value} className="text-xs font-bold">
+                        {opt.shortLabel} — {opt.scheduleName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <div className="flex items-center h-9 gap-1 bg-muted/40 p-1 rounded-xl border border-border/40 shrink-0">
                   <Button
                     variant="ghost"
@@ -1437,6 +1478,17 @@ export default function Branches() {
                     <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-[80px] h-[80px] rounded-full bg-card p-1 shadow-[0_8px_25px_rgba(0,0,0,0.12)] border-[3px] border-white dark:border-slate-800 flex items-center justify-center z-20 group-hover:scale-105 transition-transform duration-300">
                       <div className="w-full h-full rounded-full bg-[#EDE4F0] dark:bg-purple-950/60 flex items-center justify-center">
                         <Building2 className="w-8 h-8 text-[#942392]" strokeWidth={2.2} />
+                      </div>
+                    </div>
+
+                    {/* Top Left Zone Badge */}
+                    <div className="absolute top-4 left-4 flex items-center gap-1.5 z-20">
+                      <div className={`font-extrabold text-[9px] print:text-[13px] h-7 px-2.5 shadow-sm rounded-xl flex items-center justify-center border ${
+                        normalizeZoneCode(branch.operating_zone) === "ZONE_A"
+                          ? "bg-amber-50/95 dark:bg-amber-950/60 border-amber-200/80 dark:border-amber-800 text-amber-700 dark:text-amber-300"
+                          : "bg-purple-50/95 dark:bg-purple-950/60 border-purple-200/80 dark:border-purple-800 text-[#942392] dark:text-purple-300"
+                      }`}>
+                        {formatZoneDisplayName(branch.operating_zone)}
                       </div>
                     </div>
 
@@ -2112,7 +2164,7 @@ export default function Branches() {
                       smartGeocode(addr).then(result => {
                         toast.dismiss();
                         if (result) {
-                          setAddBranchData(prev => ({...prev, latitude: result.lat, longitude: result.lon}));
+                          setAddBranchData((prev: any) => ({...prev, latitude: result.lat, longitude: result.lon}));
                           toast.success("Coordinates found & updated!");
                         } else {
                           toast.error("Could not find coordinates. Try entering just the town/city name.");
@@ -2133,7 +2185,7 @@ export default function Branches() {
                       const result = await smartGeocode(addr);
                       toast.dismiss();
                       if (result) {
-                        setAddBranchData(prev => ({...prev, latitude: result.lat, longitude: result.lon}));
+                        setAddBranchData((prev: any) => ({...prev, latitude: result.lat, longitude: result.lon}));
                         toast.success("Coordinates found!");
                       } else {
                         toast.error("Could not find coordinates.");
@@ -2146,17 +2198,58 @@ export default function Branches() {
               </div>
             </div>
 
-            <div className="space-y-1.5">
-              <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Operating Zone</label>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Operating Zone (From Work Schedule)</label>
+                <span className="text-[9px] font-bold text-[#942392]">Auto-Assigns to Target Scope</span>
+              </div>
               <Select value={addBranchData.operating_zone} onValueChange={(val) => setAddBranchData({...addBranchData, operating_zone: val})}>
                 <SelectTrigger className="w-full h-11 px-4 rounded-xl border border-input bg-transparent text-xs font-bold shadow-sm">
                   <SelectValue placeholder="Select Zone" />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
-                  <SelectItem value="ZONE_A" className="text-xs font-bold">ZONE A (EAST COAST/JDT - FRI/SAT OFF)</SelectItem>
-                  <SelectItem value="ZONE_B" className="text-xs font-bold">ZONE B (WEST COAST - SAT/SUN OFF)</SelectItem>
+                  {zoneOptions.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value} className="text-xs font-bold">
+                      {opt.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
+              {(() => {
+                const selectedOpt = zoneOptions.find((o) => o.value === normalizeZoneCode(addBranchData.operating_zone)) || zoneOptions[0];
+                if (!selectedOpt) return null;
+                const cleanCode = (addBranchData.code || "").trim().toUpperCase();
+                const previewCodes = Array.from(
+                  new Set([...selectedOpt.branchCodes, ...(cleanCode ? [cleanCode] : [])])
+                ).sort();
+                return (
+                  <div className="p-2.5 rounded-xl bg-muted/40 border border-border/60 space-y-1.5 text-[10px]">
+                    <div className="flex flex-wrap items-center justify-between gap-1">
+                      <span className="font-black text-foreground uppercase tracking-wider">
+                        Schedule: {selectedOpt.scheduleName}
+                      </span>
+                      <span className="font-mono font-bold text-[#942392]">
+                        {selectedOpt.hoursSummary}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-1">
+                      <span className="font-bold text-muted-foreground mr-1">Target Scope:</span>
+                      {previewCodes.map((c) => (
+                        <span
+                          key={c}
+                          className={`px-1.5 py-0.5 rounded font-mono font-bold ${
+                            c === cleanCode
+                              ? "bg-[#942392] text-white"
+                              : "bg-background text-foreground border border-border/60"
+                          }`}
+                        >
+                          {c}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -2299,17 +2392,20 @@ export default function Branches() {
             </div>
             <div className="grid grid-cols-2 gap-6">
               <div className="space-y-1.5">
-                <label className="text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest">OPERATING ZONE</label>
+                <label className="text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest">OPERATING ZONE (WORK SCHEDULE)</label>
                 <Select
-                  value={editBranchData.operating_zone || "ZONE_B"}
+                  value={normalizeZoneCode(editBranchData.operating_zone) || "ZONE_B"}
                   onValueChange={(val) => setEditBranchData({ ...editBranchData, operating_zone: val })}
                 >
                   <SelectTrigger className="w-full h-11 px-4 rounded-xl border border-input bg-transparent text-xs print:text-[11px] font-bold shadow-sm">
                     <SelectValue placeholder="Select Zone" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl">
-                    <SelectItem value="ZONE_A" className="text-xs print:text-[11px] font-bold uppercase">ZONE A (Fri/Sat Weekend)</SelectItem>
-                    <SelectItem value="ZONE_B" className="text-xs print:text-[11px] font-bold uppercase">ZONE B (Sat/Sun Weekend)</SelectItem>
+                    {zoneOptions.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value} className="text-xs print:text-[11px] font-bold">
+                        {opt.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -2325,6 +2421,41 @@ export default function Branches() {
                 </div>
               </div>
             </div>
+            {(() => {
+              const selectedOpt = zoneOptions.find((o) => o.value === normalizeZoneCode(editBranchData.operating_zone)) || zoneOptions[0];
+              if (!selectedOpt) return null;
+              const cleanCode = (editBranchData.code || "").trim().toUpperCase();
+              const previewCodes = Array.from(
+                new Set([...selectedOpt.branchCodes, ...(cleanCode ? [cleanCode] : [])])
+              ).sort();
+              return (
+                <div className="p-3 rounded-xl bg-muted/40 border border-border/60 space-y-1.5 text-[10px]">
+                  <div className="flex flex-wrap items-center justify-between gap-1">
+                    <span className="font-black text-foreground uppercase tracking-wider">
+                      Schedule: {selectedOpt.scheduleName}
+                    </span>
+                    <span className="font-mono font-bold text-[#942392]">
+                      {selectedOpt.hoursSummary}
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-1">
+                    <span className="font-bold text-muted-foreground mr-1">Target Scope:</span>
+                    {previewCodes.map((c) => (
+                      <span
+                        key={c}
+                        className={`px-1.5 py-0.5 rounded font-mono font-bold ${
+                          c === cleanCode
+                            ? "bg-[#942392] text-white"
+                            : "bg-background text-foreground border border-border/60"
+                        }`}
+                      >
+                        {c}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <label className="text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest">Radius</label>

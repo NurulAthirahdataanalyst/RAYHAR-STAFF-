@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,8 +10,13 @@ import { MapPin, Plus, Edit, Navigation, Sliders, Check, AlertCircle, Loader2, M
 import { toast } from 'sonner';
 import { useCompany } from '../../../contexts/CompanyContext';
 import { multiCompanyApi } from '../../../services/multiCompanyApi';
-import { CompanyBranch } from '../../../types/multiCompany.types';
+import { CompanyBranch, WorkSchedule } from '../../../types/multiCompany.types';
 import { toProperCase, formatBranchDisplayName } from '@/utils/branchUtils';
+import {
+  normalizeZoneCode,
+  formatZoneDisplayName,
+  getOperatingZoneOptionsFromSchedules,
+} from '@/utils/scheduleZoneUtils';
 import Map, { Marker as MapMarker, NavigationControl, useMap as useMapLibre } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
@@ -88,6 +93,8 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
   const { companies, activeCompany } = useCompany();
   const [selectedCompanyId, setSelectedCompanyId] = useState<number>(activeCompany?.id || 1);
   const [branches, setBranches] = useState<CompanyBranch[]>([]);
+  const [workSchedules, setWorkSchedules] = useState<WorkSchedule[]>([]);
+  const [zoneFilter, setZoneFilter] = useState<string>('ALL');
   const [loading, setLoading] = useState(false);
 
   // Modal states
@@ -96,11 +103,21 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
   const [branchCode, setBranchCode] = useState('');
   const [branchName, setBranchName] = useState('');
   const [locationDistrict, setLocationDistrict] = useState('');
-  const [operatingZone, setOperatingZone] = useState<'Zone A' | 'Zone B'>('Zone B');
+  const [operatingZone, setOperatingZone] = useState<string>('ZONE_B');
   const [latitude, setLatitude] = useState('5.3297');
   const [longitude, setLongitude] = useState('103.1370');
   const [radius, setRadius] = useState<number>(50); // Default 50m
   const [saving, setSaving] = useState(false);
+
+  const zoneOptions = useMemo(
+    () => getOperatingZoneOptionsFromSchedules(workSchedules),
+    [workSchedules]
+  );
+
+  const filteredBranches = useMemo(() => {
+    if (zoneFilter === 'ALL') return branches;
+    return branches.filter((b) => (normalizeZoneCode(b.operating_zone) || 'ZONE_B') === zoneFilter);
+  }, [branches, zoneFilter]);
 
   // Map Picker Modal states
   const [isMapModalOpen, setIsMapModalOpen] = useState(false);
@@ -132,8 +149,12 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
   const fetchBranches = async (cId: number) => {
     try {
       setLoading(true);
-      const res = await multiCompanyApi.getCompanyBranches(cId);
+      const [res, scheds] = await Promise.all([
+        multiCompanyApi.getCompanyBranches(cId),
+        multiCompanyApi.getCompanyWorkSchedules(cId).catch(() => []),
+      ]);
       setBranches(res);
+      setWorkSchedules(scheds);
     } catch (err) {
       console.error('Failed to load branches:', err);
     } finally {
@@ -150,7 +171,7 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
     setBranchCode('');
     setBranchName('');
     setLocationDistrict('');
-    setOperatingZone('Zone B');
+    setOperatingZone(zoneOptions[0]?.value || 'ZONE_B');
     setLatitude('5.3297');
     setLongitude('103.1370');
     setRadius(50);
@@ -162,7 +183,7 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
     setBranchCode(b.code);
     setBranchName(b.name || b.branch || '');
     setLocationDistrict(b.location || '');
-    setOperatingZone(b.operating_zone || 'Zone B');
+    setOperatingZone(normalizeZoneCode(b.operating_zone) || 'ZONE_B');
     setLatitude(b.latitude ? b.latitude.toString() : '5.3297');
     setLongitude(b.longitude ? b.longitude.toString() : '103.1370');
     setRadius(b.radius || 50);
@@ -352,7 +373,7 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/40 dark:divide-neutral-800/40">
-                {branches.map((b) => (
+                {filteredBranches.map((b) => (
                   <tr key={b.code} className="hover:bg-muted/40 dark:hover:bg-neutral-800/40 transition-colors">
                     <td className="px-4 py-3.5">
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full font-mono text-xs font-bold border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800 text-black dark:text-white">
@@ -367,7 +388,7 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
                     </td>
                     <td className="px-4 py-3.5">
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border border-blue-200 dark:border-blue-800/60 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300">
-                        {b.operating_zone || 'Zone B'}
+                        {formatZoneDisplayName(b.operating_zone || 'ZONE_B')}
                       </span>
                     </td>
                     <td className="px-4 py-3.5 font-mono text-xs text-muted-foreground">
@@ -476,17 +497,58 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
 
             <div className="border-b border-border/60 my-2" />
 
-            <div className="space-y-1.5">
-              <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Operating Zone</label>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Operating Zone (From Work Schedule)</label>
+                <span className="text-[9px] font-bold text-[#942392]">Auto-Assigns to Target Scope</span>
+              </div>
               <Select value={operatingZone} onValueChange={(val: any) => setOperatingZone(val)}>
                 <SelectTrigger className="w-full h-11 px-4 rounded-xl border border-input bg-transparent text-xs font-bold shadow-sm">
                   <SelectValue placeholder="Select Zone" />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
-                  <SelectItem value="Zone A" className="text-xs font-bold">ZONE A (EAST COAST/JDT - FRI/SAT OFF)</SelectItem>
-                  <SelectItem value="Zone B" className="text-xs font-bold">ZONE B (WEST COAST - SAT/SUN OFF)</SelectItem>
+                  {zoneOptions.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value} className="text-xs font-bold">
+                      {opt.fullLabel}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
+              {(() => {
+                const selectedOpt = zoneOptions.find((o) => o.value === normalizeZoneCode(operatingZone)) || zoneOptions[0];
+                if (!selectedOpt) return null;
+                const cleanCode = branchCode.trim().toUpperCase();
+                const previewCodes = Array.from(
+                  new Set([...selectedOpt.branchCodes, ...(cleanCode ? [cleanCode] : [])])
+                ).sort();
+                return (
+                  <div className="p-2.5 rounded-xl bg-muted/40 dark:bg-neutral-800/50 border border-border/60 space-y-1.5 text-[10px]">
+                    <div className="flex flex-wrap items-center justify-between gap-1">
+                      <span className="font-black text-foreground uppercase tracking-wider">
+                        Schedule: {selectedOpt.scheduleName}
+                      </span>
+                      <span className="font-mono font-bold text-[#942392]">
+                        {selectedOpt.hoursSummary}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-1">
+                      <span className="font-bold text-muted-foreground mr-1">Target Scope:</span>
+                      {previewCodes.map((c) => (
+                        <span
+                          key={c}
+                          className={`px-1.5 py-0.5 rounded font-mono font-bold ${
+                            c === cleanCode
+                              ? 'bg-[#942392] text-white'
+                              : 'bg-background dark:bg-neutral-900 text-foreground border border-border/60'
+                          }`}
+                        >
+                          {c}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
 
             <div className="border-b border-border/60 my-2" />

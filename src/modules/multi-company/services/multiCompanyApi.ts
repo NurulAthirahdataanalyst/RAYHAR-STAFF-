@@ -273,6 +273,26 @@ export const multiCompanyApi = {
     };
   },
 
+  async saveLeaveSettings(
+    companyId: number,
+    payload: {
+      annual_days: number;
+      sick_days: number;
+      emergency_days: number;
+      mc_required: boolean;
+      escalate_to_parent: boolean;
+    }
+  ): Promise<LeaveTypeSetting[]> {
+    const res = await fetch(`${API_BASE_URL}/api/companies/${companyId}/leave-settings`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.error || 'Failed to save leave settings');
+    return data.leave_types || [];
+  },
+
   async saveApprovalWorkflow(companyId: number, steps: Partial<ApprovalWorkflowStep>[]): Promise<void> {
     const res = await fetch(`${API_BASE_URL}/api/companies/${companyId}/approval-workflow`, {
       method: 'POST',

@@ -1528,18 +1528,92 @@ function createMultiCompanyRouter(pgPool) {
     }
   });
 
+  // Ensure approval_workflow supports branch_scope & routing_rule and auto-seed Rayhar Travels (company_id = 1) dual workflow
+  async function ensureRayharLeaveWorkflowSeeded() {
+    try {
+      await pgPool.query(`
+        ALTER TABLE approval_workflow ADD COLUMN IF NOT EXISTS branch_scope VARCHAR(50) NOT NULL DEFAULT 'ALL';
+        ALTER TABLE approval_workflow ADD COLUMN IF NOT EXISTS routing_rule TEXT;
+        ALTER TABLE approval_workflow DROP CONSTRAINT IF EXISTS approval_workflow_company_id_module_step_order_key;
+      `);
+      await pgPool.query(`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (
+            SELECT 1 FROM pg_constraint WHERE conname = 'approval_workflow_company_module_scope_step_key'
+          ) THEN
+            ALTER TABLE approval_workflow
+              ADD CONSTRAINT approval_workflow_company_module_scope_step_key
+              UNIQUE (company_id, module, branch_scope, step_order);
+          END IF;
+        END $$;
+      `);
+
+      const existing = await pgPool.query(
+        "SELECT COUNT(*)::int AS cnt FROM approval_workflow WHERE company_id = 1 AND module = 'leave' AND branch_scope IN ('HQ', 'OTHER_BRANCHES')"
+      );
+      if ((existing.rows[0]?.cnt || 0) === 0) {
+        const rolesRes = await pgPool.query('SELECT id, name FROM roles WHERE company_id = 1');
+        const findRole = (name) => rolesRes.rows.find((r) => (r.name || '').toLowerCase() === name.toLowerCase())?.id;
+        const hodId = findRole('Head of Department');
+        const omId = findRole('Operation Manager');
+        const blId = findRole('Branch Leader');
+        const mdId = findRole('Managing Director');
+
+        await pgPool.query("DELETE FROM approval_workflow WHERE company_id = 1 AND module = 'leave'");
+
+        if (hodId && omId) {
+          await pgPool.query(
+            `INSERT INTO approval_workflow (company_id, module, branch_scope, step_order, approver_role_id, step_label, routing_rule, auto_escalate_hours)
+             VALUES
+               (1, 'leave', 'HQ', 1, $1, 'Department Review (HQ Department Only)', 'Follows employee department (Only HQ has departments)', 48),
+               (1, 'leave', 'HQ', 2, $2, 'Highest Approval (Operation Manager)', 'Highest approval authority for Rayhar HQ leave requests', 48)
+             ON CONFLICT (company_id, module, branch_scope, step_order) DO NOTHING`,
+            [hodId, omId]
+          );
+        }
+
+        if (blId && mdId) {
+          await pgPool.query(
+            `INSERT INTO approval_workflow (company_id, module, branch_scope, step_order, approver_role_id, step_label, routing_rule, auto_escalate_hours)
+             VALUES
+               (1, 'leave', 'OTHER_BRANCHES', 1, $1, 'Branch Endorsement (Own Branch Only)', 'Follows employee own branch only (Appears when HR creates/assigns Branch Leader for that branch)', 48),
+               (1, 'leave', 'OTHER_BRANCHES', 2, $2, 'Highest Approval (Managing Director)', 'Highest approval authority for all other branches except HQ', 48)
+             ON CONFLICT (company_id, module, branch_scope, step_order) DO NOTHING`,
+            [blId, mdId]
+          );
+        }
+      }
+    } catch (e) {
+      console.warn('Could not auto-seed Rayhar Travels dual leave workflow:', e.message);
+    }
+  }
+  ensureRayharLeaveWorkflowSeeded();
+
   // GET leave settings & approval workflow
   router.get('/companies/:companyId/leave-settings', async (req, res) => {
     try {
-      const companyId = req.params.companyId;
-      const leaveSettings = await pgPool.query('SELECT * FROM leave_settings WHERE company_id = $1 ORDER BY id ASC', [companyId]);
-      const workflow = await pgPool.query(`
-        SELECT aw.*, r.name AS approver_role_name
-        FROM approval_workflow aw
-        LEFT JOIN roles r ON aw.approver_role_id = r.id
-        WHERE aw.company_id = $1 AND aw.module = 'leave'
-        ORDER BY aw.step_order ASC;
-      `, [companyId]);
+      const companyId = parseInt(req.params.companyId, 10) || 1;
+      if (companyId === 1) {
+        await ensureRayharLeaveWorkflowSeeded();
+      }
+
+      const [leaveSettings, workflow] = await Promise.all([
+        pgPool.query('SELECT * FROM leave_settings WHERE company_id = $1 ORDER BY id ASC', [companyId]),
+        pgPool.query(`
+          SELECT aw.*, r.name AS approver_role_name, r.role_type, r.scope_type
+          FROM approval_workflow aw
+          LEFT JOIN roles r ON aw.approver_role_id = r.id
+          WHERE aw.company_id = $1 AND aw.module = 'leave'
+          ORDER BY
+            CASE
+              WHEN aw.branch_scope = 'HQ' THEN 1
+              WHEN aw.branch_scope = 'OTHER_BRANCHES' THEN 2
+              ELSE 3
+            END ASC,
+            aw.step_order ASC;
+        `, [companyId])
+      ]);
 
       res.json({
         success: true,
@@ -1551,23 +1625,71 @@ function createMultiCompanyRouter(pgPool) {
     }
   });
 
+  // POST save leave entitlement settings
+  router.post('/companies/:companyId/leave-settings', async (req, res) => {
+    try {
+      const companyId = parseInt(req.params.companyId, 10) || 1;
+      const {
+        annual_days = 14,
+        sick_days = 14,
+        emergency_days = 5,
+        mc_required = true,
+        escalate_to_parent = true
+      } = req.body;
+
+      await pgPool.query(
+        `INSERT INTO leave_settings (company_id, leave_type, default_entitlement_days, escalate_to_parent, mc_required, updated_at)
+         VALUES
+           ($1, 'Annual Leave', $2, $5, FALSE, CURRENT_TIMESTAMP),
+           ($1, 'Sick Leave', $3, $5, $6, CURRENT_TIMESTAMP),
+           ($1, 'Emergency Leave', $4, $5, FALSE, CURRENT_TIMESTAMP)
+         ON CONFLICT (company_id, leave_type) DO UPDATE SET
+           default_entitlement_days = EXCLUDED.default_entitlement_days,
+           escalate_to_parent = EXCLUDED.escalate_to_parent,
+           mc_required = EXCLUDED.mc_required,
+           updated_at = CURRENT_TIMESTAMP`,
+        [companyId, annual_days, sick_days, emergency_days, escalate_to_parent, mc_required]
+      );
+
+      const updated = await pgPool.query('SELECT * FROM leave_settings WHERE company_id = $1 ORDER BY id ASC', [companyId]);
+      await logAudit(req, 'LEAVE_SETTINGS_UPDATE', `Updated leave entitlement policies for company ${companyId}`, null, updated.rows, companyId);
+      res.json({ success: true, leave_types: updated.rows });
+    } catch (err) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
   // POST save approval workflow steps
   router.post('/companies/:companyId/approval-workflow', async (req, res) => {
     try {
-      const companyId = req.params.companyId;
+      const companyId = parseInt(req.params.companyId, 10) || 1;
       const { steps = [] } = req.body;
 
       await pgPool.query('DELETE FROM approval_workflow WHERE company_id = $1 AND module = \'leave\'', [companyId]);
 
+      const scopeCounters = {};
       for (let i = 0; i < steps.length; i++) {
         const step = steps[i];
         if (step.approver_role_id) {
+          const scope = step.branch_scope || 'ALL';
+          scopeCounters[scope] = (scopeCounters[scope] || 0) + 1;
+          const stepOrder = step.step_order || scopeCounters[scope];
           await pgPool.query(`
-            INSERT INTO approval_workflow (company_id, module, step_order, approver_role_id, step_label, auto_escalate_hours)
-            VALUES ($1, 'leave', $2, $3, $4, $5);
-          `, [companyId, i + 1, step.approver_role_id, step.step_label || `Step ${i + 1}`, step.auto_escalate_hours || 48]);
+            INSERT INTO approval_workflow (company_id, module, branch_scope, step_order, approver_role_id, step_label, routing_rule, auto_escalate_hours)
+            VALUES ($1, 'leave', $2, $3, $4, $5, $6, $7);
+          `, [
+            companyId,
+            scope,
+            stepOrder,
+            step.approver_role_id,
+            step.step_label || `Step ${stepOrder}`,
+            step.routing_rule || null,
+            step.auto_escalate_hours || 48
+          ]);
         }
       }
+
+      await logAudit(req, 'LEAVE_WORKFLOW_UPDATE', `Updated leave approval workflow for company ${companyId}`, null, steps, companyId);
 
       res.json({ success: true, message: 'Workflow saved successfully' });
     } catch (err) {

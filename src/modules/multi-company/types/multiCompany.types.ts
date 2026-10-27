@@ -189,14 +189,18 @@ export interface LeaveTypeSetting {
   mc_required: boolean;
 }
 
+export type WorkflowBranchScope = 'HQ' | 'OTHER_BRANCHES' | 'ALL';
+
 export interface ApprovalWorkflowStep {
   id?: number;
   company_id: number;
   module: 'leave' | 'attendance_correction' | 'outstation' | 'overtime';
+  branch_scope?: WorkflowBranchScope;
   step_order: number;
   approver_role_id: string;
   approver_role_name?: string;
   step_label: string;
+  routing_rule?: string;
   auto_escalate_hours?: number;
 }
 

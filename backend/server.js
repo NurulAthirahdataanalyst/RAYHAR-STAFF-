@@ -4665,19 +4665,28 @@ app.post("/api/leave-requests", uploadLimiter, upload.single("lampiranMc"), asyn
       }
     }
     let initialStatus = 'Pending HOD';
+    const normEmpRole = (employeeRole || '').toLowerCase().trim();
     if (leave_type === 'Cuti Sakit' || leave_type === 'Sick Leave') {
       initialStatus = 'Approved';
-    } else if (employeeBranch === 'HQ') {
-      if (employeeRole.toLowerCase() === 'head_of_department') {
+    } else if (String(employeeBranch).toUpperCase() === 'HQ') {
+      if (normEmpRole === 'head_of_department' || normEmpRole === 'head of department') {
         initialStatus = 'Pending Operation Manager';
       } else {
         initialStatus = 'Pending HOD';
       }
     } else {
-      if (employeeRole.toLowerCase() === 'branch_leader') {
+      if (normEmpRole === 'branch_leader' || normEmpRole === 'branch leader') {
         initialStatus = 'Pending Managing Director';
       } else {
-        initialStatus = 'Pending Branch Leader';
+        const [blCheck] = await pool.query(
+          `SELECT p.user_id FROM profiles p LEFT JOIN user_role ur ON p.user_id = ur.user_id LEFT JOIN roles r ON p.role_id = r.id WHERE (LOWER(COALESCE(p.role, '')) IN ('branch_leader', 'branch leader') OR LOWER(COALESCE(ur.role, '')) IN ('branch_leader', 'branch leader') OR LOWER(COALESCE(r.name, '')) IN ('branch_leader', 'branch leader')) AND UPPER(p.branch) = UPPER(?) AND p.status = 'Active' LIMIT 1`,
+          [employeeBranch]
+        );
+        if (blCheck && blCheck.length > 0) {
+          initialStatus = 'Pending Branch Leader';
+        } else {
+          initialStatus = 'Pending Managing Director';
+        }
       }
     }
 

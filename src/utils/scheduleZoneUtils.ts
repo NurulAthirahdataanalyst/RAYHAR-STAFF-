@@ -268,9 +268,11 @@ export function getBranchOperatingHoursDisplay(
 export interface OperatingZoneOption {
   value: string;
   zoneLabel: string;
+  shortLabel: string;
   scheduleName: string;
   hoursSummary: string;
   fullLabel: string;
+  label: string;
   branchCodes: string[];
 }
 
@@ -283,34 +285,43 @@ export function getOperatingZoneOptionsFromSchedules(schedules: WorkSchedule[] =
     const zoneLabel = formatZoneDisplayName(zoneVal).toUpperCase();
     const hoursSummary = formatScheduleCoreHoursSummary(s);
     const branchCodes = getScheduleBranchCodes(s);
+    const fullLabel = `${zoneLabel} — ${s.schedule_name} (${hoursSummary})`;
     optionsMap.set(zoneVal, {
       value: zoneVal,
       zoneLabel,
+      shortLabel: zoneLabel,
       scheduleName: s.schedule_name,
       hoursSummary,
-      fullLabel: `${zoneLabel} — ${s.schedule_name} (${hoursSummary})`,
+      fullLabel,
+      label: fullLabel,
       branchCodes,
     });
   }
 
   // Ensure Zone A and Zone B are always available as baseline options if not yet present
   if (!optionsMap.has('ZONE_A')) {
+    const fullLabel = 'ZONE A — Standard Office Hours (Zone A) (Sat–Wed: 08:30 - 17:30 | Thu: 08:30 - 13:00 | Fri Off)';
     optionsMap.set('ZONE_A', {
       value: 'ZONE_A',
       zoneLabel: 'ZONE A',
+      shortLabel: 'ZONE A',
       scheduleName: 'Standard Office Hours (Zone A)',
       hoursSummary: 'Sat–Wed: 08:30 - 17:30 | Thu: 08:30 - 13:00 | Fri Off',
-      fullLabel: 'ZONE A — Standard Office Hours (Zone A) (Sat–Wed: 08:30 - 17:30 | Thu: 08:30 - 13:00 | Fri Off)',
+      fullLabel,
+      label: fullLabel,
       branchCodes: [],
     });
   }
   if (!optionsMap.has('ZONE_B')) {
+    const fullLabel = 'ZONE B — Standard Office Hours (Zone B) (Mon–Fri: 08:30 - 17:30 | Sat: 08:30 - 13:00 | Sun Off)';
     optionsMap.set('ZONE_B', {
       value: 'ZONE_B',
       zoneLabel: 'ZONE B',
+      shortLabel: 'ZONE B',
       scheduleName: 'Standard Office Hours (Zone B)',
       hoursSummary: 'Mon–Fri: 08:30 - 17:30 | Sat: 08:30 - 13:00 | Sun Off',
-      fullLabel: 'ZONE B — Standard Office Hours (Zone B) (Mon–Fri: 08:30 - 17:30 | Sat: 08:30 - 13:00 | Sun Off)',
+      fullLabel,
+      label: fullLabel,
       branchCodes: [],
     });
   }
