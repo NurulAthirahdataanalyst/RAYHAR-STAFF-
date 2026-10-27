@@ -487,21 +487,17 @@ export const CompanyModuleManagement: React.FC = () => {
             <Button
               type="button"
               onClick={handleSave}
-              disabled={saving || !hasChanges}
-              className={`h-10 px-5 rounded-full font-black text-xs uppercase tracking-wider transition-all shadow-sm flex items-center gap-2 ${
-                hasChanges
-                  ? 'bg-[#942392] hover:bg-[#800A7A] text-white shadow-[#942392]/20 animate-pulse'
-                  : 'bg-muted text-muted-foreground hover:bg-muted'
-              }`}
+              disabled={saving}
+              className="h-10 px-5 rounded-full font-black text-xs uppercase tracking-wider transition-all shadow-md flex items-center gap-2 bg-[#942392] hover:bg-[#800A7A] text-white cursor-pointer active:scale-95 disabled:opacity-60"
             >
               {saving ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Loader2 className="w-4 h-4 animate-spin text-white" />
                   <span>Saving...</span>
                 </>
               ) : (
                 <>
-                  <Save className="w-4 h-4" />
+                  <Save className="w-4 h-4 text-white" />
                   <span>Save Configuration</span>
                 </>
               )}

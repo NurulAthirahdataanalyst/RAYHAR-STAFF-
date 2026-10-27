@@ -827,6 +827,18 @@ function createMultiCompanyRouter(pgPool) {
         return res.status(400).json({ success: false, error: 'Role name is required' });
       }
 
+      // Check if a role with this name already exists for this specific company
+      const existing = await pgPool.query(
+        "SELECT id, name FROM roles WHERE LOWER(TRIM(name)) = LOWER(TRIM($1)) AND COALESCE(company_id, 1) = COALESCE($2, 1)",
+        [role_name.trim(), companyId]
+      );
+      if (existing.rows.length > 0) {
+        return res.status(400).json({ 
+          success: false, 
+          error: `A role named "${role_name.trim()}" already exists for this company. Please choose a different name.` 
+        });
+      }
+
       const roleRes = await pgPool.query(`
         INSERT INTO roles (name, description, role_type, scope_type, company_id, is_system_role, status)
         VALUES ($1, $2, $3, $4, $5, FALSE, 'Active')
@@ -863,6 +875,19 @@ function createMultiCompanyRouter(pgPool) {
     try {
       const roleId = req.params.id;
       const { name, description, role_type, scope_type, status, permissions, permission_levels = {} } = req.body;
+
+      if (name && name.trim()) {
+        const existing = await pgPool.query(
+          "SELECT id FROM roles WHERE LOWER(TRIM(name)) = LOWER(TRIM($1)) AND COALESCE(company_id, 1) = (SELECT COALESCE(company_id, 1) FROM roles WHERE id = $2) AND id != $2",
+          [name.trim(), roleId]
+        );
+        if (existing.rows.length > 0) {
+          return res.status(400).json({ 
+            success: false, 
+            error: `A role named "${name.trim()}" already exists for this company.` 
+          });
+        }
+      }
 
       const updateRes = await pgPool.query(`
         UPDATE roles

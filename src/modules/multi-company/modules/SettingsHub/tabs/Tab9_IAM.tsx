@@ -163,6 +163,9 @@ export const Tab9_IAM: React.FC = () => {
 
     const mainRole = mainCompanyRoles.find(r => r.name.toLowerCase() === templateName.toLowerCase());
     if (mainRole && Array.isArray(mainRole.permission_keys)) {
+      if (!roleName.trim()) {
+        setRoleName(mainRole.name);
+      }
       // Filter permissions to only those enabled for the target company
       const allowedCompanyPerms = new Set(
         visibleModules.flatMap(m => (m.permissions || []).map(p => p.permission_key))
@@ -241,8 +244,18 @@ export const Tab9_IAM: React.FC = () => {
 
   const handleSaveRole = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!roleName.trim()) {
+    const trimmed = roleName.trim();
+    if (!trimmed) {
       toast.error('Role Name is required');
+      return;
+    }
+
+    // Client-side guard for duplicate role name within the current company
+    const isDup = roles.some(
+      r => r.name.trim().toLowerCase() === trimmed.toLowerCase() && (!editingRole || r.id !== editingRole.id)
+    );
+    if (isDup) {
+      toast.error(`A role named "${trimmed}" already exists for ${currentCompany?.company_name || 'this company'}. Please choose a different name.`);
       return;
     }
 

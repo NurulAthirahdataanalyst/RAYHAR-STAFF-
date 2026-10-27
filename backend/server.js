@@ -1734,6 +1734,15 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
     await connection.query(`ALTER TABLE roles ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP;`);
     await connection.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS role_id UUID REFERENCES roles(id) ON DELETE SET NULL;`);
     await connection.query(`ALTER TABLE user_role ADD COLUMN IF NOT EXISTS role_id UUID REFERENCES roles(id) ON DELETE SET NULL;`);
+    // Ensure roles are scoped per company rather than globally unique
+    await connection.query(`ALTER TABLE profiles DROP CONSTRAINT IF EXISTS fk_profiles_role;`);
+    await connection.query(`ALTER TABLE user_role DROP CONSTRAINT IF EXISTS fk_user_role_role;`);
+    await connection.query(`ALTER TABLE roles DROP CONSTRAINT IF EXISTS roles_name_key;`);
+    await connection.query(`ALTER TABLE roles DROP CONSTRAINT IF EXISTS uq_role_name;`);
+    await connection.query(`
+      CREATE UNIQUE INDEX IF NOT EXISTS uq_roles_name_per_company 
+      ON roles (LOWER(TRIM(name)), COALESCE(company_id, 1));
+    `);
 
     await connection.query(`
       CREATE TABLE IF NOT EXISTS permissions (
