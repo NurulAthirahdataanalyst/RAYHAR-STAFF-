@@ -34,12 +34,14 @@ import {
   ShieldCheck,
   ArrowRightLeft,
   Layers,
-  MapPin
+  MapPin,
+  Boxes
 } from "lucide-react";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRole } from "@/contexts/RoleContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useCompany } from "@/modules/multi-company/contexts/CompanyContext";
 import { Button } from "@/components/ui/button";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import rayharLogo from "@/assets/rayhar-logo.png";
@@ -52,6 +54,7 @@ interface AppSidebarProps {
 
 const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
   const { role, hasPermission } = useRole();
+  const { isModuleEnabled } = useCompany();
   const { signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
@@ -230,6 +233,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
           path: "/organization/entities",
           children: [
             { title: "Corporate Entities", icon: Building2, path: "/organization/entities" },
+            { title: "Company Modules", icon: Boxes, path: "/organization/modules" },
             { title: "Company Roles & RBAC", icon: ShieldCheck, path: "/organization/roles" },
             { title: "Employee Transfer Wizard", icon: ArrowRightLeft, path: "/organization/transfer" },
             { title: "Transfer Career History", icon: History, path: "/organization/history" },
@@ -465,6 +469,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
           path: "/organization/entities",
           children: [
             { title: "Corporate Entities", icon: Building2, path: "/organization/entities" },
+            { title: "Company Modules", icon: Boxes, path: "/organization/modules" },
             { title: "Company Roles & RBAC", icon: ShieldCheck, path: "/organization/roles" },
             { title: "Employee Transfer Wizard", icon: ArrowRightLeft, path: "/organization/transfer" },
             { title: "Transfer Career History", icon: History, path: "/organization/history" },
@@ -648,7 +653,29 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
     ];
   }, [role]);
 
-  // RBAC Permission Filter: Filter menu items and children based on granted permissions
+  // Helper to map sidebar item to its parent functional module
+  const getModuleKeyForMenuItem = useCallback((item: any): string | null => {
+    const t = (item.title || "").toLowerCase();
+    const p = (item.path || "").toLowerCase();
+    const id = (item.id || "").toLowerCase();
+
+    if (t === "dashboard" || p === "/") return "dashboard";
+    if (t.includes("calendar")) return "calendar";
+    if (t.includes("attendance")) return "attendance";
+    if (t === "leave administration" || p.includes("/leave/admin")) return "leave_admin";
+    if (t.includes("leave")) return "leave_management";
+    if (id.includes("outstation") || t.includes("outstation") || p.includes("/outstation")) return "outstation";
+    if (t === "employee management" || p === "/master" || p === "/employees") return "employee_management";
+    if (t === "branch management" || p === "/branches") return "employee_management";
+    if (t.includes("analytics") || p.includes("/analytics") || p.includes("/hr-analytics")) return "analytics";
+    if (t.includes("reports") || p.includes("/reports")) return "reports";
+    if (t.includes("gps") || p.includes("gps")) return "gps";
+    if (t === "settings" || p === "/settings") return "settings";
+    if (t === "organization & entities" || p.startsWith("/organization")) return "settings";
+    return null;
+  }, []);
+
+  // RBAC Permission & Company Module Filter
   const filteredItems = useMemo(() => {
     const items: any[] = [];
     let currentSection: any = null;
@@ -661,13 +688,21 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         continue;
       }
 
+      // Check if parent module is enabled for current active company
+      const modKey = getModuleKeyForMenuItem(item);
+      if (modKey && !isModuleEnabled(modKey)) {
+        continue;
+      }
+
       let isVisible = false;
       let resolvedItem = { ...item };
 
       if (item.children) {
-        const visibleChildren = item.children.filter((child: any) =>
-          !child.permission || hasPermission(child.permission)
-        );
+        const visibleChildren = item.children.filter((child: any) => {
+          const childMod = getModuleKeyForMenuItem(child);
+          if (childMod && !isModuleEnabled(childMod)) return false;
+          return !child.permission || hasPermission(child.permission);
+        });
         if (visibleChildren.length > 0) {
           isVisible = true;
           resolvedItem.children = visibleChildren;
@@ -685,7 +720,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       }
     }
     return items;
-  }, [allMenuItems, hasPermission]);
+  }, [allMenuItems, hasPermission, isModuleEnabled, getModuleKeyForMenuItem]);
 
   // Automatically expand submenus if any child page is active
   useEffect(() => {

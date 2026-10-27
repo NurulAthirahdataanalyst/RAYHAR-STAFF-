@@ -93,7 +93,8 @@ function getDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
 export default function Employees() {
   const navigate = useNavigate();
 
-  const { role, userBranch, userDepartment } = useRole();
+  const { role, userBranch, userDepartment, canEdit } = useRole();
+  const canEditEmployees = canEdit("employee.directory") || role === "hr_admin" || role === "admin";
   const printRef = useRef<HTMLDivElement>(null);
   
   const handlePrint = useReactToPrint({
@@ -764,7 +765,7 @@ export default function Employees() {
             </span>
           </Button>
 
-          {role === "hr_admin" ? (
+          {canEditEmployees ? (
             <Button 
               onClick={() => setIsAddModalOpen(true)}
               className="h-10 px-4 rounded-xl bg-[#942392] text-white hover:bg-[#942392]/95 font-black text-xs print:text-[13px] uppercase tracking-wider shadow-md transition-all whitespace-nowrap flex items-center gap-1.5"
@@ -1060,7 +1061,7 @@ export default function Employees() {
                               <span className={`inline-flex items-center justify-center px-3 py-1 text-[10px] print:text-[13px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap ${emp.status === 'Active' ? 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/20' : emp.status === 'Inactive' ? 'bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-500/10 dark:border-amber-500/20' : 'bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-500/10 dark:border-rose-500/20'}`}>
                                   {emp.status === 'Deleted' ? 'Deleted Staff' : `${emp.status} Staff`}
                                 </span>
-                              {role === "hr_admin" && (
+                              {canEditEmployees && (
                                 <Button
                                   variant="ghost"
                                   size="sm"
@@ -1070,7 +1071,7 @@ export default function Employees() {
                                   {emp.status === "Active" ? "Inactive" : "Re-activate"}
                                 </Button>
                                 )}
-                                {role === "hr_admin" && emp.status !== "Deleted" && (
+                                {canEditEmployees && emp.status !== "Deleted" && (
                                   <Button
                                     variant="ghost"
                                     size="sm"
@@ -1112,7 +1113,7 @@ export default function Employees() {
                             <span className={`inline-flex items-center justify-center px-3 py-1 text-[10px] print:text-[13px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap ${emp.status === 'Active' ? 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/20' : emp.status === 'Inactive' ? 'bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-500/10 dark:border-amber-500/20' : 'bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-500/10 dark:border-rose-500/20'}`}>
                                 {emp.status === 'Deleted' ? 'Deleted Staff' : `${emp.status} Staff`}
                                 </span>
-                            {role === "hr_admin" && (
+                            {canEditEmployees && (
                               <Button
                                 variant="ghost"
                                 size="sm"
@@ -1122,7 +1123,7 @@ export default function Employees() {
                                 {emp.status === "Active" ? "Inactive" : "Activate"}
                               </Button>
                                 )}
-                                {role === "hr_admin" && emp.status !== "Deleted" && (
+                                {canEditEmployees && emp.status !== "Deleted" && (
                                   <Button
                                     variant="ghost"
                                     size="sm"

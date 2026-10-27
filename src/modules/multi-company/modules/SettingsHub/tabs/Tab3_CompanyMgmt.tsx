@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Building2, Plus, Edit, Image as ImageIcon, MapPin, Users, Check, AlertCircle, Loader2, ArrowRight } from 'lucide-react';
+import { Building2, Plus, Edit, Image as ImageIcon, MapPin, Users, Check, AlertCircle, Loader2, ArrowRight, Boxes } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCompany } from '../../../contexts/CompanyContext';
 import { multiCompanyApi } from '../../../services/multiCompanyApi';
@@ -19,6 +20,7 @@ interface Tab3CompanyMgmtProps {
 }
 
 export const Tab3_CompanyMgmt: React.FC<Tab3CompanyMgmtProps> = ({ onNavigateToTab }) => {
+  const navigate = useNavigate();
   const { companies, refreshCompanies, activeCompany, setActiveCompanyId } = useCompany();
 
   useEffect(() => {
@@ -246,6 +248,20 @@ export const Tab3_CompanyMgmt: React.FC<Tab3CompanyMgmtProps> = ({ onNavigateToT
                           title="Upload or change logo"
                         >
                           <ImageIcon className="w-3.5 h-3.5" />
+                        </Button>
+
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setActiveCompanyId(c.id);
+                            navigate('/organization/modules');
+                          }}
+                          className="h-7 px-2 text-xs font-bold text-[#942392] border-[#942392]/30 bg-[#942392]/5 hover:bg-[#942392]/10"
+                          title="Configure modules enabled for this company"
+                        >
+                          <Boxes className="w-3 h-3 mr-1" />
+                          Modules
                         </Button>
 
                         <Button

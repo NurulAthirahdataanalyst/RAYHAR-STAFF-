@@ -119,6 +119,7 @@ function ProtectedRoutes() {
           <Route path="/organization" element={<OrganizationEntities />} />
           <Route path="/organization/entities" element={<OrganizationEntities />} />
           <Route path="/organization/roles" element={<OrganizationEntities />} />
+          <Route path="/organization/modules" element={<OrganizationEntities />} />
           <Route path="/organization/transfer" element={<OrganizationEntities />} />
           <Route path="/organization/history" element={<OrganizationEntities />} />
           <Route path="/organization/branches" element={<OrganizationEntities />} />

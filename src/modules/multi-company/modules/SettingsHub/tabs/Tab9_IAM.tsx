@@ -30,6 +30,7 @@ export const Tab9_IAM: React.FC = () => {
   const [roleType, setRoleType] = useState<RoleType>('Operational Role');
   const [scopeType, setScopeType] = useState<ScopeType>('Current Company Only');
   const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
+  const [selectedPermissionLevels, setSelectedPermissionLevels] = useState<Record<string, 'view' | 'edit'>>({});
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -64,6 +65,7 @@ export const Tab9_IAM: React.FC = () => {
     setRoleType('Operational Role');
     setScopeType('Current Company Only');
     setSelectedPermissions([]);
+    setSelectedPermissionLevels({});
     setModalOpen(true);
   };
 
@@ -75,6 +77,7 @@ export const Tab9_IAM: React.FC = () => {
     setRoleType(r.role_type || 'Operational Role');
     setScopeType(r.scope_type || 'Current Company Only');
     setSelectedPermissions(r.permission_keys || []);
+    setSelectedPermissionLevels(r.permission_levels || {});
     setModalOpen(true);
   };
 
@@ -104,6 +107,7 @@ export const Tab9_IAM: React.FC = () => {
         role_type: roleType,
         scope_type: scopeType,
         permissions: selectedPermissions,
+        permission_levels: selectedPermissionLevels,
         company_id: selectedCompanyId
       };
 
@@ -386,6 +390,8 @@ export const Tab9_IAM: React.FC = () => {
                 <PermissionMatrix
                   selectedKeys={selectedPermissions}
                   onChange={setSelectedPermissions}
+                  selectedLevels={selectedPermissionLevels}
+                  onLevelsChange={setSelectedPermissionLevels}
                 />
               </div>
             </div>

@@ -474,7 +474,7 @@ async function getUserPermissions(userIdOrEmail, rawRole) {
 
     // Default fallback to Employee role permissions
     const [fallback] = await pool.query(
-      `SELECT DISTINCT p.permission_key 
+      `SELECT DISTINCT p.permission_key, COALESCE(rp.access_level, 'edit') AS access_level
        FROM permissions p
        JOIN role_permissions rp ON rp.permission_id = p.id
        JOIN roles r ON r.id = rp.role_id
@@ -484,6 +484,66 @@ async function getUserPermissions(userIdOrEmail, rawRole) {
   } catch (err) {
     console.error("Error in getUserPermissions helper:", err);
     return [];
+  }
+}
+
+async function getUserPermissionsWithLevels(userIdOrEmail, rawRole) {
+  const result = { keys: [], levels: {} };
+  try {
+    let rows = [];
+    if (userIdOrEmail) {
+      const [res] = await pool.query(
+        `SELECT DISTINCT p.permission_key, COALESCE(rp.access_level, 'edit') AS access_level
+         FROM permissions p
+         JOIN role_permissions rp ON rp.permission_id = p.id
+         JOIN profiles prof ON prof.role_id = rp.role_id
+         WHERE prof.user_id = ? OR prof.email = ?`,
+        [userIdOrEmail, userIdOrEmail]
+      );
+      if (res && res.length > 0) rows = res;
+    }
+
+    if (rows.length === 0 && rawRole) {
+      const cleanRole = rawRole.trim().toLowerCase();
+      const [res] = await pool.query(
+        `SELECT DISTINCT p.permission_key, COALESCE(rp.access_level, 'edit') AS access_level
+         FROM permissions p
+         JOIN role_permissions rp ON rp.permission_id = p.id
+         JOIN roles r ON r.id = rp.role_id
+         WHERE LOWER(r.name) = LOWER(?) 
+            OR LOWER(REPLACE(r.name, ' ', '_')) = LOWER(?)
+            OR (r.is_system_role = TRUE AND (
+              (? IN ('hr_admin', 'admin', 'hr') AND r.name = 'HR Admin') OR
+              (? IN ('managing_director', 'md') AND r.name = 'Managing Director') OR
+              (? IN ('operation_manager', 'finance_manager') AND r.name = 'Operation Manager') OR
+              (? IN ('branch_leader') AND r.name = 'Branch Leader') OR
+              (? IN ('head_of_department', 'hod') AND r.name = 'Head of Department') OR
+              (? IN ('employee') AND r.name = 'Employee')
+            ))`,
+        [cleanRole, cleanRole, cleanRole, cleanRole, cleanRole, cleanRole, cleanRole, cleanRole]
+      );
+      if (res && res.length > 0) rows = res;
+    }
+
+    if (rows.length === 0) {
+      const [fallback] = await pool.query(
+        `SELECT DISTINCT p.permission_key, COALESCE(rp.access_level, 'edit') AS access_level
+         FROM permissions p
+         JOIN role_permissions rp ON rp.permission_id = p.id
+         JOIN roles r ON r.id = rp.role_id
+         WHERE r.name = 'Employee'`
+      );
+      if (fallback && fallback.length > 0) rows = fallback;
+    }
+
+    for (const r of rows) {
+      result.keys.push(r.permission_key);
+      result.levels[r.permission_key] = r.access_level || 'edit';
+    }
+    return result;
+  } catch (err) {
+    console.error("Error in getUserPermissionsWithLevels:", err);
+    return result;
   }
 }
 
@@ -601,11 +661,18 @@ app.get("/api/roles", async (req, res) => {
               'id', perm.id,
               'permission_key', perm.permission_key,
               'module', perm.module,
-              'display_name', perm.display_name
+              'display_name', perm.display_name,
+              'access_level', COALESCE(rp.access_level, 'edit')
             ) ORDER BY perm.module ASC, perm.id ASC
           ) FILTER (WHERE perm.id IS NOT NULL),
           '[]'::json
         ) AS permissions,
+        COALESCE(
+          json_object_agg(
+            perm.permission_key, COALESCE(rp.access_level, 'edit')
+          ) FILTER (WHERE perm.permission_key IS NOT NULL),
+          '{}'::json
+        ) AS permission_levels,
         COALESCE(
           array_agg(perm.permission_key ORDER BY perm.permission_key ASC) FILTER (WHERE perm.permission_key IS NOT NULL),
           '{}'::varchar[]
@@ -645,11 +712,18 @@ app.get("/api/roles/:id", async (req, res) => {
               'id', perm.id,
               'permission_key', perm.permission_key,
               'module', perm.module,
-              'display_name', perm.display_name
+              'display_name', perm.display_name,
+              'access_level', COALESCE(rp.access_level, 'edit')
             ) ORDER BY perm.module ASC, perm.id ASC
           ) FILTER (WHERE perm.id IS NOT NULL),
           '[]'::json
         ) AS permissions,
+        COALESCE(
+          json_object_agg(
+            perm.permission_key, COALESCE(rp.access_level, 'edit')
+          ) FILTER (WHERE perm.permission_key IS NOT NULL),
+          '{}'::json
+        ) AS permission_levels,
         COALESCE(
           array_agg(perm.permission_key ORDER BY perm.permission_key ASC) FILTER (WHERE perm.permission_key IS NOT NULL),
           '{}'::varchar[]
@@ -709,18 +783,37 @@ app.post("/api/roles", async (req, res) => {
 
     // Assign permissions
     if (permissions.length > 0) {
-      // Find matching permission IDs whether permission keys or integer IDs were passed
-      const permRes = await client.query(
-        `SELECT id, permission_key FROM permissions 
-         WHERE permission_key = ANY($1::text[]) OR id = ANY($2::int[])`,
-        [permissions.map(String), permissions.map(p => Number(p)).filter(n => !isNaN(n))]
-      );
+      const permLevels = req.body?.permission_levels || {};
+      const permMap = new Map();
+      for (const item of permissions) {
+        if (typeof item === 'string') {
+          if (item.includes(':')) {
+            const [k, lvl] = item.split(':');
+            permMap.set(k.trim(), lvl.trim().toLowerCase() === 'view' ? 'view' : 'edit');
+          } else {
+            permMap.set(item.trim(), permLevels[item.trim()] === 'view' ? 'view' : 'edit');
+          }
+        } else if (item && typeof item === 'object') {
+          const k = item.permission_key || item.key;
+          const lvl = item.access_level || item.level || permLevels[k] || 'edit';
+          if (k) permMap.set(String(k).trim(), String(lvl).toLowerCase() === 'view' ? 'view' : 'edit');
+        }
+      }
 
-      for (const p of permRes.rows) {
-        await client.query(
-          `INSERT INTO role_permissions (role_id, permission_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
-          [newRole.id, p.id]
+      for (const [permKey, accessLevel] of permMap.entries()) {
+        const permRes = await client.query(
+          `SELECT id FROM permissions WHERE permission_key = $1`,
+          [permKey]
         );
+        if (permRes.rows.length > 0) {
+          await client.query(
+            `INSERT INTO role_permissions (role_id, permission_id, access_level) 
+             VALUES ($1, $2, $3) 
+             ON CONFLICT (role_id, permission_id) 
+             DO UPDATE SET access_level = EXCLUDED.access_level`,
+            [newRole.id, permRes.rows[0].id, accessLevel]
+          );
+        }
       }
     }
 
@@ -797,17 +890,37 @@ app.put("/api/roles/:id", async (req, res) => {
       await client.query("DELETE FROM role_permissions WHERE role_id = $1", [id]);
 
       if (permissions.length > 0) {
-        const permRes = await client.query(
-          `SELECT id, permission_key FROM permissions 
-           WHERE permission_key = ANY($1::text[]) OR id = ANY($2::int[])`,
-          [permissions.map(String), permissions.map(p => Number(p)).filter(n => !isNaN(n))]
-        );
+        const permLevels = req.body?.permission_levels || {};
+        const permMap = new Map();
+        for (const item of permissions) {
+          if (typeof item === 'string') {
+            if (item.includes(':')) {
+              const [k, lvl] = item.split(':');
+              permMap.set(k.trim(), lvl.trim().toLowerCase() === 'view' ? 'view' : 'edit');
+            } else {
+              permMap.set(item.trim(), permLevels[item.trim()] === 'view' ? 'view' : 'edit');
+            }
+          } else if (item && typeof item === 'object') {
+            const k = item.permission_key || item.key;
+            const lvl = item.access_level || item.level || permLevels[k] || 'edit';
+            if (k) permMap.set(String(k).trim(), String(lvl).toLowerCase() === 'view' ? 'view' : 'edit');
+          }
+        }
 
-        for (const p of permRes.rows) {
-          await client.query(
-            `INSERT INTO role_permissions (role_id, permission_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
-            [id, p.id]
+        for (const [permKey, accessLevel] of permMap.entries()) {
+          const permRes = await client.query(
+            `SELECT id FROM permissions WHERE permission_key = $1`,
+            [permKey]
           );
+          if (permRes.rows.length > 0) {
+            await client.query(
+              `INSERT INTO role_permissions (role_id, permission_id, access_level) 
+               VALUES ($1, $2, $3) 
+               ON CONFLICT (role_id, permission_id) 
+               DO UPDATE SET access_level = EXCLUDED.access_level`,
+              [id, permRes.rows[0].id, accessLevel]
+            );
+          }
         }
       }
     }
@@ -1907,6 +2020,8 @@ async function getEmployeeLocations(branch, department, role) {
     }
     const sql = `
       SELECT p.user_id, p.full_name, p.branch, p.department,
+             a.clock_in,
+             a.clock_out,
              COALESCE(el.recorded_at, a.clock_in) AS last_updated,
              COALESCE(el.latitude, a.clock_in_latitude) AS latitude,
              COALESCE(el.longitude, a.clock_in_longitude) AS longitude,
@@ -1914,7 +2029,7 @@ async function getEmployeeLocations(branch, department, role) {
              a.distance_meters AS distance,
              CASE WHEN oa.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_outstation
       FROM profiles p
-      LEFT JOIN (
+      INNER JOIN (
         SELECT a1.*
         FROM attendances a1
         JOIN (
@@ -1927,13 +2042,17 @@ async function getEmployeeLocations(branch, department, role) {
       LEFT JOIN (
         SELECT COALESCE(el1.user_id, el1.employee_id) as user_id, el1.latitude, el1.longitude, el1.accuracy, el1.recorded_at
         FROM employee_location_logs el1
-        JOIN (SELECT COALESCE(user_id, employee_id) as uid, MAX(id) as max_id FROM employee_location_logs GROUP BY COALESCE(user_id, employee_id)) el2
-          ON el1.id = el2.max_id
+        JOIN (
+          SELECT COALESCE(user_id, employee_id) as uid, MAX(id) as max_id 
+          FROM employee_location_logs 
+          WHERE (recorded_at AT TIME ZONE 'Asia/Kuala_Lumpur')::date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date
+          GROUP BY COALESCE(user_id, employee_id)
+        ) el2 ON el1.id = el2.max_id
       ) el ON el.user_id = p.user_id
       LEFT JOIN outstation_assignments oa ON oa.user_id = p.user_id 
            AND oa.status != 'Cancelled' 
            AND CURRENT_DATE BETWEEN (oa.start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (oa.end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date
-      WHERE p.status = 'Active' ${filter}
+      WHERE p.status = 'Active' AND a.clock_in IS NOT NULL ${filter}
       ORDER BY 
         CASE WHEN COALESCE(el.latitude, a.clock_in_latitude) IS NOT NULL THEN 0 ELSE 1 END,
         p.full_name ASC
@@ -6104,7 +6223,7 @@ app.get("/api/user-details/:identifier", async (req, res) => {
     }
 
     const user = rows[0];
-    const userPerms = await getUserPermissions(user.user_id, user.role);
+    const userPermsDetail = await getUserPermissionsWithLevels(user.user_id, user.role);
 
     res.json({
       success: true,
@@ -6131,7 +6250,8 @@ app.get("/api/user-details/:identifier", async (req, res) => {
       role_id: user.role_id,
       role_name: user.role_name,
       is_system_role: user.is_system_role,
-      permissions: userPerms
+      permissions: userPermsDetail.keys,
+      permission_levels: userPermsDetail.levels
     });
   } catch (err) {
     console.error("User Details Error:", err);
@@ -6248,69 +6368,7 @@ app.get("/api/employee-locations", async (req, res) => {
     const branch = safeString(req.query?.branch);
     const department = safeString(req.query?.department);
     const role = safeString(req.query?.role);
-
-    let params = [];
-    let filter = "";
-
-    const normRole = role.toLowerCase().replace(/\s+/g, '_');
-
-    if (normRole === 'branch_leader') {
-        const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
-        filter = "AND LOWER(p.branch) = LOWER(?)";
-        params.push(safeBranch);
-    } else if (normRole === 'head_of_department' || normRole === 'hod') {
-        const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
-        filter = "AND LOWER(p.department) = LOWER(?)";
-        params.push(safeDept);
-    } else if (['hr_admin', 'hr', 'admin', 'managing_director', 'md', 'operation_manager', 'finance_manager'].includes(normRole)) {
-        if (branch && branch !== "All") {
-          filter = "AND LOWER(p.branch) = LOWER(?)";
-          params.push(branch);
-        }
-        if (department && department !== "All") {
-          filter += " AND LOWER(p.department) = LOWER(?)";
-          params.push(department);
-        }
-    } else if (branch && branch !== "All") {
-        filter = "AND LOWER(p.branch) = LOWER(?)";
-        params.push(branch);
-    }
-
-    const sql = `
-      SELECT p.user_id, p.full_name, p.branch, p.department,
-             COALESCE(el.recorded_at, a.clock_in) AS last_updated,
-             COALESCE(el.latitude, a.clock_in_latitude) AS latitude,
-             COALESCE(el.longitude, a.clock_in_longitude) AS longitude,
-             COALESCE(el.accuracy, a.clock_in_accuracy) AS accuracy,
-             a.distance_meters AS distance,
-             CASE WHEN oa.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_outstation
-      FROM profiles p
-      LEFT JOIN (
-        SELECT a1.*
-        FROM attendances a1
-        JOIN (
-          SELECT user_id, MAX(clock_in) AS max_in
-          FROM attendances
-          WHERE (clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date
-          GROUP BY user_id
-        ) m ON a1.user_id = m.user_id AND a1.clock_in = m.max_in
-      ) a ON a.user_id = p.user_id
-      LEFT JOIN (
-        SELECT COALESCE(el1.user_id, el1.employee_id) as user_id, el1.latitude, el1.longitude, el1.accuracy, el1.recorded_at
-        FROM employee_location_logs el1
-        JOIN (SELECT COALESCE(user_id, employee_id) as uid, MAX(id) as max_id FROM employee_location_logs GROUP BY COALESCE(user_id, employee_id)) el2
-          ON el1.id = el2.max_id
-      ) el ON el.user_id = p.user_id
-      LEFT JOIN outstation_assignments oa ON oa.user_id = p.user_id 
-        AND oa.status != 'Cancelled'
-        AND CURRENT_DATE BETWEEN (oa.start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (oa.end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date
-      WHERE p.status = 'Active' ${filter}
-      ORDER BY 
-        CASE WHEN COALESCE(el.latitude, a.clock_in_latitude) IS NOT NULL THEN 0 ELSE 1 END,
-        p.full_name ASC
-    `;
-    const [rows] = await pool.query(sql, params);
-
+    const rows = await getEmployeeLocations(branch, department, role);
     res.json({ success: true, locations: rows });
   } catch (err) {
     console.error("/api/employee-locations error:", err);

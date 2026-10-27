@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Company, UserCompanyRole } from '../types/multiCompany.types';
+import { Company, UserCompanyRole, CompanyModuleSetting } from '../types/multiCompany.types';
 import { multiCompanyApi } from '../services/multiCompanyApi';
 
 interface CompanyContextType {
@@ -8,6 +8,10 @@ interface CompanyContextType {
   companies: Company[];
   userCompanies: UserCompanyRole[];
   userActiveRole: UserCompanyRole | null;
+  companyModules: CompanyModuleSetting[];
+  enabledModuleKeys: string[];
+  isModuleEnabled: (moduleKey: string) => boolean;
+  refreshCompanyModules: () => Promise<void>;
   loading: boolean;
   setActiveCompanyId: (companyId: number) => void;
   refreshCompanies: () => Promise<void>;
@@ -35,7 +39,48 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [companies, setCompanies] = useState<Company[]>([DEFAULT_MAIN_COMPANY]);
   const [userCompanies, setUserCompanies] = useState<UserCompanyRole[]>([]);
   const [activeCompany, setActiveCompany] = useState<Company | null>(DEFAULT_MAIN_COMPANY);
+  const [companyModules, setCompanyModules] = useState<CompanyModuleSetting[]>([]);
+  const [enabledModuleKeys, setEnabledModuleKeys] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+
+  // Fetch company modules for active company
+  const fetchModulesForCompany = useCallback(async (companyId: number) => {
+    try {
+      const res = await multiCompanyApi.getCompanyModules(companyId);
+      setCompanyModules(res.modules || []);
+      setEnabledModuleKeys(res.enabled_module_keys || []);
+    } catch (e) {
+      console.warn('Could not load company modules:', e);
+    }
+  }, []);
+
+  const refreshCompanyModules = useCallback(async () => {
+    if (activeCompany?.id) {
+      await fetchModulesForCompany(activeCompany.id);
+    }
+  }, [activeCompany?.id, fetchModulesForCompany]);
+
+  useEffect(() => {
+    if (activeCompany?.id) {
+      void fetchModulesForCompany(activeCompany.id);
+    }
+  }, [activeCompany?.id, fetchModulesForCompany]);
+
+  // Check if a module is enabled for the active company
+  const isModuleEnabled = useCallback((moduleKey: string): boolean => {
+    if (!moduleKey) return true;
+    const cleanKey = moduleKey.toLowerCase().trim();
+    // Normalize aliases
+    let normalized = cleanKey;
+    if (cleanKey === 'leave' || cleanKey === 'leave_management') normalized = 'leave_management';
+    if (cleanKey === 'leave_admin' || cleanKey === 'leaveadmin') normalized = 'leave_admin';
+    if (cleanKey === 'employee' || cleanKey === 'employee_management' || cleanKey === 'master') normalized = 'employee_management';
+
+    // If no company context yet or main company with no records yet, default allow
+    if (enabledModuleKeys.length === 0) return true;
+
+    return enabledModuleKeys.includes(normalized) || enabledModuleKeys.includes(cleanKey);
+  }, [enabledModuleKeys]);
 
   const fetchAllData = useCallback(async () => {
     try {
@@ -150,6 +195,10 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
         companies,
         userCompanies,
         userActiveRole,
+        companyModules,
+        enabledModuleKeys,
+        isModuleEnabled,
+        refreshCompanyModules,
         loading,
         setActiveCompanyId,
         refreshCompanies,

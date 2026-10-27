@@ -7,8 +7,9 @@ import { Tab4_BranchLocationMgmt } from '@/modules/multi-company/modules/Setting
 import { Tab5_DepartmentMgmt } from '@/modules/multi-company/modules/SettingsHub/tabs/Tab5_DepartmentMgmt';
 import { CompanyTransferWizard } from '@/modules/multi-company/employee-assignment/CompanyTransferWizard';
 import { EmployeeCompanyHistory } from '@/modules/multi-company/employee-assignment/EmployeeCompanyHistory';
+import { CompanyModuleManagement } from './CompanyModuleManagement';
 
-export type OrganizationSection = 'entities' | 'roles' | 'transfer' | 'history' | 'branches' | 'departments';
+export type OrganizationSection = 'entities' | 'roles' | 'modules' | 'transfer' | 'history' | 'branches' | 'departments';
 
 export default function OrganizationEntities() {
   const location = useLocation();
@@ -17,6 +18,7 @@ export default function OrganizationEntities() {
 
   const getActiveSection = (): OrganizationSection => {
     const path = location.pathname.toLowerCase();
+    if (path.includes('/modules')) return 'modules';
     if (path.includes('/transfer')) return 'transfer';
     if (path.includes('/roles')) return 'roles';
     if (path.includes('/history')) return 'history';
@@ -25,7 +27,7 @@ export default function OrganizationEntities() {
     if (path.includes('/entities')) return 'entities';
 
     const tab = searchParams.get('tab') as OrganizationSection;
-    if (tab && ['entities', 'roles', 'transfer', 'history', 'branches', 'departments'].includes(tab)) {
+    if (tab && ['entities', 'roles', 'modules', 'transfer', 'history', 'branches', 'departments'].includes(tab)) {
       return tab;
     }
     return 'entities';
@@ -48,6 +50,10 @@ export default function OrganizationEntities() {
 
         {currentSection === 'roles' && (
           <Tab9_IAM />
+        )}
+
+        {currentSection === 'modules' && (
+          <CompanyModuleManagement />
         )}
 
         {currentSection === 'transfer' && (

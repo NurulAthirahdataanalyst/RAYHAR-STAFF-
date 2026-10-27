@@ -61,7 +61,43 @@ export interface CompanyRole {
   is_system_role?: boolean;
   total_users?: number;
   permission_keys?: string[];
+  permission_levels?: Record<string, 'view' | 'edit'>;
+  permissions_detail?: ModulePermission[];
   created_at?: string;
+}
+
+export interface ModulePermission {
+  id: number;
+  permission_key: string;
+  display_name: string;
+  module: string;
+  access_level?: 'view' | 'edit';
+}
+
+export interface ModuleDefinition {
+  id: number;
+  module_key: string;
+  module_name: string;
+  description: string;
+  icon_name: string;
+  sort_order: number;
+  status: string;
+  features_count?: number;
+  permissions?: ModulePermission[];
+}
+
+export interface CompanyModuleSetting {
+  module_id?: number;
+  module_key: string;
+  module_name: string;
+  description: string;
+  icon_name: string;
+  sort_order: number;
+  is_enabled: boolean;
+  updated_at?: string;
+  updated_by?: string;
+  features_count?: number;
+  permissions?: ModulePermission[];
 }
 
 export interface RoleTemplate {

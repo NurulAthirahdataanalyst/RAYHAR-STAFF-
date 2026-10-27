@@ -545,8 +545,189 @@ function createMultiCompanyRouter(pgPool) {
   });
 
   // ==========================================
+  // COMPANY MODULE MANAGEMENT
+  // ==========================================
+
+  // GET all system modules with features
+  router.get('/modules', async (req, res) => {
+    try {
+      const modulesRes = await pgPool.query(`
+        SELECT 
+          m.*,
+          COALESCE(
+            json_agg(
+              json_build_object(
+                'id', p.id,
+                'permission_key', p.permission_key,
+                'display_name', p.display_name,
+                'module', p.module
+              ) ORDER BY p.id ASC
+            ) FILTER (WHERE p.id IS NOT NULL), '[]'::json
+          ) AS permissions,
+          COUNT(p.id)::int AS features_count
+        FROM modules m
+        LEFT JOIN permissions p ON LOWER(TRIM(p.module)) = LOWER(TRIM(m.module_name))
+        GROUP BY m.id
+        ORDER BY m.sort_order ASC, m.id ASC;
+      `);
+      res.json({ success: true, modules: modulesRes.rows });
+    } catch (err) {
+      console.error('Error fetching modules:', err);
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  // GET company module settings
+  router.get('/companies/:companyId/modules', async (req, res) => {
+    try {
+      const companyId = parseInt(req.params.companyId, 10);
+      if (isNaN(companyId)) {
+        return res.status(400).json({ success: false, error: 'Invalid company ID' });
+      }
+
+      // Ensure modules are seeded for this company
+      await pgPool.query(`
+        INSERT INTO company_modules (company_id, module_key, is_enabled)
+        SELECT $1, module_key, TRUE FROM modules
+        ON CONFLICT (company_id, module_key) DO NOTHING;
+      `, [companyId]);
+
+      const result = await pgPool.query(`
+        SELECT 
+          m.id AS module_id,
+          m.module_key,
+          m.module_name,
+          m.description,
+          m.icon_name,
+          m.sort_order,
+          COALESCE(cm.is_enabled, TRUE) AS is_enabled,
+          cm.updated_at,
+          cm.updated_by,
+          COALESCE(
+            json_agg(
+              json_build_object(
+                'id', p.id,
+                'permission_key', p.permission_key,
+                'display_name', p.display_name,
+                'module', p.module
+              ) ORDER BY p.id ASC
+            ) FILTER (WHERE p.id IS NOT NULL), '[]'::json
+          ) AS permissions,
+          COUNT(p.id)::int AS features_count
+        FROM modules m
+        LEFT JOIN company_modules cm ON cm.module_key = m.module_key AND cm.company_id = $1
+        LEFT JOIN permissions p ON LOWER(TRIM(p.module)) = LOWER(TRIM(m.module_name))
+        GROUP BY m.id, m.module_key, m.module_name, m.description, m.icon_name, m.sort_order, cm.is_enabled, cm.updated_at, cm.updated_by
+        ORDER BY m.sort_order ASC, m.id ASC;
+      `, [companyId]);
+
+      res.json({ 
+        success: true, 
+        company_id: companyId,
+        modules: result.rows,
+        enabled_module_keys: result.rows.filter(r => r.is_enabled).map(r => r.module_key)
+      });
+    } catch (err) {
+      console.error('Error fetching company modules:', err);
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  // POST update company module settings
+  router.post('/companies/:companyId/modules', async (req, res) => {
+    try {
+      const companyId = parseInt(req.params.companyId, 10);
+      if (isNaN(companyId)) {
+        return res.status(400).json({ success: false, error: 'Invalid company ID' });
+      }
+
+      const { modules: moduleList, operator_name } = req.body;
+      if (!Array.isArray(moduleList)) {
+        return res.status(400).json({ success: false, error: 'Modules array is required' });
+      }
+
+      const updater = operator_name || req.user?.full_name || 'Admin Operator';
+
+      for (const item of moduleList) {
+        if (!item.module_key) continue;
+        const isEnabled = item.is_enabled !== false;
+        await pgPool.query(`
+          INSERT INTO company_modules (company_id, module_key, is_enabled, updated_at, updated_by)
+          VALUES ($1, $2, $3, CURRENT_TIMESTAMP, $4)
+          ON CONFLICT (company_id, module_key)
+          DO UPDATE SET 
+            is_enabled = EXCLUDED.is_enabled,
+            updated_at = CURRENT_TIMESTAMP,
+            updated_by = EXCLUDED.updated_by;
+        `, [companyId, item.module_key, isEnabled, updater]);
+      }
+
+      await logAudit(
+        req, 
+        'COMPANY_MODULE_UPDATE', 
+        `Updated module configuration for company ID ${companyId}`, 
+        null, 
+        moduleList, 
+        companyId
+      );
+
+      // Return refreshed list
+      const refreshed = await pgPool.query(`
+        SELECT 
+          m.module_key,
+          m.module_name,
+          COALESCE(cm.is_enabled, TRUE) AS is_enabled
+        FROM modules m
+        LEFT JOIN company_modules cm ON cm.module_key = m.module_key AND cm.company_id = $1
+        ORDER BY m.sort_order ASC;
+      `, [companyId]);
+
+      res.json({ 
+        success: true, 
+        message: 'Company module settings saved successfully', 
+        modules: refreshed.rows,
+        enabled_module_keys: refreshed.rows.filter(r => r.is_enabled).map(r => r.module_key)
+      });
+    } catch (err) {
+      console.error('Error updating company modules:', err);
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  // ==========================================
   // 3. ROLES & IAM
   // ==========================================
+
+  // Helper to parse permissions and access levels
+  function parsePermissionsWithLevels(permissions, permissionLevelsBody) {
+    const map = new Map();
+    if (Array.isArray(permissions)) {
+      for (const item of permissions) {
+        if (typeof item === 'string') {
+          if (item.includes(':')) {
+            const [k, lvl] = item.split(':');
+            map.set(k.trim(), lvl.trim().toLowerCase() === 'view' ? 'view' : 'edit');
+          } else {
+            map.set(item.trim(), 'edit');
+          }
+        } else if (item && typeof item === 'object') {
+          const k = item.permission_key || item.key;
+          const lvl = item.access_level || item.level || 'edit';
+          if (k) {
+            map.set(String(k).trim(), String(lvl).toLowerCase() === 'view' ? 'view' : 'edit');
+          }
+        }
+      }
+    }
+    if (permissionLevelsBody && typeof permissionLevelsBody === 'object') {
+      for (const [k, lvl] of Object.entries(permissionLevelsBody)) {
+        if (map.has(k)) {
+          map.set(k, String(lvl).toLowerCase() === 'view' ? 'view' : 'edit');
+        }
+      }
+    }
+    return map;
+  }
 
   // GET roles by company
   router.get('/companies/:companyId/roles', async (req, res) => {
@@ -558,7 +739,21 @@ function createMultiCompanyRouter(pgPool) {
           (SELECT COUNT(*)::int FROM company_user_roles cur WHERE cur.role_id = r.id AND cur.status = 'active') AS total_users,
           COALESCE(
             json_agg(p.permission_key) FILTER (WHERE p.permission_key IS NOT NULL), '[]'::json
-          ) AS permission_keys
+          ) AS permission_keys,
+          COALESCE(
+            json_object_agg(p.permission_key, COALESCE(rp.access_level, 'edit')) FILTER (WHERE p.permission_key IS NOT NULL), '{}'::json
+          ) AS permission_levels,
+          COALESCE(
+            json_agg(
+              json_build_object(
+                'id', p.id,
+                'permission_key', p.permission_key,
+                'access_level', COALESCE(rp.access_level, 'edit'),
+                'display_name', p.display_name,
+                'module', p.module
+              ) ORDER BY p.module ASC, p.id ASC
+            ) FILTER (WHERE p.id IS NOT NULL), '[]'::json
+          ) AS permissions_detail
         FROM roles r
         LEFT JOIN role_permissions rp ON r.id = rp.role_id
         LEFT JOIN permissions p ON rp.permission_id = p.id
@@ -593,7 +788,8 @@ function createMultiCompanyRouter(pgPool) {
         description = '',
         role_type = 'Employee Role',
         scope_type = 'Current Company Only',
-        permissions = []
+        permissions = [],
+        permission_levels = {}
       } = req.body;
 
       if (!role_name || !role_name.trim()) {
@@ -608,17 +804,17 @@ function createMultiCompanyRouter(pgPool) {
 
       const newRole = roleRes.rows[0];
 
-      // Assign permissions if array passed
-      if (Array.isArray(permissions) && permissions.length > 0) {
-        for (const permKey of permissions) {
-          const permIdRes = await pgPool.query('SELECT id FROM permissions WHERE permission_key = $1', [permKey]);
-          if (permIdRes.rows.length > 0) {
-            await pgPool.query(`
-              INSERT INTO role_permissions (role_id, permission_id)
-              VALUES ($1, $2)
-              ON CONFLICT (role_id, permission_id) DO NOTHING;
-            `, [newRole.id, permIdRes.rows[0].id]);
-          }
+      // Assign permissions with granular access level ('view' | 'edit')
+      const permMap = parsePermissionsWithLevels(permissions, permission_levels);
+      for (const [permKey, accessLevel] of permMap.entries()) {
+        const permIdRes = await pgPool.query('SELECT id FROM permissions WHERE permission_key = $1', [permKey]);
+        if (permIdRes.rows.length > 0) {
+          await pgPool.query(`
+            INSERT INTO role_permissions (role_id, permission_id, access_level)
+            VALUES ($1, $2, $3)
+            ON CONFLICT (role_id, permission_id) 
+            DO UPDATE SET access_level = EXCLUDED.access_level;
+          `, [newRole.id, permIdRes.rows[0].id, accessLevel]);
         }
       }
 
@@ -635,7 +831,7 @@ function createMultiCompanyRouter(pgPool) {
   router.put('/roles/:id', async (req, res) => {
     try {
       const roleId = req.params.id;
-      const { name, description, role_type, scope_type, status, permissions } = req.body;
+      const { name, description, role_type, scope_type, status, permissions, permission_levels = {} } = req.body;
 
       const updateRes = await pgPool.query(`
         UPDATE roles
@@ -654,17 +850,19 @@ function createMultiCompanyRouter(pgPool) {
         return res.status(404).json({ success: false, error: 'Role not found' });
       }
 
-      // Update permissions if provided
+      // Update permissions with granular access level if provided
       if (Array.isArray(permissions)) {
         await pgPool.query('DELETE FROM role_permissions WHERE role_id = $1', [roleId]);
-        for (const permKey of permissions) {
+        const permMap = parsePermissionsWithLevels(permissions, permission_levels);
+        for (const [permKey, accessLevel] of permMap.entries()) {
           const permIdRes = await pgPool.query('SELECT id FROM permissions WHERE permission_key = $1', [permKey]);
           if (permIdRes.rows.length > 0) {
             await pgPool.query(`
-              INSERT INTO role_permissions (role_id, permission_id)
-              VALUES ($1, $2)
-              ON CONFLICT (role_id, permission_id) DO NOTHING;
-            `, [roleId, permIdRes.rows[0].id]);
+              INSERT INTO role_permissions (role_id, permission_id, access_level)
+              VALUES ($1, $2, $3)
+              ON CONFLICT (role_id, permission_id) 
+              DO UPDATE SET access_level = EXCLUDED.access_level;
+            `, [roleId, permIdRes.rows[0].id, accessLevel]);
           }
         }
       }

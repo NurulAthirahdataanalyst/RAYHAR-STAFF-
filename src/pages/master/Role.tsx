@@ -51,6 +51,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { API_BASE_URL } from "@/config/api";
 import { useRole } from "@/contexts/RoleContext";
+import { useCompany } from "@/modules/multi-company/contexts/CompanyContext";
 import { YearPopover } from "@/components/shared/YearPopover";
 
 interface PermissionItem {
@@ -58,6 +59,7 @@ interface PermissionItem {
   module: string;
   permission_key: string;
   display_name: string;
+  access_level?: 'view' | 'edit';
 }
 
 interface RoleItem {
@@ -70,6 +72,7 @@ interface RoleItem {
   permission_count: number;
   permissions?: PermissionItem[];
   permission_keys?: string[];
+  permission_levels?: Record<string, 'view' | 'edit'>;
   created_at: string;
   updated_at?: string;
 }
@@ -91,6 +94,7 @@ const MODULE_ICONS: Record<string, any> = {
 export default function Role() {
   const navigate = useNavigate();
   const { role: currentUserRole, hasPermission } = useRole();
+  const { isModuleEnabled, activeCompany } = useCompany();
 
   const [roles, setRoles] = useState<RoleItem[]>([]);
   const [permissions, setPermissions] = useState<PermissionItem[]>([]);
@@ -115,6 +119,7 @@ export default function Role() {
   const [formStatus, setFormStatus] = useState<"Active" | "Inactive">("Active");
   const [selectedTemplate, setSelectedTemplate] = useState("blank");
   const [selectedPermissionKeys, setSelectedPermissionKeys] = useState<Set<string>>(new Set());
+  const [selectedPermissionLevels, setSelectedPermissionLevels] = useState<Record<string, 'view' | 'edit'>>({});
   const [collapsedModules, setCollapsedModules] = useState<Record<string, boolean>>({});
 
   // Users List Modal
@@ -163,6 +168,24 @@ export default function Role() {
   // Total permissions count
   const totalAvailablePerms = permissions.length;
 
+  // Helper to extract levels
+  const extractLevels = (roleItem: RoleItem): Record<string, 'view' | 'edit'> => {
+    const levels: Record<string, 'view' | 'edit'> = { ...(roleItem.permission_levels || {}) };
+    if (Array.isArray(roleItem.permissions)) {
+      for (const p of roleItem.permissions) {
+        if (p.permission_key) {
+          levels[p.permission_key] = p.access_level || levels[p.permission_key] || 'edit';
+        }
+      }
+    }
+    if (Array.isArray(roleItem.permission_keys)) {
+      for (const k of roleItem.permission_keys) {
+        if (!levels[k]) levels[k] = 'edit';
+      }
+    }
+    return levels;
+  };
+
   // Open Add Role Modal
   const handleOpenAddModal = () => {
     setFormMode("add");
@@ -172,6 +195,7 @@ export default function Role() {
     setFormStatus("Active");
     setSelectedTemplate("blank");
     setSelectedPermissionKeys(new Set());
+    setSelectedPermissionLevels({});
     setCollapsedModules({});
     setIsFormModalOpen(true);
   };
@@ -185,6 +209,7 @@ export default function Role() {
     setFormStatus(roleItem.status || "Active");
     setSelectedTemplate(roleItem.name);
     setSelectedPermissionKeys(new Set(roleItem.permission_keys || []));
+    setSelectedPermissionLevels(extractLevels(roleItem));
     setCollapsedModules({});
     setIsFormModalOpen(true);
   };
@@ -198,6 +223,7 @@ export default function Role() {
     setFormStatus(roleItem.status || "Active");
     setSelectedTemplate(roleItem.name);
     setSelectedPermissionKeys(new Set(roleItem.permission_keys || []));
+    setSelectedPermissionLevels(extractLevels(roleItem));
     setCollapsedModules({});
     setIsFormModalOpen(true);
   };
@@ -211,6 +237,7 @@ export default function Role() {
     setFormStatus("Active");
     setSelectedTemplate(roleItem.name);
     setSelectedPermissionKeys(new Set(roleItem.permission_keys || []));
+    setSelectedPermissionLevels(extractLevels(roleItem));
     setCollapsedModules({});
     setIsFormModalOpen(true);
   };
@@ -220,6 +247,7 @@ export default function Role() {
     setSelectedTemplate(templateName);
     if (templateName === "blank") {
       setSelectedPermissionKeys(new Set());
+      setSelectedPermissionLevels({});
       toast.info("Cleared permissions (Blank Role)");
       return;
     }
@@ -227,8 +255,23 @@ export default function Role() {
     const templateRole = roles.find(r => r.name.toLowerCase() === templateName.toLowerCase());
     if (templateRole && Array.isArray(templateRole.permission_keys)) {
       setSelectedPermissionKeys(new Set(templateRole.permission_keys));
+      setSelectedPermissionLevels(extractLevels(templateRole));
       toast.success(`Copied ${templateRole.permission_keys.length} permissions from ${templateRole.name}`);
     }
+  };
+
+  // Set explicit permission level ('view' | 'edit')
+  const handleSetPermissionLevel = (key: string, level: 'view' | 'edit') => {
+    if (formMode === "view") return;
+    setSelectedPermissionKeys(prev => {
+      const next = new Set(prev);
+      next.add(key);
+      return next;
+    });
+    setSelectedPermissionLevels(prev => ({
+      ...prev,
+      [key]: level
+    }));
   };
 
   // Toggle individual permission
@@ -240,6 +283,11 @@ export default function Role() {
         next.delete(key);
       } else {
         next.add(key);
+        // Default to 'edit' if not already configured
+        setSelectedPermissionLevels(prevL => ({
+          ...prevL,
+          [key]: prevL[key] || 'edit'
+        }));
       }
       return next;
     });
@@ -308,7 +356,8 @@ export default function Role() {
             name: formName.trim(),
             description: formDescription.trim(),
             status: formStatus,
-            permissions: permsArray
+            permissions: permsArray,
+            permission_levels: selectedPermissionLevels
           })
         });
         const data = await res.json();
@@ -327,7 +376,8 @@ export default function Role() {
             name: formName.trim(),
             description: formDescription.trim(),
             status: formStatus,
-            permissions: permsArray
+            permissions: permsArray,
+            permission_levels: selectedPermissionLevels
           })
         });
         const data = await res.json();
@@ -994,6 +1044,11 @@ export default function Role() {
               {/* Modules Grid (Responsive 1 or 2 Columns on PC) */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {Object.entries(groupedPermissions).map(([moduleName, modulePerms]) => {
+                  // Dynamically filter out modules disabled for the current active company
+                  if (!isModuleEnabled(moduleName)) {
+                    return null;
+                  }
+
                   const ModuleIcon = MODULE_ICONS[moduleName] || Shield;
                   const allModuleChecked = modulePerms.every(p => selectedPermissionKeys.has(p.permission_key));
                   const someModuleChecked = modulePerms.some(p => selectedPermissionKeys.has(p.permission_key));
@@ -1078,6 +1133,8 @@ export default function Role() {
                         <div className="p-3.5 space-y-2.5 bg-background/50">
                           {modulePerms.map((perm) => {
                             const isChecked = selectedPermissionKeys.has(perm.permission_key);
+                            const currentLevel = selectedPermissionLevels[perm.permission_key] || 'edit';
+
                             return (
                               <label
                                 key={perm.id}
@@ -1106,15 +1163,51 @@ export default function Role() {
                                   </div>
                                 </div>
                                 <div className="min-w-0 flex-1">
-                                  <div className="flex items-center justify-between gap-1">
+                                  <div className="flex items-center justify-between gap-2">
                                     <span className={`text-xs font-semibold ${
                                       isChecked ? "text-gray-900 dark:text-gray-100 font-bold" : "text-muted-foreground"
                                     }`}>
                                       {perm.display_name}
                                     </span>
-                                    <span className="text-[9px] font-mono text-muted-foreground/60 shrink-0">
-                                      {perm.permission_key}
-                                    </span>
+
+                                    {/* Segmented View | Edit Toggle Control */}
+                                    <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+                                      <div className="inline-flex items-center p-0.5 rounded-lg bg-muted/80 dark:bg-neutral-800/80 border border-border/60 shadow-2xs">
+                                        <button
+                                          type="button"
+                                          disabled={formMode === "view"}
+                                          onClick={() => handleSetPermissionLevel(perm.permission_key, 'view')}
+                                          className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider transition-all ${
+                                            isChecked && currentLevel === 'view'
+                                              ? "bg-[#942392] text-white shadow-xs"
+                                              : isChecked
+                                              ? "text-muted-foreground hover:text-foreground hover:bg-background/60"
+                                              : "text-muted-foreground/40 hover:text-muted-foreground"
+                                          } ${formMode === "view" ? "cursor-default" : "cursor-pointer"}`}
+                                          title="View: Read-only access"
+                                        >
+                                          View
+                                        </button>
+                                        <button
+                                          type="button"
+                                          disabled={formMode === "view"}
+                                          onClick={() => handleSetPermissionLevel(perm.permission_key, 'edit')}
+                                          className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider transition-all ${
+                                            isChecked && currentLevel === 'edit'
+                                              ? "bg-[#942392] text-white shadow-xs"
+                                              : isChecked
+                                              ? "text-muted-foreground hover:text-foreground hover:bg-background/60"
+                                              : "text-muted-foreground/40 hover:text-muted-foreground"
+                                          } ${formMode === "view" ? "cursor-default" : "cursor-pointer"}`}
+                                          title="Edit: Full write/create/delete access"
+                                        >
+                                          Edit
+                                        </button>
+                                      </div>
+                                      <span className="hidden sm:inline text-[9px] font-mono text-muted-foreground/50">
+                                        {perm.permission_key}
+                                      </span>
+                                    </div>
                                   </div>
                                 </div>
                               </label>

@@ -100,6 +100,7 @@ export function getBreadcrumbs(rawPathname: string, rawSearch?: string, role?: s
     let sub = "";
     if (pathname === "/organization/entities" || pathname.endsWith("/entities")) sub = "CORPORATE ENTITIES";
     else if (pathname === "/organization/roles" || pathname.endsWith("/roles")) sub = "COMPANY ROLES & RBAC";
+    else if (pathname === "/organization/modules" || pathname.endsWith("/modules")) sub = "COMPANY MODULE CONFIGURATION";
     else if (pathname === "/organization/transfer" || pathname.endsWith("/transfer")) sub = "EMPLOYEE TRANSFER WIZARD";
     else if (pathname === "/organization/history" || pathname.endsWith("/history")) sub = "TRANSFER CAREER HISTORY";
     else if (pathname === "/organization/branches" || pathname.endsWith("/branches")) sub = "BRANCHES & GEOFENCE";
@@ -110,6 +111,7 @@ export function getBreadcrumbs(rawPathname: string, rawSearch?: string, role?: s
       const tab = params.get("tab");
       if (tab === "entities") sub = "CORPORATE ENTITIES";
       else if (tab === "roles") sub = "COMPANY ROLES & RBAC";
+      else if (tab === "modules") sub = "COMPANY MODULE CONFIGURATION";
       else if (tab === "transfer") sub = "EMPLOYEE TRANSFER WIZARD";
       else if (tab === "history") sub = "TRANSFER CAREER HISTORY";
       else if (tab === "branches") sub = "BRANCHES & GEOFENCE";

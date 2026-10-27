@@ -18,7 +18,10 @@ interface RoleContextType {
   roleId?: string;
   isSystemRole: boolean;
   permissions: string[];
+  permissionLevels: Record<string, 'view' | 'edit'>;
   hasPermission: (permission: string | string[]) => boolean;
+  canEdit: (permissionKey: string) => boolean;
+  canView: (permissionKey: string) => boolean;
   setRole: (role: string) => void;
   userName: string;
   userBranch: string;
@@ -122,6 +125,7 @@ export const RoleProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [roleId, setRoleId] = useState<string | undefined>(user?.role_id);
   const [isSystemRole, setIsSystemRole] = useState<boolean>(user?.is_system_role ?? true);
   const [permissions, setPermissions] = useState<string[]>(getInitialPermissions);
+  const [permissionLevels, setPermissionLevels] = useState<Record<string, 'view' | 'edit'>>({});
   const [userName, setUserName] = useState<string>(getInitialName);
   const [userBranch, setUserBranch] = useState<string>(getInitialBranch);
   const [userDepartment, setUserDepartment] = useState<string>(getInitialDept);
@@ -144,6 +148,25 @@ export const RoleProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return permissions.includes(permission);
   }, [role, permissions]);
 
+  const canEdit = useCallback((permissionKey: string): boolean => {
+    const norm = (role || "").toLowerCase();
+    if (norm === "hr_admin" || norm === "hr admin" || norm === "admin") {
+      return true;
+    }
+    if (permissions.includes("*")) {
+      return true;
+    }
+    if (!permissions.includes(permissionKey)) {
+      return false;
+    }
+    const level = permissionLevels[permissionKey] || 'edit';
+    return level === 'edit';
+  }, [role, permissions, permissionLevels]);
+
+  const canView = useCallback((permissionKey: string): boolean => {
+    return hasPermission(permissionKey);
+  }, [hasPermission]);
+
   const fetchUserData = useCallback(async (force = false) => {
     const targetId = resolvedUserId || user?.email;
     if (!targetId) return;
@@ -165,6 +188,7 @@ export const RoleProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const resolvedRId = data.role_id || data.profile.role_id;
         const resolvedIsSys = data.is_system_role ?? data.profile.is_system_role ?? true;
         const fetchedPerms = Array.isArray(data.permissions) ? data.permissions : [];
+        const fetchedPermLevels = (data.permission_levels && typeof data.permission_levels === 'object') ? data.permission_levels : {};
 
         setUserName(fetchedName);
         setUserBranch(fetchedBranch);
@@ -174,6 +198,7 @@ export const RoleProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setRoleId(resolvedRId);
         setIsSystemRole(resolvedIsSys);
         setPermissions(fetchedPerms);
+        setPermissionLevels(fetchedPermLevels);
 
         try {
           sessionStorage.setItem("presence_cached_role", parsedRole);
@@ -245,7 +270,10 @@ export const RoleProvider: React.FC<{ children: React.ReactNode }> = ({ children
     roleId,
     isSystemRole,
     permissions,
+    permissionLevels,
     hasPermission,
+    canEdit,
+    canView,
     setRole,
     userName,
     userBranch,
@@ -259,7 +287,10 @@ export const RoleProvider: React.FC<{ children: React.ReactNode }> = ({ children
     roleId,
     isSystemRole,
     permissions,
+    permissionLevels,
     hasPermission,
+    canEdit,
+    canView,
     setRole,
     userName,
     userBranch,

@@ -11,7 +11,9 @@ import {
   ApprovalWorkflowStep, 
   UserCompanyRole,
   EmployeeTransferRecord,
-  AuditLogItem 
+  AuditLogItem,
+  ModuleDefinition,
+  CompanyModuleSetting
 } from '../types/multiCompany.types';
 
 export const multiCompanyApi = {
@@ -66,6 +68,40 @@ export const multiCompanyApi = {
     const res = await fetch(`${API_BASE_URL}/api/companies/${id}/logo`, { method: 'DELETE' });
     const data = await res.json();
     if (!res.ok || !data.success) throw new Error(data.error || 'Failed to reset logo');
+  },
+
+  // Company Module Management
+  async getModules(): Promise<ModuleDefinition[]> {
+    const res = await fetch(`${API_BASE_URL}/api/modules`);
+    const data = await res.json();
+    return data.success ? data.modules : [];
+  },
+
+  async getCompanyModules(companyId: number): Promise<{ modules: CompanyModuleSetting[]; enabled_module_keys: string[] }> {
+    const res = await fetch(`${API_BASE_URL}/api/companies/${companyId}/modules`);
+    const data = await res.json();
+    return {
+      modules: data.success ? data.modules : [],
+      enabled_module_keys: data.success ? data.enabled_module_keys : []
+    };
+  },
+
+  async saveCompanyModules(
+    companyId: number, 
+    modules: Array<{ module_key: string; is_enabled: boolean }>,
+    operatorName?: string
+  ): Promise<{ modules: CompanyModuleSetting[]; enabled_module_keys: string[] }> {
+    const res = await fetch(`${API_BASE_URL}/api/companies/${companyId}/modules`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ modules, operator_name: operatorName })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.error || 'Failed to save company module configuration');
+    return {
+      modules: data.modules || [],
+      enabled_module_keys: data.enabled_module_keys || []
+    };
   },
 
   // Branches & Geofence
