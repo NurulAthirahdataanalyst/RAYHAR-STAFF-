@@ -838,19 +838,13 @@ export default function Role() {
       {/* ========================================================================= */}
       <Dialog open={isFormModalOpen} onOpenChange={setIsFormModalOpen}>
         <DialogContent
-          className="w-[96vw] sm:w-[92vw] md:w-[90vw] lg:w-[86vw] xl:w-[80vw] max-w-5xl max-h-[92vh] sm:max-h-[88vh] p-0 overflow-hidden border border-border/80 shadow-2xl rounded-2xl flex flex-col bg-card"
+          className="w-[96vw] sm:w-[92vw] md:w-[90vw] lg:w-[86vw] xl:w-[80vw] max-w-5xl max-h-[92vh] sm:max-h-[88vh] p-0 overflow-hidden border border-border/80 shadow-2xl rounded-2xl flex flex-col bg-card [&>button]:text-white [&>button]:hover:text-white/80"
         >
           {/* Header */}
-          <DialogHeader className="p-4 sm:p-6 pb-3 sm:pb-4 border-b border-border/60 bg-muted/20 shrink-0">
+          <DialogHeader className="p-4 sm:p-6 border-b border-white/20 bg-[#942392] text-white shrink-0">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div className="flex items-center gap-2.5">
-                <div className={`p-2.5 rounded-xl ${
-                  formMode === "view"
-                    ? "bg-purple-100 text-[#942392] dark:bg-purple-950/40"
-                    : formMode === "duplicate"
-                    ? "bg-amber-100 text-amber-700 dark:bg-amber-950/40"
-                    : "bg-[#942392]/10 text-[#942392]"
-                }`}>
+                <div className="p-2.5 rounded-xl bg-white/20 text-white shrink-0">
                   {formMode === "view" ? (
                     <Eye className="w-5 h-5" />
                   ) : formMode === "duplicate" ? (
@@ -860,13 +854,13 @@ export default function Role() {
                   )}
                 </div>
                 <div>
-                  <DialogTitle className="text-lg sm:text-xl font-black text-gray-900 dark:text-gray-100">
+                  <DialogTitle className="text-lg sm:text-xl font-black uppercase tracking-tight text-white m-0">
                     {formMode === "add" && "Create New Custom Role"}
                     {formMode === "edit" && `Edit Role: ${formName}`}
                     {formMode === "duplicate" && `Duplicate Role: ${formName}`}
                     {formMode === "view" && `Role Permissions: ${formName}`}
                   </DialogTitle>
-                  <DialogDescription className="text-xs text-muted-foreground">
+                  <DialogDescription className="text-xs font-bold uppercase tracking-wider text-white/80 m-0 mt-1">
                     {formMode === "view"
                       ? "Inspect assigned system module permissions"
                       : "Define role specifications and toggle granular module permissions"}
@@ -878,9 +872,9 @@ export default function Role() {
               <div className="flex items-center gap-2 self-start sm:self-auto">
                 <Badge
                   variant="outline"
-                  className="px-3 py-1 bg-[#942392]/10 text-[#942392] dark:bg-[#942392]/20 border-[#942392]/30 font-bold text-xs rounded-xl flex items-center gap-1.5"
+                  className="px-3 py-1 bg-white/20 text-white border-white/30 font-bold text-xs rounded-xl flex items-center gap-1.5"
                 >
-                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <CheckCircle2 className="w-3.5 h-3.5 text-white" />
                   <span>{selectedPermissionKeys.size} of {totalAvailablePerms} Permissions Selected</span>
                 </Badge>
               </div>

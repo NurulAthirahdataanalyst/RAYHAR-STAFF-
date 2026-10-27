@@ -604,47 +604,47 @@ export const CompanyModuleManagement: React.FC = () => {
                     : 'border-border/40 dark:border-neutral-900 bg-muted/20 opacity-75'
                 }`}
               >
-                {/* Module Header Bar */}
-                <div className="p-3.5 bg-[#942392] border-b border-[#7a1b78] flex items-center justify-between gap-2 text-white shadow-2xs">
+                {/* Module Header Bar - Soft Purple Theme */}
+                <div className="p-3.5 bg-[#942392]/10 dark:bg-[#942392]/20 border-b border-purple-200/80 dark:border-purple-800/60 flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2.5 min-w-0">
                     {/* Module Checkbox */}
                     <button
                       type="button"
                       onClick={() => handleToggleModuleAll(mod.module_key)}
-                      className="text-white hover:opacity-90 transition-opacity shrink-0"
+                      className="text-[#942392] hover:opacity-80 transition-opacity shrink-0"
                       title={allChecked ? "Deselect all submodules" : "Select all submodules"}
                     >
                       {allChecked ? (
-                        <div className="w-5 h-5 border-2 border-white bg-white rounded flex items-center justify-center shadow-xs">
-                          <Check className="w-3.5 h-3.5 text-[#942392] stroke-[3.5]" />
+                        <div className="w-5 h-5 border-2 border-[#942392] bg-[#942392] rounded flex items-center justify-center shadow-xs">
+                          <Check className="w-3.5 h-3.5 text-white stroke-[3.5]" />
                         </div>
                       ) : someChecked ? (
-                        <div className="w-5 h-5 border-2 border-white/80 bg-white/20 rounded flex items-center justify-center">
-                          <div className="w-2.5 h-1 bg-white rounded" />
+                        <div className="w-5 h-5 border-2 border-[#942392] bg-[#942392]/20 rounded flex items-center justify-center">
+                          <div className="w-2.5 h-1 bg-[#942392] rounded" />
                         </div>
                       ) : (
-                        <div className="w-5 h-5 border-2 border-white/60 hover:border-white bg-white/10 rounded transition-colors" />
+                        <div className="w-5 h-5 border-2 border-purple-300 dark:border-purple-700 hover:border-[#942392] bg-background rounded transition-colors" />
                       )}
                     </button>
 
-                    <div className="p-1.5 rounded-xl bg-white/20 text-white shrink-0 border border-white/20">
+                    <div className="p-1.5 rounded-xl bg-white dark:bg-neutral-900 text-[#942392] shrink-0 border border-purple-200/80 dark:border-purple-800/60 shadow-2xs">
                       <IconComponent className="w-4 h-4" />
                     </div>
 
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
-                        <h3 className="text-xs font-black uppercase tracking-wider text-white truncate">
+                        <h3 className="text-xs font-black uppercase tracking-wider text-black dark:text-white truncate">
                           {mod.module_name}
                         </h3>
                         <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border ${
                           activeInModCount > 0
-                            ? 'border-emerald-300/40 bg-emerald-500/20 text-emerald-200'
-                            : 'border-white/20 bg-white/10 text-white/70'
+                            ? 'border-emerald-300 dark:border-emerald-800/60 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300'
+                            : 'border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-800 text-neutral-500'
                         }`}>
                           {activeInModCount > 0 ? 'Enabled' : 'Disabled'}
                         </span>
                       </div>
-                      <span className="text-[10px] text-white/80 font-bold">
+                      <span className="text-[10px] text-[#942392] dark:text-purple-300 font-bold">
                         {activeInModCount} of {perms.length} active
                       </span>
                     </div>
@@ -654,7 +654,7 @@ export const CompanyModuleManagement: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => toggleCollapse(mod.module_key)}
-                    className="p-1.5 hover:bg-white/20 rounded-lg text-white transition-colors shrink-0"
+                    className="p-1.5 hover:bg-[#942392]/10 rounded-lg text-black dark:text-white transition-colors shrink-0"
                     title={isCollapsed ? "Expand module" : "Collapse module"}
                   >
                     {isCollapsed ? (
