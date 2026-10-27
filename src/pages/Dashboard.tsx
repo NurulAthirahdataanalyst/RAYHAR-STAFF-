@@ -61,6 +61,9 @@ const getStoredUser = () => {
 export default function Dashboard() {
   const { user } = useAuth();
   const { role, userName, userId, userBranch, userDepartment } = useRole();
+  const isEmployee = role === "employee" || 
+    (typeof role === "string" && (role.toLowerCase().includes("employee") || role.toLowerCase().includes("staff"))) || 
+    !["hr_admin", "branch_leader", "head_of_department", "managing_director", "operation_manager", "finance_manager"].includes(role);
   const storedUser = getStoredUser();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
@@ -811,8 +814,8 @@ export default function Dashboard() {
       ) : (
         <>
           {/* Stat Cards - responsive grid */}
-      <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-3 ${role === "employee" ? "lg:grid-cols-4" : "lg:grid-cols-4 xl:grid-cols-7"}`}>
-        {role === "employee" ? (
+      <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-3 ${isEmployee ? "lg:grid-cols-4" : "lg:grid-cols-4 xl:grid-cols-7"}`}>
+        {isEmployee ? (
           <>
             {/* 1. Today's Status */}
             <Card 
@@ -871,7 +874,7 @@ export default function Dashboard() {
             {/* 2. Attendance */}
             <Card 
               onClick={() => {
-                if (role === "employee") {
+                if (isEmployee) {
                   navigate("/attendance");
                 } else if (role === "branch_leader" || role === "branch_officer" || role === "head_of_department") {
                   navigate("/team-attendance");
@@ -905,7 +908,7 @@ export default function Dashboard() {
             {/* 3. Leave Balance */}
             <Card 
               onClick={() => {
-                if (role === "employee") {
+                if (isEmployee) {
                   navigate("/leave");
                 } else if (role === "branch_leader" || role === "branch_officer" || role === "head_of_department") {
                   navigate("/leave/team");
@@ -939,7 +942,7 @@ export default function Dashboard() {
             {/* 4. Pending */}
             <Card 
               onClick={() => {
-                if (role === "employee") {
+                if (isEmployee) {
                   navigate("/leave");
                 } else if (role === "branch_leader" || role === "branch_officer" || role === "head_of_department") {
                   navigate("/leave/team");

@@ -36,12 +36,13 @@ const RoleContext = createContext<RoleContextType | undefined>(undefined);
 export const normalizeRole = (rawRole?: string): string => {
   if (!rawRole) return "employee";
   const r = String(rawRole).trim().toLowerCase();
-  if (r === 'hr' || r === 'hr admin' || r === 'hr_admin' || r === 'admin') return 'hr_admin';
-  if (r === 'md' || r === 'managing director' || r === 'managing_director') return 'managing_director';
-  if (r === 'branch leader' || r === 'branch_leader') return 'branch_leader';
-  if (r === 'branch officer' || r === 'branch_officer') return 'branch_officer';
-  if (r === 'finance manager' || r === 'finance_manager' || r === 'operation manager' || r === 'operations manager' || r === 'operation_manager') return 'operation_manager';
-  if (r === 'head of department' || r === 'hod' || r === 'head_of_department') return 'head_of_department';
+  if (r === 'hr' || r === 'hr admin' || r === 'hr_admin' || r === 'admin' || r.includes('hr admin') || r.includes('hr_admin')) return 'hr_admin';
+  if (r === 'md' || r === 'managing director' || r === 'managing_director' || r.includes('managing director')) return 'managing_director';
+  if (r.includes('branch leader') || r.includes('branch_leader')) return 'branch_leader';
+  if (r.includes('branch officer') || r.includes('branch_officer')) return 'branch_officer';
+  if (r.includes('finance manager') || r.includes('operation manager') || r.includes('operations manager') || r.includes('operation_manager')) return 'operation_manager';
+  if (r.includes('head of department') || r.includes('hod') || r.includes('head_of_department')) return 'head_of_department';
+  if (r.includes('employee') || r.includes('staff') || r === 'user') return 'employee';
   return r;
 };
 

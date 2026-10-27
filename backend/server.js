@@ -664,7 +664,7 @@ app.get("/api/roles", async (req, res) => {
         r.company_id,
         r.created_at,
         r.updated_at,
-        COUNT(DISTINCT p.user_id)::int AS total_users,
+        (SELECT COUNT(*)::int FROM profiles p WHERE p.role_id = r.id OR LOWER(p.role) = LOWER(r.name) OR LOWER(REPLACE(p.role, '_', ' ')) = LOWER(r.name)) AS total_users,
         COUNT(DISTINCT rp.permission_id)::int AS permission_count,
         COALESCE(
           json_agg(
@@ -689,8 +689,7 @@ app.get("/api/roles", async (req, res) => {
           '{}'::varchar[]
         ) AS permission_keys
       FROM roles r
-      LEFT JOIN profiles p ON p.role_id = r.id OR LOWER(p.role) = LOWER(r.name) OR LOWER(REPLACE(p.role, '_', ' ')) = LOWER(r.name)
-      LEFT JOIN role_permissions rp ON rp.role_id = r.id
+            LEFT JOIN role_permissions rp ON rp.role_id = r.id
       LEFT JOIN permissions perm ON perm.id = rp.permission_id
       ${whereFilter}
       GROUP BY r.id, r.name, r.description, r.is_system_role, r.status, r.scope_type, r.company_id, r.created_at, r.updated_at
@@ -7687,6 +7686,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
     else if (role.includes('branch leader') || role === 'branch_leader') role = 'branch_leader';
     else if (role.includes('finance manager') || role.includes('operation manager') || role.includes('operations manager')) role = 'operation_manager';
     else if (role.includes('head of department') || role.includes('hod') || role === 'head_of_department') role = 'head_of_department';
+    else if (role.includes('employee') || role.includes('staff')) role = 'employee';
 
   const branch = safeString(req.query.branch);
 
