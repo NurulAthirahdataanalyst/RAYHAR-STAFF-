@@ -26,7 +26,10 @@ import {
   ChevronRight,
   Shield,
   CheckCircle2,
-  Layers
+  Layers,
+  Edit,
+  X,
+  Eye
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCompany } from '@/modules/multi-company/contexts/CompanyContext';
@@ -62,6 +65,7 @@ export const CompanyModuleManagement: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [saving, setSaving] = useState<boolean>(false);
   const [hasChanges, setHasChanges] = useState<boolean>(false);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
   const [collapsedModules, setCollapsedModules] = useState<Record<string, boolean>>({});
 
   // Role-specific permission editing states
@@ -90,6 +94,7 @@ export const CompanyModuleManagement: React.FC = () => {
       setCompanyRoles(rolesRes || []);
       setMainCompanyRoles(mainRolesRes.roles || []);
       setHasChanges(false);
+      setIsEditing(false);
     } catch (err: any) {
       console.error('Error loading module data:', err);
       toast.error('Failed to load company module configuration');
@@ -101,12 +106,15 @@ export const CompanyModuleManagement: React.FC = () => {
   useEffect(() => {
     if (selectedCompanyId) {
       setSelectedRoleId('all');
+      setIsEditing(false);
+      setHasChanges(false);
       void loadData(selectedCompanyId);
     }
   }, [selectedCompanyId]);
 
   // When selected role changes, initialize role permissions
   useEffect(() => {
+    setIsEditing(false);
     if (selectedRoleId === 'all') {
       setRolePermissions(new Set());
       setRolePermissionLevels({});
@@ -348,6 +356,8 @@ export const CompanyModuleManagement: React.FC = () => {
 
         await multiCompanyApi.updateRole(targetRole.id, payload);
         toast.success(`Permissions for role "${targetRole.name}" saved successfully!`);
+        setHasChanges(false);
+        setIsEditing(false);
         await loadData(selectedCompanyId);
       } else {
         const payload = modules.map(m => ({
@@ -364,6 +374,7 @@ export const CompanyModuleManagement: React.FC = () => {
         );
 
         setHasChanges(false);
+        setIsEditing(false);
         toast.success(`Module configuration for ${currentCompany?.company_name || 'company'} saved successfully!`);
         await refreshCompanyModules();
         await loadData(selectedCompanyId);
@@ -480,25 +491,51 @@ export const CompanyModuleManagement: React.FC = () => {
               </div>
             </div>
 
-            {/* Save Button placed right-most under Role dropdown */}
-            <Button
-              type="button"
-              onClick={handleSave}
-              disabled={saving}
-              className="h-10 px-6 rounded-xl font-black text-xs uppercase tracking-wider shadow-md flex items-center justify-center gap-2 bg-[#942392] hover:bg-[#800A7A] text-white cursor-pointer active:scale-95 disabled:opacity-60"
-            >
-              {saving ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin text-white" />
-                  <span>Saving...</span>
-                </>
+            {/* Edit / Cancel and Save Buttons */}
+            <div className="flex items-center gap-2.5">
+              {!isEditing ? (
+                <Button
+                  type="button"
+                  onClick={() => setIsEditing(true)}
+                  className="h-10 px-5 rounded-xl font-bold text-xs uppercase tracking-wider shadow-xs flex items-center justify-center gap-2 border border-slate-300 dark:border-slate-700 bg-white hover:bg-slate-50 dark:bg-neutral-900 dark:hover:bg-neutral-800 text-slate-800 dark:text-slate-100 cursor-pointer transition active:scale-95"
+                >
+                  <Edit className="w-4 h-4 text-[#942392]" />
+                  <span>Edit Configuration</span>
+                </Button>
               ) : (
-                <>
-                  <Save className="w-4 h-4 text-white" />
-                  <span>Save Configuration</span>
-                </>
+                <Button
+                  type="button"
+                  onClick={() => {
+                    setIsEditing(false);
+                    setHasChanges(false);
+                    void loadData(selectedCompanyId);
+                  }}
+                  className="h-10 px-4 rounded-xl font-bold text-xs uppercase tracking-wider shadow-xs flex items-center justify-center gap-1.5 border border-slate-300 dark:border-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-slate-700 dark:text-slate-200 cursor-pointer transition active:scale-95"
+                >
+                  <X className="w-4 h-4 text-slate-500" />
+                  <span>Cancel Edit</span>
+                </Button>
               )}
-            </Button>
+
+              <Button
+                type="button"
+                onClick={handleSave}
+                disabled={!isEditing || !hasChanges || saving}
+                className="h-10 px-6 rounded-xl font-black text-xs uppercase tracking-wider shadow-md flex items-center justify-center gap-2 bg-[#942392] hover:bg-[#800A7A] text-white cursor-pointer active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin text-white" />
+                    <span>Saving...</span>
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4 text-white" />
+                    <span>Save Configuration</span>
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -512,6 +549,15 @@ export const CompanyModuleManagement: React.FC = () => {
                 : 'border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300'
             }`}>
               {isMainCompany ? 'Main Parent Company' : 'Subsidiary Company'}
+            </span>
+
+            <span className={`inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-bold border ${
+              isEditing 
+                ? 'border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300' 
+                : 'border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+            }`}>
+              {isEditing ? <Edit className="w-3.5 h-3.5 text-amber-600" /> : <Eye className="w-3.5 h-3.5 text-slate-500" />}
+              {isEditing ? 'Edit Mode' : 'Overview (Read-Only)'}
             </span>
 
             {selectedRoleId !== 'all' && (
@@ -528,52 +574,57 @@ export const CompanyModuleManagement: React.FC = () => {
             </span>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Copy From Main Company Role (when role selected) */}
-            {selectedRoleId !== 'all' && mainCompanyRoles.length > 0 && (
-              <div className="flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-[#942392]" />
-                <Select onValueChange={handleCopyFromMainRole}>
-                  <SelectTrigger className="h-8 text-xs font-bold rounded-full border-border bg-background text-black dark:text-white w-52">
-                    <SelectValue placeholder="Copy From Main Role..." />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl max-h-56">
-                    {mainCompanyRoles.map(mr => (
-                      <SelectItem key={mr.id} value={mr.name} className="text-xs font-bold">
-                        {mr.name} ({mr.permission_keys ? mr.permission_keys.length : 0} perms)
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+          {/* Right Controls: Only appear when isEditing is true */}
+          {isEditing && (
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Copy From Main Company Role (when role selected) */}
+              {selectedRoleId !== 'all' && mainCompanyRoles.length > 0 && (
+                <div className="flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-[#942392]" />
+                  <Select onValueChange={handleCopyFromMainRole}>
+                    <SelectTrigger className="h-8 text-xs font-bold rounded-full border-border bg-background text-black dark:text-white w-52 shadow-2xs">
+                      <SelectValue placeholder="Copy From Main Role..." />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl max-h-56">
+                      {mainCompanyRoles.map(mr => (
+                        <SelectItem key={mr.id} value={mr.name} className="text-xs font-bold">
+                          {mr.name} ({mr.permission_keys ? mr.permission_keys.length : 0} perms)
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => handleGlobalToggle(true)}
-                className="text-xs font-black text-[#942392] hover:underline uppercase"
-              >
-                Select All
-              </button>
-              <span className="text-muted-foreground/40">•</span>
-              <button
-                type="button"
-                onClick={() => handleGlobalToggle(false)}
-                className="text-xs font-bold text-muted-foreground hover:text-black dark:hover:text-white hover:underline"
-              >
-                Clear All
-              </button>
-              <span className="text-muted-foreground/40">•</span>
-              <button
-                type="button"
-                onClick={() => handleToggleAllCollapse(true)}
-                className="text-xs font-bold text-black dark:text-white hover:underline"
-              >
-                Expand All
-              </button>
+              {/* Tag style bulk action pills in Proper Case */}
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleGlobalToggle(true)}
+                  className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border border-slate-300 dark:border-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 transition cursor-pointer shadow-2xs active:scale-95"
+                >
+                  Select All
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleGlobalToggle(false)}
+                  className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border border-slate-300 dark:border-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition cursor-pointer shadow-2xs active:scale-95"
+                >
+                  Clear All
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const anyOpen = Object.values(collapsedModules).some(v => !v);
+                    handleToggleAllCollapse(!anyOpen);
+                  }}
+                  className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border border-slate-300 dark:border-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 transition cursor-pointer shadow-2xs active:scale-95"
+                >
+                  Expand All
+                </button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </Card>
 
@@ -607,25 +658,27 @@ export const CompanyModuleManagement: React.FC = () => {
                 {/* Module Header Bar - Soft Purple Theme */}
                 <div className="p-3.5 bg-[#942392]/10 dark:bg-[#942392]/20 border-b border-purple-200/80 dark:border-purple-800/60 flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2.5 min-w-0">
-                    {/* Module Checkbox */}
-                    <button
-                      type="button"
-                      onClick={() => handleToggleModuleAll(mod.module_key)}
-                      className="text-[#942392] hover:opacity-80 transition-opacity shrink-0"
-                      title={allChecked ? "Deselect all submodules" : "Select all submodules"}
-                    >
-                      {allChecked ? (
-                        <div className="w-5 h-5 border-2 border-[#942392] bg-[#942392] rounded flex items-center justify-center shadow-xs">
-                          <Check className="w-3.5 h-3.5 text-white stroke-[3.5]" />
-                        </div>
-                      ) : someChecked ? (
-                        <div className="w-5 h-5 border-2 border-[#942392] bg-[#942392]/20 rounded flex items-center justify-center">
-                          <div className="w-2.5 h-1 bg-[#942392] rounded" />
-                        </div>
-                      ) : (
-                        <div className="w-5 h-5 border-2 border-purple-300 dark:border-purple-700 hover:border-[#942392] bg-background rounded transition-colors" />
-                      )}
-                    </button>
+                    {/* Module Checkbox - Only in Edit Mode */}
+                    {isEditing && (
+                      <button
+                        type="button"
+                        onClick={() => handleToggleModuleAll(mod.module_key)}
+                        className="text-[#942392] hover:opacity-80 transition-opacity shrink-0 cursor-pointer"
+                        title={allChecked ? "Deselect all submodules" : "Select all submodules"}
+                      >
+                        {allChecked ? (
+                          <div className="w-5 h-5 border-2 border-[#942392] bg-[#942392] rounded flex items-center justify-center shadow-xs">
+                            <Check className="w-3.5 h-3.5 text-white stroke-[3.5]" />
+                          </div>
+                        ) : someChecked ? (
+                          <div className="w-5 h-5 border-2 border-[#942392] bg-[#942392]/20 rounded flex items-center justify-center">
+                            <div className="w-2.5 h-1 bg-[#942392] rounded" />
+                          </div>
+                        ) : (
+                          <div className="w-5 h-5 border-2 border-purple-300 dark:border-purple-700 hover:border-[#942392] bg-background rounded transition-colors" />
+                        )}
+                      </button>
+                    )}
 
                     <div className="p-1.5 rounded-xl bg-white dark:bg-neutral-900 text-[#942392] shrink-0 border border-purple-200/80 dark:border-purple-800/60 shadow-2xs">
                       <IconComponent className="w-4 h-4" />
@@ -680,24 +733,28 @@ export const CompanyModuleManagement: React.FC = () => {
                         return (
                           <div
                             key={p.id}
-                            onClick={() => handleToggleSubmodule(mod.module_key, p.permission_key)}
-                            className={`flex items-center justify-between gap-3 p-2.5 rounded-xl border transition-all cursor-pointer ${
+                            onClick={isEditing ? () => handleToggleSubmodule(mod.module_key, p.permission_key) : undefined}
+                            className={`flex items-center justify-between gap-3 p-2.5 rounded-xl border transition-all ${
+                              isEditing ? 'cursor-pointer' : 'cursor-default'
+                            } ${
                               isChecked
                                 ? 'bg-[#942392]/5 border-[#942392]/25 dark:bg-[#942392]/10'
-                                : 'hover:bg-muted/40 border-border/40'
+                                : 'hover:bg-muted/40 border-border/40 opacity-70'
                             }`}
                           >
                             <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                              {/* Submodule Checkbox */}
-                              <div
-                                className={`w-4 h-4 rounded flex items-center justify-center transition-all border shrink-0 ${
-                                  isChecked
-                                    ? 'bg-[#942392] border-[#942392] text-white shadow-2xs'
-                                    : 'border-gray-300 dark:border-gray-600 bg-background hover:border-[#942392]'
-                                }`}
-                              >
-                                {isChecked && <Check className="w-3 h-3 text-white stroke-[3.5]" />}
-                              </div>
+                              {/* Submodule Checkbox - Only in Edit Mode */}
+                              {isEditing && (
+                                <div
+                                  className={`w-4 h-4 rounded flex items-center justify-center transition-all border shrink-0 ${
+                                    isChecked
+                                      ? 'bg-[#942392] border-[#942392] text-white shadow-2xs'
+                                      : 'border-gray-300 dark:border-gray-600 bg-background hover:border-[#942392]'
+                                  }`}
+                                >
+                                  {isChecked && <Check className="w-3 h-3 text-white stroke-[3.5]" />}
+                                </div>
+                              )}
 
                               <span className={`text-xs font-bold leading-tight truncate ${
                                 isChecked ? 'text-black dark:text-white' : 'text-muted-foreground'
@@ -706,41 +763,54 @@ export const CompanyModuleManagement: React.FC = () => {
                               </span>
                             </div>
 
-                            {/* Granular View | Edit Segmented Control */}
+                            {/* Granular View | Edit Segmented Control (in Edit Mode) or Tag Badge (in Overview Mode) */}
                             <div 
                               className="flex items-center gap-1.5 shrink-0" 
-                              onClick={(e) => e.stopPropagation()}
+                              onClick={(e) => isEditing && e.stopPropagation()}
                             >
-                              <div className="inline-flex items-center p-0.5 rounded-full bg-muted/80 dark:bg-neutral-800 border border-border/70 shadow-2xs">
-                                <button
-                                  type="button"
-                                  onClick={() => handleSetSubmoduleLevel(mod.module_key, p.permission_key, 'view')}
-                                  className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider transition-all ${
-                                    isChecked && currentLevel === 'view'
-                                      ? 'bg-[#942392] text-white shadow-xs'
-                                      : isChecked
-                                      ? 'text-muted-foreground hover:text-black dark:hover:text-white hover:bg-background/60'
-                                      : 'text-muted-foreground/40 hover:text-muted-foreground'
-                                  }`}
-                                  title="View: Read-only access"
-                                >
-                                  View
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => handleSetSubmoduleLevel(mod.module_key, p.permission_key, 'edit')}
-                                  className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider transition-all ${
-                                    isChecked && currentLevel === 'edit'
-                                      ? 'bg-[#942392] text-white shadow-xs'
-                                      : isChecked
-                                      ? 'text-muted-foreground hover:text-black dark:hover:text-white hover:bg-background/60'
-                                      : 'text-muted-foreground/40 hover:text-muted-foreground'
-                                  }`}
-                                  title="Edit: Full management privileges"
-                                >
-                                  Edit
-                                </button>
-                              </div>
+                              {isEditing ? (
+                                <div className="inline-flex items-center p-0.5 rounded-full bg-muted/80 dark:bg-neutral-800 border border-border/70 shadow-2xs">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleSetSubmoduleLevel(mod.module_key, p.permission_key, 'view')}
+                                    className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer ${
+                                      isChecked && currentLevel === 'view'
+                                        ? 'bg-[#942392] text-white shadow-xs'
+                                        : isChecked
+                                        ? 'text-muted-foreground hover:text-black dark:hover:text-white hover:bg-background/60'
+                                        : 'text-muted-foreground/40 hover:text-muted-foreground'
+                                    }`}
+                                    title="View: Read-only access"
+                                  >
+                                    View
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleSetSubmoduleLevel(mod.module_key, p.permission_key, 'edit')}
+                                    className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer ${
+                                      isChecked && currentLevel === 'edit'
+                                        ? 'bg-[#942392] text-white shadow-xs'
+                                        : isChecked
+                                        ? 'text-muted-foreground hover:text-black dark:hover:text-white hover:bg-background/60'
+                                        : 'text-muted-foreground/40 hover:text-muted-foreground'
+                                    }`}
+                                    title="Edit: Full management privileges"
+                                  >
+                                    Edit
+                                  </button>
+                                </div>
+                              ) : (
+                                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                                  isChecked
+                                    ? currentLevel === 'edit'
+                                      ? 'border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-950/40 text-[#942392] dark:text-purple-300'
+                                      : 'border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300'
+                                    : 'border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/40 text-slate-400'
+                                }`}>
+                                  {isChecked ? (currentLevel === 'edit' ? 'Edit Access' : 'View Only') : 'Disabled'}
+                                </span>
+                              )}
+
                               <span className="hidden sm:inline text-[9px] font-mono text-muted-foreground/60">
                                 {p.permission_key}
                               </span>

@@ -1025,64 +1025,74 @@ export default function Role() {
                 </Select>
               </div>
 
-              {/* Copy Permissions From Template Dropdown */}
+              {/* Copy Access By Role (Company Section & Role Selection) */}
               {formMode !== "view" && (
-                <div className="space-y-1.5 sm:col-span-2 md:col-span-1">
-                  <Label htmlFor="copy-template" className="text-xs font-black uppercase tracking-wider text-black dark:text-white flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-[#942392]" />
-                    <span>Copy Permissions From</span>
-                  </Label>
-                  <Select value={selectedTemplate} onValueChange={handleSelectTemplate}>
-                    <SelectTrigger className="h-10 text-xs font-bold rounded-xl border-border/60 bg-background focus:ring-[#942392] text-black dark:text-white">
-                      <div className="flex items-center gap-2 truncate">
-                        <Sparkles className="w-3.5 h-3.5 text-[#942392] shrink-0" />
-                        <SelectValue placeholder="▼ Select Template" />
-                      </div>
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl max-h-60">
-                      <SelectItem value="blank" className="font-semibold text-muted-foreground">
-                        ⚪ Blank Role (0 Permissions)
-                      </SelectItem>
+                <div className="p-3.5 rounded-xl border border-purple-200/80 dark:border-purple-800/50 bg-purple-50/50 dark:bg-purple-950/20 sm:col-span-2 md:col-span-3 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-black uppercase tracking-wider text-[#942392] flex items-center gap-1.5">
+                      <Sparkles className="w-4 h-4 text-[#942392]" />
+                      <span>Copy Access By Role</span>
+                    </Label>
+                    <span className="text-[11px] text-muted-foreground font-medium">
+                      Select company & role to copy permissions and auto-update authorization scope
+                    </span>
+                  </div>
 
-                      {/* Main Company Roles */}
-                      <div className="px-2 py-1 text-[10px] font-black uppercase text-[#942392] tracking-wider bg-purple-50 dark:bg-purple-950/40 mt-1">
-                        🏛️ System Templates (Rayhar Travels)
-                      </div>
-                      {roles.filter(r => r.is_system_role || r.company_id === 1 || !r.company_id).map(r => (
-                        <SelectItem key={r.id} value={r.name} className="font-bold">
-                          🛡️ {r.name} ({r.permission_keys ? r.permission_keys.length : 0} perms)
-                        </SelectItem>
-                      ))}
-
-                      {/* Subsidiary Roles */}
-                      {roles.filter(r => r.company_id === 2 || r.name.toLowerCase().includes('ray rent')).length > 0 && (
-                        <>
-                          <div className="px-2 py-1 text-[10px] font-black uppercase text-amber-700 dark:text-amber-300 tracking-wider bg-amber-50 dark:bg-amber-950/40 mt-1">
-                            🏢 Company Roles (Rayhar Rent)
-                          </div>
-                          {roles.filter(r => r.company_id === 2 || r.name.toLowerCase().includes('ray rent')).map(r => (
-                            <SelectItem key={r.id} value={r.name} className="font-bold">
-                              ✨ {r.name} ({r.permission_keys ? r.permission_keys.length : 0} perms)
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {/* Company Selector */}
+                    <div className="space-y-1">
+                      <Label className="text-[11px] font-black uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                        <Building2 className="w-3.5 h-3.5 text-[#942392]" />
+                        <span>Company:</span>
+                      </Label>
+                      <Select 
+                        value={copyCompanyId.toString()} 
+                        onValueChange={(val) => {
+                          setCopyCompanyId(Number(val));
+                          setSelectedTemplate('blank');
+                        }}
+                      >
+                        <SelectTrigger className="h-9 text-xs font-bold rounded-xl border-border/60 bg-background text-foreground">
+                          <SelectValue placeholder="▼ Select Company" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl">
+                          {companies.map(c => (
+                            <SelectItem key={c.id} value={c.id.toString()} className="font-bold text-xs">
+                              {c.company_type === 'main' ? `🏛️ MAIN COMPANY (${c.company_name.toUpperCase()})` : `🏢 COMPANY ROLE (${c.company_name.toUpperCase()})`}
                             </SelectItem>
                           ))}
-                        </>
-                      )}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                      {/* Other Custom Roles */}
-                      {roles.filter(r => !r.is_system_role && r.company_id !== 2 && !r.name.toLowerCase().includes('ray rent')).length > 0 && (
-                        <>
-                          <div className="px-2 py-1 text-[10px] font-black uppercase text-muted-foreground tracking-wider mt-1">
-                            ✨ Custom Roles
+                    {/* Role Selector */}
+                    <div className="space-y-1">
+                      <Label className="text-[11px] font-black uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                        <Shield className="w-3.5 h-3.5 text-[#942392]" />
+                        <span>Role:</span>
+                      </Label>
+                      <Select value={selectedTemplate} onValueChange={handleSelectTemplate}>
+                        <SelectTrigger className="h-9 text-xs font-bold rounded-xl border-border/60 bg-background text-foreground">
+                          <div className="flex items-center gap-2 truncate">
+                            <Sparkles className="w-3.5 h-3.5 text-[#942392] shrink-0" />
+                            <SelectValue placeholder="▼ Select Role" />
                           </div>
-                          {roles.filter(r => !r.is_system_role && r.company_id !== 2 && !r.name.toLowerCase().includes('ray rent')).map(r => (
-                            <SelectItem key={r.id} value={r.name} className="font-semibold">
-                              ✨ {r.name}
-                            </SelectItem>
-                          ))}
-                        </>
-                      )}
-                    </SelectContent>
-                  </Select>
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl max-h-60">
+                          <SelectItem value="blank" className="font-bold text-muted-foreground text-xs">
+                            ⚪ Blank Role (0 Permissions)
+                          </SelectItem>
+                          {roles
+                            .filter(r => (copyCompanyId === 1 ? (r.is_system_role || r.company_id === 1 || !r.company_id) : (r.company_id === copyCompanyId || r.name.toLowerCase().includes('ray rent'))))
+                            .map(r => (
+                              <SelectItem key={r.id} value={r.name} className="font-bold text-xs">
+                                🛡️ {r.name} ({r.permission_keys ? r.permission_keys.length : 0} perms)
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
                 </div>
               )}
 

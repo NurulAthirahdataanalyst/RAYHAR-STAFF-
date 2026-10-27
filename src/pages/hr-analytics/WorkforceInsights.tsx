@@ -25,6 +25,11 @@ import { TotalAbsentCard } from "./TotalAbsentCard";
 
 const COLORS = ['#4f46e5', '#eab308', '#3b82f6', '#DC2626', '#a855f7', '#f746b9']; // Present, Late, On Leave, Absent, Comp Leave, Outstation
 
+function toProperCase(str?: string): string {
+  if (!str) return '';
+  return str.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase());
+}
+
 const BRANCH_NAMES: Record<string, string> = {
   HQ: "HQ",
   KMM: "KMM - Kemaman",
@@ -186,6 +191,23 @@ export default function WorkforceInsights() {
   const [liveEmployees, setLiveEmployees] = useState<any[]>([]);
   const [tempAssignments, setTempAssignments] = useState<any[]>([]);
   const [outstationAssignments, setOutstationAssignments] = useState<any[]>([]);
+  const [branches, setBranches] = useState<any[]>([]);
+
+  // Fetch branches list for dynamic name resolution
+  useEffect(() => {
+    const fetchBranches = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/branches`);
+        const d = await res.json();
+        if (d && d.success && Array.isArray(d.branches)) {
+          setBranches(d.branches);
+        }
+      } catch (err) {
+        console.error('Failed to load branches in WorkforceInsights:', err);
+      }
+    };
+    void fetchBranches();
+  }, []);
 
   const isAdminRole = ["hr_admin", "managing_director", "operation_manager", "finance_manager"].includes(role || "");
 
@@ -2179,7 +2201,7 @@ export default function WorkforceInsights() {
         )}
         </>
         ) : (
-          <MonthViewDashboard data={data} clockInOut={clockInOut} absentList={absentList} tempAssignments={tempAssignments} outstationAssignments={outstationAssignments} upcomingOutstationList={upcomingOutstationList} outstationSummary={outstationSummary} feedConnected={feedConnected} liveMonthlyComp={liveMonthlyComp} liveHrAlerts={liveHrAlerts} liveLeaveTrend={liveLeaveTrend} month={month} year={year} day={day} liveWeeklyAttendanceTrend={liveWeeklyAttendanceTrend} trendWeekStart={trendWeekStart} setTrendWeekStart={setTrendWeekStart} onEmployeeClick={(id: string) => setSelectedStaffId(id)} viewMode={viewMode} />
+          <MonthViewDashboard data={data} branches={branches} clockInOut={clockInOut} absentList={absentList} tempAssignments={tempAssignments} outstationAssignments={outstationAssignments} upcomingOutstationList={upcomingOutstationList} outstationSummary={outstationSummary} feedConnected={feedConnected} liveMonthlyComp={liveMonthlyComp} liveHrAlerts={liveHrAlerts} liveLeaveTrend={liveLeaveTrend} month={month} year={year} day={day} liveWeeklyAttendanceTrend={liveWeeklyAttendanceTrend} trendWeekStart={trendWeekStart} setTrendWeekStart={setTrendWeekStart} onEmployeeClick={(id: string) => setSelectedStaffId(id)} viewMode={viewMode} />
         )}
   
       <StaffProfileDialog 
@@ -2190,7 +2212,7 @@ export default function WorkforceInsights() {
     </div>
   );
 }
-function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssignments, outstationAssignments, upcomingOutstationList, pendingApprovalsList, feedConnected, outstationSummary, liveMonthlyComp, liveHrAlerts, liveLeaveTrend, month, year, day, liveWeeklyAttendanceTrend, trendWeekStart, setTrendWeekStart, onEmployeeClick, viewMode }: any) {
+function MonthViewDashboard({ data, branches = [], clockInOut, lateList, absentList, tempAssignments, outstationAssignments, upcomingOutstationList, pendingApprovalsList, feedConnected, outstationSummary, liveMonthlyComp, liveHrAlerts, liveLeaveTrend, month, year, day, liveWeeklyAttendanceTrend, trendWeekStart, setTrendWeekStart, onEmployeeClick, viewMode }: any) {
     const [selectedRegion, setSelectedRegion] = useState<string>('All Regions');
   const navigate = useNavigate();
   const { role: currentRole } = useRole();
@@ -2293,6 +2315,17 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
     "SNS": "SNS - Seremban", "JHB": "JHB - Johor Bahru", "BPT": "BPT - Batu Pahat",
     "BBB": "BBB - Bandar Baru Bangi", "SHA": "SHA - Shah Alam", "KUL": "KUL - Kuala Lumpur",
     "HQ": "HQ"
+  };
+
+  const getBranchDisplayName = (code: string) => {
+    if (!code) return '';
+    if (FULL_BRANCH_NAMES[code]) return FULL_BRANCH_NAMES[code];
+    if (BRANCH_NAMES[code]) return BRANCH_NAMES[code];
+    const found = Array.isArray(branches) ? branches.find((b: any) => b.code === code || b.name === code) : null;
+    if (found?.name) {
+      return `${found.code || code} - ${toProperCase(found.name)}`;
+    }
+    return code;
   };
 
   
@@ -2844,7 +2877,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                     <div key={idx} className="flex flex-col gap-1">
                       <div className="flex justify-between items-end">
                         <div className="flex flex-col">
-                          <span className="text-[11px] font-bold text-slate-800 dark:text-slate-100">{FULL_BRANCH_NAMES[branch.branch] || (branches.find(b => b.code === branch.branch)?.name ? `${branch.branch} - ${toProperCase(branches.find(b => b.code === branch.branch)?.name)}` : branch.branch)}</span>
+                          <span className="text-[11px] font-bold text-slate-800 dark:text-slate-100">{getBranchDisplayName(branch.branch)}</span>
                           <div className="flex items-center gap-1.5 mt-0.5">
                             <span className="text-[9px] font-semibold text-foreground flex items-center gap-1">
                               👥 {branch.permanentStaffCount} Staff
@@ -2890,7 +2923,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                           </div>
                         </TooltipTrigger>
                         <TooltipContent side="top" align="center" className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl rounded-xl p-3 z-50 w-max whitespace-nowrap text-left min-w-[200px]">
-                          <p className="text-[11px] font-bold text-slate-800 dark:text-slate-100 mb-2 border-b border-slate-100 dark:border-slate-800 pb-1">{FULL_BRANCH_NAMES[branch.branch] || (branches.find(b => b.code === branch.branch)?.name ? `${branch.branch} - ${toProperCase(branches.find(b => b.code === branch.branch)?.name)}` : branch.branch)}</p>
+                          <p className="text-[11px] font-bold text-slate-800 dark:text-slate-100 mb-2 border-b border-slate-100 dark:border-slate-800 pb-1">{getBranchDisplayName(branch.branch)}</p>
                           <div className="flex flex-col gap-1 text-[9px] text-slate-600 dark:text-slate-300 mb-2 border-b border-slate-100 dark:border-slate-800 pb-2">
                             <p className="flex justify-between items-center gap-4"><span className="text-slate-600 dark:text-slate-300">Permanent Staff:</span> <span className="font-bold text-slate-800 dark:text-slate-200">{branch.permanentStaffCount}</span></p>
                             <p className="flex justify-between items-center gap-4"><span className="text-slate-600 dark:text-slate-300">Temporary In:</span> <span className="font-bold text-slate-800 dark:text-slate-200">{branch.temporaryIn}</span></p>
