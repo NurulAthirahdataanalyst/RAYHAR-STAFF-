@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Layers, Plus, Users, Check, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCompany } from '../../../contexts/CompanyContext';
@@ -165,25 +165,30 @@ export const Tab5_DepartmentMgmt: React.FC = () => {
 
       {/* Create Department Dialog */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="max-w-md bg-card dark:bg-neutral-900 border border-border dark:border-neutral-800 rounded-2xl">
-          <DialogHeader>
-            <DialogTitle className="text-sm font-black uppercase tracking-wider text-foreground dark:text-white flex items-center gap-2">
-              <Layers className="w-4 h-4 text-[#942392]" />
+        <DialogContent className="max-w-md overflow-hidden [&>button]:text-white [&>button]:hover:text-white/80 border-none shadow-2xl rounded-3xl p-0 bg-card">
+          <DialogHeader className="bg-[#942392] p-6 sm:rounded-t-lg m-0 text-left border-b border-white/20">
+            <DialogTitle className="text-white font-black uppercase tracking-tight m-0 text-lg flex items-center gap-2">
+              <Layers className="w-5 h-5 text-white" />
               Create Department
             </DialogTitle>
+            <DialogDescription className="text-xs font-bold uppercase tracking-wider text-white/80 m-0 mt-1">
+              Add a functional department unit to {companies.find(c => c.id === selectedCompanyId)?.company_name || 'Selected Entity'}
+            </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleCreateDepartment} className="space-y-4 pt-2">
+          <form onSubmit={handleCreateDepartment} className="p-6 space-y-4 bg-card">
             <div className="space-y-1.5">
               <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Department Name *</Label>
               <Input
                 value={deptName}
                 onChange={(e) => setDeptName(e.target.value)}
                 placeholder="e.g. Marketing & Media, Fleet Operations"
-                className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium placeholder:font-normal text-black dark:text-white"
+                className="text-xs h-10 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium placeholder:font-normal text-black dark:text-white rounded-xl"
                 required
               />
             </div>
+
+            <div className="border-b border-border/60 my-2" />
 
             <div className="space-y-1.5">
               <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Department Code</Label>
@@ -191,23 +196,23 @@ export const Tab5_DepartmentMgmt: React.FC = () => {
                 value={deptCode}
                 onChange={(e) => setDeptCode(e.target.value.toUpperCase())}
                 placeholder="e.g. MKT, OPS, IT"
-                className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-mono font-medium placeholder:font-normal text-black dark:text-white"
+                className="text-xs h-10 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-mono font-medium placeholder:font-normal text-black dark:text-white rounded-xl"
               />
             </div>
 
-            <DialogFooter className="pt-2">
-              <Button type="button" variant="ghost" onClick={() => setModalOpen(false)}>
+            <div className="border-t border-border/60 pt-4 flex justify-end gap-3">
+              <Button type="button" variant="ghost" onClick={() => setModalOpen(false)} className="rounded-xl text-xs font-black uppercase">
                 Cancel
               </Button>
               <Button
                 type="submit"
                 disabled={saving || !deptName.trim()}
-                className="bg-[#942392] hover:bg-[#800A7A] text-white font-black text-xs uppercase h-8 px-4 rounded-xl"
+                className="rounded-xl px-6 bg-[#942392] hover:bg-[#800A7A] text-white shadow-md text-xs font-black uppercase flex items-center gap-2"
               >
-                {saving ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Check className="w-3 h-3 mr-1" />}
+                {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : <Check className="w-3.5 h-3.5 mr-1" />}
                 Create Department
               </Button>
-            </DialogFooter>
+            </div>
           </form>
         </DialogContent>
       </Dialog>

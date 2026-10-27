@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Building2, Plus, Edit, Image as ImageIcon, MapPin, Users, Check, AlertCircle, Loader2, ArrowRight, Boxes } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCompany } from '../../../contexts/CompanyContext';
@@ -283,34 +283,39 @@ export const Tab3_CompanyMgmt: React.FC<Tab3CompanyMgmtProps> = ({ onNavigateToT
 
       {/* Add / Edit Company Dialog */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="max-w-lg bg-card dark:bg-neutral-900 border border-border dark:border-neutral-800 rounded-2xl">
-          <DialogHeader>
-            <DialogTitle className="text-sm font-black uppercase tracking-wider text-foreground dark:text-white flex items-center gap-2">
-              <Building2 className="w-4 h-4 text-[#942392]" />
+        <DialogContent className="max-w-lg overflow-hidden [&>button]:text-white [&>button]:hover:text-white/80 border-none shadow-2xl rounded-3xl p-0 bg-card">
+          <DialogHeader className="bg-[#942392] p-6 sm:rounded-t-lg m-0 text-left border-b border-white/20">
+            <DialogTitle className="text-white font-black uppercase tracking-tight m-0 text-lg flex items-center gap-2">
+              <Building2 className="w-5 h-5 text-white" />
               {editingCompany ? `Edit ${editingCompany.company_name}` : 'Register New Subsidiary / Company'}
             </DialogTitle>
+            <DialogDescription className="text-xs font-bold uppercase tracking-wider text-white/80 m-0 mt-1">
+              {editingCompany ? 'Modify corporate entity configurations & details' : 'Create and onboard a new corporate entity under Rayhar Group'}
+            </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleSaveCompany} className="space-y-4 pt-2">
+          <form onSubmit={handleSaveCompany} className="p-6 space-y-4 bg-card">
             <div className="space-y-1.5">
               <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Company Name *</Label>
               <Input
                 value={companyName}
                 onChange={(e) => setCompanyName(e.target.value)}
                 placeholder="e.g. RayRent Sdn Bhd"
-                className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium placeholder:font-normal text-black dark:text-white"
+                className="text-xs h-10 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium placeholder:font-normal text-black dark:text-white rounded-xl"
                 required
               />
             </div>
+
+            <div className="border-b border-border/60 my-2" />
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Company Type</Label>
                 <Select value={companyType} onValueChange={(val: any) => setCompanyType(val)}>
-                  <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium data-[placeholder]:font-normal text-black dark:text-white">
+                  <SelectTrigger className="text-xs h-10 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium data-[placeholder]:font-normal text-black dark:text-white rounded-xl">
                     <SelectValue placeholder="Type" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="rounded-xl">
                     <SelectItem value="main" className="text-xs font-bold">Main Holding Company</SelectItem>
                     <SelectItem value="subsidiary" className="text-xs font-bold">Subsidiary Company</SelectItem>
                   </SelectContent>
@@ -324,10 +329,10 @@ export const Tab3_CompanyMgmt: React.FC<Tab3CompanyMgmtProps> = ({ onNavigateToT
                   onValueChange={(val) => setParentCompanyId(val === 'root' ? null : parseInt(val, 10))}
                   disabled={companyType === 'main'}
                 >
-                  <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium data-[placeholder]:font-normal text-black dark:text-white">
+                  <SelectTrigger className="text-xs h-10 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium data-[placeholder]:font-normal text-black dark:text-white rounded-xl">
                     <SelectValue placeholder="Parent Entity" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="rounded-xl">
                     <SelectItem value="root" className="text-xs font-bold">None (Root Holding Entity)</SelectItem>
                     {companies.filter(c => !editingCompany || c.id !== editingCompany.id).map(c => (
                       <SelectItem key={c.id} value={c.id.toString()} className="text-xs font-bold">
@@ -339,6 +344,8 @@ export const Tab3_CompanyMgmt: React.FC<Tab3CompanyMgmtProps> = ({ onNavigateToT
               </div>
             </div>
 
+            <div className="border-b border-border/60 my-2" />
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Contact Email</Label>
@@ -347,17 +354,17 @@ export const Tab3_CompanyMgmt: React.FC<Tab3CompanyMgmtProps> = ({ onNavigateToT
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="contact@company.com"
-                  className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium placeholder:font-normal text-black dark:text-white"
+                  className="text-xs h-10 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium placeholder:font-normal text-black dark:text-white rounded-xl"
                 />
               </div>
 
               <div className="space-y-1.5">
                 <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Status</Label>
                 <Select value={status} onValueChange={(val: any) => setStatus(val)}>
-                  <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium data-[placeholder]:font-normal text-black dark:text-white">
+                  <SelectTrigger className="text-xs h-10 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium data-[placeholder]:font-normal text-black dark:text-white rounded-xl">
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="rounded-xl">
                     <SelectItem value="active" className="text-xs font-bold">Active Entity</SelectItem>
                     <SelectItem value="inactive" className="text-xs font-bold">Inactive Entity</SelectItem>
                   </SelectContent>
@@ -365,22 +372,24 @@ export const Tab3_CompanyMgmt: React.FC<Tab3CompanyMgmtProps> = ({ onNavigateToT
               </div>
             </div>
 
+            <div className="border-b border-border/60 my-2" />
+
             <div className="space-y-1.5">
               <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Registered Office Address</Label>
               <Textarea
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
                 placeholder="Enter physical address..."
-                className="text-xs bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 min-h-[70px] font-medium placeholder:font-normal text-black dark:text-white"
+                className="text-xs bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 min-h-[70px] font-medium placeholder:font-normal text-black dark:text-white rounded-xl"
               />
             </div>
 
-            <DialogFooter className="pt-2">
+            <div className="border-t border-border/60 pt-4 flex justify-end gap-3">
               <Button
                 type="button"
                 variant="ghost"
                 onClick={() => setModalOpen(false)}
-                className="text-xs"
+                className="rounded-xl text-xs font-black uppercase"
               >
                 Cancel
               </Button>
@@ -388,12 +397,12 @@ export const Tab3_CompanyMgmt: React.FC<Tab3CompanyMgmtProps> = ({ onNavigateToT
               <Button
                 type="submit"
                 disabled={saving}
-                className="bg-[#942392] hover:bg-[#800A7A] text-white font-black text-xs uppercase tracking-wider h-9 px-4 rounded-xl"
+                className="rounded-xl px-6 bg-[#942392] hover:bg-[#800A7A] text-white shadow-md text-xs font-black uppercase flex items-center gap-2"
               >
-                {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : <Check className="w-3.5 h-3.5 mr-1.5" />}
+                {saving ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Check className="w-4 h-4 mr-1" />}
                 {editingCompany ? 'Save Changes' : 'Register Entity'}
               </Button>
-            </DialogFooter>
+            </div>
           </form>
         </DialogContent>
       </Dialog>
@@ -401,22 +410,28 @@ export const Tab3_CompanyMgmt: React.FC<Tab3CompanyMgmtProps> = ({ onNavigateToT
       {/* Upload Logo Modal */}
       {selectedForLogo && (
         <Dialog open={logoModalOpen} onOpenChange={setLogoModalOpen}>
-          <DialogContent className="max-w-lg bg-card dark:bg-neutral-900 border border-border dark:border-neutral-800 rounded-2xl">
-            <DialogHeader>
-              <DialogTitle className="text-sm font-black uppercase tracking-wider text-foreground dark:text-white">
+          <DialogContent className="max-w-lg overflow-hidden [&>button]:text-white [&>button]:hover:text-white/80 border-none shadow-2xl rounded-3xl p-0 bg-card">
+            <DialogHeader className="bg-[#942392] p-6 sm:rounded-t-lg m-0 text-left border-b border-white/20">
+              <DialogTitle className="text-white font-black uppercase tracking-tight m-0 text-lg flex items-center gap-2">
+                <ImageIcon className="w-5 h-5 text-white" />
                 Branding for {selectedForLogo.company_name}
               </DialogTitle>
+              <DialogDescription className="text-xs font-bold uppercase tracking-wider text-white/80 m-0 mt-1">
+                Upload and configure corporate logo for reports & navigation
+              </DialogDescription>
             </DialogHeader>
 
-            <CompanyLogoUploader
-              companyId={selectedForLogo.id}
-              companyName={selectedForLogo.company_name}
-              currentLogoUrl={selectedForLogo.logo_url}
-              onLogoUpdated={async () => {
-                await refreshCompanies();
-                setLogoModalOpen(false);
-              }}
-            />
+            <div className="p-6">
+              <CompanyLogoUploader
+                companyId={selectedForLogo.id}
+                companyName={selectedForLogo.company_name}
+                currentLogoUrl={selectedForLogo.logo_url}
+                onLogoUpdated={async () => {
+                  await refreshCompanies();
+                  setLogoModalOpen(false);
+                }}
+              />
+            </div>
           </DialogContent>
         </Dialog>
       )}

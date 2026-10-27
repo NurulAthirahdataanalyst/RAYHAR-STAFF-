@@ -10,7 +10,7 @@ export interface CustomTimePickerProps {
   className?: string;
 }
 
-const ITEM_HEIGHT = 36;
+const ITEM_HEIGHT = 30;
 const HOURS_LIST = [12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
 const MINUTES_LIST = Array.from({ length: 60 }, (_, i) => i);
 
@@ -353,17 +353,21 @@ export const CustomTimePicker: React.FC<CustomTimePickerProps> = ({
         </button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-[280px] sm:w-[300px] p-4 sm:p-5 overflow-hidden border border-border/80 shadow-2xl rounded-3xl bg-card z-[100000]"
+        className="w-[260px] p-3 sm:p-3.5 overflow-hidden border border-border/80 shadow-2xl rounded-2xl bg-card z-[100000] max-h-[min(480px,calc(100vh-2rem))] overflow-y-auto"
         style={{ zIndex: 100000 }}
+        side="bottom"
         align="start"
+        sideOffset={4}
+        avoidCollisions={true}
+        collisionPadding={12}
       >
         {/* Title */}
-        <div className="text-xs font-semibold text-muted-foreground/80 mb-3 select-none">
+        <div className="text-xs font-semibold text-muted-foreground/80 mb-2.5 select-none">
           {mode === "wheel" ? "Select time" : "Enter Time"}
         </div>
 
         {/* Display Row: [ 12 ] : [ 00 ] + AM/PM */}
-        <div className="flex items-center justify-between gap-1 sm:gap-1.5">
+        <div className="flex items-center justify-between gap-1">
           <div className="flex flex-col items-center">
             <input
               type="text"
@@ -375,18 +379,18 @@ export const CustomTimePicker: React.FC<CustomTimePickerProps> = ({
               onBlur={handleHourBlur}
               onFocus={() => setActiveField("hour")}
               className={cn(
-                "w-16 sm:w-20 h-14 sm:h-16 text-center text-3xl sm:text-4xl font-semibold rounded-2xl transition-all outline-none",
+                "w-12 sm:w-14 h-10 sm:h-11 text-center text-xl sm:text-2xl font-bold rounded-xl transition-all outline-none",
                 activeField === "hour"
                   ? "bg-purple-50 dark:bg-[#942392]/20 border-2 border-[#942392] text-[#942392]"
                   : "bg-slate-100 dark:bg-slate-800 text-foreground border-2 border-transparent"
               )}
             />
             {mode === "keypad" && (
-              <span className="text-[11px] text-muted-foreground font-medium mt-1 select-none">Hour</span>
+              <span className="text-[10px] text-muted-foreground font-medium mt-0.5 select-none">Hour</span>
             )}
           </div>
 
-          <span className="text-3xl font-black text-foreground/70 select-none -mt-1 sm:-mt-2">:</span>
+          <span className="text-2xl font-black text-foreground/70 select-none -mt-1">:</span>
 
           <div className="flex flex-col items-center">
             <input
@@ -399,24 +403,24 @@ export const CustomTimePicker: React.FC<CustomTimePickerProps> = ({
               onBlur={handleMinuteBlur}
               onFocus={() => setActiveField("minute")}
               className={cn(
-                "w-16 sm:w-20 h-14 sm:h-16 text-center text-3xl sm:text-4xl font-semibold rounded-2xl transition-all outline-none",
+                "w-12 sm:w-14 h-10 sm:h-11 text-center text-xl sm:text-2xl font-bold rounded-xl transition-all outline-none",
                 activeField === "minute"
                   ? "bg-purple-50 dark:bg-[#942392]/20 border-2 border-[#942392] text-[#942392]"
                   : "bg-slate-100 dark:bg-slate-800 text-foreground border-2 border-transparent"
               )}
             />
             {mode === "keypad" && (
-              <span className="text-[11px] text-muted-foreground font-medium mt-1 select-none">Minute</span>
+              <span className="text-[10px] text-muted-foreground font-medium mt-0.5 select-none">Minute</span>
             )}
           </div>
 
           {/* AM / PM Toggle Box */}
-          <div className="flex flex-col border border-border/80 rounded-xl overflow-hidden divide-y divide-border/80 ml-2 h-14 sm:h-16 w-12 sm:w-14 shrink-0 shadow-2xs">
+          <div className="flex flex-col border border-border/80 rounded-xl overflow-hidden divide-y divide-border/80 ml-1.5 h-10 sm:h-11 w-11 sm:w-12 shrink-0 shadow-2xs">
             <button
               type="button"
               onClick={() => setSelectedPeriod("AM")}
               className={cn(
-                "flex-1 text-xs font-bold transition-colors flex items-center justify-center cursor-pointer select-none",
+                "flex-1 text-[11px] font-bold transition-colors flex items-center justify-center cursor-pointer select-none",
                 selectedPeriod === "AM"
                   ? "bg-[#fce7f3] dark:bg-[#942392]/30 text-[#942392] dark:text-purple-300 font-black"
                   : "bg-transparent text-muted-foreground hover:bg-muted/50"
@@ -428,7 +432,7 @@ export const CustomTimePicker: React.FC<CustomTimePickerProps> = ({
               type="button"
               onClick={() => setSelectedPeriod("PM")}
               className={cn(
-                "flex-1 text-xs font-bold transition-colors flex items-center justify-center cursor-pointer select-none",
+                "flex-1 text-[11px] font-bold transition-colors flex items-center justify-center cursor-pointer select-none",
                 selectedPeriod === "PM"
                   ? "bg-[#fce7f3] dark:bg-[#942392]/30 text-[#942392] dark:text-purple-300 font-black"
                   : "bg-transparent text-muted-foreground hover:bg-muted/50"
@@ -441,42 +445,42 @@ export const CustomTimePicker: React.FC<CustomTimePickerProps> = ({
 
         {/* Wheel Spinner Section (Desktop / Wheel mode) */}
         {mode === "wheel" && (
-          <div className="relative mt-3 mb-1 select-none">
+          <div className="relative mt-2 mb-1 select-none">
             {/* Top Chevron Up controls */}
-            <div className="flex items-center justify-around mb-1 text-muted-foreground">
+            <div className="flex items-center justify-around mb-0.5 text-muted-foreground">
               <button
                 type="button"
                 onClick={() => stepHour(-1)}
-                className="w-8 h-6 flex items-center justify-center rounded-lg hover:bg-purple-50 dark:hover:bg-purple-950/40 hover:text-[#942392] transition-colors cursor-pointer"
+                className="w-7 h-5 flex items-center justify-center rounded-lg hover:bg-purple-50 dark:hover:bg-purple-950/40 hover:text-[#942392] transition-colors cursor-pointer"
                 title="Previous hour"
               >
-                <ChevronUp className="w-4 h-4" />
+                <ChevronUp className="w-3.5 h-3.5" />
               </button>
               <button
                 type="button"
                 onClick={() => stepMinute(-1)}
-                className="w-8 h-6 flex items-center justify-center rounded-lg hover:bg-purple-50 dark:hover:bg-purple-950/40 hover:text-[#942392] transition-colors cursor-pointer"
+                className="w-7 h-5 flex items-center justify-center rounded-lg hover:bg-purple-50 dark:hover:bg-purple-950/40 hover:text-[#942392] transition-colors cursor-pointer"
                 title="Previous minute"
               >
-                <ChevronUp className="w-4 h-4" />
+                <ChevronUp className="w-3.5 h-3.5" />
               </button>
             </div>
 
             {/* Spinner wheel viewport */}
-            <div className="relative flex items-center justify-around h-[180px] overflow-hidden select-none">
+            <div className="relative flex items-center justify-around h-[90px] overflow-hidden select-none">
               {/* Top and bottom subtle fade masks */}
-              <div className="absolute inset-x-0 top-0 h-10 bg-gradient-to-b from-card to-transparent pointer-events-none z-20" />
-              <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-card to-transparent pointer-events-none z-20" />
+              <div className="absolute inset-x-0 top-0 h-6 bg-gradient-to-b from-card to-transparent pointer-events-none z-20" />
+              <div className="absolute inset-x-0 bottom-0 h-6 bg-gradient-to-t from-card to-transparent pointer-events-none z-20" />
 
               {/* Active middle highlight capsule across both columns */}
-              <div className="absolute inset-x-4 top-[72px] h-[36px] bg-[#ede9fe]/90 dark:bg-[#942392]/25 rounded-xl border border-purple-200/80 dark:border-[#942392]/40 pointer-events-none z-0" />
+              <div className="absolute inset-x-3 top-[30px] h-[30px] bg-[#ede9fe]/90 dark:bg-[#942392]/25 rounded-xl border border-purple-200/80 dark:border-[#942392]/40 pointer-events-none z-0" />
 
               {/* Hours Column */}
               <div
                 ref={hourScrollRef}
                 onScroll={handleHourScroll}
                 onMouseDown={(e) => handleDragStart(e, hourScrollRef, HOURS_LIST.length, selectHour, HOURS_LIST)}
-                className="h-full w-24 overflow-y-auto scrollbar-none py-[72px] z-10 text-center cursor-grab active:cursor-grabbing select-none"
+                className="h-full w-20 overflow-y-auto scrollbar-none py-[30px] z-10 text-center cursor-grab active:cursor-grabbing select-none"
                 style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
               >
                 {HOURS_LIST.map((h) => {
@@ -486,10 +490,10 @@ export const CustomTimePicker: React.FC<CustomTimePickerProps> = ({
                       key={h}
                       onClick={() => selectHour(h)}
                       className={cn(
-                        "h-[36px] flex items-center justify-center cursor-pointer transition-all duration-150 select-none",
+                        "h-[30px] flex items-center justify-center cursor-pointer transition-all duration-150 select-none",
                         isSelected
-                          ? "text-[#942392] font-black text-base scale-110"
-                          : "text-foreground/45 hover:text-foreground/80 text-sm font-medium hover:scale-105"
+                          ? "text-[#942392] font-black text-sm scale-110"
+                          : "text-foreground/45 hover:text-foreground/80 text-xs font-medium hover:scale-105"
                       )}
                     >
                       {String(h).padStart(2, "0")}
@@ -503,7 +507,7 @@ export const CustomTimePicker: React.FC<CustomTimePickerProps> = ({
                 ref={minScrollRef}
                 onScroll={handleMinuteScroll}
                 onMouseDown={(e) => handleDragStart(e, minScrollRef, MINUTES_LIST.length, selectMinute, MINUTES_LIST)}
-                className="h-full w-24 overflow-y-auto scrollbar-none py-[72px] z-10 text-center cursor-grab active:cursor-grabbing select-none"
+                className="h-full w-20 overflow-y-auto scrollbar-none py-[30px] z-10 text-center cursor-grab active:cursor-grabbing select-none"
                 style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
               >
                 {MINUTES_LIST.map((m) => {
@@ -513,10 +517,10 @@ export const CustomTimePicker: React.FC<CustomTimePickerProps> = ({
                       key={m}
                       onClick={() => selectMinute(m)}
                       className={cn(
-                        "h-[36px] flex items-center justify-center cursor-pointer transition-all duration-150 select-none",
+                        "h-[30px] flex items-center justify-center cursor-pointer transition-all duration-150 select-none",
                         isSelected
-                          ? "text-[#942392] font-black text-base scale-110"
-                          : "text-foreground/45 hover:text-foreground/80 text-sm font-medium hover:scale-105"
+                          ? "text-[#942392] font-black text-sm scale-110"
+                          : "text-foreground/45 hover:text-foreground/80 text-xs font-medium hover:scale-105"
                       )}
                     >
                       {String(m).padStart(2, "0")}
@@ -527,59 +531,59 @@ export const CustomTimePicker: React.FC<CustomTimePickerProps> = ({
             </div>
 
             {/* Bottom Chevron Down controls */}
-            <div className="flex items-center justify-around mt-1 text-muted-foreground">
+            <div className="flex items-center justify-around mt-0.5 text-muted-foreground">
               <button
                 type="button"
                 onClick={() => stepHour(1)}
-                className="w-8 h-6 flex items-center justify-center rounded-lg hover:bg-purple-50 dark:hover:bg-purple-950/40 hover:text-[#942392] transition-colors cursor-pointer"
+                className="w-7 h-5 flex items-center justify-center rounded-lg hover:bg-purple-50 dark:hover:bg-purple-950/40 hover:text-[#942392] transition-colors cursor-pointer"
                 title="Next hour"
               >
-                <ChevronDown className="w-4 h-4" />
+                <ChevronDown className="w-3.5 h-3.5" />
               </button>
               <button
                 type="button"
                 onClick={() => stepMinute(1)}
-                className="w-8 h-6 flex items-center justify-center rounded-lg hover:bg-purple-50 dark:hover:bg-purple-950/40 hover:text-[#942392] transition-colors cursor-pointer"
+                className="w-7 h-5 flex items-center justify-center rounded-lg hover:bg-purple-50 dark:hover:bg-purple-950/40 hover:text-[#942392] transition-colors cursor-pointer"
                 title="Next minute"
               >
-                <ChevronDown className="w-4 h-4" />
+                <ChevronDown className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
         )}
 
         {/* Footer / Actions */}
-        <div className="flex items-center justify-between mt-3 pt-2 border-t border-border/40 select-none">
-          <div className="flex items-center gap-1 sm:gap-1.5">
+        <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-border/40 select-none">
+          <div className="flex items-center gap-1">
             <button
               type="button"
               onClick={() => setMode((m) => (m === "wheel" ? "keypad" : "wheel"))}
-              className="p-1.5 rounded-xl text-muted-foreground hover:text-[#942392] hover:bg-purple-50 dark:hover:bg-purple-950/40 transition-colors cursor-pointer"
+              className="p-1 rounded-lg text-muted-foreground hover:text-[#942392] hover:bg-purple-50 dark:hover:bg-purple-950/40 transition-colors cursor-pointer"
               title={mode === "wheel" ? "Switch to keypad input" : "Switch to wheel spinner"}
             >
-              {mode === "wheel" ? <Keyboard className="w-5 h-5" /> : <Clock className="w-5 h-5" />}
+              {mode === "wheel" ? <Keyboard className="w-4 h-4" /> : <Clock className="w-4 h-4" />}
             </button>
             <button
               type="button"
               onClick={handleSetTimeNow}
-              className="text-[11px] sm:text-xs font-bold text-[#942392] hover:text-[#5e0080] hover:bg-purple-50 dark:hover:bg-[#942392]/20 px-2.5 py-1 rounded-lg transition-colors cursor-pointer border border-[#942392]/30 active:scale-95 whitespace-nowrap shadow-2xs"
+              className="text-[11px] font-bold text-[#942392] hover:text-[#5e0080] hover:bg-purple-50 dark:hover:bg-[#942392]/20 px-2 py-0.5 rounded-lg transition-colors cursor-pointer border border-[#942392]/30 active:scale-95 whitespace-nowrap shadow-2xs"
             >
               Time Now
             </button>
           </div>
 
-          <div className="flex items-center gap-1 sm:gap-2">
+          <div className="flex items-center gap-1">
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="text-xs sm:text-sm font-bold text-[#942392] hover:text-[#5e0080] hover:bg-purple-50 dark:hover:bg-purple-950/40 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+              className="text-xs font-bold text-[#942392] hover:text-[#5e0080] hover:bg-purple-50 dark:hover:bg-purple-950/40 px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="button"
               onClick={handleConfirm}
-              className="text-xs sm:text-sm font-black text-[#942392] hover:text-[#5e0080] hover:bg-purple-50 dark:hover:bg-purple-950/40 px-3 py-1.5 rounded-lg transition-colors cursor-pointer tracking-wider"
+              className="text-xs font-black text-[#942392] hover:text-[#5e0080] hover:bg-purple-50 dark:hover:bg-purple-950/40 px-2.5 py-1 rounded-lg transition-colors cursor-pointer tracking-wider"
             >
               OK
             </button>

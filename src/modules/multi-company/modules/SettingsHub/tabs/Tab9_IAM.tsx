@@ -461,25 +461,25 @@ export const Tab9_IAM: React.FC = () => {
 
       {/* Upgraded Wide Modal Matching /master/role */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="max-w-4xl max-h-[92vh] flex flex-col p-0 overflow-hidden rounded-2xl bg-card border border-border shadow-2xl">
+        <DialogContent className="max-w-4xl max-h-[92vh] flex flex-col p-0 overflow-hidden rounded-3xl bg-card border-none shadow-2xl [&>button]:text-white [&>button]:hover:text-white/80">
           <form onSubmit={handleSaveRole} className="flex flex-col h-full max-h-[92vh] overflow-hidden">
             {/* Modal Header Bar */}
-            <DialogHeader className="p-5 sm:p-6 border-b border-border/60 bg-muted/20 shrink-0">
+            <DialogHeader className="bg-[#942392] p-6 sm:rounded-t-2xl m-0 text-left shrink-0 border-b border-white/20">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <DialogTitle className="text-lg font-bold text-black dark:text-white flex items-center gap-2">
-                    <ShieldCheck className="w-5 h-5 text-[#942392]" />
+                  <DialogTitle className="text-lg font-black uppercase tracking-tight text-white flex items-center gap-2">
+                    <ShieldCheck className="w-5 h-5 text-white" />
                     <span>
                       {editingRole ? `Edit Role: ${editingRole.name}` : `Create New Role for ${currentCompany?.company_name}`}
                     </span>
                   </DialogTitle>
-                  <DialogDescription className="text-xs text-muted-foreground mt-0.5">
+                  <DialogDescription className="text-xs font-bold uppercase tracking-wider text-white/80 mt-1">
                     Define role specifications, copy permissions from Main Company, and toggle granular View | Edit access
                   </DialogDescription>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border border-[#942392]/30 bg-[#942392]/10 text-[#942392] dark:text-[#f885d5]">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border border-white/30 bg-white/20 text-white">
                     <Check className="w-3.5 h-3.5 stroke-[3]" />
                     <span>{selectedPermissions.size} of {totalVisiblePerms} Permissions Selected</span>
                   </span>
@@ -594,6 +594,8 @@ export const Tab9_IAM: React.FC = () => {
                   />
                 </div>
               </div>
+
+              <div className="border-b border-border/60 my-2" />
 
               {/* Module Permissions Matrix Section */}
               <div className="space-y-4">

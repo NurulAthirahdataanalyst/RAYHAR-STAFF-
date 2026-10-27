@@ -5,12 +5,54 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { MapPin, Plus, Edit, Navigation, Sliders, Check, AlertCircle, Loader2, Moon, AlertTriangle } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { MapPin, Plus, Edit, Navigation, Sliders, Check, AlertCircle, Loader2, Moon, AlertTriangle, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCompany } from '../../../contexts/CompanyContext';
 import { multiCompanyApi } from '../../../services/multiCompanyApi';
 import { CompanyBranch } from '../../../types/multiCompany.types';
+
+async function smartGeocode(address: string): Promise<{ lat: string; lon: string } | null> {
+  const trySearch = async (q: string) => {
+    try {
+      const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&countrycodes=my&limit=1&accept-language=en`);
+      const data = await r.json();
+      return data && data.length > 0 ? data[0] : null;
+    } catch {
+      return null;
+    }
+  };
+
+  // Strategy 1: Full address + Malaysia
+  let result = await trySearch(address + ", Malaysia");
+  if (result) return result;
+
+  // Strategy 2: Strip lot/unit numbers
+  const stripped = address
+    .replace(/\b(LOT|PT|NO\.?|UNIT|BLOK|BLK|KM|KILOMETER)\s*[\d\w-]+[,\s]*/gi, '')
+    .replace(/^[,\s]+/, '').trim();
+  if (stripped && stripped !== address) {
+    result = await trySearch(stripped + ", Malaysia");
+    if (result) return result;
+  }
+
+  // Strategy 3: Extract words that look like town/city
+  const parts = address.split(',').map(s => s.trim()).filter(Boolean);
+  for (let i = parts.length - 1; i >= 0; i--) {
+    const partial = parts.slice(i).join(', ');
+    if (partial.length > 3) {
+      result = await trySearch(partial + ", Malaysia");
+      if (result) return result;
+    }
+  }
+
+  // Strategy 4: Try just last 2 parts
+  if (parts.length >= 2) {
+    result = await trySearch(parts.slice(-2).join(', ') + ", Malaysia");
+    if (result) return result;
+  }
+  return null;
+}
 
 export const Tab4_BranchLocationMgmt: React.FC = () => {
   const { companies, activeCompany } = useCompany();
@@ -78,6 +120,58 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
     setLongitude(b.longitude ? b.longitude.toString() : '103.1370');
     setRadius(b.radius || 50);
     setModalOpen(true);
+  };
+
+  const handleSmartSearch = async () => {
+    if (!locationDistrict.trim()) return;
+    toast.loading("Searching coordinates...");
+    try {
+      const res = await smartGeocode(locationDistrict);
+      toast.dismiss();
+      if (res) {
+        setLatitude(res.lat);
+        setLongitude(res.lon);
+        toast.success("Coordinates found & updated!");
+      } else {
+        toast.error("Could not find coordinates. Try entering town or city name.");
+      }
+    } catch {
+      toast.dismiss();
+      toast.error("Search failed");
+    }
+  };
+
+  const handleSelectCoords = () => {
+    if (navigator.geolocation) {
+      toast.loading("Detecting current GPS coordinates...");
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          toast.dismiss();
+          setLatitude(pos.coords.latitude.toFixed(4));
+          setLongitude(pos.coords.longitude.toFixed(4));
+          toast.success("GPS Location detected!");
+        },
+        () => {
+          toast.dismiss();
+          const manual = prompt("Enter GPS Coordinates (latitude, longitude):", `${latitude}, ${longitude}`);
+          if (manual && manual.includes(',')) {
+            const [lat, lng] = manual.split(',').map(s => s.trim());
+            setLatitude(lat);
+            setLongitude(lng);
+            toast.success("Coordinates updated!");
+          }
+        },
+        { timeout: 8000, enableHighAccuracy: true }
+      );
+    } else {
+      const manual = prompt("Enter GPS Coordinates (latitude, longitude):", `${latitude}, ${longitude}`);
+      if (manual && manual.includes(',')) {
+        const [lat, lng] = manual.split(',').map(s => s.trim());
+        setLatitude(lat);
+        setLongitude(lng);
+        toast.success("Coordinates updated!");
+      }
+    }
   };
 
   const handleSaveBranch = async (e: React.FormEvent) => {
@@ -283,128 +377,149 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
         )}
       </Card>
 
-      {/* Add / Edit Branch Dialog */}
+      {/* Add / Edit Branch Dialog (Matching Screenshot 3 / Branches.tsx) */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="max-w-lg bg-card dark:bg-neutral-900 border border-border dark:border-neutral-800 rounded-2xl">
-          <DialogHeader>
-            <DialogTitle className="text-sm font-black uppercase tracking-wider text-foreground dark:text-white flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-[#942392]" />
-              {editingBranch ? `Edit Branch (${editingBranch.code})` : 'Register New Office Branch'}
+        <DialogContent className="sm:max-w-[425px] md:max-w-xl overflow-hidden [&>button]:text-white [&>button]:hover:text-white/80 border-none shadow-2xl rounded-3xl p-0 bg-card">
+          <DialogHeader className="bg-[#942392] p-6 sm:rounded-t-lg m-0 text-left border-b border-white/20">
+            <DialogTitle className="text-white font-black uppercase tracking-tight m-0 text-lg">
+              {editingBranch ? 'Edit Branch' : 'Add New Branch'}
             </DialogTitle>
+            <DialogDescription className="text-xs font-bold uppercase tracking-wider text-white/80 m-0 mt-1">
+              {editingBranch ? 'Update branch office configuration and geofence radius' : 'Insert a new regional branch office into the database'}
+            </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleSaveBranch} className="space-y-4 pt-2">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Branch Code *</Label>
+          <form onSubmit={handleSaveBranch} className="p-6 space-y-4 bg-card">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-1.5 col-span-1">
+                <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Branch Code</label>
                 <Input
+                  placeholder="e.g. AOR"
                   value={branchCode}
                   onChange={(e) => setBranchCode(e.target.value.toUpperCase())}
-                  placeholder="e.g. KEM, KL, RR-01"
-                  className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-mono font-medium placeholder:font-normal text-black dark:text-white"
+                  className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#942392] focus:ring-2 focus:ring-[#942392]/10 rounded-xl text-xs font-black uppercase placeholder:normal-case outline-none"
                   required
                 />
               </div>
-
-              <div className="space-y-1.5">
-                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Operating Zone</Label>
-                <Select value={operatingZone} onValueChange={(val: any) => setOperatingZone(val)}>
-                  <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium data-[placeholder]:font-normal text-black dark:text-white">
-                    <SelectValue placeholder="Zone" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Zone A" className="text-xs font-bold">Zone A (Kelantan, Terengganu, Kedah, Johor)</SelectItem>
-                    <SelectItem value="Zone B" className="text-xs font-bold">Zone B (KL, Selangor, Melaka, etc.)</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="space-y-1.5 col-span-1 md:col-span-2">
+                <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Branch Name</label>
+                <Input
+                  placeholder="e.g. ALOR SETAR"
+                  value={branchName}
+                  onChange={(e) => setBranchName(e.target.value)}
+                  className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#942392] focus:ring-2 focus:ring-[#942392]/10 rounded-xl text-xs font-bold placeholder:normal-case uppercase outline-none"
+                  required
+                />
               </div>
             </div>
+
+            <div className="border-b border-border/60 my-2" />
+
+            <div className="space-y-1.5 relative">
+              <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Branch Location / District</label>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Type address & press Enter or click 🔍"
+                  value={locationDistrict}
+                  onChange={(e) => setLocationDistrict(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      void handleSmartSearch();
+                    }
+                  }}
+                  className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#942392] focus:ring-2 focus:ring-[#942392]/10 rounded-xl text-xs font-bold"
+                />
+                <button
+                  type="button"
+                  className="h-11 w-11 shrink-0 flex items-center justify-center rounded-xl bg-[#942392]/10 text-[#942392] hover:bg-[#942392]/20 transition-colors border border-[#942392]/20"
+                  onClick={() => void handleSmartSearch()}
+                  title="Search coordinates"
+                >
+                  <Search className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            <div className="border-b border-border/60 my-2" />
 
             <div className="space-y-1.5">
-              <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Branch Name *</Label>
-              <Input
-                value={branchName}
-                onChange={(e) => setBranchName(e.target.value)}
-                placeholder="e.g. Kuala Lumpur Depot & Hub"
-                className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium placeholder:font-normal text-black dark:text-white"
-                required
-              />
+              <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Operating Zone</label>
+              <Select value={operatingZone} onValueChange={(val: any) => setOperatingZone(val)}>
+                <SelectTrigger className="w-full h-11 px-4 rounded-xl border border-input bg-transparent text-xs font-bold shadow-sm">
+                  <SelectValue placeholder="Select Zone" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl">
+                  <SelectItem value="Zone A" className="text-xs font-bold">ZONE A (EAST COAST/JDT - FRI/SAT OFF)</SelectItem>
+                  <SelectItem value="Zone B" className="text-xs font-bold">ZONE B (WEST COAST - SAT/SUN OFF)</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
-            <div className="space-y-1.5">
-              <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Location / District</Label>
-              <Input
-                value={locationDistrict}
-                onChange={(e) => setLocationDistrict(e.target.value)}
-                placeholder="e.g. Bangsar South, Kuala Lumpur"
-                className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium placeholder:font-normal text-black dark:text-white"
-              />
-            </div>
+            <div className="border-b border-border/60 my-2" />
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Latitude *</Label>
-                <Input
-                  type="number"
-                  step="any"
-                  value={latitude}
-                  onChange={(e) => setLatitude(e.target.value)}
-                  className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-mono font-medium placeholder:font-normal text-black dark:text-white"
-                  required
-                />
+                <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Coordinates</label>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Lat, Lng"
+                    value={latitude && longitude ? `${parseFloat(latitude).toFixed(4)}, ${parseFloat(longitude).toFixed(4)}` : ""}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val.includes(',')) {
+                        const [lat, lng] = val.split(',').map(s => s.trim());
+                        setLatitude(lat);
+                        setLongitude(lng);
+                      }
+                    }}
+                    className="w-full h-11 px-3 bg-muted/50 rounded-xl text-xs font-bold opacity-80"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleSelectCoords}
+                    className="h-11 px-3 shrink-0 flex items-center justify-center gap-1.5 rounded-xl bg-[#942392] text-white font-black uppercase text-[10px] tracking-wider hover:bg-[#800A7A] shadow-sm"
+                    title="Select GPS coordinates"
+                  >
+                    <MapPin className="w-3.5 h-3.5" /> Select
+                  </button>
+                </div>
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Longitude *</Label>
-                <Input
-                  type="number"
-                  step="any"
-                  value={longitude}
-                  onChange={(e) => setLongitude(e.target.value)}
-                  className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-mono font-medium placeholder:font-normal text-black dark:text-white"
-                  required
-                />
+                <div className="flex justify-between items-center">
+                  <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Radius</label>
+                  <span className="text-[9px] font-black text-[#942392]">0m - 500m</span>
+                </div>
+                <div className="flex items-center gap-4 h-11 px-3 bg-muted/20 border border-border/50 rounded-xl">
+                  <input
+                    type="range"
+                    min="0"
+                    max="500"
+                    step="5"
+                    value={radius || 50}
+                    onChange={(e) => setRadius(Number(e.target.value))}
+                    className="flex-1 h-2 rounded-full appearance-none cursor-pointer"
+                    style={{
+                      background: `linear-gradient(to right, #942392 0%, #942392 ${(((Number(radius || 50) - 0) / 500) * 100)}%, #e5e7eb ${(((Number(radius || 50) - 0) / 500) * 100)}%, #e5e7eb 100%)`
+                    }}
+                  />
+                  <div className="text-[10px] font-black w-10 text-right bg-[#942392]/10 text-[#942392] py-1 px-1.5 rounded-md">
+                    {radius}m
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Geofence Radius Slider */}
-            <div className="p-3.5 bg-muted/30 dark:bg-neutral-800/40 rounded-xl border border-border/50 space-y-3">
-              <div className="flex items-center justify-between">
-                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
-                  GPS Geofence Clock-in Radius
-                </Label>
-                <span className="text-xs font-black text-[#942392] dark:text-[#f885d5] px-2 py-0.5 rounded-md bg-[#942392]/10">
-                  {radius} meters
-                </span>
-              </div>
-              <Slider
-                value={[radius]}
-                min={10}
-                max={500}
-                step={5}
-                onValueChange={(val) => setRadius(val[0])}
-                className="w-full py-1"
-              />
-              <div className="flex justify-between text-[10px] text-muted-foreground">
-                <span>10m (Compact)</span>
-                <span className="font-bold text-[#942392]">50m (Default Rule)</span>
-                <span>500m (Large Yard)</span>
-              </div>
-            </div>
-
-            <DialogFooter className="pt-2">
-              <Button type="button" variant="ghost" onClick={() => setModalOpen(false)} className="text-xs">
+            <div className="border-t border-border/60 pt-4 flex justify-end gap-3">
+              <Button type="button" variant="ghost" onClick={() => setModalOpen(false)} className="rounded-xl text-xs font-black uppercase">
                 Cancel
               </Button>
-              <Button
-                type="submit"
-                disabled={saving}
-                className="bg-[#942392] hover:bg-[#800A7A] text-white font-black text-xs uppercase tracking-wider h-9 px-4 rounded-xl"
-              >
-                {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : <Check className="w-3.5 h-3.5 mr-1.5" />}
-                {editingBranch ? 'Save Branch' : 'Register Branch'}
+              <Button type="submit" disabled={saving} className="rounded-xl px-6 bg-[#942392] hover:bg-[#800A7A] text-white shadow-md text-xs font-black uppercase flex items-center gap-2">
+                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                {saving ? "Saving..." : (editingBranch ? "Save Branch" : "+ Add Branch")}
               </Button>
-            </DialogFooter>
+            </div>
           </form>
         </DialogContent>
       </Dialog>
@@ -412,15 +527,18 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
       {/* Multi-mode Geofence Settings Dialog */}
       {selectedBranchForModes && (
         <Dialog open={geofenceModalOpen} onOpenChange={setGeofenceModalOpen}>
-          <DialogContent className="max-w-md bg-card dark:bg-neutral-900 border border-border dark:border-neutral-800 rounded-2xl">
-            <DialogHeader>
-              <DialogTitle className="text-sm font-black uppercase tracking-wider text-foreground dark:text-white flex items-center gap-2">
-                <Sliders className="w-4 h-4 text-[#942392]" />
-                Geofence Radius Modes ({selectedBranchForModes.name})
+          <DialogContent className="max-w-md overflow-hidden [&>button]:text-white [&>button]:hover:text-white/80 border-none shadow-2xl rounded-3xl p-0 bg-card">
+            <DialogHeader className="bg-[#942392] p-6 sm:rounded-t-lg m-0 text-left border-b border-white/20">
+              <DialogTitle className="text-white font-black uppercase tracking-tight m-0 text-lg flex items-center gap-2">
+                <Sliders className="w-5 h-5 text-white" />
+                Geofence Radius Modes
               </DialogTitle>
+              <DialogDescription className="text-xs font-bold uppercase tracking-wider text-white/80 m-0 mt-1">
+                {selectedBranchForModes.name} ({selectedBranchForModes.code})
+              </DialogDescription>
             </DialogHeader>
 
-            <div className="space-y-4 pt-2 text-xs">
+            <div className="p-6 space-y-4 text-xs bg-card">
               {/* Mode 1: Normal */}
               <div className="p-3 bg-muted/30 dark:bg-neutral-800/40 rounded-xl border border-border/40 space-y-1">
                 <div className="flex justify-between items-center">
@@ -470,19 +588,19 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
                 <p className="text-[11px] text-muted-foreground">Temporary extended boundary for monsoon or road closure scenarios.</p>
               </div>
 
-              <DialogFooter className="pt-2">
-                <Button type="button" variant="ghost" onClick={() => setGeofenceModalOpen(false)}>
+              <div className="border-t border-border/60 pt-4 flex justify-end gap-3">
+                <Button type="button" variant="ghost" onClick={() => setGeofenceModalOpen(false)} className="rounded-xl text-xs font-black uppercase">
                   Cancel
                 </Button>
                 <Button
                   onClick={handleSaveGeofenceModes}
                   disabled={saving}
-                  className="bg-[#942392] hover:bg-[#800A7A] text-white font-black text-xs uppercase h-8 px-4 rounded-xl"
+                  className="rounded-xl px-6 bg-[#942392] hover:bg-[#800A7A] text-white shadow-md text-xs font-black uppercase flex items-center gap-2"
                 >
-                  {saving ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Check className="w-3 h-3 mr-1" />}
-                  Save Geofence Modes
+                  {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : <Check className="w-3.5 h-3.5 mr-1.5" />}
+                  Save Radius Policies
                 </Button>
-              </DialogFooter>
+              </div>
             </div>
           </DialogContent>
         </Dialog>

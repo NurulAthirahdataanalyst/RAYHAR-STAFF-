@@ -467,7 +467,7 @@ export const CompanyModuleManagement: React.FC = () => {
                 </SelectTrigger>
                 <SelectContent className="rounded-xl max-h-64">
                   <SelectItem value="all" className="font-bold text-xs">
-                    🛡️ All Modules (Company Master)
+                    All Modules (Company Master)
                   </SelectItem>
                   {companyRoles.length > 0 && (
                     <div className="px-2 py-1 text-[10px] font-black uppercase text-muted-foreground tracking-wider">
@@ -476,7 +476,7 @@ export const CompanyModuleManagement: React.FC = () => {
                   )}
                   {companyRoles.map(r => (
                     <SelectItem key={r.id} value={r.id} className="font-semibold text-xs">
-                      ✨ {r.name}
+                      {r.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -543,7 +543,7 @@ export const CompanyModuleManagement: React.FC = () => {
                   <SelectContent className="rounded-xl max-h-56">
                     {mainCompanyRoles.map(mr => (
                       <SelectItem key={mr.id} value={mr.name} className="text-xs font-bold">
-                        🛡️ {mr.name} ({mr.permission_keys ? mr.permission_keys.length : 0} perms)
+                        {mr.name} ({mr.permission_keys ? mr.permission_keys.length : 0} perms)
                       </SelectItem>
                     ))}
                   </SelectContent>
