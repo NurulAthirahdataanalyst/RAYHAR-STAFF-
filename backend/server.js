@@ -5579,8 +5579,8 @@ app.get("/api/employees/:userId/today-attendance", async (req, res) => {
          clock_in_longitude,
          clock_out_latitude,
          clock_out_longitude,
-         TO_CHAR(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS clock_in_time_12,
-         TO_CHAR(clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS clock_out_time_12,
+         TO_CHAR(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'FMHH12:MI AM') AS clock_in_time_12,
+         TO_CHAR(clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'FMHH12:MI AM') AS clock_out_time_12,
          TO_CHAR(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH24:MI') AS clock_in_time_24,
          TO_CHAR(clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH24:MI') AS clock_out_time_24
        FROM attendances
@@ -5675,13 +5675,18 @@ app.post("/api/employees/:userId/today-attendance", async (req, res) => {
 
     const formatTimestamp = (val) => {
       if (!val) return null;
-      if (val.includes('T')) return val;
+      if (val.includes('T')) {
+        if (!val.includes('+') && !val.includes('Z')) {
+          return `${val}+08:00`;
+        }
+        return val;
+      }
       if (/^\d{1,2}:\d{2}(:\d{2})?$/.test(val)) {
         const parts = val.split(':');
         const hh = parts[0].padStart(2, '0');
         const mm = parts[1];
         const ss = parts[2] || '00';
-        return `${todayDateStr}T${hh}:${mm}:${ss}`;
+        return `${todayDateStr}T${hh}:${mm}:${ss}+08:00`;
       }
       return val;
     };
@@ -5746,47 +5751,6 @@ app.post("/api/employees/:userId/today-attendance", async (req, res) => {
   }
 });
 
-/* Legacy handler removed */
-const _legacy_dummy = (async (req, res) => {
-  const userId = safeString(req.params.userId);
-  const clock_in = safeString(req.body?.clock_in);
-  const clock_out = safeString(req.body?.clock_out);
-  const attendance_type = safeString(req.body?.attendance_type || "Present");
-  const location = safeString(req.body?.location);
-
-  try {
-    const [existing] = await pool.query(
-      `SELECT attendance_id FROM attendances
-       WHERE user_id = ?
-       AND (clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date
-       LIMIT 1`,
-      [userId]
-    );
-
-    if (existing.length > 0) {
-      await pool.query(
-        `UPDATE attendances
-         SET clock_in = COALESCE(NULLIF(?::timestamp, NULL), clock_in),
-             clock_out = COALESCE(NULLIF(?::timestamp, NULL), clock_out),
-             attendance_type = COALESCE(NULLIF(?, ''), attendance_type),
-             location = COALESCE(NULLIF(?, ''), location)
-         WHERE attendance_id = ?`,
-        [clock_in || null, clock_out || null, attendance_type, location, existing[0].attendance_id]
-      );
-    } else {
-      await pool.query(
-        `INSERT INTO attendances (user_id, clock_in, clock_out, attendance_type, location, date)
-         VALUES (?, COALESCE(NULLIF(?::timestamp, NULL), CURRENT_TIMESTAMP), NULLIF(?::timestamp, NULL), ?, ?, CURRENT_DATE)`,
-        [userId, clock_in || null, clock_out || null, attendance_type, location || "HQ"]
-      );
-    }
-
-    res.json({ success: true, message: "Today's attendance record updated" });
-  } catch (err) {
-    console.error("Save Today Attendance Error:", err);
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
 
 app.get("/api/employees/:userId/analytics", async (req, res) => {
   const userId = safeString(req.params.userId);

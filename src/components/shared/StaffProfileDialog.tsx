@@ -259,11 +259,11 @@ export function StaffProfileDialog({
   const formatTimeToDotAmPm = (timeStr?: string | null) => {
     if (!timeStr) return "--:--";
     if (timeStr.includes("AM") || timeStr.includes("PM")) {
-      return timeStr.replace(':', '.');
+      return timeStr.replace(':', '.').replace(/^0(?=[0-9]\.)/, '');
     }
     const parts = timeStr.split(':');
     let h = parseInt(parts[0], 10);
-    const m = parts[1] || "00";
+    const m = parts[1] ? parts[1].slice(0, 2) : "00";
     if (isNaN(h)) return timeStr;
     const ampm = h >= 12 ? "PM" : "AM";
     h = h % 12 || 12;
@@ -273,10 +273,10 @@ export function StaffProfileDialog({
   const calculateDiffHoursAndMinutes = (inStr?: string | null, outStr?: string | null) => {
     if (!inStr || !outStr || inStr === "--:--" || outStr === "--:--") return { str: "0 H 00 M", mins: 0 };
     const getMinutes = (str: string) => {
-      let clean = str.trim();
-      if (clean.includes("AM") || clean.includes("PM")) {
-        const isPM = clean.includes("PM");
-        clean = clean.replace(/AM|PM/g, '').trim().replace('.', ':');
+      let clean = String(str).trim();
+      if (clean.toUpperCase().includes("AM") || clean.toUpperCase().includes("PM")) {
+        const isPM = clean.toUpperCase().includes("PM");
+        clean = clean.replace(/AM|PM/gi, '').trim().replace('.', ':');
         const [h, m] = clean.split(':').map(Number);
         let hours = isNaN(h) ? 0 : h;
         if (isPM && hours < 12) hours += 12;
@@ -368,6 +368,17 @@ export function StaffProfileDialog({
 
   const handleSelectSession = (newIdx: number) => {
     if (newIdx < 0 || newIdx >= attendanceSessions.length) return;
+    setAttendanceSessions(prev => {
+      const copy = [...prev];
+      if (copy[currentSessionIdx]) {
+        copy[currentSessionIdx] = {
+          ...copy[currentSessionIdx],
+          clock_in_time_24: editClockIn,
+          clock_out_time_24: editClockOut,
+        };
+      }
+      return copy;
+    });
     setCurrentSessionIdx(newIdx);
     const sess = attendanceSessions[newIdx];
     setEditClockIn(sess.clock_in_time_24 || "");
@@ -1224,7 +1235,7 @@ export function StaffProfileDialog({
                               <div className="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-slate-900/40 rounded-xl">
                                 <span className="text-[10px] font-black uppercase text-foreground">Location</span>
                                 <span className="font-bold text-foreground truncate max-w-[150px]">
-                                  {todayStats?.attendanceLocationFormatted || (todayStats?.attendanceLocation ? `${BRANCH_NAMES[todayStats.attendanceLocation] || todayStats.attendanceLocation} ( 4.2248, 103.41972330 )` : "HQ ( 4.2248, 103.41972330 )")}
+                                  {todayStats?.attendanceLocationFormatted || (todayStats?.attendanceLocation ? `${BRANCH_NAMES[todayStats.attendanceLocation] || todayStats.attendanceLocation} ( 4.6778, 10.78758646 )` : "HQ ( 4.6778, 10.78758646 )")}
                                 </span>
                               </div>
                               <div className="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-slate-900/40 rounded-xl">
@@ -3171,7 +3182,7 @@ export function StaffProfileDialog({
                 {/* 1. CLOCK IN TIME */}
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground">Clock In Time</Label>
+                    <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground">CLOCK IN TIME</Label>
                     {attendanceSessions[currentSessionIdx]?.has_recorded_clock_in ? (
                       <span className="text-[9px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded border border-amber-200">
                         Fixed (Staff Clocked In)
@@ -3192,19 +3203,26 @@ export function StaffProfileDialog({
                       <Lock className="w-3.5 h-3.5 text-muted-foreground" />
                     </div>
                   ) : (
-                    <Input
-                      type="time"
-                      value={editClockIn}
-                      onChange={(e) => setEditClockIn(e.target.value)}
-                      className="h-10 text-xs font-mono font-bold"
-                    />
+                    <div className="space-y-1">
+                      <Input
+                        type="time"
+                        value={editClockIn}
+                        onChange={(e) => setEditClockIn(e.target.value)}
+                        className="h-10 text-xs font-mono font-bold"
+                      />
+                      {editClockIn && (
+                        <p className="text-[10px] font-bold text-muted-foreground">
+                          Selected: <span className="font-mono text-foreground font-black">{formatTimeToDotAmPm(editClockIn)}</span>
+                        </p>
+                      )}
+                    </div>
                   )}
                 </div>
 
                 {/* 2. CLOCK OUT TIME */}
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground">Clock Out Time</Label>
+                    <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground">CLOCK OUT TIME</Label>
                     {!attendanceSessions[currentSessionIdx]?.has_recorded_clock_out && !editClockOut ? (
                       <span className="text-[9px] font-bold text-rose-600 bg-rose-50 dark:bg-rose-950/40 px-2 py-0.5 rounded border border-rose-200">
                         Forgot Clock Out (Set by HR)
@@ -3232,7 +3250,7 @@ export function StaffProfileDialog({
                 {/* 3. WORKING STATUS (NOT EDITABLE) */}
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground">Working Status</Label>
+                    <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground">WORKING STATUS</Label>
                     <span className="text-[9px] font-bold uppercase text-muted-foreground bg-muted px-2 py-0.5 rounded">
                       Non-Editable
                     </span>
@@ -3251,7 +3269,7 @@ export function StaffProfileDialog({
                 {/* 4. LOCATION (NOT EDITABLE & HAVE COORDINATE) */}
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground">Location (With Coordinates)</Label>
+                    <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground">LOCATION (WITH COORDINATES)</Label>
                     <span className="text-[9px] font-bold uppercase text-muted-foreground bg-muted px-2 py-0.5 rounded">
                       Non-Editable
                     </span>
@@ -3266,7 +3284,7 @@ export function StaffProfileDialog({
 
                 {/* 5. SESSION WORKING HOURS */}
                 <div className="p-3 bg-purple-50/70 dark:bg-purple-950/30 rounded-xl border border-purple-200 dark:border-purple-800/60 flex items-center justify-between">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-[#942392]">Session Working Hours</span>
+                  <span className="text-[10px] font-black uppercase tracking-wider text-[#942392]">WORKING HOURS</span>
                   <span className="font-mono font-black text-xs text-[#942392]">
                     {calculateDiffHoursAndMinutes(
                       editClockIn || attendanceSessions[currentSessionIdx]?.clock_in_time_24 || attendanceSessions[currentSessionIdx]?.clock_in_time_12,
@@ -3279,10 +3297,10 @@ export function StaffProfileDialog({
                 <div className="p-3.5 bg-gradient-to-r from-purple-50 via-purple-100/60 to-pink-50 dark:from-purple-950/40 dark:to-pink-950/30 rounded-2xl border border-[#942392]/30 flex items-center justify-between">
                   <div>
                     <span className="text-[10px] font-black uppercase tracking-wider text-foreground block">
-                      Total Working Hours (Today)
+                      TOTAL WORKING HOURS
                     </span>
                     <span className="text-[9px] font-bold text-muted-foreground">
-                      Sum of all {attendanceSessions.length} session{attendanceSessions.length > 1 ? 's' : ''}
+                      Sum of all {attendanceSessions.length} session{attendanceSessions.length > 1 ? 's' : ''} today
                     </span>
                   </div>
                   <span className="font-mono font-black text-sm text-[#942392]">
