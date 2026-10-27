@@ -189,13 +189,7 @@ export function StaffProfileDialog({
   const storedUserId = typeof window !== 'undefined' ? (localStorage.getItem("user_id") || localStorage.getItem("userId")) : null;
   const storedUserEmail = typeof window !== 'undefined' ? (localStorage.getItem("user_email") || localStorage.getItem("email")) : null;
 
-  const isOwnProfile = Boolean(
-    selectedEmployee && (
-      (currentUserId && String(currentUserId).trim().toLowerCase() === String(selectedEmployee.user_id).trim().toLowerCase()) ||
-      (storedUserId && String(storedUserId).trim().toLowerCase() === String(selectedEmployee.user_id).trim().toLowerCase()) ||
-      (storedUserEmail && selectedEmployee.email && String(storedUserEmail).trim().toLowerCase() === String(selectedEmployee.email).trim().toLowerCase())
-    )
-  );
+
   const isHrOrAdmin = role === "hr_admin" || role === "admin" || (typeof role === "string" && role.toLowerCase().includes("hr"));
   const printRef = useRef<HTMLDivElement>(null);
   
@@ -211,6 +205,22 @@ export function StaffProfileDialog({
   const [dbEmployees, setDbEmployees] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedEmployee, setSelectedEmployee] = useState<any | null>(initialEmployee || null);
+
+  const isOwnProfile = useMemo(() => {
+    if (!selectedEmployee) return false;
+    const targetUid = String(selectedEmployee.user_id || '').trim().toLowerCase();
+    const targetEmail = String(selectedEmployee.email || '').trim().toLowerCase();
+
+    const currUid = currentUserId ? String(currentUserId).trim().toLowerCase() : '';
+    const stUserId = storedUserId ? String(storedUserId).trim().toLowerCase() : '';
+    const stEmail = storedUserEmail ? String(storedUserEmail).trim().toLowerCase() : '';
+
+    return Boolean(
+      (currUid && targetUid && currUid === targetUid) ||
+      (stUserId && targetUid && stUserId === targetUid) ||
+      (stEmail && targetEmail && stEmail === targetEmail)
+    );
+  }, [selectedEmployee, currentUserId, storedUserId, storedUserEmail]);
   const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
   const [employeeLeaves, setEmployeeLeaves] = useState<any[]>([]);
 
