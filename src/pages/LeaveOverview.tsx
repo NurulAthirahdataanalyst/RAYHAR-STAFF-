@@ -543,7 +543,7 @@ export default function LeaveOverview() {
                           req.status === "Rejected" ? "bg-red-50 text-[#ff0000] border-red-200 dark:bg-red-500/10 dark:border-red-500/20 dark:text-[#ff0000]" :
                           "bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-500/10 dark:border-amber-500/20"
                         }`}>
-                          {getDisplayStatus(req.status, (req as any).branch, (req as any).companyName).toUpperCase()}
+                          {getDisplayStatus(req.status, (req as any).branch, (req as any).companyName || activeCompany?.company_name).toUpperCase()}
                         </span>
                       </TableCell>
                     </TableRow>
@@ -571,7 +571,7 @@ export default function LeaveOverview() {
                       req.status === "Rejected" ? "bg-red-50 text-[#ff0000] border-red-200 dark:bg-red-500/10 dark:border-red-500/20 dark:text-[#ff0000]" :
                       "bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-500/10 dark:border-amber-500/20"
                     }`}>
-                      {getDisplayStatus(req.status, (req as any).branch, (req as any).companyName).toUpperCase()}
+                      {getDisplayStatus(req.status, (req as any).branch, (req as any).companyName || activeCompany?.company_name).toUpperCase()}
                     </span>
                   </div>
                   <div className="flex items-center justify-between bg-muted/20 p-2 rounded-xl">
@@ -631,6 +631,22 @@ export default function LeaveOverview() {
           {paginatedApprovalRequests.length > 0 ? (
             paginatedApprovalRequests.map((req) => {
               const fileName = req.formFileName || getLeaveFormFileName(req.appliedAt, req.type, userName);
+              const isRayRent = 
+                String((req as any).branch || '').toUpperCase() === 'RAYRENT' ||
+                String((req as any).companyName || '').toLowerCase().includes('rayrent') ||
+                String(activeCompany?.company_name || '').toLowerCase().includes('rayrent') ||
+                Number(activeCompany?.id) === 2;
+
+              const effectiveBranch = (req as any).branch && (req as any).branch !== 'HQ' 
+                ? (req as any).branch 
+                : (isRayRent ? 'RAYRENT' : 'HQ');
+
+              const effectiveCompany = (req as any).companyName || (isRayRent ? 'RayRent' : (activeCompany?.company_name || 'Rayhar Travels'));
+
+              let effectiveStatus = req.status;
+              if (isRayRent && (effectiveStatus === 'Pending MD' || effectiveStatus === 'Pending Managing Director')) {
+                effectiveStatus = 'Pending Branch Leader';
+              }
 
               return (
                 <div
@@ -652,27 +668,27 @@ export default function LeaveOverview() {
                     </div>
                     <Badge
                       className={`text-[9px] font-black px-2.5 h-5 w-fit shadow-sm sm:self-center ${
-                        req.status === "Approved" ? "bg-[#228b22]" :
-                        req.status === "Rejected" ? "bg-rose-500" :
+                        effectiveStatus === "Approved" ? "bg-[#228b22]" :
+                        effectiveStatus === "Rejected" ? "bg-rose-500" :
                         "bg-[#C2410C] text-white border-none"
                       }`}
-                      style={req.status !== "Approved" && req.status !== "Rejected" ? { backgroundColor: "#C2410C", color: "white" } : {}}
+                      style={effectiveStatus !== "Approved" && effectiveStatus !== "Rejected" ? { backgroundColor: "#C2410C", color: "white" } : {}}
                     >
-                      {getDisplayStatus(req.status, (req as any).branch, (req as any).companyName).toUpperCase()}
+                      {getDisplayStatus(effectiveStatus, effectiveBranch, effectiveCompany).toUpperCase()}
                     </Badge>
                   </div>
 
                   
   <div className="mt-6 space-y-4 pt-4 pb-2">
     <ApprovalStatusTracker 
-      status={req.status} 
+      status={effectiveStatus} 
       approverRole={req.approverRole || ""} 
       approvalHistory={(req as any).approvalHistory || []}
-      branch={(req as any).branch || "HQ"} 
+      branch={effectiveBranch} 
       department={(req as any).department || ""}
-      companyName={(req as any).companyName || activeCompany?.company_name || ""}
+      companyName={effectiveCompany}
       pendingApproverName={(req as any).pendingApproverName || ""}
-      pendingApproverContext={(req as any).pendingApproverContext || ""}
+      pendingApproverContext={isRayRent ? "RayRent" : ((req as any).pendingApproverContext || "")}
     />
   </div>
 

@@ -167,8 +167,6 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
       roles.find((r) => (r.name || '').trim().toLowerCase() === targetName.toLowerCase());
 
     const blRole = findRole('Branch Leader') || findRole('Branch Admin') || roles[0];
-    const mdRole = findRole('Managing Director') || findRole('Operation Manager') || roles[1] || roles[0];
-
     const allBranchCodes = branchList.map((b) => b.code);
 
     const subTrack: WorkflowTrack = {
@@ -183,20 +181,9 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
           branch_scope: 'ALL',
           step_order: 1,
           approver_role_id: blRole?.id || '',
-          approver_role_name: blRole?.name || 'Branch Leader / Supervisor',
-          step_label: 'Initial Endorsement',
-          routing_rule: `Primary sign-off for ${companyName} leave applicants`,
-          auto_escalate_hours: 48
-        },
-        {
-          company_id: companyId,
-          module: 'leave',
-          branch_scope: 'ALL',
-          step_order: 2,
-          approver_role_id: mdRole?.id || '',
-          approver_role_name: mdRole?.name || 'Managing Director',
-          step_label: 'Highest Approval (Managing Director)',
-          routing_rule: `Final sign-off authority for ${companyName}`,
+          approver_role_name: blRole?.name || 'Branch Leader',
+          step_label: 'Highest Approval (Branch Leader)',
+          routing_rule: `Highest approval authority for ${companyName} leave applicants`,
           auto_escalate_hours: 48
         }
       ]

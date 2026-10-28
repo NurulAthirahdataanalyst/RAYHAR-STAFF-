@@ -106,27 +106,27 @@ export function ApprovalStatusTracker({
 
   if (isRayRent) {
     if (isApproved) {
-      step1Status = 'Approved';
-      step1Subtitle = 'Endorsed';
       step2Status = 'Approved';
-      step2Subtitle = lvl2History?.approver_name 
-        ? `${lvl2History.approver_name} • ${lvl2Context}` 
-        : (pendingApproverName ? `${pendingApproverName} • ${lvl2Context}` : `Approved • ${lvl2Context}`);
+      step2Subtitle = lvl1History?.approver_name 
+        ? `${lvl1History.approver_name} • ${lvl2Context}` 
+        : (lvl2History?.approver_name ? `${lvl2History.approver_name} • ${lvl2Context}` : `Approved • ${lvl2Context}`);
+      if (lvl1History?.created_at || lvl2History?.created_at) {
+        step2Date = new Date((lvl1History?.created_at || lvl2History?.created_at)!).toLocaleDateString('en-GB');
+      }
     } else if (isRejected) {
-      step1Status = 'Approved';
-      step1Subtitle = 'Endorsed';
       step2Status = 'Rejected';
-      step2Subtitle = lvl2History?.approver_name 
-        ? `${lvl2History.approver_name} • ${lvl2Context}` 
-        : (pendingApproverName ? `${pendingApproverName} • ${lvl2Context}` : `Rejected • ${lvl2Context}`);
+      step2Subtitle = lvl1History?.approver_name 
+        ? `${lvl1History.approver_name} • ${lvl2Context}` 
+        : (lvl2History?.approver_name ? `${lvl2History.approver_name} • ${lvl2Context}` : `Rejected • ${lvl2Context}`);
+      if (lvl1History?.created_at || lvl2History?.created_at) {
+        step2Date = new Date((lvl1History?.created_at || lvl2History?.created_at)!).toLocaleDateString('en-GB');
+      }
     } else {
       // Pending
-      step1Status = 'Approved';
-      step1Subtitle = 'Endorsement Passed';
       step2Status = 'Pending';
       step2Subtitle = pendingApproverName 
         ? `${pendingApproverName} • ${lvl2Context}` 
-        : 'Awaiting Branch Leader Approval';
+        : `Awaiting Branch Leader Approval • ${lvl2Context}`;
     }
   } else if (isRejected) {
     // Check which stage rejected the request
@@ -204,25 +204,39 @@ export function ApprovalStatusTracker({
     subtitle?: string;
     status: 'Approved' | 'Rejected' | 'Pending' | 'Future';
     date?: string;
-  }> = [
-    {
-      title: "SUBMIT",
-      subtitle: "Application Submitted",
-      status: "Approved",
-    },
-    {
-      title: lvl1RoleTitle,
-      subtitle: step1Subtitle,
-      status: step1Status,
-      date: step1Date,
-    },
-    {
-      title: lvl2RoleTitle,
-      subtitle: step2Subtitle,
-      status: step2Status,
-      date: step2Date,
-    }
-  ];
+  }> = isRayRent
+    ? [
+        {
+          title: "SUBMIT",
+          subtitle: "Application Submitted",
+          status: "Approved",
+        },
+        {
+          title: "BRANCH LEADER",
+          subtitle: step2Subtitle,
+          status: step2Status,
+          date: step2Date,
+        }
+      ]
+    : [
+        {
+          title: "SUBMIT",
+          subtitle: "Application Submitted",
+          status: "Approved",
+        },
+        {
+          title: lvl1RoleTitle,
+          subtitle: step1Subtitle,
+          status: step1Status,
+          date: step1Date,
+        },
+        {
+          title: lvl2RoleTitle,
+          subtitle: step2Subtitle,
+          status: step2Status,
+          date: step2Date,
+        }
+      ];
 
   return (
     <div className="w-full py-2">
