@@ -584,6 +584,60 @@ function createMultiCompanyRouter(pgPool) {
     }
   });
 
+  // Helper to upload company logo to Supabase Storage
+  async function uploadLogoToSupabase(filePath, filename, mimeType) {
+    const supabaseUrl = process.env.VITE_SUPABASE_URL || 'https://xvpebtompjcjfvuzeumo.supabase.co';
+    const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
+    if (!supabaseUrl || !supabaseKey) return null;
+
+    try {
+      const fileContent = fs.readFileSync(filePath);
+      const encodedFilename = filename.split('/').map(segment => encodeURIComponent(segment)).join('/');
+      const https = require('https');
+      const urlObj = new URL(`${supabaseUrl}/storage/v1/object/mc-attachments/${encodedFilename}`);
+      
+      return new Promise((resolve) => {
+        const options = {
+          hostname: urlObj.hostname,
+          port: 443,
+          path: urlObj.pathname,
+          method: 'POST',
+          headers: {
+            'apikey': supabaseKey,
+            'Authorization': `Bearer ${supabaseKey}`,
+            'Content-Type': mimeType || 'image/png',
+            'Content-Length': fileContent.length,
+            'x-upsert': 'true',
+          }
+        };
+
+        const req = https.request(options, (res) => {
+          let body = '';
+          res.on('data', chunk => body += chunk);
+          res.on('end', () => {
+            if (res.statusCode === 200 || res.statusCode === 201) {
+              resolve(`${supabaseUrl}/storage/v1/object/public/mc-attachments/${encodedFilename}`);
+            } else {
+              console.error('Supabase logo upload error status:', res.statusCode, body);
+              resolve(null);
+            }
+          });
+        });
+
+        req.on('error', (err) => {
+          console.error('Supabase logo upload request error:', err);
+          resolve(null);
+        });
+
+        req.write(fileContent);
+        req.end();
+      });
+    } catch (err) {
+      console.error('Supabase logo upload exception:', err);
+      return null;
+    }
+  }
+
   // POST upload logo for company
   router.post('/companies/:id/logo', uploadLogo.single('logo'), async (req, res) => {
     try {
@@ -592,22 +646,26 @@ function createMultiCompanyRouter(pgPool) {
         return res.status(400).json({ success: false, error: 'No logo image file uploaded' });
       }
 
-      const relativeUrl = `/uploads/company-logos/${req.file.filename}`;
+      // Upload to Supabase Storage for persistent CDN URL across Vercel & Render
+      const storagePath = `company-logos/${req.file.filename}`;
+      const supabasePublicUrl = await uploadLogoToSupabase(req.file.path, storagePath, req.file.mimetype);
+
+      const targetLogoUrl = supabasePublicUrl || `/uploads/company-logos/${req.file.filename}`;
 
       const updateResult = await pgPool.query(`
         UPDATE companies
         SET logo_url = $1, updated_at = CURRENT_TIMESTAMP
         WHERE id = $2
         RETURNING *;
-      `, [relativeUrl, companyId]);
+      `, [targetLogoUrl, companyId]);
 
       if (updateResult.rows.length === 0) {
         return res.status(404).json({ success: false, error: 'Company not found' });
       }
 
-      await logAudit(req, 'COMPANY_LOGO', `Uploaded new logo for ${updateResult.rows[0].company_name}`, null, { logo_url: relativeUrl }, companyId);
+      await logAudit(req, 'COMPANY_LOGO', `Uploaded new logo for ${updateResult.rows[0].company_name}`, null, { logo_url: targetLogoUrl }, companyId);
 
-      res.json({ success: true, logo_url: relativeUrl, company: updateResult.rows[0] });
+      res.json({ success: true, logo_url: targetLogoUrl, company: updateResult.rows[0] });
     } catch (err) {
       console.error('Error uploading company logo:', err);
       res.status(500).json({ success: false, error: err.message });

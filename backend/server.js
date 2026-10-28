@@ -58,7 +58,9 @@ if (!jwtSecret) {
 }
 
 const app = express();
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
 app.set('trust proxy', false); // Disable IP spoofing via X-Forwarded-For unless behind a trusted proxy
 
 const malaysiaHolidays = [
@@ -644,7 +646,7 @@ app.get("/api/permissions", async (req, res) => {
 // GET /api/roles — List all roles with user count and permission keys
 app.get("/api/roles", async (req, res) => {
   try {
-    const rawCompanyId = req.companyId || req.query.company_id || req.query.companyId;
+    const rawCompanyId = req.query.company_id || req.query.companyId || req.companyId;
     const companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
     let whereFilter = "";
     if (companyId === 2) {
@@ -1565,7 +1567,7 @@ const pgPool = connectionString ? new Pool({
 
 // Global Workspace / Multi-Company Context Middleware
 app.use((req, res, next) => {
-  const rawCompanyId = req.headers['x-company-id'] || req.query.company_id || req.query.companyId;
+  const rawCompanyId = req.query.company_id || req.query.companyId || req.headers['x-company-id'];
   if (rawCompanyId) {
     const parsed = parseInt(rawCompanyId, 10);
     if (!isNaN(parsed) && parsed > 0) {
@@ -11566,7 +11568,7 @@ app.put("/api/branches/:code", async (req, res) => {
 
 app.get("/api/branches", async (req, res) => {
   try {
-    const rawCompanyId = req.companyId || req.query.company_id || req.query.companyId;
+    const rawCompanyId = req.query.company_id || req.query.companyId || req.companyId;
     const companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
     let whereClause = "";
     let queryParams = [];
@@ -11792,7 +11794,7 @@ app.delete("/api/branches/:id", async (req, res) => {
 app.get("/api/branches-stats", async (req, res) => {
   try {
     const todayStr = new Date().toLocaleDateString('en-CA');
-    const rawCompanyId = req.companyId || req.query.company_id || req.query.companyId;
+    const rawCompanyId = req.query.company_id || req.query.companyId || req.companyId;
     const companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
 
     let branchQuery = `SELECT code, company_id FROM branches`;
@@ -11871,7 +11873,7 @@ app.get("/api/branches-stats", async (req, res) => {
 // ===============================
 app.get("/api/departments", async (req, res) => {
   try {
-    const rawCompanyId = req.companyId || req.query.company_id || req.query.companyId;
+    const rawCompanyId = req.query.company_id || req.query.companyId || req.companyId;
     const companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
     let query = "SELECT * FROM departments ORDER BY id ASC";
     let params = [];

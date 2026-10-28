@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useCompany } from '../contexts/CompanyContext';
 import rayharDefaultLogo from '@/assets/rayhar-logo.png';
 import { Building2 } from 'lucide-react';
+import { resolveCompanyLogoUrl } from '../utils/companyLogo';
 
 interface DynamicSidebarLogoProps {
   isCollapsed?: boolean;
@@ -23,7 +24,8 @@ export const DynamicSidebarLogo: React.FC<DynamicSidebarLogoProps> = ({
   }, [activeCompany?.logo_url, activeCompany?.id]);
 
   const companyName = activeCompany?.company_name || 'Rayhar Travels';
-  const logoSrc = (!imgError && activeCompany?.logo_url) ? activeCompany.logo_url : rayharDefaultLogo;
+  const resolvedLogo = resolveCompanyLogoUrl(activeCompany?.logo_url);
+  const logoSrc = (!imgError && resolvedLogo) ? resolvedLogo : rayharDefaultLogo;
   const isMainCompany = activeCompany?.company_type === 'main' || !activeCompany?.parent_company_id;
 
   if (isCollapsed) {

@@ -323,6 +323,57 @@ export default function Employees() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
 
+  // Modal specific branches, departments, roles for Add Staff Dialog
+  const [modalBranches, setModalBranches] = useState<any[]>([]);
+  const [modalDepartments, setModalDepartments] = useState<any[]>([]);
+  const [modalRoles, setModalRoles] = useState<any[]>([]);
+  const [loadingModalData, setLoadingModalData] = useState(false);
+
+  const fetchModalDataForCompany = async (companyId: number) => {
+    setLoadingModalData(true);
+    try {
+      const [bRes, dRes, rRes] = await Promise.all([
+        fetch(`${API_BASE_URL}/api/branches?company_id=${companyId}`),
+        fetch(`${API_BASE_URL}/api/departments?company_id=${companyId}`),
+        fetch(`${API_BASE_URL}/api/roles?company_id=${companyId}`),
+      ]);
+      const [bData, dData, rData] = await Promise.all([
+        bRes.json(),
+        dRes.json(),
+        rRes.json(),
+      ]);
+
+      const branches = bData.success && Array.isArray(bData.branches) ? bData.branches : [];
+      setModalBranches(branches);
+      if (branches.length > 0) {
+        setSignupBranch(branches[0].code);
+      } else {
+        setSignupBranch("");
+      }
+
+      const depts = dData.success && Array.isArray(dData.departments) ? dData.departments : [];
+      setModalDepartments(depts);
+      if (depts.length > 0) {
+        setSignupDepartment(depts[0].name || depts[0].department_name || "");
+      } else {
+        setSignupDepartment("");
+      }
+
+      const roles = rData.success && Array.isArray(rData.roles) ? rData.roles : [];
+      setModalRoles(roles);
+      const activeRoles = roles.filter((r: any) => r.status === 'Active');
+      if (activeRoles.length > 0) {
+        setSignupRole(activeRoles[0].name);
+      } else {
+        setSignupRole("");
+      }
+    } catch (err) {
+      console.error("Error fetching modal company data:", err);
+    } finally {
+      setLoadingModalData(false);
+    }
+  };
+
   useEffect(() => {
     setPortalTarget(document.getElementById("page-header-actions"));
   }, []);
@@ -796,19 +847,23 @@ export default function Employees() {
     setIsSubmitting(true);
 
     try {
-      const matchedRole = availableRoles.find(
+      const allRoles = modalRoles.length > 0 ? modalRoles : availableRoles;
+      const matchedRole = allRoles.find(
         (r) => r.name.toLowerCase() === signupRole.toLowerCase()
       );
       const chosenRoleName = matchedRole ? matchedRole.name : (signupRole || 'Employee');
       const response = await fetch(`${API_BASE_URL}/api/signup`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'X-Company-Id': String(signupCompanyId)
+        },
         body: JSON.stringify({ 
           full_name: signupName, 
           email: signupEmail, 
           password: signupPassword,
           branch: signupBranch,
-          department: signupDepartment || null,
+          department: signupDepartment && signupDepartment !== 'NONE' ? signupDepartment : null,
           role: chosenRoleName,
           status: 'Active',
           company_id: signupCompanyId,
@@ -886,7 +941,18 @@ export default function Employees() {
 
           {canEditEmployees ? (
             <Button 
-              onClick={() => setIsAddModalOpen(true)}
+              onClick={() => {
+                const currentCid = activeCompany?.id || 1;
+                setSignupCompanyId(currentCid);
+                setSignupName("");
+                setSignupEmail("");
+                setSignupPassword("");
+                setSignupIc("");
+                setSignupPhone("");
+                setSignupJoinDate(new Date().toISOString().split("T")[0]);
+                void fetchModalDataForCompany(currentCid);
+                setIsAddModalOpen(true);
+              }}
               className="h-10 px-4 rounded-xl bg-[#942392] text-white hover:bg-[#942392]/95 font-black text-xs print:text-[13px] uppercase tracking-wider shadow-md transition-all whitespace-nowrap flex items-center gap-1.5"
             >
               <Plus className="w-3.5 h-3.5" />
@@ -2138,8 +2204,7 @@ export default function Employees() {
                   onValueChange={(val) => {
                     const cId = Number(val);
                     setSignupCompanyId(cId);
-                    fetchBranchesAndDepartments(cId);
-                    fetchRoles(cId);
+                    void fetchModalDataForCompany(cId);
                   }}
                 >
                   <SelectTrigger className="h-11 px-4 rounded-xl border border-input bg-background/50 text-xs font-black shadow-xs text-foreground">
@@ -2261,20 +2326,20 @@ export default function Employees() {
               {/* Branch Assignment */}
               <div className="space-y-1.5 col-span-1">
                 <Label htmlFor="signup-branch" className="text-[10px] font-black uppercase tracking-widest text-foreground">
-                  Branch Assignment
+                  Branch Assignment <span className="text-rose-500">*</span>
                 </Label>
-                <Select value={signupBranch} onValueChange={setSignupBranch}>
+                <Select value={signupBranch} onValueChange={setSignupBranch} disabled={loadingModalData}>
                   <SelectTrigger className="h-11 px-4 rounded-xl border border-input bg-background/50 text-xs font-bold shadow-xs">
-                    <SelectValue placeholder="Select Branch" />
+                    <SelectValue placeholder={loadingModalData ? "Loading branches..." : "Select Branch"} />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl">
-                    {(Array.isArray(branchesList) ? branchesList : []).map((b) => (
+                    {modalBranches.map((b) => (
                       <SelectItem key={b.code} value={b.code} className="text-xs font-bold">
                         {b.code} - {toProperCase(b.name)}
                       </SelectItem>
                     ))}
-                    {branchesList.length === 0 && (
-                      <SelectItem value="HQ" disabled className="text-xs">No branches found</SelectItem>
+                    {modalBranches.length === 0 && (
+                      <SelectItem value="NO_BRANCH" disabled className="text-xs">No branches found</SelectItem>
                     )}
                   </SelectContent>
                 </Select>
@@ -2283,41 +2348,48 @@ export default function Employees() {
               {/* Department */}
               <div className="space-y-1.5 col-span-1">
                 <Label htmlFor="signup-department" className="text-[10px] font-black uppercase tracking-widest text-foreground">
-                  Department
+                  Department {modalDepartments.length > 0 && <span className="text-slate-400 font-normal normal-case">(Optional)</span>}
                 </Label>
-                <Select value={signupDepartment} onValueChange={setSignupDepartment}>
-                  <SelectTrigger className="h-11 px-4 rounded-xl border border-input bg-background/50 text-xs font-bold shadow-xs">
-                    <SelectValue placeholder="Select Department" />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl">
-                    {(Array.isArray(departmentsList) ? departmentsList : []).map((d) => {
-                      const dName = d.name || d.department_name || d;
-                      return (
-                        <SelectItem key={dName} value={dName} className="text-xs font-bold">
-                          {toProperCase(dName)}
-                        </SelectItem>
-                      );
-                    })}
-                    {departmentsList.length === 0 && (
-                      <SelectItem value="Operations" className="text-xs font-bold">Operations</SelectItem>
-                    )}
-                  </SelectContent>
-                </Select>
+                {modalDepartments.length > 0 ? (
+                  <Select value={signupDepartment} onValueChange={setSignupDepartment} disabled={loadingModalData}>
+                    <SelectTrigger className="h-11 px-4 rounded-xl border border-input bg-background/50 text-xs font-bold shadow-xs">
+                      <SelectValue placeholder="Select Department" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      <SelectItem value="NONE" className="text-xs font-bold text-muted-foreground">
+                        No Department / General
+                      </SelectItem>
+                      {modalDepartments.map((d) => {
+                        const dName = d.name || d.department_name || d;
+                        return (
+                          <SelectItem key={dName} value={dName} className="text-xs font-bold">
+                            {toProperCase(dName)}
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <div className="h-11 px-4 rounded-xl border border-input/60 bg-muted/40 flex items-center justify-between text-xs font-bold text-muted-foreground cursor-not-allowed select-none">
+                    <span>No Department</span>
+                    <span className="text-[9px] uppercase font-bold text-muted-foreground/60 tracking-wider">Single Branch Entity</span>
+                  </div>
+                )}
               </div>
 
               {/* Role */}
               <div className="space-y-1.5 col-span-1">
                 <Label htmlFor="signup-role" className="text-[10px] font-black uppercase tracking-widest text-foreground">
-                  Role
+                  Role <span className="text-rose-500">*</span>
                 </Label>
-                <Select value={signupRole} onValueChange={setSignupRole}>
+                <Select value={signupRole} onValueChange={setSignupRole} disabled={loadingModalData}>
                   <SelectTrigger className="h-11 px-4 rounded-xl border border-input bg-background/50 text-xs font-bold shadow-xs">
-                    <SelectValue placeholder="Select Role" />
+                    <SelectValue placeholder={loadingModalData ? "Loading roles..." : "Select Role"} />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl max-h-64">
                     <SelectGroup>
                       <SelectLabel className="text-xs font-bold text-slate-500 uppercase tracking-wider">Available Roles</SelectLabel>
-                      {(Array.isArray(availableRoles) ? availableRoles : [])
+                      {modalRoles
                         .filter((r) => r.status === 'Active')
                         .map((r) => (
                           <SelectItem key={r.id} value={r.name} className="text-xs font-bold">

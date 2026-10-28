@@ -30,8 +30,19 @@ if (typeof window !== 'undefined' && !((window as any).__rayhar_fetch_intercepto
 
         init = init ? { ...init } : {};
         const headers = new Headers(init.headers || {});
+
+        // Check if URL specifies explicit company_id query parameter
+        let targetCompanyId = activeCompanyId;
+        try {
+          const urlObj = new URL(url, window.location.origin);
+          const qCid = urlObj.searchParams.get('company_id') || urlObj.searchParams.get('companyId');
+          if (qCid) {
+            targetCompanyId = qCid;
+          }
+        } catch (_) {}
+
         if (!headers.has('X-Company-Id')) {
-          headers.set('X-Company-Id', activeCompanyId);
+          headers.set('X-Company-Id', targetCompanyId);
         }
         init.headers = headers;
 
@@ -39,7 +50,7 @@ if (typeof window !== 'undefined' && !((window as any).__rayhar_fetch_intercepto
         const method = (init.method || 'GET').toUpperCase();
         if (method === 'GET' && !url.includes('company_id=') && !url.includes('companyId=')) {
           const separator = url.includes('?') ? '&' : '?';
-          url = `${url}${separator}company_id=${encodeURIComponent(activeCompanyId)}`;
+          url = `${url}${separator}company_id=${encodeURIComponent(targetCompanyId)}`;
         }
 
         return originalFetch(url, init);

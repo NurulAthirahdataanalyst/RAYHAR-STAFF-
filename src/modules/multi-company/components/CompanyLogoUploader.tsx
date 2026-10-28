@@ -3,6 +3,7 @@ import { Upload, X, Check, Image as ImageIcon, RotateCcw, Loader2 } from 'lucide
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { multiCompanyApi } from '../services/multiCompanyApi';
+import { resolveCompanyLogoUrl } from '../utils/companyLogo';
 
 interface CompanyLogoUploaderProps {
   companyId: number;
@@ -74,7 +75,7 @@ export const CompanyLogoUploader: React.FC<CompanyLogoUploaderProps> = ({
     }
   };
 
-  const activeDisplayLogo = previewUrl || currentLogoUrl || '/assets/rayhar-logo.png';
+  const activeDisplayLogo = previewUrl || resolveCompanyLogoUrl(currentLogoUrl) || '/assets/rayhar-logo.png';
 
   return (
     <div className="p-4 bg-muted/40 dark:bg-neutral-900/60 rounded-xl border border-border dark:border-neutral-800 space-y-4">

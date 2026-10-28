@@ -20,6 +20,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { resolveCompanyLogoUrl } from '../utils/companyLogo';
 
 interface CompanySwitcherProps {
   variant?: 'header' | 'default';
@@ -199,8 +200,8 @@ export const CompanySwitcher: React.FC<CompanySwitcherProps> = ({
                 >
                   <div className="flex items-center gap-2 min-w-0">
                     <div className="w-6 h-6 rounded-md bg-muted dark:bg-neutral-800 p-0.5 flex items-center justify-center shrink-0 border border-border/40">
-                      {c.logo_url ? (
-                        <img src={c.logo_url} alt="" className="w-full h-full object-contain" />
+                      {c.logo_url && resolveCompanyLogoUrl(c.logo_url) ? (
+                        <img src={resolveCompanyLogoUrl(c.logo_url)!} alt="" className="w-full h-full object-contain" />
                       ) : (
                         <Building2 className="w-3 h-3 text-[#942392]" />
                       )}

@@ -14,6 +14,7 @@ import { useCompany } from '../../../contexts/CompanyContext';
 import { multiCompanyApi } from '../../../services/multiCompanyApi';
 import { Company } from '../../../types/multiCompany.types';
 import { CompanyLogoUploader } from '../../../components/CompanyLogoUploader';
+import { resolveCompanyLogoUrl } from '../../../utils/companyLogo';
 
 interface Tab3CompanyMgmtProps {
   onNavigateToTab?: (tabKey: string, companyId?: number) => void;
@@ -166,8 +167,22 @@ export const Tab3_CompanyMgmt: React.FC<Tab3CompanyMgmtProps> = ({ onNavigateToT
                     {/* Logo */}
                     <td className="px-4 py-3">
                       <div className="w-10 h-7 rounded-md bg-white dark:bg-neutral-800 border border-border/50 dark:border-neutral-700 p-0.5 flex items-center justify-center shrink-0 overflow-hidden shadow-2xs">
-                        {c.logo_url ? (
-                          <img src={c.logo_url} alt="" className="w-full h-full object-contain" />
+                        {c.logo_url && resolveCompanyLogoUrl(c.logo_url) ? (
+                          <img 
+                            src={resolveCompanyLogoUrl(c.logo_url)!} 
+                            alt={c.company_name} 
+                            className="w-full h-full object-contain"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                              const parent = e.currentTarget.parentElement;
+                              if (parent && !parent.querySelector('.fallback-avatar')) {
+                                const span = document.createElement('span');
+                                span.className = 'fallback-avatar font-black text-xs text-[#942392]';
+                                span.innerText = c.company_name.charAt(0).toUpperCase();
+                                parent.appendChild(span);
+                              }
+                            }}
+                          />
                         ) : (
                           <span className="font-black text-xs text-[#942392]">
                             {c.company_name.charAt(0).toUpperCase()}
