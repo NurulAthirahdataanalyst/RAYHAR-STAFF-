@@ -70,6 +70,9 @@ export function ApprovalStatusTracker({
   const isApproved = sUpper === 'APPROVED';
   const isRejected = sUpper === 'REJECTED';
 
+  const aRole = String(approverRole || "").toLowerCase();
+  const isLvl1ApproverRole = aRole.includes("branch") || aRole.includes("hod") || aRole.includes("department");
+  const isLvl2ApproverRole = aRole.includes("operation") || aRole.includes("finance") || aRole.includes("managing") || aRole.includes("director") || aRole.includes("md");
 
   // Check if handled / approved by HR Admin
   const isHrRole = (r?: string) => {
@@ -85,9 +88,41 @@ export function ApprovalStatusTracker({
     return (isHrRole(r) || hasHrInName) && (s === 'approved' || s === 'rejected');
   }) || (approvalHistory || []).find(h => isHrRole(h.approver_role) || Boolean(h.approver_name && /hr\s*admin/i.test(h.approver_name)));
 
+  // Find explicit approval records in history for multi-tier flow
+  const lvl1History = (approvalHistory || []).find(h => {
+    const r = String(h.approver_role || "").toLowerCase();
+    return r.includes("hod") || r.includes("department") || r.includes("branch");
+  });
+
+  const lvl2History = (approvalHistory || []).find(h => {
+    const r = String(h.approver_role || "").toLowerCase();
+    return r.includes("operation") || r.includes("finance") || r.includes("managing") || r.includes("director") || r.includes("md");
+  });
+
+  // Explicit check for Managing Director approval
+  const mdHistory = (approvalHistory || []).slice().reverse().find(h => {
+    const r = String(h.approver_role || "").toLowerCase();
+    return r.includes("managing") || r.includes("director") || r.includes("md");
+  });
+
+  const opHistory = (approvalHistory || []).slice().reverse().find(h => {
+    const r = String(h.approver_role || "").toLowerCase();
+    return r.includes("operation");
+  });
+
+  const isMdApproved = Boolean(
+    (mdHistory && String(mdHistory.status || "").toLowerCase().includes("approved")) ||
+    (isApproved && (aRole.includes("md") || aRole.includes("managing") || aRole.includes("director")))
+  );
+
+  const isOpApproved = Boolean(
+    (opHistory && String(opHistory.status || "").toLowerCase().includes("approved")) ||
+    (isApproved && aRole.includes("operation"))
+  );
+
   const isApprovedByHr = 
     Boolean(hrHistory && String(hrHistory.status || "").toLowerCase() === 'approved') ||
-    (isApproved && (isHrRole(approverRole) || (approvalHistory || []).some(h => isHrRole(h.approver_role))));
+    (isApproved && !isMdApproved && !isOpApproved && (isHrRole(approverRole) || (approvalHistory || []).some(h => isHrRole(h.approver_role))));
 
   const isRejectedByHr = 
     Boolean(hrHistory && String(hrHistory.status || "").toLowerCase() === 'rejected') ||
@@ -97,7 +132,7 @@ export function ApprovalStatusTracker({
     sUpper.includes('HR') || 
     (isHrRole(approverRole) && !isApproved && !isRejected);
 
-  const isHrWorkflow = isApprovedByHr || isRejectedByHr || isPendingHr;
+  const isHrWorkflow = !isMdApproved && !isOpApproved && !isRayRent && (isApprovedByHr || isRejectedByHr || isPendingHr);
 
   // Prepare HR Admin details
   const hrName = hrHistory?.approver_name || approverName || (isRayRent ? "NURUL ATHIRAH ABDUL RAHMAN" : "");
@@ -126,18 +161,6 @@ export function ApprovalStatusTracker({
     ? 'Approved' 
     : (isRejectedByHr ? 'Rejected' : 'Pending');
 
-  // Find approval records in history for standard multi-tier flow
-  const lvl1History = (approvalHistory || []).find(h => {
-    const r = String(h.approver_role || "").toLowerCase();
-    return r.includes("hod") || r.includes("department") || r.includes("branch");
-  });
-
-  const lvl2History = (approvalHistory || []).find(h => {
-    const r = String(h.approver_role || "").toLowerCase();
-    return r.includes("operation") || r.includes("finance") || r.includes("managing") || r.includes("director") || r.includes("md");
-  });
-
-
   const isLvl1Pending = sUpper.includes('HOD') || (sUpper.includes('BRANCH') && !isRayRent) || sUpper === 'PENDING';
   const isLvl2Pending = sUpper.includes('OPERATION') || sUpper.includes('FINANCE') || sUpper.includes('MD') || sUpper.includes('MANAGING') || (isRayRent && sUpper.includes('BRANCH'));
 
@@ -151,32 +174,43 @@ export function ApprovalStatusTracker({
     ? formatDept(lvl1History?.approver_department || pendingApproverContext || department) 
     : (lvl1History?.approver_branch || pendingApproverContext || branch || "HQ");
 
-  const aRole = String(approverRole || "").toLowerCase();
-  const isLvl1ApproverRole = aRole.includes("branch") || aRole.includes("hod") || aRole.includes("department");
-  const isLvl2ApproverRole = aRole.includes("operation") || aRole.includes("finance") || aRole.includes("managing") || aRole.includes("director") || aRole.includes("md");
-
   // Step 2 status & details
   let step2Status: 'Approved' | 'Rejected' | 'Pending' | 'Future' = 'Future';
   let step2Subtitle: string | undefined = undefined;
   let step2Date: string | undefined = undefined;
 
-  const lvl2RoleTitle = isRayRent ? "BRANCH LEADER" : (isHQ ? "OPERATION MANAGER" : "MANAGING DIRECTOR");
-  const lvl2Context = lvl2History?.approver_branch || pendingApproverContext || (isRayRent ? (branch || 'RayRent') : 'HQ');
+  const lvl2RoleTitle = isMdApproved || (isLvl2Pending && (sUpper.includes("MD") || sUpper.includes("MANAGING")))
+    ? "MANAGING DIRECTOR"
+    : (isOpApproved || (isLvl2Pending && (sUpper.includes("OPERATION") || sUpper.includes("FINANCE"))))
+    ? "OPERATION MANAGER"
+    : (isRayRent ? "BRANCH LEADER" : (isHQ ? "OPERATION MANAGER" : "MANAGING DIRECTOR"));
+
+  const lvl2Context = isMdApproved || (sUpper.includes("MD") || sUpper.includes("MANAGING"))
+    ? "HQ"
+    : (lvl2History?.approver_branch || pendingApproverContext || (isRayRent ? (branch || 'RayRent') : 'HQ'));
 
   if (isRayRent) {
+    const rayRentApproverName = isMdApproved
+      ? (mdHistory?.approver_name || approverName || "Managing Director")
+      : isApprovedByHr
+      ? (hrName || "HR Admin")
+      : (lvl1History?.approver_name || lvl2History?.approver_name || approverName || "");
+
     if (isApproved) {
       step2Status = 'Approved';
-      step2Subtitle = lvl1History?.approver_name 
-        ? `${lvl1History.approver_name} • ${lvl2Context}` 
-        : (lvl2History?.approver_name ? `${lvl2History.approver_name} • ${lvl2Context}` : `Approved • ${lvl2Context}`);
-      if (lvl1History?.created_at || lvl2History?.created_at) {
-        step2Date = new Date((lvl1History?.created_at || lvl2History?.created_at)!).toLocaleDateString('en-GB');
+      step2Subtitle = rayRentApproverName
+        ? `${rayRentApproverName} • ${lvl2Context}`
+        : `Approved • ${lvl2Context}`;
+      if (mdHistory?.created_at || lvl1History?.created_at || lvl2History?.created_at || hrHistory?.created_at) {
+        step2Date = new Date((mdHistory?.created_at || lvl1History?.created_at || lvl2History?.created_at || hrHistory?.created_at)!).toLocaleDateString('en-GB');
+      } else {
+        step2Date = new Date().toLocaleDateString('en-GB');
       }
     } else if (isRejected) {
       step2Status = 'Rejected';
-      step2Subtitle = lvl1History?.approver_name 
-        ? `${lvl1History.approver_name} • ${lvl2Context}` 
-        : (lvl2History?.approver_name ? `${lvl2History.approver_name} • ${lvl2Context}` : `Rejected • ${lvl2Context}`);
+      step2Subtitle = rayRentApproverName
+        ? `${rayRentApproverName} • ${lvl2Context}`
+        : `Rejected • ${lvl2Context}`;
       if (lvl1History?.created_at || lvl2History?.created_at) {
         step2Date = new Date((lvl1History?.created_at || lvl2History?.created_at)!).toLocaleDateString('en-GB');
       }
@@ -229,11 +263,20 @@ export function ApprovalStatusTracker({
     }
 
     step2Status = 'Approved';
-    step2Subtitle = lvl2History?.approver_name 
-      ? `${lvl2History.approver_name} • ${lvl2Context}` 
+    const highestApproverName = isMdApproved
+      ? (mdHistory?.approver_name || (aRole.includes("md") || aRole.includes("managing") || aRole.includes("director") ? approverName : "") || "Managing Director")
+      : isOpApproved
+      ? (opHistory?.approver_name || (aRole.includes("operation") ? approverName : "") || "Operation Manager")
+      : (lvl2History?.approver_name || (isLvl2ApproverRole ? approverName : "") || "");
+
+    step2Subtitle = highestApproverName 
+      ? `${highestApproverName} • ${lvl2Context}` 
       : (pendingApproverName ? `${pendingApproverName} • ${lvl2Context}` : `Approved • ${lvl2Context}`);
-    if (lvl2History?.created_at) {
-      step2Date = new Date(lvl2History.created_at).toLocaleDateString('en-GB');
+    
+    if (mdHistory?.created_at || opHistory?.created_at || lvl2History?.created_at) {
+      step2Date = new Date((mdHistory?.created_at || opHistory?.created_at || lvl2History?.created_at)!).toLocaleDateString('en-GB');
+    } else {
+      step2Date = new Date().toLocaleDateString('en-GB');
     }
   } else if (isLvl2Pending) {
     step1Status = 'Approved';
@@ -247,7 +290,7 @@ export function ApprovalStatusTracker({
     step2Status = 'Pending';
     step2Subtitle = pendingApproverName 
       ? `${pendingApproverName} • ${lvl2Context}` 
-      : 'Awaiting Approval';
+      : (sUpper.includes("MD") || sUpper.includes("MANAGING") ? `Awaiting Managing Director Approval • ${lvl2Context}` : 'Awaiting Approval');
   } else {
     // Level 1 pending
     step1Status = 'Pending';
@@ -258,12 +301,32 @@ export function ApprovalStatusTracker({
     step2Subtitle = undefined;
   }
 
+  const rayRentTitle = isMdApproved
+    ? "MANAGING DIRECTOR"
+    : isApprovedByHr
+    ? "HR ADMIN"
+    : "BRANCH LEADER";
+
   const items: Array<{
     title: string;
     subtitle?: string;
     status: 'Approved' | 'Rejected' | 'Pending' | 'Future';
     date?: string;
-  }> = isHrWorkflow
+  }> = isRayRent
+    ? [
+        {
+          title: "SUBMIT",
+          subtitle: "Application Submitted",
+          status: "Approved",
+        },
+        {
+          title: rayRentTitle,
+          subtitle: step2Subtitle,
+          status: step2Status,
+          date: step2Date,
+        }
+      ]
+    : isHrWorkflow
     ? [
         {
           title: "SUBMIT",
@@ -275,20 +338,6 @@ export function ApprovalStatusTracker({
           subtitle: hrSubtitle,
           status: stepHrStatus,
           date: hrDate,
-        }
-      ]
-    : isRayRent
-    ? [
-        {
-          title: "SUBMIT",
-          subtitle: "Application Submitted",
-          status: "Approved",
-        },
-        {
-          title: "BRANCH LEADER",
-          subtitle: step2Subtitle,
-          status: step2Status,
-          date: step2Date,
         }
       ]
     : [
