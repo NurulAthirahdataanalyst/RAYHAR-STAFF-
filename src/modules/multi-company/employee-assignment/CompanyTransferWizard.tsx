@@ -461,7 +461,7 @@ export const CompanyTransferWizard: React.FC<EmployeeTransferWizardProps> = ({ o
                 <SelectContent>
                   {targetRoles.map(r => (
                     <SelectItem key={r.id} value={r.id} className="text-xs font-bold">
-                      {r.name} ({r.role_type || 'Role'}) {r.scope_type === 'Parent Group Access' ? '— Group Level' : ''}
+                      {r.name} ({r.role_type || 'Role'}) {r.scope_type === 'Parent Group Access' || r.scope_type === 'Parent Group Data' ? '— Group Level' : ''}
                     </SelectItem>
                   ))}
                 </SelectContent>

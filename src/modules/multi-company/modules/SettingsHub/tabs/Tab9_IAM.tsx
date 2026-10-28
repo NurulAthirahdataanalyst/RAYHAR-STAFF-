@@ -495,7 +495,7 @@ export const Tab9_IAM: React.FC = () => {
               </thead>
               <tbody className="divide-y divide-border/40 dark:divide-neutral-800/40">
                 {roles.map((r) => {
-                  const isGroup = r.scope_type === 'Parent Group Access';
+                  const isGroup = r.scope_type === 'Parent Group Access' || r.scope_type === 'Parent Group Data';
 
                   return (
                     <tr key={r.id} className="hover:bg-muted/40 dark:hover:bg-neutral-800/40 transition-colors">

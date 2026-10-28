@@ -1088,7 +1088,7 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
                           <SelectContent>
                             {availableRoles.map((r) => (
                               <SelectItem key={r.id} value={r.id} className="text-xs">
-                                {r.name} {r.scope_type === 'Parent Group Access' ? '(Group Executive)' : ''}
+                                {r.name} {r.scope_type === 'Parent Group Access' || r.scope_type === 'Parent Group Data' ? '(Group Executive)' : ''}
                               </SelectItem>
                             ))}
                           </SelectContent>
