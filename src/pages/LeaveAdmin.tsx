@@ -1146,12 +1146,13 @@ export default function LeaveAdmin() {
                         </TableCell>
                         {canApprove && (
                           <TableCell className="px-3 py-3.5 text-right">
-                            {(
+                            {Boolean(
                               (["hr_admin", "hr", "admin"].includes(role?.toLowerCase()?.trim() || "") && req.status.trim().startsWith("Pending")) ||
                               (req.status.trim().startsWith("Pending HOD") && role === "head_of_department") ||
                               (req.status.trim() === "Pending Branch Leader" && role === "branch_leader") ||
                               ((req.status.trim() === "Pending Operation" || req.status.trim() === "Pending Operation Manager" || req.status.trim() === "Pending Finance" || req.status.trim() === "Pending Finance Manager") && (role === "operation_manager" || (role as string) === "finance_manager")) ||
-                              ((req.status.trim() === "Pending MD" || req.status.trim() === "Pending Managing Director") && (role === "managing_director" || (role as string) === "md"))) ? (
+                              ((req.status.trim() === "Pending MD" || req.status.trim() === "Pending Managing Director") && (role === "managing_director" || (role as string) === "md"))
+                            ) ? (
                               <div className="flex justify-end gap-2">
                                 <Button
                                   size="sm"
