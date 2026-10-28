@@ -163,8 +163,7 @@ export const SettingsLayout: React.FC = () => {
               </button>
             </div>
 
-            {SETTINGS_TABS.map((tab) => {
-              const Icon = tab.icon;
+            {SETTINGS_TABS.map((tab, idx) => {
               const isActive = activeTab === tab.id;
               return (
                 <button
@@ -172,19 +171,22 @@ export const SettingsLayout: React.FC = () => {
                   onClick={() => handleTabChange(tab.id)}
                   title={isCollapsed ? tab.label : undefined}
                   className={`flex items-center ${
-                    isCollapsed ? 'justify-center py-3 px-0' : 'gap-2.5 sm:gap-3 py-2.5 lg:py-3 px-3 sm:px-3.5'
-                  } text-[9px] sm:text-[10px] font-black uppercase tracking-wider rounded-xl transition-all duration-300 text-left shrink-0 lg:shrink lg:w-full whitespace-nowrap lg:whitespace-normal group cursor-pointer ${
+                    isCollapsed ? 'justify-center py-3 px-0' : 'py-2.5 lg:py-3 px-3.5 sm:px-4'
+                  } text-[10px] font-black uppercase tracking-wider rounded-xl transition-all duration-300 text-left shrink-0 lg:shrink lg:w-full whitespace-nowrap lg:whitespace-normal group cursor-pointer ${
                     isActive 
                       ? "bg-[#ffff00] text-[#942392] shadow-md font-black" 
                       : "text-white/90 hover:text-white hover:bg-white/10 font-bold"
                   }`}
                 >
-                  <div className={`p-1.5 rounded-lg shrink-0 transition-colors ${
-                    isActive ? "bg-[#942392]/10 text-[#942392]" : "bg-white/10 text-white/90 group-hover:text-white"
-                  }`}>
-                    <Icon className="w-4 h-4 shrink-0" />
-                  </div>
-                  {!isCollapsed && <span className="truncate">{tab.label}</span>}
+                  {isCollapsed ? (
+                    <span className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-xs ${
+                      isActive ? "bg-[#942392]/10 text-[#942392]" : "bg-white/10 text-white"
+                    }`}>
+                      {idx + 1}
+                    </span>
+                  ) : (
+                    <span className="truncate">{tab.label}</span>
+                  )}
                 </button>
               );
             })}

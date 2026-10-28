@@ -173,39 +173,36 @@ export const Tab2_EmployeeConfig: React.FC = () => {
         <button
           type="button"
           onClick={() => setSubTab('onboard')}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
             subTab === 'onboard'
               ? 'bg-[#942392] text-white shadow-xs'
               : 'text-muted-foreground hover:bg-muted/60 dark:hover:bg-neutral-800'
           }`}
         >
-          <UserPlus className="w-3.5 h-3.5" />
           Onboard New Staff
         </button>
 
         <button
           type="button"
           onClick={() => setSubTab('transfer')}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
             subTab === 'transfer'
               ? 'bg-[#942392] text-white shadow-xs'
               : 'text-muted-foreground hover:bg-muted/60 dark:hover:bg-neutral-800'
           }`}
         >
-          <ArrowRightLeft className="w-3.5 h-3.5" />
           Company Transfer Wizard
         </button>
 
         <button
           type="button"
           onClick={() => setSubTab('history')}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
             subTab === 'history'
               ? 'bg-[#942392] text-white shadow-xs'
               : 'text-muted-foreground hover:bg-muted/60 dark:hover:bg-neutral-800'
           }`}
         >
-          <History className="w-3.5 h-3.5" />
           Transfer Career History
         </button>
       </div>
@@ -213,8 +210,7 @@ export const Tab2_EmployeeConfig: React.FC = () => {
       {subTab === 'onboard' && (
         <Card className="border border-border dark:border-neutral-800 shadow-xs bg-white/70 dark:bg-card/70 backdrop-blur-md rounded-2xl p-6 space-y-6">
           <div className="space-y-1">
-            <h3 className="text-sm font-black uppercase tracking-wider text-foreground dark:text-white flex items-center gap-2">
-              <UserPlus className="w-4 h-4 text-[#942392]" />
+            <h3 className="text-sm font-black uppercase tracking-wider text-foreground dark:text-white">
               Staff Onboarding & Company Role Allocation
             </h3>
             <p className="text-xs text-muted-foreground dark:text-neutral-400">
@@ -225,8 +221,7 @@ export const Tab2_EmployeeConfig: React.FC = () => {
           <form onSubmit={handleOnboardSubmit} className="space-y-6">
             {/* Section 1: Personal & Identity Details */}
             <div className="p-4 rounded-xl border border-border/50 dark:border-neutral-800 bg-muted/20 dark:bg-neutral-900/40 space-y-4">
-              <h4 className="text-xs font-black uppercase tracking-wider text-black dark:text-white flex items-center gap-2">
-                <User className="w-3.5 h-3.5 text-[#942392]" />
+              <h4 className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
                 Personal Information & Identity Records
               </h4>
 
@@ -334,8 +329,7 @@ export const Tab2_EmployeeConfig: React.FC = () => {
 
             {/* Section 2: Account & Access Credentials */}
             <div className="p-4 rounded-xl border border-border/50 dark:border-neutral-800 bg-muted/20 dark:bg-neutral-900/40 space-y-4">
-              <h4 className="text-xs font-black uppercase tracking-wider text-black dark:text-white flex items-center gap-2">
-                <Lock className="w-3.5 h-3.5 text-[#942392]" />
+              <h4 className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
                 Portal Access Credentials
               </h4>
 
@@ -371,8 +365,7 @@ export const Tab2_EmployeeConfig: React.FC = () => {
 
             {/* Section 3: Company & Organizational Placement */}
             <div className="p-4 rounded-xl border border-border/50 dark:border-neutral-800 bg-muted/20 dark:bg-neutral-900/40 space-y-4">
-              <h4 className="text-xs font-black uppercase tracking-wider text-black dark:text-white flex items-center gap-2">
-                <Building2 className="w-3.5 h-3.5 text-[#942392]" />
+              <h4 className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
                 Organizational Placement & Company Binding
               </h4>
 
@@ -490,7 +483,6 @@ export const Tab2_EmployeeConfig: React.FC = () => {
                 disabled={submitting}
                 className="text-xs text-muted-foreground hover:text-foreground"
               >
-                <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
                 Reset Form
               </Button>
 
@@ -499,7 +491,7 @@ export const Tab2_EmployeeConfig: React.FC = () => {
                 disabled={submitting || !fullName || !email || !password}
                 className="bg-[#942392] hover:bg-[#800A7A] text-white font-black text-xs uppercase tracking-wider shadow-sm h-9 px-6 rounded-xl"
               >
-                {submitting ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : <UserPlus className="w-3.5 h-3.5 mr-1.5" />}
+                {submitting ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : null}
                 Onboard Staff Member
               </Button>
             </div>

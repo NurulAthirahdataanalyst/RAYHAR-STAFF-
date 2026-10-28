@@ -462,7 +462,6 @@ export const Tab9_IAM: React.FC = () => {
       {/* Top Filter & Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-muted/30 dark:bg-neutral-900/40 rounded-2xl border border-border dark:border-neutral-800">
         <div className="flex flex-wrap items-center gap-2.5">
-          <ShieldCheck className="w-4 h-4 text-[#942392]" />
           <span className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
             Company Scope:
           </span>
@@ -495,7 +494,6 @@ export const Tab9_IAM: React.FC = () => {
           onClick={handleOpenAdd}
           className="bg-[#942392] hover:bg-[#800A7A] text-white font-black text-xs uppercase tracking-wider shadow-sm h-9 px-4 rounded-full self-start sm:self-auto"
         >
-          <Plus className="w-3.5 h-3.5 mr-1" />
           Add Company Role
         </Button>
       </div>
@@ -547,21 +545,21 @@ export const Tab9_IAM: React.FC = () => {
 
                       {/* Role Type Pill Badge */}
                       <td className="px-4 py-3.5">
-                        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border border-blue-200 dark:border-blue-800/60 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300">
+                        <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] border-blue-500/30 bg-blue-500/10 text-blue-600 dark:text-blue-400">
                           {r.role_type || 'Operational Role'}
                         </span>
                       </td>
 
                       {/* Scope Boundary Pill Badge */}
                       <td className="px-4 py-3.5">
-                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border ${
+                        <span className={`inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] ${
                           r.scope_type === 'Parent Group Data' || r.scope_type === 'Parent Group Access'
                             ? 'border-[#942392]/30 bg-[#942392]/10 text-[#942392] dark:text-[#f885d5]' 
                             : r.scope_type === 'Branch Data Only'
-                            ? 'border-amber-200 dark:border-amber-800/60 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300'
+                            ? 'border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400'
                             : r.scope_type === 'Own Data Only'
-                            ? 'border-emerald-200 dark:border-emerald-800/60 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300'
-                            : 'border-blue-200 dark:border-blue-800/60 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300'
+                            ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                            : 'border-blue-500/30 bg-blue-500/10 text-blue-600 dark:text-blue-400'
                         }`}>
                           {r.scope_type === 'Parent Group Access' ? 'Parent Group Data' : (r.scope_type || 'Company Staff Data')}
                         </span>
@@ -572,18 +570,16 @@ export const Tab9_IAM: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => handleViewRoleUsers(r)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 hover:bg-[#942392]/10 hover:text-[#942392] hover:border-[#942392]/30 transition-all cursor-pointer group active:scale-95 shadow-2xs"
+                          className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:bg-[#942392]/10 hover:text-[#942392] hover:border-[#942392]/30 transition-all cursor-pointer group active:scale-95 shadow-2xs"
                           title={`Click to view assigned employees for ${r.name}`}
                         >
-                          <Users className="w-3.5 h-3.5 text-[#942392] group-hover:scale-110 transition-transform" />
-                          <span>{r.total_users || 0} Staff</span>
+                          {r.total_users || 0} Staff
                         </button>
                       </td>
 
                       {/* Status Pill Badge */}
                       <td className="px-4 py-3.5">
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border border-emerald-200 dark:border-emerald-800/60 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300">
-                          <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                        <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
                           Active
                         </span>
                       </td>
@@ -597,7 +593,6 @@ export const Tab9_IAM: React.FC = () => {
                             onClick={() => handleOpenEdit(r)}
                             className="h-8 px-3 rounded-full text-xs font-bold border-border/80 hover:bg-muted"
                           >
-                            <Edit className="w-3.5 h-3.5 mr-1" />
                             Edit
                           </Button>
 
@@ -631,11 +626,8 @@ export const Tab9_IAM: React.FC = () => {
             <DialogHeader className="bg-[#942392] p-6 sm:rounded-t-2xl m-0 text-left shrink-0 border-b border-white/20">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <DialogTitle className="text-lg font-black uppercase tracking-tight text-white flex items-center gap-2">
-                    <ShieldCheck className="w-5 h-5 text-white" />
-                    <span>
-                      {editingRole ? `Edit Role: ${editingRole.name}` : `Create New Role for ${currentCompany?.company_name}`}
-                    </span>
+                  <DialogTitle className="text-lg font-black uppercase tracking-tight text-white">
+                    {editingRole ? `Edit Role: ${editingRole.name}` : `Create New Role for ${currentCompany?.company_name}`}
                   </DialogTitle>
                   <DialogDescription className="text-xs font-bold uppercase tracking-wider text-white/80 mt-1">
                     Define role specifications, copy permissions from Main Company, and toggle granular View | Edit access
@@ -643,9 +635,8 @@ export const Tab9_IAM: React.FC = () => {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border border-white/30 bg-white/20 text-white">
-                    <Check className="w-3.5 h-3.5 stroke-[3]" />
-                    <span>{selectedPermissions.size} of {totalVisiblePerms} Permissions Selected</span>
+                  <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] border-white/30 bg-white/20 text-white">
+                    {selectedPermissions.size} of {totalVisiblePerms} Permissions Selected
                   </span>
                 </div>
               </div>
@@ -658,9 +649,8 @@ export const Tab9_IAM: React.FC = () => {
                 {/* Copy Access By Role Card */}
                 <div className="p-4 rounded-xl border border-purple-200/80 dark:border-purple-800/50 bg-purple-50/50 dark:bg-purple-950/20 space-y-3">
                   <div className="flex items-center justify-between">
-                    <Label className="text-xs font-black uppercase tracking-wider text-[#942392] flex items-center gap-1.5">
-                      <Sparkles className="w-4 h-4 text-[#942392]" />
-                      <span>Copy Access By Role</span>
+                    <Label className="text-xs font-black uppercase tracking-wider text-[#942392]">
+                      Copy Access By Role
                     </Label>
                     <span className="text-[11px] text-muted-foreground font-medium">
                       Copy permissions & auto-update authorization scope
@@ -770,10 +760,7 @@ export const Tab9_IAM: React.FC = () => {
                   {/* Authorization Scope */}
                   <div className="space-y-1.5 sm:col-span-2">
                     <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white flex items-center justify-between">
-                      <div className="flex items-center gap-1.5">
-                        <ShieldCheck className="w-3.5 h-3.5 text-[#942392]" />
-                        <span>Authorization Scope</span>
-                      </div>
+                      <span>Authorization Scope</span>
                       <span className="text-[10px] font-medium text-muted-foreground normal-case">
                         Defines employee visibility boundaries
                       </span>
@@ -823,9 +810,8 @@ export const Tab9_IAM: React.FC = () => {
               <div className="space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-border/60">
                   <div>
-                    <h3 className="text-sm font-bold text-black dark:text-white flex items-center gap-1.5">
-                      <Shield className="w-4 h-4 text-[#942392]" />
-                      <span>Module Permissions Matrix</span>
+                    <h3 className="text-sm font-bold text-black dark:text-white">
+                      Module Permissions Matrix
                     </h3>
                     <p className="text-xs text-muted-foreground">
                       Select modules and submodules available for {currentCompany?.company_name} with granular View | Edit access
@@ -1054,18 +1040,13 @@ export const Tab9_IAM: React.FC = () => {
       <Dialog open={isUsersModalOpen} onOpenChange={setIsUsersModalOpen}>
         <DialogContent className="max-w-lg p-0 overflow-hidden rounded-2xl [&>button]:text-white [&>button]:hover:text-white/80 border border-border/80 shadow-2xl">
           <DialogHeader className="p-5 border-b border-white/20 bg-[#942392] text-white shrink-0 text-left">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-white/20 text-white shrink-0">
-                <Users className="w-5 h-5 text-white" />
-              </div>
-              <div className="min-w-0">
-                <DialogTitle className="text-base font-black text-white flex items-center gap-2 m-0 truncate">
-                  <span>Assigned Employees: {selectedRoleForUsers?.name}</span>
-                </DialogTitle>
-                <DialogDescription className="text-white/80 text-xs font-medium m-0 mt-0.5">
-                  Staff members currently inheriting permissions from this role
-                </DialogDescription>
-              </div>
+            <div className="min-w-0">
+              <DialogTitle className="text-base font-black text-white m-0 truncate">
+                Assigned Employees: {selectedRoleForUsers?.name}
+              </DialogTitle>
+              <DialogDescription className="text-white/80 text-xs font-medium m-0 mt-0.5">
+                Staff members currently inheriting permissions from this role
+              </DialogDescription>
             </div>
           </DialogHeader>
 

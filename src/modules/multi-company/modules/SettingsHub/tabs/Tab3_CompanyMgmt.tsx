@@ -142,7 +142,6 @@ export const Tab3_CompanyMgmt: React.FC<Tab3CompanyMgmtProps> = ({ onNavigateToT
           onClick={handleOpenAddModal}
           className="bg-[#942392] hover:bg-[#800A7A] text-white font-black text-xs uppercase tracking-wider shadow-sm h-9 px-4 rounded-xl cursor-pointer"
         >
-          <Plus className="w-3.5 h-3.5 mr-1.5" />
           Register New Company
         </Button>
       </div>
@@ -244,23 +243,20 @@ export const Tab3_CompanyMgmt: React.FC<Tab3CompanyMgmtProps> = ({ onNavigateToT
                           setActiveCompanyId(c.id);
                           if (onNavigateToTab) onNavigateToTab('branch', c.id);
                         }}
-                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors shadow-2xs"
+                        className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors shadow-2xs cursor-pointer"
                         title="Click to view & configure branches for this company"
                       >
-                        <MapPin className="w-3.5 h-3.5 text-[#942392]" />
                         <span>{c.branches_count || 0} Branches</span>
-                        <ArrowRight className="w-3 h-3 text-muted-foreground ml-0.5" />
                       </button>
                     </td>
 
                     {/* Status */}
                     <td className="px-4 py-3.5">
-                      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${
+                      <span className={`inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] shadow-2xs ${
                         c.status === 'active' 
-                          ? 'border-emerald-200 dark:border-emerald-800/60 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300' 
-                          : 'border-rose-200 dark:border-rose-800/60 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300'
+                          ? 'border-emerald-300 dark:border-emerald-800/60 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300' 
+                          : 'border-rose-300 dark:border-rose-800/60 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300'
                       }`}>
-                        <span className={`w-2 h-2 rounded-full ${c.status === 'active' ? 'bg-emerald-500' : 'bg-rose-500'}`} />
                         {c.status === 'active' ? 'Active' : 'Inactive'}
                       </span>
                     </td>
@@ -291,7 +287,6 @@ export const Tab3_CompanyMgmt: React.FC<Tab3CompanyMgmtProps> = ({ onNavigateToT
                           className="h-8 px-3 rounded-full text-xs font-bold text-[#942392] border-[#942392]/30 bg-[#942392]/5 hover:bg-[#942392]/10"
                           title="Configure modules enabled for this company"
                         >
-                          <Boxes className="w-3.5 h-3.5 mr-1" />
                           Modules
                         </Button>
 
@@ -301,7 +296,6 @@ export const Tab3_CompanyMgmt: React.FC<Tab3CompanyMgmtProps> = ({ onNavigateToT
                           onClick={() => handleOpenEditModal(c)}
                           className="h-8 px-3 rounded-full text-xs font-bold border-border/80 hover:bg-muted"
                         >
-                          <Edit className="w-3.5 h-3.5 mr-1" />
                           Edit
                         </Button>
 
@@ -334,8 +328,7 @@ export const Tab3_CompanyMgmt: React.FC<Tab3CompanyMgmtProps> = ({ onNavigateToT
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogContent className="max-w-lg overflow-hidden [&>button]:text-white [&>button]:hover:text-white/80 border-none shadow-2xl rounded-3xl p-0 bg-card">
           <DialogHeader className="bg-[#942392] p-6 sm:rounded-t-lg m-0 text-left border-b border-white/20">
-            <DialogTitle className="text-white font-black uppercase tracking-tight m-0 text-lg flex items-center gap-2">
-              <Building2 className="w-5 h-5 text-white" />
+            <DialogTitle className="text-white font-black uppercase tracking-tight m-0 text-lg">
               {editingCompany ? `Edit ${editingCompany.company_name}` : 'Register New Subsidiary / Company'}
             </DialogTitle>
             <DialogDescription className="text-xs font-bold uppercase tracking-wider text-white/80 m-0 mt-1">
@@ -461,8 +454,7 @@ export const Tab3_CompanyMgmt: React.FC<Tab3CompanyMgmtProps> = ({ onNavigateToT
         <Dialog open={logoModalOpen} onOpenChange={setLogoModalOpen}>
           <DialogContent className="max-w-lg overflow-hidden [&>button]:text-white [&>button]:hover:text-white/80 border-none shadow-2xl rounded-3xl p-0 bg-card">
             <DialogHeader className="bg-[#942392] p-6 sm:rounded-t-lg m-0 text-left border-b border-white/20">
-              <DialogTitle className="text-white font-black uppercase tracking-tight m-0 text-lg flex items-center gap-2">
-                <ImageIcon className="w-5 h-5 text-white" />
+              <DialogTitle className="text-white font-black uppercase tracking-tight m-0 text-lg">
                 Branding for {selectedForLogo.company_name}
               </DialogTitle>
               <DialogDescription className="text-xs font-bold uppercase tracking-wider text-white/80 m-0 mt-1">

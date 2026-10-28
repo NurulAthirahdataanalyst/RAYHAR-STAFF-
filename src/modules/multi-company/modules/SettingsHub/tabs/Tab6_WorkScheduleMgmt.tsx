@@ -375,7 +375,6 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
       {/* Top Filter & Action */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-muted/30 dark:bg-neutral-900/40 rounded-xl border border-border dark:border-neutral-800">
         <div className="flex flex-wrap items-center gap-2.5">
-          <CalendarClock className="w-4 h-4 text-[#942392]" />
           <span className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
             Work Schedule Scope:
           </span>
@@ -414,16 +413,12 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
           onClick={handleOpenCreate}
           className="bg-[#942392] hover:bg-[#800A7A] text-white font-black text-xs uppercase tracking-wider shadow-sm h-9 px-4 rounded-xl self-start sm:self-auto"
         >
-          <Plus className="w-3.5 h-3.5 mr-1" />
           Create Work Schedule
         </Button>
       </div>
 
       {/* Priority Engine Info Banner */}
       <div className="p-3.5 bg-[#942392]/5 dark:bg-[#942392]/10 rounded-xl border border-[#942392]/20 flex items-start gap-3 text-xs">
-        <div className="p-1 rounded-md bg-[#942392] text-white shrink-0 mt-0.5">
-          <Sparkles className="w-3 h-3" />
-        </div>
         <div className="space-y-1">
           <span className="font-black text-[#942392] dark:text-[#f885d5] uppercase tracking-wider block">
             4-Tier Schedule Resolution Engine (Zone & Multi-Branch Aware)
@@ -486,8 +481,7 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
                         <div className="flex flex-col gap-1">
                           <span>{s.schedule_name}</span>
                           {normZone && (
-                            <span className="inline-flex items-center gap-1 w-fit px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-muted dark:bg-neutral-800 text-muted-foreground border border-border/60">
-                              <MapPin className="w-2.5 h-2.5 text-[#942392]" />
+                            <span className="inline-flex items-center justify-center w-fit px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-muted dark:bg-neutral-800 text-muted-foreground border border-border/60">
                               {formatZoneDisplayName(normZone)}
                             </span>
                           )}
@@ -495,10 +489,10 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
                       </td>
                       <td className="px-4 py-3.5">
                         <span
-                          className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-bold border whitespace-nowrap ${
+                          className={`inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap ${
                             isDefault
-                              ? 'border-[#942392]/30 bg-[#942392]/10 text-[#942392] dark:border-[#942392]/40 dark:bg-[#942392]/20 dark:text-[#f885d5]'
-                              : 'border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-200'
+                              ? 'border-[#942392]/30 bg-[#942392]/10 text-[#942392] dark:text-[#f885d5]'
+                              : 'border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200'
                           }`}
                         >
                           {isDefault
@@ -510,7 +504,7 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
                       </td>
                       <td className="px-4 py-3.5 text-muted-foreground max-w-md">
                         {isDept && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-muted/80 dark:bg-neutral-800 text-foreground border border-border/60 mb-1 mr-1 shadow-xs">
+                          <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-muted/80 dark:bg-neutral-800 text-foreground border border-border/60 mb-1 mr-1 shadow-xs">
                             Dept: {s.department_id}
                           </span>
                         )}
@@ -522,7 +516,7 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
                               return (
                                 <span
                                   key={code}
-                                  className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-muted/80 dark:bg-neutral-800 text-foreground border border-border/60 shadow-xs"
+                                  className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-muted/80 dark:bg-neutral-800 text-foreground border border-border/60 shadow-xs"
                                   title={bObj?.name || code}
                                 >
                                   {displayName}
@@ -531,7 +525,7 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
                             })}
                           </div>
                         ) : (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-muted/80 dark:bg-neutral-800 text-muted-foreground border border-border/60 shadow-xs">
+                          <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-muted/80 dark:bg-neutral-800 text-muted-foreground border border-border/60 shadow-xs">
                             All Departments & Branches
                           </span>
                         )}
@@ -543,8 +537,7 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
                         {breakStr}
                       </td>
                       <td className="px-4 py-3.5">
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border border-emerald-200 dark:border-emerald-800/60 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 whitespace-nowrap">
-                          <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                        <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
                           Active
                         </span>
                       </td>
@@ -555,7 +548,6 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
                           onClick={() => handleOpenEdit(s)}
                           className="h-8 px-3 rounded-full text-xs font-bold border-border/80 hover:bg-muted"
                         >
-                          <Edit className="w-3.5 h-3.5 mr-1" />
                           Edit Hours
                         </Button>
                       </td>
@@ -573,8 +565,7 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
         <DialogContent className="max-w-2xl bg-card dark:bg-neutral-900 border-none shadow-2xl rounded-3xl max-h-[90vh] flex flex-col p-0 overflow-hidden [&>button]:text-white [&>button]:hover:text-white/80">
           <form onSubmit={handleSaveSchedule} className="flex flex-col h-full max-h-[90vh] overflow-hidden">
             <DialogHeader className="bg-[#942392] p-6 sm:rounded-t-2xl m-0 text-left shrink-0 border-b border-white/20">
-              <DialogTitle className="text-white font-black uppercase tracking-tight m-0 text-lg flex items-center gap-2">
-                <CalendarClock className="w-5 h-5 text-white" />
+              <DialogTitle className="text-white font-black uppercase tracking-tight m-0 text-lg">
                 {editingScheduleId ? 'Edit Work Schedule Timetable' : 'Create Work Schedule Timetable'}
               </DialogTitle>
               <DialogDescription className="text-xs font-bold uppercase tracking-wider text-white/80 m-0 mt-1">
@@ -1003,7 +994,6 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
               {/* Break Configuration */}
               <div className="p-3.5 bg-muted/30 dark:bg-neutral-800/40 rounded-xl border border-border/50 space-y-2">
                 <div className="flex items-center gap-1.5">
-                  <Coffee className="w-3.5 h-3.5 text-[#942392]" />
                   <Label className="text-xs font-bold text-foreground">
                     Lunch Break Window (Excluded from Net Hours)
                   </Label>

@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rayhar System - Master Navigation & Action Flows Guide</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    code, pre {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .brand-purple {
+      background-color: #942392;
+    }
+    .text-brand-purple {
+      color: #942392;
+    }
+    .border-brand-purple {
+      border-color: #942392;
+    }
+    .hover-brand-purple:hover {
+      background-color: #7b1d79;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .card-shadow {
+      box-shadow: 0 4px 20px -2px rgba(148, 35, 146, 0.06), 0 2px 6px -1px rgba(0, 0, 0, 0.04);
+    }
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #942392;
+    }
+    .tab-active {
+      background-color: #942392 !important;
+      color: #ffffff !important;
+      box-shadow: 0 4px 12px rgba(148, 35, 146, 0.25);
+    }
+    @media print {
+      .no-print {
+        display: none !important;
+      }
+      .tab-pane {
+        display: block !important;
+        margin-bottom: 2rem;
+        page-break-after: always;
+      }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+  <!-- TOP APP HEADER -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-50 card-shadow no-print">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-20">
+        
+        <!-- Brand Title & Tagline -->
+        <div class="flex items-center space-x-4">
+          <div class="w-12 h-12 rounded-2xl brand-purple text-white flex items-center justify-center font-black text-xl shadow-md">
+            R
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <h1 class="text-xl font-extrabold text-slate-900 tracking-tight">Rayhar Workforce Management Portal</h1>
+              <span class="bg-purple-100 text-[#942392] text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-purple-200 uppercase">
+                Master Manual
+              </span>
+            </div>
+            <p class="text-xs text-slate-500 font-medium">Complete System Navigation, Action Flows & Role-Based Access Matrix</p>
+          </div>
+        </div>
+
+        <!-- Quick Actions & Role Filter -->
+        <div class="flex items-center space-x-3">
+          <div class="relative hidden md:block">
+            <span class="text-xs font-semibold text-slate-400 mr-2">Highlight Role:</span>
+            <select id="roleSelector" onchange="applyRoleFilter(this.value)" class="text-xs font-bold bg-slate-100 border border-slate-300 text-slate-700 rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-[#942392] focus:border-[#942392]">
+              <option value="all">⚡ All Roles (Default View)</option>
+              <option value="hr_admin">👑 HR Admin (Global Master Control)</option>
+              <option value="managing_director">🏛️ Managing Director (Executive)</option>
+              <option value="operation_manager">⚙️ Operation Manager</option>
+              <option value="branch_leader">🏢 Branch Leader (Branch Supervisor)</option>
+              <option value="head_of_department">📑 Head of Department (HOD)</option>
+              <option value="employee">👤 Standard Employee / Officer</option>
+            </select>
+          </div>
+
+          <button onclick="window.print()" class="inline-flex items-center space-x-1.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-bold px-3 py-2 rounded-xl transition shadow-xs">
+            <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+            <span>Print Guide</span>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- MAIN NAVIGATION BAR TABS -->
+      <div class="flex space-x-1 overflow-x-auto py-2 border-t border-slate-100 no-print" id="mainTabNav">
+        <button onclick="switchTab('tab-onboarding')" id="btn-tab-onboarding" class="tab-btn px-3.5 py-2 text-xs font-bold rounded-xl text-slate-600 hover:text-slate-900 transition whitespace-nowrap tab-active">
+          👥 1. Adding Staff (3 Ways)
+        </button>
+        <button onclick="switchTab('tab-page-roles')" id="btn-tab-page-roles" class="tab-btn px-3.5 py-2 text-xs font-bold rounded-xl text-slate-600 hover:text-slate-900 transition whitespace-nowrap">
+          🛡️ 2. Page Roles (Company Leave etc.)
+        </button>
+        <button onclick="switchTab('tab-outstation')" id="btn-tab-outstation" class="tab-btn px-3.5 py-2 text-xs font-bold rounded-xl text-slate-600 hover:text-slate-900 transition whitespace-nowrap">
+          ✈️ 3. Outstation Assignment
+        </button>
+        <button onclick="switchTab('tab-leave')" id="btn-tab-leave" class="tab-btn px-3.5 py-2 text-xs font-bold rounded-xl text-slate-600 hover:text-slate-900 transition whitespace-nowrap">
+          🏖️ 4. Leave Approval Flows
+        </button>
+        <button onclick="switchTab('tab-attendance-grace')" id="btn-tab-attendance-grace" class="tab-btn px-3.5 py-2 text-xs font-bold rounded-xl text-slate-600 hover:text-slate-900 transition whitespace-nowrap">
+          ⏱️ 5. Late Grace Window
+        </button>
+        <button onclick="switchTab('tab-work-schedules')" id="btn-tab-work-schedules" class="tab-btn px-3.5 py-2 text-xs font-bold rounded-xl text-slate-600 hover:text-slate-900 transition whitespace-nowrap">
+          📅 6. Work Schedules (Zones)
+        </button>
+        <button onclick="switchTab('tab-subsidiary-lifecycle')" id="btn-tab-subsidiary-lifecycle" class="tab-btn px-3.5 py-2 text-xs font-bold rounded-xl text-slate-600 hover:text-slate-900 transition whitespace-nowrap">
+          🏢 7. Subsidiary Setup Lifecycle
+        </button>
+        <button onclick="switchTab('tab-branches-transfer')" id="btn-tab-branches-transfer" class="tab-btn px-3.5 py-2 text-xs font-bold rounded-xl text-slate-600 hover:text-slate-900 transition whitespace-nowrap">
+          📍 8. Branches & Transfers
+        </button>
+        <button onclick="switchTab('tab-rbac-matrix')" id="btn-tab-rbac-matrix" class="tab-btn px-3.5 py-2 text-xs font-bold rounded-xl text-slate-600 hover:text-slate-900 transition whitespace-nowrap">
+          📊 9. Master RBAC Matrix
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- MAIN BODY CONTAINER -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-8">
+
+    <!-- HERO NOTIFICATION BANNER -->
+    <div class="bg-gradient-to-r from-[#942392] via-[#751673] to-[#4e094d] text-white rounded-3xl p-6 md:p-8 card-shadow relative overflow-hidden">
+      <div class="relative z-10 max-w-3xl space-y-3">
+        <span class="inline-block bg-white/20 backdrop-blur-md text-white text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">
+          Rayhar Group System Blueprint
+        </span>
+        <h2 class="text-2xl md:text-3xl font-black tracking-tight">
+          System Action & Navigation Flows Guide
+        </h2>
+        <p class="text-white/80 text-sm leading-relaxed">
+          Learn exactly where each action is executed in the application, which page to visit, which form fields are required, and what capabilities each role possesses (such as the Company Leave Calendar where only HR can create/edit while all other roles are strictly View Only).
+        </p>
+      </div>
+      <div class="absolute -right-8 -bottom-12 opacity-15 pointer-events-none">
+        <svg class="w-72 h-72 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"></path></svg>
+      </div>
+    </div>
+
+    <!-- ================================================================================= -->
+    <!-- TAB 1: ADDING NEW STAFF (3 ENTRY POINTS) -->
+    <!-- ================================================================================= -->
+    <div id="tab-onboarding" class="tab-pane space-y-8">
+      
+      <!-- Section Header -->
+      <div class="flex items-center justify-between border-b border-slate-200 pb-4">
+        <div>
+          <h3 class="text-xl font-black text-slate-900">1. Staff Onboarding & Creation Architecture</h3>
+          <p class="text-xs text-slate-500">There are 3 dedicated places to create staff members in this system.</p>
+        </div>
+        <span class="pill bg-purple-100 text-[#942392]">3 Available Entry Points</span>
+      </div>
+
+      <!-- 3 Visual Entry Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+        <!-- Entry Point 1 -->
+        <div class="bg-white border-2 border-purple-200 hover:border-[#942392] rounded-2xl p-6 card-shadow space-y-4 transition flex flex-col justify-between">
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="w-8 h-8 rounded-xl brand-purple text-white flex items-center justify-center font-black text-sm">A</span>
+              <span class="pill bg-emerald-100 text-emerald-800 text-[10px]">Complete HR Onboard</span>
+            </div>
+            <h4 class="text-base font-black text-slate-900">Settings Hub: Personnel Management</h4>
+            <div class="text-xs text-slate-500 space-y-1">
+              <p><strong>Route:</strong> <code class="bg-slate-100 px-1.5 py-0.5 rounded text-[#942392]">/settings?tab=employee</code></p>
+              <p><strong>Tab:</strong> 2. PERSONNEL MANAGEMENT</p>
+              <p><strong>Authorized:</strong> <span class="font-bold text-slate-700">HR Admin, Managing Director</span></p>
+            </div>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              The flagship comprehensive onboarding portal. Includes identity verification, contact, credentials, department placement, role permissions, and access to the <strong>Company Transfer Wizard</strong> and <strong>Career History Ledger</strong>.
+            </p>
+          </div>
+          <div class="pt-3 border-t border-slate-100">
+            <span class="text-[11px] font-bold text-[#942392] flex items-center gap-1">
+              <span>Best for: Formal New Hire Batches</span> →
+            </span>
+          </div>
+        </div>
+
+        <!-- Entry Point 2 -->
+        <div class="bg-white border-2 border-slate-200 hover:border-[#942392] rounded-2xl p-6 card-shadow space-y-4 transition flex flex-col justify-between">
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center font-black text-sm">B</span>
+              <span class="pill bg-blue-100 text-blue-800 text-[10px]">Fast Directory Modal</span>
+            </div>
+            <h4 class="text-base font-black text-slate-900">Employee Directory Table</h4>
+            <div class="text-xs text-slate-500 space-y-1">
+              <p><strong>Route:</strong> <code class="bg-slate-100 px-1.5 py-0.5 rounded text-[#942392]">/employees</code></p>
+              <p><strong>Button:</strong> Top-Right "+ Add Staff" Action</p>
+              <p><strong>Authorized:</strong> <span class="font-bold text-slate-700">HR Admin, MD, Operation Manager</span></p>
+            </div>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              Fast pop-up modal directly inside the staff directory view. Perfect for operational HR managers needing to rapidly provision accounts without leaving their daily records roster.
+            </p>
+          </div>
+          <div class="pt-3 border-t border-slate-100">
+            <span class="text-[11px] font-bold text-blue-600 flex items-center gap-1">
+              <span>Best for: Quick Operational Setup</span> →
+            </span>
+          </div>
+        </div>
+
+        <!-- Entry Point 3 -->
+        <div class="bg-white border-2 border-slate-200 hover:border-[#942392] rounded-2xl p-6 card-shadow space-y-4 transition flex flex-col justify-between">
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="w-8 h-8 rounded-xl bg-amber-600 text-white flex items-center justify-center font-black text-sm">C</span>
+              <span class="pill bg-amber-100 text-amber-800 text-[10px]">Multi-Tenant Entity</span>
+            </div>
+            <h4 class="text-base font-black text-slate-900">Organization: Personnel Entity</h4>
+            <div class="text-xs text-slate-500 space-y-1">
+              <p><strong>Route:</strong> <code class="bg-slate-100 px-1.5 py-0.5 rounded text-[#942392]">/organization/personnel</code></p>
+              <p><strong>Submenu:</strong> Personnel Entity</p>
+              <p><strong>Authorized:</strong> <span class="font-bold text-slate-700">HR Admin, Managing Director</span></p>
+            </div>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              Designed for multi-company corporate grouping. Lets administrators filter staff by corporate subsidiaries (e.g. Rayhar Travels vs RayRent) and register personnel directly into the selected tenant.
+            </p>
+          </div>
+          <div class="pt-3 border-t border-slate-100">
+            <span class="text-[11px] font-bold text-amber-600 flex items-center gap-1">
+              <span>Best for: Subsidiary & Group Placement</span> →
+            </span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Smart Malaysian MyKad (NRIC) Feature Callout -->
+      <div class="bg-purple-50 border border-purple-200 rounded-2xl p-6 space-y-3">
+        <div class="flex items-center space-x-2">
+          <span class="text-lg">🇲🇾</span>
+          <h4 class="text-sm font-extrabold text-[#942392] uppercase tracking-wide">Smart Malaysian MyKad (NRIC) Auto-Parsing Technology</h4>
+        </div>
+        <p class="text-xs text-slate-600 leading-relaxed">
+          Across all three registration locations, typing a 12-digit Malaysian IC Number (e.g. <code class="bg-white border px-1.5 py-0.5 rounded text-purple-900 font-bold">940815-11-5321</code>) activates real-time validation via <code class="text-purple-700 font-bold">parseMyKad()</code>:
+        </p>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+          <div class="bg-white border border-purple-100 rounded-xl p-3 text-center">
+            <span class="text-[10px] font-bold text-slate-400 uppercase block">1. Date of Birth</span>
+            <span class="text-xs font-black text-slate-800">15 August 1994</span>
+          </div>
+          <div class="bg-white border border-purple-100 rounded-xl p-3 text-center">
+            <span class="text-[10px] font-bold text-slate-400 uppercase block">2. Real-Time Age</span>
+            <span class="text-xs font-black text-slate-800">32 Years Old</span>
+          </div>
+          <div class="bg-white border border-purple-100 rounded-xl p-3 text-center">
+            <span class="text-[10px] font-bold text-slate-400 uppercase block">3. Biological Gender</span>
+            <span class="text-xs font-black text-[#942392]">Male (Odd Last Digit)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step-by-Step Form Breakdown Table -->
+      <div class="bg-white border border-slate-200 rounded-2xl card-shadow overflow-hidden">
+        <div class="p-5 border-b border-slate-100 bg-slate-50/50">
+          <h4 class="text-sm font-black text-slate-900 uppercase tracking-tight">Complete Form Fields Breakdown (Staff Creation)</h4>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs text-left">
+            <thead class="bg-slate-100 text-slate-700 uppercase font-black">
+              <tr>
+                <th class="px-5 py-3">Section</th>
+                <th class="px-5 py-3">Field Name</th>
+                <th class="px-5 py-3">Input Type</th>
+                <th class="px-5 py-3">Validation & System Logic</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              <tr>
+                <td class="px-5 py-3 font-bold text-slate-900" rowspan="4">1. Personal & Identity</td>
+                <td class="px-5 py-3 font-semibold text-[#942392]">Full Name</td>
+                <td class="px-5 py-3">Text Input</td>
+                <td class="px-5 py-3 text-slate-600">Legal full name as registered on MyKad/Passport.</td>
+              </tr>
+              <tr>
+                <td class="px-5 py-3 font-semibold text-[#942392]">IC / Passport No.</td>
+                <td class="px-5 py-3">MyKad Formatted Input</td>
+                <td class="px-5 py-3 text-slate-600">Auto-formats dashes (YYMMDD-PB-###G). Automatically calculates DOB, Age, Gender.</td>
+              </tr>
+              <tr>
+                <td class="px-5 py-3 font-semibold text-[#942392]">Phone Number</td>
+                <td class="px-5 py-3">Malaysian Phone Input</td>
+                <td class="px-5 py-3 text-slate-600">Formatted with Malaysian prefixes (010, 011, 012, 013, 014, 016, 017, 018, 019).</td>
+              </tr>
+              <tr>
+                <td class="px-5 py-3 font-semibold text-[#942392]">Date of Joining</td>
+                <td class="px-5 py-3">Interactive Date Picker</td>
+                <td class="px-5 py-3 text-slate-600">Calculates probation duration and annual leave eligibility accruals.</td>
+              </tr>
+              <tr>
+                <td class="px-5 py-3 font-bold text-slate-900" rowspan="2">2. Credentials</td>
+                <td class="px-5 py-3 font-semibold text-blue-600">Company Email</td>
+                <td class="px-5 py-3">Email Input</td>
+                <td class="px-5 py-3 text-slate-600">Acts as the unique Supabase Auth login identifier (e.g. username@rayhar.com).</td>
+              </tr>
+              <tr>
+                <td class="px-5 py-3 font-semibold text-blue-600">Login Password</td>
+                <td class="px-5 py-3">Password Input (with Toggle)</td>
+                <td class="px-5 py-3 text-slate-600">Minimum 6 characters with secure masking and toggle show/hide icon.</td>
+              </tr>
+              <tr>
+                <td class="px-5 py-3 font-bold text-slate-900" rowspan="5">3. Corporate Placement</td>
+                <td class="px-5 py-3 font-semibold text-emerald-600">Company Entity</td>
+                <td class="px-5 py-3">Dropdown Select</td>
+                <td class="px-5 py-3 text-slate-600">Links employee to a subsidiary tenant (Rayhar Travels, Rayrent, etc.).</td>
+              </tr>
+              <tr>
+                <td class="px-5 py-3 font-semibold text-emerald-600">Branch Location</td>
+                <td class="px-5 py-3">Dropdown Select</td>
+                <td class="px-5 py-3 text-slate-600">Establishes the home branch for GPS Geofencing coordinates (e.g. HQ, Kemaman, KT).</td>
+              </tr>
+              <tr>
+                <td class="px-5 py-3 font-semibold text-emerald-600">Department</td>
+                <td class="px-5 py-3">Dropdown Select</td>
+                <td class="px-5 py-3 text-slate-600">Assigns employee to organizational tree for HOD reporting.</td>
+              </tr>
+              <tr>
+                <td class="px-5 py-3 font-semibold text-emerald-600">Designation</td>
+                <td class="px-5 py-3">Text Input</td>
+                <td class="px-5 py-3 text-slate-600">Official title (e.g. Executive Ticketing Officer, Driver, Accounts Clerk).</td>
+              </tr>
+              <tr>
+                <td class="px-5 py-3 font-semibold text-emerald-600">System Access Role</td>
+                <td class="px-5 py-3">Dropdown Select</td>
+                <td class="px-5 py-3 text-slate-600">Enforces RBAC: employee, branch_officer, branch_leader, head_of_department, hr_admin.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ================================================================================= -->
+    <!-- TAB 2: PAGE ROLES (COMPANY LEAVE CALENDAR & SPECIFIC PAGES) -->
+    <!-- ================================================================================= -->
+    <div id="tab-page-roles" class="tab-pane hidden space-y-8">
+
+      <div class="flex items-center justify-between border-b border-slate-200 pb-4">
+        <div>
+          <h3 class="text-xl font-black text-slate-900">2. Page Functionality by Role (View vs. Create / Edit / Delete)</h3>
+          <p class="text-xs text-slate-500">Exact breakdown of what each role can do on each screen, highlighting restricted vs open capabilities.</p>
+        </div>
+        <span class="pill bg-emerald-100 text-emerald-800">Role Authority Breakdown</span>
+      </div>
+
+      <!-- SPOTLIGHT: COMPANY LEAVE CALENDAR -->
+      <div class="bg-white border-2 border-[#942392] rounded-3xl p-6 md:p-8 card-shadow space-y-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+          <div class="flex items-center space-x-3">
+            <span class="w-10 h-10 rounded-2xl brand-purple text-white flex items-center justify-center font-black text-lg">📅</span>
+            <div>
+              <h4 class="text-lg font-black text-slate-900">Spotlight: Company Leave Calendar (/calendar/company-leave)</h4>
+              <p class="text-xs text-slate-500 font-medium">Public holidays, state holidays, and gazetted company shutdowns</p>
+            </div>
+          </div>
+          <span class="pill bg-purple-100 text-[#942392] font-black">CRUD Restricted Strictly to HR</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- HR Capabilities -->
+          <div class="bg-purple-50/70 border border-purple-200 rounded-2xl p-5 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-black text-[#942392] uppercase tracking-wide">👑 HR Admin Role (Full CRUD)</span>
+              <span class="pill bg-[#942392] text-white text-[10px]">Create + Edit + Delete</span>
+            </div>
+            <ul class="text-xs text-slate-700 space-y-2 list-disc list-inside">
+              <li><strong>"+ Add Company Leave" Button:</strong> Visible in top PageActions bar.</li>
+              <li><strong>Creation Dialog:</strong> Can set Holiday Name, Start Date, End Date, Applies To (All Staff, Branch, Department), Paid Status, and Attendance Required.</li>
+              <li><strong>Action Column Enabled:</strong> Displays Edit (pencil) and Delete (trash) buttons on every active holiday row.</li>
+              <li><strong>Audit Protection:</strong> Even for HR Admin, once a leave reaches <code>Completed</code> status, Edit and Delete are permanently disabled.</li>
+            </ul>
+          </div>
+
+          <!-- All Other Roles -->
+          <div class="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-black text-slate-700 uppercase tracking-wide">👥 All Other Roles (View Only)</span>
+              <span class="pill bg-slate-200 text-slate-700 text-[10px]">View Only</span>
+            </div>
+            <p class="text-xs text-slate-600">
+              Applies to <strong>Employee, Branch Officer, Branch Leader, Head of Department, Operation Manager, Finance Manager, Managing Director</strong>:
+            </p>
+            <ul class="text-xs text-slate-700 space-y-2 list-disc list-inside">
+              <li><strong>Can View:</strong> All upcoming gazetted holidays, dates, and branch applicability.</li>
+              <li><strong>"+ Add Company Leave" Button:</strong> <span class="text-rose-600 font-bold">COMPLETELY HIDDEN</span> from the DOM.</li>
+              <li><strong>"Actions" Column:</strong> <span class="text-rose-600 font-bold">COMPLETELY OMITTED</span> from the table.</li>
+              <li><strong>No Edit or Delete:</strong> Other users cannot create, modify, or remove company off days.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- DETAILED BREAKDOWN OF ALL MAJOR PAGES -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <!-- Work Calendar -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 card-shadow space-y-3">
+          <h4 class="text-sm font-black text-slate-900 flex items-center gap-2">
+            <span class="text-blue-600">🗓️</span> Work Calendar (<code class="text-xs">/calendar</code>)
+          </h4>
+          <div class="text-xs text-slate-600 space-y-2">
+            <p><strong>Employee / Officer:</strong> View personal working schedule, personal approved leaves, and assigned outstation duties.</p>
+            <p><strong>Branch Leader / HOD:</strong> View personal roster + overlay of subordinates' approved leaves and shifts in their branch/department.</p>
+            <p><strong>HR Admin / Management:</strong> Global multi-branch work calendar view.</p>
+          </div>
+        </div>
+
+        <!-- Team Attendance -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 card-shadow space-y-3">
+          <h4 class="text-sm font-black text-slate-900 flex items-center gap-2">
+            <span class="text-emerald-600">⏱️</span> Team Attendance (<code class="text-xs">/team-attendance</code>)
+          </h4>
+          <div class="text-xs text-slate-600 space-y-2">
+            <p><strong>Employee / Officer:</strong> <span class="text-rose-600 font-bold">Access Blocked</span> (hidden from sidebar).</p>
+            <p><strong>Branch Leader:</strong> Live view of clock-in status (Present, Late, Absent) strictly for staff at their physical branch.</p>
+            <p><strong>Head of Department:</strong> Live view of clock-in status strictly for personnel in their department across all locations.</p>
+            <p><strong>HR Admin / MD:</strong> Global presence board with branch/department filters.</p>
+          </div>
+        </div>
+
+        <!-- Team Leave Requests -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 card-shadow space-y-3">
+          <h4 class="text-sm font-black text-slate-900 flex items-center gap-2">
+            <span class="text-purple-600">📋</span> Team Leave Requests (<code class="text-xs">/leave/team</code>)
+          </h4>
+          <div class="text-xs text-slate-600 space-y-2">
+            <p><strong>Employee:</strong> <span class="text-rose-600 font-bold">Access Blocked</span> (uses <code>/leave/forms</code> to track own requests).</p>
+            <p><strong>Branch Leader (Tier 1):</strong> Approve or Reject leave for branch staff; inspect uploaded Medical Certificate (MC) document.</p>
+            <p><strong>Head of Department (Tier 2):</strong> Endorse or Reject departmental leave applications.</p>
+            <p><strong>HR Admin / Management:</strong> Central administrative review.</p>
+          </div>
+        </div>
+
+        <!-- Leave Admin Hub -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 card-shadow space-y-3">
+          <h4 class="text-sm font-black text-slate-900 flex items-center gap-2">
+            <span class="text-amber-600">🏛️</span> Leave Admin Hub (<code class="text-xs">/leave/admin</code>)
+          </h4>
+          <div class="text-xs text-slate-600 space-y-2">
+            <p><strong>Employee / Officer:</strong> <span class="text-rose-600 font-bold">Access Blocked</span>.</p>
+            <p><strong>Branch Leader / HOD:</strong> View pending items awaiting their tier.</p>
+            <p><strong>HR Admin / MD / Operation Manager:</strong> Grant final endorsements, perform batch approvals, and export leave records to CSV / PDF.</p>
+          </div>
+        </div>
+
+        <!-- Leave Entitlement Quota -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 card-shadow space-y-3">
+          <h4 class="text-sm font-black text-slate-900 flex items-center gap-2">
+            <span class="text-rose-600">📊</span> Leave Entitlements (<code class="text-xs">/leave/entitlement</code>)
+          </h4>
+          <div class="text-xs text-slate-600 space-y-2">
+            <p><strong>HR Admin:</strong> <span class="text-emerald-600 font-bold">Exclusive Authority</span>. Can manually adjust (+/- days) Annual, Sick, Emergency, or Replacement Leave with compulsory audit remarks.</p>
+            <p><strong>All Other Roles:</strong> Hidden / No access.</p>
+          </div>
+        </div>
+
+        <!-- Employee Directory -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 card-shadow space-y-3">
+          <h4 class="text-sm font-black text-slate-900 flex items-center gap-2">
+            <span class="text-indigo-600">👥</span> Employee Directory (<code class="text-xs">/employees</code>)
+          </h4>
+          <div class="text-xs text-slate-600 space-y-2">
+            <p><strong>Employee:</strong> View-only contact lookup (colleague names, email, branch). "+ Add Staff" is hidden.</p>
+            <p><strong>Branch Leader / HOD:</strong> View branch/dept staff profiles and phone numbers. Cannot create or edit.</p>
+            <p><strong>HR Admin / MD / Operation Manager:</strong> "+ Add Staff" modal, edit profiles, deactivate resigned staff.</p>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ================================================================================= -->
+    <!-- TAB 3: OUTSTATION ASSIGNMENT FLOWS -->
+    <!-- ================================================================================= -->
+    <div id="tab-outstation" class="tab-pane hidden space-y-8">
+      
+      <div class="flex items-center justify-between border-b border-slate-200 pb-4">
+        <div>
+          <h3 class="text-xl font-black text-slate-900">3. Outstation Management & Deployment Flows</h3>
+          <p class="text-xs text-slate-500">How staff are assigned to official travel and remote duty with geofence bypass.</p>
+        </div>
+        <span class="pill bg-blue-100 text-blue-800">Geofence Exemption Pipeline</span>
+      </div>
+
+      <!-- Outstation Workflow Diagram Card -->
+      <div class="bg-white border border-slate-200 rounded-2xl p-6 card-shadow space-y-6">
+        <h4 class="text-sm font-black text-slate-900 uppercase">Outstation Operational Lifecycle</h4>
+        
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2">
+            <span class="w-8 h-8 rounded-full brand-purple text-white inline-flex items-center justify-center font-bold text-xs">1</span>
+            <h5 class="text-xs font-bold text-slate-900">Assignment Created</h5>
+            <p class="text-[11px] text-slate-500">Supervisor/HR creates travel duty via <code class="text-[#942392]">/outstation/assignment</code></p>
+          </div>
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2">
+            <span class="w-8 h-8 rounded-full bg-blue-600 text-white inline-flex items-center justify-center font-bold text-xs">2</span>
+            <h5 class="text-xs font-bold text-slate-900">Staff Notification</h5>
+            <p class="text-[11px] text-slate-500">Employee receives push alert & duty appears in <code class="text-blue-600">/outstation/my</code></p>
+          </div>
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2">
+            <span class="w-8 h-8 rounded-full bg-emerald-600 text-white inline-flex items-center justify-center font-bold text-xs">3</span>
+            <h5 class="text-xs font-bold text-slate-900">Geofence Bypass Active</h5>
+            <p class="text-[11px] text-slate-500">Staff can punch in from destination coordinates without geofence block</p>
+          </div>
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2">
+            <span class="w-8 h-8 rounded-full bg-purple-600 text-white inline-flex items-center justify-center font-bold text-xs">4</span>
+            <h5 class="text-xs font-bold text-slate-900">Live GPS & Claims</h5>
+            <p class="text-[11px] text-slate-500">Movement captured on GPS tracker; exportable travel report for claims</p>
+          </div>
+        </div>
+
+        <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 text-xs text-blue-900 space-y-1">
+          <p class="font-bold">Authorized Assignment Roles:</p>
+          <p>Only <code>hr_admin</code>, <code>managing_director</code>, <code>operation_manager</code>, <code>finance_manager</code>, <code>branch_leader</code>, and <code>head_of_department</code> can assign staff to outstations.</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ================================================================================= -->
+    <!-- TAB 4: LEAVE MANAGEMENT & APPROVAL FLOWS -->
+    <!-- ================================================================================= -->
+    <div id="tab-leave" class="tab-pane hidden space-y-8">
+
+      <div class="flex items-center justify-between border-b border-slate-200 pb-4">
+        <div>
+          <h3 class="text-xl font-black text-slate-900">4. Leave Application & Multi-Tier Approval Pipeline</h3>
+          <p class="text-xs text-slate-500">Comprehensive management across 5 leave types with automated multi-tier approval.</p>
+        </div>
+        <span class="pill bg-purple-100 text-[#942392]">3-Tier Approval Flow</span>
+      </div>
+
+      <!-- 5 Leave Types -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div class="bg-white border border-purple-200 rounded-2xl p-4 space-y-2">
+          <span class="pill bg-purple-100 text-[#942392] text-[10px]">Type 1</span>
+          <h5 class="text-xs font-black text-slate-900">Annual Leave (AL)</h5>
+          <p class="text-[11px] text-slate-500">Paid vacation deducted from annual quota (default 14 days).</p>
+        </div>
+        <div class="bg-white border border-sky-200 rounded-2xl p-4 space-y-2">
+          <span class="pill bg-sky-100 text-sky-800 text-[10px]">Type 2</span>
+          <h5 class="text-xs font-black text-slate-900">Medical / Sick (MC)</h5>
+          <p class="text-[11px] text-slate-500">Paid sick leave. Mandatory clinic Medical Certificate slip upload.</p>
+        </div>
+        <div class="bg-white border border-rose-200 rounded-2xl p-4 space-y-2">
+          <span class="pill bg-rose-100 text-rose-800 text-[10px]">Type 3</span>
+          <h5 class="text-xs font-black text-slate-900">Emergency Leave (EL)</h5>
+          <p class="text-[11px] text-slate-500">Urgent sudden leave (default 5 days). Direct supervisor notification.</p>
+        </div>
+        <div class="bg-white border border-emerald-200 rounded-2xl p-4 space-y-2">
+          <span class="pill bg-emerald-100 text-emerald-800 text-[10px]">Type 4</span>
+          <h5 class="text-xs font-black text-slate-900">Replacement (Cuti Ganti)</h5>
+          <p class="text-[11px] text-slate-500">Earned compensatory leave from public holidays or approved OT.</p>
+        </div>
+        <div class="bg-white border border-amber-200 rounded-2xl p-4 space-y-2">
+          <span class="pill bg-amber-100 text-amber-800 text-[10px]">Type 5</span>
+          <h5 class="text-xs font-black text-slate-900">Unpaid (Tanpa Gaji)</h5>
+          <p class="text-[11px] text-slate-500">Unpaid absence leading to automatic payroll salary deduction.</p>
+        </div>
+      </div>
+
+      <!-- 3 Approval Tiers Table -->
+      <div class="bg-white border border-slate-200 rounded-2xl p-6 card-shadow space-y-4">
+        <h4 class="text-sm font-black text-slate-900 uppercase">Multi-Tier Approval Hierarchy</h4>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="border border-slate-200 rounded-xl p-4 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-900">Tier 1: Branch Level</span>
+              <span class="pill bg-slate-100 text-slate-800 text-[10px]">Branch Leader</span>
+            </div>
+            <p class="text-xs text-slate-500">Reviews and endorses leave for branch officers and local retail staff.</p>
+          </div>
+          <div class="border border-slate-200 rounded-xl p-4 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-900">Tier 2: Department Level</span>
+              <span class="pill bg-blue-100 text-blue-800 text-[10px]">Head of Dept (HOD)</span>
+            </div>
+            <p class="text-xs text-slate-500">Reviews staffing impact on departmental operations across all branches.</p>
+          </div>
+          <div class="border border-slate-200 rounded-xl p-4 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-900">Tier 3: Executive Level</span>
+              <span class="pill bg-purple-100 text-[#942392] text-[10px]">HR Admin / MD / OM</span>
+            </div>
+            <p class="text-xs text-slate-500">Final endorsement, payroll deduction approval, and batch processing.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ================================================================================= -->
+    <!-- TAB 5: LATE WINDOW GRACE TIME & ATTENDANCE CONFIG -->
+    <!-- ================================================================================= -->
+    <div id="tab-attendance-grace" class="tab-pane hidden space-y-8">
+
+      <div class="flex items-center justify-between border-b border-slate-200 pb-4">
+        <div>
+          <h3 class="text-xl font-black text-slate-900">5. Attendance Configuration & Late Grace Window</h3>
+          <p class="text-xs text-slate-500">Where to set late thresholds, punch grace periods, and geofence enforcement.</p>
+        </div>
+        <span class="pill bg-amber-100 text-amber-800">Settings: Tab 1</span>
+      </div>
+
+      <div class="bg-white border border-slate-200 rounded-2xl p-6 card-shadow space-y-6">
+        <div class="flex items-center space-x-3">
+          <span class="w-8 h-8 rounded-xl brand-purple text-white flex items-center justify-center font-bold text-sm">⚙️</span>
+          <div>
+            <h4 class="text-sm font-black text-slate-900">Location: Settings Hub → Tab 1: Attendance Config</h4>
+            <p class="text-xs text-slate-500">Route: <code class="text-[#942392]">/settings?tab=attendance</code> (HR Admin & Managing Director Only)</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="border border-slate-200 rounded-xl p-4 space-y-2">
+            <span class="text-xs font-extrabold text-[#942392] uppercase block">1. Late Threshold (Grace Window)</span>
+            <p class="text-xs text-slate-600">Configurable grace window in minutes (e.g. <strong>30 minutes</strong>). Punches within the grace window flag as Late but do not trigger harsh half-day cuts.</p>
+          </div>
+          <div class="border border-slate-200 rounded-xl p-4 space-y-2">
+            <span class="text-xs font-extrabold text-blue-600 uppercase block">2. Early Checkout Tolerance</span>
+            <p class="text-xs text-slate-600">Defines allowed minutes before official shift end (e.g. 0 to 15 minutes) before flagging early departure penalties.</p>
+          </div>
+          <div class="border border-slate-200 rounded-xl p-4 space-y-2">
+            <span class="text-xs font-extrabold text-emerald-600 uppercase block">3. Geofence Modes</span>
+            <p class="text-xs text-slate-600"><strong>Strict:</strong> Blocks punch button outside radius.<br><strong>Relaxed:</strong> Allows punch but flags violation.<br><strong>Disabled:</strong> Remote mode.</p>
+          </div>
+        </div>
+
+        <!-- Real-Time Simulator Note -->
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-xs text-slate-700 space-y-1">
+          <p class="font-bold text-slate-900">⚡ Built-in Calculation Simulator:</p>
+          <p>At the bottom of this tab, administrators can input hypothetical clock-in times (e.g. <code>08:45 AM</code>) against shift rosters to simulate and verify whether late tags or overtime rules trigger accurately.</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ================================================================================= -->
+    <!-- TAB 6: WORK SCHEDULES (BY COMPANY & BRANCH) -->
+    <!-- ================================================================================= -->
+    <div id="tab-work-schedules" class="tab-pane hidden space-y-8">
+
+      <div class="flex items-center justify-between border-b border-slate-200 pb-4">
+        <div>
+          <h3 class="text-xl font-black text-slate-900">6. Work Schedules: Company & Branch Configuration</h3>
+          <p class="text-xs text-slate-500">Configure shifts, Malaysian weekend zones (Zone A vs Zone B), and branch assignments.</p>
+        </div>
+        <span class="pill bg-emerald-100 text-emerald-800">Settings: Tab 6</span>
+      </div>
+
+      <div class="bg-white border border-slate-200 rounded-2xl p-6 card-shadow space-y-6">
+        <div class="flex items-center space-x-3">
+          <span class="w-8 h-8 rounded-xl brand-purple text-white flex items-center justify-center font-bold text-sm">📅</span>
+          <div>
+            <h4 class="text-sm font-black text-slate-900">Location: Settings Hub → Tab 6: Work Schedules</h4>
+            <p class="text-xs text-slate-500">Route: <code class="text-[#942392]">/settings?tab=schedule</code> (HR Admin, MD, Operation Manager)</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="bg-purple-50 border border-purple-200 rounded-2xl p-5 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-black text-[#942392] uppercase">Zone A (Friday-Saturday Weekend)</span>
+              <span class="pill bg-[#942392] text-white text-[10px]">East Coast / North</span>
+            </div>
+            <p class="text-xs text-slate-600">
+              Applies to branches in <strong>Kelantan, Terengganu, Kedah, and Johor</strong>. Working days are Sunday through Thursday. Friday and Saturday are designated rest days.
+            </p>
+          </div>
+
+          <div class="bg-blue-50 border border-blue-200 rounded-2xl p-5 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-black text-blue-700 uppercase">Zone B (Saturday-Sunday Weekend)</span>
+              <span class="pill bg-blue-600 text-white text-[10px]">West Coast / Federal</span>
+            </div>
+            <p class="text-xs text-slate-600">
+              Applies to branches in <strong>Kuala Lumpur, Selangor, Perak, Penang, Melaka, Pahang, Sabah, Sarawak</strong>. Working days are Monday through Friday.
+            </p>
+          </div>
+        </div>
+
+        <div class="border-t border-slate-100 pt-4 space-y-2 text-xs text-slate-600">
+          <p><strong>Multi-Branch Scoping:</strong> A single schedule can be mapped to multiple selected branches at once (e.g. mapping Zone A schedule simultaneously to Kemaman, KT, Dungun, and Jertih).</p>
+          <p><strong>Special Shift Rules:</strong> Supports Friday extended prayer breaks (e.g. 12:30 - 14:30) and half-day working hours on Thursdays or Saturdays.</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ================================================================================= -->
+    <!-- TAB 7: NEW SUBSIDIARY SETUP LIFECYCLE -->
+    <!-- ================================================================================= -->
+    <div id="tab-subsidiary-lifecycle" class="tab-pane hidden space-y-8">
+
+      <div class="flex items-center justify-between border-b border-slate-200 pb-4">
+        <div>
+          <h3 class="text-xl font-black text-slate-900">7. New Subsidiary Setup Lifecycle (From Zero to Fully Operational Data)</h3>
+          <p class="text-xs text-slate-500">The mandatory sequential setup pipeline required before a newly created company can operate and display full data.</p>
+        </div>
+        <span class="pill bg-purple-100 text-[#942392]">Sequential Requirement Chain</span>
+      </div>
+
+      <!-- Why Sequence is Required Banner -->
+      <div class="bg-gradient-to-r from-purple-50 via-slate-50 to-white border border-purple-200 rounded-2xl p-6 space-y-3">
+        <h4 class="text-sm font-black text-slate-900 uppercase flex items-center gap-2">
+          <span>💡</span> Why a New Subsidiary Starts Blank and Requires Sequential Setup
+        </h4>
+        <p class="text-xs text-slate-600 leading-relaxed">
+          When HR creates a new subsidiary entity (e.g. <em>RayRent Car Rental Sdn Bhd</em> or <em>Rayhar Holidays</em>), it initially possesses <strong>zero branches, zero work schedules, unconfigured leave policies, and zero employees</strong>. 
+          If staff were assigned immediately without branches or shifts, clock-ins would fail (no GPS coordinates) and late penalties could not be computed (no working hours). Following the <strong>7-Step Sequential Pipeline</strong> below guarantees that all operational dependencies match, fully activating the subsidiary across all dashboards and reports.
+        </p>
+      </div>
+
+      <!-- Interactive 7-Step Lifecycle Pipeline Grid -->
+      <div class="space-y-6">
+
+        <!-- STEP 1 -->
+        <div class="bg-white border-2 border-slate-200 hover:border-[#942392] rounded-2xl p-6 card-shadow space-y-3 transition">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <span class="w-8 h-8 rounded-xl brand-purple text-white flex items-center justify-center font-black text-sm">1</span>
+              <div>
+                <h4 class="text-sm font-black text-slate-900">Step 1: Register Corporate Entity & Subsidiary</h4>
+                <p class="text-[11px] text-slate-400">Route: <code class="text-[#942392]">/settings?tab=company</code> (Settings Hub: 3. COMPANY MANAGEMENT)</p>
+              </div>
+            </div>
+            <span class="pill bg-purple-100 text-[#942392] text-[10px]">Entity Provisioning</span>
+          </div>
+          <p class="text-xs text-slate-600">
+            Click <strong>"+ Add Company"</strong>. Enter Company Legal Name (e.g. <em>RayRent Sdn Bhd</em>), Company Type (<em>Subsidiary</em>), Parent Company (<em>Rayhar Travels</em>), SSM number, address, and upload brand logo via <code>CompanyLogoUploader</code>. Set Status to <strong>Active</strong> and save.
+          </p>
+        </div>
+
+        <!-- STEP 2 -->
+        <div class="bg-white border-2 border-slate-200 hover:border-[#942392] rounded-2xl p-6 card-shadow space-y-3 transition">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <span class="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center font-black text-sm">2</span>
+              <div>
+                <h4 class="text-sm font-black text-slate-900">Step 2: Create Branches with Map GPS Coordinates & Geofencing</h4>
+                <p class="text-[11px] text-slate-400">Route: <code class="text-blue-600">/settings?tab=branch</code> (Settings Hub: 4. BRANCH & LOCATION)</p>
+              </div>
+            </div>
+            <span class="pill bg-blue-100 text-blue-800 text-[10px]">Geofence Anchoring</span>
+          </div>
+          <p class="text-xs text-slate-600">
+            Select the new company from the dropdown. Click <strong>"+ Add Branch"</strong>. Enter Branch Code (e.g. <code>RR-SEPANG</code>), Branch Name (e.g. <em>RayRent Airport Hub</em>). Use the interactive <strong>MapLibre search & pin placement</strong> to drop the exact GPS coordinates. Set the <strong>Geofence Radius Slider</strong> (e.g. 100 meters).
+          </p>
+        </div>
+
+        <!-- STEP 3 -->
+        <div class="bg-white border-2 border-slate-200 hover:border-[#942392] rounded-2xl p-6 card-shadow space-y-3 transition">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <span class="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-black text-sm">3</span>
+              <div>
+                <h4 class="text-sm font-black text-slate-900">Step 3: Configure Working Hours & Shift Schedules for that Branch</h4>
+                <p class="text-[11px] text-slate-400">Route: <code class="text-emerald-600">/settings?tab=schedule</code> (Settings Hub: 6. WORK SCHEDULES)</p>
+              </div>
+            </div>
+            <span class="pill bg-emerald-100 text-emerald-800 text-[10px]">Shift Scheduling</span>
+          </div>
+          <p class="text-xs text-slate-600">
+            Select the new company entity. Click <strong>"+ Create Work Schedule"</strong>. Select Zone A (Fri-Sat weekend) or Zone B (Sat-Sun weekend). Select the branches created in Step 2. Configure 7-day shift hours (e.g. <code>08:30</code> to <code>17:30</code>), working days, and lunch breaks (<code>13:00 - 14:00</code>).
+          </p>
+        </div>
+
+        <!-- STEP 4 -->
+        <div class="bg-white border-2 border-slate-200 hover:border-[#942392] rounded-2xl p-6 card-shadow space-y-3 transition">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <span class="w-8 h-8 rounded-xl bg-amber-600 text-white flex items-center justify-center font-black text-sm">4</span>
+              <div>
+                <h4 class="text-sm font-black text-slate-900">Step 4: Configure Leave Types & Specific Quotas (e.g. AL = 4 Days)</h4>
+                <p class="text-[11px] text-slate-400">Route: <code class="text-amber-600">/settings?tab=leave</code> (Settings Hub: 7. LEAVE & APPROVALS)</p>
+              </div>
+            </div>
+            <span class="pill bg-amber-100 text-amber-800 text-[10px]">Entitlement Rules</span>
+          </div>
+          <p class="text-xs text-slate-600">
+            Select the new company. Customize the default leave entitlements for this specific entity:
+            Set <strong>Annual Leave (AL)</strong> directly in the number box (e.g. set to <strong class="text-[#942392]">4 Days</strong> for subsidiary terms instead of standard 14). Configure Sick Leave (14 days), Emergency Leave (5 days), Unpaid Leave max cap, and enable mandatory Medical Certificate (MC) slip upload.
+          </p>
+        </div>
+
+        <!-- STEP 5 -->
+        <div class="bg-white border-2 border-slate-200 hover:border-[#942392] rounded-2xl p-6 card-shadow space-y-3 transition">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <span class="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-black text-sm">5</span>
+              <div>
+                <h4 class="text-sm font-black text-slate-900">Step 5: Establish Multi-Tier Leave Approval Routing Rules</h4>
+                <p class="text-[11px] text-slate-400">Route: <code class="text-indigo-600">/settings?tab=leave</code> (ApprovalBuilder Section)</p>
+              </div>
+            </div>
+            <span class="pill bg-indigo-100 text-indigo-800 text-[10px]">Workflow Pipelines</span>
+          </div>
+          <p class="text-xs text-slate-600">
+            Scroll down to the <strong>ApprovalBuilder</strong> for the new subsidiary. Click <strong>"+ Add Workflow"</strong>. Assign which branches trigger this pipeline and define the multi-tier escalation ladder: Tier 1 (Branch Leader) $\rightarrow$ Tier 2 (HOD) $\rightarrow$ Tier 3 (Operation Manager / HR Admin).
+          </p>
+        </div>
+
+        <!-- STEP 6 -->
+        <div class="bg-white border-2 border-slate-200 hover:border-[#942392] rounded-2xl p-6 card-shadow space-y-3 transition">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <span class="w-8 h-8 rounded-xl bg-teal-600 text-white flex items-center justify-center font-black text-sm">6</span>
+              <div>
+                <h4 class="text-sm font-black text-slate-900">Step 6: Provision / Transfer Staff Members to the Subsidiary</h4>
+                <p class="text-[11px] text-slate-400">Routes: <code class="text-teal-600">/settings?tab=employee</code> or <code class="text-teal-600">/organization/transfer</code></p>
+              </div>
+            </div>
+            <span class="pill bg-teal-100 text-teal-800 text-[10px]">Staff Population</span>
+          </div>
+          <p class="text-xs text-slate-600">
+            Now assign human personnel: Register new hires via the <strong>Onboarding Form</strong> by choosing the new Company Entity and its branch/department, or migrate existing experienced staff from the parent company using the <strong>Company Transfer Wizard</strong>.
+          </p>
+        </div>
+
+        <!-- STEP 7 -->
+        <div class="bg-gradient-to-r from-emerald-500/10 via-purple-500/10 to-transparent border-2 border-emerald-400 rounded-2xl p-6 card-shadow space-y-4">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <span class="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-black text-sm">7</span>
+              <div>
+                <h4 class="text-sm font-black text-slate-900">Step 7: FULLY ACTIVATED — How to View & Access All Data for that Company</h4>
+                <p class="text-[11px] text-emerald-800 font-bold">All Requirements Matched: Complete Data Visibility Unlocked</p>
+              </div>
+            </div>
+            <span class="pill bg-emerald-600 text-white text-[10px]">Operational & Live</span>
+          </div>
+          <div class="text-xs text-slate-700 space-y-3">
+            <p>
+              Once Steps 1 through 6 are fulfilled, HR and Management can inspect the subsidiary's complete operational telemetry:
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+              <div class="bg-white/80 border border-emerald-200 rounded-xl p-3">
+                <strong class="text-slate-900 block mb-1">1. Global Company Switcher:</strong>
+                Click the Company Switcher at the top of the header bar. Select the subsidiary (e.g. <em>RayRent Sdn Bhd</em>). The entire portal context instantly switches.
+              </div>
+              <div class="bg-white/80 border border-emerald-200 rounded-xl p-3">
+                <strong class="text-slate-900 block mb-1">2. Live Dashboard & Attendance:</strong>
+                <code>Dashboard (/)</code> displays real-time attendance, tardiness, and absences exclusively for the subsidiary's staff based on its custom branch coordinates and shift hours.
+              </div>
+              <div class="bg-white/80 border border-emerald-200 rounded-xl p-3">
+                <strong class="text-slate-900 block mb-1">3. Leave & Approvals Roster:</strong>
+                <code>/leave/admin</code> displays leaves routed through the configured 3-tier sequence, correctly checking against the configured AL quota (e.g. 4 days).
+              </div>
+              <div class="bg-white/80 border border-emerald-200 rounded-xl p-3">
+                <strong class="text-slate-900 block mb-1">4. Payroll Reports & Analytics:</strong>
+                <code>/reports</code> and <code>/hr-analytics</code> exports monthly attendance logs, overtime, and unpaid deductions filtered strictly for the subsidiary's payroll.
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ================================================================================= -->
+    <!-- TAB 8: BRANCHES & TEMPORARY ASSIGNMENT -->
+    <!-- ================================================================================= -->
+    <div id="tab-branches-transfer" class="tab-pane hidden space-y-8">
+
+      <div class="flex items-center justify-between border-b border-slate-200 pb-4">
+        <div>
+          <h3 class="text-xl font-black text-slate-900">8. Temporary Branch Deployments & Entity Transfers</h3>
+          <p class="text-xs text-slate-500">Deploying staff to other branches and cross-company entity migration.</p>
+        </div>
+        <span class="pill bg-indigo-100 text-indigo-800">Dynamic Geofence Re-targeting</span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <!-- Temporary Branch Deployments -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 card-shadow space-y-4">
+          <h4 class="text-sm font-black text-slate-900 uppercase flex items-center gap-2">
+            <span>📍</span> Temporary Branch Deployment (<code class="text-xs">/branches/temporary-assignments</code>)
+          </h4>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            When an employee is temporarily sent to another branch (e.g. HQ officer sent to Kemaman for 2 weeks):
+          </p>
+          <ul class="text-xs text-slate-700 space-y-2 list-disc list-inside">
+            <li>HR Admin / Branch Leader specifies the destination branch and date range.</li>
+            <li><strong>Automatic Geofence Shift:</strong> During that window, the employee clocks in against Kemaman coordinates instead of HQ.</li>
+            <li>Once the end date arrives, geofencing seamlessly reverts to their home branch.</li>
+          </ul>
+        </div>
+
+        <!-- Inter-Company Transfer Wizard -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 card-shadow space-y-4">
+          <h4 class="text-sm font-black text-slate-900 uppercase flex items-center gap-2">
+            <span>🔄</span> Company Transfer Wizard (<code class="text-xs">/organization/transfer</code>)
+          </h4>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            For permanently transferring an employee between subsidiaries (e.g. from Rayhar Travels to RayRent):
+          </p>
+          <ul class="text-xs text-slate-700 space-y-2 list-disc list-inside">
+            <li>Select Target Entity, new Branch, and new Role.</li>
+            <li>Set Effective Transfer Date.</li>
+            <li>Appends an immutable log to the <strong>Employee Company History Ledger</strong> (<code>/organization/history</code>).</li>
+          </ul>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ================================================================================= -->
+    <!-- TAB 9: MASTER RBAC PERMISSION MATRIX -->
+    <!-- ================================================================================= -->
+    <div id="tab-rbac-matrix" class="tab-pane hidden space-y-8">
+
+      <div class="flex items-center justify-between border-b border-slate-200 pb-4">
+        <div>
+          <h3 class="text-xl font-black text-slate-900">9. Master Role-Based Access Control (RBAC) Matrix</h3>
+          <p class="text-xs text-slate-500">Every single page and action mapped against all user roles in the system.</p>
+        </div>
+        <span class="pill bg-slate-100 text-slate-800">All Roles Overview</span>
+      </div>
+
+      <!-- MASTER TABLE -->
+      <div class="bg-white border border-slate-200 rounded-2xl card-shadow overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs text-left" id="masterRbacTable">
+            <thead class="bg-[#942392] text-white uppercase font-black">
+              <tr>
+                <th class="px-4 py-3.5 whitespace-nowrap">Page / Action</th>
+                <th class="px-4 py-3.5 whitespace-nowrap">Route</th>
+                <th class="px-4 py-3.5 text-center whitespace-nowrap role-col role-employee">Employee</th>
+                <th class="px-4 py-3.5 text-center whitespace-nowrap role-col role-branch_leader">Branch Leader</th>
+                <th class="px-4 py-3.5 text-center whitespace-nowrap role-col role-head_of_department">HOD</th>
+                <th class="px-4 py-3.5 text-center whitespace-nowrap role-col role-operation_manager">Operation Mgr</th>
+                <th class="px-4 py-3.5 text-center whitespace-nowrap role-col role-managing_director">Managing Dir</th>
+                <th class="px-4 py-3.5 text-center whitespace-nowrap role-col role-hr_admin bg-purple-950">HR Admin</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 font-medium">
+              <tr class="hover:bg-slate-50">
+                <td class="px-4 py-3 font-bold text-slate-900">Company Leave Calendar</td>
+                <td class="px-4 py-3"><code>/calendar/company-leave</code></td>
+                <td class="px-4 py-3 text-center text-slate-500">View Only</td>
+                <td class="px-4 py-3 text-center text-slate-500">View Only</td>
+                <td class="px-4 py-3 text-center text-slate-500">View Only</td>
+                <td class="px-4 py-3 text-center text-slate-500">View Only</td>
+                <td class="px-4 py-3 text-center text-slate-500">View Only</td>
+                <td class="px-4 py-3 text-center font-bold text-[#942392] bg-purple-50/50">Full CRUD</td>
+              </tr>
+              <tr class="hover:bg-slate-50">
+                <td class="px-4 py-3 font-bold text-slate-900">Work Calendar</td>
+                <td class="px-4 py-3"><code>/calendar</code></td>
+                <td class="px-4 py-3 text-center">View (Self)</td>
+                <td class="px-4 py-3 text-center">View (Branch)</td>
+                <td class="px-4 py-3 text-center">View (Dept)</td>
+                <td class="px-4 py-3 text-center font-bold text-blue-600">View (Global)</td>
+                <td class="px-4 py-3 text-center font-bold text-blue-600">View (Global)</td>
+                <td class="px-4 py-3 text-center font-bold text-[#942392] bg-purple-50/50">View (Global)</td>
+              </tr>
+              <tr class="hover:bg-slate-50">
+                <td class="px-4 py-3 font-bold text-slate-900">My Attendance</td>
+                <td class="px-4 py-3"><code>/attendance</code></td>
+                <td class="px-4 py-3 text-center font-bold text-emerald-600">Clock In/Out</td>
+                <td class="px-4 py-3 text-center font-bold text-emerald-600">Clock In/Out</td>
+                <td class="px-4 py-3 text-center font-bold text-emerald-600">Clock In/Out</td>
+                <td class="px-4 py-3 text-center font-bold text-emerald-600">Clock In/Out</td>
+                <td class="px-4 py-3 text-center font-bold text-emerald-600">Clock In/Out</td>
+                <td class="px-4 py-3 text-center font-bold text-[#942392] bg-purple-50/50">Clock In/Out</td>
+              </tr>
+              <tr class="hover:bg-slate-50">
+                <td class="px-4 py-3 font-bold text-slate-900">Team Attendance</td>
+                <td class="px-4 py-3"><code>/team-attendance</code></td>
+                <td class="px-4 py-3 text-center text-slate-300">❌ No Access</td>
+                <td class="px-4 py-3 text-center font-bold text-slate-700">View (Branch)</td>
+                <td class="px-4 py-3 text-center font-bold text-slate-700">View (Dept)</td>
+                <td class="px-4 py-3 text-center font-bold text-blue-600">View (Global)</td>
+                <td class="px-4 py-3 text-center font-bold text-blue-600">View (Global)</td>
+                <td class="px-4 py-3 text-center font-bold text-[#942392] bg-purple-50/50">View (Global)</td>
+              </tr>
+              <tr class="hover:bg-slate-50">
+                <td class="px-4 py-3 font-bold text-slate-900">Apply Leave</td>
+                <td class="px-4 py-3"><code>/leave/apply</code></td>
+                <td class="px-4 py-3 text-center font-bold text-emerald-600">Apply</td>
+                <td class="px-4 py-3 text-center font-bold text-emerald-600">Apply</td>
+                <td class="px-4 py-3 text-center font-bold text-emerald-600">Apply</td>
+                <td class="px-4 py-3 text-center font-bold text-emerald-600">Apply</td>
+                <td class="px-4 py-3 text-center font-bold text-emerald-600">Apply</td>
+                <td class="px-4 py-3 text-center font-bold text-[#942392] bg-purple-50/50">Apply</td>
+              </tr>
+              <tr class="hover:bg-slate-50">
+                <td class="px-4 py-3 font-bold text-slate-900">Team Leave Requests</td>
+                <td class="px-4 py-3"><code>/leave/team</code></td>
+                <td class="px-4 py-3 text-center text-slate-300">❌ No Access</td>
+                <td class="px-4 py-3 text-center font-bold text-emerald-600">Approve (Branch)</td>
+                <td class="px-4 py-3 text-center font-bold text-emerald-600">Approve (Dept)</td>
+                <td class="px-4 py-3 text-center font-bold text-blue-600">Override</td>
+                <td class="px-4 py-3 text-center font-bold text-blue-600">Override</td>
+                <td class="px-4 py-3 text-center font-bold text-[#942392] bg-purple-50/50">Override</td>
+              </tr>
+              <tr class="hover:bg-slate-50">
+                <td class="px-4 py-3 font-bold text-slate-900">Central Leave Approval</td>
+                <td class="px-4 py-3"><code>/leave/admin</code></td>
+                <td class="px-4 py-3 text-center text-slate-300">❌ No Access</td>
+                <td class="px-4 py-3 text-center text-slate-500">View Queue</td>
+                <td class="px-4 py-3 text-center text-slate-500">View Queue</td>
+                <td class="px-4 py-3 text-center font-bold text-blue-600">Batch Approve</td>
+                <td class="px-4 py-3 text-center font-bold text-blue-600">Executive Approve</td>
+                <td class="px-4 py-3 text-center font-bold text-[#942392] bg-purple-50/50">Full Approve</td>
+              </tr>
+              <tr class="hover:bg-slate-50">
+                <td class="px-4 py-3 font-bold text-slate-900">Leave Entitlement Quota</td>
+                <td class="px-4 py-3"><code>/leave/entitlement</code></td>
+                <td class="px-4 py-3 text-center text-slate-300">❌ No Access</td>
+                <td class="px-4 py-3 text-center text-slate-300">❌ No Access</td>
+                <td class="px-4 py-3 text-center text-slate-300">❌ No Access</td>
+                <td class="px-4 py-3 text-center text-slate-300">❌ No Access</td>
+                <td class="px-4 py-3 text-center text-slate-300">❌ No Access</td>
+                <td class="px-4 py-3 text-center font-bold text-[#942392] bg-purple-50/50">Adjust Quotas</td>
+              </tr>
+              <tr class="hover:bg-slate-50">
+                <td class="px-4 py-3 font-bold text-slate-900">Add Staff (Directory)</td>
+                <td class="px-4 py-3"><code>/employees</code></td>
+                <td class="px-4 py-3 text-center text-slate-300">❌ No Access</td>
+                <td class="px-4 py-3 text-center text-slate-300">❌ No Access</td>
+                <td class="px-4 py-3 text-center text-slate-300">❌ No Access</td>
+                <td class="px-4 py-3 text-center font-bold text-blue-600">+ Add Modal</td>
+                <td class="px-4 py-3 text-center font-bold text-blue-600">+ Add Modal</td>
+                <td class="px-4 py-3 text-center font-bold text-[#942392] bg-purple-50/50">+ Add Modal</td>
+              </tr>
+              <tr class="hover:bg-slate-50">
+                <td class="px-4 py-3 font-bold text-slate-900">Add Staff (Settings Hub)</td>
+                <td class="px-4 py-3"><code>/settings?tab=employee</code></td>
+                <td class="px-4 py-3 text-center text-slate-300">❌ No Access</td>
+                <td class="px-4 py-3 text-center text-slate-300">❌ No Access</td>
+                <td class="px-4 py-3 text-center text-slate-300">❌ No Access</td>
+                <td class="px-4 py-3 text-center text-slate-300">❌ No Access</td>
+                <td class="px-4 py-3 text-center font-bold text-blue-600">Full Form</td>
+                <td class="px-4 py-3 text-center font-bold text-[#942392] bg-purple-50/50">Full Form</td>
+              </tr>
+              <tr class="hover:bg-slate-50">
+                <td class="px-4 py-3 font-bold text-slate-900">Outstation Assignment</td>
+                <td class="px-4 py-3"><code>/outstation/assignment</code></td>
+                <td class="px-4 py-3 text-center text-slate-300">❌ No Access</td>
+                <td class="px-4 py-3 text-center font-bold text-emerald-600">Assign (Branch)</td>
+                <td class="px-4 py-3 text-center font-bold text-emerald-600">Assign (Dept)</td>
+                <td class="px-4 py-3 text-center font-bold text-blue-600">Assign (Global)</td>
+                <td class="px-4 py-3 text-center font-bold text-blue-600">Assign (Global)</td>
+                <td class="px-4 py-3 text-center font-bold text-[#942392] bg-purple-50/50">Assign (Global)</td>
+              </tr>
+              <tr class="hover:bg-slate-50">
+                <td class="px-4 py-3 font-bold text-slate-900">Settings: Late Grace Time</td>
+                <td class="px-4 py-3"><code>/settings?tab=attendance</code></td>
+                <td class="px-4 py-3 text-center text-slate-300">❌ No Access</td>
+                <td class="px-4 py-3 text-center text-slate-300">❌ No Access</td>
+                <td class="px-4 py-3 text-center text-slate-300">❌ No Access</td>
+                <td class="px-4 py-3 text-center text-slate-300">❌ No Access</td>
+                <td class="px-4 py-3 text-center font-bold text-blue-600">Configure</td>
+                <td class="px-4 py-3 text-center font-bold text-[#942392] bg-purple-50/50">Configure</td>
+              </tr>
+              <tr class="hover:bg-slate-50">
+                <td class="px-4 py-3 font-bold text-slate-900">Settings: Work Schedules</td>
+                <td class="px-4 py-3"><code>/settings?tab=schedule</code></td>
+                <td class="px-4 py-3 text-center text-slate-300">❌ No Access</td>
+                <td class="px-4 py-3 text-center text-slate-300">❌ No Access</td>
+                <td class="px-4 py-3 text-center text-slate-300">❌ No Access</td>
+                <td class="px-4 py-3 text-center font-bold text-blue-600">Configure</td>
+                <td class="px-4 py-3 text-center font-bold text-blue-600">Configure</td>
+                <td class="px-4 py-3 text-center font-bold text-[#942392] bg-purple-50/50">Configure</td>
+              </tr>
+              <tr class="hover:bg-slate-50">
+                <td class="px-4 py-3 font-bold text-slate-900">Temporary Branch Assignment</td>
+                <td class="px-4 py-3"><code>/branches/temporary-assignments</code></td>
+                <td class="px-4 py-3 text-center text-slate-300">❌ No Access</td>
+                <td class="px-4 py-3 text-center text-slate-500">Request</td>
+                <td class="px-4 py-3 text-center text-slate-500">Request</td>
+                <td class="px-4 py-3 text-center font-bold text-blue-600">Assign</td>
+                <td class="px-4 py-3 text-center font-bold text-blue-600">Assign</td>
+                <td class="px-4 py-3 text-center font-bold text-[#942392] bg-purple-50/50">Assign</td>
+              </tr>
+              <tr class="hover:bg-slate-50">
+                <td class="px-4 py-3 font-bold text-slate-900">Payroll Reports Export</td>
+                <td class="px-4 py-3"><code>/reports</code></td>
+                <td class="px-4 py-3 text-center text-slate-300">❌ No Access</td>
+                <td class="px-4 py-3 text-center text-slate-500">Export (Branch)</td>
+                <td class="px-4 py-3 text-center text-slate-500">Export (Dept)</td>
+                <td class="px-4 py-3 text-center font-bold text-blue-600">Export</td>
+                <td class="px-4 py-3 text-center font-bold text-blue-600">Export</td>
+                <td class="px-4 py-3 text-center font-bold text-[#942392] bg-purple-50/50">Export (CSV/PDF)</td>
+              </tr>
+              <tr class="hover:bg-slate-50">
+                <td class="px-4 py-3 font-bold text-slate-900">Live GPS Location Tracker</td>
+                <td class="px-4 py-3"><code>/gps-location-tracker</code></td>
+                <td class="px-4 py-3 text-center text-slate-500">History (Self)</td>
+                <td class="px-4 py-3 text-center text-slate-700">Track (Branch)</td>
+                <td class="px-4 py-3 text-center text-slate-700">Track (Dept)</td>
+                <td class="px-4 py-3 text-center font-bold text-blue-600">Global Map</td>
+                <td class="px-4 py-3 text-center font-bold text-blue-600">Global Map</td>
+                <td class="px-4 py-3 text-center font-bold text-[#942392] bg-purple-50/50">Global Map</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500 no-print">
+    <div class="max-w-7xl mx-auto px-4 space-y-1">
+      <p class="font-bold text-slate-700">Rayhar Group Workforce & Attendance System Architecture</p>
+      <p>Master Navigation & Role Flows Guide • Generated from Verified Production Codebase</p>
+    </div>
+  </footer>
+
+  <!-- INTERACTIVE JAVASCRIPT LOGIC -->
+  <script>
+    // Tab Switching Function
+    function switchTab(tabId) {
+      // Hide all tabs
+      const tabs = document.querySelectorAll('.tab-pane');
+      tabs.forEach(t => t.classList.add('hidden'));
+
+      // Deactivate all buttons
+      const buttons = document.querySelectorAll('.tab-btn');
+      buttons.forEach(b => b.classList.remove('tab-active'));
+
+      // Show target tab
+      const targetTab = document.getElementById(tabId);
+      if (targetTab) {
+        targetTab.classList.remove('hidden');
+      }
+
+      // Activate corresponding button
+      const targetBtn = document.getElementById('btn-' + tabId);
+      if (targetBtn) {
+        targetBtn.classList.add('tab-active');
+      }
+
+      // Scroll to top of tab container smoothly
+      window.scrollTo({ top: 180, behavior: 'smooth' });
+    }
+
+    // Role Highlighting Filter
+    function applyRoleFilter(role) {
+      const table = document.getElementById('masterRbacTable');
+      if (!table) return;
+
+      const allRoleCols = table.querySelectorAll('.role-col');
+      const allRows = table.querySelectorAll('tbody tr');
+
+      if (role === 'all') {
+        allRoleCols.forEach(col => col.style.opacity = '1');
+        allRows.forEach(row => {
+          Array.from(row.children).forEach(cell => {
+            cell.style.opacity = '1';
+            cell.style.filter = 'none';
+          });
+        });
+        return;
+      }
+
+      // Dim other roles in matrix
+      const roleIndexMap = {
+        'employee': 2,
+        'branch_leader': 3,
+        'head_of_department': 4,
+        'operation_manager': 5,
+        'managing_director': 6,
+        'hr_admin': 7
+      };
+
+      const targetIndex = roleIndexMap[role];
+      if (targetIndex !== undefined) {
+        allRows.forEach(row => {
+          Array.from(row.children).forEach((cell, idx) => {
+            if (idx === 0 || idx === 1 || idx === targetIndex) {
+              cell.style.opacity = '1';
+              cell.style.fontWeight = 'bold';
+            } else {
+              cell.style.opacity = '0.25';
+            }
+          });
+        });
+      }
+    }
+  </script>
+
+</body>
+</html>

@@ -168,12 +168,9 @@ export const Tab7_AttendanceConfig: React.FC = () => {
       {/* Top Filter: Attendance Policy Scope */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-muted/30 dark:bg-neutral-900/40 rounded-xl border border-border dark:border-neutral-800">
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4 text-[#942392]" />
-            <span className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
-              Attendance Policy Scope:
-            </span>
-          </div>
+          <span className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
+            Attendance Policy Scope:
+          </span>
           <Select 
             value={selectedCompanyId ? selectedCompanyId.toString() : "1"} 
             onValueChange={(val) => {
@@ -203,7 +200,6 @@ export const Tab7_AttendanceConfig: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <ShieldCheck className="w-3.5 h-3.5 text-[#942392]" />
           <span>Rule Version: <strong className="text-black dark:text-white">v{ruleVersion}</strong></span>
         </div>
       </div>
@@ -211,14 +207,9 @@ export const Tab7_AttendanceConfig: React.FC = () => {
       {/* TOP PROMINENT CARD: DEFAULT LATE ARRIVAL WINDOW (GRACE PERIOD) */}
       <Card className="border border-border dark:border-neutral-800 shadow-xs bg-white/70 dark:bg-card/70 backdrop-blur-md rounded-2xl p-6 space-y-4">
         <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <div className="p-2 rounded-lg bg-[#942392]/10 text-[#942392]">
-              <Clock className="w-4 h-4" />
-            </div>
-            <h3 className="text-sm font-black uppercase tracking-wider text-foreground dark:text-white">
-              Default Late Arrival Window (Grace Period)
-            </h3>
-          </div>
+          <h3 className="text-sm font-black uppercase tracking-wider text-foreground dark:text-white">
+            Default Late Arrival Window (Grace Period)
+          </h3>
           <p className="text-xs text-muted-foreground dark:text-neutral-400">
             Define the permissible grace period duration before an employee clock-in is officially flagged as "Present (Late)" for <strong className="text-foreground">{currentCompany?.company_name}</strong>. This policy is uniformly enforced throughout all dashboards, workforce reports, exports, and attendance calculations following the date adjusted.
           </p>
@@ -267,8 +258,7 @@ export const Tab7_AttendanceConfig: React.FC = () => {
           {/* Right Column: Live Dynamic Rule Simulation & Simulator */}
           <div className="lg:col-span-8 p-3.5 bg-muted/40 dark:bg-neutral-800/40 rounded-xl border border-border/60 text-xs space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] uppercase font-black tracking-wider text-[#942392] dark:text-[#f885d5] flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5" />
+              <span className="text-[11px] uppercase font-black tracking-wider text-[#942392] dark:text-[#f885d5]">
                 Live Rule Simulation (Dynamic)
               </span>
               <span className="text-[10px] font-semibold text-muted-foreground bg-background/80 dark:bg-neutral-900/80 px-2 py-0.5 rounded-md border border-border/40">
@@ -335,7 +325,7 @@ export const Tab7_AttendanceConfig: React.FC = () => {
                 <div className="flex-1 flex items-center justify-between text-xs">
                   {testIsLate ? (
                     <div className="flex items-center gap-2">
-                      <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
+                      <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/25 shadow-2xs">
                         Present (Late)
                       </span>
                       <span className="text-[11px] text-muted-foreground">
@@ -344,7 +334,7 @@ export const Tab7_AttendanceConfig: React.FC = () => {
                     </div>
                   ) : (
                     <div className="flex items-center gap-2">
-                      <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                      <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/25 shadow-2xs">
                         Present (On Time)
                       </span>
                       <span className="text-[11px] text-muted-foreground">
@@ -364,8 +354,7 @@ export const Tab7_AttendanceConfig: React.FC = () => {
         {/* Card 1: Time Parameters */}
         <Card className="border border-border dark:border-neutral-800 shadow-xs bg-white/70 dark:bg-card/70 backdrop-blur-md rounded-2xl p-5 space-y-4">
           <div className="space-y-1">
-            <h4 className="text-xs font-black uppercase tracking-wider text-black dark:text-white flex items-center gap-2">
-              <Clock className="w-4 h-4 text-[#942392]" />
+            <h4 className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
               Time Boundaries & Overtime Rules
             </h4>
             <p className="text-[11px] text-muted-foreground">Thresholds for calculating early departures and minimum shift completion.</p>
@@ -431,8 +420,7 @@ export const Tab7_AttendanceConfig: React.FC = () => {
         {/* Card 2: GPS Geofencing & Biometrics */}
         <Card className="border border-border dark:border-neutral-800 shadow-xs bg-white/70 dark:bg-card/70 backdrop-blur-md rounded-2xl p-5 space-y-4">
           <div className="space-y-1">
-            <h4 className="text-xs font-black uppercase tracking-wider text-black dark:text-white flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-[#942392]" />
+            <h4 className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
               GPS Geofencing & Biometric Validation
             </h4>
             <p className="text-[11px] text-muted-foreground">Enforce physical branch boundary checks and camera capture.</p>
@@ -469,8 +457,7 @@ export const Tab7_AttendanceConfig: React.FC = () => {
 
             <div className="flex items-center justify-between pt-2">
               <div>
-                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white flex items-center gap-1.5">
-                  <Camera className="w-3.5 h-3.5 text-[#942392]" />
+                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
                   Biometric Face Snapshot Verification
                 </Label>
                 <span className="text-[10px] text-muted-foreground block">Take selfie verification upon check-in</span>

@@ -300,7 +300,6 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
       {/* Top Filter & Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-muted/30 dark:bg-neutral-900/40 rounded-xl border border-border dark:border-neutral-800">
         <div className="flex flex-wrap items-center gap-2.5">
-          <MapPin className="w-4 h-4 text-[#942392]" />
           <span className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
             Company Branch Scope:
           </span>
@@ -339,7 +338,6 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
           onClick={handleOpenAddModal}
           className="bg-[#942392] hover:bg-[#800A7A] text-white font-black text-xs uppercase tracking-wider shadow-sm h-9 px-4 rounded-xl self-start sm:self-auto"
         >
-          <Plus className="w-3.5 h-3.5 mr-1" />
           Register Branch
         </Button>
       </div>
@@ -376,7 +374,7 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
                 {filteredBranches.map((b) => (
                   <tr key={b.code} className="hover:bg-muted/40 dark:hover:bg-neutral-800/40 transition-colors">
                     <td className="px-4 py-3.5">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full font-mono text-xs font-bold border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800 text-black dark:text-white">
+                      <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200">
                         {b.code}
                       </span>
                     </td>
@@ -387,7 +385,7 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
                       {b.location || '—'}
                     </td>
                     <td className="px-4 py-3.5">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border border-blue-200 dark:border-blue-800/60 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300">
+                      <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] border-blue-500/30 bg-blue-500/10 text-blue-600 dark:text-blue-400">
                         {formatZoneDisplayName(b.operating_zone || 'ZONE_B')}
                       </span>
                     </td>
@@ -395,7 +393,7 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
                       {Number(b.latitude).toFixed(4)}°, {Number(b.longitude).toFixed(4)}°
                     </td>
                     <td className="px-4 py-3.5">
-                      <span className="inline-flex items-center gap-1 px-3 py-0.5 rounded-full text-xs font-bold border border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-950/40 text-[#942392] dark:text-[#f885d5]">
+                      <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] border-[#942392]/30 bg-[#942392]/10 text-[#942392] dark:text-[#f885d5]">
                         {b.radius || 50} meters
                       </span>
                     </td>
@@ -408,7 +406,6 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
                           className="h-8 px-3 rounded-full text-xs font-bold text-[#942392] hover:bg-[#942392]/10"
                           title="Multi-mode radius (Night shift, Emergency)"
                         >
-                          <Sliders className="w-3.5 h-3.5 mr-1" />
                           Modes
                         </Button>
 
@@ -418,7 +415,6 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
                           onClick={() => handleOpenEditModal(b)}
                           className="h-8 px-3 rounded-full text-xs font-bold border-border/80 hover:bg-muted"
                         >
-                          <Edit className="w-3.5 h-3.5 mr-1" />
                           Edit
                         </Button>
                       </div>
@@ -624,18 +620,13 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
       <Dialog open={isMapModalOpen} onOpenChange={setIsMapModalOpen}>
         <DialogContent className="max-w-4xl p-0 border-none shadow-2xl overflow-hidden rounded-[24px] flex flex-col [&>button]:text-white [&>button]:hover:text-white/80 z-[70]">
           <div className="p-6 bg-gradient-to-r from-[#942392] to-purple-500 text-white flex justify-between items-start shrink-0">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-white/20 rounded-xl">
-                <MapPin className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <DialogTitle className="text-lg font-black uppercase tracking-tight m-0 text-white">
-                  UPDATE BRANCH LOCATION
-                </DialogTitle>
-                <DialogDescription className="text-xs print:text-[11px] font-bold uppercase tracking-wider text-white/80 m-0 mt-1">
-                  UPDATE GPS COORDINATES AND ADDRESS
-                </DialogDescription>
-              </div>
+            <div>
+              <DialogTitle className="text-lg font-black uppercase tracking-tight m-0 text-white">
+                UPDATE BRANCH LOCATION
+              </DialogTitle>
+              <DialogDescription className="text-xs print:text-[11px] font-bold uppercase tracking-wider text-white/80 m-0 mt-1">
+                UPDATE GPS COORDINATES AND ADDRESS
+              </DialogDescription>
             </div>
           </div>
 
@@ -828,8 +819,7 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
         <Dialog open={geofenceModalOpen} onOpenChange={setGeofenceModalOpen}>
           <DialogContent className="max-w-md overflow-hidden [&>button]:text-white [&>button]:hover:text-white/80 border-none shadow-2xl rounded-3xl p-0 bg-card">
             <DialogHeader className="bg-[#942392] p-6 sm:rounded-t-lg m-0 text-left border-b border-white/20">
-              <DialogTitle className="text-white font-black uppercase tracking-tight m-0 text-lg flex items-center gap-2">
-                <Sliders className="w-5 h-5 text-white" />
+              <DialogTitle className="text-white font-black uppercase tracking-tight m-0 text-lg">
                 Geofence Radius Modes
               </DialogTitle>
               <DialogDescription className="text-xs font-bold uppercase tracking-wider text-white/80 m-0 mt-1">
@@ -850,8 +840,7 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
               {/* Mode 2: Night Shift */}
               <div className="p-3 bg-muted/30 dark:bg-neutral-800/40 rounded-xl border border-border/40 space-y-2">
                 <div className="flex justify-between items-center">
-                  <span className="font-bold text-foreground flex items-center gap-1.5">
-                    <Moon className="w-3.5 h-3.5 text-indigo-500" />
+                  <span className="font-bold text-foreground">
                     Night Shift Mode (8:00 PM – 6:00 AM)
                   </span>
                   <span className="font-mono font-bold text-[#942392]">{nightShiftRadius}m</span>
@@ -870,8 +859,7 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
               {/* Mode 3: Emergency */}
               <div className="p-3 bg-muted/30 dark:bg-neutral-800/40 rounded-xl border border-border/40 space-y-2">
                 <div className="flex justify-between items-center">
-                  <span className="font-bold text-foreground flex items-center gap-1.5">
-                    <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
+                  <span className="font-bold text-foreground">
                     Emergency / Weather Mode
                   </span>
                   <span className="font-mono font-bold text-[#942392]">{emergencyRadius}m</span>

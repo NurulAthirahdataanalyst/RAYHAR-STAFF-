@@ -669,8 +669,7 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
       return (
         <div className="mt-2.5 pt-2.5 border-t border-border/50 dark:border-neutral-800 space-y-2">
           <div className="flex flex-wrap items-center justify-between gap-1.5">
-            <span className="text-[10px] font-black uppercase tracking-wider text-[#942392] dark:text-[#f885d5] flex items-center gap-1">
-              <Layers className="w-3 h-3" />
+            <span className="text-[10px] font-black uppercase tracking-wider text-[#942392] dark:text-[#f885d5]">
               Rayhar HQ Departments (Only HQ Has Departments):
             </span>
             <Badge
@@ -723,8 +722,7 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
       return (
         <div className="mt-2.5 pt-2.5 border-t border-border/50 dark:border-neutral-800 space-y-2">
           <div className="flex flex-wrap items-center justify-between gap-1.5">
-            <span className="text-[10px] font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
-              <MapPin className="w-3 h-3" />
+            <span className="text-[10px] font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
               Follows Employee&apos;s Own Branch Only (Appears When HR Assigns Branch Leader):
             </span>
             <Badge
@@ -772,8 +770,7 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
     if (roleNameLower === 'operation manager') {
       return (
         <div className="mt-2.5 pt-2.5 border-t border-border/50 dark:border-neutral-800 flex flex-wrap items-center justify-between gap-2 text-[10px]">
-          <span className="font-black uppercase tracking-wider text-amber-700 dark:text-amber-400 flex items-center gap-1">
-            <Crown className="w-3 h-3" />
+          <span className="font-black uppercase tracking-wider text-amber-700 dark:text-amber-400">
             Highest Approval for Assigned Scope:
           </span>
           <span className="font-bold text-foreground">
@@ -788,8 +785,7 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
     if (roleNameLower === 'managing director') {
       return (
         <div className="mt-2.5 pt-2.5 border-t border-border/50 dark:border-neutral-800 flex flex-wrap items-center justify-between gap-2 text-[10px]">
-          <span className="font-black uppercase tracking-wider text-amber-700 dark:text-amber-400 flex items-center gap-1">
-            <Crown className="w-3 h-3" />
+          <span className="font-black uppercase tracking-wider text-amber-700 dark:text-amber-400">
             Highest Approval for Assigned Scope:
           </span>
           <span className="font-bold text-foreground">
@@ -885,10 +881,9 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
             <h4 className="text-xs font-black uppercase tracking-wider text-foreground dark:text-neutral-200">
               Multi-Tier Leave Approval Sequence
             </h4>
-            <Badge className="bg-[#942392]/10 text-[#942392] dark:text-[#f885d5] border border-[#942392]/25 text-[10px] font-black uppercase tracking-wider">
-              <GitBranch className="w-3 h-3 mr-1" />
+            <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] border-[#942392]/30 bg-[#942392]/10 text-[#942392] dark:text-[#f885d5] hover:bg-[#942392] hover:text-white transition-colors cursor-default shadow-2xs">
               {tracks.length} Branch Workflow{tracks.length !== 1 ? 's' : ''} Configured
-            </Badge>
+            </span>
           </div>
           <p className="text-[11px] text-muted-foreground mt-0.5">
             Configure how leave requests are routed, filtered by branch, and approved for <strong className="text-foreground">{companyName}</strong>.
@@ -904,7 +899,6 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
             onClick={handleAddWorkflow}
             className="text-xs font-bold border-[#942392]/40 bg-[#942392]/5 hover:bg-[#942392]/15 text-[#942392] dark:text-[#f885d5] h-8 shadow-xs cursor-pointer"
           >
-            <Plus className="w-3.5 h-3.5 mr-1" />
             + Add Workflow
           </Button>
 
@@ -916,7 +910,6 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
             className="text-xs font-bold border-border hover:bg-muted h-8 cursor-pointer"
             title="Reset to recommended standard workflows"
           >
-            <RotateCcw className="w-3.5 h-3.5 mr-1" />
             Reset Default
           </Button>
 
@@ -935,47 +928,42 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
 
       {/* Dynamic Company Banner — Branch-Based Leave Approval Routing Rules */}
       <div className="p-4 bg-gradient-to-r from-[#942392]/10 via-[#942392]/5 to-transparent rounded-2xl border border-[#942392]/25 space-y-3 shadow-xs">
-        <div className="flex items-center gap-2.5">
-          <div className="p-1.5 rounded-lg bg-[#942392] text-white shrink-0">
-            <Sparkles className="w-4 h-4" />
-          </div>
-          <div>
-            <h5 className="font-black text-sm uppercase tracking-wider text-[#942392] dark:text-[#f885d5]">
-              Branch-Based Leave Approval Routing Rules — {companyName}
-            </h5>
-            <p className="text-[11px] text-muted-foreground">
-              Visual overview of active branch routing pipelines and escalation chains for {companyName}.
-            </p>
-          </div>
+        <div>
+          <h5 className="font-black text-sm uppercase tracking-wider text-[#942392] dark:text-[#f885d5]">
+            Branch-Based Leave Approval Routing Rules — {companyName}
+          </h5>
+          <p className="text-[11px] text-muted-foreground">
+            Visual overview of active branch routing pipelines and escalation chains for {companyName}.
+          </p>
         </div>
 
-        {/* Quick Summary Grid of Configured Tracks */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5 pt-1">
+        {/* Quick Summary Grid of Configured Tracks — 2 wide columns preventing cutoff */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-3 pt-1">
           {tracks.map((track, tIdx) => {
             const trg = getTriggerDetails(track);
             const highestStep = track.steps[track.steps.length - 1];
             return (
               <div
                 key={track.id}
-                className="p-3 rounded-xl bg-background/80 dark:bg-neutral-900/80 border border-border/70 text-xs space-y-1.5"
+                className="p-3.5 rounded-xl bg-background/90 dark:bg-neutral-900/90 border border-border/80 text-xs space-y-2 shadow-2xs"
               >
-                <div className="flex items-center justify-between gap-1">
-                  <span className="font-black text-[11px] uppercase tracking-wider text-foreground truncate">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-black text-xs uppercase tracking-wider text-foreground leading-snug">
                     {tIdx + 1}. {track.name}
                   </span>
-                  <Badge variant="outline" className="text-[9px] font-bold shrink-0">
+                  <span className="inline-flex items-center justify-center px-2.5 py-0.5 text-[9px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] border-border bg-muted/40 text-foreground shrink-0">
                     {track.selectedBranches.length} Branch{track.selectedBranches.length !== 1 ? 'es' : ''}
-                  </Badge>
+                  </span>
                 </div>
-                <div className="text-[10.5px] text-muted-foreground">
+                <div className="text-[11px] text-muted-foreground">
                   <span>Trigger: </span>
                   <strong className="text-foreground">{trg.titleSuffix}</strong>
                 </div>
-                <div className="text-[10px] text-muted-foreground pt-1 border-t border-border/40 flex items-center justify-between">
+                <div className="text-[10.5px] text-muted-foreground pt-1.5 border-t border-border/40 flex flex-wrap items-center justify-between gap-1">
                   <span>
                     Ladder: {track.steps.length} Step{track.steps.length !== 1 ? 's' : ''}
                   </span>
-                  <span className="font-bold text-[#942392] dark:text-[#f885d5] truncate max-w-[140px]">
+                  <span className="font-bold text-[#942392] dark:text-[#f885d5]">
                     Highest: {highestStep?.approver_role_name || highestStep?.step_label || 'Approved'}
                   </span>
                 </div>
@@ -1012,7 +1000,6 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
                   : 'bg-muted/50 text-muted-foreground hover:text-foreground'
               }`}
             >
-              <GitBranch className="w-3.5 h-3.5" />
               {idx + 1}. {t.name}
             </button>
           );

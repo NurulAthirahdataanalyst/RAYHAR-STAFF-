@@ -348,7 +348,6 @@ export const TabPersonnelEntity: React.FC = () => {
       {/* Top Filter & Actions Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-muted/30 dark:bg-neutral-900/40 rounded-xl border border-border dark:border-neutral-800">
         <div className="flex flex-wrap items-center gap-2.5">
-          <Users className="w-4 h-4 text-[#942392]" />
           <span className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
             Company Personnel Scope:
           </span>
@@ -385,9 +384,8 @@ export const TabPersonnelEntity: React.FC = () => {
 
         <Button
           onClick={handleOpenAddStaffModal}
-          className="bg-[#942392] hover:bg-[#800A7A] text-white font-black text-xs uppercase tracking-wider shadow-sm h-9 px-4 rounded-xl self-start sm:self-auto flex items-center gap-1.5"
+          className="bg-[#942392] hover:bg-[#800A7A] text-white font-black text-xs uppercase tracking-wider shadow-sm h-9 px-4 rounded-xl self-start sm:self-auto flex items-center justify-center"
         >
-          <Plus className="w-3.5 h-3.5 mr-1" />
           ADD STAFF
         </Button>
       </div>
@@ -550,9 +548,8 @@ export const TabPersonnelEntity: React.FC = () => {
 
                       {/* Branch */}
                       <TableCell className="py-3.5 px-4 whitespace-nowrap">
-                        <span className="inline-flex items-center justify-center gap-1.5 px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] border-border/80 bg-muted/50 text-foreground dark:bg-neutral-800/60 dark:border-neutral-700 shadow-2xs">
-                          <Building2 className="w-3 h-3 text-[#942392]" />
-                          <span>{member.branch}</span>
+                        <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] border-border/80 bg-muted/50 text-foreground dark:bg-neutral-800/60 dark:border-neutral-700 shadow-2xs">
+                          {member.branch}
                         </span>
                       </TableCell>
 

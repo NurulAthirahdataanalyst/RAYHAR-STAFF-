@@ -69,7 +69,6 @@ export const Tab5_DepartmentMgmt: React.FC = () => {
       {/* Top Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-muted/30 dark:bg-neutral-900/40 rounded-xl border border-border dark:border-neutral-800">
         <div className="flex flex-wrap items-center gap-2.5">
-          <Layers className="w-4 h-4 text-[#942392]" />
           <span className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
             Company Department Scope:
           </span>
@@ -102,7 +101,6 @@ export const Tab5_DepartmentMgmt: React.FC = () => {
           onClick={() => setModalOpen(true)}
           className="bg-[#942392] hover:bg-[#800A7A] text-white font-black text-xs uppercase tracking-wider shadow-sm h-9 px-4 rounded-xl self-start sm:self-auto"
         >
-          <Plus className="w-3.5 h-3.5 mr-1" />
           Create Department
         </Button>
       </div>
@@ -136,7 +134,7 @@ export const Tab5_DepartmentMgmt: React.FC = () => {
                 {departments.map((d) => (
                   <tr key={d.id} className="hover:bg-muted/40 dark:hover:bg-neutral-800/40 transition-colors">
                     <td className="px-4 py-3.5">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full font-mono text-xs font-bold border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800 text-black dark:text-white">
+                      <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200">
                         {d.code || '—'}
                       </span>
                     </td>
@@ -144,14 +142,12 @@ export const Tab5_DepartmentMgmt: React.FC = () => {
                       {d.name}
                     </td>
                     <td className="px-4 py-3.5">
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border border-purple-200 dark:border-purple-800/60 bg-purple-50 dark:bg-purple-950/40 text-[#942392] dark:text-[#f885d5]">
-                        <Users className="w-3.5 h-3.5" />
-                        <span>{d.employee_count || 0} Staff</span>
+                      <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] border-[#942392]/30 bg-[#942392]/10 text-[#942392] dark:text-[#f885d5]">
+                        {d.employee_count || 0} Staff
                       </span>
                     </td>
                     <td className="px-4 py-3.5">
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border border-emerald-200 dark:border-emerald-800/60 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300">
-                        <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                      <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
                         Active
                       </span>
                     </td>
@@ -167,8 +163,7 @@ export const Tab5_DepartmentMgmt: React.FC = () => {
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogContent className="max-w-md overflow-hidden [&>button]:text-white [&>button]:hover:text-white/80 border-none shadow-2xl rounded-3xl p-0 bg-card">
           <DialogHeader className="bg-[#942392] p-6 sm:rounded-t-lg m-0 text-left border-b border-white/20">
-            <DialogTitle className="text-white font-black uppercase tracking-tight m-0 text-lg flex items-center gap-2">
-              <Layers className="w-5 h-5 text-white" />
+            <DialogTitle className="text-white font-black uppercase tracking-tight m-0 text-lg">
               Create Department
             </DialogTitle>
             <DialogDescription className="text-xs font-bold uppercase tracking-wider text-white/80 m-0 mt-1">

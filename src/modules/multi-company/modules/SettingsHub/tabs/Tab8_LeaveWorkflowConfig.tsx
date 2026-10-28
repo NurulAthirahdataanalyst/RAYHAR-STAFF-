@@ -126,7 +126,6 @@ export const Tab8_LeaveWorkflowConfig: React.FC = () => {
       {/* Top Company Scope */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-muted/30 dark:bg-neutral-900/40 rounded-xl border border-border dark:border-neutral-800">
         <div className="flex flex-wrap items-center gap-2.5">
-          <CalendarDays className="w-4 h-4 text-[#942392]" />
           <span className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
             Company Leave Policy Scope:
           </span>
@@ -164,8 +163,7 @@ export const Tab8_LeaveWorkflowConfig: React.FC = () => {
       <Card className="border border-border dark:border-neutral-800 shadow-xs bg-white/70 dark:bg-card/70 backdrop-blur-md rounded-2xl p-5 space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border/50 dark:border-neutral-800">
           <div className="space-y-1">
-            <h4 className="text-xs font-black uppercase tracking-wider text-foreground dark:text-white flex items-center gap-2">
-              <FileText className="w-4 h-4 text-[#942392]" />
+            <h4 className="text-xs font-black uppercase tracking-wider text-foreground dark:text-white">
               Default Annual Entitlements & Policies (4 Leave Types)
             </h4>
             <p className="text-[11px] text-muted-foreground">
@@ -195,22 +193,17 @@ export const Tab8_LeaveWorkflowConfig: React.FC = () => {
           <div className="p-4 rounded-xl border border-purple-500/25 bg-gradient-to-b from-purple-500/5 to-transparent dark:bg-neutral-900/80 space-y-3.5 relative overflow-hidden flex flex-col justify-between">
             <div className="space-y-2">
               <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-[#942392]/15 text-[#942392] flex items-center justify-center">
-                    <Palmtree className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground block">
-                      Type 1
-                    </span>
-                    <h5 className="text-xs font-black text-foreground uppercase tracking-tight">
-                      Annual & Emergency Leave
-                    </h5>
-                  </div>
+                <div>
+                  <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground block">
+                    Type 1
+                  </span>
+                  <h5 className="text-xs font-black text-foreground uppercase tracking-tight">
+                    Annual & Emergency Leave
+                  </h5>
                 </div>
-                <Badge variant="outline" className="text-[9px] font-bold border-purple-500/30 text-[#942392] dark:text-[#f885d5] bg-purple-500/10">
+                <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] border-purple-500/30 text-[#942392] dark:text-[#f885d5] bg-purple-500/10 shadow-2xs">
                   Paid
-                </Badge>
+                </span>
               </div>
 
               <p className="text-[10.5px] text-muted-foreground leading-relaxed">
@@ -253,22 +246,17 @@ export const Tab8_LeaveWorkflowConfig: React.FC = () => {
           <div className="p-4 rounded-xl border border-emerald-500/25 bg-gradient-to-b from-emerald-500/5 to-transparent dark:bg-neutral-900/80 space-y-3.5 relative overflow-hidden flex flex-col justify-between">
             <div className="space-y-2">
               <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-                    <RotateCcw className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground block">
-                      Type 2
-                    </span>
-                    <h5 className="text-xs font-black text-foreground uppercase tracking-tight">
-                      Replacement Leave
-                    </h5>
-                  </div>
+                <div>
+                  <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground block">
+                    Type 2
+                  </span>
+                  <h5 className="text-xs font-black text-foreground uppercase tracking-tight">
+                    Replacement Leave
+                  </h5>
                 </div>
-                <Badge variant="outline" className="text-[9px] font-bold border-emerald-500/30 text-emerald-700 dark:text-emerald-300 bg-emerald-500/10">
+                <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] border-emerald-500/30 text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 shadow-2xs">
                   Cuti Ganti
-                </Badge>
+                </span>
               </div>
 
               <p className="text-[10.5px] text-muted-foreground leading-relaxed">
@@ -300,22 +288,17 @@ export const Tab8_LeaveWorkflowConfig: React.FC = () => {
           <div className="p-4 rounded-xl border border-amber-500/25 bg-gradient-to-b from-amber-500/5 to-transparent dark:bg-neutral-900/80 space-y-3.5 relative overflow-hidden flex flex-col justify-between">
             <div className="space-y-2">
               <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center">
-                    <Coins className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground block">
-                      Type 3
-                    </span>
-                    <h5 className="text-xs font-black text-foreground uppercase tracking-tight">
-                      Unpaid Leave
-                    </h5>
-                  </div>
+                <div>
+                  <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground block">
+                    Type 3
+                  </span>
+                  <h5 className="text-xs font-black text-foreground uppercase tracking-tight">
+                    Unpaid Leave
+                  </h5>
                 </div>
-                <Badge variant="outline" className="text-[9px] font-bold border-amber-500/30 text-amber-700 dark:text-amber-300 bg-amber-500/10">
+                <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] border-amber-500/30 text-amber-700 dark:text-amber-300 bg-amber-500/10 shadow-2xs">
                   Deducted
-                </Badge>
+                </span>
               </div>
 
               <p className="text-[10.5px] text-muted-foreground leading-relaxed">
@@ -347,22 +330,17 @@ export const Tab8_LeaveWorkflowConfig: React.FC = () => {
           <div className="p-4 rounded-xl border border-sky-500/25 bg-gradient-to-b from-sky-500/5 to-transparent dark:bg-neutral-900/80 space-y-3.5 relative overflow-hidden flex flex-col justify-between">
             <div className="space-y-2">
               <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-sky-500/15 text-sky-600 dark:text-sky-400 flex items-center justify-center">
-                    <HeartPulse className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground block">
-                      Type 4
-                    </span>
-                    <h5 className="text-xs font-black text-foreground uppercase tracking-tight">
-                      Medical Leave (Sick Leave)
-                    </h5>
-                  </div>
+                <div>
+                  <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground block">
+                    Type 4
+                  </span>
+                  <h5 className="text-xs font-black text-foreground uppercase tracking-tight">
+                    Medical Leave (Sick Leave)
+                  </h5>
                 </div>
-                <Badge variant="outline" className="text-[9px] font-bold border-sky-500/30 text-sky-700 dark:text-sky-300 bg-sky-500/10">
+                <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] border-sky-500/30 text-sky-700 dark:text-sky-300 bg-sky-500/10 shadow-2xs">
                   Sick Leave
-                </Badge>
+                </span>
               </div>
 
               <p className="text-[10.5px] text-muted-foreground leading-relaxed">

@@ -267,7 +267,7 @@ export function ApprovalStatusTracker({
       ? (mdHistory?.approver_name || (aRole.includes("md") || aRole.includes("managing") || aRole.includes("director") ? approverName : "") || "Managing Director")
       : isOpApproved
       ? (opHistory?.approver_name || (aRole.includes("operation") ? approverName : "") || "Operation Manager")
-      : (lvl2History?.approver_name || (isLvl2ApproverRole ? approverName : "") || "");
+      : (lvl2History?.approver_name || (isLvl2ApproverRole ? approverName : "") || (isApprovedByHr ? (hrName || "HR Admin") : ""));
 
     step2Subtitle = highestApproverName 
       ? `${highestApproverName} • ${lvl2Context}` 
