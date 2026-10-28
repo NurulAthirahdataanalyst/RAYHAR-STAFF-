@@ -10566,7 +10566,8 @@ app.get("/api/workforce-stats", async (req, res) => {
     const normRole = safeLower(role).replace(/ /g, "_");
 
     const rawCompanyId = req.query.company_id || req.query.companyId || req.companyId;
-    const companyFilter = getCompanyUserSqlFilterById(rawCompanyId, "p.user_id");
+    const companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
+    const companyFilter = getCompanyUserSqlFilterById(companyId, "p.user_id");
     let profileFilter = companyFilter;
     let pFilterParams = [];
 
