@@ -774,6 +774,7 @@ export function StaffProfileDialog({
   const [signupDepartment, setSignupDepartment] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
   const [signupRole, setSignupRole] = useState("");
+  const [signupJoinDate, setSignupJoinDate] = useState<string>(() => new Date().toISOString().split("T")[0]);
   const [availableRoles, setAvailableRoles] = useState<any[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
@@ -1057,6 +1058,7 @@ export function StaffProfileDialog({
           branch: signupBranch,
           department: signupBranch === "HQ" ? signupDepartment : null,
           role: (availableRoles.find(r => r.name.toLowerCase() === signupRole.toLowerCase())?.name || signupRole || "Employee"),
+          join_date: signupJoinDate || null,
           status: 'Active'
         }),
       });
@@ -1073,6 +1075,7 @@ export function StaffProfileDialog({
         setSignupBranch("HQ");
         setSignupDepartment("");
         setSignupRole(""); // reset so placeholder shows
+        setSignupJoinDate(new Date().toISOString().split("T")[0]);
         fetchEmployees(); // Refresh list
       } else {
         toast({ title: "Signup failed", description: data.error || "Could not create user", variant: "destructive" });
@@ -2848,6 +2851,43 @@ export function StaffProfileDialog({
                 </div>
               )}
 
+              {/* Date of Join */}
+              <div className="space-y-1.5 col-span-1">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-foreground">
+                  Date of Join
+                </Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button
+                      type="button"
+                      className="flex items-center justify-between w-full h-11 px-4 bg-background/50 border border-border/80 focus:border-[#942392] focus:ring-2 focus:ring-[#942392]/10 rounded-xl text-xs font-bold text-foreground text-left shadow-xs hover:bg-muted/50"
+                    >
+                      <span>
+                        {signupJoinDate
+                          ? new Date(signupJoinDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()
+                          : "SELECT DATE"}
+                      </span>
+                      <CalendarDays className="w-4 h-4 text-foreground/60" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0 border-none shadow-2xl rounded-2xl overflow-hidden z-[80]" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={signupJoinDate ? new Date(signupJoinDate) : undefined}
+                      onSelect={(d) => {
+                        if (d) {
+                          const localIso = new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+                          setSignupJoinDate(localIso);
+                        } else {
+                          setSignupJoinDate("");
+                        }
+                      }}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+
               {/* Role */}
               <div className="space-y-1.5 col-span-1">
                 <Label htmlFor="signup-role" className="text-[10px] font-black uppercase tracking-widest text-foreground">
@@ -3081,12 +3121,36 @@ export function StaffProfileDialog({
               {/* Date of Join */}
               <div className="space-y-1.5">
                 <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground">Date of Join</Label>
-                <Input
-                  type="date"
-                  value={editJoinDate}
-                  onChange={(e) => setEditJoinDate(e.target.value)}
-                  className="h-10 text-xs font-bold"
-                />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button
+                      type="button"
+                      className="flex items-center justify-between w-full h-10 px-3 bg-background border border-border/80 focus:border-[#942392] focus:ring-2 focus:ring-[#942392]/10 rounded-md text-xs font-bold text-foreground text-left shadow-xs hover:bg-muted/50 transition-colors"
+                    >
+                      <span>
+                        {editJoinDate
+                          ? new Date(editJoinDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()
+                          : "SELECT DATE"}
+                      </span>
+                      <CalendarDays className="w-4 h-4 text-muted-foreground" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0 border-none shadow-2xl rounded-2xl overflow-hidden z-[80]" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={editJoinDate ? new Date(editJoinDate) : undefined}
+                      onSelect={(d) => {
+                        if (d) {
+                          const localIso = new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+                          setEditJoinDate(localIso);
+                        } else {
+                          setEditJoinDate("");
+                        }
+                      }}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
 
               {/* Branch */}

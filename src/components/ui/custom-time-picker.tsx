@@ -188,6 +188,7 @@ export const CustomTimePicker: React.FC<CustomTimePickerProps> = ({
 
   // Handle Hour scroll
   const handleHourScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    if (activeField === "hour") return;
     const top = e.currentTarget.scrollTop;
     const index = Math.round(top / ITEM_HEIGHT);
     if (index >= 0 && index < HOURS_LIST.length) {
@@ -201,6 +202,7 @@ export const CustomTimePicker: React.FC<CustomTimePickerProps> = ({
 
   // Handle Minute scroll
   const handleMinuteScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    if (activeField === "minute") return;
     const top = e.currentTarget.scrollTop;
     const index = Math.round(top / ITEM_HEIGHT);
     if (index >= 0 && index < MINUTES_LIST.length) {
@@ -252,64 +254,82 @@ export const CustomTimePicker: React.FC<CustomTimePickerProps> = ({
 
   // Keypad / direct input handlers
   const handleHourInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value.replace(/\D/g, "").slice(0, 2);
-    setHourInput(val);
-    const num = parseInt(val, 10);
+    let raw = e.target.value.replace(/\D/g, "");
+    if (raw.length > 2) {
+      raw = raw.slice(-2);
+    }
+    setHourInput(raw);
+    if (raw === "") return;
+    const num = parseInt(raw, 10);
     if (!isNaN(num) && num >= 1 && num <= 12) {
       setSelectedHour(num);
       const hIdx = HOURS_LIST.indexOf(num);
       if (mode === "wheel" && hourScrollRef.current && hIdx !== -1) {
-        hourScrollRef.current.scrollTo({ top: hIdx * ITEM_HEIGHT, behavior: "smooth" });
+        hourScrollRef.current.scrollTop = hIdx * ITEM_HEIGHT;
       }
     }
   };
 
   const handleHourBlur = () => {
+    setActiveField(null);
     let num = parseInt(hourInput, 10);
-    if (isNaN(num) || num < 1) num = 12;
+    if (isNaN(num) || num < 1) num = selectedHour || 12;
     if (num > 12) num = 12;
     setSelectedHour(num);
     setHourInput(String(num).padStart(2, "0"));
     const hIdx = HOURS_LIST.indexOf(num);
     if (mode === "wheel" && hourScrollRef.current && hIdx !== -1) {
-      hourScrollRef.current.scrollTo({ top: hIdx * ITEM_HEIGHT, behavior: "smooth" });
+      hourScrollRef.current.scrollTop = hIdx * ITEM_HEIGHT;
     }
   };
 
   const handleMinuteInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value.replace(/\D/g, "").slice(0, 2);
-    setMinuteInput(val);
-    const num = parseInt(val, 10);
+    let raw = e.target.value.replace(/\D/g, "");
+    if (raw.length > 2) {
+      raw = raw.slice(-2);
+    }
+    setMinuteInput(raw);
+    if (raw === "") return;
+    const num = parseInt(raw, 10);
     if (!isNaN(num) && num >= 0 && num <= 59) {
       setSelectedMinute(num);
       const mIdx = MINUTES_LIST.indexOf(num);
       if (mode === "wheel" && minScrollRef.current && mIdx !== -1) {
-        minScrollRef.current.scrollTo({ top: mIdx * ITEM_HEIGHT, behavior: "smooth" });
+        minScrollRef.current.scrollTop = mIdx * ITEM_HEIGHT;
       }
     }
   };
 
   const handleMinuteBlur = () => {
+    setActiveField(null);
     let num = parseInt(minuteInput, 10);
-    if (isNaN(num) || num < 0) num = 0;
+    if (isNaN(num) || num < 0) num = selectedMinute ?? 0;
     if (num > 59) num = 59;
     setSelectedMinute(num);
     setMinuteInput(String(num).padStart(2, "0"));
     const mIdx = MINUTES_LIST.indexOf(num);
     if (mode === "wheel" && minScrollRef.current && mIdx !== -1) {
-      minScrollRef.current.scrollTo({ top: mIdx * ITEM_HEIGHT, behavior: "smooth" });
+      minScrollRef.current.scrollTop = mIdx * ITEM_HEIGHT;
     }
   };
 
   // Confirm and Cancel
   const handleConfirm = () => {
-    let h24 = selectedHour;
+    let numH = parseInt(hourInput, 10);
+    if (isNaN(numH) || numH < 1) numH = selectedHour;
+    if (numH > 12) numH = 12;
+
+    let numM = parseInt(minuteInput, 10);
+    if (isNaN(numM) || numM < 0) numM = selectedMinute;
+    if (numM > 59) numM = 59;
+
+    let h24 = numH;
     if (selectedPeriod === "AM") {
       if (h24 === 12) h24 = 0;
     } else {
       if (h24 < 12) h24 += 12;
     }
-    const result = `${String(h24).padStart(2, "0")}:${String(selectedMinute).padStart(2, "0")}`;
+    const result = `${String(h24).padStart(2, "0")}:${String(numM).padStart(2, "0")}`;
     onChange(result);
     setOpen(false);
   };
@@ -377,11 +397,16 @@ export const CustomTimePicker: React.FC<CustomTimePickerProps> = ({
               type="text"
               inputMode="numeric"
               pattern="[0-9]*"
-              maxLength={2}
               value={hourInput}
               onChange={handleHourInput}
               onBlur={handleHourBlur}
-              onFocus={() => setActiveField("hour")}
+              onFocus={(e) => {
+                setActiveField("hour");
+                e.currentTarget.select();
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") e.currentTarget.blur();
+              }}
               className={cn(
                 "w-12 sm:w-14 h-10 sm:h-11 text-center text-xl sm:text-2xl font-bold rounded-xl transition-all outline-none",
                 activeField === "hour"
@@ -401,11 +426,16 @@ export const CustomTimePicker: React.FC<CustomTimePickerProps> = ({
               type="text"
               inputMode="numeric"
               pattern="[0-9]*"
-              maxLength={2}
               value={minuteInput}
               onChange={handleMinuteInput}
               onBlur={handleMinuteBlur}
-              onFocus={() => setActiveField("minute")}
+              onFocus={(e) => {
+                setActiveField("minute");
+                e.currentTarget.select();
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") e.currentTarget.blur();
+              }}
               className={cn(
                 "w-12 sm:w-14 h-10 sm:h-11 text-center text-xl sm:text-2xl font-bold rounded-xl transition-all outline-none",
                 activeField === "minute"

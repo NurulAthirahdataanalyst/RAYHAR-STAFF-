@@ -415,8 +415,9 @@ export default function OutstationAnalytics() {
             onSelectMonthYear={handleMonthYearChange}
             className="h-10"
           />
-          <Button onClick={() => void fetchData()} className="h-10 px-5 w-full sm:w-auto">
-            <RefreshCw className="w-3.5 h-3.5 mr-2" /> Refresh
+          <Button onClick={() => void fetchData()} className="rounded-xl px-3.5 py-2 h-9 text-xs font-black uppercase tracking-wider bg-[#942392] hover:bg-[#5e0080] text-white shadow-md flex items-center gap-1.5 shrink-0 w-full sm:w-auto">
+            <RefreshCw className="w-3.5 h-3.5" />
+            <span>Refresh</span>
           </Button>
         </div>
       </PageActions>

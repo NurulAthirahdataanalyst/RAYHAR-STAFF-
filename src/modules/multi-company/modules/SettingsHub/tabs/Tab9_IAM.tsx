@@ -492,9 +492,10 @@ export const Tab9_IAM: React.FC = () => {
 
         <Button
           onClick={handleOpenAdd}
-          className="bg-[#942392] hover:bg-[#800A7A] text-white font-black text-xs uppercase tracking-wider shadow-sm h-9 px-4 rounded-full self-start sm:self-auto"
+          className="rounded-xl px-3.5 py-2 h-9 text-xs font-black uppercase tracking-wider bg-[#942392] hover:bg-[#5e0080] text-white shadow-md flex items-center gap-1.5 shrink-0 self-start sm:self-auto"
         >
-          Add Company Role
+          <Plus className="w-3.5 h-3.5" />
+          <span>Add Company Role</span>
         </Button>
       </div>
 

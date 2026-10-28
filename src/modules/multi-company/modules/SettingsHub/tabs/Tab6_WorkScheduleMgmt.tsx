@@ -418,7 +418,7 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
       </div>
 
       {/* Priority Engine Info Banner */}
-      <div className="p-3.5 bg-[#942392]/5 dark:bg-[#942392]/10 rounded-xl border border-[#942392]/20 flex items-start gap-3 text-xs">
+      <div className="p-3.5 bg-white dark:bg-neutral-900 rounded-xl border border-white dark:border-neutral-800 shadow-xs flex items-start gap-3 text-xs">
         <div className="space-y-1">
           <span className="font-black text-[#942392] dark:text-[#f885d5] uppercase tracking-wider block">
             4-Tier Schedule Resolution Engine (Zone & Multi-Branch Aware)

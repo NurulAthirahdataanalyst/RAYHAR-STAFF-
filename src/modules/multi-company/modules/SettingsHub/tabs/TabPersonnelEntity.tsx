@@ -790,11 +790,13 @@ export const TabPersonnelEntity: React.FC = () => {
                   <PopoverContent className="w-auto p-0 border-none shadow-2xl rounded-2xl overflow-hidden z-[80]" align="start">
                     <Calendar
                       mode="single"
-                      selected={signupJoinDate ? new Date(signupJoinDate) : new Date()}
+                      selected={signupJoinDate ? new Date(signupJoinDate) : undefined}
                       onSelect={(d) => {
                         if (d) {
                           const localIso = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().split('T')[0];
                           setSignupJoinDate(localIso);
+                        } else {
+                          setSignupJoinDate('');
                         }
                       }}
                       initialFocus

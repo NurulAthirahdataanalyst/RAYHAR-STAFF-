@@ -279,7 +279,7 @@ export const Tab2_EmployeeConfig: React.FC = () => {
                     <PopoverTrigger asChild>
                       <button
                         type="button"
-                        className="flex items-center justify-between w-full h-9 px-3 bg-background dark:bg-neutral-900 border border-border dark:border-neutral-800 rounded-lg text-xs font-bold text-black dark:text-white text-left shadow-xs hover:bg-muted/50 transition-colors"
+                        className="flex items-center justify-between w-full h-9 px-3 bg-background dark:bg-neutral-900 border border-border dark:border-neutral-800 focus:border-[#942392] focus:ring-2 focus:ring-[#942392]/10 rounded-lg text-xs font-bold text-black dark:text-white text-left shadow-xs hover:bg-muted/50 transition-colors"
                       >
                         <span>
                           {joinDate
@@ -289,14 +289,16 @@ export const Tab2_EmployeeConfig: React.FC = () => {
                         <CalendarDays className="w-3.5 h-3.5 text-muted-foreground" />
                       </button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0 border border-border dark:border-neutral-800 shadow-2xl rounded-2xl overflow-hidden z-[80]" align="start">
+                    <PopoverContent className="w-auto p-0 border-none shadow-2xl rounded-2xl overflow-hidden z-[80]" align="start">
                       <Calendar
                         mode="single"
-                        selected={joinDate ? new Date(joinDate) : new Date()}
+                        selected={joinDate ? new Date(joinDate) : undefined}
                         onSelect={(d) => {
                           if (d) {
                             const localIso = new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
                             setJoinDate(localIso);
+                          } else {
+                            setJoinDate("");
                           }
                         }}
                         initialFocus

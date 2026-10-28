@@ -933,7 +933,7 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
       </div>
 
       {/* Dynamic Company Banner — Branch-Based Leave Approval Routing Rules */}
-      <div className="p-4 bg-gradient-to-r from-[#942392]/10 via-[#942392]/5 to-transparent rounded-2xl border border-[#942392]/25 space-y-3 shadow-xs">
+      <div className="p-4 bg-white dark:bg-neutral-900 rounded-2xl border border-border/80 dark:border-neutral-800 space-y-3 shadow-xs">
         <div>
           <h5 className="font-black text-sm uppercase tracking-wider text-[#942392] dark:text-[#f885d5]">
             Branch-Based Leave Approval Routing Rules — {companyName}

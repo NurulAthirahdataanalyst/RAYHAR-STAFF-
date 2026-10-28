@@ -91,6 +91,8 @@ export const Tab1_SystemConfig: React.FC = () => {
   const [logs, setLogs] = useState<AuditLogItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [expandedLogId, setExpandedLogId] = useState<number | null>(null);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [entriesPerPage, setEntriesPerPage] = useState<number>(10);
 
   const fetchLogs = async () => {
     try {
@@ -145,6 +147,21 @@ export const Tab1_SystemConfig: React.FC = () => {
       return true;
     });
   }, [logs, selectedCategoryFilter, searchQuery]);
+
+  // Reset page when search or filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCompanyFilter, selectedCategoryFilter, searchQuery]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredLogs.length / entriesPerPage));
+  const indexOfLastItem = currentPage * entriesPerPage;
+  const indexOfFirstItem = (currentPage - 1) * entriesPerPage;
+  const currentLogs = useMemo(() => {
+    return filteredLogs.slice(indexOfFirstItem, indexOfLastItem);
+  }, [filteredLogs, indexOfFirstItem, indexOfLastItem]);
+
+  const fromIndex = filteredLogs.length === 0 ? 0 : indexOfFirstItem + 1;
+  const toIndex = Math.min(indexOfLastItem, filteredLogs.length);
 
   const getCategoryBadgeClass = (category: string) => {
     const cat = (category || '').toUpperCase();
@@ -291,7 +308,7 @@ export const Tab1_SystemConfig: React.FC = () => {
           </div>
         ) : (
           <div className="space-y-3">
-            {filteredLogs.map((log) => {
+            {currentLogs.map((log) => {
               const isExpanded = expandedLogId === log.id;
               const hasPayload = Boolean(log.new_values || log.old_values);
 
@@ -366,6 +383,61 @@ export const Tab1_SystemConfig: React.FC = () => {
                 </div>
               );
             })}
+          </div>
+        )}
+
+        {/* Footer with Pagination */}
+        {filteredLogs.length > 0 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-border/60 gap-4 bg-slate-50/50 dark:bg-slate-900/50 -mx-4 sm:-mx-6 -mb-4 sm:-mb-6 rounded-b-2xl">
+            <div className="flex items-center gap-4 text-[10px] font-bold text-foreground uppercase tracking-widest flex-wrap">
+              <span>
+                TOTAL SHOWING {fromIndex} TO {toIndex} OF {filteredLogs.length} ENTRIES
+              </span>
+              <div className="flex items-center gap-2">
+                <span>SHOW</span>
+                <Select
+                  value={entriesPerPage.toString()}
+                  onValueChange={(val) => {
+                    setEntriesPerPage(Number(val));
+                    setCurrentPage(1);
+                  }}
+                >
+                  <SelectTrigger className="h-7 text-[10px] font-bold rounded border-border w-[65px] bg-background">
+                    <SelectValue placeholder={entriesPerPage.toString()}>{entriesPerPage}</SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10" className="text-xs font-bold">10</SelectItem>
+                    <SelectItem value="25" className="text-xs font-bold">25</SelectItem>
+                    <SelectItem value="50" className="text-xs font-bold">50</SelectItem>
+                    <SelectItem value="100" className="text-xs font-bold">100</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1.5">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 px-2.5 text-[11px] font-bold rounded-md border-border bg-background hover:bg-muted cursor-pointer"
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+              >
+                &lt;
+              </Button>
+              <span className="text-[10px] font-bold text-foreground px-2">
+                {currentPage} / {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 px-2.5 text-[11px] font-bold rounded-md border-border bg-background hover:bg-muted cursor-pointer"
+                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages || totalPages === 0}
+              >
+                &gt;
+              </Button>
+            </div>
           </div>
         )}
       </Card>
