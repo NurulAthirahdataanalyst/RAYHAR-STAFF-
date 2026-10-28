@@ -183,7 +183,7 @@ export const Tab3_CompanyMgmt: React.FC<Tab3CompanyMgmtProps> = ({ onNavigateToT
                 </tr>
               ) : (
                 companies.map((c) => {
-                const isMain = c.company_type === 'main' || !c.parent_company_id;
+                const isMain = c.id === 1 || c.company_type === 'main';
                 const isSelected = c.id === activeCompany?.id;
 
                 return (
@@ -237,7 +237,7 @@ export const Tab3_CompanyMgmt: React.FC<Tab3CompanyMgmtProps> = ({ onNavigateToT
                           ? 'border-[#942392]/30 bg-[#942392]/10 text-[#942392] dark:border-[#942392]/40 dark:bg-[#942392]/20 dark:text-[#f885d5]' 
                           : 'border-blue-200 dark:border-blue-800/50 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300'
                       }`}>
-                        {isMain ? 'Main Company' : 'Subsidiary'}
+                        {isMain ? 'Main Company' : 'Subsidiary Company'}
                       </span>
                     </td>
 
@@ -314,6 +314,21 @@ export const Tab3_CompanyMgmt: React.FC<Tab3CompanyMgmtProps> = ({ onNavigateToT
                           <Edit className="w-3.5 h-3.5 mr-1" />
                           Edit
                         </Button>
+
+                        {c.id !== 1 && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setCompanyToDelete(c);
+                              setDeleteModalOpen(true);
+                            }}
+                            className="h-8 w-8 p-0 rounded-full text-rose-600 hover:text-white hover:bg-rose-600 border-rose-200 dark:border-rose-900/50 hover:border-rose-600 transition-colors"
+                            title={`Delete ${c.company_name}`}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -479,6 +494,49 @@ export const Tab3_CompanyMgmt: React.FC<Tab3CompanyMgmtProps> = ({ onNavigateToT
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Delete Subcompany Dialog */}
+      <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
+        <DialogContent className="max-w-md overflow-hidden rounded-3xl p-6 bg-card border border-border/80 dark:border-neutral-800 shadow-2xl">
+          <DialogHeader className="text-left space-y-3">
+            <div className="w-12 h-12 rounded-2xl bg-rose-100 dark:bg-rose-950/50 flex items-center justify-center text-rose-600 border border-rose-200 dark:border-rose-900/50 shadow-inner">
+              <Trash2 className="w-6 h-6 text-rose-600 dark:text-rose-400" />
+            </div>
+            <div>
+              <DialogTitle className="text-base font-black uppercase tracking-tight text-foreground dark:text-white">
+                Delete Subcompany?
+              </DialogTitle>
+              <p className="text-xs font-bold text-foreground/90 dark:text-neutral-200 mt-2">
+                Are you sure you want to permanently delete {companyToDelete?.company_name?.toUpperCase()}?
+              </p>
+            </div>
+            <DialogDescription className="text-xs text-rose-600 dark:text-rose-400 font-semibold bg-rose-50 dark:bg-rose-950/40 p-3 rounded-xl border border-rose-200 dark:border-rose-900/40 leading-relaxed">
+              ⚠️ This action is permanent and cannot be undone or recovered. All employee  and all acesss associated with this company will be deleted.
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter className="mt-6 flex flex-row items-center justify-end gap-2.5">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setDeleteModalOpen(false)}
+              disabled={deleting}
+              className="rounded-xl px-4 text-xs font-black uppercase tracking-wider border-border/80 hover:bg-muted"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleConfirmDelete}
+              disabled={deleting}
+              className="rounded-xl px-5 bg-rose-600 hover:bg-rose-700 text-white font-black text-xs uppercase tracking-wider shadow-md flex items-center gap-1.5"
+            >
+              {deleting && <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" />}
+              Delete Permanently
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
