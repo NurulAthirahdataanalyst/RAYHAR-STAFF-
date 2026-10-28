@@ -9413,18 +9413,7 @@ app.get("/api/reports/absent-employees", async (req, res) => {
       leaveCandRows.filter(lr => isEmployeeOnLeaveOnDate(lr, queryDate)).map(lr => lr.user_id)
     );
 
-    const rawCompanyId = req.query.company_id || req.query.companyId || req.companyId;
-    const companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
-    let companyUserFilter = "";
-    if (companyId) {
-      if (companyId === 1) {
-        companyUserFilter = " AND (p.user_id IN (SELECT user_id FROM company_user_roles WHERE company_id = 1 AND status = 'active') OR p.user_id NOT IN (SELECT user_id FROM company_user_roles WHERE status = 'active'))";
-      } else {
-        companyUserFilter = ` AND p.user_id IN (SELECT user_id FROM company_user_roles WHERE company_id = ${companyId} AND status = 'active')`;
-      }
-    }
-
-    let profileFilter = companyUserFilter ? companyUserFilter : "";
+    let profileFilter = getCompanyUserSqlFilter(req, "p.user_id");
     let queryParams = [queryDate, queryDate, queryDate, queryDate];
 
     if (role === 'branch_leader') {
@@ -9533,18 +9522,7 @@ app.get("/api/reports/on-leave-employees", async (req, res) => {
   const queryDate = date || new Date().toISOString().split('T')[0];
 
   try {
-    const rawCompanyId = req.query.company_id || req.query.companyId || req.companyId;
-    const companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
-    let companyUserFilter = "";
-    if (companyId) {
-      if (companyId === 1) {
-        companyUserFilter = " AND (p.user_id IN (SELECT user_id FROM company_user_roles WHERE company_id = 1 AND status = 'active') OR p.user_id NOT IN (SELECT user_id FROM company_user_roles WHERE status = 'active'))";
-      } else {
-        companyUserFilter = ` AND p.user_id IN (SELECT user_id FROM company_user_roles WHERE company_id = ${companyId} AND status = 'active')`;
-      }
-    }
-
-    let profileFilter = companyUserFilter ? companyUserFilter : "";
+    let profileFilter = getCompanyUserSqlFilter(req, "p.user_id");
     let queryParams = [queryDate, queryDate];
 
     if (role === 'branch_leader') {
@@ -9631,18 +9609,7 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
   }
 
   try {
-    const rawCompanyId = req.query.company_id || req.query.companyId || req.companyId;
-    const companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
-    let companyUserFilter = "";
-    if (companyId) {
-      if (companyId === 1) {
-        companyUserFilter = " AND (p.user_id IN (SELECT user_id FROM company_user_roles WHERE company_id = 1 AND status = 'active') OR p.user_id NOT IN (SELECT user_id FROM company_user_roles WHERE status = 'active'))";
-      } else {
-        companyUserFilter = ` AND p.user_id IN (SELECT user_id FROM company_user_roles WHERE company_id = ${companyId} AND status = 'active')`;
-      }
-    }
-
-    let profileFilter = companyUserFilter ? companyUserFilter : "";
+    let profileFilter = getCompanyUserSqlFilter(req, "p.user_id");
     let queryParams = [];
 
     if (role === 'branch_leader') {
@@ -10086,7 +10053,7 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
       // First clock-in of the day determines whether the employee was late or on time
       let dayIsLate = false;
       if (clockRowsForUser.length > 0 && clockRowsForUser[0].clock_in) {
-        const { isLate } = isAttendanceLate(clockRowsForUser[0].clock_in, empCompanyId, dateStr);
+        const { isLate } = isAttendanceLate(clockRowsForUser[0].clock_in, empCompanyId, queryDate);
         dayIsLate = isLate;
       }
 

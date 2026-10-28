@@ -12,6 +12,7 @@ import { useRole } from "@/contexts/RoleContext";
 import { YearPopover } from "@/components/shared/YearPopover";
 import { MonthPicker } from "@/components/shared/MonthPicker";
 import { CustomDatePicker, TablePagination } from "@/components/common/TablePagination";
+import { useCompany } from "@/modules/multi-company/contexts/CompanyContext";
 
 interface ClockSession {
   clock_in: string | null;
@@ -107,6 +108,7 @@ const formatDate = (dateStr: string) => {
 };
 
 export default function AttendanceReports() {
+  const { activeCompany } = useCompany();
   const { role, userBranch, userDepartment } = useRole();
   const [loading, setLoading] = useState(true);
   const [attendanceData, setAttendanceData] = useState<any[]>([]);
@@ -140,7 +142,12 @@ export default function AttendanceReports() {
 
   useEffect(() => {
     fetchData();
-  }, [viewType, date, selectedMonth, selectedYear, role, userBranch, userDepartment]);
+    const handleSwitch = () => {
+      fetchData();
+    };
+    window.addEventListener('rayhar_company_switched', handleSwitch);
+    return () => window.removeEventListener('rayhar_company_switched', handleSwitch);
+  }, [viewType, date, selectedMonth, selectedYear, role, userBranch, userDepartment, activeCompany?.id]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -148,7 +155,8 @@ export default function AttendanceReports() {
       const params = new URLSearchParams({
         role: role || "",
         branch: userBranch || "",
-        department: userDepartment || ""
+        department: userDepartment || "",
+        company_id: (activeCompany?.id || 1).toString()
       });
       let data: { success: boolean; data: any[]; summary?: any } = { success: true, data: [] };
       const [workAssignRes] = await Promise.all([

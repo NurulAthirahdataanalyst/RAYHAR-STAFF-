@@ -528,7 +528,7 @@ export default function AttendanceDashboard() {
   // ── LIVE-STATS SSE CONNECTION ─────────────────────────────────────────
   useEffect(() => {
     if (loading) return;
-    const url = `${API_BASE_URL}/api/presence/live-stats?date=${encodeURIComponent(selectedDate)}&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}`;
+    const url = `${API_BASE_URL}/api/presence/live-stats?date=${encodeURIComponent(selectedDate)}&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}&company_id=${activeCompany?.id || 1}`;
     const es = new EventSource(url);
     liveEsRef.current = es;
 
