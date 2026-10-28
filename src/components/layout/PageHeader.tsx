@@ -13,7 +13,7 @@ export default function PageHeader({ title, description, icon }: PageHeaderProps
   const location = useLocation();
   const { user } = useAuth();
   const role = (user?.role || localStorage.getItem('user_role') || '').toLowerCase();
-  const pageInfo = getPageTitleInfo(location.pathname, role);
+  const pageInfo = getPageTitleInfo(location.pathname, role, location.search);
   
   const displayTitle = title || pageInfo.title;
   const displaySubtitle = description || pageInfo.subtitle;

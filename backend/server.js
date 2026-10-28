@@ -5366,10 +5366,16 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
     let nextStatus = status; // Default to what frontend sent
     if (nextStatus && !validStatuses.includes(nextStatus)) return res.status(400).json({ success: false, error: 'Invalid status value' });
 
+    const normApproverRole = safeLower(role).replace(/\s+/g, "_");
+    const isHrApprover = ['hr_admin', 'hr', 'admin'].includes(normApproverRole);
+
     if (action === 'Reject' || status === 'Rejected') {
       nextStatus = 'Rejected';
     } else if (action === 'Approve' || status === 'Approved') {
-      if (currentStatus === 'Pending' || currentStatus.startsWith('Pending HOD')) {
+      if (isHrApprover) {
+        // HR Admin has direct authorization to approve (e.g. if highest approval forgot or HR reviews directly)
+        nextStatus = 'Approved';
+      } else if (currentStatus === 'Pending' || currentStatus.startsWith('Pending HOD')) {
         nextStatus = 'Pending Operation Manager';
       } else if (currentStatus === 'Pending Branch Leader') {
         nextStatus = 'Pending MD';

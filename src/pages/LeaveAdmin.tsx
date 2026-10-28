@@ -144,7 +144,7 @@ const formatApproverRole = (role: string, department?: string, branch?: string) 
 };
 
 // Roles that can approve/reject leave requests
-const APPROVER_ROLES = ["managing_director", "operation_manager", "finance_manager", "head_of_department", "branch_leader"];
+const APPROVER_ROLES = ["hr_admin", "hr", "admin", "managing_director", "operation_manager", "finance_manager", "head_of_department", "branch_leader"];
 // Roles that can see the leave admin panel (view + approve or view only)
 const ADMIN_VIEW_ROLES = ["hr_admin", "branch_leader", ...APPROVER_ROLES];
 
@@ -1146,7 +1146,9 @@ export default function LeaveAdmin() {
                         </TableCell>
                         {canApprove && (
                           <TableCell className="px-3 py-3.5 text-right">
-                            {((req.status.trim().startsWith("Pending HOD") && role === "head_of_department") ||
+                            {((
+                              (["hr_admin", "hr", "admin"].includes(role?.toLowerCase()?.trim() || "") && req.status.trim().startsWith("Pending")) ||
+                              (req.status.trim().startsWith("Pending HOD") && role === "head_of_department") ||
                               (req.status.trim() === "Pending Branch Leader" && role === "branch_leader") ||
                               ((req.status.trim() === "Pending Operation" || req.status.trim() === "Pending Operation Manager" || req.status.trim() === "Pending Finance" || req.status.trim() === "Pending Finance Manager") && (role === "operation_manager" || (role as string) === "finance_manager")) ||
                               ((req.status.trim() === "Pending MD" || req.status.trim() === "Pending Managing Director") && (role === "managing_director" || (role as string) === "md"))) ? (
@@ -1260,6 +1262,14 @@ export default function LeaveAdmin() {
         selectedRequest={selectedRequest}
         onClose={() => setSelectedRequest(null)}
         role={role}
+        onApprove={(id, currentStatus) => {
+          setSelectedRequest(null);
+          handleAction(id, "approve", currentStatus);
+        }}
+        onReject={(id, currentStatus) => {
+          setSelectedRequest(null);
+          handleAction(id, "reject", currentStatus);
+        }}
       />
 
       {/* Remarks Dialog */}

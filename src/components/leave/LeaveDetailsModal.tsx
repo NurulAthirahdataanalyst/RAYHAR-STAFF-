@@ -59,9 +59,21 @@ interface LeaveDetailsModalProps {
   selectedRequest: any;
   onClose: () => void;
   role: string;
+  onApprove?: (id: number, currentStatus: string) => void;
+  onReject?: (id: number, currentStatus: string) => void;
 }
 
-export function LeaveDetailsModal({ selectedRequest, onClose, role }: LeaveDetailsModalProps) {
+export function LeaveDetailsModal({ selectedRequest, onClose, role, onApprove, onReject }: LeaveDetailsModalProps) {
+  const isHrRole = ["hr_admin", "hr", "admin"].includes(role?.toLowerCase()?.trim() || "");
+  const reqStatus = String(selectedRequest?.status || "").trim();
+  const isPending = reqStatus.startsWith("Pending");
+  const canModalApprove = isPending && (
+    isHrRole ||
+    (reqStatus.startsWith("Pending HOD") && role === "head_of_department") ||
+    (reqStatus === "Pending Branch Leader" && role === "branch_leader") ||
+    ((reqStatus === "Pending Operation" || reqStatus === "Pending Operation Manager" || reqStatus === "Pending Finance" || reqStatus === "Pending Finance Manager") && (role === "operation_manager" || (role as string) === "finance_manager")) ||
+    ((reqStatus === "Pending MD" || reqStatus === "Pending Managing Director") && (role === "managing_director" || (role as string) === "md"))
+  );
   const [bakiLayak, setBakiLayak] = useState<number | string>('-');
   const [mcBlobUrl, setMcBlobUrl] = useState<string | null>(null);
   const [isPrinting, setIsPrinting] = useState<boolean>(false);
@@ -469,7 +481,28 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role }: LeaveDetai
                   Borang ini sah digunakan sebagai bukti rasmi cuti kakitangan setelah mendapat kelulusan pihak pengurusan.
                 </p>
 
-                <div className="pt-4 flex justify-end gap-3 print:hidden">
+                <div className="pt-4 flex flex-wrap items-center justify-end gap-3 print:hidden">
+                  {onApprove && canModalApprove && (
+                    <Button
+                      type="button"
+                      className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-black text-[9px] uppercase tracking-wider px-5 shadow-sm transition-all"
+                      onClick={() => onApprove(selectedRequest.id || selectedRequest.leave_id, selectedRequest.status)}
+                    >
+                      <Check className="h-4 w-4" strokeWidth={3} />
+                      Approve Leave
+                    </Button>
+                  )}
+                  {onReject && canModalApprove && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="gap-2 border-rose-300 text-rose-600 hover:bg-rose-50 hover:border-rose-500 rounded-xl font-black text-[9px] uppercase tracking-wider px-5 shadow-sm transition-all"
+                      onClick={() => onReject(selectedRequest.id || selectedRequest.leave_id, selectedRequest.status)}
+                    >
+                      <X className="h-4 w-4" strokeWidth={3} />
+                      Reject Leave
+                    </Button>
+                  )}
                   <Button
                     type="button"
                     variant="outline"

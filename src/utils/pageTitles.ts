@@ -18,7 +18,9 @@ export interface PageInfo {
   icon: LucideIcon;
 }
 
-export function getPageTitleInfo(pathname: string, userRole?: string): PageInfo {
+export function getPageTitleInfo(pathname: string, userRole?: string, search?: string): PageInfo {
+  const currentSearch = search || (typeof window !== 'undefined' ? window.location.search : '');
+  const searchTab = new URLSearchParams(currentSearch).get('tab')?.toLowerCase();
   // Dashboard
   if (pathname === "/") return {
     title: "Dashboard",
@@ -249,32 +251,32 @@ export function getPageTitleInfo(pathname: string, userRole?: string): PageInfo 
 
   // Organization & Entities Module
   if (pathname.startsWith("/organization")) {
-    if (pathname.includes("/roles")) return {
+    if (pathname.includes("/roles") || searchTab === "roles" || searchTab === "iam") return {
       title: "Company Roles & RBAC",
       subtitle: "Configure company-specific roles, permissions, and multi-tenant security scopes.",
       icon: ShieldCheck
     };
-    if (pathname.includes("/transfer")) return {
+    if (pathname.includes("/transfer") || searchTab === "transfer") return {
       title: "Employee Transfer Wizard",
       subtitle: "Execute multi-step verified company transfers with role compatibility checks.",
       icon: ArrowRightLeft
     };
-    if (pathname.includes("/history")) return {
+    if (pathname.includes("/history") || searchTab === "history") return {
       title: "Transfer Career History",
       subtitle: "Inspect historical records and career transition audit logs across entities.",
       icon: History
     };
-    if (pathname.includes("/branches")) return {
+    if (pathname.includes("/branches") || searchTab === "branches" || searchTab === "branch") return {
       title: "Branches & Geofence",
       subtitle: "Manage branch office locations, geofence perimeters, and night shifts.",
       icon: MapPin
     };
-    if (pathname.includes("/departments")) return {
+    if (pathname.includes("/departments") || searchTab === "departments" || searchTab === "department") return {
       title: "Departments",
       subtitle: "Manage departments, divisions, and operational hierarchies per entity.",
       icon: Layers
     };
-    if (pathname.includes("/personnel")) return {
+    if (pathname.includes("/personnel") || searchTab === "personnel" || searchTab === "staff") return {
       title: "Personnel Entity",
       subtitle: "Manage company-scoped personnel directory, employee profiles and authorized RBAC staffing",
       icon: Users
