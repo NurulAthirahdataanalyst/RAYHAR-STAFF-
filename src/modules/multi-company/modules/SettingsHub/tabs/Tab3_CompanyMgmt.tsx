@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { Building2, Plus, Edit, Image as ImageIcon, MapPin, Users, Check, AlertCircle, Loader2, ArrowRight, Boxes } from 'lucide-react';
+import { Building2, Plus, Edit, Image as ImageIcon, MapPin, Users, Check, AlertCircle, Loader2, ArrowRight, Boxes, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCompany } from '../../../contexts/CompanyContext';
 import { multiCompanyApi } from '../../../services/multiCompanyApi';
@@ -34,6 +34,11 @@ export const Tab3_CompanyMgmt: React.FC<Tab3CompanyMgmtProps> = ({ onNavigateToT
   const [logoModalOpen, setLogoModalOpen] = useState(false);
   const [selectedForLogo, setSelectedForLogo] = useState<Company | null>(null);
 
+  // Delete modal states
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [companyToDelete, setCompanyToDelete] = useState<Company | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
   // Form states
   const [companyName, setCompanyName] = useState('');
   const [parentCompanyId, setParentCompanyId] = useState<number | null>(null);
@@ -57,12 +62,32 @@ export const Tab3_CompanyMgmt: React.FC<Tab3CompanyMgmtProps> = ({ onNavigateToT
   const handleOpenEditModal = (c: Company) => {
     setEditingCompany(c);
     setCompanyName(c.company_name);
-    setParentCompanyId(c.parent_company_id || null);
-    setCompanyType(c.company_type);
+    const isMainCompany = c.id === 1 || c.company_type === 'main';
+    setParentCompanyId(c.parent_company_id || (isMainCompany ? null : 1));
+    setCompanyType(isMainCompany ? 'main' : (c.company_type || 'subsidiary'));
     setAddress(c.company_address || '');
     setEmail(c.email || '');
     setStatus(c.status);
     setModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!companyToDelete) return;
+    try {
+      setDeleting(true);
+      await multiCompanyApi.deleteCompany(companyToDelete.id);
+      toast.success(`Permanently deleted ${companyToDelete.company_name}`);
+      if (activeCompany?.id === companyToDelete.id) {
+        setActiveCompanyId(1);
+      }
+      setDeleteModalOpen(false);
+      setCompanyToDelete(null);
+      await refreshCompanies();
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to delete company');
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const handleSaveCompany = async (e: React.FormEvent) => {
@@ -74,11 +99,15 @@ export const Tab3_CompanyMgmt: React.FC<Tab3CompanyMgmtProps> = ({ onNavigateToT
 
     try {
       setSaving(true);
+      const isMainCompany = editingCompany?.id === 1 || companyType === 'main';
+      const effectiveParentId = isMainCompany ? null : (parentCompanyId || 1);
+      const effectiveType = isMainCompany ? 'main' : 'subsidiary';
+
       if (editingCompany) {
         await multiCompanyApi.updateCompany(editingCompany.id, {
           company_name: companyName.trim(),
-          parent_company_id: parentCompanyId,
-          company_type: companyType,
+          parent_company_id: effectiveParentId,
+          company_type: effectiveType,
           company_address: address,
           email,
           status
@@ -87,8 +116,8 @@ export const Tab3_CompanyMgmt: React.FC<Tab3CompanyMgmtProps> = ({ onNavigateToT
       } else {
         const created = await multiCompanyApi.createCompany({
           company_name: companyName.trim(),
-          parent_company_id: parentCompanyId,
-          company_type: companyType,
+          parent_company_id: effectiveParentId,
+          company_type: effectiveType,
           company_address: address,
           email,
           status

@@ -70,6 +70,15 @@ export const multiCompanyApi = {
     if (!res.ok || !data.success) throw new Error(data.error || 'Failed to reset logo');
   },
 
+  async deleteCompany(id: number): Promise<void> {
+    const res = await fetch(`${API_BASE_URL}/api/companies/${id}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.error || 'Failed to delete company');
+  },
+
   // Company Module Management
   async getModules(): Promise<ModuleDefinition[]> {
     const res = await fetch(`${API_BASE_URL}/api/modules`);
