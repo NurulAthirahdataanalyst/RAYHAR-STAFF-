@@ -32,7 +32,7 @@ function createMultiCompanyRouter(pgPool) {
     const upper = trimmed.toUpperCase().replace(/\s+/g, '_');
     if (upper === 'ZONE_A' || upper.startsWith('ZONE_A_')) return 'ZONE_A';
     if (upper === 'ZONE_B' || upper.startsWith('ZONE_B_')) return 'ZONE_B';
-    return trimmed;
+    return upper;
   }
 
   // Helper to parse branch_ids array from request body or DB row
