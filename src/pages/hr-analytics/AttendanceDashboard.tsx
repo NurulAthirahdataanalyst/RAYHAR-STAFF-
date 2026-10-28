@@ -541,7 +541,7 @@ export default function AttendanceDashboard() {
           setLiveEmployees(data.employees || []);
           setLiveLastUpdated(data.timestamp);
           setLiveConnected(true);
-          setAttendanceStats(prev => ({
+          setAttendanceStats((prev: any) => ({
             ...prev,
             presentToday: data.stats.present,
             lateArrivals: data.stats.late,

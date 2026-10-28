@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
 import { format, isSameDay, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isBefore, startOfDay } from "date-fns";
 import { useRole } from "@/contexts/RoleContext";
+import { useCompany } from "@/modules/multi-company/contexts/CompanyContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -145,6 +146,7 @@ function fmtDate(d: string) {
 
 export default function WorkforceCalendar() {
   const { role, userBranch, userDepartment, loading: roleLoading } = useRole();
+  const { activeCompany } = useCompany();
   const [events, setEvents] = useState<WorkforceEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedEventInfo, setSelectedEventInfo] = useState<{event: WorkforceEvent, date: string} | null>(null);
@@ -172,7 +174,10 @@ export default function WorkforceCalendar() {
     setLoading(true);
     try {
       const params = new URLSearchParams({ role, branch: userBranch || "", department: userDepartment || "", month: String(viewMonth + 1), year: String(viewYear) });
-      const res = await fetch(`${API_BASE_URL}/api/workforce-calendar?${params}`);
+      params.append('company_id', String(activeCompany?.id || 1));
+      const res = await fetch(`${API_BASE_URL}/api/workforce-calendar?${params}`, {
+        headers: { 'x-company-id': String(activeCompany?.id || 1) }
+      });
       const data = await res.json();
       if (data.success && isMounted.current) {
         setEvents(data.events || []);
@@ -215,6 +220,11 @@ export default function WorkforceCalendar() {
 
     void fetchData();
 
+    const handleCompSwitch = () => {
+      void fetchData();
+    };
+    window.addEventListener('rayhar_company_switched', handleCompSwitch);
+
     const sse = new EventSource(`${API_BASE_URL}/api/workforce-calendar/stream`);
     sseRef.current = sse;
 
@@ -231,9 +241,10 @@ export default function WorkforceCalendar() {
 
     return () => {
       isMounted.current = false;
+      window.removeEventListener('rayhar_company_switched', handleCompSwitch);
       sse.close();
     };
-  }, [role, userBranch, userDepartment, roleLoading]);
+  }, [role, userBranch, userDepartment, roleLoading, viewMonth, viewYear, activeCompany?.id]);
 
   
   // Fetch Daily Attendance when selectedDay changes
@@ -246,7 +257,9 @@ export default function WorkforceCalendar() {
         const queryBranch = filterBranch !== "__ALL__" ? filterBranch : (role === "branch_leader" ? (userBranch || "") : "");
         const queryDept = filterDept !== "__ALL__" ? filterDept : (role === "head_of_department" ? (userDepartment || "") : "");
 
-        const dailyRes = await fetch(`${API_BASE_URL}/api/reports/daily-attendance?date=${dateStr}&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(queryBranch)}&department=${encodeURIComponent(queryDept)}`);
+        const dailyRes = await fetch(`${API_BASE_URL}/api/reports/daily-attendance?date=${dateStr}&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(queryBranch)}&department=${encodeURIComponent(queryDept)}&company_id=${activeCompany?.id || 1}`, {
+          headers: { 'x-company-id': String(activeCompany?.id || 1) }
+        });
 
         if (dailyRes.ok) {
           const d = await dailyRes.json();
@@ -262,7 +275,7 @@ export default function WorkforceCalendar() {
     };
     
     fetchDailyData();
-  }, [selectedDay, role, userBranch, userDepartment, filterBranch, filterDept]);
+  }, [selectedDay, role, userBranch, userDepartment, filterBranch, filterDept, activeCompany?.id]);
 
   // Calendar grid
   const calDays = useMemo(() => {

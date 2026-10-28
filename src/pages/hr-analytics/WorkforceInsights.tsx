@@ -1,5 +1,6 @@
 import { StaffProfileDialog } from '@/components/shared/StaffProfileDialog';
 import { useRole } from "@/contexts/RoleContext";
+import { useCompany } from "@/modules/multi-company/contexts/CompanyContext";
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
@@ -124,6 +125,7 @@ interface PendingItem {
 export default function WorkforceInsights() {
   const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
   const { role, userBranch, userDepartment, userId } = useRole();
+  const { activeCompany } = useCompany();
   const scopeLabel = role === "head_of_department" || role === "hod" ? userDepartment : (role === "branch_leader" ? userBranch : "");
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -223,7 +225,8 @@ export default function WorkforceInsights() {
       branch: queryBranch,
       department: queryDept,
       month: month.toString(),
-      year: year.toString()
+      year: year.toString(),
+      company_id: String(activeCompany?.id || 1)
     });
     if (viewMode === 'day') {
       params.append('date', `${year}-${month}-${day}`);
@@ -252,7 +255,7 @@ export default function WorkforceInsights() {
     };
     es.onerror = () => setFeedConnected(false);
     return () => es.close();
-  }, [role, userBranch, userDepartment, isAdminRole, month, year, day, viewMode]);
+  }, [role, userBranch, userDepartment, isAdminRole, month, year, day, viewMode, activeCompany?.id]);
 
   // SSE connection for live stats (to get liveEmployees)
   useEffect(() => {
@@ -260,7 +263,7 @@ export default function WorkforceInsights() {
     const isAllAccessRole = ["hr_admin", "managing_director", "operation_manager", "finance_manager"].includes(role || "");
     const queryBranch = isAllAccessRole ? "" : (userBranch || "");
     const queryDept = isAllAccessRole ? "" : (userDepartment || "");
-    const url = `${API_BASE_URL}/api/presence/live-stats?date=${year}-${month}-${day}&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(queryBranch)}&department=${encodeURIComponent(queryDept)}`;
+    const url = `${API_BASE_URL}/api/presence/live-stats?date=${year}-${month}-${day}&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(queryBranch)}&department=${encodeURIComponent(queryDept)}&company_id=${activeCompany?.id || 1}`;
     const es = new EventSource(url);
     
     es.onmessage = (event) => {
@@ -272,7 +275,7 @@ export default function WorkforceInsights() {
       } catch (err) {}
     };
     return () => es.close();
-  }, [role, userBranch, userDepartment, isAdminRole, month, year, day]);
+  }, [role, userBranch, userDepartment, isAdminRole, month, year, day, activeCompany?.id]);
 
   const getApprovalState = (userRole: string | undefined, itemStatus: string) => {
     const normRole = (userRole || '').toLowerCase();
@@ -355,16 +358,23 @@ export default function WorkforceInsights() {
         branch: queryBranch,
         department: queryDept,
         month: month,
-        year: year
+        year: year,
+        company_id: String(activeCompany?.id || 1)
       });
       if (viewMode === 'day') {
         params.append('date', `${year}-${month}-${day}`);
       }
       
       const [res, tempRes, outRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/api/workforce-stats?${params}`),
-        fetch(`${API_BASE_URL}/api/work-assignments-all?${params}`),
-        fetch(`${API_BASE_URL}/api/outstation?${params}`)
+        fetch(`${API_BASE_URL}/api/workforce-stats?${params}`, {
+          headers: { 'x-company-id': String(activeCompany?.id || 1) }
+        }),
+        fetch(`${API_BASE_URL}/api/work-assignments-all?${params}`, {
+          headers: { 'x-company-id': String(activeCompany?.id || 1) }
+        }),
+        fetch(`${API_BASE_URL}/api/outstation?${params}`, {
+          headers: { 'x-company-id': String(activeCompany?.id || 1) }
+        })
       ]);
       
       if (!res.ok) {
@@ -412,9 +422,12 @@ export default function WorkforceInsights() {
         month: month,
         year: year,
         weekStartDate: format(weekStart, 'yyyy-MM-dd'),
-        date: format(selectedDate, 'yyyy-MM-dd')
+        date: format(selectedDate, 'yyyy-MM-dd'),
+        company_id: String(activeCompany?.id || 1)
       });
-      const res = await fetch(`${API_BASE_URL}/api/workforce-stats?${params}`);
+      const res = await fetch(`${API_BASE_URL}/api/workforce-stats?${params}`, {
+        headers: { 'x-company-id': String(activeCompany?.id || 1) }
+      });
       if (res.ok) {
         const json = await res.json();
         if (json.success && json.attendanceOverview?.weeklyAttendanceTrend) {
@@ -431,9 +444,16 @@ export default function WorkforceInsights() {
     if (data) {
       fetchWeeklyTrendOnly(trendWeekStart);
     }
-  }, [trendWeekStart, role, userBranch, userDepartment]);
+  }, [trendWeekStart, role, userBranch, userDepartment, activeCompany?.id]);
 
-  useEffect(() => { fetchInsights(); }, [role, userBranch, userDepartment, month, year, day, viewMode]);
+  useEffect(() => { 
+    fetchInsights();
+    const handleCompSwitch = () => {
+      fetchInsights();
+    };
+    window.addEventListener('rayhar_company_switched', handleCompSwitch);
+    return () => window.removeEventListener('rayhar_company_switched', handleCompSwitch);
+  }, [role, userBranch, userDepartment, month, year, day, viewMode, activeCompany?.id]);
 
   if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
   if (error) return <div className="min-h-screen flex items-center justify-center text-red-500">Error: {error}. The backend may still be deploying.</div>;
@@ -2970,7 +2990,7 @@ function MonthViewDashboard({ data, branches = [], clockInOut, lateList, absentL
               </p>
               <p 
                 className="text-[10px] font-bold text-[#942392] cursor-pointer hover:underline flex items-center gap-1"
-                onClick={() => navigate((role === "head_of_department" || role === "hod" || role === "branch_leader") ? "/employees" : "/branches")}
+                onClick={() => navigate((currentRole === "head_of_department" || currentRole === "hod" || currentRole === "branch_leader") ? "/employees" : "/branches")}
               >
                 View All <ChevronRight className="w-3 h-3" />
               </p>

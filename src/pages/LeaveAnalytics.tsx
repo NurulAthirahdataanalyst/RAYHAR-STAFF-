@@ -2,6 +2,7 @@ import { writePrintDocument } from '@/utils/security';
 import { useState, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { useRole } from "@/contexts/RoleContext";
+import { useCompany } from "@/modules/multi-company/contexts/CompanyContext";
 import { useNavigate } from "react-router-dom";
 import {
   Card,
@@ -111,6 +112,7 @@ interface LeaveRecord {
   days: number;
   status: string;
   reason?: string;
+  role?: string;
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -374,6 +376,7 @@ function StatCard({
 // ─── Main Component ──────────────────────────────────────────────────────────
 export default function LeaveAnalytics() {
   const { role, userBranch, userDepartment, loading: roleLoading } = useRole();
+  const { activeCompany } = useCompany();
   const navigate = useNavigate();
 
   // State to hold portal target
@@ -486,35 +489,36 @@ export default function LeaveAnalytics() {
           ? { role: "head_of_department", branch: userBranch, department: userDepartment }
           : { role: "hr_admin", branch: "", department: "" }
       );
+      params.append('company_id', String(activeCompany?.id || 1));
 
-      const statsQuery = isBranchLeader
+      const statsQuery = (isBranchLeader
         ? `userId=ADMIN&role=branch_leader&branch=${encodeURIComponent(userBranch)}`
         : isHOD
         ? `userId=ADMIN&role=head_of_department&branch=${encodeURIComponent(userBranch)}&department=${encodeURIComponent(userDepartment)}`
-        : `userId=ADMIN&role=hr_admin&branch=All`;
+        : `userId=ADMIN&role=hr_admin&branch=All`) + `&company_id=${activeCompany?.id || 1}`;
 
       const dateParam = new Date().toISOString().split('T')[0];
-      const listQuery = isBranchLeader
+      const listQuery = (isBranchLeader
         ? `date=${dateParam}&role=branch_leader&branch=${encodeURIComponent(userBranch)}&department=`
         : isHOD
         ? `date=${dateParam}&role=head_of_department&branch=${encodeURIComponent(userBranch)}&department=${encodeURIComponent(userDepartment)}`
-        : `date=${dateParam}&role=hr_admin&branch=&department=`;
+        : `date=${dateParam}&role=hr_admin&branch=&department=`) + `&company_id=${activeCompany?.id || 1}`;
 
-      const empParams = isBranchLeader
+      const empParams = (isBranchLeader
         ? `role=branch_leader&branch=${encodeURIComponent(userBranch)}&department=`
         : isHOD
         ? `role=head_of_department&branch=${encodeURIComponent(userBranch)}&department=${encodeURIComponent(userDepartment)}`
-        : `role=hr_admin&branch=&department=`;
+        : `role=hr_admin&branch=&department=`) + `&company_id=${activeCompany?.id || 1}`;
 
       const [leaveRes, statsRes, presentRes, absentRes, outstationRes, onLeaveRes, entRes, empRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/api/leave-requests?${params}`),
-        fetch(`${API_BASE_URL}/api/dashboard-stats?${statsQuery}`),
-        fetch(`${API_BASE_URL}/api/reports/daily-attendance?${listQuery}`),
-        fetch(`${API_BASE_URL}/api/reports/absent-employees?${listQuery}`),
-        fetch(`${API_BASE_URL}/api/outstation?${listQuery.replace(`date=${dateParam}&`, '')}`),
-        fetch(`${API_BASE_URL}/api/reports/on-leave-employees?${listQuery}`),
-        fetch(`${API_BASE_URL}/api/leave-entitlements?${params}`),
-        fetch(`${API_BASE_URL}/api/employees?${empParams}&status=Active`)
+        fetch(`${API_BASE_URL}/api/leave-requests?${params}`, { headers: { 'x-company-id': String(activeCompany?.id || 1) } }),
+        fetch(`${API_BASE_URL}/api/dashboard-stats?${statsQuery}`, { headers: { 'x-company-id': String(activeCompany?.id || 1) } }),
+        fetch(`${API_BASE_URL}/api/reports/daily-attendance?${listQuery}`, { headers: { 'x-company-id': String(activeCompany?.id || 1) } }),
+        fetch(`${API_BASE_URL}/api/reports/absent-employees?${listQuery}`, { headers: { 'x-company-id': String(activeCompany?.id || 1) } }),
+        fetch(`${API_BASE_URL}/api/outstation?${listQuery.replace(`date=${dateParam}&`, '')}`, { headers: { 'x-company-id': String(activeCompany?.id || 1) } }),
+        fetch(`${API_BASE_URL}/api/reports/on-leave-employees?${listQuery}`, { headers: { 'x-company-id': String(activeCompany?.id || 1) } }),
+        fetch(`${API_BASE_URL}/api/leave-entitlements?${params}`, { headers: { 'x-company-id': String(activeCompany?.id || 1) } }),
+        fetch(`${API_BASE_URL}/api/employees?${empParams}&status=Active`, { headers: { 'x-company-id': String(activeCompany?.id || 1) } })
       ]);
 
       const data = await leaveRes.json();
@@ -567,6 +571,7 @@ export default function LeaveAnalytics() {
           days: Number(r.days || 0),
           status: r.status || "Pending HOD",
           reason: r.reason,
+          role: r.role,
         }));
         setRecords(formatted);
         setLastFetched(new Date());
@@ -617,8 +622,13 @@ export default function LeaveAnalytics() {
 
   useEffect(() => {
     void fetchData();
+    const handleCompSwitch = () => {
+      void fetchData();
+    };
+    window.addEventListener('rayhar_company_switched', handleCompSwitch);
+    return () => window.removeEventListener('rayhar_company_switched', handleCompSwitch);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [role, userBranch, userDepartment]);
+  }, [role, userBranch, userDepartment, activeCompany?.id]);
 
   // ─ Staff-level summary (for Branch Leader / HOD) ─────────────────────────
   const staffSummary = useMemo(() => {

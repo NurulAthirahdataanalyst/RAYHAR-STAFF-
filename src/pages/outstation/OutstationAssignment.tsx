@@ -2,6 +2,7 @@ import { writePrintDocument, sanitizeInternalPath } from '@/utils/security';
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { useRole } from "@/contexts/RoleContext";
+import { useCompany } from "@/modules/multi-company/contexts/CompanyContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -144,6 +145,7 @@ const isSafeInternalPath = (path: string) => {
 
 export default function OutstationAssignment() {
   const { role, userBranch, userDepartment, userId, userName, loading: roleLoading } = useRole();
+  const { activeCompany } = useCompany();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -209,10 +211,11 @@ export default function OutstationAssignment() {
     while (attempts < 3) {
       try {
         attempts++;
-        const scopeParams = new URLSearchParams({ role, branch: userBranch || "", department: userDepartment || "" });
+        const companyId = String(activeCompany?.id || 1);
+        const scopeParams = new URLSearchParams({ role, branch: userBranch || "", department: userDepartment || "", company_id: companyId });
         const [assRes, empRes] = await Promise.all([
-          fetch(`${API_BASE_URL}/api/outstation?${scopeParams}`),
-          fetch(`${API_BASE_URL}/api/employees?role=${encodeURIComponent(role)}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}`),
+          fetch(`${API_BASE_URL}/api/outstation?${scopeParams}`, { headers: { 'x-company-id': companyId } }),
+          fetch(`${API_BASE_URL}/api/employees?role=${encodeURIComponent(role)}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}&company_id=${companyId}`, { headers: { 'x-company-id': companyId } }),
         ]);
         const [assData, empData] = await Promise.all([assRes.json(), empRes.json()]);
         if (assData.success) setAssignments(assData.data || assData.assignments || []);
@@ -228,10 +231,16 @@ export default function OutstationAssignment() {
       }
     }
     setLoading(false);
-  }, [role, userBranch, userDepartment]);
+  }, [role, userBranch, userDepartment, activeCompany?.id]);
 
   useEffect(() => {
     void fetchData();
+  }, [fetchData]);
+
+  useEffect(() => {
+    const handleCompSwitch = () => { void fetchData(); };
+    window.addEventListener('rayhar_company_switched', handleCompSwitch);
+    return () => window.removeEventListener('rayhar_company_switched', handleCompSwitch);
   }, [fetchData]);
 
   // Group individual assignments into Events
