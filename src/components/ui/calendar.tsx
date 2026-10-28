@@ -172,7 +172,7 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
 
       {/* Date input row: [ DD/MM/YYYY ] [ Apply ] */}
       <div className="flex items-center gap-1.5 w-full">
-        <div className="relative flex-1 flex items-center bg-background border border-border/80 focus-within:border-[#942392] focus-within:ring-1 focus-within:ring-[#942392]/20 rounded-xl px-2.5 h-8.5 transition-all shadow-2xs">
+        <div className="relative flex-1 flex items-center bg-background border border-border/80 focus-within:border-[#942392] focus-within:ring-1 focus-within:ring-[#942392]/20 rounded-md px-2 h-7 transition-all shadow-2xs">
           <input
             type="text"
             placeholder="DD/MM/YYYY"
@@ -183,14 +183,14 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
                 handleApply(e);
               }
             }}
-            className="w-full text-xs font-mono font-bold bg-transparent text-foreground outline-none placeholder:text-muted-foreground/50 placeholder:font-normal placeholder:font-mono"
+            className="w-full text-[11px] font-mono font-bold bg-transparent text-foreground outline-none placeholder:text-muted-foreground/50 placeholder:font-normal placeholder:font-mono"
             maxLength={10}
           />
         </div>
         <button
           type="button"
           onClick={handleApply}
-          className="h-8.5 px-3.5 rounded-xl bg-[#942392] hover:bg-[#800A7A] active:scale-95 text-white text-xs font-bold transition-all shadow-2xs cursor-pointer shrink-0 uppercase tracking-wider"
+          className="h-7 px-2.5 rounded-md bg-[#942392] hover:bg-[#800A7A] active:scale-95 text-white text-[10px] font-black uppercase tracking-wider transition-all shadow-2xs cursor-pointer shrink-0"
         >
           Apply
         </button>
