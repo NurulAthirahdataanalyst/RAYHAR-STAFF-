@@ -189,7 +189,7 @@ export interface LeaveTypeSetting {
   mc_required: boolean;
 }
 
-export type WorkflowBranchScope = 'HQ' | 'OTHER_BRANCHES' | 'ALL';
+export type WorkflowBranchScope = 'HQ' | 'OTHER_BRANCHES' | 'ALL' | string;
 
 export interface ApprovalWorkflowStep {
   id?: number;

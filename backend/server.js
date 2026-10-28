@@ -1732,13 +1732,100 @@ app.use((req, res, next) => {
   next();
 });
 
-function getCompanyUserSqlFilterById(companyId, columnExpr = "user_id") {
-  const cid = companyId ? parseInt(companyId, 10) : null;
-  if (!cid || isNaN(cid)) return "";
-  if (cid === 1) {
-    return ` AND (${columnExpr} IN (SELECT cur_s.user_id FROM company_user_roles cur_s WHERE cur_s.company_id = 1 AND cur_s.status = 'active') OR ${columnExpr} NOT IN (SELECT cur_s2.user_id FROM company_user_roles cur_s2 WHERE cur_s2.status = 'active'))`;
+// ===============================
+// SECURITY (CWE-89): COMPANY SCOPE FILTER
+// ===============================
+// The company filter is appended to many SQL strings. To guarantee that no request-derived
+// value can ever reach the SQL text, the company ID is NEVER written into the SQL. Instead:
+//   1. getCompanyUserSqlFilterById() emits a constant placeholder token
+//      (e.g. "__COMPANY_ID_PARAM_0__") whose number is a server-assigned slot index.
+//   2. bindCompanyIdParams() (called by the pool wrappers below, right before execution)
+//      swaps each token for a real PostgreSQL bind placeholder ($n) and appends the company ID
+//      to the bound parameter list.
+// Call sites keep using the filter exactly as before; no positional params need to change.
+// Column expressions must be plain (optionally table-qualified) identifiers and are validated.
+const SAFE_SQL_COLUMN_RE = /^[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)?$/;
+const SAFE_SQL_TIME_RE = /^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/;
+const COMPANY_ID_TOKEN_PREFIX = "__COMPANY_ID_PARAM_";
+const COMPANY_ID_TOKEN_RE = /__COMPANY_ID_PARAM_(\d+)__/g;
+const MAX_COMPANY_ID_PARAM_SLOTS = 100000;
+const companyIdParamSlots = [];               // slot index -> validated company id (number)
+const companyIdParamSlotByValue = new Map();  // validated company id -> slot index
+
+function toSafeSqlColumn(columnExpr) {
+  const col = String(columnExpr ?? "");
+  if (!SAFE_SQL_COLUMN_RE.test(col)) {
+    throw new Error(`Unsafe SQL column expression rejected: ${col}`);
   }
-  return ` AND ${columnExpr} IN (SELECT cur_s.user_id FROM company_user_roles cur_s WHERE cur_s.company_id = ${cid} AND cur_s.status = 'active')`;
+  return col;
+}
+
+// Returns a strictly formatted HH:MM[:SS] string that is safe to embed in SQL; falls back to 09:00:00.
+function toSafeSqlTime(timeStr, fallback = "09:00:00") {
+  const t = String(timeStr ?? "").trim();
+  return SAFE_SQL_TIME_RE.test(t) ? t : fallback;
+}
+
+function toSafeCompanyId(companyId) {
+  if (companyId === null || companyId === undefined || companyId === "") return null;
+  const parsed = parseInt(String(companyId), 10);
+  if (Number.isNaN(parsed) || parsed === 0) return null;
+  // Out-of-range IDs can never match a real company: force a "match nothing" filter.
+  if (!Number.isSafeInteger(parsed)) return -1;
+  return parsed;
+}
+
+// Map a validated company id to a constant, server-generated SQL token.
+function companyIdParamToken(cid) {
+  let slot = companyIdParamSlotByValue.get(cid);
+  if (slot === undefined) {
+    if (companyIdParamSlots.length >= MAX_COMPANY_ID_PARAM_SLOTS) return null;
+    slot = companyIdParamSlots.length;
+    companyIdParamSlots.push(cid);
+    companyIdParamSlotByValue.set(cid, slot);
+  }
+  return `${COMPANY_ID_TOKEN_PREFIX}${slot}__`;
+}
+
+// Replace company-id tokens with real bind placeholders ($n) and append the bound values.
+// Must run AFTER "?" -> "$n" conversion so the new placeholders are numbered last.
+function bindCompanyIdParams(sql, params) {
+  const baseParams = Array.isArray(params) ? params : [];
+  if (typeof sql !== "string" || !sql.includes(COMPANY_ID_TOKEN_PREFIX)) {
+    return { sql, params: baseParams };
+  }
+  const outParams = [...baseParams];
+  const placeholderBySlot = new Map();
+  const outSql = sql.replace(COMPANY_ID_TOKEN_RE, (_match, slotStr) => {
+    const slot = Number(slotStr);
+    if (!placeholderBySlot.has(slot)) {
+      const cid = companyIdParamSlots[slot];
+      if (!Number.isSafeInteger(cid)) {
+        throw new Error(`Unknown company filter token slot: ${slot}`);
+      }
+      outParams.push(String(cid));
+      placeholderBySlot.set(slot, `$${outParams.length}`);
+    }
+    return placeholderBySlot.get(slot);
+  });
+  return { sql: outSql, params: outParams };
+}
+
+function getCompanyUserSqlFilterById(companyId, columnExpr = "user_id") {
+  const col = toSafeSqlColumn(columnExpr);
+  const cid = toSafeCompanyId(companyId);
+  if (cid === null) return "";
+  // Negative / out-of-range IDs can never match a company; keep the "match nothing" behaviour.
+  if (cid < 0) return " AND 1=0";
+  if (cid === 1) {
+    return ` AND (${col} IN (SELECT cur_s.user_id FROM company_user_roles cur_s WHERE cur_s.company_id = 1 AND cur_s.status = 'active') OR ${col} NOT IN (SELECT cur_s2.user_id FROM company_user_roles cur_s2 WHERE cur_s2.status = 'active'))`;
+  }
+  const token = companyIdParamToken(cid);
+  if (token === null) {
+    // Slot table exhausted (only possible under abuse): fail closed rather than widen access.
+    return " AND 1=0";
+  }
+  return ` AND ${col} IN (SELECT cur_s.user_id FROM company_user_roles cur_s WHERE cur_s.company_id = ${token} AND cur_s.status = 'active')`;
 }
 
 function getCompanyUserSqlFilter(req, columnExpr = "user_id") {
@@ -1746,12 +1833,32 @@ function getCompanyUserSqlFilter(req, columnExpr = "user_id") {
   return getCompanyUserSqlFilterById(raw, columnExpr);
 }
 
+// Safety net: if a company filter ever reaches pgPool.query directly (bypassing the wrapper
+// below, e.g. from routes/multiCompanyRoutes.js), still bind the company id as a parameter.
+{
+  const rawPgPoolQuery = pgPool.query.bind(pgPool);
+  pgPool.query = function patchedPgPoolQuery(text, params, callback) {
+    if (typeof text === "string" && text.includes(COMPANY_ID_TOKEN_PREFIX)) {
+      const cb = typeof params === "function" ? params : callback;
+      const bound = bindCompanyIdParams(text, typeof params === "function" ? [] : params);
+      return cb ? rawPgPoolQuery(bound.sql, bound.params, cb) : rawPgPoolQuery(bound.sql, bound.params);
+    }
+    return rawPgPoolQuery(text, params, callback);
+  };
+}
+
 // Mount Multi-Company and IAM Routes
 const { createMultiCompanyRouter } = require('./routes/multiCompanyRoutes');
 app.use('/api', createMultiCompanyRouter(pgPool));
 
 // Helper: replace ? placeholders with $1, $2, ... for PostgreSQL and expand array params for IN (?)
+// Then bind any company-scope tokens as real parameters (see bindCompanyIdParams).
 function mysqlToPostgres(sql, params) {
+  const converted = mysqlPlaceholdersToPostgres(sql, params);
+  return bindCompanyIdParams(converted.sql, converted.params);
+}
+
+function mysqlPlaceholdersToPostgres(sql, params) {
   if (!params || params.length === 0) return { sql, params: [] };
 
   // If the query was written directly in PostgreSQL $1, $2 syntax without ? placeholders, preserve params
@@ -8366,8 +8473,9 @@ app.get("/api/dashboard-stats", async (req, res) => {
           onLeaveParams
         );
 
-        const lateTimeStr = getLateThresholdTime(companyId, queryDate);
-        const lateParams = [queryDate, queryDate, ...queryParams];
+        const lateTimeStr = toSafeSqlTime(getLateThresholdTime(companyId, queryDate));
+        // Placeholder order: date (first_clocks), late cutoff time, date (outstation), then scope params
+        const lateParams = [queryDate, lateTimeStr, queryDate, ...queryParams];
         const [rawLateRows] = await pool.query(
           `WITH first_clocks AS (
              SELECT user_id, MIN(clock_in) AS first_clock_in
@@ -8377,7 +8485,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
            )
            SELECT DISTINCT fc.user_id 
            FROM first_clocks fc
-           WHERE (fc.first_clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::time > '${lateTimeStr}' 
+           WHERE (fc.first_clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::time > ?::time 
            AND NOT EXISTS (
              SELECT 1 FROM outstation_assignments oa 
              WHERE oa.user_id = fc.user_id AND oa.status != 'Cancelled' 
@@ -8579,7 +8687,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
 
     let todayStatus = "Absent";
     const [empProfileZone] = await pool.query(
-      `SELECT b.operating_zone FROM branches b JOIN profiles p ON b.code = p.branch WHERE p.user_id = ? ${personalCompPFilter}`,
+      `SELECT b.operating_zone, p.company_id FROM branches b JOIN profiles p ON b.code = p.branch WHERE p.user_id = ? ${personalCompPFilter}`,
       [userId]
     );
     if (empProfileZone.length > 0) {
@@ -8624,7 +8732,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
       
       let isLate = false;
       if (record.clock_in) {
-        const empCompanyId = userProfile?.company_id || getEmployeeCompanyId(userId) || companyId;
+        const empCompanyId = empProfileZone[0]?.company_id || getEmployeeCompanyId(userId) || companyId || 1;
         const lateness = isAttendanceLate(record.clock_in, empCompanyId, queryDate);
         isLate = lateness.isLate;
       }
@@ -8986,12 +9094,12 @@ app.get("/api/dashboard-stats", async (req, res) => {
           -- Clock Ins for team
           SELECT 'attendance' AS type,
             p.full_name AS actor,
-            CASE WHEN (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::time > '${getLateThresholdTime()}' THEN 'Clocked in late' ELSE 'Clocked In' END AS action,
+            CASE WHEN (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::time > '${toSafeSqlTime(getLateThresholdTime())}' THEN 'Clocked in late' ELSE 'Clocked In' END AS action,
             NULL AS target,
             CONCAT_WS(' • ', NULLIF(TRIM(p.department), ''), COALESCE((SELECT CONCAT(p.branch, ' -> ', ewa.location) FROM employee_work_assignment ewa WHERE ewa.user_id = p.user_id AND ewa.status = 'Active' AND DATE(a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur') BETWEEN (ewa.start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND COALESCE((ewa.end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date, '2099-12-31'::date) LIMIT 1), p.branch)) AS context,
             TO_CHAR(a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time,
             a.clock_in AS sort_time,
-            CASE WHEN (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::time > '${getLateThresholdTime()}' THEN 'Late' ELSE 'Present' END AS badge
+            CASE WHEN (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::time > '${toSafeSqlTime(getLateThresholdTime())}' THEN 'Late' ELSE 'Present' END AS badge
           FROM attendances a
           JOIN profiles p ON p.user_id = a.user_id
           WHERE DATE(a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
@@ -13795,11 +13903,11 @@ async function getWorkforceCalendarData(role, branch, department, month, year, c
   let outstationWhere = `WHERE oa.status != 'Cancelled' ${companyFilterOa}`;
 
   if (role === 'branch_leader' && branch) {
-    leaveWhere += ` AND p.branch = ${params.length + 1}`;
+    leaveWhere += ` AND p.branch = ?`;
     params.push(branch);
     outstationWhere += ` AND oa.branch = ?`;
   } else if (role === 'head_of_department' && department) {
-    leaveWhere += ` AND p.department = ${params.length + 1}`;
+    leaveWhere += ` AND p.department = ?`;
     params.push(department);
     outstationWhere += ` AND oa.department = ?`;
   } else if (role === 'head_of_department' && !department) {

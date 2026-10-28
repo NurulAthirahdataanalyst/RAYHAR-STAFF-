@@ -2196,23 +2196,36 @@ function createMultiCompanyRouter(pgPool) {
 
   router.get('/audit-logs', async (req, res) => {
     try {
-      const { company_id, limit = 100 } = req.query;
-      let query = `
-        SELECT al.*, c.company_name
-        FROM audit_logs al
-        LEFT JOIN companies c ON al.company_id = c.id
-      `;
-      const params = [];
-
-      if (company_id) {
-        query += ' WHERE al.company_id = $1';
-        params.push(company_id);
+      // SECURITY (CWE-89): use fixed SQL text only; user input is passed exclusively as
+      // validated, bound parameters.
+      const rawCompanyId = req.query.company_id;
+      const hasCompanyFilter = rawCompanyId !== undefined && rawCompanyId !== null && rawCompanyId !== '';
+      const companyId = hasCompanyFilter ? parseInt(String(rawCompanyId), 10) : null;
+      if (hasCompanyFilter && (!Number.isSafeInteger(companyId) || companyId <= 0)) {
+        return res.status(400).json({ success: false, error: 'Invalid company_id' });
       }
 
-      query += ` ORDER BY al.created_at DESC LIMIT $${params.length + 1}`;
-      params.push(limit);
+      const parsedLimit = parseInt(String(req.query.limit ?? '100'), 10);
+      const limit = Number.isSafeInteger(parsedLimit) && parsedLimit > 0 ? Math.min(parsedLimit, 1000) : 100;
 
-      const logs = await pgPool.query(query, params);
+      const logs = hasCompanyFilter
+        ? await pgPool.query(
+            `SELECT al.*, c.company_name
+             FROM audit_logs al
+             LEFT JOIN companies c ON al.company_id = c.id
+             WHERE al.company_id = $1
+             ORDER BY al.created_at DESC
+             LIMIT $2`,
+            [companyId, limit]
+          )
+        : await pgPool.query(
+            `SELECT al.*, c.company_name
+             FROM audit_logs al
+             LEFT JOIN companies c ON al.company_id = c.id
+             ORDER BY al.created_at DESC
+             LIMIT $1`,
+            [limit]
+          );
       res.json({ success: true, audit_logs: logs.rows });
     } catch (err) {
       res.status(500).json({ success: false, error: err.message });

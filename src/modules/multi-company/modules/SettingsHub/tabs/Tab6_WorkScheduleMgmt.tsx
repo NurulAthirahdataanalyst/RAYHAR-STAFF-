@@ -176,8 +176,27 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
 
   const handleZoneSelectionChange = (val: string) => {
     setOperatingZoneMode(val);
-    if (!editingScheduleId && (val === 'ZONE_A' || val === 'ZONE_B')) {
-      handleApplyZonePreset(val);
+    if (val === 'CUSTOM') {
+      setCustomZoneCode('');
+      return;
+    }
+    if (val === 'ZONE_A' || val === 'ZONE_B') {
+      setCustomZoneCode('');
+      if (!editingScheduleId) {
+        handleApplyZonePreset(val);
+      } else {
+        handleSelectZoneBranches(val);
+      }
+    } else if (val !== 'NONE') {
+      // Custom zone selected (e.g. OPERATING_ZONE_B)
+      setCustomZoneCode(val);
+      if (!editingScheduleId) {
+        handleApplyZonePreset(val);
+      } else {
+        handleSelectZoneBranches(val);
+      }
+    } else {
+      setCustomZoneCode('');
     }
   };
 
@@ -189,19 +208,25 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
 
   const handleOpenCreate = () => {
     setEditingScheduleId(null);
-    const defaultZone = 'ZONE_A';
+    let defaultZone = 'ZONE_A';
+    if (branches.length > 0) {
+      const branchZones = Array.from(new Set(branches.map((b) => normalizeZoneCode(b.operating_zone)).filter(Boolean)));
+      if (branchZones.length === 1 && branchZones[0]) {
+        defaultZone = branchZones[0];
+      }
+    }
     const preset = getZonePresetDays(defaultZone);
     setScheduleName(preset.defaultName);
     setOperatingZoneMode(defaultZone);
-    setCustomZoneCode('');
+    setCustomZoneCode(defaultZone !== 'ZONE_A' && defaultZone !== 'ZONE_B' ? defaultZone : '');
     setSelectedDept('ALL');
     setBranchSearch('');
     setBranchDropdownOpen(false);
-    const zoneABranchCodes = branches
-      .filter((b) => normalizeZoneCode(b.operating_zone) === 'ZONE_A')
+    const matchedBranchCodes = branches
+      .filter((b) => normalizeZoneCode(b.operating_zone) === defaultZone)
       .map((b) => b.code.toUpperCase())
       .sort();
-    setSelectedBranches(zoneABranchCodes);
+    setSelectedBranches(matchedBranchCodes.length > 0 ? matchedBranchCodes : branches.map((b) => b.code.toUpperCase()).sort());
     setLunchStart(preset.lunchStart);
     setLunchEnd(preset.lunchEnd);
     setDaysState(preset.days);
@@ -224,7 +249,8 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
       setOperatingZoneMode(normZone);
       setCustomZoneCode('');
     } else {
-      setOperatingZoneMode('CUSTOM');
+      // Known or saved custom zone (e.g. OPERATING_ZONE_B)
+      setOperatingZoneMode(normZone);
       setCustomZoneCode(normZone);
     }
 
@@ -577,13 +603,13 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
                     <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
                       Operating Zone
                     </Label>
-                    {(operatingZoneMode === 'ZONE_A' || operatingZoneMode === 'ZONE_B') && (
+                    {operatingZoneMode && operatingZoneMode !== 'NONE' && operatingZoneMode !== 'CUSTOM' && (
                       <button
                         type="button"
                         onClick={() => handleApplyZonePreset(operatingZoneMode)}
-                        className="text-[10px] font-black uppercase tracking-wider text-[#942392] hover:underline"
+                        className="text-[10px] font-black uppercase tracking-wider text-[#942392] hover:underline cursor-pointer"
                       >
-                        Apply {operatingZoneMode === 'ZONE_A' ? 'Zone A' : 'Zone B'} Preset
+                        Apply {operatingZoneMode.replace(/_/g, ' ')} Preset
                       </button>
                     )}
                   </div>
@@ -598,11 +624,16 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
                       <SelectItem value="ZONE_B" className="text-xs font-bold">
                         ZONE B (West Coast - Sat/Sun Off)
                       </SelectItem>
+                      {availableCustomZones.map((cz) => (
+                        <SelectItem key={cz} value={cz} className="text-xs font-bold text-[#942392] dark:text-[#f885d5]">
+                          {cz} (Custom Operating Zone)
+                        </SelectItem>
+                      ))}
                       <SelectItem value="NONE" className="text-xs font-bold">
                         All Zones / No Specific Zone
                       </SelectItem>
                       <SelectItem value="CUSTOM" className="text-xs font-bold">
-                        Custom Operating Zone...
+                        + Enter New Custom Operating Zone...
                       </SelectItem>
                     </SelectContent>
                   </Select>
@@ -610,8 +641,9 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
                     <Input
                       value={customZoneCode}
                       onChange={(e) => setCustomZoneCode(e.target.value.toUpperCase())}
-                      placeholder="e.g. ZONE_C or SHIFT_1"
+                      placeholder="e.g. OPERATING_ZONE_C or SHIFT_1"
                       className="text-xs h-9 mt-1.5 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold uppercase rounded-xl"
+                      autoFocus
                     />
                   )}
                 </div>
@@ -692,6 +724,16 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
                           >
                             ZONE B
                           </button>
+                          {availableCustomZones.map((cz) => (
+                            <button
+                              key={cz}
+                              type="button"
+                              onClick={() => handleSelectZoneBranches(cz)}
+                              className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20 transition-colors shadow-xs cursor-pointer uppercase tracking-wider"
+                            >
+                              {cz}
+                            </button>
+                          ))}
                           <button
                             type="button"
                             onClick={() => setSelectedBranches(branches.map((b) => b.code.toUpperCase()).sort())}
@@ -810,6 +852,16 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
                     >
                       ZONE B
                     </button>
+                    {availableCustomZones.map((cz) => (
+                      <button
+                        key={cz}
+                        type="button"
+                        onClick={() => handleSelectZoneBranches(cz)}
+                        className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20 transition-colors shadow-xs cursor-pointer uppercase tracking-wider"
+                      >
+                        {cz}
+                      </button>
+                    ))}
                     {selectedBranches.length > 0 && (
                       <button
                         type="button"

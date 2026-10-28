@@ -285,11 +285,13 @@ export const multiCompanyApi = {
   async saveLeaveSettings(
     companyId: number,
     payload: {
-      annual_days: number;
-      sick_days: number;
-      emergency_days: number;
-      mc_required: boolean;
-      escalate_to_parent: boolean;
+      annual_days?: number;
+      sick_days?: number;
+      emergency_days?: number;
+      replacement_days?: number;
+      unpaid_days?: number;
+      mc_required?: boolean;
+      escalate_to_parent?: boolean;
     }
   ): Promise<LeaveTypeSetting[]> {
     const res = await fetch(`${API_BASE_URL}/api/companies/${companyId}/leave-settings`, {

@@ -4,8 +4,23 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CalendarDays, ShieldCheck, Check, ArrowDown, Save, Loader2, FileText } from 'lucide-react';
+import {
+  CalendarDays,
+  ShieldCheck,
+  Check,
+  ArrowDown,
+  Save,
+  Loader2,
+  FileText,
+  Palmtree,
+  RotateCcw,
+  Clock,
+  HeartPulse,
+  Coins,
+  AlertCircle
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { useCompany } from '../../../contexts/CompanyContext';
 import { multiCompanyApi } from '../../../services/multiCompanyApi';
@@ -18,10 +33,22 @@ export const Tab8_LeaveWorkflowConfig: React.FC = () => {
   const [leaveTypes, setLeaveTypes] = useState<LeaveTypeSetting[]>([]);
   const [escalateToParent, setEscalateToParent] = useState(true);
   const [mcRequired, setMcRequired] = useState(true);
+
+  // 4 Leave Types State
+  // 1. Annual & Emergency Leave
   const [annualDays, setAnnualDays] = useState(14);
-  const [sickDays, setSickDays] = useState(14);
   const [emergencyDays, setEmergencyDays] = useState(5);
-  const [saving, setSaving] = useState(false);
+
+  // 2. Replacement Leave (Cuti Ganti)
+  const [replacementDays, setReplacementDays] = useState(0);
+
+  // 3. Unpaid Leave (Cuti Tanpa Gaji)
+  const [unpaidDays, setUnpaidDays] = useState(30);
+
+  // 4. Medical Leave (Sick Leave)
+  const [sickDays, setSickDays] = useState(14);
+
+  const [savingPolicies, setSavingPolicies] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -38,10 +65,15 @@ export const Tab8_LeaveWorkflowConfig: React.FC = () => {
         const annual = data.leave_types.find(l => l.leave_type === 'Annual Leave');
         const sick = data.leave_types.find(l => l.leave_type === 'Sick Leave');
         const emerg = data.leave_types.find(l => l.leave_type === 'Emergency Leave');
+        const rep = data.leave_types.find(l => l.leave_type === 'Replacement Leave');
+        const unpaid = data.leave_types.find(l => l.leave_type === 'Unpaid Leave');
 
-        if (annual) setAnnualDays(annual.default_entitlement_days);
-        if (sick) setSickDays(sick.default_entitlement_days);
-        if (emerg) setEmergencyDays(emerg.default_entitlement_days);
+        if (annual) setAnnualDays(annual.default_entitlement_days ?? 14);
+        if (sick) setSickDays(sick.default_entitlement_days ?? 14);
+        if (emerg) setEmergencyDays(emerg.default_entitlement_days ?? 5);
+        if (rep) setReplacementDays(rep.default_entitlement_days ?? 0);
+        if (unpaid) setUnpaidDays(unpaid.default_entitlement_days ?? 30);
+
         if (annual) setEscalateToParent(annual.escalate_to_parent !== false);
         if (sick) setMcRequired(sick.mc_required !== false);
       } catch (err) {
@@ -52,6 +84,26 @@ export const Tab8_LeaveWorkflowConfig: React.FC = () => {
     };
     void fetchLeaveData();
   }, [selectedCompanyId]);
+
+  const handleSavePolicies = async () => {
+    try {
+      setSavingPolicies(true);
+      await multiCompanyApi.saveLeaveSettings(selectedCompanyId, {
+        annual_days: Number(annualDays),
+        sick_days: Number(sickDays),
+        emergency_days: Number(emergencyDays),
+        replacement_days: Number(replacementDays),
+        unpaid_days: Number(unpaidDays),
+        mc_required: mcRequired,
+        escalate_to_parent: escalateToParent
+      });
+      toast.success(`Leave entitlements and policies saved for ${currentCompanyName}!`);
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to save leave policies');
+    } finally {
+      setSavingPolicies(false);
+    }
+  };
 
   const currentCompanyName = companies.find(c => c.id === selectedCompanyId)?.company_name || 'Selected Entity';
 
@@ -94,66 +146,256 @@ export const Tab8_LeaveWorkflowConfig: React.FC = () => {
         </span>
       </div>
 
-      {/* Part 1: Leave Entitlements Configuration */}
-      <Card className="border border-border dark:border-neutral-800 shadow-xs bg-white/70 dark:bg-card/70 backdrop-blur-md rounded-2xl p-5 space-y-4">
-        <div className="space-y-1">
-          <h4 className="text-xs font-black uppercase tracking-wider text-foreground dark:text-white flex items-center gap-2">
-            <FileText className="w-4 h-4 text-[#942392]" />
-            Default Annual Entitlements & Policies
-          </h4>
-          <p className="text-[11px] text-muted-foreground">Standard starting quota allocations for new employees onboarded into this company.</p>
+      {/* Part 1: Leave Entitlements Configuration — 4 Specific Leave Types */}
+      <Card className="border border-border dark:border-neutral-800 shadow-xs bg-white/70 dark:bg-card/70 backdrop-blur-md rounded-2xl p-5 space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border/50 dark:border-neutral-800">
+          <div className="space-y-1">
+            <h4 className="text-xs font-black uppercase tracking-wider text-foreground dark:text-white flex items-center gap-2">
+              <FileText className="w-4 h-4 text-[#942392]" />
+              Default Annual Entitlements & Policies (4 Leave Types)
+            </h4>
+            <p className="text-[11px] text-muted-foreground">
+              Standard quota allocations and baseline entitlements for employees assigned to <strong className="text-foreground">{currentCompanyName}</strong>.
+            </p>
+          </div>
+
+          <Button
+            type="button"
+            size="sm"
+            onClick={handleSavePolicies}
+            disabled={savingPolicies || loading}
+            className="bg-[#942392] hover:bg-[#800A7A] text-white font-bold text-xs h-8 shadow-xs shrink-0 cursor-pointer"
+          >
+            {savingPolicies ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" />
+            ) : (
+              <Save className="w-3.5 h-3.5 mr-1" />
+            )}
+            Save Entitlements
+          </Button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
-          <div className="p-3 rounded-xl border border-border/50 bg-background dark:bg-neutral-900 space-y-2">
-            <div className="flex justify-between items-center">
-              <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Annual Leave</Label>
-              <Input
-                type="number"
-                value={annualDays}
-                onChange={(e) => setAnnualDays(Number(e.target.value))}
-                className="w-16 h-7 text-xs text-center font-semibold placeholder:font-normal text-black dark:text-white"
-              />
+        {/* 4 Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* 1. Annual & Emergency Leave */}
+          <div className="p-4 rounded-xl border border-purple-500/25 bg-gradient-to-b from-purple-500/5 to-transparent dark:bg-neutral-900/80 space-y-3.5 relative overflow-hidden flex flex-col justify-between">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-[#942392]/15 text-[#942392] flex items-center justify-center">
+                    <Palmtree className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground block">
+                      Type 1
+                    </span>
+                    <h5 className="text-xs font-black text-foreground uppercase tracking-tight">
+                      Annual & Emergency Leave
+                    </h5>
+                  </div>
+                </div>
+                <Badge variant="outline" className="text-[9px] font-bold border-purple-500/30 text-[#942392] dark:text-[#f885d5] bg-purple-500/10">
+                  Paid
+                </Badge>
+              </div>
+
+              <p className="text-[10.5px] text-muted-foreground leading-relaxed">
+                Standard paid vacation and sudden emergency leave allowance.
+              </p>
             </div>
-            <span className="text-[10px] text-muted-foreground block">Days per annum</span>
+
+            <div className="space-y-2 pt-2 border-t border-border/40 dark:border-neutral-800">
+              <div className="flex justify-between items-center bg-background/60 dark:bg-neutral-950 p-2 rounded-lg border border-border/50">
+                <Label className="text-[11px] font-bold text-black dark:text-white">Annual Leave</Label>
+                <div className="flex items-center gap-1.5">
+                  <Input
+                    type="number"
+                    min={0}
+                    value={annualDays}
+                    onChange={(e) => setAnnualDays(Number(e.target.value))}
+                    className="w-16 h-7 text-xs text-center font-bold text-black dark:text-white"
+                  />
+                  <span className="text-[10px] text-muted-foreground font-semibold">days</span>
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center bg-background/60 dark:bg-neutral-950 p-2 rounded-lg border border-border/50">
+                <Label className="text-[11px] font-bold text-black dark:text-white">Emergency Leave</Label>
+                <div className="flex items-center gap-1.5">
+                  <Input
+                    type="number"
+                    min={0}
+                    value={emergencyDays}
+                    onChange={(e) => setEmergencyDays(Number(e.target.value))}
+                    className="w-16 h-7 text-xs text-center font-bold text-black dark:text-white"
+                  />
+                  <span className="text-[10px] text-muted-foreground font-semibold">days</span>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div className="p-3 rounded-xl border border-border/50 bg-background dark:bg-neutral-900 space-y-2">
-            <div className="flex justify-between items-center">
-              <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Medical / Sick Leave</Label>
-              <Input
-                type="number"
-                value={sickDays}
-                onChange={(e) => setSickDays(Number(e.target.value))}
-                className="w-16 h-7 text-xs text-center font-semibold placeholder:font-normal text-black dark:text-white"
-              />
+          {/* 2. Replacement Leave (Cuti Ganti) */}
+          <div className="p-4 rounded-xl border border-emerald-500/25 bg-gradient-to-b from-emerald-500/5 to-transparent dark:bg-neutral-900/80 space-y-3.5 relative overflow-hidden flex flex-col justify-between">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                    <RotateCcw className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground block">
+                      Type 2
+                    </span>
+                    <h5 className="text-xs font-black text-foreground uppercase tracking-tight">
+                      Replacement Leave
+                    </h5>
+                  </div>
+                </div>
+                <Badge variant="outline" className="text-[9px] font-bold border-emerald-500/30 text-emerald-700 dark:text-emerald-300 bg-emerald-500/10">
+                  Cuti Ganti
+                </Badge>
+              </div>
+
+              <p className="text-[10.5px] text-muted-foreground leading-relaxed">
+                Compensatory leave earned from duty on public holidays, rest days, or approved overtime.
+              </p>
             </div>
-            <span className="text-[10px] text-muted-foreground block">Days per annum</span>
+
+            <div className="space-y-2 pt-2 border-t border-border/40 dark:border-neutral-800">
+              <div className="flex justify-between items-center bg-background/60 dark:bg-neutral-950 p-2 rounded-lg border border-border/50">
+                <div>
+                  <Label className="text-[11px] font-bold text-black dark:text-white block">Starting Base Quota</Label>
+                  <span className="text-[9px] text-muted-foreground">Dynamically earned via OT</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Input
+                    type="number"
+                    min={0}
+                    value={replacementDays}
+                    onChange={(e) => setReplacementDays(Number(e.target.value))}
+                    className="w-16 h-7 text-xs text-center font-bold text-black dark:text-white"
+                  />
+                  <span className="text-[10px] text-muted-foreground font-semibold">days</span>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div className="p-3 rounded-xl border border-border/50 bg-background dark:bg-neutral-900 space-y-2">
-            <div className="flex justify-between items-center">
-              <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Emergency Leave</Label>
-              <Input
-                type="number"
-                value={emergencyDays}
-                onChange={(e) => setEmergencyDays(Number(e.target.value))}
-                className="w-16 h-7 text-xs text-center font-semibold placeholder:font-normal text-black dark:text-white"
-              />
+          {/* 3. Unpaid Leave (Cuti Tanpa Gaji) */}
+          <div className="p-4 rounded-xl border border-amber-500/25 bg-gradient-to-b from-amber-500/5 to-transparent dark:bg-neutral-900/80 space-y-3.5 relative overflow-hidden flex flex-col justify-between">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+                    <Coins className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground block">
+                      Type 3
+                    </span>
+                    <h5 className="text-xs font-black text-foreground uppercase tracking-tight">
+                      Unpaid Leave
+                    </h5>
+                  </div>
+                </div>
+                <Badge variant="outline" className="text-[9px] font-bold border-amber-500/30 text-amber-700 dark:text-amber-300 bg-amber-500/10">
+                  Deducted
+                </Badge>
+              </div>
+
+              <p className="text-[10.5px] text-muted-foreground leading-relaxed">
+                Absence without pay, subject to approval. Automatically applies payroll salary deduction.
+              </p>
             </div>
-            <span className="text-[10px] text-muted-foreground block">Days per annum</span>
+
+            <div className="space-y-2 pt-2 border-t border-border/40 dark:border-neutral-800">
+              <div className="flex justify-between items-center bg-background/60 dark:bg-neutral-950 p-2 rounded-lg border border-border/50">
+                <div>
+                  <Label className="text-[11px] font-bold text-black dark:text-white block">Max Allowed Days</Label>
+                  <span className="text-[9px] text-muted-foreground">Annual max threshold</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Input
+                    type="number"
+                    min={0}
+                    value={unpaidDays}
+                    onChange={(e) => setUnpaidDays(Number(e.target.value))}
+                    className="w-16 h-7 text-xs text-center font-bold text-black dark:text-white"
+                  />
+                  <span className="text-[10px] text-muted-foreground font-semibold">days</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 4. Medical Leave (Sick Leave) */}
+          <div className="p-4 rounded-xl border border-sky-500/25 bg-gradient-to-b from-sky-500/5 to-transparent dark:bg-neutral-900/80 space-y-3.5 relative overflow-hidden flex flex-col justify-between">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-sky-500/15 text-sky-600 dark:text-sky-400 flex items-center justify-center">
+                    <HeartPulse className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground block">
+                      Type 4
+                    </span>
+                    <h5 className="text-xs font-black text-foreground uppercase tracking-tight">
+                      Medical Leave
+                    </h5>
+                  </div>
+                </div>
+                <Badge variant="outline" className="text-[9px] font-bold border-sky-500/30 text-sky-700 dark:text-sky-300 bg-sky-500/10">
+                  Sick Leave
+                </Badge>
+              </div>
+
+              <p className="text-[10.5px] text-muted-foreground leading-relaxed">
+                Paid medical outpatient leaves for verified medical illness with clinical slip.
+              </p>
+            </div>
+
+            <div className="space-y-2 pt-2 border-t border-border/40 dark:border-neutral-800">
+              <div className="flex justify-between items-center bg-background/60 dark:bg-neutral-950 p-2 rounded-lg border border-border/50">
+                <Label className="text-[11px] font-bold text-black dark:text-white">Medical Quota</Label>
+                <div className="flex items-center gap-1.5">
+                  <Input
+                    type="number"
+                    min={0}
+                    value={sickDays}
+                    onChange={(e) => setSickDays(Number(e.target.value))}
+                    className="w-16 h-7 text-xs text-center font-bold text-black dark:text-white"
+                  />
+                  <span className="text-[10px] text-muted-foreground font-semibold">days</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="pt-2 border-t border-border/40 dark:border-neutral-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-          <div className="flex items-center gap-2">
-            <Switch checked={mcRequired} onCheckedChange={setMcRequired} className="data-[state=checked]:bg-[#942392]" />
-            <span className="font-bold text-foreground">Enforce Medical Certificate (MC) Slip Upload for Sick Leave</span>
+        {/* Global Policy Switches */}
+        <div className="pt-3 border-t border-border/50 dark:border-neutral-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs">
+          <div className="flex items-center gap-2.5">
+            <Switch
+              checked={mcRequired}
+              onCheckedChange={setMcRequired}
+              className="data-[state=checked]:bg-[#942392]"
+            />
+            <span className="font-bold text-foreground">
+              Enforce Medical Certificate (MC) Slip Upload for Medical / Sick Leave
+            </span>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Switch checked={escalateToParent} onCheckedChange={setEscalateToParent} className="data-[state=checked]:bg-[#942392]" />
-            <span className="font-bold text-foreground">Escalate to Main Company if Local Approver is Unassigned</span>
+          <div className="flex items-center gap-2.5">
+            <Switch
+              checked={escalateToParent}
+              onCheckedChange={setEscalateToParent}
+              className="data-[state=checked]:bg-[#942392]"
+            />
+            <span className="font-bold text-foreground">
+              Escalate to Main Company if Local Approver is Unassigned
+            </span>
           </div>
         </div>
       </Card>
