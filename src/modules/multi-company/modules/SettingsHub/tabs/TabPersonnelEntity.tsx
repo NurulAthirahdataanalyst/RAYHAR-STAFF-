@@ -338,7 +338,20 @@ export const TabPersonnelEntity: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Top Filter & Actions Header (Matches Branches & Geofence Layout) */}
+      {/* Title Header (Matches Branches & Geofence Layout from Screenshot 1) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h3 className="text-sm font-black uppercase tracking-wider text-foreground dark:text-white flex items-center gap-2">
+            <Users className="w-4 h-4 text-[#942392]" />
+            PERSONNEL ENTITY
+          </h3>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Manage company-scoped personnel directory, employee profiles and authorized RBAC staffing
+          </p>
+        </div>
+      </div>
+
+      {/* Top Filter & Actions Header (Matches Position & Design in Screenshot 1) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-muted/30 dark:bg-neutral-900/40 rounded-xl border border-border dark:border-neutral-800">
         <div className="flex flex-wrap items-center gap-2.5">
           <Users className="w-4 h-4 text-[#942392]" />
@@ -381,7 +394,7 @@ export const TabPersonnelEntity: React.FC = () => {
           className="bg-[#942392] hover:bg-[#800A7A] text-white font-black text-xs uppercase tracking-wider shadow-sm h-9 px-4 rounded-xl self-start sm:self-auto flex items-center gap-1.5"
         >
           <Plus className="w-3.5 h-3.5 mr-1" />
-          Add Staff
+          ADD STAFF
         </Button>
       </div>
 
@@ -480,25 +493,25 @@ export const TabPersonnelEntity: React.FC = () => {
         ) : (
           <div className="overflow-x-auto">
             <Table>
-              <TableHeader className="bg-muted/40">
+              <TableHeader className="bg-muted/50 dark:bg-neutral-800/60 border-b border-border dark:border-neutral-800 text-xs font-black uppercase tracking-wider text-black dark:text-white">
                 <TableRow className="border-b border-border/70 hover:bg-transparent">
-                  <TableHead className="py-3.5 px-5 text-[10px] font-black uppercase tracking-wider text-muted-foreground">
-                    Staff Member
+                  <TableHead className="py-3.5 px-5 text-xs font-black uppercase tracking-wider text-black dark:text-white">
+                    STAFF MEMBER
                   </TableHead>
-                  <TableHead className="py-3.5 px-4 text-[10px] font-black uppercase tracking-wider text-muted-foreground">
-                    Position / Role
+                  <TableHead className="py-3.5 px-4 text-xs font-black uppercase tracking-wider text-black dark:text-white">
+                    POSITION / ROLE
                   </TableHead>
-                  <TableHead className="py-3.5 px-4 text-[10px] font-black uppercase tracking-wider text-muted-foreground">
-                    Branch
+                  <TableHead className="py-3.5 px-4 text-xs font-black uppercase tracking-wider text-black dark:text-white">
+                    BRANCH
                   </TableHead>
-                  <TableHead className="py-3.5 px-4 text-[10px] font-black uppercase tracking-wider text-muted-foreground">
-                    Department
+                  <TableHead className="py-3.5 px-4 text-xs font-black uppercase tracking-wider text-black dark:text-white">
+                    DEPARTMENT
                   </TableHead>
-                  <TableHead className="py-3.5 px-4 text-[10px] font-black uppercase tracking-wider text-muted-foreground">
-                    Status
+                  <TableHead className="py-3.5 px-4 text-xs font-black uppercase tracking-wider text-black dark:text-white">
+                    STATUS
                   </TableHead>
-                  <TableHead className="py-3.5 px-5 text-[10px] font-black uppercase tracking-wider text-muted-foreground text-right">
-                    Actions
+                  <TableHead className="py-3.5 px-5 text-xs font-black uppercase tracking-wider text-black dark:text-white text-right">
+                    ACTIONS
                   </TableHead>
                 </TableRow>
               </TableHeader>
