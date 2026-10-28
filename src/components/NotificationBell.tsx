@@ -15,9 +15,25 @@ function formatNotificationMessage(rawMessage: string, userRole?: string): strin
   }
 
   // If the logged-in user is Operation Manager, customize "waiting for Operation Manager" to "waiting for your approval"
-  if (normRole === "operation_manager" || normRole === "finance_manager") {
+  if (normRole === "operation_manager" || normRole === "finance_manager" || normRole.includes("operation_manager")) {
     formatted = formatted.replace(
       /is currently waiting for Operation Manager\.?/gi,
+      "is currently waiting for your approval."
+    );
+  }
+
+  // If the logged-in user is Branch Leader, customize "waiting for Branch Leader" to "waiting for your approval"
+  if (normRole.includes("branch_leader") || normRole.includes("branch")) {
+    formatted = formatted.replace(
+      /is currently waiting for Branch Leader[^.]*\.?/gi,
+      "is currently waiting for your approval."
+    );
+  }
+
+  // If the logged-in user is Head of Department, customize "waiting for Head of Department" to "waiting for your approval"
+  if (normRole.includes("head_of_department") || normRole === "hod") {
+    formatted = formatted.replace(
+      /is currently waiting for Head of Department[^.]*\.?/gi,
       "is currently waiting for your approval."
     );
   }
@@ -42,7 +58,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { useRole } from "@/contexts/RoleContext";
+import { useRole, normalizeRole } from "@/contexts/RoleContext";
 import { useNavigate } from "react-router-dom";
 import { useNotifications, type NotificationItem } from "@/contexts/NotificationContext";
 import "./NotificationBell.css";
@@ -67,7 +83,15 @@ export default function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
   const [activeScope, setActiveScope] = useState<"my" | "team">("my");
 
-  const isElevatedRole = ["hr_admin", "superadmin", "managing_director", "operation_manager", "finance_manager", "head_of_department", "branch_leader"].includes((role || "").toLowerCase());
+  const isElevatedRole = [
+    "hr_admin",
+    "superadmin",
+    "managing_director",
+    "operation_manager",
+    "finance_manager",
+    "head_of_department",
+    "branch_leader"
+  ].includes(normalizeRole(role || ""));
 
   const displayedNotifications = isElevatedRole
     ? notifications.filter((n) => {
