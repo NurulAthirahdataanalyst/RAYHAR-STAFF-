@@ -21,7 +21,7 @@ import {
 import { toast } from 'sonner';
 import { useCompany } from '../../../contexts/CompanyContext';
 import { multiCompanyApi } from '../../../services/multiCompanyApi';
-import { WorkSchedule } from '../../../types/multiCompany.types';
+import { WorkSchedule, WorkScheduleDay } from '../../../types/multiCompany.types';
 import { CustomTimePicker } from '@/components/ui/custom-time-picker';
 
 export const Tab7_AttendanceConfig: React.FC = () => {
@@ -43,6 +43,7 @@ export const Tab7_AttendanceConfig: React.FC = () => {
   // Work Schedules and Simulation State
   const [schedules, setSchedules] = useState<WorkSchedule[]>([]);
   const [testClockInTime, setTestClockInTime] = useState<string>('');
+  const [selectedGroupIndex, setSelectedGroupIndex] = useState<number>(0);
 
   useEffect(() => {
     if (activeCompany) {
@@ -110,10 +111,15 @@ export const Tab7_AttendanceConfig: React.FC = () => {
 
   const currentCompany = companies.find(c => c.id === selectedCompanyId) || activeCompany;
 
-  // Active schedule and working hours for the selected company
-  const activeSchedule = schedules.find(s => s.status === 'active') || schedules[0];
-  const firstWorkDay = activeSchedule?.days?.find(d => d.is_working_day && d.start_time);
-  const workingStartTimeRaw = firstWorkDay?.start_time?.slice(0, 5) || '08:30';
+  const SHORT_DAY: Record<string, string> = {
+    Monday: 'Mon',
+    Tuesday: 'Tue',
+    Wednesday: 'Wed',
+    Thursday: 'Thu',
+    Friday: 'Fri',
+    Saturday: 'Sat',
+    Sunday: 'Sun',
+  };
 
   // Helper functions for time conversions
   const parseTimeToMinutes = (timeStr: string): number => {
@@ -139,29 +145,103 @@ export const Tab7_AttendanceConfig: React.FC = () => {
     return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
   };
 
-  const startMinutes = parseTimeToMinutes(workingStartTimeRaw);
   const safeGrace = Math.max(0, Number(lateThreshold) || 0);
-  const cutoffMinutes = startMinutes + safeGrace;
 
-  const workingHourDisplay = formatMinutesTo12Hr(startMinutes);
-  const graceCutoffDisplay = formatMinutesTo12Hr(cutoffMinutes);
+  // Active schedule and working hours for the selected company
+  const activeSchedule = schedules.find(s => s.status === 'active') || schedules[0];
+  const days = activeSchedule?.days || [];
+  const daysMap = new Map(days.map((d) => [d.day_of_week, d]));
+  const fri = daysMap.get('Friday');
+  const isFridayOff = fri && !fri.is_working_day;
 
-  // Dynamic simulation examples based on working hour + grace
-  // Example 1: Clock-in at 8:40 AM (within 30 mins grace) -> On Time
-  const onTimeExampleMinutes = startMinutes + Math.min(10, Math.floor(safeGrace / 2));
-  const onTimeExampleDisplay = formatMinutesTo12Hr(onTimeExampleMinutes);
+  const dayOrder: Array<WorkScheduleDay['day_of_week']> = isFridayOff
+    ? ['Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+    : ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
-  // Example 2: Clock-in at 9:05 AM (past 30 mins grace) -> Late
-  const lateExampleMinutes = cutoffMinutes + 5;
-  const lateExampleDisplay = formatMinutesTo12Hr(lateExampleMinutes);
-  const lateExampleDiff = Math.max(1, lateExampleMinutes - startMinutes);
+  const workingDays = dayOrder
+    .map((name) => daysMap.get(name))
+    .filter((d): d is WorkScheduleDay => Boolean(d && d.is_working_day && d.start_time));
+
+  // Group consecutive working days with identical start_time and end_time
+  const rawGroups: Array<{
+    startDay: string;
+    endDay: string;
+    startTimeRaw: string;
+    endTimeRaw: string;
+  }> = [];
+
+  for (const d of workingDays) {
+    const sRaw = (d.start_time || '08:30').slice(0, 5);
+    const eRaw = (d.end_time || '17:30').slice(0, 5);
+    const prev = rawGroups[rawGroups.length - 1];
+    if (prev && prev.startTimeRaw === sRaw && prev.endTimeRaw === eRaw) {
+      prev.endDay = d.day_of_week;
+    } else {
+      rawGroups.push({
+        startDay: d.day_of_week,
+        endDay: d.day_of_week,
+        startTimeRaw: sRaw,
+        endTimeRaw: eRaw,
+      });
+    }
+  }
+
+  // Fallback if no working days defined
+  if (rawGroups.length === 0) {
+    rawGroups.push({
+      startDay: 'Monday',
+      endDay: 'Friday',
+      startTimeRaw: '08:30',
+      endTimeRaw: '17:30',
+    });
+  }
+
+  const dayGroups = rawGroups.map((g, idx) => {
+    const dayLabel = g.startDay === g.endDay
+      ? SHORT_DAY[g.startDay] || g.startDay
+      : `${SHORT_DAY[g.startDay] || g.startDay}–${SHORT_DAY[g.endDay] || g.endDay}`;
+
+    const startMinutes = parseTimeToMinutes(g.startTimeRaw);
+    const cutoffMinutes = startMinutes + safeGrace;
+    const workingHourDisplay = formatMinutesTo12Hr(startMinutes);
+    const graceCutoffDisplay = formatMinutesTo12Hr(cutoffMinutes);
+
+    const onTimeExampleMinutes = startMinutes + Math.min(10, Math.max(5, Math.floor(safeGrace / 2)));
+    const onTimeExampleDisplay = formatMinutesTo12Hr(onTimeExampleMinutes);
+
+    const lateExampleMinutes = cutoffMinutes + 5;
+    const lateExampleDisplay = formatMinutesTo12Hr(lateExampleMinutes);
+    const lateExampleDiff = Math.max(1, lateExampleMinutes - startMinutes);
+
+    return {
+      id: `${g.startDay}-${g.endDay}-${g.startTimeRaw}-${idx}`,
+      dayLabel,
+      timeRange: `${g.startTimeRaw} - ${g.endTimeRaw}`,
+      startTimeRaw: g.startTimeRaw,
+      endTimeRaw: g.endTimeRaw,
+      startMinutes,
+      cutoffMinutes,
+      workingHourDisplay,
+      graceCutoffDisplay,
+      onTimeExampleMinutes,
+      onTimeExampleDisplay,
+      lateExampleMinutes,
+      lateExampleDisplay,
+      lateExampleDiff,
+    };
+  });
+
+  const hasDifferentStartTimes = rawGroups.length > 1 && new Set(rawGroups.map(g => g.startTimeRaw)).size > 1;
+
+  // Active group selected for simulation tester
+  const activeGroup = dayGroups[selectedGroupIndex] || dayGroups[0];
 
   // Dynamic interactive simulation tester
-  const activeTestTime24 = testClockInTime || formatMinutesTo24Hr(lateExampleMinutes);
+  const activeTestTime24 = testClockInTime || formatMinutesTo24Hr(activeGroup.lateExampleMinutes);
   const testMinutesTotal = parseTimeToMinutes(activeTestTime24);
-  const testIsLate = testMinutesTotal > cutoffMinutes;
-  const testMinutesPastCutoff = Math.max(0, testMinutesTotal - cutoffMinutes);
-  const testTotalMinutesLate = Math.max(0, testMinutesTotal - startMinutes);
+  const testIsLate = testMinutesTotal > activeGroup.cutoffMinutes;
+  const testMinutesPastCutoff = Math.max(0, testMinutesTotal - activeGroup.cutoffMinutes);
+  const testTotalMinutesLate = Math.max(0, testMinutesTotal - activeGroup.startMinutes);
 
   return (
     <div className="space-y-6">
@@ -176,6 +256,7 @@ export const Tab7_AttendanceConfig: React.FC = () => {
             onValueChange={(val) => {
               setSelectedCompanyId(parseInt(val, 10));
               setTestClockInTime('');
+              setSelectedGroupIndex(0);
             }}
           >
             <SelectTrigger className="w-72 min-w-[260px] text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium data-[placeholder]:font-normal text-black dark:text-white shadow-xs">
@@ -244,14 +325,44 @@ export const Tab7_AttendanceConfig: React.FC = () => {
                 <span className="text-muted-foreground">Schedule:</span>
                 <span className="font-bold text-foreground truncate max-w-[150px]">{activeSchedule?.schedule_name || 'Standard Timetable'}</span>
               </div>
-              <div className="flex items-center justify-between font-medium">
-                <span className="text-muted-foreground">Shift Starts:</span>
-                <span className="font-mono font-bold text-[#942392] dark:text-[#f885d5]">{workingHourDisplay}</span>
-              </div>
-              <div className="flex items-center justify-between font-medium">
-                <span className="text-muted-foreground">Grace Cutoff:</span>
-                <span className="font-mono font-bold text-foreground">{graceCutoffDisplay}</span>
-              </div>
+              {hasDifferentStartTimes ? (
+                <div className="space-y-1 pt-1.5 border-t border-border/40">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">
+                    Shift Starts by Day:
+                  </span>
+                  {dayGroups.map((g, idx) => (
+                    <div 
+                      key={g.id} 
+                      onClick={() => {
+                        setSelectedGroupIndex(idx);
+                        setTestClockInTime(formatMinutesTo24Hr(g.lateExampleMinutes));
+                      }}
+                      className={`flex items-center justify-between font-medium text-[10px] px-1.5 py-1 rounded cursor-pointer transition-colors ${
+                        selectedGroupIndex === idx 
+                          ? 'bg-[#942392]/10 font-bold text-[#942392] dark:text-[#f885d5] border border-[#942392]/30' 
+                          : 'text-muted-foreground hover:bg-muted/60'
+                      }`}
+                    >
+                      <span className="font-bold text-foreground">{g.dayLabel}:</span>
+                      <span className="font-mono">
+                        <span className="text-[#942392] dark:text-[#f885d5] font-bold">{g.workingHourDisplay}</span>
+                        <span className="text-muted-foreground"> (Cutoff: {g.graceCutoffDisplay})</span>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between font-medium">
+                    <span className="text-muted-foreground">Shift Starts:</span>
+                    <span className="font-mono font-bold text-[#942392] dark:text-[#f885d5]">{dayGroups[0]?.workingHourDisplay || '08:30 AM'}</span>
+                  </div>
+                  <div className="flex items-center justify-between font-medium">
+                    <span className="text-muted-foreground">Grace Cutoff:</span>
+                    <span className="font-mono font-bold text-foreground">{dayGroups[0]?.graceCutoffDisplay || '09:00 AM'}</span>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
@@ -266,50 +377,140 @@ export const Tab7_AttendanceConfig: React.FC = () => {
               </span>
             </div>
 
-            {/* Formula line */}
-            <div className="text-[11px] p-2.5 rounded-lg bg-background dark:bg-neutral-900 border border-border/40 space-y-1 font-mono">
-              <div className="text-foreground">
-                <span className="text-muted-foreground">Working Hour: </span>
-                <strong className="text-foreground font-black">{workingHourDisplay}</strong>
-                <span className="text-muted-foreground"> + Grace: </span>
-                <strong className="text-[#942392] dark:text-[#f885d5] font-black">{safeGrace} mins</strong>
-                <span className="text-muted-foreground"> → Deadline: </span>
-                <strong className="text-foreground font-black">{graceCutoffDisplay}</strong>
+            {/* Formula / Simulation Rules */}
+            {hasDifferentStartTimes ? (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-[11px] text-muted-foreground pb-0.5">
+                  <span className="font-semibold text-foreground">
+                    Day-Specific Working Hours & Cutoffs ({dayGroups.length} shifts):
+                  </span>
+                  <span className="text-[10px] text-[#942392] dark:text-[#f885d5] font-bold">
+                    Click a shift to simulate below
+                  </span>
+                </div>
+                <div className="space-y-2">
+                  {dayGroups.map((group, idx) => {
+                    const isSelected = selectedGroupIndex === idx;
+                    return (
+                      <div
+                        key={group.id}
+                        onClick={() => {
+                          setSelectedGroupIndex(idx);
+                          setTestClockInTime(formatMinutesTo24Hr(group.lateExampleMinutes));
+                        }}
+                        className={`p-2.5 rounded-lg border transition-all cursor-pointer ${
+                          isSelected
+                            ? 'bg-background dark:bg-neutral-900 border-[#942392] shadow-xs ring-1 ring-[#942392]/30'
+                            : 'bg-background/60 dark:bg-neutral-900/60 border-border/50 hover:border-border hover:bg-background'
+                        }`}
+                      >
+                        <div className="flex flex-wrap items-center justify-between gap-1.5 font-mono text-[11px]">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-sans font-extrabold uppercase tracking-wider ${
+                              isSelected
+                                ? 'bg-[#942392] text-white shadow-2xs'
+                                : 'bg-muted text-muted-foreground border border-border/60'
+                            }`}>
+                              {group.dayLabel}
+                            </span>
+                            <span className="text-foreground">
+                              <span className="text-muted-foreground">Working Hour: </span>
+                              <strong className="text-foreground font-black">{group.workingHourDisplay}</strong>
+                              <span className="text-muted-foreground text-[10px]"> ({group.timeRange})</span>
+                              <span className="text-muted-foreground"> + Grace: </span>
+                              <strong className="text-[#942392] dark:text-[#f885d5] font-black">{safeGrace} mins</strong>
+                              <span className="text-muted-foreground"> → Deadline: </span>
+                              <strong className="text-foreground font-black">{group.graceCutoffDisplay}</strong>
+                            </span>
+                          </div>
+
+                          {isSelected && (
+                            <span className="inline-flex items-center gap-1 text-[9px] font-sans font-bold text-[#942392] dark:text-[#f885d5] bg-[#942392]/10 dark:bg-[#942392]/20 px-2 py-0.5 rounded-full border border-[#942392]/20">
+                              <span className="w-1.5 h-1.5 rounded-full bg-[#942392] animate-pulse" />
+                              Active in Simulator
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="text-muted-foreground text-[10px] pt-1.5 font-mono pl-1">
+                          Clock-in at <strong className="text-foreground">{group.onTimeExampleDisplay}</strong> → <span className="text-emerald-600 dark:text-emerald-400 font-bold">Present (On Time)</span>
+                          <span className="mx-2 text-border">|</span>
+                          At <strong className="text-foreground">{group.lateExampleDisplay}</strong> → <span className="text-rose-600 dark:text-rose-400 font-bold">Present (Late) ({group.lateExampleDiff}m)</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-              <div className="text-muted-foreground text-[10px] pt-0.5">
-                Clock-in at <strong className="text-foreground">{onTimeExampleDisplay}</strong> → <span className="text-emerald-600 dark:text-emerald-400 font-bold">Present (On Time)</span>
-                <span className="mx-2 text-border">|</span>
-                At <strong className="text-foreground">{lateExampleDisplay}</strong> → <span className="text-rose-600 dark:text-rose-400 font-bold">Present (Late) ({lateExampleDiff}m)</span>
+            ) : (
+              <div className="text-[11px] p-2.5 rounded-lg bg-background dark:bg-neutral-900 border border-border/40 space-y-1 font-mono">
+                <div className="text-foreground">
+                  <span className="text-muted-foreground">Working Hour: </span>
+                  <strong className="text-foreground font-black">{dayGroups[0].workingHourDisplay}</strong>
+                  <span className="text-muted-foreground"> + Grace: </span>
+                  <strong className="text-[#942392] dark:text-[#f885d5] font-black">{safeGrace} mins</strong>
+                  <span className="text-muted-foreground"> → Deadline: </span>
+                  <strong className="text-foreground font-black">{dayGroups[0].graceCutoffDisplay}</strong>
+                </div>
+                <div className="text-muted-foreground text-[10px] pt-0.5">
+                  Clock-in at <strong className="text-foreground">{dayGroups[0].onTimeExampleDisplay}</strong> → <span className="text-emerald-600 dark:text-emerald-400 font-bold">Present (On Time)</span>
+                  <span className="mx-2 text-border">|</span>
+                  At <strong className="text-foreground">{dayGroups[0].lateExampleDisplay}</strong> → <span className="text-rose-600 dark:text-rose-400 font-bold">Present (Late) ({dayGroups[0].lateExampleDiff}m)</span>
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Interactive Clock-In Simulator */}
             <div className="pt-1 space-y-2">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                  Test a Clock-In Time:
-                </span>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                    Test a Clock-In Time:
+                  </span>
+                  {hasDifferentStartTimes && (
+                    <div className="inline-flex rounded-lg border border-border/60 p-0.5 bg-background dark:bg-neutral-900">
+                      {dayGroups.map((group, idx) => (
+                        <button
+                          key={group.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedGroupIndex(idx);
+                            setTestClockInTime(formatMinutesTo24Hr(group.lateExampleMinutes));
+                          }}
+                          className={`px-2 py-0.5 text-[10px] font-bold rounded cursor-pointer transition-colors ${
+                            selectedGroupIndex === idx
+                              ? 'bg-[#942392] text-white shadow-2xs'
+                              : 'text-muted-foreground hover:text-foreground'
+                          }`}
+                        >
+                          {group.dayLabel} ({group.workingHourDisplay})
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
                 <div className="flex items-center gap-1.5">
                   <button
                     type="button"
-                    onClick={() => setTestClockInTime(formatMinutesTo24Hr(onTimeExampleMinutes))}
+                    onClick={() => setTestClockInTime(formatMinutesTo24Hr(activeGroup.onTimeExampleMinutes))}
                     className="text-[10px] px-2 py-0.5 rounded bg-background dark:bg-neutral-900 border border-border/60 hover:border-[#942392] text-foreground transition-all cursor-pointer font-medium"
                   >
-                    At {onTimeExampleDisplay}
+                    At {activeGroup.onTimeExampleDisplay}
                   </button>
                   <button
                     type="button"
-                    onClick={() => setTestClockInTime(formatMinutesTo24Hr(cutoffMinutes))}
+                    onClick={() => setTestClockInTime(formatMinutesTo24Hr(activeGroup.cutoffMinutes))}
                     className="text-[10px] px-2 py-0.5 rounded bg-background dark:bg-neutral-900 border border-border/60 hover:border-[#942392] text-foreground transition-all cursor-pointer font-medium"
                   >
-                    At {graceCutoffDisplay}
+                    At {activeGroup.graceCutoffDisplay}
                   </button>
                   <button
                     type="button"
-                    onClick={() => setTestClockInTime(formatMinutesTo24Hr(lateExampleMinutes))}
+                    onClick={() => setTestClockInTime(formatMinutesTo24Hr(activeGroup.lateExampleMinutes))}
                     className="text-[10px] px-2 py-0.5 rounded bg-background dark:bg-neutral-900 border border-border/60 hover:border-[#942392] text-foreground transition-all cursor-pointer font-medium"
                   >
-                    At {lateExampleDisplay}
+                    At {activeGroup.lateExampleDisplay}
                   </button>
                 </div>
               </div>
@@ -329,7 +530,7 @@ export const Tab7_AttendanceConfig: React.FC = () => {
                         Present (Late)
                       </span>
                       <span className="text-[11px] text-muted-foreground">
-                        Exceeds grace cutoff by <strong className="text-rose-600 dark:text-rose-400 font-bold">{testMinutesPastCutoff}m</strong> ({testTotalMinutesLate} mins late total)
+                        Exceeds grace cutoff by <strong className="text-rose-600 dark:text-rose-400 font-bold">{testMinutesPastCutoff}m</strong> ({testTotalMinutesLate} mins late total{hasDifferentStartTimes ? ` for ${activeGroup.dayLabel} shift` : ''})
                       </span>
                     </div>
                   ) : (
@@ -338,7 +539,7 @@ export const Tab7_AttendanceConfig: React.FC = () => {
                         Present (On Time)
                       </span>
                       <span className="text-[11px] text-muted-foreground">
-                        Within permissible {safeGrace} min grace cutoff of {graceCutoffDisplay}
+                        Within permissible {safeGrace} min grace cutoff of {activeGroup.graceCutoffDisplay}{hasDifferentStartTimes ? ` (${activeGroup.dayLabel} shift)` : ''}
                       </span>
                     </div>
                   )}

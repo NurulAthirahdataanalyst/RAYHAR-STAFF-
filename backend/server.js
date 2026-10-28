@@ -185,6 +185,21 @@ async function refreshCompanyAttendanceSettings() {
       FROM attendance_settings s
     `);
     
+    // Also fetch day-specific start times for active schedules per company
+    const dayRes = await pgPool.query(`
+      SELECT ws.company_id, wsd.day_of_week, wsd.start_time 
+      FROM work_schedules ws 
+      JOIN work_schedule_days wsd ON ws.id = wsd.schedule_id 
+      WHERE ws.status = 'active' AND wsd.is_working_day = true AND wsd.start_time IS NOT NULL
+      ORDER BY ws.id ASC
+    `);
+    const companyDaysMap = new Map();
+    for (const d of dayRes.rows) {
+      const cid = Number(d.company_id);
+      if (!companyDaysMap.has(cid)) companyDaysMap.set(cid, {});
+      companyDaysMap.get(cid)[d.day_of_week] = String(d.start_time).slice(0, 5);
+    }
+
     for (const row of res.rows) {
       const startTime = String(row.start_time || '08:30:00').slice(0, 5); // "08:30"
       const [sh, sm] = startTime.split(':').map(Number);
@@ -206,7 +221,8 @@ async function refreshCompanyAttendanceSettings() {
         start_mins: startMins,
         cutoff_time: cutoffTimeStr,
         cutoff_mins: cutoffMins,
-        display_cutoff: dispStr
+        display_cutoff: dispStr,
+        day_start_times: companyDaysMap.get(Number(row.company_id)) || {}
       });
 
       if (Number(row.company_id) === 1) {
@@ -273,10 +289,37 @@ function getLateCutoffForCompanyAndDate(companyId = null, targetDateStr = null) 
 
   // Current fallback from attendance_settings
   if (currConf) {
+    let effectiveStartMins = currConf.start_mins;
+    let effectiveStartTime = currConf.start_time;
+
+    if (targetDateStr && currConf.day_start_times) {
+      const cleanDate = typeof targetDateStr === 'string' ? targetDateStr.slice(0, 10) : (targetDateStr instanceof Date ? targetDateStr.toISOString().split('T')[0] : '');
+      if (cleanDate && cleanDate.length === 10) {
+        const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const parts = cleanDate.split('-').map(Number);
+        if (parts.length === 3) {
+          const dObj = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
+          const dow = dayNames[dObj.getUTCDay()];
+          const specificStartTime = currConf.day_start_times[dow];
+          if (specificStartTime) {
+            const [sh, sm] = specificStartTime.split(':').map(Number);
+            effectiveStartMins = (isNaN(sh) ? 8 : sh) * 60 + (isNaN(sm) ? 30 : sm);
+            effectiveStartTime = specificStartTime;
+          }
+        }
+      }
+    }
+
+    const grace = Math.max(0, Number(currConf.late_threshold_minutes) || 0);
+    const cutoffMins = effectiveStartMins + grace;
+    const cutoffH = Math.floor(cutoffMins / 60) % 24;
+    const cutoffM = cutoffMins % 60;
+    const cutoffTime = `${String(cutoffH).padStart(2, '0')}:${String(cutoffM).padStart(2, '0')}:00`;
+
     return {
-      cutoffTime: currConf.cutoff_time,
-      cutoffMins: currConf.cutoff_mins,
-      startMins: currConf.start_mins,
+      cutoffTime,
+      cutoffMins,
+      startMins: effectiveStartMins,
       graceMins: currConf.late_threshold_minutes,
       source: 'current'
     };
