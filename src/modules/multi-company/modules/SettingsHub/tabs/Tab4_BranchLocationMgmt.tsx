@@ -361,13 +361,13 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
             <table className="w-full text-left text-xs">
               <thead className="bg-muted/50 dark:bg-neutral-800/60 border-b border-border dark:border-neutral-800 text-[11px] font-black uppercase tracking-wider text-black dark:text-white">
                 <tr>
-                  <th className="px-4 py-3.5">Code</th>
-                  <th className="px-4 py-3.5">Branch Name</th>
-                  <th className="px-4 py-3.5">District / City</th>
-                  <th className="px-4 py-3.5">Zone</th>
-                  <th className="px-4 py-3.5">GPS Coordinates</th>
-                  <th className="px-4 py-3.5">Normal Radius</th>
-                  <th className="px-4 py-3.5 text-right">Actions</th>
+                  <th className="px-4 py-3.5 text-[11px] font-black uppercase tracking-wider text-black dark:text-white">Code</th>
+                  <th className="px-4 py-3.5 text-[11px] font-black uppercase tracking-wider text-black dark:text-white">Branch Name</th>
+                  <th className="px-4 py-3.5 text-[11px] font-black uppercase tracking-wider text-black dark:text-white">District / City</th>
+                  <th className="px-4 py-3.5 text-[11px] font-black uppercase tracking-wider text-black dark:text-white">Zone</th>
+                  <th className="px-4 py-3.5 text-[11px] font-black uppercase tracking-wider text-black dark:text-white">GPS Coordinates</th>
+                  <th className="px-4 py-3.5 text-[11px] font-black uppercase tracking-wider text-black dark:text-white">Normal Radius</th>
+                  <th className="px-4 py-3.5 text-right text-[11px] font-black uppercase tracking-wider text-black dark:text-white">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/40 dark:divide-neutral-800/40">

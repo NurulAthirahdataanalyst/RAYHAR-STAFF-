@@ -2,10 +2,126 @@ const emailService = require('./emailService');
 const pushService = require('./pushService');
 
 let poolInstance = null;
+let schemaReady = Promise.resolve();
+
+/**
+ * SQL expression resolving the company an employee (profiles alias `p`, branches alias `b`) belongs to.
+ * Branch ownership wins (HQ staff -> main company, RAYRENT staff -> RayRent), then the user's
+ * active company role, then a RAYRENT name fallback, then the main company.
+ */
+const SUBJECT_COMPANY_SQL = `(
+  CASE WHEN b.code IS NOT NULL THEN COALESCE(b.company_id, 1)
+       ELSE COALESCE(
+         (SELECT cur.company_id FROM company_user_roles cur WHERE cur.user_id = p.user_id AND cur.status = 'active' ORDER BY cur.company_id DESC LIMIT 1),
+         CASE WHEN UPPER(COALESCE(p.branch, '')) = 'RAYRENT' THEN 2 ELSE 1 END
+       )
+  END
+)::int`;
+
+/**
+ * Adds notifications.company_id (if missing) and backfills existing team notifications so that
+ * switching workspace only shows notifications about staff of the selected company.
+ * Personal notifications keep company_id = NULL and are visible in every workspace.
+ */
+async function ensureNotificationCompanySchema() {
+  await poolInstance.query(`ALTER TABLE notifications ADD COLUMN IF NOT EXISTS company_id INT`);
+  await poolInstance.query(`CREATE INDEX IF NOT EXISTS idx_notifications_user_company ON notifications (user_id, company_id)`);
+
+  // 1. Leave-linked team notifications -> company of the leave applicant
+  await poolInstance.query(
+    `UPDATE notifications n
+        SET company_id = sub.company_id
+       FROM (
+         SELECT lr.leave_id, lr.user_id AS applicant_id, ${SUBJECT_COMPANY_SQL} AS company_id
+           FROM leave_requests lr
+           JOIN profiles p ON p.user_id = lr.user_id
+           LEFT JOIN branches b ON UPPER(b.code) = UPPER(p.branch)
+       ) sub
+      WHERE n.company_id IS NULL
+        AND n.related_leave_id = sub.leave_id
+        AND n.user_id <> sub.applicant_id`
+  );
+
+  // 2. Remaining team notifications -> match the employee name mentioned in title/message
+  await poolInstance.query(
+    `UPDATE notifications n
+        SET company_id = (
+          SELECT ${SUBJECT_COMPANY_SQL}
+            FROM profiles p
+            LEFT JOIN branches b ON UPPER(b.code) = UPPER(p.branch)
+           WHERE LENGTH(COALESCE(p.full_name, '')) >= 6
+             AND p.user_id <> n.user_id
+             AND (UPPER(n.message) LIKE '%' || UPPER(p.full_name) || '%' OR UPPER(n.title) LIKE '%' || UPPER(p.full_name) || '%')
+           ORDER BY LENGTH(p.full_name) DESC
+           LIMIT 1
+        )
+      WHERE n.company_id IS NULL
+        AND (n.scope = 'team' OR n.scope IS NULL)`
+  );
+}
 
 function initNotificationService(pool) {
   poolInstance = pool;
   pushService.initPushService(pool);
+  schemaReady = ensureNotificationCompanySchema().catch((err) => {
+    console.error('Notification company schema migration failed:', err.message);
+  });
+}
+
+/**
+ * Resolve the company a team notification is about.
+ * Order: explicit companyId -> subject employee -> related leave applicant -> employee name in text.
+ */
+async function resolveNotificationCompanyId({ companyId, subjectUserId, relatedLeaveId, recipientId, title, message }) {
+  const explicit = parseInt(companyId, 10);
+  if (Number.isFinite(explicit) && explicit > 0) return explicit;
+
+  try {
+    if (subjectUserId) {
+      const [rows] = await poolInstance.query(
+        `SELECT ${SUBJECT_COMPANY_SQL} AS company_id FROM profiles p LEFT JOIN branches b ON UPPER(b.code) = UPPER(p.branch) WHERE p.user_id = ? LIMIT 1`,
+        [subjectUserId]
+      );
+      if (rows && rows[0] && rows[0].company_id) return rows[0].company_id;
+    }
+
+    if (relatedLeaveId) {
+      const [rows] = await poolInstance.query(
+        `SELECT ${SUBJECT_COMPANY_SQL} AS company_id
+           FROM leave_requests lr
+           JOIN profiles p ON p.user_id = lr.user_id
+           LEFT JOIN branches b ON UPPER(b.code) = UPPER(p.branch)
+          WHERE lr.leave_id = ? LIMIT 1`,
+        [relatedLeaveId]
+      );
+      if (rows && rows[0] && rows[0].company_id) return rows[0].company_id;
+    }
+
+    const text = `${title || ''} ${message || ''}`.toUpperCase();
+    if (text.trim()) {
+      const [rows] = await poolInstance.query(
+        `SELECT ${SUBJECT_COMPANY_SQL} AS company_id
+           FROM profiles p
+           LEFT JOIN branches b ON UPPER(b.code) = UPPER(p.branch)
+          WHERE LENGTH(COALESCE(p.full_name, '')) >= 6
+            AND p.user_id <> ?
+            AND ?::text LIKE '%' || UPPER(p.full_name) || '%'
+          ORDER BY LENGTH(p.full_name) DESC
+          LIMIT 1`,
+        [recipientId || '', text]
+      );
+      if (rows && rows[0] && rows[0].company_id) return rows[0].company_id;
+    }
+  } catch (err) {
+    console.error('resolveNotificationCompanyId error:', err.message);
+  }
+  return null;
+}
+
+function companyFilterClause(companyId) {
+  const cid = parseInt(companyId, 10);
+  if (!Number.isFinite(cid) || cid <= 0) return { sql: '', params: [] };
+  return { sql: ` AND (company_id IS NULL OR company_id = ?)`, params: [cid] };
 }
 
 function sanitizeNotificationTitle(rawTitle) {
@@ -48,6 +164,8 @@ async function createNotification({
   sendPush = true,
   pushData = null,
   scope = null,
+  companyId = null,
+  subjectUserId = null,
 }) {
   if (!poolInstance) throw new Error('NotificationService not initialized with database pool.');
   if (!userId || !title || !message) {
@@ -82,10 +200,25 @@ async function createNotification({
     finalScope = isTeam ? 'team' : 'personal';
   }
 
+  // Team notifications are tagged with the company of the employee they are about, so each
+  // workspace only shows its own staff. Personal notifications stay global (company_id NULL).
+  await schemaReady;
+  let finalCompanyId = null;
+  if (finalScope === 'team') {
+    finalCompanyId = await resolveNotificationCompanyId({
+      companyId,
+      subjectUserId,
+      relatedLeaveId,
+      recipientId: userId,
+      title,
+      message,
+    });
+  }
+
   const [result] = await poolInstance.query(
-    `INSERT INTO notifications (user_id, title, message, type, is_read, related_leave_id, scope, created_at)
-     VALUES (?, ?, ?, ?, FALSE, ?, ?, NOW())`,
-    [userId, title, message, type, relatedLeaveId || null, finalScope]
+    `INSERT INTO notifications (user_id, title, message, type, is_read, related_leave_id, scope, company_id, created_at)
+     VALUES (?, ?, ?, ?, FALSE, ?, ?, ?, NOW())`,
+    [userId, title, message, type, relatedLeaveId || null, finalScope, finalCompanyId]
   );
 
   const insertedId = result?.insertId || (Array.isArray(result) && result[0]?.id) || (result?.rows && result.rows[0]?.id) || null;
@@ -235,33 +368,50 @@ async function markAllAsRead(userId, scope = null) {
 }
 
 /**
- * 5. getUnreadCount
+ * 5. getUnreadCount (optionally filtered by active company context)
  */
-async function getUnreadCount(userId) {
+async function getUnreadCount(userId, companyId = null) {
   if (!poolInstance) throw new Error('NotificationService not initialized with database pool.');
   if (!userId) return { count: 0, total: 0, my: 0, team: 0 };
 
-  const [rows] = await poolInstance.query(
-    `SELECT 
+  await schemaReady;
+  const cid = parseInt(companyId, 10);
+  const hasCompany = Number.isFinite(cid) && cid > 0;
+
+  let query = `
+    SELECT 
        COUNT(*)::int as total,
        COUNT(*) FILTER (WHERE ${MY_SCOPE_CLAUSE})::int as my,
-       COUNT(*) FILTER (WHERE ${TEAM_SCOPE_CLAUSE})::int as team
+       COUNT(*) FILTER (WHERE ${TEAM_SCOPE_CLAUSE}${hasCompany ? ' AND (company_id IS NULL OR company_id = ?)' : ''})::int as team
      FROM notifications 
-     WHERE user_id = ? AND is_read = FALSE`,
-    [userId]
-  );
-  const total = rows[0]?.total || 0;
+     WHERE user_id = ? AND is_read = FALSE
+  `;
+  const params = [];
+  if (hasCompany) params.push(cid);
+  params.push(userId);
+
+  if (hasCompany) {
+    query += ` AND (${MY_SCOPE_CLAUSE} OR (company_id IS NULL OR company_id = ?))`;
+    params.push(cid);
+  }
+
+  const [rows] = await poolInstance.query(query, params);
   const my = rows[0]?.my || 0;
   const team = rows[0]?.team || 0;
+  const total = my + team;
   return { count: total, total, my, team };
 }
 
 /**
- * 6. getNotifications (Paginated with filtering and scoping)
+ * 6. getNotifications (Paginated with filtering, scoping, and active company scoping)
  */
-async function getNotifications(userId, { limit = 50, offset = 0, type = null, unreadOnly = false, scope = null, month = null } = {}) {
+async function getNotifications(userId, { limit = 50, offset = 0, type = null, unreadOnly = false, scope = null, month = null, companyId = null } = {}) {
   if (!poolInstance) throw new Error('NotificationService not initialized with database pool.');
   if (!userId) return [];
+
+  await schemaReady;
+  const cid = parseInt(companyId, 10);
+  const hasCompany = Number.isFinite(cid) && cid > 0;
 
   let query = `SELECT * FROM notifications WHERE user_id = ?`;
   const params = [userId];
@@ -270,6 +420,13 @@ async function getNotifications(userId, { limit = 50, offset = 0, type = null, u
     query += ` AND ${MY_SCOPE_CLAUSE}`;
   } else if (scope === 'team') {
     query += ` AND ${TEAM_SCOPE_CLAUSE}`;
+    if (hasCompany) {
+      query += ` AND (company_id IS NULL OR company_id = ?)`;
+      params.push(cid);
+    }
+  } else if (hasCompany) {
+    query += ` AND (${MY_SCOPE_CLAUSE} OR (company_id IS NULL OR company_id = ?))`;
+    params.push(cid);
   }
 
   if (unreadOnly) {

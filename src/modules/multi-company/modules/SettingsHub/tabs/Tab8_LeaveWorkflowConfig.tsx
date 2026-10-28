@@ -214,7 +214,7 @@ export const Tab8_LeaveWorkflowConfig: React.FC = () => {
 
             <div className="space-y-2 pt-2 border-t border-border/40 dark:border-neutral-800">
               <div className="flex justify-between items-center bg-background/60 dark:bg-neutral-950 p-2 rounded-lg border border-border/50">
-                <Label className="text-[11px] font-bold text-black dark:text-white">Annual & Emergency Leave</Label>
+                <Label className="text-[11px] font-black uppercase tracking-wider text-black dark:text-white">Annual & Emergency Leave</Label>
                 <div className="flex items-center gap-1.5">
                   <Input
                     type="number"

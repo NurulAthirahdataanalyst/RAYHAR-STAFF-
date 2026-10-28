@@ -124,10 +124,10 @@ export const Tab5_DepartmentMgmt: React.FC = () => {
             <table className="w-full text-left text-xs">
               <thead className="bg-muted/50 dark:bg-neutral-800/60 border-b border-border dark:border-neutral-800 text-[11px] font-black uppercase tracking-wider text-black dark:text-white">
                 <tr>
-                  <th className="px-4 py-3.5">Code</th>
-                  <th className="px-4 py-3.5">Department Name</th>
-                  <th className="px-4 py-3.5">Headcount</th>
-                  <th className="px-4 py-3.5">Status</th>
+                  <th className="px-4 py-3.5 text-[11px] font-black uppercase tracking-wider text-black dark:text-white">Code</th>
+                  <th className="px-4 py-3.5 text-[11px] font-black uppercase tracking-wider text-black dark:text-white">Department Name</th>
+                  <th className="px-4 py-3.5 text-[11px] font-black uppercase tracking-wider text-black dark:text-white">Headcount</th>
+                  <th className="px-4 py-3.5 text-[11px] font-black uppercase tracking-wider text-black dark:text-white">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/40 dark:divide-neutral-800/40">

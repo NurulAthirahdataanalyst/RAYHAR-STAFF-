@@ -318,7 +318,7 @@ export default function NotificationBell() {
       onOpenChange={(open) => {
         setIsOpen(open);
         if (open) {
-          if (isElevatedRole && teamUnreadCount > 0 && myUnreadCount === 0) {
+          if (isElevatedRole && teamUnreadCount > 0) {
             setActiveScope("team");
           }
           void fetchNotifications();

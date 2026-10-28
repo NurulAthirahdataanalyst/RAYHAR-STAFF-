@@ -22,10 +22,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { API_BASE_URL } from "@/config/api";
+import { API_BASE_URL, getActiveCompanyId } from "@/config/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { MonthPicker } from "@/components/shared/MonthPicker";
-import { useRole } from "@/contexts/RoleContext";
+import { useRole, normalizeRole } from "@/contexts/RoleContext";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -268,7 +268,15 @@ export default function Notifications() {
   );
 
   const resolvedUserId = user?.user_id || user?.id || user?.employee_id;
-  const isElevatedRole = ["hr_admin", "superadmin", "managing_director", "operation_manager", "finance_manager", "head_of_department", "branch_leader"].includes((role || "").toLowerCase());
+  const isElevatedRole = [
+    "hr_admin",
+    "superadmin",
+    "managing_director",
+    "operation_manager",
+    "finance_manager",
+    "head_of_department",
+    "branch_leader"
+  ].includes(normalizeRole(role || ""));
 
   const fetchNotifications = async () => {
     if (!resolvedUserId) return;
@@ -278,7 +286,9 @@ export default function Notifications() {
       const unreadParam = activeTab === "unread" ? "&unreadOnly=true" : "";
       const scopeParam = isElevatedRole ? `&scope=${activeScope}` : "&scope=personal";
       const monthParam = selectedMonthYear && selectedMonthYear !== 'all' && !selectedMonthYear.endsWith('-all') ? `&month=${selectedMonthYear}` : '';
-      const res = await fetch(`${API_BASE_URL}/api/notifications?user_id=${encodeURIComponent(resolvedUserId)}&limit=100${typeParam}${unreadParam}${scopeParam}${monthParam}`);
+      const activeCompanyId = getActiveCompanyId();
+      const companyParam = activeCompanyId ? `&company_id=${encodeURIComponent(activeCompanyId)}` : "";
+      const res = await fetch(`${API_BASE_URL}/api/notifications?user_id=${encodeURIComponent(resolvedUserId)}&limit=100${typeParam}${unreadParam}${scopeParam}${monthParam}${companyParam}`);
       const data = await res.json();
       if (data.success) {
         setNotifications(data.notifications || []);
@@ -296,6 +306,14 @@ export default function Notifications() {
 
   useEffect(() => {
     void fetchNotifications();
+  }, [resolvedUserId, activeTab, activeScope, selectedMonthYear]);
+
+  useEffect(() => {
+    const onCompanySwitch = () => {
+      void fetchNotifications();
+    };
+    window.addEventListener("rayhar_company_switched", onCompanySwitch);
+    return () => window.removeEventListener("rayhar_company_switched", onCompanySwitch);
   }, [resolvedUserId, activeTab, activeScope, selectedMonthYear]);
 
   // Realtime updates

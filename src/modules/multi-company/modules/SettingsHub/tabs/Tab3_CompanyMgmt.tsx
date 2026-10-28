@@ -163,13 +163,13 @@ export const Tab3_CompanyMgmt: React.FC<Tab3CompanyMgmtProps> = ({ onNavigateToT
           <table className="w-full text-left text-xs">
             <thead className="bg-muted/50 dark:bg-neutral-800/60 border-b border-border dark:border-neutral-800 text-[11px] font-black uppercase tracking-wider text-black dark:text-white">
               <tr>
-                <th className="px-4 py-3.5">Branding</th>
-                <th className="px-4 py-3.5">Company Name</th>
-                <th className="px-4 py-3.5">Structure Tier</th>
-                <th className="px-4 py-3.5">Parent Holding</th>
-                <th className="px-4 py-3.5">Branches & Geofence</th>
-                <th className="px-4 py-3.5">Status</th>
-                <th className="px-4 py-3.5 text-right">Actions</th>
+                <th className="px-4 py-3.5 text-[11px] font-black uppercase tracking-wider text-black dark:text-white">Branding</th>
+                <th className="px-4 py-3.5 text-[11px] font-black uppercase tracking-wider text-black dark:text-white">Company Name</th>
+                <th className="px-4 py-3.5 text-[11px] font-black uppercase tracking-wider text-black dark:text-white">Structure Tier</th>
+                <th className="px-4 py-3.5 text-[11px] font-black uppercase tracking-wider text-black dark:text-white">Parent Holding</th>
+                <th className="px-4 py-3.5 text-[11px] font-black uppercase tracking-wider text-black dark:text-white">Branches & Geofence</th>
+                <th className="px-4 py-3.5 text-[11px] font-black uppercase tracking-wider text-black dark:text-white">Status</th>
+                <th className="px-4 py-3.5 text-right text-[11px] font-black uppercase tracking-wider text-black dark:text-white">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/40 dark:divide-neutral-800/40">

@@ -5798,6 +5798,8 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
 
 app.get("/api/notifications", async (req, res) => {
   const user_id = safeString(req.query.user_id);
+  const rawCid = req.query.company_id || req.query.companyId || req.companyId;
+  const companyId = rawCid ? parseInt(rawCid, 10) : null;
   const limit = parseInt(safeString(req.query.limit) || "50", 10) || 50;
   const offset = parseInt(safeString(req.query.offset) || "0", 10) || 0;
   const type = safeString(req.query.type) || null;
@@ -5815,8 +5817,9 @@ app.get("/api/notifications", async (req, res) => {
       unreadOnly,
       scope,
       month,
+      companyId,
     });
-    const unreadData = await notificationService.getUnreadCount(user_id);
+    const unreadData = await notificationService.getUnreadCount(user_id, companyId);
 
     res.json({
       success: true,
@@ -5833,10 +5836,12 @@ app.get("/api/notifications", async (req, res) => {
 
 app.get("/api/notifications/unread-count", async (req, res) => {
   const user_id = safeString(req.query.user_id);
+  const rawCid = req.query.company_id || req.query.companyId || req.companyId;
+  const companyId = rawCid ? parseInt(rawCid, 10) : null;
   if (!user_id) return res.status(400).json({ success: false, error: "user_id required" });
 
   try {
-    const unreadData = await notificationService.getUnreadCount(user_id);
+    const unreadData = await notificationService.getUnreadCount(user_id, companyId);
     res.json({
       success: true,
       unreadCount: unreadData.total,

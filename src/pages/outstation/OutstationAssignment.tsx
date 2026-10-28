@@ -777,11 +777,11 @@ export default function OutstationAssignment() {
           <div className="flex items-center gap-2.5 ml-auto">
             {selectedEvent && canEditEvent(selectedEvent) && (
               <Button
-                variant="outline"
-                className="h-10 px-4 text-[13px] font-bold border-[#942392]/30 text-[#942392] hover:bg-[#942392]/10 bg-white dark:bg-slate-900 shadow-sm shrink-0"
+                className="rounded-xl px-3.5 py-2 h-9 text-xs font-black uppercase tracking-wider bg-[#942392] hover:bg-[#5e0080] text-white shadow-md flex items-center gap-1.5 shrink-0"
                 onClick={() => openEditEvent(selectedEvent)}
               >
-                <Edit2 className="w-4 h-4 mr-1.5" /> Edit Event & Staff
+                <Edit2 className="w-3.5 h-3.5" />
+                <span>Edit Event & Staff</span>
               </Button>
             )}
 

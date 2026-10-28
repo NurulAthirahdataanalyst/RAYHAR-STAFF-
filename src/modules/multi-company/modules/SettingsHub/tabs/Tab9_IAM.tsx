@@ -518,12 +518,12 @@ export const Tab9_IAM: React.FC = () => {
             <table className="w-full text-left text-xs">
               <thead className="bg-muted/50 dark:bg-neutral-800/60 border-b border-border dark:border-neutral-800 text-[11px] font-black uppercase tracking-wider text-black dark:text-white">
                 <tr>
-                  <th className="px-4 py-3.5">Role Name</th>
-                  <th className="px-4 py-3.5">Role Type</th>
-                  <th className="px-4 py-3.5">Scope Boundary</th>
-                  <th className="px-4 py-3.5">Assigned Staff</th>
-                  <th className="px-4 py-3.5">Status</th>
-                  <th className="px-4 py-3.5 text-right">Actions</th>
+                  <th className="px-4 py-3.5 text-[11px] font-black uppercase tracking-wider text-black dark:text-white">Role Name</th>
+                  <th className="px-4 py-3.5 text-[11px] font-black uppercase tracking-wider text-black dark:text-white">Role Type</th>
+                  <th className="px-4 py-3.5 text-[11px] font-black uppercase tracking-wider text-black dark:text-white">Scope Boundary</th>
+                  <th className="px-4 py-3.5 text-[11px] font-black uppercase tracking-wider text-black dark:text-white">Assigned Staff</th>
+                  <th className="px-4 py-3.5 text-[11px] font-black uppercase tracking-wider text-black dark:text-white">Status</th>
+                  <th className="px-4 py-3.5 text-right text-[11px] font-black uppercase tracking-wider text-black dark:text-white">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/40 dark:divide-neutral-800/40">

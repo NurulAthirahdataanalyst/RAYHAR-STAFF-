@@ -76,12 +76,12 @@ export const EmployeeCompanyHistory: React.FC<EmployeeCompanyHistoryProps> = ({ 
             <table className="w-full text-left text-xs">
               <thead className="bg-muted/50 dark:bg-neutral-800/60 border-b border-border dark:border-neutral-800 text-[11px] font-black uppercase tracking-wider text-black dark:text-white">
                 <tr>
-                  <th className="px-4 py-3.5">Date</th>
-                  <th className="px-4 py-3.5">Staff</th>
-                  <th className="px-4 py-3.5">Transition Route</th>
-                  <th className="px-4 py-3.5">Role Change</th>
-                  <th className="px-4 py-3.5">Transfer Reason</th>
-                  <th className="px-4 py-3.5">Authorized By</th>
+                  <th className="px-4 py-3.5 text-[11px] font-black uppercase tracking-wider text-black dark:text-white">Date</th>
+                  <th className="px-4 py-3.5 text-[11px] font-black uppercase tracking-wider text-black dark:text-white">Staff</th>
+                  <th className="px-4 py-3.5 text-[11px] font-black uppercase tracking-wider text-black dark:text-white">Transition Route</th>
+                  <th className="px-4 py-3.5 text-[11px] font-black uppercase tracking-wider text-black dark:text-white">Role Change</th>
+                  <th className="px-4 py-3.5 text-[11px] font-black uppercase tracking-wider text-black dark:text-white">Transfer Reason</th>
+                  <th className="px-4 py-3.5 text-[11px] font-black uppercase tracking-wider text-black dark:text-white">Authorized By</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/40 dark:divide-neutral-800/40">

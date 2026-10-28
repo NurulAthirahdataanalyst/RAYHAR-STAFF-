@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { API_BASE_URL } from "@/config/api";
+import { API_BASE_URL, getActiveCompanyId } from "@/config/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { initializePushNotifications } from "@/lib/pushNotifications";
 import { toast } from "sonner";
@@ -55,8 +55,10 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     try {
       setLoading(true);
       const scopeParam = scope ? `&scope=${scope}` : "";
+      const activeCompanyId = getActiveCompanyId();
+      const companyParam = activeCompanyId ? `&company_id=${encodeURIComponent(activeCompanyId)}` : "";
       const res = await fetch(
-        `${API_BASE_URL}/api/notifications?user_id=${encodeURIComponent(resolvedUserId)}&limit=50${scopeParam}`
+        `${API_BASE_URL}/api/notifications?user_id=${encodeURIComponent(resolvedUserId)}&limit=50${scopeParam}${companyParam}`
       );
       const data = await res.json();
       if (data.success) {
@@ -278,6 +280,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
     window.addEventListener("app:refresh", handleRefresh);
     window.addEventListener("attendanceUpdated", handleRefresh);
+    window.addEventListener("rayhar_company_switched", handleRefresh);
     window.addEventListener("focus", handleRefresh);
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
@@ -306,6 +309,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       clearInterval(pollInterval);
       window.removeEventListener("app:refresh", handleRefresh);
       window.removeEventListener("attendanceUpdated", handleRefresh);
+      window.removeEventListener("rayhar_company_switched", handleRefresh);
       window.removeEventListener("focus", handleRefresh);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
 
