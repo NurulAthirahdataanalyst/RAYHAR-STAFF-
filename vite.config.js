@@ -1,4 +1,5 @@
 import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react-swc";
 import path from "node:path";
 
 export default defineConfig(({ mode }) => ({
@@ -8,7 +9,7 @@ export default defineConfig(({ mode }) => ({
     allowedHosts: ["activity-fiddle-subdued.ngrok-free.dev"],
   },
 
-  plugins: [],
+  plugins: [react()],
 
   resolve: {
     preserveSymlinks: true,
