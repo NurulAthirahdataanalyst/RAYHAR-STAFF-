@@ -818,7 +818,7 @@ app.get("/api/roles", async (req, res) => {
         r.company_id,
         r.created_at,
         r.updated_at,
-        (SELECT COUNT(*)::int FROM profiles p WHERE p.role_id = r.id OR LOWER(p.role) = LOWER(r.name) OR LOWER(REPLACE(p.role, '_', ' ')) = LOWER(r.name)) AS total_users,
+        (SELECT COUNT(DISTINCT p.user_id)::int FROM profiles p WHERE (p.role_id = r.id OR LOWER(p.role) = LOWER(r.name) OR LOWER(REPLACE(p.role, '_', ' ')) = LOWER(r.name)) AND LOWER(TRIM(COALESCE(p.status, 'active'))) = 'active' AND p.email NOT LIKE '%_deleted_%' AND p.user_id NOT LIKE '%_deleted_%') AS total_users,
         COUNT(DISTINCT rp.permission_id)::int AS permission_count,
         COALESCE(
           json_agg(
@@ -894,7 +894,7 @@ app.get("/api/roles/:id", async (req, res) => {
           '{}'::varchar[]
         ) AS permission_keys
       FROM roles r
-      LEFT JOIN profiles p ON p.role_id = r.id OR LOWER(p.role) = LOWER(r.name) OR LOWER(REPLACE(p.role, '_', ' ')) = LOWER(r.name)
+      LEFT JOIN profiles p ON (p.role_id = r.id OR LOWER(p.role) = LOWER(r.name) OR LOWER(REPLACE(p.role, '_', ' ')) = LOWER(r.name)) AND LOWER(TRIM(COALESCE(p.status, 'active'))) = 'active' AND p.email NOT LIKE '%_deleted_%' AND p.user_id NOT LIKE '%_deleted_%'
       LEFT JOIN role_permissions rp ON rp.role_id = r.id
       LEFT JOIN permissions perm ON perm.id = rp.permission_id
       WHERE r.id = $1
@@ -1267,13 +1267,16 @@ app.get("/api/roles/:id/users", async (req, res) => {
        FROM profiles p
        LEFT JOIN user_role ur ON ur.user_id = p.user_id
        LEFT JOIN company_user_roles cur ON cur.user_id = p.user_id AND cur.status = 'active'
-       WHERE p.role_id = $1 
+       WHERE (p.role_id = $1 
           OR ur.role_id = $1
           OR LOWER(COALESCE(p.role, '')) = LOWER($2) 
           OR LOWER(REPLACE(COALESCE(p.role, ''), '_', ' ')) = LOWER($2)
           OR LOWER(COALESCE(ur.role, '')) = LOWER($2)
           OR LOWER(REPLACE(COALESCE(ur.role, ''), '_', ' ')) = LOWER($2)
-          OR cur.role_id = $1
+          OR cur.role_id = $1)
+          AND LOWER(TRIM(COALESCE(p.status, 'active'))) = 'active'
+          AND p.email NOT LIKE '%_deleted_%'
+          AND p.user_id NOT LIKE '%_deleted_%'
        ORDER BY p.full_name ASC`,
       [id, role.name]
     );

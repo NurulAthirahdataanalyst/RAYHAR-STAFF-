@@ -559,7 +559,7 @@ export default function Role() {
     }
   };
 
-  // Open Users Modal
+  // Open Users Modal (Active staff only)
   const handleViewRoleUsers = async (roleItem: RoleItem) => {
     setSelectedRoleForUsers(roleItem);
     setIsUsersModalOpen(true);
@@ -568,7 +568,14 @@ export default function Role() {
       const res = await fetch(`${API_BASE_URL}/api/roles/${roleItem.id}/users`);
       const data = await res.json();
       if (data.success) {
-        setRoleUsers(data.users || []);
+        // Strictly only Active staff
+        const activeUsers = (data.users || []).filter((u: any) => {
+          const s = String(u.status || 'Active').trim().toLowerCase();
+          const email = String(u.email || '').toLowerCase();
+          const uid = String(u.user_id || '').toLowerCase();
+          return s === 'active' && !email.includes('_deleted_') && !uid.includes('_deleted_');
+        });
+        setRoleUsers(activeUsers);
       } else {
         setRoleUsers([]);
       }
@@ -1545,9 +1552,10 @@ export default function Role() {
                       {u.email} • {u.branch || "HQ"} {u.department ? `• ${u.department}` : ""}
                     </p>
                   </div>
-                  <Badge variant="outline" className="text-[9px] font-bold">
-                    {u.status || "Active"}
-                  </Badge>
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/60 shadow-2xs">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                    Active
+                  </span>
                 </div>
               ))
             )}

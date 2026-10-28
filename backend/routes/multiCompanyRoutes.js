@@ -1182,7 +1182,7 @@ function createMultiCompanyRouter(pgPool) {
       const rolesRes = await pgPool.query(`
         SELECT 
           r.*,
-          (SELECT COUNT(*)::int FROM company_user_roles cur WHERE cur.role_id = r.id AND cur.status = 'active') AS total_users,
+          (SELECT COUNT(DISTINCT cur.user_id)::int FROM company_user_roles cur JOIN profiles p ON p.user_id = cur.user_id WHERE cur.role_id = r.id AND cur.status = 'active' AND LOWER(TRIM(COALESCE(p.status, 'active'))) = 'active' AND p.email NOT LIKE '%_deleted_%' AND p.user_id NOT LIKE '%_deleted_%') AS total_users,
           COALESCE(
             json_agg(p.permission_key) FILTER (WHERE p.permission_key IS NOT NULL), '[]'::json
           ) AS permission_keys,
