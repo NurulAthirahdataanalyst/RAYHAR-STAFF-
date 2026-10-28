@@ -370,5 +370,23 @@ export const multiCompanyApi = {
     const res = await fetch(`${API_BASE_URL}/api/audit-logs?${query.toString()}`);
     const data = await res.json();
     return data.success ? data.audit_logs : [];
+  },
+
+  async logActivity(payload: {
+    category: string;
+    description: string;
+    company_id?: number | null;
+    old_values?: any;
+    new_values?: any;
+  }): Promise<void> {
+    try {
+      await fetch(`${API_BASE_URL}/api/audit-logs`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+    } catch (e) {
+      console.warn('Failed to post activity log:', e);
+    }
   }
 };

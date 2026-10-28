@@ -112,6 +112,11 @@ export const Tab3_CompanyMgmt: React.FC<Tab3CompanyMgmtProps> = ({ onNavigateToT
           email,
           status
         });
+        await multiCompanyApi.logActivity({
+          category: 'COMPANY_UPDATE',
+          description: `HR updated company configuration for ${companyName.trim()}`,
+          company_id: editingCompany.id
+        });
         toast.success(`Updated ${companyName} successfully!`);
       } else {
         const created = await multiCompanyApi.createCompany({
@@ -121,6 +126,12 @@ export const Tab3_CompanyMgmt: React.FC<Tab3CompanyMgmtProps> = ({ onNavigateToT
           company_address: address,
           email,
           status
+        });
+        await multiCompanyApi.logActivity({
+          category: 'COMPANY_CREATE',
+          description: `HR added new company: ${created.company_name} (${created.company_type === 'main' ? 'Main Company' : 'Subsidiary'})`,
+          company_id: created.id,
+          new_values: created
         });
         toast.success(`Registered new subsidiary ${created.company_name}!`);
       }

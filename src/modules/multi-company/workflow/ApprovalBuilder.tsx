@@ -652,6 +652,12 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
     try {
       setSaving(true);
       await multiCompanyApi.saveApprovalWorkflow(companyId, allStepsToSave);
+      await multiCompanyApi.logActivity({
+        category: 'LEAVE_WORKFLOW_UPDATE',
+        description: `HR saved leave approval workflows for ${companyName} (${tracks.length} branch workflow tracks configured)`,
+        company_id: companyId,
+        new_values: { workflow_tracks_count: tracks.length, steps_count: allStepsToSave.length }
+      });
       toast.success(`Leave approval workflows successfully saved for ${companyName}!`);
     } catch (err: any) {
       toast.error(err.message || 'Failed to save approval workflows');

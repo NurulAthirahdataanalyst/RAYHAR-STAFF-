@@ -44,6 +44,23 @@ if (typeof window !== 'undefined' && !((window as any).__rayhar_fetch_intercepto
         if (!headers.has('X-Company-Id')) {
           headers.set('X-Company-Id', targetCompanyId);
         }
+
+        // Attach Operator identity for system audit logging
+        if (!headers.has('X-Operator-Name')) {
+          try {
+            const rawUser = sessionStorage.getItem('user') || localStorage.getItem('user');
+            if (rawUser) {
+              const u = JSON.parse(rawUser);
+              const opName = u.full_name || u.name || sessionStorage.getItem('presence_cached_name') || 'HR Admin';
+              const opRole = u.role || sessionStorage.getItem('presence_cached_role') || 'hr_admin';
+              const opId = String(u.id || u.user_id || 'system');
+              headers.set('X-Operator-Name', encodeURIComponent(opName));
+              headers.set('X-Operator-Role', encodeURIComponent(opRole));
+              headers.set('X-Operator-Id', opId);
+            }
+          } catch (_) {}
+        }
+
         init.headers = headers;
 
         // For GET requests that do not already have company_id or companyId, append it

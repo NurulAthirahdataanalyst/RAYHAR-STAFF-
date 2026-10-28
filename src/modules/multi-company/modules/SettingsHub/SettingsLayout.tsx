@@ -18,6 +18,7 @@ import {
   Info,
   Building
 } from 'lucide-react';
+import { Tab1_SystemConfig } from './tabs/Tab1_SystemConfig';
 import { Tab2_EmployeeConfig } from './tabs/Tab2_EmployeeConfig';
 import { Tab3_CompanyMgmt } from './tabs/Tab3_CompanyMgmt';
 import { Tab4_BranchLocationMgmt } from './tabs/Tab4_BranchLocationMgmt';
@@ -40,7 +41,8 @@ export type SettingsTabId =
   | 'department'
   | 'schedule'
   | 'leave'
-  | 'iam';
+  | 'iam'
+  | 'system';
 
 interface TabDefinition {
   id: SettingsTabId;
@@ -58,12 +60,13 @@ const SETTINGS_TABS: TabDefinition[] = [
   { id: 'schedule', label: 'WORK SCHEDULES', icon: CalendarClock },
   { id: 'leave', label: 'LEAVE & APPROVALS', icon: FileCheck2 },
   { id: 'iam', label: 'ROLES & PERMISSIONS', icon: ShieldCheck },
+  { id: 'system', label: 'SYSTEM ACTIVITY', icon: History },
 ];
 
 export const SettingsLayout: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const rawParam = searchParams.get('tab');
-  const initialTab: SettingsTabId = (rawParam && rawParam !== 'system' && SETTINGS_TABS.some(t => t.id === rawParam)) 
+  const initialTab: SettingsTabId = (rawParam && SETTINGS_TABS.some(t => t.id === rawParam)) 
     ? (rawParam as SettingsTabId) 
     : 'attendance';
   const [activeTab, setActiveTab] = useState<SettingsTabId>(initialTab);
@@ -127,7 +130,7 @@ export const SettingsLayout: React.FC = () => {
           </div>
         </div>
         <button 
-          onClick={openAuditLogs}
+          onClick={() => handleTabChange('system')}
           className="flex items-center self-start sm:self-auto gap-2 px-4 py-2 bg-[#942392]/10 text-[#942392] hover:bg-[#942392]/15 border border-[#942392]/20 font-black text-[10px] uppercase tracking-widest rounded-xl transition-all shadow-xs cursor-pointer"
         >
           <History className="w-3.5 h-3.5" />
@@ -229,6 +232,7 @@ export const SettingsLayout: React.FC = () => {
           {activeTab === 'schedule' && <Tab6_WorkScheduleMgmt />}
           {activeTab === 'leave' && <Tab8_LeaveWorkflowConfig />}
           {activeTab === 'iam' && <Tab9_IAM />}
+          {activeTab === 'system' && <Tab1_SystemConfig />}
         </div>
       </div>
 

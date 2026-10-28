@@ -393,9 +393,11 @@ function createMultiCompanyRouter(pgPool) {
   // Helper for audit logging
   async function logAudit(req, category, description, oldVals = null, newVals = null, companyId = null) {
     try {
-      const operatorId = req.user?.user_id || req.user?.id || 'system';
-      const operatorName = req.user?.full_name || req.user?.name || req.body?.operatorName || 'Admin Operator';
-      const operatorRole = req.user?.role || req.body?.operatorRole || 'hr_admin';
+      const rawOpName = req.headers['x-operator-name'] ? decodeURIComponent(req.headers['x-operator-name']) : null;
+      const rawOpRole = req.headers['x-operator-role'] ? decodeURIComponent(req.headers['x-operator-role']) : null;
+      const operatorId = req.user?.user_id || req.user?.id || req.headers['x-operator-id'] || req.body?.operatorId || 'system';
+      const operatorName = req.user?.full_name || req.user?.name || rawOpName || req.body?.operatorName || 'HR Admin';
+      const operatorRole = req.user?.role || rawOpRole || req.body?.operatorRole || 'hr_admin';
       const ip = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '127.0.0.1';
       const ua = req.headers['user-agent'] || '';
 
@@ -2239,6 +2241,19 @@ function createMultiCompanyRouter(pgPool) {
             [limit]
           );
       res.json({ success: true, audit_logs: logs.rows });
+    } catch (err) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  router.post('/audit-logs', async (req, res) => {
+    try {
+      const { category, description, company_id, old_values, new_values } = req.body;
+      if (!category || !description) {
+        return res.status(400).json({ success: false, error: 'Category and description are required' });
+      }
+      await logAudit(req, category, description, old_values || null, new_values || null, company_id || null);
+      res.json({ success: true, message: 'Audit entry recorded successfully' });
     } catch (err) {
       res.status(500).json({ success: false, error: err.message });
     }

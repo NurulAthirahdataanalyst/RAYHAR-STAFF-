@@ -108,6 +108,12 @@ export const Tab8_LeaveWorkflowConfig: React.FC = () => {
         mc_required: mcRequired,
         escalate_to_parent: escalateToParent
       });
+      await multiCompanyApi.logActivity({
+        category: 'LEAVE_SETTINGS_UPDATE',
+        description: `HR saved leave entitlements & policies for ${currentCompanyName} (Annual & Emergency: ${annualDays} days, Medical: ${sickDays} days)`,
+        company_id: selectedCompanyId,
+        new_values: { annual_days: annualDays, sick_days: sickDays, replacement_days: replacementDays, unpaid_days: unpaidDays, mc_required: mcRequired }
+      });
       toast.success(`Leave entitlements and policies saved for ${currentCompanyName}!`);
     } catch (err: any) {
       toast.error(err.message || 'Failed to save leave policies');
