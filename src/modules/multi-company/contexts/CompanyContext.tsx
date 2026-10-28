@@ -176,11 +176,18 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, [fetchAllData]);
 
   const setActiveCompanyId = useCallback((companyId: number) => {
-    // Only HR role is authorized to switch active company context
+    // Only HR role or roles with Parent Group Data authorization scope are authorized to switch active company context
     const normUserRole = (user?.role || '').trim().toLowerCase();
     const isHR = ['hr', 'hr admin', 'hr_admin', 'admin'].includes(normUserRole);
-    if (!isHR) {
-      console.warn('Switching company context is restricted to HR Admin role.');
+    const hasParentGroupScope = 
+      isHR ||
+      user?.scope_type === 'Parent Group Data' ||
+      user?.scope_type === 'Parent Group Access' ||
+      userCompanies.some(uc => uc.scope_type === 'Parent Group Data' || uc.scope_type === 'Parent Group Access') ||
+      ['managing_director', 'operation_manager'].includes(normUserRole);
+
+    if (!hasParentGroupScope) {
+      console.warn('Switching company context is restricted to HR Admin or Parent Group Data role authorization.');
       return;
     }
     const target = companies.find(c => c.id === companyId);
@@ -193,7 +200,7 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
       // Emit synthetic event so components know company context changed
       window.dispatchEvent(new CustomEvent('rayhar_company_switched', { detail: { company: target, company_id: target.id } }));
     }
-  }, [companies, user?.role]);
+  }, [companies, user, userCompanies]);
 
   const refreshCompanies = useCallback(async () => {
     try {
@@ -232,7 +239,9 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const normUserRole = (user?.role || '').toLowerCase();
   const isParentGroupAdmin = 
     Boolean(activeCompany?.company_type === 'main' && ['hr_admin', 'admin', 'managing_director', 'operation_manager'].includes(normUserRole)) ||
-    userCompanies.some(uc => uc.scope_type === 'Parent Group Access');
+    user?.scope_type === 'Parent Group Data' ||
+    user?.scope_type === 'Parent Group Access' ||
+    userCompanies.some(uc => uc.scope_type === 'Parent Group Access' || uc.scope_type === 'Parent Group Data');
 
   return (
     <CompanyContext.Provider

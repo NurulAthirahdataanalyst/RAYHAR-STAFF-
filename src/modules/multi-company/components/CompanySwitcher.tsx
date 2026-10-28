@@ -31,19 +31,33 @@ export const CompanySwitcher: React.FC<CompanySwitcherProps> = ({
   variant = 'header',
   className = ''
 }) => {
-  const { activeCompany, companies, setActiveCompanyId, isParentGroupAdmin } = useCompany();
+  const { activeCompany, companies, setActiveCompanyId, isParentGroupAdmin, userActiveRole, userCompanies } = useCompany();
   const { user } = useAuth();
-  const { role: contextRole } = useRole();
+  const { role: contextRole, scopeType } = useRole();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [open, setOpen] = useState(false);
 
   const activeCompanyName = activeCompany?.company_name || 'Rayhar Travels';
-  const isMain = activeCompany?.company_type === 'main' || !activeCompany?.parent_company_id;
+  const isMain = activeCompany?.id === 1 || activeCompany?.company_type === 'main';
 
-  // Determine if current user has HR role - only HR role can choose / switch active company context
+  // Determine if current user has HR role or Parent Group Data authorization scope
   const resolvedRole = normalizeRole(contextRole || user?.role);
-  const isHR = resolvedRole === 'hr_admin';
+  const isHR = resolvedRole === 'hr_admin' || resolvedRole === 'admin';
+  const hasParentGroupScope = 
+    isHR || 
+    isParentGroupAdmin ||
+    user?.scope_type === 'Parent Group Data' ||
+    user?.scope_type === 'Parent Group Access' ||
+    userActiveRole?.scope_type === 'Parent Group Data' ||
+    userActiveRole?.scope_type === 'Parent Group Access' ||
+    userCompanies.some(uc => uc.scope_type === 'Parent Group Data' || uc.scope_type === 'Parent Group Access') ||
+    scopeType === 'Parent Group Data' ||
+    scopeType === 'Parent Group Access' ||
+    resolvedRole === 'managing_director' ||
+    resolvedRole === 'operation_manager';
+
+  const canSwitchCompany = hasParentGroupScope;
 
   const filteredCompanies = useMemo(() => {
     return companies.filter(c => 
@@ -53,8 +67,13 @@ export const CompanySwitcher: React.FC<CompanySwitcherProps> = ({
   }, [companies, searchTerm]);
 
   const handleSelectCompany = (id: number, name: string) => {
-    if (!isHR) {
-      toast.error('Only HR roles are authorized to switch companies.');
+    if (!canSwitchCompany) {
+      toast.error('Only HR roles or roles with Parent Group Data authorization scope can switch companies.');
+      return;
+    }
+    const targetComp = companies.find(c => c.id === id);
+    if (targetComp?.status === 'inactive' && !isHR) {
+      toast.error(`${name} is currently inactive.`);
       return;
     }
     setActiveCompanyId(id);
@@ -64,8 +83,8 @@ export const CompanySwitcher: React.FC<CompanySwitcherProps> = ({
 
   const isHeader = variant === 'header';
 
-  // If not HR role, render static indicator without dropdown trigger or switching capability
-  if (!isHR) {
+  // If role does not have authorization scope for Parent Group Data, render static indicator without switching capability
+  if (!canSwitchCompany) {
     return (
       <div
         className={
@@ -186,7 +205,7 @@ export const CompanySwitcher: React.FC<CompanySwitcherProps> = ({
           ) : (
             filteredCompanies.map((c) => {
               const isSelected = activeCompany?.id === c.id;
-              const isCompMain = c.company_type === 'main' || !c.parent_company_id;
+              const isCompMain = c.id === 1 || c.company_type === 'main';
 
               return (
                 <DropdownMenuItem
@@ -207,7 +226,14 @@ export const CompanySwitcher: React.FC<CompanySwitcherProps> = ({
                       )}
                     </div>
                     <div className="flex flex-col min-w-0">
-                      <span className="text-xs truncate tracking-tight">{c.company_name}</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs truncate tracking-tight">{c.company_name}</span>
+                        {c.status === 'inactive' && (
+                          <span className="text-[8px] uppercase tracking-wider font-bold px-1 py-0.2 rounded bg-rose-50 text-rose-600 border border-rose-200 dark:bg-rose-950/40 dark:text-rose-400">
+                            Inactive
+                          </span>
+                        )}
+                      </div>
                       <span className="text-[9px] text-muted-foreground dark:text-neutral-400 font-medium">
                         {isCompMain ? 'Parent Entity' : 'Subsidiary Entity'}
                       </span>
