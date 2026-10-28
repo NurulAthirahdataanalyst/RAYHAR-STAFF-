@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { Pool } = require('pg');
+const { getDbSslConfig } = require('./utils/dbSsl');
 const dotenv = require('dotenv');
 
 // Load environment variables
@@ -14,7 +15,7 @@ if (!connectionString) {
 
 const pool = new Pool({
   connectionString,
-  ssl: { rejectUnauthorized: false }
+  ssl: getDbSslConfig()
 });
 
 // Reverse order of dependencies to delete tables safely

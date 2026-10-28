@@ -93,7 +93,7 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
 
     const hqTrack: WorkflowTrack = {
       id: 'wf-rayhar-hq',
-      name: 'Workflow 1 • Rayhar HQ',
+      name: '1. Rayhar Travels Sdn Bhd — Headquarters (HQ)',
       scopeType: 'HQ',
       selectedBranches: ['HQ'],
       steps: [
@@ -124,7 +124,7 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
 
     const otherBranchesTrack: WorkflowTrack = {
       id: 'wf-rayhar-branches',
-      name: 'Workflow 2 • Other Branches (Except HQ)',
+      name: '2. Other Regional Branches (Except HQ)',
       scopeType: 'OTHER_BRANCHES',
       selectedBranches: nonHqBranchCodes.length > 0 ? nonHqBranchCodes : ['AOR', 'BBB', 'TGG', 'KBR'],
       steps: [
@@ -812,10 +812,19 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
       };
     }
 
-    if (selected.length === 1 && selected[0] === 'HQ') {
+    if (selected.length === 1) {
+      const code = selected[0];
+      if (code === 'HQ') {
+        return {
+          titleSuffix: 'Rayhar HQ',
+          appliesText: 'Applies to all staff assigned to branch HQ (Rayhar HQ)'
+        };
+      }
+      const bObj = branches.find((b) => b.code === code);
+      const bName = bObj?.name || code;
       return {
-        titleSuffix: 'Rayhar HQ',
-        appliesText: 'Applies to all staff assigned to branch HQ (Rayhar HQ)'
+        titleSuffix: `Rayhar ${code} (${bName})`,
+        appliesText: `Applies to all staff assigned to branch ${code} (${bName})`
       };
     }
 
@@ -1365,6 +1374,19 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
             </div>
           );
         })}
+      </div>
+
+      {/* Bottom Action: Add New Branch Approval Workflow */}
+      <div className="pt-2">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={handleAddWorkflow}
+          className="w-full h-11 border-2 border-dashed border-[#942392]/40 bg-[#942392]/5 hover:bg-[#942392]/15 text-[#942392] dark:text-[#f885d5] font-black uppercase tracking-wider text-xs rounded-2xl gap-2 shadow-xs cursor-pointer"
+        >
+          <Plus className="w-4 h-4" />
+          + Add New Branch Approval Workflow for {companyName}
+        </Button>
       </div>
     </div>
   );

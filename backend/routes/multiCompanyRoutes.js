@@ -25,6 +25,10 @@ function createMultiCompanyRouter(pgPool) {
   `).catch((err) => console.warn('Could not alter employee_company_history columns:', err.message));
 
   // Helper to normalize zone codes consistently ('Zone A' -> 'ZONE_A', 'Zone B' -> 'ZONE_B')
+  function cleanString(val) {
+    return typeof val === 'string' ? val.trim() : '';
+  }
+
   function normalizeZoneCode(zone) {
     if (!zone || typeof zone !== 'string') return null;
     const trimmed = zone.trim();
@@ -459,7 +463,8 @@ function createMultiCompanyRouter(pgPool) {
         status = 'active'
       } = req.body;
 
-      if (!company_name || !company_name.trim()) {
+      const safeCompanyName = cleanString(company_name);
+      if (!safeCompanyName) {
         return res.status(400).json({ success: false, error: 'Company name is required' });
       }
 
@@ -467,7 +472,7 @@ function createMultiCompanyRouter(pgPool) {
         INSERT INTO companies (company_name, company_type, parent_company_id, company_address, email, status)
         VALUES ($1, $2, $3, $4, $5, $6)
         RETURNING *;
-      `, [company_name.trim(), company_type, parent_company_id || null, company_address, email, status]);
+      `, [safeCompanyName, cleanString(company_type) || 'subsidiary', parent_company_id || null, cleanString(company_address), cleanString(email), cleanString(status) || 'active']);
 
       const newCompany = insertResult.rows[0];
 
@@ -564,7 +569,7 @@ function createMultiCompanyRouter(pgPool) {
         WHERE id = $8
         RETURNING *;
       `, [
-        company_name ? company_name.trim() : null,
+        typeof company_name === 'string' && company_name.trim() ? company_name.trim() : null,
         company_type,
         parent_company_id !== undefined ? parent_company_id : oldCompany.rows[0].parent_company_id,
         company_address,
@@ -856,11 +861,13 @@ function createMultiCompanyRouter(pgPool) {
         radius = 50
       } = req.body;
 
-      if (!code || !name || latitude === undefined || longitude === undefined) {
+      const safeCode = cleanString(code);
+      const safeName = cleanString(name);
+      if (!safeCode || !safeName || latitude === undefined || longitude === undefined) {
         return res.status(400).json({ success: false, error: 'Code, Name, Latitude, and Longitude are required' });
       }
 
-      const branchCode = code.trim().toUpperCase();
+      const branchCode = safeCode.toUpperCase();
       const normZone = normalizeZoneCode(operating_zone) || 'ZONE_B';
 
       const insBranch = await pgPool.query(`
@@ -875,7 +882,7 @@ function createMultiCompanyRouter(pgPool) {
           radius = EXCLUDED.radius,
           company_id = EXCLUDED.company_id
         RETURNING *;
-      `, [branchCode, name.trim(), name.trim(), location, normZone, latitude, longitude, radius, companyId]);
+      `, [branchCode, safeName, safeName, cleanString(location), normZone, latitude, longitude, radius, companyId]);
 
       // Ensure normal geofence record exists
       await pgPool.query(`
@@ -1231,19 +1238,20 @@ function createMultiCompanyRouter(pgPool) {
         permission_levels = {}
       } = req.body;
 
-      if (!role_name || !role_name.trim()) {
+      const safeRoleName = cleanString(role_name);
+      if (!safeRoleName) {
         return res.status(400).json({ success: false, error: 'Role name is required' });
       }
 
       // Check if a role with this name already exists for this specific company
       const existing = await pgPool.query(
         "SELECT id, name FROM roles WHERE LOWER(TRIM(name)) = LOWER(TRIM($1)) AND COALESCE(company_id, 1) = COALESCE($2, 1)",
-        [role_name.trim(), companyId]
+        [safeRoleName, companyId]
       );
       if (existing.rows.length > 0) {
         return res.status(400).json({ 
           success: false, 
-          error: `A role named "${role_name.trim()}" already exists for this company. Please choose a different name.` 
+          error: `A role named "${safeRoleName}" already exists for this company. Please choose a different name.` 
         });
       }
 
@@ -1251,7 +1259,7 @@ function createMultiCompanyRouter(pgPool) {
         INSERT INTO roles (name, description, role_type, scope_type, company_id, is_system_role, status)
         VALUES ($1, $2, $3, $4, $5, FALSE, 'Active')
         RETURNING *;
-      `, [role_name.trim(), description, role_type, scope_type, companyId]);
+      `, [safeRoleName, cleanString(description), role_type || 'Employee Role', scope_type || 'Current Company Only', companyId]);
 
       const newRole = roleRes.rows[0];
 
@@ -1284,15 +1292,16 @@ function createMultiCompanyRouter(pgPool) {
       const roleId = req.params.id;
       const { name, description, role_type, scope_type, status, permissions, permission_levels = {} } = req.body;
 
-      if (name && name.trim()) {
+      const safeName = cleanString(name);
+      if (safeName) {
         const existing = await pgPool.query(
           "SELECT id FROM roles WHERE LOWER(TRIM(name)) = LOWER(TRIM($1)) AND COALESCE(company_id, 1) = (SELECT COALESCE(company_id, 1) FROM roles WHERE id = $2) AND id != $2",
-          [name.trim(), roleId]
+          [safeName, roleId]
         );
         if (existing.rows.length > 0) {
           return res.status(400).json({ 
             success: false, 
-            error: `A role named "${name.trim()}" already exists for this company.` 
+            error: `A role named "${safeName}" already exists for this company.` 
           });
         }
       }
@@ -1402,8 +1411,9 @@ function createMultiCompanyRouter(pgPool) {
   router.post('/companies/:companyId/departments', async (req, res) => {
     try {
       const companyId = req.params.companyId;
-      const { name, code } = req.body;
-      if (!name || !name.trim()) {
+      const safeName = cleanString(req.body.name);
+      const safeCode = cleanString(req.body.code);
+      if (!safeName) {
         return res.status(400).json({ success: false, error: 'Department name is required' });
       }
 
@@ -1411,7 +1421,7 @@ function createMultiCompanyRouter(pgPool) {
         INSERT INTO departments (name, code, company_id)
         VALUES ($1, $2, $3)
         RETURNING *;
-      `, [name.trim(), code ? code.trim().toUpperCase() : null, companyId]);
+      `, [safeName, safeCode ? safeCode.toUpperCase() : null, companyId]);
 
       res.status(201).json({ success: true, department: ins.rows[0] });
     } catch (err) {
@@ -1511,7 +1521,8 @@ function createMultiCompanyRouter(pgPool) {
         breaks = []
       } = req.body;
 
-      if (!schedule_name) {
+      const safeScheduleName = cleanString(schedule_name);
+      if (!safeScheduleName) {
         return res.status(400).json({ success: false, error: 'Schedule name is required' });
       }
 
@@ -1524,7 +1535,7 @@ function createMultiCompanyRouter(pgPool) {
         INSERT INTO work_schedules (company_id, operating_zone, department_id, branch_id, branch_ids, special_rules, schedule_name, effective_date, status)
         VALUES ($1, $2, $3, $4, $5::jsonb, $6::jsonb, $7, $8, 'active')
         RETURNING *;
-      `, [companyId, normZone, department_id, branchIdText, JSON.stringify(parsedBranches), JSON.stringify(cleanRules), schedule_name.trim(), effective_date]);
+      `, [companyId, normZone, department_id, branchIdText, JSON.stringify(parsedBranches), JSON.stringify(cleanRules), safeScheduleName, effective_date]);
 
       const scheduleId = schedRes.rows[0].id;
 
@@ -1577,7 +1588,8 @@ function createMultiCompanyRouter(pgPool) {
         breaks = []
       } = req.body;
 
-      if (!schedule_name) {
+      const safeScheduleName = cleanString(schedule_name);
+      if (!safeScheduleName) {
         return res.status(400).json({ success: false, error: 'Schedule name is required' });
       }
 
@@ -1597,7 +1609,7 @@ function createMultiCompanyRouter(pgPool) {
             updated_at = CURRENT_TIMESTAMP
         WHERE id = $7 AND company_id = $8
         RETURNING *;
-      `, [schedule_name.trim(), normZone, department_id, branchIdText, JSON.stringify(parsedBranches), JSON.stringify(cleanRules), scheduleId, companyId]);
+      `, [safeScheduleName, normZone, department_id, branchIdText, JSON.stringify(parsedBranches), JSON.stringify(cleanRules), scheduleId, companyId]);
 
       if (updateRes.rows.length === 0) {
         return res.status(404).json({ success: false, error: 'Work schedule not found' });

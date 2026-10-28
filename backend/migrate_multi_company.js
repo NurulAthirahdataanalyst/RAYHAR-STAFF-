@@ -1,10 +1,11 @@
 const { Pool } = require('./node_modules/pg');
 require('./node_modules/dotenv').config({ path: './.env' });
+const { getDbSslConfig } = require('./utils/dbSsl');
 
 async function runMigration() {
   const pool = new Pool({
     connectionString: process.env.DATABASE_URL || process.env.SUPABASE_DB_URL,
-    ssl: { rejectUnauthorized: false }
+    ssl: getDbSslConfig()
   });
 
   try {

@@ -8688,7 +8688,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
 
     let todayStatus = "Absent";
     const [empProfileZone] = await pool.query(
-      `SELECT b.operating_zone, p.company_id FROM branches b JOIN profiles p ON b.code = p.branch WHERE p.user_id = ? ${personalCompPFilter}`,
+      `SELECT b.operating_zone, b.company_id FROM branches b JOIN profiles p ON b.code = p.branch WHERE p.user_id = ? ${personalCompPFilter}`,
       [userId]
     );
     if (empProfileZone.length > 0) {
@@ -8733,7 +8733,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
       
       let isLate = false;
       if (record.clock_in) {
-        const empCompanyId = empProfileZone[0]?.company_id || getEmployeeCompanyId(userId) || companyId || 1;
+        const empCompanyId = getEmployeeCompanyId(userId) || empProfileZone[0]?.company_id || companyId || 1;
         const lateness = isAttendanceLate(record.clock_in, empCompanyId, queryDate);
         isLate = lateness.isLate;
       }

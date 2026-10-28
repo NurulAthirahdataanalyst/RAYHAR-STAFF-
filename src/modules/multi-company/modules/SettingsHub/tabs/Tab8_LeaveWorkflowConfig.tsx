@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,6 +26,7 @@ import { useCompany } from '../../../contexts/CompanyContext';
 import { multiCompanyApi } from '../../../services/multiCompanyApi';
 import { LeaveTypeSetting } from '../../../types/multiCompany.types';
 import { ApprovalBuilder } from '../../../workflow/ApprovalBuilder';
+import { toProperCase } from '@/utils/branchUtils';
 
 export const Tab8_LeaveWorkflowConfig: React.FC = () => {
   const { companies, activeCompany } = useCompany();
@@ -54,6 +55,16 @@ export const Tab8_LeaveWorkflowConfig: React.FC = () => {
   useEffect(() => {
     if (activeCompany) setSelectedCompanyId(activeCompany.id);
   }, [activeCompany]);
+
+  useEffect(() => {
+    const handler = (e: any) => {
+      if (e.detail?.companyId) {
+        setSelectedCompanyId(e.detail.companyId);
+      }
+    };
+    window.addEventListener('rayhar_company_switched', handler);
+    return () => window.removeEventListener('rayhar_company_switched', handler);
+  }, []);
 
   useEffect(() => {
     const fetchLeaveData = async () => {
@@ -105,7 +116,10 @@ export const Tab8_LeaveWorkflowConfig: React.FC = () => {
     }
   };
 
-  const currentCompanyName = companies.find(c => c.id === selectedCompanyId)?.company_name || 'Selected Entity';
+  const currentCompanyName = useMemo(() => {
+    const found = companies.find((c) => c.id === selectedCompanyId);
+    return found ? toProperCase(found.company_name) : 'Rayhar Travels';
+  }, [companies, selectedCompanyId]);
 
   return (
     <div className="space-y-6">

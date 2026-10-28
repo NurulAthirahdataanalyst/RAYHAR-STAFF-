@@ -3,12 +3,11 @@ const path = require("path");
 dotenv.config({ path: path.join(__dirname, "../.env") });
 
 const { Pool } = require("pg");
+const { getDbSslConfig } = require("./utils/dbSsl");
 
 const dbConfig = {
   connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false
-  }
+  ssl: getDbSslConfig()
 };
 
 (async () => {
