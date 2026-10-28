@@ -165,15 +165,157 @@ function getSettings() {
   return settingsCache;
 }
 
-function getLateThresholdTime() {
-  const t = settingsCache.lateThreshold || "09:00 AM";
-  const parts = t.split(' ');
-  const time = parts[0];
-  const modifier = parts[1] || 'AM';
-  let [hours, minutes] = time.split(':');
-  if (hours === '12') hours = '00';
-  if (modifier === 'PM') hours = (parseInt(hours, 10) + 12).toString();
-  return `${hours.padStart(2, '0')}:${minutes}:00`;
+// Company Attendance Settings Cache, Policy History & User-Company Mapping
+const companyAttendanceSettingsCache = new Map();
+let attendancePolicyHistoryList = [];
+const userCompanyMap = new Map();
+
+async function refreshCompanyAttendanceSettings() {
+  if (!pgPool) return;
+  try {
+    const res = await pgPool.query(`
+      SELECT s.*, 
+        COALESCE(
+          (SELECT MIN(wsd.start_time) 
+           FROM work_schedules ws 
+           JOIN work_schedule_days wsd ON ws.id = wsd.schedule_id 
+           WHERE ws.company_id = s.company_id AND ws.status = 'active' AND wsd.is_working_day = true AND wsd.start_time IS NOT NULL),
+          '08:30:00'
+        ) as start_time
+      FROM attendance_settings s
+    `);
+    
+    for (const row of res.rows) {
+      const startTime = String(row.start_time || '08:30:00').slice(0, 5); // "08:30"
+      const [sh, sm] = startTime.split(':').map(Number);
+      const startMins = (isNaN(sh) ? 8 : sh) * 60 + (isNaN(sm) ? 30 : sm);
+      const grace = Math.max(0, Number(row.late_threshold_minutes) || 0);
+      const cutoffMins = startMins + grace;
+      const cutoffH = Math.floor(cutoffMins / 60) % 24;
+      const cutoffM = cutoffMins % 60;
+      const cutoffTimeStr = `${String(cutoffH).padStart(2, '0')}:${String(cutoffM).padStart(2, '0')}:00`;
+      
+      const period = cutoffH >= 12 ? 'PM' : 'AM';
+      let dispH = cutoffH % 12;
+      if (dispH === 0) dispH = 12;
+      const dispStr = `${String(dispH).padStart(2, '0')}:${String(cutoffM).padStart(2, '0')} ${period}`;
+      
+      companyAttendanceSettingsCache.set(Number(row.company_id), {
+        ...row,
+        start_time: startTime,
+        start_mins: startMins,
+        cutoff_time: cutoffTimeStr,
+        cutoff_mins: cutoffMins,
+        display_cutoff: dispStr
+      });
+
+      if (Number(row.company_id) === 1) {
+        settingsCache.lateThreshold = dispStr;
+      }
+    }
+
+    const histRes = await pgPool.query(`
+      SELECT * FROM attendance_policy_history 
+      ORDER BY effective_date DESC, id DESC
+    `);
+    attendancePolicyHistoryList = histRes.rows || [];
+
+    const userRolesRes = await pgPool.query(`
+      SELECT user_id, company_id FROM company_user_roles WHERE status = 'active'
+    `);
+    userCompanyMap.clear();
+    for (const r of userRolesRes.rows) {
+      userCompanyMap.set(r.user_id, Number(r.company_id));
+    }
+  } catch (err) {
+    console.warn('refreshCompanyAttendanceSettings warning:', err.message);
+  }
+}
+global.refreshCompanyAttendanceSettings = refreshCompanyAttendanceSettings;
+
+function getEmployeeCompanyId(userId) {
+  if (!userId) return 1;
+  return userCompanyMap.get(userId) || 1;
+}
+
+function getLateCutoffForCompanyAndDate(companyId = null, targetDateStr = null) {
+  const cid = (companyId && !isNaN(parseInt(companyId, 10))) ? parseInt(companyId, 10) : 1;
+  const currConf = companyAttendanceSettingsCache.get(cid) || companyAttendanceSettingsCache.get(1);
+
+  // If a targetDate is specified, check policy history for historical consistency following date adjusted
+  if (targetDateStr && attendancePolicyHistoryList.length > 0) {
+    const cleanDate = typeof targetDateStr === 'string' ? targetDateStr.slice(0, 10) : (targetDateStr instanceof Date ? targetDateStr.toISOString().split('T')[0] : '');
+    if (cleanDate) {
+      const matchingHist = attendancePolicyHistoryList.find(h => {
+        const effDateStr = h.effective_date instanceof Date ? h.effective_date.toISOString().split('T')[0] : String(h.effective_date).slice(0, 10);
+        return Number(h.company_id) === cid && effDateStr <= cleanDate;
+      });
+
+      if (matchingHist) {
+        const cutoffTime = String(matchingHist.cutoff_time).slice(0, 8);
+        const [ch, cm] = cutoffTime.split(':').map(Number);
+        const cutoffMins = (isNaN(ch) ? 9 : ch) * 60 + (isNaN(cm) ? 0 : cm);
+
+        const startTime = matchingHist.start_time ? String(matchingHist.start_time).slice(0, 5) : (currConf?.start_time || '08:30');
+        const [sh, sm] = startTime.split(':').map(Number);
+        const startMins = (isNaN(sh) ? 8 : sh) * 60 + (isNaN(sm) ? 30 : sm);
+
+        return {
+          cutoffTime,
+          cutoffMins,
+          startMins,
+          graceMins: matchingHist.late_threshold_minutes,
+          source: 'history'
+        };
+      }
+    }
+  }
+
+  // Current fallback from attendance_settings
+  if (currConf) {
+    return {
+      cutoffTime: currConf.cutoff_time,
+      cutoffMins: currConf.cutoff_mins,
+      startMins: currConf.start_mins,
+      graceMins: currConf.late_threshold_minutes,
+      source: 'current'
+    };
+  }
+
+  // Standard fallback: 8:30 start + 30 min grace = 09:00:00
+  return {
+    cutoffTime: '09:00:00',
+    cutoffMins: 540,
+    startMins: 510,
+    graceMins: 30,
+    source: 'fallback'
+  };
+}
+
+function getLateThresholdTime(companyId = null, targetDateStr = null) {
+  return getLateCutoffForCompanyAndDate(companyId, targetDateStr).cutoffTime;
+}
+
+function isAttendanceLate(clockInDateOrIso, companyId = null, targetDateStr = null) {
+  if (!clockInDateOrIso) return { isLate: false, lateMinutes: 0, status: "Absent", cutoffTime: "09:00:00" };
+
+  const clockInDate = new Date(clockInDateOrIso);
+  if (isNaN(clockInDate.getTime())) return { isLate: false, lateMinutes: 0, status: "Absent", cutoffTime: "09:00:00" };
+
+  // Convert to MYT (+8 hours)
+  const mytDate = new Date(clockInDate.getTime() + 8 * 60 * 60 * 1000);
+  const hour = mytDate.getUTCHours();
+  const min = mytDate.getUTCMinutes();
+  const clockInMins = hour * 60 + min;
+
+  const dateStr = targetDateStr || mytDate.toISOString().split('T')[0];
+  const { cutoffMins, startMins, cutoffTime } = getLateCutoffForCompanyAndDate(companyId, dateStr);
+
+  const isLate = clockInMins > cutoffMins;
+  const lateMinutes = isLate ? Math.max(1, clockInMins - startMins) : 0;
+  const status = isLate ? "Present (Late)" : "Present (On Time)";
+
+  return { isLate, lateMinutes, status, cutoffTime, clockInMins, cutoffMins };
 }
 
 async function getBranchZoneMap() {
@@ -308,20 +450,18 @@ function computeEmployeeTodayStatus(employee, lateThresholdOverride = null) {
   if (employee.today_clock_in) {
     if (employee.today_clock_out) return "Clocked Out";
     
-    const checkInTime = new Date(employee.today_clock_in).getTime();
-    const startOfDay = new Date(employee.today_clock_in).setHours(0, 0, 0, 0);
-    const hours = (checkInTime - startOfDay) / (1000 * 60 * 60);
-    
-    let threshold = 9.25; // default 9:15 AM
     if (lateThresholdOverride) {
+      const checkInTime = new Date(employee.today_clock_in).getTime();
+      const startOfDay = new Date(employee.today_clock_in).setHours(0, 0, 0, 0);
+      const hours = (checkInTime - startOfDay) / (1000 * 60 * 60);
       const parts = lateThresholdOverride.split(':');
-      threshold = parseInt(parts[0], 10) + parseInt(parts[1], 10) / 60;
-    } else {
-      const parts = getLateThresholdTime().split(':');
-      threshold = parseInt(parts[0], 10) + parseInt(parts[1], 10) / 60;
+      const threshold = parseInt(parts[0], 10) + parseInt(parts[1], 10) / 60;
+      return hours > threshold ? "Present (Late)" : "Present (On Time)";
     }
-    
-    return hours > threshold ? "Present (Late)" : "Present (On Time)";
+
+    const cid = employee.company_id || employee.companyId || (employee.user_id ? getEmployeeCompanyId(employee.user_id) : 1);
+    const { status } = isAttendanceLate(employee.today_clock_in, cid);
+    return status;
   }
   
   if (employee.is_rest_day) return "Rest Day";
@@ -378,7 +518,17 @@ app.use((req, res, next) => {
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 
-app.get("/api/settings", (req, res) => res.json({ success: true, settings: getSettings() }));
+app.get("/api/settings", (req, res) => {
+  const cid = req.companyId || req.query.company_id || req.query.companyId || 1;
+  const companyConf = companyAttendanceSettingsCache.get(Number(cid)) || companyAttendanceSettingsCache.get(1);
+  const settings = {
+    ...getSettings(),
+    lateThreshold: companyConf?.display_cutoff || getSettings().lateThreshold || "09:00 AM",
+    gracePeriodMinutes: companyConf?.late_threshold_minutes ?? 30,
+    startTime: companyConf?.start_time || "08:30"
+  };
+  res.json({ success: true, settings });
+});
 app.post("/api/settings", async (req, res) => {
   const current = getSettings();
   const safeLateThreshold = safeString(req.body?.lateThreshold);
@@ -1565,6 +1715,11 @@ const pgPool = connectionString ? new Pool({
   max: 10
 }) : new Pool(dbConfig);
 
+// Initialize company attendance settings cache & user company roles
+if (typeof refreshCompanyAttendanceSettings === 'function') {
+  refreshCompanyAttendanceSettings().catch(e => console.warn('Initial refreshCompanyAttendanceSettings error:', e.message));
+}
+
 // Global Workspace / Multi-Company Context Middleware
 app.use((req, res, next) => {
   const rawCompanyId = req.query.company_id || req.query.companyId || req.headers['x-company-id'];
@@ -2158,7 +2313,7 @@ async function getEffectiveBranch(userId, dateStr) {
 async function getLiveAttendanceStats(queryDate, role, branch, department, companyId = null) {
   const dateStr = safeString(queryDate) || new Date().toISOString().split('T')[0];
   try {
-    const lateTimeStr = getLateThresholdTime ? getLateThresholdTime() : '09:00:00';
+    const lateTimeStr = getLateThresholdTime(companyId, dateStr);
 
     const normRole = safeLower(role).replace(/ /g, "_");
     const cleanBranch = safeString(branch);
@@ -2328,13 +2483,9 @@ async function getLiveAttendanceStats(queryDate, role, branch, department, compa
       // 4. Clocked In
       else if (clockMap[uid]) {
         const row = clockMap[uid];
+        const empCompanyId = p.company_id || getEmployeeCompanyId(uid) || companyId;
+        const { isLate, lateMinutes } = isAttendanceLate(row.clock_in, empCompanyId, dateStr);
         const klTime = new Date(new Date(row.clock_in).getTime() + 8 * 60 * 60 * 1000);
-        const hh = klTime.getUTCHours();
-        const mm = klTime.getUTCMinutes();
-        const [lhStr, lmStr] = lateTimeStr.split(':');
-        const lh = parseInt(lhStr), lm = parseInt(lmStr);
-        const isLate = hh > lh || (hh === lh && mm > lm);
-        const lateMinutes = isLate ? (hh * 60 + mm) - (lh * 60 + lm) : 0;
         const timeInFmt = klTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
         const timeOutFmt = row.clock_out
           ? new Date(new Date(row.clock_out).getTime() + 8 * 60 * 60 * 1000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })
@@ -2394,6 +2545,7 @@ async function getLiveAttendanceStats(queryDate, role, branch, department, compa
 }
 
 function broadcastPresenceUpdate(payload = { type: 'refresh' }) {
+  global.broadcastPresenceUpdate = broadcastPresenceUpdate;
   console.log(`📡 Broadcasting presence update to ${sseClients.length} clients...`);
   sseClients.forEach((client) => {
     client.write(`data: ${JSON.stringify(payload)}\n\n`);
@@ -2748,7 +2900,7 @@ async function computeDynamicWorkforceMetrics(dateStr, role, branch, department,
 let workforceFeedClients = [];
 
 async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMonth, targetYear, companyId = null) {
-  const lateTimeStr = getLateThresholdTime ? getLateThresholdTime() : '09:00:00';
+  const lateTimeStr = getLateThresholdTime(companyId, dateStr);
 
   const normRole = safeLower(role).replace(/ /g, "_");
   const cleanBranch = safeString(branch);
@@ -2828,11 +2980,9 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
   for (const [uid, row] of Object.entries(clockMap)) {
     if (onLeaveIds.has(uid)) continue;
     if (outstationTodayMap.has(uid)) continue;
+    const empCompanyId = row.company_id || getEmployeeCompanyId(uid) || companyId;
+    const { isLate, lateMinutes } = isAttendanceLate(row.clock_in, empCompanyId, dateStr);
     const klTime = new Date(new Date(row.clock_in).getTime() + 8 * 60 * 60 * 1000);
-    const hh = klTime.getUTCHours();
-    const mm = klTime.getUTCMinutes();
-    const isLate = hh > lh || (hh === lh && mm > lm);
-    const lateMinutes = isLate ? (hh * 60 + mm) - (lh * 60 + lm) : 0;
     const timeInFmt = klTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
     const timeOutFmt = row.clock_out
       ? new Date(new Date(row.clock_out).getTime() + 8 * 60 * 60 * 1000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })
@@ -3491,12 +3641,26 @@ app.post(["/api/signup", "/api/employees"], async (req, res) => {
       }
     }
 
-    // Generate New E00x ID â€” PostgreSQL version
-    const [maxRows] = await connection.query(
-      "SELECT MAX(CAST(SUBSTRING(user_id, 2) AS INTEGER)) as max_id FROM profiles WHERE user_id LIKE 'E%'"
-    );
-    const nextIdNum = (maxRows[0].max_id || 0) + 1;
-    const userId = "E" + String(nextIdNum).padStart(3, "0");
+    // Support custom user_id if provided (e.g. from Add Staff modal) or generate new E00x ID
+    const customUserId = safeString(req.body?.user_id) || safeString(req.body?.custom_user_id);
+    let userId = customUserId ? customUserId.trim() : "";
+
+    if (userId) {
+      const [existingId] = await connection.query(
+        "SELECT user_id FROM profiles WHERE LOWER(TRIM(user_id)) = LOWER(TRIM(?)) LIMIT 1",
+        [userId]
+      );
+      if (existingId.length > 0) {
+        connection.release();
+        return res.status(409).json({ success: false, error: `User ID ${userId} already exists. Please choose a different ID.` });
+      }
+    } else {
+      const [maxRows] = await connection.query(
+        "SELECT MAX(CAST(SUBSTRING(user_id, 2) AS INTEGER)) as max_id FROM profiles WHERE user_id LIKE 'E%'"
+      );
+      const nextIdNum = (maxRows[0].max_id || 0) + 1;
+      userId = "E" + String(nextIdNum).padStart(3, "0");
+    }
 
     // Hash password before storing it in the database
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -7488,8 +7652,9 @@ app.post("/api/attendance", async (req, res) => {
         // Format to HH:MM:SS in KL time
         const klTimeStr = clockInDate.toLocaleString('en-US', { timeZone: 'Asia/Kuala_Lumpur', hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
         
-        const lateThresholdTime = getLateThresholdTime();
-        if (klTimeStr >= lateThresholdTime) {
+        const empCompanyId = empProfile[0]?.company_id || getEmployeeCompanyId(user_id);
+        const { isLate } = isAttendanceLate(rows[0].clock_in, empCompanyId);
+        if (isLate) {
           emailService.sendLateEmail({
             employeeEmail: empProfile[0].email,
             employeeName: empProfile[0].name || user_id,
@@ -7864,7 +8029,10 @@ app.get("/api/attendance/history", async (req, res) => {
       const dateObj = new Date(dateStr);
       const isWeekend = checkIsWeekend(userZone, dateObj);
       const workHours = getWorkHoursForZone(userZone, dateObj);
-      const [lateH, lateM] = workHours.off ? [23, 59] : getLateThresholdTime().split(':').map(Number);
+      const empCompanyId = userProfile.company_id || getEmployeeCompanyId(userProfile.user_id);
+      const cutoffInfo = getLateCutoffForCompanyAndDate(empCompanyId, dateStr);
+      const lateH = workHours.off ? 23 : Math.floor(cutoffInfo.cutoffMins / 60);
+      const lateM = workHours.off ? 59 : (cutoffInfo.cutoffMins % 60);
       
       // First clock-in of the date determines the official attendance status and lateness
       let dayIsLate = false;
@@ -7872,17 +8040,11 @@ app.get("/api/attendance/history", async (req, res) => {
       if (clockRowsForDate.length > 0) {
         clockRowsForDate.sort((a, b) => new Date(a.clock_in).getTime() - new Date(b.clock_in).getTime());
         if (clockRowsForDate[0].clock_in) {
-          const firstInDate = new Date(clockRowsForDate[0].clock_in);
-          const firstKlTime = new Date(firstInDate.getTime() + 8 * 60 * 60 * 1000);
-          const firstHour = firstKlTime.getUTCHours();
-          const firstMin = firstKlTime.getUTCMinutes();
-          dayIsLate = (firstHour > lateH || (firstHour === lateH && firstMin > lateM)) && !workHours.off;
+          const { isLate, lateMinutes } = isAttendanceLate(clockRowsForDate[0].clock_in, empCompanyId, dateStr);
+          dayIsLate = isLate && !workHours.off;
           if (dayIsLate) {
-            const firstMins = firstHour * 60 + firstMin;
-            const thresholdMins = lateH * 60 + lateM;
-            const diff = firstMins - thresholdMins;
-            const diffH = Math.floor(diff / 60);
-            const diffM = diff % 60;
+            const diffH = Math.floor(lateMinutes / 60);
+            const diffM = lateMinutes % 60;
             dayLateFormatted = `${diffH.toString().padStart(2, '0')}h ${diffM.toString().padStart(2, '0')}m`;
           }
         }
@@ -8204,7 +8366,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
           onLeaveParams
         );
 
-        const lateTimeStr = getLateThresholdTime();
+        const lateTimeStr = getLateThresholdTime(companyId, queryDate);
         const lateParams = [queryDate, queryDate, ...queryParams];
         const [rawLateRows] = await pool.query(
           `WITH first_clocks AS (
@@ -8462,12 +8624,9 @@ app.get("/api/dashboard-stats", async (req, res) => {
       
       let isLate = false;
       if (record.clock_in) {
-        const lateTimeStr = getLateThresholdTime();
-        const [lateH, lateM] = lateTimeStr.split(':').map(Number);
-        const klTimeIn = new Date(new Date(record.clock_in).getTime() + 8 * 60 * 60 * 1000);
-        const clockInHour = klTimeIn.getUTCHours();
-        const clockInMinute = klTimeIn.getUTCMinutes();
-        isLate = clockInHour > lateH || (clockInHour === lateH && clockInMinute > lateM);
+        const empCompanyId = userProfile?.company_id || getEmployeeCompanyId(userId) || companyId;
+        const lateness = isAttendanceLate(record.clock_in, empCompanyId, queryDate);
+        isLate = lateness.isLate;
       }
 
       if (record.clock_in && record.clock_out === null) {
@@ -9524,13 +9683,8 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
         const clockData = matchingClocks[0];
 
         if (clockData) {
-          const userZone = branchZoneMap.get(p.branch) || 'ZONE_B';
-          const klTimeIn = new Date(new Date(clockData.clock_in).getTime() + 8 * 60 * 60 * 1000);
-          const workHours = getWorkHoursForZone(userZone, klTimeIn);
-          const [lH, lM] = workHours.off ? [23, 59] : getLateThresholdTime().split(':').map(Number);
-          const clockInHour = klTimeIn.getUTCHours();
-          const clockInMinute = klTimeIn.getUTCMinutes();
-          const isLate = clockInHour > lH || (clockInHour === lH && clockInMinute > lM);
+          const empCompanyId = p.company_id || getEmployeeCompanyId(p.user_id);
+          const { isLate } = isAttendanceLate(clockData.clock_in, empCompanyId, dateStr);
           let missingClockOut = false;
           let status = isLate ? "Present (Late)" : "Present (On Time)";
 
@@ -9739,7 +9893,7 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
       const userZone = branchZoneMap.get(p.branch) || 'ZONE_B';
       const isWeekend = checkIsWeekend(userZone, dateObj);
       const workHours = getWorkHoursForZone(userZone, dateObj);
-      const [lateH, lateM] = getLateThresholdTime().split(':').map(Number);
+      const empCompanyId = p.company_id || getEmployeeCompanyId(uid);
 
       // Sort user's clock rows ascending by clock_in
       if (clockRowsForUser.length > 0) {
@@ -9749,11 +9903,8 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
       // First clock-in of the day determines whether the employee was late or on time
       let dayIsLate = false;
       if (clockRowsForUser.length > 0 && clockRowsForUser[0].clock_in) {
-        const firstIn = new Date(clockRowsForUser[0].clock_in);
-        const klFirstIn = new Date(firstIn.getTime() + 8 * 60 * 60 * 1000);
-        const fH = klFirstIn.getUTCHours();
-        const fM = klFirstIn.getUTCMinutes();
-        dayIsLate = (fH > lateH || (fH === lateH && fM > lateM));
+        const { isLate } = isAttendanceLate(clockRowsForUser[0].clock_in, empCompanyId, dateStr);
+        dayIsLate = isLate;
       }
 
       // Check if user has ANY clock-out on this date
@@ -10226,7 +10377,7 @@ app.get("/api/workforce-stats", async (req, res) => {
       const isCurrentMonth = (requestedYear === nowKL.getFullYear() && requestedMonth === (nowKL.getMonth() + 1));
       targetDateStr = isCurrentMonth ? todayStr : monthStartStr;
     }
-    const lateTimeStr = getLateThresholdTime ? getLateThresholdTime() : '09:00:00';
+    const lateTimeStr = getLateThresholdTime(companyId, targetDateStr);
 
     // 1. Employees & KPI
     const maxDateToCheck = isDayView ? targetDateStr : monthEndStr;
@@ -10358,8 +10509,11 @@ app.get("/api/workforce-stats", async (req, res) => {
     attRows.forEach(att => {
       const dStr = att.att_date ? (att.att_date instanceof Date ? att.att_date.toISOString().split('T')[0] : String(att.att_date).split('T')[0]) : new Date(new Date(att.clock_in).getTime() + 8*3600*1000).toISOString().split('T')[0];
       const key = `${att.user_id}_${dStr}`;
+      const empCompanyId = att.company_id || getEmployeeCompanyId(att.user_id) || companyId;
+      const { isLate } = isAttendanceLate(att.clock_in, empCompanyId, dStr);
+      const isLateVal = isLate ? 1 : 0;
       if (!dailyAttMap.has(key)) {
-        dailyAttMap.set(key, { ...att, dStr });
+        dailyAttMap.set(key, { ...att, dStr, is_late: isLateVal });
       } else {
         const existing = dailyAttMap.get(key);
         if (!existing.clock_out && att.clock_out) {
@@ -10712,8 +10866,11 @@ app.get("/api/workforce-stats", async (req, res) => {
       const dateObj = new Date(att.clock_in);
       const dateStr = new Date(dateObj.getTime() + 8*3600*1000).toISOString().split('T')[0];
       const key = `${att.user_id}_${dateStr}`;
+      const empCompanyId = att.company_id || getEmployeeCompanyId(att.user_id) || companyId;
+      const { isLate } = isAttendanceLate(att.clock_in, empCompanyId, dateStr);
+      const isLateVal = isLate ? 1 : 0;
       if (!weekAttMap.has(key)) {
-        weekAttMap.set(key, { ...att, dateStr, dateObj });
+        weekAttMap.set(key, { ...att, dateStr, dateObj, is_late: isLateVal });
       }
     });
 
@@ -12319,11 +12476,8 @@ app.get("/api/reports/generator", async (req, res) => {
             const branchInfo = getEffectiveBranch(prof.user_id, isoDateStr, prof.permanent_branch);
 
             if (att && att.clock_in) {
-              // Use MYT-adjusted time for hour/minute check
-              const clockInMYT = new Date(new Date(att.clock_in).getTime() + MYT_OFFSET_MS);
-              const hours = clockInMYT.getUTCHours();
-              const mins = clockInMYT.getUTCMinutes();
-              const isLate = hours > 9 || (hours === 9 && mins > 0);
+              const empCompanyId = prof.company_id || getEmployeeCompanyId(prof.user_id);
+              const { isLate } = isAttendanceLate(att.clock_in, empCompanyId, isoDateStr);
               const status = isLate ? "Present (Late)" : "Present (On Time)";
 
               let totalHrsText = "--";
@@ -13788,15 +13942,18 @@ async function getWorkforceCalendarData(role, branch, department, month, year, c
       }
 
       for (const r of dayAttMap.values()) {
+        const dStr = new Date(new Date(r.clock_in).getTime() + 8 * 3600 * 1000).toISOString().split('T')[0];
+        const empCompanyId = r.company_id || getEmployeeCompanyId(r.user_id) || companyId;
+        const { status: calculatedStatus } = isAttendanceLate(r.clock_in, empCompanyId, dStr);
         events.push({
           id: `att-${r.user_id}-${new Date(r.clock_in).getTime()}`,
           user_id: r.user_id,
           name: r.full_name,
-          type: r.att_status,
+          type: calculatedStatus,
           source: 'attendance',
           start_date: r.clock_in,
           end_date: r.clock_in,
-          status: r.att_status,
+          status: calculatedStatus,
           clock_in: r.clock_in,
           clock_out: r.clock_out
         });

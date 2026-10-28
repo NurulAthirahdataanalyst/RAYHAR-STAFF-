@@ -196,12 +196,6 @@ export default function Reports() {
     });
   }, [branches, selectedCompanyIds, companies.length, isFullAdmin]);
 
-  useEffect(() => {
-    if (generatorBranch !== 'all' && filteredBranches.length > 0 && !filteredBranches.some(b => b.code === generatorBranch)) {
-      setGeneratorBranch('all');
-    }
-  }, [filteredBranches, generatorBranch]);
-
   // Report Generator State
   const [generatorType, setGeneratorType] = useState<"stability" | "trends" | "leave" | "financial" | "outstation" | "company_leave">("trends");
   const [generatorDept, setGeneratorDept] = useState("all");
@@ -210,6 +204,12 @@ export default function Reports() {
   const [generatorFormat, setGeneratorFormat] = useState<"pdf" | "excel" | "csv">("pdf");
   const [isGenerating, setIsGenerating] = useState(false);
   const [previewCount, setPreviewCount] = useState(0);
+
+  useEffect(() => {
+    if (generatorBranch !== 'all' && filteredBranches.length > 0 && !filteredBranches.some(b => b.code === generatorBranch)) {
+      setGeneratorBranch('all');
+    }
+  }, [filteredBranches, generatorBranch]);
 
   // Sync role-based default scope
   useEffect(() => {

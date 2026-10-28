@@ -132,11 +132,17 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
       const normUserRole = (user?.role || '').trim().toLowerCase();
       const isHR = ['hr', 'hr admin', 'hr_admin', 'admin'].includes(normUserRole);
+      const isParentScope = (st?: string | null) => {
+        if (!st) return false;
+        const s = String(st).trim().toLowerCase();
+        return s.includes('parent group') || s === 'parent group data' || s === 'parent group access';
+      };
+      const cachedScope = typeof sessionStorage !== 'undefined' ? (sessionStorage.getItem("presence_cached_scope_type") || "") : "";
       const hasParentGroupScope = 
         isHR ||
-        user?.scope_type === 'Parent Group Data' ||
-        user?.scope_type === 'Parent Group Access' ||
-        uCompanies.some(uc => uc.scope_type === 'Parent Group Data' || uc.scope_type === 'Parent Group Access') ||
+        isParentScope(user?.scope_type) ||
+        isParentScope(cachedScope) ||
+        uCompanies.some(uc => isParentScope(uc.scope_type)) ||
         ['managing_director', 'operation_manager'].includes(normUserRole);
 
       // Determine initial active company
@@ -179,11 +185,17 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
     // Only HR role or roles with Parent Group Data authorization scope are authorized to switch active company context
     const normUserRole = (user?.role || '').trim().toLowerCase();
     const isHR = ['hr', 'hr admin', 'hr_admin', 'admin'].includes(normUserRole);
+    const isParentScope = (st?: string | null) => {
+      if (!st) return false;
+      const s = String(st).trim().toLowerCase();
+      return s.includes('parent group') || s === 'parent group data' || s === 'parent group access';
+    };
+    const cachedScope = typeof sessionStorage !== 'undefined' ? (sessionStorage.getItem("presence_cached_scope_type") || "") : "";
     const hasParentGroupScope = 
       isHR ||
-      user?.scope_type === 'Parent Group Data' ||
-      user?.scope_type === 'Parent Group Access' ||
-      userCompanies.some(uc => uc.scope_type === 'Parent Group Data' || uc.scope_type === 'Parent Group Access') ||
+      isParentScope(user?.scope_type) ||
+      isParentScope(cachedScope) ||
+      userCompanies.some(uc => isParentScope(uc.scope_type)) ||
       ['managing_director', 'operation_manager'].includes(normUserRole);
 
     if (!hasParentGroupScope) {
@@ -237,11 +249,17 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   // Determine if user has parent group administrator powers
   const normUserRole = (user?.role || '').toLowerCase();
+  const cachedScope = typeof sessionStorage !== 'undefined' ? (sessionStorage.getItem("presence_cached_scope_type") || "") : "";
+  const isParentScope = (st?: string | null) => {
+    if (!st) return false;
+    const s = String(st).trim().toLowerCase();
+    return s.includes('parent group') || s === 'parent group data' || s === 'parent group access';
+  };
   const isParentGroupAdmin = 
     Boolean(activeCompany?.company_type === 'main' && ['hr_admin', 'admin', 'managing_director', 'operation_manager'].includes(normUserRole)) ||
-    user?.scope_type === 'Parent Group Data' ||
-    user?.scope_type === 'Parent Group Access' ||
-    userCompanies.some(uc => uc.scope_type === 'Parent Group Access' || uc.scope_type === 'Parent Group Data');
+    isParentScope(user?.scope_type) ||
+    isParentScope(cachedScope) ||
+    userCompanies.some(uc => isParentScope(uc.scope_type));
 
   return (
     <CompanyContext.Provider

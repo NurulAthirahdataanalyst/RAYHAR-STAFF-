@@ -44,16 +44,21 @@ export const CompanySwitcher: React.FC<CompanySwitcherProps> = ({
   // Determine if current user has HR role or Parent Group Data authorization scope
   const resolvedRole = normalizeRole(contextRole || user?.role);
   const isHR = resolvedRole === 'hr_admin' || resolvedRole === 'admin';
+  const isParentScope = (st?: string | null) => {
+    if (!st) return false;
+    const s = String(st).trim().toLowerCase();
+    return s.includes('parent group') || s === 'parent group data' || s === 'parent group access';
+  };
+  const cachedScope = typeof sessionStorage !== 'undefined' ? (sessionStorage.getItem("presence_cached_scope_type") || "") : "";
+
   const hasParentGroupScope = 
     isHR || 
     isParentGroupAdmin ||
-    user?.scope_type === 'Parent Group Data' ||
-    user?.scope_type === 'Parent Group Access' ||
-    userActiveRole?.scope_type === 'Parent Group Data' ||
-    userActiveRole?.scope_type === 'Parent Group Access' ||
-    userCompanies.some(uc => uc.scope_type === 'Parent Group Data' || uc.scope_type === 'Parent Group Access') ||
-    scopeType === 'Parent Group Data' ||
-    scopeType === 'Parent Group Access' ||
+    isParentScope(user?.scope_type) ||
+    isParentScope(userActiveRole?.scope_type) ||
+    isParentScope(scopeType) ||
+    isParentScope(cachedScope) ||
+    userCompanies.some(uc => isParentScope(uc.scope_type)) ||
     resolvedRole === 'managing_director' ||
     resolvedRole === 'operation_manager';
 

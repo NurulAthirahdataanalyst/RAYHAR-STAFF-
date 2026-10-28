@@ -134,7 +134,7 @@ export function getBreadcrumbs(rawPathname: string, rawSearch?: string, role?: s
       const tab = params.get("tab");
       if (tab) {
         let tabLabel = tab.toUpperCase();
-        if (tab === "system") tabLabel = "SYSTEM CONFIGURATION";
+        if (tab === "attendance" || tab === "system") tabLabel = "ATTENDANCE CONFIG";
         else if (tab === "staff" || tab === "personnel") tabLabel = "PERSONNEL MANAGEMENT";
         else if (tab === "branch") tabLabel = "BRANCH MANAGEMENT";
         else if (tab === "department") tabLabel = "DEPARTMENT MANAGEMENT";

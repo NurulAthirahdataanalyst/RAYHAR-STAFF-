@@ -523,7 +523,7 @@ export const Tab3_CompanyMgmt: React.FC<Tab3CompanyMgmtProps> = ({ onNavigateToT
               disabled={deleting}
               className="rounded-xl px-4 text-xs font-black uppercase tracking-wider border-border/80 hover:bg-muted"
             >
-              Cancel
+              CANCEL
             </Button>
             <Button
               type="button"
@@ -532,7 +532,7 @@ export const Tab3_CompanyMgmt: React.FC<Tab3CompanyMgmtProps> = ({ onNavigateToT
               className="rounded-xl px-5 bg-rose-600 hover:bg-rose-700 text-white font-black text-xs uppercase tracking-wider shadow-md flex items-center gap-1.5"
             >
               {deleting && <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" />}
-              Delete Permanently
+              DELETE PERMANENTLY
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -18,7 +18,6 @@ import {
   Info,
   Building
 } from 'lucide-react';
-import { Tab1_SystemConfig } from './tabs/Tab1_SystemConfig';
 import { Tab2_EmployeeConfig } from './tabs/Tab2_EmployeeConfig';
 import { Tab3_CompanyMgmt } from './tabs/Tab3_CompanyMgmt';
 import { Tab4_BranchLocationMgmt } from './tabs/Tab4_BranchLocationMgmt';
@@ -30,16 +29,15 @@ import { Tab9_IAM } from './tabs/Tab9_IAM';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useCompany } from '../../contexts/CompanyContext';
 import { multiCompanyApi } from '../../services/multiCompanyApi';
-import { AuditLogEntry } from '../../types/multiCompany.types';
+import { AuditLogItem } from '../../types/multiCompany.types';
 
 export type SettingsTabId = 
-  | 'system'
+  | 'attendance'
   | 'employee'
   | 'company'
   | 'branch'
   | 'department'
   | 'schedule'
-  | 'attendance'
   | 'leave'
   | 'iam';
 
@@ -51,23 +49,25 @@ interface TabDefinition {
 }
 
 const SETTINGS_TABS: TabDefinition[] = [
-  { id: 'system', label: '1. SYSTEM CONFIGURATION', icon: SlidersHorizontal },
+  { id: 'attendance', label: '1. ATTENDANCE CONFIG', icon: Clock },
   { id: 'employee', label: '2. PERSONNEL MANAGEMENT', icon: UserPlus },
   { id: 'company', label: '3. COMPANY MANAGEMENT', icon: Building2 },
   { id: 'branch', label: '4. BRANCH & LOCATION', icon: MapPin },
   { id: 'department', label: '5. DEPARTMENT MANAGEMENT', icon: Layers },
   { id: 'schedule', label: '6. WORK SCHEDULES', icon: CalendarClock },
-  { id: 'attendance', label: '7. ATTENDANCE CONFIG', icon: Clock },
-  { id: 'leave', label: '8. LEAVE & APPROVALS', icon: FileCheck2 },
-  { id: 'iam', label: '9. ROLES & PERMISSIONS', icon: ShieldCheck },
+  { id: 'leave', label: '7. LEAVE & APPROVALS', icon: FileCheck2 },
+  { id: 'iam', label: '8. ROLES & PERMISSIONS', icon: ShieldCheck },
 ];
 
 export const SettingsLayout: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const initialTab = (searchParams.get('tab') as SettingsTabId) || 'system';
+  const rawParam = searchParams.get('tab');
+  const initialTab: SettingsTabId = (rawParam && rawParam !== 'system' && SETTINGS_TABS.some(t => t.id === rawParam)) 
+    ? (rawParam as SettingsTabId) 
+    : 'attendance';
   const [activeTab, setActiveTab] = useState<SettingsTabId>(initialTab);
   const [auditModalOpen, setAuditModalOpen] = useState(false);
-  const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>([]);
+  const [auditLogs, setAuditLogs] = useState<AuditLogItem[]>([]);
   const [loadingAudit, setLoadingAudit] = useState(false);
   const { activeCompany } = useCompany();
   const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
@@ -193,13 +193,12 @@ export const SettingsLayout: React.FC = () => {
 
         {/* ACTIVE TAB CONTENTS */}
         <div className="flex-1 min-w-0 w-full space-y-4">
-          {activeTab === 'system' && <Tab1_SystemConfig />}
+          {activeTab === 'attendance' && <Tab7_AttendanceConfig />}
           {activeTab === 'employee' && <Tab2_EmployeeConfig />}
           {activeTab === 'company' && <Tab3_CompanyMgmt onNavigateToTab={(t) => handleTabChange(t as SettingsTabId)} />}
           {activeTab === 'branch' && <Tab4_BranchLocationMgmt />}
           {activeTab === 'department' && <Tab5_DepartmentMgmt />}
           {activeTab === 'schedule' && <Tab6_WorkScheduleMgmt />}
-          {activeTab === 'attendance' && <Tab7_AttendanceConfig />}
           {activeTab === 'leave' && <Tab8_LeaveWorkflowConfig />}
           {activeTab === 'iam' && <Tab9_IAM />}
         </div>

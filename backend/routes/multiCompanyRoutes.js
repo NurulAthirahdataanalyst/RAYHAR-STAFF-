@@ -585,12 +585,28 @@ function createMultiCompanyRouter(pgPool) {
           await pgPool.query(`UPDATE departments SET status = 'inactive' WHERE company_id = $1`, [companyId]).catch(e => console.warn('Could not deactivate company departments:', e.message));
           await pgPool.query(`UPDATE company_user_roles SET status = 'inactive', updated_at = CURRENT_TIMESTAMP WHERE company_id = $1`, [companyId]).catch(e => console.warn('Could not deactivate company user roles:', e.message));
           await pgPool.query(`UPDATE branch_geofence_settings SET is_active = false WHERE branch_code IN (SELECT code FROM branches WHERE company_id = $1)`, [companyId]).catch(e => console.warn('Could not deactivate company geofences:', e.message));
+          await pgPool.query(`
+            UPDATE profiles 
+            SET status = 'Inactive', updated_at = CURRENT_TIMESTAMP 
+            WHERE user_id IN (
+              SELECT cur.user_id FROM company_user_roles cur WHERE cur.company_id = $1
+            ) AND user_id NOT IN (
+              SELECT cur2.user_id FROM company_user_roles cur2 WHERE cur2.company_id != $1 AND cur2.status = 'active'
+            )
+          `, [companyId]).catch(e => console.warn('Could not deactivate user profiles:', e.message));
         } else if (cleanStatus === 'active') {
           await pgPool.query(`UPDATE roles SET status = 'Active', updated_at = CURRENT_TIMESTAMP WHERE company_id = $1`, [companyId]).catch(e => console.warn('Could not activate company roles:', e.message));
           await pgPool.query(`UPDATE branches SET status = 'active' WHERE company_id = $1`, [companyId]).catch(e => console.warn('Could not activate company branches:', e.message));
           await pgPool.query(`UPDATE departments SET status = 'active' WHERE company_id = $1`, [companyId]).catch(e => console.warn('Could not activate company departments:', e.message));
           await pgPool.query(`UPDATE company_user_roles SET status = 'active', updated_at = CURRENT_TIMESTAMP WHERE company_id = $1`, [companyId]).catch(e => console.warn('Could not activate company user roles:', e.message));
           await pgPool.query(`UPDATE branch_geofence_settings SET is_active = true WHERE branch_code IN (SELECT code FROM branches WHERE company_id = $1)`, [companyId]).catch(e => console.warn('Could not activate company geofences:', e.message));
+          await pgPool.query(`
+            UPDATE profiles 
+            SET status = 'Active', updated_at = CURRENT_TIMESTAMP 
+            WHERE user_id IN (
+              SELECT cur.user_id FROM company_user_roles cur WHERE cur.company_id = $1
+            )
+          `, [companyId]).catch(e => console.warn('Could not activate user profiles:', e.message));
         }
       }
 
@@ -1678,9 +1694,50 @@ function createMultiCompanyRouter(pgPool) {
         RETURNING *;
       `, [companyId, late_threshold_minutes, early_checkout_minutes, min_working_hours, overtime_enabled, gps_required, geofence_enforcement, face_verification_required]);
 
-      await logAudit(req, 'ATTENDANCE_SETTINGS_UPDATE', `Updated attendance settings for company ${companyId}`, null, result.rows[0], companyId);
+      const updatedSettings = result.rows[0];
 
-      res.json({ success: true, settings: result.rows[0] });
+      // Insert audit and attendance policy history with effective date
+      try {
+        const schedRes = await pgPool.query(`
+          SELECT MIN(wsd.start_time) as start_time
+          FROM work_schedules ws
+          JOIN work_schedule_days wsd ON ws.id = wsd.schedule_id
+          WHERE ws.company_id = $1 AND ws.status = 'active' AND wsd.is_working_day = true AND wsd.start_time IS NOT NULL
+        `, [companyId]);
+        const startTimeStr = schedRes.rows[0]?.start_time ? String(schedRes.rows[0].start_time).slice(0, 5) : '08:30';
+        const [sh, sm] = startTimeStr.split(':').map(Number);
+        const startMins = (isNaN(sh) ? 8 : sh) * 60 + (isNaN(sm) ? 30 : sm);
+        const safeGrace = Math.max(0, Number(late_threshold_minutes) || 0);
+        const cutoffMins = startMins + safeGrace;
+        const cutoffH = Math.floor(cutoffMins / 60) % 24;
+        const cutoffM = cutoffMins % 60;
+        const cutoffTimeStr = `${String(cutoffH).padStart(2, '0')}:${String(cutoffM).padStart(2, '0')}:00`;
+
+        await pgPool.query(`
+          INSERT INTO attendance_policy_history (company_id, late_threshold_minutes, start_time, cutoff_time, effective_date)
+          VALUES ($1, $2, $3::time, $4::time, CURRENT_DATE)
+        `, [companyId, safeGrace, `${startTimeStr}:00`, cutoffTimeStr]);
+      } catch (histErr) {
+        console.warn('Error recording attendance policy history:', histErr.message);
+      }
+
+      if (typeof global.refreshCompanyAttendanceSettings === 'function') {
+        await global.refreshCompanyAttendanceSettings();
+      }
+
+      if (typeof global.broadcastPresenceUpdate === 'function') {
+        global.broadcastPresenceUpdate({
+          type: "config-change",
+          timestamp: new Date().toISOString(),
+          operatorName: req.body?.operatorName || "Admin",
+          operatorRole: "admin",
+          action: `Attendance Policy updated for company ${companyId} (Grace period: ${late_threshold_minutes}m)`
+        });
+      }
+
+      await logAudit(req, 'ATTENDANCE_SETTINGS_UPDATE', `Updated attendance settings for company ${companyId}`, null, updatedSettings, companyId);
+
+      res.json({ success: true, settings: updatedSettings });
     } catch (err) {
       res.status(500).json({ success: false, error: err.message });
     }

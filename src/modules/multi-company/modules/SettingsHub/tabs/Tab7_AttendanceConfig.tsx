@@ -5,25 +5,44 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Clock, MapPin, Camera, Save, CheckCircle2, ShieldCheck, Loader2 } from 'lucide-react';
+import { 
+  Clock, 
+  MapPin, 
+  Camera, 
+  Save, 
+  CheckCircle2, 
+  ShieldCheck, 
+  Loader2, 
+  Sparkles, 
+  SlidersHorizontal, 
+  CalendarClock,
+  Info
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { useCompany } from '../../../contexts/CompanyContext';
 import { multiCompanyApi } from '../../../services/multiCompanyApi';
+import { WorkSchedule } from '../../../types/multiCompany.types';
+import { CustomTimePicker } from '@/components/ui/custom-time-picker';
 
 export const Tab7_AttendanceConfig: React.FC = () => {
   const { companies, activeCompany } = useCompany();
   const [selectedCompanyId, setSelectedCompanyId] = useState<number>(activeCompany?.id || 1);
 
-  const [lateThreshold, setLateThreshold] = useState(10);
-  const [earlyCheckout, setEarlyCheckout] = useState(0);
-  const [minHours, setMinHours] = useState(8.0);
-  const [otEnabled, setOtEnabled] = useState(false);
-  const [gpsRequired, setGpsRequired] = useState(true);
+  // Attendance Policy Parameters
+  const [lateThreshold, setLateThreshold] = useState<number>(30);
+  const [earlyCheckout, setEarlyCheckout] = useState<number>(0);
+  const [minHours, setMinHours] = useState<number>(8.0);
+  const [otEnabled, setOtEnabled] = useState<boolean>(false);
+  const [gpsRequired, setGpsRequired] = useState<boolean>(true);
   const [geofenceEnforce, setGeofenceEnforce] = useState<'strict' | 'relaxed' | 'disabled'>('strict');
-  const [faceVerify, setFaceVerify] = useState(false);
-  const [ruleVersion, setRuleVersion] = useState(1);
-  const [saving, setSaving] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [faceVerify, setFaceVerify] = useState<boolean>(false);
+  const [ruleVersion, setRuleVersion] = useState<number>(1);
+  const [saving, setSaving] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
+
+  // Work Schedules and Simulation State
+  const [schedules, setSchedules] = useState<WorkSchedule[]>([]);
+  const [testClockInTime, setTestClockInTime] = useState<string>('');
 
   useEffect(() => {
     if (activeCompany) {
@@ -37,19 +56,24 @@ export const Tab7_AttendanceConfig: React.FC = () => {
     const fetchSettings = async () => {
       try {
         setLoading(true);
-        const res = await multiCompanyApi.getAttendanceSettings(selectedCompanyId);
+        const [res, schedRes] = await Promise.all([
+          multiCompanyApi.getAttendanceSettings(selectedCompanyId),
+          multiCompanyApi.getCompanyWorkSchedules(selectedCompanyId)
+        ]);
+
         if (res) {
-          setLateThreshold(res.late_threshold_minutes || 10);
-          setEarlyCheckout(res.early_checkout_minutes || 0);
-          setMinHours(res.min_working_hours || 8.0);
+          setLateThreshold(res.late_threshold_minutes ?? 30);
+          setEarlyCheckout(res.early_checkout_minutes ?? 0);
+          setMinHours(res.min_working_hours ?? 8.0);
           setOtEnabled(Boolean(res.overtime_enabled));
           setGpsRequired(res.gps_required !== false);
           setGeofenceEnforce(res.geofence_enforcement || 'strict');
           setFaceVerify(Boolean(res.face_verification_required));
           setRuleVersion(res.calculation_rule_version || 1);
         }
+        setSchedules(schedRes || []);
       } catch (err) {
-        console.error('Error loading attendance settings:', err);
+        console.error('Error loading attendance settings & schedules:', err);
       } finally {
         setLoading(false);
       }
@@ -69,7 +93,14 @@ export const Tab7_AttendanceConfig: React.FC = () => {
         geofence_enforcement: geofenceEnforce,
         face_verification_required: faceVerify
       });
-      toast.success("Attendance configurations updated successfully!");
+
+      // Synchronize back
+      const res = await multiCompanyApi.getAttendanceSettings(selectedCompanyId);
+      if (res) {
+        setLateThreshold(res.late_threshold_minutes ?? 30);
+        setRuleVersion(res.calculation_rule_version || 1);
+      }
+      toast.success("Attendance configurations deployed & synchronized across entire system!");
     } catch (err: any) {
       toast.error(err.message || "Failed to save attendance settings");
     } finally {
@@ -79,9 +110,62 @@ export const Tab7_AttendanceConfig: React.FC = () => {
 
   const currentCompany = companies.find(c => c.id === selectedCompanyId) || activeCompany;
 
+  // Active schedule and working hours for the selected company
+  const activeSchedule = schedules.find(s => s.status === 'active') || schedules[0];
+  const firstWorkDay = activeSchedule?.days?.find(d => d.is_working_day && d.start_time);
+  const workingStartTimeRaw = firstWorkDay?.start_time?.slice(0, 5) || '08:30';
+
+  // Helper functions for time conversions
+  const parseTimeToMinutes = (timeStr: string): number => {
+    if (!timeStr) return 8 * 60 + 30;
+    const [h, m] = timeStr.split(':').map(Number);
+    return (isNaN(h) ? 8 : h) * 60 + (isNaN(m) ? 30 : m);
+  };
+
+  const formatMinutesTo12Hr = (totalMinutes: number): string => {
+    const normalized = ((totalMinutes % 1440) + 1440) % 1440;
+    let h = Math.floor(normalized / 60);
+    const m = normalized % 60;
+    const period = h >= 12 ? 'PM' : 'AM';
+    if (h === 0) h = 12;
+    else if (h > 12) h -= 12;
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')} ${period}`;
+  };
+
+  const formatMinutesTo24Hr = (totalMinutes: number): string => {
+    const normalized = ((totalMinutes % 1440) + 1440) % 1440;
+    const h = Math.floor(normalized / 60);
+    const m = normalized % 60;
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+  };
+
+  const startMinutes = parseTimeToMinutes(workingStartTimeRaw);
+  const safeGrace = Math.max(0, Number(lateThreshold) || 0);
+  const cutoffMinutes = startMinutes + safeGrace;
+
+  const workingHourDisplay = formatMinutesTo12Hr(startMinutes);
+  const graceCutoffDisplay = formatMinutesTo12Hr(cutoffMinutes);
+
+  // Dynamic simulation examples based on working hour + grace
+  // Example 1: Clock-in at 8:40 AM (within 30 mins grace) -> On Time
+  const onTimeExampleMinutes = startMinutes + Math.min(10, Math.floor(safeGrace / 2));
+  const onTimeExampleDisplay = formatMinutesTo12Hr(onTimeExampleMinutes);
+
+  // Example 2: Clock-in at 9:05 AM (past 30 mins grace) -> Late
+  const lateExampleMinutes = cutoffMinutes + 5;
+  const lateExampleDisplay = formatMinutesTo12Hr(lateExampleMinutes);
+  const lateExampleDiff = Math.max(1, lateExampleMinutes - startMinutes);
+
+  // Dynamic interactive simulation tester
+  const activeTestTime24 = testClockInTime || formatMinutesTo24Hr(lateExampleMinutes);
+  const testMinutesTotal = parseTimeToMinutes(activeTestTime24);
+  const testIsLate = testMinutesTotal > cutoffMinutes;
+  const testMinutesPastCutoff = Math.max(0, testMinutesTotal - cutoffMinutes);
+  const testTotalMinutesLate = Math.max(0, testMinutesTotal - startMinutes);
+
   return (
     <div className="space-y-6">
-      {/* Top Filter */}
+      {/* Top Filter: Attendance Policy Scope */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-muted/30 dark:bg-neutral-900/40 rounded-xl border border-border dark:border-neutral-800">
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-2">
@@ -92,7 +176,10 @@ export const Tab7_AttendanceConfig: React.FC = () => {
           </div>
           <Select 
             value={selectedCompanyId ? selectedCompanyId.toString() : "1"} 
-            onValueChange={(val) => setSelectedCompanyId(parseInt(val, 10))}
+            onValueChange={(val) => {
+              setSelectedCompanyId(parseInt(val, 10));
+              setTestClockInTime('');
+            }}
           >
             <SelectTrigger className="w-72 min-w-[260px] text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium data-[placeholder]:font-normal text-black dark:text-white shadow-xs">
               <SelectValue placeholder="Select company...">
@@ -121,6 +208,158 @@ export const Tab7_AttendanceConfig: React.FC = () => {
         </div>
       </div>
 
+      {/* TOP PROMINENT CARD: DEFAULT LATE ARRIVAL WINDOW (GRACE PERIOD) */}
+      <Card className="border border-border dark:border-neutral-800 shadow-xs bg-white/70 dark:bg-card/70 backdrop-blur-md rounded-2xl p-6 space-y-4">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <div className="p-2 rounded-lg bg-[#942392]/10 text-[#942392]">
+              <Clock className="w-4 h-4" />
+            </div>
+            <h3 className="text-sm font-black uppercase tracking-wider text-foreground dark:text-white">
+              Default Late Arrival Window (Grace Period)
+            </h3>
+          </div>
+          <p className="text-xs text-muted-foreground dark:text-neutral-400">
+            Define the permissible grace period duration before an employee clock-in is officially flagged as "Present (Late)" for <strong className="text-foreground">{currentCompany?.company_name}</strong>. This policy is uniformly enforced throughout all dashboards, workforce reports, exports, and attendance calculations following the date adjusted.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start pt-1">
+          {/* Left Column: Grace input & schedule context */}
+          <div className="lg:col-span-4 space-y-3">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
+                Grace Window (Minutes)
+              </Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  min={0}
+                  max={120}
+                  value={lateThreshold}
+                  onChange={(e) => setLateThreshold(Math.max(0, Number(e.target.value)))}
+                  className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 w-28 font-semibold text-center text-black dark:text-white placeholder:font-normal"
+                />
+                <span className="text-xs font-bold text-muted-foreground">minutes</span>
+              </div>
+            </div>
+
+            {/* Timetable context */}
+            <div className="p-2.5 rounded-xl bg-muted/30 dark:bg-neutral-800/30 border border-border/50 text-[11px] space-y-1.5">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">
+                Active Company Timetable
+              </span>
+              <div className="flex items-center justify-between font-medium">
+                <span className="text-muted-foreground">Schedule:</span>
+                <span className="font-bold text-foreground truncate max-w-[150px]">{activeSchedule?.schedule_name || 'Standard Timetable'}</span>
+              </div>
+              <div className="flex items-center justify-between font-medium">
+                <span className="text-muted-foreground">Shift Starts:</span>
+                <span className="font-mono font-bold text-[#942392] dark:text-[#f885d5]">{workingHourDisplay}</span>
+              </div>
+              <div className="flex items-center justify-between font-medium">
+                <span className="text-muted-foreground">Grace Cutoff:</span>
+                <span className="font-mono font-bold text-foreground">{graceCutoffDisplay}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column: Live Dynamic Rule Simulation & Simulator */}
+          <div className="lg:col-span-8 p-3.5 bg-muted/40 dark:bg-neutral-800/40 rounded-xl border border-border/60 text-xs space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] uppercase font-black tracking-wider text-[#942392] dark:text-[#f885d5] flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5" />
+                Live Rule Simulation (Dynamic)
+              </span>
+              <span className="text-[10px] font-semibold text-muted-foreground bg-background/80 dark:bg-neutral-900/80 px-2 py-0.5 rounded-md border border-border/40">
+                Calculated from {currentCompany?.company_name}
+              </span>
+            </div>
+
+            {/* Formula line */}
+            <div className="text-[11px] p-2.5 rounded-lg bg-background dark:bg-neutral-900 border border-border/40 space-y-1 font-mono">
+              <div className="text-foreground">
+                <span className="text-muted-foreground">Working Hour: </span>
+                <strong className="text-foreground font-black">{workingHourDisplay}</strong>
+                <span className="text-muted-foreground"> + Grace: </span>
+                <strong className="text-[#942392] dark:text-[#f885d5] font-black">{safeGrace} mins</strong>
+                <span className="text-muted-foreground"> → Deadline: </span>
+                <strong className="text-foreground font-black">{graceCutoffDisplay}</strong>
+              </div>
+              <div className="text-muted-foreground text-[10px] pt-0.5">
+                Clock-in at <strong className="text-foreground">{onTimeExampleDisplay}</strong> → <span className="text-emerald-600 dark:text-emerald-400 font-bold">Present (On Time)</span>
+                <span className="mx-2 text-border">|</span>
+                At <strong className="text-foreground">{lateExampleDisplay}</strong> → <span className="text-rose-600 dark:text-rose-400 font-bold">Present (Late) ({lateExampleDiff}m)</span>
+              </div>
+            </div>
+
+            {/* Interactive Clock-In Simulator */}
+            <div className="pt-1 space-y-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  Test a Clock-In Time:
+                </span>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setTestClockInTime(formatMinutesTo24Hr(onTimeExampleMinutes))}
+                    className="text-[10px] px-2 py-0.5 rounded bg-background dark:bg-neutral-900 border border-border/60 hover:border-[#942392] text-foreground transition-all cursor-pointer font-medium"
+                  >
+                    At {onTimeExampleDisplay}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTestClockInTime(formatMinutesTo24Hr(cutoffMinutes))}
+                    className="text-[10px] px-2 py-0.5 rounded bg-background dark:bg-neutral-900 border border-border/60 hover:border-[#942392] text-foreground transition-all cursor-pointer font-medium"
+                  >
+                    At {graceCutoffDisplay}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTestClockInTime(formatMinutesTo24Hr(lateExampleMinutes))}
+                    className="text-[10px] px-2 py-0.5 rounded bg-background dark:bg-neutral-900 border border-border/60 hover:border-[#942392] text-foreground transition-all cursor-pointer font-medium"
+                  >
+                    At {lateExampleDisplay}
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 p-2 rounded-lg bg-background/80 dark:bg-neutral-900/80 border border-border/50">
+                <div className="w-28 shrink-0">
+                  <CustomTimePicker
+                    value={activeTestTime24}
+                    onChange={(val) => setTestClockInTime(val)}
+                    className="h-7 text-xs px-2 w-full font-mono font-medium"
+                  />
+                </div>
+                <div className="flex-1 flex items-center justify-between text-xs">
+                  {testIsLate ? (
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
+                        Present (Late)
+                      </span>
+                      <span className="text-[11px] text-muted-foreground">
+                        Exceeds grace cutoff by <strong className="text-rose-600 dark:text-rose-400 font-bold">{testMinutesPastCutoff}m</strong> ({testTotalMinutesLate} mins late total)
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                        Present (On Time)
+                      </span>
+                      <span className="text-[11px] text-muted-foreground">
+                        Within permissible {safeGrace} min grace cutoff of {graceCutoffDisplay}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      {/* TWO-COLUMN GRID: TIME BOUNDARIES & GPS GEOFENCING */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {/* Card 1: Time Parameters */}
         <Card className="border border-border dark:border-neutral-800 shadow-xs bg-white/70 dark:bg-card/70 backdrop-blur-md rounded-2xl p-5 space-y-4">
@@ -129,23 +368,20 @@ export const Tab7_AttendanceConfig: React.FC = () => {
               <Clock className="w-4 h-4 text-[#942392]" />
               Time Boundaries & Overtime Rules
             </h4>
-            <p className="text-[11px] text-muted-foreground">Thresholds for calculating lateness and minimum shift completion.</p>
+            <p className="text-[11px] text-muted-foreground">Thresholds for calculating early departures and minimum shift completion.</p>
           </div>
 
           <div className="space-y-3 pt-2">
-            <div className="flex items-center justify-between">
+            {/* Synchronized Late Arrival Window Indicator */}
+            <div className="flex items-center justify-between p-2 rounded-lg bg-muted/20 border border-border/40">
               <div>
                 <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Late Arrival Window</Label>
-                <span className="text-[10px] text-muted-foreground block">Grace period before mark as Late</span>
+                <span className="text-[10px] text-muted-foreground block">Governed by Default Grace Period above</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <Input
-                  type="number"
-                  value={lateThreshold}
-                  onChange={(e) => setLateThreshold(Number(e.target.value))}
-                  className="w-20 text-xs h-8 text-center font-semibold placeholder:font-normal text-black dark:text-white"
-                />
-                <span className="text-xs font-bold text-muted-foreground">min</span>
+                <span className="px-2.5 py-1 rounded bg-[#942392]/10 text-[#942392] font-mono font-bold text-xs">
+                  {safeGrace} mins
+                </span>
               </div>
             </div>
 
@@ -245,14 +481,15 @@ export const Tab7_AttendanceConfig: React.FC = () => {
         </Card>
       </div>
 
+      {/* Save Button */}
       <div className="flex justify-end pt-2">
         <Button
           onClick={handleSave}
-          disabled={saving}
+          disabled={saving || loading}
           className="bg-[#942392] hover:bg-[#800A7A] text-white font-black text-xs uppercase tracking-wider shadow-sm h-9 px-6 rounded-xl"
         >
           {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : <Save className="w-3.5 h-3.5 mr-1.5" />}
-          Save Attendance Rules
+          Deploy Attendance Configurations
         </Button>
       </div>
     </div>
