@@ -771,7 +771,7 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
                                     Step {idx + 1} Label
                                   </Label>
                                   {isLast && (
-                                    <span className="px-1.5 py-0.2 rounded bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 text-[9px] font-black uppercase">
+                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#942392]/10 text-[#942392] dark:text-[#f885d5] border border-[#942392]/30 shadow-xs uppercase tracking-wider">
                                       Highest Approval
                                     </span>
                                   )}
@@ -920,7 +920,7 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
                                     Step {idx + 1} Label
                                   </Label>
                                   {isLast && (
-                                    <span className="px-1.5 py-0.2 rounded bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 text-[9px] font-black uppercase">
+                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#942392]/10 text-[#942392] dark:text-[#f885d5] border border-[#942392]/30 shadow-xs uppercase tracking-wider">
                                       Highest Approval
                                     </span>
                                   )}

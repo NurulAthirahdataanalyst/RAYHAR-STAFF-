@@ -459,21 +459,31 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
                         </span>
                       </td>
                       <td className="px-4 py-3.5 text-muted-foreground max-w-md">
-                        {isDept && <div className="font-bold text-foreground mb-1">Dept: {s.department_id}</div>}
+                        {isDept && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#942392]/10 text-[#942392] dark:text-[#f885d5] border border-[#942392]/25 mb-1 mr-1 shadow-xs">
+                            Dept: {s.department_id}
+                          </span>
+                        )}
                         {assignedBranches.length > 0 ? (
-                          <div className="flex flex-wrap items-center gap-1">
-                            {assignedBranches.map((code) => (
-                              <span
-                                key={code}
-                                className="px-2 py-0.5 rounded-md bg-muted/80 dark:bg-neutral-800 text-[10px] font-mono font-bold text-foreground border border-border/60"
-                                title={branches.find((b) => b.code === code)?.name || code}
-                              >
-                                {code}
-                              </span>
-                            ))}
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            {assignedBranches.map((code) => {
+                              const bObj = branches.find((b) => b.code.toUpperCase() === code.toUpperCase());
+                              const displayName = bObj ? `${toProperCase(bObj.name)} (${code})` : code;
+                              return (
+                                <span
+                                  key={code}
+                                  className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#942392]/10 text-[#942392] dark:text-[#f885d5] border border-[#942392]/25 shadow-xs"
+                                  title={bObj?.name || code}
+                                >
+                                  {displayName}
+                                </span>
+                              );
+                            })}
                           </div>
                         ) : (
-                          <span>All Departments & Branches</span>
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-muted/80 dark:bg-neutral-800 text-muted-foreground border border-border/60 shadow-xs">
+                            All Departments & Branches
+                          </span>
                         )}
                       </td>
                       <td className="px-4 py-3.5 font-mono font-bold text-foreground text-[11px]">
@@ -643,32 +653,32 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
                             className="h-8 pl-8 text-xs bg-muted/30 dark:bg-neutral-800 rounded-lg"
                           />
                         </div>
-                        <div className="flex flex-wrap items-center gap-1">
+                        <div className="flex flex-wrap items-center gap-1.5">
                           <button
                             type="button"
                             onClick={() => handleSelectZoneBranches('ZONE_A')}
-                            className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase bg-[#942392]/10 text-[#942392] hover:bg-[#942392]/20"
+                            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#942392]/10 text-[#942392] dark:text-[#f885d5] border border-[#942392]/30 hover:bg-[#942392]/20 transition-colors shadow-xs cursor-pointer uppercase tracking-wider"
                           >
-                            Zone A
+                            Tick Zone A
                           </button>
                           <button
                             type="button"
                             onClick={() => handleSelectZoneBranches('ZONE_B')}
-                            className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20"
+                            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/30 hover:bg-blue-500/20 transition-colors shadow-xs cursor-pointer uppercase tracking-wider"
                           >
-                            Zone B
+                            Tick Zone B
                           </button>
                           <button
                             type="button"
                             onClick={() => setSelectedBranches(branches.map((b) => b.code.toUpperCase()).sort())}
-                            className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase bg-muted hover:bg-muted/80 text-foreground"
+                            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-muted hover:bg-muted/80 text-foreground border border-border/60 transition-colors shadow-xs cursor-pointer uppercase tracking-wider"
                           >
                             Select All
                           </button>
                           <button
                             type="button"
                             onClick={() => setSelectedBranches([])}
-                            className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase bg-muted hover:bg-muted/80 text-muted-foreground ml-auto"
+                            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-neutral-800 text-slate-600 dark:text-neutral-300 border border-slate-300 dark:border-neutral-700 hover:bg-slate-200 dark:hover:bg-neutral-700 transition-colors shadow-xs cursor-pointer uppercase tracking-wider ml-auto"
                           >
                             Clear
                           </button>
@@ -761,18 +771,18 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
                       Target Scope ({selectedBranches.length === 0 ? 'All Branches' : `${selectedBranches.length} Branches Checked`}):
                     </span>
                   </div>
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex flex-wrap items-center gap-1.5">
                     <button
                       type="button"
                       onClick={() => handleSelectZoneBranches('ZONE_A')}
-                      className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase bg-[#942392]/10 text-[#942392] hover:bg-[#942392]/20"
+                      className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#942392]/10 text-[#942392] dark:text-[#f885d5] border border-[#942392]/30 hover:bg-[#942392]/20 transition-colors shadow-xs cursor-pointer uppercase tracking-wider"
                     >
                       Tick Zone A
                     </button>
                     <button
                       type="button"
                       onClick={() => handleSelectZoneBranches('ZONE_B')}
-                      className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20"
+                      className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/30 hover:bg-blue-500/20 transition-colors shadow-xs cursor-pointer uppercase tracking-wider"
                     >
                       Tick Zone B
                     </button>
@@ -780,7 +790,7 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => setSelectedBranches([])}
-                        className="px-2 py-0.5 rounded-md text-[10px] font-bold text-muted-foreground hover:text-foreground"
+                        className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-neutral-800 text-slate-600 dark:text-neutral-300 border border-slate-300 dark:border-neutral-700 hover:bg-slate-200 dark:hover:bg-neutral-700 transition-colors shadow-xs cursor-pointer uppercase tracking-wider"
                       >
                         Clear
                       </button>
