@@ -107,6 +107,32 @@ export const Tab9_IAM: React.FC = () => {
   const [collapsedModules, setCollapsedModules] = useState<Record<string, boolean>>({});
   const [saving, setSaving] = useState(false);
 
+  // Assigned Users List Modal (Matches master/role design)
+  const [isUsersModalOpen, setIsUsersModalOpen] = useState(false);
+  const [roleUsers, setRoleUsers] = useState<any[]>([]);
+  const [selectedRoleForUsers, setSelectedRoleForUsers] = useState<CompanyRole | null>(null);
+  const [loadingUsers, setLoadingUsers] = useState(false);
+
+  const handleViewRoleUsers = async (roleItem: CompanyRole) => {
+    setSelectedRoleForUsers(roleItem);
+    setIsUsersModalOpen(true);
+    setLoadingUsers(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/roles/${roleItem.id}/users`);
+      const data = await res.json();
+      if (data.success) {
+        setRoleUsers(data.users || []);
+      } else {
+        setRoleUsers([]);
+      }
+    } catch (err) {
+      console.error("Error fetching role users:", err);
+      setRoleUsers([]);
+    } finally {
+      setLoadingUsers(false);
+    }
+  };
+
   useEffect(() => {
     if (activeCompany) setSelectedCompanyId(activeCompany.id);
   }, [activeCompany]);
@@ -533,12 +559,17 @@ export const Tab9_IAM: React.FC = () => {
                         </span>
                       </td>
 
-                      {/* Assigned Staff Pill Badge */}
+                      {/* Assigned Staff Pill Badge - Clickable */}
                       <td className="px-4 py-3.5">
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300">
-                          <Users className="w-3.5 h-3.5 text-[#942392]" />
+                        <button
+                          type="button"
+                          onClick={() => handleViewRoleUsers(r)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 hover:bg-[#942392]/10 hover:text-[#942392] hover:border-[#942392]/30 transition-all cursor-pointer group active:scale-95 shadow-2xs"
+                          title={`Click to view assigned employees for ${r.name}`}
+                        >
+                          <Users className="w-3.5 h-3.5 text-[#942392] group-hover:scale-110 transition-transform" />
                           <span>{r.total_users || 0} Staff</span>
-                        </span>
+                        </button>
                       </td>
 
                       {/* Status Pill Badge */}
@@ -1006,6 +1037,72 @@ export const Tab9_IAM: React.FC = () => {
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* ========================================================================= */}
+      {/* ASSIGNED USERS MODAL (Matches master/role design) */}
+      {/* ========================================================================= */}
+      <Dialog open={isUsersModalOpen} onOpenChange={setIsUsersModalOpen}>
+        <DialogContent className="max-w-lg p-0 overflow-hidden rounded-2xl [&>button]:text-white [&>button]:hover:text-white/80 border border-border/80 shadow-2xl">
+          <DialogHeader className="p-5 border-b border-white/20 bg-[#942392] text-white shrink-0 text-left">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-white/20 text-white shrink-0">
+                <Users className="w-5 h-5 text-white" />
+              </div>
+              <div className="min-w-0">
+                <DialogTitle className="text-base font-black text-white flex items-center gap-2 m-0 truncate">
+                  <span>Assigned Employees: {selectedRoleForUsers?.name}</span>
+                </DialogTitle>
+                <DialogDescription className="text-white/80 text-xs font-medium m-0 mt-0.5">
+                  Staff members currently inheriting permissions from this role
+                </DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+
+          <div className="max-h-80 overflow-y-auto p-4 space-y-2">
+            {loadingUsers ? (
+              <div className="py-8 text-center text-xs text-muted-foreground">
+                <Loader2 className="w-5 h-5 animate-spin mx-auto mb-2 text-[#942392]" />
+                Loading staff...
+              </div>
+            ) : roleUsers.length === 0 ? (
+              <div className="py-8 text-center text-xs text-muted-foreground">
+                No employees are currently assigned to this role.
+              </div>
+            ) : (
+              roleUsers.map((u) => (
+                <div
+                  key={u.user_id}
+                  className="flex items-center justify-between p-2.5 rounded-xl border border-border/50 hover:bg-muted/30 transition-colors"
+                >
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-gray-900 dark:text-gray-100 truncate">
+                      {u.full_name}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground truncate">
+                      {u.email} • {u.branch || "HQ"} {u.department ? `• ${u.department}` : ""}
+                    </p>
+                  </div>
+                  <Badge variant="outline" className="text-[9px] font-bold">
+                    {u.status || "Active"}
+                  </Badge>
+                </div>
+              ))
+            )}
+          </div>
+
+          <DialogFooter className="p-4 border-t border-border/60 bg-muted/20">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsUsersModalOpen(false)}
+              className="rounded-xl text-xs font-bold cursor-pointer"
+            >
+              Close
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

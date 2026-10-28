@@ -1263,12 +1263,18 @@ app.get("/api/roles/:id/users", async (req, res) => {
     const role = roleRes.rows[0];
 
     const usersRes = await pgPool.query(
-      `SELECT user_id, full_name, email, branch, department, status, role
-       FROM profiles
-       WHERE role_id = $1 
-          OR LOWER(role) = LOWER($2) 
-          OR LOWER(REPLACE(role, '_', ' ')) = LOWER($2)
-       ORDER BY full_name ASC`,
+      `SELECT DISTINCT p.user_id, p.full_name, p.email, p.branch, p.department, p.status, p.role
+       FROM profiles p
+       LEFT JOIN user_role ur ON ur.user_id = p.user_id
+       LEFT JOIN company_user_roles cur ON cur.user_id = p.user_id AND cur.status = 'active'
+       WHERE p.role_id = $1 
+          OR ur.role_id = $1
+          OR LOWER(COALESCE(p.role, '')) = LOWER($2) 
+          OR LOWER(REPLACE(COALESCE(p.role, ''), '_', ' ')) = LOWER($2)
+          OR LOWER(COALESCE(ur.role, '')) = LOWER($2)
+          OR LOWER(REPLACE(COALESCE(ur.role, ''), '_', ' ')) = LOWER($2)
+          OR cur.role_id = $1
+       ORDER BY p.full_name ASC`,
       [id, role.name]
     );
 
