@@ -77,6 +77,11 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  // Reset active track tab when company switches
+  useEffect(() => {
+    setActiveTrackFilter('ALL');
+  }, [companyId]);
+
   // Helper to build default workflows for Rayhar Travels (Main Company)
   const buildDefaultRayharTracks = (roles: CompanyRole[], branchList: CompanyBranch[]): WorkflowTrack[] => {
     const findRole = (targetName: string) =>
@@ -413,28 +418,38 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
     const defaultRoleId = availableRoles.length > 0 ? availableRoles[0].id : '';
     const newIndex = tracks.length + 1;
 
-    // Default to unselected branches if possible, or all branches
-    const selectedInOtherTracks = new Set(tracks.flatMap((t) => t.selectedBranches));
-    const availableBranches = branches.filter((b) => !selectedInOtherTracks.has(b.code));
-    const initialBranches = availableBranches.length > 0 
-      ? [availableBranches[0].code] 
-      : branches.length > 0 ? [branches[0].code] : [];
+    // Prioritize HQ branch for the first trigger if HQ is in branch list
+    const hasHq = branches.some((b) => (b.code || '').toUpperCase() === 'HQ');
+    const initialBranches = hasHq 
+      ? ['HQ'] 
+      : branches.length > 0 ? [branches[0].code] : ['HQ'];
 
     const newTrack: WorkflowTrack = {
       id: `wf-${Date.now()}`,
       name: `Workflow ${newIndex} • Branch Approval Flow`,
-      scopeType: 'CUSTOM',
+      scopeType: initialBranches[0] === 'HQ' ? 'HQ' : 'CUSTOM',
       selectedBranches: initialBranches,
       steps: [
         {
           company_id: companyId,
           module: 'leave',
-          branch_scope: initialBranches.join(','),
+          branch_scope: initialBranches[0] === 'HQ' ? 'HQ' : initialBranches.join(','),
           step_order: 1,
           approver_role_id: defaultRoleId,
           approver_role_name: availableRoles[0]?.name || 'Approver',
-          step_label: 'Initial Endorsement',
-          routing_rule: 'Follows selected branch routing assignment',
+          step_label: initialBranches[0] === 'HQ' ? 'Department Review (HQ Department Only)' : 'Branch Endorsement (Own Branch Only)',
+          routing_rule: initialBranches[0] === 'HQ' ? 'Only HQ has departments — routes to Head of Department' : 'Follows employee\'s own branch only',
+          auto_escalate_hours: 48
+        },
+        {
+          company_id: companyId,
+          module: 'leave',
+          branch_scope: initialBranches[0] === 'HQ' ? 'HQ' : initialBranches.join(','),
+          step_order: 2,
+          approver_role_id: availableRoles.length > 1 ? availableRoles[1].id : defaultRoleId,
+          approver_role_name: availableRoles[1]?.name || 'Highest Approval',
+          step_label: 'Highest Approval (Final Sign-off)',
+          routing_rule: 'Highest approval authority for assigned scope',
           auto_escalate_hours: 48
         }
       ],
@@ -443,7 +458,7 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
 
     setTracks([...tracks, newTrack]);
     setActiveTrackFilter(newTrack.id);
-    toast.success(`New workflow track added! Choose assigned branches and steps.`);
+    toast.success(`New workflow track added! First trigger set to ${initialBranches[0] === 'HQ' ? 'Rayhar HQ' : initialBranches[0]}.`);
   };
 
   // Handler: Remove Workflow Track

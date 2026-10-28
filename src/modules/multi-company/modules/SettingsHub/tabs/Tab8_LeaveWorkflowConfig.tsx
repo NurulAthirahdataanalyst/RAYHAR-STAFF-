@@ -356,7 +356,7 @@ export const Tab8_LeaveWorkflowConfig: React.FC = () => {
                       Type 4
                     </span>
                     <h5 className="text-xs font-black text-foreground uppercase tracking-tight">
-                      Medical Leave
+                      Medical Leave (Sick Leave)
                     </h5>
                   </div>
                 </div>

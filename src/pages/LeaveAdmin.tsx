@@ -1146,7 +1146,7 @@ export default function LeaveAdmin() {
                         </TableCell>
                         {canApprove && (
                           <TableCell className="px-3 py-3.5 text-right">
-                            {((
+                            {(
                               (["hr_admin", "hr", "admin"].includes(role?.toLowerCase()?.trim() || "") && req.status.trim().startsWith("Pending")) ||
                               (req.status.trim().startsWith("Pending HOD") && role === "head_of_department") ||
                               (req.status.trim() === "Pending Branch Leader" && role === "branch_leader") ||
