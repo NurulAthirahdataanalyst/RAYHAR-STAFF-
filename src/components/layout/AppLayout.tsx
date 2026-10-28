@@ -245,7 +245,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
     if (pathname.startsWith("/organization")) {
       let sub = "CORPORATE ENTITIES";
-      if (pathname.includes("/transfer")) sub = "EMPLOYEE TRANSFER WIZARD";
+      if (pathname.includes("/personnel")) sub = "PERSONNEL ENTITY";
+      else if (pathname.includes("/transfer")) sub = "EMPLOYEE TRANSFER WIZARD";
       else if (pathname.includes("/roles")) sub = "COMPANY ROLES & RBAC";
       else if (pathname.includes("/history")) sub = "TRANSFER CAREER HISTORY";
       else if (pathname.includes("/branches")) sub = "BRANCHES & GEOFENCE";

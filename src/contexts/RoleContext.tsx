@@ -17,6 +17,7 @@ interface RoleContextType {
   roleName: string;
   roleId?: string;
   isSystemRole: boolean;
+  scopeType: string;
   permissions: string[];
   permissionLevels: Record<string, 'view' | 'edit'>;
   hasPermission: (permission: string | string[]) => boolean;
@@ -125,6 +126,13 @@ export const RoleProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [roleName, setRoleName] = useState<string>(getInitialRoleName);
   const [roleId, setRoleId] = useState<string | undefined>(user?.role_id);
   const [isSystemRole, setIsSystemRole] = useState<boolean>(user?.is_system_role ?? true);
+  const [scopeType, setScopeType] = useState<string>(() => {
+    if (user?.scope_type) return user.scope_type;
+    try {
+      return sessionStorage.getItem("presence_cached_scope_type") || "";
+    } catch {}
+    return "";
+  });
   const [permissions, setPermissions] = useState<string[]>(getInitialPermissions);
   const [permissionLevels, setPermissionLevels] = useState<Record<string, 'view' | 'edit'>>({});
   const [userName, setUserName] = useState<string>(getInitialName);
@@ -191,6 +199,8 @@ export const RoleProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const fetchedPerms = Array.isArray(data.permissions) ? data.permissions : [];
         const fetchedPermLevels = (data.permission_levels && typeof data.permission_levels === 'object') ? data.permission_levels : {};
 
+        const resolvedScopeType = data.scope_type || data.profile?.scope_type || "";
+
         setUserName(fetchedName);
         setUserBranch(fetchedBranch);
         setUserDepartment(fetchedDept);
@@ -198,6 +208,7 @@ export const RoleProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setRoleName(resolvedRName);
         setRoleId(resolvedRId);
         setIsSystemRole(resolvedIsSys);
+        setScopeType(resolvedScopeType);
         setPermissions(fetchedPerms);
         setPermissionLevels(fetchedPermLevels);
 
@@ -207,6 +218,7 @@ export const RoleProvider: React.FC<{ children: React.ReactNode }> = ({ children
           sessionStorage.setItem("presence_cached_branch", fetchedBranch);
           sessionStorage.setItem("presence_cached_department", fetchedDept);
           sessionStorage.setItem("presence_cached_name", fetchedName);
+          sessionStorage.setItem("presence_cached_scope_type", resolvedScopeType);
           sessionStorage.setItem("presence_cached_permissions", JSON.stringify(fetchedPerms));
           if (resolvedRId) sessionStorage.setItem("presence_cached_role_id", resolvedRId);
         } catch {}
@@ -221,6 +233,7 @@ export const RoleProvider: React.FC<{ children: React.ReactNode }> = ({ children
             role_name: resolvedRName,
             role_id: resolvedRId,
             is_system_role: resolvedIsSys,
+            scope_type: resolvedScopeType,
             permissions: fetchedPerms
           });
         }
@@ -270,6 +283,7 @@ export const RoleProvider: React.FC<{ children: React.ReactNode }> = ({ children
     roleName,
     roleId,
     isSystemRole,
+    scopeType,
     permissions,
     permissionLevels,
     hasPermission,
@@ -287,6 +301,7 @@ export const RoleProvider: React.FC<{ children: React.ReactNode }> = ({ children
     roleName,
     roleId,
     isSystemRole,
+    scopeType,
     permissions,
     permissionLevels,
     hasPermission,

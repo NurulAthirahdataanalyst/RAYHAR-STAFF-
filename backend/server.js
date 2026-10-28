@@ -3638,7 +3638,7 @@ app.get("/api/branch-employees", async (req, res) => {
         LIMIT 1
       ) ur ON true
       LEFT JOIN LATERAL (
-        SELECT r.id, r.name, r.is_system_role
+        SELECT r.id, r.name, r.is_system_role, r.scope_type
         FROM roles r
         WHERE r.id = p.role_id
            OR (p.role_id IS NULL AND r.id = ur.role_id)
@@ -4166,7 +4166,7 @@ app.get("/api/leave-requests", async (req, res) => {
     const params = [];
     const filters = [];
 
-    const rawCompanyId = req.companyId || req.query.company_id || req.query.companyId;
+    const rawCompanyId = req.query.company_id || req.query.companyId || req.companyId;
     const companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
     const normRole = safeLower(role).replace(/\s+/g, "_");
     const isGroupWideLeaveRole = [
@@ -4180,13 +4180,13 @@ app.get("/api/leave-requests", async (req, res) => {
       "finance_manager",
     ].includes(normRole);
 
-    if (companyId && !userId && !isGroupWideLeaveRole) {
-      if (companyId === 1) {
-        filters.push("(lr.user_id IN (SELECT user_id FROM company_user_roles WHERE company_id = 1 AND status = 'active') OR lr.user_id NOT IN (SELECT user_id FROM company_user_roles WHERE status = 'active'))");
-      } else {
-        filters.push("lr.user_id IN (SELECT user_id FROM company_user_roles WHERE company_id = ? AND status = 'active')");
-        params.push(companyId);
-      }
+    if (companyId && !userId) {
+      filters.push(`COALESCE(
+        (SELECT cur.company_id FROM company_user_roles cur WHERE cur.user_id = lr.user_id AND cur.status = 'active' ORDER BY cur.company_id DESC LIMIT 1),
+        b_comp.company_id,
+        CASE WHEN UPPER(p.branch) = 'RAYRENT' THEN 2 ELSE 1 END
+      )::int = ?`);
+      params.push(companyId);
     }
 
     if (userId) {
@@ -6163,7 +6163,7 @@ app.get("/api/employees", async (req, res) => {
         LIMIT 1
       ) ur ON true
       LEFT JOIN LATERAL (
-        SELECT r.id, r.name, r.is_system_role
+        SELECT r.id, r.name, r.is_system_role, r.scope_type
         FROM roles r
         WHERE r.id = p.role_id
            OR (p.role_id IS NULL AND r.id = ur.role_id)
@@ -6599,7 +6599,7 @@ app.post("/api/login", async (req, res) => {
 
     // get role and role_id from user_role and roles table
     const [roleRows] = await pool.query(
-      `SELECT ur.role, ur.role_id, r.name as role_name, r.is_system_role 
+      `SELECT ur.role, ur.role_id, r.name as role_name, r.is_system_role, r.scope_type 
        FROM user_role ur 
        LEFT JOIN roles r ON r.id = ur.role_id OR LOWER(r.name) = LOWER(ur.role) OR LOWER(REPLACE(r.name, ' ', '_')) = LOWER(ur.role)
        WHERE ur.user_id = ? OR ur.user_id = ?
@@ -6619,6 +6619,7 @@ app.post("/api/login", async (req, res) => {
     const roleId = roleRows[0]?.role_id || user.role_id || null;
     const roleName = roleRows[0]?.role_name || (role === 'hr_admin' ? 'HR Admin' : role === 'managing_director' ? 'Managing Director' : role === 'operation_manager' ? 'Operation Manager' : role === 'head_of_department' ? 'Head of Department' : role === 'branch_leader' ? 'Branch Leader' : 'Employee');
     const isSystemRole = roleRows[0]?.is_system_role ?? true;
+    const roleScopeType = roleRows[0]?.scope_type || null;
 
     // Fetch user permissions
     const userPerms = await getUserPermissions(user.user_id, role);
@@ -6666,6 +6667,7 @@ app.post("/api/login", async (req, res) => {
         role_id: roleId,
         role_name: roleName,
         is_system_role: isSystemRole,
+        scope_type: roleScopeType,
         permissions: userPerms,
         created_at: profile.created_at
       }
@@ -6712,7 +6714,7 @@ app.get("/api/user-details/:identifier", async (req, res) => {
         LIMIT 1
       ) ur ON true
       LEFT JOIN LATERAL (
-        SELECT r.id, r.name, r.is_system_role
+        SELECT r.id, r.name, r.is_system_role, r.scope_type
         FROM roles r
         WHERE r.id = p.role_id
            OR (p.role_id IS NULL AND r.id = ur.role_id)
@@ -6747,7 +6749,7 @@ app.get("/api/user-details/:identifier", async (req, res) => {
     const user = rows[0];
     const userPermsDetail = await getUserPermissionsWithLevels(user.user_id, user.role);
 
-    const rawCompanyId = req.companyId || req.query.company_id || req.query.companyId;
+    const rawCompanyId = req.query.company_id || req.query.companyId || req.companyId;
     const companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
     let belongsToCompany = true;
     if (companyId && companyId !== 1) {
@@ -6778,12 +6780,14 @@ app.get("/api/user-details/:identifier", async (req, res) => {
         belongs_to_company: belongsToCompany,
         role_id: user.role_id,
         role_name: user.role_name,
-        is_system_role: user.is_system_role
+        is_system_role: user.is_system_role,
+        scope_type: user.scope_type
       },
       role: user.role,
       role_id: user.role_id,
       role_name: user.role_name,
       is_system_role: user.is_system_role,
+      scope_type: user.scope_type,
       permissions: userPermsDetail.keys,
       permission_levels: userPermsDetail.levels
     });
@@ -8101,7 +8105,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
   try {
     let adminStats = null;
     let globalRecentActivities = null;
-    const rawCompanyId = req.companyId || req.query.company_id || req.query.companyId;
+    const rawCompanyId = req.query.company_id || req.query.companyId || req.companyId;
     const companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
 
     if (["hr_admin", "branch_leader", "managing_director", "operation_manager", "finance_manager", "head_of_department"].includes(role)) {
@@ -9067,7 +9071,7 @@ app.get("/api/reports/absent-employees", async (req, res) => {
       leaveCandRows.filter(lr => isEmployeeOnLeaveOnDate(lr, queryDate)).map(lr => lr.user_id)
     );
 
-    const rawCompanyId = req.companyId || req.query.company_id || req.query.companyId;
+    const rawCompanyId = req.query.company_id || req.query.companyId || req.companyId;
     const companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
     let companyUserFilter = "";
     if (companyId) {
@@ -9111,7 +9115,7 @@ app.get("/api/reports/absent-employees", async (req, res) => {
         LIMIT 1
       ) ur ON true
       LEFT JOIN LATERAL (
-        SELECT r.id, r.name, r.is_system_role
+        SELECT r.id, r.name, r.is_system_role, r.scope_type
         FROM roles r
         WHERE r.id = p.role_id
            OR (p.role_id IS NULL AND r.id = ur.role_id)
@@ -9187,7 +9191,7 @@ app.get("/api/reports/on-leave-employees", async (req, res) => {
   const queryDate = date || new Date().toISOString().split('T')[0];
 
   try {
-    const rawCompanyId = req.companyId || req.query.company_id || req.query.companyId;
+    const rawCompanyId = req.query.company_id || req.query.companyId || req.companyId;
     const companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
     let companyUserFilter = "";
     if (companyId) {
@@ -9236,7 +9240,7 @@ app.get("/api/reports/on-leave-employees", async (req, res) => {
         LIMIT 1
       ) ur ON true
       LEFT JOIN LATERAL (
-        SELECT r.id, r.name, r.is_system_role
+        SELECT r.id, r.name, r.is_system_role, r.scope_type
         FROM roles r
         WHERE r.id = p.role_id
            OR (p.role_id IS NULL AND r.id = ur.role_id)
@@ -9285,7 +9289,7 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
   }
 
   try {
-    const rawCompanyId = req.companyId || req.query.company_id || req.query.companyId;
+    const rawCompanyId = req.query.company_id || req.query.companyId || req.companyId;
     const companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
     let companyUserFilter = "";
     if (companyId) {
@@ -10188,7 +10192,7 @@ app.get("/api/workforce-stats", async (req, res) => {
     const queryDateParam = safeString(req.query.date);
     const normRole = safeLower(role).replace(/ /g, "_");
 
-    const rawCompanyId = req.companyId || req.query.company_id || req.query.companyId;
+    const rawCompanyId = req.query.company_id || req.query.companyId || req.companyId;
     const companyFilter = getCompanyUserSqlFilterById(rawCompanyId, "p.user_id");
     let profileFilter = companyFilter;
     let pFilterParams = [];
@@ -12094,10 +12098,33 @@ app.get("/api/reports/generator", async (req, res) => {
       department = requesterDept || department;
     }
 
-    const companyFilter = getCompanyUserSqlFilter(req, "p.user_id");
-    const companyClause = companyFilter ? companyFilter.replace(/^\s*AND\s+/i, "") : "";
+    const rawCompanies = req.query.companies || req.query.company_ids || req.query.company_id || req.companyId;
+    let selectedCompanyIds = [];
+    if (rawCompanies && rawCompanies !== 'all') {
+      if (Array.isArray(rawCompanies)) {
+        selectedCompanyIds = rawCompanies.map(Number).filter(n => !isNaN(n) && n > 0);
+      } else {
+        selectedCompanyIds = String(rawCompanies)
+          .split(',')
+          .map(s => parseInt(s.trim(), 10))
+          .filter(n => !isNaN(n) && n > 0);
+      }
+    }
+
+    let companyClause = "";
+    let companyParams = [];
+    if (selectedCompanyIds.length > 0) {
+      const placeholders = selectedCompanyIds.map(() => '?').join(',');
+      companyClause = `COALESCE(
+        (SELECT cur.company_id FROM company_user_roles cur WHERE cur.user_id = p.user_id AND cur.status = 'active' ORDER BY cur.company_id DESC LIMIT 1),
+        (SELECT b.company_id FROM branches b WHERE UPPER(b.code) = UPPER(p.branch) LIMIT 1),
+        CASE WHEN UPPER(p.branch) = 'RAYRENT' THEN 2 ELSE 1 END
+      )::int IN (${placeholders})`;
+      companyParams = [...selectedCompanyIds];
+    }
+
     let filters = companyClause ? [companyClause] : [];
-    let params = [];
+    let params = companyClause ? [...companyParams] : [];
     
     if (branch && branch !== 'all') {
       filters.push("LOWER(p.branch) = LOWER(?)");
@@ -12129,7 +12156,7 @@ app.get("/api/reports/generator", async (req, res) => {
     if (type === 'trends' || type === 'stability') {
       // 1. Fetch matching employee profiles based on filters & role scoping
       let profFilters = companyClause ? [companyClause] : [];
-      let profParams = [];
+      let profParams = companyClause ? [...companyParams] : [];
       
       if (branch && branch !== 'all') {
         profFilters.push("LOWER(p.branch) = LOWER(?)");
@@ -12147,7 +12174,17 @@ app.get("/api/reports/generator", async (req, res) => {
       let profWhere = profFilters.length > 0 ? "WHERE " + profFilters.join(" AND ") : "";
       // Fetch profiles with permanent branch only; temp branch resolved per-row below
       const [targetProfiles] = await pool.query(`
-        SELECT p.user_id, p.full_name, p.branch AS permanent_branch, p.department, p.created_at
+        SELECT 
+          p.user_id, 
+          p.full_name, 
+          p.branch AS permanent_branch, 
+          p.department, 
+          p.created_at,
+          COALESCE(
+            (SELECT c.company_name FROM company_user_roles cur JOIN companies c ON c.id = cur.company_id WHERE cur.user_id = p.user_id AND cur.status = 'active' ORDER BY cur.company_id DESC LIMIT 1),
+            (SELECT c.company_name FROM branches b JOIN companies c ON c.id = b.company_id WHERE UPPER(b.code) = UPPER(p.branch) LIMIT 1),
+            CASE WHEN UPPER(p.branch) = 'RAYRENT' THEN 'RayRent' ELSE 'Rayhar Travels' END
+          ) AS company_name
         FROM profiles p
         ${profWhere}
         ORDER BY p.full_name ASC
@@ -12304,6 +12341,7 @@ app.get("/api/reports/generator", async (req, res) => {
               resultRows.push({
                 user_id: prof.user_id,
                 full_name: prof.full_name,
+                company_name: prof.company_name,
                 permanent_branch: branchInfo.permanent_branch,
                 temp_branch: branchInfo.temp_branch,
                 branch: branchInfo.branch,
@@ -12319,6 +12357,7 @@ app.get("/api/reports/generator", async (req, res) => {
               resultRows.push({
                 user_id: prof.user_id,
                 full_name: prof.full_name,
+                company_name: prof.company_name,
                 permanent_branch: branchInfo.permanent_branch,
                 temp_branch: branchInfo.temp_branch,
                 branch: branchInfo.branch,
@@ -12337,7 +12376,7 @@ app.get("/api/reports/generator", async (req, res) => {
       res.json({ success: true, data: resultRows });
     } else if (type === 'outstation') {
       let outFilters = companyClause ? [companyClause] : [];
-      let outParams = [];
+      let outParams = companyClause ? [...companyParams] : [];
       
       if (branch && branch !== 'all') {
          outFilters.push("LOWER(p.branch) = LOWER(?)");
@@ -12373,7 +12412,12 @@ app.get("/api/reports/generator", async (req, res) => {
           o.user_id,
           p.full_name,
           p.department,
-          p.branch
+          p.branch,
+          COALESCE(
+            (SELECT c.company_name FROM company_user_roles cur JOIN companies c ON c.id = cur.company_id WHERE cur.user_id = p.user_id AND cur.status = 'active' ORDER BY cur.company_id DESC LIMIT 1),
+            (SELECT c.company_name FROM branches b JOIN companies c ON c.id = b.company_id WHERE UPPER(b.code) = UPPER(p.branch) LIMIT 1),
+            CASE WHEN UPPER(p.branch) = 'RAYRENT' THEN 'RayRent' ELSE 'Rayhar Travels' END
+          ) AS company_name
         FROM outstation_assignments o
         JOIN profiles p ON p.user_id = o.user_id
         ${outWhere}
@@ -12429,7 +12473,7 @@ app.get("/api/reports/generator", async (req, res) => {
       res.json({ success: true, data: rows });
     } else {
       let leaveFilters = companyClause ? [companyClause] : [];
-      let leaveParams = [];
+      let leaveParams = companyClause ? [...companyParams] : [];
       
       if (branch && branch !== 'all') {
          leaveFilters.push("LOWER(p.branch) = LOWER(?)");
@@ -12464,6 +12508,11 @@ app.get("/api/reports/generator", async (req, res) => {
           p.full_name,
           p.branch,
           p.department,
+          COALESCE(
+            (SELECT c.company_name FROM company_user_roles cur JOIN companies c ON c.id = cur.company_id WHERE cur.user_id = p.user_id AND cur.status = 'active' ORDER BY cur.company_id DESC LIMIT 1),
+            (SELECT c.company_name FROM branches b JOIN companies c ON c.id = b.company_id WHERE UPPER(b.code) = UPPER(p.branch) LIMIT 1),
+            CASE WHEN UPPER(p.branch) = 'RAYRENT' THEN 'RayRent' ELSE 'Rayhar Travels' END
+          ) AS company_name,
           lr.leave_type,
           lr.start_date,
           lr.end_date,

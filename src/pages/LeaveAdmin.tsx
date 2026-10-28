@@ -29,6 +29,7 @@ import { Link } from "react-router-dom";
 import { useRole } from "@/contexts/RoleContext";
 import { parseCutiGantiRows, getCleanReason } from "@/lib/leaveStorage";
 import { API_BASE_URL } from "../config/api";
+import { useCompany } from "@/modules/multi-company/contexts/CompanyContext";
 
 const getDisplayStatus = (status: string) => {
   switch (status) {
@@ -151,6 +152,8 @@ type TabFilter = "pending" | "approved" | "rejected" | "history";
 
 export default function LeaveAdmin() {
   const { role, userBranch, userDepartment, userId } = useRole();
+  const { activeCompany } = useCompany();
+  const currentCompanyId = activeCompany?.id || 1;
   const canApprove = APPROVER_ROLES.includes(role);
   const [requests, setRequests] = useState<LeaveRequest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -175,8 +178,13 @@ export default function LeaveAdmin() {
         branch: userBranch || "",
         department: userDepartment || "",
         status: "Active",
+        company_id: String(activeCompany?.id || 1),
       });
-      const response = await fetch(`${API_BASE_URL}/api/employees?${scopeParams}`);
+      const response = await fetch(`${API_BASE_URL}/api/employees?${scopeParams}`, {
+        headers: {
+          'x-company-id': String(activeCompany?.id || 1)
+        }
+      });
       const data = await response.json();
       if (data.success && Array.isArray(data.employees)) {
         setEmployees(data.employees);
@@ -279,6 +287,8 @@ export default function LeaveAdmin() {
 
   // First, filter by year, month, and employee
   const requestsByMonth = requests.filter((req) => {
+    const reqCompanyId = req.companyId || (req.branch?.toUpperCase() === "RAYRENT" ? 2 : 1);
+    if (activeCompany?.id && reqCompanyId !== currentCompanyId) return false;
     if (!req.from) return false;
     const reqYear = req.from.substring(0, 4);
     const reqMonth = req.from.substring(5, 7);
@@ -359,8 +369,18 @@ export default function LeaveAdmin() {
       } catch (e) {}
     };
 
-    return () => sse.close();
-  }, [role, userBranch, userDepartment]);
+    const handleCompanySwitch = () => {
+      setSelectedEmps([]);
+      setEmpSearch("");
+      void fetchRequests();
+      void fetchEmployees();
+    };
+    window.addEventListener('rayhar_company_switched', handleCompanySwitch);
+    return () => {
+      sse.close();
+      window.removeEventListener('rayhar_company_switched', handleCompanySwitch);
+    };
+  }, [role, userBranch, userDepartment, activeCompany?.id]);
 
   // Handle URL query parameters (tab, month, year, leaveId)
   useEffect(() => {
@@ -503,9 +523,14 @@ export default function LeaveAdmin() {
           role,
           branch: userBranch || "",
           department: userDepartment || "",
+          company_id: String(activeCompany?.id || 1),
         });
 
-        const response = await fetch(`${API_BASE_URL}/api/leave-requests?${params}`);
+        const response = await fetch(`${API_BASE_URL}/api/leave-requests?${params}`, {
+          headers: {
+            'x-company-id': String(activeCompany?.id || 1)
+          }
+        });
         if (!response.ok) {
           throw new Error(`Server returned status ${response.status}`);
         }

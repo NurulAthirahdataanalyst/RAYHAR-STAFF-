@@ -575,11 +575,111 @@ function createMultiCompanyRouter(pgPool) {
       ]);
 
       const updated = updateResult.rows[0];
+
+      // Cascade status changes to related company roles, branches, departments, and user roles
+      if (status) {
+        const cleanStatus = String(status).trim().toLowerCase();
+        if (cleanStatus === 'inactive') {
+          await pgPool.query(`UPDATE roles SET status = 'Inactive', updated_at = CURRENT_TIMESTAMP WHERE company_id = $1`, [companyId]).catch(e => console.warn('Could not deactivate company roles:', e.message));
+          await pgPool.query(`UPDATE branches SET status = 'inactive' WHERE company_id = $1`, [companyId]).catch(e => console.warn('Could not deactivate company branches:', e.message));
+          await pgPool.query(`UPDATE departments SET status = 'inactive' WHERE company_id = $1`, [companyId]).catch(e => console.warn('Could not deactivate company departments:', e.message));
+          await pgPool.query(`UPDATE company_user_roles SET status = 'inactive', updated_at = CURRENT_TIMESTAMP WHERE company_id = $1`, [companyId]).catch(e => console.warn('Could not deactivate company user roles:', e.message));
+          await pgPool.query(`UPDATE branch_geofence_settings SET is_active = false WHERE branch_code IN (SELECT code FROM branches WHERE company_id = $1)`, [companyId]).catch(e => console.warn('Could not deactivate company geofences:', e.message));
+        } else if (cleanStatus === 'active') {
+          await pgPool.query(`UPDATE roles SET status = 'Active', updated_at = CURRENT_TIMESTAMP WHERE company_id = $1`, [companyId]).catch(e => console.warn('Could not activate company roles:', e.message));
+          await pgPool.query(`UPDATE branches SET status = 'active' WHERE company_id = $1`, [companyId]).catch(e => console.warn('Could not activate company branches:', e.message));
+          await pgPool.query(`UPDATE departments SET status = 'active' WHERE company_id = $1`, [companyId]).catch(e => console.warn('Could not activate company departments:', e.message));
+          await pgPool.query(`UPDATE company_user_roles SET status = 'active', updated_at = CURRENT_TIMESTAMP WHERE company_id = $1`, [companyId]).catch(e => console.warn('Could not activate company user roles:', e.message));
+          await pgPool.query(`UPDATE branch_geofence_settings SET is_active = true WHERE branch_code IN (SELECT code FROM branches WHERE company_id = $1)`, [companyId]).catch(e => console.warn('Could not activate company geofences:', e.message));
+        }
+      }
+
       await logAudit(req, 'COMPANY_UPDATE', `Updated company details for ${updated.company_name}`, oldCompany.rows[0], updated, companyId);
 
       res.json({ success: true, company: updated });
     } catch (err) {
       console.error('Error updating company:', err);
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  // DELETE permanently delete company (and all associated data)
+  router.delete('/companies/:id', async (req, res) => {
+    try {
+      const companyId = parseInt(req.params.id, 10);
+      if (isNaN(companyId)) {
+        return res.status(400).json({ success: false, error: 'Invalid company ID' });
+      }
+
+      // Root parent holding company (id = 1) cannot be deleted
+      if (companyId === 1) {
+        return res.status(400).json({ success: false, error: 'The primary root holding company cannot be deleted.' });
+      }
+
+      const compCheck = await pgPool.query('SELECT * FROM companies WHERE id = $1', [companyId]);
+      if (compCheck.rows.length === 0) {
+        return res.status(404).json({ success: false, error: 'Company not found' });
+      }
+      const targetCompany = compCheck.rows[0];
+
+      // 1. Delete geofence settings for branches of this company
+      await pgPool.query(`
+        DELETE FROM branch_geofence_settings 
+        WHERE company_id = $1 OR branch_code IN (SELECT code FROM branches WHERE company_id = $1)
+      `, [companyId]).catch(e => console.warn('Delete branch_geofence_settings warning:', e.message));
+
+      // 2. Delete work schedules & approval workflows for this company
+      await pgPool.query(`DELETE FROM work_schedules WHERE company_id = $1`, [companyId]).catch(e => console.warn('Delete work_schedules warning:', e.message));
+      await pgPool.query(`DELETE FROM approval_workflow WHERE company_id = $1`, [companyId]).catch(e => console.warn('Delete approval_workflow warning:', e.message));
+      await pgPool.query(`DELETE FROM company_modules WHERE company_id = $1`, [companyId]).catch(e => console.warn('Delete company_modules warning:', e.message));
+      await pgPool.query(`DELETE FROM attendance_settings WHERE company_id = $1`, [companyId]).catch(e => console.warn('Delete attendance_settings warning:', e.message));
+      await pgPool.query(`DELETE FROM leave_settings WHERE company_id = $1`, [companyId]).catch(e => console.warn('Delete leave_settings warning:', e.message));
+
+      // 3. For users whose only assignment is this company, clean up their records
+      const userList = await pgPool.query(`
+        SELECT DISTINCT user_id FROM company_user_roles WHERE company_id = $1
+      `, [companyId]);
+
+      for (const u of userList.rows) {
+        const uid = u.user_id;
+        const otherCompRes = await pgPool.query(`
+          SELECT COUNT(*)::int AS count FROM company_user_roles WHERE user_id = $1 AND company_id != $2
+        `, [uid, companyId]);
+
+        if (otherCompRes.rows[0].count === 0) {
+          // User only belongs to this subcompany - permanently remove
+          await pgPool.query(`DELETE FROM attendance WHERE user_id = $1`, [uid]).catch(() => {});
+          await pgPool.query(`DELETE FROM leave_requests WHERE user_id = $1`, [uid]).catch(() => {});
+          await pgPool.query(`DELETE FROM leave_balance_adjustments WHERE employee_id = $1`, [uid]).catch(() => {});
+          await pgPool.query(`DELETE FROM user_role WHERE user_id = $1`, [uid]).catch(() => {});
+          await pgPool.query(`DELETE FROM profiles WHERE user_id = $1`, [uid]).catch(() => {});
+          await pgPool.query(`DELETE FROM users WHERE id = $1 OR user_id = $1`, [uid]).catch(() => {});
+        }
+      }
+
+      // 4. Delete company user role records
+      await pgPool.query(`DELETE FROM company_user_roles WHERE company_id = $1`, [companyId]).catch(e => console.warn('Delete company_user_roles warning:', e.message));
+
+      // 5. Delete roles belonging to this company
+      await pgPool.query(`DELETE FROM roles WHERE company_id = $1`, [companyId]).catch(e => console.warn('Delete roles warning:', e.message));
+
+      // 6. Delete departments belonging to this company
+      await pgPool.query(`DELETE FROM departments WHERE company_id = $1`, [companyId]).catch(e => console.warn('Delete departments warning:', e.message));
+
+      // 7. Delete branches belonging to this company
+      await pgPool.query(`DELETE FROM branches WHERE company_id = $1`, [companyId]).catch(e => console.warn('Delete branches warning:', e.message));
+
+      // 8. Delete audit logs associated with this company
+      await pgPool.query(`DELETE FROM audit_logs WHERE company_id = $1`, [companyId]).catch(e => console.warn('Delete audit_logs warning:', e.message));
+
+      // 9. Finally delete the company itself
+      await pgPool.query(`DELETE FROM companies WHERE id = $1`, [companyId]);
+
+      await logAudit(req, 'COMPANY_DELETE', `Permanently deleted company ${targetCompany.company_name} (ID: ${companyId}) and associated data`, targetCompany, null, 1);
+
+      res.json({ success: true, message: `Company ${targetCompany.company_name} permanently deleted.` });
+    } catch (err) {
+      console.error('Error deleting company:', err);
       res.status(500).json({ success: false, error: err.message });
     }
   });

@@ -132,13 +132,19 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
       const normUserRole = (user?.role || '').trim().toLowerCase();
       const isHR = ['hr', 'hr admin', 'hr_admin', 'admin'].includes(normUserRole);
+      const hasParentGroupScope = 
+        isHR ||
+        user?.scope_type === 'Parent Group Data' ||
+        user?.scope_type === 'Parent Group Access' ||
+        uCompanies.some(uc => uc.scope_type === 'Parent Group Data' || uc.scope_type === 'Parent Group Access') ||
+        ['managing_director', 'operation_manager'].includes(normUserRole);
 
       // Determine initial active company
       const cachedId = sessionStorage.getItem(STORAGE_ACTIVE_COMPANY_KEY);
       let selected: Company | undefined;
 
-      // Only HR users can restore a previously switched company from sessionStorage
-      if (isHR && cachedId) {
+      // Users with HR or Parent Group Data scope can restore a previously switched company from sessionStorage
+      if (hasParentGroupScope && cachedId) {
         selected = activeList.find(c => c.id === parseInt(cachedId, 10));
       }
 

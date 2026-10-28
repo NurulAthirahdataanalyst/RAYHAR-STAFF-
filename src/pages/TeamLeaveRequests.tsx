@@ -1,6 +1,7 @@
 import { sanitizeUrl, safeFileUrl, downloadUploadedFile, getMcAttachmentUrl, preloadImage, isPdfUrl } from '@/utils/security';
 import { formatBranchName } from '@/utils/branchUtils';
 import { useRole } from "@/contexts/RoleContext";
+import { useCompany } from "@/modules/multi-company/contexts/CompanyContext";
 import { useState, useEffect } from "react";
 import { API_BASE_URL } from "@/config/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,6 +20,7 @@ const formatDate = (value: string) => (value ? value.slice(0, 10) : "");
 
 export default function TeamLeaveRequests() {
   const { role, userBranch, userDepartment } = useRole();
+  const { activeCompany } = useCompany();
   const [loading, setLoading] = useState(true);
   const [leaveRequests, setLeaveRequests] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -100,14 +102,24 @@ export default function TeamLeaveRequests() {
           role: role || "",
           branch: userBranch || "",
           department: userDepartment || "",
+          company_id: String(activeCompany?.id || 1),
         });
 
-        const response = await fetch(`${API_BASE_URL}/api/leave-requests?${params}`);
+        const response = await fetch(`${API_BASE_URL}/api/leave-requests?${params}`, {
+          headers: {
+            'x-company-id': String(activeCompany?.id || 1)
+          }
+        });
         const data = await response.json();
 
         if (data.success) {
+          // Filter by activeCompany
+          const currentCompanyId = activeCompany?.id || 1;
+          let filtered = (data.leaveRequests || []).filter((r: any) => {
+            const cId = r.company_id || (r.branch?.toUpperCase() === 'RAYRENT' ? 2 : 1);
+            return cId === currentCompanyId;
+          });
           // If HOD, extra safe filter to ensure only same branch & department
-          let filtered = data.leaveRequests;
           if (role === 'head_of_department') {
              filtered = filtered.filter((r: any) => r.department === userDepartment && r.branch === userBranch);
           }
@@ -149,7 +161,7 @@ export default function TeamLeaveRequests() {
     };
 
     fetchRequests();
-  }, [role, userBranch, userDepartment]);
+  }, [role, userBranch, userDepartment, activeCompany?.id]);
 
   if (loading) {
     return (

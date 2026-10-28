@@ -118,6 +118,7 @@ function ProtectedRoutes() {
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/organization" element={<OrganizationEntities />} />
           <Route path="/organization/entities" element={<OrganizationEntities />} />
+          <Route path="/organization/personnel" element={<OrganizationEntities />} />
           <Route path="/organization/roles" element={<OrganizationEntities />} />
           <Route path="/organization/modules" element={<OrganizationEntities />} />
           <Route path="/organization/transfer" element={<OrganizationEntities />} />

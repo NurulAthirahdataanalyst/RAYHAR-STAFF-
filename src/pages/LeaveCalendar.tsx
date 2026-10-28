@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import ReactDOM from "react-dom";
 import { format, isSameDay, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isBefore, startOfDay } from "date-fns";
 import { useRole } from "@/contexts/RoleContext";
+import { useCompany } from "@/modules/multi-company/contexts/CompanyContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -64,6 +65,7 @@ type LeaveRequest = {
 
 export default function LeaveCalendar() {
   const { role, userBranch, userDepartment, loading: roleLoading } = useRole();
+  const { activeCompany } = useCompany();
   const [requests, setRequests] = useState<LeaveRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedEvent, setSelectedEvent] = useState<LeaveRequest | null>(null);
@@ -81,8 +83,13 @@ export default function LeaveCalendar() {
           role,
           branch: userBranch || "",
           department: userDepartment || "",
+          company_id: String(activeCompany?.id || 1),
         });
-        const res = await fetch(`${API_BASE_URL}/api/leave-requests?${params}`);
+        const res = await fetch(`${API_BASE_URL}/api/leave-requests?${params}`, {
+          headers: {
+            'x-company-id': String(activeCompany?.id || 1)
+          }
+        });
         const data = await res.json();
         if (data.success) {
           setRequests(data.leaveRequests || []);
@@ -94,7 +101,7 @@ export default function LeaveCalendar() {
       }
     };
     if (!roleLoading) void fetchData();
-  }, [role, userBranch, userDepartment, roleLoading]);
+  }, [role, userBranch, userDepartment, roleLoading, activeCompany?.id]);
 
   // Get all days in the current view grid
   const calDays = useMemo(() => {
@@ -108,7 +115,10 @@ export default function LeaveCalendar() {
   // For each day, get leave requests that span that date
   const getLeavesForDay = (day: Date) => {
     const dateStr = format(day, 'yyyy-MM-dd');
+    const currentCompanyId = activeCompany?.id || 1;
     return requests.filter(a => {
+      const aCompanyId = (a as any).company_id || (a.branch?.toUpperCase() === 'RAYRENT' ? 2 : 1);
+      if (activeCompany?.id && aCompanyId !== currentCompanyId) return false;
       let isMatchStatus = false;
       if (filterStatus === "All") isMatchStatus = true;
       else if (filterStatus === "Pending") isMatchStatus = a.status.startsWith("Pending");

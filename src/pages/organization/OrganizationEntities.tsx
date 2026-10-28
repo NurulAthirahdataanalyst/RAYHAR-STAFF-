@@ -5,11 +5,12 @@ import { Tab3_CompanyMgmt } from '@/modules/multi-company/modules/SettingsHub/ta
 import { Tab9_IAM } from '@/modules/multi-company/modules/SettingsHub/tabs/Tab9_IAM';
 import { Tab4_BranchLocationMgmt } from '@/modules/multi-company/modules/SettingsHub/tabs/Tab4_BranchLocationMgmt';
 import { Tab5_DepartmentMgmt } from '@/modules/multi-company/modules/SettingsHub/tabs/Tab5_DepartmentMgmt';
+import { TabPersonnelEntity } from '@/modules/multi-company/modules/SettingsHub/tabs/TabPersonnelEntity';
 import { CompanyTransferWizard } from '@/modules/multi-company/employee-assignment/CompanyTransferWizard';
 import { EmployeeCompanyHistory } from '@/modules/multi-company/employee-assignment/EmployeeCompanyHistory';
 import { CompanyModuleManagement } from './CompanyModuleManagement';
 
-export type OrganizationSection = 'entities' | 'roles' | 'modules' | 'transfer' | 'history' | 'branches' | 'departments';
+export type OrganizationSection = 'entities' | 'personnel' | 'roles' | 'modules' | 'transfer' | 'history' | 'branches' | 'departments';
 
 export default function OrganizationEntities() {
   const location = useLocation();
@@ -18,6 +19,7 @@ export default function OrganizationEntities() {
 
   const getActiveSection = (): OrganizationSection => {
     const path = location.pathname.toLowerCase();
+    if (path.includes('/personnel')) return 'personnel';
     if (path.includes('/modules')) return 'modules';
     if (path.includes('/transfer')) return 'transfer';
     if (path.includes('/roles')) return 'roles';
@@ -27,7 +29,7 @@ export default function OrganizationEntities() {
     if (path.includes('/entities')) return 'entities';
 
     const tab = searchParams.get('tab') as OrganizationSection;
-    if (tab && ['entities', 'roles', 'modules', 'transfer', 'history', 'branches', 'departments'].includes(tab)) {
+    if (tab && ['entities', 'personnel', 'roles', 'modules', 'transfer', 'history', 'branches', 'departments'].includes(tab)) {
       return tab;
     }
     return 'entities';
@@ -46,6 +48,10 @@ export default function OrganizationEntities() {
               else if (tab === 'iam') navigate('/organization/roles');
             }} 
           />
+        )}
+
+        {currentSection === 'personnel' && (
+          <TabPersonnelEntity />
         )}
 
         {currentSection === 'roles' && (

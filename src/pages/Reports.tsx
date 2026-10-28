@@ -27,6 +27,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { MonthPicker } from "@/components/shared/MonthPicker";
 import { YearPopover } from "@/components/shared/YearPopover";
+import { AnimatedCheckbox } from "@/components/ui/animated-checkbox";
+import { useCompany } from "@/modules/multi-company/contexts/CompanyContext";
 
 const fallbackMonthlyData = [
   { month: "Jan", attendance: 94, leave_request: 18 },
@@ -97,6 +99,11 @@ interface Department {
 
 export default function Reports() {
   const { role, userBranch, userDepartment, userId } = useRole();
+  const { companies, activeCompany } = useCompany();
+  const normRole = (role || "").toLowerCase().trim();
+  const isHRAdmin = ['hr_admin', 'admin', 'hr'].includes(normRole);
+  const isMD_OM = ['managing_director', 'operation_manager', 'finance_manager', 'md'].includes(normRole);
+  const isFullAdmin = isHRAdmin || isMD_OM;
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     if (typeof window !== "undefined") {
       return localStorage.getItem("presenceSidebarCollapsed") === "true";
@@ -162,6 +169,39 @@ export default function Reports() {
   // Settings config values (Dynamic fetch with static fallback)
   const [workStartTime, setWorkStartTime] = useState("09:00 AM");
 
+  // Multi-Company Checkbox Filter for HR
+  const [selectedCompanyIds, setSelectedCompanyIds] = useState<number[]>(() => {
+    return activeCompany?.id ? [activeCompany.id] : [1];
+  });
+
+  useEffect(() => {
+    const handleCompanySwitched = (e: any) => {
+      const newId = e.detail?.company_id || e.detail?.company?.id;
+      if (newId) {
+        setSelectedCompanyIds([newId]);
+      }
+    };
+    window.addEventListener('rayhar_company_switched', handleCompanySwitched);
+    return () => window.removeEventListener('rayhar_company_switched', handleCompanySwitched);
+  }, []);
+
+  // Filtered branches based on company selection
+  const filteredBranches = useMemo(() => {
+    if (!isFullAdmin || selectedCompanyIds.length === 0 || selectedCompanyIds.length === companies.length) {
+      return branches;
+    }
+    return branches.filter((b: any) => {
+      const bCompanyId = b.company_id || (b.code?.toUpperCase() === 'RAYRENT' ? 2 : 1);
+      return selectedCompanyIds.includes(bCompanyId);
+    });
+  }, [branches, selectedCompanyIds, companies.length, isFullAdmin]);
+
+  useEffect(() => {
+    if (generatorBranch !== 'all' && filteredBranches.length > 0 && !filteredBranches.some(b => b.code === generatorBranch)) {
+      setGeneratorBranch('all');
+    }
+  }, [filteredBranches, generatorBranch]);
+
   // Report Generator State
   const [generatorType, setGeneratorType] = useState<"stability" | "trends" | "leave" | "financial" | "outstation" | "company_leave">("trends");
   const [generatorDept, setGeneratorDept] = useState("all");
@@ -190,12 +230,17 @@ export default function Reports() {
       const effectiveBranch = isBL ? (userBranch || generatorBranch) : generatorBranch;
       const effectiveDept = isHOD ? (userDepartment || generatorDept) : generatorDept;
 
+      const companiesParam = (!isFullAdmin || selectedCompanyIds.length === 0 || selectedCompanyIds.length === companies.length)
+        ? "all"
+        : selectedCompanyIds.join(",");
+
       const params = new URLSearchParams({
         type: generatorType,
         month: selectedMonth,
         year: selectedYear,
         branch: effectiveBranch || "all",
         department: effectiveDept || "all",
+        companies: companiesParam,
         requesterRole: role || "",
         requesterBranch: userBranch || "",
         requesterDept: userDepartment || "",
@@ -212,7 +257,7 @@ export default function Reports() {
       console.error("Error fetching preview count:", e);
       setPreviewCount(0);
     }
-  }, [generatorType, selectedMonth, selectedYear, generatorBranch, generatorDept, role, userBranch, userDepartment, userId]);
+  }, [generatorType, selectedMonth, selectedYear, generatorBranch, generatorDept, selectedCompanyIds, companies.length, isFullAdmin, role, userBranch, userDepartment, userId]);
 
   useEffect(() => {
     fetchPreviewCount();
@@ -517,12 +562,17 @@ export default function Reports() {
       const effectiveBranch = isBL ? (userBranch || generatorBranch) : generatorBranch;
       const effectiveDept = isHOD ? (userDepartment || generatorDept) : generatorDept;
 
+      const companiesParam = (!isFullAdmin || selectedCompanyIds.length === 0 || selectedCompanyIds.length === companies.length)
+        ? "all"
+        : selectedCompanyIds.join(",");
+
       const params = new URLSearchParams({
         type: generatorType,
         month: selectedMonth,
         year: selectedYear,
         branch: effectiveBranch || "all",
         department: effectiveDept || "all",
+        companies: companiesParam,
         requesterRole: role || "",
         requesterBranch: userBranch || "",
         requesterDept: userDepartment || "",
@@ -540,22 +590,23 @@ export default function Reports() {
         let rows: any[] = [];
         
         if (generatorType === "trends" || generatorType === "stability") {
-          headers = ["Employee ID", "Employee Name", "Branch", "Date", "Status", "Clock In", "Clock Out", "Total Hours"];
+          headers = ["Employee ID", "Employee Name", "Company", "Branch", "Date", "Status", "Clock In", "Clock Out", "Total Hours"];
           rows = data.data.map((r: any) => {
              const dateStr = r.date || (r.clock_in ? new Date(r.clock_in).toLocaleDateString() : "--");
              const timeIn = r.clock_in ? new Date(r.clock_in).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true }) : "--:--";
              const timeOut = r.clock_out ? new Date(r.clock_out).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true }) : "--:--";
              const statusStr = r.status || "Present";
              const totalHrs = r.total_hours || calculateWorkingHours(r.clock_in, r.clock_out);
-             return [r.user_id, r.full_name, r.branch, dateStr, statusStr, timeIn, timeOut, totalHrs];
+             const compName = r.company_name || (r.branch === 'RAYRENT' ? 'RayRent' : 'Rayhar Travels');
+             return [r.user_id, r.full_name, compName, r.branch, dateStr, statusStr, timeIn, timeOut, totalHrs];
           });
         } else if (generatorType === "outstation") {
-          headers = ["Event Name", "Destination", "Start Date", "End Date", "Days", "Status", "Employee Name", "Department", "Branch"];
+          headers = ["Event Name", "Destination", "Start Date", "End Date", "Days", "Status", "Employee Name", "Company", "Department", "Branch"];
           rows = data.data.map((r: any) => [
             r.event_name, r.destination, 
             new Date(r.start_date).toLocaleDateString(), 
             new Date(r.end_date).toLocaleDateString(), 
-            r.total_days, r.status, r.full_name, r.department, r.branch
+            r.total_days, r.status, r.full_name, r.company_name || (r.branch === 'RAYRENT' ? 'RayRent' : 'Rayhar Travels'), r.department, r.branch
           ]);
         } else if (generatorType === "company_leave") {
           headers = ["Leave Name", "Type", "Start Date", "End Date", "Applies To", "Branch", "Department", "Status"];
@@ -566,8 +617,8 @@ export default function Reports() {
             r.applies_to, r.branch_id || "All", r.department_id || "All", r.status
           ]);
         } else {
-          headers = ["Employee ID", "Employee Name", "Branch", "Leave Type", "Days", "Status"];
-          rows = data.data.map((r: any) => [r.user_id, r.full_name, r.branch, r.leave_type, r.days, r.status]);
+          headers = ["Employee ID", "Employee Name", "Company", "Branch", "Department", "Leave Type", "Days", "Status"];
+          rows = data.data.map((r: any) => [r.user_id, r.full_name, r.company_name || (r.branch === 'RAYRENT' ? 'RayRent' : 'Rayhar Travels'), r.branch, r.department, r.leave_type, r.days, r.status]);
         }
         
         if (rows.length === 0) {
@@ -863,6 +914,111 @@ export default function Reports() {
                   {/* 2. Scope Select */}
                   <div className="space-y-2">
                     <span className="text-[10px] font-black text-foreground uppercase tracking-widest">2. Scope Selection</span>
+                    {/* Multi-Company Checkbox Filter for HR */}
+                    {isFullAdmin && (
+                      <div className="p-3.5 rounded-2xl border-2 border-[#942392]/20 bg-[#942392]/5 dark:bg-[#942392]/10 space-y-2.5">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Building2 className="w-4 h-4 text-[#942392]" />
+                            <span className="text-[10px] font-black text-foreground uppercase tracking-widest">
+                              Company Scope Filter
+                            </span>
+                            <span className="text-[9px] text-muted-foreground font-semibold hidden sm:inline">
+                              (Check all companies or select individual companies to export)
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (selectedCompanyIds.length === companies.length) {
+                                setSelectedCompanyIds([1]);
+                              } else {
+                                setSelectedCompanyIds(companies.map(c => c.id));
+                              }
+                            }}
+                            className="text-[10px] font-black text-[#942392] hover:underline cursor-pointer"
+                          >
+                            {selectedCompanyIds.length === companies.length ? "Reset to Main Only" : "Select All Companies"}
+                          </button>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-2 pt-0.5">
+                          {/* All Companies Toggle */}
+                          <div
+                            onClick={() => {
+                              if (selectedCompanyIds.length === companies.length) {
+                                setSelectedCompanyIds([1]);
+                              } else {
+                                setSelectedCompanyIds(companies.map(c => c.id));
+                              }
+                            }}
+                            className={`flex items-center gap-2 px-3 py-2 rounded-xl border-2 text-xs font-bold transition-all duration-200 cursor-pointer ${
+                              selectedCompanyIds.length === companies.length && companies.length > 0
+                                ? "bg-[#942392] border-[#942392] text-white shadow-sm"
+                                : "bg-card/70 border-border/60 text-foreground hover:border-[#942392]/50"
+                            }`}
+                          >
+                            <AnimatedCheckbox
+                              checked={selectedCompanyIds.length === companies.length && companies.length > 0}
+                              readOnly
+                              color="#ffffff"
+                              size={16}
+                            />
+                            <span className="text-[10px] uppercase tracking-wider font-black">All Companies</span>
+                            <span className={`text-[9px] px-1.5 py-0.5 rounded-md font-black ${
+                              selectedCompanyIds.length === companies.length
+                                ? "bg-white/20 text-white"
+                                : "bg-muted text-foreground"
+                            }`}>
+                              {companies.length}
+                            </span>
+                          </div>
+
+                          {/* Individual Company Checkboxes */}
+                          {companies.map((comp) => {
+                            const isChecked = selectedCompanyIds.includes(comp.id);
+                            return (
+                              <div
+                                key={comp.id}
+                                onClick={() => {
+                                  setSelectedCompanyIds(prev => {
+                                    if (prev.includes(comp.id)) {
+                                      const next = prev.filter(id => id !== comp.id);
+                                      return next.length > 0 ? next : [comp.id];
+                                    } else {
+                                      return [...prev, comp.id];
+                                    }
+                                  });
+                                }}
+                                className={`flex items-center gap-2 px-3 py-2 rounded-xl border-2 text-xs font-bold transition-all duration-200 cursor-pointer ${
+                                  isChecked
+                                    ? "bg-[#942392]/10 border-[#942392] text-[#942392] dark:text-fuchsia-300 shadow-xs"
+                                    : "bg-card/70 border-border/60 text-foreground hover:border-[#942392]/50"
+                                }`}
+                              >
+                                <AnimatedCheckbox
+                                  checked={isChecked}
+                                  readOnly
+                                  color="#942392"
+                                  size={16}
+                                />
+                                <span className="text-[10px] uppercase tracking-wider font-black">{comp.company_name}</span>
+                                <Badge 
+                                  variant="outline" 
+                                  className={`text-[8px] font-black uppercase tracking-wider px-1.5 py-0 h-4 border ${
+                                    comp.company_type === 'main'
+                                      ? "border-emerald-500/30 text-emerald-600 dark:text-emerald-400 bg-emerald-50/50"
+                                      : "border-purple-500/30 text-purple-600 dark:text-purple-400 bg-purple-50/50"
+                                  }`}
+                                >
+                                  {comp.company_type === 'main' ? 'Main' : 'Subsidiary'}
+                                </Badge>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
                     {(() => {
                       const norm = (role || "").toLowerCase().trim();
                       const isHRAdmin = norm === 'hr_admin' || norm === 'admin' || norm === 'hr';
@@ -884,7 +1040,7 @@ export default function Reports() {
                                 </SelectTrigger>
                                 <SelectContent className="rounded-xl">
                                   <SelectItem value="all" className="text-[10px] font-black uppercase tracking-widest">All Branches</SelectItem>
-                                   {branches.map(b => (
+                                   {filteredBranches.map(b => (
                                      <SelectItem key={b.code} value={b.code} className="text-[10px] font-black uppercase tracking-widest">
                                        {b.code} - {b.name ? b.name.toLowerCase().replace(/\b\w/g, (c: string) => c.toUpperCase()) : b.name}
                                      </SelectItem>
@@ -909,7 +1065,7 @@ export default function Reports() {
                                 </SelectTrigger>
                                 <SelectContent className="rounded-xl">
                                   <SelectItem value="all" className="text-[10px] font-black uppercase tracking-widest">All Branches</SelectItem>
-                                   {branches.map(b => (
+                                   {filteredBranches.map(b => (
                                      <SelectItem key={b.code} value={b.code} className="text-[10px] font-black uppercase tracking-widest">
                                        {b.code} - {b.name ? b.name.toLowerCase().replace(/\b\w/g, (c: string) => c.toUpperCase()) : b.name}
                                      </SelectItem>
@@ -1064,14 +1220,32 @@ export default function Reports() {
                 </span>
               </div>
 
-              {/* Distribution Heatmap Mini Grid */}
+              {/* Active Scope Summary */}
               <div className="space-y-2">
                 <span className="text-[9px] font-black text-foreground uppercase tracking-widest">Active Scope Preview</span>
-                <div className="grid grid-cols-6 gap-1 bg-background/20 border border-border/30 rounded-xl p-2.5">
-                  {Array.from({ length: 24 }).map((_, i) => {
-                    const fill = i % 3 === 0 ? 'bg-[#942392]/20' : i % 3 === 1 ? 'bg-[#942392]/60' : 'bg-[#942392]';
-                    return <div key={i} className={`h-4.5 rounded-[3px] ${fill}`} />;
-                  })}
+                <div className="bg-background/40 border border-border/40 rounded-xl p-3 space-y-2 text-xs">
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="font-bold text-muted-foreground uppercase text-[9px]">Company:</span>
+                    <span className="font-black text-[#942392] dark:text-fuchsia-300 text-right truncate max-w-[150px]">
+                      {selectedCompanyIds.length === companies.length
+                        ? "ALL COMPANIES (" + companies.length + ")"
+                        : companies.filter(c => selectedCompanyIds.includes(c.id)).map(c => c.company_name).join(", ") || "None"}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="font-bold text-muted-foreground uppercase text-[9px]">Branch:</span>
+                    <span className="font-bold text-foreground text-right">{generatorBranch === 'all' ? 'All Branches' : generatorBranch}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="font-bold text-muted-foreground uppercase text-[9px]">Department:</span>
+                    <span className="font-bold text-foreground text-right truncate max-w-[140px]">{generatorDept === 'all' ? 'All Departments' : generatorDept}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="font-bold text-muted-foreground uppercase text-[9px]">Period:</span>
+                    <span className="font-bold text-foreground text-right">
+                      {periodMode === 'year' ? selectedYear : (months.find(m => m.value === selectedMonth)?.label + " " + selectedYear)}
+                    </span>
+                  </div>
                 </div>
               </div>
 
