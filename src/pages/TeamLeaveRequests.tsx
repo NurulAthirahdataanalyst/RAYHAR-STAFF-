@@ -64,7 +64,15 @@ export default function TeamLeaveRequests() {
     return map[key] || r.replace(/_/g, " ").toUpperCase();
   };
 
-  const getDisplayStatus = (status: string) => {
+  const getDisplayStatus = (status: string, branch?: string, companyName?: string) => {
+    const isRayRent = 
+      (branch && branch.toUpperCase() === "RAYRENT") || 
+      (companyName && companyName.toLowerCase().includes("rayrent"));
+
+    if (isRayRent && (status === "Pending MD" || status === "Pending Managing Director")) {
+      return "Awaiting Branch Leader Approval";
+    }
+
     switch (status) {
       case "Pending HOD":
       case "Pending Head of Department":
@@ -310,7 +318,7 @@ export default function TeamLeaveRequests() {
                             }
                             style={req.status !== "Approved" && req.status !== "Rejected" ? { backgroundColor: "#C2410C", color: "white" } : {}}
                           >
-                            {getDisplayStatus(req.status)}
+                            {getDisplayStatus(req.status, req.branch, req.company_name)}
                           </Badge>
                         </TableCell>
                         <TableCell>
@@ -377,7 +385,7 @@ export default function TeamLeaveRequests() {
                     <div className="space-y-1 col-span-2 sm:col-span-1">
                       <span className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50">Status</span>
                       <p className={`font-black uppercase ${selectedRequest.status === "Rejected" ? "text-rose-600" : "text-[#942392]"}`}>
-                        {getDisplayStatus(selectedRequest.status)}
+                        {getDisplayStatus(selectedRequest.status, selectedRequest.branch, selectedRequest.company_name)}
                         {selectedRequest.status === "Rejected" && selectedRequest.approverRole && (
                           <span className="block text-[8px] print:text-[13px] text-rose-500 mt-0.5 opacity-60">
                             (by: {formatRole(selectedRequest.approverRole)})

@@ -18,6 +18,7 @@ interface ApprovalStatusTrackerProps {
   approvalHistory?: ApprovalHistoryItem[]; // Passed from parent
   branch?: string; // Employee branch
   department?: string;
+  companyName?: string;
   pendingApproverName?: string;
   pendingApproverContext?: string;
 }
@@ -55,10 +56,12 @@ export function ApprovalStatusTracker({
   approvalHistory = [], 
   branch = "",
   department = "",
+  companyName = "",
   pendingApproverName = "",
   pendingApproverContext = "",
 }: ApprovalStatusTrackerProps) {
   const isHQ = String(branch).toUpperCase() === 'HQ';
+  const isRayRent = String(branch).toUpperCase() === 'RAYRENT' || String(companyName || '').toLowerCase().includes('rayrent');
   const sUpper = String(status || "").toUpperCase();
 
   // Find approval records in history
@@ -76,15 +79,15 @@ export function ApprovalStatusTracker({
   const isApproved = sUpper === 'APPROVED';
   const isRejected = sUpper === 'REJECTED';
 
-  const isLvl1Pending = sUpper.includes('HOD') || sUpper.includes('BRANCH') || sUpper === 'PENDING';
-  const isLvl2Pending = sUpper.includes('OPERATION') || sUpper.includes('FINANCE') || sUpper.includes('MD') || sUpper.includes('MANAGING');
+  const isLvl1Pending = sUpper.includes('HOD') || (sUpper.includes('BRANCH') && !isRayRent) || sUpper === 'PENDING';
+  const isLvl2Pending = sUpper.includes('OPERATION') || sUpper.includes('FINANCE') || sUpper.includes('MD') || sUpper.includes('MANAGING') || (isRayRent && sUpper.includes('BRANCH'));
 
   // Step 1 status & details
   let step1Status: 'Approved' | 'Rejected' | 'Pending' | 'Future' = 'Future';
   let step1Subtitle: string | undefined = undefined;
   let step1Date: string | undefined = undefined;
 
-  const lvl1RoleTitle = isHQ ? "HEAD OF DEPARTMENT" : "BRANCH LEADER";
+  const lvl1RoleTitle = isRayRent ? "INITIAL ENDORSEMENT" : (isHQ ? "HEAD OF DEPARTMENT" : "BRANCH LEADER");
   const lvl1Context = isHQ 
     ? formatDept(lvl1History?.approver_department || pendingApproverContext || department) 
     : (lvl1History?.approver_branch || pendingApproverContext || branch || "HQ");
@@ -98,10 +101,34 @@ export function ApprovalStatusTracker({
   let step2Subtitle: string | undefined = undefined;
   let step2Date: string | undefined = undefined;
 
-  const lvl2RoleTitle = isHQ ? "OPERATION MANAGER" : "MANAGING DIRECTOR";
-  const lvl2Context = lvl2History?.approver_branch || pendingApproverContext || 'HQ';
+  const lvl2RoleTitle = isRayRent ? "BRANCH LEADER" : (isHQ ? "OPERATION MANAGER" : "MANAGING DIRECTOR");
+  const lvl2Context = lvl2History?.approver_branch || pendingApproverContext || (isRayRent ? (branch || 'RayRent') : 'HQ');
 
-  if (isRejected) {
+  if (isRayRent) {
+    if (isApproved) {
+      step1Status = 'Approved';
+      step1Subtitle = 'Endorsed';
+      step2Status = 'Approved';
+      step2Subtitle = lvl2History?.approver_name 
+        ? `${lvl2History.approver_name} • ${lvl2Context}` 
+        : (pendingApproverName ? `${pendingApproverName} • ${lvl2Context}` : `Approved • ${lvl2Context}`);
+    } else if (isRejected) {
+      step1Status = 'Approved';
+      step1Subtitle = 'Endorsed';
+      step2Status = 'Rejected';
+      step2Subtitle = lvl2History?.approver_name 
+        ? `${lvl2History.approver_name} • ${lvl2Context}` 
+        : (pendingApproverName ? `${pendingApproverName} • ${lvl2Context}` : `Rejected • ${lvl2Context}`);
+    } else {
+      // Pending
+      step1Status = 'Approved';
+      step1Subtitle = 'Endorsement Passed';
+      step2Status = 'Pending';
+      step2Subtitle = pendingApproverName 
+        ? `${pendingApproverName} • ${lvl2Context}` 
+        : 'Awaiting Branch Leader Approval';
+    }
+  } else if (isRejected) {
     // Check which stage rejected the request
     const isL1Reject = String(lvl1History?.status).toLowerCase() === 'rejected' || isLvl1ApproverRole || (!lvl2History && !isLvl2ApproverRole);
 

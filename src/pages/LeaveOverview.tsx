@@ -39,7 +39,15 @@ const statusVariant = (status: string) => {
   }
 };
 
-const getDisplayStatus = (status: string) => {
+const getDisplayStatus = (status: string, branch?: string, companyName?: string) => {
+  const isRayRent = 
+    (branch && branch.toUpperCase() === "RAYRENT") || 
+    (companyName && companyName.toLowerCase().includes("rayrent"));
+
+  if (isRayRent && (status === "Pending MD" || status === "Pending Managing Director")) {
+    return "Awaiting Branch Leader Approval";
+  }
+
   switch (status) {
     case "Pending HOD":
     case "Pending Head of Department":
@@ -212,6 +220,16 @@ export default function LeaveOverview() {
         const formattedRequests = data.leaveRequests.map((request: any) => {
           const type = request.leave_type as LeaveType;
           const appliedAt = request.created_at || new Date().toISOString();
+          const reqBranch = request.branch || "HQ";
+          const reqCompany = request.company_name || (reqBranch.toUpperCase() === "RAYRENT" ? "RayRent" : "Rayhar Travels");
+
+          let reqStatus = request.status || "Pending HOD";
+          if (
+            (reqBranch.toUpperCase() === "RAYRENT" || (reqCompany && reqCompany.toLowerCase().includes("rayrent"))) &&
+            (reqStatus === "Pending MD" || reqStatus === "Pending Managing Director")
+          ) {
+            reqStatus = "Pending Branch Leader";
+          }
 
           return {
             id: String(request.leave_id),
@@ -219,9 +237,10 @@ export default function LeaveOverview() {
             from: formatDate(request.start_date),
             to: formatDate(request.end_date),
             days: Number(request.days || 0),
-            branch: request.branch || "HQ",
+            branch: reqBranch,
+            companyName: reqCompany,
             department: request.department || "",
-            status: request.status || "Pending HOD",
+            status: reqStatus,
             approverRole: request.approver_role,
             reason: request.reason || "",
             appliedAt,
@@ -524,7 +543,7 @@ export default function LeaveOverview() {
                           req.status === "Rejected" ? "bg-red-50 text-[#ff0000] border-red-200 dark:bg-red-500/10 dark:border-red-500/20 dark:text-[#ff0000]" :
                           "bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-500/10 dark:border-amber-500/20"
                         }`}>
-                          {getDisplayStatus(req.status).toUpperCase()}
+                          {getDisplayStatus(req.status, (req as any).branch, (req as any).companyName).toUpperCase()}
                         </span>
                       </TableCell>
                     </TableRow>
@@ -552,7 +571,7 @@ export default function LeaveOverview() {
                       req.status === "Rejected" ? "bg-red-50 text-[#ff0000] border-red-200 dark:bg-red-500/10 dark:border-red-500/20 dark:text-[#ff0000]" :
                       "bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-500/10 dark:border-amber-500/20"
                     }`}>
-                      {getDisplayStatus(req.status).toUpperCase()}
+                      {getDisplayStatus(req.status, (req as any).branch, (req as any).companyName).toUpperCase()}
                     </span>
                   </div>
                   <div className="flex items-center justify-between bg-muted/20 p-2 rounded-xl">
@@ -639,7 +658,7 @@ export default function LeaveOverview() {
                       }`}
                       style={req.status !== "Approved" && req.status !== "Rejected" ? { backgroundColor: "#C2410C", color: "white" } : {}}
                     >
-                      {getDisplayStatus(req.status).toUpperCase()}
+                      {getDisplayStatus(req.status, (req as any).branch, (req as any).companyName).toUpperCase()}
                     </Badge>
                   </div>
 
@@ -651,6 +670,7 @@ export default function LeaveOverview() {
       approvalHistory={(req as any).approvalHistory || []}
       branch={(req as any).branch || "HQ"} 
       department={(req as any).department || ""}
+      companyName={(req as any).companyName || activeCompany?.company_name || ""}
       pendingApproverName={(req as any).pendingApproverName || ""}
       pendingApproverContext={(req as any).pendingApproverContext || ""}
     />

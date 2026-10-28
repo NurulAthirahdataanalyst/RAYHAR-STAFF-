@@ -31,7 +31,15 @@ import {
   getCleanReason,
 } from "@/lib/leaveStorage";
 
-const getDisplayStatus = (status: string) => {
+const getDisplayStatus = (status: string, branch?: string, companyName?: string) => {
+  const isRayRent = 
+    (branch && branch.toUpperCase() === "RAYRENT") || 
+    (companyName && companyName.toLowerCase().includes("rayrent"));
+
+  if (isRayRent && (status === "Pending MD" || status === "Pending Managing Director")) {
+    return "Awaiting Branch Leader Approval";
+  }
+
   switch (status) {
     case "Pending HOD":
     case "Pending Head of Department":
@@ -511,7 +519,7 @@ export default function LeaveFormView() {
                             }`}
                             style={form.status !== "Approved" && form.status !== "Rejected" ? { backgroundColor: "#C2410C", color: "white" } : {}}
                           >
-                            {getDisplayStatus(form.status).toUpperCase()}
+                            {getDisplayStatus(form.status, form.branch).toUpperCase()}
                           </Badge>
                         </TableCell>
                         <TableCell className="px-6 py-4 text-right">
@@ -613,7 +621,7 @@ export default function LeaveFormView() {
                           }`}
                           style={form.status !== "Approved" && form.status !== "Rejected" ? { backgroundColor: "#C2410C", color: "white" } : {}}
                         >
-                          {getDisplayStatus(form.status).toUpperCase()}
+                          {getDisplayStatus(form.status, form.branch).toUpperCase()}
                         </Badge>
                       </div>
                     </div>

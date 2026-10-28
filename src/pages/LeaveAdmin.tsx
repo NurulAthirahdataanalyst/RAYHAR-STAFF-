@@ -31,7 +31,15 @@ import { parseCutiGantiRows, getCleanReason } from "@/lib/leaveStorage";
 import { API_BASE_URL } from "../config/api";
 import { useCompany } from "@/modules/multi-company/contexts/CompanyContext";
 
-const getDisplayStatus = (status: string) => {
+const getDisplayStatus = (status: string, branch?: string, companyName?: string) => {
+  const isRayRent = 
+    (branch && branch.toUpperCase() === "RAYRENT") || 
+    (companyName && companyName.toLowerCase().includes("rayrent"));
+
+  if (isRayRent && (status === "Pending MD" || status === "Pending Managing Director")) {
+    return "Awaiting Branch Leader Approval";
+  }
+
   switch (status) {
     case "Pending HOD":
     case "Pending Head of Department":
@@ -1131,7 +1139,7 @@ export default function LeaveAdmin() {
                             req.status === "Rejected" ? "bg-red-50 text-[#ff0000] border-red-200 dark:bg-red-500/10 dark:border-red-500/20 dark:text-[#ff0000]" :
                             "bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-500/10 dark:border-amber-500/20"
                           }`}>
-                            {getDisplayStatus(req.status)}
+                            {getDisplayStatus(req.status, req.branch, req.companyName)}
                           </span>
                         </TableCell>
                         <TableCell className="px-3 py-3.5">

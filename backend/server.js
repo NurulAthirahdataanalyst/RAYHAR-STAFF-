@@ -2258,6 +2258,28 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
       console.error('âš ï¸ Database sanitization/demotion warning:', sanErr.message);
     }
 
+    // Auto fix: Align any RayRent leave requests to Pending Branch Leader
+    try {
+      await connection.query(`
+        UPDATE leave_requests lr
+        SET status = 'Pending Branch Leader'
+        FROM profiles p
+        WHERE lr.user_id = p.user_id
+          AND (
+            UPPER(p.branch) = 'RAYRENT' 
+            OR UPPER(COALESCE(p.department, '')) = 'RAYRENT'
+            OR EXISTS (
+              SELECT 1 FROM company_user_roles cur 
+              WHERE cur.user_id = p.user_id AND cur.company_id = 2 AND cur.status = 'active'
+            )
+          )
+          AND lr.status IN ('Pending MD', 'Pending Managing Director')
+      `);
+      console.log('Successfully aligned RayRent leave requests to Pending Branch Leader.');
+    } catch (rayrentFixErr) {
+      console.warn('RayRent leave request alignment note:', rayrentFixErr.message);
+    }
+
     // Auto-update branch locations to be geographically accurate (Kemaman, Terengganu, Selangor, Johor, Perak, etc.) instead of generic "RAYHAR BRANCH"
     try {
       const correctBranches = [
@@ -4497,7 +4519,13 @@ app.get("/api/leave-requests", async (req, res) => {
         lr.end_date,
         lr.days,
         lr.reason,
-        lr.status,
+        (
+          CASE 
+            WHEN (UPPER(p.branch) = 'RAYRENT' OR COALESCE(b_comp.company_id, 1) = 2) AND lr.status IN ('Pending MD', 'Pending Managing Director') 
+            THEN 'Pending Branch Leader'
+            ELSE lr.status
+          END
+        ) AS status,
         lr.approver_id,
         lr.approver_note,
         lr.waris_nama,
@@ -4964,8 +4992,13 @@ app.post("/api/leave-requests", uploadLimiter, upload.single("lampiranMc"), asyn
     }
     let initialStatus = 'Pending HOD';
     const normEmpRole = (employeeRole || '').toLowerCase().trim();
+    const isRayRent = String(employeeBranch).toUpperCase() === 'RAYRENT';
+
     if (leave_type === 'Cuti Sakit' || leave_type === 'Sick Leave') {
       initialStatus = 'Approved';
+    } else if (isRayRent) {
+      // In RayRent subsidiary, the highest approval is Branch Leader (never Managing Director)
+      initialStatus = 'Pending Branch Leader';
     } else if (String(employeeBranch).toUpperCase() === 'HQ') {
       if (normEmpRole === 'head_of_department' || normEmpRole === 'head of department') {
         initialStatus = 'Pending Operation Manager';
@@ -5378,7 +5411,31 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
       } else if (currentStatus === 'Pending' || currentStatus.startsWith('Pending HOD')) {
         nextStatus = 'Pending Operation Manager';
       } else if (currentStatus === 'Pending Branch Leader') {
-        nextStatus = 'Pending MD';
+        // If employee belongs to RayRent, highest approval is Branch Leader -> Next status is Approved!
+        let isRayRentApplicant = false;
+        try {
+          const [empBranchCheck] = await pool.query(
+            `SELECT p.branch, 
+                    COALESCE(
+                      (SELECT cur.company_id FROM company_user_roles cur WHERE cur.user_id = p.user_id AND cur.status = 'active' ORDER BY cur.company_id DESC LIMIT 1),
+                      b.company_id,
+                      CASE WHEN UPPER(p.branch) = 'RAYRENT' THEN 2 ELSE 1 END
+                    )::int AS company_id
+             FROM profiles p 
+             LEFT JOIN branches b ON UPPER(b.code) = UPPER(p.branch)
+             WHERE p.user_id = ?`,
+            [user_id]
+          );
+          const empBranch = empBranchCheck[0]?.branch || '';
+          const empCompId = empBranchCheck[0]?.company_id || 1;
+          isRayRentApplicant = String(empBranch).toUpperCase() === 'RAYRENT' || empCompId === 2;
+        } catch (_) {}
+
+        if (isRayRentApplicant) {
+          nextStatus = 'Approved';
+        } else {
+          nextStatus = 'Pending MD';
+        }
       } else if (currentStatus === 'Pending Operation Manager' || currentStatus === 'Pending Finance' || currentStatus === 'Pending Finance Manager') {
         nextStatus = 'Approved';
       } else if (currentStatus === 'Pending MD' || currentStatus === 'Pending Managing Director') {
