@@ -106,6 +106,30 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
     );
   }, [branches, branchSearch]);
 
+  // Dynamically collect all custom operating zones that exist across work schedules and branches
+  const availableCustomZones = useMemo(() => {
+    const set = new Set<string>();
+    schedules.forEach((s) => {
+      const z = normalizeZoneCode(s.operating_zone);
+      if (z && z !== 'ZONE_A' && z !== 'ZONE_B' && z !== 'ALL' && z !== 'NONE') {
+        set.add(z);
+      }
+    });
+    branches.forEach((b) => {
+      const z = normalizeZoneCode(b.operating_zone);
+      if (z && z !== 'ZONE_A' && z !== 'ZONE_B' && z !== 'ALL' && z !== 'NONE') {
+        set.add(z);
+      }
+    });
+    if (customZoneCode && customZoneCode.trim()) {
+      const cz = normalizeZoneCode(customZoneCode);
+      if (cz && cz !== 'ZONE_A' && cz !== 'ZONE_B' && cz !== 'ALL' && cz !== 'NONE') {
+        set.add(cz);
+      }
+    }
+    return Array.from(set).sort();
+  }, [schedules, branches, customZoneCode]);
+
   const handleDayToggle = (index: number) => {
     const updated = [...daysState];
     updated[index].is_working_day = !updated[index].is_working_day;
@@ -460,7 +484,7 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
                       </td>
                       <td className="px-4 py-3.5 text-muted-foreground max-w-md">
                         {isDept && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#942392]/10 text-[#942392] dark:text-[#f885d5] border border-[#942392]/25 mb-1 mr-1 shadow-xs">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-muted/80 dark:bg-neutral-800 text-foreground border border-border/60 mb-1 mr-1 shadow-xs">
                             Dept: {s.department_id}
                           </span>
                         )}
@@ -472,7 +496,7 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
                               return (
                                 <span
                                   key={code}
-                                  className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#942392]/10 text-[#942392] dark:text-[#f885d5] border border-[#942392]/25 shadow-xs"
+                                  className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-muted/80 dark:bg-neutral-800 text-foreground border border-border/60 shadow-xs"
                                   title={bObj?.name || code}
                                 >
                                   {displayName}
