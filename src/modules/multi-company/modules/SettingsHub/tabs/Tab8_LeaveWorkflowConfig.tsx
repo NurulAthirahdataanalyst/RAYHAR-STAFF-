@@ -199,7 +199,7 @@ export const Tab8_LeaveWorkflowConfig: React.FC = () => {
           <div className="p-4 rounded-xl border border-purple-500/25 bg-gradient-to-b from-purple-500/5 to-transparent dark:bg-neutral-900/80 space-y-3.5 relative overflow-hidden flex flex-col justify-between">
             <div className="space-y-2">
               <div className="flex items-center justify-between gap-2">
-                <h5 className="text-xs font-black text-foreground uppercase tracking-tight">
+                <h5 className="text-[11px] font-black text-foreground uppercase tracking-wider">
                   Annual & Emergency Leave
                 </h5>
                 <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] border-purple-500/30 text-[#942392] dark:text-[#f885d5] bg-purple-500/10 shadow-2xs">
@@ -237,7 +237,7 @@ export const Tab8_LeaveWorkflowConfig: React.FC = () => {
           <div className="p-4 rounded-xl border border-emerald-500/25 bg-gradient-to-b from-emerald-500/5 to-transparent dark:bg-neutral-900/80 space-y-3.5 relative overflow-hidden flex flex-col justify-between">
             <div className="space-y-2">
               <div className="flex items-center justify-between gap-2">
-                <h5 className="text-xs font-black text-foreground uppercase tracking-tight">
+                <h5 className="text-[11px] font-black text-foreground uppercase tracking-wider">
                   Replacement Leave
                 </h5>
                 <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] border-emerald-500/30 text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 shadow-2xs">
@@ -271,7 +271,7 @@ export const Tab8_LeaveWorkflowConfig: React.FC = () => {
           <div className="p-4 rounded-xl border border-amber-500/25 bg-gradient-to-b from-amber-500/5 to-transparent dark:bg-neutral-900/80 space-y-3.5 relative overflow-hidden flex flex-col justify-between">
             <div className="space-y-2">
               <div className="flex items-center justify-between gap-2">
-                <h5 className="text-xs font-black text-foreground uppercase tracking-tight">
+                <h5 className="text-[11px] font-black text-foreground uppercase tracking-wider">
                   Unpaid Leave
                 </h5>
                 <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] border-amber-500/30 text-amber-700 dark:text-amber-300 bg-amber-500/10 shadow-2xs">
@@ -305,7 +305,7 @@ export const Tab8_LeaveWorkflowConfig: React.FC = () => {
           <div className="p-4 rounded-xl border border-sky-500/25 bg-gradient-to-b from-sky-500/5 to-transparent dark:bg-neutral-900/80 space-y-3.5 relative overflow-hidden flex flex-col justify-between">
             <div className="space-y-2">
               <div className="flex items-center justify-between gap-2">
-                <h5 className="text-xs font-black text-foreground uppercase tracking-tight">
+                <h5 className="text-[11px] font-black text-foreground uppercase tracking-wider">
                   Medical Leave (Sick Leave)
                 </h5>
                 <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] border-sky-500/30 text-sky-700 dark:text-sky-300 bg-sky-500/10 shadow-2xs">

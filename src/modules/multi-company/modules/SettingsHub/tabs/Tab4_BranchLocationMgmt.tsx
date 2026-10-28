@@ -300,7 +300,7 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
       {/* Top Filter & Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-muted/30 dark:bg-neutral-900/40 rounded-xl border border-border dark:border-neutral-800">
         <div className="flex flex-wrap items-center gap-2.5">
-          <span className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
+          <span className="text-[11px] font-black uppercase tracking-wider text-black dark:text-white">
             Company Branch Scope:
           </span>
           <Select 

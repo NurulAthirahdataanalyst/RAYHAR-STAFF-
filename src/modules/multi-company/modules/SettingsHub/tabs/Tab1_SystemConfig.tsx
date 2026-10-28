@@ -320,7 +320,7 @@ export const Tab1_SystemConfig: React.FC = () => {
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className={`inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] ${getCategoryBadgeClass(log.action_category)}`}>
-                        {log.action_category}
+                        {(log.action_category || '').replace(/_/g, ' ')}
                       </span>
                       {log.company_name && (
                         <span className="inline-flex items-center justify-center px-2.5 py-0.5 text-[9px] tracking-wider font-extrabold uppercase rounded-full border border-border/60 bg-muted/50 text-foreground">
