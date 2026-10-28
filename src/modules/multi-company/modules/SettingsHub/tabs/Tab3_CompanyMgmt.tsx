@@ -135,22 +135,12 @@ export const Tab3_CompanyMgmt: React.FC<Tab3CompanyMgmtProps> = ({ onNavigateToT
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <h3 className="text-sm font-black uppercase tracking-wider text-foreground dark:text-white flex items-center gap-2">
-            <Building2 className="w-4 h-4 text-[#942392]" />
-            Corporate Entity & Subsidiary Management
-          </h3>
-          <p className="text-xs text-muted-foreground dark:text-neutral-400 mt-0.5">
-            Register holding entities and operational subsidiaries, upload logos, and inspect active branch placements.
-          </p>
-        </div>
-
+    <div className="space-y-4">
+      {/* Top Action Button */}
+      <div className="flex justify-end">
         <Button
           onClick={handleOpenAddModal}
-          className="bg-[#942392] hover:bg-[#800A7A] text-white font-black text-xs uppercase tracking-wider shadow-sm h-9 px-4 rounded-xl self-start sm:self-auto"
+          className="bg-[#942392] hover:bg-[#800A7A] text-white font-black text-xs uppercase tracking-wider shadow-sm h-9 px-4 rounded-xl cursor-pointer"
         >
           <Plus className="w-3.5 h-3.5 mr-1.5" />
           Register New Company

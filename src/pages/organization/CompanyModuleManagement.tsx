@@ -471,135 +471,121 @@ export const CompanyModuleManagement: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Top Banner / Company & Role Selector Bar */}
-      <Card className="border border-border dark:border-neutral-800 shadow-xs bg-white dark:bg-card p-5 rounded-2xl">
-        <div className="flex flex-col xl:flex-row xl:items-start justify-between gap-4">
-          <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-2xl bg-[#942392]/10 border border-[#942392]/20 flex items-center justify-center shrink-0">
-              <Boxes className="w-6 h-6 text-[#942392]" />
-            </div>
-            <div>
-              <h2 className="text-base font-black uppercase tracking-wider text-black dark:text-white">
-                Company Module Management
-              </h2>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Configure operational modules, submodules, and granular View | Edit access per company and role
-              </p>
-            </div>
+      {/* Top Filter & Actions Bar - In One Line */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 p-3.5 bg-muted/30 dark:bg-neutral-900/40 rounded-xl border border-border dark:border-neutral-800">
+        <div className="flex flex-wrap items-center gap-4">
+          {/* Target Entity Selector */}
+          <div className="flex items-center gap-2">
+            <Building2 className="w-4 h-4 text-[#942392]" />
+            <span className="text-xs font-black uppercase tracking-wider text-black dark:text-white whitespace-nowrap">
+              Target Entity:
+            </span>
+            <Select 
+              value={String(selectedCompanyId)} 
+              onValueChange={(val) => setSelectedCompanyId(parseInt(val, 10))}
+            >
+              <SelectTrigger className="w-[230px] h-9 rounded-xl font-bold text-xs bg-background dark:bg-neutral-900 border-border text-black dark:text-white shadow-2xs">
+                <SelectValue placeholder="Select Company" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl">
+                {companies.map(c => (
+                  <SelectItem key={c.id} value={String(c.id)} className="font-bold text-xs">
+                    <div className="flex items-center gap-2">
+                      <Building2 className="w-3.5 h-3.5 text-[#942392]" />
+                      <span>{c.company_name}</span>
+                      {c.company_type === 'main' && (
+                        <span className="text-[9px] bg-purple-100 text-[#942392] px-1.5 py-0.2 rounded font-extrabold uppercase">HQ</span>
+                      )}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
-          {/* Filter Controls Bar & Save Button */}
-          <div className="flex flex-col items-end gap-3 shrink-0">
-            <div className="flex flex-wrap items-center gap-3">
-              {/* Target Entity Selector */}
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-black uppercase tracking-wider text-black dark:text-white whitespace-nowrap">
-                  Target Entity:
-                </span>
-                <Select 
-                  value={String(selectedCompanyId)} 
-                  onValueChange={(val) => setSelectedCompanyId(parseInt(val, 10))}
-                >
-                  <SelectTrigger className="w-[230px] h-10 rounded-xl font-bold text-xs bg-background dark:bg-neutral-900 border-border text-black dark:text-white shadow-2xs">
-                    <SelectValue placeholder="Select Company" />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl">
-                    {companies.map(c => (
-                      <SelectItem key={c.id} value={String(c.id)} className="font-bold text-xs">
-                        <div className="flex items-center gap-2">
-                          <Building2 className="w-3.5 h-3.5 text-[#942392]" />
-                          <span>{c.company_name}</span>
-                          {c.company_type === 'main' && (
-                            <span className="text-[9px] bg-purple-100 text-[#942392] px-1.5 py-0.2 rounded font-extrabold uppercase">HQ</span>
-                          )}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Role Selector */}
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-black uppercase tracking-wider text-black dark:text-white whitespace-nowrap">
-                  Role:
-                </span>
-                <Select 
-                  value={selectedRoleId} 
-                  onValueChange={setSelectedRoleId}
-                >
-                  <SelectTrigger className="w-[230px] h-10 rounded-xl font-bold text-xs bg-background dark:bg-neutral-900 border-border text-black dark:text-white shadow-2xs">
-                    <SelectValue placeholder="All Company Modules" />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl max-h-64">
-                    <SelectItem value="all" className="font-bold text-xs">
-                      All Modules (Company Master)
-                    </SelectItem>
-                    {companyRoles.length > 0 && (
-                      <div className="px-2 py-1 text-[10px] font-black uppercase text-muted-foreground tracking-wider">
-                        Company Roles
-                      </div>
-                    )}
-                    {companyRoles.map(r => (
-                      <SelectItem key={r.id} value={r.id} className="font-semibold text-xs">
-                        {r.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {/* Edit / Cancel and Save Buttons */}
-            <div className="flex items-center gap-2.5">
-              {!isEditing ? (
-                <Button
-                  type="button"
-                  onClick={() => setIsEditing(true)}
-                  className="h-10 px-5 rounded-xl font-bold text-xs uppercase tracking-wider shadow-xs flex items-center justify-center gap-2 border border-slate-300 dark:border-slate-700 bg-white hover:bg-slate-50 dark:bg-neutral-900 dark:hover:bg-neutral-800 text-slate-800 dark:text-slate-100 cursor-pointer transition active:scale-95"
-                >
-                  <Edit className="w-4 h-4 text-[#942392]" />
-                  <span>Edit Configuration</span>
-                </Button>
-              ) : (
-                <Button
-                  type="button"
-                  onClick={() => {
-                    setIsEditing(false);
-                    setHasChanges(false);
-                    void loadData(selectedCompanyId);
-                  }}
-                  className="h-10 px-4 rounded-xl font-bold text-xs uppercase tracking-wider shadow-xs flex items-center justify-center gap-1.5 border border-slate-300 dark:border-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-slate-700 dark:text-slate-200 cursor-pointer transition active:scale-95"
-                >
-                  <X className="w-4 h-4 text-slate-500" />
-                  <span>Cancel Edit</span>
-                </Button>
-              )}
-
-              <Button
-                type="button"
-                onClick={handleSave}
-                disabled={!isEditing || !hasChanges || saving}
-                className="h-10 px-6 rounded-xl font-black text-xs uppercase tracking-wider shadow-md flex items-center justify-center gap-2 bg-[#942392] hover:bg-[#800A7A] text-white cursor-pointer active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                {saving ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin text-white" />
-                    <span>Saving...</span>
-                  </>
-                ) : (
-                  <>
-                    <Save className="w-4 h-4 text-white" />
-                    <span>Save Configuration</span>
-                  </>
+          {/* Role Selector */}
+          <div className="flex items-center gap-2">
+            <Shield className="w-4 h-4 text-[#942392]" />
+            <span className="text-xs font-black uppercase tracking-wider text-black dark:text-white whitespace-nowrap">
+              Role:
+            </span>
+            <Select 
+              value={selectedRoleId} 
+              onValueChange={setSelectedRoleId}
+            >
+              <SelectTrigger className="w-[230px] h-9 rounded-xl font-bold text-xs bg-background dark:bg-neutral-900 border-border text-black dark:text-white shadow-2xs">
+                <SelectValue placeholder="All Company Modules" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl max-h-64">
+                <SelectItem value="all" className="font-bold text-xs">
+                  All Modules (Company Master)
+                </SelectItem>
+                {companyRoles.length > 0 && (
+                  <div className="px-2 py-1 text-[10px] font-black uppercase text-muted-foreground tracking-wider">
+                    Company Roles
+                  </div>
                 )}
-              </Button>
-            </div>
+                {companyRoles.map(r => (
+                  <SelectItem key={r.id} value={r.id} className="font-semibold text-xs">
+                    {r.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
+        {/* Edit / Cancel and Save Buttons */}
+        <div className="flex items-center gap-2.5 shrink-0 self-end lg:self-auto">
+          {!isEditing ? (
+            <Button
+              type="button"
+              onClick={() => setIsEditing(true)}
+              className="h-9 px-4 rounded-xl font-bold text-xs uppercase tracking-wider shadow-xs flex items-center justify-center gap-2 border border-slate-300 dark:border-slate-700 bg-white hover:bg-slate-50 dark:bg-neutral-900 dark:hover:bg-neutral-800 text-slate-800 dark:text-slate-100 cursor-pointer transition active:scale-95"
+            >
+              <Edit className="w-3.5 h-3.5 text-[#942392]" />
+              <span>Edit Configuration</span>
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              onClick={() => {
+                setIsEditing(false);
+                setHasChanges(false);
+                void loadData(selectedCompanyId);
+              }}
+              className="h-9 px-3.5 rounded-xl font-bold text-xs uppercase tracking-wider shadow-xs flex items-center justify-center gap-1.5 border border-slate-300 dark:border-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-slate-700 dark:text-slate-200 cursor-pointer transition active:scale-95"
+            >
+              <X className="w-3.5 h-3.5 text-slate-500" />
+              <span>Cancel Edit</span>
+            </Button>
+          )}
+
+          <Button
+            type="button"
+            onClick={handleSave}
+            disabled={!isEditing || !hasChanges || saving}
+            className="h-9 px-5 rounded-xl font-black text-xs uppercase tracking-wider shadow-md flex items-center justify-center gap-2 bg-[#942392] hover:bg-[#800A7A] text-white cursor-pointer active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            {saving ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
+                <span>Saving...</span>
+              </>
+            ) : (
+              <>
+                <Save className="w-3.5 h-3.5 text-white" />
+                <span>Save Configuration</span>
+              </>
+            )}
+          </Button>
+        </div>
+      </div>
+
+      {/* Module Overview Sub-Banner & Controls */}
+      <Card className="border border-border dark:border-neutral-800 shadow-xs bg-white dark:bg-card p-5 rounded-2xl">
         {/* Entity / Role Sub-Banner */}
-        <div className="mt-4 pt-4 border-t border-border/60 flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
           <div className="flex flex-wrap items-center gap-2.5">
             <span className="text-sm font-bold text-black dark:text-white">{currentCompany?.company_name}</span>
             <span className={`inline-flex items-center px-3 py-0.5 rounded-full text-xs font-bold border ${

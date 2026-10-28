@@ -9,7 +9,8 @@ import {
   ShieldCheck,
   History,
   MapPin,
-  Layers
+  Layers,
+  Boxes
 } from "lucide-react";
 
 export interface PageInfo {
@@ -281,9 +282,14 @@ export function getPageTitleInfo(pathname: string, userRole?: string, search?: s
       subtitle: "Manage company-scoped personnel directory, employee profiles and authorized RBAC staffing",
       icon: Users
     };
+    if (pathname.includes("/modules") || searchTab === "modules") return {
+      title: "Company Modules",
+      subtitle: "Configure operational modules, submodules, and granular View | Edit access per company and role",
+      icon: Boxes
+    };
     return {
-      title: "Corporate Entities",
-      subtitle: "Manage corporate entities, holding structures, subsidiaries, and company branding.",
+      title: "Company Entities",
+      subtitle: "Register holding entities and operational subsidiaries, upload logos, and inspect active branch placements.",
       icon: Building2
     };
   }

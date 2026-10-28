@@ -233,7 +233,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
           icon: Building2,
           path: "/organization/entities",
           children: [
-            { title: "Corporate Entities", icon: Building2, path: "/organization/entities", permission: "organization.entities" },
+            { title: "Company Entities", icon: Building2, path: "/organization/entities", permission: "organization.entities" },
             { title: "Personnel Entity", icon: Users, path: "/organization/personnel", permission: "organization.entities" },
             { title: "Company Modules", icon: Boxes, path: "/organization/modules", permission: "organization.modules" },
             { title: "Company Roles & RBAC", icon: ShieldCheck, path: "/organization/roles", permission: "organization.roles" },
@@ -470,7 +470,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
           icon: Building2,
           path: "/organization/entities",
           children: [
-            { title: "Corporate Entities", icon: Building2, path: "/organization/entities", permission: "organization.entities" },
+            { title: "Company Entities", icon: Building2, path: "/organization/entities", permission: "organization.entities" },
             { title: "Personnel Entity", icon: Users, path: "/organization/personnel", permission: "organization.entities" },
             { title: "Company Modules", icon: Boxes, path: "/organization/modules", permission: "organization.modules" },
             { title: "Company Roles & RBAC", icon: ShieldCheck, path: "/organization/roles", permission: "organization.roles" },

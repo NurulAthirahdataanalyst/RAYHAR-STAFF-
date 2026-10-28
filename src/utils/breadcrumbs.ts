@@ -98,7 +98,7 @@ export function getBreadcrumbs(rawPathname: string, rawSearch?: string, role?: s
     ];
 
     let sub = "";
-    if (pathname === "/organization/entities" || pathname.endsWith("/entities")) sub = "CORPORATE ENTITIES";
+    if (pathname === "/organization/entities" || pathname.endsWith("/entities")) sub = "COMPANY ENTITIES";
     else if (pathname === "/organization/personnel" || pathname.endsWith("/personnel")) sub = "PERSONNEL ENTITY";
     else if (pathname === "/organization/roles" || pathname.endsWith("/roles")) sub = "COMPANY ROLES & RBAC";
     else if (pathname === "/organization/modules" || pathname.endsWith("/modules")) sub = "COMPANY MODULE CONFIGURATION";
@@ -110,7 +110,7 @@ export function getBreadcrumbs(rawPathname: string, rawSearch?: string, role?: s
     if (!sub && search) {
       const params = new URLSearchParams(search);
       const tab = params.get("tab");
-      if (tab === "entities") sub = "CORPORATE ENTITIES";
+      if (tab === "entities") sub = "COMPANY ENTITIES";
       else if (tab === "personnel") sub = "PERSONNEL ENTITY";
       else if (tab === "roles") sub = "COMPANY ROLES & RBAC";
       else if (tab === "modules") sub = "COMPANY MODULE CONFIGURATION";
