@@ -117,6 +117,7 @@ export default function TeamLeaveRequests() {
             employee: request.full_name || request.user_id,
             user_id: request.user_id,
             branch: request.branch || "HQ",
+            company_name: request.company_name || (request.branch === "RAYRENT" ? "RayRent" : "Rayhar Travels"),
             department: request.department || "N/A",
             type: request.leave_type,
             from: formatDate(request.start_date),
@@ -258,12 +259,13 @@ export default function TeamLeaveRequests() {
                     <TableHead>End Date</TableHead>
                     <TableHead>Days</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead>Company</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredList.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8 text-foreground">
+                      <TableCell colSpan={7} className="text-center py-8 text-foreground">
                         No team leave requests found.
                       </TableCell>
                     </TableRow>
@@ -298,6 +300,16 @@ export default function TeamLeaveRequests() {
                           >
                             {getDisplayStatus(req.status)}
                           </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border ${
+                            (req.company_name || "").toLowerCase().includes("rayrent") || req.branch?.toUpperCase() === "RAYRENT"
+                              ? "bg-teal-500/10 text-teal-700 dark:text-teal-300 border-teal-500/30"
+                              : "bg-[#942392]/10 text-[#942392] dark:text-[#f3a8f1] border-[#942392]/25"
+                          }`}>
+                            <Building2 className="w-3 h-3 shrink-0" />
+                            <span>{req.company_name || (req.branch?.toUpperCase() === "RAYRENT" ? "RayRent" : "Rayhar Travels")}</span>
+                          </span>
                         </TableCell>
                       </TableRow>
                     ))

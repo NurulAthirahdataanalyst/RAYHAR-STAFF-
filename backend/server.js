@@ -4166,7 +4166,19 @@ app.get("/api/leave-requests", async (req, res) => {
 
     const rawCompanyId = req.companyId || req.query.company_id || req.query.companyId;
     const companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
-    if (companyId) {
+    const normRole = safeLower(role).replace(/\s+/g, "_");
+    const isGroupWideLeaveRole = [
+      "hr_admin",
+      "hr",
+      "admin",
+      "managing_director",
+      "md",
+      "operation_manager",
+      "operations_manager",
+      "finance_manager",
+    ].includes(normRole);
+
+    if (companyId && !userId && !isGroupWideLeaveRole) {
       if (companyId === 1) {
         filters.push("(lr.user_id IN (SELECT user_id FROM company_user_roles WHERE company_id = 1 AND status = 'active') OR lr.user_id NOT IN (SELECT user_id FROM company_user_roles WHERE status = 'active'))");
       } else {
@@ -4179,16 +4191,16 @@ app.get("/api/leave-requests", async (req, res) => {
       filters.push("lr.user_id = ?");
       params.push(userId);
     } else {
-      if (role === "branch_leader" && branch) {
+      if (normRole === "branch_leader" && branch) {
         filters.push("LOWER(p.branch) = LOWER(?)");
         params.push(branch);
-      } else if (role === "head_of_department" && department) {
+      } else if ((normRole === "head_of_department" || normRole === "hod") && department) {
         filters.push("LOWER(p.department) = LOWER(?)");
         params.push(department);
-      } else if (role === "head_of_department") {
+      } else if (normRole === "head_of_department" || normRole === "hod") {
         // Safety: HOD must have a department to see anything
         filters.push("1 = 0");
-      } else if (!["hr_admin", "managing_director", "finance_manager", "operation_manager"].includes(role) && branch) {
+      } else if (!isGroupWideLeaveRole && branch) {
         filters.push("LOWER(p.branch) = LOWER(?)");
         params.push(branch);
       }
@@ -4229,6 +4241,16 @@ app.get("/api/leave-requests", async (req, res) => {
         p.full_name,
         p.branch,
         p.department,
+        COALESCE(
+          (SELECT cur.company_id FROM company_user_roles cur WHERE cur.user_id = lr.user_id AND cur.status = 'active' ORDER BY cur.company_id DESC LIMIT 1),
+          b_comp.company_id,
+          CASE WHEN UPPER(p.branch) = 'RAYRENT' THEN 2 ELSE 1 END
+        )::int AS company_id,
+        COALESCE(
+          (SELECT c.company_name FROM company_user_roles cur JOIN companies c ON c.id = cur.company_id WHERE cur.user_id = lr.user_id AND cur.status = 'active' ORDER BY cur.company_id DESC LIMIT 1),
+          c_branch.company_name,
+          CASE WHEN UPPER(p.branch) = 'RAYRENT' THEN 'RayRent' ELSE 'Rayhar Travels' END
+        ) AS company_name,
         COALESCE(lr.phone, p.phone, '') AS phone,
         COALESCE(ur_approver.role, '') AS approver_role,
         GREATEST((COALESCE(p.annual_leave_entitlement, 14) + COALESCE(adj.annual_adj, 0)) - COALESCE(l_used.annual_days_used, 0), 0)::int AS annual_leave_balance,
@@ -4290,6 +4312,8 @@ app.get("/api/leave-requests", async (req, res) => {
         ) AS pending_approver_context
       FROM leave_requests lr
       JOIN profiles p ON p.user_id = lr.user_id
+      LEFT JOIN branches b_comp ON UPPER(b_comp.code) = UPPER(p.branch)
+      LEFT JOIN companies c_branch ON c_branch.id = b_comp.company_id
       LEFT JOIN user_role ur_approver ON ur_approver.user_id = lr.approver_id
       LEFT JOIN (
         SELECT employee_id, 
@@ -8197,21 +8221,31 @@ app.get("/api/dashboard-stats", async (req, res) => {
         const lateArrivalsCount = rawLateRows.filter(r => !onLeaveUserIdsSet.has(r.user_id)).length;
         const lateRows = [{ late_arrivals: lateArrivalsCount }];
 
-        let statusToCount = "Pending%";
-        if (role === "head_of_department") {
-          statusToCount = "Pending HOD%";
-        } else if (role === "branch_leader") {
-          statusToCount = "Pending Branch Leader";
-        } else if (role === "finance_manager") {
-          statusToCount = "Pending Finance";
-        } else if (role === "managing_director") {
-          statusToCount = "Pending MD";
+        let pendingRows;
+        if (role === "managing_director") {
+          [pendingRows] = await pool.query(
+            `SELECT COUNT(*) AS pending_approvals FROM leave_requests lr WHERE (lr.status LIKE 'Pending MD%' OR lr.status LIKE 'Pending Managing Director%') AND lr.user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE p_s.status = 'Active')`
+          );
+        } else if (role === "operation_manager" || role === "finance_manager") {
+          [pendingRows] = await pool.query(
+            `SELECT COUNT(*) AS pending_approvals FROM leave_requests lr WHERE (lr.status LIKE 'Pending Operation%' OR lr.status LIKE 'Pending Finance%') AND lr.user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE p_s.status = 'Active')`
+          );
+        } else if (role === "hr_admin") {
+          [pendingRows] = await pool.query(
+            `SELECT COUNT(*) AS pending_approvals FROM leave_requests lr WHERE lr.status LIKE 'Pending%' AND lr.user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE p_s.status = 'Active')`
+          );
+        } else {
+          let statusToCount = "Pending%";
+          if (role === "head_of_department") {
+            statusToCount = "Pending HOD%";
+          } else if (role === "branch_leader") {
+            statusToCount = "Pending Branch Leader%";
+          }
+          [pendingRows] = await pool.query(
+            `SELECT COUNT(*) AS pending_approvals FROM leave_requests WHERE status LIKE ? ${attendanceFilter}`,
+            [statusToCount, ...queryParams]
+          );
         }
-
-        const [pendingRows] = await pool.query(
-          `SELECT COUNT(*) AS pending_approvals FROM leave_requests WHERE status LIKE ? ${attendanceFilter}`,
-          [statusToCount, ...queryParams]
-        );
 
         const outstationParams = queryDate ? [queryDate, ...queryParams] : queryParams;
         const [outstationTodayRows] = await pool.query(
@@ -8776,8 +8810,10 @@ app.get("/api/dashboard-stats", async (req, res) => {
           teamParams = [department];
         }
       }
+      const isGroupWideRole = ["hr_admin", "managing_director", "operation_manager", "finance_manager"].includes(role);
       const teamFilterP = `${teamCompanyP} ${teamFilter}`;
       const teamFilterEmp = `${teamCompanyEmp} ${teamFilter.replace(/p\./g, 'emp.')}`;
+      const teamLeaveFilterEmp = `${isGroupWideRole ? "" : teamCompanyEmp} ${teamFilter.replace(/p\./g, 'emp.')}`;
       const teamFilterOa = `${teamCompanyEmp} ${teamFilter.replace(/p\./g, 'oa.')}`;
 
       const [teamRows] = await pool.query(
@@ -8860,11 +8896,11 @@ app.get("/api/dashboard-stats", async (req, res) => {
             CASE WHEN lr.leave_type = 'Replacement Leave' OR lr.leave_type = 'Cuti Ganti' THEN CASE WHEN lr.start_date = lr.end_date THEN CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Day') ELSE CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' and ', TO_CHAR(lr.end_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Day') END ELSE CASE WHEN lr.start_date = lr.end_date THEN CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Day') ELSE CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD/MM/YYYY'), ' - ', TO_CHAR(lr.end_date, 'DD/MM/YYYY'), ' • ', lr.days, ' Day') END END AS context,
             TO_CHAR(lr.created_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time,
             lr.created_at AS sort_time,
-            'Pending' AS badge
+            CASE WHEN lr.status = 'Approved' THEN 'Approved' WHEN lr.status = 'Rejected' THEN 'Rejected' ELSE 'Pending' END AS badge
           FROM leave_requests lr
           JOIN profiles emp ON emp.user_id = lr.user_id
-          WHERE DATE(lr.created_at AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
-            AND emp.status = 'Active' ${teamFilterEmp}
+          WHERE (DATE(lr.created_at AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date OR lr.status LIKE 'Pending%')
+            AND emp.status = 'Active' ${teamLeaveFilterEmp}
 
           UNION ALL
 

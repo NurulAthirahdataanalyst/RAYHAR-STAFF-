@@ -24,7 +24,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Check, X, Users, MapPin, Info, Loader2, FileText, Printer, PhoneCall, Clock, CheckCircle2, XCircle, ChevronRight, ChevronLeft, ClipboardList, Download, RotateCcw, Search } from "lucide-react";
+import { Check, X, Users, MapPin, Info, Loader2, FileText, Printer, PhoneCall, Clock, CheckCircle2, XCircle, ChevronRight, ChevronLeft, ClipboardList, Download, RotateCcw, Search, Building2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useRole } from "@/contexts/RoleContext";
 import { parseCutiGantiRows, getCleanReason } from "@/lib/leaveStorage";
@@ -60,6 +60,8 @@ type Employee = {
 type LeaveRequest = {
   id: number;
   userId?: string;
+  companyId?: number;
+  companyName?: string;
   employee: string;
   branch: string;
   department?: string;
@@ -517,6 +519,8 @@ export default function LeaveAdmin() {
           createdAt: request.created_at ? formatDate(request.created_at) : "-",
           id: request.leave_id,
           userId: request.user_id,
+          companyId: request.company_id || (request.branch === "RAYRENT" ? 2 : 1),
+          companyName: request.company_name || (request.branch === "RAYRENT" ? "RayRent" : "Rayhar Travels"),
           employee: request.full_name || request.user_id,
           branch: request.branch || "HQ",
           department: request.department || "—",
@@ -972,6 +976,7 @@ export default function LeaveAdmin() {
                 const exportData = filteredRequests.map(req => ({
                   "Date Submitted": req.createdAt || "-",
                   "Employee": req.employee,
+                  "Company": req.companyName || (req.branch?.toUpperCase() === "RAYRENT" ? "RayRent" : "Rayhar Travels"),
                   "Branch": req.branch,
                   "Department": req.department,
                   "Leave Type": req.type,
@@ -1041,6 +1046,7 @@ export default function LeaveAdmin() {
                     <TableHead className="px-3 py-4 text-[10px]">To</TableHead>
                     <TableHead className="px-3 py-4 text-[10px]">Days</TableHead>
                     <TableHead className="px-3 py-4 text-[10px]">Status</TableHead>
+                    <TableHead className="px-3 py-4 text-[10px]">Company</TableHead>
                     {canApprove && <TableHead className="px-3 py-4 text-[10px] text-right">Actions</TableHead>}
                   </TableRow>
                 </TableHeader>
@@ -1103,6 +1109,16 @@ export default function LeaveAdmin() {
                             {getDisplayStatus(req.status)}
                           </span>
                         </TableCell>
+                        <TableCell className="px-3 py-3.5">
+                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border shadow-2xs ${
+                            (req.companyName || "").toLowerCase().includes("rayrent") || req.branch?.toUpperCase() === "RAYRENT"
+                              ? "bg-teal-500/10 text-teal-700 dark:text-teal-300 border-teal-500/30"
+                              : "bg-[#942392]/10 text-[#942392] dark:text-[#f3a8f1] border-[#942392]/25"
+                          }`}>
+                            <Building2 className="w-3 h-3 shrink-0" />
+                            <span>{req.companyName || (req.branch?.toUpperCase() === "RAYRENT" ? "RayRent" : "Rayhar Travels")}</span>
+                          </span>
+                        </TableCell>
                         {canApprove && (
                           <TableCell className="px-3 py-3.5 text-right">
                             {((req.status.trim().startsWith("Pending HOD") && role === "head_of_department") ||
@@ -1144,7 +1160,7 @@ export default function LeaveAdmin() {
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={canApprove ? 7 : 6} className="h-32 text-center text-foreground">
+                      <TableCell colSpan={canApprove ? 8 : 7} className="h-32 text-center text-foreground">
                         No leave requests found.
                       </TableCell>
                     </TableRow>

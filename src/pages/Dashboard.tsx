@@ -120,9 +120,21 @@ export default function Dashboard() {
 
   const [activities, setActivities] = useState<any[]>([]);
   const [activityFeed, setActivityFeed] = useState<{ my: any[]; team: any[]; system: any[] }>({ my: [], team: [], system: [] });
-  const [activeTab, setActiveTab] = useState<"my" | "team" | "system" | "all">("my");
+  const [activeTab, setActiveTab] = useState<"my" | "team" | "system" | "all">(() => {
+    return ["hr_admin", "branch_leader", "managing_director", "operation_manager", "head_of_department"].includes(role)
+      ? "team"
+      : "my";
+  });
   const [activityPage, setActivityPage] = useState(1);
   const [activityPageSize, setActivityPageSize] = useState(10);
+
+  useEffect(() => {
+    if (["hr_admin", "branch_leader", "managing_director", "operation_manager", "head_of_department"].includes(role)) {
+      setActiveTab("team");
+    } else {
+      setActiveTab("my");
+    }
+  }, [role]);
 
   const [activityFilter, setActivityFilter] = useState<"all" | "attendance" | "leave" | "approval" | "system" | "outstation">("all");
   const [whoOutToday, setWhoOutToday] = useState<any[]>([]);
