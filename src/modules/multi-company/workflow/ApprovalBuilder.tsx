@@ -884,7 +884,7 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2 flex-wrap">
-            <h4 className="text-xs font-black uppercase tracking-wider text-foreground dark:text-neutral-200">
+            <h4 className="text-[11px] font-black uppercase tracking-wider text-foreground dark:text-neutral-200">
               Multi-Tier Leave Approval Sequence
             </h4>
             <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] border-[#942392]/30 bg-[#942392]/10 text-[#942392] dark:text-[#f885d5] hover:bg-[#942392] hover:text-white transition-colors cursor-default shadow-2xs">
@@ -1232,9 +1232,6 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
               {/* Exact First Trigger Card (START) */}
               <div className="p-3 rounded-xl bg-gradient-to-r from-purple-500/10 via-background to-background dark:from-neutral-800/60 dark:to-neutral-900/60 border border-dashed border-[#942392]/40 flex items-center justify-between text-xs shadow-xs">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-7 h-7 rounded-full bg-[#942392] text-white flex items-center justify-center font-black text-[11px] shrink-0 shadow-xs">
-                    0
-                  </div>
                   <div>
                     <span className="font-black text-foreground uppercase text-[11px] tracking-wider block">
                       Trigger: Employee Submits Leave Request ({trg.titleSuffix})
@@ -1263,10 +1260,6 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
                       <div className="p-4 rounded-xl border border-border dark:border-neutral-800 bg-background dark:bg-neutral-900 shadow-xs transition-all hover:border-[#942392]/40">
                         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                           <div className="flex items-start sm:items-center gap-3 w-full">
-                            <div className="w-7 h-7 rounded-lg bg-[#942392] text-white flex items-center justify-center font-black text-xs shrink-0 shadow-xs mt-1 sm:mt-0">
-                              {sIdx + 1}
-                            </div>
-
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 flex-1">
                               <div>
                                 <div className="flex items-center gap-1.5 mb-1">

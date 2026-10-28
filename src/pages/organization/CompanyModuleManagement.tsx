@@ -477,7 +477,7 @@ export const CompanyModuleManagement: React.FC = () => {
           {/* Target Entity Selector */}
           <div className="flex items-center gap-2">
             <Building2 className="w-4 h-4 text-[#942392]" />
-            <span className="text-xs font-black uppercase tracking-wider text-black dark:text-white whitespace-nowrap">
+            <span className="text-[11px] font-black uppercase tracking-wider text-black dark:text-white whitespace-nowrap">
               Target Entity:
             </span>
             <Select 
@@ -506,7 +506,7 @@ export const CompanyModuleManagement: React.FC = () => {
           {/* Role Selector */}
           <div className="flex items-center gap-2">
             <Shield className="w-4 h-4 text-[#942392]" />
-            <span className="text-xs font-black uppercase tracking-wider text-black dark:text-white whitespace-nowrap">
+            <span className="text-[11px] font-black uppercase tracking-wider text-black dark:text-white whitespace-nowrap">
               Role:
             </span>
             <Select 
@@ -541,7 +541,7 @@ export const CompanyModuleManagement: React.FC = () => {
             <Button
               type="button"
               onClick={() => setIsEditing(true)}
-              className="h-9 px-4 rounded-xl font-bold text-xs uppercase tracking-wider shadow-xs flex items-center justify-center gap-2 border border-slate-300 dark:border-slate-700 bg-white hover:bg-slate-50 dark:bg-neutral-900 dark:hover:bg-neutral-800 text-slate-800 dark:text-slate-100 cursor-pointer transition active:scale-95"
+              className="h-9 px-4 rounded-xl font-black text-[11px] uppercase tracking-wider shadow-xs flex items-center justify-center gap-2 border border-slate-300 dark:border-slate-700 bg-white hover:bg-slate-50 dark:bg-neutral-900 dark:hover:bg-neutral-800 text-slate-800 dark:text-slate-100 cursor-pointer transition active:scale-95"
             >
               <Edit className="w-3.5 h-3.5 text-[#942392]" />
               <span>Edit Configuration</span>
@@ -565,7 +565,7 @@ export const CompanyModuleManagement: React.FC = () => {
             type="button"
             onClick={handleSave}
             disabled={!isEditing || !hasChanges || saving}
-            className="h-9 px-5 rounded-xl font-black text-xs uppercase tracking-wider shadow-md flex items-center justify-center gap-2 bg-[#942392] hover:bg-[#800A7A] text-white cursor-pointer active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="h-9 px-5 rounded-xl font-black text-[11px] uppercase tracking-wider shadow-md flex items-center justify-center gap-2 bg-[#942392] hover:bg-[#800A7A] text-white cursor-pointer active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {saving ? (
               <>
@@ -779,7 +779,7 @@ export const CompanyModuleManagement: React.FC = () => {
 
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
-                        <h3 className="text-xs font-black uppercase tracking-wider text-black dark:text-white truncate">
+                        <h3 className="text-[11px] font-black uppercase tracking-wider text-black dark:text-white truncate">
                           {mod.module_name}
                         </h3>
                         <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border ${

@@ -132,7 +132,7 @@ export const Tab8_LeaveWorkflowConfig: React.FC = () => {
       {/* Top Company Scope */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-muted/30 dark:bg-neutral-900/40 rounded-xl border border-border dark:border-neutral-800">
         <div className="flex flex-wrap items-center gap-2.5">
-          <span className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
+          <span className="text-[11px] font-black uppercase tracking-wider text-black dark:text-white">
             Company Leave Policy Scope:
           </span>
           <Select 
@@ -169,7 +169,7 @@ export const Tab8_LeaveWorkflowConfig: React.FC = () => {
       <Card className="border border-border dark:border-neutral-800 shadow-xs bg-white/70 dark:bg-card/70 backdrop-blur-md rounded-2xl p-5 space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border/50 dark:border-neutral-800">
           <div className="space-y-1">
-            <h4 className="text-xs font-black uppercase tracking-wider text-foreground dark:text-white">
+            <h4 className="text-[11px] font-black uppercase tracking-wider text-foreground dark:text-white">
               Default Annual Entitlements & Policies (4 Leave Types)
             </h4>
             <p className="text-[11px] text-muted-foreground">

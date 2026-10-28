@@ -247,7 +247,7 @@ export const Tab7_AttendanceConfig: React.FC = () => {
     <div className="space-y-6">
       {/* Top Filter: Attendance Policy Scope */}
       <div className="flex flex-wrap items-center gap-3">
-        <span className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
+        <span className="text-[11px] font-black uppercase tracking-wider text-black dark:text-white">
           Attendance Policy Scope:
         </span>
         <Select 
@@ -294,7 +294,7 @@ export const Tab7_AttendanceConfig: React.FC = () => {
           {/* Left Column: Grace input & schedule context */}
           <div className="lg:col-span-4 space-y-3">
             <div className="space-y-1.5">
-              <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
+              <Label className="text-[11px] font-black uppercase tracking-wider text-black dark:text-white">
                 Grace Window (Minutes)
               </Label>
               <div className="flex items-center gap-2">
@@ -549,7 +549,7 @@ export const Tab7_AttendanceConfig: React.FC = () => {
         {/* Card 1: Time Parameters */}
         <Card className="border border-border dark:border-neutral-800 shadow-xs bg-white/70 dark:bg-card/70 backdrop-blur-md rounded-2xl p-5 space-y-4">
           <div className="space-y-1">
-            <h4 className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
+            <h4 className="text-[11px] font-black uppercase tracking-wider text-black dark:text-white">
               Time Boundaries & Overtime Rules
             </h4>
             <p className="text-[11px] text-muted-foreground">Thresholds for calculating early departures and minimum shift completion.</p>
@@ -559,7 +559,7 @@ export const Tab7_AttendanceConfig: React.FC = () => {
             {/* Synchronized Late Arrival Window Indicator */}
             <div className="flex items-center justify-between p-2 rounded-lg bg-muted/20 border border-border/40">
               <div>
-                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Late Arrival Window</Label>
+                <Label className="text-[11px] font-black uppercase tracking-wider text-black dark:text-white">Late Arrival Window</Label>
                 <span className="text-[10px] text-muted-foreground block">Governed by Default Grace Period above</span>
               </div>
               <div className="flex items-center gap-1.5">
@@ -571,7 +571,7 @@ export const Tab7_AttendanceConfig: React.FC = () => {
 
             <div className="flex items-center justify-between">
               <div>
-                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Early Checkout Threshold</Label>
+                <Label className="text-[11px] font-black uppercase tracking-wider text-black dark:text-white">Early Checkout Threshold</Label>
                 <span className="text-[10px] text-muted-foreground block">Permissible early departure allowance</span>
               </div>
               <div className="flex items-center gap-1.5">
@@ -587,7 +587,7 @@ export const Tab7_AttendanceConfig: React.FC = () => {
 
             <div className="flex items-center justify-between">
               <div>
-                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Minimum Daily Working Hours</Label>
+                <Label className="text-[11px] font-black uppercase tracking-wider text-black dark:text-white">Minimum Daily Working Hours</Label>
                 <span className="text-[10px] text-muted-foreground block">Hours required for full-day attendance</span>
               </div>
               <div className="flex items-center gap-1.5">
@@ -604,7 +604,7 @@ export const Tab7_AttendanceConfig: React.FC = () => {
 
             <div className="flex items-center justify-between pt-1">
               <div>
-                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Overtime (OT) Automatic Calculation</Label>
+                <Label className="text-[11px] font-black uppercase tracking-wider text-black dark:text-white">Overtime (OT) Automatic Calculation</Label>
                 <span className="text-[10px] text-muted-foreground block">Track hours logged beyond schedule end time</span>
               </div>
               <Switch checked={otEnabled} onCheckedChange={setOtEnabled} className="data-[state=checked]:bg-[#942392]" />
@@ -615,7 +615,7 @@ export const Tab7_AttendanceConfig: React.FC = () => {
         {/* Card 2: GPS Geofencing & Biometrics */}
         <Card className="border border-border dark:border-neutral-800 shadow-xs bg-white/70 dark:bg-card/70 backdrop-blur-md rounded-2xl p-5 space-y-4">
           <div className="space-y-1">
-            <h4 className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
+            <h4 className="text-[11px] font-black uppercase tracking-wider text-black dark:text-white">
               GPS Geofencing & Biometric Validation
             </h4>
             <p className="text-[11px] text-muted-foreground">Enforce physical branch boundary checks and camera capture.</p>
@@ -624,14 +624,14 @@ export const Tab7_AttendanceConfig: React.FC = () => {
           <div className="space-y-3 pt-2">
             <div className="flex items-center justify-between">
               <div>
-                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Require GPS Location Capture</Label>
+                <Label className="text-[11px] font-black uppercase tracking-wider text-black dark:text-white">Require GPS Location Capture</Label>
                 <span className="text-[10px] text-muted-foreground block">Mandatory location permission on device</span>
               </div>
               <Switch checked={gpsRequired} onCheckedChange={setGpsRequired} className="data-[state=checked]:bg-[#942392]" />
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Geofence Enforcement Strictness</Label>
+              <Label className="text-[11px] font-black uppercase tracking-wider text-black dark:text-white">Geofence Enforcement Strictness</Label>
               <Select value={geofenceEnforce} onValueChange={(val: any) => setGeofenceEnforce(val)}>
                 <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium data-[placeholder]:font-normal text-black dark:text-white">
                   <SelectValue placeholder="Strictness" />
@@ -652,7 +652,7 @@ export const Tab7_AttendanceConfig: React.FC = () => {
 
             <div className="flex items-center justify-between pt-2">
               <div>
-                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
+                <Label className="text-[11px] font-black uppercase tracking-wider text-black dark:text-white">
                   Biometric Face Snapshot Verification
                 </Label>
                 <span className="text-[10px] text-muted-foreground block">Take selfie verification upon check-in</span>
@@ -668,7 +668,7 @@ export const Tab7_AttendanceConfig: React.FC = () => {
         <Button
           onClick={handleSave}
           disabled={saving || loading}
-          className="bg-[#942392] hover:bg-[#800A7A] text-white font-black text-xs uppercase tracking-wider shadow-sm h-9 px-6 rounded-xl"
+          className="bg-[#942392] hover:bg-[#800A7A] text-white font-black text-[11px] uppercase tracking-wider shadow-sm h-9 px-6 rounded-xl"
         >
           {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : <Save className="w-3.5 h-3.5 mr-1.5" />}
           Deploy Attendance Configurations

@@ -292,7 +292,7 @@ export const CompanyTransferWizard: React.FC<EmployeeTransferWizardProps> = ({ o
             {/* Staff Member Selection */}
             <div className="p-5 bg-card dark:bg-neutral-900 rounded-2xl border border-border dark:border-neutral-800 space-y-4 shadow-xs">
               <div className="space-y-1">
-                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white flex items-center gap-1.5">
+                <Label className="text-[11px] font-black uppercase tracking-wider text-black dark:text-white flex items-center gap-1.5">
                   <UserCheck className="w-4 h-4 text-[#942392]" />
                   Select Employee to Transfer *
                 </Label>
@@ -335,7 +335,7 @@ export const CompanyTransferWizard: React.FC<EmployeeTransferWizardProps> = ({ o
             {/* Target Subsidiary Selection */}
             <div className="p-5 bg-card dark:bg-neutral-900 rounded-2xl border border-border dark:border-neutral-800 space-y-4 shadow-xs">
               <div className="space-y-1">
-                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white flex items-center gap-1.5">
+                <Label className="text-[11px] font-black uppercase tracking-wider text-black dark:text-white flex items-center gap-1.5">
                   <Building2 className="w-4 h-4 text-[#942392]" />
                   Destination Company / Subsidiary *
                 </Label>

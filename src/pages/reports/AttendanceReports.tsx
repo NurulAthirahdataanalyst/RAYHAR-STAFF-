@@ -899,27 +899,37 @@ export default function AttendanceReports() {
                               );
                             })}
                             <TableCell>
-                              <div className="flex flex-col items-start gap-1">
-                                <span className={`whitespace-nowrap px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] ${
-                                  req.status === 'Present (On Time)' ? 'bg-[#fdf4ff] text-[#942392] border-[#942392]/20 dark:bg-[#942392]/10' :
-                                  req.status === 'Present (Late)' ? 'bg-yellow-50 text-yellow-600 border-yellow-200 dark:bg-yellow-500/10 dark:border-yellow-500/20' :
-                                  req.status === 'Missing Clock-Out' ? 'bg-orange-50 text-orange-600 border-orange-200 dark:bg-orange-500/10 dark:border-orange-500/20' :
-                                  req.status === 'Outstation' ? 'bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/10 dark:border-blue-500/20' :
-                                  req.status === 'Approved Leave' || req.status === 'Company Leave' ? 'bg-[#fdf4ff] text-[#942392] border-[#942392]/20 dark:bg-[#942392]/10' :
-                                  req.status === 'Weekend' || req.status === 'Rest Day' ? 'bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-500/10 dark:border-slate-500/20 dark:text-slate-300' :
-                                  req.status === 'Absent' ? 'bg-red-50 text-red-600 border-red-200 dark:bg-red-500/10 dark:border-red-500/20' :
-                                  'bg-slate-50 text-slate-400 border-slate-200 dark:bg-slate-500/10 dark:border-slate-500/20'
-                                }`}>
-                                  {req.status}
-                                </span>
-                                {req.status === 'Missing Clock-Out' && (
-                                  <span className={`whitespace-nowrap px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] ${
-                                    req.is_late ? 'bg-yellow-50 text-yellow-600 border-yellow-200 dark:bg-yellow-500/10 dark:border-yellow-500/20' : 'bg-[#fdf4ff] text-[#942392] border-[#942392]/20 dark:bg-[#942392]/10'
-                                  }`}>
-                                    {req.is_late ? 'Present (Late)' : 'Present (On Time)'}
-                                  </span>
-                                )}
-                              </div>
+                              {(() => {
+                                const getStatusBadgeStyle = (status: string) => {
+                                  if (status === 'Present (On Time)') return { badge: 'bg-[#fdf4ff] text-[#942392] border-[#942392]/20 dark:bg-[#942392]/10', dot: 'bg-[#942392]' };
+                                  if (status === 'Present (Late)') return { badge: 'bg-yellow-50 text-yellow-600 border-yellow-200 dark:bg-yellow-500/10 dark:border-yellow-500/20', dot: 'bg-yellow-500' };
+                                  if (status === 'Missing Clock-Out') return { badge: 'bg-orange-50 text-orange-600 border-orange-200 dark:bg-orange-500/10 dark:border-orange-500/20', dot: 'bg-orange-500' };
+                                  if (status === 'Outstation') return { badge: 'bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/10 dark:border-blue-500/20', dot: 'bg-blue-500' };
+                                  if (status === 'Approved Leave' || status === 'Company Leave') return { badge: 'bg-[#fdf4ff] text-[#942392] border-[#942392]/20 dark:bg-[#942392]/10', dot: 'bg-[#942392]' };
+                                  if (status === 'Weekend' || status === 'Rest Day') return { badge: 'bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-500/10 dark:border-slate-500/20 dark:text-slate-300', dot: 'bg-slate-400' };
+                                  if (status === 'Absent') return { badge: 'bg-red-50 text-red-600 border-red-200 dark:bg-red-500/10 dark:border-red-500/20', dot: 'bg-red-500' };
+                                  return { badge: 'bg-slate-50 text-slate-400 border-slate-200 dark:bg-slate-500/10 dark:border-slate-500/20', dot: 'bg-slate-400' };
+                                };
+                                const conf = getStatusBadgeStyle(req.status);
+                                const missingConf = req.is_late 
+                                  ? { badge: 'bg-yellow-50 text-yellow-600 border-yellow-200 dark:bg-yellow-500/10 dark:border-yellow-500/20', dot: 'bg-yellow-500', label: 'Present (Late)' }
+                                  : { badge: 'bg-[#fdf4ff] text-[#942392] border-[#942392]/20 dark:bg-[#942392]/10', dot: 'bg-[#942392]', label: 'Present (On Time)' };
+
+                                return (
+                                  <div className="flex flex-col items-start gap-1">
+                                    <span className={`inline-flex items-center gap-1.5 whitespace-nowrap px-2.5 py-0.5 text-[10px] tracking-wider font-black uppercase rounded-full border shadow-2xs ${conf.badge}`}>
+                                      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${conf.dot}`} />
+                                      <span>{req.status}</span>
+                                    </span>
+                                    {req.status === 'Missing Clock-Out' && (
+                                      <span className={`inline-flex items-center gap-1.5 whitespace-nowrap px-2.5 py-0.5 text-[10px] tracking-wider font-black uppercase rounded-full border shadow-2xs ${missingConf.badge}`}>
+                                        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${missingConf.dot}`} />
+                                        <span>{missingConf.label}</span>
+                                      </span>
+                                    )}
+                                  </div>
+                                );
+                              })()}
                             </TableCell>
                             <TableCell className="whitespace-nowrap font-medium">{calculateTotalWorkingHours(req)}</TableCell>
                             <TableCell className="whitespace-nowrap">

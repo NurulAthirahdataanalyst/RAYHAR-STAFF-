@@ -485,24 +485,24 @@ export const TabPersonnelEntity: React.FC = () => {
         ) : (
           <div className="overflow-x-auto">
             <Table>
-              <TableHeader className="bg-muted/50 dark:bg-neutral-800/60 border-b border-border dark:border-neutral-800 text-xs font-black uppercase tracking-wider text-black dark:text-white">
+              <TableHeader className="bg-muted/50 dark:bg-neutral-800/60 border-b border-border dark:border-neutral-800 text-[11px] font-black uppercase tracking-wider text-black dark:text-white">
                 <TableRow className="border-b border-border/70 hover:bg-transparent">
-                  <TableHead className="py-3.5 px-5 text-xs font-black uppercase tracking-wider text-black dark:text-white">
+                  <TableHead className="py-3.5 px-5 text-[11px] font-black uppercase tracking-wider text-black dark:text-white">
                     STAFF MEMBER
                   </TableHead>
-                  <TableHead className="py-3.5 px-4 text-xs font-black uppercase tracking-wider text-black dark:text-white">
+                  <TableHead className="py-3.5 px-4 text-[11px] font-black uppercase tracking-wider text-black dark:text-white">
                     POSITION / ROLE
                   </TableHead>
-                  <TableHead className="py-3.5 px-4 text-xs font-black uppercase tracking-wider text-black dark:text-white">
+                  <TableHead className="py-3.5 px-4 text-[11px] font-black uppercase tracking-wider text-black dark:text-white">
                     BRANCH
                   </TableHead>
-                  <TableHead className="py-3.5 px-4 text-xs font-black uppercase tracking-wider text-black dark:text-white">
+                  <TableHead className="py-3.5 px-4 text-[11px] font-black uppercase tracking-wider text-black dark:text-white">
                     DEPARTMENT
                   </TableHead>
-                  <TableHead className="py-3.5 px-4 text-xs font-black uppercase tracking-wider text-black dark:text-white">
+                  <TableHead className="py-3.5 px-4 text-[11px] font-black uppercase tracking-wider text-black dark:text-white">
                     STATUS
                   </TableHead>
-                  <TableHead className="py-3.5 px-5 text-xs font-black uppercase tracking-wider text-black dark:text-white text-right">
+                  <TableHead className="py-3.5 px-5 text-[11px] font-black uppercase tracking-wider text-black dark:text-white text-right">
                     ACTIONS
                   </TableHead>
                 </TableRow>

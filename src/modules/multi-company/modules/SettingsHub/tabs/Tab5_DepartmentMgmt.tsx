@@ -69,7 +69,7 @@ export const Tab5_DepartmentMgmt: React.FC = () => {
       {/* Top Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-muted/30 dark:bg-neutral-900/40 rounded-xl border border-border dark:border-neutral-800">
         <div className="flex flex-wrap items-center gap-2.5">
-          <span className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
+          <span className="text-[11px] font-black uppercase tracking-wider text-black dark:text-white">
             Company Department Scope:
           </span>
           <Select 
@@ -122,7 +122,7 @@ export const Tab5_DepartmentMgmt: React.FC = () => {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-muted/50 dark:bg-neutral-800/60 border-b border-border dark:border-neutral-800 text-xs font-black uppercase tracking-wider text-black dark:text-white">
+              <thead className="bg-muted/50 dark:bg-neutral-800/60 border-b border-border dark:border-neutral-800 text-[11px] font-black uppercase tracking-wider text-black dark:text-white">
                 <tr>
                   <th className="px-4 py-3.5">Code</th>
                   <th className="px-4 py-3.5">Department Name</th>

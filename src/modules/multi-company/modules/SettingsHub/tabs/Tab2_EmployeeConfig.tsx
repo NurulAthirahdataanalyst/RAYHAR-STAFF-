@@ -221,14 +221,14 @@ export const Tab2_EmployeeConfig: React.FC = () => {
           <form onSubmit={handleOnboardSubmit} className="space-y-6">
             {/* Section 1: Personal & Identity Details */}
             <div className="p-4 rounded-xl border border-border/50 dark:border-neutral-800 bg-muted/20 dark:bg-neutral-900/40 space-y-4">
-              <h4 className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
+              <h4 className="text-[11px] font-black uppercase tracking-wider text-black dark:text-white">
                 Personal Information & Identity Records
               </h4>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* Full Name */}
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
+                  <Label className="text-[11px] font-black uppercase tracking-wider text-black dark:text-white">
                     Full Name <span className="text-rose-500">*</span>
                   </Label>
                   <Input
@@ -242,7 +242,7 @@ export const Tab2_EmployeeConfig: React.FC = () => {
 
                 {/* IC Number */}
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
+                  <Label className="text-[11px] font-black uppercase tracking-wider text-black dark:text-white">
                     ID Card (IC) Number
                   </Label>
                   <Input
@@ -257,7 +257,7 @@ export const Tab2_EmployeeConfig: React.FC = () => {
 
                 {/* Phone Number */}
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
+                  <Label className="text-[11px] font-black uppercase tracking-wider text-black dark:text-white">
                     Phone Number
                   </Label>
                   <Input
@@ -272,7 +272,7 @@ export const Tab2_EmployeeConfig: React.FC = () => {
 
                 {/* Date of Join */}
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
+                  <Label className="text-[11px] font-black uppercase tracking-wider text-black dark:text-white">
                     Date of Join
                   </Label>
                   <Popover>
@@ -331,13 +331,13 @@ export const Tab2_EmployeeConfig: React.FC = () => {
 
             {/* Section 2: Account & Access Credentials */}
             <div className="p-4 rounded-xl border border-border/50 dark:border-neutral-800 bg-muted/20 dark:bg-neutral-900/40 space-y-4">
-              <h4 className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
+              <h4 className="text-[11px] font-black uppercase tracking-wider text-black dark:text-white">
                 Portal Access Credentials
               </h4>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
+                  <Label className="text-[11px] font-black uppercase tracking-wider text-black dark:text-white">
                     Corporate Email Address <span className="text-rose-500">*</span>
                   </Label>
                   <Input
@@ -351,7 +351,7 @@ export const Tab2_EmployeeConfig: React.FC = () => {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
+                  <Label className="text-[11px] font-black uppercase tracking-wider text-black dark:text-white">
                     Portal Access Password <span className="text-rose-500">*</span>
                   </Label>
                   <PasswordInput
@@ -367,13 +367,13 @@ export const Tab2_EmployeeConfig: React.FC = () => {
 
             {/* Section 3: Company & Organizational Placement */}
             <div className="p-4 rounded-xl border border-border/50 dark:border-neutral-800 bg-muted/20 dark:bg-neutral-900/40 space-y-4">
-              <h4 className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
+              <h4 className="text-[11px] font-black uppercase tracking-wider text-black dark:text-white">
                 Organizational Placement & Company Binding
               </h4>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
+                  <Label className="text-[11px] font-black uppercase tracking-wider text-black dark:text-white">
                     Company Entity <span className="text-rose-500">*</span>
                   </Label>
                   <Select 
@@ -394,7 +394,7 @@ export const Tab2_EmployeeConfig: React.FC = () => {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Assigned Branch</Label>
+                  <Label className="text-[11px] font-black uppercase tracking-wider text-black dark:text-white">Assigned Branch</Label>
                   <Select value={selectedBranch} onValueChange={setSelectedBranch} disabled={branches.length === 0}>
                     <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium data-[placeholder]:font-normal text-black dark:text-white">
                       <SelectValue placeholder={branches.length === 0 ? "No branches" : "Choose branch..."} />
@@ -410,7 +410,7 @@ export const Tab2_EmployeeConfig: React.FC = () => {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Department</Label>
+                  <Label className="text-[11px] font-black uppercase tracking-wider text-black dark:text-white">Department</Label>
                   <Select value={selectedDepartment} onValueChange={setSelectedDepartment} disabled={departments.length === 0}>
                     <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium data-[placeholder]:font-normal text-black dark:text-white">
                       <SelectValue placeholder={departments.length === 0 ? "No departments" : "Choose department..."} />
@@ -440,7 +440,7 @@ export const Tab2_EmployeeConfig: React.FC = () => {
             {/* Section 4: Role Authorization & Status */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
+                <Label className="text-[11px] font-black uppercase tracking-wider text-black dark:text-white">
                   System Authorization Role <span className="text-rose-500">*</span>
                 </Label>
                 <Select value={selectedRoleId} onValueChange={setSelectedRoleId} disabled={roles.length === 0}>
@@ -461,7 +461,7 @@ export const Tab2_EmployeeConfig: React.FC = () => {
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Employment Status</Label>
+                <Label className="text-[11px] font-black uppercase tracking-wider text-black dark:text-white">Employment Status</Label>
                 <Select value={employmentStatus} onValueChange={setEmploymentStatus}>
                   <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium data-[placeholder]:font-normal text-black dark:text-white">
                     <SelectValue placeholder="Status" />
@@ -483,7 +483,7 @@ export const Tab2_EmployeeConfig: React.FC = () => {
                 size="sm"
                 onClick={handleReset}
                 disabled={submitting}
-                className="text-xs text-muted-foreground hover:text-foreground"
+                className="text-[11px] font-black uppercase tracking-wider text-muted-foreground hover:text-foreground"
               >
                 Reset Form
               </Button>
@@ -491,7 +491,7 @@ export const Tab2_EmployeeConfig: React.FC = () => {
               <Button
                 type="submit"
                 disabled={submitting || !fullName || !email || !password}
-                className="bg-[#942392] hover:bg-[#800A7A] text-white font-black text-xs uppercase tracking-wider shadow-sm h-9 px-6 rounded-xl"
+                className="bg-[#942392] hover:bg-[#800A7A] text-white font-black text-[11px] uppercase tracking-wider shadow-sm h-9 px-6 rounded-xl"
               >
                 {submitting ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : null}
                 Onboard Staff Member

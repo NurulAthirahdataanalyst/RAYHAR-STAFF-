@@ -2167,6 +2167,7 @@ export default function Attendance() {
                     const dateStr = logDate.toLocaleString("en-GB", { day: '2-digit', month: 'short', year: 'numeric' });
                     
                     let statusBadge = "bg-transparent text-slate-500 border-slate-300 dark:border-slate-700";
+                    let statusDot = "bg-slate-400";
                     let customStyle: React.CSSProperties | undefined = undefined;
 
                     const isLate = 
@@ -2174,26 +2175,44 @@ export default function Attendance() {
                       log.status === "Present (Late)" ||
                       (log.status === "Present" && log.late && log.late !== "00:00" && log.late !== "--" && log.late !== "00h 00m");
 
+                    let displayStatus = log.status;
+
                     if (isLate) {
+                      displayStatus = "LATE";
                       statusBadge = "bg-yellow-50 text-yellow-600 border-yellow-200 dark:bg-yellow-500/10 dark:border-yellow-500/20";
+                      statusDot = "bg-yellow-500";
                     } else if (log.status === "Present") {
+                      displayStatus = "ON TIME";
                       statusBadge = "bg-[#fdf4ff] text-[#942392] border-[#942392]/20 dark:bg-[#942392]/10";
-                    } else if (log.status === "Company Leave" || log.status === "Approved Leave") {
+                      statusDot = "bg-[#942392]";
+                    } else if (log.status === "Company Leave" || log.status === "Approved Leave" || log.status === "Leave" || log.status === "On Leave") {
+                      displayStatus = "ON LEAVE";
                       statusBadge = "bg-[#fdf4ff] text-[#942392] border-[#942392]/20 dark:bg-[#942392]/10";
-                    } else if (log.status === "Leave") {
-                      statusBadge = "bg-orange-50 text-orange-600 border-orange-200 dark:bg-orange-500/10 dark:border-orange-500/20";
+                      statusDot = "bg-[#942392]";
                     } else if (log.status === "Holiday") {
+                      displayStatus = "HOLIDAY";
                       statusBadge = "bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/10 dark:border-blue-500/20";
+                      statusDot = "bg-blue-500";
                     } else if (log.status === "Weekend" || log.status === "Rest Day") {
+                      displayStatus = log.status.toUpperCase();
                       statusBadge = "bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-500/10 dark:border-slate-500/20 dark:text-slate-300";
+                      statusDot = "bg-slate-400";
                     } else if (log.status === "N/A") {
+                      displayStatus = "N/A";
                       statusBadge = "bg-slate-50 text-slate-400 border-slate-200 dark:bg-slate-500/10 dark:border-slate-500/20";
+                      statusDot = "bg-slate-400";
                     } else if (log.status === "Absent") {
+                      displayStatus = "ABSENT";
                       statusBadge = "bg-red-50 text-red-600 border-red-200 dark:bg-red-500/10 dark:border-red-500/20";
+                      statusDot = "bg-red-500";
                     } else if (log.status === "Missing Clock-Out") {
+                      displayStatus = "MISSING CLOCK-OUT";
                       statusBadge = "bg-orange-50 text-orange-600 border-orange-200 dark:bg-orange-500/10 dark:border-orange-500/20";
+                      statusDot = "bg-orange-500";
                     } else if (log.status === "Outstation") {
+                      displayStatus = "OUTSTATION";
                       statusBadge = "bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/10 dark:border-blue-500/20";
+                      statusDot = "bg-blue-500";
                     }
 
                     return (
@@ -2208,9 +2227,10 @@ export default function Attendance() {
                         <TableCell className="whitespace-nowrap">
                           <span 
                             style={customStyle}
-                            className={`inline-flex items-center justify-center px-2.5 py-0.5 text-[10px] tracking-wider font-black uppercase rounded-md border ${statusBadge}`}
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[10px] tracking-wider font-black uppercase rounded-full border shadow-2xs ${statusBadge}`}
                           >
-                            {log.status === "Present (Late)" ? "LATE" : ["Leave", "Approved Leave", "On Leave", "Company Leave"].includes(log.status) ? "ON LEAVE" : log.status}
+                            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${statusDot}`} />
+                            <span>{displayStatus}</span>
                           </span>
                         </TableCell>
                         <TableCell className="font-medium text-rose-600">{log.late === "00h 00m" || log.late === "00:00" || log.late === "--" ? "--" : log.late}</TableCell>

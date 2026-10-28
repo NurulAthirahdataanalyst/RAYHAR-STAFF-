@@ -204,7 +204,7 @@ export const Tab1_SystemConfig: React.FC = () => {
       {/* Top Filter & Scope Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-muted/30 dark:bg-neutral-900/40 rounded-xl border border-border dark:border-neutral-800">
         <div className="flex flex-wrap items-center gap-2.5">
-          <span className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
+          <span className="text-[11px] font-black uppercase tracking-wider text-black dark:text-white">
             System Activity Scope:
           </span>
           <Select value={selectedCompanyFilter} onValueChange={setSelectedCompanyFilter}>
@@ -283,7 +283,7 @@ export const Tab1_SystemConfig: React.FC = () => {
       <Card className="border border-border dark:border-neutral-800 shadow-xs bg-white/70 dark:bg-card/70 backdrop-blur-md rounded-2xl overflow-hidden p-4 sm:p-6 space-y-4">
         <div className="flex items-center justify-between border-b border-border/60 pb-3">
           <div>
-            <h4 className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
+            <h4 className="text-[11px] font-black uppercase tracking-wider text-black dark:text-white">
               System Operations & Administrative Audit Trail
             </h4>
             <p className="text-[11px] text-muted-foreground">
