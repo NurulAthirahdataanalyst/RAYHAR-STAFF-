@@ -1504,15 +1504,21 @@ export default function Role() {
       {/* ASSIGNED USERS MODAL */}
       {/* ========================================================================= */}
       <Dialog open={isUsersModalOpen} onOpenChange={setIsUsersModalOpen}>
-        <DialogContent className="max-w-lg p-0 overflow-hidden rounded-2xl">
-          <DialogHeader className="p-5 border-b border-border/60 bg-muted/20">
-            <DialogTitle className="text-base font-bold flex items-center gap-2">
-              <Users className="w-4 h-4 text-[#942392]" />
-              <span>Assigned Employees: {selectedRoleForUsers?.name}</span>
-            </DialogTitle>
-            <DialogDescription className="text-xs">
-              Staff members currently inheriting permissions from this role
-            </DialogDescription>
+        <DialogContent className="max-w-lg p-0 overflow-hidden rounded-2xl [&>button]:text-white [&>button]:hover:text-white/80 border border-border/80 shadow-2xl">
+          <DialogHeader className="p-5 border-b border-white/20 bg-[#942392] text-white shrink-0 text-left">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-white/20 text-white shrink-0">
+                <Users className="w-5 h-5 text-white" />
+              </div>
+              <div className="min-w-0">
+                <DialogTitle className="text-base font-black text-white flex items-center gap-2 m-0 truncate">
+                  <span>Assigned Employees: {selectedRoleForUsers?.name}</span>
+                </DialogTitle>
+                <DialogDescription className="text-white/80 text-xs font-medium m-0 mt-0.5">
+                  Staff members currently inheriting permissions from this role
+                </DialogDescription>
+              </div>
+            </div>
           </DialogHeader>
 
           <div className="max-h-80 overflow-y-auto p-4 space-y-2">
