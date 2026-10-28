@@ -1,8 +1,9 @@
 const { Pool } = require('pg');
+const { getDbSslConfig } = require('./utils/dbSsl');
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL || 'postgresql://postgres.xvpebtompjcjfvuzeumo:RayharTravel2026@aws-1-ap-northeast-2.pooler.supabase.com:6543/postgres',
-  ssl: { rejectUnauthorized: false }
+  ssl: getDbSslConfig()
 });
 
 async function migrate() {

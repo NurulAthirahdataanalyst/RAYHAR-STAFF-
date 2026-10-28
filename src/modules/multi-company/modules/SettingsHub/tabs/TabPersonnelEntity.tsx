@@ -345,20 +345,7 @@ export const TabPersonnelEntity: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Title Header (Matches Branches & Geofence Layout from Screenshot 1) */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <h3 className="text-sm font-black uppercase tracking-wider text-foreground dark:text-white flex items-center gap-2">
-            <Users className="w-4 h-4 text-[#942392]" />
-            PERSONNEL ENTITY
-          </h3>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Manage company-scoped personnel directory, employee profiles and authorized RBAC staffing
-          </p>
-        </div>
-      </div>
-
-      {/* Top Filter & Actions Header (Matches Position & Design in Screenshot 1) */}
+      {/* Top Filter & Actions Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-muted/30 dark:bg-neutral-900/40 rounded-xl border border-border dark:border-neutral-800">
         <div className="flex flex-wrap items-center gap-2.5">
           <Users className="w-4 h-4 text-[#942392]" />
@@ -562,11 +549,11 @@ export const TabPersonnelEntity: React.FC = () => {
                       </TableCell>
 
                       {/* Branch */}
-                      <TableCell className="py-3.5 px-4">
-                        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-muted/60 border border-border/50 text-[11px] font-bold text-foreground">
+                      <TableCell className="py-3.5 px-4 whitespace-nowrap">
+                        <span className="inline-flex items-center justify-center gap-1.5 px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] border-border/80 bg-muted/50 text-foreground dark:bg-neutral-800/60 dark:border-neutral-700 shadow-2xs">
                           <Building2 className="w-3 h-3 text-[#942392]" />
                           <span>{member.branch}</span>
-                        </div>
+                        </span>
                       </TableCell>
 
                       {/* Department */}
@@ -581,42 +568,39 @@ export const TabPersonnelEntity: React.FC = () => {
                       </TableCell>
 
                       {/* Status */}
-                      <TableCell className="py-3.5 px-4">
+                      <TableCell className="py-3.5 px-4 whitespace-nowrap">
                         {isActive ? (
-                          <Badge className="bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800 text-[10px] font-black uppercase tracking-wider">
-                            Active Staff
-                          </Badge>
+                          <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] border-emerald-300 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800 shadow-2xs">
+                            ACTIVE STAFF
+                          </span>
                         ) : (
-                          <Badge variant="outline" className="bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 border-amber-200 text-[10px] font-black uppercase tracking-wider">
-                            Inactive
-                          </Badge>
+                          <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] border-amber-300 bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800 shadow-2xs">
+                            INACTIVE
+                          </span>
                         )}
                       </TableCell>
 
                       {/* Actions */}
-                      <TableCell className="py-3.5 px-5 text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setStatusConfirmEmp(member)}
-                          className={`h-8 px-2.5 rounded-lg text-[11px] font-bold ${
-                            isActive
-                              ? 'text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/30'
-                              : 'text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/30'
-                          }`}
-                        >
-                          {isActive ? (
-                            <>
-                              <UserX className="w-3.5 h-3.5 mr-1" />
-                              Deactivate
-                            </>
-                          ) : (
-                            <>
-                              <UserCheck className="w-3.5 h-3.5 mr-1" />
-                              Reactivate
-                            </>
-                          )}
-                        </Button>
+                      <TableCell className="py-3.5 px-5 text-right whitespace-nowrap">
+                        {isActive ? (
+                          <button
+                            type="button"
+                            onClick={() => setStatusConfirmEmp(member)}
+                            className="inline-flex items-center justify-center gap-1.5 px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] border-rose-300 bg-rose-50 text-rose-600 hover:bg-rose-100 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800 transition-colors cursor-pointer shadow-2xs"
+                          >
+                            <UserX className="w-3 h-3" />
+                            <span>Deactivate</span>
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setStatusConfirmEmp(member)}
+                            className="inline-flex items-center justify-center gap-1.5 px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800 transition-colors cursor-pointer shadow-2xs"
+                          >
+                            <UserCheck className="w-3 h-3" />
+                            <span>Reactivate</span>
+                          </button>
+                        )}
                       </TableCell>
                     </TableRow>
                   );

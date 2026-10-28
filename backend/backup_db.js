@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const { Pool } = require('pg');
 const dotenv = require('dotenv');
+const { getDbSslConfig } = require('./utils/dbSsl');
 
 // Load environment variables
 dotenv.config();
@@ -14,7 +15,7 @@ if (!connectionString) {
 
 const pool = new Pool({
   connectionString,
-  ssl: { rejectUnauthorized: false }
+  ssl: getDbSslConfig()
 });
 
 const tablesToBackup = [

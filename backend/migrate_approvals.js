@@ -1,5 +1,6 @@
 const mysql = require("mysql2/promise");
 const dotenv = require("dotenv");
+const { getDbSslConfig } = require("./utils/dbSsl");
 dotenv.config();
 
 const dbConfig = {
@@ -8,9 +9,7 @@ const dbConfig = {
   password: process.env.DB_PASSWORD || process.env.MYSQLPASSWORD,
   database: process.env.DB_NAME || process.env.MYSQLDATABASE,
   port: Number(process.env.DB_PORT || process.env.MYSQLPORT || 3306),
-  ssl: {
-    rejectUnauthorized: false
-  }
+  ssl: getDbSslConfig()
 };
 
 async function migrate() {

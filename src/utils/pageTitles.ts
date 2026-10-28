@@ -274,6 +274,11 @@ export function getPageTitleInfo(pathname: string, userRole?: string): PageInfo 
       subtitle: "Manage departments, divisions, and operational hierarchies per entity.",
       icon: Layers
     };
+    if (pathname.includes("/personnel")) return {
+      title: "Personnel Entity",
+      subtitle: "Manage company-scoped personnel directory, employee profiles and authorized RBAC staffing",
+      icon: Users
+    };
     return {
       title: "Corporate Entities",
       subtitle: "Manage corporate entities, holding structures, subsidiaries, and company branding.",

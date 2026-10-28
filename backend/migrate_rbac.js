@@ -1,5 +1,6 @@
 const { Pool } = require("pg");
 require("dotenv").config({ path: __dirname + "/.env" });
+const { getDbSslConfig } = require("./utils/dbSsl");
 
 const connectionString = process.env.DATABASE_URL;
 const dbConfig = {
@@ -8,11 +9,11 @@ const dbConfig = {
   password: process.env.DB_PASSWORD || process.env.MYSQLPASSWORD,
   database: process.env.DB_NAME || process.env.MYSQLDATABASE,
   port: Number(process.env.DB_PORT || process.env.MYSQLPORT || 5432),
-  ssl: { rejectUnauthorized: false }
+  ssl: getDbSslConfig()
 };
 
 const pool = connectionString
-  ? new Pool({ connectionString, ssl: { rejectUnauthorized: false }, max: 10 })
+  ? new Pool({ connectionString, ssl: getDbSslConfig(), max: 10 })
   : new Pool(dbConfig);
 
 const PERMISSION_DEFINITIONS = [
