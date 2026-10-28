@@ -231,6 +231,17 @@ export default function LeaveOverview() {
             reqStatus = "Pending Branch Leader";
           }
 
+          let historyList = [];
+          if (Array.isArray(request.approval_history)) {
+            historyList = request.approval_history;
+          } else if (typeof request.approval_history === 'string' && request.approval_history.trim()) {
+            try {
+              historyList = JSON.parse(request.approval_history);
+            } catch (_) {
+              historyList = [];
+            }
+          }
+
           return {
             id: String(request.leave_id),
             type,
@@ -242,11 +253,12 @@ export default function LeaveOverview() {
             department: request.department || "",
             status: reqStatus,
             approverRole: request.approver_role,
+            approverName: request.approver_name,
             reason: request.reason || "",
             appliedAt,
             formFileName: getLeaveFormFileName(appliedAt, type, request.full_name || userName),
             replacement_validations: request.replacement_validations || [],
-            approvalHistory: request.approval_history || [],
+            approvalHistory: historyList,
             pendingApproverName: request.pending_approver_name || "",
             pendingApproverContext: request.pending_approver_context || "",
           };
@@ -682,7 +694,8 @@ export default function LeaveOverview() {
   <div className="mt-6 space-y-4 pt-4 pb-2">
     <ApprovalStatusTracker 
       status={effectiveStatus} 
-      approverRole={req.approverRole || ""} 
+      approverRole={req.approverRole || (req as any).approver_role || ""} 
+      approverName={(req as any).approverName || (req as any).approver_name || ""}
       approvalHistory={(req as any).approvalHistory || []}
       branch={effectiveBranch} 
       department={(req as any).department || ""}

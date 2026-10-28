@@ -15,6 +15,7 @@ interface ApprovalStatusTrackerProps {
   variant?: 'horizontal' | 'linear' | 'staggered';
   status: string; // "Pending", "Pending HOD", "Approved", "Rejected"
   approverRole?: string; // The role that is currently pending or the role that rejected it
+  approverName?: string;
   approvalHistory?: ApprovalHistoryItem[]; // Passed from parent
   branch?: string; // Employee branch
   department?: string;
@@ -53,6 +54,7 @@ const formatDept = (dept?: string) => {
 export function ApprovalStatusTracker({ 
   status, 
   approverRole, 
+  approverName,
   approvalHistory = [], 
   branch = "",
   department = "",
@@ -64,7 +66,67 @@ export function ApprovalStatusTracker({
   const isRayRent = String(branch).toUpperCase() === 'RAYRENT' || String(companyName || '').toLowerCase().includes('rayrent');
   const sUpper = String(status || "").toUpperCase();
 
-  // Find approval records in history
+  // Determine stage flags
+  const isApproved = sUpper === 'APPROVED';
+  const isRejected = sUpper === 'REJECTED';
+
+
+  // Check if handled / approved by HR Admin
+  const isHrRole = (r?: string) => {
+    if (!r) return false;
+    const s = String(r).toLowerCase().trim().replace(/[\s_-]+/g, '');
+    return s.includes('hr') || s === 'admin' || s === 'superadmin' || s === 'hradmin';
+  };
+
+  const hrHistory = (approvalHistory || []).find(h => {
+    const r = String(h.approver_role || "");
+    const s = String(h.status || "").toLowerCase();
+    const hasHrInName = Boolean(h.approver_name && /hr\s*admin/i.test(h.approver_name));
+    return (isHrRole(r) || hasHrInName) && (s === 'approved' || s === 'rejected');
+  }) || (approvalHistory || []).find(h => isHrRole(h.approver_role) || Boolean(h.approver_name && /hr\s*admin/i.test(h.approver_name)));
+
+  const isApprovedByHr = 
+    Boolean(hrHistory && String(hrHistory.status || "").toLowerCase() === 'approved') ||
+    (isApproved && (isHrRole(approverRole) || (approvalHistory || []).some(h => isHrRole(h.approver_role))));
+
+  const isRejectedByHr = 
+    Boolean(hrHistory && String(hrHistory.status || "").toLowerCase() === 'rejected') ||
+    (isRejected && isHrRole(approverRole));
+
+  const isPendingHr = 
+    sUpper.includes('HR') || 
+    (isHrRole(approverRole) && !isApproved && !isRejected);
+
+  const isHrWorkflow = isApprovedByHr || isRejectedByHr || isPendingHr;
+
+  // Prepare HR Admin details
+  const hrName = hrHistory?.approver_name || approverName || (isRayRent ? "NURUL ATHIRAH ABDUL RAHMAN" : "");
+  const hrContext = isRayRent 
+    ? "RAYRENT" 
+    : (hrHistory?.approver_branch || pendingApproverContext || (branch && branch !== 'HQ' ? branch : '') || (companyName && !companyName.toLowerCase().includes('rayhar') ? companyName : 'RAYRENT'));
+
+  let hrSubtitle: string | undefined = undefined;
+  if (isApprovedByHr) {
+    hrSubtitle = hrName ? `${hrName} • ${hrContext}` : `Approved • ${hrContext}`;
+  } else if (isRejectedByHr) {
+    hrSubtitle = hrName ? `${hrName} • ${hrContext}` : `Rejected • ${hrContext}`;
+  } else {
+    // Pending
+    hrSubtitle = pendingApproverName ? `${pendingApproverName} • ${hrContext}` : `Awaiting HR Admin Approval • ${hrContext}`;
+  }
+
+  let hrDate: string | undefined = undefined;
+  if (hrHistory?.created_at) {
+    hrDate = new Date(hrHistory.created_at).toLocaleDateString('en-GB');
+  } else if (isApproved || isRejected) {
+    hrDate = new Date().toLocaleDateString('en-GB');
+  }
+
+  const stepHrStatus: 'Approved' | 'Rejected' | 'Pending' = isApprovedByHr 
+    ? 'Approved' 
+    : (isRejectedByHr ? 'Rejected' : 'Pending');
+
+  // Find approval records in history for standard multi-tier flow
   const lvl1History = (approvalHistory || []).find(h => {
     const r = String(h.approver_role || "").toLowerCase();
     return r.includes("hod") || r.includes("department") || r.includes("branch");
@@ -75,9 +137,6 @@ export function ApprovalStatusTracker({
     return r.includes("operation") || r.includes("finance") || r.includes("managing") || r.includes("director") || r.includes("md");
   });
 
-  // Determine stage flags
-  const isApproved = sUpper === 'APPROVED';
-  const isRejected = sUpper === 'REJECTED';
 
   const isLvl1Pending = sUpper.includes('HOD') || (sUpper.includes('BRANCH') && !isRayRent) || sUpper === 'PENDING';
   const isLvl2Pending = sUpper.includes('OPERATION') || sUpper.includes('FINANCE') || sUpper.includes('MD') || sUpper.includes('MANAGING') || (isRayRent && sUpper.includes('BRANCH'));
@@ -204,7 +263,21 @@ export function ApprovalStatusTracker({
     subtitle?: string;
     status: 'Approved' | 'Rejected' | 'Pending' | 'Future';
     date?: string;
-  }> = isRayRent
+  }> = isHrWorkflow
+    ? [
+        {
+          title: "SUBMIT",
+          subtitle: "Application Submitted",
+          status: "Approved",
+        },
+        {
+          title: "HR ADMIN",
+          subtitle: hrSubtitle,
+          status: stepHrStatus,
+          date: hrDate,
+        }
+      ]
+    : isRayRent
     ? [
         {
           title: "SUBMIT",
@@ -306,7 +379,11 @@ export function ApprovalStatusTracker({
               {!isLast && (
                 <div className="flex-1 flex items-center self-start mt-4 -mx-2 px-1">
                   <div className={`h-[3px] w-full rounded-full transition-colors ${
-                    isApproved ? 'bg-emerald-500' : isRejected ? 'bg-rose-400' : 'bg-slate-200 dark:bg-slate-700'
+                    isApproved && items[idx + 1]?.status === 'Approved'
+                      ? 'bg-emerald-500'
+                      : isRejected
+                      ? 'bg-rose-400'
+                      : 'bg-slate-200 dark:bg-slate-700'
                   }`} />
                 </div>
               )}

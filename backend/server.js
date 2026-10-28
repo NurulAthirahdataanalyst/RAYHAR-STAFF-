@@ -4560,7 +4560,8 @@ app.get("/api/leave-requests", async (req, res) => {
           CASE WHEN UPPER(p.branch) = 'RAYRENT' THEN 'RayRent' ELSE 'Rayhar Travels' END
         ) AS company_name,
         COALESCE(lr.phone, p.phone, '') AS phone,
-        COALESCE(ur_approver.role, '') AS approver_role,
+        COALESCE(p_appr.full_name, '') AS approver_name,
+        COALESCE(ur_approver.role, p_appr.role, '') AS approver_role,
         GREATEST((COALESCE(p.annual_leave_entitlement, 14) + COALESCE(adj.annual_adj, 0)) - COALESCE(l_used.annual_days_used, 0), 0)::int AS annual_leave_balance,
         GREATEST((COALESCE(p.medical_leave_entitlement, 14) + COALESCE(adj.medical_adj, 0)) - COALESCE(l_used.medical_days_used, 0), 0)::int AS medical_leave_balance,
         GREATEST(COALESCE(adj.replacement_adj, 0) - COALESCE(l_used.replacement_days_used, 0), 0)::int AS replacement_leave_balance,
@@ -4623,6 +4624,7 @@ app.get("/api/leave-requests", async (req, res) => {
       LEFT JOIN branches b_comp ON UPPER(b_comp.code) = UPPER(p.branch)
       LEFT JOIN companies c_branch ON c_branch.id = b_comp.company_id
       LEFT JOIN user_role ur_approver ON ur_approver.user_id = lr.approver_id
+      LEFT JOIN profiles p_appr ON p_appr.user_id = lr.approver_id
       LEFT JOIN (
         SELECT employee_id, 
                SUM(CASE WHEN UPPER(leave_type) IN ('ANNUAL LEAVE', 'ANNUAL & EMERGENCY LEAVE', 'ANNUAL/EMERGENCY LEAVE', 'CUTI TAHUNAN') THEN adjustment_days ELSE 0 END) AS annual_adj,
