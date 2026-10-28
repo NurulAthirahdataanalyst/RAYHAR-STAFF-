@@ -1848,6 +1848,8 @@ function createMultiCompanyRouter(pgPool) {
         annual_days = 14,
         sick_days = 14,
         emergency_days = 5,
+        replacement_days = 0,
+        unpaid_days = 0,
         mc_required = true,
         escalate_to_parent = true
       } = req.body;
@@ -1855,15 +1857,17 @@ function createMultiCompanyRouter(pgPool) {
       await pgPool.query(
         `INSERT INTO leave_settings (company_id, leave_type, default_entitlement_days, escalate_to_parent, mc_required, updated_at)
          VALUES
-           ($1, 'Annual Leave', $2, $5, FALSE, CURRENT_TIMESTAMP),
-           ($1, 'Sick Leave', $3, $5, $6, CURRENT_TIMESTAMP),
-           ($1, 'Emergency Leave', $4, $5, FALSE, CURRENT_TIMESTAMP)
+           ($1, 'Annual Leave', $2, $7, FALSE, CURRENT_TIMESTAMP),
+           ($1, 'Sick Leave', $3, $7, $8, CURRENT_TIMESTAMP),
+           ($1, 'Emergency Leave', $4, $7, FALSE, CURRENT_TIMESTAMP),
+           ($1, 'Replacement Leave', $5, $7, FALSE, CURRENT_TIMESTAMP),
+           ($1, 'Unpaid Leave', $6, $7, FALSE, CURRENT_TIMESTAMP)
          ON CONFLICT (company_id, leave_type) DO UPDATE SET
            default_entitlement_days = EXCLUDED.default_entitlement_days,
            escalate_to_parent = EXCLUDED.escalate_to_parent,
            mc_required = EXCLUDED.mc_required,
            updated_at = CURRENT_TIMESTAMP`,
-        [companyId, annual_days, sick_days, emergency_days, escalate_to_parent, mc_required]
+        [companyId, annual_days, sick_days, emergency_days, replacement_days, unpaid_days, escalate_to_parent, mc_required]
       );
 
       const updated = await pgPool.query('SELECT * FROM leave_settings WHERE company_id = $1 ORDER BY id ASC', [companyId]);

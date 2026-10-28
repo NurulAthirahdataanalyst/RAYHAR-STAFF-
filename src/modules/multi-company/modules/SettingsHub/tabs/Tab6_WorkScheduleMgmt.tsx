@@ -659,28 +659,28 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
                             onClick={() => handleSelectZoneBranches('ZONE_A')}
                             className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#942392]/10 text-[#942392] dark:text-[#f885d5] border border-[#942392]/30 hover:bg-[#942392]/20 transition-colors shadow-xs cursor-pointer uppercase tracking-wider"
                           >
-                            Tick Zone A
+                            ZONE A
                           </button>
                           <button
                             type="button"
                             onClick={() => handleSelectZoneBranches('ZONE_B')}
                             className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/30 hover:bg-blue-500/20 transition-colors shadow-xs cursor-pointer uppercase tracking-wider"
                           >
-                            Tick Zone B
+                            ZONE B
                           </button>
                           <button
                             type="button"
                             onClick={() => setSelectedBranches(branches.map((b) => b.code.toUpperCase()).sort())}
                             className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-muted hover:bg-muted/80 text-foreground border border-border/60 transition-colors shadow-xs cursor-pointer uppercase tracking-wider"
                           >
-                            Select All
+                            SELECT ALL
                           </button>
                           <button
                             type="button"
                             onClick={() => setSelectedBranches([])}
                             className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-neutral-800 text-slate-600 dark:text-neutral-300 border border-slate-300 dark:border-neutral-700 hover:bg-slate-200 dark:hover:bg-neutral-700 transition-colors shadow-xs cursor-pointer uppercase tracking-wider ml-auto"
                           >
-                            Clear
+                            CLEAR
                           </button>
                         </div>
                       </div>
@@ -745,13 +745,13 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
                                 </span>
                               </div>
                               <span
-                                className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full shrink-0 ${
+                                className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full shrink-0 border ${
                                   bZone === 'ZONE_A'
-                                    ? 'bg-[#942392]/15 text-[#942392] dark:text-[#f885d5]'
-                                    : 'bg-blue-500/15 text-blue-600 dark:text-blue-400'
+                                    ? 'bg-[#942392]/10 text-[#942392] dark:text-[#f885d5] border-[#942392]/30'
+                                    : 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30'
                                 }`}
                               >
-                                {bZone === 'ZONE_A' ? 'Zone A' : bZone === 'ZONE_B' ? 'Zone B' : bZone}
+                                {bZone === 'ZONE_A' ? 'ZONE A' : bZone === 'ZONE_B' ? 'ZONE B' : bZone}
                               </span>
                             </div>
                           );
@@ -777,14 +777,14 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
                       onClick={() => handleSelectZoneBranches('ZONE_A')}
                       className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#942392]/10 text-[#942392] dark:text-[#f885d5] border border-[#942392]/30 hover:bg-[#942392]/20 transition-colors shadow-xs cursor-pointer uppercase tracking-wider"
                     >
-                      Tick Zone A
+                      ZONE A
                     </button>
                     <button
                       type="button"
                       onClick={() => handleSelectZoneBranches('ZONE_B')}
                       className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/30 hover:bg-blue-500/20 transition-colors shadow-xs cursor-pointer uppercase tracking-wider"
                     >
-                      Tick Zone B
+                      ZONE B
                     </button>
                     {selectedBranches.length > 0 && (
                       <button
@@ -792,7 +792,7 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
                         onClick={() => setSelectedBranches([])}
                         className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-neutral-800 text-slate-600 dark:text-neutral-300 border border-slate-300 dark:border-neutral-700 hover:bg-slate-200 dark:hover:bg-neutral-700 transition-colors shadow-xs cursor-pointer uppercase tracking-wider"
                       >
-                        Clear
+                        CLEAR
                       </button>
                     )}
                   </div>
