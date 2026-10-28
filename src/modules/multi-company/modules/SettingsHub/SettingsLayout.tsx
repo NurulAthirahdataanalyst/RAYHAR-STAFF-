@@ -27,6 +27,7 @@ import { Tab7_AttendanceConfig } from './tabs/Tab7_AttendanceConfig';
 import { Tab8_LeaveWorkflowConfig } from './tabs/Tab8_LeaveWorkflowConfig';
 import { Tab9_IAM } from './tabs/Tab9_IAM';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
 import { useCompany } from '../../contexts/CompanyContext';
 import { multiCompanyApi } from '../../services/multiCompanyApi';
 import { AuditLogItem } from '../../types/multiCompany.types';
@@ -49,14 +50,14 @@ interface TabDefinition {
 }
 
 const SETTINGS_TABS: TabDefinition[] = [
-  { id: 'attendance', label: '1. ATTENDANCE CONFIG', icon: Clock },
-  { id: 'employee', label: '2. PERSONNEL MANAGEMENT', icon: UserPlus },
-  { id: 'company', label: '3. COMPANY MANAGEMENT', icon: Building2 },
-  { id: 'branch', label: '4. BRANCH & LOCATION', icon: MapPin },
-  { id: 'department', label: '5. DEPARTMENT MANAGEMENT', icon: Layers },
-  { id: 'schedule', label: '6. WORK SCHEDULES', icon: CalendarClock },
-  { id: 'leave', label: '7. LEAVE & APPROVALS', icon: FileCheck2 },
-  { id: 'iam', label: '8. ROLES & PERMISSIONS', icon: ShieldCheck },
+  { id: 'attendance', label: 'ATTENDANCE CONFIG', icon: Clock },
+  { id: 'employee', label: 'PERSONNEL MANAGEMENT', icon: UserPlus },
+  { id: 'company', label: 'COMPANY MANAGEMENT', icon: Building2 },
+  { id: 'branch', label: 'BRANCH & LOCATION', icon: MapPin },
+  { id: 'department', label: 'DEPARTMENT MANAGEMENT', icon: Layers },
+  { id: 'schedule', label: 'WORK SCHEDULES', icon: CalendarClock },
+  { id: 'leave', label: 'LEAVE & APPROVALS', icon: FileCheck2 },
+  { id: 'iam', label: 'ROLES & PERMISSIONS', icon: ShieldCheck },
 ];
 
 export const SettingsLayout: React.FC = () => {
@@ -163,33 +164,58 @@ export const SettingsLayout: React.FC = () => {
               </button>
             </div>
 
-            {SETTINGS_TABS.map((tab, idx) => {
-              const isActive = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => handleTabChange(tab.id)}
-                  title={isCollapsed ? tab.label : undefined}
-                  className={`flex items-center ${
-                    isCollapsed ? 'justify-center py-3 px-0' : 'py-2.5 lg:py-3 px-3.5 sm:px-4'
-                  } text-[10px] font-black uppercase tracking-wider rounded-xl transition-all duration-300 text-left shrink-0 lg:shrink lg:w-full whitespace-nowrap lg:whitespace-normal group cursor-pointer ${
-                    isActive 
-                      ? "bg-[#ffff00] text-[#942392] shadow-md font-black" 
-                      : "text-white/90 hover:text-white hover:bg-white/10 font-bold"
-                  }`}
-                >
-                  {isCollapsed ? (
-                    <span className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-xs ${
-                      isActive ? "bg-[#942392]/10 text-[#942392]" : "bg-white/10 text-white"
-                    }`}>
-                      {idx + 1}
-                    </span>
-                  ) : (
+            <TooltipProvider delayDuration={100}>
+              {SETTINGS_TABS.map((tab) => {
+                const isActive = activeTab === tab.id;
+                const IconComponent = tab.icon;
+
+                if (isCollapsed) {
+                  return (
+                    <Tooltip key={tab.id}>
+                      <TooltipTrigger asChild>
+                        <button
+                          onClick={() => handleTabChange(tab.id)}
+                          aria-label={tab.label}
+                          className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 mx-auto group cursor-pointer ${
+                            isActive 
+                              ? "bg-[#ffff00] text-[#942392] shadow-md" 
+                              : "text-white/90 hover:text-white hover:bg-white/10"
+                          }`}
+                        >
+                          <IconComponent className={`w-5 h-5 shrink-0 transition-transform group-hover:scale-110 ${
+                            isActive ? "text-[#942392]" : "text-white"
+                          }`} />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent 
+                        side="right" 
+                        sideOffset={12}
+                        className="bg-neutral-900 text-white border-neutral-700 shadow-xl px-3 py-1.5 text-[11px] font-black uppercase tracking-wider z-50 rounded-lg"
+                      >
+                        {tab.label}
+                      </TooltipContent>
+                    </Tooltip>
+                  );
+                }
+
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => handleTabChange(tab.id)}
+                    className={`flex items-center py-2.5 lg:py-3 px-3.5 sm:px-4 text-[10px] font-black uppercase tracking-wider rounded-xl transition-all duration-300 text-left shrink-0 lg:shrink lg:w-full whitespace-nowrap lg:whitespace-normal group cursor-pointer ${
+                      isActive 
+                        ? "bg-[#ffff00] text-[#942392] shadow-md font-black" 
+                        : "text-white/90 hover:text-white hover:bg-white/10 font-bold"
+                    }`}
+                  >
+                    <IconComponent className={`w-4 h-4 shrink-0 mr-2.5 transition-transform group-hover:scale-110 ${
+                      isActive ? "text-[#942392]" : "text-white"
+                    }`} />
                     <span className="truncate">{tab.label}</span>
-                  )}
-                </button>
-              );
-            })}
+                  </button>
+                );
+              })}
+            </TooltipProvider>
           </div>
         </aside>
 
