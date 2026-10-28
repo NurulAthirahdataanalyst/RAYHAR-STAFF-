@@ -430,7 +430,7 @@ export const Tab9_IAM: React.FC = () => {
         <div className="flex flex-wrap items-center gap-2.5">
           <ShieldCheck className="w-4 h-4 text-[#942392]" />
           <span className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
-            Company IAM Scope:
+            Company Scope:
           </span>
           <Select 
             value={selectedCompanyId ? selectedCompanyId.toString() : "1"} 

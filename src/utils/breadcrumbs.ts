@@ -136,6 +136,7 @@ export function getBreadcrumbs(rawPathname: string, rawSearch?: string, role?: s
         else if (tab === "staff" || tab === "personnel") tabLabel = "PERSONNEL MANAGEMENT";
         else if (tab === "branch") tabLabel = "BRANCH MANAGEMENT";
         else if (tab === "department") tabLabel = "DEPARTMENT MANAGEMENT";
+        else if (tab === "iam") tabLabel = "ROLES & PERMISSIONS";
         base.push({ label: tabLabel });
       }
     }

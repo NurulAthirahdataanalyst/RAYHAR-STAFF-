@@ -59,7 +59,7 @@ const SETTINGS_TABS: TabDefinition[] = [
   { id: 'schedule', label: '6. WORK SCHEDULES', icon: CalendarClock },
   { id: 'attendance', label: '7. ATTENDANCE CONFIG', icon: Clock },
   { id: 'leave', label: '8. LEAVE & APPROVALS', icon: FileCheck2 },
-  { id: 'iam', label: '9. IDENTITY & ACCESS (IAM)', icon: ShieldCheck },
+  { id: 'iam', label: '9. ROLES & PERMISSIONS', icon: ShieldCheck },
 ];
 
 export const SettingsLayout: React.FC = () => {
@@ -121,7 +121,7 @@ export const SettingsLayout: React.FC = () => {
           <div>
             <h1 className="text-2xl font-black text-foreground uppercase tracking-tight">Portal Configurations</h1>
             <p className="text-xs sm:text-sm text-foreground italic mt-0.5">
-              Enterprise multi-company governance, branch geofencing, and centralized IAM roles
+              Enterprise multi-company governance, branch geofencing, and centralized roles
             </p>
           </div>
         </div>
