@@ -208,6 +208,7 @@ export const TabPersonnelEntity: React.FC = () => {
   const handleOpenAddStaffModal = () => {
     setSignupCompanyId(selectedCompanyId);
     setSignupName('');
+    setSignupIc('');
     setSignupUserId('');
     setSignupPhone('');
     setSignupEmail('');
@@ -221,10 +222,6 @@ export const TabPersonnelEntity: React.FC = () => {
     e.preventDefault();
     if (!signupName.trim()) {
       toast.error('Full Name is required');
-      return;
-    }
-    if (!signupUserId.trim()) {
-      toast.error('ID Staff / User ID is required');
       return;
     }
     if (signupPassword.length < 6) {
@@ -245,7 +242,7 @@ export const TabPersonnelEntity: React.FC = () => {
           'X-Company-Id': String(signupCompanyId),
         },
         body: JSON.stringify({
-          user_id: signupUserId.trim(),
+          user_id: signupUserId.trim() || undefined,
           full_name: signupName.trim(),
           email: signupEmail.trim(),
           password: signupPassword,
@@ -254,15 +251,25 @@ export const TabPersonnelEntity: React.FC = () => {
           role: chosenRoleName,
           status: 'Active',
           company_id: signupCompanyId,
+          ic_number: signupIc ? formatMyKad(signupIc) : null,
           phone: signupPhone ? formatMalaysianPhone(signupPhone) : null,
+          gender: parsedSignupIc.gender || null,
+          dob: parsedSignupIc.dob || null,
           join_date: signupJoinDate || null,
         }),
       });
 
       const data = await response.json();
       if (response.ok && data.success) {
-        toast.success(`Successfully onboarded staff ${data.user?.full_name || signupName}`);
+        toast.success(`Successfully created user ${data.user?.full_name || signupName}`);
         setIsAddModalOpen(false);
+        setSignupName('');
+        setSignupIc('');
+        setSignupUserId('');
+        setSignupEmail('');
+        setSignupPassword('');
+        setSignupPhone('');
+        setSignupJoinDate(new Date().toISOString().split('T')[0]);
         await fetchPersonnel(selectedCompanyId);
       } else {
         toast.error(data.error || 'Failed to onboard staff account');
@@ -668,7 +675,7 @@ export const TabPersonnelEntity: React.FC = () => {
       </Dialog>
 
       {/* ========================================================================= */}
-      {/* ADD NEW STAFF MODAL (Exact Layout from Screenshot 4)                     */}
+      {/* ADD NEW STAFF MODAL (Exact Layout from Screenshot 3)                     */}
       {/* ========================================================================= */}
       <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
         <DialogContent className="sm:max-w-4xl md:max-w-5xl lg:max-w-5xl w-full overflow-hidden p-0 border-0 border-none shadow-2xl rounded-3xl [&>button]:text-white [&>button]:hover:text-white/80 bg-card">
@@ -677,17 +684,17 @@ export const TabPersonnelEntity: React.FC = () => {
               ADD NEW STAFF
             </DialogTitle>
             <DialogDescription className="text-white/80 text-xs font-bold uppercase tracking-wider m-0 mt-1">
-              CREATE A NEW USER PROFILE TO AUTHORIZE ON PRESENCE ATTENDANCE SYSTEM AND RBAC
+              CREATE A NEW USER ACCOUNT FOR AN EMPLOYEE WITH DESIGNATED COMPANY, BRANCH, AND ROLE.
             </DialogDescription>
           </DialogHeader>
 
           <form onSubmit={handleSignup} className="p-6 space-y-4 bg-card">
-            {/* Row 1: Company Entities (Col 1) & Full Name (Col 2) */}
+            {/* Row 1: Company Entity & Full Name */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-foreground flex items-center gap-1.5">
                   <Building2 className="w-3.5 h-3.5 text-[#942392]" />
-                  COMPANY ENTITIES <span className="text-rose-500">*</span>
+                  COMPANY ENTITY <span className="text-rose-500">*</span>
                 </Label>
                 <Select
                   value={String(signupCompanyId)}
@@ -726,20 +733,20 @@ export const TabPersonnelEntity: React.FC = () => {
               </div>
             </div>
 
-            {/* Row 2: ID Staff / User ID (Col 1) & Phone Number (Col 2) */}
+            {/* Row 2: ID Card (IC) Number & Phone Number */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label htmlFor="signup-userid" className="text-[10px] font-black uppercase tracking-widest text-foreground">
-                  ID STAFF / USER ID <span className="text-rose-500">*</span>
+                <Label htmlFor="signup-ic" className="text-[10px] font-black uppercase tracking-widest text-foreground">
+                  ID CARD (IC) NUMBER
                 </Label>
                 <Input
-                  id="signup-userid"
+                  id="signup-ic"
                   type="text"
+                  maxLength={14}
                   className="h-11 px-4 bg-background/50 border border-border/80 focus:border-[#942392] focus:ring-2 focus:ring-[#942392]/10 rounded-xl text-xs font-mono font-bold"
-                  placeholder="e.g. EMP-0012 or 1012"
-                  value={signupUserId}
-                  onChange={(e) => setSignupUserId(e.target.value)}
-                  required
+                  placeholder="e.g. 900101-14-5678"
+                  value={signupIc}
+                  onChange={(e) => setSignupIc(formatMyKad(e.target.value))}
                 />
               </div>
 
@@ -758,6 +765,26 @@ export const TabPersonnelEntity: React.FC = () => {
                 />
               </div>
             </div>
+
+            {/* Real-time Dynamic Info Bar from IC */}
+            {signupIc && (
+              <div className="p-3 bg-purple-50/70 dark:bg-purple-950/30 border border-purple-200/80 dark:border-purple-800/60 rounded-xl flex items-center justify-between flex-wrap gap-2 animate-in fade-in slide-in-from-top-1 text-xs">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-[#942392]">DATE OF BIRTH:</span>
+                  <span className="font-bold text-slate-800 dark:text-slate-200">{parsedSignupIc.formattedDob || "Calculating..."}</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-[#942392]">AGE:</span>
+                  <span className="font-black text-[#942392]">{parsedSignupIc.age !== null ? `${parsedSignupIc.age} years old` : "—"}</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-[#942392]">GENDER:</span>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-white dark:bg-purple-900 border border-purple-200 text-[#942392] dark:text-purple-200">
+                    {parsedSignupIc.gender || "—"}
+                  </span>
+                </div>
+              </div>
+            )}
 
             {/* Row 3: 4 Columns: Date of Join, Branch Assignment, Department, Role */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -820,7 +847,7 @@ export const TabPersonnelEntity: React.FC = () => {
 
               <div className="space-y-1.5">
                 <Label htmlFor="signup-department" className="text-[10px] font-black uppercase tracking-widest text-foreground">
-                  DEPARTMENT
+                  DEPARTMENT {modalDepartments.length > 0 && <span className="text-slate-400 font-normal normal-case">(Optional)</span>}
                 </Label>
                 {modalDepartments.length > 0 ? (
                   <Select value={signupDepartment} onValueChange={setSignupDepartment} disabled={loadingModalData}>
@@ -877,17 +904,17 @@ export const TabPersonnelEntity: React.FC = () => {
               </div>
             </div>
 
-            {/* Row 4: System Email (Col 1) & Initial Password (Col 2) */}
+            {/* Row 4: Official Email Address & Initial Password */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label htmlFor="signup-email" className="text-[10px] font-black uppercase tracking-widest text-foreground">
-                  SYSTEM EMAIL ADDRESS <span className="text-rose-500">*</span>
+                  OFFICIAL EMAIL ADDRESS <span className="text-rose-500">*</span>
                 </Label>
                 <Input
                   id="signup-email"
                   type="email"
                   className="h-11 px-4 bg-background/50 border border-border/80 focus:border-[#942392] focus:ring-2 focus:ring-[#942392]/10 rounded-xl text-xs font-bold"
-                  placeholder="ahmad.rayhar@rayhar.com"
+                  placeholder="ahmad@rayhar.com"
                   value={signupEmail}
                   onChange={(e) => setSignupEmail(e.target.value)}
                   required
@@ -936,12 +963,12 @@ export const TabPersonnelEntity: React.FC = () => {
                 {isSubmitting ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Onboarding Staff...</span>
+                    <span>Creating User...</span>
                   </>
                 ) : (
                   <>
                     <Plus className="w-4 h-4" />
-                    <span>ONBOARD STAFF</span>
+                    <span>CREATE USER</span>
                   </>
                 )}
               </Button>
