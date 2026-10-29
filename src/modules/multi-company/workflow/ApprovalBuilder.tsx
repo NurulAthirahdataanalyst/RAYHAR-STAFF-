@@ -223,8 +223,8 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
         const currentBranches: CompanyBranch[] = Array.isArray(branchData) && branchData.length > 0 
           ? branchData 
           : isMainCompany 
-            ? [{ id: 1, company_id: 1, code: 'HQ', name: 'Rayhar HQ' }]
-            : [{ id: 2, company_id: companyId, code: 'RAYRENT', name: `${companyName} Branch` }];
+            ? [{ code: 'HQ', name: 'Rayhar HQ' } as CompanyBranch]
+            : [{ code: 'RAYRENT', name: `${companyName} Branch` } as CompanyBranch];
 
         setBranches(currentBranches);
         setDepartments(deptData || []);

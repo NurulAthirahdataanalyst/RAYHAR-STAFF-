@@ -2395,7 +2395,7 @@ async function getEmployeeLocations(branch, department, role, companyId = null) 
       const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
       filter += " AND LOWER(p.department) = LOWER(?)";
       params.push(safeDept);
-    } else if (['hr_admin', 'hr', 'admin', 'managing_director', 'md', 'operation_manager', 'finance_manager'].includes(normRole)) {
+    } else if (['hr_admin', 'hr', 'admin', 'managing_director', 'md', 'operation_manager', 'finance_manager', 'assure_leader'].includes(normRole)) {
       if (branch && branch !== "All") {
         filter += " AND LOWER(p.branch) = LOWER(?)";
         params.push(branch);
@@ -2511,7 +2511,7 @@ async function getLiveAttendanceStats(queryDate, role, branch, department, compa
       const safeDept = (cleanDept && cleanDept !== "All") ? cleanDept : "INVALID_BYPASS";
       filterP = `${companyFilter} AND LOWER(p.department) = LOWER(?)`;
       paramsTotal.push(safeDept);
-    } else if (['hr_admin', 'hr', 'admin', 'managing_director', 'md', 'operation_manager', 'finance_manager'].includes(normRole)) {
+    } else if (['hr_admin', 'hr', 'admin', 'managing_director', 'md', 'operation_manager', 'finance_manager', 'assure_leader'].includes(normRole)) {
       filterP = companyFilter;
       paramsTotal = [];
     }
@@ -3099,7 +3099,7 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
     const safeDept = (cleanDept && cleanDept !== "All") ? cleanDept : "INVALID_BYPASS";
     filterP = `${companyFilter} AND LOWER(p.department) = LOWER(?)`;
     paramsBase.push(safeDept);
-  } else if (['hr_admin', 'hr', 'admin', 'managing_director', 'md', 'operation_manager', 'finance_manager'].includes(normRole)) {
+  } else if (['hr_admin', 'hr', 'admin', 'managing_director', 'md', 'operation_manager', 'finance_manager', 'assure_leader'].includes(normRole)) {
     filterP = companyFilter;
     paramsBase = [];
   }
@@ -3234,10 +3234,10 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
   }
 
   // Pending approvals — role-filtered
-  let pendingFilters = ["lr.status IN ('Pending', 'Pending Finance', 'Pending MD', 'Pending HOD')"];
+  let pendingFilters = ["lr.status IN ('Pending', 'Pending Finance', 'Pending MD', 'Pending HOD', 'Pending Assure Leader')"];
   if (companyFilter) pendingFilters.push(companyFilter.replace(/^\s*AND\s+/i, ""));
   let pendingParams = [];
-  if (!['hr_admin', 'managing_director', 'operation_manager', 'finance_manager'].includes(role)) {
+  if (!['hr_admin', 'managing_director', 'operation_manager', 'finance_manager', 'assure_leader'].includes(role)) {
     if (branch) { pendingFilters.push("LOWER(p.branch) = LOWER(?)"); pendingParams.push(branch); }
     if (department) { pendingFilters.push("LOWER(p.department) = LOWER(?)"); pendingParams.push(department); }
   }
@@ -6570,7 +6570,7 @@ app.get("/api/employees", async (req, res) => {
     } else if (role === "head_of_department" && department) {
       filters.push("LOWER(p.department) = LOWER(?)");
       params.push(department);
-    } else if (!["hr_admin", "admin", "hr", "managing_director", "md", "finance_manager", "operation_manager"].includes(role) && branch) {
+    } else if (!["hr_admin", "admin", "hr", "managing_director", "md", "finance_manager", "operation_manager", "assure_leader"].includes(role) && branch) {
       filters.push("LOWER(p.branch) = LOWER(?)");
       params.push(branch);
     }
@@ -8561,6 +8561,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
     else if (role.includes('md') || role.includes('managing director')) role = 'managing_director';
     else if (role.includes('branch leader') || role === 'branch_leader') role = 'branch_leader';
     else if (role.includes('finance manager') || role.includes('operation manager') || role.includes('operations manager')) role = 'operation_manager';
+    else if (role.includes('assure leader') || role.includes('assure_leader') || role.includes('assure')) role = 'assure_leader';
     else if (role.includes('head of department') || role.includes('hod') || role === 'head_of_department') role = 'head_of_department';
     else if (role.includes('employee') || role.includes('staff')) role = 'employee';
 
@@ -8588,7 +8589,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
     const rawCompanyId = req.query.company_id || req.query.companyId || req.companyId;
     const companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
 
-    if (["hr_admin", "branch_leader", "managing_director", "operation_manager", "finance_manager", "head_of_department"].includes(role)) {
+    if (["hr_admin", "branch_leader", "managing_director", "operation_manager", "finance_manager", "head_of_department", "assure_leader"].includes(role)) {
       try {
         const isBranchLeader = role === "branch_leader";
         const isHOD = role === "head_of_department";
@@ -8716,6 +8717,10 @@ app.get("/api/dashboard-stats", async (req, res) => {
         } else if (role === "operation_manager" || role === "finance_manager") {
           [pendingRows] = await pool.query(
             `SELECT COUNT(*) AS pending_approvals FROM leave_requests lr WHERE (lr.status LIKE 'Pending Operation%' OR lr.status LIKE 'Pending Finance%') AND lr.user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE p_s.status = 'Active')`
+          );
+        } else if (role === "assure_leader") {
+          [pendingRows] = await pool.query(
+            `SELECT COUNT(*) AS pending_approvals FROM leave_requests lr WHERE (lr.status LIKE 'Pending Assure%' OR lr.status = 'Pending Assure Leader') AND lr.user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE p_s.status = 'Active')`
           );
         } else if (role === "hr_admin") {
           [pendingRows] = await pool.query(
@@ -9273,7 +9278,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
 
     // ── Layer 2: TEAM ACTIVITY (branch_leader, hod, hr_admin, md, finance_manager) ─
     let teamActivityRows = [];
-    const isElevatedRole = ["hr_admin", "branch_leader", "managing_director", "operation_manager", "finance_manager", "head_of_department"].includes(role);
+    const isElevatedRole = ["hr_admin", "branch_leader", "managing_director", "operation_manager", "finance_manager", "head_of_department", "assure_leader"].includes(role);
 
     if (isElevatedRole) {
       const department = safeString(req.query.department);
@@ -9294,7 +9299,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
           teamParams = [department];
         }
       }
-      const isGroupWideRole = ["hr_admin", "managing_director", "operation_manager", "finance_manager"].includes(role);
+      const isGroupWideRole = ["hr_admin", "managing_director", "operation_manager", "finance_manager", "assure_leader"].includes(role);
       const teamFilterP = `${teamCompanyP} ${teamFilter}`;
       const teamFilterEmp = `${teamCompanyEmp} ${teamFilter.replace(/p\./g, 'emp.')}`;
       const teamLeaveFilterEmp = `${isGroupWideRole ? "" : teamCompanyEmp} ${teamFilter.replace(/p\./g, 'emp.')}`;
@@ -9440,7 +9445,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
 
     // ── Layer 3: SYSTEM ACTIVITY (hr_admin, managing_director, finance_manager; hod limited) ─
     let systemActivityRows = [];
-    const canSeeSystem = ["hr_admin", "managing_director", "operation_manager", "finance_manager", "head_of_department"].includes(role);
+    const canSeeSystem = ["hr_admin", "managing_director", "operation_manager", "finance_manager", "head_of_department", "assure_leader"].includes(role);
 
     if (canSeeSystem) {
       const department = safeString(req.query.department);
@@ -10643,7 +10648,7 @@ app.get("/api/workforce-stats", async (req, res) => {
       const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
       profileFilter = `${companyFilter} AND LOWER(p.department) = LOWER(?)`;
       pFilterParams.push(safeDept);
-    } else if (['hr_admin', 'hr', 'admin', 'managing_director', 'md', 'operation_manager', 'finance_manager'].includes(normRole)) {
+    } else if (['hr_admin', 'hr', 'admin', 'managing_director', 'md', 'operation_manager', 'finance_manager', 'assure_leader'].includes(normRole)) {
       profileFilter = companyFilter;
       pFilterParams = [];
     }
@@ -12441,7 +12446,7 @@ app.get("/api/who-out-today", async (req, res) => {
       params.push(department);
     } else if (role === "head_of_department") {
       filters.push("1 = 0");
-    } else if (!["hr_admin", "admin", "hr", "managing_director", "md", "finance_manager", "operation_manager"].includes(role) && branch) {
+    } else if (!["hr_admin", "admin", "hr", "managing_director", "md", "finance_manager", "operation_manager", "assure_leader"].includes(role) && branch) {
       filters.push("LOWER(p.branch) = LOWER(?)");
       params.push(branch);
     }

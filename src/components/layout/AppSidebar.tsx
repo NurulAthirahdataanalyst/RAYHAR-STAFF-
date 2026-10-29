@@ -102,7 +102,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
   const adminSectionTitle = 
     role === "branch_leader" ? "BRANCH ADMINISTRATION" :
     role === "head_of_department" ? "HOD ADMINISTRATION" :
-    (role === "managing_director" || role === "operation_manager") ? "MANAGEMENT & ADMINISTRATION" :
+    (role === "managing_director" || role === "operation_manager" || role === "assure_leader") ? "MANAGEMENT & ADMINISTRATION" :
     "HR ADMINISTRATION";
 
   // Comprehensive RBAC-driven menu definition
@@ -111,7 +111,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
     const isHRAdmin = norm === "hr_admin" || norm === "admin" || norm === "hr";
     const isBL = norm === "branch_leader";
     const isHOD = norm === "head_of_department" || norm === "hod";
-    const isMD_OM = norm === "managing_director" || norm === "operation_manager" || norm === "finance_manager" || norm === "md";
+    const isMD_OM = norm === "managing_director" || norm === "operation_manager" || norm === "finance_manager" || norm === "md" || norm === "assure_leader";
     const isEmployee = norm === "employee" || norm === "branch_officer";
 
     // 1. EMPLOYEE ROLE

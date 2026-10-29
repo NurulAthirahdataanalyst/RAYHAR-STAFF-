@@ -60,7 +60,8 @@ export const CompanySwitcher: React.FC<CompanySwitcherProps> = ({
     isParentScope(cachedScope) ||
     userCompanies.some(uc => isParentScope(uc.scope_type)) ||
     resolvedRole === 'managing_director' ||
-    resolvedRole === 'operation_manager';
+    resolvedRole === 'operation_manager' ||
+    resolvedRole === 'assure_leader';
 
   const canSwitchCompany = hasParentGroupScope;
 

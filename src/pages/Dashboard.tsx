@@ -65,7 +65,7 @@ export default function Dashboard() {
   const { activeCompany } = useCompany();
   const isEmployee = role === "employee" || 
     (typeof role === "string" && (role.toLowerCase().includes("employee") || role.toLowerCase().includes("staff"))) || 
-    !["hr_admin", "branch_leader", "head_of_department", "managing_director", "operation_manager", "finance_manager"].includes(role);
+    !["hr_admin", "branch_leader", "head_of_department", "managing_director", "operation_manager", "finance_manager", "assure_leader"].includes(role);
   const storedUser = getStoredUser();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
@@ -121,7 +121,7 @@ export default function Dashboard() {
   const [activities, setActivities] = useState<any[]>([]);
   const [activityFeed, setActivityFeed] = useState<{ my: any[]; team: any[]; system: any[] }>({ my: [], team: [], system: [] });
   const [activeTab, setActiveTab] = useState<"my" | "team" | "system" | "all">(() => {
-    return ["hr_admin", "branch_leader", "managing_director", "operation_manager", "head_of_department"].includes(role)
+    return ["hr_admin", "branch_leader", "managing_director", "operation_manager", "head_of_department", "assure_leader"].includes(role)
       ? "team"
       : "my";
   });
@@ -129,7 +129,7 @@ export default function Dashboard() {
   const [activityPageSize, setActivityPageSize] = useState(10);
 
   useEffect(() => {
-    if (["hr_admin", "branch_leader", "managing_director", "operation_manager", "head_of_department"].includes(role)) {
+    if (["hr_admin", "branch_leader", "managing_director", "operation_manager", "head_of_department", "assure_leader"].includes(role)) {
       setActiveTab("team");
     } else {
       setActiveTab("my");
@@ -416,7 +416,7 @@ export default function Dashboard() {
   const fetchUpcomingOutstations = useCallback(async () => {
     try {
       if (!dashboardUserId) return;
-      const outstationRole = ["hr_admin", "managing_director", "operation_manager", "operation_manager", "head_of_department", "branch_leader"].includes(role || "") ? role : "employee";
+      const outstationRole = ["hr_admin", "managing_director", "operation_manager", "head_of_department", "branch_leader", "assure_leader"].includes(role || "") ? role : "employee";
       const params = new URLSearchParams({
         role: outstationRole || "employee",
         user_id: dashboardUserId.toString(),
@@ -469,7 +469,7 @@ export default function Dashboard() {
   useEffect(() => {
     const handleCompSwitched = () => {
       fetchDashboardData(true);
-      if (["hr_admin", "branch_leader", "managing_director", "operation_manager", "head_of_department"].includes(role)) {
+      if (["hr_admin", "branch_leader", "managing_director", "operation_manager", "head_of_department", "assure_leader"].includes(role)) {
         fetchWhoOutToday();
       }
     };
@@ -480,7 +480,7 @@ export default function Dashboard() {
   useEffect(() => {
     fetchDashboardData();
     fetchUpcomingOutstations();
-    if (["hr_admin", "branch_leader", "managing_director", "operation_manager", "head_of_department"].includes(role)) {
+    if (["hr_admin", "branch_leader", "managing_director", "operation_manager", "head_of_department", "assure_leader"].includes(role)) {
       fetchWhoOutToday();
       fetchTemporaryStaff();
     }
@@ -539,7 +539,7 @@ export default function Dashboard() {
           data.type === 'refresh'
         ) {
           // If the event is from another branch, ignore if role is restricted
-          if (role === "branch_leader" || role === "branch_officer" || !["hr_admin", "managing_director", "operation_manager", "operation_manager"].includes(role)) {
+          if (role === "branch_leader" || role === "branch_officer" || !["hr_admin", "managing_director", "operation_manager", "assure_leader"].includes(role)) {
             if (data.branch && data.branch !== userBranch) return;
           }
           
@@ -549,7 +549,7 @@ export default function Dashboard() {
           }
           
           fetchDashboardData(true);
-          if (["hr_admin", "branch_leader", "managing_director", "operation_manager", "operation_manager", "head_of_department"].includes(role)) {
+          if (["hr_admin", "branch_leader", "managing_director", "operation_manager", "head_of_department", "assure_leader"].includes(role)) {
             fetchWhoOutToday();
           }
         }
@@ -682,8 +682,8 @@ export default function Dashboard() {
       return curDateStr >= startStr && curDateStr <= endStr;
     })()
   );
-  const isElevatedRole = ["hr_admin", "branch_leader", "managing_director", "operation_manager", "head_of_department"].includes(role);
-  const canSeeSystem = ["hr_admin", "managing_director", "operation_manager", "head_of_department"].includes(role);
+  const isElevatedRole = ["hr_admin", "branch_leader", "managing_director", "operation_manager", "head_of_department", "assure_leader"].includes(role);
+  const canSeeSystem = ["hr_admin", "managing_director", "operation_manager", "head_of_department", "assure_leader"].includes(role);
   
   const displayStatus = safeTodayStatus
     .replace("Clocked In (Outstation)", "Outstation")
@@ -1001,9 +1001,9 @@ export default function Dashboard() {
           </>
         ) : (
           <>
-            {isCompanyLeave && isCompanyLeaveActiveOnDate && ["managing_director", "head_of_department", "operation_manager", "hr_admin", "branch_leader"].includes(role) ? (
+            {isCompanyLeave && isCompanyLeaveActiveOnDate && ["managing_director", "head_of_department", "operation_manager", "hr_admin", "branch_leader", "assure_leader"].includes(role) ? (
               <>
-                {["hr_admin", "managing_director", "operation_manager"].includes(role) ? (
+                {["hr_admin", "managing_director", "operation_manager", "assure_leader"].includes(role) ? (
                   <>
                     <div onClick={() => navigate("/calendar/company-leave")} className="cursor-pointer col-span-1 sm:col-span-2 lg:col-span-2 flex h-full">
                       <Card className="w-full border-none shadow-[0_2px_12px_rgba(0,0,0,0.06)] bg-card overflow-hidden flex flex-col relative group transition-all duration-300 hover: hover:-translate-y-1   ring-1 ring-slate-100 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
@@ -1156,7 +1156,7 @@ export default function Dashboard() {
               </>
             ) : (
               <>
-                {["managing_director", "head_of_department", "operation_manager", "hr_admin", "branch_leader"].includes(role) && (
+                {["managing_director", "head_of_department", "operation_manager", "hr_admin", "branch_leader", "assure_leader"].includes(role) && (
                   <StatCard
                     icon={Clock}
                     title="Today's Status"
@@ -1218,7 +1218,7 @@ export default function Dashboard() {
                 )}
               </>
             )}
-            {!(isCompanyLeave && isCompanyLeaveActiveOnDate && ["hr_admin", "managing_director", "operation_manager"].includes(role)) && (
+            {!(isCompanyLeave && isCompanyLeaveActiveOnDate && ["hr_admin", "managing_director", "operation_manager", "assure_leader"].includes(role)) && (
               <>
                 <StatCard
                   icon={CheckCircle2}
@@ -1297,7 +1297,7 @@ export default function Dashboard() {
         )}
       </div>
 
-      {isCompanyLeave && isCompanyLeaveActiveOnDate && ["hr_admin", "managing_director", "operation_manager"].includes(role) && (
+      {isCompanyLeave && isCompanyLeaveActiveOnDate && ["hr_admin", "managing_director", "operation_manager", "assure_leader"].includes(role) && (
         <Card className="border-none shadow-[0_2px_12px_rgba(0,0,0,0.06)]   overflow-hidden bg-card mb-6 animate-in fade-in slide-in-from-bottom-2 duration-700 delay-100 fill-mode-both rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
           <CardHeader className="border-b border-border/50 pb-3 px-4 flex flex-col md:flex-row md:items-center justify-between bg-card gap-4">
             <div className="flex items-center gap-3">
@@ -1516,7 +1516,7 @@ export default function Dashboard() {
         {/* Left Column (Who's Out Today & Recent Activity) */}
         <div className="xl:col-span-2 space-y-4">
           {/* Who's Out Today - admin roles only */}
-          {["hr_admin", "branch_leader", "managing_director", "operation_manager", "head_of_department"].includes(role) && (
+          {["hr_admin", "branch_leader", "managing_director", "operation_manager", "head_of_department", "assure_leader"].includes(role) && (
             <Card className="border-2 border-purple-100 dark:border-purple-900/50 overflow-hidden bg-card rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
               <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 px-4 pt-4">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
@@ -1812,7 +1812,7 @@ export default function Dashboard() {
                   <CalendarCheck className="w-6 h-6 text-[#a01497] mb-2" />
                   <span className="text-[10px] font-bold text-slate-600 dark:text-white uppercase text-center">Apply Leave</span>
                 </div>
-                {["hr_admin", "managing_director", "operation_manager", "head_of_department", "branch_leader"].includes(role) && (
+                {["hr_admin", "managing_director", "operation_manager", "head_of_department", "branch_leader", "assure_leader"].includes(role) && (
                   <div onClick={() => navigate("/outstation/my?tab=active")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-500 hover:ring-1 hover:ring-purple-500 hover:bg-purple-50/50 dark:hover:bg-slate-900/50 transition-all duration-200 col-span-2">
                     <MapPin className="w-6 h-6 text-[#a01497] mb-2" />
                     <span className="text-[10px] font-bold text-slate-600 dark:text-white uppercase text-center">Outstation</span>
@@ -1839,7 +1839,7 @@ export default function Dashboard() {
 
                   return (
                     <div key={i} onClick={() => {
-                      const adminRoles = ["hr_admin", "managing_director", "operation_manager", "head_of_department", "branch_leader"];
+                      const adminRoles = ["hr_admin", "managing_director", "operation_manager", "head_of_department", "branch_leader", "assure_leader"];
                       const isAssigned = g.employees.some((e: any) => e.name?.toLowerCase() === rawName?.toLowerCase());
                       if (adminRoles.includes(role) && !isAssigned) {
                         navigate("/outstation/assignment");
@@ -1917,7 +1917,7 @@ export default function Dashboard() {
 
                   return (
                     <div key={i} onClick={() => {
-                      const adminRoles = ["hr_admin", "managing_director", "operation_manager", "head_of_department", "branch_leader"];
+                      const adminRoles = ["hr_admin", "managing_director", "operation_manager", "head_of_department", "branch_leader", "assure_leader"];
                       const isAssigned = g.employees.some((e: any) => e.name?.toLowerCase() === rawName?.toLowerCase());
                       if (adminRoles.includes(role) && !isAssigned) {
                         navigate("/outstation/assignment");
@@ -1981,7 +1981,7 @@ export default function Dashboard() {
           </Card>
 
           {/* Temporary Staff */}
-          {["hr_admin", "branch_leader", "managing_director", "operation_manager", "head_of_department"].includes(role) && (
+          {["hr_admin", "branch_leader", "managing_director", "operation_manager", "head_of_department", "assure_leader"].includes(role) && (
             <Card className="border border-slate-100 dark:border-slate-800 overflow-hidden bg-card mt-6 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
               <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 px-4 pt-4 flex flex-row items-center justify-between">
                 <div className="flex flex-col gap-0.5">

@@ -143,7 +143,7 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
         isParentScope(user?.scope_type) ||
         isParentScope(cachedScope) ||
         uCompanies.some(uc => isParentScope(uc.scope_type)) ||
-        ['managing_director', 'operation_manager'].includes(normUserRole);
+        ['managing_director', 'operation_manager', 'assure_leader'].includes(normUserRole);
 
       // Determine initial active company
       const cachedId = sessionStorage.getItem(STORAGE_ACTIVE_COMPANY_KEY);
@@ -196,7 +196,7 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
       isParentScope(user?.scope_type) ||
       isParentScope(cachedScope) ||
       userCompanies.some(uc => isParentScope(uc.scope_type)) ||
-      ['managing_director', 'operation_manager'].includes(normUserRole);
+      ['managing_director', 'operation_manager', 'assure_leader'].includes(normUserRole);
 
     if (!hasParentGroupScope) {
       console.warn('Switching company context is restricted to HR Admin or Parent Group Data role authorization.');

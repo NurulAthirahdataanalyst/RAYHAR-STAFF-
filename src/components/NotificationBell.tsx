@@ -22,6 +22,13 @@ function formatNotificationMessage(rawMessage: string, userRole?: string): strin
     );
   }
 
+  if (normRole === "assure_leader" || normRole.includes("assure")) {
+    formatted = formatted.replace(
+      /is currently waiting for Assure Leader\.?/gi,
+      "is currently waiting for your approval."
+    );
+  }
+
   // If the logged-in user is Branch Leader, customize "waiting for Branch Leader" to "waiting for your approval"
   if (normRole.includes("branch_leader") || normRole.includes("branch")) {
     formatted = formatted.replace(
@@ -90,7 +97,8 @@ export default function NotificationBell() {
     "operation_manager",
     "finance_manager",
     "head_of_department",
-    "branch_leader"
+    "branch_leader",
+    "assure_leader"
   ].includes(normalizeRole(role || ""));
 
   const displayedNotifications = isElevatedRole
@@ -139,7 +147,7 @@ export default function NotificationBell() {
     }
     setIsOpen(false);
 
-    const isApprover = ["hr_admin", "managing_director", "operation_manager", "finance_manager", "head_of_department", "branch_leader"].includes(role);
+    const isApprover = ["hr_admin", "managing_director", "operation_manager", "finance_manager", "head_of_department", "branch_leader", "assure_leader"].includes(role);
     const title = (notif.title || "").toLowerCase();
     const message = (notif.message || "").toLowerCase();
 
@@ -210,7 +218,8 @@ export default function NotificationBell() {
         "finance_manager",
         "branch_leader",
         "head_of_department",
-        "hod"
+        "hod",
+        "assure_leader"
       ].includes(normalizedRole);
 
       if (canAccessTempAssignment) {

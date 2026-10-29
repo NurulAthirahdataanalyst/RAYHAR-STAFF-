@@ -49,12 +49,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const normRole = (resolvedRole || "").toLowerCase().trim();
   const normRoleName = (roleName || "").toLowerCase().trim();
   const isCustomRole = !isSystemRole || (
-    !["hr_admin", "branch_leader", "head_of_department", "managing_director", "operation_manager", "finance_manager", "employee", "branch_officer"].includes(normRole) ||
-    !["hr admin", "branch leader", "head of department", "managing director", "operation manager", "employee", "branch officer"].includes(normRoleName)
+    !["hr_admin", "branch_leader", "head_of_department", "managing_director", "operation_manager", "finance_manager", "assure_leader", "employee", "branch_officer"].includes(normRole) ||
+    !["hr admin", "branch leader", "head of department", "managing director", "operation manager", "assure leader", "employee", "branch officer"].includes(normRoleName)
   );
-  const hasRightSidebar = !isCustomRole && Boolean(
-    isSystemRole &&
-    ["hr_admin", "branch_leader", "head_of_department", "managing_director", "operation_manager", "finance_manager"].includes(normRole)
+  const hasRightSidebar = Boolean(
+    ["hr_admin", "branch_leader", "head_of_department", "managing_director", "operation_manager", "finance_manager", "assure_leader"].includes(normRole)
   );
   const { theme, toggleTheme } = useTheme();
   useShiftNotifications();
@@ -128,6 +127,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         role: resolvedRole,
         branch: userBranch || "",
         department: userDepartment || "",
+        company_id: String(activeCompany?.id || 1),
       });
 
       const response = await fetch(
@@ -543,7 +543,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 {!sidebarCollapsed ? (
                   <>
                     {/* ═══════ PENDING APPROVALS ═══════ */}
-                    {["hr_admin", "branch_leader", "managing_director", "operation_manager", "finance_manager", "head_of_department"].includes(resolvedRole) && (
+                    {["hr_admin", "branch_leader", "managing_director", "operation_manager", "finance_manager", "head_of_department", "assure_leader"].includes(resolvedRole) && (
                       <div className="shrink-0 bg-[#942392] p-3.5 rounded-[20px] shadow-lg text-white relative overflow-hidden group w-full transition-all duration-500">
                         <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-md -mr-8 -mt-8 transition-transform group-hover:scale-110" />
                         
@@ -579,7 +579,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 ) : (
                   /* Unified Collapsed Dock */
                   <div className="bg-white/30 dark:bg-black/30 backdrop-blur-md border border-white/20 dark:border-white/5 rounded-[20px] p-2 flex flex-col items-center gap-3 shadow-[0_2px_12px_rgba(0,0,0,0.06)] w-full py-3.5 overflow-visible">
-                    {["hr_admin", "branch_leader", "managing_director", "operation_manager", "finance_manager", "head_of_department"].includes(resolvedRole) && (
+                    {["hr_admin", "branch_leader", "managing_director", "operation_manager", "finance_manager", "head_of_department", "assure_leader"].includes(resolvedRole) && (
                       <div 
                         onClick={() => navigate("/leave/admin")}
                         className="cursor-pointer group relative flex flex-col items-center justify-center w-9 h-9 rounded-xl bg-[#942392] hover:bg-[#942392]/90 text-white shadow-sm transition-all shrink-0"

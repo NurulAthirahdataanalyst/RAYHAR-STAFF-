@@ -94,7 +94,7 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
       }
 
       // 2. Fetch leave requests submitted on this date
-      if (role === "hr_admin" || role === "head_of_department" || role === "branch_leader" || role === "managing_director" || role === "operation_manager" || (role as string) === "finance_manager") {
+      if (role === "hr_admin" || role === "head_of_department" || role === "branch_leader" || role === "managing_director" || role === "operation_manager" || role === "assure_leader" || (role as string) === "finance_manager") {
         try {
           const leaveParams = new URLSearchParams({
             role: role || "employee",
@@ -196,7 +196,7 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
         console.log("📡 Live presence update received:", data);
         
         // Filter out events that do not belong to the user's branch
-        if (role === "branch_leader" || role === "branch_officer" || !["hr_admin", "managing_director", "operation_manager", "finance_manager"].includes(role)) {
+        if (role === "branch_leader" || role === "branch_officer" || !["hr_admin", "managing_director", "operation_manager", "finance_manager", "assure_leader"].includes(role)) {
           if (data.branch !== userBranch) {
              return;
           }
