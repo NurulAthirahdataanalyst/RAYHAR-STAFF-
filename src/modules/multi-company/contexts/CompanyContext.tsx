@@ -138,28 +138,33 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
         return s.includes('parent group') || s === 'parent group data' || s === 'parent group access';
       };
       const cachedScope = typeof sessionStorage !== 'undefined' ? (sessionStorage.getItem("presence_cached_scope_type") || "") : "";
+      const isAssureLeader = normUserRole === 'assure_leader' || normUserRole.includes('assure');
       const hasParentGroupScope = 
-        isHR ||
-        isParentScope(user?.scope_type) ||
-        isParentScope(cachedScope) ||
-        uCompanies.some(uc => isParentScope(uc.scope_type)) ||
-        ['managing_director', 'operation_manager', 'assure_leader'].includes(normUserRole);
+        !isAssureLeader && (
+          isHR ||
+          isParentScope(user?.scope_type) ||
+          isParentScope(cachedScope) ||
+          uCompanies.some(uc => isParentScope(uc.scope_type)) ||
+          ['managing_director', 'operation_manager'].includes(normUserRole)
+        );
 
       // Determine initial active company
       const cachedId = sessionStorage.getItem(STORAGE_ACTIVE_COMPANY_KEY);
       let selected: Company | undefined;
 
-      // Users with HR or Parent Group Data scope can restore a previously switched company from sessionStorage
-      if (hasParentGroupScope && cachedId) {
+      const userDefault = uCompanies.find(uc => uc.is_default) || uCompanies[0];
+      const userAssignedCompId = userDefault?.company_id || (user as any)?.company_id;
+
+      // Assure Leader is strictly scoped to her own assigned company
+      if (isAssureLeader && userAssignedCompId) {
+        selected = activeList.find(c => c.id === userAssignedCompId);
+      } else if (hasParentGroupScope && cachedId) {
         selected = activeList.find(c => c.id === parseInt(cachedId, 10));
       }
 
-      // If no valid cached company or non-HR user, default to user's assigned default or Main Company (id = 1)
-      if (!selected) {
-        const userDefault = uCompanies.find(uc => uc.is_default);
-        if (userDefault) {
-          selected = activeList.find(c => c.id === userDefault.company_id);
-        }
+      // Default to user's assigned default company
+      if (!selected && userAssignedCompId) {
+        selected = activeList.find(c => c.id === userAssignedCompId);
       }
 
       if (!selected && activeList.length > 0) {
@@ -191,12 +196,20 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
       return s.includes('parent group') || s === 'parent group data' || s === 'parent group access';
     };
     const cachedScope = typeof sessionStorage !== 'undefined' ? (sessionStorage.getItem("presence_cached_scope_type") || "") : "";
+    const isAssureLeader = normUserRole === 'assure_leader' || normUserRole.includes('assure');
     const hasParentGroupScope = 
-      isHR ||
-      isParentScope(user?.scope_type) ||
-      isParentScope(cachedScope) ||
-      userCompanies.some(uc => isParentScope(uc.scope_type)) ||
-      ['managing_director', 'operation_manager', 'assure_leader'].includes(normUserRole);
+      !isAssureLeader && (
+        isHR ||
+        isParentScope(user?.scope_type) ||
+        isParentScope(cachedScope) ||
+        userCompanies.some(uc => isParentScope(uc.scope_type)) ||
+        ['managing_director', 'operation_manager'].includes(normUserRole)
+      );
+
+    if (isAssureLeader) {
+      console.warn('Assure Leader role is restricted to her own branch/company only.');
+      return;
+    }
 
     if (!hasParentGroupScope) {
       console.warn('Switching company context is restricted to HR Admin or Parent Group Data role authorization.');

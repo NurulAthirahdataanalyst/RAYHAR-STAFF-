@@ -2387,7 +2387,7 @@ async function getEmployeeLocations(branch, department, role, companyId = null) 
     let filter = getCompanyUserSqlFilterById(companyId, "p.user_id");
 
     const normRole = (role || "").toLowerCase().replace(/\s+/g, '_');
-    if (normRole === 'branch_leader') {
+    if (normRole === 'branch_leader' || normRole === 'assure_leader') {
       const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
       filter += " AND LOWER(p.branch) = LOWER(?)";
       params.push(safeBranch);
@@ -2395,7 +2395,7 @@ async function getEmployeeLocations(branch, department, role, companyId = null) 
       const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
       filter += " AND LOWER(p.department) = LOWER(?)";
       params.push(safeDept);
-    } else if (['hr_admin', 'hr', 'admin', 'managing_director', 'md', 'operation_manager', 'finance_manager', 'assure_leader'].includes(normRole)) {
+    } else if (['hr_admin', 'hr', 'admin', 'managing_director', 'md', 'operation_manager', 'finance_manager'].includes(normRole)) {
       if (branch && branch !== "All") {
         filter += " AND LOWER(p.branch) = LOWER(?)";
         params.push(branch);
@@ -2503,7 +2503,7 @@ async function getLiveAttendanceStats(queryDate, role, branch, department, compa
     const companyFilter = getCompanyUserSqlFilterById(companyId, "p.user_id");
     let filterP = companyFilter;
     let paramsTotal = [];
-    if (normRole === 'branch_leader') {
+    if (normRole === 'branch_leader' || normRole === 'assure_leader') {
       const safeBranch = (cleanBranch && cleanBranch !== "All") ? cleanBranch : "INVALID_BYPASS";
       filterP = `${companyFilter} AND LOWER(p.branch) = LOWER(?)`;
       paramsTotal.push(safeBranch);
@@ -2511,7 +2511,7 @@ async function getLiveAttendanceStats(queryDate, role, branch, department, compa
       const safeDept = (cleanDept && cleanDept !== "All") ? cleanDept : "INVALID_BYPASS";
       filterP = `${companyFilter} AND LOWER(p.department) = LOWER(?)`;
       paramsTotal.push(safeDept);
-    } else if (['hr_admin', 'hr', 'admin', 'managing_director', 'md', 'operation_manager', 'finance_manager', 'assure_leader'].includes(normRole)) {
+    } else if (['hr_admin', 'hr', 'admin', 'managing_director', 'md', 'operation_manager', 'finance_manager'].includes(normRole)) {
       filterP = companyFilter;
       paramsTotal = [];
     }
@@ -3091,7 +3091,7 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
   const companyFilterPlain = getCompanyUserSqlFilterById(companyId, "user_id");
   let filterP = companyFilter;
   let paramsBase = [];
-  if (normRole === 'branch_leader') {
+  if (normRole === 'branch_leader' || normRole === 'assure_leader') {
     const safeBranch = (cleanBranch && cleanBranch !== "All") ? cleanBranch : "INVALID_BYPASS";
     filterP = `${companyFilter} AND LOWER(p.branch) = LOWER(?)`;
     paramsBase.push(safeBranch);
@@ -3099,7 +3099,7 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
     const safeDept = (cleanDept && cleanDept !== "All") ? cleanDept : "INVALID_BYPASS";
     filterP = `${companyFilter} AND LOWER(p.department) = LOWER(?)`;
     paramsBase.push(safeDept);
-  } else if (['hr_admin', 'hr', 'admin', 'managing_director', 'md', 'operation_manager', 'finance_manager', 'assure_leader'].includes(normRole)) {
+  } else if (['hr_admin', 'hr', 'admin', 'managing_director', 'md', 'operation_manager', 'finance_manager'].includes(normRole)) {
     filterP = companyFilter;
     paramsBase = [];
   }
@@ -7133,6 +7133,12 @@ app.post("/api/login", async (req, res) => {
     );
     const profile = profileRows[0] || {};
 
+    const [curRows] = await pool.query(
+      "SELECT company_id FROM company_user_roles WHERE user_id = ? AND status = 'active' ORDER BY is_default DESC LIMIT 1",
+      [user.user_id]
+    );
+    const defaultCompanyId = curRows[0]?.company_id || null;
+
     res.json({
       success: true,
       token,
@@ -7145,6 +7151,7 @@ app.post("/api/login", async (req, res) => {
         branch: profile.branch,
         department: profile.department,
         status: profile.status,
+        company_id: defaultCompanyId,
         role: role,
         role_id: roleId,
         role_name: roleName,
@@ -8593,6 +8600,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
       try {
         const isBranchLeader = role === "branch_leader";
         const isHOD = role === "head_of_department";
+        const isAssureLeader = role === "assure_leader";
         const department = safeString(req.query.department);
 
         const companyUserFilter = getCompanyUserSqlFilterById(companyId, "user_id");
@@ -8609,8 +8617,13 @@ app.get("/api/dashboard-stats", async (req, res) => {
         let lateFilter = `AND fc.user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE p_s.status = 'Active')${companyFcFilter}`;
         let ealFilter = `AND eal.user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE p_s.status = 'Active')${companyEalFilter}`;
 
-        if (isBranchLeader) {
-          const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
+        if (isBranchLeader || isAssureLeader) {
+          let targetBranch = (branch && branch !== "All") ? branch : null;
+          if (isAssureLeader && !targetBranch) {
+            const [uBRows] = await pool.query("SELECT branch FROM profiles WHERE user_id = ? LIMIT 1", [userId]);
+            if (uBRows[0]?.branch) targetBranch = uBRows[0].branch;
+          }
+          const safeBranch = targetBranch || "INVALID_BYPASS";
           profileFilter = `${companyUserFilter} AND branch = ?`;
           profileAliasFilter = `${companyProfileFilter} AND p.branch = ?`;
           attendanceFilter = `AND user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE p_s.branch = ? AND p_s.status = 'Active')${companyUserFilter}`;
@@ -8635,9 +8648,14 @@ app.get("/api/dashboard-stats", async (req, res) => {
         // Check if any attendance records exist for this branch/department/general on this day
         let attendanceCheckFilter = companyUserFilter;
         let attendanceCheckParams = [queryDate];
-        if (isBranchLeader) {
+        if (isBranchLeader || isAssureLeader) {
+          let targetBranch = (branch && branch !== "All") ? branch : null;
+          if (isAssureLeader && !targetBranch) {
+            const [uBRows] = await pool.query("SELECT branch FROM profiles WHERE user_id = ? LIMIT 1", [userId]);
+            if (uBRows[0]?.branch) targetBranch = uBRows[0].branch;
+          }
           attendanceCheckFilter = `${companyUserFilter} AND user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE p_s.branch = ?)`;
-          attendanceCheckParams.push(branch);
+          attendanceCheckParams.push(targetBranch || "INVALID_BYPASS");
         } else if (isHOD) {
           attendanceCheckFilter = `${companyUserFilter} AND user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE p_s.department = ?)`;
           attendanceCheckParams.push(department);
@@ -9287,7 +9305,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
       let teamFilter = "";
       let teamParams = [];
 
-      if (role === "branch_leader" || role === "head_of_department") {
+      if (role === "branch_leader" || role === "head_of_department" || role === "assure_leader") {
         if (branch && department) {
           teamFilter = "AND LOWER(p.branch) = LOWER(?) AND LOWER(p.department) = LOWER(?)";
           teamParams = [branch, department];
@@ -9299,7 +9317,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
           teamParams = [department];
         }
       }
-      const isGroupWideRole = ["hr_admin", "managing_director", "operation_manager", "finance_manager", "assure_leader"].includes(role);
+      const isGroupWideRole = ["hr_admin", "managing_director", "operation_manager", "finance_manager"].includes(role);
       const teamFilterP = `${teamCompanyP} ${teamFilter}`;
       const teamFilterEmp = `${teamCompanyEmp} ${teamFilter.replace(/p\./g, 'emp.')}`;
       const teamLeaveFilterEmp = `${isGroupWideRole ? "" : teamCompanyEmp} ${teamFilter.replace(/p\./g, 'emp.')}`;
@@ -10640,7 +10658,7 @@ app.get("/api/workforce-stats", async (req, res) => {
     let profileFilter = companyFilter;
     let pFilterParams = [];
 
-    if (normRole === 'branch_leader') {
+    if (normRole === 'branch_leader' || normRole === 'assure_leader') {
       const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
       profileFilter = `${companyFilter} AND LOWER(p.branch) = LOWER(?)`;
       pFilterParams.push(safeBranch);
@@ -10648,7 +10666,7 @@ app.get("/api/workforce-stats", async (req, res) => {
       const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
       profileFilter = `${companyFilter} AND LOWER(p.department) = LOWER(?)`;
       pFilterParams.push(safeDept);
-    } else if (['hr_admin', 'hr', 'admin', 'managing_director', 'md', 'operation_manager', 'finance_manager', 'assure_leader'].includes(normRole)) {
+    } else if (['hr_admin', 'hr', 'admin', 'managing_director', 'md', 'operation_manager', 'finance_manager'].includes(normRole)) {
       profileFilter = companyFilter;
       pFilterParams = [];
     }
@@ -12438,7 +12456,7 @@ app.get("/api/who-out-today", async (req, res) => {
       filters.push(companyFilter.replace(/^\s*AND\s+/i, ""));
     }
 
-    if (role === "branch_leader" && branch) {
+    if ((role === "branch_leader" || role === "assure_leader") && branch) {
       filters.push("LOWER(p.branch) = LOWER(?)");
       params.push(branch);
     } else if (role === "head_of_department" && department) {
@@ -12446,7 +12464,7 @@ app.get("/api/who-out-today", async (req, res) => {
       params.push(department);
     } else if (role === "head_of_department") {
       filters.push("1 = 0");
-    } else if (!["hr_admin", "admin", "hr", "managing_director", "md", "finance_manager", "operation_manager", "assure_leader"].includes(role) && branch) {
+    } else if (!["hr_admin", "admin", "hr", "managing_director", "md", "finance_manager", "operation_manager"].includes(role) && branch) {
       filters.push("LOWER(p.branch) = LOWER(?)");
       params.push(branch);
     }

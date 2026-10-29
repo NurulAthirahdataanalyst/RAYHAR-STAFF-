@@ -51,17 +51,19 @@ export const CompanySwitcher: React.FC<CompanySwitcherProps> = ({
   };
   const cachedScope = typeof sessionStorage !== 'undefined' ? (sessionStorage.getItem("presence_cached_scope_type") || "") : "";
 
+  const isAssureLeader = resolvedRole === 'assure_leader' || (resolvedRole && resolvedRole.includes('assure'));
   const hasParentGroupScope = 
-    isHR || 
-    isParentGroupAdmin ||
-    isParentScope(user?.scope_type) ||
-    isParentScope(userActiveRole?.scope_type) ||
-    isParentScope(scopeType) ||
-    isParentScope(cachedScope) ||
-    userCompanies.some(uc => isParentScope(uc.scope_type)) ||
-    resolvedRole === 'managing_director' ||
-    resolvedRole === 'operation_manager' ||
-    resolvedRole === 'assure_leader';
+    !isAssureLeader && (
+      isHR || 
+      isParentGroupAdmin ||
+      isParentScope(user?.scope_type) ||
+      isParentScope(userActiveRole?.scope_type) ||
+      isParentScope(scopeType) ||
+      isParentScope(cachedScope) ||
+      userCompanies.some(uc => isParentScope(uc.scope_type)) ||
+      resolvedRole === 'managing_director' ||
+      resolvedRole === 'operation_manager'
+    );
 
   const canSwitchCompany = hasParentGroupScope;
 

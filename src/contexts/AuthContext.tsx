@@ -51,6 +51,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (userData?.branch) sessionStorage.setItem("presence_cached_branch", userData.branch);
       if (userData?.department) sessionStorage.setItem("presence_cached_department", userData.department);
       if (userData?.full_name || userData?.name) sessionStorage.setItem("presence_cached_name", userData.full_name || userData.name);
+      if (userData?.company_id) sessionStorage.setItem("rayhar_active_company_id", userData.company_id.toString());
     } catch {}
     setUser(userData);
   };
