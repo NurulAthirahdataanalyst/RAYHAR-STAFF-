@@ -268,11 +268,14 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const s = String(st).trim().toLowerCase();
     return s.includes('parent group') || s === 'parent group data' || s === 'parent group access';
   };
+  const isAssureLeaderRole = normUserRole === 'assure_leader' || normUserRole.includes('assure');
   const isParentGroupAdmin = 
-    Boolean(activeCompany?.company_type === 'main' && ['hr_admin', 'admin', 'managing_director', 'operation_manager'].includes(normUserRole)) ||
-    isParentScope(user?.scope_type) ||
-    isParentScope(cachedScope) ||
-    userCompanies.some(uc => isParentScope(uc.scope_type));
+    !isAssureLeaderRole && (
+      Boolean(activeCompany?.company_type === 'main' && ['hr_admin', 'admin', 'managing_director', 'operation_manager'].includes(normUserRole)) ||
+      isParentScope(user?.scope_type) ||
+      isParentScope(cachedScope) ||
+      userCompanies.some(uc => isParentScope(uc.scope_type))
+    );
 
   return (
     <CompanyContext.Provider

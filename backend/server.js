@@ -840,7 +840,17 @@ app.get("/api/permissions", async (req, res) => {
 app.get("/api/roles", async (req, res) => {
   try {
     const rawCompanyId = req.query.company_id || req.query.companyId || req.companyId;
-    const companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
+    let companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
+
+    if (role === 'assure_leader' || role.includes('assure')) {
+      const [uCompRows] = await pool.query(
+        "SELECT company_id FROM company_user_roles WHERE user_id = ? AND status = 'active' ORDER BY is_default DESC LIMIT 1",
+        [userId]
+      );
+      if (uCompRows[0]?.company_id) {
+        companyId = uCompRows[0].company_id;
+      }
+    }
     let whereFilter = "";
     if (companyId === 2) {
       whereFilter = "WHERE (r.company_id = 2 OR LOWER(r.name) LIKE '%ray rent%')";
@@ -4124,7 +4134,17 @@ app.get("/api/leave-entitlements", async (req, res) => {
   try {
     const params = [];
     const filters = ["p.status = 'Active'"];
-    const companyFilter = getCompanyUserSqlFilter(req, "p.user_id");
+    let effectiveCompanyId = req?.companyId || req?.query?.company_id || req?.query?.companyId;
+    if ((role === 'assure_leader' || role.includes('assure')) && (req.query.userId || req.query.user_id)) {
+      const [uCompRows] = await pool.query(
+        "SELECT company_id FROM company_user_roles WHERE user_id = ? AND status = 'active' ORDER BY is_default DESC LIMIT 1",
+        [req.query.userId || req.query.user_id]
+      );
+      if (uCompRows[0]?.company_id) {
+        effectiveCompanyId = uCompRows[0].company_id;
+      }
+    }
+    const companyFilter = getCompanyUserSqlFilterById(effectiveCompanyId, "p.user_id");
     if (companyFilter) {
       filters.push(companyFilter.replace(/^\s*AND\s+/i, ""));
     }
@@ -4513,7 +4533,17 @@ app.get("/api/leave-requests", async (req, res) => {
     const filters = [];
 
     const rawCompanyId = req.query.company_id || req.query.companyId || req.companyId;
-    const companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
+    let companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
+
+    if (role === 'assure_leader' || role.includes('assure')) {
+      const [uCompRows] = await pool.query(
+        "SELECT company_id FROM company_user_roles WHERE user_id = ? AND status = 'active' ORDER BY is_default DESC LIMIT 1",
+        [userId]
+      );
+      if (uCompRows[0]?.company_id) {
+        companyId = uCompRows[0].company_id;
+      }
+    }
     const normRole = safeLower(role).replace(/\s+/g, "_");
     const isGroupWideLeaveRole = [
       "hr_admin",
@@ -6580,7 +6610,17 @@ app.get("/api/employees", async (req, res) => {
       params.push(status);
     }
 
-    const companyFilter = getCompanyUserSqlFilter(req, "p.user_id");
+    let effectiveCompanyId = req?.companyId || req?.query?.company_id || req?.query?.companyId;
+    if ((role === 'assure_leader' || role.includes('assure')) && (req.query.userId || req.query.user_id)) {
+      const [uCompRows] = await pool.query(
+        "SELECT company_id FROM company_user_roles WHERE user_id = ? AND status = 'active' ORDER BY is_default DESC LIMIT 1",
+        [req.query.userId || req.query.user_id]
+      );
+      if (uCompRows[0]?.company_id) {
+        effectiveCompanyId = uCompRows[0].company_id;
+      }
+    }
+    const companyFilter = getCompanyUserSqlFilterById(effectiveCompanyId, "p.user_id");
     if (companyFilter) {
       filters.push(companyFilter.replace(/^\s*AND\s+/i, ""));
     }
@@ -7239,7 +7279,17 @@ app.get("/api/user-details/:identifier", async (req, res) => {
     const userPermsDetail = await getUserPermissionsWithLevels(user.user_id, user.role);
 
     const rawCompanyId = req.query.company_id || req.query.companyId || req.companyId;
-    const companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
+    let companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
+
+    if (role === 'assure_leader' || role.includes('assure')) {
+      const [uCompRows] = await pool.query(
+        "SELECT company_id FROM company_user_roles WHERE user_id = ? AND status = 'active' ORDER BY is_default DESC LIMIT 1",
+        [userId]
+      );
+      if (uCompRows[0]?.company_id) {
+        companyId = uCompRows[0].company_id;
+      }
+    }
     let belongsToCompany = true;
     if (companyId && companyId !== 1) {
       const [compCheck] = await pool.query(
@@ -8594,7 +8644,17 @@ app.get("/api/dashboard-stats", async (req, res) => {
     let adminStats = null;
     let globalRecentActivities = null;
     const rawCompanyId = req.query.company_id || req.query.companyId || req.companyId;
-    const companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
+    let companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
+
+    if (role === 'assure_leader' || role.includes('assure')) {
+      const [uCompRows] = await pool.query(
+        "SELECT company_id FROM company_user_roles WHERE user_id = ? AND status = 'active' ORDER BY is_default DESC LIMIT 1",
+        [userId]
+      );
+      if (uCompRows[0]?.company_id) {
+        companyId = uCompRows[0].company_id;
+      }
+    }
 
     if (["hr_admin", "branch_leader", "managing_director", "operation_manager", "finance_manager", "head_of_department", "assure_leader"].includes(role)) {
       try {
@@ -8617,13 +8677,8 @@ app.get("/api/dashboard-stats", async (req, res) => {
         let lateFilter = `AND fc.user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE p_s.status = 'Active')${companyFcFilter}`;
         let ealFilter = `AND eal.user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE p_s.status = 'Active')${companyEalFilter}`;
 
-        if (isBranchLeader || isAssureLeader) {
-          let targetBranch = (branch && branch !== "All") ? branch : null;
-          if (isAssureLeader && !targetBranch) {
-            const [uBRows] = await pool.query("SELECT branch FROM profiles WHERE user_id = ? LIMIT 1", [userId]);
-            if (uBRows[0]?.branch) targetBranch = uBRows[0].branch;
-          }
-          const safeBranch = targetBranch || "INVALID_BYPASS";
+        if (isBranchLeader) {
+          const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
           profileFilter = `${companyUserFilter} AND branch = ?`;
           profileAliasFilter = `${companyProfileFilter} AND p.branch = ?`;
           attendanceFilter = `AND user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE p_s.branch = ? AND p_s.status = 'Active')${companyUserFilter}`;
@@ -8640,6 +8695,17 @@ app.get("/api/dashboard-stats", async (req, res) => {
           lateFilter = `AND fc.user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE p_s.department = ? AND p_s.status = 'Active')${companyFcFilter}`;
           ealFilter = `AND eal.user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE p_s.department = ? AND p_s.status = 'Active')${companyEalFilter}`;
           queryParams.push(safeDept);
+        } else if (isAssureLeader) {
+          // Company Staff Data scope: Can see all data in company, or filter by branch if explicitly selected
+          if (branch && branch !== "All") {
+            profileFilter = `${companyUserFilter} AND branch = ?`;
+            profileAliasFilter = `${companyProfileFilter} AND p.branch = ?`;
+            attendanceFilter = `AND user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE p_s.branch = ? AND p_s.status = 'Active')${companyUserFilter}`;
+            leaveAttendanceFilter = `AND lr.user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE p_s.branch = ? AND p_s.status = 'Active')${companyLrFilter}`;
+            lateFilter = `AND fc.user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE p_s.branch = ? AND p_s.status = 'Active')${companyFcFilter}`;
+            ealFilter = `AND eal.user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE p_s.branch = ? AND p_s.status = 'Active')${companyEalFilter}`;
+            queryParams.push(branch);
+          }
         }
 
         const dateCondition = "?::date";
@@ -8648,17 +8714,15 @@ app.get("/api/dashboard-stats", async (req, res) => {
         // Check if any attendance records exist for this branch/department/general on this day
         let attendanceCheckFilter = companyUserFilter;
         let attendanceCheckParams = [queryDate];
-        if (isBranchLeader || isAssureLeader) {
-          let targetBranch = (branch && branch !== "All") ? branch : null;
-          if (isAssureLeader && !targetBranch) {
-            const [uBRows] = await pool.query("SELECT branch FROM profiles WHERE user_id = ? LIMIT 1", [userId]);
-            if (uBRows[0]?.branch) targetBranch = uBRows[0].branch;
-          }
+        if (isBranchLeader) {
           attendanceCheckFilter = `${companyUserFilter} AND user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE p_s.branch = ?)`;
-          attendanceCheckParams.push(targetBranch || "INVALID_BYPASS");
+          attendanceCheckParams.push(branch);
         } else if (isHOD) {
           attendanceCheckFilter = `${companyUserFilter} AND user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE p_s.department = ?)`;
           attendanceCheckParams.push(department);
+        } else if (isAssureLeader && branch && branch !== "All") {
+          attendanceCheckFilter = `${companyUserFilter} AND user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE p_s.branch = ?)`;
+          attendanceCheckParams.push(branch);
         }
 
         const [attendanceCheck] = await pool.query(
@@ -8738,7 +8802,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
           );
         } else if (role === "assure_leader") {
           [pendingRows] = await pool.query(
-            `SELECT COUNT(*) AS pending_approvals FROM leave_requests lr WHERE (lr.status LIKE 'Pending Assure%' OR lr.status = 'Pending Assure Leader') AND lr.user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE p_s.status = 'Active')`
+            `SELECT COUNT(*) AS pending_approvals FROM leave_requests lr WHERE (lr.status LIKE 'Pending Assure%' OR lr.status = 'Pending Assure Leader') AND lr.user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE p_s.status = 'Active') ${companyLrFilter}`
           );
         } else if (role === "hr_admin") {
           [pendingRows] = await pool.query(
@@ -10653,7 +10717,17 @@ app.get("/api/workforce-stats", async (req, res) => {
     const normRole = safeLower(role).replace(/ /g, "_");
 
     const rawCompanyId = req.query.company_id || req.query.companyId || req.companyId;
-    const companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
+    let companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
+
+    if (role === 'assure_leader' || role.includes('assure')) {
+      const [uCompRows] = await pool.query(
+        "SELECT company_id FROM company_user_roles WHERE user_id = ? AND status = 'active' ORDER BY is_default DESC LIMIT 1",
+        [userId]
+      );
+      if (uCompRows[0]?.company_id) {
+        companyId = uCompRows[0].company_id;
+      }
+    }
     const companyFilter = getCompanyUserSqlFilterById(companyId, "p.user_id");
     let profileFilter = companyFilter;
     let pFilterParams = [];
@@ -12040,7 +12114,17 @@ app.put("/api/branches/:code", async (req, res) => {
 app.get("/api/branches", async (req, res) => {
   try {
     const rawCompanyId = req.query.company_id || req.query.companyId || req.companyId;
-    const companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
+    let companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
+
+    if (role === 'assure_leader' || role.includes('assure')) {
+      const [uCompRows] = await pool.query(
+        "SELECT company_id FROM company_user_roles WHERE user_id = ? AND status = 'active' ORDER BY is_default DESC LIMIT 1",
+        [userId]
+      );
+      if (uCompRows[0]?.company_id) {
+        companyId = uCompRows[0].company_id;
+      }
+    }
     let whereClause = "";
     let queryParams = [];
 
@@ -12267,7 +12351,17 @@ app.get("/api/branches-stats", async (req, res) => {
   try {
     const todayStr = new Date().toLocaleDateString('en-CA');
     const rawCompanyId = req.query.company_id || req.query.companyId || req.companyId;
-    const companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
+    let companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
+
+    if (role === 'assure_leader' || role.includes('assure')) {
+      const [uCompRows] = await pool.query(
+        "SELECT company_id FROM company_user_roles WHERE user_id = ? AND status = 'active' ORDER BY is_default DESC LIMIT 1",
+        [userId]
+      );
+      if (uCompRows[0]?.company_id) {
+        companyId = uCompRows[0].company_id;
+      }
+    }
 
     let branchQuery = `SELECT code, company_id FROM branches`;
     let branchParams = [];
@@ -12346,7 +12440,17 @@ app.get("/api/branches-stats", async (req, res) => {
 app.get("/api/departments", async (req, res) => {
   try {
     const rawCompanyId = req.query.company_id || req.query.companyId || req.companyId;
-    const companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
+    let companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
+
+    if (role === 'assure_leader' || role.includes('assure')) {
+      const [uCompRows] = await pool.query(
+        "SELECT company_id FROM company_user_roles WHERE user_id = ? AND status = 'active' ORDER BY is_default DESC LIMIT 1",
+        [userId]
+      );
+      if (uCompRows[0]?.company_id) {
+        companyId = uCompRows[0].company_id;
+      }
+    }
     let query = "SELECT * FROM departments ORDER BY id ASC";
     let params = [];
     if (companyId) {
@@ -12451,7 +12555,17 @@ app.get("/api/who-out-today", async (req, res) => {
   try {
     const filters = [];
     const params = [];
-    const companyFilter = getCompanyUserSqlFilter(req, "p.user_id");
+    let effectiveCompanyId = req?.companyId || req?.query?.company_id || req?.query?.companyId;
+    if ((role === 'assure_leader' || role.includes('assure')) && (req.query.userId || req.query.user_id)) {
+      const [uCompRows] = await pool.query(
+        "SELECT company_id FROM company_user_roles WHERE user_id = ? AND status = 'active' ORDER BY is_default DESC LIMIT 1",
+        [req.query.userId || req.query.user_id]
+      );
+      if (uCompRows[0]?.company_id) {
+        effectiveCompanyId = uCompRows[0].company_id;
+      }
+    }
+    const companyFilter = getCompanyUserSqlFilterById(effectiveCompanyId, "p.user_id");
     if (companyFilter) {
       filters.push(companyFilter.replace(/^\s*AND\s+/i, ""));
     }
