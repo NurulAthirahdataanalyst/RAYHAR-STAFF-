@@ -455,6 +455,7 @@ function createMultiCompanyRouter(pgPool) {
 
   // POST create new company
   router.post('/companies', async (req, res) => {
+    const client = await pgPool.connect();
     try {
       const {
         company_name,
@@ -467,10 +468,13 @@ function createMultiCompanyRouter(pgPool) {
 
       const safeCompanyName = cleanString(company_name);
       if (!safeCompanyName) {
+        client.release();
         return res.status(400).json({ success: false, error: 'Company name is required' });
       }
 
-      const insertResult = await pgPool.query(`
+      await client.query('BEGIN');
+
+      const insertResult = await client.query(`
         INSERT INTO companies (company_name, company_type, parent_company_id, company_address, email, status)
         VALUES ($1, $2, $3, $4, $5, $6)
         RETURNING *;
@@ -479,13 +483,13 @@ function createMultiCompanyRouter(pgPool) {
       const newCompany = insertResult.rows[0];
 
       // Automatically initialize baseline attendance and leave settings for this company
-      await pgPool.query(`
+      await client.query(`
         INSERT INTO attendance_settings (company_id, late_threshold_minutes, early_checkout_minutes, min_working_hours, gps_required, geofence_enforcement)
         VALUES ($1, 10, 0, 8.00, TRUE, 'strict')
         ON CONFLICT (company_id) DO NOTHING;
       `, [newCompany.id]);
 
-      await pgPool.query(`
+      await client.query(`
         INSERT INTO leave_settings (company_id, leave_type, default_entitlement_days, escalate_to_parent, mc_required)
         VALUES 
           ($1, 'Annual Leave', 14, TRUE, FALSE),
@@ -495,7 +499,7 @@ function createMultiCompanyRouter(pgPool) {
       `, [newCompany.id]);
 
       // Automatically initialize baseline work schedule (Standard Office Hours 08:30 - 17:30)
-      const schedInsert = await pgPool.query(`
+      const schedInsert = await client.query(`
         INSERT INTO work_schedules (company_id, schedule_name, effective_date, status)
         VALUES ($1, 'Standard Office Hours', CURRENT_DATE, 'active')
         RETURNING id;
@@ -503,7 +507,7 @@ function createMultiCompanyRouter(pgPool) {
 
       const newSchedId = schedInsert.rows[0]?.id;
       if (newSchedId) {
-        await pgPool.query(`
+        await client.query(`
           INSERT INTO work_schedule_days (schedule_id, day_of_week, start_time, end_time, is_working_day) VALUES
             ($1, 'Monday', '08:30:00', '17:30:00', TRUE),
             ($1, 'Tuesday', '08:30:00', '17:30:00', TRUE),
@@ -511,30 +515,37 @@ function createMultiCompanyRouter(pgPool) {
             ($1, 'Thursday', '08:30:00', '17:30:00', TRUE),
             ($1, 'Friday', '08:30:00', '17:30:00', TRUE),
             ($1, 'Saturday', NULL, NULL, FALSE),
-            ($1, 'Sunday', NULL, NULL, FALSE);
+            ($1, 'Sunday', NULL, NULL, FALSE)
+        `, [newSchedId]);
 
+        await client.query(`
           INSERT INTO break_schedules (schedule_id, break_name, break_type, start_time, end_time) VALUES
-            ($1, 'Lunch Break', 'lunch', '12:30:00', '14:00:00');
+            ($1, 'Lunch Break', 'lunch', '12:30:00', '14:00:00')
         `, [newSchedId]);
       }
 
       // Automatically initialize company modules for the new company
-      await pgPool.query(`
+      await client.query(`
         INSERT INTO company_modules (company_id, module_key, is_enabled)
         SELECT $1, module_key, TRUE
         FROM modules
         ON CONFLICT (company_id, module_key) DO NOTHING;
       `, [newCompany.id]);
 
+      await client.query('COMMIT');
+
       await logAudit(req, 'COMPANY_CREATE', `Created company ${newCompany.company_name} (ID: ${newCompany.id})`, null, newCompany, newCompany.id);
 
       res.status(201).json({ success: true, company: newCompany });
     } catch (err) {
+      await client.query('ROLLBACK').catch(() => {});
       console.error('Error creating company:', err);
       if (err.code === '23505') {
         return res.status(400).json({ success: false, error: 'A company with this name already exists' });
       }
       res.status(500).json({ success: false, error: err.message });
+    } finally {
+      client.release();
     }
   });
 

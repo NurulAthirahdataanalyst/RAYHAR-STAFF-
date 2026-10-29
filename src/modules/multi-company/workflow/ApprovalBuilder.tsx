@@ -331,18 +331,20 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
 
             scopeGroups.forEach((stepsList, scopeKey) => {
               let selected: string[] = [];
-              if (scopeKey === 'ALL') {
+              if (scopeKey === 'ALL' || scopeKey === 'OTHER_BRANCHES') {
                 selected = currentBranches.map((b) => b.code);
               } else if (scopeKey.startsWith('BRANCHES:') || scopeKey.includes(',')) {
                 selected = scopeKey.replace('BRANCHES:', '').split(',').map((c) => c.trim()).filter(Boolean);
-              } else {
+              } else if (currentBranches.some((b) => b.code === scopeKey)) {
                 selected = [scopeKey];
+              } else {
+                selected = currentBranches.map((b) => b.code);
               }
 
               parsedTracks.push({
                 id: `wf-${companyId}-${wIndex}`,
                 name: `Workflow ${wIndex} • ${companyName}`,
-                scopeType: scopeKey === 'ALL' ? 'ALL' : 'CUSTOM',
+                scopeType: (scopeKey === 'ALL' || scopeKey === 'OTHER_BRANCHES') ? 'ALL' : 'CUSTOM',
                 selectedBranches: selected,
                 steps: stepsList.map((s, idx) => ({ ...s, step_order: idx + 1 }))
               });
@@ -622,17 +624,28 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
       }
 
       let resolvedScope = track.scopeType as string;
-      if (track.scopeType === 'HQ' || (track.selectedBranches.length === 1 && track.selectedBranches[0] === 'HQ')) {
-        resolvedScope = 'HQ';
-      } else if (
-        track.scopeType === 'OTHER_BRANCHES' ||
-        (track.selectedBranches.every((b) => b !== 'HQ') && track.selectedBranches.length >= (branches.length - 1))
-      ) {
-        resolvedScope = 'OTHER_BRANCHES';
-      } else if (track.selectedBranches.length === branches.length) {
-        resolvedScope = 'ALL';
+      if (isMainCompany) {
+        if (track.scopeType === 'HQ' || (track.selectedBranches.length === 1 && track.selectedBranches[0] === 'HQ')) {
+          resolvedScope = 'HQ';
+        } else if (
+          track.scopeType === 'OTHER_BRANCHES' ||
+          (track.selectedBranches.every((b) => b !== 'HQ') && track.selectedBranches.length >= (branches.length - 1))
+        ) {
+          resolvedScope = 'OTHER_BRANCHES';
+        } else if (track.selectedBranches.length === branches.length) {
+          resolvedScope = 'ALL';
+        } else {
+          resolvedScope = `BRANCHES:${track.selectedBranches.join(',')}`;
+        }
       } else {
-        resolvedScope = `BRANCHES:${track.selectedBranches.join(',')}`;
+        // Subsidiary company (e.g. RayRent)
+        if (track.selectedBranches.length === branches.length || track.scopeType === 'ALL') {
+          resolvedScope = 'ALL';
+        } else if (track.selectedBranches.length > 0) {
+          resolvedScope = `BRANCHES:${track.selectedBranches.join(',')}`;
+        } else {
+          resolvedScope = 'ALL';
+        }
       }
 
       track.steps.forEach((s, sIdx) => {
