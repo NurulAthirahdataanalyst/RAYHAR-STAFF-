@@ -214,8 +214,8 @@ export const Tab8_LeaveWorkflowConfig: React.FC = () => {
 
             <div className="space-y-2 pt-2 border-t border-border/40 dark:border-neutral-800">
               <div className="flex justify-between items-center bg-background/60 dark:bg-neutral-950 p-2 rounded-lg border border-border/50">
-                <Label className="text-[11px] font-black uppercase tracking-wider text-black dark:text-white">Annual & Emergency Leave</Label>
-                <div className="flex items-center gap-1.5">
+                <Label className="text-[11px] font-bold text-black dark:text-white leading-tight min-w-0 flex-1 pr-1">Annual & Emergency Leave</Label>
+                <div className="flex items-center gap-1.5 shrink-0 ml-1.5">
                   <Input
                     type="number"
                     min={0}
@@ -225,9 +225,9 @@ export const Tab8_LeaveWorkflowConfig: React.FC = () => {
                       setAnnualDays(val);
                       setEmergencyDays(val);
                     }}
-                    className="w-16 h-7 text-xs text-center font-bold text-black dark:text-white"
+                    className="w-14 h-7 text-xs text-center font-bold text-black dark:text-white px-1"
                   />
-                  <span className="text-[10px] text-muted-foreground font-semibold">days</span>
+                  <span className="text-[10px] text-muted-foreground font-semibold shrink-0">days</span>
                 </div>
               </div>
             </div>
@@ -252,16 +252,16 @@ export const Tab8_LeaveWorkflowConfig: React.FC = () => {
 
             <div className="space-y-2 pt-2 border-t border-border/40 dark:border-neutral-800">
               <div className="flex justify-between items-center bg-background/60 dark:bg-neutral-950 p-2 rounded-lg border border-border/50">
-                <Label className="text-[11px] font-bold text-black dark:text-white">Starting Base Quota</Label>
-                <div className="flex items-center gap-1.5">
+                <Label className="text-[11px] font-bold text-black dark:text-white leading-tight min-w-0 flex-1 pr-1">Starting Base Quota</Label>
+                <div className="flex items-center gap-1.5 shrink-0 ml-1.5">
                   <Input
                     type="number"
                     min={0}
                     value={replacementDays}
                     onChange={(e) => setReplacementDays(Number(e.target.value))}
-                    className="w-16 h-7 text-xs text-center font-bold text-black dark:text-white"
+                    className="w-14 h-7 text-xs text-center font-bold text-black dark:text-white px-1"
                   />
-                  <span className="text-[10px] text-muted-foreground font-semibold">days</span>
+                  <span className="text-[10px] text-muted-foreground font-semibold shrink-0">days</span>
                 </div>
               </div>
             </div>
@@ -286,16 +286,16 @@ export const Tab8_LeaveWorkflowConfig: React.FC = () => {
 
             <div className="space-y-2 pt-2 border-t border-border/40 dark:border-neutral-800">
               <div className="flex justify-between items-center bg-background/60 dark:bg-neutral-950 p-2 rounded-lg border border-border/50">
-                <Label className="text-[11px] font-bold text-black dark:text-white">Max Allowed Days</Label>
-                <div className="flex items-center gap-1.5">
+                <Label className="text-[11px] font-bold text-black dark:text-white leading-tight min-w-0 flex-1 pr-1">Max Allowed Days</Label>
+                <div className="flex items-center gap-1.5 shrink-0 ml-1.5">
                   <Input
                     type="number"
                     min={0}
                     value={unpaidDays}
                     onChange={(e) => setUnpaidDays(Number(e.target.value))}
-                    className="w-16 h-7 text-xs text-center font-bold text-black dark:text-white"
+                    className="w-14 h-7 text-xs text-center font-bold text-black dark:text-white px-1"
                   />
-                  <span className="text-[10px] text-muted-foreground font-semibold">days</span>
+                  <span className="text-[10px] text-muted-foreground font-semibold shrink-0">days</span>
                 </div>
               </div>
             </div>
@@ -320,16 +320,16 @@ export const Tab8_LeaveWorkflowConfig: React.FC = () => {
 
             <div className="space-y-2 pt-2 border-t border-border/40 dark:border-neutral-800">
               <div className="flex justify-between items-center bg-background/60 dark:bg-neutral-950 p-2 rounded-lg border border-border/50">
-                <Label className="text-[11px] font-bold text-black dark:text-white">Medical Quota</Label>
-                <div className="flex items-center gap-1.5">
+                <Label className="text-[11px] font-bold text-black dark:text-white leading-tight min-w-0 flex-1 pr-1">Medical Quota</Label>
+                <div className="flex items-center gap-1.5 shrink-0 ml-1.5">
                   <Input
                     type="number"
                     min={0}
                     value={sickDays}
                     onChange={(e) => setSickDays(Number(e.target.value))}
-                    className="w-16 h-7 text-xs text-center font-bold text-black dark:text-white"
+                    className="w-14 h-7 text-xs text-center font-bold text-black dark:text-white px-1"
                   />
-                  <span className="text-[10px] text-muted-foreground font-semibold">days</span>
+                  <span className="text-[10px] text-muted-foreground font-semibold shrink-0">days</span>
                 </div>
               </div>
             </div>
