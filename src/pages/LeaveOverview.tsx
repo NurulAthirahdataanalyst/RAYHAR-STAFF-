@@ -333,16 +333,16 @@ export default function LeaveOverview() {
               "Unpaid Leave": 0
             });
           } else {
-            const annualBase = Number(data.profile.annual_leave_entitlement) ?? 14;
-            const annualAdj = Number(data.profile.annual_adj || data.profile.total_adjustment) || 0;
-            const medicalBase = Number(data.profile.medical_leave_entitlement) ?? 14;
-            const medicalAdj = Number(data.profile.medical_adj) || 0;
-            const replAdj = Number(data.profile.replacement_adj) || 0;
+            const annualBase = Number(data.profile.annual_leave_entitlement ?? 14);
+            const annualAdj = Number(data.profile.annual_adj ?? data.profile.total_adjustment ?? 0);
+            const medicalBase = Number(data.profile.medical_leave_entitlement ?? 14);
+            const medicalAdj = Number(data.profile.medical_adj ?? 0);
+            const replAdj = Number(data.profile.replacement_adj ?? 0);
             setCurrentBalances(prev => ({
               ...prev,
-              "Annual & Emergency Leave": annualBase + annualAdj,
-              "Sick Leave (MC)": medicalBase + medicalAdj,
-              "Replacement Leave": replAdj
+              "Annual & Emergency Leave": Math.max(annualBase + annualAdj, 0),
+              "Sick Leave (MC)": Math.max(medicalBase + medicalAdj, 0),
+              "Replacement Leave": Math.max(replAdj, 0)
             }));
           }
         }

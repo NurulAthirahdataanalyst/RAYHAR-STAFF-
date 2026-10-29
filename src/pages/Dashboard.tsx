@@ -957,10 +957,15 @@ export default function Dashboard() {
                     <span className="text-3xl font-black text-purple-700 dark:text-purple-300 leading-none">{stats.leaveBalance} days</span>
                   </div>
                 </div>
-                <div className="mt-3 pt-2.5 border-t border-purple-200/80 dark:border-purple-800/60">
+                <div className="mt-3 pt-2.5 border-t border-purple-200/80 dark:border-purple-800/60 flex items-center justify-between">
                   <p className="text-[10px] font-semibold text-slate-600 dark:text-foreground">
                     Annual Leave
                   </p>
+                  {(stats as any)?.annualEntitlement !== undefined && (
+                    <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400">
+                      {(stats as any)?.annualLeavesUsed ?? 0} / {(stats as any)?.annualEntitlement} used
+                    </span>
+                  )}
                 </div>
               </CardContent>
             </Card>

@@ -76,13 +76,16 @@ export const getUsedLeaveDays = (
     .filter((request) => {
       let isSameType = request.type === type;
 
-      // Special quota logic: Sick Leave auto-deducts from Annual/Emergency Leave quota!
+      // Annual & Emergency Leave quota relates strictly to Annual & Emergency leaves only
       if (type === "Annual/Emergency Leave" || type === "Cuti Tahunan") {
+        const reqType = (request.type as string) || "";
         isSameType = 
-          request.type === "Annual/Emergency Leave" ||
-          request.type === "Cuti Tahunan" ||
-          request.type === "Sick Leave" ||
-          request.type === "Cuti Sakit";
+          reqType === "Annual/Emergency Leave" ||
+          reqType === "Cuti Tahunan" ||
+          reqType === "Annual Leave" ||
+          reqType === "Emergency Leave" ||
+          reqType.toUpperCase() === "ANNUAL/EMERGENCY LEAVE" ||
+          reqType.toUpperCase() === "ANNUAL & EMERGENCY LEAVE";
       } else if (type === "Sick Leave" || type === "Cuti Sakit") {
         isSameType = request.type === "Sick Leave" || request.type === "Cuti Sakit";
       } else if (type === "Replacement Leave" || type === "Cuti Ganti") {

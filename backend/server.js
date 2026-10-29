@@ -4310,11 +4310,12 @@ app.get(["/api/profiles/:userId/leave-balance", "/api/leave-balance/:userId"], a
       }
     }
 
-    // 3. Get Used Leaves (Approved)
+    // 3. Get Used Leaves (Approved for current year)
     const [usedLeaves] = await pool.query(`
       SELECT leave_type, SUM(days) as total_used
       FROM leave_requests
       WHERE user_id = ? AND status = 'Approved'
+        AND EXTRACT(YEAR FROM start_date) = EXTRACT(YEAR FROM CURRENT_DATE)
       GROUP BY leave_type
     `, [userId]);
 
@@ -4329,7 +4330,6 @@ app.get(["/api/profiles/:userId/leave-balance", "/api/leave-balance/:userId"], a
         medicalUsed += parseFloat(row.total_used);
       } else if (['Replacement Leave', 'Cuti Ganti'].includes(row.leave_type)) {
         replacementUsed += parseFloat(row.total_used);
-        annualUsed += parseFloat(row.total_used);
       }
     }
 
@@ -9240,28 +9240,23 @@ app.get("/api/dashboard-stats", async (req, res) => {
     const totalDaysExcludingCoLeave = Math.max(totalWorkingDaysPassed - companyLeaveCountCurrentMonth, 1);
     const attendanceRate = empProfile.length > 0 ? Math.min(100, Math.round((daysPresent / totalDaysExcludingCoLeave) * 100)) : 0;
 
-    // 3. PENDING LEAVES & LEAVE BALANCE
+    // 3. PENDING LEAVES & LEAVE BALANCE (Strictly Annual & Emergency Leave Only)
     const [leaveRows] = await pool.query(
-      `SELECT SUM(days) AS used_days FROM leave_requests 
+      `SELECT COALESCE(SUM(days), 0) AS used_days FROM leave_requests 
        WHERE user_id = ? ${personalCompUserFilter}
-       AND status != 'Rejected' 
+       AND status = 'Approved'
+       AND EXTRACT(YEAR FROM start_date) = EXTRACT(YEAR FROM CURRENT_DATE)
        AND (
          UPPER(leave_type) IN ('CUTI TAHUNAN', 'ANNUAL LEAVE', 'ANNUAL/EMERGENCY LEAVE', 'ANNUAL & EMERGENCY LEAVE', 'KECEMASAN', 'EMERGENCY')
-         OR (
-           UPPER(leave_type) IN ('REPLACEMENT LEAVE', 'CUTI GANTI')
-           AND leave_id IN (
-             SELECT leave_request_id FROM replacement_leave_requests 
-             WHERE employee_id = ? AND validation_status IN ('Pending', 'Approved', 'Waiting for Replacement Date', 'Failed')
-           )
-         )
        )`,
-      [userId, userId]
+      [userId]
     );
     const quotaLeavesUsed = parseFloat(leaveRows[0].used_days || 0);
     const empData = empProfile[0] || {};
     const baseEntitlement = empProfile.length > 0 ? parseFloat(empData.annual_leave_entitlement || 14) : 0;
     const annualAdjustment = empProfile.length > 0 ? parseFloat(empData.annual_adjustment || 0) : 0;
-    const leaveBalance = empProfile.length > 0 ? Math.max((baseEntitlement + annualAdjustment) - quotaLeavesUsed, 0) : 0;
+    const totalEntitlement = Math.max(baseEntitlement + annualAdjustment, 0);
+    const leaveBalance = empProfile.length > 0 ? Math.max(totalEntitlement - quotaLeavesUsed, 0) : 0;
 
     const [pendingRows] = await pool.query(
       `SELECT COUNT(*) AS pending FROM leave_requests WHERE user_id = ? ${personalCompUserFilter} AND status LIKE 'Pending%'`,
@@ -9589,6 +9584,8 @@ app.get("/api/dashboard-stats", async (req, res) => {
       success: true,
       stats: {
         leaveBalance,
+        annualEntitlement: totalEntitlement,
+        annualLeavesUsed: quotaLeavesUsed,
         pendingLeaves,
         todayStatus,
         clockInTime,
