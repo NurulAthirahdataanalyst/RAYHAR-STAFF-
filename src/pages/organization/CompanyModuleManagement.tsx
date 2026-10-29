@@ -47,25 +47,25 @@ export const AUTHORIZATION_SCOPES = [
   {
     value: 'Own Data Only',
     title: 'Own Data Only',
-    desc: 'User can only view their own attendance, leave, profile, reports',
+    desc: 'User can only view their own attendance, leave, profile, reports (1 workspace)',
     badge: 'Self'
   },
   {
     value: 'Branch Data Only',
     title: 'Branch Data Only',
-    desc: 'User can view employees under the same branch only',
+    desc: 'User can view employees under the same branch only (1 workspace)',
     badge: 'Branch'
   },
   {
     value: 'Company Staff Data',
     title: 'Company Staff Data',
-    desc: 'User can view all employees within the same company',
+    desc: 'User can view all employees within the same company (1 company workspace, no dropdown)',
     badge: 'Company'
   },
   {
     value: 'Parent Group Data',
     title: 'Parent Group Data',
-    desc: 'User can view multiple companies',
+    desc: 'User can view multiple companies (can see all company workspaces with dropdown)',
     badge: 'Group HQ'
   }
 ];
@@ -416,6 +416,15 @@ export const CompanyModuleManagement: React.FC = () => {
 
         await multiCompanyApi.updateRole(targetRole.id, payload);
         toast.success(`Permissions for role "${targetRole.name}" saved successfully!`);
+        
+        // Notify application of scope update in real-time
+        try {
+          sessionStorage.setItem("presence_cached_scope_type", roleScope);
+          window.dispatchEvent(new CustomEvent('rayhar_role_scope_updated', { 
+            detail: { role_name: targetRole.name, scope_type: roleScope } 
+          }));
+        } catch (e) {}
+
         setHasChanges(false);
         setIsEditing(false);
         await loadData(selectedCompanyId);

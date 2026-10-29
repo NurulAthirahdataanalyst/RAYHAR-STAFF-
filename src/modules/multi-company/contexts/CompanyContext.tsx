@@ -35,6 +35,25 @@ const DEFAULT_MAIN_COMPANY: Company = {
   active_employees_count: 35
 };
 
+export const isParentScope = (st?: string | null): boolean => {
+  if (!st) return false;
+  const s = String(st).trim().toLowerCase();
+  return s.includes('parent group') || s === 'parent group data' || s === 'parent group access';
+};
+
+export const isCompanyRestrictedScope = (st?: string | null): boolean => {
+  if (!st) return false;
+  const s = String(st).trim().toLowerCase();
+  return (
+    s.includes('company staff') || 
+    s === 'company staff data' || 
+    s === 'company' || 
+    s === 'current company only' || 
+    s.includes('branch data') || 
+    s.includes('own data')
+  );
+};
+
 export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
   const [companies, setCompanies] = useState<Company[]>([DEFAULT_MAIN_COMPANY]);
@@ -132,31 +151,28 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
       const normUserRole = (user?.role || '').trim().toLowerCase();
       const isHR = ['hr', 'hr admin', 'hr_admin', 'admin'].includes(normUserRole);
-      const isParentScope = (st?: string | null) => {
-        if (!st) return false;
-        const s = String(st).trim().toLowerCase();
-        return s.includes('parent group') || s === 'parent group data' || s === 'parent group access';
-      };
       const cachedScope = typeof sessionStorage !== 'undefined' ? (sessionStorage.getItem("presence_cached_scope_type") || "") : "";
-      const isAssureLeader = normUserRole === 'assure_leader' || normUserRole.includes('assure');
+      const effectiveScope = user?.scope_type || cachedScope || (uCompanies.find(uc => uc.is_default || uc.company_id === (user as any)?.company_id)?.scope_type) || uCompanies[0]?.scope_type || "";
+
+      // Scope-based authorization:
+      // - "Parent Group Data": can see all multiple company workspaces with switcher dropdown
+      // - "Company Staff Data" (or Branch/Own): strictly 1 company workspace (no dropdown)
       const hasParentGroupScope = 
-        !isAssureLeader && (
-          isHR ||
-          isParentScope(user?.scope_type) ||
-          isParentScope(cachedScope) ||
-          uCompanies.some(uc => isParentScope(uc.scope_type)) ||
-          ['managing_director', 'operation_manager'].includes(normUserRole)
-        );
+        isParentScope(effectiveScope) ||
+        isParentScope(user?.scope_type) ||
+        isParentScope(cachedScope) ||
+        uCompanies.some(uc => isParentScope(uc.scope_type)) ||
+        (!isCompanyRestrictedScope(effectiveScope) && (isHR || ['managing_director'].includes(normUserRole)));
 
       // Determine initial active company
       const cachedId = sessionStorage.getItem(STORAGE_ACTIVE_COMPANY_KEY);
       let selected: Company | undefined;
 
       const userDefault = uCompanies.find(uc => uc.is_default) || uCompanies[0];
-      const userAssignedCompId = userDefault?.company_id || (user as any)?.company_id;
+      const userAssignedCompId = userDefault?.company_id || (user as any)?.company_id || (user?.branch === 'RAYRENT' ? 2 : undefined);
 
-      // Assure Leader is strictly scoped to her own assigned company
-      if (isAssureLeader && userAssignedCompId) {
+      // If user has single-company scope (Company Staff Data), strictly lock to assigned company
+      if (!hasParentGroupScope && userAssignedCompId) {
         selected = activeList.find(c => c.id === userAssignedCompId);
       } else if (hasParentGroupScope && cachedId) {
         selected = activeList.find(c => c.id === parseInt(cachedId, 10));
@@ -186,33 +202,30 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
     void fetchAllData();
   }, [fetchAllData]);
 
+  // Listen for real-time role scope updates
+  useEffect(() => {
+    const handleScopeUpdate = () => {
+      void fetchAllData();
+    };
+    window.addEventListener('rayhar_role_scope_updated', handleScopeUpdate);
+    return () => window.removeEventListener('rayhar_role_scope_updated', handleScopeUpdate);
+  }, [fetchAllData]);
+
   const setActiveCompanyId = useCallback((companyId: number) => {
-    // Only HR role or roles with Parent Group Data authorization scope are authorized to switch active company context
     const normUserRole = (user?.role || '').trim().toLowerCase();
     const isHR = ['hr', 'hr admin', 'hr_admin', 'admin'].includes(normUserRole);
-    const isParentScope = (st?: string | null) => {
-      if (!st) return false;
-      const s = String(st).trim().toLowerCase();
-      return s.includes('parent group') || s === 'parent group data' || s === 'parent group access';
-    };
     const cachedScope = typeof sessionStorage !== 'undefined' ? (sessionStorage.getItem("presence_cached_scope_type") || "") : "";
-    const isAssureLeader = normUserRole === 'assure_leader' || normUserRole.includes('assure');
-    const hasParentGroupScope = 
-      !isAssureLeader && (
-        isHR ||
-        isParentScope(user?.scope_type) ||
-        isParentScope(cachedScope) ||
-        userCompanies.some(uc => isParentScope(uc.scope_type)) ||
-        ['managing_director', 'operation_manager'].includes(normUserRole)
-      );
+    const effectiveScope = user?.scope_type || cachedScope || (userCompanies.find(uc => uc.is_default || uc.company_id === (user as any)?.company_id)?.scope_type) || userCompanies[0]?.scope_type || "";
 
-    if (isAssureLeader) {
-      console.warn('Assure Leader role is restricted to her own branch/company only.');
-      return;
-    }
+    const hasParentGroupScope = 
+      isParentScope(effectiveScope) ||
+      isParentScope(user?.scope_type) ||
+      isParentScope(cachedScope) ||
+      userCompanies.some(uc => isParentScope(uc.scope_type)) ||
+      (!isCompanyRestrictedScope(effectiveScope) && (isHR || ['managing_director'].includes(normUserRole)));
 
     if (!hasParentGroupScope) {
-      console.warn('Switching company context is restricted to HR Admin or Parent Group Data role authorization.');
+      console.warn('Switching company context is restricted to roles with Parent Group Data authorization scope.');
       return;
     }
     const target = companies.find(c => c.id === companyId);
@@ -263,19 +276,16 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // Determine if user has parent group administrator powers
   const normUserRole = (user?.role || '').toLowerCase();
   const cachedScope = typeof sessionStorage !== 'undefined' ? (sessionStorage.getItem("presence_cached_scope_type") || "") : "";
-  const isParentScope = (st?: string | null) => {
-    if (!st) return false;
-    const s = String(st).trim().toLowerCase();
-    return s.includes('parent group') || s === 'parent group data' || s === 'parent group access';
-  };
-  const isAssureLeaderRole = normUserRole === 'assure_leader' || normUserRole.includes('assure');
+  const effectiveScope = user?.scope_type || cachedScope || (userCompanies.find(uc => uc.company_id === activeCompany?.id)?.scope_type) || userCompanies[0]?.scope_type || "";
+  
   const isParentGroupAdmin = 
-    !isAssureLeaderRole && (
-      Boolean(activeCompany?.company_type === 'main' && ['hr_admin', 'admin', 'managing_director', 'operation_manager'].includes(normUserRole)) ||
-      isParentScope(user?.scope_type) ||
-      isParentScope(cachedScope) ||
+    isParentScope(effectiveScope) ||
+    isParentScope(user?.scope_type) ||
+    isParentScope(cachedScope) ||
+    (!isCompanyRestrictedScope(effectiveScope) && (
+      Boolean(activeCompany?.company_type === 'main' && ['hr_admin', 'admin', 'managing_director'].includes(normUserRole)) ||
       userCompanies.some(uc => isParentScope(uc.scope_type))
-    );
+    ));
 
   return (
     <CompanyContext.Provider

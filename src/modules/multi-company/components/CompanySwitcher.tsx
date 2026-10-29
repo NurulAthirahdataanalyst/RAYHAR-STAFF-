@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useCompany } from '../contexts/CompanyContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRole, normalizeRole } from '@/contexts/RoleContext';
@@ -38,6 +38,18 @@ export const CompanySwitcher: React.FC<CompanySwitcherProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [open, setOpen] = useState(false);
 
+  const [overrideScope, setOverrideScope] = useState<string>('');
+
+  useEffect(() => {
+    const handleScopeUpdated = (e: any) => {
+      if (e.detail?.scope_type) {
+        setOverrideScope(e.detail.scope_type);
+      }
+    };
+    window.addEventListener('rayhar_role_scope_updated', handleScopeUpdated);
+    return () => window.removeEventListener('rayhar_role_scope_updated', handleScopeUpdated);
+  }, []);
+
   const activeCompanyName = activeCompany?.company_name || 'Rayhar Travels';
   const isMain = activeCompany?.id === 1 || activeCompany?.company_type === 'main';
 
@@ -49,21 +61,48 @@ export const CompanySwitcher: React.FC<CompanySwitcherProps> = ({
     const s = String(st).trim().toLowerCase();
     return s.includes('parent group') || s === 'parent group data' || s === 'parent group access';
   };
-  const cachedScope = typeof sessionStorage !== 'undefined' ? (sessionStorage.getItem("presence_cached_scope_type") || "") : "";
-
-  const isAssureLeader = resolvedRole === 'assure_leader' || (resolvedRole && resolvedRole.includes('assure'));
-  const hasParentGroupScope = 
-    !isAssureLeader && (
-      isHR || 
-      isParentGroupAdmin ||
-      isParentScope(user?.scope_type) ||
-      isParentScope(userActiveRole?.scope_type) ||
-      isParentScope(scopeType) ||
-      isParentScope(cachedScope) ||
-      userCompanies.some(uc => isParentScope(uc.scope_type)) ||
-      resolvedRole === 'managing_director' ||
-      resolvedRole === 'operation_manager'
+  const isCompanyStaffScope = (st?: string | null) => {
+    if (!st) return false;
+    const s = String(st).trim().toLowerCase();
+    return (
+      s.includes('company staff') || 
+      s === 'company staff data' || 
+      s === 'company' || 
+      s === 'current company only' || 
+      s.includes('branch data') || 
+      s.includes('own data')
     );
+  };
+  const cachedScope = typeof sessionStorage !== 'undefined' ? (sessionStorage.getItem("presence_cached_scope_type") || "") : "";
+  const currentScopeType = overrideScope || scopeType || user?.scope_type || userActiveRole?.scope_type || cachedScope || '';
+
+  // Data Scope Access Rule:
+  // - "Parent Group Data": user can view multiple companies, see all company workspaces, and has switcher dropdown
+  // - "Company Staff Data" (or Branch/Own): user has strictly 1 workspace (no dropdown)
+  const hasParentGroupScope = useMemo(() => {
+    if (
+      isParentScope(currentScopeType) || 
+      isParentScope(user?.scope_type) || 
+      isParentScope(userActiveRole?.scope_type) || 
+      userCompanies.some(uc => isParentScope(uc.scope_type))
+    ) {
+      return true;
+    }
+
+    if (
+      isCompanyStaffScope(currentScopeType) || 
+      isCompanyStaffScope(user?.scope_type) || 
+      isCompanyStaffScope(userActiveRole?.scope_type)
+    ) {
+      return false;
+    }
+
+    return Boolean(
+      isParentGroupAdmin || 
+      (isHR && activeCompany?.company_type === 'main') || 
+      resolvedRole === 'managing_director'
+    );
+  }, [currentScopeType, user?.scope_type, userActiveRole?.scope_type, userCompanies, isParentGroupAdmin, isHR, activeCompany?.company_type, resolvedRole]);
 
   const canSwitchCompany = hasParentGroupScope;
 

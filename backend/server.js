@@ -7281,13 +7281,17 @@ app.get("/api/user-details/:identifier", async (req, res) => {
     const rawCompanyId = req.query.company_id || req.query.companyId || req.companyId;
     let companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
 
-    if (role === 'assure_leader' || role.includes('assure')) {
-      const [uCompRows] = await pool.query(
-        "SELECT company_id FROM company_user_roles WHERE user_id = ? AND status = 'active' ORDER BY is_default DESC LIMIT 1",
-        [userId]
-      );
-      if (uCompRows[0]?.company_id) {
-        companyId = uCompRows[0].company_id;
+    const normUserRole = safeLower(user.role).replace(/\s+/g, "_");
+    const [uCompRows] = await pool.query(
+      "SELECT cur.company_id, cur.role_id, r.scope_type FROM company_user_roles cur LEFT JOIN roles r ON cur.role_id = r.id WHERE cur.user_id = ? AND cur.status = 'active' ORDER BY cur.is_default DESC LIMIT 1",
+      [user.user_id]
+    );
+    const assignedCompanyId = uCompRows[0]?.company_id || (user.branch === 'RAYRENT' ? 2 : 1);
+    const resolvedScopeType = user.scope_type || uCompRows[0]?.scope_type || 'Company Staff Data';
+
+    if (normUserRole === 'assure_leader' || normUserRole.includes('assure')) {
+      if (assignedCompanyId) {
+        companyId = assignedCompanyId;
       }
     }
     let belongsToCompany = true;
@@ -7317,16 +7321,18 @@ app.get("/api/user-details/:identifier", async (req, res) => {
         replacement_adj: belongsToCompany ? user.replacement_adj : 0,
         medical_leave_entitlement: belongsToCompany ? (user.medical_leave_entitlement || 14) : 0,
         belongs_to_company: belongsToCompany,
+        company_id: assignedCompanyId,
         role_id: user.role_id,
         role_name: user.role_name,
         is_system_role: user.is_system_role,
-        scope_type: user.scope_type
+        scope_type: resolvedScopeType
       },
+      company_id: assignedCompanyId,
       role: user.role,
       role_id: user.role_id,
       role_name: user.role_name,
       is_system_role: user.is_system_role,
-      scope_type: user.scope_type,
+      scope_type: resolvedScopeType,
       permissions: userPermsDetail.keys,
       permission_levels: userPermsDetail.levels
     });

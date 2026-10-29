@@ -94,13 +94,13 @@ export const AUTHORIZATION_SCOPES = [
   {
     value: 'Company Staff Data',
     title: 'Company Staff Data',
-    desc: 'User can view all employees within the same company',
+    desc: 'User can view all employees within the same company (1 company workspace, no dropdown)',
     badge: 'Company'
   },
   {
     value: 'Parent Group Data',
     title: 'Parent Group Data',
-    desc: 'User can view multiple companies',
+    desc: 'User can view multiple companies (can see all company workspaces with dropdown)',
     badge: 'Group HQ'
   }
 ];
