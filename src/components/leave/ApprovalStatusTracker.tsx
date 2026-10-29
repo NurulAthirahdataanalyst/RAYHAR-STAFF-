@@ -27,6 +27,7 @@ interface ApprovalStatusTrackerProps {
 const formatRoleName = (r?: string) => {
   if (!r) return "MANAGER";
   const map: Record<string, string> = {
+    assure_leader: "ASSURE LEADER",
     branch_leader: "BRANCH LEADER",
     managing_director: "MANAGING DIRECTOR",
     operation_manager: "OPERATION MANAGER",
@@ -190,36 +191,63 @@ export function ApprovalStatusTracker({
     : (lvl2History?.approver_branch || pendingApproverContext || (isRayRent ? (branch || 'RayRent') : 'HQ'));
 
   if (isRayRent) {
-    const rayRentApproverName = isMdApproved
-      ? (mdHistory?.approver_name || approverName || "Managing Director")
-      : isApprovedByHr
-      ? (hrName || "HR Admin")
-      : (lvl1History?.approver_name || lvl2History?.approver_name || approverName || "");
+    const isAssurePending = sUpper.includes("ASSURE");
+    const isBlPending = sUpper.includes("BRANCH");
 
-    if (isApproved) {
-      step2Status = 'Approved';
-      step2Subtitle = rayRentApproverName
-        ? `${rayRentApproverName} • ${lvl2Context}`
-        : `Approved • ${lvl2Context}`;
-      if (mdHistory?.created_at || lvl1History?.created_at || lvl2History?.created_at || hrHistory?.created_at) {
-        step2Date = new Date((mdHistory?.created_at || lvl1History?.created_at || lvl2History?.created_at || hrHistory?.created_at)!).toLocaleDateString('en-GB');
+    const assureHistory = (approvalHistory || []).find(h => {
+      const r = String(h.approver_role || "").toLowerCase();
+      const n = String(h.approver_name || "").toLowerCase();
+      return r.includes("assure") || n.includes("qistina");
+    });
+    const blHistory = (approvalHistory || []).find(h => {
+      const r = String(h.approver_role || "").toLowerCase();
+      const n = String(h.approver_name || "").toLowerCase();
+      return r.includes("branch") || n.includes("alif");
+    });
+
+    const isBlApproved = Boolean(
+      (blHistory && String(blHistory.status || "").toLowerCase().includes("approved")) ||
+      isAssurePending ||
+      (isApproved && !isRejected)
+    );
+
+    const isAssureApproved = Boolean(
+      (assureHistory && String(assureHistory.status || "").toLowerCase().includes("approved")) ||
+      (isApproved && (aRole.includes("assure") || (approvalHistory || []).length >= 2 || isApprovedByHr))
+    );
+
+    // Step 1: Branch Leader
+    if (blHistory && String(blHistory.status).toLowerCase().includes("rejected")) {
+      step1Status = 'Rejected';
+      step1Subtitle = blHistory.approver_name ? `${blHistory.approver_name} • RAYRENT` : `Rejected • RAYRENT`;
+      if (blHistory.created_at) step1Date = new Date(blHistory.created_at).toLocaleDateString('en-GB');
+      step2Status = 'Future';
+    } else if (isBlApproved) {
+      step1Status = 'Approved';
+      step1Subtitle = blHistory?.approver_name ? `${blHistory.approver_name} • RAYRENT` : (approverName ? `${approverName} • RAYRENT` : `Approved • RAYRENT`);
+      if (blHistory?.created_at) step1Date = new Date(blHistory.created_at).toLocaleDateString('en-GB');
+
+      // Step 2: Assure Leader
+      if (isAssureApproved) {
+        step2Status = 'Approved';
+        const aName = assureHistory?.approver_name || (isApprovedByHr ? hrName : "Assure Leader");
+        step2Subtitle = aName ? `${aName} • RayRent` : `Approved • RayRent`;
+        if (assureHistory?.created_at) step2Date = new Date(assureHistory.created_at).toLocaleDateString('en-GB');
+      } else if (isRejected) {
+        step2Status = 'Rejected';
+        const aName = assureHistory?.approver_name || approverName || "Assure Leader";
+        step2Subtitle = aName ? `${aName} • RayRent` : `Rejected • RayRent`;
+        if (assureHistory?.created_at) step2Date = new Date(assureHistory.created_at).toLocaleDateString('en-GB');
       } else {
-        step2Date = new Date().toLocaleDateString('en-GB');
-      }
-    } else if (isRejected) {
-      step2Status = 'Rejected';
-      step2Subtitle = rayRentApproverName
-        ? `${rayRentApproverName} • ${lvl2Context}`
-        : `Rejected • ${lvl2Context}`;
-      if (lvl1History?.created_at || lvl2History?.created_at) {
-        step2Date = new Date((lvl1History?.created_at || lvl2History?.created_at)!).toLocaleDateString('en-GB');
+        // Pending Assure Leader
+        step2Status = 'Pending';
+        step2Subtitle = pendingApproverName ? `${pendingApproverName} • RayRent` : `Awaiting Assure Leader Approval • RayRent`;
       }
     } else {
-      // Pending
-      step2Status = 'Pending';
-      step2Subtitle = pendingApproverName 
-        ? `${pendingApproverName} • ${lvl2Context}` 
-        : `Awaiting Branch Leader Approval • ${lvl2Context}`;
+      // Step 1 Pending Branch Leader
+      step1Status = 'Pending';
+      step1Subtitle = pendingApproverName ? `${pendingApproverName} • RAYRENT` : `Awaiting Branch Leader Approval • RAYRENT`;
+      step2Status = 'Future';
     }
   } else if (isRejected) {
     // Check which stage rejected the request

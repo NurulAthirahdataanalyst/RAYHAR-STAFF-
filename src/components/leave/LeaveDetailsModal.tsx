@@ -19,6 +19,7 @@ import { API_BASE_URL } from "@/config/api";
 const formatRole = (role: string) => {
   if (!role) return "APPROVER";
   const map: Record<string, string> = {
+    assure_leader: "ASSURE LEADER",
     branch_leader: "BRANCH LEADER",
     managing_director: "MANAGING DIRECTOR",
     operation_manager: "OPERATION MANAGER",
@@ -29,12 +30,16 @@ const formatRole = (role: string) => {
     employee: "EMPLOYEE",
   };
   const key = role.toLowerCase().trim();
+  if (key.includes("assure")) return "ASSURE LEADER";
   return map[key] || role.replace(/_/g, ' ').toUpperCase();
 };
 
 const formatApproverRole = (role: string, department?: string, branch?: string) => {
   if (!role) return "APPROVER";
   const normalized = role.toLowerCase().trim();
+  if (normalized === "assure_leader" || normalized.includes("assure")) {
+    return "ASSURE LEADER";
+  }
   if (normalized === "head_of_department") {
     return `HEAD OF DEPARTMENT (${department || "N/A"})`;
   }
@@ -53,7 +58,38 @@ const formatApproverRole = (role: string, department?: string, branch?: string) 
   return formatRole(role);
 };
 
-const ADMIN_VIEW_ROLES = ["hr_admin", "branch_leader", "managing_director", "operation_manager", "finance_manager", "head_of_department"];
+const getDisplayStatus = (status: string, branch?: string, companyName?: string) => {
+  const isRayRent = 
+    (branch && branch.toUpperCase() === "RAYRENT") || 
+    (companyName && companyName.toLowerCase().includes("rayrent"));
+
+  if (isRayRent && (status === "Pending MD" || status === "Pending Managing Director")) {
+    return "Awaiting Branch Leader Approval";
+  }
+
+  switch (status) {
+    case "Pending HOD":
+    case "Pending Head of Department":
+      return "Awaiting Head of Department Approval";
+    case "Pending Operation":
+    case "Pending Operation Manager":
+    case "Pending Finance":
+    case "Pending Finance Manager":
+      return "Awaiting Operation Manager Approval";
+    case "Pending MD":
+    case "Pending Managing Director":
+      return "Awaiting Managing Director Approval";
+    case "Pending Branch Leader":
+      return "Awaiting Branch Leader Approval";
+    case "Pending Assure Leader":
+    case "Pending Assure":
+      return "Awaiting Assure Leader Approval";
+    default:
+      return status;
+  }
+};
+
+const ADMIN_VIEW_ROLES = ["hr_admin", "branch_leader", "managing_director", "operation_manager", "finance_manager", "head_of_department", "assure_leader"];
 
 interface LeaveDetailsModalProps {
   selectedRequest: any;
@@ -72,7 +108,8 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role, onApprove, o
     (reqStatus.startsWith("Pending HOD") && role === "head_of_department") ||
     (reqStatus === "Pending Branch Leader" && role === "branch_leader") ||
     ((reqStatus === "Pending Operation" || reqStatus === "Pending Operation Manager" || reqStatus === "Pending Finance" || reqStatus === "Pending Finance Manager") && (role === "operation_manager" || (role as string) === "finance_manager")) ||
-    ((reqStatus === "Pending MD" || reqStatus === "Pending Managing Director") && (role === "managing_director" || (role as string) === "md"))
+    ((reqStatus === "Pending MD" || reqStatus === "Pending Managing Director") && (role === "managing_director" || (role as string) === "md")) ||
+    ((reqStatus === "Pending Assure Leader" || reqStatus === "Pending Assure") && (role === "assure_leader" || role?.toLowerCase()?.includes("assure")))
   );
   const [bakiLayak, setBakiLayak] = useState<number | string>('-');
   const [mcBlobUrl, setMcBlobUrl] = useState<string | null>(null);
@@ -194,8 +231,12 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role, onApprove, o
                   </div>
                   <div className="space-y-1 col-span-2 sm:col-span-1">
                     <span className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50">Status</span>
-                    <p className={`font-black uppercase ${selectedRequest.status === "Rejected" ? "text-rose-600" : "text-[#942392]"}`}>
-                      {selectedRequest.status}
+                    <p className={`font-black uppercase ${
+                      selectedRequest.status === "Rejected" ? "text-rose-600" :
+                      selectedRequest.status === "Approved" ? "text-emerald-600" :
+                      "text-amber-600 dark:text-amber-400"
+                    }`}>
+                      {getDisplayStatus(selectedRequest.status, selectedRequest.branch, selectedRequest.companyName)}
                       {selectedRequest.status === "Rejected" && selectedRequest.approverRole && (
                         <span className="block text-[8px] print:text-[13px] text-rose-500 mt-0.5 opacity-60">
                           (by: {formatRole(selectedRequest.approverRole)})

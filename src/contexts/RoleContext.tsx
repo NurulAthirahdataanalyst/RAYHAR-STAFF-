@@ -39,6 +39,7 @@ export const normalizeRole = (rawRole?: string): string => {
   const r = String(rawRole).trim().toLowerCase();
   if (r === 'hr' || r === 'hr admin' || r === 'hr_admin' || r === 'admin' || r.includes('hr admin') || r.includes('hr_admin')) return 'hr_admin';
   if (r === 'md' || r === 'managing director' || r === 'managing_director' || r.includes('managing director')) return 'managing_director';
+  if (r.includes('assure leader') || r.includes('assure_leader') || r.includes('assure')) return 'assure_leader';
   if (r.includes('branch leader') || r.includes('branch_leader')) return 'branch_leader';
   if (r.includes('branch officer') || r.includes('branch_officer')) return 'branch_officer';
   if (r.includes('finance manager') || r.includes('operation manager') || r.includes('operations manager') || r.includes('operation_manager')) return 'operation_manager';
@@ -55,6 +56,7 @@ export const formatRoleDisplayName = (roleStr?: string): string => {
     case 'managing_director': return 'Managing Director';
     case 'operation_manager': return 'Operation Manager';
     case 'head_of_department': return 'Head of Department';
+    case 'assure_leader': return 'Assure Leader';
     case 'branch_leader': return 'Branch Leader';
     case 'employee': return 'Employee';
     default:

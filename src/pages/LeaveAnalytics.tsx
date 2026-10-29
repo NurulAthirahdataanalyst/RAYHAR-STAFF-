@@ -94,6 +94,9 @@ const getDisplayStatus = (status: string) => {
       return "Awaiting Managing Director Approval";
     case "Pending Branch Leader":
       return "Awaiting Branch Leader Approval";
+    case "Pending Assure Leader":
+    case "Pending Assure":
+      return "Awaiting Assure Leader Approval";
     default:
       return status;
   }

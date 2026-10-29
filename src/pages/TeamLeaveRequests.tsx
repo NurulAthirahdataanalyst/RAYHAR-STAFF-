@@ -87,6 +87,9 @@ export default function TeamLeaveRequests() {
         return "Awaiting Managing Director Approval";
       case "Pending Branch Leader":
         return "Awaiting Branch Leader Approval";
+      case "Pending Assure Leader":
+      case "Pending Assure":
+        return "Awaiting Assure Leader Approval";
       default:
         return status;
     }
@@ -97,6 +100,7 @@ export default function TeamLeaveRequests() {
     if (approverRole === "hr_admin") return "HR ADMIN";
     if (approverRole === "managing_director") return "MANAGING DIRECTOR";
     if (approverRole === "operation_manager" || approverRole === "finance_manager") return "OPERATION MANAGER";
+    if (approverRole === "assure_leader" || approverRole?.toLowerCase()?.includes("assure")) return "ASSURE LEADER";
     if (approverRole === "branch_leader") return `BRANCH LEADER (${approverBranch || 'HQ'})`;
     if (approverRole === "head_of_department") return `HEAD OF DEPARTMENT (${approverDepartment || 'General'})`;
     return formatRole(approverRole);

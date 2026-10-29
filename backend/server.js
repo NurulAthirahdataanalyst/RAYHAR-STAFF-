@@ -4524,6 +4524,8 @@ app.get("/api/leave-requests", async (req, res) => {
       "operation_manager",
       "operations_manager",
       "finance_manager",
+      "assure_leader",
+      "assure leader"
     ].includes(normRole);
 
     if (companyId && !userId) {
@@ -4533,6 +4535,13 @@ app.get("/api/leave-requests", async (req, res) => {
         CASE WHEN UPPER(p.branch) = 'RAYRENT' THEN 2 ELSE 1 END
       )::int = ?`);
       params.push(companyId);
+    } else if (normRole.includes("assure") && !userId) {
+      // Assure Leader defaults to RayRent / Company 2 if companyId not explicitly provided
+      filters.push(`COALESCE(
+        (SELECT cur.company_id FROM company_user_roles cur WHERE cur.user_id = lr.user_id AND cur.status = 'active' ORDER BY cur.company_id DESC LIMIT 1),
+        b_comp.company_id,
+        CASE WHEN UPPER(p.branch) = 'RAYRENT' THEN 2 ELSE 1 END
+      )::int = 2`);
     }
 
     if (userId) {
@@ -4650,6 +4659,16 @@ app.get("/api/leave-requests", async (req, res) => {
         (
           CASE 
             WHEN lr.status = 'Pending Branch Leader' THEN (SELECT UPPER(full_name) FROM profiles p2 LEFT JOIN user_role ur2 ON p2.user_id = ur2.user_id LEFT JOIN roles r2 ON p2.role_id = r2.id WHERE (LOWER(COALESCE(ur2.role, '')) LIKE '%branch%leader%' OR LOWER(COALESCE(r2.name, '')) LIKE '%branch%leader%' OR LOWER(COALESCE(p2.role, '')) LIKE '%branch%leader%') AND UPPER(p2.branch) = UPPER(p.branch) AND p2.status = 'Active' LIMIT 1)
+            WHEN lr.status = 'Pending Assure Leader' THEN (
+              SELECT UPPER(p2.full_name) 
+              FROM profiles p2 
+              LEFT JOIN company_user_roles cur2 ON p2.user_id = cur2.user_id AND cur2.status = 'active'
+              LEFT JOIN roles r2 ON cur2.role_id = r2.id OR p2.role_id = r2.id
+              LEFT JOIN user_role ur2 ON p2.user_id = ur2.user_id
+              WHERE (LOWER(COALESCE(r2.name, '')) LIKE '%assure%' OR LOWER(COALESCE(ur2.role, '')) LIKE '%assure%' OR LOWER(COALESCE(p2.role, '')) LIKE '%assure%') 
+                AND p2.status = 'Active' 
+              LIMIT 1
+            )
             WHEN lr.status = 'Pending HOD' THEN (SELECT UPPER(full_name) FROM profiles p2 LEFT JOIN user_role ur2 ON p2.user_id = ur2.user_id LEFT JOIN roles r2 ON p2.role_id = r2.id WHERE (LOWER(COALESCE(ur2.role, '')) LIKE '%head%department%' OR LOWER(COALESCE(ur2.role, '')) = 'hod' OR LOWER(COALESCE(r2.name, '')) LIKE '%head%department%' OR LOWER(COALESCE(r2.name, '')) = 'hod' OR LOWER(COALESCE(p2.role, '')) LIKE '%head%department%' OR LOWER(COALESCE(p2.role, '')) = 'hod') AND UPPER(p2.department) = UPPER(p.department) AND p2.status = 'Active' LIMIT 1)
             WHEN lr.status IN ('Pending Operation Manager', 'Pending Operation', 'Pending Finance', 'Pending Finance Manager') THEN (SELECT UPPER(full_name) FROM profiles p2 LEFT JOIN user_role ur2 ON p2.user_id = ur2.user_id LEFT JOIN roles r2 ON p2.role_id = r2.id WHERE (LOWER(COALESCE(ur2.role, '')) LIKE '%operation%manager%' OR LOWER(COALESCE(ur2.role, '')) LIKE '%finance%manager%' OR LOWER(COALESCE(r2.name, '')) LIKE '%operation%manager%' OR LOWER(COALESCE(r2.name, '')) LIKE '%finance%manager%' OR LOWER(COALESCE(p2.role, '')) LIKE '%operation%manager%' OR LOWER(COALESCE(p2.role, '')) LIKE '%finance%manager%') AND p2.status = 'Active' LIMIT 1)
             WHEN lr.status IN ('Pending MD', 'Pending Managing Director') THEN (SELECT UPPER(full_name) FROM profiles p2 LEFT JOIN user_role ur2 ON p2.user_id = ur2.user_id LEFT JOIN roles r2 ON p2.role_id = r2.id WHERE (LOWER(COALESCE(ur2.role, '')) LIKE '%managing%director%' OR LOWER(COALESCE(ur2.role, '')) = 'md' OR LOWER(COALESCE(r2.name, '')) LIKE '%managing%director%' OR LOWER(COALESCE(r2.name, '')) = 'md' OR LOWER(COALESCE(p2.role, '')) LIKE '%managing%director%' OR LOWER(COALESCE(p2.role, '')) = 'md') AND p2.status = 'Active' LIMIT 1)
@@ -4660,6 +4679,7 @@ app.get("/api/leave-requests", async (req, res) => {
         (
           CASE 
             WHEN lr.status = 'Pending Branch Leader' THEN p.branch
+            WHEN lr.status = 'Pending Assure Leader' THEN 'RayRent'
             WHEN lr.status = 'Pending HOD' THEN p.department
             WHEN lr.status IN ('Pending MD', 'Pending Managing Director', 'Pending Operation Manager', 'Pending Operation') THEN 'HQ'
             ELSE NULL
@@ -5458,7 +5478,7 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
         }
       }
     }
-    const validStatuses = ['Pending', 'Pending HOD', 'Pending Branch Leader', 'Pending Operation Manager', 'Pending Finance', 'Pending Finance Manager', 'Pending MD', 'Pending Managing Director', 'Approved', 'Rejected', 'Cancelled'];
+    const validStatuses = ['Pending', 'Pending HOD', 'Pending Branch Leader', 'Pending Operation Manager', 'Pending Finance', 'Pending Finance Manager', 'Pending MD', 'Pending Managing Director', 'Pending Assure Leader', 'Approved', 'Rejected', 'Cancelled'];
     let nextStatus = status; // Default to what frontend sent
     if (nextStatus && !validStatuses.includes(nextStatus)) return res.status(400).json({ success: false, error: 'Invalid status value' });
 
@@ -5474,8 +5494,9 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
       } else if (currentStatus === 'Pending' || currentStatus.startsWith('Pending HOD')) {
         nextStatus = 'Pending Operation Manager';
       } else if (currentStatus === 'Pending Branch Leader') {
-        // If employee belongs to RayRent, highest approval is Branch Leader -> Next status is Approved!
+        // Check applicant's company & workflow steps
         let isRayRentApplicant = false;
+        let hasAssureStep = false;
         try {
           const [empBranchCheck] = await pool.query(
             `SELECT p.branch, 
@@ -5492,13 +5513,35 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
           const empBranch = empBranchCheck[0]?.branch || '';
           const empCompId = empBranchCheck[0]?.company_id || 1;
           isRayRentApplicant = String(empBranch).toUpperCase() === 'RAYRENT' || empCompId === 2;
+
+          if (isRayRentApplicant) {
+            const [wfRows] = await pool.query(
+              `SELECT aw.*, r.name AS role_name 
+               FROM approval_workflow aw 
+               LEFT JOIN roles r ON aw.approver_role_id = r.id 
+               WHERE aw.company_id = ? AND aw.module = 'leave'
+               ORDER BY aw.step_order ASC`,
+              [empCompId]
+            );
+            hasAssureStep = wfRows.some(s => s.step_order > 1 && (
+              (s.role_name || '').toLowerCase().includes('assure') ||
+              (s.step_label || '').toLowerCase().includes('assure')
+            ));
+          }
         } catch (_) {}
 
         if (isRayRentApplicant) {
-          nextStatus = 'Approved';
+          if (hasAssureStep) {
+            nextStatus = 'Pending Assure Leader';
+          } else {
+            nextStatus = 'Approved';
+          }
         } else {
           nextStatus = 'Pending MD';
         }
+      } else if (currentStatus === 'Pending Assure Leader' || normApproverRole.includes('assure')) {
+        // Assure Leader is the highest approval authority for RayRent -> Approved
+        nextStatus = 'Approved';
       } else if (currentStatus === 'Pending Operation Manager' || currentStatus === 'Pending Finance' || currentStatus === 'Pending Finance Manager') {
         nextStatus = 'Approved';
       } else if (currentStatus === 'Pending MD' || currentStatus === 'Pending Managing Director') {
@@ -5577,6 +5620,25 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
             notificationTitle = `Leave Final Approval Required`;
             notificationMessage = `${leaveData.employee_name} requires your Managing Director approval for a leave request.`;
           }
+        } else if (nextStatus === "Pending Assure Leader") {
+          const [assureRows] = await pool.query(
+            `SELECT p.email, p.user_id, p.full_name
+             FROM profiles p 
+             LEFT JOIN company_user_roles cur ON p.user_id = cur.user_id AND cur.company_id = 2 AND cur.status = 'active'
+             LEFT JOIN roles r ON cur.role_id = r.id OR p.role_id = r.id
+             LEFT JOIN user_role ur ON p.user_id = ur.user_id
+             WHERE (LOWER(COALESCE(r.name, '')) LIKE '%assure%' OR LOWER(COALESCE(ur.role, '')) LIKE '%assure%' OR LOWER(COALESCE(p.role, '')) LIKE '%assure%') 
+               AND p.status = 'Active' 
+             LIMIT 1`
+          );
+          if (assureRows.length > 0) {
+            targetEmail = assureRows[0].email;
+            targetUserId = assureRows[0].user_id;
+            subject = `Leave Request Pending Assure Leader Approval: ${leaveData.employee_name}`;
+            html = `<p>Branch Leader has approved a leave request for <strong>${escapeHtml(leaveData.employee_name)}</strong>. It is now awaiting your final Assure Leader approval.</p>`;
+            notificationTitle = `Leave Final Approval Required`;
+            notificationMessage = `${leaveData.employee_name} requires your Assure Leader approval for a leave request.`;
+          }
         } else if (nextStatus === "Approved" || nextStatus === "Rejected") {
           targetEmail = leaveData.employee_email;
           targetUserId = leaveData.user_id;
@@ -5613,6 +5675,7 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
              LEFT JOIN roles r ON p.role_id = r.id
              WHERE (
                ur.role IN ('hr_admin', 'managing_director', 'operation_manager', 'finance_manager')
+               OR LOWER(COALESCE(r.name, '')) LIKE '%assure%'
                OR (
                  (LOWER(COALESCE(ur.role, '')) LIKE '%branch%leader%' OR LOWER(COALESCE(r.name, '')) LIKE '%branch%leader%' OR LOWER(COALESCE(p.role, '')) LIKE '%branch%leader%')
                  AND UPPER(p.branch) = UPPER(?)
@@ -5711,6 +5774,7 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
              LEFT JOIN roles r ON p.role_id = r.id
              WHERE (
                ur.role IN ('hr_admin', 'managing_director', 'operation_manager', 'finance_manager')
+               OR LOWER(COALESCE(r.name, '')) LIKE '%assure%'
                OR (
                  (LOWER(COALESCE(ur.role, '')) LIKE '%branch%leader%' OR LOWER(COALESCE(r.name, '')) LIKE '%branch%leader%' OR LOWER(COALESCE(p.role, '')) LIKE '%branch%leader%')
                  AND UPPER(p.branch) = UPPER(?)

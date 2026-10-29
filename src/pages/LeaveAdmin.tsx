@@ -54,6 +54,9 @@ const getDisplayStatus = (status: string, branch?: string, companyName?: string)
       return "Awaiting Managing Director Approval";
     case "Pending Branch Leader":
       return "Awaiting Branch Leader Approval";
+    case "Pending Assure Leader":
+    case "Pending Assure":
+      return "Awaiting Assure Leader Approval";
     default:
       return status;
   }
@@ -152,7 +155,7 @@ const formatApproverRole = (role: string, department?: string, branch?: string) 
 };
 
 // Roles that can approve/reject leave requests
-const APPROVER_ROLES = ["hr_admin", "hr", "admin", "managing_director", "operation_manager", "finance_manager", "head_of_department", "branch_leader"];
+const APPROVER_ROLES = ["hr_admin", "hr", "admin", "managing_director", "operation_manager", "finance_manager", "head_of_department", "branch_leader", "assure_leader", "assure leader"];
 // Roles that can see the leave admin panel (view + approve or view only)
 const ADMIN_VIEW_ROLES = ["hr_admin", "branch_leader", ...APPROVER_ROLES];
 
@@ -1159,7 +1162,8 @@ export default function LeaveAdmin() {
                               (req.status.trim().startsWith("Pending HOD") && role === "head_of_department") ||
                               (req.status.trim() === "Pending Branch Leader" && role === "branch_leader") ||
                               ((req.status.trim() === "Pending Operation" || req.status.trim() === "Pending Operation Manager" || req.status.trim() === "Pending Finance" || req.status.trim() === "Pending Finance Manager") && (role === "operation_manager" || (role as string) === "finance_manager")) ||
-                              ((req.status.trim() === "Pending MD" || req.status.trim() === "Pending Managing Director") && (role === "managing_director" || (role as string) === "md"))
+                              ((req.status.trim() === "Pending MD" || req.status.trim() === "Pending Managing Director") && (role === "managing_director" || (role as string) === "md")) ||
+                              ((req.status.trim() === "Pending Assure Leader" || req.status.trim() === "Pending Assure") && (role === "assure_leader" || role?.toLowerCase()?.includes("assure")))
                             ) ? (
                               <div className="flex justify-end gap-2">
                                 <Button

@@ -290,6 +290,8 @@ export default function WorkforceInsights() {
       canApprove = st === 'Pending Operation' || st === 'Pending Operation Manager' || st === 'Pending Finance' || st === 'Pending Finance Manager';
     } else if (['managing_director', 'md'].includes(normRole)) {
       canApprove = st === 'Pending MD' || st === 'Pending Managing Director';
+    } else if (['assure_leader', 'assure'].includes(normRole)) {
+      canApprove = st === 'Pending Assure Leader' || st === 'Pending Assure';
     }
 
     // HR & Employees NEVER get approve/decline buttons
@@ -312,6 +314,9 @@ export default function WorkforceInsights() {
       statusBadgeClass = "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20";
     } else if (st === 'Pending MD' || st === 'Pending Managing Director') {
       displayStatus = "Pending Managing Director";
+      statusBadgeClass = "bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-500/10 dark:text-purple-400 dark:border-purple-500/20";
+    } else if (st === 'Pending Assure Leader' || st === 'Pending Assure') {
+      displayStatus = "Pending Assure Leader";
       statusBadgeClass = "bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-500/10 dark:text-purple-400 dark:border-purple-500/20";
     } else if (st === 'Approved') {
       displayStatus = "Approved";

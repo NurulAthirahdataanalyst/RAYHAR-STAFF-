@@ -39,6 +39,9 @@ const getPendingRoleLabel = (status: string, department?: string, branch?: strin
     const b = branch ? ` (${branch})` : '';
     return `Head of Department${d}${b}`.replace(/\s+/g, ' ').trim();
   }
+  if (sUpper.includes("ASSURE")) {
+    return "Assure Leader";
+  }
   if (sUpper.includes("BRANCH LEADER")) {
     return branch ? `Branch Leader (${branch})` : "Branch Leader";
   }
@@ -53,6 +56,9 @@ const formatRoleWithContext = (role?: string, department?: string, branch?: stri
   const r = role.toLowerCase().trim();
   if (r === "head_of_department" || r === "hod") {
     return department ? `Head of Department (${department})` : `Head of Department`;
+  }
+  if (r === "assure_leader" || r.includes("assure")) {
+    return "Assure Leader";
   }
   if (r === "branch_leader") {
     return branch ? `Branch Leader (${branch})` : `Branch Leader`;
