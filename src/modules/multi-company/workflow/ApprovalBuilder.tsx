@@ -238,121 +238,91 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
 
         const rawSteps: ApprovalWorkflowStep[] = settingsData.approval_workflow || [];
 
-        if (isMainCompany) {
-          const defaultTracks = buildDefaultRayharTracks(uniqueRoles, currentBranches);
-
-          if (rawSteps.length === 0) {
-            setTracks(defaultTracks);
+        if (rawSteps.length === 0) {
+          if (isMainCompany) {
+            setTracks(buildDefaultRayharTracks(uniqueRoles, currentBranches));
           } else {
-            // Group raw steps by branch_scope or custom track identifier
-            const hqSteps: ApprovalWorkflowStep[] = [];
-            const branchSteps: ApprovalWorkflowStep[] = [];
-            const customGroups = new Map<string, ApprovalWorkflowStep[]>();
-
-            rawSteps.forEach((s) => {
-              const scope = s.branch_scope || 'HQ';
-              if (scope === 'HQ') {
-                hqSteps.push(s);
-              } else if (scope === 'OTHER_BRANCHES') {
-                branchSteps.push(s);
-              } else if (scope.startsWith('BRANCHES:') || scope.includes(',')) {
-                customGroups.set(scope, [...(customGroups.get(scope) || []), s]);
-              } else {
-                // Determine by label or approver role
-                const rName = (s.approver_role_name || '').toLowerCase();
-                if (rName.includes('head of department') || rName.includes('operation manager')) {
-                  hqSteps.push({ ...s, branch_scope: 'HQ' });
-                } else {
-                  branchSteps.push({ ...s, branch_scope: 'OTHER_BRANCHES' });
-                }
-              }
-            });
-
-            const parsedTracks: WorkflowTrack[] = [];
-
-            // Track 1: HQ
-            parsedTracks.push({
-              id: 'wf-rayhar-hq',
-              name: 'Workflow 1 • Rayhar HQ',
-              scopeType: 'HQ',
-              selectedBranches: ['HQ'],
-              steps: hqSteps.length > 0
-                ? hqSteps.map((s, idx) => ({ ...s, step_order: idx + 1, branch_scope: 'HQ' }))
-                : defaultTracks[0].steps
-            });
-
-            // Track 2: Other Branches
-            const nonHqBranchCodes = currentBranches
-              .filter((b) => (b.code || '').toUpperCase() !== 'HQ')
-              .map((b) => b.code);
-
-            parsedTracks.push({
-              id: 'wf-rayhar-branches',
-              name: 'Workflow 2 • Other Branches (Except HQ)',
-              scopeType: 'OTHER_BRANCHES',
-              selectedBranches: nonHqBranchCodes,
-              steps: branchSteps.length > 0
-                ? branchSteps.map((s, idx) => ({ ...s, step_order: idx + 1, branch_scope: 'OTHER_BRANCHES' }))
-                : defaultTracks[1].steps
-            });
-
-            // Any extra custom tracks
-            let customCounter = 3;
-            customGroups.forEach((stepsList, scopeKey) => {
-              const rawCodes = scopeKey.replace('BRANCHES:', '').split(',').map((c) => c.trim()).filter(Boolean);
-              parsedTracks.push({
-                id: `wf-custom-${customCounter}`,
-                name: `Workflow ${customCounter} • Custom Branch Track`,
-                scopeType: 'CUSTOM',
-                selectedBranches: rawCodes,
-                steps: stepsList.map((s, idx) => ({ ...s, step_order: idx + 1 }))
-              });
-              customCounter++;
-            });
-
-            setTracks(parsedTracks);
+            setTracks(buildDefaultSubsidiaryTracks(uniqueRoles, currentBranches));
           }
         } else {
-          // Subsidiary company (e.g. RayRent)
-          const defaultSubTracks = buildDefaultSubsidiaryTracks(uniqueRoles, currentBranches);
+          // Group raw steps by branch_scope
+          const scopeGroups = new Map<string, ApprovalWorkflowStep[]>();
+          rawSteps.forEach((s) => {
+            const scope = (s.branch_scope || '').trim() || (isMainCompany ? 'HQ' : 'ALL');
+            scopeGroups.set(scope, [...(scopeGroups.get(scope) || []), s]);
+          });
 
-          if (rawSteps.length === 0) {
-            setTracks(defaultSubTracks);
-          } else {
-            // Group steps by branch_scope if multiple exist
-            const scopeGroups = new Map<string, ApprovalWorkflowStep[]>();
-            rawSteps.forEach((s) => {
-              const scope = s.branch_scope || 'ALL';
-              scopeGroups.set(scope, [...(scopeGroups.get(scope) || []), s]);
-            });
+          const nonHqBranchCodes = currentBranches
+            .filter((b) => (b.code || '').toUpperCase() !== 'HQ')
+            .map((b) => b.code);
 
-            const parsedTracks: WorkflowTrack[] = [];
-            let wIndex = 1;
+          const parsedTracks: WorkflowTrack[] = [];
+          let trackCounter = 1;
 
-            scopeGroups.forEach((stepsList, scopeKey) => {
-              let selected: string[] = [];
-              if (scopeKey === 'ALL' || scopeKey === 'OTHER_BRANCHES') {
-                selected = currentBranches.map((b) => b.code);
-              } else if (scopeKey.startsWith('BRANCHES:') || scopeKey.includes(',')) {
-                selected = scopeKey.replace('BRANCHES:', '').split(',').map((c) => c.trim()).filter(Boolean);
-              } else if (currentBranches.some((b) => b.code === scopeKey)) {
-                selected = [scopeKey];
-              } else {
-                selected = currentBranches.map((b) => b.code);
+          scopeGroups.forEach((stepsList, scopeKey) => {
+            stepsList.sort((a, b) => (a.step_order || 0) - (b.step_order || 0));
+
+            // Extract custom track name if saved in routing_rule: "[Track: Track Name] ..."
+            let savedName = '';
+            for (const st of stepsList) {
+              const m = (st.routing_rule || '').match(/^\[Track:\s*([^\]]+)\]/i);
+              if (m && m[1].trim()) {
+                savedName = m[1].trim();
+                break;
               }
+              const mOld = (st.routing_rule || '').match(/^Track:\s*([^|]+)/i);
+              if (mOld && mOld[1].trim()) {
+                savedName = mOld[1].trim();
+                break;
+              }
+            }
 
-              parsedTracks.push({
-                id: `wf-${companyId}-${wIndex}`,
-                name: `Workflow ${wIndex} • ${companyName}`,
-                scopeType: (scopeKey === 'ALL' || scopeKey === 'OTHER_BRANCHES') ? 'ALL' : 'CUSTOM',
-                selectedBranches: selected,
-                steps: stepsList.map((s, idx) => ({ ...s, step_order: idx + 1 }))
-              });
-              wIndex++;
+            let scopeType: WorkflowBranchScope = 'CUSTOM';
+            let selected: string[] = [];
+            let defaultName = `Workflow ${trackCounter}`;
+
+            if (scopeKey === 'ALL' || scopeKey.startsWith('ALL_TRACK_')) {
+              scopeType = 'ALL';
+              selected = currentBranches.map((b) => b.code);
+              defaultName = `Workflow ${trackCounter} • All Branches`;
+            } else if (scopeKey === 'HQ') {
+              scopeType = 'HQ';
+              selected = ['HQ'];
+              defaultName = `Workflow ${trackCounter} • Rayhar HQ`;
+            } else if (scopeKey === 'OTHER_BRANCHES') {
+              scopeType = 'OTHER_BRANCHES';
+              selected = nonHqBranchCodes.length > 0 ? nonHqBranchCodes : currentBranches.map((b) => b.code);
+              defaultName = `Workflow ${trackCounter} • Other Branches (Except HQ)`;
+            } else if (scopeKey.startsWith('BRANCHES:') || scopeKey.includes(',')) {
+              scopeType = 'CUSTOM';
+              selected = scopeKey.replace('BRANCHES:', '').split(',').map((c) => c.trim()).filter(Boolean);
+              defaultName = `Workflow ${trackCounter} • Custom Branch Track`;
+            } else if (currentBranches.some((b) => b.code === scopeKey)) {
+              scopeType = 'CUSTOM';
+              selected = [scopeKey];
+              defaultName = `Workflow ${trackCounter} • Branch ${scopeKey}`;
+            } else {
+              scopeType = 'CUSTOM';
+              selected = currentBranches.map((b) => b.code);
+              defaultName = `Workflow ${trackCounter} • Branch Track`;
+            }
+
+            parsedTracks.push({
+              id: `wf-track-${trackCounter}-${scopeKey.toLowerCase().replace(/[^a-z0-9]/g, '_')}`,
+              name: savedName || defaultName,
+              scopeType,
+              selectedBranches: selected,
+              steps: stepsList.map((s, idx) => ({
+                ...s,
+                step_order: idx + 1,
+                branch_scope: (s.branch_scope || scopeKey) as WorkflowBranchScope
+              }))
             });
 
-            setTracks(parsedTracks.length > 0 ? parsedTracks : defaultSubTracks);
-          }
+            trackCounter++;
+          });
+
+          setTracks(parsedTracks);
         }
       } catch (err) {
         console.error('Failed to load approval workflow:', err);
@@ -625,22 +595,22 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
 
       let resolvedScope = track.scopeType as string;
       if (isMainCompany) {
-        if (track.scopeType === 'HQ' || (track.selectedBranches.length === 1 && track.selectedBranches[0] === 'HQ')) {
+        if (track.scopeType === 'ALL' || track.selectedBranches.length === branches.length) {
+          resolvedScope = tIdx === 0 ? 'ALL' : `ALL_TRACK_${tIdx + 1}`;
+        } else if (track.scopeType === 'HQ' || (track.selectedBranches.length === 1 && track.selectedBranches[0] === 'HQ')) {
           resolvedScope = 'HQ';
         } else if (
           track.scopeType === 'OTHER_BRANCHES' ||
           (track.selectedBranches.every((b) => b !== 'HQ') && track.selectedBranches.length >= (branches.length - 1))
         ) {
           resolvedScope = 'OTHER_BRANCHES';
-        } else if (track.selectedBranches.length === branches.length) {
-          resolvedScope = 'ALL';
         } else {
           resolvedScope = `BRANCHES:${track.selectedBranches.join(',')}`;
         }
       } else {
         // Subsidiary company (e.g. RayRent)
         if (track.selectedBranches.length === branches.length || track.scopeType === 'ALL') {
-          resolvedScope = 'ALL';
+          resolvedScope = tIdx === 0 ? 'ALL' : `ALL_TRACK_${tIdx + 1}`;
         } else if (track.selectedBranches.length > 0) {
           resolvedScope = `BRANCHES:${track.selectedBranches.join(',')}`;
         } else {
@@ -649,6 +619,10 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
       }
 
       track.steps.forEach((s, sIdx) => {
+        const cleanRule = (s.routing_rule || '').replace(/^\[Track:.*?\]\s*/, '');
+        const trackTag = `[Track: ${track.name}]`;
+        const finalRoutingRule = cleanRule ? `${trackTag} ${cleanRule}` : `${trackTag} Branches: ${track.selectedBranches.join(', ')}`;
+
         allStepsToSave.push({
           company_id: companyId,
           module: 'leave',
@@ -656,7 +630,7 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
           step_order: sIdx + 1,
           approver_role_id: s.approver_role_id,
           step_label: s.step_label || `Step ${sIdx + 1}`,
-          routing_rule: s.routing_rule || `Track: ${track.name} | Branches: ${track.selectedBranches.join(', ')}`,
+          routing_rule: finalRoutingRule,
           auto_escalate_hours: s.auto_escalate_hours || 48
         });
       });
@@ -665,6 +639,32 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
     try {
       setSaving(true);
       await multiCompanyApi.saveApprovalWorkflow(companyId, allStepsToSave);
+
+      // Immediately sync local in-memory tracks with resolved scopes
+      const syncedTracks = tracks.map((t, idx) => {
+        let rScope = t.scopeType as string;
+        if (t.scopeType === 'ALL' || t.selectedBranches.length === branches.length) {
+          rScope = idx === 0 ? 'ALL' : `ALL_TRACK_${idx + 1}`;
+        } else if (t.scopeType === 'HQ' || (t.selectedBranches.length === 1 && t.selectedBranches[0] === 'HQ')) {
+          rScope = 'HQ';
+        } else if (
+          t.scopeType === 'OTHER_BRANCHES' ||
+          (t.selectedBranches.every((b) => b !== 'HQ') && t.selectedBranches.length >= (branches.length - 1))
+        ) {
+          rScope = 'OTHER_BRANCHES';
+        } else {
+          rScope = `BRANCHES:${t.selectedBranches.join(',')}`;
+        }
+        return {
+          ...t,
+          steps: t.steps.map((s, sIdx) => ({
+            ...s,
+            branch_scope: rScope as WorkflowBranchScope,
+            step_order: sIdx + 1
+          }))
+        };
+      });
+      setTracks(syncedTracks);
       await multiCompanyApi.logActivity({
         category: 'LEAVE_WORKFLOW_UPDATE',
         description: `HR saved leave approval workflows for ${companyName} (${tracks.length} branch workflow tracks configured)`,
@@ -889,7 +889,9 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
 
   const visibleTracks = activeTrackFilter === 'ALL'
     ? tracks
-    : tracks.filter((t) => t.id === activeTrackFilter);
+    : tracks.filter((t) => t.id === activeTrackFilter).length > 0
+      ? tracks.filter((t) => t.id === activeTrackFilter)
+      : tracks;
 
   return (
     <div className="space-y-6">
@@ -1342,7 +1344,7 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
                         {step.routing_rule && (
                           <p className="text-[10px] text-muted-foreground mt-2 flex items-center gap-1.5">
                             <UserCheck className="w-3 h-3 text-[#942392] shrink-0" />
-                            <span>{step.routing_rule}</span>
+                            <span>{step.routing_rule.replace(/^\[Track:.*?\]\s*/, '')}</span>
                           </p>
                         )}
 

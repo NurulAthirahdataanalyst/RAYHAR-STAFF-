@@ -1790,7 +1790,7 @@ function createMultiCompanyRouter(pgPool) {
       `);
 
       const existing = await pgPool.query(
-        "SELECT COUNT(*)::int AS cnt FROM approval_workflow WHERE company_id = 1 AND module = 'leave' AND branch_scope IN ('HQ', 'OTHER_BRANCHES')"
+        "SELECT COUNT(*)::int AS cnt FROM approval_workflow WHERE company_id = 1 AND module = 'leave'"
       );
       if ((existing.rows[0]?.cnt || 0) === 0) {
         const rolesRes = await pgPool.query('SELECT id, name FROM roles WHERE company_id = 1');
@@ -1799,8 +1799,6 @@ function createMultiCompanyRouter(pgPool) {
         const omId = findRole('Operation Manager');
         const blId = findRole('Branch Leader');
         const mdId = findRole('Managing Director');
-
-        await pgPool.query("DELETE FROM approval_workflow WHERE company_id = 1 AND module = 'leave'");
 
         if (hodId && omId) {
           await pgPool.query(
@@ -1920,7 +1918,13 @@ function createMultiCompanyRouter(pgPool) {
           const stepOrder = step.step_order || scopeCounters[scope];
           await pgPool.query(`
             INSERT INTO approval_workflow (company_id, module, branch_scope, step_order, approver_role_id, step_label, routing_rule, auto_escalate_hours)
-            VALUES ($1, 'leave', $2, $3, $4, $5, $6, $7);
+            VALUES ($1, 'leave', $2, $3, $4, $5, $6, $7)
+            ON CONFLICT (company_id, module, branch_scope, step_order)
+            DO UPDATE SET
+              approver_role_id = EXCLUDED.approver_role_id,
+              step_label = EXCLUDED.step_label,
+              routing_rule = EXCLUDED.routing_rule,
+              auto_escalate_hours = EXCLUDED.auto_escalate_hours;
           `, [
             companyId,
             scope,
