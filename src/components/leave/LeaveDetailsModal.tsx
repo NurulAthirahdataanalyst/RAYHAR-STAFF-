@@ -85,6 +85,10 @@ const getDisplayStatus = (status: string, branch?: string, companyName?: string)
     case "Pending Assure":
       return "Awaiting Assure Leader Approval";
     default:
+      if (status && status.startsWith("Pending ")) {
+        const rolePart = status.replace(/^Pending\s+/, "");
+        return `Awaiting ${rolePart} Approval`;
+      }
       return status;
   }
 };
@@ -103,8 +107,11 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role, onApprove, o
   const isHrRole = ["hr_admin", "hr", "admin"].includes(role?.toLowerCase()?.trim() || "");
   const reqStatus = String(selectedRequest?.status || "").trim();
   const isPending = reqStatus.startsWith("Pending");
+  const normRole = (role || "").toLowerCase().replace(/[\s_-]+/g, "");
+  const pendingRole = reqStatus.replace(/^Pending\s+/, "").toLowerCase().replace(/[\s_-]+/g, "");
   const canModalApprove = isPending && (
     isHrRole ||
+    (pendingRole && normRole === pendingRole) ||
     (reqStatus.startsWith("Pending HOD") && role === "head_of_department") ||
     (reqStatus === "Pending Branch Leader" && role === "branch_leader") ||
     ((reqStatus === "Pending Operation" || reqStatus === "Pending Operation Manager" || reqStatus === "Pending Finance" || reqStatus === "Pending Finance Manager") && (role === "operation_manager" || (role as string) === "finance_manager")) ||

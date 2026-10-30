@@ -397,9 +397,11 @@ export default function Branches() {
   const [searchQuery, setSearchQuery] = useState("");
   const [zoneFilter, setZoneFilter] = useState<string>("ALL");
   const [workSchedules, setWorkSchedules] = useState<WorkSchedule[]>([]);
+  const [schedulesCache, setSchedulesCache] = useState<Record<number, WorkSchedule[]>>({});
+
   const zoneOptions = useMemo(
-    () => getOperatingZoneOptionsFromSchedules(workSchedules),
-    [workSchedules]
+    () => getOperatingZoneOptionsFromSchedules(workSchedules, selectedCompanyId),
+    [workSchedules, selectedCompanyId]
   );
   const [selectedCompanyId, setSelectedCompanyId] = useState<number>(activeCompany?.id || 1);
   const [addModalWorkSchedules, setAddModalWorkSchedules] = useState<WorkSchedule[]>([]);
@@ -407,14 +409,21 @@ export default function Branches() {
   const [loadingAddSchedules, setLoadingAddSchedules] = useState(false);
   const [loadingEditSchedules, setLoadingEditSchedules] = useState(false);
 
-
   const handleAddCompanyChange = async (compId: number) => {
     setAddBranchData((prev: any) => ({ ...prev, company_id: compId }));
+    if (schedulesCache[compId] && schedulesCache[compId].length > 0) {
+      setAddModalWorkSchedules(schedulesCache[compId]);
+      const cachedOptions = getOperatingZoneOptionsFromSchedules(schedulesCache[compId], compId);
+      if (cachedOptions.length > 0) {
+        setAddBranchData((prev: any) => ({ ...prev, company_id: compId, operating_zone: cachedOptions[0].value }));
+      }
+    }
     setLoadingAddSchedules(true);
     try {
       const scheds = await multiCompanyApi.getCompanyWorkSchedules(compId).catch(() => []);
+      setSchedulesCache(prev => ({ ...prev, [compId]: scheds }));
       setAddModalWorkSchedules(scheds);
-      const newZoneOptions = getOperatingZoneOptionsFromSchedules(scheds);
+      const newZoneOptions = getOperatingZoneOptionsFromSchedules(scheds, compId);
       if (newZoneOptions.length > 0) {
         setAddBranchData((prev: any) => {
           const currentZone = prev.operating_zone;
@@ -433,11 +442,19 @@ export default function Branches() {
 
   const handleEditCompanyChange = async (compId: number) => {
     setEditBranchData((prev: any) => ({ ...prev, company_id: compId }));
+    if (schedulesCache[compId] && schedulesCache[compId].length > 0) {
+      setEditModalWorkSchedules(schedulesCache[compId]);
+      const cachedOptions = getOperatingZoneOptionsFromSchedules(schedulesCache[compId], compId);
+      if (cachedOptions.length > 0) {
+        setEditBranchData((prev: any) => ({ ...prev, company_id: compId, operating_zone: cachedOptions[0].value }));
+      }
+    }
     setLoadingEditSchedules(true);
     try {
       const scheds = await multiCompanyApi.getCompanyWorkSchedules(compId).catch(() => []);
+      setSchedulesCache(prev => ({ ...prev, [compId]: scheds }));
       setEditModalWorkSchedules(scheds);
-      const newZoneOptions = getOperatingZoneOptionsFromSchedules(scheds);
+      const newZoneOptions = getOperatingZoneOptionsFromSchedules(scheds, compId);
       if (newZoneOptions.length > 0) {
         setEditBranchData((prev: any) => {
           const currentZone = prev.operating_zone;
@@ -463,7 +480,7 @@ export default function Branches() {
     code: "",
     name: "",
     location: "",
-    operating_zone: "ZONE_B",
+    operating_zone: "STANDARD",
     latitude: "",
     longitude: "",
     radius: "50",
@@ -475,11 +492,10 @@ export default function Branches() {
       getOperatingZoneOptionsFromSchedules(
         addModalWorkSchedules.length > 0
           ? addModalWorkSchedules
-          : addBranchData.company_id === selectedCompanyId
-          ? workSchedules
-          : []
+          : schedulesCache[addBranchData.company_id] || (addBranchData.company_id === selectedCompanyId ? workSchedules : []),
+        addBranchData.company_id
       ),
-    [addModalWorkSchedules, workSchedules, addBranchData.company_id, selectedCompanyId]
+    [addModalWorkSchedules, schedulesCache, addBranchData.company_id, selectedCompanyId, workSchedules]
   );
 
   const editZoneOptions = useMemo(
@@ -487,22 +503,24 @@ export default function Branches() {
       getOperatingZoneOptionsFromSchedules(
         editModalWorkSchedules.length > 0
           ? editModalWorkSchedules
-          : editBranchData.company_id === selectedCompanyId
-          ? workSchedules
-          : []
+          : schedulesCache[editBranchData.company_id] || (editBranchData.company_id === selectedCompanyId ? workSchedules : []),
+        editBranchData.company_id
       ),
-    [editModalWorkSchedules, workSchedules, editBranchData.company_id, selectedCompanyId]
+    [editModalWorkSchedules, schedulesCache, editBranchData.company_id, selectedCompanyId, workSchedules]
   );
   const [isSubmittingBranch, setIsSubmittingBranch] = useState(false);
   const [isMapModalOpen, setIsMapModalOpen] = useState(false);
 
   const openAddModal = () => {
     const curCompId = selectedCompanyId || activeCompany?.id || 1;
+    const initialScheds = schedulesCache[curCompId] || (curCompId === selectedCompanyId ? workSchedules : []);
+    const curOptions = getOperatingZoneOptionsFromSchedules(initialScheds, curCompId);
+    setAddModalWorkSchedules(initialScheds);
     setAddBranchData({
       code: "",
       name: "",
       location: "",
-      operating_zone: "ZONE_B",
+      operating_zone: curOptions[0]?.value || "STANDARD",
       latitude: "",
       longitude: "",
       radius: "50",
@@ -514,11 +532,18 @@ export default function Branches() {
 
   const openEditModal = () => {
     const curCompId = selectedBranch.company_id || selectedCompanyId || activeCompany?.id || 1;
+    const initialScheds = schedulesCache[curCompId] || (curCompId === selectedCompanyId ? workSchedules : []);
+    const curOptions = getOperatingZoneOptionsFromSchedules(initialScheds, curCompId);
+    setEditModalWorkSchedules(initialScheds);
+    const branchZone = selectedBranch.operating_zone;
+    const validZone = curOptions.some(opt => opt.value === branchZone || opt.value === normalizeZoneCode(branchZone))
+      ? branchZone
+      : curOptions[0]?.value || "STANDARD";
     setEditBranchData({
       code: selectedBranch.code,
       name: selectedBranch.name,
       location: selectedBranch.location || "",
-      operating_zone: normalizeZoneCode(selectedBranch.operating_zone) || zoneOptions[0]?.value || "ZONE_B",
+      operating_zone: validZone,
       latitude: selectedBranch.latitude || "",
       longitude: selectedBranch.longitude || "",
       radius: selectedBranch.radius || 50,
@@ -611,9 +636,12 @@ export default function Branches() {
         b.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         b.code?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         b.location?.toLowerCase().includes(searchQuery.toLowerCase());
+      const bZone = b.operating_zone || 'STANDARD';
       const matchesZone =
         zoneFilter === "ALL" ||
-        normalizeZoneCode(b.operating_zone) === normalizeZoneCode(zoneFilter);
+        bZone === zoneFilter ||
+        normalizeZoneCode(b.operating_zone) === normalizeZoneCode(zoneFilter) ||
+        (!b.operating_zone && zoneFilter === "STANDARD");
       return matchesSearch && matchesZone;
     });
   }, [allBranches, searchQuery, zoneFilter]);
@@ -697,6 +725,7 @@ export default function Branches() {
         setAllBranches(data.branches);
       }
       setWorkSchedules(schedulesData || []);
+      setSchedulesCache(prev => ({ ...prev, [cId]: schedulesData || [] }));
     } catch (err) {
       console.error("Error fetching branches", err);
     } finally {
@@ -732,6 +761,7 @@ export default function Branches() {
       const data = await response.json();
       if (data.success) setAllBranches(data.branches);
       setWorkSchedules(schedulesData || []);
+      setSchedulesCache(prev => ({ ...prev, [cId]: schedulesData || [] }));
     } catch (err) {}
   };
 
@@ -2409,51 +2439,56 @@ export default function Branches() {
                 <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Operating Zone (From Work Schedule)</label>
                 <span className="text-[9px] font-bold text-[#942392]">Auto-Assigns to Target Scope</span>
               </div>
-              <Select value={addBranchData.operating_zone} onValueChange={(val) => setAddBranchData({...addBranchData, operating_zone: val})}>
-                <SelectTrigger className="w-full h-11 px-4 rounded-xl border border-input bg-transparent text-xs font-bold shadow-sm">
-                  <SelectValue placeholder="Select Zone" />
-                </SelectTrigger>
-                <SelectContent className="rounded-xl">
-                  {addZoneOptions.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value} className="text-xs font-bold">
-                      {opt.fullLabel}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
               {(() => {
-                const selectedOpt = addZoneOptions.find((o) => o.value === normalizeZoneCode(addBranchData.operating_zone)) || addZoneOptions[0];
-                if (!selectedOpt) return null;
+                const currentAddZone = addZoneOptions.find((o) => o.value === addBranchData.operating_zone || o.value === normalizeZoneCode(addBranchData.operating_zone))?.value || addZoneOptions[0]?.value || 'STANDARD';
+                const selectedOpt = addZoneOptions.find((o) => o.value === currentAddZone) || addZoneOptions[0];
                 const cleanCode = (addBranchData.code || "").trim().toUpperCase();
-                const previewCodes = Array.from(
+                const previewCodes = selectedOpt ? Array.from(
                   new Set([...selectedOpt.branchCodes, ...(cleanCode ? [cleanCode] : [])])
-                ).sort();
+                ).sort() : [];
+
                 return (
-                  <div className="p-2.5 rounded-xl bg-muted/40 border border-border/60 space-y-1.5 text-[10px]">
-                    <div className="flex flex-wrap items-center justify-between gap-1">
-                      <span className="font-black text-foreground uppercase tracking-wider">
-                        Schedule: {selectedOpt.scheduleName}
-                      </span>
-                      <span className="font-mono font-bold text-[#942392]">
-                        {selectedOpt.hoursSummary}
-                      </span>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-1">
-                      <span className="font-bold text-muted-foreground mr-1">Target Scope:</span>
-                      {previewCodes.map((c) => (
-                        <span
-                          key={c}
-                          className={`px-1.5 py-0.5 rounded font-mono font-bold ${
-                            c === cleanCode
-                              ? "bg-[#942392] text-white"
-                              : "bg-background text-foreground border border-border/60"
-                          }`}
-                        >
-                          {c}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
+                  <>
+                    <Select value={currentAddZone} onValueChange={(val) => setAddBranchData({ ...addBranchData, operating_zone: val })}>
+                      <SelectTrigger className="w-full h-11 px-4 rounded-xl border border-input bg-transparent text-xs font-bold shadow-sm">
+                        <SelectValue placeholder="Select Zone" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl">
+                        {addZoneOptions.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value} className="text-xs font-bold">
+                            {opt.fullLabel}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {selectedOpt && (
+                      <div className="p-2.5 rounded-xl bg-muted/40 border border-border/60 space-y-1.5 text-[10px]">
+                        <div className="flex flex-wrap items-center justify-between gap-1">
+                          <span className="font-black text-foreground uppercase tracking-wider">
+                            Schedule: {selectedOpt.scheduleName}
+                          </span>
+                          <span className="font-mono font-bold text-[#942392]">
+                            {selectedOpt.hoursSummary}
+                          </span>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-1">
+                          <span className="font-bold text-muted-foreground mr-1">Target Scope:</span>
+                          {previewCodes.map((c) => (
+                            <span
+                              key={c}
+                              className={`px-1.5 py-0.5 rounded font-mono font-bold ${
+                                c === cleanCode
+                                  ? "bg-[#942392] text-white"
+                                  : "bg-background text-foreground border border-border/60"
+                              }`}
+                            >
+                              {c}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </>
                 );
               })()}
             </div>
@@ -2643,21 +2678,26 @@ export default function Branches() {
             <div className="grid grid-cols-2 gap-6">
               <div className="space-y-1.5">
                 <label className="text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest">OPERATING ZONE (WORK SCHEDULE)</label>
-                <Select
-                  value={normalizeZoneCode(editBranchData.operating_zone) || "ZONE_B"}
-                  onValueChange={(val) => setEditBranchData({ ...editBranchData, operating_zone: val })}
-                >
-                  <SelectTrigger className="w-full h-11 px-4 rounded-xl border border-input bg-transparent text-xs print:text-[11px] font-bold shadow-sm">
-                    <SelectValue placeholder="Select Zone" />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl">
-                    {editZoneOptions.map((opt) => (
-                      <SelectItem key={opt.value} value={opt.value} className="text-xs print:text-[11px] font-bold">
-                        {opt.fullLabel}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {(() => {
+                  const currentEditZone = editZoneOptions.find((o) => o.value === editBranchData.operating_zone || o.value === normalizeZoneCode(editBranchData.operating_zone))?.value || editZoneOptions[0]?.value || 'STANDARD';
+                  return (
+                    <Select
+                      value={currentEditZone}
+                      onValueChange={(val) => setEditBranchData({ ...editBranchData, operating_zone: val })}
+                    >
+                      <SelectTrigger className="w-full h-11 px-4 rounded-xl border border-input bg-transparent text-xs print:text-[11px] font-bold shadow-sm">
+                        <SelectValue placeholder="Select Zone" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl">
+                        {editZoneOptions.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value} className="text-xs print:text-[11px] font-bold">
+                            {opt.fullLabel}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  );
+                })()}
               </div>
               <div className="space-y-1.5 cursor-pointer" onClick={() => setIsMapModalOpen(true)}>
                 <label className="text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest">COORDINATES</label>

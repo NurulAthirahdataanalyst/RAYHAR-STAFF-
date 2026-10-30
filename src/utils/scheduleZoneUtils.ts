@@ -277,7 +277,10 @@ export interface OperatingZoneOption {
   scheduleId?: number;
 }
 
-export function getOperatingZoneOptionsFromSchedules(schedules: WorkSchedule[] = []): OperatingZoneOption[] {
+export function getOperatingZoneOptionsFromSchedules(
+  schedules: WorkSchedule[] = [],
+  companyId?: number
+): OperatingZoneOption[] {
   const optionsMap = new Map<string, OperatingZoneOption>();
 
   for (const s of schedules) {
@@ -307,31 +310,46 @@ export function getOperatingZoneOptionsFromSchedules(schedules: WorkSchedule[] =
     });
   }
 
-  // Ensure Zone A and Zone B are ONLY available as baseline options if no schedules were provided/found
+  // If no schedules found/loaded:
+  // ONLY Main Company (companyId 1 or undefined) has Zone A & Zone B presets.
+  // Subsidiaries (companyId !== 1) must never have Zone A / Zone B injected!
   if (optionsMap.size === 0) {
-    const fullLabel = 'ZONE A — Standard Office Hours (Zone A) (Sat–Wed: 08:30 - 17:30 | Thu: 08:30 - 13:00 | Fri Off)';
-    optionsMap.set('ZONE_A', {
-      value: 'ZONE_A',
-      zoneLabel: 'ZONE A',
-      shortLabel: 'ZONE A',
-      scheduleName: 'Standard Office Hours (Zone A)',
-      hoursSummary: 'Sat–Wed: 08:30 - 17:30 | Thu: 08:30 - 13:00 | Fri Off',
-      fullLabel,
-      label: fullLabel,
-      branchCodes: [],
-    });
+    if (companyId && companyId !== 1) {
+      optionsMap.set('STANDARD', {
+        value: 'STANDARD',
+        zoneLabel: 'Standard Office Hours',
+        shortLabel: 'Standard',
+        scheduleName: 'Standard Office Hours',
+        hoursSummary: 'Mon–Fri: 08:30 - 17:30 | Sat–Sun Off',
+        fullLabel: 'Standard Office Hours (Mon–Fri: 08:30 - 17:30 | Sat–Sun Off)',
+        label: 'Standard Office Hours (Mon–Fri: 08:30 - 17:30 | Sat–Sun Off)',
+        branchCodes: [],
+      });
+    } else {
+      const fullLabel = 'ZONE A — Standard Office Hours (Zone A) (Sat–Wed: 08:30 - 17:30 | Thu: 08:30 - 13:00 | Fri Off)';
+      optionsMap.set('ZONE_A', {
+        value: 'ZONE_A',
+        zoneLabel: 'ZONE A',
+        shortLabel: 'ZONE A',
+        scheduleName: 'Standard Office Hours (Zone A)',
+        hoursSummary: 'Sat–Wed: 08:30 - 17:30 | Thu: 08:30 - 13:00 | Fri Off',
+        fullLabel,
+        label: fullLabel,
+        branchCodes: [],
+      });
 
-    const fullLabelB = 'ZONE B — Standard Office Hours (Zone B) (Mon–Fri: 08:30 - 17:30 | Sat: 08:30 - 13:00 | Sun Off)';
-    optionsMap.set('ZONE_B', {
-      value: 'ZONE_B',
-      zoneLabel: 'ZONE B',
-      shortLabel: 'ZONE B',
-      scheduleName: 'Standard Office Hours (Zone B)',
-      hoursSummary: 'Mon–Fri: 08:30 - 17:30 | Sat: 08:30 - 13:00 | Sun Off',
-      fullLabel: fullLabelB,
-      label: fullLabelB,
-      branchCodes: [],
-    });
+      const fullLabelB = 'ZONE B — Standard Office Hours (Zone B) (Mon–Fri: 08:30 - 17:30 | Sat: 08:30 - 13:00 | Sun Off)';
+      optionsMap.set('ZONE_B', {
+        value: 'ZONE_B',
+        zoneLabel: 'ZONE B',
+        shortLabel: 'ZONE B',
+        scheduleName: 'Standard Office Hours (Zone B)',
+        hoursSummary: 'Mon–Fri: 08:30 - 17:30 | Sat: 08:30 - 13:00 | Sun Off',
+        fullLabel: fullLabelB,
+        label: fullLabelB,
+        branchCodes: [],
+      });
+    }
   }
 
   return Array.from(optionsMap.values());

@@ -28,7 +28,17 @@ const getPendingRoleLabel = (status: string, department?: string, branch?: strin
   const sUpper = (status || "").toUpperCase();
   const isHQ = String(branch).toUpperCase() === 'HQ';
 
-  if (sUpper.includes("MANAGING DIRECTOR") || sUpper === "PENDING MD" || sUpper.includes("MD")) {
+  if (status && status.startsWith("Pending ")) {
+    const rolePart = status.replace(/^Pending\s+/, "");
+    if (rolePart === "MD") return "Managing Director";
+    if (rolePart === "HOD") {
+      const d = department ? ` (${department})` : '';
+      const b = branch ? ` (${branch})` : '';
+      return `Head of Department${d}${b}`.replace(/\s+/g, ' ').trim();
+    }
+    return rolePart;
+  }
+  if (sUpper.includes("MANAGING DIRECTOR") || sUpper === "PENDING MD" || sUpper === "MD") {
     return "Managing Director";
   }
   if (sUpper.includes("OPERATION") || sUpper.includes("FINANCE")) {
@@ -44,9 +54,6 @@ const getPendingRoleLabel = (status: string, department?: string, branch?: strin
   }
   if (sUpper.includes("BRANCH LEADER")) {
     return branch ? `Branch Leader (${branch})` : "Branch Leader";
-  }
-  if (status && status.startsWith("Pending ")) {
-    return status.replace(/^Pending\s+/, "");
   }
   if (approverRole) {
     return formatRoleWithContext(approverRole, department, branch);

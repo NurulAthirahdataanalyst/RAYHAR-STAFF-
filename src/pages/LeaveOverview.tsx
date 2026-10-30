@@ -230,12 +230,29 @@ export default function LeaveOverview() {
           const reqBranch = request.branch || "HQ";
           const reqCompany = request.company_name || (reqBranch.toUpperCase() === "RAYRENT" ? "RayRent" : "Rayhar Travels");
 
-          let reqStatus = request.status || "Pending HOD";
+          let reqStatus = request.status;
+          if (!reqStatus) {
+            if (reqBranch.toUpperCase().includes('RV') || (reqCompany && reqCompany.toLowerCase().includes('vacation'))) {
+              reqStatus = "Pending Travel Consultant";
+            } else if (reqBranch.toUpperCase() === "RAYRENT" || (reqCompany && reqCompany.toLowerCase().includes('rayrent'))) {
+              reqStatus = "Pending Branch Leader";
+            } else if (reqBranch.toUpperCase() === "HQ") {
+              reqStatus = "Pending HOD";
+            } else {
+              reqStatus = "Pending Branch Leader";
+            }
+          }
           if (
             (reqBranch.toUpperCase() === "RAYRENT" || (reqCompany && reqCompany.toLowerCase().includes("rayrent"))) &&
             (reqStatus === "Pending MD" || reqStatus === "Pending Managing Director")
           ) {
             reqStatus = "Pending Branch Leader";
+          }
+          if (
+            (reqBranch.toUpperCase().includes("RV") || (reqCompany && reqCompany.toLowerCase().includes("vacation"))) &&
+            (reqStatus === "Pending MD" || reqStatus === "Pending Managing Director")
+          ) {
+            reqStatus = "Pending Travel Consultant";
           }
 
           let historyList = [];

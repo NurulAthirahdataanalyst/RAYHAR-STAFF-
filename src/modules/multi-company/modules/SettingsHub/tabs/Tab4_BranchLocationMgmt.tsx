@@ -138,9 +138,11 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
     }
   };
 
+  const [schedulesCache, setSchedulesCache] = useState<Record<number, WorkSchedule[]>>({});
+
   const zoneOptions = useMemo(
-    () => getOperatingZoneOptionsFromSchedules(workSchedules),
-    [workSchedules]
+    () => getOperatingZoneOptionsFromSchedules(workSchedules, selectedCompanyId),
+    [workSchedules, selectedCompanyId]
   );
 
   const modalZoneOptions = useMemo(
@@ -148,20 +150,27 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
       getOperatingZoneOptionsFromSchedules(
         modalWorkSchedules.length > 0
           ? modalWorkSchedules
-          : modalCompanyId === selectedCompanyId
-          ? workSchedules
-          : []
+          : schedulesCache[modalCompanyId] || (modalCompanyId === selectedCompanyId ? workSchedules : []),
+        modalCompanyId
       ),
-    [modalWorkSchedules, workSchedules, modalCompanyId, selectedCompanyId]
+    [modalWorkSchedules, schedulesCache, modalCompanyId, selectedCompanyId, workSchedules]
   );
 
   const handleModalCompanyChange = async (compId: number) => {
     setModalCompanyId(compId);
+    if (schedulesCache[compId] && schedulesCache[compId].length > 0) {
+      setModalWorkSchedules(schedulesCache[compId]);
+      const cachedOptions = getOperatingZoneOptionsFromSchedules(schedulesCache[compId], compId);
+      if (cachedOptions.length > 0) {
+        setOperatingZone(cachedOptions[0].value);
+      }
+    }
     setLoadingModalSchedules(true);
     try {
       const scheds = await multiCompanyApi.getCompanyWorkSchedules(compId).catch(() => []);
+      setSchedulesCache(prev => ({ ...prev, [compId]: scheds }));
       setModalWorkSchedules(scheds);
-      const newZoneOptions = getOperatingZoneOptionsFromSchedules(scheds);
+      const newZoneOptions = getOperatingZoneOptionsFromSchedules(scheds, compId);
       if (newZoneOptions.length > 0) {
         setOperatingZone((prev) => {
           const stillValid = newZoneOptions.some(
@@ -179,7 +188,14 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
 
   const filteredBranches = useMemo(() => {
     if (zoneFilter === 'ALL') return branches;
-    return branches.filter((b) => (normalizeZoneCode(b.operating_zone) || 'ZONE_B') === zoneFilter);
+    return branches.filter((b) => {
+      const bZone = b.operating_zone || 'STANDARD';
+      return (
+        bZone === zoneFilter ||
+        normalizeZoneCode(b.operating_zone) === normalizeZoneCode(zoneFilter) ||
+        (!b.operating_zone && zoneFilter === 'STANDARD')
+      );
+    });
   }, [branches, zoneFilter]);
 
   // Map Picker Modal states
@@ -218,6 +234,7 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
       ]);
       setBranches(res);
       setWorkSchedules(scheds);
+      setSchedulesCache(prev => ({ ...prev, [cId]: scheds }));
     } catch (err) {
       console.error('Failed to load branches:', err);
     } finally {
@@ -236,10 +253,10 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
     setLocationDistrict('');
     const curCompId = selectedCompanyId || activeCompany?.id || 1;
     setModalCompanyId(curCompId);
-    const initialScheds = curCompId === selectedCompanyId ? workSchedules : [];
+    const initialScheds = schedulesCache[curCompId] || (curCompId === selectedCompanyId ? workSchedules : []);
     setModalWorkSchedules(initialScheds);
-    const curOptions = getOperatingZoneOptionsFromSchedules(initialScheds);
-    setOperatingZone(curOptions[0]?.value || 'ZONE_B');
+    const curOptions = getOperatingZoneOptionsFromSchedules(initialScheds, curCompId);
+    setOperatingZone(curOptions[0]?.value || 'STANDARD');
     setLatitude('5.3297');
     setLongitude('103.1370');
     setRadius(50);
@@ -254,13 +271,13 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
     setLocationDistrict(b.location || '');
     const curCompId = b.company_id || selectedCompanyId || activeCompany?.id || 1;
     setModalCompanyId(curCompId);
-    const initialScheds = curCompId === selectedCompanyId ? workSchedules : [];
+    const initialScheds = schedulesCache[curCompId] || (curCompId === selectedCompanyId ? workSchedules : []);
     setModalWorkSchedules(initialScheds);
-    const curOptions = getOperatingZoneOptionsFromSchedules(initialScheds);
+    const curOptions = getOperatingZoneOptionsFromSchedules(initialScheds, curCompId);
     const branchZone = b.operating_zone;
     const validZone = curOptions.some(opt => opt.value === branchZone || opt.value === normalizeZoneCode(branchZone))
       ? branchZone
-      : curOptions[0]?.value || branchZone || 'ZONE_B';
+      : curOptions[0]?.value || 'STANDARD';
     setOperatingZone(validZone);
     setLatitude(b.latitude ? b.latitude.toString() : '5.3297');
     setLongitude(b.longitude ? b.longitude.toString() : '103.1370');
@@ -415,6 +432,20 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
                   Rayhar Travels (Main Company)
                 </SelectItem>
               )}
+            </SelectContent>
+          </Select>
+
+          <Select value={zoneFilter} onValueChange={setZoneFilter}>
+            <SelectTrigger className="w-56 h-9 px-3 rounded-xl border-border dark:border-neutral-800 bg-background dark:bg-neutral-900 text-xs font-bold shrink-0 shadow-xs">
+              <SelectValue placeholder="All Operating Zones" />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl">
+              <SelectItem value="ALL" className="text-xs font-bold">All Operating Zones</SelectItem>
+              {zoneOptions.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value} className="text-xs font-bold">
+                  {opt.shortLabel} — {opt.scheduleName}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -638,51 +669,56 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
                 <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Operating Zone (From Work Schedule)</label>
                 <span className="text-[9px] font-bold text-[#942392]">Auto-Assigns to Target Scope</span>
               </div>
-              <Select value={operatingZone} onValueChange={(val: any) => setOperatingZone(val)}>
-                <SelectTrigger className="w-full h-11 px-4 rounded-xl border border-input bg-transparent text-xs font-bold shadow-sm">
-                  <SelectValue placeholder="Select Zone" />
-                </SelectTrigger>
-                <SelectContent className="rounded-xl">
-                  {modalZoneOptions.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value} className="text-xs font-bold">
-                      {opt.fullLabel}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
               {(() => {
-                const selectedOpt = modalZoneOptions.find((o) => o.value === operatingZone || o.value === normalizeZoneCode(operatingZone)) || modalZoneOptions[0];
-                if (!selectedOpt) return null;
+                const currentModalZone = modalZoneOptions.find((o) => o.value === operatingZone || o.value === normalizeZoneCode(operatingZone))?.value || modalZoneOptions[0]?.value || 'STANDARD';
+                const selectedOpt = modalZoneOptions.find((o) => o.value === currentModalZone) || modalZoneOptions[0];
                 const cleanCode = branchCode.trim().toUpperCase();
-                const previewCodes = Array.from(
+                const previewCodes = selectedOpt ? Array.from(
                   new Set([...selectedOpt.branchCodes, ...(cleanCode ? [cleanCode] : [])])
-                ).sort();
+                ).sort() : [];
+
                 return (
-                  <div className="p-2.5 rounded-xl bg-muted/40 dark:bg-neutral-800/50 border border-border/60 space-y-1.5 text-[10px]">
-                    <div className="flex flex-wrap items-center justify-between gap-1">
-                      <span className="font-black text-foreground uppercase tracking-wider">
-                        Schedule: {selectedOpt.scheduleName}
-                      </span>
-                      <span className="font-mono font-bold text-[#942392]">
-                        {selectedOpt.hoursSummary}
-                      </span>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-1">
-                      <span className="font-bold text-muted-foreground mr-1">Target Scope:</span>
-                      {previewCodes.map((c) => (
-                        <span
-                          key={c}
-                          className={`px-1.5 py-0.5 rounded font-mono font-bold ${
-                            c === cleanCode
-                              ? 'bg-[#942392] text-white'
-                              : 'bg-background dark:bg-neutral-900 text-foreground border border-border/60'
-                          }`}
-                        >
-                          {c}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
+                  <>
+                    <Select value={currentModalZone} onValueChange={(val: any) => setOperatingZone(val)}>
+                      <SelectTrigger className="w-full h-11 px-4 rounded-xl border border-input bg-transparent text-xs font-bold shadow-sm">
+                        <SelectValue placeholder="Select Zone" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl">
+                        {modalZoneOptions.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value} className="text-xs font-bold">
+                            {opt.fullLabel}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {selectedOpt && (
+                      <div className="p-2.5 rounded-xl bg-muted/40 dark:bg-neutral-800/50 border border-border/60 space-y-1.5 text-[10px]">
+                        <div className="flex flex-wrap items-center justify-between gap-1">
+                          <span className="font-black text-foreground uppercase tracking-wider">
+                            Schedule: {selectedOpt.scheduleName}
+                          </span>
+                          <span className="font-mono font-bold text-[#942392]">
+                            {selectedOpt.hoursSummary}
+                          </span>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-1">
+                          <span className="font-bold text-muted-foreground mr-1">Target Scope:</span>
+                          {previewCodes.map((c) => (
+                            <span
+                              key={c}
+                              className={`px-1.5 py-0.5 rounded font-mono font-bold ${
+                                c === cleanCode
+                                  ? 'bg-[#942392] text-white'
+                                  : 'bg-background dark:bg-neutral-900 text-foreground border border-border/60'
+                              }`}
+                            >
+                              {c}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </>
                 );
               })()}
             </div>

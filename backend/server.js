@@ -2363,6 +2363,27 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
       console.warn('RayRent leave request alignment note:', rayrentFixErr.message);
     }
 
+    // Align legacy Rayhar Vacation leave requests from hardcoded Pending MD/HOD to dynamic workflow (Pending Travel Consultant)
+    try {
+      await pgPool.query(`
+        UPDATE leave_requests lr
+        SET status = 'Pending Travel Consultant'
+        FROM profiles p
+        WHERE lr.user_id = p.user_id
+          AND (
+            UPPER(p.branch) LIKE 'RV%' 
+            OR EXISTS (
+              SELECT 1 FROM company_user_roles cur 
+              WHERE cur.user_id = p.user_id AND cur.company_id = 3 AND cur.status = 'active'
+            )
+          )
+          AND lr.status IN ('Pending MD', 'Pending Managing Director', 'Pending HOD')
+      `);
+      console.log('Successfully aligned Rayhar Vacation leave requests to Pending Travel Consultant.');
+    } catch (rvFixErr) {
+      console.warn('Rayhar Vacation leave request alignment note:', rvFixErr.message);
+    }
+
     // Auto-update branch locations to be geographically accurate (Kemaman, Terengganu, Selangor, Johor, Perak, etc.) instead of generic "RAYHAR BRANCH"
     try {
       const correctBranches = [
@@ -4702,7 +4723,22 @@ app.get("/api/leave-requests", async (req, res) => {
             WHEN lr.status IN ('Pending Operation Manager', 'Pending Operation', 'Pending Finance', 'Pending Finance Manager') THEN (SELECT UPPER(full_name) FROM profiles p2 LEFT JOIN user_role ur2 ON p2.user_id = ur2.user_id LEFT JOIN roles r2 ON p2.role_id = r2.id WHERE (LOWER(COALESCE(ur2.role, '')) LIKE '%operation%manager%' OR LOWER(COALESCE(ur2.role, '')) LIKE '%finance%manager%' OR LOWER(COALESCE(r2.name, '')) LIKE '%operation%manager%' OR LOWER(COALESCE(r2.name, '')) LIKE '%finance%manager%' OR LOWER(COALESCE(p2.role, '')) LIKE '%operation%manager%' OR LOWER(COALESCE(p2.role, '')) LIKE '%finance%manager%') AND p2.status = 'Active' LIMIT 1)
             WHEN lr.status IN ('Pending MD', 'Pending Managing Director') THEN (SELECT UPPER(full_name) FROM profiles p2 LEFT JOIN user_role ur2 ON p2.user_id = ur2.user_id LEFT JOIN roles r2 ON p2.role_id = r2.id WHERE (LOWER(COALESCE(ur2.role, '')) LIKE '%managing%director%' OR LOWER(COALESCE(ur2.role, '')) = 'md' OR LOWER(COALESCE(r2.name, '')) LIKE '%managing%director%' OR LOWER(COALESCE(r2.name, '')) = 'md' OR LOWER(COALESCE(p2.role, '')) LIKE '%managing%director%' OR LOWER(COALESCE(p2.role, '')) = 'md') AND p2.status = 'Active' LIMIT 1)
             WHEN lr.status = 'Pending HR' THEN (SELECT UPPER(full_name) FROM profiles p2 LEFT JOIN user_role ur2 ON p2.user_id = ur2.user_id LEFT JOIN roles r2 ON p2.role_id = r2.id WHERE (LOWER(COALESCE(ur2.role, '')) LIKE '%hr%admin%' OR LOWER(COALESCE(ur2.role, '')) = 'hr' OR LOWER(COALESCE(ur2.role, '')) = 'admin' OR LOWER(COALESCE(r2.name, '')) LIKE '%hr%admin%' OR LOWER(COALESCE(r2.name, '')) = 'hr' OR LOWER(COALESCE(r2.name, '')) = 'admin' OR LOWER(COALESCE(p2.role, '')) LIKE '%hr%admin%' OR LOWER(COALESCE(p2.role, '')) = 'hr' OR LOWER(COALESCE(p2.role, '')) = 'admin') AND p2.status = 'Active' LIMIT 1)
-            ELSE NULL
+            ELSE (
+              SELECT UPPER(p2.full_name) 
+              FROM profiles p2 
+              LEFT JOIN user_role ur2 ON p2.user_id = ur2.user_id 
+              LEFT JOIN roles r2 ON p2.role_id = r2.id 
+              LEFT JOIN company_user_roles cur2 ON p2.user_id = cur2.user_id AND cur2.status = 'active'
+              WHERE lr.status LIKE 'Pending %'
+                AND (
+                  LOWER(COALESCE(ur2.role, '')) = LOWER(SUBSTRING(lr.status FROM 9))
+                  OR LOWER(COALESCE(r2.name, '')) = LOWER(SUBSTRING(lr.status FROM 9))
+                  OR LOWER(COALESCE(p2.role, '')) = LOWER(SUBSTRING(lr.status FROM 9))
+                  OR LOWER(COALESCE(r2.name, '')) LIKE LOWER(CONCAT('%', SUBSTRING(lr.status FROM 9), '%'))
+                )
+                AND p2.status = 'Active'
+              LIMIT 1
+            )
           END
         ) AS pending_approver_name,
         (
@@ -4711,7 +4747,7 @@ app.get("/api/leave-requests", async (req, res) => {
             WHEN lr.status = 'Pending Assure Leader' THEN 'RayRent'
             WHEN lr.status = 'Pending HOD' THEN p.department
             WHEN lr.status IN ('Pending MD', 'Pending Managing Director', 'Pending Operation Manager', 'Pending Operation') THEN 'HQ'
-            ELSE NULL
+            ELSE COALESCE(p.branch, 'Branch')
           END
         ) AS pending_approver_context
       FROM leave_requests lr

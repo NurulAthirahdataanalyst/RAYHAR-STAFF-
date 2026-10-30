@@ -228,7 +228,7 @@ export const multiCompanyApi = {
 
   // Work Schedules
   async getCompanyWorkSchedules(companyId: number): Promise<WorkSchedule[]> {
-    const res = await fetch(`${API_BASE_URL}/api/companies/${companyId}/work-schedules`);
+    const res = await fetch(`${API_BASE_URL}/api/companies/${companyId}/work-schedules?company_id=${companyId}`);
     const data = await res.json();
     return data.success ? data.schedules : [];
   },
