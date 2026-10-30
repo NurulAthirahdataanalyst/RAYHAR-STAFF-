@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { MapPin, Plus, Edit, Navigation, Sliders, Check, AlertCircle, Loader2, Moon, AlertTriangle, Search } from 'lucide-react';
+import { MapPin, Plus, Edit, Navigation, Sliders, Check, AlertCircle, Loader2, Moon, AlertTriangle, Search, Building2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCompany } from '../../../contexts/CompanyContext';
 import { multiCompanyApi } from '../../../services/multiCompanyApi';
@@ -108,11 +108,39 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
   const [longitude, setLongitude] = useState('103.1370');
   const [radius, setRadius] = useState<number>(50); // Default 50m
   const [saving, setSaving] = useState(false);
+  const [modalCompanyId, setModalCompanyId] = useState<number>(selectedCompanyId);
+  const [modalWorkSchedules, setModalWorkSchedules] = useState<WorkSchedule[]>([]);
+  const [loadingModalSchedules, setLoadingModalSchedules] = useState<boolean>(false);
 
   const zoneOptions = useMemo(
     () => getOperatingZoneOptionsFromSchedules(workSchedules),
     [workSchedules]
   );
+
+  const modalZoneOptions = useMemo(
+    () => getOperatingZoneOptionsFromSchedules(modalWorkSchedules.length > 0 ? modalWorkSchedules : workSchedules),
+    [modalWorkSchedules, workSchedules]
+  );
+
+  const handleModalCompanyChange = async (compId: number) => {
+    setModalCompanyId(compId);
+    setLoadingModalSchedules(true);
+    try {
+      const scheds = await multiCompanyApi.getCompanyWorkSchedules(compId).catch(() => []);
+      setModalWorkSchedules(scheds);
+      const newZoneOptions = getOperatingZoneOptionsFromSchedules(scheds);
+      if (newZoneOptions.length > 0) {
+        const stillValid = newZoneOptions.some(opt => opt.value === normalizeZoneCode(operatingZone));
+        if (!stillValid) {
+          setOperatingZone(newZoneOptions[0].value);
+        }
+      }
+    } catch (e) {
+      console.error("Failed to load work schedules for company:", e);
+    } finally {
+      setLoadingModalSchedules(false);
+    }
+  };
 
   const filteredBranches = useMemo(() => {
     if (zoneFilter === 'ALL') return branches;
@@ -171,11 +199,16 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
     setBranchCode('');
     setBranchName('');
     setLocationDistrict('');
-    setOperatingZone(zoneOptions[0]?.value || 'ZONE_B');
+    const curCompId = selectedCompanyId || activeCompany?.id || 1;
+    setModalCompanyId(curCompId);
+    setModalWorkSchedules(workSchedules);
+    const curOptions = getOperatingZoneOptionsFromSchedules(workSchedules);
+    setOperatingZone(curOptions[0]?.value || 'ZONE_B');
     setLatitude('5.3297');
     setLongitude('103.1370');
     setRadius(50);
     setModalOpen(true);
+    void handleModalCompanyChange(curCompId);
   };
 
   const handleOpenEditModal = (b: CompanyBranch) => {
@@ -183,11 +216,14 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
     setBranchCode(b.code);
     setBranchName(b.name || b.branch || '');
     setLocationDistrict(b.location || '');
+    const curCompId = b.company_id || selectedCompanyId || activeCompany?.id || 1;
+    setModalCompanyId(curCompId);
     setOperatingZone(normalizeZoneCode(b.operating_zone) || 'ZONE_B');
     setLatitude(b.latitude ? b.latitude.toString() : '5.3297');
     setLongitude(b.longitude ? b.longitude.toString() : '103.1370');
     setRadius(b.radius || 50);
     setModalOpen(true);
+    void handleModalCompanyChange(curCompId);
   };
 
   const handleSmartSearch = async () => {
@@ -239,18 +275,24 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
         latitude: parseFloat(latitude),
         longitude: parseFloat(longitude),
         radius: Number(radius),
-        company_id: selectedCompanyId
+        company_id: modalCompanyId
       };
 
       if (editingBranch) {
         await multiCompanyApi.updateBranch(editingBranch.code, payload);
         toast.success(`Updated branch ${branchName} successfully!`);
       } else {
-        await multiCompanyApi.createCompanyBranch(selectedCompanyId, payload);
-        toast.success(`Registered branch ${branchName} for ${companies.find(c => c.id === selectedCompanyId)?.company_name}!`);
+        await multiCompanyApi.createCompanyBranch(modalCompanyId, payload);
+        const compName = companies.find(c => c.id === modalCompanyId)?.company_name || 'company';
+        toast.success(`Registered branch ${branchName} for ${compName}!`);
       }
 
-      await fetchBranches(selectedCompanyId);
+      if (modalCompanyId !== selectedCompanyId) {
+        setSelectedCompanyId(modalCompanyId);
+        await fetchBranches(modalCompanyId);
+      } else {
+        await fetchBranches(selectedCompanyId);
+      }
       setModalOpen(false);
     } catch (err: any) {
       toast.error(err.message || 'Error saving branch');
@@ -440,6 +482,50 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
           </DialogHeader>
 
           <form onSubmit={handleSaveBranch} className="p-6 space-y-4 bg-card">
+            {/* Target Entity Selector */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label className="text-[9px] font-black text-foreground uppercase tracking-widest flex items-center gap-1.5">
+                  <Building2 className="w-3.5 h-3.5 text-[#942392]" />
+                  Target Entity
+                </label>
+                <span className="text-[9px] font-bold text-[#942392]">
+                  {loadingModalSchedules ? "Loading Schedules..." : "Work Schedule Scope"}
+                </span>
+              </div>
+              <Select 
+                value={modalCompanyId ? modalCompanyId.toString() : "1"} 
+                onValueChange={(val) => void handleModalCompanyChange(parseInt(val, 10))}
+              >
+                <SelectTrigger className="w-full h-11 px-4 rounded-xl border border-input bg-transparent text-xs font-bold shadow-sm">
+                  <SelectValue placeholder="Select Target Entity (Company)">
+                    {(() => {
+                      const found = companies.find(c => c.id === modalCompanyId);
+                      if (!found) return 'Rayhar Travels (Main Company)';
+                      const cName = toProperCase(found.company_name);
+                      const cType = found.company_type === 'main' ? 'Main Company' : 'Subsidiary';
+                      return `${cName} (${cType})`;
+                    })()}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent className="rounded-xl">
+                  {companies.map(c => (
+                    <SelectItem key={c.id} value={c.id.toString()} className="text-xs font-bold">
+                      <div className="flex items-center gap-2">
+                        <Building2 className="w-3.5 h-3.5 text-[#942392]" />
+                        <span>{toProperCase(c.company_name)}</span>
+                        <span className="text-[10px] text-muted-foreground font-normal">
+                          ({c.company_type === 'main' ? 'Main Company' : 'Subsidiary'})
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="border-b border-border/60 my-2" />
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-1.5 col-span-1">
                 <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Branch Code</label>
@@ -503,7 +589,7 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
                   <SelectValue placeholder="Select Zone" />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
-                  {zoneOptions.map((opt) => (
+                  {modalZoneOptions.map((opt) => (
                     <SelectItem key={opt.value} value={opt.value} className="text-xs font-bold">
                       {opt.fullLabel}
                     </SelectItem>
@@ -511,7 +597,7 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
                 </SelectContent>
               </Select>
               {(() => {
-                const selectedOpt = zoneOptions.find((o) => o.value === normalizeZoneCode(operatingZone)) || zoneOptions[0];
+                const selectedOpt = modalZoneOptions.find((o) => o.value === normalizeZoneCode(operatingZone)) || modalZoneOptions[0];
                 if (!selectedOpt) return null;
                 const cleanCode = branchCode.trim().toUpperCase();
                 const previewCodes = Array.from(

@@ -352,7 +352,7 @@ function renderTodayStatusBadge(status: string) {
 
 export default function Branches() {
   const navigate = useNavigate();
-  const { activeCompany } = useCompany();
+  const { activeCompany, companies } = useCompany();
   const { user } = useAuth();
   const [selectedBranch, setSelectedBranch] = useState<any | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -400,6 +400,62 @@ export default function Branches() {
     () => getOperatingZoneOptionsFromSchedules(workSchedules),
     [workSchedules]
   );
+  const [selectedCompanyId, setSelectedCompanyId] = useState<number>(activeCompany?.id || 1);
+  const [addModalWorkSchedules, setAddModalWorkSchedules] = useState<WorkSchedule[]>([]);
+  const [editModalWorkSchedules, setEditModalWorkSchedules] = useState<WorkSchedule[]>([]);
+  const [loadingAddSchedules, setLoadingAddSchedules] = useState(false);
+  const [loadingEditSchedules, setLoadingEditSchedules] = useState(false);
+
+  const addZoneOptions = useMemo(
+    () => getOperatingZoneOptionsFromSchedules(addModalWorkSchedules.length > 0 ? addModalWorkSchedules : workSchedules),
+    [addModalWorkSchedules, workSchedules]
+  );
+
+  const editZoneOptions = useMemo(
+    () => getOperatingZoneOptionsFromSchedules(editModalWorkSchedules.length > 0 ? editModalWorkSchedules : workSchedules),
+    [editModalWorkSchedules, workSchedules]
+  );
+
+  const handleAddCompanyChange = async (compId: number) => {
+    setAddBranchData((prev: any) => ({ ...prev, company_id: compId }));
+    setLoadingAddSchedules(true);
+    try {
+      const scheds = await multiCompanyApi.getCompanyWorkSchedules(compId).catch(() => []);
+      setAddModalWorkSchedules(scheds);
+      const newZoneOptions = getOperatingZoneOptionsFromSchedules(scheds);
+      if (newZoneOptions.length > 0) {
+        const stillValid = newZoneOptions.some(opt => opt.value === normalizeZoneCode(addBranchData.operating_zone));
+        if (!stillValid) {
+          setAddBranchData((prev: any) => ({ ...prev, operating_zone: newZoneOptions[0].value }));
+        }
+      }
+    } catch (e) {
+      console.error("Failed to load schedules for company:", e);
+    } finally {
+      setLoadingAddSchedules(false);
+    }
+  };
+
+  const handleEditCompanyChange = async (compId: number) => {
+    setEditBranchData((prev: any) => ({ ...prev, company_id: compId }));
+    setLoadingEditSchedules(true);
+    try {
+      const scheds = await multiCompanyApi.getCompanyWorkSchedules(compId).catch(() => []);
+      setEditModalWorkSchedules(scheds);
+      const newZoneOptions = getOperatingZoneOptionsFromSchedules(scheds);
+      if (newZoneOptions.length > 0) {
+        const stillValid = newZoneOptions.some(opt => opt.value === normalizeZoneCode(editBranchData.operating_zone));
+        if (!stillValid) {
+          setEditBranchData((prev: any) => ({ ...prev, operating_zone: newZoneOptions[0].value }));
+        }
+      }
+    } catch (e) {
+      console.error("Failed to load schedules for company:", e);
+    } finally {
+      setLoadingEditSchedules(false);
+    }
+  };
+
   const [isEditBranchModalOpen, setIsEditBranchModalOpen] = useState(false);
   const [editBranchData, setEditBranchData] = useState<any>({});
 
@@ -413,11 +469,29 @@ export default function Branches() {
     latitude: "",
     longitude: "",
     radius: "50",
+    company_id: activeCompany?.id || 1,
   });
   const [isSubmittingBranch, setIsSubmittingBranch] = useState(false);
   const [isMapModalOpen, setIsMapModalOpen] = useState(false);
 
+  const openAddModal = () => {
+    const curCompId = selectedCompanyId || activeCompany?.id || 1;
+    setAddBranchData({
+      code: "",
+      name: "",
+      location: "",
+      operating_zone: "ZONE_B",
+      latitude: "",
+      longitude: "",
+      radius: "50",
+      company_id: curCompId,
+    });
+    setIsAddBranchModalOpen(true);
+    void handleAddCompanyChange(curCompId);
+  };
+
   const openEditModal = () => {
+    const curCompId = selectedBranch.company_id || selectedCompanyId || activeCompany?.id || 1;
     setEditBranchData({
       code: selectedBranch.code,
       name: selectedBranch.name,
@@ -425,9 +499,11 @@ export default function Branches() {
       operating_zone: normalizeZoneCode(selectedBranch.operating_zone) || zoneOptions[0]?.value || "ZONE_B",
       latitude: selectedBranch.latitude || "",
       longitude: selectedBranch.longitude || "",
-      radius: selectedBranch.radius || 50
+      radius: selectedBranch.radius || 50,
+      company_id: curCompId,
     });
     setIsEditBranchModalOpen(true);
+    void handleEditCompanyChange(curCompId);
   };
 
   const handleAddBranch = async (e: React.FormEvent) => {
@@ -438,6 +514,7 @@ export default function Branches() {
     }
     setIsSubmittingBranch(true);
     try {
+      const targetCompId = addBranchData.company_id || selectedCompanyId || activeCompany?.id || 1;
       const response = await fetch(`${API_BASE_URL}/api/branches`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -449,15 +526,22 @@ export default function Branches() {
           latitude: parseFloat(addBranchData.latitude) || null,
           longitude: parseFloat(addBranchData.longitude) || null,
           radius: parseFloat(addBranchData.radius) || 50,
-          company_id: activeCompany?.id || 1,
+          company_id: targetCompId,
         })
       });
       const data = await response.json();
       if (response.ok && data.success) {
-        toast.success("Branch registered successfully!");
+        const compName = companies.find(c => c.id === targetCompId)?.company_name || 'company';
+        toast.success(`Branch registered successfully for ${compName}!`);
         setIsAddBranchModalOpen(false);
-        setAddBranchData({ code: "", name: "", location: "", operating_zone: "ZONE_B", latitude: "", longitude: "", radius: "50" });
-        fetchBranchesList();
+        setAddBranchData({ code: "", name: "", location: "", operating_zone: "ZONE_B", latitude: "", longitude: "", radius: "50", company_id: targetCompId });
+        if (targetCompId !== selectedCompanyId) {
+          setSelectedCompanyId(targetCompId);
+          void fetchBranches(targetCompId);
+          void fetchStats(targetCompId);
+        } else {
+          fetchBranchesList();
+        }
       } else {
         toast.error(data.error || "Failed to register branch");
       }
@@ -471,6 +555,7 @@ export default function Branches() {
   const handleEditBranch = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const targetCompId = editBranchData.company_id || selectedCompanyId || activeCompany?.id || 1;
       const response = await fetch(`${API_BASE_URL}/api/branches/${encodeURIComponent(editBranchData.code)}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -481,6 +566,7 @@ export default function Branches() {
           latitude: parseFloat(editBranchData.latitude) || null,
           longitude: parseFloat(editBranchData.longitude) || null,
           radius: parseFloat(editBranchData.radius) || 50,
+          company_id: targetCompId,
         })
       });
       const data = await response.json();
@@ -579,7 +665,7 @@ export default function Branches() {
 
   const fetchBranches = async (companyId?: number) => {
     try {
-      const cId = companyId || activeCompany?.id || 1;
+      const cId = companyId || selectedCompanyId || activeCompany?.id || 1;
       const [response, schedulesData] = await Promise.all([
         fetch(`${API_BASE_URL}/api/branches?company_id=${cId}`),
         multiCompanyApi.getCompanyWorkSchedules(cId).catch(() => []),
@@ -598,12 +684,14 @@ export default function Branches() {
 
   useEffect(() => {
     const cId = activeCompany?.id || 1;
+    setSelectedCompanyId(cId);
     void fetchBranches(cId);
   }, [activeCompany?.id]);
 
   useEffect(() => {
     const handler = (e: any) => {
       if (e.detail?.company?.id) {
+        setSelectedCompanyId(e.detail.company.id);
         void fetchBranches(e.detail.company.id);
         void fetchStats(e.detail.company.id);
       }
@@ -614,7 +702,7 @@ export default function Branches() {
 
   const fetchBranchesList = async () => {
     try {
-      const cId = activeCompany?.id || 1;
+      const cId = selectedCompanyId || activeCompany?.id || 1;
       const [response, schedulesData] = await Promise.all([
         fetch(`${API_BASE_URL}/api/branches?company_id=${cId}`),
         multiCompanyApi.getCompanyWorkSchedules(cId).catch(() => []),
@@ -1347,6 +1435,34 @@ export default function Branches() {
           <PageActions>
             {!loadingBranches && (
               <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                {companies && companies.length > 1 && (
+                  <Select 
+                    value={selectedCompanyId ? selectedCompanyId.toString() : "1"} 
+                    onValueChange={(val) => {
+                      const newCId = parseInt(val, 10);
+                      setSelectedCompanyId(newCId);
+                      void fetchBranches(newCId);
+                      void fetchStats(newCId);
+                    }}
+                  >
+                    <SelectTrigger className="w-full sm:w-56 h-9 px-3 rounded-xl border-border/60 bg-muted/30 text-xs font-bold shrink-0">
+                      <SelectValue placeholder="Company Branch Scope">
+                        {(() => {
+                          const found = companies.find(c => c.id === selectedCompanyId);
+                          if (!found) return 'Rayhar Travels (Main Company)';
+                          return `${toProperCase(found.company_name)}`;
+                        })()}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      {companies.map(c => (
+                        <SelectItem key={c.id} value={c.id.toString()} className="text-xs font-bold">
+                          {toProperCase(c.company_name)} ({c.company_type === 'main' ? 'Main Company' : 'Subsidiary'})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
                 <div className="relative w-full sm:w-56 shrink-0">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-foreground pointer-events-none" />
                   <Input
@@ -1416,7 +1532,7 @@ export default function Branches() {
                   </span>
                 </Badge>
                 <Button 
-                  onClick={() => setIsAddBranchModalOpen(true)}
+                  onClick={openAddModal}
                   className="rounded-xl px-3.5 py-2 h-9 text-xs font-black uppercase tracking-wider bg-[#942392] hover:bg-[#5e0080] text-white shadow-md flex items-center gap-1.5 shrink-0 ml-auto sm:ml-0"
                 >
                   <Plus className="w-3.5 h-3.5" />
@@ -2125,6 +2241,50 @@ export default function Branches() {
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleAddBranch} className="p-6 space-y-4 bg-card">
+            {/* Target Entity Selector */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label className="text-[9px] font-black text-foreground uppercase tracking-widest flex items-center gap-1.5">
+                  <Building2 className="w-3.5 h-3.5 text-[#942392]" />
+                  Target Entity
+                </label>
+                <span className="text-[9px] font-bold text-[#942392]">
+                  {loadingAddSchedules ? "Loading Schedules..." : "Work Schedule Scope"}
+                </span>
+              </div>
+              <Select 
+                value={addBranchData.company_id ? addBranchData.company_id.toString() : "1"} 
+                onValueChange={(val) => void handleAddCompanyChange(parseInt(val, 10))}
+              >
+                <SelectTrigger className="w-full h-11 px-4 rounded-xl border border-input bg-transparent text-xs font-bold shadow-sm">
+                  <SelectValue placeholder="Select Target Entity (Company)">
+                    {(() => {
+                      const found = companies.find(c => c.id === addBranchData.company_id);
+                      if (!found) return 'Rayhar Travels (Main Company)';
+                      const cName = toProperCase(found.company_name);
+                      const cType = found.company_type === 'main' ? 'Main Company' : 'Subsidiary';
+                      return `${cName} (${cType})`;
+                    })()}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent className="rounded-xl">
+                  {companies.map(c => (
+                    <SelectItem key={c.id} value={c.id.toString()} className="text-xs font-bold">
+                      <div className="flex items-center gap-2">
+                        <Building2 className="w-3.5 h-3.5 text-[#942392]" />
+                        <span>{toProperCase(c.company_name)}</span>
+                        <span className="text-[10px] text-muted-foreground font-normal">
+                          ({c.company_type === 'main' ? 'Main Company' : 'Subsidiary'})
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="border-b border-border/60 my-2" />
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-1.5 col-span-1">
                 <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Branch Code</label>
@@ -2208,15 +2368,15 @@ export default function Branches() {
                   <SelectValue placeholder="Select Zone" />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
-                  {zoneOptions.map((opt) => (
+                  {addZoneOptions.map((opt) => (
                     <SelectItem key={opt.value} value={opt.value} className="text-xs font-bold">
-                      {opt.label}
+                      {opt.fullLabel}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
               {(() => {
-                const selectedOpt = zoneOptions.find((o) => o.value === normalizeZoneCode(addBranchData.operating_zone)) || zoneOptions[0];
+                const selectedOpt = addZoneOptions.find((o) => o.value === normalizeZoneCode(addBranchData.operating_zone)) || addZoneOptions[0];
                 if (!selectedOpt) return null;
                 const cleanCode = (addBranchData.code || "").trim().toUpperCase();
                 const previewCodes = Array.from(
@@ -2325,6 +2485,50 @@ export default function Branches() {
             </div>
           </div>
           <form onSubmit={handleEditBranch} className="p-8 space-y-6 bg-card">
+            {/* Target Entity Selector */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label className="text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest flex items-center gap-1.5">
+                  <Building2 className="w-3.5 h-3.5 text-[#942392]" />
+                  TARGET ENTITY (COMPANY)
+                </label>
+                <span className="text-[10px] font-bold text-[#942392]">
+                  {loadingEditSchedules ? "Loading Schedules..." : "Work Schedule Scope"}
+                </span>
+              </div>
+              <Select 
+                value={editBranchData.company_id ? editBranchData.company_id.toString() : "1"} 
+                onValueChange={(val) => void handleEditCompanyChange(parseInt(val, 10))}
+              >
+                <SelectTrigger className="w-full h-11 px-4 rounded-xl border border-input bg-transparent text-xs print:text-[11px] font-bold shadow-sm">
+                  <SelectValue placeholder="Select Target Entity (Company)">
+                    {(() => {
+                      const found = companies.find(c => c.id === editBranchData.company_id);
+                      if (!found) return 'Rayhar Travels (Main Company)';
+                      const cName = toProperCase(found.company_name);
+                      const cType = found.company_type === 'main' ? 'Main Company' : 'Subsidiary';
+                      return `${cName} (${cType})`;
+                    })()}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent className="rounded-xl">
+                  {companies.map(c => (
+                    <SelectItem key={c.id} value={c.id.toString()} className="text-xs print:text-[11px] font-bold">
+                      <div className="flex items-center gap-2">
+                        <Building2 className="w-3.5 h-3.5 text-[#942392]" />
+                        <span>{toProperCase(c.company_name)}</span>
+                        <span className="text-[10px] text-muted-foreground font-normal">
+                          ({c.company_type === 'main' ? 'Main Company' : 'Subsidiary'})
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="border-b border-border/60 my-2" />
+
             <div className="grid grid-cols-2 gap-6">
               <div className="space-y-1.5">
                 <label className="text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest">BRANCH CODE</label>
@@ -2401,9 +2605,9 @@ export default function Branches() {
                     <SelectValue placeholder="Select Zone" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl">
-                    {zoneOptions.map((opt) => (
+                    {editZoneOptions.map((opt) => (
                       <SelectItem key={opt.value} value={opt.value} className="text-xs print:text-[11px] font-bold">
-                        {opt.label}
+                        {opt.fullLabel}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -2422,7 +2626,7 @@ export default function Branches() {
               </div>
             </div>
             {(() => {
-              const selectedOpt = zoneOptions.find((o) => o.value === normalizeZoneCode(editBranchData.operating_zone)) || zoneOptions[0];
+              const selectedOpt = editZoneOptions.find((o) => o.value === normalizeZoneCode(editBranchData.operating_zone)) || editZoneOptions[0];
               if (!selectedOpt) return null;
               const cleanCode = (editBranchData.code || "").trim().toUpperCase();
               const previewCodes = Array.from(

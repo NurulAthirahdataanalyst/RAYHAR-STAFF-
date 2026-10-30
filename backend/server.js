@@ -12080,14 +12080,60 @@ app.put("/api/branches/:code", async (req, res) => {
     const location = safeString(req.body?.location);
     const zone = safeString(req.body?.zone);
     const operating_zone = safeString(req.body?.operating_zone);
+    const rawCompanyId = req.body?.company_id || req.body?.companyId;
+    const company_id = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
     const { latitude, longitude, radius } = req.body || {};
     if (!codeParam || !name) {
       return res.status(400).json({ success: false, error: "Invalid input format" });
     }
+    const finalZone = zone || operating_zone || 'ZONE_B';
     await pool.query(
-      `UPDATE branches SET name = ?, location = ?, latitude = ?, longitude = ?, radius = ?, operating_zone = ? WHERE code = ?`,
-      [name, location, latitude || null, longitude || null, radius || 50, zone || operating_zone || 'ZONE_B', codeParam]
+      `UPDATE branches SET name = ?, location = ?, latitude = ?, longitude = ?, radius = ?, operating_zone = ?, company_id = COALESCE(?, company_id) WHERE code = ?`,
+      [name, location, latitude || null, longitude || null, radius || 50, finalZone, company_id, codeParam]
     );
+
+    // Sync branch to work schedules if company_id / operating_zone changed
+    try {
+      const [bRows] = await pool.query("SELECT company_id, operating_zone FROM branches WHERE code = ?", [codeParam]);
+      if (bRows[0]) {
+        const effectiveCompId = bRows[0].company_id || 1;
+        const effectiveZone = bRows[0].operating_zone || 'ZONE_B';
+        const [schedRows] = await pool.query(
+          "SELECT id, operating_zone, branch_ids, branch_id FROM work_schedules WHERE company_id = ?",
+          [effectiveCompId]
+        );
+        for (const ws of schedRows) {
+          const wsZoneRaw = safeString(ws.operating_zone).trim();
+          const wsZoneUpper = wsZoneRaw.toUpperCase().replace(/\s+/g, '_');
+          const wsZone = wsZoneUpper === 'ZONE_A' ? 'ZONE_A' : wsZoneUpper === 'ZONE_B' ? 'ZONE_B' : wsZoneRaw;
+          let codes = Array.isArray(ws.branch_ids)
+            ? ws.branch_ids.map((c) => String(c).trim().toUpperCase()).filter(Boolean)
+            : (ws.branch_id ? String(ws.branch_id).split(',').map((c) => c.trim().toUpperCase()).filter(Boolean) : []);
+          
+          if (wsZone === effectiveZone) {
+            if (!codes.includes(codeParam)) {
+              codes.push(codeParam);
+              codes.sort();
+              await pool.query(
+                "UPDATE work_schedules SET branch_ids = ?::text[], branch_id = ? WHERE id = ?",
+                [codes, codes.join(','), ws.id]
+              );
+            }
+          } else {
+            if (codes.includes(codeParam)) {
+              codes = codes.filter(c => c !== codeParam);
+              await pool.query(
+                "UPDATE work_schedules SET branch_ids = ?::text[], branch_id = ? WHERE id = ?",
+                [codes, codes.length > 0 ? codes.join(',') : null, ws.id]
+              );
+            }
+          }
+        }
+      }
+    } catch (wsErr) {
+      console.warn("Could not sync branch to work schedules on update:", wsErr);
+    }
+
     res.json({ success: true });
   } catch (e) {
     console.error(e);
