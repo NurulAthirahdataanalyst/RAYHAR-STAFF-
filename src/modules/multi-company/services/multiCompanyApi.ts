@@ -147,6 +147,15 @@ export const multiCompanyApi = {
     return data.branch;
   },
 
+  async deleteBranch(code: string): Promise<boolean> {
+    const res = await fetch(`${API_BASE_URL}/api/branches/${encodeURIComponent(code)}`, {
+      method: 'DELETE',
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.error || 'Failed to delete branch');
+    return true;
+  },
+
   async setBranchGeofenceMode(code: string, payload: { mode: string; radius_meter: number; active_from?: string; active_until?: string }): Promise<any> {
     const res = await fetch(`${API_BASE_URL}/api/branches/${encodeURIComponent(code)}/geofence`, {
       method: 'POST',

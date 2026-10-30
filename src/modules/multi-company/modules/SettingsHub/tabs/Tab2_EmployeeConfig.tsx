@@ -58,7 +58,6 @@ export const Tab2_EmployeeConfig: React.FC = () => {
   
   const [selectedBranch, setSelectedBranch] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState('');
-  const [position, setPosition] = useState('');
   const [selectedRoleId, setSelectedRoleId] = useState('');
   const [employmentStatus, setEmploymentStatus] = useState('Active');
   const [loadingContext, setLoadingContext] = useState(false);
@@ -109,7 +108,6 @@ export const Tab2_EmployeeConfig: React.FC = () => {
     setJoinDate(new Date().toISOString().split('T')[0]);
     setEmail('');
     setPassword('');
-    setPosition('');
     setEmploymentStatus('Active');
     toast.info('Onboarding form cleared');
   };
@@ -140,7 +138,6 @@ export const Tab2_EmployeeConfig: React.FC = () => {
           company_id: selectedCompanyId,
           branch: selectedBranch || 'HQ',
           department: selectedDepartment || null,
-          position: position.trim() || undefined,
           role: selectedRoleObj?.name || 'Employee',
           role_id: selectedRoleId || undefined,
           status: employmentStatus || 'Active',
@@ -371,7 +368,7 @@ export const Tab2_EmployeeConfig: React.FC = () => {
                 Organizational Placement & Company Binding
               </h4>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="space-y-1.5">
                   <Label className="text-[11px] font-black uppercase tracking-wider text-black dark:text-white">
                     Company Entity <span className="text-rose-500">*</span>
@@ -425,15 +422,6 @@ export const Tab2_EmployeeConfig: React.FC = () => {
                   </Select>
                 </div>
 
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Designation / Position</Label>
-                  <Input
-                    value={position}
-                    onChange={(e) => setPosition(e.target.value)}
-                    placeholder="e.g. Senior Executive"
-                    className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium placeholder:font-normal text-black dark:text-white"
-                  />
-                </div>
               </div>
             </div>
 

@@ -961,6 +961,45 @@ function createMultiCompanyRouter(pgPool) {
     }
   });
 
+  // DELETE branch
+  router.delete('/branches/:code', async (req, res) => {
+    try {
+      const code = req.params.code.toUpperCase();
+      const bRes = await pgPool.query('SELECT name, company_id FROM branches WHERE UPPER(code) = $1', [code]);
+      if (bRes.rows.length === 0) {
+        return res.status(404).json({ success: false, error: 'Branch not found' });
+      }
+      const branchName = bRes.rows[0].name || code;
+      const companyId = bRes.rows[0].company_id || 1;
+
+      // 1. Delete geofence settings
+      await pgPool.query('DELETE FROM branch_geofence_settings WHERE UPPER(branch_code) = $1', [code]).catch(e => console.warn(e.message));
+
+      // 2. Delete branch
+      await pgPool.query('DELETE FROM branches WHERE UPPER(code) = $1', [code]);
+
+      // 3. Remove from work schedules
+      const schedRes = await pgPool.query('SELECT id, branch_ids, branch_id FROM work_schedules WHERE company_id = $1', [companyId]);
+      for (const ws of schedRes.rows) {
+        let currentCodes = parseBranchIds(ws.branch_ids, ws.branch_id);
+        if (currentCodes.includes(code)) {
+          currentCodes = currentCodes.filter(c => c !== code);
+          await pgPool.query(
+            'UPDATE work_schedules SET branch_ids = $1::jsonb, branch_id = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3',
+            [JSON.stringify(currentCodes), currentCodes.length > 0 ? currentCodes.join(',') : null, ws.id]
+          );
+        }
+      }
+
+      await logAudit(req, 'BRANCH_DELETE', `Deleted branch ${branchName} (${code})`, null, null, companyId);
+
+      res.json({ success: true, message: `Branch ${code} deleted successfully` });
+    } catch (err) {
+      console.error('Error deleting branch:', err);
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
   // POST update / add specific geofence mode (normal, night_shift, emergency, temporary)
   router.post('/branches/:code/geofence', async (req, res) => {
     try {
