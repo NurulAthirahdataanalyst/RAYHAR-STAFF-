@@ -357,7 +357,7 @@ export const CompanyModuleManagement: React.FC = () => {
   // Copy Permissions From Main Company Role
   const handleCopyFromMainRole = (templateName: string) => {
     if (!templateName || templateName === 'none') return;
-    const mainRole = mainCompanyRoles.find(r => r.name.toLowerCase() === templateName.toLowerCase());
+    const mainRole = mainCompanyRoles.find(r => r.name.toLowerCase() === templateName.toLowerCase()) || companyRoles.find(r => r.name.toLowerCase() === templateName.toLowerCase());
     if (!mainRole) return;
 
     const sourceKeys: string[] = mainRole.permission_keys || [];
@@ -391,7 +391,7 @@ export const CompanyModuleManagement: React.FC = () => {
 
     setRoleScope(autoScope);
     setHasChanges(true);
-    toast.success(`Copied ${filteredKeys.length} permissions from Main Company (${mainRole.name}). Authorization Scope auto-updated to: ${autoScope}`);
+    toast.success(`Copied ${filteredKeys.length} permissions from (${mainRole.name}). Authorization Scope auto-updated to: ${autoScope}`);
   };
 
   // Save changes
@@ -757,6 +757,29 @@ export const CompanyModuleManagement: React.FC = () => {
                           </SelectItem>
                         );
                       })}
+                      {companyRoles.filter(cr => cr.id !== selectedRoleId && !mainCompanyRoles.some(mr => mr.name.toLowerCase() === cr.name.toLowerCase())).length > 0 && (
+                        <>
+                          <div className="px-3 py-2 text-[10px] font-black uppercase text-muted-foreground tracking-wider border-b border-border/60 my-1">
+                            🏢 Current Company Roles
+                          </div>
+                          {companyRoles.filter(cr => cr.id !== selectedRoleId && !mainCompanyRoles.some(mr => mr.name.toLowerCase() === cr.name.toLowerCase())).map(cr => {
+                            const RoleIcon = getRoleIcon(cr.name);
+                            return (
+                              <SelectItem key={cr.id} value={cr.name} className="text-xs font-bold py-2 px-3 rounded-xl">
+                                <div className="flex items-center justify-between w-full gap-2">
+                                  <div className="flex items-center gap-2 truncate">
+                                    <RoleIcon className="w-3.5 h-3.5 text-[#942392] shrink-0" />
+                                    <span className="truncate">{cr.name}</span>
+                                  </div>
+                                  <span className="text-[10px] text-muted-foreground font-semibold shrink-0 bg-muted px-2 py-0.5 rounded-md">
+                                    {cr.permission_keys ? cr.permission_keys.length : 0} perms
+                                  </span>
+                                </div>
+                              </SelectItem>
+                            );
+                          })}
+                        </>
+                      )}
                     </SelectContent>
                   </Select>
                 </div>

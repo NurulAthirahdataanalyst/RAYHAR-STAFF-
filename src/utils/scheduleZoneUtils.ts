@@ -274,32 +274,41 @@ export interface OperatingZoneOption {
   fullLabel: string;
   label: string;
   branchCodes: string[];
+  scheduleId?: number;
 }
 
 export function getOperatingZoneOptionsFromSchedules(schedules: WorkSchedule[] = []): OperatingZoneOption[] {
   const optionsMap = new Map<string, OperatingZoneOption>();
 
   for (const s of schedules) {
-    const zoneVal = normalizeZoneCode(s.operating_zone);
-    if (!zoneVal) continue;
-    const zoneLabel = formatZoneDisplayName(zoneVal).toUpperCase();
+    const rawZone = s.operating_zone ? String(s.operating_zone).trim() : '';
+    const normZone = rawZone ? normalizeZoneCode(rawZone) : '';
+    const zoneVal = normZone || (rawZone ? rawZone.toUpperCase().replace(/\s+/g, '_') : '') || 'STANDARD';
+    const zoneLabel = normZone ? formatZoneDisplayName(normZone).toUpperCase() : (rawZone ? rawZone.replace(/_/g, ' ').toUpperCase() : '');
     const hoursSummary = formatScheduleCoreHoursSummary(s);
     const branchCodes = getScheduleBranchCodes(s);
-    const fullLabel = `${zoneLabel} — ${s.schedule_name} (${hoursSummary})`;
-    optionsMap.set(zoneVal, {
-      value: zoneVal,
-      zoneLabel,
-      shortLabel: zoneLabel,
+    const fullLabel = zoneLabel ? `${zoneLabel} — ${s.schedule_name} (${hoursSummary})` : `${s.schedule_name} (${hoursSummary})`;
+    
+    // Key by zoneVal or schedule id if multiple schedules have no zone
+    const optionKey = zoneVal === 'STANDARD' && schedules.filter(ws => !ws.operating_zone).length > 1
+      ? `SCHEDULE_${s.id}`
+      : zoneVal;
+
+    optionsMap.set(optionKey, {
+      value: optionKey,
+      zoneLabel: zoneLabel || s.schedule_name,
+      shortLabel: zoneLabel || s.schedule_name,
       scheduleName: s.schedule_name,
       hoursSummary,
       fullLabel,
       label: fullLabel,
       branchCodes,
+      scheduleId: s.id,
     });
   }
 
-  // Ensure Zone A and Zone B are always available as baseline options if not yet present
-  if (!optionsMap.has('ZONE_A')) {
+  // Ensure Zone A and Zone B are ONLY available as baseline options if no schedules were provided/found
+  if (optionsMap.size === 0) {
     const fullLabel = 'ZONE A — Standard Office Hours (Zone A) (Sat–Wed: 08:30 - 17:30 | Thu: 08:30 - 13:00 | Fri Off)';
     optionsMap.set('ZONE_A', {
       value: 'ZONE_A',
@@ -311,17 +320,16 @@ export function getOperatingZoneOptionsFromSchedules(schedules: WorkSchedule[] =
       label: fullLabel,
       branchCodes: [],
     });
-  }
-  if (!optionsMap.has('ZONE_B')) {
-    const fullLabel = 'ZONE B — Standard Office Hours (Zone B) (Mon–Fri: 08:30 - 17:30 | Sat: 08:30 - 13:00 | Sun Off)';
+
+    const fullLabelB = 'ZONE B — Standard Office Hours (Zone B) (Mon–Fri: 08:30 - 17:30 | Sat: 08:30 - 13:00 | Sun Off)';
     optionsMap.set('ZONE_B', {
       value: 'ZONE_B',
       zoneLabel: 'ZONE B',
       shortLabel: 'ZONE B',
       scheduleName: 'Standard Office Hours (Zone B)',
       hoursSummary: 'Mon–Fri: 08:30 - 17:30 | Sat: 08:30 - 13:00 | Sun Off',
-      fullLabel,
-      label: fullLabel,
+      fullLabel: fullLabelB,
+      label: fullLabelB,
       branchCodes: [],
     });
   }

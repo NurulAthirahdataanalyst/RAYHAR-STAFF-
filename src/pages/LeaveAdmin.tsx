@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useMemo } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, Navigate } from "react-router-dom";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
 import { TableScrollTopButton } from "@/components/shared/TableScrollTopButton";
 
@@ -162,8 +162,21 @@ const ADMIN_VIEW_ROLES = ["hr_admin", "branch_leader", ...APPROVER_ROLES];
 type TabFilter = "pending" | "approved" | "rejected" | "history";
 
 export default function LeaveAdmin() {
-  const { role, userBranch, userDepartment, userId } = useRole();
+  const { role, userBranch, userDepartment, userId, hasPermission, loading: roleLoading } = useRole();
   const { activeCompany } = useCompany();
+
+  const canAccessLeaveAdmin =
+    APPROVER_ROLES.includes(role) ||
+    (typeof hasPermission === "function" && (
+      hasPermission("leave.approval") ||
+      hasPermission("leave.team_requests") ||
+      hasPermission("leave.entitlement") ||
+      hasPermission("leave.calendar")
+    ));
+
+  if (!roleLoading && !canAccessLeaveAdmin) {
+    return <Navigate to="/" replace />;
+  }
   const currentCompanyId = activeCompany?.id || 1;
   const canApprove = APPROVER_ROLES.includes(role);
   const [requests, setRequests] = useState<LeaveRequest[]>([]);

@@ -11,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import {
   Sheet,
@@ -406,15 +407,6 @@ export default function Branches() {
   const [loadingAddSchedules, setLoadingAddSchedules] = useState(false);
   const [loadingEditSchedules, setLoadingEditSchedules] = useState(false);
 
-  const addZoneOptions = useMemo(
-    () => getOperatingZoneOptionsFromSchedules(addModalWorkSchedules.length > 0 ? addModalWorkSchedules : workSchedules),
-    [addModalWorkSchedules, workSchedules]
-  );
-
-  const editZoneOptions = useMemo(
-    () => getOperatingZoneOptionsFromSchedules(editModalWorkSchedules.length > 0 ? editModalWorkSchedules : workSchedules),
-    [editModalWorkSchedules, workSchedules]
-  );
 
   const handleAddCompanyChange = async (compId: number) => {
     setAddBranchData((prev: any) => ({ ...prev, company_id: compId }));
@@ -424,10 +416,13 @@ export default function Branches() {
       setAddModalWorkSchedules(scheds);
       const newZoneOptions = getOperatingZoneOptionsFromSchedules(scheds);
       if (newZoneOptions.length > 0) {
-        const stillValid = newZoneOptions.some(opt => opt.value === normalizeZoneCode(addBranchData.operating_zone));
-        if (!stillValid) {
-          setAddBranchData((prev: any) => ({ ...prev, operating_zone: newZoneOptions[0].value }));
-        }
+        setAddBranchData((prev: any) => {
+          const currentZone = prev.operating_zone;
+          const stillValid = newZoneOptions.some(
+            (opt) => opt.value === currentZone || opt.value === normalizeZoneCode(currentZone)
+          );
+          return stillValid ? prev : { ...prev, operating_zone: newZoneOptions[0].value };
+        });
       }
     } catch (e) {
       console.error("Failed to load schedules for company:", e);
@@ -444,10 +439,13 @@ export default function Branches() {
       setEditModalWorkSchedules(scheds);
       const newZoneOptions = getOperatingZoneOptionsFromSchedules(scheds);
       if (newZoneOptions.length > 0) {
-        const stillValid = newZoneOptions.some(opt => opt.value === normalizeZoneCode(editBranchData.operating_zone));
-        if (!stillValid) {
-          setEditBranchData((prev: any) => ({ ...prev, operating_zone: newZoneOptions[0].value }));
-        }
+        setEditBranchData((prev: any) => {
+          const currentZone = prev.operating_zone;
+          const stillValid = newZoneOptions.some(
+            (opt) => opt.value === currentZone || opt.value === normalizeZoneCode(currentZone)
+          );
+          return stillValid ? prev : { ...prev, operating_zone: newZoneOptions[0].value };
+        });
       }
     } catch (e) {
       console.error("Failed to load schedules for company:", e);
@@ -471,6 +469,30 @@ export default function Branches() {
     radius: "50",
     company_id: activeCompany?.id || 1,
   });
+
+  const addZoneOptions = useMemo(
+    () =>
+      getOperatingZoneOptionsFromSchedules(
+        addModalWorkSchedules.length > 0
+          ? addModalWorkSchedules
+          : addBranchData.company_id === selectedCompanyId
+          ? workSchedules
+          : []
+      ),
+    [addModalWorkSchedules, workSchedules, addBranchData.company_id, selectedCompanyId]
+  );
+
+  const editZoneOptions = useMemo(
+    () =>
+      getOperatingZoneOptionsFromSchedules(
+        editModalWorkSchedules.length > 0
+          ? editModalWorkSchedules
+          : editBranchData.company_id === selectedCompanyId
+          ? workSchedules
+          : []
+      ),
+    [editModalWorkSchedules, workSchedules, editBranchData.company_id, selectedCompanyId]
+  );
   const [isSubmittingBranch, setIsSubmittingBranch] = useState(false);
   const [isMapModalOpen, setIsMapModalOpen] = useState(false);
 

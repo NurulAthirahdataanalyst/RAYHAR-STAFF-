@@ -61,11 +61,18 @@ const getStoredUser = () => {
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const { role, userName, userId, userBranch, userDepartment } = useRole();
+  const { role, userName, userId, userBranch, userDepartment, scopeType, hasPermission } = useRole();
   const { activeCompany } = useCompany();
-  const isEmployee = role === "employee" || 
-    (typeof role === "string" && (role.toLowerCase().includes("employee") || role.toLowerCase().includes("staff"))) || 
-    !["hr_admin", "branch_leader", "head_of_department", "managing_director", "operation_manager", "finance_manager", "assure_leader"].includes(role);
+  const normScope = (scopeType || user?.scope_type || "").toLowerCase().trim();
+  const hasTeamScope = 
+    normScope.includes("branch") || 
+    normScope.includes("company") || 
+    normScope.includes("group") || 
+    normScope.includes("parent") || 
+    ["hr_admin", "branch_leader", "head_of_department", "managing_director", "operation_manager", "finance_manager", "assure_leader"].includes(role);
+
+  const isEmployee = !hasTeamScope;
+  const isElevatedRole = hasTeamScope;
   const storedUser = getStoredUser();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
@@ -194,7 +201,7 @@ export default function Dashboard() {
 
       try {
         const dateStr = selectedDate.toLocaleDateString("en-CA");
-        const url = `${API_BASE_URL}/api/dashboard-stats?userId=${dashboardUserId}&role=${role}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}&date=${dateStr}&company_id=${activeCompany?.id || 1}`;
+        const url = `${API_BASE_URL}/api/dashboard-stats?userId=${dashboardUserId}&role=${role}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}&date=${dateStr}&company_id=${activeCompany?.id || 1}&scope_type=${encodeURIComponent(scopeType || user?.scope_type || "")}`;
 
         let response: Response;
         try {
@@ -682,7 +689,6 @@ export default function Dashboard() {
       return curDateStr >= startStr && curDateStr <= endStr;
     })()
   );
-  const isElevatedRole = ["hr_admin", "branch_leader", "managing_director", "operation_manager", "head_of_department", "assure_leader"].includes(role);
   const canSeeSystem = ["hr_admin", "managing_director", "operation_manager", "head_of_department", "assure_leader"].includes(role);
   
   const displayStatus = safeTodayStatus
@@ -1161,7 +1167,7 @@ export default function Dashboard() {
               </>
             ) : (
               <>
-                {["managing_director", "head_of_department", "operation_manager", "hr_admin", "branch_leader", "assure_leader"].includes(role) && (
+                {(hasTeamScope || ["managing_director", "head_of_department", "operation_manager", "hr_admin", "branch_leader", "assure_leader"].includes(role)) && (
                   <StatCard
                     icon={Clock}
                     title="Today's Status"
@@ -1260,10 +1266,12 @@ export default function Dashboard() {
                   subtitle="Approved Leaves"
                   variant="default"
                   onClick={() => {
-                    if (role === "branch_leader" || role === "branch_officer" || role === "head_of_department") {
+                    if (hasPermission("leave.approval") || ["hr_admin", "managing_director", "operation_manager", "assure_leader"].includes(role)) {
+                      navigate("/leave/admin");
+                    } else if (hasPermission("leave.team_requests") || ["branch_leader", "branch_officer", "head_of_department"].includes(role) || hasTeamScope) {
                       navigate("/leave/team");
                     } else {
-                      navigate("/leave/admin");
+                      navigate("/calendar/company-leave");
                     }
                   }}
                 />
@@ -1539,7 +1547,15 @@ export default function Dashboard() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => navigate("/leave/admin")}
+                    onClick={() => {
+                      if (hasPermission("leave.approval") || ["hr_admin", "managing_director", "operation_manager", "assure_leader"].includes(role)) {
+                        navigate("/leave/admin");
+                      } else if (hasPermission("leave.team_requests") || ["branch_leader", "head_of_department"].includes(role) || hasTeamScope) {
+                        navigate("/leave/team");
+                      } else {
+                        navigate("/calendar/company-leave");
+                      }
+                    }}
                     className="text-[10px] font-bold text-[#a01497] hover:text-[#7a0f73] hover:bg-transparent uppercase tracking-widest px-0 h-auto self-start"
                   >
                     VIEW ALL HISTORY →
@@ -1666,7 +1682,7 @@ export default function Dashboard() {
                   { key: "all", label: "ALL" },
                   { key: "attendance", label: "ATTENDANCE" },
                   { key: "leave", label: "LEAVE" },
-                  ...(isElevatedRole ? [{ key: "approval", label: "APPROVAL" }] : []),
+                  ...((hasPermission("leave.approval") || ["hr_admin", "managing_director", "operation_manager", "assure_leader", "branch_leader", "head_of_department"].includes(role)) ? [{ key: "approval", label: "APPROVAL" }] : []),
                   ...(canSeeSystem ? [{ key: "system", label: "SYSTEM" }] : []),
                   { key: "outstation", label: "OUTSTATION" },
                 ] as { key: "all" | "attendance" | "leave" | "approval" | "system" | "outstation"; label: string }[]).map(chip => (

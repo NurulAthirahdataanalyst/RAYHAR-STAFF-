@@ -8651,11 +8651,29 @@ app.get("/api/dashboard-stats", async (req, res) => {
 
     companyId = await resolveAssureCompanyId(req, companyId);
 
-    if (["hr_admin", "branch_leader", "managing_director", "operation_manager", "finance_manager", "head_of_department", "assure_leader"].includes(role)) {
+    // Determine user data scope dynamically
+    const rawScopeType = safeString(req.query.scope_type);
+    let resolvedScope = rawScopeType;
+    if (!resolvedScope && userId) {
       try {
-        const isBranchLeader = role === "branch_leader";
-        const isHOD = role === "head_of_department";
-        const isAssureLeader = role === "assure_leader";
+        const [uScopeRows] = await pool.query(
+          "SELECT r.scope_type FROM profiles p LEFT JOIN roles r ON r.id = p.role_id WHERE p.user_id = ? OR p.email = ? LIMIT 1",
+          [userId, userId]
+        );
+        resolvedScope = uScopeRows[0]?.scope_type || "";
+      } catch (e) {}
+    }
+    const normScope = (resolvedScope || "").toLowerCase().trim();
+    const isBranchScope = normScope.includes("branch") || role === "branch_leader";
+    const isCompanyScope = normScope.includes("company") || role === "assure_leader" || role === "operation_manager" || role === "finance_manager";
+    const isGroupScope = normScope.includes("group") || normScope.includes("parent") || role === "managing_director" || role === "hr_admin";
+    const hasElevatedScope = isBranchScope || isCompanyScope || isGroupScope || ["hr_admin", "branch_leader", "managing_director", "operation_manager", "finance_manager", "head_of_department", "assure_leader"].includes(role);
+
+    if (hasElevatedScope) {
+      try {
+        const isBranchLeader = isBranchScope;
+        const isHOD = role === "head_of_department" || normScope.includes("department");
+        const isAssureLeader = isCompanyScope;
         const department = safeString(req.query.department);
 
         const companyUserFilter = getCompanyUserSqlFilterById(companyId, "user_id");
