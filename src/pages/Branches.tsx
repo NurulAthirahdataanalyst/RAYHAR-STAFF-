@@ -788,29 +788,41 @@ export default function Branches() {
     return () => window.removeEventListener("app:refresh", handleAppRefresh);
   }, [selectedBranch?.code]);
 
-  const handleDeleteBranch = async (e: React.MouseEvent, code: string) => {
-    e.stopPropagation();
-    if (code === "HQ") {
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [branchToDelete, setBranchToDelete] = useState<any>(null);
+  const [deletingBranch, setDeletingBranch] = useState(false);
+
+  const openDeleteModalForBranch = (b: any, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (b?.code === "HQ") {
       toast.error("Cannot delete default Rayhar HQ branch");
       return;
     }
-    if (!window.confirm(`Are you sure you want to delete branch ${code}?`))
-      return;
+    setBranchToDelete(b);
+    setDeleteModalOpen(true);
+  };
 
+  const handleConfirmDeleteBranch = async () => {
+    if (!branchToDelete) return;
     try {
+      setDeletingBranch(true);
       const res = await fetch(
-        `${API_BASE_URL}/api/branches/${encodeURIComponent(code)}`,
+        `${API_BASE_URL}/api/branches/${encodeURIComponent(branchToDelete.code)}`,
         { method: "DELETE" },
       );
       const data = await res.json();
       if (data.success) {
-        toast.success("Branch deleted successfully");
+        toast.success(`Branch ${branchToDelete.code} deleted successfully`);
+        setDeleteModalOpen(false);
+        setBranchToDelete(null);
         fetchBranchesList();
       } else {
         toast.error(data.error || "Failed to delete branch");
       }
     } catch (err) {
       toast.error("Server error");
+    } finally {
+      setDeletingBranch(false);
     }
   };
 
@@ -900,7 +912,19 @@ export default function Branches() {
                   {selectedBranch.code}
                 </Badge>
                 {user?.role === "hr_admin" && (
-                  <Button variant="outline" size="sm" onClick={openEditModal} className="h-8 text-xs print:text-[11px] font-bold ml-2">Edit Branch</Button>
+                  <div className="flex items-center gap-1.5 ml-2">
+                    <Button variant="outline" size="sm" onClick={openEditModal} className="h-8 text-xs print:text-[11px] font-bold">Edit Branch</Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => openDeleteModalForBranch(selectedBranch, e)}
+                      className="h-8 w-8 p-0 rounded-full text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/40 border border-red-200 dark:border-red-900/40 flex items-center justify-center shrink-0 cursor-pointer"
+                      title={`Delete branch ${selectedBranch.code}`}
+                      aria-label={`Delete branch ${selectedBranch.code}`}
+                    >
+                      <Trash2 className="w-4 h-4 text-red-500" />
+                    </Button>
+                  </div>
                 )}
               </div>
               <p className="text-responsive-sm text-foreground font-medium mt-1">
@@ -1617,7 +1641,7 @@ export default function Branches() {
                         variant="ghost"
                         size="icon"
                         className="w-7 h-7 bg-white/95 dark:bg-slate-800/95 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-xl shadow-sm border border-slate-200/80 dark:border-slate-700 flex items-center justify-center"
-                        onClick={(e) => handleDeleteBranch(e, branch.code)}
+                        onClick={(e) => openDeleteModalForBranch(branch, e)}
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </Button>
@@ -1868,7 +1892,7 @@ export default function Branches() {
                                 size="icon"
                                 className="w-8 h-8 shrink-0 hover:bg-rose-500/10 hover:text-rose-500 text-foreground opacity-0 group-hover:opacity-100 transition-opacity"
                                 onClick={(e) =>
-                                  handleDeleteBranch(e, branch.code)
+                                  openDeleteModalForBranch(branch, e)
                                 }
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -2233,14 +2257,14 @@ export default function Branches() {
 
       {/* Add Branch Modal */}
       <Dialog open={isAddBranchModalOpen} onOpenChange={setIsAddBranchModalOpen}>
-        <DialogContent className="sm:max-w-xl md:max-w-2xl overflow-hidden [&>button]:text-white [&>button]:hover:text-white/80 border-none shadow-2xl rounded-3xl p-0">
-          <DialogHeader className="bg-[#942392] p-6 sm:rounded-t-lg m-0 border-b border-white/20 text-left">
+        <DialogContent className="w-[calc(100vw-2.5rem)] sm:max-w-xl md:max-w-2xl max-h-[85vh] flex flex-col overflow-hidden [&>button]:text-white [&>button]:hover:text-white/80 border-none shadow-2xl rounded-3xl p-0 my-auto">
+          <DialogHeader className="bg-[#942392] p-5 sm:p-6 sm:rounded-t-lg m-0 border-b border-white/20 text-left shrink-0">
             <DialogTitle className="text-white font-black uppercase tracking-tight m-0 text-lg">Add New Branch</DialogTitle>
             <DialogDescription className="text-xs font-bold uppercase tracking-wider text-white/80 m-0 mt-1">
               Insert a new regional branch office into the database
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleAddBranch} className="p-6 space-y-4 bg-card">
+          <form onSubmit={handleAddBranch} className="p-5 sm:p-6 space-y-4 bg-card overflow-y-auto flex-1">
             {/* Target Entity Selector */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
@@ -2460,7 +2484,7 @@ export default function Branches() {
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-4">
+            <div className="flex justify-end gap-3 pt-3 sticky bottom-0 bg-card/95 backdrop-blur-xs border-t border-border/50 mt-4 -mx-5 sm:-mx-6 px-5 sm:px-6 pb-1">
               <Button type="button" variant="ghost" onClick={() => setIsAddBranchModalOpen(false)} className="rounded-xl text-xs font-black uppercase">Cancel</Button>
               <Button type="submit" disabled={isSubmittingBranch} className="rounded-xl px-6 bg-[#942392] hover:bg-[#5e0080] text-white shadow-md text-xs font-black uppercase flex items-center gap-2">
                 <Plus className="w-4 h-4" />
@@ -2472,8 +2496,8 @@ export default function Branches() {
       </Dialog>
 
       <Dialog open={isEditBranchModalOpen} onOpenChange={setIsEditBranchModalOpen}>
-        <DialogContent className="max-w-2xl p-0 border-none shadow-2xl rounded-3xl overflow-hidden">
-          <div className="p-6 bg-gradient-to-r from-[#942392] to-purple-500 text-white flex justify-between items-start border-b border-white/20">
+        <DialogContent className="w-[calc(100vw-2.5rem)] max-w-2xl max-h-[85vh] flex flex-col p-0 border-none shadow-2xl rounded-3xl overflow-hidden my-auto">
+          <div className="p-5 sm:p-6 bg-gradient-to-r from-[#942392] to-purple-500 text-white flex justify-between items-start border-b border-white/20 shrink-0">
             <div className="flex items-center gap-3">
               <div className="p-3 bg-white/20 rounded-xl">
                 <Building2 className="w-6 h-6 text-white" />
@@ -2484,7 +2508,7 @@ export default function Branches() {
               </div>
             </div>
           </div>
-          <form onSubmit={handleEditBranch} className="p-8 space-y-6 bg-card">
+          <form onSubmit={handleEditBranch} className="p-5 sm:p-8 space-y-6 bg-card overflow-y-auto flex-1">
             {/* Target Entity Selector */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
@@ -2703,7 +2727,7 @@ export default function Branches() {
       </Dialog>
 
       <Dialog open={isMapModalOpen} onOpenChange={setIsMapModalOpen}>
-        <DialogContent className="max-w-4xl p-0 border-none shadow-2xl overflow-hidden rounded-[24px] flex flex-col">
+        <DialogContent className="w-[calc(100vw-2.5rem)] max-w-4xl max-h-[85vh] p-0 border-none shadow-2xl overflow-hidden rounded-[24px] flex flex-col my-auto">
             <div className="p-6 bg-gradient-to-r from-[#942392] to-purple-500 text-white flex justify-between items-start shrink-0">
               <div className="flex items-center gap-3">
                 <div className="p-3 bg-white/20 rounded-xl">
@@ -2834,6 +2858,44 @@ export default function Branches() {
               </div>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Branch Permanently Modal */}
+      <Dialog open={deleteModalOpen} onOpenChange={(open) => !open && setDeleteModalOpen(false)}>
+        <DialogContent className="sm:max-w-[425px] overflow-hidden p-0 border-0 border-none shadow-2xl rounded-2xl [&>button]:text-white [&>button]:hover:text-white/80 bg-card">
+          <DialogHeader className="bg-[#ff0000] p-5 border-b border-red-700/30 text-left">
+            <DialogTitle className="text-xl font-black text-white">
+              Delete Branch Permanently
+            </DialogTitle>
+          </DialogHeader>
+          <div className="p-5 space-y-4 bg-card">
+            <p className="text-sm text-foreground">
+              Are you sure you want to delete branch <strong>{branchToDelete?.code} - {branchToDelete ? (toProperCase(branchToDelete.name || branchToDelete.branch || '')) : ''}</strong>?
+            </p>
+            <div className="bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 rounded-lg p-3">
+              <p className="text-xs text-[#ff0000] font-medium leading-relaxed">
+                ⚠️ This action is permanent and cannot be undone or recovered. All employee records associated with this account will be deleted.
+              </p>
+            </div>
+          </div>
+          <DialogFooter className="p-5 pt-0 flex items-center justify-end gap-2 bg-card">
+            <Button 
+              variant="outline" 
+              onClick={() => { setDeleteModalOpen(false); setBranchToDelete(null); }}
+              disabled={deletingBranch}
+            >
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleConfirmDeleteBranch}
+              disabled={deletingBranch}
+              className="bg-[#ff0000] hover:bg-[#cc0000] text-white"
+            >
+              {deletingBranch ? "Deleting..." : "Delete Permanently"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

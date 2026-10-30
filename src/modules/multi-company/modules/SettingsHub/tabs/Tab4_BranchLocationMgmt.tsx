@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { MapPin, Plus, Edit, Navigation, Sliders, Check, AlertCircle, Loader2, Moon, AlertTriangle, Search, Building2 } from 'lucide-react';
+import { MapPin, Plus, Edit, Navigation, Sliders, Check, AlertCircle, Loader2, Moon, AlertTriangle, Search, Building2, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCompany } from '../../../contexts/CompanyContext';
 import { multiCompanyApi } from '../../../services/multiCompanyApi';
@@ -111,6 +111,32 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
   const [modalCompanyId, setModalCompanyId] = useState<number>(selectedCompanyId);
   const [modalWorkSchedules, setModalWorkSchedules] = useState<WorkSchedule[]>([]);
   const [loadingModalSchedules, setLoadingModalSchedules] = useState<boolean>(false);
+
+  // Delete modal states
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [branchToDelete, setBranchToDelete] = useState<CompanyBranch | null>(null);
+  const [deletingBranch, setDeletingBranch] = useState(false);
+
+  const handleOpenDeleteModal = (b: CompanyBranch) => {
+    setBranchToDelete(b);
+    setDeleteModalOpen(true);
+  };
+
+  const handleConfirmDeleteBranch = async () => {
+    if (!branchToDelete) return;
+    try {
+      setDeletingBranch(true);
+      await multiCompanyApi.deleteBranch(branchToDelete.code);
+      toast.success(`Branch ${branchToDelete.code} deleted successfully`);
+      setDeleteModalOpen(false);
+      setBranchToDelete(null);
+      await fetchBranches(selectedCompanyId);
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to delete branch');
+    } finally {
+      setDeletingBranch(false);
+    }
+  };
 
   const zoneOptions = useMemo(
     () => getOperatingZoneOptionsFromSchedules(workSchedules),
@@ -459,6 +485,17 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
                         >
                           Edit
                         </Button>
+
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleOpenDeleteModal(b)}
+                          className="h-8 w-8 p-0 rounded-full text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/40 border border-red-200 dark:border-red-900/40 flex items-center justify-center shrink-0 cursor-pointer"
+                          title={`Delete branch ${b.code}`}
+                          aria-label={`Delete branch ${b.code}`}
+                        >
+                          <Trash2 className="w-4 h-4 text-red-500" />
+                        </Button>
                       </div>
                     </td>
                   </tr>
@@ -471,7 +508,7 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
 
       {/* Add / Edit Branch Dialog (Matching Screenshot 3 / Branches.tsx) */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="sm:max-w-xl md:max-w-2xl overflow-hidden [&>button]:text-white [&>button]:hover:text-white/80 border-none shadow-2xl rounded-3xl p-0 bg-card">
+        <DialogContent className="w-[calc(100vw-2.5rem)] sm:max-w-xl md:max-w-2xl max-h-[85vh] flex flex-col overflow-hidden [&>button]:text-white [&>button]:hover:text-white/80 border-none shadow-2xl rounded-3xl p-0 bg-card my-auto">
           <DialogHeader className="bg-[#942392] p-6 sm:rounded-t-lg m-0 text-left border-b border-white/20">
             <DialogTitle className="text-white font-black uppercase tracking-tight m-0 text-lg">
               {editingBranch ? 'Edit Branch' : 'Add New Branch'}
@@ -689,7 +726,7 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
               </div>
             </div>
 
-            <div className="border-t border-border/60 pt-4 flex justify-end gap-3">
+            <div className="border-t border-border/60 pt-3 sticky bottom-0 bg-card/95 backdrop-blur-xs flex justify-end gap-3 mt-4 -mx-5 sm:-mx-6 px-5 sm:px-6 pb-1">
               <Button type="button" variant="ghost" onClick={() => setModalOpen(false)} className="rounded-xl text-xs font-black uppercase">
                 Cancel
               </Button>
@@ -704,7 +741,7 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
 
       {/* Map Picker Modal - Identical to Branches Overview (1st Screenshot) */}
       <Dialog open={isMapModalOpen} onOpenChange={setIsMapModalOpen}>
-        <DialogContent className="max-w-4xl p-0 border-none shadow-2xl overflow-hidden rounded-[24px] flex flex-col [&>button]:text-white [&>button]:hover:text-white/80 z-[70]">
+        <DialogContent className="w-[calc(100vw-2.5rem)] max-w-4xl max-h-[85vh] p-0 border-none shadow-2xl overflow-hidden rounded-[24px] flex flex-col [&>button]:text-white [&>button]:hover:text-white/80 z-[70] my-auto">
           <div className="p-6 bg-gradient-to-r from-[#942392] to-purple-500 text-white flex justify-between items-start shrink-0">
             <div>
               <DialogTitle className="text-lg font-black uppercase tracking-tight m-0 text-white">
@@ -978,6 +1015,44 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Delete Branch Permanently Modal */}
+      <Dialog open={deleteModalOpen} onOpenChange={(open) => !open && setDeleteModalOpen(false)}>
+        <DialogContent className="sm:max-w-[425px] overflow-hidden p-0 border-0 border-none shadow-2xl rounded-2xl [&>button]:text-white [&>button]:hover:text-white/80 bg-card">
+          <DialogHeader className="bg-[#ff0000] p-5 border-b border-red-700/30 text-left">
+            <DialogTitle className="text-xl font-black text-white">
+              Delete Branch Permanently
+            </DialogTitle>
+          </DialogHeader>
+          <div className="p-5 space-y-4 bg-card">
+            <p className="text-sm text-foreground">
+              Are you sure you want to delete branch <strong>{branchToDelete?.code} - {branchToDelete ? (formatBranchDisplayName(branchToDelete) || toProperCase(branchToDelete.name || branchToDelete.branch || '')) : ''}</strong>?
+            </p>
+            <div className="bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 rounded-lg p-3">
+              <p className="text-xs text-[#ff0000] font-medium leading-relaxed">
+                ⚠️ This action is permanent and cannot be undone or recovered. All employee records associated with this account will be deleted.
+              </p>
+            </div>
+          </div>
+          <DialogFooter className="p-5 pt-0 flex items-center justify-end gap-2 bg-card">
+            <Button 
+              variant="outline" 
+              onClick={() => { setDeleteModalOpen(false); setBranchToDelete(null); }}
+              disabled={deletingBranch}
+            >
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleConfirmDeleteBranch}
+              disabled={deletingBranch}
+              className="bg-[#ff0000] hover:bg-[#cc0000] text-white"
+            >
+              {deletingBranch ? "Deleting..." : "Delete Permanently"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

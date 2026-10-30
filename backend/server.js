@@ -12332,6 +12332,7 @@ app.delete("/api/branches/:id", async (req, res) => {
     const branchCompId = branchRow.length > 0 ? (branchRow[0].company_id || 1) : 1;
     
     // Note: The param name is code
+    await pool.query("DELETE FROM branch_geofence_settings WHERE UPPER(branch_code) = ?", [id]).catch(e => console.warn(e.message));
     await pool.query("DELETE FROM branches WHERE UPPER(code) = ?", [id]);
 
     // Remove deleted branch code from work_schedules.branch_ids
