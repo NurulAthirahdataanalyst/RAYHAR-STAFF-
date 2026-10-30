@@ -45,6 +45,9 @@ const getPendingRoleLabel = (status: string, department?: string, branch?: strin
   if (sUpper.includes("BRANCH LEADER")) {
     return branch ? `Branch Leader (${branch})` : "Branch Leader";
   }
+  if (status && status.startsWith("Pending ")) {
+    return status.replace(/^Pending\s+/, "");
+  }
   if (approverRole) {
     return formatRoleWithContext(approverRole, department, branch);
   }

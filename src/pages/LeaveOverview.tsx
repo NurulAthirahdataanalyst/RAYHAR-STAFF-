@@ -66,6 +66,10 @@ const getDisplayStatus = (status: string, branch?: string, companyName?: string)
     case "Pending Assure":
       return "Awaiting Assure Leader Approval";
     default:
+      if (status && status.startsWith("Pending ")) {
+        const rolePart = status.replace(/^Pending\s+/, "");
+        return `Awaiting ${rolePart} Approval`;
+      }
       return status;
   }
 };

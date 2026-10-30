@@ -144,8 +144,15 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
   );
 
   const modalZoneOptions = useMemo(
-    () => getOperatingZoneOptionsFromSchedules(modalWorkSchedules.length > 0 ? modalWorkSchedules : workSchedules),
-    [modalWorkSchedules, workSchedules]
+    () =>
+      getOperatingZoneOptionsFromSchedules(
+        modalWorkSchedules.length > 0
+          ? modalWorkSchedules
+          : modalCompanyId === selectedCompanyId
+          ? workSchedules
+          : []
+      ),
+    [modalWorkSchedules, workSchedules, modalCompanyId, selectedCompanyId]
   );
 
   const handleModalCompanyChange = async (compId: number) => {
@@ -156,10 +163,12 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
       setModalWorkSchedules(scheds);
       const newZoneOptions = getOperatingZoneOptionsFromSchedules(scheds);
       if (newZoneOptions.length > 0) {
-        const stillValid = newZoneOptions.some(opt => opt.value === normalizeZoneCode(operatingZone));
-        if (!stillValid) {
-          setOperatingZone(newZoneOptions[0].value);
-        }
+        setOperatingZone((prev) => {
+          const stillValid = newZoneOptions.some(
+            (opt) => opt.value === prev || opt.value === normalizeZoneCode(prev)
+          );
+          return stillValid ? prev : newZoneOptions[0].value;
+        });
       }
     } catch (e) {
       console.error("Failed to load work schedules for company:", e);
@@ -227,8 +236,9 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
     setLocationDistrict('');
     const curCompId = selectedCompanyId || activeCompany?.id || 1;
     setModalCompanyId(curCompId);
-    setModalWorkSchedules(workSchedules);
-    const curOptions = getOperatingZoneOptionsFromSchedules(workSchedules);
+    const initialScheds = curCompId === selectedCompanyId ? workSchedules : [];
+    setModalWorkSchedules(initialScheds);
+    const curOptions = getOperatingZoneOptionsFromSchedules(initialScheds);
     setOperatingZone(curOptions[0]?.value || 'ZONE_B');
     setLatitude('5.3297');
     setLongitude('103.1370');
@@ -244,7 +254,14 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
     setLocationDistrict(b.location || '');
     const curCompId = b.company_id || selectedCompanyId || activeCompany?.id || 1;
     setModalCompanyId(curCompId);
-    setOperatingZone(normalizeZoneCode(b.operating_zone) || 'ZONE_B');
+    const initialScheds = curCompId === selectedCompanyId ? workSchedules : [];
+    setModalWorkSchedules(initialScheds);
+    const curOptions = getOperatingZoneOptionsFromSchedules(initialScheds);
+    const branchZone = b.operating_zone;
+    const validZone = curOptions.some(opt => opt.value === branchZone || opt.value === normalizeZoneCode(branchZone))
+      ? branchZone
+      : curOptions[0]?.value || branchZone || 'ZONE_B';
+    setOperatingZone(validZone);
     setLatitude(b.latitude ? b.latitude.toString() : '5.3297');
     setLongitude(b.longitude ? b.longitude.toString() : '103.1370');
     setRadius(b.radius || 50);
@@ -634,7 +651,7 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
                 </SelectContent>
               </Select>
               {(() => {
-                const selectedOpt = modalZoneOptions.find((o) => o.value === normalizeZoneCode(operatingZone)) || modalZoneOptions[0];
+                const selectedOpt = modalZoneOptions.find((o) => o.value === operatingZone || o.value === normalizeZoneCode(operatingZone)) || modalZoneOptions[0];
                 if (!selectedOpt) return null;
                 const cleanCode = branchCode.trim().toUpperCase();
                 const previewCodes = Array.from(

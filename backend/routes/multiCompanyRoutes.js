@@ -68,15 +68,15 @@ function createMultiCompanyRouter(pgPool) {
     try {
       const cId = parseInt(companyId, 10) || 1;
       const cleanCode = String(branchCode || '').trim().toUpperCase();
-      const normZone = normalizeZoneCode(operatingZone);
-      if (!cleanCode || !normZone) return;
+      const normZone = normalizeZoneCode(operatingZone) || String(operatingZone || '').trim();
+      if (!cleanCode) return;
 
       const schedRes = await pgPool.query('SELECT id, operating_zone, branch_ids, branch_id FROM work_schedules WHERE company_id = $1 ORDER BY id ASC', [cId]);
       for (const ws of schedRes.rows) {
         const wsZone = normalizeZoneCode(ws.operating_zone);
-        if (!wsZone) continue;
+        const isMatch = (wsZone && normZone && wsZone === normZone) || (!wsZone && (normZone === 'STANDARD' || schedRes.rows.length === 1));
         let currentCodes = parseBranchIds(ws.branch_ids, ws.branch_id);
-        if (wsZone === normZone) {
+        if (isMatch) {
           if (!currentCodes.includes(cleanCode)) {
             currentCodes.push(cleanCode);
             currentCodes.sort();

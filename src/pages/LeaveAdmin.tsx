@@ -58,6 +58,10 @@ const getDisplayStatus = (status: string, branch?: string, companyName?: string)
     case "Pending Assure":
       return "Awaiting Assure Leader Approval";
     default:
+      if (status && status.startsWith("Pending ")) {
+        const rolePart = status.replace(/^Pending\s+/, "");
+        return `Awaiting ${rolePart} Approval`;
+      }
       return status;
   }
 };
@@ -1176,7 +1180,11 @@ export default function LeaveAdmin() {
                               (req.status.trim() === "Pending Branch Leader" && role === "branch_leader") ||
                               ((req.status.trim() === "Pending Operation" || req.status.trim() === "Pending Operation Manager" || req.status.trim() === "Pending Finance" || req.status.trim() === "Pending Finance Manager") && (role === "operation_manager" || (role as string) === "finance_manager")) ||
                               ((req.status.trim() === "Pending MD" || req.status.trim() === "Pending Managing Director") && (role === "managing_director" || (role as string) === "md")) ||
-                              ((req.status.trim() === "Pending Assure Leader" || req.status.trim() === "Pending Assure") && (role === "assure_leader" || role?.toLowerCase()?.includes("assure")))
+                              ((req.status.trim() === "Pending Assure Leader" || req.status.trim() === "Pending Assure") && (role === "assure_leader" || role?.toLowerCase()?.includes("assure"))) ||
+                              (req.status.trim().startsWith("Pending ") && (
+                                role?.toLowerCase().replace(/\s+/g, '_') === req.status.trim().replace(/^Pending\s+/, '').toLowerCase().replace(/\s+/g, '_') ||
+                                role?.toLowerCase() === req.status.trim().replace(/^Pending\s+/, '').toLowerCase()
+                              ))
                             ) ? (
                               <div className="flex justify-end gap-2">
                                 <Button
