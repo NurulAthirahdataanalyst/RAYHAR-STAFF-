@@ -208,7 +208,9 @@ export function ApprovalStatusTracker({
     const isBlApproved = Boolean(
       (blHistory && String(blHistory.status || "").toLowerCase().includes("approved")) ||
       isAssurePending ||
-      (isApproved && !isRejected)
+      (isApproved && !isRejected) ||
+      // Rejected at the Assure Leader stage implies Branch Leader already approved
+      (isRejected && (Boolean(assureHistory) || aRole.includes("assure")))
     );
 
     const isAssureApproved = Boolean(
@@ -224,7 +226,7 @@ export function ApprovalStatusTracker({
       step2Status = 'Future';
     } else if (isBlApproved) {
       step1Status = 'Approved';
-      step1Subtitle = blHistory?.approver_name ? `${blHistory.approver_name} • RAYRENT` : (approverName ? `${approverName} • RAYRENT` : `Approved • RAYRENT`);
+      step1Subtitle = blHistory?.approver_name ? `${blHistory.approver_name} • RAYRENT` : (approverName && aRole.includes("branch") ? `${approverName} • RAYRENT` : `Approved • RAYRENT`);
       if (blHistory?.created_at) step1Date = new Date(blHistory.created_at).toLocaleDateString('en-GB');
 
       // Step 2: Assure Leader
@@ -243,6 +245,11 @@ export function ApprovalStatusTracker({
         step2Status = 'Pending';
         step2Subtitle = pendingApproverName ? `${pendingApproverName} • RayRent` : `Awaiting Assure Leader Approval • RayRent`;
       }
+    } else if (isRejected) {
+      // Rejected with no history record: Branch Leader stage rejected it
+      step1Status = 'Rejected';
+      step1Subtitle = approverName ? `${approverName} • RAYRENT` : `Rejected • RAYRENT`;
+      step2Status = 'Future';
     } else {
       // Step 1 Pending Branch Leader
       step1Status = 'Pending';
@@ -333,7 +340,15 @@ export function ApprovalStatusTracker({
     ? "MANAGING DIRECTOR"
     : isApprovedByHr
     ? "HR ADMIN"
-    : "BRANCH LEADER";
+    : "ASSURE LEADER";
+
+  // RayRent final step is only skipped when the Branch Leader was the final approver
+  // (company workflow has no Assure Leader step) and nobody else acted afterwards.
+  const rayRentHasAssureActivity = (approvalHistory || []).some(h => {
+    const r = String(h.approver_role || "").toLowerCase();
+    return r.includes("assure") || r.includes("managing") || r.includes("director") || isHrRole(h.approver_role);
+  }) || aRole.includes("assure") || sUpper.includes("ASSURE");
+  const rayRentShowFinalStep = !(isApproved && !rayRentHasAssureActivity && !isMdApproved && !isApprovedByHr);
 
   const items: Array<{
     title: string;
@@ -345,14 +360,22 @@ export function ApprovalStatusTracker({
         {
           title: "SUBMIT",
           subtitle: "Application Submitted",
-          status: "Approved",
+          status: "Approved" as const,
         },
         {
-          title: rayRentTitle,
-          subtitle: step2Subtitle,
-          status: step2Status,
-          date: step2Date,
-        }
+          title: "BRANCH LEADER",
+          subtitle: step1Subtitle,
+          status: step1Status,
+          date: step1Date,
+        },
+        ...(rayRentShowFinalStep
+          ? [{
+              title: rayRentTitle,
+              subtitle: step2Subtitle,
+              status: step2Status,
+              date: step2Date,
+            }]
+          : []),
       ]
     : isHrWorkflow
     ? [
