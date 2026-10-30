@@ -52,15 +52,15 @@ interface TabDefinition {
 }
 
 const SETTINGS_TABS: TabDefinition[] = [
-  { id: 'attendance', label: 'ATTENDANCE CONFIG', icon: Clock },
-  { id: 'employee', label: 'PERSONNEL MANAGEMENT', icon: UserPlus },
-  { id: 'company', label: 'COMPANY MANAGEMENT', icon: Building2 },
-  { id: 'branch', label: 'BRANCH & LOCATION', icon: MapPin },
-  { id: 'department', label: 'DEPARTMENT MANAGEMENT', icon: Layers },
-  { id: 'schedule', label: 'WORK SCHEDULES', icon: CalendarClock },
-  { id: 'leave', label: 'LEAVE & APPROVALS', icon: FileCheck2 },
-  { id: 'iam', label: 'ROLES & PERMISSIONS', icon: ShieldCheck },
-  { id: 'system', label: 'SYSTEM ACTIVITY', icon: History },
+  { id: 'attendance', label: 'Attendance Config', icon: Clock },
+  { id: 'employee', label: 'Personnel Management', icon: UserPlus },
+  { id: 'company', label: 'Company Management', icon: Building2 },
+  { id: 'branch', label: 'Branch & Location', icon: MapPin },
+  { id: 'department', label: 'Department Management', icon: Layers },
+  { id: 'schedule', label: 'Work Schedules', icon: CalendarClock },
+  { id: 'leave', label: 'Leave & Approvals', icon: FileCheck2 },
+  { id: 'iam', label: 'Roles & Permissions', icon: ShieldCheck },
+  { id: 'system', label: 'System Activity', icon: History },
 ];
 
 export const SettingsLayout: React.FC = () => {
@@ -193,7 +193,7 @@ export const SettingsLayout: React.FC = () => {
                       <TooltipContent 
                         side="right" 
                         sideOffset={12}
-                        className="bg-neutral-900 text-white border-neutral-700 shadow-xl px-3 py-1.5 text-[11px] font-black uppercase tracking-wider z-50 rounded-lg"
+                        className="bg-sidebar text-white border border-sidebar-border rounded-[12px] px-3.5 py-2 text-[11px] font-bold shadow-[0_8px_25px_rgba(123,0,153,0.08)] dark:shadow-[0_8px_25px_rgba(0,0,0,0.5)] z-50 whitespace-nowrap"
                       >
                         {tab.label}
                       </TooltipContent>
