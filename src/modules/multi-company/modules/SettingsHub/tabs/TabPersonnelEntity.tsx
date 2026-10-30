@@ -75,8 +75,14 @@ export const TabPersonnelEntity: React.FC = () => {
 
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
+  const [positionFilter, setPositionFilter] = useState('ALL');
   const [branchFilter, setBranchFilter] = useState('ALL');
+  const [departmentFilter, setDepartmentFilter] = useState('ALL');
   const [statusFilter, setStatusFilter] = useState('ALL');
+
+  // Company metadata for dynamic filters & department visibility
+  const [companyBranches, setCompanyBranches] = useState<any[]>([]);
+  const [companyDepartments, setCompanyDepartments] = useState<any[]>([]);
 
   // Status toggle modal
   const [statusConfirmEmp, setStatusConfirmEmp] = useState<PersonnelMember | null>(null);
@@ -123,10 +129,38 @@ export const TabPersonnelEntity: React.FC = () => {
     return () => window.removeEventListener('rayhar_company_switched', handler);
   }, []);
 
-  // Fetch personnel whenever selectedCompanyId changes
+  // Fetch personnel and company metadata whenever selectedCompanyId changes
   useEffect(() => {
+    setSearchTerm('');
+    setPositionFilter('ALL');
+    setBranchFilter('ALL');
+    setDepartmentFilter('ALL');
+    setStatusFilter('ALL');
     void fetchPersonnel(selectedCompanyId);
+    void fetchCompanyMetadata(selectedCompanyId);
   }, [selectedCompanyId]);
+
+  const fetchCompanyMetadata = async (companyId: number) => {
+    try {
+      const [bRes, dRes] = await Promise.all([
+        fetch(`${API_BASE_URL}/api/branches?company_id=${companyId}`),
+        fetch(`${API_BASE_URL}/api/departments?company_id=${companyId}`),
+      ]);
+      const [bData, dData] = await Promise.all([bRes.json(), dRes.json()]);
+      if (bData.success && Array.isArray(bData.branches)) {
+        setCompanyBranches(bData.branches);
+      } else {
+        setCompanyBranches([]);
+      }
+      if (dData.success && Array.isArray(dData.departments)) {
+        setCompanyDepartments(dData.departments);
+      } else {
+        setCompanyDepartments([]);
+      }
+    } catch (err) {
+      console.error('Error fetching company metadata:', err);
+    }
+  };
 
   const fetchPersonnel = async (companyId: number) => {
     setLoading(true);
@@ -313,14 +347,50 @@ export const TabPersonnelEntity: React.FC = () => {
     }
   };
 
-  // Unique branches for current personnel list
+  // Check if company has departments configured or used by personnel
+  const hasDepartments = useMemo(() => {
+    if (companyDepartments.length > 0) return true;
+    return personnel.some(
+      (p) => p.department && p.department.trim() !== '' && p.department !== 'NONE' && p.department !== '—'
+    );
+  }, [companyDepartments, personnel]);
+
+  // Distinct positions / roles for current personnel list
+  const availablePositions = useMemo(() => {
+    const set = new Set<string>();
+    personnel.forEach((p) => {
+      if (p.role) set.add(p.role);
+    });
+    return Array.from(set).sort();
+  }, [personnel]);
+
+  // Unique branches for current personnel list and company
   const availableBranches = useMemo(() => {
     const set = new Set<string>();
+    companyBranches.forEach((b) => {
+      if (b.code) set.add(b.code);
+      else if (b.name) set.add(b.name);
+    });
     personnel.forEach((p) => {
       if (p.branch) set.add(p.branch);
     });
     return Array.from(set).sort();
-  }, [personnel]);
+  }, [companyBranches, personnel]);
+
+  // Unique departments if available
+  const availableDepartments = useMemo(() => {
+    const set = new Set<string>();
+    companyDepartments.forEach((d) => {
+      const name = d.name || d.department_name;
+      if (name) set.add(name);
+    });
+    personnel.forEach((p) => {
+      if (p.department && p.department !== 'NONE' && p.department !== '—') {
+        set.add(p.department);
+      }
+    });
+    return Array.from(set).sort();
+  }, [companyDepartments, personnel]);
 
   // Filtered list
   const filteredPersonnel = useMemo(() => {
@@ -331,12 +401,26 @@ export const TabPersonnelEntity: React.FC = () => {
         p.user_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
         p.email.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const matchBranch = branchFilter === 'ALL' || p.branch === branchFilter;
-      const matchStatus = statusFilter === 'ALL' || p.status === statusFilter;
+      const matchPosition =
+        positionFilter === 'ALL' ||
+        p.role.toLowerCase() === positionFilter.toLowerCase();
 
-      return matchSearch && matchBranch && matchStatus;
+      const matchBranch =
+        branchFilter === 'ALL' ||
+        p.branch.toLowerCase() === branchFilter.toLowerCase();
+
+      const matchDepartment =
+        !hasDepartments ||
+        departmentFilter === 'ALL' ||
+        (p.department && p.department.toLowerCase() === departmentFilter.toLowerCase());
+
+      const matchStatus =
+        statusFilter === 'ALL' ||
+        p.status.toLowerCase() === statusFilter.toLowerCase();
+
+      return matchSearch && matchPosition && matchBranch && matchDepartment && matchStatus;
     });
-  }, [personnel, searchTerm, branchFilter, statusFilter]);
+  }, [personnel, searchTerm, positionFilter, branchFilter, departmentFilter, statusFilter, hasDepartments]);
 
   const currentCompanyName = useMemo(() => {
     const found = companies.find((c) => c.id === selectedCompanyId);
@@ -392,7 +476,7 @@ export const TabPersonnelEntity: React.FC = () => {
 
       {/* Secondary Search & Quick Filters Bar */}
       <div className="flex flex-wrap items-center gap-2.5 p-3 bg-card/60 backdrop-blur-md rounded-2xl border border-border/70 shadow-xs">
-        <div className="relative flex-1 min-w-[220px]">
+        <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
           <Input
             value={searchTerm}
@@ -402,24 +486,60 @@ export const TabPersonnelEntity: React.FC = () => {
           />
         </div>
 
-        {availableBranches.length > 1 && (
-          <Select value={branchFilter} onValueChange={setBranchFilter}>
+        {/* Position / Role Filter */}
+        <Select value={positionFilter} onValueChange={setPositionFilter}>
+          <SelectTrigger className="w-40 h-9 text-xs font-bold rounded-xl bg-background/50 border-border/60">
+            <SelectValue placeholder="All Positions" />
+          </SelectTrigger>
+          <SelectContent className="rounded-xl">
+            <SelectItem value="ALL" className="text-xs font-bold">
+              All Positions
+            </SelectItem>
+            {availablePositions.map((pos) => (
+              <SelectItem key={pos} value={pos} className="text-xs font-bold capitalize">
+                {pos.replace(/_/g, ' ')}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {/* Branch Filter (Always displayed) */}
+        <Select value={branchFilter} onValueChange={setBranchFilter}>
+          <SelectTrigger className="w-36 h-9 text-xs font-bold rounded-xl bg-background/50 border-border/60">
+            <SelectValue placeholder="All Branches" />
+          </SelectTrigger>
+          <SelectContent className="rounded-xl">
+            <SelectItem value="ALL" className="text-xs font-bold">
+              All Branches
+            </SelectItem>
+            {availableBranches.map((br) => (
+              <SelectItem key={br} value={br} className="text-xs font-bold">
+                {br}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {/* Department Filter (Only if company has departments) */}
+        {hasDepartments && (
+          <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
             <SelectTrigger className="w-40 h-9 text-xs font-bold rounded-xl bg-background/50 border-border/60">
-              <SelectValue placeholder="All Branches" />
+              <SelectValue placeholder="All Departments" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
               <SelectItem value="ALL" className="text-xs font-bold">
-                All Branches
+                All Departments
               </SelectItem>
-              {availableBranches.map((br) => (
-                <SelectItem key={br} value={br} className="text-xs font-bold">
-                  {br}
+              {availableDepartments.map((dept) => (
+                <SelectItem key={dept} value={dept} className="text-xs font-bold">
+                  {toProperCase(dept)}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         )}
 
+        {/* Status Filter */}
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-36 h-9 text-xs font-bold rounded-xl bg-background/50 border-border/60">
             <SelectValue placeholder="All Status" />
@@ -437,13 +557,16 @@ export const TabPersonnelEntity: React.FC = () => {
           </SelectContent>
         </Select>
 
-        {(searchTerm || branchFilter !== 'ALL' || statusFilter !== 'ALL') && (
+        {/* Reset Filter Button */}
+        {(searchTerm || positionFilter !== 'ALL' || branchFilter !== 'ALL' || (hasDepartments && departmentFilter !== 'ALL') || statusFilter !== 'ALL') && (
           <Button
             variant="outline"
             size="sm"
             onClick={() => {
               setSearchTerm('');
+              setPositionFilter('ALL');
               setBranchFilter('ALL');
+              setDepartmentFilter('ALL');
               setStatusFilter('ALL');
             }}
             className="h-9 px-3 text-xs font-bold rounded-xl border-border/60 hover:bg-muted"
@@ -496,9 +619,11 @@ export const TabPersonnelEntity: React.FC = () => {
                   <TableHead className="py-3.5 px-4 text-[11px] font-black uppercase tracking-wider text-black dark:text-white">
                     BRANCH
                   </TableHead>
-                  <TableHead className="py-3.5 px-4 text-[11px] font-black uppercase tracking-wider text-black dark:text-white">
-                    DEPARTMENT
-                  </TableHead>
+                  {hasDepartments && (
+                    <TableHead className="py-3.5 px-4 text-[11px] font-black uppercase tracking-wider text-black dark:text-white">
+                      DEPARTMENT
+                    </TableHead>
+                  )}
                   <TableHead className="py-3.5 px-4 text-[11px] font-black uppercase tracking-wider text-black dark:text-white">
                     STATUS
                   </TableHead>
@@ -553,16 +678,18 @@ export const TabPersonnelEntity: React.FC = () => {
                         </span>
                       </TableCell>
 
-                      {/* Department */}
-                      <TableCell className="py-3.5 px-4">
-                        {member.department ? (
-                          <span className="text-xs font-bold text-foreground">
-                            {toProperCase(member.department)}
-                          </span>
-                        ) : (
-                          <span className="text-xs font-bold text-muted-foreground/60">—</span>
-                        )}
-                      </TableCell>
+                      {/* Department (only shown if company has departments) */}
+                      {hasDepartments && (
+                        <TableCell className="py-3.5 px-4">
+                          {member.department ? (
+                            <span className="text-xs font-bold text-foreground">
+                              {toProperCase(member.department)}
+                            </span>
+                          ) : (
+                            <span className="text-xs font-bold text-muted-foreground/60">—</span>
+                          )}
+                        </TableCell>
+                      )}
 
                       {/* Status */}
                       <TableCell className="py-3.5 px-4 whitespace-nowrap">
