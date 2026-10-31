@@ -52,10 +52,12 @@ function Tab4LocationPickerMap({
   lat,
   lng,
   onPickLocation,
+  flyToTrigger,
 }: {
   lat: number;
   lng: number;
   onPickLocation: (lat: number, lng: number) => void;
+  flyToTrigger?: number;
 }) {
   const map = useMap();
   const markerRef = useRef<any>(null);
@@ -68,19 +70,23 @@ function Tab4LocationPickerMap({
       } catch (e) {
         // ignore
       }
-    }, 250);
+    }, 200);
     return () => clearTimeout(t);
   }, [map]);
 
+  const prevTrigger = useRef(flyToTrigger);
   useEffect(() => {
-    if (!isNaN(lat) && !isNaN(lng)) {
-      try {
-        map.flyTo([lat, lng], map.getZoom() || 16, { duration: 0.8 });
-      } catch (e) {
-        // ignore
+    if (flyToTrigger !== undefined && flyToTrigger !== prevTrigger.current) {
+      prevTrigger.current = flyToTrigger;
+      if (!isNaN(lat) && !isNaN(lng)) {
+        try {
+          map.flyTo([lat, lng], map.getZoom() || 16, { duration: 0.6 });
+        } catch (e) {
+          // ignore
+        }
       }
     }
-  }, [lat, lng, map]);
+  }, [flyToTrigger, lat, lng, map]);
 
   useMapEvents({
     click(e) {
@@ -220,6 +226,7 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
 
   // Map Picker Modal states
   const [isMapModalOpen, setIsMapModalOpen] = useState(false);
+  const [mapFlyToTrigger, setMapFlyToTrigger] = useState(0);
   const [mapLat, setMapLat] = useState('5.3297');
   const [mapLng, setMapLng] = useState('103.1370');
   const [mapAddress, setMapAddress] = useState('');
@@ -329,6 +336,7 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
   };
 
   const handleOpenMapModal = () => {
+    setMapFlyToTrigger(prev => prev + 1);
     setDirectMapBranch(null);
     const curLat = latitude && !isNaN(parseFloat(latitude)) ? latitude : '5.3297';
     const curLng = longitude && !isNaN(parseFloat(longitude)) ? longitude : '103.1370';
@@ -340,6 +348,7 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
   };
 
   const handleQuickMapOpen = (b: CompanyBranch) => {
+    setMapFlyToTrigger(prev => prev + 1);
     setDirectMapBranch(b);
     const curLat = b.latitude ? String(b.latitude) : '5.3297';
     const curLng = b.longitude ? String(b.longitude) : '103.1370';
@@ -375,6 +384,7 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
       setMapLat(latStr);
       setMapLng(lngStr);
       setPasteCoordsInput(`${latStr}, ${lngStr}`);
+      setMapFlyToTrigger(prev => prev + 1);
       toast.success("Coordinates applied to map!");
       fastReverseGeocode(lat, lng).then((addr) => {
         if (addr) setMapAddress(addr);
@@ -981,6 +991,7 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
                     <Tab4LocationPickerMap
                       lat={curLat}
                       lng={curLng}
+                      flyToTrigger={mapFlyToTrigger}
                       onPickLocation={(lat, lng) => {
                         const latStr = lat.toFixed(6);
                         const lngStr = lng.toFixed(6);

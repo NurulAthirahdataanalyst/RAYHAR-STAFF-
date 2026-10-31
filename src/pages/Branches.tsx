@@ -78,10 +78,12 @@ function BranchLocationPickerMap({
   lat,
   lng,
   onPickLocation,
+  flyToTrigger,
 }: {
   lat: number;
   lng: number;
   onPickLocation: (lat: number, lng: number) => void;
+  flyToTrigger?: number;
 }) {
   const map = useMap();
   const markerRef = useRef<any>(null);
@@ -94,19 +96,23 @@ function BranchLocationPickerMap({
       } catch (e) {
         // ignore
       }
-    }, 250);
+    }, 200);
     return () => clearTimeout(t);
   }, [map]);
 
+  const prevTrigger = useRef(flyToTrigger);
   useEffect(() => {
-    if (!isNaN(lat) && !isNaN(lng)) {
-      try {
-        map.flyTo([lat, lng], map.getZoom() || 16, { duration: 0.8 });
-      } catch (e) {
-        // ignore
+    if (flyToTrigger !== undefined && flyToTrigger !== prevTrigger.current) {
+      prevTrigger.current = flyToTrigger;
+      if (!isNaN(lat) && !isNaN(lng)) {
+        try {
+          map.flyTo([lat, lng], map.getZoom() || 16, { duration: 0.6 });
+        } catch (e) {
+          // ignore
+        }
       }
     }
-  }, [lat, lng, map]);
+  }, [flyToTrigger, lat, lng, map]);
 
   useMapEvents({
     click(e) {
@@ -533,10 +539,12 @@ export default function Branches() {
   };
   const [isSubmittingBranch, setIsSubmittingBranch] = useState(false);
   const [isMapModalOpen, setIsMapModalOpen] = useState(false);
+  const [mapFlyToTrigger, setMapFlyToTrigger] = useState(0);
   const [pasteCoordsInput, setPasteCoordsInput] = useState('');
   const [mapTargetModal, setMapTargetModal] = useState<'add' | 'edit'>('edit');
 
   const openMapForAddBranch = () => {
+    setMapFlyToTrigger(prev => prev + 1);
     setMapTargetModal('add');
     const lat = addBranchData.latitude || '5.3297';
     const lng = addBranchData.longitude || '103.1370';
@@ -551,6 +559,7 @@ export default function Branches() {
   };
 
   const openMapForEditBranch = () => {
+    setMapFlyToTrigger(prev => prev + 1);
     setMapTargetModal('edit');
     const lat = editBranchData.latitude || '5.3297';
     const lng = editBranchData.longitude || '103.1370';
@@ -587,6 +596,7 @@ export default function Branches() {
         longitude: lngStr
       }));
       setPasteCoordsInput(`${latStr}, ${lngStr}`);
+      setMapFlyToTrigger(prev => prev + 1);
       toast.success("Coordinates applied to map!");
       fastReverseGeocode(lat, lng).then((addr) => {
         if (addr) setEditBranchData((prev: any) => ({ ...prev, location: addr }));
@@ -3016,6 +3026,7 @@ export default function Branches() {
                     <BranchLocationPickerMap
                       lat={curLat}
                       lng={curLng}
+                      flyToTrigger={mapFlyToTrigger}
                       onPickLocation={(lat, lng) => {
                         const latStr = lat.toFixed(6);
                         const lngStr = lng.toFixed(6);
