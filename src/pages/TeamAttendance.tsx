@@ -66,7 +66,7 @@ export default function TeamAttendance() {
   const [historyLoading, setHistoryLoading] = useState(false);
   const [apiBranches, setApiBranches] = useState<any[]>([]);
 
-  useEffect(() => {
+  const fetchApiBranches = () => {
     fetch(`${API_BASE_URL}/api/branches`)
       .then(res => res.json())
       .then(data => {
@@ -75,6 +75,16 @@ export default function TeamAttendance() {
         }
       })
       .catch(console.error);
+  };
+
+  useEffect(() => {
+    fetchApiBranches();
+    window.addEventListener('app:refresh', fetchApiBranches);
+    window.addEventListener('rayhar_branches_updated', fetchApiBranches);
+    return () => {
+      window.removeEventListener('app:refresh', fetchApiBranches);
+      window.removeEventListener('rayhar_branches_updated', fetchApiBranches);
+    };
   }, []);
 
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {

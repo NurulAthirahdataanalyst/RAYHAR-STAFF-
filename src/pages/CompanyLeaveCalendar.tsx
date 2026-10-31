@@ -101,7 +101,14 @@ const CompanyLeaveCalendar = () => {
   };
 
   useEffect(() => {
+    const handleRefresh = () => { fetchLeaves(); };
+    window.addEventListener('app:refresh', handleRefresh);
+    window.addEventListener('rayhar_branches_updated', handleRefresh);
     fetchLeaves();
+    return () => {
+      window.removeEventListener('app:refresh', handleRefresh);
+      window.removeEventListener('rayhar_branches_updated', handleRefresh);
+    };
   }, []);
 
   const handleOpenDialog = (leave?: CompanyLeave) => {

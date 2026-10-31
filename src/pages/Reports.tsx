@@ -270,6 +270,13 @@ export default function Reports() {
 
   useEffect(() => {
     fetchLists();
+    const handleUpdate = () => { fetchLists(); };
+    window.addEventListener('app:refresh', handleUpdate);
+    window.addEventListener('rayhar_branches_updated', handleUpdate);
+    return () => {
+      window.removeEventListener('app:refresh', handleUpdate);
+      window.removeEventListener('rayhar_branches_updated', handleUpdate);
+    };
   }, [fetchLists]);
 
   // Generate Report action using real data

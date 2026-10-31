@@ -199,13 +199,31 @@ export default function Attendance() {
   const [pendingLocation, setPendingLocation] = useState<{lat: number, lng: number, acc: number} | null>(null);
   const [outstationLocationLoading, setOutstationLocationLoading] = useState(false);
 
-  useEffect(() => {
+  const fetchBranches = useCallback(() => {
     fetch(`${API_BASE_URL}/api/branches`)
       .then(res => res.json())
       .then(data => {
         if(data.success && data.branches) setBranches(data.branches);
       }).catch(console.error);
   }, []);
+
+  useEffect(() => {
+    fetchBranches();
+    window.addEventListener('app:refresh', fetchBranches);
+    window.addEventListener('rayhar_branches_updated', fetchBranches);
+    return () => {
+      window.removeEventListener('app:refresh', fetchBranches);
+      window.removeEventListener('rayhar_branches_updated', fetchBranches);
+    };
+  }, [fetchBranches]);
+
+  const branchMap = useMemo(() => {
+    const map: Record<string, string> = { ...BRANCH_NAMES };
+    branches.forEach((b: any) => {
+      if (b.code) map[b.code] = b.name;
+    });
+    return map;
+  }, [branches]);
 
   const haversineDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
     const R = 6371e3;
@@ -1593,7 +1611,7 @@ export default function Attendance() {
                       {allowedLocations.map((loc, i) => (
                         <SelectItem key={i} value={loc} className="text-xs font-bold cursor-pointer">
                           <div className="flex items-center gap-2">
-                            <span>{BRANCH_NAMES[loc] ? `${loc} - ${toProperCase(BRANCH_NAMES[loc])}` : loc}</span>
+                            <span>{(branchMap[loc] || BRANCH_NAMES[loc]) ? `${loc} - ${toProperCase(branchMap[loc] || BRANCH_NAMES[loc])}` : loc}</span>
                             {activeTempAssignment && (activeTempAssignment.location === loc || activeTempAssignment.temp_branch === loc) && (
                               <span className="text-[9px] font-extrabold text-[#942392] dark:text-purple-400">(TEMPORARY BRANCH)</span>
                             )}

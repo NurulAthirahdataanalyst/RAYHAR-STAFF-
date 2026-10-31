@@ -449,8 +449,19 @@ export default function Employees() {
         void fetchBranchesAndDepartments(e.detail.company.id);
       }
     };
+    const handleBranchUpdate = () => {
+      const cId = activeCompany?.id || 1;
+      void fetchEmployees(cId);
+      void fetchBranchesAndDepartments(cId);
+    };
     window.addEventListener('rayhar_company_switched', handler);
-    return () => window.removeEventListener('rayhar_company_switched', handler);
+    window.addEventListener('app:refresh', handleBranchUpdate);
+    window.addEventListener('rayhar_branches_updated', handleBranchUpdate);
+    return () => {
+      window.removeEventListener('rayhar_company_switched', handler);
+      window.removeEventListener('app:refresh', handleBranchUpdate);
+      window.removeEventListener('rayhar_branches_updated', handleBranchUpdate);
+    };
   }, []);
 
   const handleOpenWorkspaceModal = async (emp: any) => {

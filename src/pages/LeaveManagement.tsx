@@ -55,7 +55,7 @@ export default function LeaveManagement() {
   const [liveRequests, setLiveRequests] = useState<any[]>([]);
   const [branchesList, setBranchesList] = useState<any[]>([]);
 
-  useEffect(() => {
+  const fetchBranches = useCallback(() => {
     fetch(API_BASE_URL + "/api/branches")
       .then(res => res.json())
       .then(data => {
@@ -65,6 +65,16 @@ export default function LeaveManagement() {
       })
       .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    fetchBranches();
+    window.addEventListener('app:refresh', fetchBranches);
+    window.addEventListener('rayhar_branches_updated', fetchBranches);
+    return () => {
+      window.removeEventListener('app:refresh', fetchBranches);
+      window.removeEventListener('rayhar_branches_updated', fetchBranches);
+    };
+  }, [fetchBranches]);
 
 
   // Fetch live leave requests from backend to get the actual approved leave days

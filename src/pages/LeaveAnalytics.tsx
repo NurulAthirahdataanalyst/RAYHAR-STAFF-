@@ -444,7 +444,7 @@ export default function LeaveAnalytics() {
   const [selectedStatus, setSelectedStatus] = useState("All");
   const [branchMap, setBranchMap] = useState<Record<string, string>>(BRANCH_NAMES);
 
-  useEffect(() => {
+  const fetchBranches = useCallback(() => {
     fetch(`${API_BASE_URL}/api/branches`)
       .then((r) => r.json())
       .then((d) => {
@@ -458,6 +458,22 @@ export default function LeaveAnalytics() {
       })
       .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    fetchBranches();
+    window.addEventListener('app:refresh', fetchBranches);
+    window.addEventListener('rayhar_branches_updated', fetchBranches);
+    return () => {
+      window.removeEventListener('app:refresh', fetchBranches);
+      window.removeEventListener('rayhar_branches_updated', fetchBranches);
+    };
+  }, [fetchBranches]);
+
+  const dynamicBranchList = useMemo(() => {
+    const fromMap = Object.keys(branchMap);
+    const combined = Array.from(new Set([...fromMap, ...BRANCHES.filter(b => b !== "All Branches")]));
+    return ["All Branches", ...combined];
+  }, [branchMap]);
 
 
   const monthLabel = selectedMonth === "all" ? "Monthly" : MONTHS.find((m) => m.value === selectedMonth)?.label || "Monthly";
@@ -1544,7 +1560,7 @@ export default function LeaveAnalytics() {
                 <SelectValue placeholder="All Branches" />
               </SelectTrigger>
               <SelectContent>
-                {BRANCHES.map(b => (
+                {dynamicBranchList.map(b => (
                   <SelectItem key={b} value={b}>
                     {b === "All Branches" || b === "All"
                       ? "All Branches"

@@ -430,11 +430,29 @@ export default function GPSLocationTracker() {
   const HISTORY_LIMIT = 50;
 
   const [apiBranches, setApiBranches] = useState<any[]>([]);
-  useEffect(() => {
+  const fetchApiBranches = useCallback(() => {
     fetch(`${API_BASE_URL}/api/branches`).then(r => r.json()).then(j => {
       if (j.success && j.branches) setApiBranches(j.branches);
     }).catch(() => {});
   }, []);
+
+  useEffect(() => {
+    fetchApiBranches();
+    window.addEventListener('app:refresh', fetchApiBranches);
+    window.addEventListener('rayhar_branches_updated', fetchApiBranches);
+    return () => {
+      window.removeEventListener('app:refresh', fetchApiBranches);
+      window.removeEventListener('rayhar_branches_updated', fetchApiBranches);
+    };
+  }, [fetchApiBranches]);
+
+  const branchMap = useMemo(() => {
+    const map: Record<string, string> = { ...BRANCH_NAMES };
+    apiBranches.forEach((b: any) => {
+      if (b.code) map[b.code] = b.name;
+    });
+    return map;
+  }, [apiBranches]);
 
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
@@ -546,13 +564,13 @@ export default function GPSLocationTracker() {
                 <SelectValue placeholder="Branch">
                   {branchFilter === "All"
                     ? "All Branches"
-                    : (BRANCH_NAMES[branchFilter] ? `${branchFilter} - ${toProperCase(BRANCH_NAMES[branchFilter])}` : branchFilter)}
+                    : ((branchMap[branchFilter] || BRANCH_NAMES[branchFilter]) ? `${branchFilter} - ${toProperCase(branchMap[branchFilter] || BRANCH_NAMES[branchFilter])}` : branchFilter)}
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {branches.map((b) => (
                   <SelectItem key={b} value={b}>
-                    {b === "All" ? "All Branches" : (BRANCH_NAMES[b] ? `${b} - ${toProperCase(BRANCH_NAMES[b])}` : b)}
+                    {b === "All" ? "All Branches" : ((branchMap[b] || BRANCH_NAMES[b]) ? `${b} - ${toProperCase(branchMap[b] || BRANCH_NAMES[b])}` : b)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -743,7 +761,7 @@ export default function GPSLocationTracker() {
                     <SelectContent>
                       {branches.map((b) => (
                         <SelectItem key={b} value={b} className="text-xs">
-                          {b === "All" ? "All Branches" : (BRANCH_NAMES[b] ? `${b} - ${toProperCase(BRANCH_NAMES[b])}` : b)}
+                          {b === "All" ? "All Branches" : ((branchMap[b] || BRANCH_NAMES[b]) ? `${b} - ${toProperCase(branchMap[b] || BRANCH_NAMES[b])}` : b)}
                         </SelectItem>
                       ))}
                     </SelectContent>

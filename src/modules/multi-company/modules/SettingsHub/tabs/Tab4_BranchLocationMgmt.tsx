@@ -402,6 +402,8 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
         await fetchBranches(selectedCompanyId);
       }
       setModalOpen(false);
+      window.dispatchEvent(new CustomEvent('app:refresh'));
+      window.dispatchEvent(new CustomEvent('rayhar_branches_updated', { detail: { oldCode: editingBranch?.code, newCode: branchCode.trim().toUpperCase(), name: payload.name } }));
     } catch (err: any) {
       toast.error(err.message || 'Error saving branch');
     } finally {
@@ -623,8 +625,8 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
 
       {/* Add / Edit Branch Dialog (Matching Screenshot 3 / Branches.tsx) */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="w-[calc(100vw-2.5rem)] sm:max-w-xl md:max-w-2xl max-h-[85vh] flex flex-col overflow-hidden [&>button]:text-white [&>button]:hover:text-white/80 border-none shadow-2xl rounded-3xl p-0 bg-card my-auto">
-          <DialogHeader className="bg-[#942392] p-6 sm:rounded-t-lg m-0 text-left border-b border-white/20 shrink-0">
+        <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-xl md:max-w-2xl max-h-[90vh] flex flex-col overflow-hidden [&>button]:text-white [&>button]:hover:text-white/80 border-none shadow-2xl rounded-3xl p-0 bg-card my-auto">
+          <DialogHeader className="bg-[#942392] p-5 sm:p-6 sm:rounded-t-lg m-0 text-left border-b border-white/20 shrink-0">
             <DialogTitle className="text-white font-black uppercase tracking-tight m-0 text-lg">
               {editingBranch ? 'Edit Branch' : 'Add New Branch'}
             </DialogTitle>
@@ -633,228 +635,254 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleSaveBranch} className="p-6 space-y-4 bg-card flex-1 overflow-y-auto">
-            {/* Target Entity Selector */}
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <label className="text-[9px] font-black text-foreground uppercase tracking-widest flex items-center gap-1.5">
-                  <Building2 className="w-3.5 h-3.5 text-[#942392]" />
-                  Target Entity
-                </label>
-                <span className="text-[9px] font-bold text-[#942392]">
-                  {loadingModalSchedules ? "Loading Schedules..." : "Work Schedule Scope"}
-                </span>
-              </div>
-              <Select 
-                value={modalCompanyId ? modalCompanyId.toString() : "1"} 
-                onValueChange={(val) => void handleModalCompanyChange(parseInt(val, 10))}
-              >
-                <SelectTrigger className="w-full h-11 px-4 rounded-xl border border-input bg-transparent text-xs font-bold shadow-sm">
-                  <SelectValue placeholder="Select Target Entity (Company)">
-                    {(() => {
-                      const found = companies.find(c => c.id === modalCompanyId);
-                      if (!found) return 'Rayhar Travels (Main Company)';
-                      const cName = toProperCase(found.company_name);
-                      const cType = found.company_type === 'main' ? 'Main Company' : 'Subsidiary';
-                      return `${cName} (${cType})`;
-                    })()}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent className="rounded-xl">
-                  {companies.map(c => (
-                    <SelectItem key={c.id} value={c.id.toString()} className="text-xs font-bold">
-                      <div className="flex items-center gap-2">
-                        <Building2 className="w-3.5 h-3.5 text-[#942392]" />
-                        <span>{toProperCase(c.company_name)}</span>
-                        <span className="text-[10px] text-muted-foreground font-normal">
-                          ({c.company_type === 'main' ? 'Main Company' : 'Subsidiary'})
-                        </span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="border-b border-border/60 my-2" />
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-1.5 col-span-1">
-                <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Branch Code</label>
-                <Input
-                  placeholder="e.g. AOR"
-                  value={branchCode}
-                  onChange={(e) => setBranchCode(e.target.value.toUpperCase())}
-                  className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#942392] focus:ring-2 focus:ring-[#942392]/10 rounded-xl text-xs font-black uppercase placeholder:normal-case outline-none"
-                  required
-                />
-              </div>
-              <div className="space-y-1.5 col-span-1 md:col-span-2">
-                <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Branch Name</label>
-                <Input
-                  placeholder="e.g. ALOR SETAR"
-                  value={branchName}
-                  onChange={(e) => setBranchName(e.target.value)}
-                  className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#942392] focus:ring-2 focus:ring-[#942392]/10 rounded-xl text-xs font-bold placeholder:normal-case uppercase outline-none"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="border-b border-border/60 my-2" />
-
-            <div className="space-y-1.5 relative">
-              <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Branch Location / District</label>
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Type address & press Enter or click 🔍"
-                  value={locationDistrict}
-                  onChange={(e) => setLocationDistrict(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      void handleSmartSearch();
-                    }
-                  }}
-                  className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#942392] focus:ring-2 focus:ring-[#942392]/10 rounded-xl text-xs font-bold"
-                />
-                <button
-                  type="button"
-                  className="h-11 w-11 shrink-0 flex items-center justify-center rounded-xl bg-[#942392]/10 text-[#942392] hover:bg-[#942392]/20 transition-colors border border-[#942392]/20"
-                  onClick={() => void handleSmartSearch()}
-                  title="Search coordinates"
-                >
-                  <Search className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-
-            <div className="border-b border-border/60 my-2" />
-
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Operating Zone (From Work Schedule)</label>
-                <span className="text-[9px] font-bold text-[#942392]">Auto-Assigns to Target Scope</span>
-              </div>
-              {(() => {
-                const currentModalZone = modalZoneOptions.find((o) => o.value === operatingZone || o.value === normalizeZoneCode(operatingZone))?.value || modalZoneOptions[0]?.value || 'STANDARD';
-                const selectedOpt = modalZoneOptions.find((o) => o.value === currentModalZone) || modalZoneOptions[0];
-                const cleanCode = branchCode.trim().toUpperCase();
-                const origCode = (editingBranch?.code || '').trim().toUpperCase();
-                const baseCodes = selectedOpt
-                  ? (origCode ? selectedOpt.branchCodes.filter((c) => c !== origCode) : selectedOpt.branchCodes)
-                  : [];
-                const previewCodes = selectedOpt ? Array.from(
-                  new Set([...baseCodes, ...(cleanCode ? [cleanCode] : [])])
-                ).sort() : [];
-
-                return (
-                  <>
-                    <Select value={currentModalZone} onValueChange={(val: any) => setOperatingZone(val)}>
-                      <SelectTrigger className="w-full h-11 px-4 rounded-xl border border-input bg-transparent text-xs font-bold shadow-sm">
-                        <SelectValue placeholder="Select Zone" />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl">
-                        {modalZoneOptions.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value} className="text-xs font-bold">
-                            {opt.fullLabel}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {selectedOpt && (
-                      <div className="p-2.5 rounded-xl bg-muted/40 dark:bg-neutral-800/50 border border-border/60 space-y-1.5 text-[10px]">
-                        <div className="flex flex-wrap items-center justify-between gap-1">
-                          <span className="font-black text-foreground uppercase tracking-wider">
-                            Schedule: {selectedOpt.scheduleName}
-                          </span>
-                          <span className="font-mono font-bold text-[#942392]">
-                            {selectedOpt.hoursSummary}
-                          </span>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-1">
-                          <span className="font-bold text-muted-foreground mr-1">Target Scope:</span>
-                          {previewCodes.map((c) => (
-                            <span
-                              key={c}
-                              className={`px-1.5 py-0.5 rounded font-mono font-bold ${
-                                c === cleanCode
-                                  ? 'bg-[#942392] text-white'
-                                  : 'bg-background dark:bg-neutral-900 text-foreground border border-border/60'
-                              }`}
-                            >
-                              {c}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </>
-                );
-              })()}
-            </div>
-
-            <div className="border-b border-border/60 my-2" />
-
-            <div className="grid grid-cols-2 gap-4">
+          <form onSubmit={handleSaveBranch} className="flex flex-col flex-1 min-h-0 overflow-hidden bg-card">
+            {/* Scrollable Form Body */}
+            <div className="p-5 sm:p-6 space-y-4 overflow-y-auto flex-1 min-h-0 overscroll-contain">
+              {/* Target Entity Selector */}
               <div className="space-y-1.5">
-                <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Coordinates</label>
-                <div className="flex gap-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-[9px] font-black text-foreground uppercase tracking-widest flex items-center gap-1.5">
+                    <Building2 className="w-3.5 h-3.5 text-[#942392]" />
+                    Target Entity
+                  </label>
+                  <span className="text-[9px] font-bold text-[#942392]">
+                    {loadingModalSchedules ? "Loading Schedules..." : "Work Schedule Scope"}
+                  </span>
+                </div>
+                <Select 
+                  value={modalCompanyId ? modalCompanyId.toString() : "1"} 
+                  onValueChange={(val) => void handleModalCompanyChange(parseInt(val, 10))}
+                >
+                  <SelectTrigger className="w-full h-11 px-4 rounded-xl border border-input bg-transparent text-xs font-bold shadow-sm">
+                    <SelectValue placeholder="Select Target Entity (Company)">
+                      {(() => {
+                        const found = companies.find(c => c.id === modalCompanyId);
+                        if (!found) return 'Rayhar Travels (Main Company)';
+                        const cName = toProperCase(found.company_name);
+                        const cType = found.company_type === 'main' ? 'Main Company' : 'Subsidiary';
+                        return `${cName} (${cType})`;
+                      })()}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl">
+                    {companies.map(c => (
+                      <SelectItem key={c.id} value={c.id.toString()} className="text-xs font-bold">
+                        <div className="flex items-center gap-2">
+                          <Building2 className="w-3.5 h-3.5 text-[#942392]" />
+                          <span>{toProperCase(c.company_name)}</span>
+                          <span className="text-[10px] text-muted-foreground font-normal">
+                            ({c.company_type === 'main' ? 'Main Company' : 'Subsidiary'})
+                          </span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="border-b border-border/60 my-2" />
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-1.5 col-span-1">
+                  <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Branch Code</label>
                   <Input
-                    placeholder="Lat, Lng"
-                    value={latitude && longitude ? `${parseFloat(latitude).toFixed(4)}, ${parseFloat(longitude).toFixed(4)}` : ""}
-                    onClick={handleOpenMapModal}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      if (val.includes(',')) {
-                        const [lat, lng] = val.split(',').map(s => s.trim());
-                        setLatitude(lat);
-                        setLongitude(lng);
-                      }
-                    }}
-                    className="w-full h-11 px-3 bg-muted/50 rounded-xl text-xs font-bold opacity-80 cursor-pointer"
+                    placeholder="e.g. AOR"
+                    value={branchCode}
+                    onChange={(e) => setBranchCode(e.target.value.toUpperCase())}
+                    className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#942392] focus:ring-2 focus:ring-[#942392]/10 rounded-xl text-xs font-black uppercase placeholder:normal-case outline-none"
+                    required
                   />
+                </div>
+                <div className="space-y-1.5 col-span-1 md:col-span-2">
+                  <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Branch Name</label>
+                  <Input
+                    placeholder="e.g. ALOR SETAR"
+                    value={branchName}
+                    onChange={(e) => setBranchName(e.target.value)}
+                    className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#942392] focus:ring-2 focus:ring-[#942392]/10 rounded-xl text-xs font-bold placeholder:normal-case uppercase outline-none"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="border-b border-border/60 my-2" />
+
+              <div className="space-y-1.5 relative">
+                <div className="flex items-center justify-between">
+                  <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Branch Location / District</label>
                   <button
                     type="button"
                     onClick={handleOpenMapModal}
-                    className="h-11 px-3 shrink-0 flex items-center justify-center gap-1.5 rounded-xl bg-[#942392] text-white font-black uppercase text-[10px] tracking-wider hover:bg-[#800A7A] shadow-sm transition-colors"
-                    title="Select GPS coordinates on Map"
+                    className="text-[9px] font-bold text-[#942392] hover:underline flex items-center gap-1 cursor-pointer"
                   >
-                    <MapPin className="w-3.5 h-3.5" /> Select
+                    <MapPin className="w-3 h-3" /> Pick on Map
+                  </button>
+                </div>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Type address or paste coordinates & press Enter"
+                    value={locationDistrict}
+                    onChange={(e) => setLocationDistrict(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        void handleSmartSearch();
+                      }
+                    }}
+                    className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#942392] focus:ring-2 focus:ring-[#942392]/10 rounded-xl text-xs font-bold"
+                  />
+                  <button
+                    type="button"
+                    className="h-11 px-3.5 shrink-0 flex items-center justify-center gap-1.5 rounded-xl bg-[#942392]/10 text-[#942392] hover:bg-[#942392]/20 transition-colors border border-[#942392]/20 font-bold text-xs cursor-pointer"
+                    onClick={() => void handleSmartSearch()}
+                    title="Search coordinates from address"
+                  >
+                    <Search className="w-4 h-4" />
+                    <span>Search</span>
                   </button>
                 </div>
               </div>
 
-              <div className="space-y-1.5">
-                <div className="flex justify-between items-center">
-                  <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Radius</label>
-                  <span className="text-[9px] font-black text-[#942392]">0m - 500m</span>
+              <div className="border-b border-border/60 my-2" />
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Operating Zone (From Work Schedule)</label>
+                  <span className="text-[9px] font-bold text-[#942392]">Auto-Assigns to Target Scope</span>
                 </div>
-                <div className="flex items-center gap-4 h-11 px-3 bg-muted/20 border border-border/50 rounded-xl">
-                  <input
-                    type="range"
-                    min="0"
-                    max="500"
-                    step="5"
-                    value={radius || 50}
-                    onChange={(e) => setRadius(Number(e.target.value))}
-                    className="flex-1 h-2 rounded-full appearance-none cursor-pointer"
-                    style={{
-                      background: `linear-gradient(to right, #942392 0%, #942392 ${(((Number(radius || 50) - 0) / 500) * 100)}%, #e5e7eb ${(((Number(radius || 50) - 0) / 500) * 100)}%, #e5e7eb 100%)`
-                    }}
-                  />
-                  <div className="text-[10px] font-black w-10 text-right bg-[#942392]/10 text-[#942392] py-1 px-1.5 rounded-md">
-                    {radius}m
+                {(() => {
+                  const currentModalZone = modalZoneOptions.find((o) => o.value === operatingZone || o.value === normalizeZoneCode(operatingZone))?.value || modalZoneOptions[0]?.value || 'STANDARD';
+                  const selectedOpt = modalZoneOptions.find((o) => o.value === currentModalZone) || modalZoneOptions[0];
+                  const cleanCode = branchCode.trim().toUpperCase();
+                  const origCode = (editingBranch?.code || '').trim().toUpperCase();
+                  const baseCodes = selectedOpt
+                    ? (origCode ? selectedOpt.branchCodes.filter((c) => c !== origCode) : selectedOpt.branchCodes)
+                    : [];
+                  const previewCodes = selectedOpt ? Array.from(
+                    new Set([...baseCodes, ...(cleanCode ? [cleanCode] : [])])
+                  ).sort() : [];
+
+                  return (
+                    <>
+                      <Select value={currentModalZone} onValueChange={(val: any) => setOperatingZone(val)}>
+                        <SelectTrigger className="w-full h-11 px-4 rounded-xl border border-input bg-transparent text-xs font-bold shadow-sm">
+                          <SelectValue placeholder="Select Zone" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl">
+                          {modalZoneOptions.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value} className="text-xs font-bold">
+                              {opt.fullLabel}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {selectedOpt && (
+                        <div className="p-2.5 rounded-xl bg-muted/40 dark:bg-neutral-800/50 border border-border/60 space-y-1.5 text-[10px]">
+                          <div className="flex flex-wrap items-center justify-between gap-1">
+                            <span className="font-black text-foreground uppercase tracking-wider">
+                              Schedule: {selectedOpt.scheduleName}
+                            </span>
+                            <span className="font-mono font-bold text-[#942392]">
+                              {selectedOpt.hoursSummary}
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-1">
+                            <span className="font-bold text-muted-foreground mr-1">Target Scope:</span>
+                            {previewCodes.map((c) => (
+                              <span
+                                key={c}
+                                className={`px-1.5 py-0.5 rounded font-mono font-bold ${
+                                  c === cleanCode
+                                    ? 'bg-[#942392] text-white'
+                                    : 'bg-background dark:bg-neutral-900 text-foreground border border-border/60'
+                                }`}
+                              >
+                                {c}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
+              </div>
+
+              <div className="border-b border-border/60 my-2" />
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[9px] font-black text-foreground uppercase tracking-widest flex items-center gap-1">
+                      <MapPin className="w-3.5 h-3.5 text-[#942392]" />
+                      GPS Coordinates
+                    </label>
+                    <span className="text-[9px] font-bold text-[#942392]">Lat, Lng</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="e.g. 5.3297, 103.1370"
+                      value={latitude && longitude ? `${latitude}, ${longitude}` : ""}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        const parsed = parseCoordinates(val);
+                        if (parsed) {
+                          setLatitude(parsed.lat);
+                          setLongitude(parsed.lon);
+                        } else if (val.includes(',')) {
+                          const [lat, lng] = val.split(',').map(s => s.trim());
+                          if (lat) setLatitude(lat);
+                          if (lng) setLongitude(lng);
+                        }
+                      }}
+                      className="w-full h-11 px-3 bg-muted/40 border border-border/80 focus:border-[#942392] rounded-xl text-xs font-mono font-bold"
+                    />
+                    <Button
+                      type="button"
+                      onClick={handleOpenMapModal}
+                      className="h-11 px-3.5 shrink-0 flex items-center justify-center gap-1.5 rounded-xl bg-[#942392] hover:bg-[#800A7A] text-white font-black uppercase text-[10px] tracking-wider shadow-sm transition-all cursor-pointer"
+                      title="Select GPS coordinates on Map"
+                    >
+                      <MapPin className="w-3.5 h-3.5" /> Select on Map
+                    </Button>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground">
+                    Click <b>Select on Map</b> or paste coordinates directly from Google Maps.
+                  </p>
+                </div>
+
+                <div className="space-y-1.5">
+                  <div className="flex justify-between items-center">
+                    <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Normal Geofence Radius</label>
+                    <span className="text-[9px] font-black text-[#942392]">{radius}m</span>
+                  </div>
+                  <div className="flex items-center gap-4 h-11 px-3 bg-muted/20 border border-border/50 rounded-xl">
+                    <input
+                      type="range"
+                      min="0"
+                      max="500"
+                      step="5"
+                      value={radius || 50}
+                      onChange={(e) => setRadius(Number(e.target.value))}
+                      className="flex-1 h-2 rounded-full appearance-none cursor-pointer"
+                      style={{
+                        background: `linear-gradient(to right, #942392 0%, #942392 ${(((Number(radius || 50) - 0) / 500) * 100)}%, #e5e7eb ${(((Number(radius || 50) - 0) / 500) * 100)}%, #e5e7eb 100%)`
+                      }}
+                    />
+                    <div className="text-[10px] font-black w-12 text-right bg-[#942392]/10 text-[#942392] py-1 px-1.5 rounded-md font-mono">
+                      {radius}m
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="border-t border-border/60 pt-3 sticky bottom-0 bg-card/95 backdrop-blur-xs flex justify-end gap-3 mt-4 -mx-5 sm:-mx-6 px-5 sm:px-6 pb-1">
-              <Button type="button" variant="ghost" onClick={() => setModalOpen(false)} className="rounded-xl text-xs font-black uppercase">
+            {/* Pinned Action Footer */}
+            <div className="border-t border-border/60 p-4 bg-card/95 backdrop-blur-xs flex justify-end gap-3 shrink-0">
+              <Button type="button" variant="ghost" onClick={() => setModalOpen(false)} className="rounded-xl text-xs font-black uppercase cursor-pointer">
                 Cancel
               </Button>
-              <Button type="submit" disabled={saving} className="rounded-xl px-6 bg-[#942392] hover:bg-[#800A7A] text-white shadow-md text-xs font-black uppercase flex items-center gap-2">
+              <Button type="submit" disabled={saving} className="rounded-xl px-6 bg-[#942392] hover:bg-[#800A7A] text-white shadow-md text-xs font-black uppercase flex items-center gap-2 cursor-pointer">
                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
                 {saving ? "Saving..." : (editingBranch ? "Save Branch" : "+ Add Branch")}
               </Button>
@@ -863,21 +891,22 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Map Picker Modal - Identical to Branches Overview (1st Screenshot) */}
+      {/* Map Picker Modal - Fast, with Paste Coordinates and Apply Location */}
       <Dialog open={isMapModalOpen} onOpenChange={setIsMapModalOpen}>
-        <DialogContent className="w-[calc(100vw-2.5rem)] max-w-4xl max-h-[85vh] p-0 border-none shadow-2xl overflow-hidden rounded-[24px] flex flex-col [&>button]:text-white [&>button]:hover:text-white/80 z-[70] my-auto">
-          <div className="p-6 bg-gradient-to-r from-[#942392] to-purple-500 text-white flex justify-between items-start shrink-0">
+        <DialogContent className="w-[calc(100vw-2.5rem)] max-w-4xl max-h-[90vh] p-0 border-none shadow-2xl overflow-hidden rounded-[24px] flex flex-col [&>button]:text-white [&>button]:hover:text-white/80 z-[70] my-auto">
+          <div className="p-5 sm:p-6 bg-gradient-to-r from-[#942392] to-purple-600 text-white flex justify-between items-start shrink-0">
             <div>
-              <DialogTitle className="text-lg font-black uppercase tracking-tight m-0 text-white">
-                UPDATE BRANCH LOCATION
+              <DialogTitle className="text-lg font-black uppercase tracking-tight m-0 text-white flex items-center gap-2">
+                <MapPin className="w-5 h-5 text-white" />
+                {directMapBranch ? `Update Location: ${directMapBranch.name || directMapBranch.code}` : 'UPDATE BRANCH LOCATION & COORDINATES'}
               </DialogTitle>
               <DialogDescription className="text-xs print:text-[11px] font-bold uppercase tracking-wider text-white/80 m-0 mt-1">
-                UPDATE GPS COORDINATES AND ADDRESS
+                Paste Google Maps coordinates, click on the map, or enter lat/long and apply
               </DialogDescription>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 h-[500px]">
+          <div className="grid grid-cols-1 md:grid-cols-3 h-[520px]">
             {/* Map Area */}
             <div className="md:col-span-2 relative h-full">
               <Map
@@ -910,16 +939,14 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
                 }}
                 onClick={(e) => {
                   const { lat, lng } = e.lngLat;
-                  setMapLat(lat.toFixed(6));
-                  setMapLng(lng.toFixed(6));
-                  fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
-                    .then((res) => res.json())
-                    .then((data) => {
-                      if (data && data.display_name) {
-                        setMapAddress(data.display_name);
-                      }
-                    })
-                    .catch(console.error);
+                  const latStr = lat.toFixed(6);
+                  const lngStr = lng.toFixed(6);
+                  setMapLat(latStr);
+                  setMapLng(lngStr);
+                  setPasteCoordsInput(`${latStr}, ${lngStr}`);
+                  fastReverseGeocode(lat, lng).then((addr) => {
+                    if (addr) setMapAddress(addr);
+                  }).catch(console.error);
                 }}
               >
                 <NavigationControl position="top-right" />
@@ -950,110 +977,96 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
             </div>
 
             {/* Sidebar Controls */}
-            <div className="p-6 bg-slate-50 dark:bg-slate-900 flex flex-col h-full overflow-y-auto">
+            <div className="p-5 sm:p-6 bg-slate-50 dark:bg-slate-900 flex flex-col h-full overflow-y-auto border-l border-border/50">
               <div className="space-y-4">
+                {/* 1. Paste Coordinate Box */}
+                <div className="space-y-1.5 p-3 rounded-xl bg-purple-50/70 dark:bg-purple-950/30 border border-purple-200/80 dark:border-purple-800/40">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-[#942392] dark:text-purple-300 flex items-center gap-1">
+                    <Navigation className="w-3 h-3 text-[#942392]" />
+                    Paste Coordinates (Google Maps)
+                  </label>
+                  <Input
+                    value={pasteCoordsInput}
+                    onChange={(e) => handlePasteCoordsChange(e.target.value)}
+                    placeholder="e.g. 5.3297, 103.1370"
+                    className="h-10 rounded-xl text-xs font-mono font-bold bg-white dark:bg-neutral-800 border-purple-300 focus-visible:ring-[#942392]"
+                  />
+                  <p className="text-[9px] text-muted-foreground">
+                    Paste Google Maps coordinate format or URL.
+                  </p>
+                </div>
+
+                {/* 2. Manual Lat & Lng */}
                 <div className="space-y-2">
                   <label className="text-[10px] print:text-[13px] font-black uppercase tracking-widest text-foreground">
                     MANUAL COORDINATES
                   </label>
-                  <Input
-                    value={mapLat || ""}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      if (val.includes(',')) {
-                        const [pLat, pLng] = val.split(',').map((s) => s.trim());
-                        if (pLat) setMapLat(pLat);
-                        if (pLng) setMapLng(pLng);
-                      } else {
+                  <div className="grid grid-cols-2 gap-2">
+                    <Input
+                      value={mapLat || ""}
+                      onChange={(e) => {
+                        const val = e.target.value;
                         setMapLat(val);
-                      }
-                    }}
-                    placeholder="Latitude"
-                    className="h-10 rounded-xl text-xs font-bold placeholder:text-slate-400 dark:placeholder:text-slate-500 placeholder:font-normal border-purple-400 focus-visible:ring-purple-400"
-                  />
-                  <Input
-                    value={mapLng || ""}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      if (val.includes(',')) {
-                        const [pLat, pLng] = val.split(',').map((s) => s.trim());
-                        if (pLat) setMapLat(pLat);
-                        if (pLng) setMapLng(pLng);
-                      } else {
+                        setPasteCoordsInput(`${val}, ${mapLng}`);
+                      }}
+                      placeholder="Latitude"
+                      className="h-10 rounded-xl text-xs font-mono font-bold border-purple-400 focus-visible:ring-purple-400"
+                    />
+                    <Input
+                      value={mapLng || ""}
+                      onChange={(e) => {
+                        const val = e.target.value;
                         setMapLng(val);
-                      }
-                    }}
-                    placeholder="Longitude"
-                    className="h-10 rounded-xl text-xs font-bold placeholder:text-slate-400 dark:placeholder:text-slate-500 placeholder:font-normal"
-                  />
+                        setPasteCoordsInput(`${mapLat}, ${val}`);
+                      }}
+                      placeholder="Longitude"
+                      className="h-10 rounded-xl text-xs font-mono font-bold border-purple-400 focus-visible:ring-purple-400"
+                    />
+                  </div>
+
                   <Button
                     type="button"
-                    variant="outline"
-                    className="w-full h-10 rounded-xl text-xs font-bold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/60 border-purple-200 dark:border-purple-800"
-                    onClick={() => {
-                      const lat = parseFloat(String(mapLat));
-                      const lng = parseFloat(String(mapLng));
-                      if (!isNaN(lat) && !isNaN(lng)) {
-                        setMapLat(String(lat));
-                        setMapLng(String(lng));
-                        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
-                          .then((r) => r.json())
-                          .then((data) => {
-                            if (data && data.display_name) {
-                              setMapAddress(data.display_name);
-                            }
-                          })
-                          .catch(console.error);
-                      } else {
-                        toast.error("Please enter valid latitude and longitude numbers");
-                      }
-                    }}
+                    onClick={handleApplyMapLocation}
+                    className="w-full h-10 rounded-xl text-xs font-black uppercase tracking-wider text-white bg-[#942392] hover:bg-[#800A7A] shadow-xs flex items-center justify-center gap-2 cursor-pointer"
                   >
+                    <Navigation className="w-3.5 h-3.5" />
                     Apply Location
                   </Button>
                 </div>
 
-                <div className="space-y-2 pt-4">
+                {/* 3. Address Preview */}
+                <div className="space-y-1.5 pt-2">
                   <label className="text-[10px] print:text-[13px] font-black uppercase tracking-widest text-foreground">
                     ADDRESS / DISPLAY NAME
                   </label>
                   <div
-                    className={`p-4 bg-card border rounded-xl shadow-xs text-xs leading-relaxed ${
-                      mapAddress ? "text-foreground font-medium" : "text-slate-400 dark:text-slate-500"
+                    className={`p-3 bg-card border rounded-xl shadow-xs text-xs leading-relaxed max-h-24 overflow-y-auto ${
+                      mapAddress ? "text-foreground font-medium" : "text-slate-400 dark:text-slate-500 italic"
                     }`}
                   >
-                    {mapAddress || "Select a location on the map"}
+                    {mapAddress || "Click on the map or apply coordinates to resolve address"}
                   </div>
                 </div>
               </div>
 
-              <div className="mt-auto flex gap-3 pt-6">
+              {/* Bottom Actions */}
+              <div className="mt-auto flex gap-3 pt-6 border-t border-border/50">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setIsMapModalOpen(false)}
-                  className="flex-1 h-11 rounded-xl text-[10px] print:text-[13px] font-black uppercase tracking-wider bg-white dark:bg-neutral-800"
+                  className="flex-1 h-11 rounded-xl text-[10px] print:text-[13px] font-black uppercase tracking-wider bg-white dark:bg-neutral-800 cursor-pointer"
                 >
                   CANCEL
                 </Button>
                 <Button
                   type="button"
-                  onClick={() => {
-                    const lat = parseFloat(String(mapLat));
-                    const lng = parseFloat(String(mapLng));
-                    if (!isNaN(lat) && !isNaN(lng)) {
-                      setLatitude(lat.toFixed(6));
-                      setLongitude(lng.toFixed(6));
-                    }
-                    if (mapAddress) {
-                      setLocationDistrict(mapAddress);
-                    }
-                    setIsMapModalOpen(false);
-                    toast.success("Branch coordinates and address updated!");
-                  }}
-                  className="flex-1 h-11 rounded-xl bg-[#942392] text-white hover:bg-[#800A7A] text-[10px] print:text-[13px] font-black uppercase tracking-wider shadow-md"
+                  disabled={savingMapCoords}
+                  onClick={handleSaveMapCoordinates}
+                  className="flex-1 h-11 rounded-xl bg-[#942392] text-white hover:bg-[#800A7A] text-[10px] print:text-[13px] font-black uppercase tracking-wider shadow-md flex items-center justify-center gap-1.5 cursor-pointer"
                 >
-                  SAVE
+                  {savingMapCoords ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                  {savingMapCoords ? "SAVING..." : "SAVE COORDINATES"}
                 </Button>
               </div>
             </div>

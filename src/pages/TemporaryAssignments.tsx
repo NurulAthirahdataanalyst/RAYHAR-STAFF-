@@ -85,6 +85,16 @@ const TemporaryAssignments = () => {
   useEffect(() => {
     fetchAssignments();
     fetchDependencies();
+    const handleRefresh = () => {
+      fetchAssignments();
+      fetchDependencies();
+    };
+    window.addEventListener('app:refresh', handleRefresh);
+    window.addEventListener('rayhar_branches_updated', handleRefresh);
+    return () => {
+      window.removeEventListener('app:refresh', handleRefresh);
+      window.removeEventListener('rayhar_branches_updated', handleRefresh);
+    };
   }, []);
 
   const fetchAssignments = async () => {

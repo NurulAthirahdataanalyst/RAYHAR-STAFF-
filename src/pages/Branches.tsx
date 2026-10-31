@@ -65,50 +65,13 @@ const MAPLIBRE_STYLE = {
   layers: [{ id: "osm-layer", type: "raster" as const, source: "osm", minzoom: 0, maxzoom: 19 }]
 };
 
-// Smart geocoding: tries multiple strategies for Malaysian addresses
-async function smartGeocode(address: string): Promise<{lat: string, lon: string} | null> {
-  const trySearch = async (q: string) => {
-    const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&countrycodes=my&limit=1&accept-language=en`);
-    const data = await r.json();
-    return data && data.length > 0 ? data[0] : null;
-  };
-
-  // Strategy 1: Full address + Malaysia
-  let result = await trySearch(address + ", Malaysia");
-  if (result) return result;
-
-  // Strategy 2: Strip lot/unit numbers (common in Malaysian addresses)
-  // Remove LOT XXXX, NO. X, PT XXX patterns
-  const stripped = address
-    .replace(/\b(LOT|PT|NO\.?|UNIT|BLOK|BLK|KM|KILOMETER)\s*[\d\w-]+[,\s]*/gi, '')
-    .replace(/^[,\s]+/, '').trim();
-  if (stripped && stripped !== address) {
-    result = await trySearch(stripped + ", Malaysia");
-    if (result) return result;
-  }
-
-  // Strategy 3: Extract words that look like town/city (skip lot numbers, ignore short tokens)
-  // Split by commas and try from right to left (city/state usually at end)
-  const parts = address.split(',').map(s => s.trim()).filter(Boolean);
-  for (let i = parts.length - 1; i >= 0; i--) {
-    const partial = parts.slice(i).join(', ');
-    if (partial.length > 3) {
-      result = await trySearch(partial + ", Malaysia");
-      if (result) return result;
-    }
-  }
-
-  // Strategy 4: Try just last 2 parts (town, state)
-  if (parts.length >= 2) {
-    result = await trySearch(parts.slice(-2).join(', ') + ", Malaysia");
-    if (result) return result;
-  }
-
-  return null;
-}
-
 // Convert any string to Proper Case (title case), e.g. "SEPANG" -> "Sepang"
-import { toProperCase } from "@/utils/branchUtils";
+import {
+  toProperCase,
+  parseCoordinates,
+  smartGeocode,
+  fastReverseGeocode,
+} from "@/utils/branchUtils";
 import { useCompany } from "@/modules/multi-company/contexts/CompanyContext";
 import { multiCompanyApi } from "@/modules/multi-company/services/multiCompanyApi";
 import { WorkSchedule } from "@/modules/multi-company/types/multiCompany.types";
@@ -123,7 +86,7 @@ function MapController({ lat, lng }: { lat: number, lng: number }) {
   const { current: map } = useMapLibre();
   useEffect(() => {
     if (map && !isNaN(lat) && !isNaN(lng)) {
-      map.flyTo({ center: [lng, lat], zoom: map.getZoom(), duration: 1000 });
+      map.flyTo({ center: [lng, lat], zoom: map.getZoom(), duration: 800 });
     }
   }, [lat, lng, map]);
   return null;
@@ -510,6 +473,96 @@ export default function Branches() {
   };
   const [isSubmittingBranch, setIsSubmittingBranch] = useState(false);
   const [isMapModalOpen, setIsMapModalOpen] = useState(false);
+  const [pasteCoordsInput, setPasteCoordsInput] = useState('');
+  const [mapTargetModal, setMapTargetModal] = useState<'add' | 'edit'>('edit');
+
+  const openMapForAddBranch = () => {
+    setMapTargetModal('add');
+    const lat = addBranchData.latitude || '5.3297';
+    const lng = addBranchData.longitude || '103.1370';
+    setPasteCoordsInput(addBranchData.latitude && addBranchData.longitude ? `${addBranchData.latitude}, ${addBranchData.longitude}` : '');
+    setEditBranchData((prev: any) => ({
+      ...prev,
+      latitude: lat,
+      longitude: lng,
+      location: addBranchData.location || ''
+    }));
+    setIsMapModalOpen(true);
+  };
+
+  const openMapForEditBranch = () => {
+    setMapTargetModal('edit');
+    const lat = editBranchData.latitude || '5.3297';
+    const lng = editBranchData.longitude || '103.1370';
+    setPasteCoordsInput(editBranchData.latitude && editBranchData.longitude ? `${editBranchData.latitude}, ${editBranchData.longitude}` : '');
+    setIsMapModalOpen(true);
+  };
+
+  const handlePasteCoordsChange = (val: string) => {
+    setPasteCoordsInput(val);
+    const parsed = parseCoordinates(val);
+    if (parsed) {
+      setEditBranchData((prev: any) => ({
+        ...prev,
+        latitude: parsed.lat,
+        longitude: parsed.lon,
+      }));
+    }
+  };
+
+  const handleApplyLocation = () => {
+    let lat = parseFloat(String(editBranchData.latitude));
+    let lng = parseFloat(String(editBranchData.longitude));
+    const parsed = parseCoordinates(pasteCoordsInput);
+    if (parsed) {
+      lat = parsed.numLat;
+      lng = parsed.numLng;
+    }
+    if (!isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+      const latStr = lat.toFixed(6);
+      const lngStr = lng.toFixed(6);
+      setEditBranchData((prev: any) => ({
+        ...prev,
+        latitude: latStr,
+        longitude: lngStr
+      }));
+      setPasteCoordsInput(`${latStr}, ${lngStr}`);
+      toast.success("Coordinates applied to map!");
+      fastReverseGeocode(lat, lng).then((addr) => {
+        if (addr) setEditBranchData((prev: any) => ({ ...prev, location: addr }));
+      }).catch(console.error);
+    } else {
+      toast.error("Please enter valid latitude (-90 to 90) and longitude (-180 to 180)");
+    }
+  };
+
+  const handleSaveMapCoordinates = () => {
+    const latNum = parseFloat(String(editBranchData.latitude));
+    const lngNum = parseFloat(String(editBranchData.longitude));
+    if (isNaN(latNum) || isNaN(lngNum)) {
+      toast.error("Please enter valid coordinates");
+      return;
+    }
+    const latStr = latNum.toFixed(6);
+    const lngStr = lngNum.toFixed(6);
+
+    if (mapTargetModal === 'add') {
+      setAddBranchData((prev: any) => ({
+        ...prev,
+        latitude: latStr,
+        longitude: lngStr,
+        location: editBranchData.location || prev.location
+      }));
+    } else {
+      setEditBranchData((prev: any) => ({
+        ...prev,
+        latitude: latStr,
+        longitude: lngStr
+      }));
+    }
+    setIsMapModalOpen(false);
+    toast.success("Branch coordinates updated!");
+  };
 
   const openAddModal = () => {
     const curCompId = selectedCompanyId || activeCompany?.id || 1;
@@ -2324,242 +2377,273 @@ export default function Branches() {
 
       {/* Add Branch Modal */}
       <Dialog open={isAddBranchModalOpen} onOpenChange={setIsAddBranchModalOpen}>
-        <DialogContent className="w-[calc(100vw-2.5rem)] sm:max-w-xl md:max-w-2xl max-h-[85vh] flex flex-col overflow-hidden [&>button]:text-white [&>button]:hover:text-white/80 border-none shadow-2xl rounded-3xl p-0 my-auto">
+        <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-xl md:max-w-2xl max-h-[90vh] flex flex-col overflow-hidden [&>button]:text-white [&>button]:hover:text-white/80 border-none shadow-2xl rounded-3xl p-0 my-auto">
           <DialogHeader className="bg-[#942392] p-5 sm:p-6 sm:rounded-t-lg m-0 border-b border-white/20 text-left shrink-0">
             <DialogTitle className="text-white font-black uppercase tracking-tight m-0 text-lg">Add New Branch</DialogTitle>
             <DialogDescription className="text-xs font-bold uppercase tracking-wider text-white/80 m-0 mt-1">
               Insert a new regional branch office into the database
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleAddBranch} className="p-5 sm:p-6 space-y-4 bg-card overflow-y-auto flex-1">
-            {/* Target Entity Selector */}
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <label className="text-[9px] font-black text-foreground uppercase tracking-widest flex items-center gap-1.5">
-                  <Building2 className="w-3.5 h-3.5 text-[#942392]" />
-                  Target Entity
-                </label>
-                <span className="text-[9px] font-bold text-[#942392]">
-                  {loadingAddSchedules ? "Loading Schedules..." : "Work Schedule Scope"}
-                </span>
-              </div>
-              <Select 
-                value={addBranchData.company_id ? addBranchData.company_id.toString() : "1"} 
-                onValueChange={(val) => void handleAddCompanyChange(parseInt(val, 10))}
-              >
-                <SelectTrigger className="w-full h-11 px-4 rounded-xl border border-input bg-transparent text-xs font-bold shadow-sm">
-                  <SelectValue placeholder="Select Target Entity (Company)">
-                    {(() => {
-                      const found = companies.find(c => c.id === addBranchData.company_id);
-                      if (!found) return 'Rayhar Travels (Main Company)';
-                      const cName = toProperCase(found.company_name);
-                      const cType = found.company_type === 'main' ? 'Main Company' : 'Subsidiary';
-                      return `${cName} (${cType})`;
-                    })()}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent className="rounded-xl">
-                  {companies.map(c => (
-                    <SelectItem key={c.id} value={c.id.toString()} className="text-xs font-bold">
-                      <div className="flex items-center gap-2">
-                        <Building2 className="w-3.5 h-3.5 text-[#942392]" />
-                        <span>{toProperCase(c.company_name)}</span>
-                        <span className="text-[10px] text-muted-foreground font-normal">
-                          ({c.company_type === 'main' ? 'Main Company' : 'Subsidiary'})
-                        </span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
 
-            <div className="border-b border-border/60 my-2" />
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-1.5 col-span-1">
-                <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Branch Code</label>
-                <Input
-                  placeholder="e.g. AOR"
-                  value={addBranchData.code}
-                  onChange={(e) => setAddBranchData({...addBranchData, code: e.target.value})}
-                  className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#942392] focus:ring-2 focus:ring-[#942392]/10 rounded-xl text-xs font-black uppercase placeholder:normal-case outline-none"
-                  required
-                />
-              </div>
-              <div className="space-y-1.5 col-span-1 md:col-span-2">
-                <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Branch Name</label>
-                <Input
-                  placeholder="e.g. ALOR SETAR"
-                  value={addBranchData.name}
-                  onChange={(e) => setAddBranchData({...addBranchData, name: e.target.value})}
-                  className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#942392] focus:ring-2 focus:ring-[#942392]/10 rounded-xl text-xs font-bold placeholder:normal-case uppercase outline-none"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="space-y-1.5 relative">
-              <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Branch Location / District</label>
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Type address & press Enter or click 🔍"
-                  value={addBranchData.location}
-                  onChange={(e) => setAddBranchData({...addBranchData, location: e.target.value})}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      const addr = addBranchData.location;
-                      if (!addr.trim()) return;
-                      toast.loading("Searching coordinates...");
-                      smartGeocode(addr).then(result => {
-                        toast.dismiss();
-                        if (result) {
-                          setAddBranchData((prev: any) => ({...prev, latitude: result.lat, longitude: result.lon}));
-                          toast.success("Coordinates found & updated!");
-                        } else {
-                          toast.error("Could not find coordinates. Try entering just the town/city name.");
-                        }
-                      }).catch(() => { toast.dismiss(); toast.error("Search failed"); });
-                    }
-                  }}
-                  className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#942392] focus:ring-2 focus:ring-[#942392]/10 rounded-xl text-xs font-bold"
-                />
-                <button
-                  type="button"
-                  className="h-11 w-11 shrink-0 flex items-center justify-center rounded-xl bg-[#942392]/10 text-[#942392] hover:bg-[#942392]/20 transition-colors border border-[#942392]/20"
-                  onClick={async () => {
-                    const addr = addBranchData.location;
-                    if (!addr.trim()) return;
-                    toast.loading("Searching coordinates...");
-                    try {
-                      const result = await smartGeocode(addr);
-                      toast.dismiss();
-                      if (result) {
-                        setAddBranchData((prev: any) => ({...prev, latitude: result.lat, longitude: result.lon}));
-                        toast.success("Coordinates found!");
-                      } else {
-                        toast.error("Could not find coordinates.");
-                      }
-                    } catch { toast.dismiss(); toast.error("Search failed"); }
-                  }}
-                >
-                  <Search className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Operating Zone (From Work Schedule)</label>
-                <span className="text-[9px] font-bold text-[#942392]">Auto-Assigns to Target Scope</span>
-              </div>
-              {(() => {
-                const currentAddZone = addZoneOptions.find((o) => o.value === addBranchData.operating_zone || o.value === normalizeZoneCode(addBranchData.operating_zone))?.value || addZoneOptions[0]?.value || 'STANDARD';
-                const selectedOpt = addZoneOptions.find((o) => o.value === currentAddZone) || addZoneOptions[0];
-                const cleanCode = (addBranchData.code || "").trim().toUpperCase();
-                const previewCodes = selectedOpt ? Array.from(
-                  new Set([...selectedOpt.branchCodes, ...(cleanCode ? [cleanCode] : [])])
-                ).sort() : [];
-
-                return (
-                  <>
-                    <Select value={currentAddZone} onValueChange={(val) => setAddBranchData({ ...addBranchData, operating_zone: val })}>
-                      <SelectTrigger className="w-full h-11 px-4 rounded-xl border border-input bg-transparent text-xs font-bold shadow-sm">
-                        <SelectValue placeholder="Select Zone" />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl">
-                        {addZoneOptions.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value} className="text-xs font-bold">
-                            {opt.fullLabel}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {selectedOpt && (
-                      <div className="p-2.5 rounded-xl bg-muted/40 border border-border/60 space-y-1.5 text-[10px]">
-                        <div className="flex flex-wrap items-center justify-between gap-1">
-                          <span className="font-black text-foreground uppercase tracking-wider">
-                            Schedule: {selectedOpt.scheduleName}
-                          </span>
-                          <span className="font-mono font-bold text-[#942392]">
-                            {selectedOpt.hoursSummary}
-                          </span>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-1">
-                          <span className="font-bold text-muted-foreground mr-1">Target Scope:</span>
-                          {previewCodes.map((c) => (
-                            <span
-                              key={c}
-                              className={`px-1.5 py-0.5 rounded font-mono font-bold ${
-                                c === cleanCode
-                                  ? "bg-[#942392] text-white"
-                                  : "bg-background text-foreground border border-border/60"
-                              }`}
-                            >
-                              {c}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </>
-                );
-              })()}
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
+          <form onSubmit={handleAddBranch} className="flex flex-col flex-1 min-h-0 overflow-hidden bg-card">
+            {/* Scrollable Form Body */}
+            <div className="p-5 sm:p-6 space-y-4 overflow-y-auto flex-1 min-h-0 overscroll-contain">
+              {/* Target Entity Selector */}
               <div className="space-y-1.5">
-                <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Coordinates</label>
+                <div className="flex items-center justify-between">
+                  <label className="text-[9px] font-black text-foreground uppercase tracking-widest flex items-center gap-1.5">
+                    <Building2 className="w-3.5 h-3.5 text-[#942392]" />
+                    Target Entity
+                  </label>
+                  <span className="text-[9px] font-bold text-[#942392]">
+                    {loadingAddSchedules ? "Loading Schedules..." : "Work Schedule Scope"}
+                  </span>
+                </div>
+                <Select 
+                  value={addBranchData.company_id ? addBranchData.company_id.toString() : "1"} 
+                  onValueChange={(val) => void handleAddCompanyChange(parseInt(val, 10))}
+                >
+                  <SelectTrigger className="w-full h-11 px-4 rounded-xl border border-input bg-transparent text-xs font-bold shadow-sm">
+                    <SelectValue placeholder="Select Target Entity (Company)">
+                      {(() => {
+                        const found = companies.find(c => c.id === addBranchData.company_id);
+                        if (!found) return 'Rayhar Travels (Main Company)';
+                        const cName = toProperCase(found.company_name);
+                        const cType = found.company_type === 'main' ? 'Main Company' : 'Subsidiary';
+                        return `${cName} (${cType})`;
+                      })()}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl">
+                    {companies.map(c => (
+                      <SelectItem key={c.id} value={c.id.toString()} className="text-xs font-bold">
+                        <div className="flex items-center gap-2">
+                          <Building2 className="w-3.5 h-3.5 text-[#942392]" />
+                          <span>{toProperCase(c.company_name)}</span>
+                          <span className="text-[10px] text-muted-foreground font-normal">
+                            ({c.company_type === 'main' ? 'Main Company' : 'Subsidiary'})
+                          </span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="border-b border-border/60 my-2" />
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-1.5 col-span-1">
+                  <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Branch Code</label>
+                  <Input
+                    placeholder="e.g. AOR"
+                    value={addBranchData.code}
+                    onChange={(e) => setAddBranchData({...addBranchData, code: e.target.value})}
+                    className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#942392] focus:ring-2 focus:ring-[#942392]/10 rounded-xl text-xs font-black uppercase placeholder:normal-case outline-none"
+                    required
+                  />
+                </div>
+                <div className="space-y-1.5 col-span-1 md:col-span-2">
+                  <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Branch Name</label>
+                  <Input
+                    placeholder="e.g. ALOR SETAR"
+                    value={addBranchData.name}
+                    onChange={(e) => setAddBranchData({...addBranchData, name: e.target.value})}
+                    className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#942392] focus:ring-2 focus:ring-[#942392]/10 rounded-xl text-xs font-bold placeholder:normal-case uppercase outline-none"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5 relative">
+                <div className="flex items-center justify-between">
+                  <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Branch Location / District</label>
+                  <button
+                    type="button"
+                    onClick={openMapForAddBranch}
+                    className="text-[9px] font-bold text-[#942392] hover:underline flex items-center gap-1 cursor-pointer"
+                  >
+                    <MapPin className="w-3 h-3" /> Pick on Map
+                  </button>
+                </div>
                 <div className="flex gap-2">
                   <Input
-                    placeholder="Lat, Lng"
-                    value={addBranchData.latitude && addBranchData.longitude ? `${parseFloat(addBranchData.latitude).toFixed(4)}, ${parseFloat(addBranchData.longitude).toFixed(4)}` : ""}
-                    readOnly
-                    className="w-full h-11 px-3 bg-muted/50 rounded-xl text-xs font-bold opacity-70"
+                    placeholder="Type address or paste coordinates & press Enter"
+                    value={addBranchData.location}
+                    onChange={(e) => setAddBranchData({...addBranchData, location: e.target.value})}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const addr = addBranchData.location;
+                        if (!addr.trim()) return;
+                        toast.loading("Searching coordinates...");
+                        smartGeocode(addr).then(result => {
+                          toast.dismiss();
+                          if (result) {
+                            setAddBranchData((prev: any) => ({...prev, latitude: result.lat, longitude: result.lon}));
+                            toast.success("Coordinates found & updated!");
+                          } else {
+                            toast.error("Could not find coordinates. Try entering just the town/city name.");
+                          }
+                        }).catch(() => { toast.dismiss(); toast.error("Search failed"); });
+                      }
+                    }}
+                    className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#942392] focus:ring-2 focus:ring-[#942392]/10 rounded-xl text-xs font-bold"
                   />
                   <button
                     type="button"
-                    onClick={() => {
-                      setEditBranchData({...addBranchData});
-                      setIsMapModalOpen(true);
+                    className="h-11 px-3.5 shrink-0 flex items-center justify-center gap-1.5 rounded-xl bg-[#942392]/10 text-[#942392] hover:bg-[#942392]/20 transition-colors border border-[#942392]/20 font-bold text-xs cursor-pointer"
+                    onClick={async () => {
+                      const addr = addBranchData.location;
+                      if (!addr.trim()) return;
+                      toast.loading("Searching coordinates...");
+                      try {
+                        const result = await smartGeocode(addr);
+                        toast.dismiss();
+                        if (result) {
+                          setAddBranchData((prev: any) => ({...prev, latitude: result.lat, longitude: result.lon}));
+                          toast.success("Coordinates found!");
+                        } else {
+                          toast.error("Could not find coordinates.");
+                        }
+                      } catch { toast.dismiss(); toast.error("Search failed"); }
                     }}
-                    className="h-11 px-3 shrink-0 flex items-center justify-center gap-1.5 rounded-xl bg-[#942392] text-white font-black uppercase text-[10px] tracking-wider hover:bg-[#5e0080] shadow-sm"
                   >
-                    <MapPin className="w-3.5 h-3.5" /> Select
+                    <Search className="w-4 h-4" />
+                    <span>Search</span>
                   </button>
                 </div>
               </div>
 
-              <div className="space-y-1.5">
-                <div className="flex justify-between items-center">
-                  <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Radius</label>
-                  <span className="text-[9px] font-black text-[#942392]">0m - 500m</span>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Operating Zone (From Work Schedule)</label>
+                  <span className="text-[9px] font-bold text-[#942392]">Auto-Assigns to Target Scope</span>
                 </div>
-                <div className="flex items-center gap-4 h-11 px-3 bg-muted/20 border border-border/50 rounded-xl">
-                  <input
-                    type="range"
-                    min="0"
-                    max="500"
-                    step="5"
-                    value={addBranchData.radius || 50}
-                    onChange={(e) => setAddBranchData({...addBranchData, radius: e.target.value})}
-                    className="flex-1 h-2 rounded-full appearance-none cursor-pointer"
-                    style={{
-                      background: `linear-gradient(to right, #942392 0%, #942392 ${(((parseFloat(addBranchData.radius || "50") - 0) / 500) * 100)}%, #e5e7eb ${(((parseFloat(addBranchData.radius || "50") - 0) / 500) * 100)}%, #e5e7eb 100%)`
-                    }}
-                  />
-                  <div className="text-[10px] font-black w-10 text-right bg-[#942392]/10 text-[#942392] py-1 px-1.5 rounded-md">
-                    {addBranchData.radius}m
+                {(() => {
+                  const currentAddZone = addZoneOptions.find((o) => o.value === addBranchData.operating_zone || o.value === normalizeZoneCode(addBranchData.operating_zone))?.value || addZoneOptions[0]?.value || 'STANDARD';
+                  const selectedOpt = addZoneOptions.find((o) => o.value === currentAddZone) || addZoneOptions[0];
+                  const cleanCode = (addBranchData.code || "").trim().toUpperCase();
+                  const previewCodes = selectedOpt ? Array.from(
+                    new Set([...selectedOpt.branchCodes, ...(cleanCode ? [cleanCode] : [])])
+                  ).sort() : [];
+
+                  return (
+                    <>
+                      <Select value={currentAddZone} onValueChange={(val) => setAddBranchData({ ...addBranchData, operating_zone: val })}>
+                        <SelectTrigger className="w-full h-11 px-4 rounded-xl border border-input bg-transparent text-xs font-bold shadow-sm">
+                          <SelectValue placeholder="Select Zone" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl">
+                          {addZoneOptions.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value} className="text-xs font-bold">
+                              {opt.fullLabel}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {selectedOpt && (
+                        <div className="p-2.5 rounded-xl bg-muted/40 border border-border/60 space-y-1.5 text-[10px]">
+                          <div className="flex flex-wrap items-center justify-between gap-1">
+                            <span className="font-black text-foreground uppercase tracking-wider">
+                              Schedule: {selectedOpt.scheduleName}
+                            </span>
+                            <span className="font-mono font-bold text-[#942392]">
+                              {selectedOpt.hoursSummary}
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-1">
+                            <span className="font-bold text-muted-foreground mr-1">Target Scope:</span>
+                            {previewCodes.map((c) => (
+                              <span
+                                key={c}
+                                className={`px-1.5 py-0.5 rounded font-mono font-bold ${
+                                  c === cleanCode
+                                    ? "bg-[#942392] text-white"
+                                    : "bg-background text-foreground border border-border/60"
+                                }`}
+                              >
+                                {c}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[9px] font-black text-foreground uppercase tracking-widest flex items-center gap-1">
+                      <MapPin className="w-3.5 h-3.5 text-[#942392]" />
+                      GPS Coordinates
+                    </label>
+                    <span className="text-[9px] font-bold text-[#942392]">Lat, Lng</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="e.g. 5.3297, 103.1370"
+                      value={addBranchData.latitude && addBranchData.longitude ? `${addBranchData.latitude}, ${addBranchData.longitude}` : ""}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        const parsed = parseCoordinates(val);
+                        if (parsed) {
+                          setAddBranchData((prev: any) => ({ ...prev, latitude: parsed.lat, longitude: parsed.lon }));
+                        } else if (val.includes(',')) {
+                          const [lat, lng] = val.split(',').map(s => s.trim());
+                          setAddBranchData((prev: any) => ({ ...prev, latitude: lat, longitude: lng }));
+                        }
+                      }}
+                      className="w-full h-11 px-3 bg-muted/40 border border-border/80 focus:border-[#942392] rounded-xl text-xs font-mono font-bold"
+                    />
+                    <Button
+                      type="button"
+                      onClick={openMapForAddBranch}
+                      className="h-11 px-3.5 shrink-0 flex items-center justify-center gap-1.5 rounded-xl bg-[#942392] hover:bg-[#800A7A] text-white font-black uppercase text-[10px] tracking-wider shadow-sm transition-all cursor-pointer"
+                      title="Select GPS coordinates on Map"
+                    >
+                      <MapPin className="w-3.5 h-3.5" /> Select on Map
+                    </Button>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground">
+                    Click <b>Select on Map</b> or paste coordinates directly from Google Maps.
+                  </p>
+                </div>
+
+                <div className="space-y-1.5">
+                  <div className="flex justify-between items-center">
+                    <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Normal Radius</label>
+                    <span className="text-[9px] font-black text-[#942392]">{addBranchData.radius || 50}m</span>
+                  </div>
+                  <div className="flex items-center gap-4 h-11 px-3 bg-muted/20 border border-border/50 rounded-xl">
+                    <input
+                      type="range"
+                      min="0"
+                      max="500"
+                      step="5"
+                      value={addBranchData.radius || 50}
+                      onChange={(e) => setAddBranchData({...addBranchData, radius: e.target.value})}
+                      className="flex-1 h-2 rounded-full appearance-none cursor-pointer"
+                      style={{
+                        background: `linear-gradient(to right, #942392 0%, #942392 ${(((parseFloat(addBranchData.radius || "50") - 0) / 500) * 100)}%, #e5e7eb ${(((parseFloat(addBranchData.radius || "50") - 0) / 500) * 100)}%, #e5e7eb 100%)`
+                      }}
+                    />
+                    <div className="text-[10px] font-black w-12 text-right bg-[#942392]/10 text-[#942392] py-1 px-1.5 rounded-md font-mono">
+                      {addBranchData.radius}m
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-3 sticky bottom-0 bg-card/95 backdrop-blur-xs border-t border-border/50 mt-4 -mx-5 sm:-mx-6 px-5 sm:px-6 pb-1">
-              <Button type="button" variant="ghost" onClick={() => setIsAddBranchModalOpen(false)} className="rounded-xl text-xs font-black uppercase">Cancel</Button>
-              <Button type="submit" disabled={isSubmittingBranch} className="rounded-xl px-6 bg-[#942392] hover:bg-[#5e0080] text-white shadow-md text-xs font-black uppercase flex items-center gap-2">
-                <Plus className="w-4 h-4" />
+            {/* Pinned Action Footer */}
+            <div className="flex justify-end gap-3 p-4 border-t border-border/60 bg-card/95 backdrop-blur-xs shrink-0">
+              <Button type="button" variant="ghost" onClick={() => setIsAddBranchModalOpen(false)} className="rounded-xl text-xs font-black uppercase cursor-pointer">Cancel</Button>
+              <Button type="submit" disabled={isSubmittingBranch} className="rounded-xl px-6 bg-[#942392] hover:bg-[#800A7A] text-white shadow-md text-xs font-black uppercase flex items-center gap-2 cursor-pointer">
+                {isSubmittingBranch ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
                 {isSubmittingBranch ? "Saving..." : "Add Branch"}
               </Button>
             </div>
@@ -2568,7 +2652,7 @@ export default function Branches() {
       </Dialog>
 
       <Dialog open={isEditBranchModalOpen} onOpenChange={setIsEditBranchModalOpen}>
-        <DialogContent className="w-[calc(100vw-2.5rem)] max-w-2xl max-h-[85vh] flex flex-col p-0 border-none shadow-2xl rounded-3xl overflow-hidden my-auto">
+        <DialogContent className="w-[calc(100vw-2.5rem)] max-w-2xl max-h-[90vh] flex flex-col p-0 border-none shadow-2xl rounded-3xl overflow-hidden my-auto">
           <div className="p-5 sm:p-6 bg-gradient-to-r from-[#942392] to-purple-500 text-white flex justify-between items-start border-b border-white/20 shrink-0">
             <div className="flex items-center gap-3">
               <div className="p-3 bg-white/20 rounded-xl">
@@ -2580,85 +2664,109 @@ export default function Branches() {
               </div>
             </div>
           </div>
-          <form onSubmit={handleEditBranch} className="p-5 sm:p-8 space-y-6 bg-card overflow-y-auto flex-1">
-            {/* Target Entity Selector */}
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <label className="text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest flex items-center gap-1.5">
-                  <Building2 className="w-3.5 h-3.5 text-[#942392]" />
-                  TARGET ENTITY (COMPANY)
-                </label>
-                <span className="text-[10px] font-bold text-[#942392]">
-                  {loadingEditSchedules ? "Loading Schedules..." : "Work Schedule Scope"}
-                </span>
-              </div>
-              <Select 
-                value={editBranchData.company_id ? editBranchData.company_id.toString() : "1"} 
-                onValueChange={(val) => void handleEditCompanyChange(parseInt(val, 10))}
-              >
-                <SelectTrigger className="w-full h-11 px-4 rounded-xl border border-input bg-transparent text-xs print:text-[11px] font-bold shadow-sm">
-                  <SelectValue placeholder="Select Target Entity (Company)">
-                    {(() => {
-                      const found = companies.find(c => c.id === editBranchData.company_id);
-                      if (!found) return 'Rayhar Travels (Main Company)';
-                      const cName = toProperCase(found.company_name);
-                      const cType = found.company_type === 'main' ? 'Main Company' : 'Subsidiary';
-                      return `${cName} (${cType})`;
-                    })()}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent className="rounded-xl">
-                  {companies.map(c => (
-                    <SelectItem key={c.id} value={c.id.toString()} className="text-xs print:text-[11px] font-bold">
-                      <div className="flex items-center gap-2">
-                        <Building2 className="w-3.5 h-3.5 text-[#942392]" />
-                        <span>{toProperCase(c.company_name)}</span>
-                        <span className="text-[10px] text-muted-foreground font-normal">
-                          ({c.company_type === 'main' ? 'Main Company' : 'Subsidiary'})
-                        </span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="border-b border-border/60 my-2" />
-
-            <div className="grid grid-cols-2 gap-6">
+          <form onSubmit={handleEditBranch} className="flex flex-col flex-1 min-h-0 overflow-hidden bg-card">
+            <div className="p-5 sm:p-8 space-y-6 overflow-y-auto flex-1 min-h-0 overscroll-contain">
+              {/* Target Entity Selector */}
               <div className="space-y-1.5">
-                <label className="text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest">BRANCH CODE</label>
-                <Input 
-                  value={editBranchData.code || ""} 
-                  onChange={(e) => setEditBranchData({...editBranchData, code: e.target.value.toUpperCase()})} 
-                  required
-                  placeholder="e.g. KMM"
-                  className="h-11 rounded-xl text-xs print:text-[11px] font-bold uppercase" 
-                />
+                <div className="flex items-center justify-between">
+                  <label className="text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest flex items-center gap-1.5">
+                    <Building2 className="w-3.5 h-3.5 text-[#942392]" />
+                    TARGET ENTITY (COMPANY)
+                  </label>
+                  <span className="text-[10px] font-bold text-[#942392]">
+                    {loadingEditSchedules ? "Loading Schedules..." : "Work Schedule Scope"}
+                  </span>
+                </div>
+                <Select 
+                  value={editBranchData.company_id ? editBranchData.company_id.toString() : "1"} 
+                  onValueChange={(val) => void handleEditCompanyChange(parseInt(val, 10))}
+                >
+                  <SelectTrigger className="w-full h-11 px-4 rounded-xl border border-input bg-transparent text-xs print:text-[11px] font-bold shadow-sm">
+                    <SelectValue placeholder="Select Target Entity (Company)">
+                      {(() => {
+                        const found = companies.find(c => c.id === editBranchData.company_id);
+                        if (!found) return 'Rayhar Travels (Main Company)';
+                        const cName = toProperCase(found.company_name);
+                        const cType = found.company_type === 'main' ? 'Main Company' : 'Subsidiary';
+                        return `${cName} (${cType})`;
+                      })()}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl">
+                    {companies.map(c => (
+                      <SelectItem key={c.id} value={c.id.toString()} className="text-xs print:text-[11px] font-bold">
+                        <div className="flex items-center gap-2">
+                          <Building2 className="w-3.5 h-3.5 text-[#942392]" />
+                          <span>{toProperCase(c.company_name)}</span>
+                          <span className="text-[10px] text-muted-foreground font-normal">
+                            ({c.company_type === 'main' ? 'Main Company' : 'Subsidiary'})
+                          </span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="border-b border-border/60 my-2" />
+
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest">BRANCH CODE</label>
+                  <Input 
+                    value={editBranchData.code || ""} 
+                    onChange={(e) => setEditBranchData({...editBranchData, code: e.target.value.toUpperCase()})} 
+                    required
+                    placeholder="e.g. KMM"
+                    className="h-11 rounded-xl text-xs print:text-[11px] font-bold uppercase" 
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest">BRANCH NAME</label>
+                  <Input 
+                    value={editBranchData.name || ""} 
+                    onChange={(e) => setEditBranchData({...editBranchData, name: e.target.value})} 
+                    required
+                    className="h-11 rounded-xl text-xs print:text-[11px] font-bold"
+                  />
+                </div>
               </div>
               <div className="space-y-1.5">
-                <label className="text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest">BRANCH NAME</label>
-                <Input 
-                  value={editBranchData.name || ""} 
-                  onChange={(e) => setEditBranchData({...editBranchData, name: e.target.value})} 
-                  required
-                  className="h-11 rounded-xl text-xs print:text-[11px] font-bold"
-                />
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest">BRANCH LOCATION / DISTRICT</label>
-              <div className="flex gap-2">
-                <Input 
-                  value={editBranchData.location || ""} 
-                  onChange={(e) => setEditBranchData({...editBranchData, location: e.target.value})}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
+                <label className="text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest">BRANCH LOCATION / DISTRICT</label>
+                <div className="flex gap-2">
+                  <Input 
+                    value={editBranchData.location || ""} 
+                    onChange={(e) => setEditBranchData({...editBranchData, location: e.target.value})}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const addr = editBranchData.location;
+                        if (!addr) return;
+                        toast.loading("Searching coordinates...");
+                        smartGeocode(addr).then(result => {
+                          toast.dismiss();
+                          if (result) {
+                            setEditBranchData((prev: any) => ({...prev, latitude: result.lat, longitude: result.lon}));
+                            toast.success("Coordinates found!");
+                          } else {
+                            toast.error("Could not find coordinates. Try entering just the town/city name.");
+                          }
+                        }).catch(() => { toast.dismiss(); toast.error("Search failed"); });
+                      }
+                    }}
+                    placeholder="Type address & press Enter or click 🔍"
+                    className="h-11 rounded-xl text-xs print:text-[11px] font-bold flex-1"
+                  />
+                  <button
+                    type="button"
+                    title="Find Coordinates from Address"
+                    className="h-11 px-4 rounded-xl border border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100 transition-colors flex items-center gap-1 text-xs print:text-[11px] font-bold cursor-pointer"
+                    onClick={async () => {
                       const addr = editBranchData.location;
-                      if (!addr) return;
+                      if (!addr) { toast.error("Please enter an address first"); return; }
                       toast.loading("Searching coordinates...");
-                      smartGeocode(addr).then(result => {
+                      try {
+                        const result = await smartGeocode(addr);
                         toast.dismiss();
                         if (result) {
                           setEditBranchData((prev: any) => ({...prev, latitude: result.lat, longitude: result.lon}));
@@ -2666,37 +2774,14 @@ export default function Branches() {
                         } else {
                           toast.error("Could not find coordinates. Try entering just the town/city name.");
                         }
-                      }).catch(() => { toast.dismiss(); toast.error("Search failed"); });
-                    }
-                  }}
-                  placeholder="Type address & press Enter or click 🔍"
-                  className="h-11 rounded-xl text-xs print:text-[11px] font-bold flex-1"
-                />
-                <button
-                  type="button"
-                  title="Find Coordinates from Address"
-                  className="h-11 px-4 rounded-xl border border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100 transition-colors flex items-center gap-1 text-xs print:text-[11px] font-bold"
-                  onClick={async () => {
-                    const addr = editBranchData.location;
-                    if (!addr) { toast.error("Please enter an address first"); return; }
-                    toast.loading("Searching coordinates...");
-                    try {
-                      const result = await smartGeocode(addr);
-                      toast.dismiss();
-                      if (result) {
-                        setEditBranchData((prev: any) => ({...prev, latitude: result.lat, longitude: result.lon}));
-                        toast.success("Coordinates found! Click 'Update Location' to view on map.");
-                      } else {
-                        toast.error("Could not find coordinates. Try entering just the town/city name.");
-                      }
-                    } catch { toast.dismiss(); toast.error("Search failed"); }
-                  }}
-                >
-                  🔍
-                </button>
+                      } catch { toast.dismiss(); toast.error("Search failed"); }
+                    }}
+                  >
+                    🔍
+                  </button>
+                </div>
               </div>
-            </div>
-            <div className="grid grid-cols-2 gap-6">
+
               <div className="space-y-1.5">
                 <label className="text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest">OPERATING ZONE (WORK SCHEDULE)</label>
                 {(() => {
@@ -2720,111 +2805,143 @@ export default function Branches() {
                   );
                 })()}
               </div>
-              <div className="space-y-1.5 cursor-pointer" onClick={() => setIsMapModalOpen(true)}>
-                <label className="text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest">COORDINATES</label>
-                <div className="flex items-center gap-2 h-11 px-4 border border-input rounded-xl bg-muted/20 hover:bg-muted/40 transition-colors">
-                  <MapPin className="w-4 h-4 text-[#942392]" />
-                  <span className="text-xs print:text-[11px] font-bold text-foreground">
-                    {editBranchData.latitude && editBranchData.longitude 
-                      ? `${editBranchData.latitude}, ${editBranchData.longitude}` 
-                      : "Select from map"}
-                  </span>
-                </div>
-              </div>
-            </div>
-            {(() => {
-              const selectedOpt = editZoneOptions.find((o) => o.value === normalizeZoneCode(editBranchData.operating_zone)) || editZoneOptions[0];
-              if (!selectedOpt) return null;
-              const cleanCode = (editBranchData.code || "").trim().toUpperCase();
-              const origCode = (editBranchData.original_code || selectedBranch?.code || "").trim().toUpperCase();
-              const baseCodes = origCode ? selectedOpt.branchCodes.filter((c) => c !== origCode) : selectedOpt.branchCodes;
-              const previewCodes = Array.from(
-                new Set([...baseCodes, ...(cleanCode ? [cleanCode] : [])])
-              ).sort();
-              return (
-                <div className="p-3 rounded-xl bg-muted/40 border border-border/60 space-y-1.5 text-[10px]">
-                  <div className="flex flex-wrap items-center justify-between gap-1">
-                    <span className="font-black text-foreground uppercase tracking-wider">
-                      Schedule: {selectedOpt.scheduleName}
-                    </span>
-                    <span className="font-mono font-bold text-[#942392]">
-                      {selectedOpt.hoursSummary}
-                    </span>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-1">
-                    <span className="font-bold text-muted-foreground mr-1">Target Scope:</span>
-                    {previewCodes.map((c) => (
-                      <span
-                        key={c}
-                        className={`px-1.5 py-0.5 rounded font-mono font-bold ${
-                          c === cleanCode
-                            ? "bg-[#942392] text-white"
-                            : "bg-background text-foreground border border-border/60"
-                        }`}
-                      >
-                        {c}
+
+              {(() => {
+                const selectedOpt = editZoneOptions.find((o) => o.value === normalizeZoneCode(editBranchData.operating_zone)) || editZoneOptions[0];
+                if (!selectedOpt) return null;
+                const cleanCode = (editBranchData.code || "").trim().toUpperCase();
+                const origCode = (editBranchData.original_code || selectedBranch?.code || "").trim().toUpperCase();
+                const baseCodes = origCode ? selectedOpt.branchCodes.filter((c) => c !== origCode) : selectedOpt.branchCodes;
+                const previewCodes = Array.from(
+                  new Set([...baseCodes, ...(cleanCode ? [cleanCode] : [])])
+                ).sort();
+                return (
+                  <div className="p-3 rounded-xl bg-muted/40 border border-border/60 space-y-1.5 text-[10px]">
+                    <div className="flex flex-wrap items-center justify-between gap-1">
+                      <span className="font-black text-foreground uppercase tracking-wider">
+                        Schedule: {selectedOpt.scheduleName}
                       </span>
-                    ))}
+                      <span className="font-mono font-bold text-[#942392]">
+                        {selectedOpt.hoursSummary}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-1">
+                      <span className="font-bold text-muted-foreground mr-1">Target Scope:</span>
+                      {previewCodes.map((c) => (
+                        <span
+                          key={c}
+                          className={`px-1.5 py-0.5 rounded font-mono font-bold ${
+                            c === cleanCode
+                              ? "bg-[#942392] text-white"
+                              : "bg-background text-foreground border border-border/60"
+                          }`}
+                        >
+                          {c}
+                        </span>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              );
-            })()}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <label className="text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest">Radius</label>
-                <span className="text-[10px] print:text-[13px] font-black text-foreground">0m – 500m</span>
-              </div>
-              <div className="relative pt-6">
-                {/* Floating animated label */}
-                <div
-                  className="absolute -top-1 flex flex-col items-center pointer-events-none transition-all duration-150"
-                  style={{ left: `calc(${(((parseFloat(String(editBranchData.radius || 50)) - 0) / 500) * 100)}% - ${(((parseFloat(String(editBranchData.radius || 50)) - 0) / 500) * 100) * 0.28}px)` }}
-                >
-                  <div className="bg-[#942392] text-white text-[9px] print:text-[13px] font-black px-2 py-0.5 rounded-md shadow-lg whitespace-nowrap">
-                    {editBranchData.radius || 50}m
+                );
+              })()}
+
+              {/* GPS Coordinates & Radius in 2 columns */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[9px] font-black text-foreground uppercase tracking-widest flex items-center gap-1">
+                      <MapPin className="w-3.5 h-3.5 text-[#942392]" />
+                      GPS Coordinates
+                    </label>
+                    <span className="text-[9px] font-bold text-[#942392]">Lat, Lng</span>
                   </div>
-                  <div className="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[5px] border-t-[#942392]" />
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="e.g. 5.3297, 103.1370"
+                      value={editBranchData.latitude && editBranchData.longitude ? `${editBranchData.latitude}, ${editBranchData.longitude}` : (editBranchData.latitude || "")}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        const parsed = parseCoordinates(val);
+                        if (parsed) {
+                          setEditBranchData((prev: any) => ({ ...prev, latitude: parsed.lat, longitude: parsed.lon }));
+                        } else if (val.includes(',')) {
+                          const [lat, lng] = val.split(',').map(s => s.trim());
+                          setEditBranchData((prev: any) => ({ ...prev, latitude: lat, longitude: lng }));
+                        } else {
+                          setEditBranchData((prev: any) => ({ ...prev, latitude: val }));
+                        }
+                      }}
+                      className="w-full h-11 px-3 bg-muted/40 border border-border/80 focus:border-[#942392] rounded-xl text-xs font-mono font-bold"
+                    />
+                    <Button
+                      type="button"
+                      onClick={openMapForEditBranch}
+                      className="h-11 px-3.5 shrink-0 flex items-center justify-center gap-1.5 rounded-xl bg-[#942392] hover:bg-[#800A7A] text-white font-black uppercase text-[10px] tracking-wider shadow-sm transition-all cursor-pointer"
+                      title="Select GPS coordinates on Map"
+                    >
+                      <MapPin className="w-3.5 h-3.5" /> Select on Map
+                    </Button>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground">
+                    Click <b>Select on Map</b> or paste coordinates directly from Google Maps.
+                  </p>
                 </div>
-                <input
-                  type="range"
-                  min="0"
-                  max="500"
-                  step="5"
-                  value={editBranchData.radius || 50}
-                  onChange={(e) => setEditBranchData({...editBranchData, radius: e.target.value})}
-                  className="w-full h-2 rounded-full appearance-none cursor-pointer"
-                  style={{
-                    background: `linear-gradient(to right, #942392 0%, #942392 ${(((parseFloat(String(editBranchData.radius || 50)) - 0) / 500) * 100)}%, #e5e7eb ${(((parseFloat(String(editBranchData.radius || 50)) - 0) / 500) * 100)}%, #e5e7eb 100%)`
-                  }}
-                />
-                <div className="flex justify-between mt-1">
-                  <span className="text-[9px] print:text-[13px] text-foreground font-bold">0m</span>
-                  <span className="text-[9px] print:text-[13px] text-foreground font-bold">500m</span>
+
+                <div className="space-y-1.5">
+                  <div className="flex justify-between items-center">
+                    <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Normal Radius</label>
+                    <span className="text-[9px] font-black text-[#942392]">{editBranchData.radius || 50}m</span>
+                  </div>
+                  <div className="flex items-center gap-4 h-11 px-3 bg-muted/20 border border-border/50 rounded-xl">
+                    <input
+                      type="range"
+                      min="0"
+                      max="500"
+                      step="5"
+                      value={editBranchData.radius || 50}
+                      onChange={(e) => setEditBranchData({...editBranchData, radius: e.target.value})}
+                      className="flex-1 h-2 rounded-full appearance-none cursor-pointer"
+                      style={{
+                        background: `linear-gradient(to right, #942392 0%, #942392 ${(((parseFloat(String(editBranchData.radius || 50)) - 0) / 500) * 100)}%, #e5e7eb ${(((parseFloat(String(editBranchData.radius || 50)) - 0) / 500) * 100)}%, #e5e7eb 100%)`
+                      }}
+                    />
+                    <div className="text-[10px] font-black w-12 text-right bg-[#942392]/10 text-[#942392] py-1 px-1.5 rounded-md font-mono">
+                      {editBranchData.radius || 50}m
+                    </div>
+                  </div>
+                  <div className="flex justify-between text-[9px] text-muted-foreground font-bold px-1">
+                    <span>0m</span>
+                    <span>500m</span>
+                  </div>
                 </div>
               </div>
             </div>
-            <div className="flex justify-end gap-3 pt-4 border-t">
-              <Button type="button" variant="outline" onClick={() => setIsEditBranchModalOpen(false)} className="h-11 px-6 rounded-xl text-[10px] print:text-[13px] font-black uppercase tracking-wider">Discard</Button>
-              <Button type="submit" className="h-11 px-6 rounded-xl bg-[#942392] text-white hover:bg-[#942392]/90 text-[10px] print:text-[13px] font-black uppercase tracking-wider shadow-md">Save Changes</Button>
+
+            {/* Pinned Action Footer */}
+            <div className="flex justify-end gap-3 p-4 border-t border-border/60 bg-card/95 backdrop-blur-xs shrink-0">
+              <Button type="button" variant="ghost" onClick={() => setIsEditBranchModalOpen(false)} className="rounded-xl text-xs font-black uppercase cursor-pointer">Discard</Button>
+              <Button type="submit" disabled={isSubmittingBranch} className="rounded-xl px-6 bg-[#942392] hover:bg-[#800A7A] text-white shadow-md text-xs font-black uppercase flex items-center gap-2 cursor-pointer">
+                {isSubmittingBranch ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                {isSubmittingBranch ? "Saving..." : "Save Changes"}
+              </Button>
             </div>
           </form>
         </DialogContent>
       </Dialog>
 
       <Dialog open={isMapModalOpen} onOpenChange={setIsMapModalOpen}>
-        <DialogContent className="w-[calc(100vw-2.5rem)] max-w-4xl max-h-[85vh] p-0 border-none shadow-2xl overflow-hidden rounded-[24px] flex flex-col my-auto">
-            <div className="p-6 bg-gradient-to-r from-[#942392] to-purple-500 text-white flex justify-between items-start shrink-0">
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-white/20 rounded-xl">
-                  <MapPin className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <DialogTitle className="text-lg font-black uppercase tracking-tight m-0 text-white">UPDATE BRANCH LOCATION</DialogTitle>
-                  <DialogDescription className="text-xs print:text-[11px] font-bold uppercase tracking-wider text-white/80 m-0 mt-1">UPDATE GPS COORDINATES AND ADDRESS</DialogDescription>
-                </div>
+        <DialogContent className="w-[calc(100vw-2.5rem)] max-w-4xl max-h-[90vh] sm:max-h-[85vh] p-0 border-none shadow-2xl overflow-hidden rounded-[24px] flex flex-col my-auto">
+          <div className="p-5 sm:p-6 bg-gradient-to-r from-[#942392] to-purple-500 text-white flex justify-between items-start shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-white/20 rounded-xl">
+                <MapPin className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <DialogTitle className="text-lg font-black uppercase tracking-tight m-0 text-white">UPDATE BRANCH LOCATION</DialogTitle>
+                <DialogDescription className="text-xs print:text-[11px] font-bold uppercase tracking-wider text-white/80 m-0 mt-1">UPDATE GPS COORDINATES AND ADDRESS</DialogDescription>
               </div>
             </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 h-[500px]">
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 h-[520px]">
             <div className="md:col-span-2 relative h-full">
               <Map 
                 initialViewState={{
@@ -2850,17 +2967,15 @@ export default function Branches() {
                 }}
                 onClick={(e) => {
                   const { lat, lng } = e.lngLat;
-                  setEditBranchData({...editBranchData, latitude: lat.toString(), longitude: lng.toString()});
-                  fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
-                    .then(res => res.json())
-                    .then(data => {
-                      if(data && data.display_name) {
-                        setEditBranchData((prev: any) => ({...prev, location: data.display_name}));
-                      }
-                    }).catch(console.error);
+                  const latStr = lat.toFixed(6);
+                  const lngStr = lng.toFixed(6);
+                  setEditBranchData((prev: any) => ({ ...prev, latitude: latStr, longitude: lngStr }));
+                  setPasteCoordsInput(`${latStr}, ${lngStr}`);
+                  fastReverseGeocode(lat, lng).then((addr) => {
+                    if (addr) setEditBranchData((prev: any) => ({ ...prev, location: addr }));
+                  }).catch(console.error);
                 }}
               >
-                
                 {(() => {
                   const _lat = parseFloat(String(editBranchData.latitude));
                   const _lng = parseFloat(String(editBranchData.longitude));
@@ -2882,64 +2997,72 @@ export default function Branches() {
                   return null;
                 })()}
               </Map>
-
             </div>
-            <div className="p-6 bg-slate-50 dark:bg-slate-900 flex flex-col h-full overflow-y-auto">
+            <div className="p-5 sm:p-6 bg-slate-50 dark:bg-slate-900 flex flex-col h-full overflow-y-auto">
               <div className="space-y-4">
+                {/* Google Maps Quick Paste */}
+                <div className="space-y-1.5 p-3 rounded-xl bg-purple-50/70 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800">
+                  <label className="text-[10px] print:text-[13px] font-black uppercase tracking-wider text-[#942392] flex items-center gap-1.5">
+                    <span>📍</span> PASTE COORDINATES (GOOGLE MAPS)
+                  </label>
+                  <Input 
+                    value={pasteCoordsInput}
+                    onChange={(e) => handlePasteCoordsChange(e.target.value)}
+                    placeholder="e.g. 5.3297, 103.1370 or Maps link"
+                    className="h-10 rounded-xl text-xs font-mono font-bold bg-white dark:bg-background border-purple-300 dark:border-purple-700 focus-visible:ring-[#942392]"
+                  />
+                  <p className="text-[10px] text-muted-foreground font-medium">
+                    Paste copied coordinates from Google Maps here
+                  </p>
+                </div>
+
+                {/* Manual Coordinates */}
                 <div className="space-y-2">
-                  <label className="text-[10px] print:text-[13px] font-black uppercase tracking-widest text-foreground">Manual Coordinates</label>
-                  <Input 
-                    value={editBranchData.latitude || ""} 
-                    onChange={(e) => setEditBranchData({...editBranchData, latitude: e.target.value})}
-                    placeholder="Latitude"
-                    className="h-10 rounded-xl text-xs print:text-[11px] font-bold placeholder:text-slate-400 dark:placeholder:text-slate-500 placeholder:font-normal border-purple-400 focus-visible:ring-purple-400"
-                  />
-                  <Input 
-                    value={editBranchData.longitude || ""} 
-                    onChange={(e) => setEditBranchData({...editBranchData, longitude: e.target.value})}
-                    placeholder="Longitude"
-                    className="h-10 rounded-xl text-xs print:text-[11px] font-bold placeholder:text-slate-400 dark:placeholder:text-slate-500 placeholder:font-normal"
-                  />
-                  <Button type="button" variant="outline" className="w-full h-10 rounded-xl text-xs print:text-[11px] font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 border-purple-200" onClick={() => {
-                    const lat = parseFloat(String(editBranchData.latitude));
-                    const lng = parseFloat(String(editBranchData.longitude));
-                    if (!isNaN(lat) && !isNaN(lng)) {
-                      // Force re-render to trigger MapController flyTo
-                      setEditBranchData((prev: any) => ({...prev, latitude: String(lat), longitude: String(lng)}));
-                      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
-                        .then(r => r.json())
-                        .then(data => {
-                          if (data && data.display_name) {
-                            setEditBranchData((prev: any) => ({...prev, location: data.display_name}));
-                          }
-                        }).catch(console.error);
-                    }
-                  }}>
-                    Apply Location
+                  <label className="text-[10px] print:text-[13px] font-black uppercase tracking-widest text-foreground">MANUAL COORDINATES</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Input 
+                      value={editBranchData.latitude || ""} 
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setEditBranchData((prev: any) => ({ ...prev, latitude: val }));
+                        setPasteCoordsInput(`${val}, ${editBranchData.longitude || ""}`);
+                      }}
+                      placeholder="Latitude"
+                      className="h-10 rounded-xl text-xs print:text-[11px] font-mono font-bold"
+                    />
+                    <Input 
+                      value={editBranchData.longitude || ""} 
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setEditBranchData((prev: any) => ({ ...prev, longitude: val }));
+                        setPasteCoordsInput(`${editBranchData.latitude || ""}, ${val}`);
+                      }}
+                      placeholder="Longitude"
+                      className="h-10 rounded-xl text-xs print:text-[11px] font-mono font-bold"
+                    />
+                  </div>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    className="w-full h-10 rounded-xl text-xs font-black uppercase tracking-wider text-purple-700 bg-purple-50 hover:bg-purple-100 border-purple-200 cursor-pointer shadow-xs" 
+                    onClick={handleApplyLocation}
+                  >
+                    🚀 Apply Location
                   </Button>
                 </div>
                 
-                <div className="space-y-2 pt-4">
+                {/* Address lookup display */}
+                <div className="space-y-2 pt-2">
                   <label className="text-[10px] print:text-[13px] font-black uppercase tracking-widest text-foreground">Address / Display Name</label>
-                  <div className={`p-4 bg-card border rounded-xl shadow-sm text-xs leading-relaxed ${editBranchData.location ? 'text-foreground font-medium' : 'text-slate-400 dark:text-slate-500'}`}>
-                    {editBranchData.location || "Select a location on the map"}
+                  <div className={`p-3 bg-card border rounded-xl shadow-xs text-xs leading-relaxed max-h-24 overflow-y-auto ${editBranchData.location ? 'text-foreground font-medium' : 'text-slate-400 dark:text-slate-500'}`}>
+                    {editBranchData.location || "Click map or click Apply Location to locate address"}
                   </div>
                 </div>
               </div>
               
-              <div className="mt-auto flex gap-3 pt-6">
-                <Button type="button" variant="outline" onClick={() => setIsMapModalOpen(false)} className="flex-1 h-11 rounded-xl text-[10px] print:text-[13px] font-black uppercase tracking-wider bg-white">Cancel</Button>
-                <Button type="button" onClick={() => {
-                  if (isAddBranchModalOpen) {
-                    setAddBranchData((prev: any) => ({
-                      ...prev, 
-                      latitude: editBranchData.latitude, 
-                      longitude: editBranchData.longitude, 
-                      location: editBranchData.location
-                    }));
-                  }
-                  setIsMapModalOpen(false);
-                }} className="flex-1 h-11 rounded-xl bg-[#942392] text-white hover:bg-[#942392]/90 text-[10px] print:text-[13px] font-black uppercase tracking-wider shadow-md">Save</Button>
+              <div className="mt-auto flex gap-3 pt-6 border-t border-border/60 shrink-0">
+                <Button type="button" variant="outline" onClick={() => setIsMapModalOpen(false)} className="flex-1 h-11 rounded-xl text-xs font-black uppercase tracking-wider cursor-pointer">Cancel</Button>
+                <Button type="button" onClick={handleSaveMapCoordinates} className="flex-1 h-11 rounded-xl bg-[#942392] hover:bg-[#800A7A] text-white text-xs font-black uppercase tracking-wider shadow-md cursor-pointer">Save Coordinates</Button>
               </div>
             </div>
           </div>

@@ -834,6 +834,15 @@ export function StaffProfileDialog({
   useEffect(() => {
     fetchRoles();
     fetchBranchesAndDepartments();
+    const handleRefresh = () => {
+      fetchBranchesAndDepartments();
+    };
+    window.addEventListener('app:refresh', handleRefresh);
+    window.addEventListener('rayhar_branches_updated', handleRefresh);
+    return () => {
+      window.removeEventListener('app:refresh', handleRefresh);
+      window.removeEventListener('rayhar_branches_updated', handleRefresh);
+    };
   }, []);
 
   const fetchBranchesAndDepartments = async () => {
