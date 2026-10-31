@@ -2364,8 +2364,9 @@ function createMultiCompanyRouter(pgPool) {
     try {
       // SECURITY (CWE-89): use fixed SQL text only; user input is passed exclusively as
       // validated, bound parameters.
-      const rawCompanyId = req.query.company_id;
-      const hasCompanyFilter = rawCompanyId !== undefined && rawCompanyId !== null && rawCompanyId !== '';
+      const rawCompanyId = req.query.company_id || req.headers['x-company-id'];
+      const isAll = String(rawCompanyId || '').trim().toLowerCase() === 'all';
+      const hasCompanyFilter = !isAll && rawCompanyId !== undefined && rawCompanyId !== null && rawCompanyId !== '';
       const companyId = hasCompanyFilter ? parseInt(String(rawCompanyId), 10) : null;
       if (hasCompanyFilter && (!Number.isSafeInteger(companyId) || companyId <= 0)) {
         return res.status(400).json({ success: false, error: 'Invalid company_id' });
@@ -2376,7 +2377,7 @@ function createMultiCompanyRouter(pgPool) {
 
       const logs = hasCompanyFilter
         ? await pgPool.query(
-            `SELECT al.*, c.company_name
+            `SELECT al.*, COALESCE(c.company_name, 'Holding Group') AS company_name
              FROM audit_logs al
              LEFT JOIN companies c ON al.company_id = c.id
              WHERE al.company_id = $1
@@ -2385,7 +2386,7 @@ function createMultiCompanyRouter(pgPool) {
             [companyId, limit]
           )
         : await pgPool.query(
-            `SELECT al.*, c.company_name
+            `SELECT al.*, COALESCE(c.company_name, 'Holding Group') AS company_name
              FROM audit_logs al
              LEFT JOIN companies c ON al.company_id = c.id
              ORDER BY al.created_at DESC

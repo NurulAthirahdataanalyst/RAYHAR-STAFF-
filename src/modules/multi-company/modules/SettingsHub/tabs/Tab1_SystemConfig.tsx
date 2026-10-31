@@ -80,6 +80,20 @@ const INITIAL_DEMO_LOGS: AuditLogItem[] = [
     new_values: { company: 'RayRent' },
     ip_address: '127.0.0.1',
     created_at: new Date(Date.now() - 1000 * 60 * 600).toISOString()
+  },
+  {
+    id: 106,
+    operator_id: 'HR-001',
+    operator_name: 'Nurul Athirah Abdul Rahman',
+    operator_role: 'hr_admin',
+    company_id: 3,
+    company_name: 'Rayhar Vacation',
+    action_category: 'COMPANY_MODULE_UPDATE',
+    action_description: 'HR configured operating modules for subsidiary Rayhar Vacation',
+    old_values: null,
+    new_values: { modules_enabled: ['leave', 'attendance', 'gps'] },
+    ip_address: '127.0.0.1',
+    created_at: new Date(Date.now() - 1000 * 60 * 720).toISOString()
   }
 ];
 
@@ -97,7 +111,7 @@ export const Tab1_SystemConfig: React.FC = () => {
   const fetchLogs = async () => {
     try {
       setLoading(true);
-      const cId = selectedCompanyFilter === 'all' ? undefined : parseInt(selectedCompanyFilter, 10);
+      const cId = selectedCompanyFilter === 'all' ? 'all' : parseInt(selectedCompanyFilter, 10);
       const data = await multiCompanyApi.getAuditLogs(cId);
       
       // Combine remote data with sample activities to ensure rich feedback
@@ -105,7 +119,7 @@ export const Tab1_SystemConfig: React.FC = () => {
         setLogs(data);
       } else {
         // Filter demo logs by company if selected
-        if (cId) {
+        if (typeof cId === 'number') {
           setLogs(INITIAL_DEMO_LOGS.filter((l) => l.company_id === cId));
         } else {
           setLogs(INITIAL_DEMO_LOGS);

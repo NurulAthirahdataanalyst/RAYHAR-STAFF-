@@ -372,9 +372,13 @@ export const multiCompanyApi = {
   },
 
   // Audit Logs
-  async getAuditLogs(companyId?: number, limit = 100): Promise<AuditLogItem[]> {
+  async getAuditLogs(companyId?: number | 'all', limit = 100): Promise<AuditLogItem[]> {
     const query = new URLSearchParams();
-    if (companyId) query.set('company_id', companyId.toString());
+    if (companyId && companyId !== 'all') {
+      query.set('company_id', companyId.toString());
+    } else {
+      query.set('company_id', 'all');
+    }
     query.set('limit', limit.toString());
     const res = await fetch(`${API_BASE_URL}/api/audit-logs?${query.toString()}`);
     const data = await res.json();
