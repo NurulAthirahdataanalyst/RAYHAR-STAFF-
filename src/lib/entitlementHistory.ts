@@ -100,24 +100,13 @@ export function appendHistoryLog(log: EntitlementHistoryLog): void {
   }
 }
 
-function mapLegacyType(type: string): ActionType {
-  if (!type) return 'Manual Adjustment';
-  const t = type.toLowerCase();
-  if (t.includes('carry') || t.includes('forward')) return 'Carry Forward';
-  if (t.includes('additional')) return 'Additional Allocation';
-  if (t.includes('deduct')) return 'Deduction';
-  if (t.includes('rollback') || t.includes('reversal')) return 'Rollback';
-  if (t.includes('special') || t.includes('credit')) return 'Special Leave';
-  if (t.includes('maternity') || t.includes('statutory')) return 'Maternity Leave';
-  if (t.includes('ot') || t.includes('overtime')) return 'OT Conversion';
-  if (t.includes('allocation') || t.includes('base')) return 'Initial Allocation';
-  return 'Manual Adjustment';
-}
+const RESET_FLAG = 'leh_reset_v3';
 
 export function clearAllEntitlementHistory(): void {
   try {
     localStorage.removeItem(ENTITLEMENT_HISTORY_KEY);
     localStorage.removeItem('leave_balance_history_logs');
+    localStorage.setItem(RESET_FLAG, 'true');
     window.dispatchEvent(new CustomEvent('entitlementHistoryUpdated'));
   } catch (e) {
     console.error('entitlementHistory: clear failed', e);
@@ -126,54 +115,17 @@ export function clearAllEntitlementHistory(): void {
 
 export function getHistoryLogs(): EntitlementHistoryLog[] {
   try {
-    const saved = localStorage.getItem(ENTITLEMENT_HISTORY_KEY);
-    let logs: EntitlementHistoryLog[] = [];
-    if (saved) {
-      logs = JSON.parse(saved) as EntitlementHistoryLog[];
-    } else {
-      const legacy = localStorage.getItem('leave_balance_history_logs');
-      if (legacy) {
-        const oldLogs: any[] = JSON.parse(legacy);
-        logs = oldLogs.map((l, i) => ({
-          history_id: `LEH-LEGACY-${String(i).padStart(6, '0')}`,
-          reference_id: l.reference || `REF-LEGACY-${i}`,
-          date: l.date || new Date().toISOString().split('T')[0],
-          time: '00:00 AM',
-          timestamp: l.date ? new Date(l.date + 'T00:00:00').toISOString() : new Date().toISOString(),
-          created_at: l.date ? new Date(l.date + 'T00:00:00').toISOString() : new Date().toISOString(),
-          employee_id: '',
-          employee_name: l.employee || '',
-          branch: 'HQ',
-          department: '',
-          leave_type: l.leave || '',
-          action: l.action || '',
-          action_type: mapLegacyType(l.type || l.action),
-          previous_balance: l.before ?? 0,
-          adjustment: (l.after ?? 0) - (l.before ?? 0),
-          new_balance: l.after ?? 0,
-          reason: l.reference || '',
-          remarks: '',
-          performed_by: l.performedBy || 'System',
-          performed_role: 'HR Admin',
-          source_module: 'Legacy',
-        }));
-      }
-    }
-
-    // Filter out deleted employees — only keep active system users (E001 and E030)
-    const validLogs = logs.filter(l => {
-      const empId = (l.employee_id || '').toUpperCase().trim();
-      const empName = (l.employee_name || '').toUpperCase().trim();
-      if (empId === 'E001' || empId === 'E030') return true;
-      if (empName.includes('ATHIRAH') || empName.includes('HASYIMAH')) return true;
-      return false;
-    });
-
-    if (logs.length !== validLogs.length) {
-      localStorage.setItem(ENTITLEMENT_HISTORY_KEY, JSON.stringify(validLogs));
+    // One-time automatic purge of all legacy/historical test records from prior testing
+    if (!localStorage.getItem(RESET_FLAG)) {
+      localStorage.removeItem(ENTITLEMENT_HISTORY_KEY);
       localStorage.removeItem('leave_balance_history_logs');
+      localStorage.setItem(RESET_FLAG, 'true');
+      return [];
     }
-    return validLogs;
+
+    const saved = localStorage.getItem(ENTITLEMENT_HISTORY_KEY);
+    if (!saved) return [];
+    return JSON.parse(saved) as EntitlementHistoryLog[];
   } catch {
     return [];
   }
