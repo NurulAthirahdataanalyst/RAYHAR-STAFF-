@@ -22,6 +22,12 @@ interface ApprovalStatusTrackerProps {
   companyName?: string;
   pendingApproverName?: string;
   pendingApproverContext?: string;
+  workflowSteps?: Array<{
+    step_order: number;
+    step_label?: string;
+    role_name?: string;
+    branch_scope?: string;
+  }>;
 }
 
 const formatRoleName = (r?: string) => {
@@ -62,6 +68,7 @@ export function ApprovalStatusTracker({
   companyName = "",
   pendingApproverName = "",
   pendingApproverContext = "",
+  workflowSteps = [],
 }: ApprovalStatusTrackerProps) {
   const isHQ = String(branch).toUpperCase() === 'HQ';
   const isRayRent = String(branch).toUpperCase() === 'RAYRENT' || String(companyName || '').toLowerCase().includes('rayrent');
@@ -411,12 +418,118 @@ export function ApprovalStatusTracker({
     }
   }
 
+  // Dynamically resolve tracker steps from latest saved workflow if available
+  let dynamicItems: Array<{
+    title: string;
+    subtitle?: string;
+    status: 'Approved' | 'Rejected' | 'Pending' | 'Future';
+    date?: string;
+  }> | null = null;
+
+  if (workflowSteps && workflowSteps.length > 0) {
+    const cleanBranch = String(branch || '').trim().toUpperCase();
+    let applicableSteps = workflowSteps.filter(s => {
+      const scope = String(s.branch_scope || '').trim().toUpperCase();
+      if (scope === 'ALL') return true;
+      if (scope === cleanBranch) return true;
+      if (scope.split(',').map(x => x.trim()).includes(cleanBranch)) return true;
+      return false;
+    });
+
+    if (applicableSteps.length === 0) {
+      if (cleanBranch === 'HQ') {
+        applicableSteps = workflowSteps.filter(s => String(s.branch_scope || '').trim().toUpperCase() === 'HQ');
+      } else {
+        applicableSteps = workflowSteps.filter(s => String(s.branch_scope || '').trim().toUpperCase() === 'OTHER_BRANCHES');
+      }
+    }
+    if (applicableSteps.length === 0) {
+      applicableSteps = workflowSteps.filter(s => String(s.branch_scope || '').trim().toUpperCase() === 'ALL');
+    }
+    if (applicableSteps.length === 0) {
+      applicableSteps = workflowSteps;
+    }
+
+    applicableSteps.sort((a, b) => a.step_order - b.step_order);
+
+    if (applicableSteps.length > 0) {
+      dynamicItems = [
+        {
+          title: "SUBMIT",
+          subtitle: "Application Submitted",
+          status: "Approved",
+        }
+      ];
+
+      const cleanCurrent = sUpper.replace(/^PENDING\s+/, '').trim().toLowerCase();
+      let currentIdx = applicableSteps.findIndex(s => {
+        const r = (s.role_name || '').trim().toLowerCase();
+        const l = (s.step_label || '').trim().toLowerCase();
+        return cleanCurrent === r || cleanCurrent === l || (cleanCurrent.includes('hod') && r.includes('head')) || (cleanCurrent.includes('md') && r.includes('managing'));
+      });
+
+      if (currentIdx === -1 && sUpper.startsWith('PENDING')) {
+        const approvedCount = (approvalHistory || []).filter(h => String(h.status).toLowerCase().includes('approved')).length;
+        currentIdx = Math.min(approvedCount, applicableSteps.length - 1);
+      }
+
+      for (let i = 0; i < applicableSteps.length; i++) {
+        const step = applicableSteps[i];
+        const roleTitle = (step.role_name || step.step_label || `STEP ${step.step_order}`).toUpperCase();
+
+        const stepHist = (approvalHistory || []).find(h => {
+          const hr = String(h.approver_role || '').toLowerCase();
+          const sr = (step.role_name || '').toLowerCase();
+          return hr.includes(sr) || (sr.includes('hod') && hr.includes('head')) || (sr.includes('md') && hr.includes('managing'));
+        });
+
+        let stepStatus: 'Approved' | 'Rejected' | 'Pending' | 'Future' = 'Future';
+        let stepSub: string | undefined = undefined;
+        let stepDate: string | undefined = undefined;
+
+        if (isApproved) {
+          stepStatus = 'Approved';
+          stepSub = stepHist?.approver_name ? `${stepHist.approver_name} • ${branch || 'HQ'}` : `Approved • ${branch || 'HQ'}`;
+          if (stepHist?.created_at) stepDate = new Date(stepHist.created_at).toLocaleDateString('en-GB');
+        } else if (isRejected) {
+          if (currentIdx === i) {
+            stepStatus = 'Rejected';
+            stepSub = approverName ? `${approverName} • ${branch || 'HQ'}` : `Rejected • ${branch || 'HQ'}`;
+          } else if (i < currentIdx) {
+            stepStatus = 'Approved';
+            stepSub = stepHist?.approver_name ? `${stepHist.approver_name} • ${branch || 'HQ'}` : `Approved • ${branch || 'HQ'}`;
+          } else {
+            stepStatus = 'Future';
+          }
+        } else if (sUpper.startsWith('PENDING')) {
+          if (i < currentIdx) {
+            stepStatus = 'Approved';
+            stepSub = stepHist?.approver_name ? `${stepHist.approver_name} • ${branch || 'HQ'}` : `Approved • ${branch || 'HQ'}`;
+            if (stepHist?.created_at) stepDate = new Date(stepHist.created_at).toLocaleDateString('en-GB');
+          } else if (i === currentIdx) {
+            stepStatus = 'Pending';
+            stepSub = pendingApproverName ? `${pendingApproverName} • ${branch || 'HQ'}` : `Awaiting ${step.role_name || step.step_label} Approval • ${branch || 'HQ'}`;
+          } else {
+            stepStatus = 'Future';
+          }
+        }
+
+        dynamicItems.push({
+          title: roleTitle,
+          subtitle: stepSub,
+          status: stepStatus,
+          date: stepDate,
+        });
+      }
+    }
+  }
+
   const items: Array<{
     title: string;
     subtitle?: string;
     status: 'Approved' | 'Rejected' | 'Pending' | 'Future';
     date?: string;
-  }> = isRayRent
+  }> = dynamicItems || (isRayRent
     ? [
         {
           title: "SUBMIT",
@@ -490,7 +603,7 @@ export function ApprovalStatusTracker({
           status: step2Status,
           date: step2Date,
         }
-      ];
+      ]);
 
   return (
     <div className="w-full py-2">

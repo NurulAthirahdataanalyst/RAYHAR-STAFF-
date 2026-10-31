@@ -4823,7 +4823,24 @@ app.get("/api/leave-requests", async (req, res) => {
             WHEN lr.status IN ('Pending MD', 'Pending Managing Director', 'Pending Operation Manager', 'Pending Operation') THEN 'HQ'
             ELSE COALESCE(p.branch, 'Branch')
           END
-        ) AS pending_approver_context
+        ) AS pending_approver_context,
+        (
+          SELECT JSON_AGG(
+            JSON_BUILD_OBJECT(
+              'step_order', aw.step_order,
+              'step_label', aw.step_label,
+              'role_name', r.name,
+              'branch_scope', aw.branch_scope
+            ) ORDER BY aw.step_order ASC
+          )
+          FROM approval_workflow aw
+          LEFT JOIN roles r ON aw.approver_role_id = r.id
+          WHERE aw.company_id = COALESCE(
+            (SELECT cur.company_id FROM company_user_roles cur WHERE cur.user_id = lr.user_id AND cur.status = 'active' ORDER BY cur.company_id DESC LIMIT 1),
+            b_comp.company_id,
+            CASE WHEN UPPER(p.branch) LIKE 'RV%' THEN 3 WHEN UPPER(p.branch) = 'RAYRENT' THEN 2 ELSE 1 END
+          ) AND aw.module = 'leave'
+        ) AS workflow_steps
       FROM leave_requests lr
       JOIN profiles p ON p.user_id = lr.user_id
       LEFT JOIN branches b_comp ON UPPER(b_comp.code) = UPPER(p.branch)
@@ -5780,8 +5797,21 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
           );
         });
 
-        if (currentStepIndex !== -1 && currentStepIndex < matchingSteps.length - 1) {
-          const nextStep = matchingSteps[currentStepIndex + 1];
+        let stepIdx = currentStepIndex;
+        if (stepIdx === -1) {
+          try {
+            const [apprRows] = await pool.query(
+              "SELECT COUNT(*)::int AS cnt FROM leave_approvals WHERE leave_id = ? AND status = 'Approved'",
+              [leaveId]
+            );
+            stepIdx = Math.min(apprRows[0]?.cnt || 0, matchingSteps.length - 1);
+          } catch (_) {
+            stepIdx = 0;
+          }
+        }
+
+        if (stepIdx < matchingSteps.length - 1) {
+          const nextStep = matchingSteps[stepIdx + 1];
           nextStatus = `Pending ${nextStep.role_name || nextStep.step_label || 'Approver'}`;
         } else {
           // Reached final approval step

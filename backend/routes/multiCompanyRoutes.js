@@ -1999,6 +1999,83 @@ function createMultiCompanyRouter(pgPool) {
 
       await logAudit(req, 'LEAVE_WORKFLOW_UPDATE', `Updated leave approval workflow for company ${companyId}`, null, steps, companyId);
 
+      // Align all active pending leave requests for this company to the latest saved workflow steps
+      try {
+        const latestWfRes = await pgPool.query(`
+          SELECT aw.*, r.name AS role_name
+          FROM approval_workflow aw
+          LEFT JOIN roles r ON aw.approver_role_id = r.id
+          WHERE aw.company_id = $1 AND aw.module = 'leave'
+          ORDER BY aw.step_order ASC
+        `, [companyId]);
+        const savedSteps = latestWfRes.rows;
+
+        if (savedSteps.length > 0) {
+          const pendingReqsRes = await pgPool.query(`
+            SELECT lr.leave_id, lr.status, p.branch,
+              (SELECT COUNT(*)::int FROM leave_approvals la WHERE la.leave_id = lr.leave_id AND la.status = 'Approved') AS approved_count
+            FROM leave_requests lr
+            JOIN profiles p ON p.user_id = lr.user_id
+            WHERE lr.status LIKE 'Pending%'
+              AND (
+                COALESCE(
+                  (SELECT cur.company_id FROM company_user_roles cur WHERE cur.user_id = lr.user_id AND cur.status = 'active' ORDER BY cur.company_id DESC LIMIT 1),
+                  CASE 
+                    WHEN UPPER(p.branch) LIKE 'RV%' THEN 3
+                    WHEN UPPER(p.branch) = 'RAYRENT' THEN 2 
+                    ELSE 1 
+                  END
+                )::int = $1
+              )
+          `, [companyId]);
+
+          for (const preq of pendingReqsRes.rows) {
+            const cleanBranch = String(preq.branch || '').trim().toUpperCase();
+            let matching = savedSteps.filter((s) => {
+              const scope = String(s.branch_scope || '').trim().toUpperCase();
+              const rule = String(s.routing_rule || '').toUpperCase();
+              if (scope === 'ALL') return true;
+              if (scope === cleanBranch) return true;
+              if (scope.split(',').map((x) => x.trim()).includes(cleanBranch)) return true;
+              if (rule.includes(cleanBranch)) return true;
+              return false;
+            });
+
+            if (matching.length === 0) {
+              if (cleanBranch === 'HQ') {
+                matching = savedSteps.filter((s) => String(s.branch_scope || '').trim().toUpperCase() === 'HQ');
+              } else {
+                matching = savedSteps.filter((s) => String(s.branch_scope || '').trim().toUpperCase() === 'OTHER_BRANCHES');
+              }
+            }
+            if (matching.length === 0) {
+              matching = savedSteps.filter((s) => String(s.branch_scope || '').trim().toUpperCase() === 'ALL');
+            }
+            if (matching.length === 0) matching = savedSteps;
+
+            matching.sort((a, b) => a.step_order - b.step_order);
+
+            const approvedCount = preq.approved_count || 0;
+            if (approvedCount < matching.length) {
+              const targetStep = matching[approvedCount];
+              const newStatus = `Pending ${targetStep.role_name || targetStep.step_label || 'Approver'}`;
+              if (newStatus !== preq.status) {
+                await pgPool.query('UPDATE leave_requests SET status = $1 WHERE leave_id = $2', [newStatus, preq.leave_id]);
+              }
+            } else if (matching.length > 0) {
+              await pgPool.query('UPDATE leave_requests SET status = $1 WHERE leave_id = $2', ['Approved', preq.leave_id]);
+            }
+          }
+
+          if (typeof global.broadcastPresenceUpdate === 'function') {
+            global.broadcastPresenceUpdate({ type: 'refresh' });
+            global.broadcastPresenceUpdate({ type: 'leave-status', companyId, refresh: true });
+          }
+        }
+      } catch (alignErr) {
+        console.warn('Real-time workflow alignment notice:', alignErr.message);
+      }
+
       res.json({ success: true, message: 'Workflow saved successfully' });
     } catch (err) {
       res.status(500).json({ success: false, error: err.message });

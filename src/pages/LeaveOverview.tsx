@@ -306,6 +306,7 @@ export default function LeaveOverview() {
             approvalHistory: historyList,
             pendingApproverName: request.pending_approver_name || "",
             pendingApproverContext: request.pending_approver_context || "",
+            workflowSteps: request.workflow_steps || [],
           };
         });
 
@@ -747,6 +748,7 @@ export default function LeaveOverview() {
       companyName={effectiveCompany}
       pendingApproverName={(req as any).pendingApproverName || ""}
       pendingApproverContext={isRayRent ? "RayRent" : ((req as any).pendingApproverContext || "")}
+      workflowSteps={(req as any).workflowSteps || []}
     />
   </div>
 
