@@ -2406,6 +2406,8 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
       await connection.query("ALTER TABLE profiles DROP COLUMN IF EXISTS telegram_chat_id");
       await connection.query("ALTER TABLE profiles DROP COLUMN IF EXISTS reset_token");
       await connection.query("ALTER TABLE profiles DROP COLUMN IF EXISTS reset_token_expires");
+      await connection.query("ALTER TABLE profiles ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP");
+      await connection.query("UPDATE profiles SET created_at = CURRENT_TIMESTAMP WHERE created_at IS NULL");
       await connection.query("ALTER TABLE leave_requests ADD COLUMN IF NOT EXISTS phone VARCHAR(50)");
       await connection.query("ALTER TABLE profiles ADD COLUMN IF NOT EXISTS phone VARCHAR(50)");
       await connection.query("ALTER TABLE leave_requests ADD COLUMN IF NOT EXISTS created_by VARCHAR(100)");
@@ -4033,8 +4035,8 @@ app.post(["/api/signup", "/api/employees"], async (req, res) => {
     }
 
     await connection.query(
-      `INSERT INTO profiles (user_id, full_name, email, password, branch, department, status, role, role_id, ic_number, phone, gender, dob, join_date)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO profiles (user_id, full_name, email, password, branch, department, status, role, role_id, ic_number, phone, gender, dob, join_date, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`,
       [userId, full_name, email, hashedPassword, branch, department || null, status || "Active", resolvedRoleName, resolvedRoleId, ic_number || null, phone || null, gender || null, dob || null, join_date || null]
     );
 
@@ -4077,7 +4079,8 @@ app.post(["/api/signup", "/api/employees"], async (req, res) => {
         phone,
         gender,
         dob,
-        join_date
+        join_date,
+        created_at: new Date().toISOString()
       }
     });
 

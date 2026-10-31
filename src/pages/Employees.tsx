@@ -44,7 +44,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectSeparator, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { formatMyKad, parseMyKad, formatMalaysianPhone } from "@/utils/mykadUtils";
+import { formatMyKad, parseMyKad, formatMalaysianPhone, formatDisplayDate } from "@/utils/mykadUtils";
 import { Calendar } from "@/components/ui/calendar";
 import { CalendarDays } from "lucide-react";
 import { parseCutiGantiRows, getCleanReason } from "@/lib/leaveStorage";
@@ -732,31 +732,95 @@ export default function Employees() {
   });
 
   const handleExportCSV = () => {
-    const today = new Date().toISOString().split('T')[0];
-    const csvContent = [
-      ["Name", "Email", "Position", "Permanent Branch", "Working Branch", "Status"],
-      ...(Array.isArray(filtered) ? filtered : []).map((emp) => {
-        // Use active temporary branch if available, otherwise permanent branch
-        const workingBranch = emp.tempBranch || emp.branch;
-        return [
-          `"${emp.name}"`,
-          `"${emp.email}"`,
-          `"${emp.position === "Finance Manager" || emp.position === "finance_manager" ? "Operation Manager" : emp.position.replace(/_/g, ' ')}"`,
-          `"${emp.branch}"`,
-          `"${workingBranch}"`,
-          `"${emp.status}"`,
-        ];
-      })
-    ]
-      .map(e => e.join(","))
-      .join("\n");
+    const escapeCsv = (val: any): string => {
+      if (val === null || val === undefined) return '""';
+      const str = String(val).replace(/"/g, '""');
+      return `"${str}"`;
+    };
+
+    const headers = [
+      "Employee ID",
+      "Full Name",
+      "Email Address",
+      "Phone Number",
+      "IC Number (MyKad)",
+      "Date of Birth",
+      "Age",
+      "Gender",
+      "Branch",
+      "Department",
+      "Company",
+      "Role",
+      "Date of Join",
+      "Employment Status",
+      "Date Created"
+    ];
+
+    const listToExport = sorted && sorted.length > 0 ? sorted : (Array.isArray(filtered) ? filtered : []);
+    const rows = listToExport.map((emp) => {
+      const parsedIc = parseMyKad(emp.ic_number || "");
+      const employeeId = emp.user_id || emp.id || "-";
+      const fullName = emp.full_name || emp.name || "-";
+      const emailAddress = emp.email || "-";
+      const phoneNumber = emp.phone ? formatMalaysianPhone(emp.phone) : "-";
+      const icNumber = emp.ic_number ? formatMyKad(emp.ic_number) : (parsedIc.formatted || "-");
+      const dateOfBirth = emp.dob ? formatDisplayDate(emp.dob) : (parsedIc.formattedDob || "-");
+      const age = parsedIc.age !== null && parsedIc.age !== undefined ? String(parsedIc.age) : "-";
+      const gender = emp.gender || parsedIc.gender || "-";
+      const branch = emp.branch || "-";
+      const department = emp.department || "-";
+      
+      let companyName = activeCompany?.company_name || "Rayhar Travels";
+      if (emp.assigned_companies && Array.isArray(emp.assigned_companies) && emp.assigned_companies.length > 0) {
+        const defaultComp = emp.assigned_companies.find((c: any) => c.is_default);
+        const activeMatch = emp.assigned_companies.find((c: any) => c.company_id === activeCompany?.id);
+        companyName = defaultComp?.company_name || activeMatch?.company_name || emp.assigned_companies[0]?.company_name || companyName;
+      }
+      
+      let roleDisplay = emp.position || emp.role_name || emp.role || "Employee";
+      if (roleDisplay === "Finance Manager" || roleDisplay === "finance_manager") {
+        roleDisplay = "Operation Manager";
+      } else if (typeof roleDisplay === "string") {
+        roleDisplay = roleDisplay.replace(/_/g, ' ');
+      }
+
+      const dateOfJoin = emp.join_date ? formatDisplayDate(emp.join_date) : "-";
+      const employmentStatus = emp.status || "Active";
+      const dateCreated = emp.created_at ? formatDisplayDate(emp.created_at) : "-";
+
+      return [
+        employeeId,
+        fullName,
+        emailAddress,
+        phoneNumber,
+        icNumber,
+        dateOfBirth,
+        age,
+        gender,
+        branch,
+        department,
+        companyName,
+        roleDisplay,
+        dateOfJoin,
+        employmentStatus,
+        dateCreated
+      ];
+    });
+
+    const csvContent = "\uFEFF" + [
+      headers.map(escapeCsv).join(","),
+      ...rows.map(r => r.map(escapeCsv).join(","))
+    ].join("\r\n");
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
     link.setAttribute("href", url);
-    link.setAttribute("download", `Employee_Directory_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute("download", `Employee_Export_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
     link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   useEffect(() => {
@@ -950,30 +1014,38 @@ export default function Employees() {
             </span>
           </Button>
 
-          {canEditEmployees ? (
-            <Button 
-              onClick={() => {
-                const currentCid = activeCompany?.id || 1;
-                setSignupCompanyId(currentCid);
-                setSignupName("");
-                setSignupEmail("");
-                setSignupPassword("");
-                setSignupIc("");
-                setSignupPhone("");
-                setSignupJoinDate(new Date().toISOString().split("T")[0]);
-                void fetchModalDataForCompany(currentCid);
-                setIsAddModalOpen(true);
-              }}
-              className="h-10 px-4 rounded-xl bg-[#942392] text-white hover:bg-[#942392]/95 font-black text-xs print:text-[13px] uppercase tracking-wider shadow-md transition-all whitespace-nowrap flex items-center gap-1.5"
+          <div className="flex flex-wrap items-center justify-end gap-2.5">
+            <Button
+              variant="outline"
+              onClick={handleExportCSV}
+              className="h-10 px-4 rounded-xl border border-border/80 bg-background hover:bg-muted/60 text-foreground font-black text-xs print:text-[13px] uppercase tracking-wider shadow-sm transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer active:scale-95"
+              title="Export Employee List to CSV"
             >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Add Staff</span>
+              <Download className="w-3.5 h-3.5 text-[#942392]" />
+              <span>Export CSV</span>
             </Button>
-          ) : (
-            <div className="flex flex-wrap items-center justify-end gap-3 sm:gap-4 w-full sm:w-auto">
-              <ExportDropdown onExportCSV={handleExportCSV} />
-            </div>
-          )}
+
+            {canEditEmployees && (
+              <Button 
+                onClick={() => {
+                  const currentCid = activeCompany?.id || 1;
+                  setSignupCompanyId(currentCid);
+                  setSignupName("");
+                  setSignupEmail("");
+                  setSignupPassword("");
+                  setSignupIc("");
+                  setSignupPhone("");
+                  setSignupJoinDate(new Date().toISOString().split("T")[0]);
+                  void fetchModalDataForCompany(currentCid);
+                  setIsAddModalOpen(true);
+                }}
+                className="h-10 px-4 rounded-xl bg-[#942392] text-white hover:bg-[#942392]/95 font-black text-xs print:text-[13px] uppercase tracking-wider shadow-md transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer active:scale-95"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Add Staff</span>
+              </Button>
+            )}
+          </div>
         </div>
 
 
@@ -2424,75 +2496,3 @@ export default function Employees() {
                   type="email"
                   className="h-11 px-4 bg-background/50 border border-border/80 focus:border-[#942392] focus:ring-2 focus:ring-[#942392]/10 rounded-xl text-xs font-bold"
                   placeholder="ahmad@rayhar.com"
-                  value={signupEmail}
-                  onChange={(e) => setSignupEmail(e.target.value)}
-                  required
-                />
-              </div>
-
-              {/* Password */}
-              <div className="space-y-1.5 col-span-1 sm:col-span-2 lg:col-span-2">
-                <Label htmlFor="signup-password" className="text-[10px] font-black uppercase tracking-widest text-foreground">
-                  Initial Password <span className="text-rose-500">*</span>
-                </Label>
-                <div className="relative">
-                  <Input
-                    id="signup-password"
-                    type={showPassword ? "text" : "password"}
-                    className="h-11 px-4 bg-background/50 border border-border/80 focus:border-[#942392] focus:ring-2 focus:ring-[#942392]/10 rounded-xl text-xs font-bold pr-10"
-                    placeholder="Min. 6 characters"
-                    value={signupPassword}
-                    onChange={(e) => setSignupPassword(e.target.value)}
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none"
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Action buttons with separator line */}
-            <div className="border-t border-border/60 pt-4 flex justify-end gap-3">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setIsAddModalOpen(false)}
-                className="h-11 px-6 rounded-xl text-xs font-black uppercase tracking-wider"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                className="h-11 px-6 rounded-xl bg-[#942392] hover:bg-[#800A7A] text-white shadow-md text-xs font-black uppercase tracking-wider flex items-center gap-2"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="animate-spin h-4 w-4" />
-                    <span>Creating...</span>
-                  </>
-                ) : (
-                  <>
-                    <Plus className="w-4 h-4" />
-                    <span>Create User</span>
-                  </>
-                )}
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
-
-      <TableScrollTopButton entriesPerPage={entriesPerPage} tableRef={tableRef} />
-    </div>
-  );
-}
-
-
-
-

@@ -119,3 +119,27 @@ export function formatMalaysianPhone(val: string): string {
   }
   return digits;
 }
+
+/**
+ * Formats a date string or Date object into standard "DD Month YYYY" format.
+ * (e.g. "04 November 2026", "15 January 2025")
+ * Safely parses date-only strings (YYYY-MM-DD) to prevent timezone date shifting.
+ */
+export function formatDisplayDate(dateVal: string | Date | null | undefined): string {
+  if (!dateVal) return "-";
+  if (typeof dateVal === "string") {
+    const trimmed = dateVal.trim();
+    if (!trimmed || trimmed === "—" || trimmed === "-") return "-";
+    const dateOnlyMatch = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (dateOnlyMatch && !trimmed.includes("T") && !trimmed.includes(" ")) {
+      const year = parseInt(dateOnlyMatch[1], 10);
+      const monthIndex = parseInt(dateOnlyMatch[2], 10) - 1;
+      const day = parseInt(dateOnlyMatch[3], 10);
+      const d = new Date(year, monthIndex, day);
+      return d.toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" });
+    }
+  }
+  const d = new Date(dateVal);
+  if (isNaN(d.getTime())) return "-";
+  return d.toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" });
+}
