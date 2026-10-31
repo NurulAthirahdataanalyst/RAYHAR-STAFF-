@@ -329,15 +329,72 @@ export default function Reports() {
         let rows: any[] = [];
         
         if (generatorType === "trends" || generatorType === "stability") {
-          headers = ["Employee ID", "Employee Name", "Company", "Branch", "Date", "Status", "Clock In", "Clock Out", "Total Hours"];
+          const maxSessions = Math.max(
+            2,
+            ...data.data.map((r: any) => (Array.isArray(r.sessions) ? r.sessions.length : 0))
+          );
+          const sessionIndices = Array.from({ length: maxSessions }, (_, idx) => idx);
+          const sessionHeaders = sessionIndices.flatMap((idx) => [
+            `Clock In ${idx + 1}`,
+            `Clock Out ${idx + 1}`,
+          ]);
+
+          headers = [
+            "Date",
+            "Employee ID",
+            "Name",
+            "Location",
+            ...sessionHeaders,
+            "Status",
+            "Working Hours",
+            "Coordinate (Latitude&Longitude)",
+            "Distance",
+            "Location Status",
+          ];
+
           rows = data.data.map((r: any) => {
-             const dateStr = r.date || (r.clock_in ? new Date(r.clock_in).toLocaleDateString() : "--");
-             const timeIn = r.clock_in ? new Date(r.clock_in).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true }) : "--:--";
-             const timeOut = r.clock_out ? new Date(r.clock_out).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true }) : "--:--";
-             const statusStr = r.status || "Present";
-             const totalHrs = r.total_hours || calculateWorkingHours(r.clock_in, r.clock_out);
-             const compName = r.company_name || (r.branch === 'RAYRENT' ? 'RayRent' : 'Rayhar Travels');
-             return [r.user_id, r.full_name, compName, r.branch, dateStr, statusStr, timeIn, timeOut, totalHrs];
+            const dateStr = r.date || (r.clock_in ? new Date(r.clock_in).toLocaleDateString() : "--");
+            const branchText = r.temp_branch
+              ? `${r.permanent_branch || r.branch || 'HQ'} (TEMP: ${r.temp_branch})`
+              : (r.permanent_branch || r.branch || 'HQ');
+
+            const sessions = Array.isArray(r.sessions) ? r.sessions : [];
+            const sessionCells = sessionIndices.flatMap((idx) => {
+              const s = sessions[idx];
+              if (s && (s.clock_in || s.time_in)) {
+                const tIn = s.time_in || "N/A";
+                const tOut = s.time_out || "N/A";
+                return [tIn, tOut];
+              }
+              const emptyVal = idx === 0 && sessions.length === 0 ? "N/A" : "-";
+              return [emptyVal, emptyVal];
+            });
+
+            const displayStatus = r.status
+              ? `${r.status}${r.leave_type && r.leave_type !== r.status ? ` (${r.leave_type})` : ''}`
+              : '-';
+
+            const workingHrs = r.total_hours || "--";
+            const coords = r.latitude && r.longitude
+              ? `${Number(r.latitude).toFixed(6)}, ${Number(r.longitude).toFixed(6)}`
+              : "-";
+            const distance = r.distance_meters !== null && r.distance_meters !== undefined
+              ? `${Math.round(r.distance_meters)}m`
+              : "-";
+            const locationStatus = r.location || (sessions[0]?.location) || "-";
+
+            return [
+              dateStr,
+              r.user_id || "-",
+              r.full_name || "-",
+              branchText,
+              ...sessionCells,
+              displayStatus,
+              workingHrs,
+              coords,
+              distance,
+              locationStatus,
+            ];
           });
         } else if (generatorType === "outstation") {
           headers = ["Event Name", "Destination", "Start Date", "End Date", "Days", "Status", "Employee Name", "Company", "Department", "Branch"];
@@ -375,6 +432,15 @@ export default function Reports() {
           return str;
         };
 
+        const escapeHtml = (val: any) => {
+          if (val === null || val === undefined) return '';
+          return String(val)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+        };
+
         if (generatorFormat === 'pdf') {
           const printWindow = window.open("", "_blank");
           if (!printWindow) {
@@ -382,23 +448,27 @@ export default function Reports() {
             return;
           }
           
-          const rowsHtml = rows.map(r => `<tr>${r.map((c: any) => `<td>${escapeCsv(c)}</td>`).join('')}</tr>`).join('');
-          const headersHtml = headers.map(h => `<th>${h}</th>`).join('');
+          const rowsHtml = rows.map(r => `<tr>${r.map((c: any) => `<td>${escapeHtml(c)}</td>`).join('')}</tr>`).join('');
+          const headersHtml = headers.map(h => `<th>${escapeHtml(h)}</th>`).join('');
           
           writePrintDocument(printWindow, `
             <html>
               <head>
-                <title>${reportName.replace('.csv', '')}</title>
+                <title>${escapeHtml(reportName.replace('.csv', ''))}</title>
                 <style>
-                  body { font-family: 'Inter', sans-serif; padding: 20px; color: #1e293b; }
-                  h2 { color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; font-size: 24px; font-weight: 800; }
-                  table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
-                  th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
-                  th { background: #f8fafc; font-weight: 700; color: #475569; }
+                  @page { size: landscape; margin: 8mm; }
+                  body { font-family: 'Inter', Arial, sans-serif; padding: 12px; color: #1e293b; margin: 0; }
+                  h2 { color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; font-size: 16px; font-weight: 800; margin-top: 0; text-transform: uppercase; }
+                  .meta { font-size: 10px; color: #64748b; margin-bottom: 10px; }
+                  table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 9px; }
+                  th, td { padding: 4px 6px; text-align: left; border: 1px solid #cbd5e1; word-break: break-word; }
+                  th { background: #f1f5f9; font-weight: 700; color: #334155; text-transform: uppercase; font-size: 8.5px; }
+                  tr:nth-child(even) { background: #f8fafc; }
                 </style>
               </head>
               <body>
-                <h2>${reportName.replace('.csv', '').replace(/_/g, ' ')}</h2>
+                <h2>${escapeHtml(reportName.replace('.csv', '').replace(/_/g, ' '))}</h2>
+                <div class="meta">Generated: ${new Date().toLocaleString()} | Total Records: ${rows.length}</div>
                 <table>
                   <thead><tr>${headersHtml}</tr></thead>
                   <tbody>${rowsHtml}</tbody>
@@ -408,11 +478,11 @@ export default function Reports() {
           `, { autoPrint: true, closeAfterPrint: true });
           toast.success(`${generatorType.toUpperCase()} Analytical Report PDF generated successfully!`);
         } else if (generatorFormat === 'excel') {
-          const csvContent = [
-            headers.join(","),
+          const csvContent = "\ufeff" + [
+            headers.map(escapeCsv).join(","),
             ...rows.map(row => row.map(escapeCsv).join(","))
           ].join("\n");
-          const blob = new Blob(["\ufeff", csvContent], { type: "application/vnd.ms-excel;charset=utf-8;" });
+          const blob = new Blob([csvContent], { type: "application/vnd.ms-excel;charset=utf-8;" });
           const link = document.createElement("a");
           const url = URL.createObjectURL(blob);
           link.setAttribute("href", url);
@@ -421,8 +491,8 @@ export default function Reports() {
           link.click();
           toast.success(`${generatorType.toUpperCase()} Analytical Report Excel sheet generated!`);
         } else {
-          const csvContent = [
-            headers.join(","),
+          const csvContent = "\ufeff" + [
+            headers.map(escapeCsv).join(","),
             ...rows.map(row => row.map(escapeCsv).join(","))
           ].join("\n");
           const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });

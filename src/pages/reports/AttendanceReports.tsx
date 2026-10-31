@@ -607,6 +607,10 @@ export default function AttendanceReports() {
           ? `${a.status}${a.leave_type && a.leave_type !== a.status ? ` (${a.leave_type})` : ''}`
           : '-';
 
+        const coords = a.latitude && a.longitude ? `${Number(a.latitude).toFixed(6)}, ${Number(a.longitude).toFixed(6)}` : "-";
+        const distance = a.distance_meters !== null && a.distance_meters !== undefined ? `${Math.round(a.distance_meters)}m` : "-";
+        const locationStatus = a.location || a.clock_in_location || "-";
+
         return `
           <tr>
             ${viewType !== "day" ? `<td>${formatDate(a.date)}</td>` : ""}
@@ -616,6 +620,9 @@ export default function AttendanceReports() {
             ${sessionTds}
             <td>${displayStatus}</td>
             <td>${workingHrs}</td>
+            <td>${coords}</td>
+            <td>${distance}</td>
+            <td>${locationStatus}</td>
           </tr>
         `;
       })
@@ -634,12 +641,13 @@ export default function AttendanceReports() {
         <head>
           <title>Attendance Report - ${periodTitle}</title>
           <style>
-            body { font-family: Arial, sans-serif; padding: 20px; color: #0f172a; }
-            h1 { font-size: 18px; margin-bottom: 4px; color: #7b0099; text-transform: uppercase; }
-            p { font-size: 12px; color: #475569; margin-top: 0; margin-bottom: 16px; }
-            table { width: 100%; border-collapse: collapse; font-size: 11px; }
-            th, td { border: 1px solid #cbd5e1; padding: 6px 8px; text-align: left; }
-            th { background-color: #f8fafc; font-weight: 700; text-transform: uppercase; font-size: 10px; }
+            @page { size: landscape; margin: 8mm; }
+            body { font-family: Arial, sans-serif; padding: 12px; color: #0f172a; margin: 0; }
+            h1 { font-size: 16px; margin-bottom: 4px; color: #7b0099; text-transform: uppercase; }
+            p { font-size: 10px; color: #475569; margin-top: 0; margin-bottom: 12px; }
+            table { width: 100%; border-collapse: collapse; font-size: 9px; }
+            th, td { border: 1px solid #cbd5e1; padding: 4px 6px; text-align: left; word-break: break-word; }
+            th { background-color: #f8fafc; font-weight: 700; text-transform: uppercase; font-size: 8.5px; }
             tr:nth-child(even) { background-color: #f8fafc; }
           </style>
         </head>
@@ -656,6 +664,9 @@ export default function AttendanceReports() {
                 ${sessionThs}
                 <th>Status</th>
                 <th>Working Hours</th>
+                <th>Coordinate (Latitude&Longitude)</th>
+                <th>Distance</th>
+                <th>Location Status</th>
               </tr>
             </thead>
             <tbody>

@@ -13256,10 +13256,13 @@ app.get("/api/reports/generator", async (req, res) => {
 
       let attWhere = "WHERE " + attFilters.join(" AND ");
       const [attendanceRows] = await pool.query(`
-        SELECT a.user_id, a.clock_in, a.clock_out
+        SELECT a.user_id, a.clock_in, a.clock_out, a.location, a.attendance_type, a.distance_meters,
+               a.clock_in_latitude, a.clock_in_longitude,
+               TO_CHAR(a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_in,
+               TO_CHAR(a.clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_out
         FROM attendances a
         ${attWhere}
-        ORDER BY a.clock_in DESC
+        ORDER BY a.clock_in ASC
       `, attParams);
 
       // Map attendances by user_id_YYYY-MM-DD (use MYT offset UTC+8 to match displayed date)
@@ -13273,8 +13276,9 @@ app.get("/api/reports/generator", async (req, res) => {
           const dd = String(d.getUTCDate()).padStart(2, '0');
           const key = `${a.user_id}_${yyyy}-${mm}-${dd}`;
           if (!attendanceMap.has(key)) {
-            attendanceMap.set(key, a);
+            attendanceMap.set(key, []);
           }
+          attendanceMap.get(key).push(a);
         }
       });
 
@@ -13282,7 +13286,6 @@ app.get("/api/reports/generator", async (req, res) => {
       const toISOStr = (d) => {
         if (!d) return '2099-12-31';
         if (typeof d === 'string') return d.slice(0, 10);
-        // MySQL Date object
         const dd = new Date(d);
         return dd.toISOString().slice(0, 10);
       };
@@ -13325,6 +13328,38 @@ app.get("/api/reports/generator", async (req, res) => {
         targetMonths = [parseInt(month)];
       }
 
+      const minMonth = targetMonths.length > 0 ? Math.min(...targetMonths) : 1;
+      const maxMonth = targetMonths.length > 0 ? Math.max(...targetMonths) : 12;
+      const minIsoDate = `${selectedY}-${String(minMonth).padStart(2, '0')}-01`;
+      const maxIsoDate = `${selectedY}-${String(maxMonth).padStart(2, '0')}-${new Date(selectedY, maxMonth, 0).getDate()}`;
+
+      const branchZoneMap = await getBranchZoneMap();
+
+      const [leaveRows] = await pool.query(`
+        SELECT lr.user_id, lr.leave_type, lr.start_date, lr.end_date
+        FROM leave_requests lr
+        WHERE lr.status = 'Approved' 
+          AND lr.user_id IN (${idPlaceholders})
+          AND lr.start_date <= ?::date
+          AND lr.end_date >= ?::date
+      `, [...targetUserIds, maxIsoDate, minIsoDate]);
+
+      const [companyLeaves] = await pool.query(`
+        SELECT * FROM company_leave_calendar 
+        WHERE status = 'Active'
+          AND start_date <= ?::date
+          AND end_date >= ?::date
+      `, [maxIsoDate, minIsoDate]);
+
+      const [outstationRows] = await pool.query(`
+        SELECT o.user_id, o.start_date, o.end_date
+        FROM outstation_assignments o
+        WHERE o.status != 'Cancelled'
+          AND o.user_id IN (${idPlaceholders})
+          AND o.start_date <= ?::date
+          AND o.end_date >= ?::date
+      `, [...targetUserIds, maxIsoDate, minIsoDate]);
+
       // 4. Generate daily records for each profile
       const resultRows = [];
 
@@ -13340,8 +13375,6 @@ app.get("/api/reports/generator", async (req, res) => {
           const isoDateStr = `${selectedY}-${monthStr}-${dayStr}`;
 
           const dateObj = new Date(selectedY, m - 1, day);
-          const dayOfWeek = dateObj.getDay(); // 0 = Sun, 6 = Sat
-          const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
 
           for (const prof of targetProfiles) {
             const empCreatedDate = getEmpCreatedDateStr(prof.created_at);
@@ -13350,27 +13383,110 @@ app.get("/api/reports/generator", async (req, res) => {
             }
 
             const key = `${prof.user_id}_${isoDateStr}`;
-            const att = attendanceMap.get(key);
+            const matchingClocks = attendanceMap.get(key) || [];
 
             // Resolve effective branch for THIS specific date
             const branchInfo = getEffectiveBranch(prof.user_id, isoDateStr, prof.permanent_branch);
+            const userZone = branchZoneMap.get(branchInfo.permanent_branch) || 'ZONE_B';
+            const isWeekend = checkIsWeekend(userZone, dateObj);
+            const isHoliday = malaysiaHolidays.some(h => h.date === isoDateStr);
 
-            if (att && att.clock_in) {
-              const empCompanyId = prof.company_id || getEmployeeCompanyId(prof.user_id);
-              const { isLate } = isAttendanceLate(att.clock_in, empCompanyId, isoDateStr);
-              const status = isLate ? "Present (Late)" : "Present (On Time)";
-
-              let totalHrsText = "--";
-              if (att.clock_out) {
-                const diffMs = new Date(att.clock_out).getTime() - new Date(att.clock_in).getTime();
-                if (diffMs > 0) {
-                  const h = Math.floor(diffMs / 3600000);
-                  const m = Math.floor((diffMs % 3600000) / 60000);
-                  totalHrsText = `${h}h ${m}m`;
+            // 1. Check Company Leave
+            const isCompanyLeave = companyLeaves.some(cl => {
+              const clStart = toISOStr(cl.start_date);
+              const clEnd = toISOStr(cl.end_date);
+              if (isoDateStr >= clStart && isoDateStr <= clEnd) {
+                if (cl.applies_to === 'all') return true;
+                if (cl.applies_to === 'branch' && cl.branch_id) return safeArraySplit(cl.branch_id).includes(branchInfo.permanent_branch);
+                if (cl.applies_to === 'department' && cl.department_id) {
+                  const depts = safeArraySplit(cl.department_id);
+                  const normEmpDept = safeLower(prof.department).replace(/\bdepartment\b/g, '').trim();
+                  return depts.some(d => {
+                    const normClDept = d.toLowerCase().replace(/\bdepartment\b/g, '').trim();
+                    return normEmpDept === normClDept || prof.department === d;
+                  });
                 }
-              } else {
-                totalHrsText = "5h 10m";
               }
+              return false;
+            });
+
+            // 2. Check Approved Leave
+            const leaveObj = leaveRows.find(lr => {
+              if (lr.user_id !== prof.user_id) return false;
+              const lrStart = toISOStr(lr.start_date);
+              const lrEnd = toISOStr(lr.end_date);
+              return isoDateStr >= lrStart && isoDateStr <= lrEnd;
+            });
+
+            // 3. Check Outstation
+            const isOutstation = outstationRows.some(o => {
+              if (o.user_id !== prof.user_id) return false;
+              const oStart = toISOStr(o.start_date);
+              const oEnd = toISOStr(o.end_date);
+              return isoDateStr >= oStart && isoDateStr <= oEnd;
+            });
+
+            // 4. Check Clock-Ins
+            if (matchingClocks.length > 0) {
+              const empCompanyId = prof.company_id || getEmployeeCompanyId(prof.user_id);
+              const firstClock = matchingClocks[0];
+              const { isLate } = isAttendanceLate(firstClock.clock_in, empCompanyId, isoDateStr);
+              
+              const latestWithOut = matchingClocks.filter(c => !!c.clock_out).pop();
+              const effectiveClockOut = latestWithOut ? latestWithOut.clock_out : firstClock.clock_out;
+              
+              let missingClockOut = false;
+              let status = isLate ? "Present (Late)" : "Present (On Time)";
+
+              const nowKl = new Date(Date.now() + MYT_OFFSET_MS);
+              const isPastDate = isoDateStr !== nowKl.toISOString().split('T')[0];
+              const isPastEndOfWorkTime = !isPastDate && nowKl.getUTCHours() >= 17;
+
+              if (!effectiveClockOut && (isPastDate || isPastEndOfWorkTime)) {
+                missingClockOut = true;
+                status = "Missing Clock-Out";
+              }
+
+              let totalMs = 0;
+              matchingClocks.forEach(s => {
+                if (s.clock_in) {
+                  const sIn = new Date(s.clock_in).getTime();
+                  let sOut;
+                  if (s.clock_out) {
+                    sOut = new Date(s.clock_out).getTime();
+                  } else {
+                    const klClockIn = new Date(sIn + MYT_OFFSET_MS);
+                    const isToday =
+                      nowKl.getUTCFullYear() === klClockIn.getUTCFullYear() &&
+                      nowKl.getUTCMonth() === klClockIn.getUTCMonth() &&
+                      nowKl.getUTCDate() === klClockIn.getUTCDate();
+                    if (isToday) {
+                      sOut = Date.now();
+                    } else {
+                      const klEndOfDay = new Date(klClockIn);
+                      klEndOfDay.setUTCHours(23, 59, 59, 999);
+                      sOut = klEndOfDay.getTime() - MYT_OFFSET_MS;
+                    }
+                  }
+                  const diff = sOut - sIn;
+                  if (diff > 0) totalMs += diff;
+                }
+              });
+
+              const h = Math.floor(totalMs / 3600000);
+              const m = Math.floor((totalMs % 3600000) / 60000);
+              const totalHrsText = totalMs > 0 ? `${h}h ${m}m` : "--";
+
+              const sessions = matchingClocks.map(c => ({
+                clock_in: c.clock_in,
+                clock_out: c.clock_out,
+                time_in: c.time_in,
+                time_out: c.time_out,
+                location: c.location || branchInfo.branch,
+                distance_meters: c.distance_meters,
+                latitude: c.clock_in_latitude,
+                longitude: c.clock_in_longitude
+              }));
 
               resultRows.push({
                 user_id: prof.user_id,
@@ -13381,13 +13497,84 @@ app.get("/api/reports/generator", async (req, res) => {
                 branch: branchInfo.branch,
                 date: dateFormatted,
                 iso_date: isoDateStr,
-                clock_in: att.clock_in,
-                clock_out: att.clock_out,
+                clock_in: firstClock.clock_in,
+                clock_out: effectiveClockOut,
                 status: status,
-                total_hours: totalHrsText
+                leave_type: null,
+                total_hours: totalHrsText,
+                sessions: sessions,
+                latitude: firstClock.clock_in_latitude,
+                longitude: firstClock.clock_in_longitude,
+                distance_meters: firstClock.distance_meters,
+                location: firstClock.location || branchInfo.branch
+              });
+            } else if (isCompanyLeave) {
+              resultRows.push({
+                user_id: prof.user_id,
+                full_name: prof.full_name,
+                company_name: prof.company_name,
+                permanent_branch: branchInfo.permanent_branch,
+                temp_branch: branchInfo.temp_branch,
+                branch: branchInfo.branch,
+                date: dateFormatted,
+                iso_date: isoDateStr,
+                clock_in: null,
+                clock_out: null,
+                status: "Company Leave",
+                leave_type: "Company Holiday",
+                total_hours: "--",
+                sessions: [],
+                latitude: null,
+                longitude: null,
+                distance_meters: null,
+                location: null
+              });
+            } else if (leaveObj) {
+              const isRepLeave = leaveObj.leave_type && (leaveObj.leave_type.toUpperCase().includes('REPLACEMENT') || leaveObj.leave_type.toUpperCase().includes('GANTI'));
+              const leaveStatus = isRepLeave ? "Weekend" : "Approved Leave";
+              resultRows.push({
+                user_id: prof.user_id,
+                full_name: prof.full_name,
+                company_name: prof.company_name,
+                permanent_branch: branchInfo.permanent_branch,
+                temp_branch: branchInfo.temp_branch,
+                branch: branchInfo.branch,
+                date: dateFormatted,
+                iso_date: isoDateStr,
+                clock_in: null,
+                clock_out: null,
+                status: leaveStatus,
+                leave_type: leaveObj.leave_type || "Approved Leave",
+                total_hours: "--",
+                sessions: [],
+                latitude: null,
+                longitude: null,
+                distance_meters: null,
+                location: null
+              });
+            } else if (isOutstation) {
+              resultRows.push({
+                user_id: prof.user_id,
+                full_name: prof.full_name,
+                company_name: prof.company_name,
+                permanent_branch: branchInfo.permanent_branch,
+                temp_branch: branchInfo.temp_branch,
+                branch: branchInfo.branch,
+                date: dateFormatted,
+                iso_date: isoDateStr,
+                clock_in: null,
+                clock_out: null,
+                status: "Outstation",
+                leave_type: null,
+                total_hours: "--",
+                sessions: [],
+                latitude: null,
+                longitude: null,
+                distance_meters: null,
+                location: null
               });
             } else {
-              const status = isWeekend ? "Weekend" : "Absent";
+              const status = isWeekend ? "Weekend" : (isHoliday ? "Holiday" : "Absent");
               resultRows.push({
                 user_id: prof.user_id,
                 full_name: prof.full_name,
@@ -13400,7 +13587,13 @@ app.get("/api/reports/generator", async (req, res) => {
                 clock_in: null,
                 clock_out: null,
                 status: status,
-                total_hours: "--"
+                leave_type: null,
+                total_hours: "--",
+                sessions: [],
+                latitude: null,
+                longitude: null,
+                distance_meters: null,
+                location: null
               });
             }
           }
