@@ -23,7 +23,7 @@ const createHRNotification = async (userId: string, title: string, message: stri
     console.error("Error creating HR notification:", e);
   }
 };
-import { ChevronLeft, ChevronRight, Award,
+import { ChevronLeft, ChevronRight,
   BadgePlus,
   CalendarRange,
   ClipboardList,
@@ -34,7 +34,6 @@ import { ChevronLeft, ChevronRight, Award,
   RotateCcw,
   Users,
   Gift,
-  CircleAlert,
   ArrowLeft,
   Search,
   Check,
@@ -326,59 +325,6 @@ export default function LeaveEntitlementManagement() {
 
           {/* Leave Entitlement Activity KPI Panel */}
           <EntitlementActivityCard onViewHistory={() => setActiveModule("Leave Activity History")} />
-
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-            <Card className="xl:col-span-2 border-border/60 bg-card/77 backdrop-blur-sm">
-              <CardHeader className="border-b border-border/50 bg-muted/20 rounded-t-xl">
-                <CardTitle className="flex items-center gap-2 text-lg font-black">
-                  <Award className="w-5 h-5 text-emerald-600" />
-                  Recommended HR Workflow
-                </CardTitle>
-                <CardDescription>
-                  A typical annual leave entitlement cycle for January processing and ongoing HR administration.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="p-6">
-                <ol className="space-y-3">
-                  {[
-                    "Allocate the annual entitlement for all eligible employees.",
-                    "Carry forward approved unused days from the prior year.",
-                    "Apply forfeiture where the policy cap is exceeded.",
-                    "Add special credits or additional leave where approvals exist.",
-                    "Record manual adjustments with a reason and approver.",
-                    "Review the balance history before closing the leave year.",
-                  ].map((step, index) => (
-                    <li key={step} className="flex gap-3 rounded-2xl border border-border/60 p-4">
-                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#942392]/10 text-[11px] font-black text-[#942392]">
-                        {index + 1}
-                      </div>
-                      <p className="text-sm text-foreground/90">{step}</p>
-                    </li>
-                  ))}
-                </ol>
-              </CardContent>
-            </Card>
-
-            <Card className="border-border/60 bg-card/77 backdrop-blur-sm">
-              <CardHeader className="border-b border-border/50 bg-muted/20 rounded-t-xl">
-                <CardTitle className="flex items-center gap-2 text-lg font-black">
-                  <CircleAlert className="w-5 h-5 text-amber-600" />
-                  Audit Notes
-                </CardTitle>
-                <CardDescription>
-                  Keep entitlement changes transparent and policy-aligned.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="p-6 space-y-3">
-                <div className="rounded-2xl bg-amber-500/5 border border-amber-500/15 p-4 text-sm text-foreground/90">
-                  Every balance change should capture the reason, date, affected period, and user who made the change.
-                </div>
-                <div className="rounded-2xl bg-sky-500/5 border border-sky-500/15 p-4 text-sm text-foreground/90">
-                  This module name stays future-proof for carry forward, forfeiture, bulk updates, and balance history features.
-                </div>
-              </CardContent>
-            </Card>
-          </div>
 
         </>
       ) : (

@@ -10354,7 +10354,8 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
             clock_out: null,
             is_late: false,
             missing_clock_out: false,
-            status: "Leave (Company Holiday)",
+            status: "Company Leave",
+            leave_type: "Company Holiday",
             location: p.branch || 'HQ'
           });
           return;
@@ -10374,6 +10375,8 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
             const lrEnd = new Date(lr.end_date).toISOString().split('T')[0];
             return dateStr >= lrStart && dateStr <= lrEnd;
           });
+          const isRepLeave = leaveObj?.leave_type && (leaveObj.leave_type.toUpperCase().includes('REPLACEMENT') || leaveObj.leave_type.toUpperCase().includes('GANTI'));
+          const leaveStatus = isRepLeave ? "Weekend" : "Approved Leave";
           summary.leave++;
           reportData.push({
             user_id: p.user_id,
@@ -10387,7 +10390,8 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
             clock_out: null,
             is_late: false,
             missing_clock_out: false,
-            status: `Leave (${leaveObj?.leave_type || 'Approved'})`,
+            status: leaveStatus,
+            leave_type: leaveObj?.leave_type || 'Approved Leave',
             location: p.branch || 'HQ'
           });
           return;
@@ -10792,6 +10796,7 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
         time_in,
         time_out,
         status,
+        leave_type: leaveRow?.leave_type || (matchingLeave ? 'Company Holiday' : null),
         destination: outstationMap.get(p.user_id)?.destination || null,
         zone: userZone,
         is_late: isLate,

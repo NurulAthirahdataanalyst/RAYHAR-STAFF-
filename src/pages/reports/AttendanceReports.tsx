@@ -316,11 +316,24 @@ export default function AttendanceReports() {
               addSessionToList(sessions, r);
             }
 
+            const rawStatus = r.status || "Unknown";
+            let normalizedStatus = rawStatus;
+            let leaveType = r.leave_type || null;
+
+            if (rawStatus === "Leave (Company Holiday)" || (typeof rawStatus === "string" && rawStatus.includes("Company Holiday"))) {
+              normalizedStatus = "Company Leave";
+              leaveType = leaveType || "Company Holiday";
+            } else if (typeof rawStatus === "string" && (rawStatus.startsWith("Leave (") || rawStatus === "Leave")) {
+              leaveType = leaveType || rawStatus.replace(/^Leave\s*\((.*?)\)$/, "$1");
+              normalizedStatus = "Approved Leave";
+            }
+
             groupedMap.set(groupKey, {
               ...r,
               date: recDate || r.date,
               temporary_branch: undefined,
-              status: r.status || "Unknown",
+              status: normalizedStatus,
+              leave_type: leaveType,
               temp_branch: getTempBranchForRecord(r.user_id, recDate),
               sessions,
             });
@@ -334,7 +347,18 @@ export default function AttendanceReports() {
             if (r.is_late) existing.is_late = true;
             if (r.missing_clock_out) existing.missing_clock_out = true;
             if (existing.status === "Absent" && r.status && r.status !== "Absent") {
-              existing.status = r.status;
+              const updatedRaw = r.status;
+              let updatedNormalized = updatedRaw;
+              let updatedLeaveType = r.leave_type || existing.leave_type || null;
+              if (updatedRaw === "Leave (Company Holiday)" || (typeof updatedRaw === "string" && updatedRaw.includes("Company Holiday"))) {
+                updatedNormalized = "Company Leave";
+                updatedLeaveType = updatedLeaveType || "Company Holiday";
+              } else if (typeof updatedRaw === "string" && (updatedRaw.startsWith("Leave (") || updatedRaw === "Leave")) {
+                updatedLeaveType = updatedLeaveType || updatedRaw.replace(/^Leave\s*\((.*?)\)$/, "$1");
+                updatedNormalized = "Approved Leave";
+              }
+              existing.status = updatedNormalized;
+              existing.leave_type = updatedLeaveType;
             }
           }
         });
@@ -410,7 +434,24 @@ export default function AttendanceReports() {
       e.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       e.user_id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       e.branch?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === "All" || e.status === statusFilter;
+
+    let matchesStatus = statusFilter === "All" || e.status === statusFilter;
+    if (!matchesStatus) {
+      if (statusFilter === "Approved Leave") {
+        matchesStatus =
+          e.status === "Approved Leave" ||
+          e.status === "Leave" ||
+          (typeof e.status === "string" && e.status.startsWith("Leave") && !e.status.includes("Company Holiday"));
+      } else if (statusFilter === "Company Leave") {
+        matchesStatus =
+          e.status === "Company Leave" ||
+          e.status === "Holiday" ||
+          (typeof e.status === "string" && (e.status === "Leave (Company Holiday)" || e.status.includes("Company Holiday")));
+      } else if (statusFilter === "Weekend") {
+        matchesStatus = e.status === "Weekend" || e.status === "Rest Day";
+      }
+    }
+
     return matchesSearch && matchesStatus;
   });
 
@@ -429,13 +470,13 @@ export default function AttendanceReports() {
   }, [searchQuery, statusFilter, viewType, date, selectedMonth, selectedYear, pageSize]);
 
   // KPI Calculations (each employee is 1 single row in Day view)
-  const totalEmployeesDay = filteredList.length;
-  const presentCountDay = filteredList.filter(a => a.status === "Present (On Time)" || a.status === "Present (Late)" || a.status === "Missing Clock-Out").length;
-  const lateCountDay = filteredList.filter(a => a.status === "Present (Late)" || a.is_late).length;
-  const outstationCountDay = filteredList.filter(a => a.status === "Outstation").length;
-  const leaveCountDay = filteredList.filter(a => a.status === "Company Leave" || a.status === "Approved Leave").length;
-  const missingClockOutCountDay = filteredList.filter(a => a.status === "Missing Clock-Out" || a.missing_clock_out).length;
-  const absentCountDay = filteredList.filter(a => a.status === "Absent").length;
+  const totalEmployeesDay = attendanceData.length;
+  const presentCountDay = attendanceData.filter(a => a.status === "Present (On Time)" || a.status === "Present (Late)" || a.status === "Missing Clock-Out").length;
+  const lateCountDay = attendanceData.filter(a => a.status === "Present (Late)" || a.is_late).length;
+  const outstationCountDay = attendanceData.filter(a => a.status === "Outstation").length;
+  const leaveCountDay = attendanceData.filter(a => a.status === "Company Leave" || a.status === "Approved Leave" || (typeof a.status === "string" && a.status.startsWith("Leave"))).length;
+  const missingClockOutCountDay = attendanceData.filter(a => a.status === "Missing Clock-Out" || a.missing_clock_out).length;
+  const absentCountDay = attendanceData.filter(a => a.status === "Absent").length;
   const workingEmployeesDay = totalEmployeesDay - leaveCountDay;
   const attendedEmployeesDay = presentCountDay + outstationCountDay;
   const attendanceRateDay = workingEmployeesDay > 0 ? Math.round((attendedEmployeesDay / workingEmployeesDay) * 100) : 0;
@@ -502,12 +543,16 @@ export default function AttendanceReports() {
         return [`"${emptyVal}"`, `"${emptyVal}"`];
       });
 
+      const displayStatus = a.status
+        ? `${a.status}${a.leave_type && a.leave_type !== a.status ? ` (${a.leave_type})` : ''}`
+        : '';
+
       const baseCells = [
         `"${(a.user_id || '').replace(/"/g, '""')}"`,
         `"${(a.full_name || '').replace(/"/g, '""')}"`,
         `"${branchText.replace(/"/g, '""')}"`,
         ...sessionCells,
-        `"${(a.status || '').replace(/"/g, '""')}"`,
+        `"${displayStatus.replace(/"/g, '""')}"`,
         `"${workingHrs}"`,
         `"${coords}"`,
         `"${distance}"`,
@@ -558,6 +603,10 @@ export default function AttendanceReports() {
           })
           .join("");
 
+        const displayStatus = a.status
+          ? `${a.status}${a.leave_type && a.leave_type !== a.status ? ` (${a.leave_type})` : ''}`
+          : '-';
+
         return `
           <tr>
             ${viewType !== "day" ? `<td>${formatDate(a.date)}</td>` : ""}
@@ -565,7 +614,7 @@ export default function AttendanceReports() {
             <td>${a.full_name || "-"}</td>
             <td>${branchText}</td>
             ${sessionTds}
-            <td>${a.status || "-"}</td>
+            <td>${displayStatus}</td>
             <td>${workingHrs}</td>
           </tr>
         `;
@@ -932,7 +981,7 @@ export default function AttendanceReports() {
                                   if (status === 'Present (Late)') return { badge: 'bg-yellow-50 text-yellow-600 border-yellow-200 dark:bg-yellow-500/10 dark:border-yellow-500/20', dot: 'bg-yellow-500' };
                                   if (status === 'Missing Clock-Out') return { badge: 'bg-orange-50 text-orange-600 border-orange-200 dark:bg-orange-500/10 dark:border-orange-500/20', dot: 'bg-orange-500' };
                                   if (status === 'Outstation') return { badge: 'bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/10 dark:border-blue-500/20', dot: 'bg-blue-500' };
-                                  if (status === 'Approved Leave' || status === 'Company Leave') return { badge: 'bg-[#fdf4ff] text-[#942392] border-[#942392]/20 dark:bg-[#942392]/10', dot: 'bg-[#942392]' };
+                                  if (status === 'Approved Leave' || status === 'Company Leave' || (typeof status === 'string' && status.startsWith('Leave'))) return { badge: 'bg-[#fdf4ff] text-[#942392] border-[#942392]/20 dark:bg-[#942392]/10', dot: 'bg-[#942392]' };
                                   if (status === 'Weekend' || status === 'Rest Day') return { badge: 'bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-500/10 dark:border-slate-500/20 dark:text-slate-300', dot: 'bg-slate-400' };
                                   if (status === 'Absent') return { badge: 'bg-red-50 text-red-600 border-red-200 dark:bg-red-500/10 dark:border-red-500/20', dot: 'bg-red-500' };
                                   return { badge: 'bg-slate-50 text-slate-400 border-slate-200 dark:bg-slate-500/10 dark:border-slate-500/20', dot: 'bg-slate-400' };
@@ -948,6 +997,11 @@ export default function AttendanceReports() {
                                       <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${conf.dot}`} />
                                       <span>{req.status}</span>
                                     </span>
+                                    {req.leave_type && req.leave_type !== req.status && (
+                                      <span className="text-[10px] text-muted-foreground font-semibold pl-1">
+                                        {req.leave_type}
+                                      </span>
+                                    )}
                                     {req.status === 'Missing Clock-Out' && (
                                       <span className={`inline-flex items-center gap-1.5 whitespace-nowrap px-2.5 py-0.5 text-[10px] tracking-wider font-black uppercase rounded-full border shadow-2xs ${missingConf.badge}`}>
                                         <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${missingConf.dot}`} />
