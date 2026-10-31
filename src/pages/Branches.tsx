@@ -2437,7 +2437,7 @@ export default function Branches() {
 
       {/* Add Branch Modal */}
       <Dialog open={isAddBranchModalOpen} onOpenChange={setIsAddBranchModalOpen}>
-        <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-xl md:max-w-2xl max-h-[90vh] flex flex-col overflow-hidden [&>button]:text-white [&>button]:hover:text-white/80 border-none shadow-2xl rounded-3xl p-0 my-auto">
+        <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-xl md:max-w-2xl max-h-[90vh] flex flex-col overflow-hidden [&>button]:text-white [&>button]:hover:text-white/80 border-none shadow-2xl rounded-3xl p-0 gap-0 my-auto">
           <DialogHeader className="bg-[#942392] p-5 sm:p-6 sm:rounded-t-lg m-0 border-b border-white/20 text-left shrink-0">
             <DialogTitle className="text-white font-black uppercase tracking-tight m-0 text-lg">Add New Branch</DialogTitle>
             <DialogDescription className="text-xs font-bold uppercase tracking-wider text-white/80 m-0 mt-1">
@@ -2709,7 +2709,7 @@ export default function Branches() {
       </Dialog>
 
       <Dialog open={isEditBranchModalOpen} onOpenChange={setIsEditBranchModalOpen}>
-        <DialogContent className="w-[calc(100vw-2.5rem)] max-w-2xl max-h-[90vh] flex flex-col p-0 border-none shadow-2xl rounded-3xl overflow-hidden my-auto">
+        <DialogContent className="w-[calc(100vw-2.5rem)] max-w-2xl max-h-[90vh] flex flex-col p-0 gap-0 border-none shadow-2xl rounded-3xl overflow-hidden my-auto">
           <div className="p-5 sm:p-6 bg-gradient-to-r from-[#942392] to-purple-500 text-white flex justify-between items-start border-b border-white/20 shrink-0">
             <div className="flex items-center gap-3">
               <div className="p-3 bg-white/20 rounded-xl">
@@ -2722,7 +2722,7 @@ export default function Branches() {
             </div>
           </div>
           <form onSubmit={handleEditBranch} className="flex flex-col flex-1 min-h-0 overflow-hidden bg-card">
-            <div className="p-5 sm:p-8 space-y-6 overflow-y-auto flex-1 min-h-0 overscroll-contain">
+            <div className="p-5 sm:px-8 sm:py-5 space-y-5 overflow-y-auto flex-1 min-h-0 overscroll-contain">
               {/* Target Entity Selector */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
@@ -3100,7 +3100,7 @@ export default function Branches() {
 
       {/* Delete Branch Permanently Modal */}
       <Dialog open={deleteModalOpen} onOpenChange={(open) => !open && setDeleteModalOpen(false)}>
-        <DialogContent className="sm:max-w-[425px] overflow-hidden p-0 border-0 border-none shadow-2xl rounded-2xl [&>button]:text-white [&>button]:hover:text-white/80 bg-card">
+        <DialogContent className="sm:max-w-[425px] overflow-hidden p-0 gap-0 border-0 border-none shadow-2xl rounded-2xl [&>button]:text-white [&>button]:hover:text-white/80 bg-card">
           <DialogHeader className="bg-[#ff0000] p-5 border-b border-red-700/30 text-left">
             <DialogTitle className="text-xl font-black text-white">
               Delete Branch Permanently
