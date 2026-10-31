@@ -2736,8 +2736,10 @@ export default function Branches() {
               const selectedOpt = editZoneOptions.find((o) => o.value === normalizeZoneCode(editBranchData.operating_zone)) || editZoneOptions[0];
               if (!selectedOpt) return null;
               const cleanCode = (editBranchData.code || "").trim().toUpperCase();
+              const origCode = (editBranchData.original_code || selectedBranch?.code || "").trim().toUpperCase();
+              const baseCodes = origCode ? selectedOpt.branchCodes.filter((c) => c !== origCode) : selectedOpt.branchCodes;
               const previewCodes = Array.from(
-                new Set([...selectedOpt.branchCodes, ...(cleanCode ? [cleanCode] : [])])
+                new Set([...baseCodes, ...(cleanCode ? [cleanCode] : [])])
               ).sort();
               return (
                 <div className="p-3 rounded-xl bg-muted/40 border border-border/60 space-y-1.5 text-[10px]">

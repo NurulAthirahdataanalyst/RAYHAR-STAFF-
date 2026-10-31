@@ -557,7 +557,7 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
       {/* Add / Edit Branch Dialog (Matching Screenshot 3 / Branches.tsx) */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogContent className="w-[calc(100vw-2.5rem)] sm:max-w-xl md:max-w-2xl max-h-[85vh] flex flex-col overflow-hidden [&>button]:text-white [&>button]:hover:text-white/80 border-none shadow-2xl rounded-3xl p-0 bg-card my-auto">
-          <DialogHeader className="bg-[#942392] p-6 sm:rounded-t-lg m-0 text-left border-b border-white/20">
+          <DialogHeader className="bg-[#942392] p-6 sm:rounded-t-lg m-0 text-left border-b border-white/20 shrink-0">
             <DialogTitle className="text-white font-black uppercase tracking-tight m-0 text-lg">
               {editingBranch ? 'Edit Branch' : 'Add New Branch'}
             </DialogTitle>
@@ -566,7 +566,7 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleSaveBranch} className="p-6 space-y-4 bg-card">
+          <form onSubmit={handleSaveBranch} className="p-6 space-y-4 bg-card flex-1 overflow-y-auto">
             {/* Target Entity Selector */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
@@ -673,8 +673,12 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
                 const currentModalZone = modalZoneOptions.find((o) => o.value === operatingZone || o.value === normalizeZoneCode(operatingZone))?.value || modalZoneOptions[0]?.value || 'STANDARD';
                 const selectedOpt = modalZoneOptions.find((o) => o.value === currentModalZone) || modalZoneOptions[0];
                 const cleanCode = branchCode.trim().toUpperCase();
+                const origCode = (editingBranch?.code || '').trim().toUpperCase();
+                const baseCodes = selectedOpt
+                  ? (origCode ? selectedOpt.branchCodes.filter((c) => c !== origCode) : selectedOpt.branchCodes)
+                  : [];
                 const previewCodes = selectedOpt ? Array.from(
-                  new Set([...selectedOpt.branchCodes, ...(cleanCode ? [cleanCode] : [])])
+                  new Set([...baseCodes, ...(cleanCode ? [cleanCode] : [])])
                 ).sort() : [];
 
                 return (

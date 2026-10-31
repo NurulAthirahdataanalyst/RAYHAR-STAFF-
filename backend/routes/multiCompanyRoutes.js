@@ -918,6 +918,21 @@ function createMultiCompanyRouter(pgPool) {
   // PUT update branch and its geofence settings
   router.put('/branches/:code', async (req, res) => {
     const client = await pgPool.connect();
+    let spCounter = 0;
+    const safeClientQuery = async (sql, params = []) => {
+      const sp = `sp_branch_${++spCounter}`;
+      try {
+        await client.query(`SAVEPOINT ${sp}`);
+        const result = await client.query(sql, params);
+        await client.query(`RELEASE SAVEPOINT ${sp}`);
+        return result;
+      } catch (e) {
+        await client.query(`ROLLBACK TO SAVEPOINT ${sp}`).catch(() => {});
+        await client.query(`RELEASE SAVEPOINT ${sp}`).catch(() => {});
+        return null;
+      }
+    };
+
     try {
       const oldCode = req.params.code.trim().toUpperCase();
       const { code: rawNewCode, name, location, operating_zone, latitude, longitude, radius, company_id } = req.body;
@@ -926,7 +941,6 @@ function createMultiCompanyRouter(pgPool) {
 
       const existingRes = await client.query('SELECT * FROM branches WHERE UPPER(code) = $1', [oldCode]);
       if (existingRes.rows.length === 0) {
-        client.release();
         return res.status(404).json({ success: false, error: 'Branch not found' });
       }
       const existingBranch = existingRes.rows[0];
@@ -935,7 +949,6 @@ function createMultiCompanyRouter(pgPool) {
       if (newCode !== oldCode) {
         const conflictRes = await client.query('SELECT code FROM branches WHERE UPPER(code) = $1 AND UPPER(code) != $2', [newCode, oldCode]);
         if (conflictRes.rows.length > 0) {
-          client.release();
           return res.status(400).json({ success: false, error: `Branch code '${newCode}' is already in use by another branch.` });
         }
       }
@@ -962,39 +975,44 @@ function createMultiCompanyRouter(pgPool) {
         ]);
         updatedBranch = insertRes.rows[0];
 
-        // Cascade code updates to all referencing tables
-        await client.query('UPDATE profiles SET branch = $1 WHERE UPPER(branch) = $2', [newCode, oldCode]).catch(() => {});
-        await client.query('UPDATE company_user_roles SET branch_id = $1 WHERE UPPER(branch_id) = $2', [newCode, oldCode]).catch(() => {});
-        await client.query('UPDATE branch_geofence_settings SET branch_code = $1 WHERE UPPER(branch_code) = $2', [newCode, oldCode]).catch(() => {});
-        await client.query('UPDATE work_assignments SET branch_id = $1 WHERE UPPER(branch_id) = $2', [newCode, oldCode]).catch(() => {});
-        await client.query('UPDATE work_assignments SET primary_branch = $1 WHERE UPPER(primary_branch) = $2', [newCode, oldCode]).catch(() => {});
-        await client.query('UPDATE work_assignments SET location = $1 WHERE UPPER(location) = $2', [newCode, oldCode]).catch(() => {});
-        await client.query('UPDATE attendance_records SET branch = $1 WHERE UPPER(branch) = $2', [newCode, oldCode]).catch(() => {});
-        await client.query('UPDATE leave_requests SET branch = $1 WHERE UPPER(branch) = $2', [newCode, oldCode]).catch(() => {});
+        // Cascade code updates to all referencing tables using SAVEPOINTs so optional tables/constraints never abort the transaction
+        await safeClientQuery('UPDATE profiles SET branch = $1 WHERE UPPER(branch) = $2', [newCode, oldCode]);
+        await safeClientQuery('UPDATE company_user_roles SET branch_id = $1 WHERE UPPER(branch_id) = $2', [newCode, oldCode]);
+        await safeClientQuery('DELETE FROM branch_geofence_settings WHERE UPPER(branch_code) = $1', [newCode]);
+        await safeClientQuery('UPDATE branch_geofence_settings SET branch_code = $1 WHERE UPPER(branch_code) = $2', [newCode, oldCode]);
+        await safeClientQuery('UPDATE employee_work_assignment SET location = $1 WHERE UPPER(location) = $2', [newCode, oldCode]);
+        await safeClientQuery('UPDATE employee_allowed_locations SET allowed_branch = $1 WHERE UPPER(allowed_branch) = $2', [newCode, oldCode]);
+        await safeClientQuery('UPDATE outstation_assignments SET branch = $1 WHERE UPPER(branch) = $2', [newCode, oldCode]);
+        await safeClientQuery('UPDATE employee_company_history SET new_branch = $1 WHERE UPPER(new_branch) = $2', [newCode, oldCode]);
+        await safeClientQuery('UPDATE employee_company_history SET previous_branch = $1 WHERE UPPER(previous_branch) = $2', [newCode, oldCode]);
+        await safeClientQuery('UPDATE attendances SET location = $1 WHERE UPPER(location) = $2', [newCode, oldCode]);
+        await safeClientQuery('UPDATE company_leave_calendar SET branch_id = $1 WHERE UPPER(branch_id) = $2', [newCode, oldCode]);
 
         // Cascade in work schedules
-        const schedRes = await client.query('SELECT id, branch_ids, branch_id FROM work_schedules');
-        for (const ws of schedRes.rows) {
-          let codes = parseBranchIds(ws.branch_ids, ws.branch_id);
-          if (codes.includes(oldCode)) {
-            codes = codes.map(c => c === oldCode ? newCode : c);
-            codes = Array.from(new Set(codes)).sort();
-            await client.query(
-              'UPDATE work_schedules SET branch_ids = $1::jsonb, branch_id = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3',
-              [JSON.stringify(codes), codes.join(','), ws.id]
-            );
+        const schedRes = await safeClientQuery('SELECT id, branch_ids, branch_id FROM work_schedules');
+        if (schedRes && Array.isArray(schedRes.rows)) {
+          for (const ws of schedRes.rows) {
+            let codes = parseBranchIds(ws.branch_ids, ws.branch_id);
+            if (codes.includes(oldCode)) {
+              codes = codes.map(c => c === oldCode ? newCode : c);
+              codes = Array.from(new Set(codes)).sort();
+              await safeClientQuery(
+                'UPDATE work_schedules SET branch_ids = $1::jsonb, branch_id = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3',
+                [JSON.stringify(codes), codes.join(','), ws.id]
+              );
+            }
           }
         }
 
         // Cascade in approval workflow routing / scope
-        await client.query(`
+        await safeClientQuery(`
           UPDATE approval_workflow 
           SET branch_scope = CASE 
             WHEN UPPER(branch_scope) = $1 THEN $2 
             ELSE REPLACE(branch_scope, $1, $2) 
           END 
           WHERE branch_scope ILIKE $3
-        `, [oldCode, newCode, `%${oldCode}%`]).catch(() => {});
+        `, [oldCode, newCode, `%${oldCode}%`]);
 
         // Delete old branch record safely now that all FKs have moved
         await client.query('DELETE FROM branches WHERE UPPER(code) = $1', [oldCode]);
@@ -1017,18 +1035,18 @@ function createMultiCompanyRouter(pgPool) {
       }
 
       if (radius !== undefined) {
-        await client.query(`
+        await safeClientQuery(`
           INSERT INTO branch_geofence_settings (branch_code, company_id, mode, radius_meter)
           VALUES ($1, $2, 'normal', $3)
           ON CONFLICT (branch_code, mode) DO UPDATE SET radius_meter = EXCLUDED.radius_meter;
         `, [newCode, updatedBranch.company_id || 1, radius]);
       }
 
+      await client.query('COMMIT');
+
       if (updatedBranch.operating_zone) {
         await syncBranchToWorkSchedules(updatedBranch.company_id || 1, newCode, updatedBranch.operating_zone);
       }
-
-      await client.query('COMMIT');
 
       if (typeof global.broadcastPresenceUpdate === 'function') {
         global.broadcastPresenceUpdate({ type: 'refresh' });
