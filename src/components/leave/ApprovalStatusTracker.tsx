@@ -30,21 +30,34 @@ interface ApprovalStatusTrackerProps {
   }>;
 }
 
+const normRoleStr = (r?: string) =>
+  String(r || "")
+    .toLowerCase()
+    .replace(/_/g, " ")
+    .replace(/\([^)]*\)/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
 const formatRoleName = (r?: string) => {
   if (!r) return "MANAGER";
+  const cleaned = String(r).replace(/\([^)]*\)/g, "").trim();
+  const key = cleaned.toLowerCase().replace(/\s+/g, "_");
   const map: Record<string, string> = {
     assure_leader: "ASSURE LEADER",
     branch_leader: "BRANCH LEADER",
     managing_director: "MANAGING DIRECTOR",
+    md: "MANAGING DIRECTOR",
     operation_manager: "OPERATION MANAGER",
     finance_manager: "OPERATION MANAGER",
     head_of_department: "HEAD OF DEPARTMENT",
+    hod: "HEAD OF DEPARTMENT",
     hr_admin: "HR ADMIN",
+    hr: "HR ADMIN",
+    admin: "HR ADMIN",
     branch_officer: "BRANCH OFFICER",
     employee: "EMPLOYEE",
   };
-  const key = r.toLowerCase().trim();
-  return map[key] || r.replace(/_/g, ' ').toUpperCase();
+  return map[key] || cleaned.replace(/_/g, " ").toUpperCase();
 };
 
 const formatDept = (dept?: string) => {
@@ -141,13 +154,13 @@ export function ApprovalStatusTracker({
     sUpper.includes('HR') || 
     (isHrRole(approverRole) && !isApproved && !isRejected);
 
-  const isHrWorkflow = !isMdApproved && !isOpApproved && !isRayRent && (isApprovedByHr || isRejectedByHr || isPendingHr);
+  const isHrWorkflow = !isMdApproved && !isOpApproved && !isRayRent && !lvl1History && (isApprovedByHr || isRejectedByHr || isPendingHr);
 
   // Prepare HR Admin details
   const hrName = hrHistory?.approver_name || approverName || (isRayRent ? "NURUL ATHIRAH ABDUL RAHMAN" : "");
   const hrContext = isRayRent 
     ? "RAYRENT" 
-    : (hrHistory?.approver_branch || pendingApproverContext || (branch && branch !== 'HQ' ? branch : '') || (companyName && !companyName.toLowerCase().includes('rayhar') ? companyName : 'RAYRENT'));
+    : (hrHistory?.approver_branch || "HQ");
 
   let hrSubtitle: string | undefined = undefined;
   if (isApprovedByHr) {
@@ -192,11 +205,13 @@ export function ApprovalStatusTracker({
     ? "MANAGING DIRECTOR"
     : (isOpApproved || (isLvl2Pending && (sUpper.includes("OPERATION") || sUpper.includes("FINANCE"))))
     ? "OPERATION MANAGER"
+    : (isApprovedByHr && Boolean(lvl1History))
+    ? "HR ADMIN"
     : (isRayRent ? "BRANCH LEADER" : (isHQ ? "OPERATION MANAGER" : "MANAGING DIRECTOR"));
 
-  const lvl2Context = isMdApproved || (sUpper.includes("MD") || sUpper.includes("MANAGING"))
-    ? "HQ"
-    : (lvl2History?.approver_branch || pendingApproverContext || (isRayRent ? (branch || 'RayRent') : 'HQ'));
+  const lvl2Context = isRayRent
+    ? (lvl2History?.approver_branch || branch || 'RayRent')
+    : 'HQ';
 
   if (isRayRent) {
     const isAssurePending = sUpper.includes("ASSURE");
@@ -426,6 +441,31 @@ export function ApprovalStatusTracker({
     date?: string;
   }> | null = null;
 
+  const getStepLocationContext = (effectiveRoleTitle: string, stepHist?: ApprovalHistoryItem) => {
+    const rNorm = normRoleStr(effectiveRoleTitle);
+    if (
+      rNorm.includes("managing director") ||
+      rNorm === "md" ||
+      rNorm.includes("operation manager") ||
+      rNorm.includes("finance manager")
+    ) {
+      return "HQ";
+    }
+    if (rNorm.includes("hr admin") || rNorm === "hr" || rNorm === "admin") {
+      return isRayRent ? "RAYRENT" : (stepHist?.approver_branch || "HQ");
+    }
+    if (rNorm.includes("head of department") || rNorm === "hod") {
+      return formatDept(stepHist?.approver_department || department);
+    }
+    if (rNorm.includes("assure")) {
+      return "RayRent";
+    }
+    if (isRayharVacation || rNorm.includes("administrative") || rNorm.includes("general manager")) {
+      return stepHist?.approver_branch || branch || "RV - KMN";
+    }
+    return stepHist?.approver_branch || branch || "HQ";
+  };
+
   if (workflowSteps && workflowSteps.length > 0) {
     const cleanBranch = String(branch || '').trim().toUpperCase();
     let applicableSteps = workflowSteps.filter(s => {
@@ -461,27 +501,84 @@ export function ApprovalStatusTracker({
         }
       ];
 
-      const cleanCurrent = sUpper.replace(/^PENDING\s+/, '').trim().toLowerCase();
+      // Pre-match approvalHistory entries to applicableSteps (Pass 1: role match, Pass 2: positional fallback for overrides like HR Admin)
+      const usedHistIndices = new Set<number>();
+      const stepHists: Array<ApprovalHistoryItem | undefined> = new Array(applicableSteps.length).fill(undefined);
+
+      for (let i = 0; i < applicableSteps.length; i++) {
+        const sr = normRoleStr(applicableSteps[i].role_name || applicableSteps[i].step_label);
+        const matchIdx = (approvalHistory || []).findIndex((h, idx) => {
+          if (usedHistIndices.has(idx)) return false;
+          const hr = normRoleStr(h.approver_role);
+          if (!hr || !sr) return false;
+          return (
+            hr === sr ||
+            hr.includes(sr) ||
+            sr.includes(hr) ||
+            (sr.includes('hod') && hr.includes('head')) ||
+            (sr.includes('head') && hr.includes('hod')) ||
+            (sr.includes('md') && hr.includes('managing')) ||
+            (sr.includes('managing') && hr.includes('md')) ||
+            (sr.includes('operation') && hr.includes('finance')) ||
+            (sr.includes('finance') && hr.includes('operation'))
+          );
+        });
+        if (matchIdx !== -1) {
+          stepHists[i] = approvalHistory[matchIdx];
+          usedHistIndices.add(matchIdx);
+        }
+      }
+
+      for (let i = 0; i < applicableSteps.length; i++) {
+        if (!stepHists[i] && (approvalHistory || [])[i] && !usedHistIndices.has(i)) {
+          stepHists[i] = approvalHistory[i];
+          usedHistIndices.add(i);
+        }
+      }
+
+      const cleanCurrent = normRoleStr(sUpper.replace(/^PENDING\s+/, ''));
       let currentIdx = applicableSteps.findIndex(s => {
-        const r = (s.role_name || '').trim().toLowerCase();
-        const l = (s.step_label || '').trim().toLowerCase();
-        return cleanCurrent === r || cleanCurrent === l || (cleanCurrent.includes('hod') && r.includes('head')) || (cleanCurrent.includes('md') && r.includes('managing'));
+        const r = normRoleStr(s.role_name);
+        const l = normRoleStr(s.step_label);
+        return (
+          cleanCurrent === r ||
+          cleanCurrent === l ||
+          (cleanCurrent.includes('hod') && r.includes('head')) ||
+          (cleanCurrent.includes('head') && r.includes('hod')) ||
+          (cleanCurrent.includes('md') && r.includes('managing')) ||
+          (cleanCurrent.includes('managing') && r.includes('md')) ||
+          (cleanCurrent.includes('operation') && r.includes('finance')) ||
+          (cleanCurrent.includes('finance') && r.includes('operation'))
+        );
       });
 
       if (currentIdx === -1 && sUpper.startsWith('PENDING')) {
         const approvedCount = (approvalHistory || []).filter(h => String(h.status).toLowerCase().includes('approved')).length;
         currentIdx = Math.min(approvedCount, applicableSteps.length - 1);
+      } else if (isRejected) {
+        const rejectedStepIdx = stepHists.findIndex(h => h && String(h.status).toLowerCase().includes('rejected'));
+        if (rejectedStepIdx !== -1) {
+          currentIdx = rejectedStepIdx;
+        } else {
+          const approvedCount = (approvalHistory || []).filter(h => String(h.status).toLowerCase().includes('approved')).length;
+          currentIdx = Math.min(approvedCount, applicableSteps.length - 1);
+        }
       }
 
       for (let i = 0; i < applicableSteps.length; i++) {
         const step = applicableSteps[i];
-        const roleTitle = (step.role_name || step.step_label || `STEP ${step.step_order}`).toUpperCase();
+        const stepHist = stepHists[i];
 
-        const stepHist = (approvalHistory || []).find(h => {
-          const hr = String(h.approver_role || '').toLowerCase();
-          const sr = (step.role_name || '').toLowerCase();
-          return hr.includes(sr) || (sr.includes('hod') && hr.includes('head')) || (sr.includes('md') && hr.includes('managing'));
-        });
+        let roleTitle = formatRoleName(step.role_name || step.step_label || `STEP ${step.step_order}`);
+        if (stepHist?.approver_role) {
+          roleTitle = formatRoleName(stepHist.approver_role);
+        } else if (isApproved && i === applicableSteps.length - 1 && approverRole && (approvalHistory || []).length === 0) {
+          roleTitle = formatRoleName(approverRole);
+        } else if (isRejected && i === currentIdx && approverRole && !stepHist) {
+          roleTitle = formatRoleName(approverRole);
+        }
+
+        const stepLoc = getStepLocationContext(roleTitle, stepHist);
 
         let stepStatus: 'Approved' | 'Rejected' | 'Pending' | 'Future' = 'Future';
         let stepSub: string | undefined = undefined;
@@ -489,26 +586,30 @@ export function ApprovalStatusTracker({
 
         if (isApproved) {
           stepStatus = 'Approved';
-          stepSub = stepHist?.approver_name ? `${stepHist.approver_name} • ${branch || 'HQ'}` : `Approved • ${branch || 'HQ'}`;
+          const dispName = stepHist?.approver_name || (i === applicableSteps.length - 1 && (approvalHistory || []).length === 0 ? approverName : '');
+          stepSub = dispName ? `${dispName} • ${stepLoc}` : `Approved • ${stepLoc}`;
           if (stepHist?.created_at) stepDate = new Date(stepHist.created_at).toLocaleDateString('en-GB');
         } else if (isRejected) {
           if (currentIdx === i) {
             stepStatus = 'Rejected';
-            stepSub = approverName ? `${approverName} • ${branch || 'HQ'}` : `Rejected • ${branch || 'HQ'}`;
+            const rejName = stepHist?.approver_name || approverName;
+            stepSub = rejName ? `${rejName} • ${stepLoc}` : `Rejected • ${stepLoc}`;
+            if (stepHist?.created_at) stepDate = new Date(stepHist.created_at).toLocaleDateString('en-GB');
           } else if (i < currentIdx) {
             stepStatus = 'Approved';
-            stepSub = stepHist?.approver_name ? `${stepHist.approver_name} • ${branch || 'HQ'}` : `Approved • ${branch || 'HQ'}`;
+            stepSub = stepHist?.approver_name ? `${stepHist.approver_name} • ${stepLoc}` : `Approved • ${stepLoc}`;
+            if (stepHist?.created_at) stepDate = new Date(stepHist.created_at).toLocaleDateString('en-GB');
           } else {
             stepStatus = 'Future';
           }
         } else if (sUpper.startsWith('PENDING')) {
           if (i < currentIdx) {
             stepStatus = 'Approved';
-            stepSub = stepHist?.approver_name ? `${stepHist.approver_name} • ${branch || 'HQ'}` : `Approved • ${branch || 'HQ'}`;
+            stepSub = stepHist?.approver_name ? `${stepHist.approver_name} • ${stepLoc}` : `Approved • ${stepLoc}`;
             if (stepHist?.created_at) stepDate = new Date(stepHist.created_at).toLocaleDateString('en-GB');
           } else if (i === currentIdx) {
             stepStatus = 'Pending';
-            stepSub = pendingApproverName ? `${pendingApproverName} • ${branch || 'HQ'}` : `Awaiting ${step.role_name || step.step_label} Approval • ${branch || 'HQ'}`;
+            stepSub = pendingApproverName ? `${pendingApproverName} • ${stepLoc}` : `Awaiting ${step.role_name || step.step_label} Approval • ${stepLoc}`;
           } else {
             stepStatus = 'Future';
           }
@@ -609,26 +710,26 @@ export function ApprovalStatusTracker({
     <div className="w-full py-2">
       <div className="flex items-start justify-between relative">
         {items.map((item, idx) => {
-          const isApproved = item.status === 'Approved';
-          const isRejected = item.status === 'Rejected';
-          const isPending = item.status === 'Pending';
-          const isFuture = item.status === 'Future';
+          const itemApproved = item.status === 'Approved';
+          const itemRejected = item.status === 'Rejected';
+          const itemPending = item.status === 'Pending';
+          const itemFuture = item.status === 'Future';
 
           const isLast = idx === items.length - 1;
 
-          const circleBorder = isApproved
+          const circleBorder = itemApproved
             ? 'border-emerald-500 bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50'
-            : isRejected
+            : itemRejected
             ? 'border-rose-500 bg-rose-50 text-rose-600 dark:bg-rose-950/50'
-            : isPending
+            : itemPending
             ? 'border-[#942392] bg-purple-50 text-[#942392] dark:bg-purple-950/50 shadow-md shadow-[#942392]/20 animate-pulse'
             : 'border-slate-300 bg-slate-100 text-slate-400 dark:border-slate-700 dark:bg-slate-800';
 
-          const badgeBg = isApproved
+          const badgeBg = itemApproved
             ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-            : isRejected
+            : itemRejected
             ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'
-            : isPending
+            : itemPending
             ? 'bg-[#942392]/10 text-[#942392] dark:text-purple-300 border-[#942392]/20'
             : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400 border-slate-200';
 
@@ -638,10 +739,10 @@ export function ApprovalStatusTracker({
               <div className="flex flex-col items-center text-center flex-1 z-10 min-w-0 px-1">
                 {/* Node Icon */}
                 <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center mb-2 shadow-sm transition-all ${circleBorder}`}>
-                  {isApproved && <Check className="w-4 h-4 font-black" strokeWidth={3.5} />}
-                  {isRejected && <X className="w-4 h-4 font-black" strokeWidth={3.5} />}
-                  {isPending && <Clock className="w-4 h-4 font-bold animate-spin" />}
-                  {isFuture && <div className="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-600" />}
+                  {itemApproved && <Check className="w-4 h-4 font-black" strokeWidth={3.5} />}
+                  {itemRejected && <X className="w-4 h-4 font-black" strokeWidth={3.5} />}
+                  {itemPending && <Clock className="w-4 h-4 font-bold animate-spin" />}
+                  {itemFuture && <div className="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-600" />}
                 </div>
 
                 {/* Status Badge */}
@@ -673,9 +774,9 @@ export function ApprovalStatusTracker({
               {!isLast && (
                 <div className="flex-1 flex items-center self-start mt-4 -mx-2 px-1">
                   <div className={`h-[3px] w-full rounded-full transition-colors ${
-                    isApproved && items[idx + 1]?.status === 'Approved'
+                    itemApproved && items[idx + 1]?.status === 'Approved'
                       ? 'bg-emerald-500'
-                      : isRejected
+                      : itemRejected
                       ? 'bg-rose-400'
                       : 'bg-slate-200 dark:bg-slate-700'
                   }`} />

@@ -4810,10 +4810,10 @@ app.get("/api/leave-requests", async (req, res) => {
                 AND p2.status = 'Active' 
               LIMIT 1
             )
-            WHEN lr.status = 'Pending HOD' THEN (SELECT UPPER(full_name) FROM profiles p2 LEFT JOIN user_role ur2 ON p2.user_id = ur2.user_id LEFT JOIN roles r2 ON p2.role_id = r2.id WHERE (LOWER(COALESCE(ur2.role, '')) LIKE '%head%department%' OR LOWER(COALESCE(ur2.role, '')) = 'hod' OR LOWER(COALESCE(r2.name, '')) LIKE '%head%department%' OR LOWER(COALESCE(r2.name, '')) = 'hod' OR LOWER(COALESCE(p2.role, '')) LIKE '%head%department%' OR LOWER(COALESCE(p2.role, '')) = 'hod') AND UPPER(p2.department) = UPPER(p.department) AND p2.status = 'Active' LIMIT 1)
+            WHEN lr.status IN ('Pending HOD', 'Pending Head of Department') THEN (SELECT UPPER(full_name) FROM profiles p2 LEFT JOIN user_role ur2 ON p2.user_id = ur2.user_id LEFT JOIN roles r2 ON p2.role_id = r2.id WHERE (LOWER(COALESCE(ur2.role, '')) LIKE '%head%department%' OR LOWER(COALESCE(ur2.role, '')) = 'hod' OR LOWER(COALESCE(r2.name, '')) LIKE '%head%department%' OR LOWER(COALESCE(r2.name, '')) = 'hod' OR LOWER(COALESCE(p2.role, '')) LIKE '%head%department%' OR LOWER(COALESCE(p2.role, '')) = 'hod') AND UPPER(p2.department) = UPPER(p.department) AND p2.status = 'Active' LIMIT 1)
             WHEN lr.status IN ('Pending Operation Manager', 'Pending Operation', 'Pending Finance', 'Pending Finance Manager') THEN (SELECT UPPER(full_name) FROM profiles p2 LEFT JOIN user_role ur2 ON p2.user_id = ur2.user_id LEFT JOIN roles r2 ON p2.role_id = r2.id WHERE (LOWER(COALESCE(ur2.role, '')) LIKE '%operation%manager%' OR LOWER(COALESCE(ur2.role, '')) LIKE '%finance%manager%' OR LOWER(COALESCE(r2.name, '')) LIKE '%operation%manager%' OR LOWER(COALESCE(r2.name, '')) LIKE '%finance%manager%' OR LOWER(COALESCE(p2.role, '')) LIKE '%operation%manager%' OR LOWER(COALESCE(p2.role, '')) LIKE '%finance%manager%') AND p2.status = 'Active' LIMIT 1)
             WHEN lr.status IN ('Pending MD', 'Pending Managing Director') THEN (SELECT UPPER(full_name) FROM profiles p2 LEFT JOIN user_role ur2 ON p2.user_id = ur2.user_id LEFT JOIN roles r2 ON p2.role_id = r2.id WHERE (LOWER(COALESCE(ur2.role, '')) LIKE '%managing%director%' OR LOWER(COALESCE(ur2.role, '')) = 'md' OR LOWER(COALESCE(r2.name, '')) LIKE '%managing%director%' OR LOWER(COALESCE(r2.name, '')) = 'md' OR LOWER(COALESCE(p2.role, '')) LIKE '%managing%director%' OR LOWER(COALESCE(p2.role, '')) = 'md') AND p2.status = 'Active' LIMIT 1)
-            WHEN lr.status = 'Pending HR' THEN (SELECT UPPER(full_name) FROM profiles p2 LEFT JOIN user_role ur2 ON p2.user_id = ur2.user_id LEFT JOIN roles r2 ON p2.role_id = r2.id WHERE (LOWER(COALESCE(ur2.role, '')) LIKE '%hr%admin%' OR LOWER(COALESCE(ur2.role, '')) = 'hr' OR LOWER(COALESCE(ur2.role, '')) = 'admin' OR LOWER(COALESCE(r2.name, '')) LIKE '%hr%admin%' OR LOWER(COALESCE(r2.name, '')) = 'hr' OR LOWER(COALESCE(r2.name, '')) = 'admin' OR LOWER(COALESCE(p2.role, '')) LIKE '%hr%admin%' OR LOWER(COALESCE(p2.role, '')) = 'hr' OR LOWER(COALESCE(p2.role, '')) = 'admin') AND p2.status = 'Active' LIMIT 1)
+            WHEN lr.status IN ('Pending HR', 'Pending HR Admin') THEN (SELECT UPPER(full_name) FROM profiles p2 LEFT JOIN user_role ur2 ON p2.user_id = ur2.user_id LEFT JOIN roles r2 ON p2.role_id = r2.id WHERE (LOWER(COALESCE(ur2.role, '')) LIKE '%hr%admin%' OR LOWER(COALESCE(ur2.role, '')) = 'hr' OR LOWER(COALESCE(ur2.role, '')) = 'admin' OR LOWER(COALESCE(r2.name, '')) LIKE '%hr%admin%' OR LOWER(COALESCE(r2.name, '')) = 'hr' OR LOWER(COALESCE(r2.name, '')) = 'admin' OR LOWER(COALESCE(p2.role, '')) LIKE '%hr%admin%' OR LOWER(COALESCE(p2.role, '')) = 'hr' OR LOWER(COALESCE(p2.role, '')) = 'admin') AND p2.status = 'Active' LIMIT 1)
             ELSE (
               SELECT UPPER(p2.full_name) 
               FROM profiles p2 
@@ -4836,8 +4836,8 @@ app.get("/api/leave-requests", async (req, res) => {
           CASE 
             WHEN lr.status = 'Pending Branch Leader' THEN p.branch
             WHEN lr.status = 'Pending Assure Leader' THEN 'RayRent'
-            WHEN lr.status = 'Pending HOD' THEN p.department
-            WHEN lr.status IN ('Pending MD', 'Pending Managing Director', 'Pending Operation Manager', 'Pending Operation') THEN 'HQ'
+            WHEN lr.status IN ('Pending HOD', 'Pending Head of Department') THEN p.department
+            WHEN lr.status IN ('Pending MD', 'Pending Managing Director', 'Pending Operation Manager', 'Pending Operation', 'Pending Finance', 'Pending Finance Manager', 'Pending HR', 'Pending HR Admin') THEN 'HQ'
             ELSE COALESCE(p.branch, 'Branch')
           END
         ) AS pending_approver_context,
@@ -12487,12 +12487,15 @@ app.put("/api/branches/:code", async (req, res) => {
       ).catch(() => {});
       await pool.query(`UPDATE profiles SET branch = ? WHERE UPPER(branch) = ?`, [newCode, oldCode]).catch(() => {});
       await pool.query(`UPDATE company_user_roles SET branch_id = ? WHERE UPPER(branch_id) = ?`, [newCode, oldCode]).catch(() => {});
+      await pool.query(`DELETE FROM branch_geofence_settings WHERE UPPER(branch_code) = ?`, [newCode]).catch(() => {});
       await pool.query(`UPDATE branch_geofence_settings SET branch_code = ? WHERE UPPER(branch_code) = ?`, [newCode, oldCode]).catch(() => {});
-      await pool.query(`UPDATE work_assignments SET branch_id = ? WHERE UPPER(branch_id) = ?`, [newCode, oldCode]).catch(() => {});
-      await pool.query(`UPDATE work_assignments SET primary_branch = ? WHERE UPPER(primary_branch) = ?`, [newCode, oldCode]).catch(() => {});
-      await pool.query(`UPDATE work_assignments SET location = ? WHERE UPPER(location) = ?`, [newCode, oldCode]).catch(() => {});
-      await pool.query(`UPDATE attendance_records SET branch = ? WHERE UPPER(branch) = ?`, [newCode, oldCode]).catch(() => {});
-      await pool.query(`UPDATE leave_requests SET branch = ? WHERE UPPER(branch) = ?`, [newCode, oldCode]).catch(() => {});
+      await pool.query(`UPDATE employee_work_assignment SET location = ? WHERE UPPER(location) = ?`, [newCode, oldCode]).catch(() => {});
+      await pool.query(`UPDATE employee_allowed_locations SET allowed_branch = ? WHERE UPPER(allowed_branch) = ?`, [newCode, oldCode]).catch(() => {});
+      await pool.query(`UPDATE outstation_assignments SET branch = ? WHERE UPPER(branch) = ?`, [newCode, oldCode]).catch(() => {});
+      await pool.query(`UPDATE employee_company_history SET new_branch = ? WHERE UPPER(new_branch) = ?`, [newCode, oldCode]).catch(() => {});
+      await pool.query(`UPDATE employee_company_history SET previous_branch = ? WHERE UPPER(previous_branch) = ?`, [newCode, oldCode]).catch(() => {});
+      await pool.query(`UPDATE attendances SET location = ? WHERE UPPER(location) = ?`, [newCode, oldCode]).catch(() => {});
+      await pool.query(`UPDATE company_leave_calendar SET branch_id = ? WHERE UPPER(branch_id) = ?`, [newCode, oldCode]).catch(() => {});
       await pool.query(`DELETE FROM branches WHERE UPPER(code) = ?`, [oldCode]).catch(() => {});
     } else {
       await pool.query(
