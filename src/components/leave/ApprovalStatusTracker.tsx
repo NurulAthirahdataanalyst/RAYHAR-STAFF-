@@ -351,11 +351,7 @@ export function ApprovalStatusTracker({
   }) || aRole.includes("assure") || sUpper.includes("ASSURE");
   const rayRentShowFinalStep = !(isApproved && !rayRentHasAssureActivity && !isMdApproved && !isApprovedByHr);
 
-  // Rayhar Vacation 3-tier Sequence: Travel Consultant -> Administrative Assistant -> General Manager
-  const tcHistory = (approvalHistory || []).find(h => {
-    const r = String(h.approver_role || "").toLowerCase();
-    return r.includes("travel") || r.includes("consultant");
-  });
+  // Rayhar Vacation 2-tier Sequence: Administrative Assistant -> General Manager
   const aaHistory = (approvalHistory || []).find(h => {
     const r = String(h.approver_role || "").toLowerCase();
     return r.includes("administrative") || r.includes("assistant");
@@ -365,9 +361,8 @@ export function ApprovalStatusTracker({
     return r.includes("general") || r.includes("gm");
   });
 
-  const isTcPending = sUpper.includes("TRAVEL") || sUpper.includes("CONSULTANT") || (sUpper === "PENDING" && !aaHistory && !gmHistory);
-  const isAaPending = sUpper.includes("ADMINISTRATIVE") || sUpper.includes("ASSISTANT");
   const isGmPending = sUpper.includes("GENERAL") || sUpper.includes("GM");
+  const isAaPending = sUpper.includes("ADMINISTRATIVE") || sUpper.includes("ASSISTANT") || (sUpper.includes("PENDING") && !isGmPending && !gmHistory);
 
   let rvStep1Status: 'Approved' | 'Rejected' | 'Pending' | 'Future' = 'Future';
   let rvStep1Subtitle: string | undefined = undefined;
@@ -377,65 +372,42 @@ export function ApprovalStatusTracker({
   let rvStep2Subtitle: string | undefined = undefined;
   let rvStep2Date: string | undefined = undefined;
 
-  let rvStep3Status: 'Approved' | 'Rejected' | 'Pending' | 'Future' = 'Future';
-  let rvStep3Subtitle: string | undefined = undefined;
-  let rvStep3Date: string | undefined = undefined;
-
   if (isRayharVacation) {
     if (isApproved) {
       rvStep1Status = 'Approved';
-      rvStep1Subtitle = tcHistory?.approver_name ? `${tcHistory.approver_name} • RV - KMN` : `Approved • RV - KMN`;
-      if (tcHistory?.created_at) rvStep1Date = new Date(tcHistory.created_at).toLocaleDateString('en-GB');
+      rvStep1Subtitle = aaHistory?.approver_name ? `${aaHistory.approver_name} • RV - KMN` : `Approved • RV - KMN`;
+      if (aaHistory?.created_at) rvStep1Date = new Date(aaHistory.created_at).toLocaleDateString('en-GB');
 
       rvStep2Status = 'Approved';
-      rvStep2Subtitle = aaHistory?.approver_name ? `${aaHistory.approver_name} • RV - KMN` : `Approved • RV - KMN`;
-      if (aaHistory?.created_at) rvStep2Date = new Date(aaHistory.created_at).toLocaleDateString('en-GB');
-
-      rvStep3Status = 'Approved';
-      rvStep3Subtitle = gmHistory?.approver_name ? `${gmHistory.approver_name} • RV - KMN` : `Approved • RV - KMN`;
-      if (gmHistory?.created_at) rvStep3Date = new Date(gmHistory.created_at).toLocaleDateString('en-GB');
+      rvStep2Subtitle = gmHistory?.approver_name ? `${gmHistory.approver_name} • RV - KMN` : `Approved • RV - KMN`;
+      if (gmHistory?.created_at) rvStep2Date = new Date(gmHistory.created_at).toLocaleDateString('en-GB');
     } else if (isRejected) {
       if (gmHistory && String(gmHistory.status).toLowerCase().includes('rejected')) {
         rvStep1Status = 'Approved';
-        rvStep2Status = 'Approved';
-        rvStep3Status = 'Rejected';
-        rvStep3Subtitle = gmHistory.approver_name ? `${gmHistory.approver_name} • RV - KMN` : `Rejected • RV - KMN`;
-        if (gmHistory.created_at) rvStep3Date = new Date(gmHistory.created_at).toLocaleDateString('en-GB');
-      } else if (aaHistory && String(aaHistory.status).toLowerCase().includes('rejected')) {
-        rvStep1Status = 'Approved';
+        rvStep1Subtitle = aaHistory?.approver_name ? `${aaHistory.approver_name} • RV - KMN` : `Approved • RV - KMN`;
+        if (aaHistory?.created_at) rvStep1Date = new Date(aaHistory.created_at).toLocaleDateString('en-GB');
+
         rvStep2Status = 'Rejected';
-        rvStep2Subtitle = aaHistory.approver_name ? `${aaHistory.approver_name} • RV - KMN` : `Rejected • RV - KMN`;
-        if (aaHistory.created_at) rvStep2Date = new Date(aaHistory.created_at).toLocaleDateString('en-GB');
+        rvStep2Subtitle = gmHistory.approver_name ? `${gmHistory.approver_name} • RV - KMN` : `Rejected • RV - KMN`;
+        if (gmHistory.created_at) rvStep2Date = new Date(gmHistory.created_at).toLocaleDateString('en-GB');
       } else {
         rvStep1Status = 'Rejected';
-        rvStep1Subtitle = tcHistory?.approver_name ? `${tcHistory.approver_name} • RV - KMN` : (approverName ? `${approverName} • RV - KMN` : `Rejected • RV - KMN`);
-        if (tcHistory?.created_at) rvStep1Date = new Date(tcHistory.created_at).toLocaleDateString('en-GB');
+        rvStep1Subtitle = aaHistory?.approver_name ? `${aaHistory.approver_name} • RV - KMN` : (approverName ? `${approverName} • RV - KMN` : `Rejected • RV - KMN`);
+        if (aaHistory?.created_at) rvStep1Date = new Date(aaHistory.created_at).toLocaleDateString('en-GB');
+        rvStep2Status = 'Future';
       }
     } else if (isGmPending) {
       rvStep1Status = 'Approved';
-      rvStep1Subtitle = tcHistory?.approver_name ? `${tcHistory.approver_name} • RV - KMN` : `Approved • RV - KMN`;
-      if (tcHistory?.created_at) rvStep1Date = new Date(tcHistory.created_at).toLocaleDateString('en-GB');
-
-      rvStep2Status = 'Approved';
-      rvStep2Subtitle = aaHistory?.approver_name ? `${aaHistory.approver_name} • RV - KMN` : `Approved • RV - KMN`;
-      if (aaHistory?.created_at) rvStep2Date = new Date(aaHistory.created_at).toLocaleDateString('en-GB');
-
-      rvStep3Status = 'Pending';
-      rvStep3Subtitle = pendingApproverName ? `${pendingApproverName} • RV - KMN` : `Awaiting General Manager Approval • RV - KMN`;
-    } else if (isAaPending) {
-      rvStep1Status = 'Approved';
-      rvStep1Subtitle = tcHistory?.approver_name ? `${tcHistory.approver_name} • RV - KMN` : `Approved • RV - KMN`;
-      if (tcHistory?.created_at) rvStep1Date = new Date(tcHistory.created_at).toLocaleDateString('en-GB');
+      rvStep1Subtitle = aaHistory?.approver_name ? `${aaHistory.approver_name} • RV - KMN` : `Approved • RV - KMN`;
+      if (aaHistory?.created_at) rvStep1Date = new Date(aaHistory.created_at).toLocaleDateString('en-GB');
 
       rvStep2Status = 'Pending';
-      rvStep2Subtitle = pendingApproverName ? `${pendingApproverName} • RV - KMN` : `Awaiting Administrative Assistant Approval • RV - KMN`;
-      rvStep3Status = 'Future';
+      rvStep2Subtitle = pendingApproverName ? `${pendingApproverName} • RV - KMN` : `Awaiting General Manager Approval • RV - KMN`;
     } else {
-      // Step 1: Travel Consultant Pending
+      // Step 1: Administrative Assistant Pending
       rvStep1Status = 'Pending';
-      rvStep1Subtitle = pendingApproverName ? `${pendingApproverName} • RV - KMN` : `Awaiting Travel Consultant Approval • RV - KMN`;
+      rvStep1Subtitle = pendingApproverName ? `${pendingApproverName} • RV - KMN` : `Awaiting Administrative Assistant Approval • RV - KMN`;
       rvStep2Status = 'Future';
-      rvStep3Status = 'Future';
     }
   }
 
@@ -474,22 +446,16 @@ export function ApprovalStatusTracker({
           status: "Approved",
         },
         {
-          title: "TRAVEL CONSULTANT",
+          title: "ADMINISTRATIVE ASSISTANT",
           subtitle: rvStep1Subtitle,
           status: rvStep1Status,
           date: rvStep1Date,
         },
         {
-          title: "ADMINISTRATIVE ASSISTANT",
+          title: "GENERAL MANAGER",
           subtitle: rvStep2Subtitle,
           status: rvStep2Status,
           date: rvStep2Date,
-        },
-        {
-          title: "GENERAL MANAGER",
-          subtitle: rvStep3Subtitle,
-          status: rvStep3Status,
-          date: rvStep3Date,
         },
       ]
     : isHrWorkflow

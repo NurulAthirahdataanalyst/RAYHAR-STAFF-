@@ -69,8 +69,22 @@ export default function TeamLeaveRequests() {
       (branch && branch.toUpperCase() === "RAYRENT") || 
       (companyName && companyName.toLowerCase().includes("rayrent"));
 
+    const isRayharVacation = 
+      (branch && branch.toUpperCase().includes("RV")) || 
+      (companyName && companyName.toLowerCase().includes("vacation"));
+
     if (isRayRent && (status === "Pending MD" || status === "Pending Managing Director")) {
       return "Awaiting Branch Leader Approval";
+    }
+
+    if (isRayharVacation && (
+      status === "Pending Travel Consultant" || 
+      status === "Pending Travel Consultant Approval" || 
+      status === "Pending MD" || 
+      status === "Pending Managing Director" || 
+      status === "Pending HOD"
+    )) {
+      return "Awaiting Administrative Assistant Approval";
     }
 
     switch (status) {

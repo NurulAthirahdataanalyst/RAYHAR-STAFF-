@@ -2435,11 +2435,11 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
       console.warn('RayRent leave request alignment note:', rayrentFixErr.message);
     }
 
-    // Align legacy Rayhar Vacation leave requests from hardcoded Pending MD/HOD to dynamic workflow (Pending Travel Consultant)
+    // Align legacy Rayhar Vacation leave requests from hardcoded Pending MD/HOD/Travel Consultant to dynamic workflow (Pending Administrative Assistant)
     try {
       await pgPool.query(`
         UPDATE leave_requests lr
-        SET status = 'Pending Travel Consultant'
+        SET status = 'Pending Administrative Assistant'
         FROM profiles p
         WHERE lr.user_id = p.user_id
           AND (
@@ -2449,9 +2449,9 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
               WHERE cur.user_id = p.user_id AND cur.company_id = 3 AND cur.status = 'active'
             )
           )
-          AND lr.status IN ('Pending MD', 'Pending Managing Director', 'Pending HOD')
+          AND lr.status IN ('Pending MD', 'Pending Managing Director', 'Pending HOD', 'Pending Travel Consultant', 'Pending Travel Consultant Approval')
       `);
-      console.log('Successfully aligned Rayhar Vacation leave requests to Pending Travel Consultant.');
+      console.log('Successfully aligned Rayhar Vacation leave requests to Pending Administrative Assistant.');
     } catch (rvFixErr) {
       console.warn('Rayhar Vacation leave request alignment note:', rvFixErr.message);
     }
@@ -5219,7 +5219,10 @@ app.post("/api/leave-requests", uploadLimiter, upload.single("lampiranMc"), asyn
       WHERE p.user_id = ?`,
       [user_id]
     );
-    const applicantCompanyId = empCompRows[0]?.company_id || 1;
+    let applicantCompanyId = empCompRows[0]?.company_id || 1;
+    if (String(employeeBranch || '').toUpperCase().startsWith('RV')) {
+      applicantCompanyId = 3;
+    }
 
     let initialStatus = 'Pending HOD';
     const normEmpRole = (employeeRole || '').toLowerCase().trim();
@@ -5277,6 +5280,8 @@ app.post("/api/leave-requests", uploadLimiter, upload.single("lampiranMc"), asyn
         // Fallback if no custom workflow exists
         if (String(employeeBranch).toUpperCase() === 'RAYRENT' || applicantCompanyId === 2) {
           initialStatus = 'Pending Branch Leader';
+        } else if (String(employeeBranch).toUpperCase().startsWith('RV') || applicantCompanyId === 3) {
+          initialStatus = 'Pending Administrative Assistant';
         } else if (String(employeeBranch).toUpperCase() === 'HQ') {
           if (normEmpRole === 'head_of_department' || normEmpRole === 'head of department') {
             initialStatus = 'Pending Operation Manager';
@@ -5715,6 +5720,9 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
         );
         empBranch = empBranchCheck[0]?.branch || '';
         empCompId = empBranchCheck[0]?.company_id || 1;
+        if (String(empBranch).toUpperCase().startsWith('RV')) {
+          empCompId = 3;
+        }
       } catch (_) {}
 
       // Query workflow for this company
@@ -5755,10 +5763,7 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
         }
       } catch (_) {}
 
-      if (isHrApprover) {
-        // HR Admin has master approval override
-        nextStatus = 'Approved';
-      } else if (matchingSteps.length > 0) {
+      if (matchingSteps.length > 0) {
         const cleanCurrentStatus = currentStatus.replace(/^Pending\s+/, '').trim().toLowerCase();
         const currentStepIndex = matchingSteps.findIndex((s) => {
           const rName = (s.role_name || '').trim().toLowerCase();
@@ -5768,6 +5773,9 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
             cleanCurrentStatus.replace(/_/g, ' ') === rName ||
             (cleanCurrentStatus === 'hod' && rName.includes('head of department')) ||
             (cleanCurrentStatus === 'md' && rName.includes('managing director')) ||
+            (cleanCurrentStatus.includes('administrative') && rName.includes('administrative')) ||
+            (cleanCurrentStatus.includes('general') && rName.includes('general')) ||
+            (cleanCurrentStatus.includes('travel') && rName.includes('administrative')) ||
             cleanCurrentStatus === sLabel
           );
         });
@@ -5779,6 +5787,9 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
           // Reached final approval step
           nextStatus = 'Approved';
         }
+      } else if (isHrApprover) {
+        // HR Admin fallback when no multi-step workflow configured
+        nextStatus = 'Approved';
       } else {
         // Fallback for unconfigured companies
         if (currentStatus === 'Pending' || currentStatus.startsWith('Pending HOD')) {

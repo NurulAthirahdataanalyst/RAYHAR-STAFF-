@@ -97,6 +97,13 @@ const getDisplayStatus = (status: string) => {
     case "Pending Assure Leader":
     case "Pending Assure":
       return "Awaiting Assure Leader Approval";
+    case "Pending Administrative Assistant":
+    case "Pending Administrative Assistant Approval":
+    case "Pending Administrative":
+      return "Awaiting Administrative Assistant Approval";
+    case "Pending General Manager":
+    case "Pending General Manager Approval":
+      return "Awaiting General Manager Approval";
     default:
       if (status && status.startsWith("Pending ")) {
         const rolePart = status.replace(/^Pending\s+/, "");

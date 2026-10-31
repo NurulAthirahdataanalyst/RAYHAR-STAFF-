@@ -63,8 +63,22 @@ const getDisplayStatus = (status: string, branch?: string, companyName?: string)
     (branch && branch.toUpperCase() === "RAYRENT") || 
     (companyName && companyName.toLowerCase().includes("rayrent"));
 
+  const isRayharVacation = 
+    (branch && branch.toUpperCase().includes("RV")) || 
+    (companyName && companyName.toLowerCase().includes("vacation"));
+
   if (isRayRent && (status === "Pending MD" || status === "Pending Managing Director")) {
     return "Awaiting Branch Leader Approval";
+  }
+
+  if (isRayharVacation && (
+    status === "Pending Travel Consultant" || 
+    status === "Pending Travel Consultant Approval" || 
+    status === "Pending MD" || 
+    status === "Pending Managing Director" || 
+    status === "Pending HOD"
+  )) {
+    return "Awaiting Administrative Assistant Approval";
   }
 
   switch (status) {
@@ -84,6 +98,13 @@ const getDisplayStatus = (status: string, branch?: string, companyName?: string)
     case "Pending Assure Leader":
     case "Pending Assure":
       return "Awaiting Assure Leader Approval";
+    case "Pending Administrative Assistant":
+    case "Pending Administrative Assistant Approval":
+    case "Pending Administrative":
+      return "Awaiting Administrative Assistant Approval";
+    case "Pending General Manager":
+    case "Pending General Manager Approval":
+      return "Awaiting General Manager Approval";
     default:
       if (status && status.startsWith("Pending ")) {
         const rolePart = status.replace(/^Pending\s+/, "");

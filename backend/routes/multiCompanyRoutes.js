@@ -1861,6 +1861,27 @@ function createMultiCompanyRouter(pgPool) {
           );
         }
       }
+
+      // Auto-seed Rayhar Vacation (company_id = 3): Step 1: Administrative Assistant -> Step 2: General Manager
+      const existingRv = await pgPool.query(
+        "SELECT COUNT(*)::int AS cnt FROM approval_workflow WHERE company_id = 3 AND module = 'leave'"
+      );
+      if ((existingRv.rows[0]?.cnt || 0) === 0) {
+        const rvRolesRes = await pgPool.query('SELECT id, name FROM roles WHERE company_id = 3');
+        const findRvRole = (name) => rvRolesRes.rows.find((r) => (r.name || '').toLowerCase() === name.toLowerCase())?.id;
+        const aaId = findRvRole('Administrative Assistant');
+        const gmId = findRvRole('General Manager');
+        if (aaId && gmId) {
+          await pgPool.query(
+            `INSERT INTO approval_workflow (company_id, module, branch_scope, step_order, approver_role_id, step_label, routing_rule, auto_escalate_hours)
+             VALUES
+               (3, 'leave', 'ALL', 1, $1, 'Department / Branch Review', '[Track: Workflow 1 • Rayhar Vacation Approval Workflow] Sequential approval stage', 48),
+               (3, 'leave', 'ALL', 2, $2, 'Highest Approval (Final Sign-off)', '[Track: Workflow 1 • Rayhar Vacation Approval Workflow] Sequential approval stage', 48)
+             ON CONFLICT (company_id, module, branch_scope, step_order) DO NOTHING`,
+            [aaId, gmId]
+          );
+        }
+      }
     } catch (e) {
       console.warn('Could not auto-seed Rayhar Travels dual leave workflow:', e.message);
     }
