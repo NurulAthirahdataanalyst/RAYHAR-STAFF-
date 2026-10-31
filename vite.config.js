@@ -25,7 +25,7 @@ export default defineConfig(({ mode }) => ({
         manualChunks: {
           vendor: ["react", "react-dom", "react-router-dom"],
           recharts: ["recharts"],
-          maplibre: ["maplibre-gl"],
+          leaflet: ["leaflet", "react-leaflet"],
           lucide: ["lucide-react"],
         },
       },

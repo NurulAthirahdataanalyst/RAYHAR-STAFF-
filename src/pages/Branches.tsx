@@ -49,21 +49,91 @@ import { useEffect, useMemo, useState, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { API_BASE_URL } from "../config/api";
-import Map, { Marker as MapMarker, NavigationControl, useMap as useMapLibre } from 'react-map-gl/maplibre';
-import 'maplibre-gl/dist/maplibre-gl.css';
+import { MapContainer, TileLayer, Marker as LeafletMarker, useMap, useMapEvents } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
-const MAPLIBRE_STYLE = {
-  version: 8 as const,
-  sources: {
-    "osm": {
-      type: "raster" as const,
-      tiles: ["https://a.tile.openstreetmap.org/{z}/{x}/{y}.png", "https://b.tile.openstreetmap.org/{z}/{x}/{y}.png", "https://c.tile.openstreetmap.org/{z}/{x}/{y}.png"],
-      tileSize: 256,
-      attribution: "&copy; OpenStreetMap contributors"
+// Fix default Leaflet marker icons broken by bundlers
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+});
+
+const createBranchPinIcon = () =>
+  L.divIcon({
+    className: 'branch-location-pin',
+    html: `<div style="width: 28px; height: 40px; display: flex; align-items: flex-end; justify-content: center; filter: drop-shadow(0 3px 6px rgba(0,0,0,0.4)); cursor: grab;">
+      <svg viewBox="0 0 24 36" width="28" height="40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 0C5.373 0 0 5.373 0 12c0 9 12 24 12 24s12-15 12-24C24 5.373 18.627 0 12 0z" fill="#942392"/>
+        <circle cx="12" cy="12" r="5" fill="white"/>
+      </svg>
+    </div>`,
+    iconSize: [28, 40],
+    iconAnchor: [14, 40],
+  });
+
+function BranchLocationPickerMap({
+  lat,
+  lng,
+  onPickLocation,
+}: {
+  lat: number;
+  lng: number;
+  onPickLocation: (lat: number, lng: number) => void;
+}) {
+  const map = useMap();
+  const markerRef = useRef<any>(null);
+
+  useEffect(() => {
+    map.invalidateSize();
+    const t = setTimeout(() => {
+      try {
+        map.invalidateSize();
+      } catch (e) {
+        // ignore
+      }
+    }, 250);
+    return () => clearTimeout(t);
+  }, [map]);
+
+  useEffect(() => {
+    if (!isNaN(lat) && !isNaN(lng)) {
+      try {
+        map.flyTo([lat, lng], map.getZoom() || 16, { duration: 0.8 });
+      } catch (e) {
+        // ignore
+      }
     }
-  },
-  layers: [{ id: "osm-layer", type: "raster" as const, source: "osm", minzoom: 0, maxzoom: 19 }]
-};
+  }, [lat, lng, map]);
+
+  useMapEvents({
+    click(e) {
+      onPickLocation(e.latlng.lat, e.latlng.lng);
+    },
+  });
+
+  const pinIcon = useMemo(() => createBranchPinIcon(), []);
+
+  return (
+    <LeafletMarker
+      ref={markerRef}
+      position={[lat, lng]}
+      icon={pinIcon}
+      draggable={true}
+      eventHandlers={{
+        dragend: () => {
+          const marker = markerRef.current;
+          if (marker != null) {
+            const pos = marker.getLatLng();
+            onPickLocation(pos.lat, pos.lng);
+          }
+        },
+      }}
+    />
+  );
+}
 
 // Convert any string to Proper Case (title case), e.g. "SEPANG" -> "Sepang"
 import {
@@ -81,16 +151,6 @@ import {
   normalizeZoneCode,
   formatZoneDisplayName,
 } from "@/utils/scheduleZoneUtils";
-
-function MapController({ lat, lng }: { lat: number, lng: number }) {
-  const { current: map } = useMapLibre();
-  useEffect(() => {
-    if (map && !isNaN(lat) && !isNaN(lng)) {
-      map.flyTo({ center: [lng, lat], zoom: map.getZoom(), duration: 800 });
-    }
-  }, [lat, lng, map]);
-  return null;
-}
 
 
 import { toast } from "sonner";
@@ -2943,60 +3003,38 @@ export default function Branches() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 h-[520px]">
             <div className="md:col-span-2 relative h-full">
-              <Map 
-                initialViewState={{
-                  longitude: (() => { const v = parseFloat(String(editBranchData.longitude)); return !isNaN(v) ? v : 103.4194; })(),
-                  latitude: (() => { const v = parseFloat(String(editBranchData.latitude)); return !isNaN(v) ? v : 4.2248; })(),
-                  zoom: 16
-                }}
-                style={{ height: "100%", width: "100%" }}
-                mapStyle={MAPLIBRE_STYLE}
-                onLoad={(e) => {
-                  const map = e.target;
-                  if (map && !(map as any)._removePatched) {
-                    const originalRemove = map.remove.bind(map);
-                    map.remove = () => {
-                      try {
-                        originalRemove();
-                      } catch (err) {
-                        console.warn("Suppressed maplibre remove error:", err);
-                      }
-                    };
-                    (map as any)._removePatched = true;
-                  }
-                }}
-                onClick={(e) => {
-                  const { lat, lng } = e.lngLat;
-                  const latStr = lat.toFixed(6);
-                  const lngStr = lng.toFixed(6);
-                  setEditBranchData((prev: any) => ({ ...prev, latitude: latStr, longitude: lngStr }));
-                  setPasteCoordsInput(`${latStr}, ${lngStr}`);
-                  fastReverseGeocode(lat, lng).then((addr) => {
-                    if (addr) setEditBranchData((prev: any) => ({ ...prev, location: addr }));
-                  }).catch(console.error);
-                }}
-              >
-                {(() => {
-                  const _lat = parseFloat(String(editBranchData.latitude));
-                  const _lng = parseFloat(String(editBranchData.longitude));
-                  return (!isNaN(_lat) && !isNaN(_lng)) ? (
-                    <MapMarker longitude={_lng} latitude={_lat} anchor="bottom">
-                      <div style={{ width: 24, height: 36 }}>
-                        <svg viewBox="0 0 24 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M12 0C5.373 0 0 5.373 0 12c0 9 12 24 12 24s12-15 12-24C24 5.373 18.627 0 12 0z" fill="#942392"/>
-                          <circle cx="12" cy="12" r="5" fill="white"/>
-                        </svg>
-                      </div>
-                    </MapMarker>
-                  ) : null;
-                })()}
-                {(() => {
-                  const _lat = parseFloat(String(editBranchData.latitude));
-                  const _lng = parseFloat(String(editBranchData.longitude));
-                  if (!isNaN(_lat) && !isNaN(_lng)) return <MapController lat={_lat} lng={_lng} />;
-                  return null;
-                })()}
-              </Map>
+              {(() => {
+                const curLat = parseFloat(String(editBranchData.latitude)) || 4.2248;
+                const curLng = parseFloat(String(editBranchData.longitude)) || 103.4194;
+                return (
+                  <MapContainer
+                    center={[curLat, curLng]}
+                    zoom={16}
+                    style={{ height: "100%", width: "100%", zIndex: 0 }}
+                    scrollWheelZoom={true}
+                  >
+                    <TileLayer
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                      subdomains={['a', 'b', 'c']}
+                      maxZoom={19}
+                    />
+                    <BranchLocationPickerMap
+                      lat={curLat}
+                      lng={curLng}
+                      onPickLocation={(lat, lng) => {
+                        const latStr = lat.toFixed(6);
+                        const lngStr = lng.toFixed(6);
+                        setEditBranchData((prev: any) => ({ ...prev, latitude: latStr, longitude: lngStr }));
+                        setPasteCoordsInput(`${latStr}, ${lngStr}`);
+                        fastReverseGeocode(lat, lng).then((addr) => {
+                          if (addr) setEditBranchData((prev: any) => ({ ...prev, location: addr }));
+                        }).catch(console.error);
+                      }}
+                    />
+                  </MapContainer>
+                );
+              })()}
             </div>
             <div className="p-5 sm:p-6 bg-slate-50 dark:bg-slate-900 flex flex-col h-full overflow-y-auto">
               <div className="space-y-4">
