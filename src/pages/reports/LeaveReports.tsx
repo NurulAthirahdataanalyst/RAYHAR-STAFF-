@@ -1,5 +1,5 @@
 import { useRole } from "@/contexts/RoleContext";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { API_BASE_URL } from "@/config/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Download, Search, FileText, CalendarDays, X, XCircle, RotateCcw, CheckCircle } from 'lucide-react';
@@ -17,7 +17,29 @@ import { CustomDatePicker, TablePagination } from "@/components/common/TablePagi
 const formatDate = (value: string) => (value ? value.slice(0, 10) : "");
 
 export default function LeaveReports() {
-  const { role, userBranch, userDepartment } = useRole();
+  const { role, userBranch, userDepartment, userId, userName, scopeType } = useRole();
+
+  const effectiveScope = useMemo(() => {
+    const s = (scopeType || "").toLowerCase().trim();
+    if (s.includes('own') || s.includes('self')) return 'Own Data Only';
+    if (s.includes('branch')) return 'Branch Data Only';
+    if (s.includes('group') || s.includes('parent')) return 'Parent Group Data';
+    if (s.includes('company') || s.includes('current company')) return 'Company Staff Data';
+    const norm = (role || "").toLowerCase().trim();
+    if (norm.includes('hr_admin') || norm.includes('hr admin') || norm.includes('admin') || norm.includes('managing_director') || norm.includes('md')) {
+      return 'Parent Group Data';
+    }
+    if (norm.includes('branch_leader') || norm.includes('branch leader') || norm.includes('branch_officer')) {
+      return 'Branch Data Only';
+    }
+    if (norm.includes('operation_manager') || norm.includes('finance_manager') || norm.includes('head_of_department') || norm.includes('hod') || norm.includes('assure')) {
+      return 'Company Staff Data';
+    }
+    return 'Own Data Only';
+  }, [scopeType, role]);
+
+  const isOwnDataOnly = effectiveScope === 'Own Data Only';
+  const isBranchOnly = effectiveScope === 'Branch Data Only';
   const [loading, setLoading] = useState(true);
   const [leaveData, setLeaveData] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -56,15 +78,18 @@ export default function LeaveReports() {
 
   useEffect(() => {
     fetchData();
-  }, [role, userBranch, userDepartment, viewType, date, selectedMonth, selectedYear]);
+  }, [role, userBranch, userDepartment, viewType, date, selectedMonth, selectedYear, effectiveScope, userId]);
 
   const fetchData = async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams({
         role: role || "",
-        branch: userBranch || "",
-        department: userDepartment || "",
+        branch: (isOwnDataOnly || isBranchOnly) ? (userBranch || "") : (userBranch || ""),
+        department: isOwnDataOnly ? (userDepartment || "") : (userDepartment || ""),
+        scope_type: effectiveScope,
+        userId: isOwnDataOnly ? (userId || "") : "",
+        requesterId: userId || ""
       });
 
       if (viewType === "day") {

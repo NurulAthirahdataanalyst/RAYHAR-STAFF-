@@ -102,7 +102,29 @@ function toProperCase(str: string): string {
 }
 
 export default function OutstationReports() {
-  const { role, userBranch, userDepartment, loading: roleLoading } = useRole();
+  const { role, userBranch, userDepartment, userId, userName, scopeType, loading: roleLoading } = useRole();
+
+  const effectiveScope = useMemo(() => {
+    const s = (scopeType || "").toLowerCase().trim();
+    if (s.includes('own') || s.includes('self')) return 'Own Data Only';
+    if (s.includes('branch')) return 'Branch Data Only';
+    if (s.includes('group') || s.includes('parent')) return 'Parent Group Data';
+    if (s.includes('company') || s.includes('current company')) return 'Company Staff Data';
+    const norm = (role || "").toLowerCase().trim();
+    if (norm.includes('hr_admin') || norm.includes('hr admin') || norm.includes('admin') || norm.includes('managing_director') || norm.includes('md')) {
+      return 'Parent Group Data';
+    }
+    if (norm.includes('branch_leader') || norm.includes('branch leader') || norm.includes('branch_officer')) {
+      return 'Branch Data Only';
+    }
+    if (norm.includes('operation_manager') || norm.includes('finance_manager') || norm.includes('head_of_department') || norm.includes('hod') || norm.includes('assure')) {
+      return 'Company Staff Data';
+    }
+    return 'Own Data Only';
+  }, [scopeType, role]);
+
+  const isOwnDataOnly = effectiveScope === 'Own Data Only';
+  const isBranchOnly = effectiveScope === 'Branch Data Only';
   const hasLoadedRef = useRef(false);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -154,7 +176,14 @@ export default function OutstationReports() {
     const fetchData = async () => {
       if (!hasLoadedRef.current) setLoading(true);
       try {
-        const params = new URLSearchParams({ role, branch: userBranch || "", department: userDepartment || "" });
+        const params = new URLSearchParams({ 
+          role, 
+          branch: (isOwnDataOnly || isBranchOnly) ? (userBranch || "") : (userBranch || ""), 
+          department: isOwnDataOnly ? (userDepartment || "") : (userDepartment || ""),
+          scope_type: effectiveScope,
+          user_id: isOwnDataOnly ? (userId || "") : "",
+          requesterId: userId || ""
+        });
         const res = await fetch(`${API_BASE_URL}/api/outstation?${params}`);
         const data = await res.json();
         if (data.success) setAssignments(data.assignments || []);
@@ -162,7 +191,7 @@ export default function OutstationReports() {
       } catch { /* */ } finally { setLoading(false); }
     };
     void fetchData();
-  }, [role, userBranch, userDepartment, roleLoading]);
+  }, [role, userBranch, userDepartment, roleLoading, effectiveScope, userId]);
 
   // Group into events
   const eventGroups = useMemo(() => {

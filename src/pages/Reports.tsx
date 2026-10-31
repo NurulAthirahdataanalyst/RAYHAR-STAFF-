@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
-  Download, FileBarChart, Loader2, Clock, Sparkles, Building2, Briefcase, PieChart
+  Download, FileBarChart, Loader2, Clock, Sparkles, Building2, Briefcase, PieChart, ShieldCheck, User
 } from "lucide-react";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { toast } from "sonner";
@@ -61,13 +61,40 @@ interface Department {
 }
 
 export default function Reports() {
-  const { role, userBranch, userDepartment, userId } = useRole();
+  const { role, roleName, userBranch, userDepartment, userId, userName, scopeType } = useRole();
   const { companies, activeCompany } = useCompany();
+
+  // Resolve Authorization Scope
+  const effectiveScope = useMemo(() => {
+    const s = (scopeType || "").toLowerCase().trim();
+    if (s.includes('own') || s.includes('self')) return 'Own Data Only';
+    if (s.includes('branch')) return 'Branch Data Only';
+    if (s.includes('group') || s.includes('parent')) return 'Parent Group Data';
+    if (s.includes('company') || s.includes('current company')) return 'Company Staff Data';
+
+    // Fallback deducing from role
+    const norm = (role || "").toLowerCase().trim();
+    if (norm.includes('hr_admin') || norm.includes('hr admin') || norm.includes('admin') || norm.includes('managing_director') || norm.includes('md')) {
+      return 'Parent Group Data';
+    }
+    if (norm.includes('branch_leader') || norm.includes('branch leader') || norm.includes('branch_officer')) {
+      return 'Branch Data Only';
+    }
+    if (norm.includes('operation_manager') || norm.includes('finance_manager') || norm.includes('head_of_department') || norm.includes('hod') || norm.includes('assure')) {
+      return 'Company Staff Data';
+    }
+    return 'Own Data Only';
+  }, [scopeType, role]);
+
+  const isOwnDataOnly = effectiveScope === 'Own Data Only';
+  const isBranchOnly = effectiveScope === 'Branch Data Only';
+  const isCompanyOnly = effectiveScope === 'Company Staff Data';
+  const isParentGroup = effectiveScope === 'Parent Group Data';
   
   const normRole = (role || "").toLowerCase().trim();
   const isHRAdmin = ['hr_admin', 'admin', 'hr'].includes(normRole);
   const isMD_OM = ['managing_director', 'operation_manager', 'finance_manager', 'md'].includes(normRole);
-  const isFullAdmin = isHRAdmin || isMD_OM;
+  const isFullAdmin = isParentGroup || isHRAdmin || isMD_OM;
   const isBranchLeader = normRole === 'branch_leader';
   const isHOD = normRole === 'head_of_department' || normRole === 'hod';
   const isEmployee = normRole === 'employee' || normRole === 'branch_officer';
@@ -139,28 +166,40 @@ export default function Reports() {
     }
   }, [filteredBranches, generatorBranch]);
 
-  // Sync role-based default scope
+  // Sync scope-based default branch and department
   useEffect(() => {
-    const norm = (role || "").toLowerCase().trim();
-    if (norm === "branch_leader" && userBranch) {
+    if (isOwnDataOnly) {
+      if (userBranch) setGeneratorBranch(userBranch);
+      if (userDepartment) setGeneratorDept(userDepartment);
+    } else if (isBranchOnly && userBranch) {
       setGeneratorBranch(userBranch);
-    } else if ((norm === "head_of_department" || norm === "hod") && userDepartment) {
+    } else if (normRole === "branch_leader" && userBranch) {
+      setGeneratorBranch(userBranch);
+    } else if ((normRole === "head_of_department" || normRole === "hod") && userDepartment) {
       setGeneratorDept(userDepartment);
     }
-  }, [role, userBranch, userDepartment]);
+  }, [isOwnDataOnly, isBranchOnly, normRole, userBranch, userDepartment]);
 
   const fetchPreviewCount = useCallback(async () => {
     try {
-      const norm = (role || "").toLowerCase().trim();
-      const isBL = norm === "branch_leader";
-      const isH = norm === "head_of_department" || norm === "hod";
+      const effectiveBranch = isOwnDataOnly
+        ? (userBranch || generatorBranch)
+        : (isBranchOnly || isBranchLeader)
+        ? (userBranch || generatorBranch)
+        : generatorBranch;
+      
+      const effectiveDept = isOwnDataOnly
+        ? (userDepartment || generatorDept)
+        : (isHOD ? (userDepartment || generatorDept) : generatorDept);
 
-      const effectiveBranch = isBL ? (userBranch || generatorBranch) : generatorBranch;
-      const effectiveDept = isH ? (userDepartment || generatorDept) : generatorDept;
-
-      const companiesParam = (!isFullAdmin || selectedCompanyIds.length === 0 || selectedCompanyIds.length === (companies?.length || 0))
-        ? "all"
-        : selectedCompanyIds.join(",");
+      let companiesParam = String(activeCompany?.id || 1);
+      if (isParentGroup) {
+        if (selectedCompanyIds.length === 0 || selectedCompanyIds.length === (companies?.length || 0)) {
+          companiesParam = "all";
+        } else {
+          companiesParam = selectedCompanyIds.join(",");
+        }
+      }
 
       const params = new URLSearchParams({
         type: generatorType,
@@ -169,6 +208,8 @@ export default function Reports() {
         branch: effectiveBranch || "all",
         department: effectiveDept || "all",
         companies: companiesParam,
+        company_id: String(activeCompany?.id || 1),
+        scope_type: effectiveScope,
         requesterRole: role || "",
         requesterBranch: userBranch || "",
         requesterDept: userDepartment || "",
@@ -185,7 +226,7 @@ export default function Reports() {
       console.error("Error fetching preview count:", e);
       setPreviewCount(0);
     }
-  }, [generatorType, selectedMonth, selectedYear, generatorBranch, generatorDept, selectedCompanyIds, companies?.length, isFullAdmin, role, userBranch, userDepartment, userId]);
+  }, [generatorType, selectedMonth, selectedYear, generatorBranch, generatorDept, selectedCompanyIds, companies?.length, isParentGroup, isOwnDataOnly, isBranchOnly, isBranchLeader, isHOD, activeCompany?.id, effectiveScope, role, userBranch, userDepartment, userId]);
 
   useEffect(() => {
     fetchPreviewCount();
@@ -233,16 +274,24 @@ export default function Reports() {
   const triggerGenerateReport = async () => {
     setIsGenerating(true);
     try {
-      const norm = (role || "").toLowerCase().trim();
-      const isBL = norm === "branch_leader";
-      const isH = norm === "head_of_department" || norm === "hod";
+      const effectiveBranch = isOwnDataOnly
+        ? (userBranch || generatorBranch)
+        : (isBranchOnly || isBranchLeader)
+        ? (userBranch || generatorBranch)
+        : generatorBranch;
+      
+      const effectiveDept = isOwnDataOnly
+        ? (userDepartment || generatorDept)
+        : (isHOD ? (userDepartment || generatorDept) : generatorDept);
 
-      const effectiveBranch = isBL ? (userBranch || generatorBranch) : generatorBranch;
-      const effectiveDept = isH ? (userDepartment || generatorDept) : generatorDept;
-
-      const companiesParam = (!isFullAdmin || selectedCompanyIds.length === 0 || selectedCompanyIds.length === (companies?.length || 0))
-        ? "all"
-        : selectedCompanyIds.join(",");
+      let companiesParam = String(activeCompany?.id || 1);
+      if (isParentGroup) {
+        if (selectedCompanyIds.length === 0 || selectedCompanyIds.length === (companies?.length || 0)) {
+          companiesParam = "all";
+        } else {
+          companiesParam = selectedCompanyIds.join(",");
+        }
+      }
 
       const params = new URLSearchParams({
         type: generatorType,
@@ -251,6 +300,8 @@ export default function Reports() {
         branch: effectiveBranch || "all",
         department: effectiveDept || "all",
         companies: companiesParam,
+        company_id: String(activeCompany?.id || 1),
+        scope_type: effectiveScope,
         requesterRole: role || "",
         requesterBranch: userBranch || "",
         requesterDept: userDepartment || "",
@@ -261,9 +312,10 @@ export default function Reports() {
       const data = await response.json();
       
       if (data.success) {
+        const reportPrefix = isOwnDataOnly ? `Personal_${(userName || 'My').replace(/\s+/g, '_')}_` : 'Rayhar_';
         const reportName = selectedMonth === 'all'
-          ? `Rayhar_${generatorType.toUpperCase()}_Report_${selectedYear}.csv`
-          : `Rayhar_${generatorType.toUpperCase()}_Report_${selectedMonth}_${selectedYear}.csv`;
+          ? `${reportPrefix}${generatorType.toUpperCase()}_Report_${selectedYear}.csv`
+          : `${reportPrefix}${generatorType.toUpperCase()}_Report_${selectedMonth}_${selectedYear}.csv`;
         let headers: string[] = [];
         let rows: any[] = [];
         
@@ -493,9 +545,31 @@ export default function Reports() {
                 {/* 2. Scope Select */}
                 <div className="space-y-2">
                   <span className="text-[10px] font-black text-foreground uppercase tracking-widest">2. Scope Selection</span>
+
+                  {/* Informational Scope Badge for Own Data Only */}
+                  {isOwnDataOnly && (
+                    <div className="p-3.5 rounded-2xl border-2 border-emerald-500/20 bg-emerald-50/50 dark:bg-emerald-950/20 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                          <ShieldCheck className="w-4 h-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="text-[10px] font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
+                            <span>Authorization Scope: Own Data Only</span>
+                            <Badge variant="outline" className="text-[8px] border-emerald-500/30 text-emerald-600 bg-emerald-100/50 dark:bg-emerald-900/30 font-black uppercase px-1.5 py-0">
+                              Self
+                            </Badge>
+                          </div>
+                          <p className="text-[10px] text-muted-foreground font-semibold truncate">
+                            Report compiling records for <strong className="text-foreground">{userName || "yourself"}</strong> only. Other staff records are restricted.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   
-                  {/* Multi-Company Checkbox Filter for HR */}
-                  {isFullAdmin && (
+                  {/* Multi-Company Checkbox Filter (Only for Parent Group Data) */}
+                  {isParentGroup && (
                     <div className="p-3.5 rounded-2xl border-2 border-[#942392]/20 bg-[#942392]/5 dark:bg-[#942392]/10 space-y-2.5">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
@@ -602,24 +676,15 @@ export default function Reports() {
 
                   <div className="grid grid-cols-2 gap-3 sm:gap-4">
                     {/* Branch Selection or Locked Branch */}
-                    {isFullAdmin ? (
+                    {isOwnDataOnly ? (
                       <div className="space-y-1.5 min-w-0">
                         <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Branch Location</label>
-                        <Select value={generatorBranch} onValueChange={setGeneratorBranch}>
-                          <SelectTrigger className="w-full h-11 text-xs font-black uppercase tracking-widest rounded-xl border-border bg-background/30">
-                            <SelectValue placeholder="All Branches" />
-                          </SelectTrigger>
-                          <SelectContent className="rounded-xl">
-                            <SelectItem value="all" className="text-[10px] font-black uppercase tracking-widest">All Branches</SelectItem>
-                            {filteredBranches.filter(b => !!b.code).map(b => (
-                              <SelectItem key={b.code} value={b.code} className="text-[10px] font-black uppercase tracking-widest">
-                                {b.code} - {b.name ? b.name.toLowerCase().replace(/\b\w/g, (c: string) => c.toUpperCase()) : b.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <div className="w-full h-11 px-3.5 flex items-center justify-between text-xs font-black uppercase tracking-widest rounded-xl border border-emerald-500/30 bg-emerald-50/40 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400 truncate shadow-xs">
+                          <span>{userBranch || "Your Branch"}</span>
+                          <Badge variant="outline" className="text-[8px] border-emerald-500/40 text-emerald-600 font-black uppercase tracking-wider">YOUR BRANCH</Badge>
+                        </div>
                       </div>
-                    ) : isBranchLeader ? (
+                    ) : (isBranchOnly || isBranchLeader) ? (
                       <div className="space-y-1.5 min-w-0">
                         <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Branch Location (Locked)</label>
                         <div className="w-full h-11 px-3.5 flex items-center justify-between text-xs font-black uppercase tracking-widest rounded-xl border border-[#942392]/30 bg-[#942392]/5 text-[#942392] truncate shadow-xs">
@@ -627,7 +692,7 @@ export default function Reports() {
                           <Badge variant="outline" className="text-[8px] border-[#942392]/40 text-[#942392] font-black uppercase tracking-wider">YOUR BRANCH</Badge>
                         </div>
                       </div>
-                    ) : isHOD ? (
+                    ) : (
                       <div className="space-y-1.5 min-w-0">
                         <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Branch Location</label>
                         <Select value={generatorBranch} onValueChange={setGeneratorBranch}>
@@ -644,25 +709,16 @@ export default function Reports() {
                           </SelectContent>
                         </Select>
                       </div>
-                    ) : null}
+                    )}
 
                     {/* Department Selection or Locked Department */}
-                    {isFullAdmin ? (
+                    {isOwnDataOnly ? (
                       <div className="space-y-1.5 min-w-0">
                         <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Department</label>
-                        <Select value={generatorDept} onValueChange={setGeneratorDept}>
-                          <SelectTrigger className="w-full h-11 text-xs font-black uppercase tracking-widest rounded-xl border-border bg-background/30">
-                            <SelectValue placeholder="All Departments" />
-                          </SelectTrigger>
-                          <SelectContent className="rounded-xl">
-                            <SelectItem value="all" className="text-[10px] font-black uppercase tracking-widest">All Departments</SelectItem>
-                            {departments.filter(Boolean).map(d => (
-                              <SelectItem key={d} value={d} className="text-[10px] font-black uppercase tracking-widest">
-                                {d ? d.toLowerCase().replace(/\b\w/g, (c: string) => c.toUpperCase()) : d}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <div className="w-full h-11 px-3.5 flex items-center justify-between text-xs font-black uppercase tracking-widest rounded-xl border border-emerald-500/30 bg-emerald-50/40 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400 truncate shadow-xs">
+                          <span>{userDepartment || "Your Department"}</span>
+                          <Badge variant="outline" className="text-[8px] border-emerald-500/40 text-emerald-600 font-black uppercase tracking-wider">YOUR DEPT</Badge>
+                        </div>
                       </div>
                     ) : isHOD ? (
                       <div className="space-y-1.5 min-w-0">
@@ -672,7 +728,7 @@ export default function Reports() {
                           <Badge variant="outline" className="text-[8px] border-[#942392]/40 text-[#942392] font-black uppercase tracking-wider">YOUR DEPT</Badge>
                         </div>
                       </div>
-                    ) : isBranchLeader ? (
+                    ) : (
                       <div className="space-y-1.5 min-w-0">
                         <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Department</label>
                         <Select value={generatorDept} onValueChange={setGeneratorDept}>
@@ -689,7 +745,7 @@ export default function Reports() {
                           </SelectContent>
                         </Select>
                       </div>
-                    ) : null}
+                    )}
 
                     <div className="space-y-1.5 col-span-2 sm:col-span-1 min-w-0">
                       <div className="flex items-center justify-between">
@@ -801,20 +857,46 @@ export default function Reports() {
                   <span className="text-[9px] font-black text-foreground uppercase tracking-widest">Active Scope Preview</span>
                   <div className="bg-background/40 border border-border/40 rounded-xl p-3 space-y-2 text-xs">
                     <div className="flex items-center justify-between text-[11px]">
+                      <span className="font-bold text-muted-foreground uppercase text-[9px]">Scope:</span>
+                      <span className="inline-flex items-center gap-1">
+                        <span className="font-black text-[11px] text-foreground">{effectiveScope}</span>
+                        <Badge variant="outline" className={`text-[8px] font-black uppercase tracking-wider px-1.5 py-0 h-4 border ${
+                          isOwnDataOnly ? "border-emerald-500/30 text-emerald-600 bg-emerald-50/50" :
+                          isBranchOnly ? "border-amber-500/30 text-amber-700 bg-amber-50/50" :
+                          isCompanyOnly ? "border-purple-500/30 text-[#942392] bg-purple-50/50" :
+                          "border-blue-500/30 text-blue-700 bg-blue-50/50"
+                        }`}>
+                          {isOwnDataOnly ? "Self" : isBranchOnly ? "Branch" : isCompanyOnly ? "Company" : "Group HQ"}
+                        </Badge>
+                      </span>
+                    </div>
+                    {isOwnDataOnly && (
+                      <div className="flex items-center justify-between text-[11px]">
+                        <span className="font-bold text-muted-foreground uppercase text-[9px]">Staff:</span>
+                        <span className="font-black text-foreground text-right truncate max-w-[150px]">{userName || "Yourself"}</span>
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between text-[11px]">
                       <span className="font-bold text-muted-foreground uppercase text-[9px]">Company:</span>
                       <span className="font-black text-[#942392] dark:text-fuchsia-300 text-right truncate max-w-[150px]">
-                        {companies && selectedCompanyIds.length === companies.length && companies.length > 0
-                          ? "ALL COMPANIES (" + companies.length + ")"
-                          : (companies || []).filter(c => selectedCompanyIds.includes(c.id)).map(c => c.company_name).join(", ") || "None"}
+                        {isParentGroup
+                          ? (companies && selectedCompanyIds.length === companies.length && companies.length > 0
+                              ? "ALL COMPANIES (" + companies.length + ")"
+                              : (companies || []).filter(c => selectedCompanyIds.includes(c.id)).map(c => c.company_name).join(", ") || activeCompany?.company_name || "None")
+                          : (activeCompany?.company_name || "Current Company")}
                       </span>
                     </div>
                     <div className="flex items-center justify-between text-[11px]">
                       <span className="font-bold text-muted-foreground uppercase text-[9px]">Branch:</span>
-                      <span className="font-bold text-foreground text-right">{generatorBranch === 'all' ? 'All Branches' : generatorBranch}</span>
+                      <span className="font-bold text-foreground text-right">
+                        {isOwnDataOnly ? (userBranch || "Your Branch") : (isBranchOnly || isBranchLeader) ? `${userBranch || "Your Branch"} (Locked)` : (generatorBranch === 'all' ? 'All Branches' : generatorBranch)}
+                      </span>
                     </div>
                     <div className="flex items-center justify-between text-[11px]">
                       <span className="font-bold text-muted-foreground uppercase text-[9px]">Department:</span>
-                      <span className="font-bold text-foreground text-right truncate max-w-[140px]">{generatorDept === 'all' ? 'All Departments' : generatorDept}</span>
+                      <span className="font-bold text-foreground text-right truncate max-w-[140px]">
+                        {isOwnDataOnly ? (userDepartment || "Your Dept") : (generatorDept === 'all' ? 'All Departments' : generatorDept)}
+                      </span>
                     </div>
                     <div className="flex items-center justify-between text-[11px]">
                       <span className="font-bold text-muted-foreground uppercase text-[9px]">Period:</span>

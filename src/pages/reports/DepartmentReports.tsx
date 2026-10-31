@@ -44,23 +44,24 @@ function toProperCase(str: string): string {
 }
 
 export default function DepartmentReports() {
-  const { role, userBranch, userDepartment } = useRole();
+  const { role, userBranch, userDepartment, scopeType } = useRole();
   const navigate = useNavigate();
+  const isOwnDataOnly = (scopeType || "").toLowerCase().includes("own") || (scopeType || "").toLowerCase().includes("self");
   const [loading, setLoading] = useState(true);
   const [employees, setEmployees] = useState<any[]>([]);
   const [selectedBranch, setSelectedBranch] = useState("All");
   const [selectedDept, setSelectedDept] = useState("All");
 
   useEffect(() => {
-    if (["head_of_department", "branch_leader"].includes(role)) {
+    if (["head_of_department", "branch_leader"].includes(role) || isOwnDataOnly) {
       navigate("/reports/attendance", { replace: true });
     }
-  }, [role, navigate]);
+  }, [role, isOwnDataOnly, navigate]);
 
   useEffect(() => {
-    if (["head_of_department", "branch_leader"].includes(role)) return;
+    if (["head_of_department", "branch_leader"].includes(role) || isOwnDataOnly) return;
     fetchData();
-  }, [role, userBranch, userDepartment]);
+  }, [role, isOwnDataOnly, userBranch, userDepartment]);
 
   // Lock the internal states to match user's branch/dept for fixed roles
   useEffect(() => {

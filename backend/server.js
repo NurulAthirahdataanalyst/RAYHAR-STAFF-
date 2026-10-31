@@ -1917,6 +1917,78 @@ function getCompanyUserSqlFilter(req, columnExpr = "user_id") {
   return getCompanyUserSqlFilterById(raw, columnExpr);
 }
 
+// Helper: Resolve effective Authorization Scope for a user
+// Scopes: 'Own Data Only' | 'Branch Data Only' | 'Company Staff Data' | 'Parent Group Data'
+async function resolveUserScope(req, userId, requesterRole) {
+  let rawScope = safeString(req?.query?.scope_type || req?.query?.scopeType || req?.body?.scope_type || req?.body?.scopeType);
+
+  if (!rawScope && userId) {
+    try {
+      // 1. Check company_user_roles (multi-company role assignment)
+      const [curRows] = await pool.query(
+        `SELECT r.scope_type 
+         FROM company_user_roles cur 
+         JOIN roles r ON r.id = cur.role_id 
+         WHERE cur.user_id = ? AND cur.status = 'active' 
+         ORDER BY cur.is_default DESC LIMIT 1`,
+        [userId]
+      );
+      if (curRows[0]?.scope_type) {
+        rawScope = curRows[0].scope_type;
+      }
+
+      // 2. Check profiles and roles
+      if (!rawScope) {
+        const [pRows] = await pool.query(
+          `SELECT r.scope_type 
+           FROM profiles p 
+           LEFT JOIN roles r ON r.id = p.role_id 
+           WHERE p.user_id = ? OR p.email = ? LIMIT 1`,
+          [userId, userId]
+        );
+        if (pRows[0]?.scope_type) {
+          rawScope = pRows[0].scope_type;
+        }
+      }
+
+      // 3. Check user_role
+      if (!rawScope) {
+        const [urRows] = await pool.query(
+          `SELECT r.scope_type 
+           FROM user_role ur 
+           JOIN roles r ON r.id = ur.role_id OR LOWER(r.name) = LOWER(ur.role) OR LOWER(REPLACE(r.name, ' ', '_')) = LOWER(ur.role)
+           WHERE ur.user_id = ? LIMIT 1`,
+          [userId]
+        );
+        if (urRows[0]?.scope_type) {
+          rawScope = urRows[0].scope_type;
+        }
+      }
+    } catch (e) {
+      console.warn("Error in resolveUserScope:", e.message);
+    }
+  }
+
+  const s = (rawScope || "").toLowerCase().trim();
+  if (s.includes('own') || s.includes('self')) return 'Own Data Only';
+  if (s.includes('branch')) return 'Branch Data Only';
+  if (s.includes('group') || s.includes('parent')) return 'Parent Group Data';
+  if (s.includes('company') || s.includes('current company')) return 'Company Staff Data';
+
+  const r = (requesterRole || "").toLowerCase().trim();
+  if (r.includes('hr_admin') || r.includes('hr admin') || r.includes('admin') || r.includes('managing_director') || r.includes('managing director') || r === 'md') {
+    return 'Parent Group Data';
+  }
+  if (r.includes('branch_leader') || r.includes('branch leader') || r.includes('branch_officer') || r.includes('branch officer')) {
+    return 'Branch Data Only';
+  }
+  if (r.includes('operation_manager') || r.includes('finance_manager') || r.includes('head_of_department') || r.includes('hod') || r.includes('assure')) {
+    return 'Company Staff Data';
+  }
+
+  return 'Own Data Only';
+}
+
 // Safety net: if a company filter ever reaches pgPool.query directly (bypassing the wrapper
 // below, e.g. from routes/multiCompanyRoutes.js), still bind the company id as a parameter.
 {
@@ -4556,9 +4628,10 @@ function formatDeptForApprover(dept) {
 }
 
 app.get("/api/leave-requests", async (req, res) => {
-  const userId = safeString(req.query.userId);
+  let userId = safeString(req.query.userId || req.query.user_id);
+  const requesterId = safeString(req.query.requesterId);
   const role = safeString(req.query.role);
-  const branch = safeString(req.query.branch);
+  let branch = safeString(req.query.branch);
   const date = safeString(req.query.date);
   const department = safeString(req.query.department);
 
@@ -4570,21 +4643,18 @@ app.get("/api/leave-requests", async (req, res) => {
     let companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
 
     companyId = await resolveAssureCompanyId(req, companyId);
+    const effectiveTargetId = userId || requesterId;
+    const resolvedScope = await resolveUserScope(req, effectiveTargetId, role);
     const normRole = safeLower(role).replace(/\s+/g, "_");
-    const isGroupWideLeaveRole = [
+    const isGroupWideLeaveRole = (resolvedScope === 'Parent Group Data') || [
       "hr_admin",
       "hr",
       "admin",
       "managing_director",
-      "md",
-      "operation_manager",
-      "operations_manager",
-      "finance_manager",
-      "assure_leader",
-      "assure leader"
+      "md"
     ].includes(normRole);
 
-    if (companyId && !userId) {
+    if (companyId && !userId && resolvedScope !== 'Parent Group Data') {
       filters.push(`COALESCE(
         (SELECT cur.company_id FROM company_user_roles cur WHERE cur.user_id = lr.user_id AND cur.status = 'active' ORDER BY cur.company_id DESC LIMIT 1),
         b_comp.company_id,
@@ -4592,7 +4662,6 @@ app.get("/api/leave-requests", async (req, res) => {
       )::int = ?`);
       params.push(companyId);
     } else if (normRole.includes("assure") && !userId) {
-      // Assure Leader defaults to RayRent / Company 2 if companyId not explicitly provided
       filters.push(`COALESCE(
         (SELECT cur.company_id FROM company_user_roles cur WHERE cur.user_id = lr.user_id AND cur.status = 'active' ORDER BY cur.company_id DESC LIMIT 1),
         b_comp.company_id,
@@ -4600,20 +4669,25 @@ app.get("/api/leave-requests", async (req, res) => {
       )::int = 2`);
     }
 
-    if (userId) {
+    if (resolvedScope === 'Own Data Only' && effectiveTargetId) {
+      filters.push("lr.user_id = ?");
+      params.push(effectiveTargetId);
+    } else if (userId) {
       filters.push("lr.user_id = ?");
       params.push(userId);
+    } else if (resolvedScope === 'Branch Data Only' && branch && branch !== 'all') {
+      filters.push("LOWER(p.branch) = LOWER(?)");
+      params.push(branch);
     } else {
-      if ((normRole.includes("branch_leader") || normRole.includes("branch leader") || normRole.includes("branch")) && branch) {
+      if ((normRole.includes("branch_leader") || normRole.includes("branch leader") || normRole.includes("branch")) && branch && branch !== 'all') {
         filters.push("LOWER(p.branch) = LOWER(?)");
         params.push(branch);
-      } else if ((normRole.includes("head_of_department") || normRole.includes("head of department") || normRole === "hod") && department) {
+      } else if ((normRole.includes("head_of_department") || normRole.includes("head of department") || normRole === "hod") && department && department !== 'all') {
         filters.push("LOWER(p.department) = LOWER(?)");
         params.push(department);
       } else if (normRole.includes("head_of_department") || normRole.includes("head of department") || normRole === "hod") {
-        // Safety: HOD must have a department to see anything
         filters.push("1 = 0");
-      } else if (!isGroupWideLeaveRole && branch) {
+      } else if (!isGroupWideLeaveRole && branch && branch !== 'all') {
         filters.push("LOWER(p.branch) = LOWER(?)");
         params.push(branch);
       }
@@ -7273,7 +7347,26 @@ app.post("/api/login", async (req, res) => {
     const roleId = roleRows[0]?.role_id || user.role_id || null;
     const roleName = roleRows[0]?.role_name || (role === 'hr_admin' ? 'HR Admin' : role === 'managing_director' ? 'Managing Director' : role === 'operation_manager' ? 'Operation Manager' : role === 'head_of_department' ? 'Head of Department' : role === 'branch_leader' ? 'Branch Leader' : 'Employee');
     const isSystemRole = roleRows[0]?.is_system_role ?? true;
-    const roleScopeType = roleRows[0]?.scope_type || null;
+    
+    // Resolve scope_type reliably for login response
+    let roleScopeType = roleRows[0]?.scope_type || null;
+    const [curLoginRows] = await pool.query(
+      "SELECT cur.company_id, cur.role_id, r.scope_type FROM company_user_roles cur LEFT JOIN roles r ON cur.role_id = r.id WHERE cur.user_id = ? AND cur.status = 'active' ORDER BY cur.is_default DESC LIMIT 1",
+      [user.user_id]
+    );
+    if (!roleScopeType && curLoginRows[0]?.scope_type) {
+      roleScopeType = curLoginRows[0].scope_type;
+    }
+    if (!roleScopeType && user.role_id) {
+      const [pRoleRows] = await pool.query("SELECT scope_type, name FROM roles WHERE id = ? LIMIT 1", [user.role_id]);
+      if (pRoleRows[0]?.scope_type) roleScopeType = pRoleRows[0].scope_type;
+    }
+    if (!roleScopeType) {
+      if (cleanRole === 'hr_admin' || cleanRole === 'managing_director') roleScopeType = 'Parent Group Data';
+      else if (cleanRole === 'branch_leader' || cleanRole === 'branch_officer') roleScopeType = 'Branch Data Only';
+      else if (cleanRole === 'operation_manager' || cleanRole === 'head_of_department') roleScopeType = 'Company Staff Data';
+      else roleScopeType = 'Own Data Only';
+    }
 
     // Fetch user permissions
     const userPerms = await getUserPermissions(user.user_id, role);
@@ -7365,7 +7458,8 @@ app.get("/api/user-details/:identifier", async (req, res) => {
         COALESCE(ur.role, p.role, 'employee') AS role,
         COALESCE(p.role_id, ur.role_id, r.id) AS role_id,
         COALESCE(r.name, ur.role, p.role, 'Employee') AS role_name,
-        COALESCE(r.is_system_role, TRUE) AS is_system_role
+        COALESCE(r.is_system_role, TRUE) AS is_system_role,
+        r.scope_type AS scope_type
       FROM profiles p
       LEFT JOIN LATERAL (
         SELECT ur.role, ur.role_id, ur.department
@@ -7419,7 +7513,12 @@ app.get("/api/user-details/:identifier", async (req, res) => {
       [user.user_id]
     );
     const assignedCompanyId = uCompRows[0]?.company_id || (user.branch === 'RAYRENT' ? 2 : 1);
-    const resolvedScopeType = user.scope_type || uCompRows[0]?.scope_type || 'Company Staff Data';
+    const resolvedScopeType = user.scope_type || uCompRows[0]?.scope_type || (
+      normUserRole === 'hr_admin' || normUserRole === 'managing_director' ? 'Parent Group Data' :
+      normUserRole === 'branch_leader' || normUserRole === 'branch_officer' ? 'Branch Data Only' :
+      normUserRole === 'operation_manager' || normUserRole === 'head_of_department' || normUserRole.includes('assure') ? 'Company Staff Data' :
+      'Own Data Only'
+    );
 
     if (normUserRole === 'assure_leader' || normUserRole.includes('assure')) {
       if (assignedCompanyId) {
@@ -9969,25 +10068,32 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
   const month = safeString(req.query.month);
   const year = safeString(req.query.year);
   const role = safeString(req.query.role);
-  const branch = safeString(req.query.branch);
+  let branch = safeString(req.query.branch);
   const department = safeString(req.query.department);
+  const userId = safeString(req.query.userId || req.query.user_id || req.query.requesterId);
   
   if (!month || !year) {
     return res.status(400).json({ success: false, error: "Month and year are required" });
   }
 
   try {
+    const resolvedScope = await resolveUserScope(req, userId, role);
     let profileFilter = getCompanyUserSqlFilter(req, "p.user_id");
     let queryParams = [];
 
-    if (role === 'branch_leader') {
-      const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
+    if (resolvedScope === 'Own Data Only' && userId) {
+      profileFilter += " AND p.user_id = ?";
+      queryParams.push(userId);
+    } else if (resolvedScope === 'Branch Data Only' || role === 'branch_leader') {
+      const safeBranch = (branch && branch !== "All" && branch !== "all") ? branch : "INVALID_BYPASS";
+      branch = safeBranch;
       profileFilter += " AND LOWER(p.branch) = LOWER(?)";
-      queryParams.push(safeBranch);
+      queryParams.push(branch);
     } else if (role === 'head_of_department') {
-      const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
+      const safeDept = (department && department !== "All" && department !== "all") ? department : "INVALID_BYPASS";
+      department = safeDept;
       profileFilter += " AND LOWER(p.department) = LOWER(?)";
-      queryParams.push(safeDept);
+      queryParams.push(department);
     }
 
     const startDate = new Date(parseInt(year), parseInt(month) - 1, 1).toISOString().split('T')[0];
@@ -10300,19 +10406,24 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
   let role = safeString(req.query.role);
   let branch = safeString(req.query.branch);
   let department = safeString(req.query.department);
+  let userId = safeString(req.query.userId || req.query.user_id || req.query.requesterId);
   const queryDate = date || new Date().toISOString().split('T')[0];
 
   try {
+    const resolvedScope = await resolveUserScope(req, userId, role);
     let profileFilter = getCompanyUserSqlFilter(req, "p.user_id");
     let queryParams = [];
 
-    if (role === 'branch_leader') {
-      const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
+    if (resolvedScope === 'Own Data Only' && userId) {
+      profileFilter += " AND p.user_id = ?";
+      queryParams.push(userId);
+    } else if (resolvedScope === 'Branch Data Only' || role === 'branch_leader') {
+      const safeBranch = (branch && branch !== "All" && branch !== "all") ? branch : "INVALID_BYPASS";
       branch = safeBranch;
       profileFilter += " AND LOWER(p.branch) = LOWER(?)";
       queryParams.push(branch);
     } else if (role === 'head_of_department') {
-      const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
+      const safeDept = (department && department !== "All" && department !== "all") ? department : "INVALID_BYPASS";
       department = safeDept;
       profileFilter += " AND LOWER(p.department) = LOWER(?)";
       queryParams.push(department);
@@ -12813,37 +12924,65 @@ app.get("/api/reports/generator", async (req, res) => {
     let requesterRole = safeLower(req.query.requesterRole);
     let requesterBranch = safeString(req.query.requesterBranch);
     let requesterDept = safeString(req.query.requesterDept);
-    let requesterId = safeString(req.query.requesterId);
+    let requesterId = safeString(req.query.requesterId || req.query.userId || req.query.user_id);
     
-    // Normalize role string
-    if (requesterRole.includes('hr admin') || requesterRole === 'hr_admin' || requesterRole.includes('hr ') || requesterRole === 'admin') requesterRole = 'hr_admin';
-    else if (requesterRole.includes('md') || requesterRole.includes('managing director')) requesterRole = 'managing_director';
-    else if (requesterRole.includes('branch leader') || requesterRole === 'branch_leader') requesterRole = 'branch_leader';
-    else if (requesterRole.includes('finance manager') || requesterRole.includes('operation manager') || requesterRole.includes('operations manager') || requesterRole === 'operation_manager') requesterRole = 'operation_manager';
-    else if (requesterRole.includes('head of department') || requesterRole.includes('hod') || requesterRole === 'head_of_department') requesterRole = 'head_of_department';
-    
-    // Enforce role-based scoping:
-    // HR Admin, Operation Manager, and Managing Director can see ALL staff records
-    // HOD can see ONLY their OWN department staff records
-    // Branch Leader can see ONLY their OWN branch staff records
-    if (requesterRole === 'employee') {
-      // Employees can only export their own records
-    } else if (requesterRole === 'branch_leader') {
-      branch = requesterBranch || branch;
-    } else if (requesterRole === 'head_of_department') {
-      department = requesterDept || department;
+    // Resolve user authorization scope dynamically
+    const resolvedScope = await resolveUserScope(req, requesterId, requesterRole);
+
+    // Resolve requester's branch & department if not supplied
+    if (requesterId && (!requesterBranch || !requesterDept)) {
+      try {
+        const [uProf] = await pool.query("SELECT branch, department FROM profiles WHERE user_id = ? LIMIT 1", [requesterId]);
+        if (uProf[0]) {
+          if (!requesterBranch) requesterBranch = uProf[0].branch || "";
+          if (!requesterDept) requesterDept = uProf[0].department || "";
+        }
+      } catch (e) {}
     }
 
+    // Determine target company IDs based on scope:
     const rawCompanies = req.query.companies || req.query.company_ids || req.query.company_id || req.companyId;
     let selectedCompanyIds = [];
-    if (rawCompanies && rawCompanies !== 'all') {
-      if (Array.isArray(rawCompanies)) {
-        selectedCompanyIds = rawCompanies.map(Number).filter(n => !isNaN(n) && n > 0);
-      } else {
-        selectedCompanyIds = String(rawCompanies)
-          .split(',')
-          .map(s => parseInt(s.trim(), 10))
-          .filter(n => !isNaN(n) && n > 0);
+
+    if (resolvedScope === 'Parent Group Data') {
+      // 4. Parent Group Data: can view multiple companies or all companies
+      if (rawCompanies && rawCompanies !== 'all') {
+        if (Array.isArray(rawCompanies)) {
+          selectedCompanyIds = rawCompanies.map(Number).filter(n => !isNaN(n) && n > 0);
+        } else {
+          selectedCompanyIds = String(rawCompanies)
+            .split(',')
+            .map(s => parseInt(s.trim(), 10))
+            .filter(n => !isNaN(n) && n > 0);
+        }
+      }
+    } else {
+      // 1. Own Data Only, 2. Own Branch Data Only, 3. Company Staff Data:
+      // Strictly constrained to their own company workspace!
+      let userCompanyId = null;
+      if (requesterId) {
+        try {
+          const [cur] = await pool.query(
+            "SELECT company_id FROM company_user_roles WHERE user_id = ? AND status = 'active' ORDER BY is_default DESC LIMIT 1",
+            [requesterId]
+          );
+          if (cur[0]?.company_id) userCompanyId = cur[0].company_id;
+        } catch (e) {}
+      }
+      if (!userCompanyId && rawCompanies && rawCompanies !== 'all') {
+        userCompanyId = parseInt(String(rawCompanies).split(',')[0], 10);
+      }
+      if (!userCompanyId) userCompanyId = 1;
+      selectedCompanyIds = [userCompanyId];
+    }
+
+    // Branch scoping:
+    if (resolvedScope === 'Branch Data Only') {
+      branch = requesterBranch || branch;
+      if (branch === 'all' && requesterBranch) branch = requesterBranch;
+    } else if (resolvedScope === 'Company Staff Data') {
+      if (requesterRole === 'head_of_department') {
+        department = requesterDept || department;
       }
     }
 
@@ -12882,7 +13021,11 @@ app.get("/api/reports/generator", async (req, res) => {
       params.push(year);
     }
 
-    if (requesterRole === 'employee' && requesterId) {
+    const isOwnDataOnly = resolvedScope === 'Own Data Only';
+    if (isOwnDataOnly && requesterId) {
+      filters.push("p.user_id = ?");
+      params.push(requesterId);
+    } else if (requesterRole === 'employee' && requesterId) {
       filters.push("p.user_id = ?");
       params.push(requesterId);
     }
@@ -12902,7 +13045,7 @@ app.get("/api/reports/generator", async (req, res) => {
         profFilters.push("(LOWER(p.department) = LOWER(?) OR LOWER(REPLACE(p.department, ' department', '')) = LOWER(REPLACE(?, ' department', '')))");
         profParams.push(department, department);
       }
-      if (requesterRole === 'employee' && requesterId) {
+      if ((isOwnDataOnly || requesterRole === 'employee') && requesterId) {
         profFilters.push("p.user_id = ?");
         profParams.push(requesterId);
       }
@@ -13127,9 +13270,12 @@ app.get("/api/reports/generator", async (req, res) => {
          outFilters.push("EXTRACT(YEAR FROM o.start_date) = ?");
          outParams.push(year);
       }
-      if (requesterRole === 'employee' && requesterId) {
+      if ((isOwnDataOnly || requesterRole === 'employee') && requesterId) {
          outFilters.push("p.user_id = ?");
          outParams.push(requesterId);
+      } else if (resolvedScope === 'Branch Data Only' && (requesterBranch || branch) && (requesterBranch || branch) !== 'all') {
+         outFilters.push("LOWER(p.branch) = LOWER(?)");
+         outParams.push(requesterBranch || branch);
       }
       
       let outWhere = outFilters.length > 0 ? "WHERE " + outFilters.join(" AND ") : "";
@@ -13176,7 +13322,10 @@ app.get("/api/reports/generator", async (req, res) => {
          clFilters.push("EXTRACT(YEAR FROM start_date) = ?");
          clParams.push(year);
       }
-      if (requesterRole === 'branch_leader' && (requesterBranch || branch) && (requesterBranch || branch) !== 'all') {
+      if (isOwnDataOnly && (requesterBranch || requesterDept)) {
+         clFilters.push("(applies_to = 'all' OR (applies_to = 'branch' AND LOWER(branch_id) = LOWER(?)) OR (applies_to = 'department' AND LOWER(department_id) = LOWER(?)))");
+         clParams.push(requesterBranch || "", requesterDept || "");
+      } else if ((resolvedScope === 'Branch Data Only' || requesterRole === 'branch_leader') && (requesterBranch || branch) && (requesterBranch || branch) !== 'all') {
          const b = requesterBranch || branch;
          clFilters.push("(applies_to = 'all' OR (applies_to = 'branch' AND (LOWER(branch_id) = LOWER(?) OR LOWER(branch_id) LIKE LOWER(CONCAT('%', ?, '%')))))");
          clParams.push(b, b);
@@ -13228,9 +13377,12 @@ app.get("/api/reports/generator", async (req, res) => {
          leaveParams.push(year);
       }
 
-      if (requesterRole === 'employee' && requesterId) {
+      if ((isOwnDataOnly || requesterRole === 'employee') && requesterId) {
          leaveFilters.push("p.user_id = ?");
          leaveParams.push(requesterId);
+      } else if (resolvedScope === 'Branch Data Only' && (requesterBranch || branch) && (requesterBranch || branch) !== 'all') {
+         leaveFilters.push("LOWER(p.branch) = LOWER(?)");
+         leaveParams.push(requesterBranch || branch);
       }
       
       let leaveWhereClause = leaveFilters.length > 0 ? "AND " + leaveFilters.join(" AND ") : "";
@@ -13872,17 +14024,22 @@ app.get('/api/outstation', async (req, res) => {
     const role = safeString(req.query.role);
     const branch = safeString(req.query.branch);
     const department = safeString(req.query.department);
-    const user_id = safeString(req.query.user_id);
+    let user_id = safeString(req.query.user_id || req.query.userId || req.query.requesterId);
+    const resolvedScope = await resolveUserScope(req, user_id, role);
+
     let whereClause = 'WHERE 1=1' + getCompanyUserSqlFilter(req, "oa.user_id");
     const params = [];
 
-    if (user_id) {
+    if (resolvedScope === 'Own Data Only' && user_id) {
       params.push(user_id);
       whereClause += ` AND oa.user_id = ?`;
-    } else if (role === 'branch_leader' && branch) {
+    } else if (user_id) {
+      params.push(user_id);
+      whereClause += ` AND oa.user_id = ?`;
+    } else if ((resolvedScope === 'Branch Data Only' || role === 'branch_leader') && branch && branch !== 'all') {
       params.push(branch);
       whereClause += ` AND oa.branch = ?`;
-    } else if (role === 'head_of_department' && department) {
+    } else if (role === 'head_of_department' && department && department !== 'all') {
       params.push(department);
       whereClause += ` AND oa.department = ?`;
     }

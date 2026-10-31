@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, Fragment } from "react";
+import { useState, useEffect, useRef, useMemo, Fragment } from "react";
 import { API_BASE_URL } from "@/config/api";
 import { writePrintDocument } from "@/utils/security";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -109,7 +109,29 @@ const formatDate = (dateStr: string) => {
 
 export default function AttendanceReports() {
   const { activeCompany } = useCompany();
-  const { role, userBranch, userDepartment } = useRole();
+  const { role, userBranch, userDepartment, userId, userName, scopeType } = useRole();
+
+  const effectiveScope = useMemo(() => {
+    const s = (scopeType || "").toLowerCase().trim();
+    if (s.includes('own') || s.includes('self')) return 'Own Data Only';
+    if (s.includes('branch')) return 'Branch Data Only';
+    if (s.includes('group') || s.includes('parent')) return 'Parent Group Data';
+    if (s.includes('company') || s.includes('current company')) return 'Company Staff Data';
+    const norm = (role || "").toLowerCase().trim();
+    if (norm.includes('hr_admin') || norm.includes('hr admin') || norm.includes('admin') || norm.includes('managing_director') || norm.includes('md')) {
+      return 'Parent Group Data';
+    }
+    if (norm.includes('branch_leader') || norm.includes('branch leader') || norm.includes('branch_officer')) {
+      return 'Branch Data Only';
+    }
+    if (norm.includes('operation_manager') || norm.includes('finance_manager') || norm.includes('head_of_department') || norm.includes('hod') || norm.includes('assure')) {
+      return 'Company Staff Data';
+    }
+    return 'Own Data Only';
+  }, [scopeType, role]);
+
+  const isOwnDataOnly = effectiveScope === 'Own Data Only';
+  const isBranchOnly = effectiveScope === 'Branch Data Only';
   const [loading, setLoading] = useState(true);
   const [attendanceData, setAttendanceData] = useState<any[]>([]);
   const [monthlySummary, setMonthlySummary] = useState<any>(null);
@@ -147,16 +169,19 @@ export default function AttendanceReports() {
     };
     window.addEventListener('rayhar_company_switched', handleSwitch);
     return () => window.removeEventListener('rayhar_company_switched', handleSwitch);
-  }, [viewType, date, selectedMonth, selectedYear, role, userBranch, userDepartment, activeCompany?.id]);
+  }, [viewType, date, selectedMonth, selectedYear, role, userBranch, userDepartment, activeCompany?.id, effectiveScope, userId]);
 
   const fetchData = async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams({
         role: role || "",
-        branch: userBranch || "",
-        department: userDepartment || "",
-        company_id: (activeCompany?.id || 1).toString()
+        branch: (isOwnDataOnly || isBranchOnly) ? (userBranch || "") : (userBranch || ""),
+        department: isOwnDataOnly ? (userDepartment || "") : (userDepartment || ""),
+        company_id: (activeCompany?.id || 1).toString(),
+        scope_type: effectiveScope,
+        userId: userId || "",
+        requesterId: userId || ""
       });
       let data: { success: boolean; data: any[]; summary?: any } = { success: true, data: [] };
       const [workAssignRes] = await Promise.all([
