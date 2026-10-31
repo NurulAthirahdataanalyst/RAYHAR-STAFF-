@@ -2496,3 +2496,72 @@ export default function Employees() {
                   type="email"
                   className="h-11 px-4 bg-background/50 border border-border/80 focus:border-[#942392] focus:ring-2 focus:ring-[#942392]/10 rounded-xl text-xs font-bold"
                   placeholder="ahmad@rayhar.com"
+                  value={signupEmail}
+                  onChange={(e) => setSignupEmail(e.target.value)}
+                  required
+                />
+              </div>
+
+              {/* Password */}
+              <div className="space-y-1.5 col-span-1 sm:col-span-2 lg:col-span-2">
+                <Label htmlFor="signup-password" className="text-[10px] font-black uppercase tracking-widest text-foreground">
+                  Initial Password <span className="text-rose-500">*</span>
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="signup-password"
+                    type={showPassword ? "text" : "password"}
+                    className="h-11 px-4 bg-background/50 border border-border/80 focus:border-[#942392] focus:ring-2 focus:ring-[#942392]/10 rounded-xl text-xs font-bold pr-10"
+                    placeholder="Min. 6 characters"
+                    value={signupPassword}
+                    onChange={(e) => setSignupPassword(e.target.value)}
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Action buttons with separator line */}
+            <div className="border-t border-border/60 pt-4 flex justify-end gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsAddModalOpen(false)}
+                className="h-11 px-6 rounded-xl text-xs font-black uppercase tracking-wider"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                className="h-11 px-6 rounded-xl bg-[#942392] hover:bg-[#800A7A] text-white shadow-md text-xs font-black uppercase tracking-wider flex items-center gap-2"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="animate-spin h-4 w-4" />
+                    <span>Creating...</span>
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-4 h-4" />
+                    <span>Create User</span>
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <TableScrollTopButton entriesPerPage={entriesPerPage} tableRef={tableRef} />
+    </div>
+  );
+}
+

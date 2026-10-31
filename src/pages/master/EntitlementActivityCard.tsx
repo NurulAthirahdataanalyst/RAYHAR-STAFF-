@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { History, TrendingUp, TrendingDown, ChevronRight, ClipboardEdit, RotateCcw, BadgePlus, MinusCircle, ChevronLeft } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { getHistoryLogs, EntitlementHistoryLog } from "@/lib/entitlementHistory";
+import { getHistoryLogs, clearAllEntitlementHistory, EntitlementHistoryLog } from "@/lib/entitlementHistory";
 import { MonthPicker } from "@/components/shared/MonthPicker";
 import { EntitlementDetailModal } from "./EntitlementDetailModal";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -152,6 +152,17 @@ export default function EntitlementActivityCard({ onViewHistory }: Props) {
                 className="text-xs font-bold text-[#942392] hover:text-[#5e0080] flex items-center transition-colors px-2"
               >
                 View Full History <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
+              </button>
+              <button
+                onClick={() => {
+                  if (window.confirm("Are you sure you want to clear all entitlement activity history?")) {
+                    clearAllEntitlementHistory();
+                  }
+                }}
+                className="text-xs font-bold text-rose-500 hover:text-rose-700 flex items-center transition-colors px-2"
+                title="Clear all activity history records"
+              >
+                Clear Records
               </button>
             </div>
           </div>

@@ -44,12 +44,13 @@ import {
   CheckCircle2,
   UserX,
   UserCheck,
+  Download,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCompany } from '../../../contexts/CompanyContext';
 import { API_BASE_URL } from '@/config/api';
 import { toProperCase } from '@/utils/branchUtils';
-import { formatMyKad, parseMyKad, formatMalaysianPhone } from '@/utils/mykadUtils';
+import { formatMyKad, parseMyKad, formatMalaysianPhone, formatDisplayDate } from '@/utils/mykadUtils';
 
 interface PersonnelMember {
   user_id: string;
@@ -65,6 +66,9 @@ interface PersonnelMember {
   phone?: string | null;
   ic_number?: string | null;
   join_date?: string | null;
+  dob?: string | null;
+  gender?: string | null;
+  created_at?: string | null;
 }
 
 export const TabPersonnelEntity: React.FC = () => {
@@ -181,6 +185,9 @@ export const TabPersonnelEntity: React.FC = () => {
           phone: e.phone || null,
           ic_number: e.ic_number || null,
           join_date: e.join_date || null,
+          dob: e.dob || null,
+          gender: e.gender || null,
+          created_at: e.created_at || null,
         }));
         setPersonnel(rawList);
       } else {
@@ -392,6 +399,93 @@ export const TabPersonnelEntity: React.FC = () => {
     return Array.from(set).sort();
   }, [companyDepartments, personnel]);
 
+  const handleExportCSV = () => {
+    const escapeCsv = (val: any): string => {
+      if (val === null || val === undefined) return '""';
+      const str = String(val).replace(/"/g, '""');
+      return `"${str}"`;
+    };
+
+    const headers = [
+      "Employee ID",
+      "Full Name",
+      "Email Address",
+      "Phone Number",
+      "IC Number (MyKad)",
+      "Date of Birth",
+      "Age",
+      "Gender",
+      "Branch",
+      "Department",
+      "Company",
+      "Role",
+      "Date of Join",
+      "Employment Status",
+      "Date Created"
+    ];
+
+    const currentCompanyName = companies.find(c => c.id === selectedCompanyId)?.company_name || activeCompany?.company_name || "Rayhar Travels";
+    const listToExport = filteredPersonnel && filteredPersonnel.length > 0 ? filteredPersonnel : personnel;
+    const rows = listToExport.map((emp: any) => {
+      const parsedIc = parseMyKad(emp.ic_number || "");
+      const employeeId = emp.user_id || emp.id || "-";
+      const fullName = emp.full_name || emp.name || "-";
+      const emailAddress = emp.email || "-";
+      const phoneNumber = emp.phone ? formatMalaysianPhone(emp.phone) : "-";
+      const icNumber = emp.ic_number ? formatMyKad(emp.ic_number) : (parsedIc.formatted || "-");
+      const dateOfBirth = emp.dob ? formatDisplayDate(emp.dob) : (parsedIc.formattedDob || "-");
+      const age = parsedIc.age !== null && parsedIc.age !== undefined ? String(parsedIc.age) : "-";
+      const gender = emp.gender || parsedIc.gender || "-";
+      const branch = emp.branch || "-";
+      const department = emp.department || "-";
+      const companyName = currentCompanyName;
+      
+      let roleDisplay = emp.role_name || emp.role || "Employee";
+      if (roleDisplay === "Finance Manager" || roleDisplay === "finance_manager") {
+        roleDisplay = "Operation Manager";
+      } else if (typeof roleDisplay === "string") {
+        roleDisplay = roleDisplay.replace(/_/g, ' ');
+      }
+
+      const dateOfJoin = emp.join_date ? formatDisplayDate(emp.join_date) : "-";
+      const employmentStatus = emp.status || "Active";
+      const dateCreated = emp.created_at ? formatDisplayDate(emp.created_at) : "-";
+
+      return [
+        employeeId,
+        fullName,
+        emailAddress,
+        phoneNumber,
+        icNumber,
+        dateOfBirth,
+        age,
+        gender,
+        branch,
+        department,
+        companyName,
+        roleDisplay,
+        dateOfJoin,
+        employmentStatus,
+        dateCreated
+      ];
+    });
+
+    const csvContent = "\uFEFF" + [
+      headers.map(escapeCsv).join(","),
+      ...rows.map(r => r.map(escapeCsv).join(","))
+    ].join("\r\n");
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `Personnel_Export_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   // Filtered list
   const filteredPersonnel = useMemo(() => {
     return personnel.filter((p) => {
@@ -466,12 +560,24 @@ export const TabPersonnelEntity: React.FC = () => {
           </Select>
         </div>
 
-        <Button
-          onClick={handleOpenAddStaffModal}
-          className="bg-[#942392] hover:bg-[#800A7A] text-white font-black text-xs uppercase tracking-wider shadow-sm h-9 px-4 rounded-xl self-start sm:self-auto flex items-center justify-center"
-        >
-          ADD STAFF
-        </Button>
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <Button
+            variant="outline"
+            onClick={handleExportCSV}
+            className="border-border/80 bg-background hover:bg-muted/60 text-foreground font-black text-xs uppercase tracking-wider shadow-sm h-9 px-4 rounded-xl flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+            title="Export Personnel List to CSV"
+          >
+            <Download className="w-3.5 h-3.5 text-[#942392]" />
+            <span>EXPORT CSV</span>
+          </Button>
+
+          <Button
+            onClick={handleOpenAddStaffModal}
+            className="bg-[#942392] hover:bg-[#800A7A] text-white font-black text-xs uppercase tracking-wider shadow-sm h-9 px-4 rounded-xl flex items-center justify-center cursor-pointer active:scale-95"
+          >
+            ADD STAFF
+          </Button>
+        </div>
       </div>
 
       {/* Secondary Search & Quick Filters Bar */}

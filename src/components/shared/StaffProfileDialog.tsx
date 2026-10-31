@@ -19,6 +19,7 @@ import {
   TrendingUp, 
   Clock,
   CalendarDays,
+  Calendar as CalendarIcon,
   ArrowLeft,
   Edit,
   Save, 
@@ -56,7 +57,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectSeparator, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { formatMyKad, parseMyKad, formatMalaysianPhone } from "@/utils/mykadUtils";
+import { formatMyKad, parseMyKad, formatMalaysianPhone, formatDisplayDate } from "@/utils/mykadUtils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { parseCutiGantiRows, getCleanReason } from "@/lib/leaveStorage";
@@ -264,7 +265,7 @@ export function StaffProfileDialog({
       setEditBranch(selectedEmployee.branch || "HQ");
       setEditDepartment(selectedEmployee.department || "");
       setEditStatus(selectedEmployee.status || "Active");
-      setEditJoinDate(selectedEmployee.join_date ? new Date(selectedEmployee.join_date).toISOString().split('T')[0] : (selectedEmployee.created_at ? new Date(selectedEmployee.created_at).toISOString().split('T')[0] : ""));
+      setEditJoinDate(selectedEmployee.join_date ? new Date(selectedEmployee.join_date).toISOString().split('T')[0] : "");
     }
   }, [selectedEmployee]);
 
@@ -1505,7 +1506,17 @@ export function StaffProfileDialog({
                                 <div>
                                   <span className="text-[10px] font-black text-black dark:text-white uppercase tracking-widest block">Date of Join</span>
                                   <span className="text-xs font-bold text-foreground">
-                                    {selectedEmployee.join_date ? new Date(selectedEmployee.join_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }).toUpperCase() : (selectedEmployee.created_at ? new Date(selectedEmployee.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }).toUpperCase() : "—")}
+                                    {selectedEmployee.join_date ? formatDisplayDate(selectedEmployee.join_date).toUpperCase() : "—"}
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div className="p-4 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-start gap-3">
+                                <CalendarIcon className="w-4 h-4 text-[#942392] mt-0.5 shrink-0" />
+                                <div>
+                                  <span className="text-[10px] font-black text-black dark:text-white uppercase tracking-widest block">Date Created</span>
+                                  <span className="text-xs font-bold text-foreground">
+                                    {selectedEmployee.created_at ? formatDisplayDate(selectedEmployee.created_at).toUpperCase() : "—"}
                                   </span>
                                 </div>
                               </div>
@@ -3205,6 +3216,20 @@ export function StaffProfileDialog({
                     />
                   </PopoverContent>
                 </Popover>
+              </div>
+
+              {/* Date Created (System generated, non-editable) */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Date Created</Label>
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase">(Auto Generated)</span>
+                </div>
+                <Input
+                  value={selectedEmployee?.created_at ? formatDisplayDate(selectedEmployee.created_at) : "—"}
+                  readOnly
+                  disabled
+                  className="h-10 text-xs bg-slate-50 dark:bg-slate-900/50 font-bold text-muted-foreground cursor-not-allowed border-dashed"
+                />
               </div>
 
               {/* Branch */}

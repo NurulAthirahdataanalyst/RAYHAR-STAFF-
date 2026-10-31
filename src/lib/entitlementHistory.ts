@@ -114,38 +114,66 @@ function mapLegacyType(type: string): ActionType {
   return 'Manual Adjustment';
 }
 
+export function clearAllEntitlementHistory(): void {
+  try {
+    localStorage.removeItem(ENTITLEMENT_HISTORY_KEY);
+    localStorage.removeItem('leave_balance_history_logs');
+    window.dispatchEvent(new CustomEvent('entitlementHistoryUpdated'));
+  } catch (e) {
+    console.error('entitlementHistory: clear failed', e);
+  }
+}
+
 export function getHistoryLogs(): EntitlementHistoryLog[] {
   try {
     const saved = localStorage.getItem(ENTITLEMENT_HISTORY_KEY);
-    if (saved) return JSON.parse(saved) as EntitlementHistoryLog[];
-    const legacy = localStorage.getItem('leave_balance_history_logs');
-    if (!legacy) return [];
-    const oldLogs: any[] = JSON.parse(legacy);
-    const migrated: EntitlementHistoryLog[] = oldLogs.map((l, i) => ({
-      history_id: `LEH-LEGACY-${String(i).padStart(6, '0')}`,
-      reference_id: l.reference || `REF-LEGACY-${i}`,
-      date: l.date || new Date().toISOString().split('T')[0],
-      time: '00:00 AM',
-      timestamp: l.date ? new Date(l.date + 'T00:00:00').toISOString() : new Date().toISOString(),
-      created_at: l.date ? new Date(l.date + 'T00:00:00').toISOString() : new Date().toISOString(),
-      employee_id: '',
-      employee_name: l.employee || '',
-      branch: 'HQ',
-      department: '',
-      leave_type: l.leave || '',
-      action: l.action || '',
-      action_type: mapLegacyType(l.type || l.action),
-      previous_balance: l.before ?? 0,
-      adjustment: (l.after ?? 0) - (l.before ?? 0),
-      new_balance: l.after ?? 0,
-      reason: l.reference || '',
-      remarks: '',
-      performed_by: l.performedBy || 'System',
-      performed_role: 'HR Admin',
-      source_module: 'Legacy',
-    }));
-    localStorage.setItem(ENTITLEMENT_HISTORY_KEY, JSON.stringify(migrated));
-    return migrated;
+    let logs: EntitlementHistoryLog[] = [];
+    if (saved) {
+      logs = JSON.parse(saved) as EntitlementHistoryLog[];
+    } else {
+      const legacy = localStorage.getItem('leave_balance_history_logs');
+      if (legacy) {
+        const oldLogs: any[] = JSON.parse(legacy);
+        logs = oldLogs.map((l, i) => ({
+          history_id: `LEH-LEGACY-${String(i).padStart(6, '0')}`,
+          reference_id: l.reference || `REF-LEGACY-${i}`,
+          date: l.date || new Date().toISOString().split('T')[0],
+          time: '00:00 AM',
+          timestamp: l.date ? new Date(l.date + 'T00:00:00').toISOString() : new Date().toISOString(),
+          created_at: l.date ? new Date(l.date + 'T00:00:00').toISOString() : new Date().toISOString(),
+          employee_id: '',
+          employee_name: l.employee || '',
+          branch: 'HQ',
+          department: '',
+          leave_type: l.leave || '',
+          action: l.action || '',
+          action_type: mapLegacyType(l.type || l.action),
+          previous_balance: l.before ?? 0,
+          adjustment: (l.after ?? 0) - (l.before ?? 0),
+          new_balance: l.after ?? 0,
+          reason: l.reference || '',
+          remarks: '',
+          performed_by: l.performedBy || 'System',
+          performed_role: 'HR Admin',
+          source_module: 'Legacy',
+        }));
+      }
+    }
+
+    // Filter out deleted employees — only keep active system users (E001 and E030)
+    const validLogs = logs.filter(l => {
+      const empId = (l.employee_id || '').toUpperCase().trim();
+      const empName = (l.employee_name || '').toUpperCase().trim();
+      if (empId === 'E001' || empId === 'E030') return true;
+      if (empName.includes('ATHIRAH') || empName.includes('HASYIMAH')) return true;
+      return false;
+    });
+
+    if (logs.length !== validLogs.length) {
+      localStorage.setItem(ENTITLEMENT_HISTORY_KEY, JSON.stringify(validLogs));
+      localStorage.removeItem('leave_balance_history_logs');
+    }
+    return validLogs;
   } catch {
     return [];
   }

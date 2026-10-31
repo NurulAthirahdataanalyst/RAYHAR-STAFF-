@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { formatMyKad, parseMyKad, formatMalaysianPhone } from "@/utils/mykadUtils";
+import { formatMyKad, parseMyKad, formatMalaysianPhone, formatDisplayDate } from "@/utils/mykadUtils";
 import { FileText, CalendarDays, Clock as ClockIcon, PhoneCall, CalendarCheck, User, Mail, Building2, ShieldCheck, Calendar, MapPin, Lock, Loader2, ArrowLeft, ArrowRight, Plus, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { API_BASE_URL } from "@/config/api";
@@ -195,7 +195,8 @@ const Profile = () => {
     { label: "Age", value: parsedIc.age !== null ? `${parsedIc.age} years old` : "—", icon: ClockIcon, highlight: true },
     { label: "Gender", value: profileData?.gender || parsedIc.gender || "—", icon: User },
     { label: "Phone Number", value: profileData?.phone ? formatMalaysianPhone(profileData.phone) : "—", icon: PhoneCall, isMono: true },
-    { label: "Date of Join", value: profileData?.join_date ? new Date(profileData.join_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }).toUpperCase() : (profileData?.created_at ? new Date(profileData.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }).toUpperCase() : "—"), icon: CalendarCheck },
+    { label: "Date of Join", value: profileData?.join_date ? formatDisplayDate(profileData.join_date).toUpperCase() : "—", icon: CalendarCheck },
+    { label: "Date Created", value: profileData?.created_at ? formatDisplayDate(profileData.created_at).toUpperCase() : "—", icon: Calendar },
   ];
 
   return (
