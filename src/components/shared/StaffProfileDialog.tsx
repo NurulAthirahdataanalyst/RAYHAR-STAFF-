@@ -1472,10 +1472,10 @@ export function StaffProfileDialog({
                       <div className="space-y-6">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-0 gap-3">
                       <div className="flex items-center gap-2">
-                        <div className="p-1 bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 rounded">
-                          <BarChart3 className="h-3.5 w-3.5" />
+                        <div className="p-1.5 bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 rounded-lg">
+                          <BarChart3 className="h-4 w-4" />
                         </div>
-                        <h3 className="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-200">
+                        <h3 className="font-bold text-lg uppercase tracking-wider text-slate-800 dark:text-slate-200">
                           {selectedMonthYear.split('-')[0]} Performance Analytics
                         </h3>
                       </div>
@@ -2136,7 +2136,7 @@ export function StaffProfileDialog({
                 <TabsContent value="location_history">
                   <div className="p-4 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800/60">
                     <div className="flex items-center justify-between mb-3">
-                      <h3 className="text-sm font-bold text-foreground uppercase tracking-widest">Location History</h3>
+                      <h3 className="text-lg font-bold text-foreground uppercase tracking-widest">Location History</h3>
                       <span className="text-xs text-muted-foreground font-semibold">
                         {locationHistoryTotal ? `Showing ${locationHistory.length} of ${locationHistoryTotal} records` : `${locationHistory.length} records`}
                       </span>

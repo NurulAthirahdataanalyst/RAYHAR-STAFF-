@@ -396,18 +396,56 @@ export default function Branches() {
   });
   const [searchQuery, setSearchQuery] = useState("");
   const [zoneFilter, setZoneFilter] = useState<string>("ALL");
+  const [selectedCompanyId, setSelectedCompanyId] = useState<number>(activeCompany?.id || 1);
   const [workSchedules, setWorkSchedules] = useState<WorkSchedule[]>([]);
   const [schedulesCache, setSchedulesCache] = useState<Record<number, WorkSchedule[]>>({});
+  const [addModalWorkSchedules, setAddModalWorkSchedules] = useState<WorkSchedule[]>([]);
+  const [editModalWorkSchedules, setEditModalWorkSchedules] = useState<WorkSchedule[]>([]);
+  const [loadingAddSchedules, setLoadingAddSchedules] = useState(false);
+  const [loadingEditSchedules, setLoadingEditSchedules] = useState(false);
+
+  const [isEditBranchModalOpen, setIsEditBranchModalOpen] = useState(false);
+  const [editBranchData, setEditBranchData] = useState<any>({});
+
+  // Add New Branch State
+  const [isAddBranchModalOpen, setIsAddBranchModalOpen] = useState(false);
+  const [addBranchData, setAddBranchData] = useState<any>({
+    code: "",
+    name: "",
+    location: "",
+    operating_zone: "STANDARD",
+    latitude: "",
+    longitude: "",
+    radius: "50",
+    company_id: activeCompany?.id || 1,
+  });
 
   const zoneOptions = useMemo(
     () => getOperatingZoneOptionsFromSchedules(workSchedules, selectedCompanyId),
     [workSchedules, selectedCompanyId]
   );
-  const [selectedCompanyId, setSelectedCompanyId] = useState<number>(activeCompany?.id || 1);
-  const [addModalWorkSchedules, setAddModalWorkSchedules] = useState<WorkSchedule[]>([]);
-  const [editModalWorkSchedules, setEditModalWorkSchedules] = useState<WorkSchedule[]>([]);
-  const [loadingAddSchedules, setLoadingAddSchedules] = useState(false);
-  const [loadingEditSchedules, setLoadingEditSchedules] = useState(false);
+
+  const addZoneOptions = useMemo(
+    () =>
+      getOperatingZoneOptionsFromSchedules(
+        addModalWorkSchedules.length > 0
+          ? addModalWorkSchedules
+          : schedulesCache[addBranchData.company_id] || (addBranchData.company_id === selectedCompanyId ? workSchedules : []),
+        addBranchData.company_id
+      ),
+    [addModalWorkSchedules, schedulesCache, addBranchData.company_id, selectedCompanyId, workSchedules]
+  );
+
+  const editZoneOptions = useMemo(
+    () =>
+      getOperatingZoneOptionsFromSchedules(
+        editModalWorkSchedules.length > 0
+          ? editModalWorkSchedules
+          : schedulesCache[editBranchData.company_id] || (editBranchData.company_id === selectedCompanyId ? workSchedules : []),
+        editBranchData.company_id
+      ),
+    [editModalWorkSchedules, schedulesCache, editBranchData.company_id, selectedCompanyId, workSchedules]
+  );
 
   const handleAddCompanyChange = async (compId: number) => {
     setAddBranchData((prev: any) => ({ ...prev, company_id: compId }));
@@ -470,44 +508,6 @@ export default function Branches() {
       setLoadingEditSchedules(false);
     }
   };
-
-  const [isEditBranchModalOpen, setIsEditBranchModalOpen] = useState(false);
-  const [editBranchData, setEditBranchData] = useState<any>({});
-
-  // Add New Branch State
-  const [isAddBranchModalOpen, setIsAddBranchModalOpen] = useState(false);
-  const [addBranchData, setAddBranchData] = useState<any>({
-    code: "",
-    name: "",
-    location: "",
-    operating_zone: "STANDARD",
-    latitude: "",
-    longitude: "",
-    radius: "50",
-    company_id: activeCompany?.id || 1,
-  });
-
-  const addZoneOptions = useMemo(
-    () =>
-      getOperatingZoneOptionsFromSchedules(
-        addModalWorkSchedules.length > 0
-          ? addModalWorkSchedules
-          : schedulesCache[addBranchData.company_id] || (addBranchData.company_id === selectedCompanyId ? workSchedules : []),
-        addBranchData.company_id
-      ),
-    [addModalWorkSchedules, schedulesCache, addBranchData.company_id, selectedCompanyId, workSchedules]
-  );
-
-  const editZoneOptions = useMemo(
-    () =>
-      getOperatingZoneOptionsFromSchedules(
-        editModalWorkSchedules.length > 0
-          ? editModalWorkSchedules
-          : schedulesCache[editBranchData.company_id] || (editBranchData.company_id === selectedCompanyId ? workSchedules : []),
-        editBranchData.company_id
-      ),
-    [editModalWorkSchedules, schedulesCache, editBranchData.company_id, selectedCompanyId, workSchedules]
-  );
   const [isSubmittingBranch, setIsSubmittingBranch] = useState(false);
   const [isMapModalOpen, setIsMapModalOpen] = useState(false);
 
