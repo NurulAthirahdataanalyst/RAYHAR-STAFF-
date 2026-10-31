@@ -11,7 +11,13 @@ import { toast } from 'sonner';
 import { useCompany } from '../../../contexts/CompanyContext';
 import { multiCompanyApi } from '../../../services/multiCompanyApi';
 import { CompanyBranch, WorkSchedule } from '../../../types/multiCompany.types';
-import { toProperCase, formatBranchDisplayName } from '@/utils/branchUtils';
+import {
+  toProperCase,
+  formatBranchDisplayName,
+  parseCoordinates,
+  smartGeocode,
+  fastReverseGeocode,
+} from '@/utils/branchUtils';
 import {
   normalizeZoneCode,
   formatZoneDisplayName,
@@ -41,51 +47,9 @@ function MapController({ lat, lng }: { lat: number; lng: number }) {
   const { current: map } = useMapLibre();
   useEffect(() => {
     if (map && !isNaN(lat) && !isNaN(lng)) {
-      map.flyTo({ center: [lng, lat], zoom: map.getZoom() || 16, duration: 1000 });
+      map.flyTo({ center: [lng, lat], zoom: map.getZoom() || 16, duration: 800 });
     }
   }, [lat, lng, map]);
-  return null;
-}
-
-async function smartGeocode(address: string): Promise<{ lat: string; lon: string } | null> {
-  const trySearch = async (q: string) => {
-    try {
-      const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&countrycodes=my&limit=1&accept-language=en`);
-      const data = await r.json();
-      return data && data.length > 0 ? data[0] : null;
-    } catch {
-      return null;
-    }
-  };
-
-  // Strategy 1: Full address + Malaysia
-  let result = await trySearch(address + ", Malaysia");
-  if (result) return result;
-
-  // Strategy 2: Strip lot/unit numbers
-  const stripped = address
-    .replace(/\b(LOT|PT|NO\.?|UNIT|BLOK|BLK|KM|KILOMETER)\s*[\d\w-]+[,\s]*/gi, '')
-    .replace(/^[,\s]+/, '').trim();
-  if (stripped && stripped !== address) {
-    result = await trySearch(stripped + ", Malaysia");
-    if (result) return result;
-  }
-
-  // Strategy 3: Extract words that look like town/city
-  const parts = address.split(',').map(s => s.trim()).filter(Boolean);
-  for (let i = parts.length - 1; i >= 0; i--) {
-    const partial = parts.slice(i).join(', ');
-    if (partial.length > 3) {
-      result = await trySearch(partial + ", Malaysia");
-      if (result) return result;
-    }
-  }
-
-  // Strategy 4: Try just last 2 parts
-  if (parts.length >= 2) {
-    result = await trySearch(parts.slice(-2).join(', ') + ", Malaysia");
-    if (result) return result;
-  }
   return null;
 }
 
@@ -203,6 +167,9 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
   const [mapLat, setMapLat] = useState('5.3297');
   const [mapLng, setMapLng] = useState('103.1370');
   const [mapAddress, setMapAddress] = useState('');
+  const [pasteCoordsInput, setPasteCoordsInput] = useState('');
+  const [directMapBranch, setDirectMapBranch] = useState<CompanyBranch | null>(null);
+  const [savingMapCoords, setSavingMapCoords] = useState(false);
 
   // Geofence modes modal
   const [geofenceModalOpen, setGeofenceModalOpen] = useState(false);
@@ -306,16 +273,97 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
   };
 
   const handleOpenMapModal = () => {
+    setDirectMapBranch(null);
     const curLat = latitude && !isNaN(parseFloat(latitude)) ? latitude : '5.3297';
     const curLng = longitude && !isNaN(parseFloat(longitude)) ? longitude : '103.1370';
     setMapLat(curLat);
     setMapLng(curLng);
+    setPasteCoordsInput(`${curLat}, ${curLng}`);
     setMapAddress(locationDistrict || '');
     setIsMapModalOpen(true);
   };
 
-  const handleSelectCoords = () => {
-    handleOpenMapModal();
+  const handleQuickMapOpen = (b: CompanyBranch) => {
+    setDirectMapBranch(b);
+    const curLat = b.latitude ? String(b.latitude) : '5.3297';
+    const curLng = b.longitude ? String(b.longitude) : '103.1370';
+    setMapLat(curLat);
+    setMapLng(curLng);
+    setPasteCoordsInput(`${curLat}, ${curLng}`);
+    setMapAddress(b.location || '');
+    setIsMapModalOpen(true);
+  };
+
+  const handlePasteCoordsChange = (val: string) => {
+    setPasteCoordsInput(val);
+    const parsed = parseCoordinates(val);
+    if (parsed) {
+      setMapLat(parsed.lat);
+      setMapLng(parsed.lon);
+    }
+  };
+
+  const handleApplyMapLocation = () => {
+    let lat = parseFloat(String(mapLat));
+    let lng = parseFloat(String(mapLng));
+    const parsed = parseCoordinates(pasteCoordsInput);
+    if (parsed) {
+      lat = parsed.numLat;
+      lng = parsed.numLng;
+      setMapLat(parsed.lat);
+      setMapLng(parsed.lon);
+    }
+    if (!isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+      const latStr = lat.toFixed(6);
+      const lngStr = lng.toFixed(6);
+      setMapLat(latStr);
+      setMapLng(lngStr);
+      setPasteCoordsInput(`${latStr}, ${lngStr}`);
+      toast.success("Coordinates applied to map!");
+      fastReverseGeocode(lat, lng).then((addr) => {
+        if (addr) setMapAddress(addr);
+      }).catch(console.error);
+    } else {
+      toast.error("Please enter valid latitude (-90 to 90) and longitude (-180 to 180)");
+    }
+  };
+
+  const handleSaveMapCoordinates = async () => {
+    const latNum = parseFloat(String(mapLat));
+    const lngNum = parseFloat(String(mapLng));
+    if (isNaN(latNum) || isNaN(lngNum)) {
+      toast.error("Please enter valid coordinates");
+      return;
+    }
+    const latStr = latNum.toFixed(6);
+    const lngStr = lngNum.toFixed(6);
+
+    if (directMapBranch) {
+      try {
+        setSavingMapCoords(true);
+        await multiCompanyApi.updateBranch(directMapBranch.code, {
+          latitude: latNum,
+          longitude: lngNum,
+          location: mapAddress || directMapBranch.location
+        });
+        toast.success(`Coordinates saved for ${directMapBranch.name || directMapBranch.code}!`);
+        setIsMapModalOpen(false);
+        setDirectMapBranch(null);
+        await fetchBranches(selectedCompanyId);
+      } catch (err: any) {
+        toast.error(err.message || 'Failed to save branch coordinates');
+      } finally {
+        setSavingMapCoords(false);
+      }
+    } else {
+      setLatitude(latStr);
+      setLongitude(lngStr);
+      if (mapAddress) {
+        setLocationDistrict(mapAddress);
+      }
+      setIsMapModalOpen(false);
+      toast.success("Coordinates applied to branch form!");
+    }
   };
 
   const handleSaveBranch = async (e: React.FormEvent) => {
@@ -505,8 +553,16 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
                         {formatZoneDisplayName(b.operating_zone || 'ZONE_B')}
                       </span>
                     </td>
-                    <td className="px-4 py-3.5 font-mono text-xs text-muted-foreground">
-                      {Number(b.latitude).toFixed(4)}°, {Number(b.longitude).toFixed(4)}°
+                    <td className="px-4 py-3.5 font-mono text-xs">
+                      <button
+                        type="button"
+                        onClick={() => handleQuickMapOpen(b)}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#942392]/10 text-[#942392] hover:bg-[#942392]/20 font-bold font-mono transition-all border border-[#942392]/25 cursor-pointer shadow-2xs hover:scale-[1.02]"
+                        title="Click to view or edit location coordinates on map"
+                      >
+                        <MapPin className="w-3.5 h-3.5 text-[#942392] shrink-0" />
+                        <span>{Number(b.latitude || 5.3297).toFixed(4)}°, {Number(b.longitude || 103.1370).toFixed(4)}°</span>
+                      </button>
                     </td>
                     <td className="px-4 py-3.5">
                       <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] border-[#942392]/30 bg-[#942392]/10 text-[#942392] dark:text-[#f885d5]">
@@ -514,12 +570,23 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
                       </span>
                     </td>
                     <td className="px-4 py-3.5 text-right">
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleQuickMapOpen(b)}
+                          className="h-8 px-2.5 rounded-full text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-[#942392]/10 hover:text-[#942392]"
+                          title="Open map & edit coordinates"
+                        >
+                          <MapPin className="w-3.5 h-3.5 mr-1 text-[#942392]" />
+                          Map
+                        </Button>
+
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => handleOpenGeofenceModes(b)}
-                          className="h-8 px-3 rounded-full text-xs font-bold text-[#942392] hover:bg-[#942392]/10"
+                          className="h-8 px-2.5 rounded-full text-xs font-bold text-[#942392] hover:bg-[#942392]/10"
                           title="Multi-mode radius (Night shift, Emergency)"
                         >
                           Modes
