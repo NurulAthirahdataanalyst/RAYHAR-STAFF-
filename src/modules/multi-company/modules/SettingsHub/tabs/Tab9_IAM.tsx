@@ -553,17 +553,26 @@ export const Tab9_IAM: React.FC = () => {
 
                       {/* Scope Boundary Pill Badge */}
                       <td className="px-4 py-3.5">
-                        <span className={`inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] ${
-                          r.scope_type === 'Parent Group Data' || r.scope_type === 'Parent Group Access'
-                            ? 'border-[#942392]/30 bg-[#942392]/10 text-[#942392] dark:text-[#f885d5]' 
-                            : r.scope_type === 'Branch Data Only'
-                            ? 'border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400'
-                            : r.scope_type === 'Own Data Only'
-                            ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-                            : 'border-blue-500/30 bg-blue-500/10 text-blue-600 dark:text-blue-400'
-                        }`}>
-                          {r.scope_type === 'Parent Group Access' ? 'Parent Group Data' : (r.scope_type || 'Company Staff Data')}
-                        </span>
+                        {(() => {
+                          const rawS = r.scope_type || 'Company Staff Data';
+                          const lower = (r.name || '').toLowerCase();
+                          const dispS = rawS === 'Current Company Only'
+                            ? (lower.includes('employee') || lower.includes('driver') || lower.includes('staff') ? 'Own Data Only' : (lower.includes('branch') || lower.includes('leader') ? 'Branch Data Only' : 'Company Staff Data'))
+                            : (rawS === 'Parent Group Access' ? 'Parent Group Data' : rawS);
+                          return (
+                            <span className={`inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] ${
+                              dispS === 'Parent Group Data'
+                                ? 'border-[#942392]/30 bg-[#942392]/10 text-[#942392] dark:text-[#f885d5]' 
+                                : dispS === 'Branch Data Only'
+                                ? 'border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                                : dispS === 'Own Data Only'
+                                ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                                : 'border-blue-500/30 bg-blue-500/10 text-blue-600 dark:text-blue-400'
+                            }`}>
+                              {dispS}
+                            </span>
+                          );
+                        })()}
                       </td>
 
                       {/* Assigned Staff Pill Badge - Clickable */}

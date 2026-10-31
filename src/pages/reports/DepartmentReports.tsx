@@ -46,7 +46,7 @@ function toProperCase(str: string): string {
 export default function DepartmentReports() {
   const { role, userBranch, userDepartment, scopeType } = useRole();
   const navigate = useNavigate();
-  const isOwnDataOnly = (scopeType || "").toLowerCase().includes("own") || (scopeType || "").toLowerCase().includes("self");
+  const isOwnDataOnly = (role || "").toLowerCase().trim() === "employee" || (scopeType || "").toLowerCase().includes("own") || (scopeType || "").toLowerCase().includes("self");
   const [loading, setLoading] = useState(true);
   const [employees, setEmployees] = useState<any[]>([]);
   const [selectedBranch, setSelectedBranch] = useState("All");

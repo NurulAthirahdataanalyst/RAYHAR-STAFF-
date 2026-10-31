@@ -829,17 +829,26 @@ export default function Role() {
                               Custom
                             </span>
                           )}
-                          <span className={`inline-flex items-center px-2 py-0.5 text-[9px] font-bold rounded-full border ${
-                            r.scope_type === 'Parent Group Data' || r.scope_type === 'Parent Group Access'
-                              ? 'border-[#942392]/30 bg-[#942392]/10 text-[#942392]'
-                              : r.scope_type === 'Branch Data Only'
-                              ? 'border-amber-200 bg-amber-50 text-amber-700'
-                              : r.scope_type === 'Own Data Only'
-                              ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
-                              : 'border-slate-200 bg-slate-100 text-slate-700'
-                          }`}>
-                            {r.scope_type || 'Company Staff Data'}
-                          </span>
+                          {(() => {
+                            const rawS = r.scope_type || 'Company Staff Data';
+                            const lower = (r.name || '').toLowerCase();
+                            const dispS = rawS === 'Current Company Only'
+                              ? (lower.includes('employee') || lower.includes('driver') || lower.includes('staff') ? 'Own Data Only' : (lower.includes('branch') || lower.includes('leader') ? 'Branch Data Only' : 'Company Staff Data'))
+                              : (rawS === 'Parent Group Access' ? 'Parent Group Data' : rawS);
+                            return (
+                              <span className={`inline-flex items-center px-2 py-0.5 text-[9px] font-bold rounded-full border ${
+                                dispS === 'Parent Group Data'
+                                  ? 'border-[#942392]/30 bg-[#942392]/10 text-[#942392]'
+                                  : dispS === 'Branch Data Only'
+                                  ? 'border-amber-200 bg-amber-50 text-amber-700'
+                                  : dispS === 'Own Data Only'
+                                  ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                                  : 'border-slate-200 bg-slate-100 text-slate-700'
+                              }`}>
+                                {dispS}
+                              </span>
+                            );
+                          })()}
                         </div>
                       </td>
 

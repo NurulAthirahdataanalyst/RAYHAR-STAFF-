@@ -105,12 +105,13 @@ export default function OutstationReports() {
   const { role, userBranch, userDepartment, userId, userName, scopeType, loading: roleLoading } = useRole();
 
   const effectiveScope = useMemo(() => {
+    const norm = (role || "").toLowerCase().trim();
+    if (norm === 'employee') return 'Own Data Only';
     const s = (scopeType || "").toLowerCase().trim();
     if (s.includes('own') || s.includes('self')) return 'Own Data Only';
     if (s.includes('branch')) return 'Branch Data Only';
     if (s.includes('group') || s.includes('parent')) return 'Parent Group Data';
-    if (s.includes('company') || s.includes('current company')) return 'Company Staff Data';
-    const norm = (role || "").toLowerCase().trim();
+    if (s.includes('company staff')) return 'Company Staff Data';
     if (norm.includes('hr_admin') || norm.includes('hr admin') || norm.includes('admin') || norm.includes('managing_director') || norm.includes('md')) {
       return 'Parent Group Data';
     }

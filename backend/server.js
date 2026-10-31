@@ -272,6 +272,21 @@ async function refreshCompanyAttendanceSettings() {
     for (const r of userRolesRes.rows) {
       userCompanyMap.set(r.user_id, Number(r.company_id));
     }
+
+    // Normalize legacy 'Current Company Only' / 'Parent Group Access' scopes in roles table
+    await pgPool.query(`
+      UPDATE roles SET scope_type = 'Own Data Only'
+      WHERE (LOWER(name) LIKE '%employee%' OR LOWER(name) LIKE '%staff%' OR LOWER(name) LIKE '%consultant%' OR role_type = 'Employee Role')
+        AND (scope_type IS NULL OR scope_type = 'Current Company Only');
+      UPDATE roles SET scope_type = 'Branch Data Only'
+      WHERE (LOWER(name) LIKE '%branch leader%' OR LOWER(name) LIKE '%branch officer%')
+        AND (scope_type IS NULL OR scope_type = 'Current Company Only');
+      UPDATE roles SET scope_type = 'Company Staff Data'
+      WHERE LOWER(name) = 'head of department'
+        AND (scope_type IS NULL OR scope_type = 'Current Company Only');
+      UPDATE roles SET scope_type = 'Parent Group Data'
+      WHERE scope_type = 'Parent Group Access';
+    `).catch(() => {});
   } catch (err) {
     console.warn('refreshCompanyAttendanceSettings warning:', err.message);
   }
