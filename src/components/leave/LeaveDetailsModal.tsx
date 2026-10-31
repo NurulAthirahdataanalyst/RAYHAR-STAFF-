@@ -1,6 +1,8 @@
 import { sanitizeUrl, safeFileUrl, downloadUploadedFile, getMcAttachmentUrl, preloadImage, isPdfUrl } from '@/utils/security';
 import { formatBranchName } from '@/utils/branchUtils';
 import React, { useEffect, useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useRole } from "@/contexts/RoleContext";
 import {
   Dialog,
   DialogContent,
@@ -125,12 +127,29 @@ interface LeaveDetailsModalProps {
 }
 
 export function LeaveDetailsModal({ selectedRequest, onClose, role, onApprove, onReject }: LeaveDetailsModalProps) {
+  const { user } = useAuth();
+  const { userId } = useRole();
+  const current_user_id = String(userId || user?.user_id || user?.id || "").trim();
+  const current_employee_id = String(user?.employee_id || user?.user_id || user?.id || userId || "").trim();
+
+  const reqCreatedBy = String(selectedRequest?.created_by || selectedRequest?.createdBy || selectedRequest?.userId || selectedRequest?.user_id || "").trim().toLowerCase();
+  const reqEmployeeId = String(selectedRequest?.employee_id || selectedRequest?.employeeId || selectedRequest?.userId || selectedRequest?.user_id || "").trim().toLowerCase();
+  const reqUserId = String(selectedRequest?.userId || selectedRequest?.user_id || "").trim().toLowerCase();
+
+  const currentUid = current_user_id.toLowerCase();
+  const currentEid = current_employee_id.toLowerCase();
+
+  const isOwnRequest = Boolean(
+    (currentUid && (currentUid === reqCreatedBy || currentUid === reqEmployeeId || currentUid === reqUserId)) ||
+    (currentEid && (currentEid === reqEmployeeId || currentEid === reqCreatedBy || currentEid === reqUserId))
+  );
+
   const isHrRole = ["hr_admin", "hr", "admin"].includes(role?.toLowerCase()?.trim() || "");
   const reqStatus = String(selectedRequest?.status || "").trim();
   const isPending = reqStatus.startsWith("Pending");
   const normRole = (role || "").toLowerCase().replace(/[\s_-]+/g, "");
   const pendingRole = reqStatus.replace(/^Pending\s+/, "").toLowerCase().replace(/[\s_-]+/g, "");
-  const canModalApprove = isPending && (
+  const canModalApprove = !isOwnRequest && isPending && (
     isHrRole ||
     (pendingRole && normRole === pendingRole) ||
     (reqStatus.startsWith("Pending HOD") && role === "head_of_department") ||

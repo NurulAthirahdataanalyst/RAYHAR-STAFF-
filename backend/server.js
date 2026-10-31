@@ -2408,7 +2408,11 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
       await connection.query("ALTER TABLE profiles DROP COLUMN IF EXISTS reset_token_expires");
       await connection.query("ALTER TABLE leave_requests ADD COLUMN IF NOT EXISTS phone VARCHAR(50)");
       await connection.query("ALTER TABLE profiles ADD COLUMN IF NOT EXISTS phone VARCHAR(50)");
-      console.log('ðŸš€ Successfully migrated: Removed telegram_chat_id, reset_token, and reset_token_expires from profiles table.');
+      await connection.query("ALTER TABLE leave_requests ADD COLUMN IF NOT EXISTS created_by VARCHAR(100)");
+      await connection.query("ALTER TABLE leave_requests ADD COLUMN IF NOT EXISTS employee_id VARCHAR(100)");
+      await connection.query("UPDATE leave_requests SET created_by = user_id WHERE created_by IS NULL");
+      await connection.query("UPDATE leave_requests SET employee_id = user_id WHERE employee_id IS NULL");
+      console.log('🚀 Successfully migrated: Removed telegram_chat_id, reset_token, and ensured leave_requests created_by & employee_id columns.');
     } catch (migErr) {
       console.error('âš ï¸ Migration warning during cleanup of unused columns:', migErr.message);
     }
@@ -4722,6 +4726,8 @@ app.get("/api/leave-requests", async (req, res) => {
       SELECT
         lr.leave_id,
         lr.user_id,
+        COALESCE(lr.created_by, lr.user_id) AS created_by,
+        COALESCE(lr.employee_id, lr.user_id) AS employee_id,
         lr.leave_type,
         lr.start_date,
         lr.end_date,
@@ -5331,16 +5337,18 @@ app.post("/api/leave-requests", uploadLimiter, upload.single("lampiranMc"), asyn
     try {
       await pool.query(`ALTER TABLE leave_requests ADD COLUMN IF NOT EXISTS phone VARCHAR(50)`);
       await pool.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS phone VARCHAR(50)`);
+      await pool.query(`ALTER TABLE leave_requests ADD COLUMN IF NOT EXISTS created_by VARCHAR(100)`);
+      await pool.query(`ALTER TABLE leave_requests ADD COLUMN IF NOT EXISTS employee_id VARCHAR(100)`);
     } catch(migErr) {}
 
     const [result] = await pool.query(
       `
       INSERT INTO leave_requests
-        (user_id, leave_type, start_date, end_date, days, reason, status, waris_nama, waris_phone, waris_alamat, waris_hubungan, cuti_ganti_tarikh, cuti_ganti_hari, cuti_ganti_jam, cuti_tanpa_gaji_phone, cuti_tanpa_gaji_signature, mc_file_url, phone)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        (user_id, created_by, employee_id, leave_type, start_date, end_date, days, reason, status, waris_nama, waris_phone, waris_alamat, waris_hubungan, cuti_ganti_tarikh, cuti_ganti_hari, cuti_ganti_jam, cuti_tanpa_gaji_phone, cuti_tanpa_gaji_signature, mc_file_url, phone)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
       [
-        user_id, leave_type, start_date, end_date, days, safeReason, initialStatus, waris_nama, waris_phone, waris_alamat, waris_hubungan, cuti_ganti_tarikh || null, cuti_ganti_hari || null, cuti_ganti_jam || null, cuti_tanpa_gaji_phone || null, signature_val, mc_file_url, applicantPhone
+        user_id, user_id, user_id, leave_type, start_date, end_date, days, safeReason, initialStatus, waris_nama, waris_phone, waris_alamat, waris_hubungan, cuti_ganti_tarikh || null, cuti_ganti_hari || null, cuti_ganti_jam || null, cuti_tanpa_gaji_phone || null, signature_val, mc_file_url, applicantPhone
       ]
     );
 
@@ -5694,11 +5702,39 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
 
 
   try {
-    const [leaveRows] = await pool.query("SELECT status, user_id FROM leave_requests WHERE leave_id = ?", [leaveId]);
+    const [leaveRows] = await pool.query("SELECT * FROM leave_requests WHERE leave_id = ?", [leaveId]);
     if (leaveRows.length === 0) return res.status(404).json({ success: false, error: "Leave not found" });
     
     const currentStatus = leaveRows[0].status;
     const user_id = leaveRows[0].user_id;
+    const leaveCreatedBy = leaveRows[0].created_by || user_id;
+    const leaveEmployeeId = leaveRows[0].employee_id || user_id;
+
+    // --- SECURITY CHECK: PREVENT SELF-APPROVAL / SELF-REJECTION ---
+    // A user who submits their own leave request MUST NOT be able to Approve or Reject their own leave request.
+    // Rule applies dynamically to all roles (HR Admin, HOD, Branch Leader, Operation Manager, Managing Director, etc.)
+    const currentApproverId = safeString(req.user?.id || req.user?.user_id || approver_id).trim().toLowerCase();
+    const currentApproverEmpId = safeString(req.user?.employee_id || req.user?.user_id || approver_id).trim().toLowerCase();
+
+    const isSelfApproval = Boolean(
+      (currentApproverId && (
+        currentApproverId === String(leaveCreatedBy).trim().toLowerCase() ||
+        currentApproverId === String(leaveEmployeeId).trim().toLowerCase() ||
+        currentApproverId === String(user_id).trim().toLowerCase()
+      )) ||
+      (currentApproverEmpId && (
+        currentApproverEmpId === String(leaveEmployeeId).trim().toLowerCase() ||
+        currentApproverEmpId === String(leaveCreatedBy).trim().toLowerCase() ||
+        currentApproverEmpId === String(user_id).trim().toLowerCase()
+      ))
+    );
+
+    if (isSelfApproval) {
+      return res.status(403).json({
+        success: false,
+        error: "Unauthorized: You cannot approve or reject your own leave request."
+      });
+    }
 
     // --- SECURITY CHECK: HOD/Branch Leader must match Department/Branch ---
     if (approver_id && (role === "head_of_department" || role === "branch_leader")) {
@@ -13012,6 +13048,8 @@ app.get("/api/who-out-today", async (req, res) => {
       SELECT
         lr.leave_id,
         lr.user_id,
+        COALESCE(lr.created_by, lr.user_id) AS created_by,
+        COALESCE(lr.employee_id, lr.user_id) AS employee_id,
         lr.leave_type,
         lr.start_date,
         lr.end_date,

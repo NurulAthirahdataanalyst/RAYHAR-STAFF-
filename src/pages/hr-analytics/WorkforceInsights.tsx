@@ -1,4 +1,5 @@
 import { StaffProfileDialog } from '@/components/shared/StaffProfileDialog';
+import { useAuth } from "@/contexts/AuthContext";
 import { useRole } from "@/contexts/RoleContext";
 import { useCompany } from "@/modules/multi-company/contexts/CompanyContext";
 import { useState, useEffect, useRef, useMemo } from "react";
@@ -124,6 +125,7 @@ interface PendingItem {
 
 export default function WorkforceInsights() {
   const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
+  const { user } = useAuth();
   const { role, userBranch, userDepartment, userId } = useRole();
   const { activeCompany } = useCompany();
   const scopeLabel = role === "head_of_department" || role === "hod" ? userDepartment : (role === "branch_leader" ? userBranch : "");
@@ -277,7 +279,7 @@ export default function WorkforceInsights() {
     return () => es.close();
   }, [role, userBranch, userDepartment, isAdminRole, month, year, day, activeCompany?.id]);
 
-  const getApprovalState = (userRole: string | undefined, itemStatus: string) => {
+  const getApprovalState = (userRole: string | undefined, itemStatus: string, item?: any) => {
     const normRole = (userRole || '').toLowerCase();
     const st = itemStatus || '';
 
@@ -297,6 +299,24 @@ export default function WorkforceInsights() {
     // HR & Employees NEVER get approve/decline buttons
     if (['hr_admin', 'hr', 'employee'].includes(normRole)) {
       canApprove = false;
+    }
+
+    // RULE: A user who submits their own leave request MUST NOT be able to Approve or Reject their own leave request
+    if (item) {
+      const currentUid = String(userId || user?.user_id || user?.id || "").trim().toLowerCase();
+      const currentEid = String(user?.employee_id || user?.user_id || user?.id || userId || "").trim().toLowerCase();
+      const itemCreatedBy = String(item?.created_by || item?.createdBy || item?.user_id || item?.userId || "").trim().toLowerCase();
+      const itemEmployeeId = String(item?.employee_id || item?.employeeId || item?.user_id || item?.userId || "").trim().toLowerCase();
+      const itemUserId = String(item?.user_id || item?.userId || "").trim().toLowerCase();
+
+      const isOwnItem = Boolean(
+        (currentUid && (currentUid === itemCreatedBy || currentUid === itemEmployeeId || currentUid === itemUserId)) ||
+        (currentEid && (currentEid === itemEmployeeId || currentEid === itemCreatedBy || currentEid === itemUserId))
+      );
+
+      if (isOwnItem) {
+        canApprove = false;
+      }
     }
 
     // 2. Display Status Badge text & styling
@@ -330,6 +350,18 @@ export default function WorkforceInsights() {
   };
 
   const handleApproveLeave = async (id: number) => {
+    const targetItem = pendingApprovalsList.find(item => item.id === id);
+    if (targetItem) {
+      const currentUid = String(userId || user?.user_id || user?.id || "").trim().toLowerCase();
+      const currentEid = String(user?.employee_id || user?.user_id || user?.id || userId || "").trim().toLowerCase();
+      const itemCreatedBy = String(targetItem?.created_by || (targetItem as any)?.createdBy || (targetItem as any)?.user_id || targetItem?.userId || "").trim().toLowerCase();
+      const itemEmployeeId = String((targetItem as any)?.employee_id || (targetItem as any)?.employeeId || (targetItem as any)?.user_id || targetItem?.userId || "").trim().toLowerCase();
+      const itemUserId = String((targetItem as any)?.user_id || targetItem?.userId || "").trim().toLowerCase();
+      if ((currentUid && (currentUid === itemCreatedBy || currentUid === itemEmployeeId || currentUid === itemUserId)) ||
+          (currentEid && (currentEid === itemEmployeeId || currentEid === itemCreatedBy || currentEid === itemUserId))) {
+        return;
+      }
+    }
     setPendingApprovalsList(prev => prev.filter(item => item.id !== id));
     try {
       await fetch(`${API_BASE_URL}/api/leave-requests/${id}/status`, {
@@ -341,6 +373,18 @@ export default function WorkforceInsights() {
   };
 
   const handleDeclineLeave = async (id: number) => {
+    const targetItem = pendingApprovalsList.find(item => item.id === id);
+    if (targetItem) {
+      const currentUid = String(userId || user?.user_id || user?.id || "").trim().toLowerCase();
+      const currentEid = String(user?.employee_id || user?.user_id || user?.id || userId || "").trim().toLowerCase();
+      const itemCreatedBy = String(targetItem?.created_by || (targetItem as any)?.createdBy || (targetItem as any)?.user_id || targetItem?.userId || "").trim().toLowerCase();
+      const itemEmployeeId = String((targetItem as any)?.employee_id || (targetItem as any)?.employeeId || (targetItem as any)?.user_id || targetItem?.userId || "").trim().toLowerCase();
+      const itemUserId = String((targetItem as any)?.user_id || targetItem?.userId || "").trim().toLowerCase();
+      if ((currentUid && (currentUid === itemCreatedBy || currentUid === itemEmployeeId || currentUid === itemUserId)) ||
+          (currentEid && (currentEid === itemEmployeeId || currentEid === itemCreatedBy || currentEid === itemUserId))) {
+        return;
+      }
+    }
     setPendingApprovalsList(prev => prev.filter(item => item.id !== id));
     try {
       await fetch(`${API_BASE_URL}/api/leave-requests/${id}/status`, {
@@ -2061,7 +2105,7 @@ export default function WorkforceInsights() {
                 </div>
               ) : (
                 (Array.isArray(pendingApprovalsList) ? pendingApprovalsList : []).map((item) => {
-                  const { canApprove, displayStatus, statusBadgeClass } = getApprovalState(role, item.status);
+                  const { canApprove, displayStatus, statusBadgeClass } = getApprovalState(role, item.status, item);
                   return (
                     <div key={item.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 border border-slate-300 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/50 dark:bg-slate-900/30 transition-all gap-3">
                       <div className="flex items-start gap-2.5">

@@ -1,5 +1,5 @@
 import { writePrintDocument } from '@/utils/security';
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useRole } from "@/contexts/RoleContext";
 import { useCompany } from "@/modules/multi-company/contexts/CompanyContext";

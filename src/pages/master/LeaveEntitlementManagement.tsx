@@ -540,6 +540,9 @@ function CustomDatePicker({ value, onChange, placeholder, disabled }: { value: s
 
 
 function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employees: any[]; onCancel: () => void; onRefresh?: () => void; }) {
+  const { user } = useAuth();
+  const adminName = user?.full_name || user?.name;
+  const performedByStr = adminName ? `HR Admin - ${adminName}` : 'HR Admin';
   const [allocMode, setAllocMode] = useState<"base" | "ot">("base");
 
   // Mode 1: Base entitlement state variables
@@ -1551,6 +1554,9 @@ function CarryForwardLeaveForm({
    3. ADDITIONAL LEAVE ALLOCATION FORM
    ========================================================== */
 function AdditionalLeaveAllocationForm({ employees, onCancel, onRefresh }: { employees: any[]; onCancel: () => void; onRefresh?: () => void; }) {
+  const { user } = useAuth();
+  const adminName = user?.full_name || user?.name;
+  const performedByStr = adminName ? `HR Admin - ${adminName}` : 'HR Admin';
   const [selectedEmp, setSelectedEmp] = useState<any | null>(null);
   const [leaveType, setLeaveType] = useState("Annual/Emergency Leave");
   const [addDays, setAddDays] = useState(3);
@@ -2180,6 +2186,9 @@ function ManualLeaveAdjustmentForm({
    ========================================================== */
 function SpecialLeaveCreditsForm({ employees, onCancel }: any) {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const adminName = user?.full_name || user?.name;
+  const performedByStr = adminName ? `HR Admin - ${adminName}` : 'HR Admin';
   const [selectedEmp, setSelectedEmp] = useState<any | null>(null);
   const [leaveCategory, setLeaveCategory] = useState("Compassionate Leave");
   const [adjDays, setAdjDays] = useState(1);
@@ -2308,6 +2317,9 @@ function SpecialLeaveCreditsForm({ employees, onCancel }: any) {
    ========================================================== */
 function MaternityLeaveForm({ employees, onCancel }: any) {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const adminName = user?.full_name || user?.name;
+  const performedByStr = adminName ? `HR Admin - ${adminName}` : 'HR Admin';
   const [selectedEmp, setSelectedEmp] = useState<any | null>(null);
   const [edd, setEdd] = useState("");
   const [startDate, setStartDate] = useState("");

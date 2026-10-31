@@ -26,6 +26,7 @@ import {
 import { toast } from "sonner";
 import { Check, X, Users, MapPin, Info, Loader2, FileText, Printer, PhoneCall, Clock, CheckCircle2, XCircle, ChevronRight, ChevronLeft, ClipboardList, Download, RotateCcw, Search, Building2 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { useRole } from "@/contexts/RoleContext";
 import { parseCutiGantiRows, getCleanReason } from "@/lib/leaveStorage";
 import { API_BASE_URL } from "../config/api";
@@ -97,6 +98,11 @@ type Employee = {
 type LeaveRequest = {
   id: number;
   userId?: string;
+  user_id?: string;
+  created_by?: string;
+  createdBy?: string;
+  employee_id?: string;
+  employeeId?: string;
   companyId?: number;
   companyName?: string;
   employee: string;
@@ -187,8 +193,27 @@ const ADMIN_VIEW_ROLES = ["hr_admin", "branch_leader", ...APPROVER_ROLES];
 type TabFilter = "pending" | "approved" | "rejected" | "history";
 
 export default function LeaveAdmin() {
+  const { user } = useAuth();
   const { role, userBranch, userDepartment, userId, hasPermission, loading: roleLoading } = useRole();
   const { activeCompany } = useCompany();
+
+  const current_user_id = String(userId || user?.user_id || user?.id || "").trim();
+  const current_employee_id = String(user?.employee_id || user?.user_id || user?.id || userId || "").trim();
+
+  const isOwnLeaveRequest = (req: Partial<LeaveRequest> | null | undefined): boolean => {
+    if (!req) return false;
+    const reqCreatedBy = String(req.created_by || req.createdBy || req.userId || req.user_id || "").trim().toLowerCase();
+    const reqEmployeeId = String(req.employee_id || req.employeeId || req.userId || req.user_id || "").trim().toLowerCase();
+    const reqUserId = String(req.userId || req.user_id || "").trim().toLowerCase();
+
+    const currentUid = current_user_id.toLowerCase();
+    const currentEid = current_employee_id.toLowerCase();
+
+    return Boolean(
+      (currentUid && (currentUid === reqCreatedBy || currentUid === reqEmployeeId || currentUid === reqUserId)) ||
+      (currentEid && (currentEid === reqEmployeeId || currentEid === reqCreatedBy || currentEid === reqUserId))
+    );
+  };
 
   const canAccessLeaveAdmin =
     APPROVER_ROLES.includes(role) ||
@@ -593,6 +618,11 @@ export default function LeaveAdmin() {
           createdAt: request.created_at ? formatDate(request.created_at) : "-",
           id: request.leave_id,
           userId: request.user_id,
+          user_id: request.user_id,
+          created_by: request.created_by || request.user_id,
+          createdBy: request.created_by || request.user_id,
+          employee_id: request.employee_id || request.user_id,
+          employeeId: request.employee_id || request.user_id,
           companyId: request.company_id || (request.branch === "RAYRENT" ? 2 : 1),
           companyName: request.company_name || (request.branch === "RAYRENT" ? "RayRent" : "Rayhar Travels"),
           employee: request.full_name || request.user_id,
@@ -646,7 +676,14 @@ export default function LeaveAdmin() {
     }
   };
 
-  const handleAction = async (id: number, action: "approve" | "reject", currentStatus: string) => {
+  const handleAction = async (id: number, action: "approve" | "reject", currentStatus: string, targetReq?: LeaveRequest) => {
+    const req = targetReq || requests.find((r) => r.id === id);
+    if (req && isOwnLeaveRequest(req)) {
+      toast.error("Unauthorized Action", {
+        description: "You cannot approve or reject your own leave request.",
+      });
+      return;
+    }
     setPendingAction({ id, action, status: currentStatus });
     setRemarks("");
     setRemarksDialogOpen(true);
@@ -655,6 +692,15 @@ export default function LeaveAdmin() {
   const submitAction = async () => {
     if (!pendingAction) return;
     const { id, action } = pendingAction;
+    const req = requests.find((r) => r.id === id);
+    if (req && isOwnLeaveRequest(req)) {
+      toast.error("Unauthorized Action", {
+        description: "You cannot approve or reject your own leave request.",
+      });
+      setRemarksDialogOpen(false);
+      setPendingAction(null);
+      return;
+    }
     setIsSubmitting(true);
 
     try {
@@ -1195,7 +1241,7 @@ export default function LeaveAdmin() {
                         </TableCell>
                         {canApprove && (
                           <TableCell className="px-3 py-3.5 text-right">
-                            {Boolean(
+                            {!isOwnLeaveRequest(req) && Boolean(
                               (["hr_admin", "hr", "admin"].includes(role?.toLowerCase()?.trim() || "") && req.status.trim().startsWith("Pending")) ||
                               (req.status.trim().startsWith("Pending HOD") && role === "head_of_department") ||
                               (req.status.trim() === "Pending Branch Leader" && role === "branch_leader") ||
@@ -1214,7 +1260,7 @@ export default function LeaveAdmin() {
                                   className="h-10 w-10 rounded-md p-0 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 border-2 border-emerald-200 hover:border-emerald-500 shadow-sm transition-all"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    handleAction(req.id, "approve", req.status);
+                                    handleAction(req.id, "approve", req.status, req);
                                   }}
                                   title="Approve"
                                 >
@@ -1226,7 +1272,7 @@ export default function LeaveAdmin() {
                                   className="h-10 w-10 rounded-md p-0 text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-2 border-rose-200 hover:border-rose-500 shadow-sm transition-all"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    handleAction(req.id, "reject", req.status);
+                                    handleAction(req.id, "reject", req.status, req);
                                   }}
                                   title="Reject"
                                 >
@@ -1317,14 +1363,14 @@ export default function LeaveAdmin() {
         selectedRequest={selectedRequest}
         onClose={() => setSelectedRequest(null)}
         role={role}
-        onApprove={(id, currentStatus) => {
+        onApprove={selectedRequest && !isOwnLeaveRequest(selectedRequest) ? (id, currentStatus) => {
           setSelectedRequest(null);
-          handleAction(id, "approve", currentStatus);
-        }}
-        onReject={(id, currentStatus) => {
+          handleAction(id, "approve", currentStatus, selectedRequest);
+        } : undefined}
+        onReject={selectedRequest && !isOwnLeaveRequest(selectedRequest) ? (id, currentStatus) => {
           setSelectedRequest(null);
-          handleAction(id, "reject", currentStatus);
-        }}
+          handleAction(id, "reject", currentStatus, selectedRequest);
+        } : undefined}
       />
 
       {/* Remarks Dialog */}
