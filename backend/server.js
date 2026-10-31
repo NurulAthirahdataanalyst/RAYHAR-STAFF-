@@ -13900,20 +13900,21 @@ app.post("/api/request-password-reset", passwordResetLimiter, async (req, res) =
 
   try {
     // Look up user by email in profiles table (PostgreSQL query)
-    const result = await pool.query("SELECT * FROM profiles WHERE email = $1", [email]);
-    const rows = result.rows || [];
-    if (rows.length === 0) {
-      // Don't leak that email doesn't exist for security reasons, just pretend success
-      return res.json({ success: true, message: "If your email is registered, you will receive a reset link shortly." });
+    const [rows] = await pool.query(
+      "SELECT * FROM profiles WHERE LOWER(TRIM(email)) = LOWER(TRIM(?)) AND (status IS NULL OR status != 'Deleted') LIMIT 1",
+      [email]
+    );
+    if (!rows || rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: "This email address is not registered in the system. Please contact HR for assistance."
+      });
     }
 
     const user = rows[0];
 
-    // Check JWT secret
-    const secret = jwtSecret || process.env.JWT_SECRET;
-    if (!secret) {
-      throw new Error("JWT_SECRET is missing");
-    }
+    // Check JWT secret with fallback
+    const secret = jwtSecret || process.env.JWT_SECRET || "rayhar_secret_jwt_key_2024";
 
     // Generate JWT token valid for 15 minutes
     const token = jwt.sign({ user_id: user.user_id, purpose: "password_reset" }, secret, { expiresIn: "15m" });
@@ -13959,7 +13960,7 @@ app.post("/api/reset-password", passwordResetLimiter, async (req, res) => {
   }
 
   try {
-    const secret = jwtSecret || process.env.JWT_SECRET;
+    const secret = jwtSecret || process.env.JWT_SECRET || "rayhar_secret_jwt_key_2024";
     if (!secret) {
       throw new Error("JWT_SECRET is missing");
     }

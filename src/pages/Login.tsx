@@ -126,28 +126,40 @@ export default function Login() {
 
     setResetLoading(true);
     try {
-      // 1. Check if the user exists in profiles
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('email')
-        .eq('email', email)
-        .maybeSingle();
+      // 1. Request password reset link from backend API
+      const response = await fetch(`${API_BASE_URL}/api/request-password-reset`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
 
-      if (!profile) {
+      const data = await response.json().catch(() => ({}));
+
+      if (response.status === 404) {
         toast({
           title: "Email Not Found",
-          description: "This email address is not registered in the system. Please contact HR for assistance.",
+          description: data.error || "This email address is not registered in the system. Please contact HR for assistance.",
           variant: "destructive"
         });
         return;
       }
 
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
+      if (!response.ok || !data.success) {
+        toast({
+          title: "Reset Request Failed",
+          description: data.error || data.message || "Failed to process password reset request. Please try again.",
+          variant: "destructive"
+        });
+        return;
+      }
 
-      if (error) {
-        throw error;
+      // Also invoke Supabase auth reset in background if available
+      try {
+        await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+      } catch (sbErr) {
+        console.warn("Supabase background reset notice:", sbErr);
       }
 
       toast({
