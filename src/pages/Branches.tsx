@@ -2668,9 +2668,6 @@ export default function Branches() {
                       <MapPin className="w-3.5 h-3.5" /> Select on Map
                     </Button>
                   </div>
-                  <p className="text-[10px] text-muted-foreground">
-                    Click <b>Select on Map</b> or paste coordinates directly from Google Maps.
-                  </p>
                 </div>
 
                 <div className="space-y-1.5">
@@ -2941,9 +2938,6 @@ export default function Branches() {
                       <MapPin className="w-3.5 h-3.5" /> Select on Map
                     </Button>
                   </div>
-                  <p className="text-[10px] text-muted-foreground">
-                    Click <b>Select on Map</b> or paste coordinates directly from Google Maps.
-                  </p>
                 </div>
 
                 <div className="space-y-1.5">
@@ -2989,7 +2983,7 @@ export default function Branches() {
       </Dialog>
 
       <Dialog open={isMapModalOpen} onOpenChange={setIsMapModalOpen}>
-        <DialogContent className="w-[calc(100vw-2.5rem)] max-w-4xl max-h-[90vh] sm:max-h-[85vh] p-0 border-none shadow-2xl overflow-hidden rounded-[24px] flex flex-col my-auto">
+        <DialogContent className="w-[calc(100vw-2.5rem)] max-w-4xl max-h-[90vh] sm:max-h-[85vh] p-0 gap-0 border-none shadow-2xl overflow-hidden rounded-[24px] flex flex-col my-auto">
           <div className="p-5 sm:p-6 bg-gradient-to-r from-[#942392] to-purple-500 text-white flex justify-between items-start shrink-0">
             <div className="flex items-center gap-3">
               <div className="p-3 bg-white/20 rounded-xl">
@@ -3040,8 +3034,8 @@ export default function Branches() {
               <div className="space-y-4">
                 {/* Google Maps Quick Paste */}
                 <div className="space-y-1.5 p-3 rounded-xl bg-purple-50/70 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800">
-                  <label className="text-[10px] print:text-[13px] font-black uppercase tracking-wider text-[#942392] flex items-center gap-1.5">
-                    <span>📍</span> PASTE COORDINATES (GOOGLE MAPS)
+                  <label className="text-[10px] print:text-[13px] font-black uppercase tracking-wider text-[#942392]">
+                    PASTE COORDINATES (GOOGLE MAPS)
                   </label>
                   <Input 
                     value={pasteCoordsInput}
@@ -3049,9 +3043,6 @@ export default function Branches() {
                     placeholder="e.g. 5.3297, 103.1370 or Maps link"
                     className="h-10 rounded-xl text-xs font-mono font-bold bg-white dark:bg-background border-purple-300 dark:border-purple-700 focus-visible:ring-[#942392]"
                   />
-                  <p className="text-[10px] text-muted-foreground font-medium">
-                    Paste copied coordinates from Google Maps here
-                  </p>
                 </div>
 
                 {/* Manual Coordinates */}
@@ -3085,7 +3076,7 @@ export default function Branches() {
                     className="w-full h-10 rounded-xl text-xs font-black uppercase tracking-wider text-purple-700 bg-purple-50 hover:bg-purple-100 border-purple-200 cursor-pointer shadow-xs" 
                     onClick={handleApplyLocation}
                   >
-                    🚀 Apply Location
+                    Apply Location
                   </Button>
                 </div>
                 

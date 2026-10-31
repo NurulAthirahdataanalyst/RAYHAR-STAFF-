@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -902,9 +902,6 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
                       <MapPin className="w-3.5 h-3.5" /> Select on Map
                     </Button>
                   </div>
-                  <p className="text-[10px] text-muted-foreground">
-                    Click <b>Select on Map</b> or paste coordinates directly from Google Maps.
-                  </p>
                 </div>
 
                 <div className="space-y-1.5">
@@ -949,7 +946,7 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
 
       {/* Map Picker Modal - Fast, with Paste Coordinates and Apply Location */}
       <Dialog open={isMapModalOpen} onOpenChange={setIsMapModalOpen}>
-        <DialogContent className="w-[calc(100vw-2.5rem)] max-w-4xl max-h-[90vh] p-0 border-none shadow-2xl overflow-hidden rounded-[24px] flex flex-col [&>button]:text-white [&>button]:hover:text-white/80 z-[70] my-auto">
+        <DialogContent className="w-[calc(100vw-2.5rem)] max-w-4xl max-h-[90vh] p-0 gap-0 border-none shadow-2xl overflow-hidden rounded-[24px] flex flex-col [&>button]:text-white [&>button]:hover:text-white/80 z-[70] my-auto">
           <div className="p-5 sm:p-6 bg-gradient-to-r from-[#942392] to-purple-600 text-white flex justify-between items-start shrink-0">
             <div>
               <DialogTitle className="text-lg font-black uppercase tracking-tight m-0 text-white flex items-center gap-2">
@@ -1005,9 +1002,8 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
               <div className="space-y-4">
                 {/* 1. Paste Coordinate Box */}
                 <div className="space-y-1.5 p-3 rounded-xl bg-purple-50/70 dark:bg-purple-950/30 border border-purple-200/80 dark:border-purple-800/40">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-[#942392] dark:text-purple-300 flex items-center gap-1">
-                    <Navigation className="w-3 h-3 text-[#942392]" />
-                    Paste Coordinates (Google Maps)
+                  <label className="text-[10px] font-black uppercase tracking-widest text-[#942392] dark:text-purple-300">
+                    PASTE COORDINATES (GOOGLE MAPS)
                   </label>
                   <Input
                     value={pasteCoordsInput}
@@ -1015,9 +1011,6 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
                     placeholder="e.g. 5.3297, 103.1370"
                     className="h-10 rounded-xl text-xs font-mono font-bold bg-white dark:bg-neutral-800 border-purple-300 focus-visible:ring-[#942392]"
                   />
-                  <p className="text-[9px] text-muted-foreground">
-                    Paste Google Maps coordinate format or URL.
-                  </p>
                 </div>
 
                 {/* 2. Manual Lat & Lng */}
@@ -1053,7 +1046,6 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
                     onClick={handleApplyMapLocation}
                     className="w-full h-10 rounded-xl text-xs font-black uppercase tracking-wider text-white bg-[#942392] hover:bg-[#800A7A] shadow-xs flex items-center justify-center gap-2 cursor-pointer"
                   >
-                    <Navigation className="w-3.5 h-3.5" />
                     Apply Location
                   </Button>
                 </div>
