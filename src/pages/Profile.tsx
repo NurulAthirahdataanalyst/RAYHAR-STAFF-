@@ -411,7 +411,7 @@ const Profile = () => {
               <div key={idx} className="space-y-1.5 p-3 sm:p-4 md:p-5 rounded-2xl bg-muted/20 border border-border/40 transition-all hover:border-primary/30 hover:bg-muted/30 group">
                 <div className="flex items-center gap-2 mb-1">
                   <item.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-foreground group-hover:text-primary dark:group-hover:text-purple-400 transition-colors" />
-                  <p className="text-[10px] font-black uppercase tracking-widest text-foreground/60">{item.label}</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-black dark:text-white">{item.label}</p>
                 </div>
                 <p className={`text-sm sm:text-base font-black pl-5 sm:pl-6 break-words ${item.isMono ? "font-mono" : ""} ${item.highlight ? "text-[#942392]" : "text-foreground"}`}>{item.value}</p>
               </div>

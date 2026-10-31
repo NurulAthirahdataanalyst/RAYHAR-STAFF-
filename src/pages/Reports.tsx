@@ -66,14 +66,16 @@ export default function Reports() {
 
   // Resolve Authorization Scope
   const effectiveScope = useMemo(() => {
+    const norm = (role || "").toLowerCase().trim();
+    if (norm === 'employee') return 'Own Data Only';
+
     const s = (scopeType || "").toLowerCase().trim();
     if (s.includes('own') || s.includes('self')) return 'Own Data Only';
     if (s.includes('branch')) return 'Branch Data Only';
     if (s.includes('group') || s.includes('parent')) return 'Parent Group Data';
-    if (s.includes('company') || s.includes('current company')) return 'Company Staff Data';
+    if (s.includes('company staff')) return 'Company Staff Data';
 
     // Fallback deducing from role
-    const norm = (role || "").toLowerCase().trim();
     if (norm.includes('hr_admin') || norm.includes('hr admin') || norm.includes('admin') || norm.includes('managing_director') || norm.includes('md')) {
       return 'Parent Group Data';
     }

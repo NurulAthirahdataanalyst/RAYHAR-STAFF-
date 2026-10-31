@@ -917,47 +917,142 @@ function createMultiCompanyRouter(pgPool) {
 
   // PUT update branch and its geofence settings
   router.put('/branches/:code', async (req, res) => {
+    const client = await pgPool.connect();
     try {
-      const code = req.params.code.toUpperCase();
-      const { name, location, operating_zone, latitude, longitude, radius, company_id } = req.body;
+      const oldCode = req.params.code.trim().toUpperCase();
+      const { code: rawNewCode, name, location, operating_zone, latitude, longitude, radius, company_id } = req.body;
+      const newCode = (rawNewCode ? String(rawNewCode).trim().toUpperCase() : oldCode) || oldCode;
       const normZone = operating_zone ? normalizeZoneCode(operating_zone) : null;
 
-      const updateRes = await pgPool.query(`
-        UPDATE branches
-        SET 
-          name = COALESCE($1, name),
-          branch = COALESCE($1, branch),
-          location = COALESCE($2, location),
-          operating_zone = COALESCE($3, operating_zone),
-          latitude = COALESCE($4, latitude),
-          longitude = COALESCE($5, longitude),
-          radius = COALESCE($6, radius),
-          company_id = COALESCE($7, company_id)
-        WHERE UPPER(code) = $8
-        RETURNING *;
-      `, [name, location, normZone, latitude, longitude, radius, company_id, code]);
-
-      if (updateRes.rows.length === 0) {
+      const existingRes = await client.query('SELECT * FROM branches WHERE UPPER(code) = $1', [oldCode]);
+      if (existingRes.rows.length === 0) {
+        client.release();
         return res.status(404).json({ success: false, error: 'Branch not found' });
       }
+      const existingBranch = existingRes.rows[0];
+      const targetCompanyId = company_id || existingBranch.company_id || 1;
 
-      const updatedBranch = updateRes.rows[0];
+      if (newCode !== oldCode) {
+        const conflictRes = await client.query('SELECT code FROM branches WHERE UPPER(code) = $1 AND UPPER(code) != $2', [newCode, oldCode]);
+        if (conflictRes.rows.length > 0) {
+          client.release();
+          return res.status(400).json({ success: false, error: `Branch code '${newCode}' is already in use by another branch.` });
+        }
+      }
+
+      await client.query('BEGIN');
+
+      let updatedBranch;
+
+      if (newCode !== oldCode) {
+        // Insert new branch record with newCode
+        const insertRes = await client.query(`
+          INSERT INTO branches (code, name, branch, location, operating_zone, latitude, longitude, radius, company_id)
+          VALUES ($1, $2, $2, $3, $4, $5, $6, $7, $8)
+          RETURNING *;
+        `, [
+          newCode,
+          name ? name.trim() : existingBranch.name,
+          location !== undefined ? location : existingBranch.location,
+          normZone || existingBranch.operating_zone,
+          latitude !== undefined ? latitude : existingBranch.latitude,
+          longitude !== undefined ? longitude : existingBranch.longitude,
+          radius !== undefined ? radius : existingBranch.radius,
+          targetCompanyId
+        ]);
+        updatedBranch = insertRes.rows[0];
+
+        // Cascade code updates to all referencing tables
+        await client.query('UPDATE profiles SET branch = $1 WHERE UPPER(branch) = $2', [newCode, oldCode]).catch(() => {});
+        await client.query('UPDATE company_user_roles SET branch_id = $1 WHERE UPPER(branch_id) = $2', [newCode, oldCode]).catch(() => {});
+        await client.query('UPDATE branch_geofence_settings SET branch_code = $1 WHERE UPPER(branch_code) = $2', [newCode, oldCode]).catch(() => {});
+        await client.query('UPDATE work_assignments SET branch_id = $1 WHERE UPPER(branch_id) = $2', [newCode, oldCode]).catch(() => {});
+        await client.query('UPDATE work_assignments SET primary_branch = $1 WHERE UPPER(primary_branch) = $2', [newCode, oldCode]).catch(() => {});
+        await client.query('UPDATE work_assignments SET location = $1 WHERE UPPER(location) = $2', [newCode, oldCode]).catch(() => {});
+        await client.query('UPDATE attendance_records SET branch = $1 WHERE UPPER(branch) = $2', [newCode, oldCode]).catch(() => {});
+        await client.query('UPDATE leave_requests SET branch = $1 WHERE UPPER(branch) = $2', [newCode, oldCode]).catch(() => {});
+
+        // Cascade in work schedules
+        const schedRes = await client.query('SELECT id, branch_ids, branch_id FROM work_schedules');
+        for (const ws of schedRes.rows) {
+          let codes = parseBranchIds(ws.branch_ids, ws.branch_id);
+          if (codes.includes(oldCode)) {
+            codes = codes.map(c => c === oldCode ? newCode : c);
+            codes = Array.from(new Set(codes)).sort();
+            await client.query(
+              'UPDATE work_schedules SET branch_ids = $1::jsonb, branch_id = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3',
+              [JSON.stringify(codes), codes.join(','), ws.id]
+            );
+          }
+        }
+
+        // Cascade in approval workflow routing / scope
+        await client.query(`
+          UPDATE approval_workflow 
+          SET branch_scope = CASE 
+            WHEN UPPER(branch_scope) = $1 THEN $2 
+            ELSE REPLACE(branch_scope, $1, $2) 
+          END 
+          WHERE branch_scope ILIKE $3
+        `, [oldCode, newCode, `%${oldCode}%`]).catch(() => {});
+
+        // Delete old branch record safely now that all FKs have moved
+        await client.query('DELETE FROM branches WHERE UPPER(code) = $1', [oldCode]);
+      } else {
+        const updateRes = await client.query(`
+          UPDATE branches
+          SET 
+            name = COALESCE($1, name),
+            branch = COALESCE($1, branch),
+            location = COALESCE($2, location),
+            operating_zone = COALESCE($3, operating_zone),
+            latitude = COALESCE($4, latitude),
+            longitude = COALESCE($5, longitude),
+            radius = COALESCE($6, radius),
+            company_id = COALESCE($7, company_id)
+          WHERE UPPER(code) = $8
+          RETURNING *;
+        `, [name ? name.trim() : null, location, normZone, latitude, longitude, radius, targetCompanyId, oldCode]);
+        updatedBranch = updateRes.rows[0];
+      }
 
       if (radius !== undefined) {
-        await pgPool.query(`
+        await client.query(`
           INSERT INTO branch_geofence_settings (branch_code, company_id, mode, radius_meter)
           VALUES ($1, $2, 'normal', $3)
           ON CONFLICT (branch_code, mode) DO UPDATE SET radius_meter = EXCLUDED.radius_meter;
-        `, [code, updatedBranch.company_id || 1, radius]);
+        `, [newCode, updatedBranch.company_id || 1, radius]);
       }
 
       if (updatedBranch.operating_zone) {
-        await syncBranchToWorkSchedules(updatedBranch.company_id || 1, code, updatedBranch.operating_zone);
+        await syncBranchToWorkSchedules(updatedBranch.company_id || 1, newCode, updatedBranch.operating_zone);
       }
+
+      await client.query('COMMIT');
+
+      if (typeof global.broadcastPresenceUpdate === 'function') {
+        global.broadcastPresenceUpdate({ type: 'refresh' });
+        global.broadcastPresenceUpdate({ type: 'branches-updated', oldCode, newCode, name: updatedBranch.name });
+      }
+
+      await logAudit(
+        req, 
+        'BRANCH_UPDATE', 
+        oldCode !== newCode 
+          ? `Updated branch ${existingBranch.name} code from ${oldCode} to ${newCode} (Name: ${updatedBranch.name})` 
+          : `Updated branch details for ${updatedBranch.name} (${newCode})`,
+        existingBranch, 
+        updatedBranch, 
+        updatedBranch.company_id || 1
+      );
 
       res.json({ success: true, branch: updatedBranch });
     } catch (err) {
+      await client.query('ROLLBACK').catch(() => {});
+      console.error('Error updating branch:', err);
       res.status(500).json({ success: false, error: err.message });
+    } finally {
+      client.release();
     }
   });
 

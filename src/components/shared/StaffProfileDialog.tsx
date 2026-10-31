@@ -268,13 +268,42 @@ export function StaffProfileDialog({
     }
   }, [selectedEmployee]);
 
-  useEffect(() => {
-    if (todayStats) {
-      setEditClockIn(todayStats.clockInTime && todayStats.clockInTime !== "--:--" ? todayStats.clockInTime : "");
-      setEditClockOut(todayStats.clockOutTime && todayStats.clockOutTime !== "--:--" ? todayStats.clockOutTime : "");
-// attendance status and location are fixed
+  const normalizeTimeTo24Hr = (timeStr?: string | null, rawIso?: string | null): string => {
+    const candidate = timeStr && timeStr !== "--:--" ? String(timeStr).trim() : "";
+    if (candidate) {
+      if (/^\d{2}:\d{2}$/.test(candidate)) {
+        return candidate;
+      }
+      const isPM = /pm/i.test(candidate);
+      const isAM = /am/i.test(candidate);
+      const clean = candidate.replace(/am|pm/gi, "").trim().replace(/\./g, ":");
+      const parts = clean.split(":");
+      let h = parseInt(parts[0] || "", 10);
+      let m = parseInt(parts[1] || "0", 10);
+      if (!isNaN(h)) {
+        if (isNaN(m)) m = 0;
+        if (isPM && h < 12) h += 12;
+        if (isAM && h === 12) h = 0;
+        return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+      }
     }
-  }, [todayStats]);
+    if (rawIso) {
+      try {
+        let isoStr = String(rawIso).trim().replace(" ", "T");
+        if (!isoStr.endsWith("Z") && !isoStr.includes("+") && (isoStr.length < 19 || !isoStr.substring(10).includes("-"))) {
+          isoStr += "Z";
+        }
+        const d = new Date(isoStr);
+        if (!isNaN(d.getTime())) {
+          const klDate = new Date(d.getTime() + 8 * 60 * 60 * 1000);
+          const hh = String(klDate.getUTCHours()).padStart(2, "0");
+          const mm = String(klDate.getUTCMinutes()).padStart(2, "0");
+          return `${hh}:${mm}`;
+        }
+      } catch (_) {}
+    }
+    return "";
+  };
 
 
   const formatTimeToDotAmPm = (timeStr?: string | null) => {
@@ -328,8 +357,14 @@ export function StaffProfileDialog({
     }
     let totalMins = 0;
     attendanceSessions.forEach((sess, idx) => {
-      const inVal = idx === currentSessionIdx ? (editClockIn || sess.clock_in_time_24 || sess.clock_in_time_12) : (sess.clock_in_time_24 || sess.clock_in_time_12);
-      const outVal = idx === currentSessionIdx ? (editClockOut || sess.clock_out_time_24 || sess.clock_out_time_12) : (sess.clock_out_time_24 || sess.clock_out_time_12);
+      const sessIn = sess.clock_in_time_24 || sess.clock_in_time_12;
+      const sessOut = sess.clock_out_time_24 || sess.clock_out_time_12;
+      const inVal = idx === currentSessionIdx
+        ? (sess.has_recorded_clock_in ? (sessIn || editClockIn) : (editClockIn || sessIn))
+        : sessIn;
+      const outVal = idx === currentSessionIdx
+        ? (sess.has_recorded_clock_out ? (sessOut || editClockOut) : (editClockOut || sessOut))
+        : sessOut;
       if (inVal && outVal && inVal !== "--:--" && outVal !== "--:--") {
         const { mins } = calculateDiffHoursAndMinutes(inVal, outVal);
         totalMins += mins;
@@ -343,14 +378,19 @@ export function StaffProfileDialog({
   const fetchTodaySessions = async (uid: string) => {
     setIsLoadingSessions(true);
     try {
-      const todayDateStr = new Date().toISOString().split('T')[0];
+      const todayDateStr = new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString().split('T')[0];
       const res = await fetch(`${API_BASE_URL}/api/employees/${uid}/today-attendance?date=${todayDateStr}`);
       const data = await res.json();
       if (data.success && Array.isArray(data.sessions) && data.sessions.length > 0) {
-        setAttendanceSessions(data.sessions);
+        const normalizedSessions = data.sessions.map((s: any) => ({
+          ...s,
+          clock_in_time_24: normalizeTimeTo24Hr(s.clock_in_time_24 || s.clock_in_time_12, s.clock_in),
+          clock_out_time_24: normalizeTimeTo24Hr(s.clock_out_time_24 || s.clock_out_time_12, s.clock_out),
+        }));
+        setAttendanceSessions(normalizedSessions);
         setCurrentSessionIdx(0);
-        setEditClockIn(data.sessions[0].clock_in_time_24 || "");
-        setEditClockOut(data.sessions[0].clock_out_time_24 || "");
+        setEditClockIn(normalizedSessions[0].clock_in_time_24 || "");
+        setEditClockOut(normalizedSessions[0].clock_out_time_24 || "");
         setDefaultLocationData(data.defaultLocation);
       } else {
         const defLoc = data?.defaultLocation || {
@@ -367,7 +407,7 @@ export function StaffProfileDialog({
           clock_out_time_12: "--:--",
           clock_in_time_24: "",
           clock_out_time_24: "",
-          working_status: "PRESENT",
+          working_status: data?.working_status || "PRESENT",
           location: defLoc.name || "HQ",
           location_formatted: defLoc.location_formatted || "HQ ( 4.6778, 10.78758646 )",
           working_hours: "0 H 00 M",
@@ -392,18 +432,21 @@ export function StaffProfileDialog({
     setAttendanceSessions(prev => {
       const copy = [...prev];
       if (copy[currentSessionIdx]) {
+        const curr = copy[currentSessionIdx];
         copy[currentSessionIdx] = {
-          ...copy[currentSessionIdx],
-          clock_in_time_24: editClockIn,
-          clock_out_time_24: editClockOut,
+          ...curr,
+          clock_in_time_24: curr.has_recorded_clock_in ? curr.clock_in_time_24 : editClockIn,
+          clock_out_time_24: editClockOut || curr.clock_out_time_24,
         };
       }
       return copy;
     });
     setCurrentSessionIdx(newIdx);
     const sess = attendanceSessions[newIdx];
-    setEditClockIn(sess.clock_in_time_24 || "");
-    setEditClockOut(sess.clock_out_time_24 || "");
+    const nextIn = normalizeTimeTo24Hr(sess?.clock_in_time_24 || sess?.clock_in_time_12, sess?.clock_in);
+    const nextOut = normalizeTimeTo24Hr(sess?.clock_out_time_24 || sess?.clock_out_time_12, sess?.clock_out);
+    setEditClockIn(nextIn);
+    setEditClockOut(nextOut);
   };
 
   useEffect(() => {
@@ -480,7 +523,9 @@ export function StaffProfileDialog({
           ? editClockIn
           : `${sessionDateStr}T${editClockIn}:00+08:00`
         : null;
-      const clockOutVal = editClockOut
+      const clockOutVal = currentSess?.has_recorded_clock_out
+        ? null
+        : editClockOut
         ? editClockOut.includes('T')
           ? editClockOut
           : `${sessionDateStr}T${editClockOut}:00+08:00`
@@ -1349,7 +1394,7 @@ export function StaffProfileDialog({
                               <div className="p-4 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-start gap-3">
                                 <User className="w-4 h-4 text-[#942392] mt-0.5 shrink-0" />
                                 <div>
-                                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block">Full Name</span>
+                                  <span className="text-[10px] font-black text-black dark:text-white uppercase tracking-widest block">Full Name</span>
                                   <span className="text-xs font-black text-foreground uppercase">{selectedEmployee.name}</span>
                                 </div>
                               </div>
@@ -1357,7 +1402,7 @@ export function StaffProfileDialog({
                               <div className="p-4 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-start gap-3">
                                 <Mail className="w-4 h-4 text-[#942392] mt-0.5 shrink-0" />
                                 <div className="min-w-0">
-                                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block">Email Address</span>
+                                  <span className="text-[10px] font-black text-black dark:text-white uppercase tracking-widest block">Email Address</span>
                                   <span className="text-xs font-bold text-foreground truncate block">{selectedEmployee.email}</span>
                                 </div>
                               </div>
@@ -1365,7 +1410,7 @@ export function StaffProfileDialog({
                               <div className="p-4 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-start gap-3">
                                 <ShieldCheck className="w-4 h-4 text-[#942392] mt-0.5 shrink-0" />
                                 <div>
-                                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block">User ID</span>
+                                  <span className="text-[10px] font-black text-black dark:text-white uppercase tracking-widest block">User ID</span>
                                   <span className="text-xs font-mono font-black text-foreground">{selectedEmployee.user_id}</span>
                                 </div>
                               </div>
@@ -1373,7 +1418,7 @@ export function StaffProfileDialog({
                               <div className="p-4 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-start gap-3">
                                 <Briefcase className="w-4 h-4 text-[#942392] mt-0.5 shrink-0" />
                                 <div>
-                                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block">Branch</span>
+                                  <span className="text-[10px] font-black text-black dark:text-white uppercase tracking-widest block">Branch</span>
                                   <span className="text-xs font-bold text-foreground">{selectedEmployee.branch}</span>
                                 </div>
                               </div>
@@ -1381,7 +1426,7 @@ export function StaffProfileDialog({
                               <div className="p-4 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-start gap-3">
                                 <MapPin className="w-4 h-4 text-[#942392] mt-0.5 shrink-0" />
                                 <div>
-                                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block">Department</span>
+                                  <span className="text-[10px] font-black text-black dark:text-white uppercase tracking-widest block">Department</span>
                                   <span className="text-xs font-bold text-foreground">{selectedEmployee.department || "—"}</span>
                                 </div>
                               </div>
@@ -1389,7 +1434,7 @@ export function StaffProfileDialog({
                               <div className="p-4 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-start gap-3">
                                 <CalendarCheck className="w-4 h-4 text-[#942392] mt-0.5 shrink-0" />
                                 <div>
-                                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block">Status</span>
+                                  <span className="text-[10px] font-black text-black dark:text-white uppercase tracking-widest block">Status</span>
                                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-black uppercase ${selectedEmployee.status === 'Active' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'}`}>
                                     {selectedEmployee.status}
                                   </span>
@@ -1399,7 +1444,7 @@ export function StaffProfileDialog({
                               <div className="p-4 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-start gap-3">
                                 <FileText className="w-4 h-4 text-[#942392] mt-0.5 shrink-0" />
                                 <div>
-                                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block">IC Number (MyKad)</span>
+                                  <span className="text-[10px] font-black text-black dark:text-white uppercase tracking-widest block">IC Number (MyKad)</span>
                                   <span className="text-xs font-mono font-black text-foreground">
                                     {selectedEmployee.ic_number ? formatMyKad(selectedEmployee.ic_number) : (parsedEmpMyKad.formatted || "—")}
                                   </span>
@@ -1409,7 +1454,7 @@ export function StaffProfileDialog({
                               <div className="p-4 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-start gap-3">
                                 <CalendarDays className="w-4 h-4 text-[#942392] mt-0.5 shrink-0" />
                                 <div>
-                                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block">Date of Birth (From IC)</span>
+                                  <span className="text-[10px] font-black text-black dark:text-white uppercase tracking-widest block">Date of Birth (From IC)</span>
                                   <span className="text-xs font-bold text-foreground">
                                     {parsedEmpMyKad.formattedDob || (selectedEmployee.dob ? new Date(selectedEmployee.dob).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }) : "—")}
                                   </span>
@@ -1419,7 +1464,7 @@ export function StaffProfileDialog({
                               <div className="p-4 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-start gap-3">
                                 <Clock className="w-4 h-4 text-[#942392] mt-0.5 shrink-0" />
                                 <div>
-                                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block">Age (Dynamic Calculation)</span>
+                                  <span className="text-[10px] font-black text-black dark:text-white uppercase tracking-widest block">Age (Dynamic Calculation)</span>
                                   <span className="text-xs font-black text-[#942392]">
                                     {parsedEmpMyKad.age !== null ? `${parsedEmpMyKad.age} years old` : "—"}
                                   </span>
@@ -1429,7 +1474,7 @@ export function StaffProfileDialog({
                               <div className="p-4 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-start gap-3">
                                 <User className="w-4 h-4 text-[#942392] mt-0.5 shrink-0" />
                                 <div>
-                                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block">Gender (Auto from IC)</span>
+                                  <span className="text-[10px] font-black text-black dark:text-white uppercase tracking-widest block">Gender (Auto from IC)</span>
                                   <span className="text-xs font-bold text-foreground">
                                     {selectedEmployee.gender || parsedEmpMyKad.gender || "—"}
                                   </span>
@@ -1439,7 +1484,7 @@ export function StaffProfileDialog({
                               <div className="p-4 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-start gap-3">
                                 <PhoneCall className="w-4 h-4 text-[#942392] mt-0.5 shrink-0" />
                                 <div>
-                                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block">Phone Number</span>
+                                  <span className="text-[10px] font-black text-black dark:text-white uppercase tracking-widest block">Phone Number</span>
                                   <span className="text-xs font-mono font-bold text-foreground">
                                     {selectedEmployee.phone ? formatMalaysianPhone(selectedEmployee.phone) : "—"}
                                   </span>
@@ -1449,7 +1494,7 @@ export function StaffProfileDialog({
                               <div className="p-4 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-start gap-3">
                                 <CalendarCheck className="w-4 h-4 text-[#942392] mt-0.5 shrink-0" />
                                 <div>
-                                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block">Date of Join</span>
+                                  <span className="text-[10px] font-black text-black dark:text-white uppercase tracking-widest block">Date of Join</span>
                                   <span className="text-xs font-bold text-foreground">
                                     {selectedEmployee.join_date ? new Date(selectedEmployee.join_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }).toUpperCase() : (selectedEmployee.created_at ? new Date(selectedEmployee.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }).toUpperCase() : "—")}
                                   </span>
@@ -3056,7 +3101,7 @@ export function StaffProfileDialog({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Full Name */}
               <div className="space-y-1.5">
-                <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground">Full Name *</Label>
+                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Full Name *</Label>
                 <Input
                   value={editFullName}
                   onChange={(e) => setEditFullName(e.target.value)}
@@ -3068,7 +3113,7 @@ export function StaffProfileDialog({
 
               {/* IC Number */}
               <div className="space-y-1.5">
-                <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground">IC Number (MyKad)</Label>
+                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">IC Number (MyKad)</Label>
                 <Input
                   value={editIcNumber}
                   onChange={(e) => setEditIcNumber(formatMyKad(e.target.value))}
@@ -3079,7 +3124,7 @@ export function StaffProfileDialog({
 
               {/* Dynamic DOB (Auto from IC) */}
               <div className="space-y-1.5">
-                <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground">Date of Birth (Auto from IC)</Label>
+                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Date of Birth (Auto from IC)</Label>
                 <Input
                   value={parsedEditIc.formattedDob || "Auto calculated from IC"}
                   readOnly
@@ -3090,7 +3135,7 @@ export function StaffProfileDialog({
               {/* Dynamic Age & Gender (Auto from IC) */}
               <div className="space-y-1.5 grid grid-cols-2 gap-2">
                 <div>
-                  <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground">Age</Label>
+                  <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Age</Label>
                   <Input
                     value={parsedEditIc.age !== null ? `${parsedEditIc.age} yrs` : "—"}
                     readOnly
@@ -3098,7 +3143,7 @@ export function StaffProfileDialog({
                   />
                 </div>
                 <div>
-                  <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground">Gender</Label>
+                  <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Gender</Label>
                   <Input
                     value={parsedEditIc.gender || selectedEmployee?.gender || "—"}
                     readOnly
@@ -3109,7 +3154,7 @@ export function StaffProfileDialog({
 
               {/* Phone Number */}
               <div className="space-y-1.5">
-                <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground">Phone Number</Label>
+                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Phone Number</Label>
                 <Input
                   value={editPhone}
                   onChange={(e) => setEditPhone(formatMalaysianPhone(e.target.value))}
@@ -3120,7 +3165,7 @@ export function StaffProfileDialog({
 
               {/* Date of Join */}
               <div className="space-y-1.5">
-                <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground">Date of Join</Label>
+                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Date of Join</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <button
@@ -3155,7 +3200,7 @@ export function StaffProfileDialog({
 
               {/* Branch */}
               <div className="space-y-1.5">
-                <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground">Branch</Label>
+                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Branch</Label>
                 <Select value={editBranch} onValueChange={setEditBranch}>
                   <SelectTrigger className="h-10 text-xs font-bold">
                     <SelectValue placeholder="Select Branch" />
@@ -3172,7 +3217,7 @@ export function StaffProfileDialog({
 
               {/* Department */}
               <div className="space-y-1.5">
-                <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground">Department</Label>
+                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Department</Label>
                 <Input
                   value={editDepartment}
                   onChange={(e) => setEditDepartment(e.target.value)}
@@ -3183,7 +3228,7 @@ export function StaffProfileDialog({
 
               {/* Status */}
               <div className="space-y-1.5 sm:col-span-2">
-                <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground">Employment Status</Label>
+                <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Employment Status</Label>
                 <Select value={editStatus} onValueChange={setEditStatus}>
                   <SelectTrigger className="h-10 text-xs font-bold">
                     <SelectValue placeholder="Select Status" />
@@ -3292,7 +3337,7 @@ export function StaffProfileDialog({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* 1. CLOCK IN TIME */}
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground">CLOCK IN TIME</Label>
+                    <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">CLOCK IN TIME</Label>
                     {attendanceSessions[currentSessionIdx]?.has_recorded_clock_in ? (
                       <div className="h-10 px-3.5 bg-slate-100 dark:bg-slate-900/60 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between font-mono font-black text-xs text-foreground">
                         <span>
@@ -3305,8 +3350,12 @@ export function StaffProfileDialog({
                     ) : (
                       <div className="space-y-1">
                         <CustomTimePicker
-                          value={editClockIn}
-                          onChange={(val) => setEditClockIn(val)}
+                          value={editClockIn || normalizeTimeTo24Hr(attendanceSessions[currentSessionIdx]?.clock_in_time_24 || attendanceSessions[currentSessionIdx]?.clock_in_time_12, attendanceSessions[currentSessionIdx]?.clock_in)}
+                          onChange={(val) => {
+                            setEditClockIn(val);
+                            setAttendanceSessions(prev => prev.map((s, idx) => idx === currentSessionIdx ? { ...s, clock_in_time_24: val } : s));
+                          }}
+                          displayFormatter={formatTimeToDotAmPm}
                           placeholder="Select Clock In Time"
                           className="w-full h-10 font-mono font-bold text-xs"
                         />
@@ -3321,30 +3370,47 @@ export function StaffProfileDialog({
 
                   {/* 2. CLOCK OUT TIME */}
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground">CLOCK OUT TIME</Label>
-                    <div className="space-y-1">
-                      <CustomTimePicker
-                        value={editClockOut}
-                        onChange={(val) => setEditClockOut(val)}
-                        placeholder="Select Clock Out Time"
-                        className="w-full h-10 font-mono font-bold text-xs"
-                      />
-                    </div>
-                    {editClockOut && (
-                      <p className="text-[10px] font-bold text-muted-foreground">
-                        Selected: <span className="font-mono text-foreground font-black">{formatTimeToDotAmPm(editClockOut)}</span>
-                      </p>
+                    <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">CLOCK OUT TIME</Label>
+                    {attendanceSessions[currentSessionIdx]?.has_recorded_clock_out ? (
+                      <div className="h-10 px-3.5 bg-slate-100 dark:bg-slate-900/60 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between font-mono font-black text-xs text-foreground">
+                        <span>
+                          {attendanceSessions[currentSessionIdx]?.clock_out_time_12 && attendanceSessions[currentSessionIdx]?.clock_out_time_12 !== "--:--"
+                            ? formatTimeToDotAmPm(attendanceSessions[currentSessionIdx].clock_out_time_12)
+                            : (editClockOut ? formatTimeToDotAmPm(editClockOut) : "--:--")}
+                        </span>
+                        <Lock className="w-3.5 h-3.5 text-muted-foreground" />
+                      </div>
+                    ) : (
+                      <div className="space-y-1">
+                        <CustomTimePicker
+                          value={editClockOut || normalizeTimeTo24Hr(attendanceSessions[currentSessionIdx]?.clock_out_time_24 || attendanceSessions[currentSessionIdx]?.clock_out_time_12, attendanceSessions[currentSessionIdx]?.clock_out)}
+                          onChange={(val) => {
+                            setEditClockOut(val);
+                            setAttendanceSessions(prev => prev.map((s, idx) => idx === currentSessionIdx ? { ...s, clock_out_time_24: val } : s));
+                          }}
+                          displayFormatter={formatTimeToDotAmPm}
+                          placeholder="Select Clock Out Time"
+                          className="w-full h-10 font-mono font-bold text-xs"
+                        />
+                        {(editClockOut || attendanceSessions[currentSessionIdx]?.clock_out_time_24 || (attendanceSessions[currentSessionIdx]?.clock_out_time_12 && attendanceSessions[currentSessionIdx]?.clock_out_time_12 !== "--:--")) && (
+                          <p className="text-[10px] font-bold text-muted-foreground">
+                            Selected: <span className="font-mono text-foreground font-black">{formatTimeToDotAmPm(editClockOut || attendanceSessions[currentSessionIdx]?.clock_out_time_24 || attendanceSessions[currentSessionIdx]?.clock_out_time_12)}</span>
+                          </p>
+                        )}
+                      </div>
                     )}
                   </div>
 
                   {/* 3. WORKING STATUS (NOT EDITABLE) */}
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground">WORKING STATUS</Label>
+                    <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">WORKING STATUS</Label>
                     <div className="h-10 px-3.5 bg-slate-100 dark:bg-slate-900/60 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between font-bold text-xs text-foreground">
                       <div className="flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                         <span className="text-emerald-700 dark:text-emerald-400 font-black tracking-wide uppercase">
-                          {attendanceSessions[currentSessionIdx]?.working_status || "PRESENT"}
+                          {(todayStats?.todayStatus && /leave|outstation|rest/i.test(todayStats.todayStatus))
+                            ? todayStats.todayStatus.replace(/\(.*?\)/g, '').trim()
+                            : (attendanceSessions[currentSessionIdx]?.working_status || (todayStats?.todayStatus ? todayStats.todayStatus.replace(/\(.*?\)/g, '').trim() : "PRESENT"))}
                         </span>
                       </div>
                       <Lock className="w-3.5 h-3.5 text-muted-foreground" />
@@ -3353,7 +3419,7 @@ export function StaffProfileDialog({
 
                   {/* 4. LOCATION (NOT EDITABLE & HAVE COORDINATE) */}
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground">LOCATION (WITH COORDINATES)</Label>
+                    <Label className="text-xs font-black uppercase tracking-wider text-black dark:text-white">LOCATION (WITH COORDINATES)</Label>
                     <div className="h-10 px-3.5 bg-slate-100 dark:bg-slate-900/60 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between font-bold text-xs text-foreground">
                       <span className="truncate">
                         {attendanceSessions[currentSessionIdx]?.location_formatted || (todayStats?.attendanceLocationFormatted || "HQ ( 4.6778, 10.78758646 )")}
@@ -3367,15 +3433,19 @@ export function StaffProfileDialog({
                   {/* 5. SESSION WORKING HOURS */}
                   <div className="p-3.5 bg-purple-50/70 dark:bg-purple-950/30 rounded-2xl border border-purple-200 dark:border-purple-800/60 flex items-center justify-between">
                     <div>
-                      <span className="text-[10px] font-black uppercase tracking-wider text-[#942392] block">WORKING HOURS</span>
+                      <span className="text-[10px] font-black uppercase tracking-wider text-black dark:text-white block">WORKING HOURS</span>
                       <span className="text-[9px] font-bold text-muted-foreground">
                         Session {currentSessionIdx + 1} duration
                       </span>
                     </div>
                     <span className="font-mono font-black text-sm text-[#942392]">
                       {calculateDiffHoursAndMinutes(
-                        editClockIn || attendanceSessions[currentSessionIdx]?.clock_in_time_24 || attendanceSessions[currentSessionIdx]?.clock_in_time_12,
-                        editClockOut
+                        (attendanceSessions[currentSessionIdx]?.has_recorded_clock_in
+                          ? (attendanceSessions[currentSessionIdx]?.clock_in_time_24 || attendanceSessions[currentSessionIdx]?.clock_in_time_12)
+                          : editClockIn) || attendanceSessions[currentSessionIdx]?.clock_in_time_24 || attendanceSessions[currentSessionIdx]?.clock_in_time_12,
+                        (attendanceSessions[currentSessionIdx]?.has_recorded_clock_out
+                          ? (attendanceSessions[currentSessionIdx]?.clock_out_time_24 || attendanceSessions[currentSessionIdx]?.clock_out_time_12)
+                          : editClockOut) || attendanceSessions[currentSessionIdx]?.clock_out_time_24 || attendanceSessions[currentSessionIdx]?.clock_out_time_12
                       ).str}
                     </span>
                   </div>
@@ -3383,7 +3453,7 @@ export function StaffProfileDialog({
                   {/* 6. TOTAL WORKING HOURS (BOTTOM OF PAGE) */}
                   <div className="p-3.5 bg-gradient-to-r from-purple-50 via-purple-100/60 to-pink-50 dark:from-purple-950/40 dark:to-pink-950/30 rounded-2xl border border-[#942392]/30 flex items-center justify-between">
                     <div>
-                      <span className="text-[10px] font-black uppercase tracking-wider text-foreground block">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-black dark:text-white block">
                         TOTAL WORKING HOURS
                       </span>
                       <span className="text-[9px] font-bold text-muted-foreground">

@@ -540,6 +540,7 @@ export default function Branches() {
       ? branchZone
       : curOptions[0]?.value || "STANDARD";
     setEditBranchData({
+      original_code: selectedBranch.code,
       code: selectedBranch.code,
       name: selectedBranch.name,
       location: selectedBranch.location || "",
@@ -601,14 +602,21 @@ export default function Branches() {
 
   const handleEditBranch = async (e: React.FormEvent) => {
     e.preventDefault();
+    const oldCode = (editBranchData.original_code || selectedBranch?.code || editBranchData.code || '').trim().toUpperCase();
+    const newCode = (editBranchData.code || '').trim().toUpperCase();
+    if (!newCode || !editBranchData.name?.trim()) {
+      toast.error("Branch Code and Name are required");
+      return;
+    }
     try {
       const targetCompId = editBranchData.company_id || selectedCompanyId || activeCompany?.id || 1;
-      const response = await fetch(`${API_BASE_URL}/api/branches/${encodeURIComponent(editBranchData.code)}`, {
+      const response = await fetch(`${API_BASE_URL}/api/branches/${encodeURIComponent(oldCode)}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: editBranchData.name,
-          location: editBranchData.location,
+          code: newCode,
+          name: toProperCase(editBranchData.name.trim()),
+          location: editBranchData.location?.trim() || "",
           operating_zone: editBranchData.operating_zone,
           latitude: parseFloat(editBranchData.latitude) || null,
           longitude: parseFloat(editBranchData.longitude) || null,
@@ -618,10 +626,17 @@ export default function Branches() {
       });
       const data = await response.json();
       if (response.ok && data.success) {
-        toast.success("Branch updated successfully!");
+        toast.success(`Branch ${newCode} updated successfully!`);
         setIsEditBranchModalOpen(false);
-        fetchBranchesList();
-        setSelectedBranch(data.branch || { ...selectedBranch, ...editBranchData });
+        const updatedBranchObj = data.branch || { ...selectedBranch, ...editBranchData, code: newCode, name: toProperCase(editBranchData.name.trim()) };
+        setSelectedBranch(updatedBranchObj);
+        if (oldCode !== newCode) {
+          setSearchParams({ branch: newCode });
+        }
+        await fetchBranchesList();
+        void fetchStats(targetCompId);
+        window.dispatchEvent(new CustomEvent('app:refresh'));
+        window.dispatchEvent(new CustomEvent('rayhar_branches_updated', { detail: { oldCode, newCode, name: updatedBranchObj.name } }));
       } else {
         toast.error(data.error || "Failed to update branch");
       }
@@ -2613,7 +2628,13 @@ export default function Branches() {
             <div className="grid grid-cols-2 gap-6">
               <div className="space-y-1.5">
                 <label className="text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest">BRANCH CODE</label>
-                <Input value={editBranchData.code || ""} readOnly disabled className="h-11 rounded-xl bg-muted/50 text-xs print:text-[11px] font-bold" />
+                <Input 
+                  value={editBranchData.code || ""} 
+                  onChange={(e) => setEditBranchData({...editBranchData, code: e.target.value.toUpperCase()})} 
+                  required
+                  placeholder="e.g. KMM"
+                  className="h-11 rounded-xl text-xs print:text-[11px] font-bold uppercase" 
+                />
               </div>
               <div className="space-y-1.5">
                 <label className="text-[10px] print:text-[13px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest">BRANCH NAME</label>

@@ -63,13 +63,20 @@ export default function Dashboard() {
   const { user } = useAuth();
   const { role, userName, userId, userBranch, userDepartment, scopeType, hasPermission } = useRole();
   const { activeCompany } = useCompany();
-  const normScope = (scopeType || user?.scope_type || "").toLowerCase().trim();
+  const normRole = (role || "").toLowerCase().trim();
+  const rawScope = (scopeType || user?.scope_type || "").toLowerCase().trim();
+  const normScope = rawScope === "current company only"
+    ? (normRole === "employee" ? "own data only" : (normRole === "branch_leader" || normRole === "branch_officer") ? "branch data only" : ["hr_admin", "managing_director", "operation_manager", "head_of_department", "assure_leader", "finance_manager"].includes(normRole) ? "company staff data" : "own data only")
+    : rawScope;
   const hasTeamScope = 
-    normScope.includes("branch") || 
-    normScope.includes("company") || 
-    normScope.includes("group") || 
-    normScope.includes("parent") || 
-    ["hr_admin", "branch_leader", "head_of_department", "managing_director", "operation_manager", "finance_manager", "assure_leader"].includes(role);
+    normRole !== "employee" &&
+    !normScope.includes("own") && (
+      normScope.includes("branch") || 
+      normScope.includes("company staff") || 
+      normScope.includes("group") || 
+      normScope.includes("parent") || 
+      ["hr_admin", "branch_leader", "head_of_department", "managing_director", "operation_manager", "finance_manager", "assure_leader"].includes(normRole)
+    );
 
   const isEmployee = !hasTeamScope;
   const isElevatedRole = hasTeamScope;
@@ -201,7 +208,8 @@ export default function Dashboard() {
 
       try {
         const dateStr = selectedDate.toLocaleDateString("en-CA");
-        const url = `${API_BASE_URL}/api/dashboard-stats?userId=${dashboardUserId}&role=${role}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}&date=${dateStr}&company_id=${activeCompany?.id || 1}&scope_type=${encodeURIComponent(scopeType || user?.scope_type || "")}`;
+        const effectiveDashboardScope = isEmployee ? "Own Data Only" : (scopeType || user?.scope_type || "");
+        const url = `${API_BASE_URL}/api/dashboard-stats?userId=${dashboardUserId}&role=${role}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}&date=${dateStr}&company_id=${activeCompany?.id || 1}&scope_type=${encodeURIComponent(effectiveDashboardScope)}`;
 
         let response: Response;
         try {

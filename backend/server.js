@@ -1969,13 +1969,15 @@ async function resolveUserScope(req, userId, requesterRole) {
     }
   }
 
+  const r = (requesterRole || "").toLowerCase().trim();
+  if (r === 'employee') return 'Own Data Only';
+
   const s = (rawScope || "").toLowerCase().trim();
   if (s.includes('own') || s.includes('self')) return 'Own Data Only';
   if (s.includes('branch')) return 'Branch Data Only';
   if (s.includes('group') || s.includes('parent')) return 'Parent Group Data';
-  if (s.includes('company') || s.includes('current company')) return 'Company Staff Data';
+  if (s.includes('company staff')) return 'Company Staff Data';
 
-  const r = (requesterRole || "").toLowerCase().trim();
   if (r.includes('hr_admin') || r.includes('hr admin') || r.includes('admin') || r.includes('managing_director') || r.includes('managing director') || r === 'md') {
     return 'Parent Group Data';
   }
@@ -6416,7 +6418,7 @@ app.get("/api/employees/:userId/today-attendance", async (req, res) => {
 
   try {
     const [branchRows] = await pool.query(
-      `SELECT p.branch, p.full_name, b.code, b.name AS branch_name, b.latitude, b.longitude
+      `SELECT p.branch, p.department, p.full_name, b.code, b.name AS branch_name, b.latitude, b.longitude
        FROM profiles p
        LEFT JOIN branches b ON (UPPER(b.code) = UPPER(p.branch) OR UPPER(b.name) = UPPER(p.branch))
        WHERE LOWER(p.user_id) = LOWER(?)
@@ -6428,6 +6430,57 @@ app.get("/api/employees/:userId/today-attendance", async (req, res) => {
     const defaultBranchName = branchInfo?.branch_name || (defaultBranchCode === "HQ" ? "Rayhar HQ" : defaultBranchCode);
     const defaultLat = branchInfo?.latitude != null ? Number(branchInfo.latitude) : 4.6778;
     const defaultLng = branchInfo?.longitude != null ? Number(branchInfo.longitude) : 10.78758646;
+
+    let resolvedWorkingStatus = "PRESENT";
+    try {
+      const [rawOnLeaveTodayRows] = await pool.query(
+        `SELECT status, leave_type, reason, cuti_ganti_tarikh, start_date, end_date
+         FROM leave_requests
+         WHERE LOWER(user_id) = LOWER(?)
+           AND status = 'Approved'
+           AND ?::date BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date`,
+        [userId, queryDate]
+      );
+      const onLeaveTodayRows = rawOnLeaveTodayRows.filter(lr => isEmployeeOnLeaveOnDate(lr, queryDate));
+      if (onLeaveTodayRows.length > 0) {
+        resolvedWorkingStatus = "ON LEAVE";
+      }
+
+      const [companyLeaveTodayRows] = await pool.query(
+        `SELECT * FROM company_leave_calendar WHERE status = 'Active' AND ?::date BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date`,
+        [queryDate]
+      );
+      const empBranch = branchInfo?.branch || "";
+      const empDept = branchInfo?.department || "";
+      const matchingCompanyLeave = companyLeaveTodayRows.find(cl => {
+        if (cl.applies_to === 'all') return true;
+        if (cl.applies_to === 'branch' && cl.branch_id) {
+          return safeArraySplit(cl.branch_id).includes(empBranch);
+        }
+        if (cl.applies_to === 'department' && cl.department_id) {
+          const depts = safeArraySplit(cl.department_id);
+          const normEmpDept = safeLower(empDept).replace(/\bdepartment\b/g, '').trim();
+          return depts.some(d => {
+            const normClDept = d.toLowerCase().replace(/\bdepartment\b/g, '').trim();
+            return normEmpDept === normClDept || empDept === d;
+          });
+        }
+        return false;
+      });
+      if (matchingCompanyLeave) {
+        resolvedWorkingStatus = "COMPANY LEAVE";
+      } else {
+        const [onOutstationTodayRows] = await pool.query(
+          `SELECT destination FROM outstation_assignments WHERE LOWER(user_id) = LOWER(?) AND status != 'Cancelled' AND ?::date BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date`,
+          [userId, queryDate]
+        );
+        if (onOutstationTodayRows.length > 0) {
+          resolvedWorkingStatus = "OUTSTATION";
+        }
+      }
+    } catch (statusErr) {
+      console.warn("Error resolving today attendance working_status:", statusErr);
+    }
 
     const [attRows] = await pool.query(
       `SELECT 
@@ -6488,7 +6541,7 @@ app.get("/api/employees/:userId/today-attendance", async (req, res) => {
         clock_out_time_12: row.clock_out_time_12 ? row.clock_out_time_12.replace(':', '.') : "--:--",
         clock_in_time_24: row.clock_in_time_24 || "",
         clock_out_time_24: row.clock_out_time_24 || "",
-        working_status: "PRESENT",
+        working_status: resolvedWorkingStatus,
         location: locName,
         latitude: lat,
         longitude: lng,
@@ -6515,6 +6568,7 @@ app.get("/api/employees/:userId/today-attendance", async (req, res) => {
         longitude: defaultLng,
         location_formatted: `${defaultBranchName} ( ${Number(defaultLat).toFixed(4)}, ${Number(defaultLng).toFixed(8)} )`
       },
+      working_status: resolvedWorkingStatus,
       sessions,
       total_working_hours: totalWorkingHoursStr,
       total_duration_minutes: totalDurationMinutes
@@ -6538,10 +6592,12 @@ app.post("/api/employees/:userId/today-attendance", async (req, res) => {
     let todayDateStr = req.body?.date || klNow.toISOString().split('T')[0];
 
     let existingHasClockIn = false;
+    let existingHasClockOut = false;
     if (attendance_id) {
       const [attDateRows] = await pool.query(
         `SELECT TO_CHAR(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'YYYY-MM-DD') AS kl_date,
-                clock_in IS NOT NULL AS has_clock_in
+                clock_in IS NOT NULL AS has_clock_in,
+                clock_out IS NOT NULL AS has_clock_out
          FROM attendances
          WHERE attendance_id = ? AND LOWER(user_id) = LOWER(?)
          LIMIT 1`,
@@ -6552,6 +6608,7 @@ app.post("/api/employees/:userId/today-attendance", async (req, res) => {
           todayDateStr = attDateRows[0].kl_date;
         }
         existingHasClockIn = Boolean(attDateRows[0].has_clock_in);
+        existingHasClockOut = Boolean(attDateRows[0].has_clock_out);
       }
     }
 
@@ -6592,7 +6649,7 @@ app.post("/api/employees/:userId/today-attendance", async (req, res) => {
     };
 
     const finalClockIn = existingHasClockIn ? null : formatTimestamp(clock_in);
-    const finalClockOut = formatTimestamp(clock_out);
+    const finalClockOut = existingHasClockOut ? null : formatTimestamp(clock_out);
 
     const [bRows] = await pool.query(
       `SELECT b.latitude, b.longitude, b.code, b.name 
@@ -7402,11 +7459,14 @@ app.post("/api/login", async (req, res) => {
       const [pRoleRows] = await pool.query("SELECT scope_type, name FROM roles WHERE id = ? LIMIT 1", [user.role_id]);
       if (pRoleRows[0]?.scope_type) roleScopeType = pRoleRows[0].scope_type;
     }
-    if (!roleScopeType) {
-      if (cleanRole === 'hr_admin' || cleanRole === 'managing_director') roleScopeType = 'Parent Group Data';
+    if (!roleScopeType || roleScopeType === 'Current Company Only' || cleanRole === 'employee') {
+      if (cleanRole === 'employee') roleScopeType = 'Own Data Only';
+      else if (cleanRole === 'hr_admin' || cleanRole === 'managing_director') roleScopeType = 'Parent Group Data';
       else if (cleanRole === 'branch_leader' || cleanRole === 'branch_officer') roleScopeType = 'Branch Data Only';
       else if (cleanRole === 'operation_manager' || cleanRole === 'head_of_department') roleScopeType = 'Company Staff Data';
       else roleScopeType = 'Own Data Only';
+    } else if (roleScopeType === 'Parent Group Access') {
+      roleScopeType = 'Parent Group Data';
     }
 
     // Fetch user permissions
@@ -7554,12 +7614,17 @@ app.get("/api/user-details/:identifier", async (req, res) => {
       [user.user_id]
     );
     const assignedCompanyId = uCompRows[0]?.company_id || (user.branch === 'RAYRENT' ? 2 : 1);
-    const resolvedScopeType = user.scope_type || uCompRows[0]?.scope_type || (
-      normUserRole === 'hr_admin' || normUserRole === 'managing_director' ? 'Parent Group Data' :
-      normUserRole === 'branch_leader' || normUserRole === 'branch_officer' ? 'Branch Data Only' :
-      normUserRole === 'operation_manager' || normUserRole === 'head_of_department' || normUserRole.includes('assure') ? 'Company Staff Data' :
-      'Own Data Only'
-    );
+    const rawUserScope = user.scope_type || uCompRows[0]?.scope_type || "";
+    const resolvedScopeType = (normUserRole === 'employee')
+      ? 'Own Data Only'
+      : (!rawUserScope || rawUserScope === 'Current Company Only')
+        ? (
+            normUserRole === 'hr_admin' || normUserRole === 'managing_director' ? 'Parent Group Data' :
+            normUserRole === 'branch_leader' || normUserRole === 'branch_officer' ? 'Branch Data Only' :
+            normUserRole === 'operation_manager' || normUserRole === 'head_of_department' || normUserRole.includes('assure') ? 'Company Staff Data' :
+            'Own Data Only'
+          )
+        : (rawUserScope === 'Parent Group Access' ? 'Parent Group Data' : rawUserScope);
 
     if (normUserRole === 'assure_leader' || normUserRole.includes('assure')) {
       if (assignedCompanyId) {
@@ -8938,11 +9003,15 @@ app.get("/api/dashboard-stats", async (req, res) => {
         resolvedScope = uScopeRows[0]?.scope_type || "";
       } catch (e) {}
     }
-    const normScope = (resolvedScope || "").toLowerCase().trim();
-    const isBranchScope = normScope.includes("branch") || role === "branch_leader";
-    const isCompanyScope = normScope.includes("company") || role === "assure_leader" || role === "operation_manager" || role === "finance_manager";
-    const isGroupScope = normScope.includes("group") || normScope.includes("parent") || role === "managing_director" || role === "hr_admin";
-    const hasElevatedScope = isBranchScope || isCompanyScope || isGroupScope || ["hr_admin", "branch_leader", "managing_director", "operation_manager", "finance_manager", "head_of_department", "assure_leader"].includes(role);
+    const rawNormScope = (resolvedScope || "").toLowerCase().trim();
+    const normScope = rawNormScope === "current company only"
+      ? (role === "employee" ? "own data only" : (role === "branch_leader" || role === "branch_officer") ? "branch data only" : ["hr_admin", "managing_director", "operation_manager", "head_of_department", "assure_leader", "finance_manager"].includes(role) ? "company staff data" : "own data only")
+      : rawNormScope;
+    const isOwnScope = role === "employee" || normScope.includes("own") || normScope.includes("self");
+    const isBranchScope = !isOwnScope && (normScope.includes("branch") || role === "branch_leader");
+    const isCompanyScope = !isOwnScope && (normScope.includes("company staff") || role === "assure_leader" || role === "operation_manager" || role === "finance_manager");
+    const isGroupScope = !isOwnScope && (normScope.includes("group") || normScope.includes("parent") || role === "managing_director" || role === "hr_admin");
+    const hasElevatedScope = !isOwnScope && (isBranchScope || isCompanyScope || isGroupScope || ["hr_admin", "branch_leader", "managing_director", "operation_manager", "finance_manager", "head_of_department", "assure_leader"].includes(role));
 
     if (hasElevatedScope) {
       try {
@@ -12381,6 +12450,9 @@ app.get("/api/outstation/history/:user_id", async (req, res) => {
 app.put("/api/branches/:code", async (req, res) => {
   try {
     const codeParam = safeString(req.params.code);
+    const oldCode = codeParam ? codeParam.trim().toUpperCase() : "";
+    const rawNewCode = req.body?.code ? safeString(req.body.code).trim().toUpperCase() : "";
+    const newCode = (rawNewCode || oldCode) || oldCode;
     const name = safeString(req.body?.name);
     const location = safeString(req.body?.location);
     const zone = safeString(req.body?.zone);
@@ -12388,18 +12460,35 @@ app.put("/api/branches/:code", async (req, res) => {
     const rawCompanyId = req.body?.company_id || req.body?.companyId;
     const company_id = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
     const { latitude, longitude, radius } = req.body || {};
-    if (!codeParam || !name) {
+    if (!oldCode || !name) {
       return res.status(400).json({ success: false, error: "Invalid input format" });
     }
     const finalZone = zone || operating_zone || 'ZONE_B';
-    await pool.query(
-      `UPDATE branches SET name = ?, location = ?, latitude = ?, longitude = ?, radius = ?, operating_zone = ?, company_id = COALESCE(?, company_id) WHERE code = ?`,
-      [name, location, latitude || null, longitude || null, radius || 50, finalZone, company_id, codeParam]
-    );
+
+    if (newCode !== oldCode) {
+      await pool.query(
+        `INSERT INTO branches (code, name, branch, location, latitude, longitude, radius, operating_zone, company_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, COALESCE(?, 1))`,
+        [newCode, name, name, location, latitude || null, longitude || null, radius || 50, finalZone, company_id]
+      ).catch(() => {});
+      await pool.query(`UPDATE profiles SET branch = ? WHERE UPPER(branch) = ?`, [newCode, oldCode]).catch(() => {});
+      await pool.query(`UPDATE company_user_roles SET branch_id = ? WHERE UPPER(branch_id) = ?`, [newCode, oldCode]).catch(() => {});
+      await pool.query(`UPDATE branch_geofence_settings SET branch_code = ? WHERE UPPER(branch_code) = ?`, [newCode, oldCode]).catch(() => {});
+      await pool.query(`UPDATE work_assignments SET branch_id = ? WHERE UPPER(branch_id) = ?`, [newCode, oldCode]).catch(() => {});
+      await pool.query(`UPDATE work_assignments SET primary_branch = ? WHERE UPPER(primary_branch) = ?`, [newCode, oldCode]).catch(() => {});
+      await pool.query(`UPDATE work_assignments SET location = ? WHERE UPPER(location) = ?`, [newCode, oldCode]).catch(() => {});
+      await pool.query(`UPDATE attendance_records SET branch = ? WHERE UPPER(branch) = ?`, [newCode, oldCode]).catch(() => {});
+      await pool.query(`UPDATE leave_requests SET branch = ? WHERE UPPER(branch) = ?`, [newCode, oldCode]).catch(() => {});
+      await pool.query(`DELETE FROM branches WHERE UPPER(code) = ?`, [oldCode]).catch(() => {});
+    } else {
+      await pool.query(
+        `UPDATE branches SET name = ?, location = ?, latitude = ?, longitude = ?, radius = ?, operating_zone = ?, company_id = COALESCE(?, company_id) WHERE code = ?`,
+        [name, location, latitude || null, longitude || null, radius || 50, finalZone, company_id, oldCode]
+      );
+    }
 
     // Sync branch to work schedules if company_id / operating_zone changed
     try {
-      const [bRows] = await pool.query("SELECT company_id, operating_zone FROM branches WHERE code = ?", [codeParam]);
+      const [bRows] = await pool.query("SELECT company_id, operating_zone FROM branches WHERE code = ?", [newCode]);
       if (bRows[0]) {
         const effectiveCompId = bRows[0].company_id || 1;
         const effectiveZone = bRows[0].operating_zone || 'ZONE_B';
@@ -12415,10 +12504,15 @@ app.put("/api/branches/:code", async (req, res) => {
             ? ws.branch_ids.map((c) => String(c).trim().toUpperCase()).filter(Boolean)
             : (ws.branch_id ? String(ws.branch_id).split(',').map((c) => c.trim().toUpperCase()).filter(Boolean) : []);
           
+          // Remove oldCode if it was renamed
+          if (oldCode !== newCode && codes.includes(oldCode)) {
+            codes = codes.filter(c => c !== oldCode);
+          }
+
           const isMatch = (wsZone && effectiveZone && wsZone === effectiveZone) || (!wsZone && (effectiveZone === 'STANDARD' || schedRows.length === 1));
           if (isMatch) {
-            if (!codes.includes(codeParam)) {
-              codes.push(codeParam);
+            if (!codes.includes(newCode)) {
+              codes.push(newCode);
               codes.sort();
               await pgPool.query(
                 "UPDATE work_schedules SET branch_ids = $1::jsonb, branch_id = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3",
@@ -12426,8 +12520,8 @@ app.put("/api/branches/:code", async (req, res) => {
               );
             }
           } else {
-            if (codes.includes(codeParam)) {
-              codes = codes.filter(c => c !== codeParam);
+            if (codes.includes(newCode)) {
+              codes = codes.filter(c => c !== newCode);
               await pgPool.query(
                 "UPDATE work_schedules SET branch_ids = $1::jsonb, branch_id = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3",
                 [JSON.stringify(codes), codes.length > 0 ? codes.join(',') : null, ws.id]

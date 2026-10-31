@@ -64,6 +64,26 @@ export const formatRoleDisplayName = (roleStr?: string): string => {
   }
 };
 
+export const normalizeScopeType = (rawScope?: string, rawRole?: string): string => {
+  const normR = normalizeRole(rawRole);
+  if (normR === "employee") {
+    return "Own Data Only";
+  }
+  const s = String(rawScope || "").trim();
+  const sLower = s.toLowerCase();
+  if (!s || sLower === "current company only") {
+    if (normR === "branch_leader" || normR === "branch_officer") return "Branch Data Only";
+    if (normR === "hr_admin" || normR === "managing_director") return "Parent Group Data";
+    if (normR === "operation_manager" || normR === "head_of_department" || normR === "assure_leader" || normR === "finance_manager") return "Company Staff Data";
+    return "Own Data Only";
+  }
+  if (sLower === "parent group access" || sLower.includes("parent") || sLower.includes("group")) return "Parent Group Data";
+  if (sLower.includes("own") || sLower.includes("self")) return "Own Data Only";
+  if (sLower.includes("branch")) return "Branch Data Only";
+  if (sLower.includes("company")) return "Company Staff Data";
+  return s;
+};
+
 export const RoleProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, updateUserLocal } = useAuth();
   const resolvedUserId = user?.user_id || user?.id;
@@ -129,11 +149,13 @@ export const RoleProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [roleId, setRoleId] = useState<string | undefined>(user?.role_id);
   const [isSystemRole, setIsSystemRole] = useState<boolean>(user?.is_system_role ?? true);
   const [scopeType, setScopeType] = useState<string>(() => {
-    if (user?.scope_type) return user.scope_type;
+    const initialR = getInitialRole();
+    if (user?.scope_type) return normalizeScopeType(user.scope_type, initialR);
     try {
-      return sessionStorage.getItem("presence_cached_scope_type") || "";
+      const cached = sessionStorage.getItem("presence_cached_scope_type") || "";
+      return normalizeScopeType(cached, initialR);
     } catch {}
-    return "";
+    return normalizeScopeType("", initialR);
   });
   const [permissions, setPermissions] = useState<string[]>(getInitialPermissions);
   const [permissionLevels, setPermissionLevels] = useState<Record<string, 'view' | 'edit'>>({});
@@ -201,7 +223,7 @@ export const RoleProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const fetchedPerms = Array.isArray(data.permissions) ? data.permissions : [];
         const fetchedPermLevels = (data.permission_levels && typeof data.permission_levels === 'object') ? data.permission_levels : {};
 
-        const resolvedScopeType = data.scope_type || data.profile?.scope_type || "";
+        const resolvedScopeType = normalizeScopeType(data.scope_type || data.profile?.scope_type || "", parsedRole);
 
         setUserName(fetchedName);
         setUserBranch(fetchedBranch);
@@ -264,6 +286,9 @@ export const RoleProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (user.role) {
       const norm = normalizeRole(user.role);
       setRole(norm);
+      setScopeType(normalizeScopeType(user.scope_type, norm));
+    } else if (user.scope_type) {
+      setScopeType(normalizeScopeType(user.scope_type, role));
     }
     if (user.role_name) {
       setRoleName(user.role_name);

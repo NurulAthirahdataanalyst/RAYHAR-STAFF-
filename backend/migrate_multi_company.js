@@ -101,17 +101,22 @@ async function runMigration() {
     await pool.query(`
       UPDATE roles SET 
         role_type = 'Management Role', 
-        scope_type = 'Parent Group Access' 
+        scope_type = 'Parent Group Data' 
       WHERE LOWER(name) IN ('managing director', 'operation manager', 'hr admin');
 
       UPDATE roles SET 
+        role_type = 'Operational Role', 
+        scope_type = 'Branch Data Only' 
+      WHERE LOWER(name) = 'branch leader';
+
+      UPDATE roles SET 
         role_type = 'Department Role', 
-        scope_type = 'Current Company Only' 
+        scope_type = 'Company Staff Data' 
       WHERE LOWER(name) = 'head of department';
 
       UPDATE roles SET 
         role_type = 'Employee Role', 
-        scope_type = 'Current Company Only' 
+        scope_type = 'Own Data Only' 
       WHERE LOWER(name) = 'employee';
     `);
     console.log('✓ roles table enhanced with company_id, role_type & scope_type');

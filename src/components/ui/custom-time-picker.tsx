@@ -8,6 +8,7 @@ export interface CustomTimePickerProps {
   onChange: (timeStr: string) => void;
   placeholder?: string;
   className?: string;
+  displayFormatter?: (val: string) => string;
 }
 
 const ITEM_HEIGHT = 30;
@@ -40,15 +41,17 @@ export const CustomTimePicker: React.FC<CustomTimePickerProps> = ({
   onChange,
   placeholder = "Select Time",
   className,
+  displayFormatter,
 }) => {
   const [open, setOpen] = React.useState(false);
 
   // Formatted 12-hr display for trigger button
   const display12Hr = React.useMemo(() => {
     if (!value) return placeholder;
+    if (displayFormatter) return displayFormatter(value);
     const { hour12, minute, period } = parseTimeValue(value);
     return `${String(hour12).padStart(2, "0")}:${String(minute).padStart(2, "0")} ${period}`;
-  }, [value, placeholder]);
+  }, [value, placeholder, displayFormatter]);
 
   // Local state while popover is open
   const [selectedHour, setSelectedHour] = React.useState(12);
