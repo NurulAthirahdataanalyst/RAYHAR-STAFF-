@@ -1561,8 +1561,7 @@ export default function AttendanceDashboard() {
                           </td>
                           <td className="px-4 py-3">
                             <div className="flex flex-col gap-1 items-start">
-                              <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[10px] tracking-wider font-extrabold uppercase rounded-full border shadow-2xs whitespace-nowrap ${attStatusClass}`}>
-                                <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${attStatusDot}`} />
+                              <span className={`inline-flex items-center justify-center px-2.5 py-0.5 text-[10px] tracking-wider font-extrabold uppercase rounded-full border shadow-2xs whitespace-nowrap ${attStatusClass}`}>
                                 <span>{attStatus}</span>
                               </span>
                               {record.clock_in && workStatus && (

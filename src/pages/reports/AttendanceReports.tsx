@@ -1186,8 +1186,7 @@ export default function AttendanceReports() {
                                 const conf = getStatusInStyle(statusClockIn);
                                 return (
                                   <div className="flex flex-col items-start gap-1">
-                                    <span className={`inline-flex items-center gap-1.5 whitespace-nowrap px-2.5 py-0.5 text-[10px] tracking-wider font-black uppercase rounded-full border shadow-2xs ${conf.badge}`}>
-                                      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${conf.dot}`} />
+                                    <span className={`inline-flex items-center justify-center whitespace-nowrap px-2.5 py-0.5 text-[10px] tracking-wider font-black uppercase rounded-full border shadow-2xs ${conf.badge}`}>
                                       <span>{statusClockIn}</span>
                                     </span>
                                     {req.leave_type && req.leave_type !== statusClockIn && (
@@ -1217,8 +1216,7 @@ export default function AttendanceReports() {
                                 };
                                 const conf = getStatusClockOutStyle(statusClockOut);
                                 return (
-                                  <span className={`inline-flex items-center gap-1.5 whitespace-nowrap px-2.5 py-0.5 text-[10px] tracking-wider font-black uppercase rounded-full border shadow-2xs ${conf.badge}`}>
-                                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${conf.dot}`} />
+                                  <span className={`inline-flex items-center justify-center whitespace-nowrap px-2.5 py-0.5 text-[10px] tracking-wider font-black uppercase rounded-full border shadow-2xs ${conf.badge}`}>
                                     <span>{statusClockOut}</span>
                                   </span>
                                 );
@@ -1257,8 +1255,7 @@ export default function AttendanceReports() {
                                 };
                                 const conf = getDayStatusStyle(dayStatus);
                                 return (
-                                  <span className={`inline-flex items-center gap-1.5 whitespace-nowrap px-2.5 py-0.5 text-[10px] tracking-wider font-black uppercase rounded-full border shadow-2xs ${conf.badge}`}>
-                                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${conf.dot}`} />
+                                  <span className={`inline-flex items-center justify-center whitespace-nowrap px-2.5 py-0.5 text-[10px] tracking-wider font-black uppercase rounded-full border shadow-2xs ${conf.badge}`}>
                                     <span>{dayStatus}</span>
                                   </span>
                                 );
