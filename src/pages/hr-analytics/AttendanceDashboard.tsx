@@ -1574,7 +1574,16 @@ export default function AttendanceDashboard() {
                           </td>
                           <td className="px-4 py-3 text-[11px] text-gray-600 font-medium">{formatAttendanceTime(record.clock_in)}</td>
                           <td className="px-4 py-3 text-[11px] text-gray-600 font-medium">{record.clock_out ? formatAttendanceTime(record.clock_out) : "--:--"}</td>
-                          <td className="px-4 py-3 text-[11px] text-foreground font-medium">{lateMinStr}</td>
+                          <td
+                            className={`px-4 py-3 text-[11px] font-medium ${
+                              lateMinStr === "0 Min"
+                                ? "text-[#008000] dark:text-[#008000]"
+                                : "text-foreground"
+                            }`}
+                            style={lateMinStr === "0 Min" ? { color: "#008000" } : undefined}
+                          >
+                            {lateMinStr}
+                          </td>
                           <td className="px-4 py-3">
                             <span className={`inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap ${isGoodHrs ? 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/20' : 'bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-500/10 dark:border-rose-500/20'}`}>
                               {workHrsStr === '--' ? '0 H 00 Min' : (() => {

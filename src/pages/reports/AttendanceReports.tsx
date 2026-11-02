@@ -749,7 +749,7 @@ export default function AttendanceReports() {
             <td>${a.user_id || "-"}</td>
             <td>${a.full_name || "-"}</td>
             <td>${branchText}</td>
-            <td>${lateWorkingHour}</td>
+            <td style="${lateWorkingHour === "0 Min" ? "color: #008000; font-weight: 600;" : ""}">${lateWorkingHour}</td>
             ${sessionTds}
             <td>${workingHrs}</td>
             <td>${restTime}</td>
@@ -1125,7 +1125,16 @@ export default function AttendanceReports() {
                                 )}
                               </div>
                             </TableCell>
-                            <TableCell className="whitespace-nowrap font-medium text-amber-600 dark:text-amber-400">
+                            <TableCell
+                              className={`whitespace-nowrap font-medium ${
+                                lateWorkingHour === "0 Min"
+                                  ? "text-[#008000] dark:text-[#008000]"
+                                  : lateWorkingHour === "--"
+                                    ? "text-muted-foreground"
+                                    : "text-amber-600 dark:text-amber-400"
+                              }`}
+                              style={lateWorkingHour === "0 Min" ? { color: "#008000" } : undefined}
+                            >
                               {lateWorkingHour}
                             </TableCell>
                             {sessionIndices.map((sIdx) => {

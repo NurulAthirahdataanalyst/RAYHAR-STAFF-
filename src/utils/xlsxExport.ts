@@ -185,15 +185,21 @@ export function buildXlsxBinary(
           .join("")}</cols>`
       : "";
 
+  const lateColIndex = headers.findIndex(
+    (h) => String(h ?? "").trim().toLowerCase() === "late working hour"
+  );
+
   const sheetDataRowsXml = allRows
     .map((row, rIdx) => {
       const rowNum = rIdx + 1;
-      const styleIdx = rIdx === 0 ? 1 : 2;
       const cellsXml = (row || [])
         .map((cell, cIdx) => {
           const colLetter = getExcelColumnLetter(cIdx);
           const cellRef = `${colLetter}${rowNum}`;
           const text = escapeXml(cell);
+          const isGreenZeroLate =
+            rIdx > 0 && cIdx === lateColIndex && String(cell ?? "").trim() === "0 Min";
+          const styleIdx = rIdx === 0 ? 1 : isGreenZeroLate ? 3 : 2;
           return `<c r="${cellRef}" s="${styleIdx}" t="inlineStr"><is><t xml:space="preserve">${text}</t></is></c>`;
         })
         .join("");
@@ -235,7 +241,7 @@ export function buildXlsxBinary(
 
   const stylesXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
-  <fonts count="2">
+  <fonts count="3">
     <font>
       <sz val="10"/>
       <color rgb="FF1E293B"/>
@@ -245,6 +251,11 @@ export function buildXlsxBinary(
       <b/>
       <sz val="10"/>
       <color rgb="FFFFFFFF"/>
+      <name val="Calibri"/>
+    </font>
+    <font>
+      <sz val="10"/>
+      <color rgb="FF008000"/>
       <name val="Calibri"/>
     </font>
   </fonts>
@@ -271,12 +282,15 @@ export function buildXlsxBinary(
   <cellStyleXfs count="1">
     <xf numFmtId="0" fontId="0" fillId="0" borderId="0"/>
   </cellStyleXfs>
-  <cellXfs count="3">
+  <cellXfs count="4">
     <xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>
     <xf numFmtId="0" fontId="1" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1">
       <alignment vertical="center" wrapText="0"/>
     </xf>
     <xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyFont="1" applyBorder="1" applyAlignment="1">
+      <alignment vertical="center" wrapText="0"/>
+    </xf>
+    <xf numFmtId="0" fontId="2" fillId="0" borderId="1" xfId="0" applyFont="1" applyBorder="1" applyAlignment="1">
       <alignment vertical="center" wrapText="0"/>
     </xf>
   </cellXfs>

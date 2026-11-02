@@ -439,7 +439,11 @@ export default function Reports() {
             return;
           }
           
-          const rowsHtml = rows.map(r => `<tr>${r.map((c: any) => `<td>${escapeHtml(c)}</td>`).join('')}</tr>`).join('');
+          const lateColIdx = headers.findIndex(h => String(h).trim().toLowerCase() === 'late working hour');
+          const rowsHtml = rows.map(r => `<tr>${r.map((c: any, idx: number) => {
+            const isGreenZeroLate = idx === lateColIdx && String(c ?? '').trim() === '0 Min';
+            return `<td${isGreenZeroLate ? ' style="color: #008000; font-weight: 600;"' : ''}>${escapeHtml(c)}</td>`;
+          }).join('')}</tr>`).join('');
           const headersHtml = headers.map(h => `<th>${escapeHtml(h)}</th>`).join('');
           
           writePrintDocument(printWindow, `
