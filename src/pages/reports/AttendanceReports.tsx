@@ -490,6 +490,8 @@ export default function AttendanceReports() {
         matchesStatus = statusIn === "Present (Late)" || e.is_late;
       } else if (statusFilter === "Missing Clock-Out") {
         matchesStatus = statusOut === "Missing Clock Out" || e.status === "Missing Clock-Out";
+      } else if (statusFilter === "Clock Out" || statusFilter === "Clocked Out") {
+        matchesStatus = statusOut === "Clock Out" || statusOut === "Clocked Out";
       } else if (statusFilter === "Clocked Out Early") {
         matchesStatus = statusOut === "Clocked Out Early";
       } else if (statusFilter === "Approved Leave") {
@@ -920,7 +922,8 @@ export default function AttendanceReports() {
                 <SelectItem value="Missing Clock-Out">Missing Clock-Out</SelectItem>
                 <SelectItem value="Absent">Absent</SelectItem>
                 <SelectItem value="Weekend">Weekend</SelectItem>
-                <SelectItem value="Clocked Out">Clocked Out</SelectItem>
+                <SelectItem value="Clock Out">Clock Out</SelectItem>
+                <SelectItem value="Clocked Out Early">Clocked Out Early</SelectItem>
               </SelectContent>
             </Select>
 

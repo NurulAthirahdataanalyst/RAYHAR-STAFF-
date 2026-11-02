@@ -10312,8 +10312,8 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
       [endDate, startDate]
     );
 
-    // Get passed working days up to today (or end of month if it's in the past)
-    const passedWorkingDaysInMonth = [];
+    // Get passed days up to today (or end of month if it's in the past)
+    const passedDaysInMonth = [];
     const nowStr = new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString().split('T')[0];
     let loopDate = new Date(startDate);
     const end = new Date(endDate);
@@ -10323,19 +10323,13 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
       if (loopDateStr > nowStr) {
         break; // Stop counting future days as expected attendance
       }
-      
-      const isWeekend = checkIsWeekend('ZONE_B', loopDate); // Global generic assumption
-      const isHoliday = malaysiaHolidays.some(h => h.date === loopDateStr);
-      
-      if (!isWeekend && !isHoliday) {
-        passedWorkingDaysInMonth.push(loopDateStr);
-      }
+      passedDaysInMonth.push(loopDateStr);
       loopDate.setDate(loopDate.getDate() + 1);
     }
 
     let summary = {
       totalEmployees: allProfiles.length,
-      workingDays: passedWorkingDaysInMonth.length,
+      workingDays: 0,
       expectedAttendance: 0,
       present: 0,
       late: 0,
@@ -10347,13 +10341,69 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
     };
 
     const reportData = [];
+    const workingDatesSet = new Set();
 
     allProfiles.forEach(p => {
       const empCreatedDate = getEmpCreatedDateStr(p.created_at);
-      passedWorkingDaysInMonth.forEach(dateStr => {
+      const userZone = branchZoneMap.get(p.branch) || (['AOR', 'KBR', 'TGG', 'DGN', 'KMM', 'CNH', 'KBG', 'JTH', 'HQ'].includes(p.branch) ? 'ZONE_A' : 'ZONE_B');
+
+      passedDaysInMonth.forEach(dateStr => {
         if (empCreatedDate && dateStr < empCreatedDate) {
           return; // Skip dates before employee was created
         }
+
+        const dateParts = dateStr.split('-').map(Number);
+        const dateObj = new Date(Date.UTC(dateParts[0], dateParts[1] - 1, dateParts[2]));
+        const isWeekend = checkIsWeekend(userZone, dateObj);
+        const isHoliday = malaysiaHolidays.some(h => h.date === dateStr);
+
+        // Check if clocked in
+        const clockDataList = clockRows.filter(c => c.user_id === p.user_id);
+        const matchingClocks = clockDataList
+          .filter(c => {
+            const klTimeIn = new Date(new Date(c.clock_in).getTime() + 8 * 60 * 60 * 1000);
+            return klTimeIn.toISOString().split('T')[0] === dateStr;
+          })
+          .sort((a, b) => new Date(a.clock_in).getTime() - new Date(b.clock_in).getTime());
+
+        const hasClockData = matchingClocks.length > 0;
+
+        // Check outstation assignment
+        const isOutstationAssigned = outstationRows.some(o => {
+          if (o.user_id !== p.user_id) return false;
+          const oStart = new Date(new Date(o.start_date).getTime() + 8 * 60 * 60 * 1000).toISOString().split('T')[0];
+          const oEnd = new Date(new Date(o.end_date).getTime() + 8 * 60 * 60 * 1000).toISOString().split('T')[0];
+          const oStartRaw = new Date(o.start_date).toISOString().split('T')[0];
+          const oEndRaw = new Date(o.end_date).toISOString().split('T')[0];
+          return (dateStr >= oStart && dateStr <= oEnd) || (dateStr >= oStartRaw && dateStr <= oEndRaw);
+        });
+
+        // If it's a rest day/weekend and employee didn't work and wasn't assigned outstation:
+        if ((isWeekend || isHoliday) && !hasClockData && !isOutstationAssigned) {
+          reportData.push({
+            user_id: p.user_id,
+            full_name: p.full_name,
+            branch: p.branch || 'HQ',
+            department: p.department || '',
+            date: dateStr,
+            time_in: null,
+            time_out: null,
+            clock_in: null,
+            clock_out: null,
+            is_late: false,
+            missing_clock_out: false,
+            status: isHoliday ? "Holiday" : "Weekend",
+            status_clock_in: isHoliday ? "Company Leave" : "Weekend",
+            status_clock_out: isHoliday ? "Company Leave" : "Weekend",
+            late_working_hours: "--",
+            working_hours: "--",
+            rest_minutes: "--",
+            location: p.branch || 'HQ'
+          });
+          return;
+        }
+
+        workingDatesSet.add(dateStr);
         summary.expectedAttendance++;
         // Is Company Leave?
         const isCompanyLeave = companyLeaves.some(cl => {
@@ -10642,6 +10692,7 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
       });
     });
 
+    summary.workingDays = workingDatesSet.size;
     const attendedDays = summary.present + summary.late + summary.outstation + summary.missingClockOut;
     const workingEmployeeDays = summary.expectedAttendance - summary.leave;
     summary.complianceRate = workingEmployeeDays > 0 ? Math.round((attendedDays / workingEmployeeDays) * 100) : 0;
