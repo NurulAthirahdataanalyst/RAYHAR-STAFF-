@@ -17,6 +17,16 @@ import {
   LineChart, Line, Legend, Cell, PieChart as RechartsPieChart, Pie
 } from "recharts";
 import { useLocation, useNavigate } from "react-router-dom";
+import {
+  calculateLateWorkingHour,
+  calculateTotalWorkingHoursFormatted,
+  calculateTotalRestMinutes,
+  formatDurationHHMM,
+  isFirstClockInOfDay
+} from "@/utils/workingHoursCalculator";
+import { multiCompanyApi } from "@/modules/multi-company/services/multiCompanyApi";
+import { WorkSchedule } from "@/modules/multi-company/types/multiCompany.types";
+import { resolveBranchSchedule } from "@/utils/scheduleZoneUtils";
 
 // Convert any string to Proper Case (title case), e.g. "SEPANG" -> "Sepang"
 function toProperCase(str: string): string {
@@ -48,38 +58,9 @@ const formatAttendanceTime = (dateStr: string | null | undefined) => {
   return d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
 };
 
-const calculateWorkingHours = (clockIn: string | null | undefined, clockOut: string | null | undefined) => {
+const calculateWorkingHours = (clockIn: string | null | undefined, clockOut: string | null | undefined, scheduledStartTime: string = "08:30") => {
   if (!clockIn) return "--";
-  
-  const start = new Date(clockIn).getTime();
-  let end;
-  
-  if (clockOut) {
-    end = new Date(clockOut).getTime();
-  } else {
-    // If clockOut is missing, check if it's today in UTC+8
-    const clockInDate = new Date(clockIn);
-    const klNow = new Date(Date.now() + 8 * 60 * 60 * 1000);
-    const klClockInTime = new Date(clockInDate.getTime() + 8 * 60 * 60 * 1000);
-    
-    const isToday = klNow.getUTCFullYear() === klClockInTime.getUTCFullYear() &&
-                    klNow.getUTCMonth() === klClockInTime.getUTCMonth() &&
-                    klNow.getUTCDate() === klClockInTime.getUTCDate();
-    
-    if (isToday) {
-      end = Date.now();
-    } else {
-      const klEndOfDay = new Date(klClockInTime);
-      klEndOfDay.setUTCHours(23, 59, 59, 999);
-      end = klEndOfDay.getTime() - 8 * 60 * 60 * 1000;
-    }
-  }
-  
-  const diffMs = end - start;
-  if (diffMs < 0) return "--";
-  const hours = Math.floor(diffMs / (1000 * 60 * 60));
-  const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-  return `${hours}h ${minutes}m`;
+  return calculateTotalWorkingHoursFormatted({ clock_in: clockIn, clock_out: clockOut }, scheduledStartTime);
 };
 
 interface AttendanceRecord {
@@ -267,7 +248,29 @@ export default function AttendanceDashboard() {
   const [hoveredSlice, setHoveredSlice] = useState<any>(null);
 
   // Settings config values (Dynamic fetch with static fallback)
-  const [workStartTime, setWorkStartTime] = useState("09:00 AM");
+  const [workStartTime, setWorkStartTime] = useState("08:30");
+  const [lateThresholdTime, setLateThresholdTime] = useState("09:00 AM");
+  const [workSchedules, setWorkSchedules] = useState<WorkSchedule[]>([]);
+
+  const getScheduledStartTimeForRecord = useCallback((rec: any): string => {
+    const branchCode = rec?.permanent_branch || rec?.branch || "HQ";
+    const matched = resolveBranchSchedule({ code: branchCode, operating_zone: rec?.zone || rec?.operating_zone }, workSchedules);
+    if (matched && Array.isArray(matched.days) && matched.days.length > 0) {
+      let dayOfWeek = "Monday";
+      const dateRef = rec?.date || selectedDate;
+      if (dateRef) {
+        const d = new Date(dateRef);
+        if (!isNaN(d.getTime())) {
+          dayOfWeek = d.toLocaleDateString("en-US", { weekday: "long" });
+        }
+      }
+      const dayConf = matched.days.find((d: any) => d.day_of_week === dayOfWeek);
+      if (dayConf && dayConf.start_time) {
+        return String(dayConf.start_time).slice(0, 5);
+      }
+    }
+    return workStartTime || "08:30";
+  }, [workSchedules, selectedDate, workStartTime]);
 
   // Report Generator State
   const [generatorType, setGeneratorType] = useState<"stability" | "trends" | "leave" | "financial">("trends");
@@ -316,7 +319,14 @@ export default function AttendanceDashboard() {
       const settingsRes = await fetch(`${API_BASE_URL}/api/settings`);
       const settingsData = await settingsRes.json();
       if (settingsData.success && settingsData.settings?.lateThreshold) {
-        setWorkStartTime(settingsData.settings.lateThreshold);
+        setLateThresholdTime(settingsData.settings.lateThreshold);
+      }
+
+      try {
+        const sRes = await multiCompanyApi.getCompanyWorkSchedules(activeCompany?.id || 1);
+        setWorkSchedules(sRes || []);
+      } catch (schedErr) {
+        console.error("Error loading work schedules in AttendanceDashboard:", schedErr);
       }
     } catch (e) {
       console.error("Error loading system lists:", e);
@@ -598,9 +608,10 @@ export default function AttendanceDashboard() {
       
       let workStatus = "Checked In";
       if (r.clock_out) {
-         const workHrsStr = calculateWorkingHours(r.clock_in, r.clock_out);
-         const workHrsNum = parseFloat(workHrsStr.replace('h', '.').replace('m', '')) || 0;
-         workStatus = workHrsNum >= 8.0 ? "Clocked Out" : "Clocked Out Early";
+         const workHrsStr = calculateWorkingHours(r.clock_in, r.clock_out, getScheduledStartTimeForRecord(r));
+         const matchH = workHrsStr.match(/^(\d{2})\s*H\s*(\d{2})\s*M/);
+         const totalWorkMins = matchH ? parseInt(matchH[1], 10) * 60 + parseInt(matchH[2], 10) : 0;
+         workStatus = totalWorkMins >= 8 * 60 ? "Clocked Out" : "Clocked Out Early";
       } else if (!r.clock_in) {
          workStatus = "--";
       }
@@ -660,9 +671,10 @@ export default function AttendanceDashboard() {
       
       let workStatus = "Checked In";
       if (r.clock_out) {
-         const workHrsStr = calculateWorkingHours(r.clock_in, r.clock_out);
-         const workHrsNum = parseFloat(workHrsStr.replace('h', '.').replace('m', '')) || 0;
-         workStatus = workHrsNum >= 8.0 ? "Clocked Out" : "Clocked Out Early";
+         const workHrsStr = calculateWorkingHours(r.clock_in, r.clock_out, getScheduledStartTimeForRecord(r));
+         const matchH = workHrsStr.match(/^(\d{2})\s*H\s*(\d{2})\s*M/);
+         const totalWorkMins = matchH ? parseInt(matchH[1], 10) * 60 + parseInt(matchH[2], 10) : 0;
+         workStatus = totalWorkMins >= 8 * 60 ? "Clocked Out" : "Clocked Out Early";
       } else if (!r.clock_in) {
          workStatus = "--";
       }
@@ -787,15 +799,19 @@ export default function AttendanceDashboard() {
         let rows: any[] = [];
         
         if (generatorType === "trends" || generatorType === "stability") {
-          headers = ["Employee ID", "Employee Name", "Permanent Branch", "Working Branch", "Date", "Clock In", "Clock Out", "Status", "Total Hours"];
+          headers = ["Employee ID", "Employee Name", "Permanent Branch", "Working Branch", "Date", "Clock In", "Clock Out", "Status", "Late Working Hour", "Working Hours", "Rest"];
           rows = data.data.map((r: any) => {
              const dateStr = r.date || (r.clock_in ? new Date(r.clock_in).toLocaleDateString() : "--");
              const timeIn = r.clock_in ? new Date(r.clock_in).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true }) : "--:--";
              const timeOut = r.clock_out ? new Date(r.clock_out).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true }) : "--:--";
-             const totalHrs = r.total_hours || (r.clock_in && r.clock_out ? calculateWorkingHours(r.clock_in, r.clock_out) : "--");
+             const scheduledStart = r.scheduled_start_time || workStartTime || "08:30";
+             const isFirst = isFirstClockInOfDay(r, data.data);
+             const lateWorkingHour = isFirst ? calculateLateWorkingHour(r.clock_in, scheduledStart) : "—";
+             const totalHrs = calculateTotalWorkingHoursFormatted(r, scheduledStart);
+             const restTime = calculateTotalRestMinutes(r);
              const permanentBranch = r.permanent_branch || r.branch;
              const workingBranch = r.temp_branch || r.branch;
-             return [r.user_id, `"${r.full_name}"`, permanentBranch, workingBranch, dateStr, timeIn, timeOut, r.status || "--", totalHrs];
+             return [r.user_id, `"${r.full_name}"`, permanentBranch, workingBranch, dateStr, timeIn, timeOut, r.status || "--", lateWorkingHour, totalHrs, restTime];
           });
         } else {
           headers = ["Employee ID", "Employee Name", "Branch", "Leave Type", "Days", "Status"];
@@ -1012,12 +1028,13 @@ export default function AttendanceDashboard() {
         const matchesDept = selectedDepartmentFilter === "all" || r.department === selectedDepartmentFilter;
         const matchesSearch = r.full_name.toLowerCase().includes(searchTerm.toLowerCase()) || r.user_id.toLowerCase().includes(searchTerm.toLowerCase());
         
+        const isFirstPunch = isFirstClockInOfDay(r, dailyAttendance);
         let isLate = false;
-        if (r.clock_in) {
+        if (r.clock_in && isFirstPunch) {
           if ((r as any).is_late || (r as any).status === "Present (Late)" || ((r as any).late_minutes && (r as any).late_minutes > 0)) {
             isLate = true;
           } else {
-            const { hour: threshHour, minute: threshMin } = parseThreshold(workStartTime);
+            const { hour: threshHour, minute: threshMin } = parseThreshold(lateThresholdTime);
             const thresholdDate = new Date(r.clock_in);
             thresholdDate.setHours(threshHour, threshMin, 0, 0);
             if (new Date(r.clock_in).getTime() > thresholdDate.getTime()) {
@@ -1424,26 +1441,28 @@ export default function AttendanceDashboard() {
                 <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
                   {filteredDailyAttendance.length > 0 ? (
                     filteredDailyAttendance.slice((currentPage - 1) * parseInt(limit), currentPage * parseInt(limit)).map((record, index) => {
-                      const clockInDate = record.clock_in ? new Date(record.clock_in) : null;
-                      let isLate = false;
-                      let lateMinStr = "0 Min";
-                      if (clockInDate) {
-                        const { hour: threshHour, minute: threshMin } = parseThreshold(workStartTime);
-                        const thresholdDate = new Date(clockInDate);
-                        thresholdDate.setHours(threshHour, threshMin, 0, 0);
-                        const diffMs = clockInDate.getTime() - thresholdDate.getTime();
-                        if (diffMs > 0) {
-                          isLate = true;
-                          const totalMin = Math.floor(diffMs / 60000);
-                          const h = Math.floor(totalMin / 60);
-                          const m = (totalMin % 60).toString().padStart(2, '0');
-                          lateMinStr = `${h} H ${m} Min`;
-                        }
-                      }
+                      const isFirstClockIn = (record as any).is_first_clock_in !== undefined
+                        ? Boolean((record as any).is_first_clock_in)
+                        : isFirstClockInOfDay(record, filteredDailyAttendance);
+                      const recordStartTime = getScheduledStartTimeForRecord(record);
 
-                      const workHrsStr = calculateWorkingHours(record.clock_in, record.clock_out);
-                      const workHrsNum = parseFloat(workHrsStr.replace('h', '.').replace('m', '')) || 0;
-                      const isGoodHrs = workHrsNum >= 8.0;
+                      const lateMinStr = !record.clock_in
+                        ? "--"
+                        : !isFirstClockIn
+                        ? "—"
+                        : calculateLateWorkingHour(record, recordStartTime, 'min', isFirstClockIn);
+
+                      const sessionRecord = {
+                        clock_in: record.clock_in,
+                        clock_out: record.clock_out,
+                        time_in: record.time_in,
+                        time_out: record.time_out,
+                        status: (record as any).status
+                      };
+                      const workHrsStr = calculateTotalWorkingHoursFormatted(sessionRecord, isFirstClockIn ? recordStartTime : undefined);
+                      const matchH = workHrsStr.match(/(\d+)\s*[hH]\s*(\d+)\s*[mM]/i);
+                      const totalWorkMins = matchH ? parseInt(matchH[1], 10) * 60 + parseInt(matchH[2], 10) : 0;
+                      const isGoodHrs = totalWorkMins >= 8 * 60;
 
                       let attStatus = (record as any).status || "Absent";
                       
@@ -1455,11 +1474,11 @@ export default function AttendanceDashboard() {
                       if (isOutstation) attStatus = "Outstation";
                       
                       let isRecordLate = false;
-                      if (record.clock_in) {
+                      if (record.clock_in && isFirstClockIn) {
                         if ((record as any).is_late || (record as any).status === "Present (Late)" || ((record as any).late_minutes && (record as any).late_minutes > 0)) {
                           isRecordLate = true;
                         } else {
-                          const { hour: threshHour, minute: threshMin } = parseThreshold(workStartTime);
+                          const { hour: threshHour, minute: threshMin } = parseThreshold(lateThresholdTime);
                           const thresholdDate = new Date(record.clock_in);
                           thresholdDate.setHours(threshHour, threshMin, 0, 0);
                           if (new Date(record.clock_in).getTime() > thresholdDate.getTime()) {
@@ -1558,7 +1577,10 @@ export default function AttendanceDashboard() {
                           <td className="px-4 py-3 text-[11px] text-foreground font-medium">{lateMinStr}</td>
                           <td className="px-4 py-3">
                             <span className={`inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap ${isGoodHrs ? 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/20' : 'bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-500/10 dark:border-rose-500/20'}`}>
-                              {workHrsStr === '--' ? '0 H 00 Min' : `${workHrsStr.split('h ')[0]} H ${workHrsStr.split('h ')[1].replace('m', '').padStart(2, '0')} Min`}
+                              {workHrsStr === '--' ? '0 H 00 Min' : (() => {
+                                const match = workHrsStr.match(/(\d+)\s*[hH]\s*(\d+)\s*[mM]/i);
+                                return match ? `${parseInt(match[1], 10)} H ${match[2].padStart(2, '0')} Min` : workHrsStr;
+                              })()}
                             </span>
                           </td>
                         </tr>

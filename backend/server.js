@@ -8873,25 +8873,20 @@ app.get("/api/attendance/history", async (req, res) => {
         return dateStr >= startStr && dateStr <= endStr;
       });
 
+      const isOutstationClock = clockRow && (String(clockRow.attendance_type || '').toUpperCase() === 'OUTSTATION' || String(clockRow.location || '').toUpperCase() === 'OUTSTATION');
+
       if (matchingCompanyLeave) {
         status = "Company Leave";
-      } else if (matchingOutstation) {
+      } else if ((matchingOutstation || isOutstationClock) && !clockRow) {
         status = "Outstation";
-        // Still populate clock_in/out times if they exist
-        if (clockRow) {
-          clock_in = clockRow.clock_in;
-          clock_out = clockRow.clock_out;
-          time_in = clockRow.time_in || "--";
-          time_out = clockRow.time_out || "--";
-        }
       } else if (clockRow) {
         clock_in = clockRow.clock_in;
         clock_out = clockRow.clock_out;
         time_in = clockRow.time_in || "--";
         time_out = clockRow.time_out || "--";
         
-        // Status is always governed by the day's first clock-in
-        status = dayOfficialStatus;
+        // Status is always governed by the day's first clock-in (or Outstation if applicable)
+        status = (matchingOutstation || isOutstationClock) ? "Outstation" : dayOfficialStatus;
         if (idx === 0) {
           is_late = dayIsLate;
           late = dayIsLate ? dayLateFormatted : "00h 00m";
@@ -10394,7 +10389,12 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
             is_late: false,
             missing_clock_out: false,
             status: "Company Leave",
+            status_clock_in: "Company Leave",
+            status_clock_out: "Company Leave",
             leave_type: "Company Holiday",
+            late_working_hours: "--",
+            working_hours: "--",
+            rest_minutes: "--",
             location: p.branch || 'HQ'
           });
           return;
@@ -10430,38 +10430,25 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
             is_late: false,
             missing_clock_out: false,
             status: leaveStatus,
+            status_clock_in: leaveStatus,
+            status_clock_out: leaveStatus,
             leave_type: leaveObj?.leave_type || 'Approved Leave',
+            late_working_hours: "--",
+            working_hours: "--",
+            rest_minutes: "--",
             location: p.branch || 'HQ'
           });
           return;
         }
 
-        const isOutstation = outstationRows.some(o => {
+        const isOutstationAssigned = outstationRows.some(o => {
           if (o.user_id !== p.user_id) return false;
-          const oStart = new Date(o.start_date).toISOString().split('T')[0];
-          const oEnd = new Date(o.end_date).toISOString().split('T')[0];
-          return dateStr >= oStart && dateStr <= oEnd;
+          const oStart = new Date(new Date(o.start_date).getTime() + 8 * 60 * 60 * 1000).toISOString().split('T')[0];
+          const oEnd = new Date(new Date(o.end_date).getTime() + 8 * 60 * 60 * 1000).toISOString().split('T')[0];
+          const oStartRaw = new Date(o.start_date).toISOString().split('T')[0];
+          const oEndRaw = new Date(o.end_date).toISOString().split('T')[0];
+          return (dateStr >= oStart && dateStr <= oEnd) || (dateStr >= oStartRaw && dateStr <= oEndRaw);
         });
-
-        if (isOutstation) {
-          summary.outstation++;
-          reportData.push({
-            user_id: p.user_id,
-            full_name: p.full_name,
-            branch: p.branch || 'HQ',
-            department: p.department || '',
-            date: dateStr,
-            time_in: null,
-            time_out: null,
-            clock_in: null,
-            clock_out: null,
-            is_late: false,
-            missing_clock_out: false,
-            status: "Outstation",
-            location: p.branch || 'HQ'
-          });
-          return;
-        }
 
         // Check if clocked in
         const clockDataList = clockRows.filter(c => c.user_id === p.user_id);
@@ -10473,19 +10460,26 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
           .sort((a, b) => new Date(a.clock_in).getTime() - new Date(b.clock_in).getTime());
 
         const clockData = matchingClocks[0];
+        const isOutstationClock = matchingClocks.some(c =>
+          String(c.attendance_type || '').toUpperCase() === 'OUTSTATION' ||
+          String(c.location || '').toUpperCase() === 'OUTSTATION'
+        );
+        const isOutstation = isOutstationAssigned || isOutstationClock;
 
         if (clockData) {
           const empCompanyId = p.company_id || getEmployeeCompanyId(p.user_id);
           const { isLate } = isAttendanceLate(clockData.clock_in, empCompanyId, dateStr);
           let missingClockOut = false;
-          let status = isLate ? "Present (Late)" : "Present (On Time)";
+          let status = isOutstation ? "Outstation" : (isLate ? "Present (Late)" : "Present (On Time)");
 
           // Check if any punch on this date has a clock-out
           const latestPunchWithOut = matchingClocks.filter(c => !!c.clock_out).pop();
           const effectiveClockOut = latestPunchWithOut ? latestPunchWithOut.clock_out : clockData.clock_out;
           const effectiveTimeOut = latestPunchWithOut ? latestPunchWithOut.time_out : clockData.time_out;
 
-          if (!effectiveClockOut) {
+          if (isOutstation) {
+            summary.outstation++;
+          } else if (!effectiveClockOut) {
             const nowKl = new Date(Date.now() + 8 * 60 * 60 * 1000);
             const isPastDate = dateStr !== nowKl.toISOString().split('T')[0];
             const isPastEndOfWorkTime = !isPastDate && nowKl.getUTCHours() >= 17;
@@ -10502,6 +10496,71 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
             else summary.present++;
           }
 
+          const startMins = getLateCutoffForCompanyAndDate(empCompanyId, dateStr).startMins || 510;
+          let lateWorkingHours = "0 Min";
+          let workingHours = "--";
+          let restMinutes = "0 Min";
+          let totalActiveMins = 0;
+
+          if (matchingClocks.length > 0 && matchingClocks[0].clock_in) {
+            const firstInDate = new Date(matchingClocks[0].clock_in);
+            const firstInMyt = new Date(firstInDate.getTime() + 8 * 60 * 60 * 1000);
+            const firstInMins = firstInMyt.getUTCHours() * 60 + firstInMyt.getUTCMinutes();
+            if (firstInMins <= startMins) {
+              lateWorkingHours = "0 Min";
+            } else {
+              const lDiff = firstInMins - startMins;
+              lateWorkingHours = `${lDiff} Min`;
+            }
+
+            matchingClocks.forEach((s, sIdx) => {
+              if (s.clock_in) {
+                const sInD = new Date(new Date(s.clock_in).getTime() + 8 * 60 * 60 * 1000);
+                const rawInMins = sInD.getUTCHours() * 60 + sInD.getUTCMinutes();
+                const effInMins = sIdx === 0 ? Math.max(rawInMins, startMins) : rawInMins;
+
+                let effOutMins = rawInMins;
+                if (s.clock_out) {
+                  const sOutD = new Date(new Date(s.clock_out).getTime() + 8 * 60 * 60 * 1000);
+                  effOutMins = sOutD.getUTCHours() * 60 + sOutD.getUTCMinutes();
+                } else {
+                  const nowKl = new Date(Date.now() + 8 * 60 * 60 * 1000);
+                  const isPastDate = dateStr !== nowKl.toISOString().split('T')[0];
+                  effOutMins = isPastDate ? (17 * 60 + 30) : (nowKl.getUTCHours() * 60 + nowKl.getUTCMinutes());
+                }
+
+                const diff = effOutMins - effInMins;
+                if (diff > 0) totalActiveMins += diff;
+              }
+            });
+            const wH = String(Math.floor(totalActiveMins / 60)).padStart(2, '0');
+            const wM = String(totalActiveMins % 60).padStart(2, '0');
+            workingHours = `${wH} H ${wM} M`;
+
+            let totalRestMins = 0;
+            for (let i = 0; i < matchingClocks.length - 1; i++) {
+              if (matchingClocks[i].clock_out && matchingClocks[i + 1].clock_in) {
+                const outD = new Date(new Date(matchingClocks[i].clock_out).getTime() + 8 * 60 * 60 * 1000);
+                const inD = new Date(new Date(matchingClocks[i + 1].clock_in).getTime() + 8 * 60 * 60 * 1000);
+                const outM = outD.getUTCHours() * 60 + outD.getUTCMinutes();
+                const inM = inD.getUTCHours() * 60 + inD.getUTCMinutes();
+                const gap = inM - outM;
+                if (gap > 0) totalRestMins += gap;
+              }
+            }
+            restMinutes = `${totalRestMins} Min`;
+          }
+
+          const statusClockIn = isOutstation ? "Outstation" : (isLate ? "Present (Late)" : "Present (On Time)");
+          let statusClockOut = "--";
+          if (isOutstation) {
+            statusClockOut = "Outstation";
+          } else if (!effectiveClockOut) {
+            statusClockOut = "Missing Clock Out";
+          } else {
+            statusClockOut = (totalActiveMins || 0) >= 479 ? "Clock Out" : "Clocked Out Early";
+          }
+
           reportData.push({
             user_id: p.user_id,
             full_name: p.full_name,
@@ -10515,7 +10574,12 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
             is_late: isLate,
             missing_clock_out: missingClockOut,
             status: status,
-            location: clockData.location || p.branch || 'HQ',
+            status_clock_in: statusClockIn,
+            status_clock_out: statusClockOut,
+            late_working_hours: lateWorkingHours,
+            working_hours: workingHours,
+            rest_minutes: restMinutes,
+            location: clockData.location || (isOutstation ? 'OUTSTATION' : (p.branch || 'HQ')),
             distance_meters: clockData.distance_meters,
             latitude: clockData.clock_in_latitude,
             longitude: clockData.clock_in_longitude,
@@ -10524,11 +10588,33 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
               clock_out: c.clock_out,
               time_in: c.time_in,
               time_out: c.time_out,
-              location: c.location || p.branch || 'HQ',
+              location: c.location || (isOutstation ? 'OUTSTATION' : (p.branch || 'HQ')),
               distance_meters: c.distance_meters,
               latitude: c.clock_in_latitude,
               longitude: c.clock_in_longitude
             }))
+          });
+        } else if (isOutstation) {
+          summary.outstation++;
+          reportData.push({
+            user_id: p.user_id,
+            full_name: p.full_name,
+            branch: p.branch || 'HQ',
+            department: p.department || '',
+            date: dateStr,
+            time_in: null,
+            time_out: null,
+            clock_in: null,
+            clock_out: null,
+            is_late: false,
+            missing_clock_out: false,
+            status: "Outstation",
+            status_clock_in: "Outstation",
+            status_clock_out: "Outstation",
+            late_working_hours: "--",
+            working_hours: "--",
+            rest_minutes: "--",
+            location: p.branch || 'HQ'
           });
         } else {
           summary.absent++;
@@ -10545,6 +10631,11 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
             is_late: false,
             missing_clock_out: false,
             status: "Absent",
+            status_clock_in: "Absent",
+            status_clock_out: "Absent",
+            late_working_hours: "--",
+            working_hours: "--",
+            rest_minutes: "--",
             location: p.branch || 'HQ'
           });
         }
@@ -10657,8 +10748,12 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
       `SELECT DISTINCT o.user_id, o.destination
        FROM outstation_assignments o
        JOIN profiles p ON p.user_id = o.user_id
-       WHERE o.status != 'Cancelled' AND ?::date BETWEEN o.start_date AND o.end_date ${profileFilter}`,
-      [queryDate, ...queryParams]
+       WHERE o.status != 'Cancelled'
+         AND (
+           ?::date BETWEEN o.start_date::date AND o.end_date::date
+           OR ?::date BETWEEN (o.start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (o.end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date
+         ) ${profileFilter}`,
+      [queryDate, queryDate, ...queryParams]
     );
     const outstationMap = new Map();
     for (const row of outstationRows) {
@@ -10697,6 +10792,11 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
         clockRowsForUser.sort((a, b) => new Date(a.clock_in).getTime() - new Date(b.clock_in).getTime());
       }
 
+      const isOutstationUser = outstationMap.has(uid) || clockRowsForUser.some(c =>
+        String(c.attendance_type || '').toUpperCase() === 'OUTSTATION' ||
+        String(c.location || '').toUpperCase() === 'OUTSTATION'
+      );
+
       // First clock-in of the day determines whether the employee was late or on time
       let dayIsLate = false;
       if (clockRowsForUser.length > 0 && clockRowsForUser[0].clock_in) {
@@ -10706,6 +10806,61 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
 
       // Check if user has ANY clock-out on this date
       const hasAnyClockOut = clockRowsForUser.some(r => !!r.clock_out);
+
+      const startMins = getLateCutoffForCompanyAndDate(empCompanyId, queryDate).startMins || 510;
+      let lateWorkingHours = "--";
+      let workingHours = "--";
+      let restMinutes = "0 Min";
+      let totalActiveMins = 0;
+
+      if (clockRowsForUser.length > 0 && clockRowsForUser[0].clock_in) {
+        const firstInDate = new Date(clockRowsForUser[0].clock_in);
+        const firstInMyt = new Date(firstInDate.getTime() + 8 * 60 * 60 * 1000);
+        const firstInMins = firstInMyt.getUTCHours() * 60 + firstInMyt.getUTCMinutes();
+        if (firstInMins <= startMins) {
+          lateWorkingHours = "0 Min";
+        } else {
+          const lDiff = firstInMins - startMins;
+          lateWorkingHours = `${lDiff} Min`;
+        }
+
+        clockRowsForUser.forEach((s, sIdx) => {
+          if (s.clock_in) {
+            const sInD = new Date(new Date(s.clock_in).getTime() + 8 * 60 * 60 * 1000);
+            const rawInMins = sInD.getUTCHours() * 60 + sInD.getUTCMinutes();
+            const effInMins = sIdx === 0 ? Math.max(rawInMins, startMins) : rawInMins;
+
+            let effOutMins = rawInMins;
+            if (s.clock_out) {
+              const sOutD = new Date(new Date(s.clock_out).getTime() + 8 * 60 * 60 * 1000);
+              effOutMins = sOutD.getUTCHours() * 60 + sOutD.getUTCMinutes();
+            } else {
+              const nowKl = new Date(Date.now() + 8 * 60 * 60 * 1000);
+              const isPastDate = queryDate !== nowKl.toISOString().split('T')[0];
+              effOutMins = isPastDate ? (17 * 60 + 30) : (nowKl.getUTCHours() * 60 + nowKl.getUTCMinutes());
+            }
+
+            const diff = effOutMins - effInMins;
+            if (diff > 0) totalActiveMins += diff;
+          }
+        });
+        const wH = String(Math.floor(totalActiveMins / 60)).padStart(2, '0');
+        const wM = String(totalActiveMins % 60).padStart(2, '0');
+        workingHours = `${wH} H ${wM} M`;
+
+        let totalRestMins = 0;
+        for (let i = 0; i < clockRowsForUser.length - 1; i++) {
+          if (clockRowsForUser[i].clock_out && clockRowsForUser[i + 1].clock_in) {
+            const outD = new Date(new Date(clockRowsForUser[i].clock_out).getTime() + 8 * 60 * 60 * 1000);
+            const inD = new Date(new Date(clockRowsForUser[i + 1].clock_in).getTime() + 8 * 60 * 60 * 1000);
+            const outM = outD.getUTCHours() * 60 + outD.getUTCMinutes();
+            const inM = inD.getUTCHours() * 60 + inD.getUTCMinutes();
+            const gap = inM - outM;
+            if (gap > 0) totalRestMins += gap;
+          }
+        }
+        restMinutes = `${totalRestMins} Min`;
+      }
 
       const createRecord = (clockRow, idx = 0) => {
       let status = "Absent";
@@ -10717,6 +10872,7 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
       let missingClockOut = false;
       let isEarlyLeaver = false;
       let isOvertime = false;
+      const isReplacementLeave = Boolean(leaveRow?.leave_type && (leaveRow.leave_type.toUpperCase().includes('REPLACEMENT') || leaveRow.leave_type.toUpperCase().includes('GANTI')));
 
       // Check Company Leave first (Highest priority)
       const matchingLeave = companyLeaves.find(cl => {
@@ -10738,8 +10894,7 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
       const matchingHoliday = malaysiaHolidays.find(h => h.date === queryDate);
 
       if (leaveRow) {
-        const isRepLeave = leaveRow.leave_type && (leaveRow.leave_type.toUpperCase().includes('REPLACEMENT') || leaveRow.leave_type.toUpperCase().includes('GANTI'));
-        status = isRepLeave ? "Weekend" : "Approved Leave";
+        status = isReplacementLeave ? "Weekend" : "Approved Leave";
         if (clockRow) {
           clock_in = clockRow.clock_in;
           clock_out = clockRow.clock_out;
@@ -10754,14 +10909,8 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
           time_in = clockRow.time_in;
           time_out = clockRow.time_out;
         }
-      } else if (outstationMap.has(uid)) {
+      } else if (isOutstationUser && !clockRow) {
         status = "Outstation";
-        if (clockRow) {
-          clock_in = clockRow.clock_in;
-          clock_out = clockRow.clock_out;
-          time_in = clockRow.time_in;
-          time_out = clockRow.time_out;
-        }
       } else if (clockRow) {
         clock_in = clockRow.clock_in;
         clock_out = clockRow.clock_out;
@@ -10770,9 +10919,11 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
 
         const klTimeIn = new Date(new Date(clock_in).getTime() + 8 * 60 * 60 * 1000);
         // Only the first clock-in of the day carries the is_late flag for KPIs
-        isLate = (idx === 0) ? dayIsLate : false;
+        isLate = (idx === 0 && !isOutstationUser) ? dayIsLate : false;
 
-        if (!clock_out && !hasAnyClockOut) {
+        if (isOutstationUser) {
+          status = "Outstation";
+        } else if (!clock_out && !hasAnyClockOut) {
           const nowKl = new Date(Date.now() + 8 * 60 * 60 * 1000);
           const isPastDate = klTimeIn.getUTCDate() !== nowKl.getUTCDate() || klTimeIn.getUTCMonth() !== nowKl.getUTCMonth() || klTimeIn.getUTCFullYear() !== nowKl.getUTCFullYear();
           const isPastEndOfWorkTime = !isPastDate && nowKl.getUTCHours() >= 17;
@@ -10781,10 +10932,10 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
             missingClockOut = true;
             status = "Missing Clock-Out";
           } else {
-            status = dayIsLate ? "Present (Late)" : "Present (On Time)";
+            status = (idx === 0 && dayIsLate) ? "Present (Late)" : "Present (On Time)";
           }
         } else {
-          status = dayIsLate ? "Present (Late)" : "Present (On Time)";
+          status = (idx === 0 && dayIsLate) ? "Present (Late)" : "Present (On Time)";
           
           if (clock_out) {
             const klTimeOut = new Date(new Date(clock_out).getTime() + 8 * 60 * 60 * 1000);
@@ -10812,6 +10963,31 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
         status = "Absent";
       }
 
+      let statusClockIn = "Absent";
+      let statusClockOut = "Absent";
+
+      if (leaveRow) {
+        statusClockIn = isReplacementLeave ? "Weekend" : "Approved Leave";
+        statusClockOut = statusClockIn;
+      } else if (matchingLeave) {
+        statusClockIn = "Company Leave";
+        statusClockOut = "Company Leave";
+      } else if (isOutstationUser) {
+        statusClockIn = "Outstation";
+        statusClockOut = "Outstation";
+      } else if (clockRowsForUser.length > 0 && clockRowsForUser[0].clock_in) {
+        statusClockIn = dayIsLate ? "Present (Late)" : "Present (On Time)";
+        const hasOut = clockRowsForUser.some(c => !!c.clock_out);
+        if (!hasOut) {
+          statusClockOut = "Missing Clock Out";
+        } else {
+          statusClockOut = totalActiveMins >= 479 ? "Clock Out" : "Clocked Out Early";
+        }
+      } else if (isWeekend) {
+        statusClockIn = "Weekend";
+        statusClockOut = "Weekend";
+      }
+
       const tempBranch = tempAssignmentMap.get(p.user_id);
       return {
         user_id: p.user_id,
@@ -10835,6 +11011,8 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
         time_in,
         time_out,
         status,
+        status_clock_in: statusClockIn,
+        status_clock_out: statusClockOut,
         leave_type: leaveRow?.leave_type || (matchingLeave ? 'Company Holiday' : null),
         destination: outstationMap.get(p.user_id)?.destination || null,
         zone: userZone,
@@ -10844,6 +11022,9 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
         is_overtime: isOvertime,
         is_first_clock_in: idx === 0,
         is_subsequent: idx > 0,
+        late_working_hours: (idx === 0) ? lateWorkingHours : "—",
+        working_hours: workingHours,
+        rest_minutes: restMinutes,
         sessions: clockRowsForUser.map(c => ({
           clock_in: c.clock_in,
           clock_out: c.clock_out,
@@ -13460,12 +13641,17 @@ app.get("/api/reports/generator", async (req, res) => {
             });
 
             // 3. Check Outstation
-            const isOutstation = outstationRows.some(o => {
+            const isOutstationAssigned = outstationRows.some(o => {
               if (o.user_id !== prof.user_id) return false;
               const oStart = toISOStr(o.start_date);
               const oEnd = toISOStr(o.end_date);
               return isoDateStr >= oStart && isoDateStr <= oEnd;
             });
+            const isOutstationClock = matchingClocks.some(c =>
+              String(c.attendance_type || '').toUpperCase() === 'OUTSTATION' ||
+              String(c.location || '').toUpperCase() === 'OUTSTATION'
+            );
+            const isOutstation = isOutstationAssigned || isOutstationClock;
 
             // 4. Check Clock-Ins
             if (matchingClocks.length > 0) {
@@ -13477,57 +13663,93 @@ app.get("/api/reports/generator", async (req, res) => {
               const effectiveClockOut = latestWithOut ? latestWithOut.clock_out : firstClock.clock_out;
               
               let missingClockOut = false;
-              let status = isLate ? "Present (Late)" : "Present (On Time)";
+              let status = isOutstation ? "Outstation" : (isLate ? "Present (Late)" : "Present (On Time)");
 
               const nowKl = new Date(Date.now() + MYT_OFFSET_MS);
               const isPastDate = isoDateStr !== nowKl.toISOString().split('T')[0];
               const isPastEndOfWorkTime = !isPastDate && nowKl.getUTCHours() >= 17;
 
-              if (!effectiveClockOut && (isPastDate || isPastEndOfWorkTime)) {
+              if (!isOutstation && !effectiveClockOut && (isPastDate || isPastEndOfWorkTime)) {
                 missingClockOut = true;
                 status = "Missing Clock-Out";
               }
 
-              let totalMs = 0;
-              matchingClocks.forEach(s => {
+              const cutoffObj = getLateCutoffForCompanyAndDate(empCompanyId, isoDateStr);
+              const startMins = cutoffObj.startMins || 510;
+              const scheduledStartH = Math.floor(startMins / 60);
+              const scheduledStartM = startMins % 60;
+              const scheduledStartTimeStr = `${String(scheduledStartH).padStart(2, '0')}:${String(scheduledStartM).padStart(2, '0')}`;
+
+              // Late Working Hour
+              const firstInDate = new Date(firstClock.clock_in);
+              const firstInMyt = new Date(firstInDate.getTime() + MYT_OFFSET_MS);
+              const firstInMins = firstInMyt.getUTCHours() * 60 + firstInMyt.getUTCMinutes();
+              let lateWorkingHours = "0 Min";
+              if (firstInMins > startMins) {
+                const lDiff = firstInMins - startMins;
+                lateWorkingHours = `${lDiff} Min`;
+              }
+
+              // Working Hours (Early arrival clamped to startMins)
+              let totalActiveMins = 0;
+              matchingClocks.forEach((s, sIdx) => {
                 if (s.clock_in) {
-                  const sIn = new Date(s.clock_in).getTime();
-                  let sOut;
+                  const sInD = new Date(new Date(s.clock_in).getTime() + MYT_OFFSET_MS);
+                  const rawInMins = sInD.getUTCHours() * 60 + sInD.getUTCMinutes();
+                  const effInMins = sIdx === 0 ? Math.max(rawInMins, startMins) : rawInMins;
+
+                  let effOutMins = rawInMins;
                   if (s.clock_out) {
-                    sOut = new Date(s.clock_out).getTime();
+                    const sOutD = new Date(new Date(s.clock_out).getTime() + MYT_OFFSET_MS);
+                    effOutMins = sOutD.getUTCHours() * 60 + sOutD.getUTCMinutes();
                   } else {
-                    const klClockIn = new Date(sIn + MYT_OFFSET_MS);
-                    const isToday =
-                      nowKl.getUTCFullYear() === klClockIn.getUTCFullYear() &&
-                      nowKl.getUTCMonth() === klClockIn.getUTCMonth() &&
-                      nowKl.getUTCDate() === klClockIn.getUTCDate();
-                    if (isToday) {
-                      sOut = Date.now();
-                    } else {
-                      const klEndOfDay = new Date(klClockIn);
-                      klEndOfDay.setUTCHours(23, 59, 59, 999);
-                      sOut = klEndOfDay.getTime() - MYT_OFFSET_MS;
-                    }
+                    const nowKl = new Date(Date.now() + MYT_OFFSET_MS);
+                    const isPastDate = isoDateStr !== nowKl.toISOString().split('T')[0];
+                    effOutMins = isPastDate ? (17 * 60 + 30) : (nowKl.getUTCHours() * 60 + nowKl.getUTCMinutes());
                   }
-                  const diff = sOut - sIn;
-                  if (diff > 0) totalMs += diff;
+
+                  const diff = effOutMins - effInMins;
+                  if (diff > 0) totalActiveMins += diff;
                 }
               });
+              const wH = String(Math.floor(totalActiveMins / 60)).padStart(2, '0');
+              const wM = String(totalActiveMins % 60).padStart(2, '0');
+              const workingHoursFormatted = `${wH} H ${wM} M`;
 
-              const h = Math.floor(totalMs / 3600000);
-              const m = Math.floor((totalMs % 3600000) / 60000);
-              const totalHrsText = totalMs > 0 ? `${h}h ${m}m` : "--";
+              // Rest Minutes (all inactive gaps between consecutive sessions)
+              let totalRestMins = 0;
+              for (let i = 0; i < matchingClocks.length - 1; i++) {
+                if (matchingClocks[i].clock_out && matchingClocks[i + 1].clock_in) {
+                  const outD = new Date(new Date(matchingClocks[i].clock_out).getTime() + MYT_OFFSET_MS);
+                  const inD = new Date(new Date(matchingClocks[i + 1].clock_in).getTime() + MYT_OFFSET_MS);
+                  const outM = outD.getUTCHours() * 60 + outD.getUTCMinutes();
+                  const inM = inD.getUTCHours() * 60 + inD.getUTCMinutes();
+                  const gap = inM - outM;
+                  if (gap > 0) totalRestMins += gap;
+                }
+              }
+              const restMinutes = `${totalRestMins} Min`;
 
               const sessions = matchingClocks.map(c => ({
                 clock_in: c.clock_in,
                 clock_out: c.clock_out,
                 time_in: c.time_in,
                 time_out: c.time_out,
-                location: c.location || branchInfo.branch,
+                location: c.location || (isOutstation ? 'OUTSTATION' : branchInfo.branch),
                 distance_meters: c.distance_meters,
                 latitude: c.clock_in_latitude,
                 longitude: c.clock_in_longitude
               }));
+
+              const statusClockIn = isOutstation ? "Outstation" : (isLate ? "Present (Late)" : "Present (On Time)");
+              let statusClockOut = "--";
+              if (isOutstation) {
+                statusClockOut = "Outstation";
+              } else if (!effectiveClockOut) {
+                statusClockOut = "Missing Clock Out";
+              } else {
+                statusClockOut = totalActiveMins >= 479 ? "Clock Out" : "Clocked Out Early";
+              }
 
               resultRows.push({
                 user_id: prof.user_id,
@@ -13541,13 +13763,19 @@ app.get("/api/reports/generator", async (req, res) => {
                 clock_in: firstClock.clock_in,
                 clock_out: effectiveClockOut,
                 status: status,
+                status_clock_in: statusClockIn,
+                status_clock_out: statusClockOut,
                 leave_type: null,
-                total_hours: totalHrsText,
+                total_hours: workingHoursFormatted,
+                working_hours: workingHoursFormatted,
+                late_working_hours: lateWorkingHours,
+                rest_minutes: restMinutes,
+                scheduled_start_time: scheduledStartTimeStr,
                 sessions: sessions,
                 latitude: firstClock.clock_in_latitude,
                 longitude: firstClock.clock_in_longitude,
                 distance_meters: firstClock.distance_meters,
-                location: firstClock.location || branchInfo.branch
+                location: firstClock.location || (isOutstation ? 'OUTSTATION' : branchInfo.branch)
               });
             } else if (isCompanyLeave) {
               resultRows.push({
@@ -13562,8 +13790,13 @@ app.get("/api/reports/generator", async (req, res) => {
                 clock_in: null,
                 clock_out: null,
                 status: "Company Leave",
+                status_clock_in: "Company Leave",
+                status_clock_out: "Company Leave",
                 leave_type: "Company Holiday",
                 total_hours: "--",
+                late_working_hours: "--",
+                working_hours: "--",
+                rest_minutes: "--",
                 sessions: [],
                 latitude: null,
                 longitude: null,
@@ -13585,8 +13818,13 @@ app.get("/api/reports/generator", async (req, res) => {
                 clock_in: null,
                 clock_out: null,
                 status: leaveStatus,
+                status_clock_in: leaveStatus,
+                status_clock_out: leaveStatus,
                 leave_type: leaveObj.leave_type || "Approved Leave",
                 total_hours: "--",
+                late_working_hours: "--",
+                working_hours: "--",
+                rest_minutes: "--",
                 sessions: [],
                 latitude: null,
                 longitude: null,
@@ -13606,8 +13844,13 @@ app.get("/api/reports/generator", async (req, res) => {
                 clock_in: null,
                 clock_out: null,
                 status: "Outstation",
+                status_clock_in: "Outstation",
+                status_clock_out: "Outstation",
                 leave_type: null,
                 total_hours: "--",
+                late_working_hours: "--",
+                working_hours: "--",
+                rest_minutes: "--",
                 sessions: [],
                 latitude: null,
                 longitude: null,
@@ -13628,8 +13871,13 @@ app.get("/api/reports/generator", async (req, res) => {
                 clock_in: null,
                 clock_out: null,
                 status: status,
+                status_clock_in: status,
+                status_clock_out: status,
                 leave_type: null,
                 total_hours: "--",
+                late_working_hours: "--",
+                working_hours: "--",
+                rest_minutes: "--",
                 sessions: [],
                 latitude: null,
                 longitude: null,

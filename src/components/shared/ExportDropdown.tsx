@@ -8,12 +8,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 interface ExportDropdownProps {
+  onExportExcel?: () => void;
   onExportCSV?: () => void;
   onExportPDF?: () => void;
   className?: string;
 }
 
-export function ExportDropdown({ onExportCSV, onExportPDF, className = "" }: ExportDropdownProps) {
+export function ExportDropdown({ onExportExcel, onExportCSV, onExportPDF, className = "" }: ExportDropdownProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -27,6 +28,15 @@ export function ExportDropdown({ onExportCSV, onExportPDF, className = "" }: Exp
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-40 rounded-xl p-1.5 border border-border shadow-md">
+        {onExportExcel && (
+          <DropdownMenuItem 
+            onClick={onExportExcel} 
+            className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[11px] font-semibold text-foreground cursor-pointer focus:bg-muted/60 transition-colors"
+          >
+            <FileSpreadsheet className="w-4 h-4 text-emerald-600 dark:text-emerald-500" />
+            <span>Export Excel</span>
+          </DropdownMenuItem>
+        )}
         {onExportCSV && (
           <DropdownMenuItem 
             onClick={onExportCSV} 

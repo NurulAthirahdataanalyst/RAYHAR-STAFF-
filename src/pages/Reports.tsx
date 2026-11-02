@@ -14,39 +14,17 @@ import { MonthPicker } from "@/components/shared/MonthPicker";
 import { YearPopover } from "@/components/shared/YearPopover";
 import { AnimatedCheckbox } from "@/components/ui/animated-checkbox";
 import { useCompany } from "@/modules/multi-company/contexts/CompanyContext";
+import {
+  calculateLateWorkingHour,
+  calculateTotalWorkingHoursFormatted,
+  calculateTotalRestMinutes,
+  calculateStatusClockIn,
+  calculateStatusClockOut,
+} from "@/utils/workingHoursCalculator";
 
-const calculateWorkingHours = (clockIn: string | null | undefined, clockOut: string | null | undefined) => {
+const calculateWorkingHours = (clockIn: string | null | undefined, clockOut: string | null | undefined, scheduledStartTime?: string | null) => {
   if (!clockIn) return "--";
-  
-  const start = new Date(clockIn).getTime();
-  let end;
-  
-  if (clockOut) {
-    end = new Date(clockOut).getTime();
-  } else {
-    // If clockOut is missing, check if it's today in UTC+8
-    const clockInDate = new Date(clockIn);
-    const klNow = new Date(Date.now() + 8 * 60 * 60 * 1000);
-    const klClockInTime = new Date(clockInDate.getTime() + 8 * 60 * 60 * 1000);
-    
-    const isToday = klNow.getUTCFullYear() === klClockInTime.getUTCFullYear() &&
-                    klNow.getUTCMonth() === klClockInTime.getUTCMonth() &&
-                    klNow.getUTCDate() === klClockInTime.getUTCDate();
-    
-    if (isToday) {
-      end = Date.now();
-    } else {
-      const klEndOfDay = new Date(klClockInTime);
-      klEndOfDay.setUTCHours(23, 59, 59, 999);
-      end = klEndOfDay.getTime() - 8 * 60 * 60 * 1000;
-    }
-  }
-  
-  const diffMs = end - start;
-  if (diffMs < 0) return "--";
-  const hours = Math.floor(diffMs / (1000 * 60 * 60));
-  const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-  return `${hours}h ${minutes}m`;
+  return calculateTotalWorkingHoursFormatted({ clock_in: clockIn, clock_out: clockOut }, scheduledStartTime);
 };
 
 interface Branch {
@@ -344,12 +322,15 @@ export default function Reports() {
             "Employee ID",
             "Name",
             "Location",
+            "Status Clock Out",
+            "Late Working Hour",
             ...sessionHeaders,
-            "Status",
             "Working Hours",
-            "Coordinate (Latitude&Longitude)",
+            "Rest",
+            "Coordinate (Latitude & Longitude)",
             "Distance",
             "Location Status",
+            "Status",
           ];
 
           rows = data.data.map((r: any) => {
@@ -370,11 +351,13 @@ export default function Reports() {
               return [emptyVal, emptyVal];
             });
 
-            const displayStatus = r.status
-              ? `${r.status}${r.leave_type && r.leave_type !== r.status ? ` (${r.leave_type})` : ''}`
-              : '-';
+            const scheduledStart = r.scheduled_start_time || "08:30";
+            const statusValue = r.status_clock_in || calculateStatusClockIn(r, scheduledStart);
+            const statusClockOut = r.status_clock_out || calculateStatusClockOut(r, scheduledStart);
+            const lateWorkingHour = calculateLateWorkingHour(r, scheduledStart);
+            const workingHrs = calculateTotalWorkingHoursFormatted(r, scheduledStart);
+            const restTime = calculateTotalRestMinutes(r);
 
-            const workingHrs = r.total_hours || "--";
             const coords = r.latitude && r.longitude
               ? `${Number(r.latitude).toFixed(6)}, ${Number(r.longitude).toFixed(6)}`
               : "-";
@@ -388,12 +371,15 @@ export default function Reports() {
               r.user_id || "-",
               r.full_name || "-",
               branchText,
+              statusClockOut,
+              lateWorkingHour,
               ...sessionCells,
-              displayStatus,
               workingHrs,
+              restTime,
               coords,
               distance,
               locationStatus,
+              statusValue,
             ];
           });
         } else if (generatorType === "outstation") {

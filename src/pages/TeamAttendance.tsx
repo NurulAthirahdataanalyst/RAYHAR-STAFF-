@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { MonthPicker } from "@/components/shared/MonthPicker";
 import { Calendar as CalendarWidget } from "@/components/ui/calendar";
+import { calculateTotalWorkingHoursFormatted } from "@/utils/workingHoursCalculator";
 
 export default function TeamAttendance() {
   const { role, userBranch, userDepartment } = useRole();
@@ -259,11 +260,10 @@ export default function TeamAttendance() {
       const effectiveTimeOut = latestWithOut?.time_out || att?.time_out || "--";
 
       let workingHours = "--";
-      if (att && att.clock_in && effectiveClockOut) {
-        const diffMs = new Date(effectiveClockOut).getTime() - new Date(att.clock_in).getTime();
-        const hrs = Math.floor(diffMs / (1000 * 60 * 60));
-        const mins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-        workingHours = `${hrs}h ${mins}m`;
+      if (att && att.clock_in) {
+        workingHours = calculateTotalWorkingHoursFormatted({
+          sessions: userAtts.map(a => ({ clock_in: a.clock_in, clock_out: a.clock_out, time_in: a.time_in, time_out: a.time_out }))
+        });
       }
       
       let isAttLate = false;
@@ -325,11 +325,8 @@ export default function TeamAttendance() {
       const emp = employees.find(e => e.user_id === att.user_id) || {};
       
       let workingHours = "--";
-      if (att && att.clock_in && att.clock_out) {
-        const diffMs = new Date(att.clock_out).getTime() - new Date(att.clock_in).getTime();
-        const hrs = Math.floor(diffMs / (1000 * 60 * 60));
-        const mins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-        workingHours = `${hrs}h ${mins}m`;
+      if (att && att.clock_in) {
+        workingHours = calculateTotalWorkingHoursFormatted(att);
       }
 
       let isAttLate = att.is_late || att.status === "Present (Late)" || (att.late_minutes && att.late_minutes > 0);

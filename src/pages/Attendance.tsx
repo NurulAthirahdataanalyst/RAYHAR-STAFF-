@@ -1154,7 +1154,18 @@ export default function Attendance() {
         const isClockOut = !!activeSession;
         
         if (isOutstationAssigned || activeSession?.attendance_type === 'OUTSTATION') {
-          performClockInOrOut(employeeId, "OUTSTATION", lat, lng, acc, undefined);
+          let outstationDist: number | undefined = undefined;
+          const homeBranchCode = user?.branch || 'HQ';
+          const homeBranchInfo = branches.find((b: any) => b.code === homeBranchCode || b.name === homeBranchCode);
+          if (homeBranchInfo && homeBranchInfo.latitude && homeBranchInfo.longitude) {
+            const bLat = parseFloat(homeBranchInfo.latitude);
+            const bLng = parseFloat(homeBranchInfo.longitude);
+            if (!isNaN(bLat) && !isNaN(bLng)) {
+              const d = Math.round(haversineDistance(lat, lng, bLat, bLng));
+              if (!isNaN(d)) outstationDist = d;
+            }
+          }
+          performClockInOrOut(employeeId, "OUTSTATION", lat, lng, acc, outstationDist);
           return;
         }
 
@@ -1222,7 +1233,18 @@ export default function Attendance() {
     
     if (acc <= 30) {
       setOutstationPromptOpen(false);
-      performClockInOrOut(employeeId, "OUTSTATION", lat, lng, acc);
+      let outstationDist: number | undefined = undefined;
+      const homeBranchCode = user?.branch || 'HQ';
+      const homeBranchInfo = branches.find((b: any) => b.code === homeBranchCode || b.name === homeBranchCode);
+      if (homeBranchInfo && homeBranchInfo.latitude && homeBranchInfo.longitude) {
+        const bLat = parseFloat(homeBranchInfo.latitude);
+        const bLng = parseFloat(homeBranchInfo.longitude);
+        if (!isNaN(bLat) && !isNaN(bLng)) {
+          const d = Math.round(haversineDistance(lat, lng, bLat, bLng));
+          if (!isNaN(d)) outstationDist = d;
+        }
+      }
+      performClockInOrOut(employeeId, "OUTSTATION", lat, lng, acc, outstationDist);
     } else if (acc <= 50) {
       toast({ title: "Low Accuracy", description: "Location accuracy is currently low. Please move to an open area and try again", variant: "default" });
       // Keep prompt open or let user retry
