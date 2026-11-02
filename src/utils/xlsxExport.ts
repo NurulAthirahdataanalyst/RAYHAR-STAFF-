@@ -185,10 +185,6 @@ export function buildXlsxBinary(
           .join("")}</cols>`
       : "";
 
-  const lateColIndex = headers.findIndex(
-    (h) => String(h ?? "").trim().toLowerCase() === "late working hour"
-  );
-
   const sheetDataRowsXml = allRows
     .map((row, rIdx) => {
       const rowNum = rIdx + 1;
@@ -197,14 +193,12 @@ export function buildXlsxBinary(
           const colLetter = getExcelColumnLetter(cIdx);
           const cellRef = `${colLetter}${rowNum}`;
           const text = escapeXml(cell);
-          const isGreenZeroLate =
-            rIdx > 0 && cIdx === lateColIndex && String(cell ?? "").trim() === "0 Min";
-          const styleIdx = rIdx === 0 ? 1 : isGreenZeroLate ? 3 : 2;
+          // Plain unstyled cells like CSV: header is bold (1), data rows are default plain (0)
+          const styleIdx = rIdx === 0 ? 1 : 0;
           return `<c r="${cellRef}" s="${styleIdx}" t="inlineStr"><is><t xml:space="preserve">${text}</t></is></c>`;
         })
         .join("");
-      const rowHeight = rIdx === 0 ? ` ht="24" customHeight="1"` : ` ht="19" customHeight="1"`;
-      return `<row r="${rowNum}"${rowHeight}>${cellsXml}</row>`;
+      return `<row r="${rowNum}">${cellsXml}</row>`;
     })
     .join("");
 
@@ -241,59 +235,34 @@ export function buildXlsxBinary(
 
   const stylesXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
-  <fonts count="3">
+  <fonts count="2">
     <font>
-      <sz val="10"/>
-      <color rgb="FF1E293B"/>
+      <sz val="11"/>
       <name val="Calibri"/>
     </font>
     <font>
       <b/>
-      <sz val="10"/>
-      <color rgb="FFFFFFFF"/>
-      <name val="Calibri"/>
-    </font>
-    <font>
-      <sz val="10"/>
-      <color rgb="FF008000"/>
+      <sz val="11"/>
       <name val="Calibri"/>
     </font>
   </fonts>
-  <fills count="3">
+  <fills count="2">
     <fill><patternFill patternType="none"/></fill>
     <fill><patternFill patternType="gray125"/></fill>
-    <fill>
-      <patternFill patternType="solid">
-        <fgColor rgb="FF942392"/>
-        <bgColor indexed="64"/>
-      </patternFill>
-    </fill>
   </fills>
-  <borders count="2">
+  <borders count="1">
     <border><left/><right/><top/><bottom/><diagonal/></border>
-    <border>
-      <left style="thin"><color rgb="FFCBD5E1"/></left>
-      <right style="thin"><color rgb="FFCBD5E1"/></right>
-      <top style="thin"><color rgb="FFCBD5E1"/></top>
-      <bottom style="thin"><color rgb="FFCBD5E1"/></bottom>
-      <diagonal/>
-    </border>
   </borders>
   <cellStyleXfs count="1">
     <xf numFmtId="0" fontId="0" fillId="0" borderId="0"/>
   </cellStyleXfs>
-  <cellXfs count="4">
+  <cellXfs count="2">
     <xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>
-    <xf numFmtId="0" fontId="1" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1">
-      <alignment vertical="center" wrapText="0"/>
-    </xf>
-    <xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyFont="1" applyBorder="1" applyAlignment="1">
-      <alignment vertical="center" wrapText="0"/>
-    </xf>
-    <xf numFmtId="0" fontId="2" fillId="0" borderId="1" xfId="0" applyFont="1" applyBorder="1" applyAlignment="1">
-      <alignment vertical="center" wrapText="0"/>
-    </xf>
+    <xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/>
   </cellXfs>
+  <cellStyles count="1">
+    <cellStyle name="Normal" xfId="0" builtinId="0"/>
+  </cellStyles>
 </styleSheet>`;
 
   const sheetXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>

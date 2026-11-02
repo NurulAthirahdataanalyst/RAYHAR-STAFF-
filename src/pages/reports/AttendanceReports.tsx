@@ -721,7 +721,14 @@ export default function AttendanceReports() {
         ? `attendance_report_${months.find(m => m.value === selectedMonth)?.label}_${selectedYear}.xlsx`
         : `attendance_report_${selectedYear}.xlsx`;
 
-    downloadXlsxFile(filename, "Attendance Report", headers, rows);
+    const sheetName =
+      viewType === "day"
+        ? `attendance_report_${date}`
+        : viewType === "month"
+        ? `attendance_report_${months.find(m => m.value === selectedMonth)?.label}_${selectedYear}`
+        : `attendance_report_${selectedYear}`;
+
+    downloadXlsxFile(filename, sheetName, headers, rows);
   };
 
   const handleExportPDF = () => {

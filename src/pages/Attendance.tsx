@@ -23,6 +23,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
 import PageActions from "@/components/layout/PageActions";
+import {
+  calculateSessionWorkingMinutes,
+  calculateTotalWorkingHoursFormatted,
+  formatDurationHHMM
+} from "@/utils/workingHoursCalculator";
 
 const branchNameMap: Record<string, string> = {
   HQ: "Rayhar HQ", KMM: "Kemaman", TGG: "Kuala Terengganu", CNH: "Chendering",
@@ -332,17 +337,61 @@ export default function Attendance() {
           }
         }
         
-        const start = new Date(clockInStr).getTime();
-        const diffMs = now.getTime() - start;
-        const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
-        const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+        // Clamping to official shift start time (08:30 AM = 510 mins)
+        const clockInDate = new Date(clockInStr);
+        const clockInMyt = new Date(clockInDate.getTime() + 8 * 60 * 60 * 1000);
+        const clockInMins = clockInMyt.getUTCHours() * 60 + clockInMyt.getUTCMinutes();
+        const startMins = 8 * 60 + 30; // 08:30 AM default
+        
+        // Check if there are earlier sessions completed today in historyLogs
+        const todayStr = now.toLocaleDateString('en-CA');
+        const earlierSessions = historyLogs.filter(
+          (l: any) =>
+            (l.date === todayStr || (l.date && l.date.startsWith(todayStr))) &&
+            l.attendance_id !== activeSession.attendance_id &&
+            l.clock_in &&
+            l.clock_out
+        );
+        const isFirstSession = earlierSessions.length === 0;
+        const effectiveInMins = isFirstSession ? Math.max(clockInMins, startMins) : clockInMins;
+
+        const nowMyt = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+        const nowMins = nowMyt.getUTCHours() * 60 + nowMyt.getUTCMinutes();
+        const liveActiveMins = Math.max(0, nowMins - effectiveInMins);
+
+        // Sum earlier closed sessions today if any
+        let earlierMins = 0;
+        earlierSessions.forEach((s: any, sIdx: number) => {
+          if (s.clock_in && s.clock_out) {
+            earlierMins += calculateSessionWorkingMinutes(s.clock_in, s.clock_out, "08:30", sIdx === 0);
+          }
+        });
+
+        const totalTodayMins = earlierMins + liveActiveMins;
+        const diffHrs = Math.floor(totalTodayMins / 60);
+        const diffMins = totalTodayMins % 60;
         setWorkingHrs(`${diffHrs.toString().padStart(2, '0')}:${diffMins.toString().padStart(2, '0')} hrs`);
       } else {
-        setWorkingHrs("--:--");
+        // When not clocked in: check if employee already clocked out today
+        const todayStr = now.toLocaleDateString('en-CA');
+        const todaySessions = historyLogs.filter(
+          (l: any) => (l.date === todayStr || (l.date && l.date.startsWith(todayStr))) && l.clock_in
+        );
+        if (todaySessions.length > 0) {
+          let todayMins = 0;
+          todaySessions.forEach((s: any, sIdx: number) => {
+            todayMins += calculateSessionWorkingMinutes(s.clock_in, s.clock_out, "08:30", sIdx === 0);
+          });
+          const diffHrs = Math.floor(todayMins / 60);
+          const diffMins = todayMins % 60;
+          setWorkingHrs(`${diffHrs.toString().padStart(2, '0')}:${diffMins.toString().padStart(2, '0')} hrs`);
+        } else {
+          setWorkingHrs("--:--");
+        }
       }
     }, 1000);
     return () => clearInterval(timer);
-  }, [activeSession]);
+  }, [activeSession, historyLogs]);
 
   // 2. Fetch status and history logs when user context changes or mounts
   useEffect(() => {
@@ -572,13 +621,14 @@ export default function Attendance() {
     // Note: Friday is always off (no attendance records will exist for Fridays).
     
     historyLogs.forEach(log => {
-      if (log.duration && log.duration !== '--' && log.duration !== '--:--') {
-        const parts = log.duration.match(/(\d+)h\s*(\d+)m/);
+      const dur = log.duration || log.working_hours;
+      if (dur && dur !== '--' && dur !== '--:--') {
+        const parts = dur.match(/(\d+)\s*[hH]\s*(\d+)\s*[mM]/);
         let hours = 0;
         if (parts) {
           hours = parseInt(parts[1]) + parseInt(parts[2]) / 60;
         } else {
-          const hParts = log.duration.match(/(\d+)h/);
+          const hParts = dur.match(/(\d+)\s*[hH]/);
           if (hParts) hours = parseInt(hParts[1]);
         }
         
@@ -737,7 +787,7 @@ export default function Attendance() {
           <td>${log.time_out || '--'}</td>
           <td><span class="badge badge-${statusClass}">${displayStatus}</span></td>
           <td>${log.late === "00:00" || log.late === "00h 00m" ? "--" : (log.late || '--')}</td>
-          <td class="duration">${log.duration || '--'}</td>
+          <td class="duration">${log.duration || log.working_hours || '--'}</td>
         </tr>
       `;
     }).join("");
@@ -1019,8 +1069,8 @@ export default function Attendance() {
         `"${(log.time_in || '--').replace(/"/g, '""')}"`,
         `"${(log.time_out || '--').replace(/"/g, '""')}"`,
         `"${(log.status || '').replace(/"/g, '""')}"`,
-        `"${(log.late === "00:00" ? "--" : (log.late || '--')).replace(/"/g, '""')}"`,
-        `"${(log.duration || '--').replace(/"/g, '""')}"`
+        `"${(log.late === "00:00" || log.late === "00h 00m" ? "--" : (log.late || '--')).replace(/"/g, '""')}"`,
+        `"${(log.duration || log.working_hours || '--').replace(/"/g, '""')}"`
       ];
     });
 
@@ -2267,15 +2317,16 @@ export default function Attendance() {
                         <TableCell className="whitespace-nowrap">
                           <span 
                             style={customStyle}
-                            className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[10px] tracking-wider font-black uppercase rounded-full border shadow-2xs ${statusBadge}`}
+                            className={`inline-flex items-center px-2.5 py-0.5 text-[10px] tracking-wider font-black uppercase rounded-full border shadow-2xs ${statusBadge}`}
                           >
-                            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${statusDot}`} />
                             <span>{displayStatus}</span>
                           </span>
                         </TableCell>
-                        <TableCell className="font-medium text-rose-600">{log.late === "00h 00m" || log.late === "00:00" || log.late === "--" ? "--" : log.late}</TableCell>
-                          <TableCell className="font-medium text-foreground">{log.distance ? `${log.distance} m` : "--"}</TableCell>
-                        <TableCell className="font-bold text-emerald-600 text-right pr-6">{log.duration}</TableCell>
+                        <TableCell className={`font-medium ${log.late === "0 Min" || log.late === "00h 00m" || log.late === "00:00" ? "text-[#008000]" : "text-rose-600"}`}>
+                          {log.late === "00h 00m" || log.late === "00:00" || log.late === "--" ? "--" : log.late}
+                        </TableCell>
+                        <TableCell className="font-medium text-foreground">{log.distance ? `${log.distance} m` : "--"}</TableCell>
+                        <TableCell className="font-bold text-emerald-600 text-right pr-6">{log.duration || log.working_hours || "--"}</TableCell>
                         {attendanceMode === 'multi' && (
                           <TableCell className="font-medium whitespace-nowrap">
                             {log.clock_in_location ? (

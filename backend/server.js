@@ -8655,6 +8655,8 @@ app.get("/api/attendance/history", async (req, res) => {
         clock_out,
         location,
         attendance_type,
+        clock_in_latitude,
+        clock_in_longitude,
         TO_CHAR(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_in,
         TO_CHAR(clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_out,
           DATE(clock_in) AS date,
@@ -8808,20 +8810,20 @@ app.get("/api/attendance/history", async (req, res) => {
       
       // First clock-in of the date determines the official attendance status and lateness
       let dayIsLate = false;
-      let dayLateFormatted = "00h 00m";
+      let dayLateFormatted = "0 Min";
       if (clockRowsForDate.length > 0) {
         clockRowsForDate.sort((a, b) => new Date(a.clock_in).getTime() - new Date(b.clock_in).getTime());
         if (clockRowsForDate[0].clock_in) {
           const { isLate, lateMinutes } = isAttendanceLate(clockRowsForDate[0].clock_in, empCompanyId, dateStr);
           dayIsLate = isLate && !workHours.off;
           if (dayIsLate) {
-            const diffH = Math.floor(lateMinutes / 60);
-            const diffM = lateMinutes % 60;
-            dayLateFormatted = `${diffH.toString().padStart(2, '0')}h ${diffM.toString().padStart(2, '0')}m`;
+            dayLateFormatted = `${lateMinutes} Min`;
+          } else {
+            dayLateFormatted = "0 Min";
           }
         }
       }
-      const dayOfficialStatus = dayIsLate ? "LATE" : "Present";
+      const dayOfficialStatus = dayIsLate ? "Present (Late)" : "Present (On Time)";
 
       const createRecord = (clockRow, idx = 0) => {
       let status = "Absent";
@@ -8896,54 +8898,29 @@ app.get("/api/attendance/history", async (req, res) => {
           late = "--";
         }
 
-        // Calculate Working Hours = Time Out - Time In
-        if (clock_out) {
-          const clockOutDate = new Date(clock_out);
-          const diffMs = clockOutDate.getTime() - new Date(clock_in).getTime();
-          const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
-          const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-          duration = `${diffHrs}h ${diffMins}m`;
-        } else {
-          // No clock_out recorded
-          try {
-            const ci = new Date(clock_in);
-            const nowUtc = new Date();
-            // Check if clock_in date (in KL time) is today (in KL time)
-            const klClockIn = new Date(ci.getTime() + 8 * 60 * 60 * 1000);
-            const klNow = new Date(nowUtc.getTime() + 8 * 60 * 60 * 1000);
-            const isTodayKL =
-              klClockIn.getUTCFullYear() === klNow.getUTCFullYear() &&
-              klClockIn.getUTCMonth() === klNow.getUTCMonth() &&
-              klClockIn.getUTCDate() === klNow.getUTCDate();
+        // Calculate Working Hours with official start time clamping: Effective In = MAX(Clock In, Start Time)
+        let sessionMins = 0;
+        if (clock_in) {
+          const inD = new Date(new Date(clock_in).getTime() + 8 * 60 * 60 * 1000);
+          const rawInMins = inD.getUTCHours() * 60 + inD.getUTCMinutes();
+          const effInMins = idx === 0 ? Math.max(rawInMins, startMins) : rawInMins;
 
-            if (isTodayKL) {
-              // Active session today: use current time as the end point
-              const diffMs2 = nowUtc.getTime() - ci.getTime();
-              if (diffMs2 >= 0) {
-                const diffHrs2 = Math.floor(diffMs2 / (1000 * 60 * 60));
-                const diffMins2 = Math.floor((diffMs2 % (1000 * 60 * 60)) / (1000 * 60));
-                duration = `${diffHrs2}h ${diffMins2}m`;
-              } else {
-                duration = "--";
-              }
-            } else {
-              // Past day with missing clock-out: use 11:59 PM KL as fallback
-              const klEndOfDay = new Date(klClockIn);
-              klEndOfDay.setUTCHours(23, 59, 59, 999);
-              // Convert KL end-of-day back to UTC timestamp for diff
-              const endUtc = klEndOfDay.getTime() - 8 * 60 * 60 * 1000;
-              const diffMs2 = endUtc - ci.getTime();
-              if (diffMs2 >= 0) {
-                const diffHrs2 = Math.floor(diffMs2 / (1000 * 60 * 60));
-                const diffMins2 = Math.floor((diffMs2 % (1000 * 60 * 60)) / (1000 * 60));
-                duration = `${diffHrs2}h ${diffMins2}m`;
-              } else {
-                duration = "--";
-              }
-            }
-          } catch (e) {
-            duration = "--";
+          let effOutMins = rawInMins;
+          if (clock_out) {
+            const outD = new Date(new Date(clock_out).getTime() + 8 * 60 * 60 * 1000);
+            effOutMins = outD.getUTCHours() * 60 + outD.getUTCMinutes();
+          } else {
+            const nowKl = new Date(Date.now() + 8 * 60 * 60 * 1000);
+            const isToday = dateStr === nowKl.toISOString().split('T')[0];
+            effOutMins = isToday ? (nowKl.getUTCHours() * 60 + nowKl.getUTCMinutes()) : (17 * 60 + 30);
           }
+          const diff = effOutMins - effInMins;
+          if (diff > 0) sessionMins = diff;
+          const sH = String(Math.floor(sessionMins / 60)).padStart(2, '0');
+          const sM = String(sessionMins % 60).padStart(2, '0');
+          duration = `${sH} H ${sM} M`;
+        } else {
+          duration = "--";
         }
 
         // Location mapping
@@ -8974,9 +8951,12 @@ app.get("/api/attendance/history", async (req, res) => {
         is_late: is_late ? 1 : 0,
         late: late,
         duration: duration,
+        working_hours: duration,
         location_type: location_type,
         location_name: location_name,
         distance: clockRow ? clockRow.distance_meters : null,
+        latitude: clockRow ? clockRow.clock_in_latitude : null,
+        longitude: clockRow ? clockRow.clock_in_longitude : null,
         clock_in_location: clockRow ? (clockRow.location || null) : null,
         attendance_type: clockRow ? (clockRow.attendance_type || null) : null,
         is_first_clock_in: idx === 0,
