@@ -23,6 +23,7 @@ import {
 import { multiCompanyApi } from "@/modules/multi-company/services/multiCompanyApi";
 import { WorkSchedule } from "@/modules/multi-company/types/multiCompany.types";
 import { resolveBranchSchedule } from "@/utils/scheduleZoneUtils";
+import { downloadXlsxFile } from "@/utils/xlsxExport";
 
 interface ClockSession {
   clock_in: string | null;
@@ -699,17 +700,14 @@ export default function AttendanceReports() {
       }
     });
 
-    const csvContent = "\ufeff" + [
-      headers.map(escapeCsv).join(","),
-      ...rows.map(row => row.map(escapeCsv).join(","))
-    ].join("\n");
-    const blob = new Blob([csvContent], { type: "application/vnd.ms-excel;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", viewType === "day" ? `attendance_report_${date}.xlsx` : viewType === "month" ? `attendance_report_${months.find(m => m.value === selectedMonth)?.label}_${selectedYear}.xlsx` : `attendance_report_${selectedYear}.xlsx`);
-    link.style.visibility = 'hidden';
-    link.click();
+    const filename =
+      viewType === "day"
+        ? `attendance_report_${date}.xlsx`
+        : viewType === "month"
+        ? `attendance_report_${months.find(m => m.value === selectedMonth)?.label}_${selectedYear}.xlsx`
+        : `attendance_report_${selectedYear}.xlsx`;
+
+    downloadXlsxFile(filename, "Attendance Report", headers, rows);
   };
 
   const handleExportPDF = () => {

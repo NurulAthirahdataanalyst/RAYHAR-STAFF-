@@ -229,5 +229,31 @@ describe('workingHoursCalculator', () => {
       expect(calculateTotalWorkingHoursFormatted(outstationRec, '08:30')).toBe('08 H 00 M');
       expect(calculateTotalRestMinutes(outstationRec)).toBe('45 Min');
     });
+
+    it('buildXlsxBinary produces a valid ZIP/OpenXML .xlsx binary header', async () => {
+      const { buildXlsxBinary, getExcelColumnLetter } = await import('./xlsxExport');
+      expect(getExcelColumnLetter(0)).toBe('A');
+      expect(getExcelColumnLetter(25)).toBe('Z');
+      expect(getExcelColumnLetter(26)).toBe('AA');
+
+      const binary = buildXlsxBinary(
+        'Attendance Report',
+        ['Employee ID', 'Name', 'Late Working Hour', 'Working Hours', 'Rest', 'Status'],
+        [['E032', 'ACHMED AMZAR', '15 Min', '08 H 00 M', '45 Min', 'Present (On Time)']]
+      );
+
+      // Valid ZIP local file header signature: PK\x03\x04 (0x50, 0x4b, 0x03, 0x04)
+      expect(binary[0]).toBe(0x50);
+      expect(binary[1]).toBe(0x4b);
+      expect(binary[2]).toBe(0x03);
+      expect(binary[3]).toBe(0x04);
+
+      const textContent = new TextDecoder().decode(binary);
+      expect(textContent).toContain('[Content_Types].xml');
+      expect(textContent).toContain('xl/workbook.xml');
+      expect(textContent).toContain('xl/worksheets/sheet1.xml');
+      expect(textContent).toContain('ACHMED AMZAR');
+      expect(textContent).toContain('15 Min');
+    });
   });
 });

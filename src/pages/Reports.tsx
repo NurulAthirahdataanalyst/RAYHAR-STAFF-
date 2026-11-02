@@ -21,6 +21,7 @@ import {
   calculateStatusClockIn,
   calculateStatusClockOut,
 } from "@/utils/workingHoursCalculator";
+import { downloadXlsxFile } from "@/utils/xlsxExport";
 
 const calculateWorkingHours = (clockIn: string | null | undefined, clockOut: string | null | undefined, scheduledStartTime?: string | null) => {
   if (!clockIn) return "--";
@@ -464,17 +465,12 @@ export default function Reports() {
           `, { autoPrint: true, closeAfterPrint: true });
           toast.success(`${generatorType.toUpperCase()} Analytical Report PDF generated successfully!`);
         } else if (generatorFormat === 'excel') {
-          const csvContent = "\ufeff" + [
-            headers.map(escapeCsv).join(","),
-            ...rows.map(row => row.map(escapeCsv).join(","))
-          ].join("\n");
-          const blob = new Blob([csvContent], { type: "application/vnd.ms-excel;charset=utf-8;" });
-          const link = document.createElement("a");
-          const url = URL.createObjectURL(blob);
-          link.setAttribute("href", url);
-          link.setAttribute("download", reportName.replace('.csv', '.xlsx'));
-          link.style.visibility = 'hidden';
-          link.click();
+          downloadXlsxFile(
+            reportName.replace('.csv', '.xlsx'),
+            `${generatorType.toUpperCase()} Report`,
+            headers,
+            rows
+          );
           toast.success(`${generatorType.toUpperCase()} Analytical Report Excel sheet generated!`);
         } else {
           const csvContent = "\ufeff" + [
