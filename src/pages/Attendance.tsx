@@ -1465,12 +1465,12 @@ export default function Attendance() {
     .filter(log => {
       if (statusFilter === "ALL") return true;
       const isLate = String(log.status).toUpperCase().includes("LATE") || 
-                     (log.late && log.late !== "00:00" && log.late !== "--" && log.late !== "00h 00m");
+                     (log.status === "Present" && log.late && !["00:00", "--", "00h 00m", "0 Min"].includes(log.late));
       if (statusFilter === "LATE") {
         return isLate;
       }
       if (statusFilter === "ON TIME") {
-        return (log.status === "Present" || log.status === "ON TIME") && !isLate;
+        return ["Present", "ON TIME", "Present (On Time)"].includes(log.status) && !isLate;
       }
       if (statusFilter === "ABSENT") {
         return log.status === "Absent";
@@ -2263,22 +2263,22 @@ export default function Attendance() {
                     const isLate = 
                       String(log.status).toUpperCase().includes("LATE") || 
                       log.status === "Present (Late)" ||
-                      (log.status === "Present" && log.late && log.late !== "00:00" && log.late !== "--" && log.late !== "00h 00m");
+                      (log.status === "Present" && log.late && !["00:00", "--", "00h 00m", "0 Min"].includes(log.late));
 
                     let displayStatus = log.status;
 
                     if (isLate) {
-                      displayStatus = "LATE";
-                      statusBadge = "bg-yellow-50 text-yellow-600 border-yellow-200 dark:bg-yellow-500/10 dark:border-yellow-500/20";
+                      displayStatus = "PRESENT (LATE)";
+                      statusBadge = "bg-yellow-50 text-yellow-700 border-yellow-300 dark:bg-yellow-500/10 dark:text-yellow-400 dark:border-yellow-500/30";
                       statusDot = "bg-yellow-500";
-                    } else if (log.status === "Present") {
-                      displayStatus = "ON TIME";
-                      statusBadge = "bg-[#fdf4ff] text-[#942392] border-[#942392]/20 dark:bg-[#942392]/10";
-                      statusDot = "bg-[#942392]";
+                    } else if (log.status === "Present" || log.status === "Present (On Time)" || log.status === "ON TIME") {
+                      displayStatus = "PRESENT (ON TIME)";
+                      statusBadge = "bg-green-50 text-green-700 border-green-300 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/30";
+                      statusDot = "bg-green-500";
                     } else if (log.status === "Company Leave" || log.status === "Approved Leave" || log.status === "Leave" || log.status === "On Leave") {
                       displayStatus = "ON LEAVE";
-                      statusBadge = "bg-[#fdf4ff] text-[#942392] border-[#942392]/20 dark:bg-[#942392]/10";
-                      statusDot = "bg-[#942392]";
+                      statusBadge = "bg-blue-50 text-blue-700 border-blue-300 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/30";
+                      statusDot = "bg-blue-500";
                     } else if (log.status === "Holiday") {
                       displayStatus = "HOLIDAY";
                       statusBadge = "bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/10 dark:border-blue-500/20";
@@ -2293,7 +2293,7 @@ export default function Attendance() {
                       statusDot = "bg-slate-400";
                     } else if (log.status === "Absent") {
                       displayStatus = "ABSENT";
-                      statusBadge = "bg-red-50 text-red-600 border-red-200 dark:bg-red-500/10 dark:border-red-500/20";
+                      statusBadge = "bg-red-50 text-red-700 border-red-300 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/30";
                       statusDot = "bg-red-500";
                     } else if (log.status === "Missing Clock-Out") {
                       displayStatus = "MISSING CLOCK-OUT";
