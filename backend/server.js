@@ -8659,11 +8659,12 @@ app.get("/api/attendance/history", async (req, res) => {
         clock_in_longitude,
         TO_CHAR(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_in,
         TO_CHAR(clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_out,
-          DATE(clock_in) AS date,
+          TO_CHAR(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'YYYY-MM-DD') AS date,
+          TO_CHAR(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'YYYY-MM-DD') AS date_kl,
           distance_meters
       FROM attendances
       WHERE user_id = ?
-      AND EXTRACT(YEAR FROM clock_in) = ?
+      AND EXTRACT(YEAR FROM (clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')) = ?
       ORDER BY clock_in DESC`,
       [userId, requestedYear]
     );
@@ -8760,38 +8761,50 @@ app.get("/api/attendance/history", async (req, res) => {
           }
         });
       } else {
-        endDate = null; // Future month (no company leave extension needed)
+        // Month is ahead of the server's KL clock (e.g. server clock drift / timezone skew).
+        // Never return an empty range: cover the whole requested month so real clock
+        // records for that month are still listed.
+        endDate = lastDayOfMonth;
       }
     }
 
-    const dateStrings = [];
-    if (endDate) {
-      let curr = new Date(startDate);
-      while (curr <= endDate) {
-        const yyyy = curr.getUTCFullYear();
-        const mm = String(curr.getUTCMonth() + 1).padStart(2, '0');
-        const dd = String(curr.getUTCDate()).padStart(2, '0');
-        dateStrings.push(`${yyyy}-${mm}-${dd}`);
-        curr.setUTCDate(curr.getUTCDate() + 1);
-      }
-    }
-    dateStrings.reverse();
-
-    // Map clock records by date YYYY-MM-DD
+    // Map clock records by KL calendar date YYYY-MM-DD (timezone-safe, independent of server TZ)
     const clockMap = {};
     clockRows.forEach(r => {
       if (r.clock_in) {
-        const dateObj = new Date(r.clock_in);
-        const yyyy = dateObj.getFullYear();
-        const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
-        const dd = String(dateObj.getDate()).padStart(2, '0');
-        const dateKey = `${yyyy}-${mm}-${dd}`;
+        let dateKey = r.date_kl;
+        if (!dateKey) {
+          dateKey = new Date(new Date(r.clock_in).getTime() + 8 * 60 * 60 * 1000).toISOString().split('T')[0];
+        }
         if (!clockMap[dateKey]) {
           clockMap[dateKey] = [];
         }
         clockMap[dateKey].push(r);
       }
     });
+
+    const dateSet = new Set();
+    if (endDate) {
+      let curr = new Date(startDate);
+      while (curr <= endDate) {
+        const yyyy = curr.getUTCFullYear();
+        const mm = String(curr.getUTCMonth() + 1).padStart(2, '0');
+        const dd = String(curr.getUTCDate()).padStart(2, '0');
+        dateSet.add(`${yyyy}-${mm}-${dd}`);
+        curr.setUTCDate(curr.getUTCDate() + 1);
+      }
+    }
+    // Always include any date that has real clock records within the requested period
+    const periodStartStr = startDate ? startDate.toISOString().split('T')[0] : null;
+    const periodEndStr = isAllMonth
+      ? `${requestedYear}-12-31`
+      : (startDate ? new Date(Date.UTC(startDate.getUTCFullYear(), startDate.getUTCMonth() + 1, 0)).toISOString().split('T')[0] : null);
+    Object.keys(clockMap).forEach(dk => {
+      if ((!periodStartStr || dk >= periodStartStr) && (!periodEndStr || dk <= periodEndStr)) {
+        dateSet.add(dk);
+      }
+    });
+    const dateStrings = Array.from(dateSet).sort().reverse();
 
     const branchZoneMap = await getBranchZoneMap();
     const userZone = branchZoneMap.get(userProfile.branch) || 'ZONE_B';

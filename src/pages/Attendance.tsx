@@ -706,7 +706,7 @@ export default function Attendance() {
   // Export PDF Handler
   const handleExportPDF = () => {
     const targetLogs = viewMode === "day"
-      ? historyLogs.filter(log => log.date === selectedDate)
+      ? historyLogs.filter(log => String(log.date || '').slice(0, 10) === String(selectedDate || '').slice(0, 10))
       : historyLogs;
 
     if (targetLogs.length === 0) {
@@ -1018,7 +1018,7 @@ export default function Attendance() {
   // Export CSV Handler
   const handleExportCSV = () => {
     const targetLogs = viewMode === "day"
-      ? historyLogs.filter(log => log.date === selectedDate)
+      ? historyLogs.filter(log => String(log.date || '').slice(0, 10) === String(selectedDate || '').slice(0, 10))
       : historyLogs;
 
     if (targetLogs.length === 0) {
@@ -1482,7 +1482,7 @@ export default function Attendance() {
     })
     .filter(log => {
       if (viewMode === "month") return true;
-      return log.date === selectedDate;
+      return String(log.date || '').slice(0, 10) === String(selectedDate || '').slice(0, 10);
     });
 
   // Pagination calculations
