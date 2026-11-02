@@ -8912,6 +8912,13 @@ app.get("/api/attendance/history", async (req, res) => {
         }
 
         // Calculate Working Hours with official start time clamping: Effective In = MAX(Clock In, Start Time)
+        // e.g. Office 8:30 AM - 5:30 PM, Clock In 8:25 AM, Clock Out 5:30 PM => 09 H 00 M (early 5 min not counted)
+        const toMins = (hhmm, fallback) => {
+          const parts = String(hhmm || '').split(':').map(Number);
+          return parts.length >= 2 && !isNaN(parts[0]) && !isNaN(parts[1]) ? parts[0] * 60 + parts[1] : fallback;
+        };
+        const startMins = toMins(workHours && workHours.start, 8 * 60 + 30);
+        const endMins = toMins(workHours && workHours.end, 17 * 60 + 30);
         let sessionMins = 0;
         if (clock_in) {
           const inD = new Date(new Date(clock_in).getTime() + 8 * 60 * 60 * 1000);
@@ -8925,7 +8932,7 @@ app.get("/api/attendance/history", async (req, res) => {
           } else {
             const nowKl = new Date(Date.now() + 8 * 60 * 60 * 1000);
             const isToday = dateStr === nowKl.toISOString().split('T')[0];
-            effOutMins = isToday ? (nowKl.getUTCHours() * 60 + nowKl.getUTCMinutes()) : (17 * 60 + 30);
+            effOutMins = isToday ? (nowKl.getUTCHours() * 60 + nowKl.getUTCMinutes()) : endMins;
           }
           const diff = effOutMins - effInMins;
           if (diff > 0) sessionMins = diff;
