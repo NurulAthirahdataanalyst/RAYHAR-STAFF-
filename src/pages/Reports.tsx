@@ -20,6 +20,7 @@ import {
   calculateTotalRestMinutes,
   calculateStatusClockIn,
   calculateStatusClockOut,
+  calculateDayStatus,
 } from "@/utils/workingHoursCalculator";
 import { downloadXlsxFile } from "@/utils/xlsxExport";
 
@@ -323,11 +324,12 @@ export default function Reports() {
             "Employee ID",
             "Name",
             "Location",
-            "Status Clock Out",
             "Late Working Hour",
             ...sessionHeaders,
             "Working Hours",
             "Rest",
+            "Status Clock In",
+            "Status Clock Out",
             "Coordinate (Latitude & Longitude)",
             "Distance",
             "Location Status",
@@ -353,8 +355,9 @@ export default function Reports() {
             });
 
             const scheduledStart = r.scheduled_start_time || "08:30";
-            const statusValue = r.status_clock_in || calculateStatusClockIn(r, scheduledStart);
+            const statusClockIn = r.status_clock_in || calculateStatusClockIn(r, scheduledStart);
             const statusClockOut = r.status_clock_out || calculateStatusClockOut(r, scheduledStart);
+            const dayStatus = calculateDayStatus(r);
             const lateWorkingHour = calculateLateWorkingHour(r, scheduledStart);
             const workingHrs = calculateTotalWorkingHoursFormatted(r, scheduledStart);
             const restTime = calculateTotalRestMinutes(r);
@@ -372,15 +375,16 @@ export default function Reports() {
               r.user_id || "-",
               r.full_name || "-",
               branchText,
-              statusClockOut,
               lateWorkingHour,
               ...sessionCells,
               workingHrs,
               restTime,
+              statusClockIn,
+              statusClockOut,
               coords,
               distance,
               locationStatus,
-              statusValue,
+              dayStatus,
             ];
           });
         } else if (generatorType === "outstation") {

@@ -5,6 +5,7 @@ import {
   calculateTotalRestMinutes,
   calculateStatusClockIn,
   calculateStatusClockOut,
+  calculateDayStatus,
   isFirstClockInOfDay,
   parseTimeToMinutes,
   formatDurationHHMM
@@ -254,6 +255,17 @@ describe('workingHoursCalculator', () => {
       expect(textContent).toContain('xl/worksheets/sheet1.xml');
       expect(textContent).toContain('ACHMED AMZAR');
       expect(textContent).toContain('15 Min');
+    });
+
+    it('calculateDayStatus returns Working Days, Approved Leave, Company Leave, Outstation, or Weekend', () => {
+      expect(calculateDayStatus({ status: 'Present (On Time)', clock_in: '08:30 AM' })).toBe('Working Days');
+      expect(calculateDayStatus({ status: 'Present (Late)', clock_in: '09:05 AM' })).toBe('Working Days');
+      expect(calculateDayStatus({ status: 'Absent' })).toBe('Working Days');
+      expect(calculateDayStatus({ status: 'Approved Leave', leave_type: 'Annual Leave' })).toBe('Approved Leave');
+      expect(calculateDayStatus({ status: 'Company Leave', leave_type: 'Company Holiday' })).toBe('Company Leave');
+      expect(calculateDayStatus({ status: 'Outstation' })).toBe('Outstation');
+      expect(calculateDayStatus({ status: 'Weekend' })).toBe('Weekend');
+      expect(calculateDayStatus({ status: 'Rest Day' })).toBe('Weekend');
     });
   });
 });

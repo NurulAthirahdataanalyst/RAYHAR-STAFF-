@@ -19,6 +19,7 @@ import {
   calculateTotalRestMinutes,
   calculateStatusClockIn,
   calculateStatusClockOut,
+  calculateDayStatus,
 } from "@/utils/workingHoursCalculator";
 import { multiCompanyApi } from "@/modules/multi-company/services/multiCompanyApi";
 import { WorkSchedule } from "@/modules/multi-company/types/multiCompany.types";
@@ -572,15 +573,16 @@ export default function AttendanceReports() {
     ]);
 
     const headers = viewType === "day"
-      ? ["Employee ID", "Name", "Location", "Status Clock Out", "Late Working Hour", ...sessionHeaders, "Working Hours", "Rest", "Coordinate (Latitude & Longitude)", "Distance", "Location Status", "Status"]
-      : ["Date", "Employee ID", "Name", "Location", "Status Clock Out", "Late Working Hour", ...sessionHeaders, "Working Hours", "Rest", "Coordinate (Latitude & Longitude)", "Distance", "Location Status", "Status"];
+      ? ["Employee ID", "Name", "Location", "Late Working Hour", ...sessionHeaders, "Working Hours", "Rest", "Status Clock In", "Status Clock Out", "Coordinate (Latitude & Longitude)", "Distance", "Location Status", "Status"]
+      : ["Date", "Employee ID", "Name", "Location", "Late Working Hour", ...sessionHeaders, "Working Hours", "Rest", "Status Clock In", "Status Clock Out", "Coordinate (Latitude & Longitude)", "Distance", "Location Status", "Status"];
 
     const sortedList = getSortedExportList();
 
     const rows = sortedList.map(a => {
       const startTime = getScheduledStartTimeForRecord(a);
-      const statusValue = a.status_clock_in || calculateStatusClockIn(a, startTime);
+      const statusClockIn = a.status_clock_in || calculateStatusClockIn(a, startTime);
       const statusClockOut = a.status_clock_out || calculateStatusClockOut(a, startTime);
+      const dayStatus = calculateDayStatus(a);
       const lateWorkingHour = calculateLateWorkingHour(a, startTime);
       const workingHrs = calculateTotalWorkingHoursFormatted(a, startTime);
       const restTime = calculateTotalRestMinutes(a);
@@ -605,15 +607,16 @@ export default function AttendanceReports() {
         `"${(a.user_id || '').replace(/"/g, '""')}"`,
         `"${(a.full_name || '').replace(/"/g, '""')}"`,
         `"${branchText.replace(/"/g, '""')}"`,
-        `"${statusClockOut.replace(/"/g, '""')}"`,
         `"${lateWorkingHour}"`,
         ...sessionCells,
         `"${workingHrs}"`,
         `"${restTime}"`,
+        `"${statusClockIn.replace(/"/g, '""')}"`,
+        `"${statusClockOut.replace(/"/g, '""')}"`,
         `"${coords}"`,
         `"${distance}"`,
         `"${locationStatus}"`,
-        `"${statusValue.replace(/"/g, '""')}"`
+        `"${dayStatus.replace(/"/g, '""')}"`
       ];
 
       if (viewType === "day") {
@@ -640,24 +643,16 @@ export default function AttendanceReports() {
     ]);
 
     const headers = viewType === "day"
-      ? ["Employee ID", "Name", "Location", "Status Clock Out", "Late Working Hour", ...sessionHeaders, "Working Hours", "Rest", "Coordinate (Latitude & Longitude)", "Distance", "Location Status", "Status"]
-      : ["Date", "Employee ID", "Name", "Location", "Status Clock Out", "Late Working Hour", ...sessionHeaders, "Working Hours", "Rest", "Coordinate (Latitude & Longitude)", "Distance", "Location Status", "Status"];
+      ? ["Employee ID", "Name", "Location", "Late Working Hour", ...sessionHeaders, "Working Hours", "Rest", "Status Clock In", "Status Clock Out", "Coordinate (Latitude & Longitude)", "Distance", "Location Status", "Status"]
+      : ["Date", "Employee ID", "Name", "Location", "Late Working Hour", ...sessionHeaders, "Working Hours", "Rest", "Status Clock In", "Status Clock Out", "Coordinate (Latitude & Longitude)", "Distance", "Location Status", "Status"];
 
     const sortedList = getSortedExportList();
 
-    const escapeCsv = (val: any) => {
-      if (val === null || val === undefined) return '';
-      const str = String(val);
-      if (str.includes(',') || str.includes('"') || str.includes('\n')) {
-        return `"${str.replace(/"/g, '""')}"`;
-      }
-      return str;
-    };
-
     const rows = sortedList.map(a => {
       const startTime = getScheduledStartTimeForRecord(a);
-      const statusValue = a.status_clock_in || calculateStatusClockIn(a, startTime);
+      const statusClockIn = a.status_clock_in || calculateStatusClockIn(a, startTime);
       const statusClockOut = a.status_clock_out || calculateStatusClockOut(a, startTime);
+      const dayStatus = calculateDayStatus(a);
       const lateWorkingHour = calculateLateWorkingHour(a, startTime);
       const workingHrs = calculateTotalWorkingHoursFormatted(a, startTime);
       const restTime = calculateTotalRestMinutes(a);
@@ -682,15 +677,16 @@ export default function AttendanceReports() {
         a.user_id || '',
         a.full_name || '',
         branchText,
-        statusClockOut,
         lateWorkingHour,
         ...sessionCells,
         workingHrs,
         restTime,
+        statusClockIn,
+        statusClockOut,
         coords,
         distance,
         locationStatus,
-        statusValue
+        dayStatus
       ];
 
       if (viewType === "day") {
@@ -722,8 +718,9 @@ export default function AttendanceReports() {
     const rowsHtml = sortedList
       .map((a) => {
         const startTime = getScheduledStartTimeForRecord(a);
-        const statusValue = a.status_clock_in || calculateStatusClockIn(a, startTime);
+        const statusClockIn = a.status_clock_in || calculateStatusClockIn(a, startTime);
         const statusClockOut = a.status_clock_out || calculateStatusClockOut(a, startTime);
+        const dayStatus = calculateDayStatus(a);
         const lateWorkingHour = calculateLateWorkingHour(a, startTime);
         const workingHrs = calculateTotalWorkingHoursFormatted(a, startTime);
         const restTime = calculateTotalRestMinutes(a);
@@ -752,15 +749,16 @@ export default function AttendanceReports() {
             <td>${a.user_id || "-"}</td>
             <td>${a.full_name || "-"}</td>
             <td>${branchText}</td>
-            <td>${statusClockOut}</td>
             <td>${lateWorkingHour}</td>
             ${sessionTds}
             <td>${workingHrs}</td>
             <td>${restTime}</td>
+            <td>${statusClockIn}</td>
+            <td>${statusClockOut}</td>
             <td>${coords}</td>
             <td>${distance}</td>
             <td>${locationStatus}</td>
-            <td>${statusValue}</td>
+            <td>${dayStatus}</td>
           </tr>
         `;
       })
@@ -799,11 +797,12 @@ export default function AttendanceReports() {
                 <th>Employee ID</th>
                 <th>Name</th>
                 <th>Location</th>
-                <th>Status Clock Out</th>
                 <th>Late Working Hour</th>
                 ${sessionThs}
                 <th>Working Hours</th>
                 <th>Rest</th>
+                <th>Status Clock In</th>
+                <th>Status Clock Out</th>
                 <th>Coordinate (Latitude & Longitude)</th>
                 <th>Distance</th>
                 <th>Location Status</th>
@@ -821,7 +820,7 @@ export default function AttendanceReports() {
     writePrintDocument(printWindow, html);
   };
 
-  const totalTableColumns = (viewType !== "day" ? 1 : 0) + 11 + maxSessions * 2;
+  const totalTableColumns = (viewType !== "day" ? 1 : 0) + 12 + maxSessions * 2;
 
   return (
     <div className="min-h-screen bg-background">
@@ -1076,7 +1075,6 @@ export default function AttendanceReports() {
                       <TableHead className="w-[100px] whitespace-nowrap">Employee ID</TableHead>
                       <TableHead className="min-w-[160px] max-w-[220px]">Name</TableHead>
                       <TableHead className="w-[90px] whitespace-nowrap">Location</TableHead>
-                      <TableHead className="w-[140px] whitespace-nowrap">Status Clock Out</TableHead>
                       <TableHead className="w-[120px] whitespace-nowrap">Late Working Hour</TableHead>
                       {sessionIndices.map((idx) => (
                         <Fragment key={`head-session-${idx}`}>
@@ -1086,6 +1084,8 @@ export default function AttendanceReports() {
                       ))}
                       <TableHead className="w-[110px] whitespace-nowrap">Working Hours</TableHead>
                       <TableHead className="w-[90px] whitespace-nowrap">Rest</TableHead>
+                      <TableHead className="w-[140px] whitespace-nowrap">Status Clock In</TableHead>
+                      <TableHead className="w-[140px] whitespace-nowrap">Status Clock Out</TableHead>
                       <TableHead className="min-w-[180px] whitespace-nowrap">Coordinate (Latitude & Longitude)</TableHead>
                       <TableHead className="w-[100px] whitespace-nowrap">Distance</TableHead>
                       <TableHead className="w-[120px] whitespace-nowrap">Location Status</TableHead>
@@ -1105,6 +1105,7 @@ export default function AttendanceReports() {
                         const startTime = getScheduledStartTimeForRecord(req);
                         const statusClockIn = req.status_clock_in || calculateStatusClockIn(req, startTime);
                         const statusClockOut = req.status_clock_out || calculateStatusClockOut(req, startTime);
+                        const dayStatus = calculateDayStatus(req);
                         const lateWorkingHour = calculateLateWorkingHour(req, startTime);
                         const workingHrs = calculateTotalWorkingHoursFormatted(req, startTime);
                         const restTime = calculateTotalRestMinutes(req);
@@ -1123,6 +1124,55 @@ export default function AttendanceReports() {
                                   </span>
                                 )}
                               </div>
+                            </TableCell>
+                            <TableCell className="whitespace-nowrap font-medium text-amber-600 dark:text-amber-400">
+                              {lateWorkingHour}
+                            </TableCell>
+                            {sessionIndices.map((sIdx) => {
+                              const s = sessions[sIdx];
+                              const hasSession = Boolean(s && (s.clock_in || s.time_in));
+                              const inText = hasSession ? (s.time_in || "N/A") : "-";
+                              const outText = hasSession ? (s.time_out || "N/A") : "-";
+                              return (
+                                <Fragment key={`cell-session-${req.user_id}-${sIdx}`}>
+                                  <TableCell className="whitespace-nowrap">{inText}</TableCell>
+                                  <TableCell className="whitespace-nowrap">{outText}</TableCell>
+                                </Fragment>
+                              );
+                            })}
+                            <TableCell className="whitespace-nowrap font-medium">
+                              {workingHrs}
+                            </TableCell>
+                            <TableCell className="whitespace-nowrap font-medium text-blue-600 dark:text-blue-400">
+                              {restTime}
+                            </TableCell>
+                            <TableCell>
+                              {(() => {
+                                const getStatusInStyle = (status: string) => {
+                                  if (status === 'Present (On Time)') return { badge: 'bg-[#fdf4ff] text-[#942392] border-[#942392]/20 dark:bg-[#942392]/10', dot: 'bg-[#942392]' };
+                                  if (status === 'Present (Late)') return { badge: 'bg-yellow-50 text-yellow-600 border-yellow-200 dark:bg-yellow-500/10 dark:border-yellow-500/20', dot: 'bg-yellow-500' };
+                                  if (status === 'Approved Leave' || (typeof status === 'string' && status.startsWith('Leave'))) return { badge: 'bg-[#fdf4ff] text-[#942392] border-[#942392]/20 dark:bg-[#942392]/10', dot: 'bg-[#942392]' };
+                                  if (status === 'Company Leave') return { badge: 'bg-sky-50 text-sky-600 border-sky-200 dark:bg-sky-500/10 dark:border-sky-500/20', dot: 'bg-sky-500' };
+                                  if (status === 'Outstation') return { badge: 'bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/10 dark:border-blue-500/20', dot: 'bg-blue-500' };
+                                  if (status === 'Weekend' || status === 'Rest Day') return { badge: 'bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-500/10 dark:border-slate-500/20 dark:text-slate-300', dot: 'bg-slate-400' };
+                                  if (status === 'Absent') return { badge: 'bg-red-50 text-red-600 border-red-200 dark:bg-red-500/10 dark:border-red-500/20', dot: 'bg-red-500' };
+                                  return { badge: 'bg-slate-50 text-slate-400 border-slate-200 dark:bg-slate-500/10 dark:border-slate-500/20', dot: 'bg-slate-400' };
+                                };
+                                const conf = getStatusInStyle(statusClockIn);
+                                return (
+                                  <div className="flex flex-col items-start gap-1">
+                                    <span className={`inline-flex items-center gap-1.5 whitespace-nowrap px-2.5 py-0.5 text-[10px] tracking-wider font-black uppercase rounded-full border shadow-2xs ${conf.badge}`}>
+                                      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${conf.dot}`} />
+                                      <span>{statusClockIn}</span>
+                                    </span>
+                                    {req.leave_type && req.leave_type !== statusClockIn && (
+                                      <span className="text-[10px] text-muted-foreground font-semibold pl-1">
+                                        {req.leave_type}
+                                      </span>
+                                    )}
+                                  </div>
+                                );
+                              })()}
                             </TableCell>
                             <TableCell>
                               {(() => {
@@ -1149,27 +1199,6 @@ export default function AttendanceReports() {
                                 );
                               })()}
                             </TableCell>
-                            <TableCell className="whitespace-nowrap font-medium text-amber-600 dark:text-amber-400">
-                              {lateWorkingHour}
-                            </TableCell>
-                            {sessionIndices.map((sIdx) => {
-                              const s = sessions[sIdx];
-                              const hasSession = Boolean(s && (s.clock_in || s.time_in));
-                              const inText = hasSession ? (s.time_in || "N/A") : "-";
-                              const outText = hasSession ? (s.time_out || "N/A") : "-";
-                              return (
-                                <Fragment key={`cell-session-${req.user_id}-${sIdx}`}>
-                                  <TableCell className="whitespace-nowrap">{inText}</TableCell>
-                                  <TableCell className="whitespace-nowrap">{outText}</TableCell>
-                                </Fragment>
-                              );
-                            })}
-                            <TableCell className="whitespace-nowrap font-medium">
-                              {workingHrs}
-                            </TableCell>
-                            <TableCell className="whitespace-nowrap font-medium text-blue-600 dark:text-blue-400">
-                              {restTime}
-                            </TableCell>
                             <TableCell className="whitespace-nowrap">
                               {req.latitude && req.longitude
                                 ? `${Number(req.latitude).toFixed(6)}, ${Number(req.longitude).toFixed(6)}`
@@ -1193,29 +1222,20 @@ export default function AttendanceReports() {
                             </TableCell>
                             <TableCell>
                               {(() => {
-                                const getStatusStyle = (status: string) => {
-                                  if (status === 'Present (On Time)') return { badge: 'bg-[#fdf4ff] text-[#942392] border-[#942392]/20 dark:bg-[#942392]/10', dot: 'bg-[#942392]' };
-                                  if (status === 'Present (Late)') return { badge: 'bg-yellow-50 text-yellow-600 border-yellow-200 dark:bg-yellow-500/10 dark:border-yellow-500/20', dot: 'bg-yellow-500' };
-                                  if (status === 'Approved Leave' || (typeof status === 'string' && status.startsWith('Leave'))) return { badge: 'bg-[#fdf4ff] text-[#942392] border-[#942392]/20 dark:bg-[#942392]/10', dot: 'bg-[#942392]' };
+                                const getDayStatusStyle = (status: string) => {
+                                  if (status === 'Working Days') return { badge: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800', dot: 'bg-emerald-500' };
+                                  if (status === 'Approved Leave') return { badge: 'bg-[#fdf4ff] text-[#942392] border-[#942392]/20 dark:bg-[#942392]/10', dot: 'bg-[#942392]' };
                                   if (status === 'Company Leave') return { badge: 'bg-sky-50 text-sky-600 border-sky-200 dark:bg-sky-500/10 dark:border-sky-500/20', dot: 'bg-sky-500' };
                                   if (status === 'Outstation') return { badge: 'bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/10 dark:border-blue-500/20', dot: 'bg-blue-500' };
-                                  if (status === 'Weekend' || status === 'Rest Day') return { badge: 'bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-500/10 dark:border-slate-500/20 dark:text-slate-300', dot: 'bg-slate-400' };
-                                  if (status === 'Absent') return { badge: 'bg-red-50 text-red-600 border-red-200 dark:bg-red-500/10 dark:border-red-500/20', dot: 'bg-red-500' };
+                                  if (status === 'Weekend') return { badge: 'bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-500/10 dark:border-slate-500/20 dark:text-slate-300', dot: 'bg-slate-400' };
                                   return { badge: 'bg-slate-50 text-slate-400 border-slate-200 dark:bg-slate-500/10 dark:border-slate-500/20', dot: 'bg-slate-400' };
                                 };
-                                const conf = getStatusStyle(statusClockIn);
+                                const conf = getDayStatusStyle(dayStatus);
                                 return (
-                                  <div className="flex flex-col items-start gap-1">
-                                    <span className={`inline-flex items-center gap-1.5 whitespace-nowrap px-2.5 py-0.5 text-[10px] tracking-wider font-black uppercase rounded-full border shadow-2xs ${conf.badge}`}>
-                                      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${conf.dot}`} />
-                                      <span>{statusClockIn}</span>
-                                    </span>
-                                    {req.leave_type && req.leave_type !== statusClockIn && (
-                                      <span className="text-[10px] text-muted-foreground font-semibold pl-1">
-                                        {req.leave_type}
-                                      </span>
-                                    )}
-                                  </div>
+                                  <span className={`inline-flex items-center gap-1.5 whitespace-nowrap px-2.5 py-0.5 text-[10px] tracking-wider font-black uppercase rounded-full border shadow-2xs ${conf.badge}`}>
+                                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${conf.dot}`} />
+                                    <span>{dayStatus}</span>
+                                  </span>
                                 );
                               })()}
                             </TableCell>

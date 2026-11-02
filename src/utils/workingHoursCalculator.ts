@@ -417,6 +417,64 @@ export function calculateStatusClockIn(
 export const calculateAttendanceStatus = calculateStatusClockIn;
 
 /**
+ * Calculates the Day Status column (placed at the last column of the Attendance Report).
+ *
+ * Allowed values:
+ * - Working Days
+ * - Approved Leave
+ * - Company Leave
+ * - Outstation
+ * - Weekend
+ */
+export function calculateDayStatus(record: any): string {
+  if (!record) return 'Working Days';
+
+  const rawStatus = String(record.status || '').trim();
+  const leaveType = String(record.leave_type || '').trim();
+
+  if (
+    rawStatus === 'Company Leave' ||
+    rawStatus === 'Leave (Company Holiday)' ||
+    rawStatus.includes('Company Holiday') ||
+    leaveType === 'Company Holiday' ||
+    record.is_company_leave
+  ) {
+    return 'Company Leave';
+  }
+
+  if (
+    rawStatus === 'Weekend' ||
+    rawStatus === 'Rest Day' ||
+    record.is_weekend ||
+    record.is_rest_day ||
+    leaveType.toUpperCase().includes('REPLACEMENT') ||
+    leaveType.toUpperCase().includes('GANTI')
+  ) {
+    return 'Weekend';
+  }
+
+  if (
+    rawStatus === 'Approved Leave' ||
+    rawStatus.startsWith('Leave (') ||
+    rawStatus === 'Leave' ||
+    record.is_leave ||
+    Boolean(leaveType)
+  ) {
+    return 'Approved Leave';
+  }
+
+  if (
+    rawStatus === 'Outstation' ||
+    record.is_outstation ||
+    String(record.attendance_type || '').toUpperCase() === 'OUTSTATION'
+  ) {
+    return 'Outstation';
+  }
+
+  return 'Working Days';
+}
+
+/**
  * Calculates Status Clock Out based on end-of-day clock-out record and working hours.
  *
  * Allowed values:
