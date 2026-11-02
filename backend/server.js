@@ -398,7 +398,7 @@ function isAttendanceLate(clockInDateOrIso, companyId = null, targetDateStr = nu
   const dateStr = targetDateStr || mytDate.toISOString().split('T')[0];
   const { cutoffMins, startMins, cutoffTime } = getLateCutoffForCompanyAndDate(companyId, dateStr);
 
-  const isLate = clockInMins > cutoffMins;
+  const isLate = clockInMins >= cutoffMins;
   const lateMinutes = isLate ? Math.max(1, clockInMins - startMins) : 0;
   const status = isLate ? "Present (Late)" : "Present (On Time)";
 
@@ -10472,10 +10472,10 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
           let missingClockOut = false;
           let status = isOutstation ? "Outstation" : (isLate ? "Present (Late)" : "Present (On Time)");
 
-          // Check if any punch on this date has a clock-out
-          const latestPunchWithOut = matchingClocks.filter(c => !!c.clock_out).pop();
-          const effectiveClockOut = latestPunchWithOut ? latestPunchWithOut.clock_out : clockData.clock_out;
-          const effectiveTimeOut = latestPunchWithOut ? latestPunchWithOut.time_out : clockData.time_out;
+          // Evaluate clock out based on the final attendance session of the date
+          const lastPunch = matchingClocks.length > 0 ? matchingClocks[matchingClocks.length - 1] : clockData;
+          const effectiveClockOut = lastPunch ? lastPunch.clock_out : null;
+          const effectiveTimeOut = lastPunch ? lastPunch.time_out : null;
 
           if (isOutstation) {
             summary.outstation++;
@@ -10977,8 +10977,9 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
         statusClockOut = "Outstation";
       } else if (clockRowsForUser.length > 0 && clockRowsForUser[0].clock_in) {
         statusClockIn = dayIsLate ? "Present (Late)" : "Present (On Time)";
-        const hasOut = clockRowsForUser.some(c => !!c.clock_out);
-        if (!hasOut) {
+        const lastClockRow = clockRowsForUser[clockRowsForUser.length - 1];
+        const hasFinalOut = Boolean(lastClockRow && lastClockRow.clock_out);
+        if (!hasFinalOut) {
           statusClockOut = "Missing Clock Out";
         } else {
           statusClockOut = totalActiveMins >= 479 ? "Clock Out" : "Clocked Out Early";
@@ -13659,8 +13660,8 @@ app.get("/api/reports/generator", async (req, res) => {
               const firstClock = matchingClocks[0];
               const { isLate } = isAttendanceLate(firstClock.clock_in, empCompanyId, isoDateStr);
               
-              const latestWithOut = matchingClocks.filter(c => !!c.clock_out).pop();
-              const effectiveClockOut = latestWithOut ? latestWithOut.clock_out : firstClock.clock_out;
+              const lastClock = matchingClocks[matchingClocks.length - 1];
+              const effectiveClockOut = lastClock ? lastClock.clock_out : null;
               
               let missingClockOut = false;
               let status = isOutstation ? "Outstation" : (isLate ? "Present (Late)" : "Present (On Time)");

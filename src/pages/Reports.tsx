@@ -14,6 +14,7 @@ import { MonthPicker } from "@/components/shared/MonthPicker";
 import { YearPopover } from "@/components/shared/YearPopover";
 import { AnimatedCheckbox } from "@/components/ui/animated-checkbox";
 import { useCompany } from "@/modules/multi-company/contexts/CompanyContext";
+import { multiCompanyApi } from "@/modules/multi-company/services/multiCompanyApi";
 import {
   calculateLateWorkingHour,
   calculateTotalWorkingHoursFormatted,
@@ -309,6 +310,9 @@ export default function Reports() {
         let rows: any[] = [];
         
         if (generatorType === "trends" || generatorType === "stability") {
+          const settings = await multiCompanyApi.getAttendanceSettings(activeCompany?.id || 1).catch(() => null);
+          const lateArrivalWindow = settings?.late_threshold_minutes ?? 30;
+
           const maxSessions = Math.max(
             2,
             ...data.data.map((r: any) => (Array.isArray(r.sessions) ? r.sessions.length : 0))
@@ -355,8 +359,8 @@ export default function Reports() {
             });
 
             const scheduledStart = r.scheduled_start_time || "08:30";
-            const statusClockIn = r.status_clock_in || calculateStatusClockIn(r, scheduledStart);
-            const statusClockOut = r.status_clock_out || calculateStatusClockOut(r, scheduledStart);
+            const statusClockIn = r.status_clock_in || calculateStatusClockIn(r, scheduledStart, lateArrivalWindow);
+            const statusClockOut = r.status_clock_out || calculateStatusClockOut(r, scheduledStart, lateArrivalWindow);
             const dayStatus = calculateDayStatus(r);
             const lateWorkingHour = calculateLateWorkingHour(r, scheduledStart);
             const workingHrs = calculateTotalWorkingHoursFormatted(r, scheduledStart);

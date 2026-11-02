@@ -342,7 +342,16 @@ export function calculateTotalWorkingHoursFormatted(
 }
 
 /**
- * Calculates Status Clock In based on the first Clock In record and schedule.
+ * Calculates Status Clock In based on the first Clock In record and schedule grace cutoff.
+ *
+ * Dynamic Grace Cutoff:
+ * Grace Cutoff = Shift Starts + Late Arrival Window (default 30 Minutes from Attendance Config).
+ * Example: 08:30 AM + 30 Minutes = 09:00 AM.
+ *
+ * Rules:
+ * - IF First Clock In < Grace Cutoff: Status Clock In = "Present (On Time)"
+ * - IF First Clock In >= Grace Cutoff: Status Clock In = "Present (Late)"
+ * - IF No Clock In: Status Clock In = "Absent"
  *
  * Allowed values:
  * - Present (On Time)
@@ -354,12 +363,13 @@ export function calculateTotalWorkingHoursFormatted(
  * - Absent
  *
  * Special Rule:
- * If an employee is on Approved Leave or Company Leave or Weekend, even if they clock in,
+ * If an employee is on Approved Leave, Company Leave, Weekend, or Outstation, even if they clock in,
  * the status does not change and remains as the designated event status.
  */
 export function calculateStatusClockIn(
   record: any,
-  scheduledStartTime?: string | null
+  scheduledStartTime?: string | null,
+  graceMinutes?: number | null
 ): string {
   if (!record) return 'Absent';
 
@@ -408,7 +418,23 @@ export function calculateStatusClockIn(
   }
 
   const startMins = parseScheduledStartTime(scheduledStartTime);
-  return clockInMins <= startMins ? 'Present (On Time)' : 'Present (Late)';
+
+  // Dynamic grace window from Attendance Config (default 30 mins)
+  const grace =
+    graceMinutes !== null && graceMinutes !== undefined && !isNaN(Number(graceMinutes))
+      ? Math.max(0, Number(graceMinutes))
+      : record.grace_period_minutes !== undefined && record.grace_period_minutes !== null
+      ? Math.max(0, Number(record.grace_period_minutes))
+      : record.late_threshold_minutes !== undefined && record.late_threshold_minutes !== null
+      ? Math.max(0, Number(record.late_threshold_minutes))
+      : 30;
+
+  const graceCutoffMins = startMins + grace;
+
+  // Rules:
+  // IF First Clock In < Grace Cutoff: Status Clock In = "Present (On Time)"
+  // IF First Clock In >= Grace Cutoff: Status Clock In = "Present (Late)"
+  return clockInMins < graceCutoffMins ? 'Present (On Time)' : 'Present (Late)';
 }
 
 /**
@@ -477,22 +503,30 @@ export function calculateDayStatus(record: any): string {
 /**
  * Calculates Status Clock Out based on end-of-day clock-out record and working hours.
  *
- * Allowed values:
- * - Clock Out (Working Hours >= 07 H 59 M / 479 minutes)
- * - Clocked Out Early (Working Hours < 07 H 59 M / 479 minutes)
- * - Missing Clock Out (has Clock In but no final Clock Out record)
- * - Same special status for Approved Leave, Company Leave, Weekend, Outstation, Absent
+ * Rules:
+ * - Evaluate whether the employee completed their working session.
+ * - An early clock out during a break/rest period is NOT "Clocked Out Early" if the employee
+ *   clocks in again after the break.
+ * - Status Clock Out evaluates the FINAL session of the day:
+ *   * If the employee clocked in to a final session but has not clocked out: "Missing Clock Out".
+ *   * If the employee clocked out of their final session with no further clock-in:
+ *     - If Working Hours >= 07 H 59 M (479 mins): "Clock Out"
+ *     - If Working Hours < 07 H 59 M (479 mins): "Clocked Out Early"
+ *
+ * Special handling:
+ * - Approved Leave, Company Leave, Weekend, Outstation, Absent display their designated status.
  */
 export function calculateStatusClockOut(
   record: any,
-  scheduledStartTime?: string | null
+  scheduledStartTime?: string | null,
+  graceMinutes?: number | null
 ): string {
   if (!record) return 'Absent';
 
-  const statusIn = calculateStatusClockIn(record, scheduledStartTime);
+  const statusIn = calculateStatusClockIn(record, scheduledStartTime, graceMinutes);
 
   // Special handling: Approved Leave, Company Leave, Weekend, Outstation, Absent
-  // Both Status and Status Clock Out MUST display the same attendance status!
+  // Status Clock Out MUST display the same attendance status for these!
   if (
     statusIn === 'Approved Leave' ||
     statusIn === 'Company Leave' ||
@@ -504,34 +538,36 @@ export function calculateStatusClockOut(
   }
 
   const sessions: AttendanceSession[] = Array.isArray(record.sessions) ? record.sessions : [];
-  const hasClockIn = sessions.length > 0
-    ? sessions.some((s) => Boolean(s.clock_in || s.time_in))
-    : Boolean(record.clock_in || record.time_in);
+  const activeSessions = sessions.filter((s) => Boolean(s.clock_in || s.time_in));
 
+  const hasClockIn = activeSessions.length > 0 || Boolean(record.clock_in || record.time_in);
   if (!hasClockIn) {
     return statusIn || 'Absent';
   }
 
-  // Check if there is any valid final clock-out
-  let hasValidClockOut = false;
-  if (sessions.length > 0) {
-    hasValidClockOut = sessions.some((s) => {
-      const out = s.clock_out || s.time_out;
-      return Boolean(out && out !== '-' && out !== 'N/A' && out !== '--');
-    });
+  // Evaluate whether employee completed their working session.
+  // When an employee has multiple clock-ins/outs in a day, an early clock out during break/rest
+  // is NOT Clocked Out Early if the employee clocked in again after the break.
+  // Status Clock Out is based ONLY on the FINAL attendance session of the day.
+  let hasFinalClockOut = false;
+  if (activeSessions.length > 0) {
+    const lastSession = activeSessions[activeSessions.length - 1];
+    const out = lastSession.clock_out || lastSession.time_out;
+    hasFinalClockOut = Boolean(out && out !== '-' && out !== 'N/A' && out !== '--');
   } else {
     const out = record.clock_out || record.time_out;
-    hasValidClockOut = Boolean(out && out !== '-' && out !== 'N/A' && out !== '--');
+    hasFinalClockOut = Boolean(out && out !== '-' && out !== 'N/A' && out !== '--');
   }
 
-  if (!hasValidClockOut) {
+  // If the last session has no clock out, the employee has not clocked out of their day session
+  if (!hasFinalClockOut) {
     return 'Missing Clock Out';
   }
 
-  // Calculate total working minutes
-  const totalMins = calculateTotalWorkingMinutes(record, scheduledStartTime);
-
+  // The employee has clocked out of their final session and did not clock in again.
+  // Check total working hours duration.
   // Threshold: 07 H 59 M = 7 * 60 + 59 = 479 minutes
+  const totalMins = calculateTotalWorkingMinutes(record, scheduledStartTime);
   const CLOCK_OUT_THRESHOLD_MINUTES = 7 * 60 + 59; // 479 mins
 
   return totalMins >= CLOCK_OUT_THRESHOLD_MINUTES ? 'Clock Out' : 'Clocked Out Early';

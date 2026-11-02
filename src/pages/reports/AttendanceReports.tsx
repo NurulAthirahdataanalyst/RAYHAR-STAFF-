@@ -140,17 +140,24 @@ export default function AttendanceReports() {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
   const [statusFilter, setStatusFilter] = useState("All");
   const [workSchedules, setWorkSchedules] = useState<WorkSchedule[]>([]);
+  const [lateArrivalWindow, setLateArrivalWindow] = useState<number>(30);
 
   useEffect(() => {
-    const loadWorkSchedules = async () => {
+    const loadConfig = async () => {
       try {
-        const sRes = await multiCompanyApi.getCompanyWorkSchedules(activeCompany?.id || 1);
+        const [sRes, setRes] = await Promise.all([
+          multiCompanyApi.getCompanyWorkSchedules(activeCompany?.id || 1),
+          multiCompanyApi.getAttendanceSettings(activeCompany?.id || 1)
+        ]);
         setWorkSchedules(sRes || []);
+        if (setRes && typeof setRes.late_threshold_minutes === 'number') {
+          setLateArrivalWindow(setRes.late_threshold_minutes);
+        }
       } catch (err) {
-        console.error("Failed to load work schedules in AttendanceReports:", err);
+        console.error("Failed to load attendance config in AttendanceReports:", err);
       }
     };
-    loadWorkSchedules();
+    loadConfig();
   }, [activeCompany?.id]);
 
   const getScheduledStartTimeForRecord = (rec: any): string => {
@@ -211,10 +218,18 @@ export default function AttendanceReports() {
         requesterId: userId || ""
       });
       let data: { success: boolean; data: any[]; summary?: any } = { success: true, data: [] };
-      const [workAssignRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/api/work-assignments-all`)
+      const [workAssignRes, freshSettings] = await Promise.all([
+        fetch(`${API_BASE_URL}/api/work-assignments-all`),
+        multiCompanyApi.getAttendanceSettings(activeCompany?.id || 1).catch(() => null)
       ]);
       const workAssignData = await workAssignRes.json();
+      const currentLateArrivalWindow =
+        freshSettings && typeof freshSettings.late_threshold_minutes === "number"
+          ? freshSettings.late_threshold_minutes
+          : lateArrivalWindow;
+      if (freshSettings && typeof freshSettings.late_threshold_minutes === "number") {
+        setLateArrivalWindow(freshSettings.late_threshold_minutes);
+      }
 
       if (viewType === "day") {
         params.append("date", date);
@@ -407,8 +422,9 @@ export default function AttendanceReports() {
             item.location = first.location || item.location;
           }
           const scheduledStart = getScheduledStartTimeForRecord(item);
-          item.status_clock_in = calculateStatusClockIn(item, scheduledStart);
-          item.status_clock_out = calculateStatusClockOut(item, scheduledStart);
+          item.grace_period_minutes = currentLateArrivalWindow;
+          item.status_clock_in = calculateStatusClockIn(item, scheduledStart, currentLateArrivalWindow);
+          item.status_clock_out = calculateStatusClockOut(item, scheduledStart, currentLateArrivalWindow);
           return item;
         });
 
@@ -580,8 +596,8 @@ export default function AttendanceReports() {
 
     const rows = sortedList.map(a => {
       const startTime = getScheduledStartTimeForRecord(a);
-      const statusClockIn = a.status_clock_in || calculateStatusClockIn(a, startTime);
-      const statusClockOut = a.status_clock_out || calculateStatusClockOut(a, startTime);
+      const statusClockIn = a.status_clock_in || calculateStatusClockIn(a, startTime, lateArrivalWindow);
+      const statusClockOut = a.status_clock_out || calculateStatusClockOut(a, startTime, lateArrivalWindow);
       const dayStatus = calculateDayStatus(a);
       const lateWorkingHour = calculateLateWorkingHour(a, startTime);
       const workingHrs = calculateTotalWorkingHoursFormatted(a, startTime);
@@ -650,8 +666,8 @@ export default function AttendanceReports() {
 
     const rows = sortedList.map(a => {
       const startTime = getScheduledStartTimeForRecord(a);
-      const statusClockIn = a.status_clock_in || calculateStatusClockIn(a, startTime);
-      const statusClockOut = a.status_clock_out || calculateStatusClockOut(a, startTime);
+      const statusClockIn = a.status_clock_in || calculateStatusClockIn(a, startTime, lateArrivalWindow);
+      const statusClockOut = a.status_clock_out || calculateStatusClockOut(a, startTime, lateArrivalWindow);
       const dayStatus = calculateDayStatus(a);
       const lateWorkingHour = calculateLateWorkingHour(a, startTime);
       const workingHrs = calculateTotalWorkingHoursFormatted(a, startTime);
@@ -718,8 +734,8 @@ export default function AttendanceReports() {
     const rowsHtml = sortedList
       .map((a) => {
         const startTime = getScheduledStartTimeForRecord(a);
-        const statusClockIn = a.status_clock_in || calculateStatusClockIn(a, startTime);
-        const statusClockOut = a.status_clock_out || calculateStatusClockOut(a, startTime);
+        const statusClockIn = a.status_clock_in || calculateStatusClockIn(a, startTime, lateArrivalWindow);
+        const statusClockOut = a.status_clock_out || calculateStatusClockOut(a, startTime, lateArrivalWindow);
         const dayStatus = calculateDayStatus(a);
         const lateWorkingHour = calculateLateWorkingHour(a, startTime);
         const workingHrs = calculateTotalWorkingHoursFormatted(a, startTime);
@@ -1103,8 +1119,8 @@ export default function AttendanceReports() {
                       pagedList.map((req, idx) => {
                         const sessions: ClockSession[] = Array.isArray(req.sessions) ? req.sessions : [];
                         const startTime = getScheduledStartTimeForRecord(req);
-                        const statusClockIn = req.status_clock_in || calculateStatusClockIn(req, startTime);
-                        const statusClockOut = req.status_clock_out || calculateStatusClockOut(req, startTime);
+                        const statusClockIn = req.status_clock_in || calculateStatusClockIn(req, startTime, lateArrivalWindow);
+                        const statusClockOut = req.status_clock_out || calculateStatusClockOut(req, startTime, lateArrivalWindow);
                         const dayStatus = calculateDayStatus(req);
                         const lateWorkingHour = calculateLateWorkingHour(req, startTime);
                         const workingHrs = calculateTotalWorkingHoursFormatted(req, startTime);

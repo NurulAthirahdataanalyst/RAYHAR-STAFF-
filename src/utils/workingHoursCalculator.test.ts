@@ -129,14 +129,20 @@ describe('workingHoursCalculator', () => {
   });
 
   describe('Status Clock In', () => {
-    it('First Clock In <= Official Working Start Time -> Present (On Time)', () => {
-      expect(calculateStatusClockIn({ clock_in: '8:25 AM' }, '08:30')).toBe('Present (On Time)');
-      expect(calculateStatusClockIn({ clock_in: '8:30 AM' }, '08:30')).toBe('Present (On Time)');
+    it('First Clock In < Grace Cutoff (08:30 + 30m = 09:00 AM) -> Present (On Time)', () => {
+      expect(calculateStatusClockIn({ clock_in: '8:25 AM' }, '08:30', 30)).toBe('Present (On Time)');
+      expect(calculateStatusClockIn({ clock_in: '8:45 AM' }, '08:30', 30)).toBe('Present (On Time)');
+      expect(calculateStatusClockIn({ clock_in: '8:59 AM' }, '08:30', 30)).toBe('Present (On Time)');
     });
 
-    it('First Clock In > Official Working Start Time -> Present (Late)', () => {
-      expect(calculateStatusClockIn({ clock_in: '8:40 AM' }, '08:30')).toBe('Present (Late)');
-      expect(calculateStatusClockIn({ clock_in: '8:55 AM' }, '08:30')).toBe('Present (Late)');
+    it('First Clock In >= Grace Cutoff (08:30 + 30m = 09:00 AM) -> Present (Late)', () => {
+      expect(calculateStatusClockIn({ clock_in: '9:00 AM' }, '08:30', 30)).toBe('Present (Late)');
+      expect(calculateStatusClockIn({ clock_in: '9:15 AM' }, '08:30', 30)).toBe('Present (Late)');
+    });
+
+    it('Dynamic Grace Period: 15 minutes grace cutoff (08:30 + 15m = 08:45 AM)', () => {
+      expect(calculateStatusClockIn({ clock_in: '8:44 AM' }, '08:30', 15)).toBe('Present (On Time)');
+      expect(calculateStatusClockIn({ clock_in: '8:45 AM' }, '08:30', 15)).toBe('Present (Late)');
     });
 
     it('No Clock In Record -> Absent', () => {
@@ -167,6 +173,15 @@ describe('workingHoursCalculator', () => {
       expect(calculateStatusClockOut({ clock_in: '8:30 AM', clock_out: null }, '08:30')).toBe('Missing Clock Out');
     });
 
+    it('Multi-session with break clock out and open final session -> Missing Clock Out (not Clocked Out Early)', () => {
+      // ACHMED AMZAR scenario: Clock Out 1 = 1:11 PM, Clock In 2 = 2:00 PM, Clock Out 2 = N/A
+      const sessions = [
+        { clock_in: '8:45 AM', clock_out: '1:11 PM' },
+        { clock_in: '2:00 PM', clock_out: null },
+      ];
+      expect(calculateStatusClockOut({ sessions }, '08:30')).toBe('Missing Clock Out');
+    });
+
     it('Clock Out: Valid final Clock Out and Working Hours >= 07 H 59 M', () => {
       // 8:30 AM to 5:30 PM = 9h 00m
       expect(calculateStatusClockOut({ clock_in: '8:30 AM', clock_out: '5:30 PM' }, '08:30')).toBe('Clock Out');
@@ -180,7 +195,9 @@ describe('workingHoursCalculator', () => {
       expect(calculateStatusClockOut({ sessions }, '08:30')).toBe('Clock Out');
     });
 
-    it('Clocked Out Early: Valid final Clock Out and Working Hours < 07 H 59 M', () => {
+    it('Clocked Out Early: Valid final Clock Out, no further clock in, and Working Hours < 07 H 59 M', () => {
+      // 8:25 AM to 1:12 PM, no further Clock In
+      expect(calculateStatusClockOut({ clock_in: '8:25 AM', clock_out: '1:12 PM' }, '08:30')).toBe('Clocked Out Early');
       // 8:30 AM to 3:00 PM = 6h 30m
       expect(calculateStatusClockOut({ clock_in: '8:30 AM', clock_out: '3:00 PM' }, '08:30')).toBe('Clocked Out Early');
       // 8:30 AM to 4:00 PM = 7h 30m
