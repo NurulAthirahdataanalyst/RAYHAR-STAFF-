@@ -10491,24 +10491,6 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
           return;
         }
 
-        const isOutstationAssigned = outstationRows.some(o => {
-          if (o.user_id !== p.user_id) return false;
-          const oStart = new Date(new Date(o.start_date).getTime() + 8 * 60 * 60 * 1000).toISOString().split('T')[0];
-          const oEnd = new Date(new Date(o.end_date).getTime() + 8 * 60 * 60 * 1000).toISOString().split('T')[0];
-          const oStartRaw = new Date(o.start_date).toISOString().split('T')[0];
-          const oEndRaw = new Date(o.end_date).toISOString().split('T')[0];
-          return (dateStr >= oStart && dateStr <= oEnd) || (dateStr >= oStartRaw && dateStr <= oEndRaw);
-        });
-
-        // Check if clocked in
-        const clockDataList = clockRows.filter(c => c.user_id === p.user_id);
-        const matchingClocks = clockDataList
-          .filter(c => {
-            const klTimeIn = new Date(new Date(c.clock_in).getTime() + 8 * 60 * 60 * 1000);
-            return klTimeIn.toISOString().split('T')[0] === dateStr;
-          })
-          .sort((a, b) => new Date(a.clock_in).getTime() - new Date(b.clock_in).getTime());
-
         const clockData = matchingClocks[0];
         const isOutstationClock = matchingClocks.some(c =>
           String(c.attendance_type || '').toUpperCase() === 'OUTSTATION' ||
