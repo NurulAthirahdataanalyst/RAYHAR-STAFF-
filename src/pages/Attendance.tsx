@@ -10,7 +10,7 @@ import { MonthPicker } from "@/components/shared/MonthPicker";
 import { Calendar } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
-import { Loader2, Clock, Fingerprint, Hand, Timer, MapPin, History, Home, SlidersHorizontal, Download, ChevronDown, FileText, FileSpreadsheet, Sparkles, CalendarDays } from "lucide-react";
+import { Loader2, Clock, Fingerprint, Hand, Timer, MapPin, History, Home, SlidersHorizontal, Download, ChevronDown, FileText, FileSpreadsheet, Sparkles, CalendarDays, Coffee } from "lucide-react";
 import { API_BASE_URL } from "@/config/api";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -170,6 +170,8 @@ export default function Attendance() {
   // Derived stats from historyLogs
   const [stats, setStats] = useState({
     totalHoursToday: "0",
+    todayRest: "00:00",
+    todayRestMinutes: 0,
     totalHoursWeek: "0",
     totalHoursMonth: "0",
     overtimeMonth: "0",
@@ -660,15 +662,50 @@ export default function Attendance() {
       return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
     };
 
+    // Calculate today's rest: following range clock out until staff clock in back for today
+    const todayLogs = historyLogs.filter((l: any) => {
+      const lDate = l.date ? String(l.date).slice(0, 10) : "";
+      return (lDate === today || (l.date && String(l.date).startsWith(today))) && l.clock_in;
+    }).sort((a: any, b: any) => new Date(a.clock_in).getTime() - new Date(b.clock_in).getTime());
+
+    const allTodayLogs = [...todayLogs];
+    if (activeSession && activeSession.clock_in) {
+      const aDate = activeSession.date ? String(activeSession.date).slice(0, 10) : new Date(activeSession.clock_in).toISOString().slice(0, 10);
+      if (aDate === today) {
+        const existingIdx = allTodayLogs.findIndex((l: any) =>
+          (l.attendance_id && activeSession.attendance_id && l.attendance_id === activeSession.attendance_id) ||
+          (l.id && activeSession.id && l.id === activeSession.id)
+        );
+        if (existingIdx >= 0) {
+          allTodayLogs[existingIdx] = { ...allTodayLogs[existingIdx], ...activeSession };
+        } else {
+          allTodayLogs.push(activeSession);
+        }
+        allTodayLogs.sort((a: any, b: any) => new Date(a.clock_in).getTime() - new Date(b.clock_in).getTime());
+      }
+    }
+
+    let todayRestMins = 0;
+    for (let i = 0; i < allTodayLogs.length - 1; i++) {
+      if (allTodayLogs[i].clock_out && allTodayLogs[i + 1].clock_in) {
+        const outMs = new Date(allTodayLogs[i].clock_out).getTime();
+        const inMs = new Date(allTodayLogs[i + 1].clock_in).getTime();
+        const gap = Math.round((inMs - outMs) / 60000);
+        if (gap > 0) todayRestMins += gap;
+      }
+    }
+
     setStats({
       totalHoursToday: formatHrs(totalToday),
+      todayRest: formatHrs(todayRestMins / 60),
+      todayRestMinutes: todayRestMins,
       totalHoursWeek: formatHrs(totalWeek),
       totalHoursMonth: formatHrs(totalMonth),
       overtimeMonth: "00:00", // OT not functional yet
       productiveHours: formatHrs(totalMonth - breakTime),
       breakHours: formatHrs(breakTime)
     });
-  }, [historyLogs]);
+  }, [historyLogs, activeSession]);
 
   // 4c. Establish SSE stream for real-time updates
   useEffect(() => {
@@ -702,6 +739,40 @@ export default function Attendance() {
       eventSource.close();
     };
   }, [user?.user_id, user?.id, fetchStatus, fetchHistoryLogs, selectedMonth, selectedYear]);
+
+  // Helper: calculate rest for a log record based on gaps between clock-out and subsequent clock-in for that date
+  const calculateRowRest = (log: any, allLogs: any[]) => {
+    const nonWorkingStatuses = [
+      "Weekend", "Rest Day", "Holiday", "N/A", "Absent",
+      "Company Leave", "Approved Leave", "Leave", "On Leave"
+    ];
+    if (!log || nonWorkingStatuses.includes(log.status) || !log.clock_in) {
+      return "--";
+    }
+
+    const logDateStr = String(log.date || '').slice(0, 10);
+    const dayLogs = allLogs
+      .filter((l: any) => String(l.date || '').slice(0, 10) === logDateStr && l.clock_in)
+      .sort((a: any, b: any) => new Date(a.clock_in).getTime() - new Date(b.clock_in).getTime());
+
+    if (dayLogs.length < 2) {
+      return "0 Min";
+    }
+
+    let totalRestMins = 0;
+    for (let i = 0; i < dayLogs.length - 1; i++) {
+      if (dayLogs[i].clock_out && dayLogs[i + 1].clock_in) {
+        const outMs = new Date(dayLogs[i].clock_out).getTime();
+        const inMs = new Date(dayLogs[i + 1].clock_in).getTime();
+        const gap = Math.round((inMs - outMs) / 60000);
+        if (gap > 0) {
+          totalRestMins += gap;
+        }
+      }
+    }
+
+    return totalRestMins > 0 ? `${totalRestMins} Min` : "0 Min";
+  };
 
   // Export PDF Handler
   const handleExportPDF = () => {
@@ -787,6 +858,7 @@ export default function Attendance() {
           <td>${log.time_out || '--'}</td>
           <td><span class="badge badge-${statusClass}">${displayStatus}</span></td>
           <td>${log.late === "00:00" || log.late === "00h 00m" ? "--" : (log.late || '--')}</td>
+          <td style="color: #2563eb; font-weight: 600;">${calculateRowRest(log, historyLogs)}</td>
           <td class="duration">${log.duration || log.working_hours || '--'}</td>
         </tr>
       `;
@@ -855,11 +927,12 @@ export default function Attendance() {
                  <th>Time Out</th>
                  <th>Status</th>
                  <th>Late</th>
+                 <th>Rest</th>
                  <th>Working Hours</th>
                </tr>
             </thead>
             <tbody>
-              ${logsHtml || '<tr><td colspan="6" style="text-align: center;">No attendance logs found for this period.</td></tr>'}
+              ${logsHtml || '<tr><td colspan="7" style="text-align: center;">No attendance logs found for this period.</td></tr>'}
             </tbody>
           </table>
         </body>
@@ -1058,7 +1131,7 @@ export default function Attendance() {
     const userBranchCode = user?.branch || 'N/A';
     const fullBranchName = branchNames[userBranchCode] || userBranchCode;
 
-    const headers = ["Date", "Time In", "Time Out", "Status", "Late", "Working Hours"];
+    const headers = ["Date", "Time In", "Time Out", "Status", "Late", "Rest", "Working Hours"];
     const rows = targetLogs.map(log => {
       const d = new Date(log.date);
       const dateStr = d.toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
@@ -1070,6 +1143,7 @@ export default function Attendance() {
         `"${(log.time_out || '--').replace(/"/g, '""')}"`,
         `"${(log.status || '').replace(/"/g, '""')}"`,
         `"${(log.late === "00:00" || log.late === "00h 00m" ? "--" : (log.late || '--')).replace(/"/g, '""')}"`,
+        `"${calculateRowRest(log, historyLogs)}"`,
         `"${(log.duration || log.working_hours || '--').replace(/"/g, '""')}"`
       ];
     });
@@ -1874,19 +1948,19 @@ export default function Attendance() {
               </div>
             </div>
 
-            {/* Stat Card 2: Total Hours Week */}
+            {/* Stat Card 2: Today Rest */}
             <div className="border border-slate-100 dark:border-slate-700 bg-card shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] rounded-[24px] hover:border-purple-300 dark:hover:border-purple-700 transition-colors p-4 flex flex-col items-center justify-center relative overflow-hidden group">
               <div className="absolute top-0 right-0 p-2 opacity-10">
-                <Timer className="w-10 h-10 text-[#942392]" />
+                <Coffee className="w-10 h-10 text-[#942392]" />
               </div>
-              <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center mb-2 shadow-sm">
-                 <Timer className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+              <div className="w-8 h-8 rounded-full bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center mb-2 shadow-sm">
+                 <Coffee className="w-4 h-4 text-amber-600 dark:text-amber-400" />
               </div>
-              <div className="text-xl sm:text-2xl font-black text-foreground font-mono">
-                {stats.totalHoursWeek} <span className="text-xs text-foreground">hrs</span>
+              <div className="text-xl sm:text-2xl font-black text-foreground font-mono" title={stats.todayRestMinutes > 0 ? `${stats.todayRestMinutes} Min` : undefined}>
+                {stats.todayRest} <span className="text-xs text-foreground">hrs</span>
               </div>
               <div className="text-[10px] sm:text-xs font-bold text-foreground uppercase tracking-widest mt-1">
-                Total This Week
+                Today Rest
               </div>
             </div>
 
@@ -2238,7 +2312,8 @@ export default function Attendance() {
                     <TableHead>Time Out</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Late</TableHead>
-                      <TableHead>Distance</TableHead>
+                    <TableHead>Distance</TableHead>
+                    <TableHead>Rest</TableHead>
                     <TableHead className="text-right pr-6">Working Hours</TableHead>
                     {attendanceMode === 'multi' && (
                       <TableHead>Branch</TableHead>
@@ -2248,14 +2323,14 @@ export default function Attendance() {
                 <TableBody>
                 {fetchingHistory && historyLogs.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={attendanceMode === 'multi' ? 8 : 7} className="py-12 text-center">
+                    <TableCell colSpan={attendanceMode === 'multi' ? 9 : 8} className="py-12 text-center">
                       <Loader2 className="w-6 h-6 animate-spin text-[#942392] mx-auto mb-2" />
                       <p className="text-sm font-medium text-foreground">Loading Data...</p>
                     </TableCell>
                   </TableRow>
                 ) : displayedLogs.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={attendanceMode === 'multi' ? 8 : 7} className="py-12 text-center">
+                    <TableCell colSpan={attendanceMode === 'multi' ? 9 : 8} className="py-12 text-center">
                        <Clock className="w-8 h-8 opacity-20 mx-auto mb-2" />
                        <p className="text-sm font-medium text-foreground">No logs found</p>
                     </TableCell>
@@ -2335,6 +2410,9 @@ export default function Attendance() {
                           {log.late === "00h 00m" || log.late === "00:00" || log.late === "--" ? "--" : log.late}
                         </TableCell>
                         <TableCell className="font-medium text-foreground">{log.distance ? `${log.distance} m` : "--"}</TableCell>
+                        <TableCell className="font-medium text-blue-600 dark:text-blue-400 whitespace-nowrap">
+                          {calculateRowRest(log, historyLogs)}
+                        </TableCell>
                         <TableCell className="font-bold text-emerald-600 text-right pr-6">{log.duration || log.working_hours || "--"}</TableCell>
                         {attendanceMode === 'multi' && (
                           <TableCell className="font-medium whitespace-nowrap">
