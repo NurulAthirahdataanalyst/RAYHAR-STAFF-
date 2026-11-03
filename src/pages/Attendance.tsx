@@ -740,40 +740,6 @@ export default function Attendance() {
     };
   }, [user?.user_id, user?.id, fetchStatus, fetchHistoryLogs, selectedMonth, selectedYear]);
 
-  // Helper: calculate rest for a log record based on gaps between clock-out and subsequent clock-in for that date
-  const calculateRowRest = (log: any, allLogs: any[]) => {
-    const nonWorkingStatuses = [
-      "Weekend", "Rest Day", "Holiday", "N/A", "Absent",
-      "Company Leave", "Approved Leave", "Leave", "On Leave"
-    ];
-    if (!log || nonWorkingStatuses.includes(log.status) || !log.clock_in) {
-      return "--";
-    }
-
-    const logDateStr = String(log.date || '').slice(0, 10);
-    const dayLogs = allLogs
-      .filter((l: any) => String(l.date || '').slice(0, 10) === logDateStr && l.clock_in)
-      .sort((a: any, b: any) => new Date(a.clock_in).getTime() - new Date(b.clock_in).getTime());
-
-    if (dayLogs.length < 2) {
-      return "0 Min";
-    }
-
-    let totalRestMins = 0;
-    for (let i = 0; i < dayLogs.length - 1; i++) {
-      if (dayLogs[i].clock_out && dayLogs[i + 1].clock_in) {
-        const outMs = new Date(dayLogs[i].clock_out).getTime();
-        const inMs = new Date(dayLogs[i + 1].clock_in).getTime();
-        const gap = Math.round((inMs - outMs) / 60000);
-        if (gap > 0) {
-          totalRestMins += gap;
-        }
-      }
-    }
-
-    return totalRestMins > 0 ? `${totalRestMins} Min` : "0 Min";
-  };
-
   // Export PDF Handler
   const handleExportPDF = () => {
     const targetLogs = viewMode === "day"
@@ -858,7 +824,6 @@ export default function Attendance() {
           <td>${log.time_out || '--'}</td>
           <td><span class="badge badge-${statusClass}">${displayStatus}</span></td>
           <td>${log.late === "00:00" || log.late === "00h 00m" ? "--" : (log.late || '--')}</td>
-          <td style="color: #2563eb; font-weight: 600;">${calculateRowRest(log, historyLogs)}</td>
           <td class="duration">${log.duration || log.working_hours || '--'}</td>
         </tr>
       `;
@@ -927,12 +892,11 @@ export default function Attendance() {
                  <th>Time Out</th>
                  <th>Status</th>
                  <th>Late</th>
-                 <th>Rest</th>
                  <th>Working Hours</th>
                </tr>
             </thead>
             <tbody>
-              ${logsHtml || '<tr><td colspan="7" style="text-align: center;">No attendance logs found for this period.</td></tr>'}
+              ${logsHtml || '<tr><td colspan="6" style="text-align: center;">No attendance logs found for this period.</td></tr>'}
             </tbody>
           </table>
         </body>
@@ -1131,7 +1095,7 @@ export default function Attendance() {
     const userBranchCode = user?.branch || 'N/A';
     const fullBranchName = branchNames[userBranchCode] || userBranchCode;
 
-    const headers = ["Date", "Time In", "Time Out", "Status", "Late", "Rest", "Working Hours"];
+    const headers = ["Date", "Time In", "Time Out", "Status", "Late", "Working Hours"];
     const rows = targetLogs.map(log => {
       const d = new Date(log.date);
       const dateStr = d.toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
@@ -1143,7 +1107,6 @@ export default function Attendance() {
         `"${(log.time_out || '--').replace(/"/g, '""')}"`,
         `"${(log.status || '').replace(/"/g, '""')}"`,
         `"${(log.late === "00:00" || log.late === "00h 00m" ? "--" : (log.late || '--')).replace(/"/g, '""')}"`,
-        `"${calculateRowRest(log, historyLogs)}"`,
         `"${(log.duration || log.working_hours || '--').replace(/"/g, '""')}"`
       ];
     });
@@ -2313,7 +2276,6 @@ export default function Attendance() {
                     <TableHead>Status</TableHead>
                     <TableHead>Late</TableHead>
                     <TableHead>Distance</TableHead>
-                    <TableHead>Rest</TableHead>
                     <TableHead className="text-right pr-6">Working Hours</TableHead>
                     {attendanceMode === 'multi' && (
                       <TableHead>Branch</TableHead>
@@ -2323,14 +2285,14 @@ export default function Attendance() {
                 <TableBody>
                 {fetchingHistory && historyLogs.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={attendanceMode === 'multi' ? 9 : 8} className="py-12 text-center">
+                    <TableCell colSpan={attendanceMode === 'multi' ? 8 : 7} className="py-12 text-center">
                       <Loader2 className="w-6 h-6 animate-spin text-[#942392] mx-auto mb-2" />
                       <p className="text-sm font-medium text-foreground">Loading Data...</p>
                     </TableCell>
                   </TableRow>
                 ) : displayedLogs.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={attendanceMode === 'multi' ? 9 : 8} className="py-12 text-center">
+                    <TableCell colSpan={attendanceMode === 'multi' ? 8 : 7} className="py-12 text-center">
                        <Clock className="w-8 h-8 opacity-20 mx-auto mb-2" />
                        <p className="text-sm font-medium text-foreground">No logs found</p>
                     </TableCell>
@@ -2410,9 +2372,6 @@ export default function Attendance() {
                           {log.late === "00h 00m" || log.late === "00:00" || log.late === "--" ? "--" : log.late}
                         </TableCell>
                         <TableCell className="font-medium text-foreground">{log.distance ? `${log.distance} m` : "--"}</TableCell>
-                        <TableCell className="font-medium text-blue-600 dark:text-blue-400 whitespace-nowrap">
-                          {calculateRowRest(log, historyLogs)}
-                        </TableCell>
                         <TableCell className="font-bold text-emerald-600 text-right pr-6">{log.duration || log.working_hours || "--"}</TableCell>
                         {attendanceMode === 'multi' && (
                           <TableCell className="font-medium whitespace-nowrap">
