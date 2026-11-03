@@ -1099,7 +1099,7 @@ export default function AttendanceReports() {
                     <TableRow>
                       {viewType !== "day" && <TableHead className="w-[100px] whitespace-nowrap">Date</TableHead>}
                       <TableHead className="w-[100px] whitespace-nowrap">Employee ID</TableHead>
-                      <TableHead className="min-w-[160px] max-w-[220px]">Name</TableHead>
+                      <TableHead className="min-w-[160px] whitespace-nowrap">Name</TableHead>
                       <TableHead className="w-[90px] whitespace-nowrap">Location</TableHead>
                       <TableHead className="w-[120px] whitespace-nowrap">Late Working Hour</TableHead>
                       {sessionIndices.map((idx) => (
@@ -1140,7 +1140,7 @@ export default function AttendanceReports() {
                           <TableRow key={`${req.user_id}-${req.date || idx}`}>
                             {viewType !== "day" && <TableCell className="whitespace-nowrap">{formatDate(req.date)}</TableCell>}
                             <TableCell className="font-medium whitespace-nowrap">{req.user_id}</TableCell>
-                            <TableCell className="max-w-[200px] truncate" title={req.full_name}>{req.full_name}</TableCell>
+                            <TableCell className="whitespace-nowrap" title={req.full_name}>{req.full_name}</TableCell>
                             <TableCell>
                               <div className="flex flex-col gap-0.5">
                                 <span className="font-medium text-xs">{req.permanent_branch || req.branch || "-"}</span>

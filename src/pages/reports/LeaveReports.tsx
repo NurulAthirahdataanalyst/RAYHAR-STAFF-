@@ -500,7 +500,7 @@ export default function LeaveReports() {
                           <TableCell className="font-medium">
                             {formatDate(req.created_at || req.submitted_at) || "-"}
                           </TableCell>
-                          <TableCell className="font-medium">
+                          <TableCell className="font-medium whitespace-nowrap" title={req.full_name || req.user_id}>
                             {req.full_name || req.user_id}
                           </TableCell>
                           <TableCell>{req.branch || "HQ"}</TableCell>

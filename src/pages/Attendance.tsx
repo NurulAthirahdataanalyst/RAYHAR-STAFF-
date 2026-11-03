@@ -1417,6 +1417,15 @@ export default function Attendance() {
 
 
   // Calculate shift progress percentage (based on 9 hours standard shift)
+  // Office hours start at 08:30 AM (MYT). Clock-ins earlier than 08:30 are not counted,
+  // so the shift is treated as starting at 08:30 (=> Est. Out 05:30 PM for a 9-hour day).
+  const getEffectiveShiftStartMs = (clockInMs: number) => {
+    const MYT_OFFSET_MS = 8 * 60 * 60 * 1000;
+    const myt = new Date(clockInMs + MYT_OFFSET_MS);
+    const officeStartMs = Date.UTC(myt.getUTCFullYear(), myt.getUTCMonth(), myt.getUTCDate(), 8, 30) - MYT_OFFSET_MS;
+    return Math.max(clockInMs, officeStartMs);
+  };
+
   const getShiftProgress = () => {
     if (!activeSession || !activeSession.clock_in) return 0;
     
@@ -1428,7 +1437,7 @@ export default function Attendance() {
       }
     }
     
-    const start = new Date(clockInStr).getTime();
+    const start = getEffectiveShiftStartMs(new Date(clockInStr).getTime());
     const now = currentTime.getTime();
     const elapsedMs = now - start;
     const nineHoursMs = 9 * 60 * 60 * 1000;
@@ -1451,7 +1460,7 @@ export default function Attendance() {
     const parsed = activeSession.clock_in instanceof Date ? activeSession.clock_in : new Date(clockInStr);
     if (Number.isNaN(parsed.getTime())) return "--:--";
     
-    const estEnd = new Date(parsed.getTime() + 9 * 60 * 60 * 1000);
+    const estEnd = new Date(getEffectiveShiftStartMs(parsed.getTime()) + 9 * 60 * 60 * 1000);
     return estEnd.toLocaleTimeString([], {
       hour: "2-digit",
       minute: "2-digit",

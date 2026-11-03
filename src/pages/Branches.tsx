@@ -169,7 +169,7 @@ const branches = [
     code: "HQ",
     name: "Rayhar HQ",
     location: "Kemaman,Terengganu",
-    leader: "MD KHAN IDRIS BIN MD KHAN IBRAHIM",
+    leader: "-",
   },
   {
     code: "KMM",
@@ -308,7 +308,7 @@ const getBranchLeaderInfo = (branch: any) => {
   let name = (branch?.leader_name || "").trim();
   if (!name) {
     if (isHQ) {
-      name = "MD KHAN IDRIS BIN MD KHAN IBRAHIM";
+      name = "-"; // No Managing Director assigned
     } else {
       name = "-";
     }
