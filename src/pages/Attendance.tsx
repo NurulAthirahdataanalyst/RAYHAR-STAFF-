@@ -24,10 +24,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
 import PageActions from "@/components/layout/PageActions";
 import {
+  calculateLateWorkingHour,
   calculateSessionWorkingMinutes,
+  calculateTotalRestMinutes,
   calculateTotalWorkingHoursFormatted,
-  formatDurationHHMM
+  formatDurationHHMM,
+  parseTimeToMinutes
 } from "@/utils/workingHoursCalculator";
+import { downloadXlsxFile } from "@/utils/xlsxExport";
 
 const branchNameMap: Record<string, string> = {
   HQ: "Rayhar HQ", KMM: "Kemaman", TGG: "Kuala Terengganu", CNH: "Chendering",
@@ -740,11 +744,157 @@ export default function Attendance() {
     };
   }, [user?.user_id, user?.id, fetchStatus, fetchHistoryLogs, selectedMonth, selectedYear]);
 
-  // Export PDF Handler
-  const handleExportPDF = () => {
-    const targetLogs = viewMode === "day"
+  // Group attendance logs by date (1 date = 1 row) with chronological multi-session support for Exports (CSV, Excel, PDF)
+  const getGroupedExportData = () => {
+    const periodLogs = viewMode === "day"
       ? historyLogs.filter(log => String(log.date || '').slice(0, 10) === String(selectedDate || '').slice(0, 10))
       : historyLogs;
+
+    const groupedMap = new Map<string, any>();
+
+    const formatSessionExportTime = (timeVal: any, isoVal: any): string | null => {
+      if (timeVal && timeVal !== "--" && timeVal !== "--:--" && timeVal !== "-" && timeVal !== "N/A") {
+        return String(timeVal).trim().replace(/^0(\d:)/, "$1");
+      }
+      if (isoVal) {
+        const formatted = formatAttendanceTime(isoVal);
+        if (formatted && formatted !== "--:--") {
+          return formatted.replace(/^0(\d:)/, "$1");
+        }
+      }
+      return null;
+    };
+
+    const addSessionToList = (list: any[], raw: any) => {
+      if (!raw) return;
+      const cIn = raw.clock_in || null;
+      const cOut = raw.clock_out || null;
+      const tIn = formatSessionExportTime(raw.time_in, cIn);
+      const tOut = formatSessionExportTime(raw.time_out, cOut);
+      if (!cIn && !tIn) return;
+
+      const isDuplicate = list.some(
+        (existing) =>
+          (cIn && existing.clock_in === cIn) ||
+          (!cIn && existing.time_in === tIn && existing.time_out === tOut)
+      );
+      if (!isDuplicate) {
+        list.push({
+          clock_in: cIn,
+          clock_out: cOut,
+          time_in: tIn,
+          time_out: tOut,
+          location: raw.location || raw.clock_in_location || null,
+          distance_meters: raw.distance_meters ?? null,
+          latitude: raw.latitude ?? raw.clock_in_latitude ?? null,
+          longitude: raw.longitude ?? raw.clock_in_longitude ?? null,
+        });
+      }
+    };
+
+    periodLogs.forEach((r: any) => {
+      const recDate = String(r.date || (r.clock_in ? r.clock_in : "")).slice(0, 10);
+      if (!recDate) return;
+
+      if (!groupedMap.has(recDate)) {
+        const sessions: any[] = [];
+        if (Array.isArray(r.sessions) && r.sessions.length > 0) {
+          r.sessions.forEach((s: any) => addSessionToList(sessions, s));
+        } else {
+          addSessionToList(sessions, r);
+        }
+
+        groupedMap.set(recDate, {
+          ...r,
+          date: recDate,
+          is_subsequent: false,
+          is_first_clock_in: true,
+          sessions,
+        });
+      } else {
+        const existing = groupedMap.get(recDate);
+        if (Array.isArray(r.sessions) && r.sessions.length > 0) {
+          r.sessions.forEach((s: any) => addSessionToList(existing.sessions, s));
+        } else {
+          addSessionToList(existing.sessions, r);
+        }
+
+        const rIsLate =
+          Boolean(r.is_late) ||
+          String(r.status || "").toUpperCase().includes("LATE") ||
+          (r.late && !["00:00", "--", "00h 00m", "0 Min", "—"].includes(String(r.late)));
+
+        if (rIsLate) {
+          existing.is_late = 1;
+          if (existing.status === "Present" || existing.status === "Present (On Time)" || existing.status === "ON TIME") {
+            existing.status = "Present (Late)";
+          }
+          if (r.late && !["00:00", "--", "00h 00m", "0 Min", "—"].includes(String(r.late))) {
+            existing.late = r.late;
+          }
+        }
+
+        if (existing.status === "Absent" && r.status && r.status !== "Absent") {
+          existing.status = r.status;
+        }
+      }
+    });
+
+    const groupedList = Array.from(groupedMap.values()).map((item: any) => {
+      if (Array.isArray(item.sessions) && item.sessions.length > 0) {
+        item.sessions.sort((a: any, b: any) => {
+          const tA = a.clock_in ? new Date(a.clock_in).getTime() : NaN;
+          const tB = b.clock_in ? new Date(b.clock_in).getTime() : NaN;
+          if (!isNaN(tA) && !isNaN(tB)) return tA - tB;
+          const mA = parseTimeToMinutes(a.clock_in || a.time_in) ?? 0;
+          const mB = parseTimeToMinutes(b.clock_in || b.time_in) ?? 0;
+          return mA - mB;
+        });
+        const first = item.sessions[0];
+        const last = item.sessions[item.sessions.length - 1];
+        item.clock_in = first.clock_in;
+        item.time_in = first.time_in;
+        item.clock_out = last.clock_out;
+        item.time_out = last.time_out;
+      }
+
+      item.is_subsequent = false;
+      item.is_first_clock_in = true;
+      item.late_display = calculateLateWorkingHour(item, "08:30");
+      item.rest_display = calculateTotalRestMinutes(item);
+      item.working_hours_display = calculateTotalWorkingHoursFormatted(item, "08:30");
+      return item;
+    });
+
+    const filteredGrouped = groupedList.filter((log: any) => {
+      if (statusFilter === "ALL") return true;
+      const isLate =
+        Boolean(log.is_late) ||
+        String(log.status).toUpperCase().includes("LATE") ||
+        (log.status === "Present" && log.late_display && !["00:00", "--", "00h 00m", "0 Min", "—"].includes(log.late_display));
+      if (statusFilter === "LATE") return isLate;
+      if (statusFilter === "ON TIME") {
+        return ["Present", "ON TIME", "Present (On Time)"].includes(log.status) && !isLate;
+      }
+      if (statusFilter === "ABSENT") return log.status === "Absent";
+      if (statusFilter === "ON LEAVE") {
+        return ["Leave", "On Leave", "Approved Leave", "Company Leave"].includes(log.status);
+      }
+      return log.status === statusFilter;
+    });
+
+    const maxSessions = Math.max(
+      2,
+      ...filteredGrouped.map((r: any) => (Array.isArray(r.sessions) ? r.sessions.length : 0))
+    );
+    const sessionIndices = Array.from({ length: maxSessions }, (_, idx) => idx);
+
+    return { groupedLogs: filteredGrouped, maxSessions, sessionIndices };
+  };
+
+  // Export PDF Handler
+  const handleExportPDF = () => {
+    const { groupedLogs: targetLogs, maxSessions, sessionIndices } = getGroupedExportData();
 
     if (targetLogs.length === 0) {
       toast({
@@ -793,13 +943,18 @@ export default function Attendance() {
     const userBranchCode = user?.branch || 'N/A';
     const fullBranchName = branchNames[userBranchCode] || userBranchCode;
 
+    const sessionThs = sessionIndices
+      .map((idx) => `<th>Clock In ${idx + 1}</th><th>Clock Out ${idx + 1}</th>`)
+      .join("");
+
     const logsHtml = targetLogs.map(log => {
       const d = new Date(log.date);
       const dateStr = d.toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
       const isLate =
+        Boolean(log.is_late) ||
         String(log.status).toUpperCase().includes("LATE") ||
         log.status === "Present (Late)" ||
-        (log.status === "Present" && log.late && log.late !== "00:00" && log.late !== "--" && log.late !== "00h 00m");
+        (log.status === "Present" && log.late_display && !["00:00", "--", "00h 00m", "0 Min", "—"].includes(log.late_display));
       let statusClass = (log.status || '').toLowerCase().replace(/[^a-z0-9]/g, '');
       let displayStatus = log.status || '--';
       if (isLate) {
@@ -817,14 +972,34 @@ export default function Attendance() {
       } else if (log.status === "Missing Clock-Out") {
         statusClass = 'leave';
       }
+
+      const sessions: any[] = Array.isArray(log.sessions) ? log.sessions : [];
+      const sessionTds = sessionIndices
+        .map((idx) => {
+          const s = sessions[idx];
+          if (s && (s.clock_in || s.time_in)) {
+            return `<td>${s.time_in || "N/A"}</td><td>${s.time_out || "N/A"}</td>`;
+          }
+          const emptyVal = idx === 0 && sessions.length === 0 ? "N/A" : "-";
+          return `<td>${emptyVal}</td><td>${emptyVal}</td>`;
+        })
+        .join("");
+
+      const lateText = log.late_display || calculateLateWorkingHour(log, "08:30");
+      const restText = log.rest_display || calculateTotalRestMinutes(log);
+      const workingHrsText =
+        log.working_hours_display && log.working_hours_display !== "--"
+          ? log.working_hours_display
+          : log.duration || log.working_hours || "--";
+
       return `
         <tr>
           <td>${dateStr}</td>
-          <td>${log.time_in || '--'}</td>
-          <td>${log.time_out || '--'}</td>
+          ${sessionTds}
           <td><span class="badge badge-${statusClass}">${displayStatus}</span></td>
-          <td>${log.late === "00:00" || log.late === "00h 00m" ? "--" : (log.late || '--')}</td>
-          <td class="duration">${log.duration || log.working_hours || '--'}</td>
+          <td style="${lateText === "0 Min" ? "color: #008000; font-weight: 600;" : ""}">${lateText}</td>
+          <td>${restText}</td>
+          <td class="duration">${workingHrsText}</td>
         </tr>
       `;
     }).join("");
@@ -834,6 +1009,7 @@ export default function Attendance() {
       : new Date(selectedYear, selectedMonth - 1).toLocaleString('default', { month: 'long', year: 'numeric' });
 
     const reportFileName = `Rayhar Staff Attendance Report - ${user?.full_name || 'Employee'}`;
+    const totalCols = 5 + maxSessions * 2;
 
     writePrintDocument(printWindow, `
       <html>
@@ -849,8 +1025,8 @@ export default function Attendance() {
             .meta-item { font-size: 13px; color: #000000; }
             .meta-item strong { color: #000000; }
             table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-            th { background: #f8fafc; color: #000000; text-align: left; padding: 12px 16px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #cbd5e1; }
-            td { padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-size: 13px; color: #000000; vertical-align: middle; }
+            th { background: #f8fafc; color: #000000; text-align: left; padding: 10px 12px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #cbd5e1; }
+            td { padding: 10px 12px; border-bottom: 1px solid #e2e8f0; font-size: 12px; color: #000000; vertical-align: middle; }
             tr:nth-child(even) td { background: #f8fafc; }
             .badge { display: inline-flex; align-items: center; justify-content: center; height: 22px; padding: 0 10px; border-radius: 9999px; font-size: 10px; font-weight: 800; line-height: 1; letter-spacing: 0.5px; text-transform: uppercase; white-space: nowrap; vertical-align: middle; }
             .badge-present { background: #f3e8ff; color: #942392; border: 1px solid #e9d5ff; }
@@ -888,15 +1064,15 @@ export default function Attendance() {
             <thead>
                <tr>
                  <th>Date</th>
-                 <th>Time In</th>
-                 <th>Time Out</th>
+                 ${sessionThs}
                  <th>Status</th>
                  <th>Late</th>
+                 <th>Rest</th>
                  <th>Working Hours</th>
                </tr>
             </thead>
             <tbody>
-              ${logsHtml || '<tr><td colspan="6" style="text-align: center;">No attendance logs found for this period.</td></tr>'}
+              ${logsHtml || `<tr><td colspan="${totalCols}" style="text-align: center;">No attendance logs found for this period.</td></tr>`}
             </tbody>
           </table>
         </body>
@@ -981,7 +1157,7 @@ export default function Attendance() {
             });
           }
 
-          const pdf = new jsPDF("p", "mm", "a4");
+          const pdf = new jsPDF(maxSessions > 2 ? "l" : "p", "mm", "a4");
           const pdfWidth = pdf.internal.pageSize.getWidth();
           const pdfHeight = pdf.internal.pageSize.getHeight();
           const pxPerMm = canvas.width / pdfWidth;
@@ -1054,9 +1230,7 @@ export default function Attendance() {
 
   // Export CSV Handler
   const handleExportCSV = () => {
-    const targetLogs = viewMode === "day"
-      ? historyLogs.filter(log => String(log.date || '').slice(0, 10) === String(selectedDate || '').slice(0, 10))
-      : historyLogs;
+    const { groupedLogs: targetLogs, sessionIndices } = getGroupedExportData();
 
     if (targetLogs.length === 0) {
       toast({
@@ -1067,47 +1241,43 @@ export default function Attendance() {
       return;
     }
 
-    const branchNames: Record<string, string> = {
-      "HQ": "Rayhar HQ",
-      "KMM": "Kemaman",
-      "TGG": "Kuala Terengganu",
-      "CNH": "Cheneh",
-      "KBG": "Kuala Berang",
-      "DGN": "Dungun",
-      "JTH": "Jertih",
-      "KBR": "Kota Baru",
-      "RMP": "Rompin",
-      "MZM": "Muadzam Shah",
-      "SHA": "Shah Alam",
-      "BBB": "Bandar Baru Bangi",
-      "KUL": "Kuala Lumpur",
-      "IPH": "Ipoh",
-      "MJG": "Manjung",
-      "MLK": "Melaka",
-      "KKS": "Kuala Kangsar",
-      "TWU": "Tawau",
-      "SNS": "Seremban",
-      "AOR": "Alor Setar",
-      "BTM": "Bertam",
-      "BTP": "Batu Pahat",
-      "JB": "Johor Bharu"
-    };
-    const userBranchCode = user?.branch || 'N/A';
-    const fullBranchName = branchNames[userBranchCode] || userBranchCode;
+    const sessionHeaders = sessionIndices.flatMap((idx) => [
+      `Clock In ${idx + 1}`,
+      `Clock Out ${idx + 1}`,
+    ]);
 
-    const headers = ["Date", "Time In", "Time Out", "Status", "Late", "Working Hours"];
+    const headers = ["Date", ...sessionHeaders, "Status", "Late", "Rest", "Working Hours"];
     const rows = targetLogs.map(log => {
       const d = new Date(log.date);
       const dateStr = d.toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
-      
+
+      const sessions: any[] = Array.isArray(log.sessions) ? log.sessions : [];
+      const sessionCells = sessionIndices.flatMap((idx) => {
+        const s = sessions[idx];
+        if (s && (s.clock_in || s.time_in)) {
+          const tIn = s.time_in || "N/A";
+          const tOut = s.time_out || "N/A";
+          return [`"${tIn.replace(/"/g, '""')}"`, `"${tOut.replace(/"/g, '""')}"`];
+        }
+        const emptyVal = idx === 0 && sessions.length === 0 ? "N/A" : "-";
+        return [`"${emptyVal}"`, `"${emptyVal}"`];
+      });
+
+      const lateText = log.late_display || calculateLateWorkingHour(log, "08:30");
+      const restText = log.rest_display || calculateTotalRestMinutes(log);
+      const workingHrsText =
+        log.working_hours_display && log.working_hours_display !== "--"
+          ? log.working_hours_display
+          : log.duration || log.working_hours || "--";
+
       // Escape CSV values
       return [
         `"${dateStr.replace(/"/g, '""')}"`,
-        `"${(log.time_in || '--').replace(/"/g, '""')}"`,
-        `"${(log.time_out || '--').replace(/"/g, '""')}"`,
+        ...sessionCells,
         `"${(log.status || '').replace(/"/g, '""')}"`,
-        `"${(log.late === "00:00" || log.late === "00h 00m" ? "--" : (log.late || '--')).replace(/"/g, '""')}"`,
-        `"${(log.duration || log.working_hours || '--').replace(/"/g, '""')}"`
+        `"${lateText.replace(/"/g, '""')}"`,
+        `"${restText.replace(/"/g, '""')}"`,
+        `"${workingHrsText.replace(/"/g, '""')}"`
       ];
     });
 
@@ -1132,6 +1302,72 @@ export default function Attendance() {
     toast({
       title: "Export Successful",
       description: `CSV Report for ${periodFileStr} has been downloaded.`,
+    });
+  };
+
+  // Export Excel Handler
+  const handleExportExcel = () => {
+    const { groupedLogs: targetLogs, sessionIndices } = getGroupedExportData();
+
+    if (targetLogs.length === 0) {
+      toast({
+        title: "Export Failed",
+        description: "No attendance logs found to export.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const sessionHeaders = sessionIndices.flatMap((idx) => [
+      `Clock In ${idx + 1}`,
+      `Clock Out ${idx + 1}`,
+    ]);
+
+    const headers = ["Date", ...sessionHeaders, "Status", "Late", "Rest", "Working Hours"];
+    const rows = targetLogs.map(log => {
+      const d = new Date(log.date);
+      const dateStr = d.toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+
+      const sessions: any[] = Array.isArray(log.sessions) ? log.sessions : [];
+      const sessionCells = sessionIndices.flatMap((idx) => {
+        const s = sessions[idx];
+        if (s && (s.clock_in || s.time_in)) {
+          const tIn = s.time_in || "N/A";
+          const tOut = s.time_out || "N/A";
+          return [tIn, tOut];
+        }
+        const emptyVal = idx === 0 && sessions.length === 0 ? "N/A" : "-";
+        return [emptyVal, emptyVal];
+      });
+
+      const lateText = log.late_display || calculateLateWorkingHour(log, "08:30");
+      const restText = log.rest_display || calculateTotalRestMinutes(log);
+      const workingHrsText =
+        log.working_hours_display && log.working_hours_display !== "--"
+          ? log.working_hours_display
+          : log.duration || log.working_hours || "--";
+
+      return [
+        dateStr,
+        ...sessionCells,
+        log.status || '',
+        lateText,
+        restText,
+        workingHrsText
+      ];
+    });
+
+    const periodFileStr = viewMode === "day"
+      ? selectedDate
+      : new Date(selectedYear, selectedMonth - 1).toLocaleString('default', { month: 'long', year: 'numeric' }).replace(/ /g, '_');
+
+    const filename = `Rayhar_Attendance_Report_${user?.full_name || 'Employee'}_${periodFileStr}.xlsx`;
+    const sheetName = `Attendance_${periodFileStr}`;
+    downloadXlsxFile(filename, sheetName, headers, rows);
+
+    toast({
+      title: "Export Successful",
+      description: `Excel Report for ${periodFileStr} has been downloaded.`,
     });
   };
 
@@ -2259,7 +2495,7 @@ export default function Attendance() {
               
               {/* Export */}
               <div className="shrink-0 ml-auto sm:ml-0">
-                <ExportDropdown onExportCSV={handleExportCSV} onExportPDF={handleExportPDF} />
+                <ExportDropdown onExportExcel={handleExportExcel} onExportCSV={handleExportCSV} onExportPDF={handleExportPDF} />
               </div>
             </div>
           </CardHeader>

@@ -236,9 +236,9 @@ export default function LeaveEntitlementManagement() {
         <>
           <Card className="overflow-hidden border-border/60 bg-card/77 backdrop-blur-sm">
             <CardHeader className="border-b border-border/50 bg-muted/20 rounded-t-xl">
-              <CardTitle className="flex items-center gap-2 text-lg font-black">
+              <CardTitle className="flex items-center gap-2 text-[15px] sm:text-base font-black uppercase tracking-tight text-foreground">
                 <Layers3 className="w-5 h-5 text-[#942392]" />
-                Module Scope
+                MODULE SCOPE
               </CardTitle>
               <CardDescription>
                 This page is structured for enterprise leave entitlement administration and can grow with policy-driven features over time.
