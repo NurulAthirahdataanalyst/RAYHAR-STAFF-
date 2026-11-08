@@ -948,8 +948,12 @@ export default function Attendance() {
       .join("");
 
     const logsHtml = targetLogs.map(log => {
-      const d = new Date(log.date);
-      const dateStr = d.toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+      const rawDate = String(log.date || "").slice(0, 10);
+      const dateParts = rawDate.split("-");
+      const dateStr =
+        dateParts.length === 3
+          ? `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`
+          : rawDate;
       const isLate =
         Boolean(log.is_late) ||
         String(log.status).toUpperCase().includes("LATE") ||
@@ -1248,8 +1252,12 @@ export default function Attendance() {
 
     const headers = ["Date", ...sessionHeaders, "Status", "Late", "Rest", "Working Hours"];
     const rows = targetLogs.map(log => {
-      const d = new Date(log.date);
-      const dateStr = d.toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+      const rawDate = String(log.date || "").slice(0, 10);
+      const dateParts = rawDate.split("-");
+      const dateStr =
+        dateParts.length === 3
+          ? `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`
+          : rawDate;
 
       const sessions: any[] = Array.isArray(log.sessions) ? log.sessions : [];
       const sessionCells = sessionIndices.flatMap((idx) => {
@@ -1325,8 +1333,12 @@ export default function Attendance() {
 
     const headers = ["Date", ...sessionHeaders, "Status", "Late", "Rest", "Working Hours"];
     const rows = targetLogs.map(log => {
-      const d = new Date(log.date);
-      const dateStr = d.toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+      const rawDate = String(log.date || "").slice(0, 10);
+      const dateParts = rawDate.split("-");
+      const dateStr =
+        dateParts.length === 3
+          ? `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`
+          : rawDate;
 
       const sessions: any[] = Array.isArray(log.sessions) ? log.sessions : [];
       const sessionCells = sessionIndices.flatMap((idx) => {

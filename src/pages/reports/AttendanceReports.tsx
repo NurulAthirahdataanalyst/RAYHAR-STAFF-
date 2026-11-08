@@ -640,7 +640,13 @@ export default function AttendanceReports() {
       if (viewType === "day") {
         return baseCells;
       } else {
-        return [`"${(a.date || '').replace(/"/g, '""')}"`, ...baseCells];
+        const rawDate = String(a.date || "").slice(0, 10);
+        const dateParts = rawDate.split("-");
+        const formattedDate =
+          dateParts.length === 3
+            ? `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`
+            : rawDate;
+        return [`"${formattedDate.replace(/"/g, '""')}"`, ...baseCells];
       }
     });
 

@@ -145,6 +145,51 @@ function createZipArchive(entries: ZipEntry[]): Uint8Array {
 }
 
 /**
+ * Parses a date string (YYYY-MM-DD, DD-MM-YYYY, or DD/MM/YYYY) into an Excel 1900 date serial number.
+ * Returns null if the value is not a standalone date string.
+ */
+function parseExcelDateSerial(val: unknown): number | null {
+  if (typeof val !== "string") return null;
+  const trimmed = val.trim();
+  let year = 0;
+  let month = 0;
+  let day = 0;
+
+  const isoMatch = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (isoMatch) {
+    year = Number(isoMatch[1]);
+    month = Number(isoMatch[2]);
+    day = Number(isoMatch[3]);
+  } else {
+    const dmyMatch = trimmed.match(/^(\d{2})[-/](\d{2})[-/](\d{4})$/);
+    if (dmyMatch) {
+      day = Number(dmyMatch[1]);
+      month = Number(dmyMatch[2]);
+      year = Number(dmyMatch[3]);
+    } else {
+      return null;
+    }
+  }
+
+  if (year < 1900 || year > 2199 || month < 1 || month > 12 || day < 1 || day > 31) {
+    return null;
+  }
+
+  const utcMs = Date.UTC(year, month - 1, day);
+  const check = new Date(utcMs);
+  if (
+    check.getUTCFullYear() !== year ||
+    check.getUTCMonth() !== month - 1 ||
+    check.getUTCDate() !== day
+  ) {
+    return null;
+  }
+
+  // Excel 1900 epoch offset (1970-01-01 is serial 25569)
+  return Math.round(utcMs / 86400000) + 25569;
+}
+
+/**
  * Builds a complete OpenXML (.xlsx) binary Uint8Array from headers and 2D row values.
  */
 export function buildXlsxBinary(
@@ -192,6 +237,12 @@ export function buildXlsxBinary(
         .map((cell, cIdx) => {
           const colLetter = getExcelColumnLetter(cIdx);
           const cellRef = `${colLetter}${rowNum}`;
+          if (rIdx > 0) {
+            const excelDateSerial = parseExcelDateSerial(cell);
+            if (excelDateSerial !== null) {
+              return `<c r="${cellRef}" s="2"><v>${excelDateSerial}</v></c>`;
+            }
+          }
           const text = escapeXml(cell);
           // Plain unstyled cells like CSV: header is bold (1), data rows are default plain (0)
           const styleIdx = rIdx === 0 ? 1 : 0;
@@ -235,6 +286,9 @@ export function buildXlsxBinary(
 
   const stylesXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+  <numFmts count="1">
+    <numFmt numFmtId="164" formatCode="[$-en-US,101]dd-mm-yyyy"/>
+  </numFmts>
   <fonts count="2">
     <font>
       <sz val="11"/>
@@ -256,9 +310,12 @@ export function buildXlsxBinary(
   <cellStyleXfs count="1">
     <xf numFmtId="0" fontId="0" fillId="0" borderId="0"/>
   </cellStyleXfs>
-  <cellXfs count="2">
+  <cellXfs count="3">
     <xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>
     <xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/>
+    <xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" applyAlignment="1">
+      <alignment horizontal="left"/>
+    </xf>
   </cellXfs>
   <cellStyles count="1">
     <cellStyle name="Normal" xfId="0" builtinId="0"/>
