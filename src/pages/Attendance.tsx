@@ -1012,7 +1012,17 @@ export default function Attendance() {
       ? new Date(selectedDate).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
       : new Date(selectedYear, selectedMonth - 1).toLocaleString('default', { month: 'long', year: 'numeric' });
 
-    const reportFileName = `Rayhar Staff Attendance Report - ${user?.full_name || 'Employee'}`;
+    const periodFileStr = (() => {
+      if (viewMode === "day") {
+        const raw = String(selectedDate || "").slice(0, 10);
+        const parts = raw.split("-");
+        return parts.length === 3 ? `${parts[2]}-${parts[1]}-${parts[0]}` : raw;
+      }
+      const monthName = new Date(selectedYear, selectedMonth - 1).toLocaleString("en-US", { month: "long" });
+      return `${monthName}_${selectedYear}`;
+    })();
+
+    const reportFileName = `Rayhar_Attendance_Report_${periodFileStr}`;
     const totalCols = 5 + maxSessions * 2;
 
     writePrintDocument(printWindow, `
@@ -1298,12 +1308,18 @@ export default function Attendance() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     
-    const periodFileStr = viewMode === "day"
-      ? selectedDate
-      : new Date(selectedYear, selectedMonth - 1).toLocaleString('default', { month: 'long', year: 'numeric' }).replace(/ /g, '_');
+    const periodFileStr = (() => {
+      if (viewMode === "day") {
+        const raw = String(selectedDate || "").slice(0, 10);
+        const parts = raw.split("-");
+        return parts.length === 3 ? `${parts[2]}-${parts[1]}-${parts[0]}` : raw;
+      }
+      const monthName = new Date(selectedYear, selectedMonth - 1).toLocaleString("en-US", { month: "long" });
+      return `${monthName}_${selectedYear}`;
+    })();
 
     link.setAttribute("href", url);
-    link.setAttribute("download", `Rayhar_Attendance_Report_${user?.full_name || 'Employee'}_${periodFileStr}.csv`);
+    link.setAttribute("download", `Rayhar_Attendance_Report_${periodFileStr}.csv`);
     link.style.visibility = 'hidden';
     link.click();
 
@@ -1369,11 +1385,17 @@ export default function Attendance() {
       ];
     });
 
-    const periodFileStr = viewMode === "day"
-      ? selectedDate
-      : new Date(selectedYear, selectedMonth - 1).toLocaleString('default', { month: 'long', year: 'numeric' }).replace(/ /g, '_');
+    const periodFileStr = (() => {
+      if (viewMode === "day") {
+        const raw = String(selectedDate || "").slice(0, 10);
+        const parts = raw.split("-");
+        return parts.length === 3 ? `${parts[2]}-${parts[1]}-${parts[0]}` : raw;
+      }
+      const monthName = new Date(selectedYear, selectedMonth - 1).toLocaleString("en-US", { month: "long" });
+      return `${monthName}_${selectedYear}`;
+    })();
 
-    const filename = `Rayhar_Attendance_Report_${user?.full_name || 'Employee'}_${periodFileStr}.xlsx`;
+    const filename = `Rayhar_Attendance_Report_${periodFileStr}.xlsx`;
     const sheetName = `Attendance_${periodFileStr}`;
     downloadXlsxFile(filename, sheetName, headers, rows);
 
