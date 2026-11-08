@@ -107,7 +107,6 @@ const malaysiaHolidays = [
   { date: "2024-07-07", name: "Awal Muharram" },
   { date: "2024-08-31", name: "Merdeka Day" },
   { date: "2024-09-16", name: "Malaysia Day" },
-  { date: "2024-10-31", name: "Deepavali" },
   { date: "2024-12-25", name: "Christmas Day" },
   
   // 2025
@@ -124,7 +123,6 @@ const malaysiaHolidays = [
   { date: "2025-06-27", name: "Awal Muharram" },
   { date: "2025-08-31", name: "Merdeka Day" },
   { date: "2025-09-16", name: "Malaysia Day" },
-  { date: "2025-10-20", name: "Deepavali" },
   { date: "2025-12-25", name: "Christmas Day" },
   
   // 2026
@@ -141,7 +139,6 @@ const malaysiaHolidays = [
   { date: "2026-06-16", name: "Awal Muharram" },
   { date: "2026-08-31", name: "Merdeka Day" },
   { date: "2026-09-16", name: "Malaysia Day" },
-  { date: "2026-11-08", name: "Deepavali" },
   { date: "2026-12-25", name: "Christmas Day" }
 ];
 
