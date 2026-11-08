@@ -1545,7 +1545,7 @@ export default function Attendance() {
         }
         
         if (dist_meters > radius) {
-          toast({ title: isClockOut ? "Clock Out Failed" : "Clock In Failed", description: `You are outside the branch radius (${radius}m). Distance: ${dist_meters}m`, variant: "destructive" });
+          toast({ title: isClockOut ? "Clock Out Failed" : "Clock In Failed", description: "You are outside the branch radius", variant: "destructive" });
           setLoading(false);
           return;
         }
