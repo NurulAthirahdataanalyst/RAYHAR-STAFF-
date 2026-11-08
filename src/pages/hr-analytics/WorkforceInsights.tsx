@@ -2453,17 +2453,30 @@ function MonthViewDashboard({ data, branches = [], clockInOut, lateList, absentL
         const activePermanent = (Array.isArray(clockInOut) ? clockInOut : []).filter((emp:any) => emp.branch === b.branch && (!emp.temp_branch || emp.temp_branch === b.branch));
         const activeTemporary = (Array.isArray(clockInOut) ? clockInOut : []).filter((emp:any) => emp.branch !== b.branch && emp.temp_branch === b.branch);
         
-        const presentOnTime = activePermanent.filter((emp:any) => emp.status === 'Present (On Time)' || emp.status === 'Present').length;
-        const presentLate = activePermanent.filter((emp:any) => emp.status === 'Present (Late)').length;
-        const onLeave = activePermanent.filter((emp:any) => emp.status === 'On Leave' || emp.status === 'Approved Leave').length;
-        const companyLeave = activePermanent.filter((emp:any) => emp.status === 'Company Leave').length;
-        const outstation = activePermanent.filter((emp:any) => emp.status === 'Outstation').length;
+        const isEmpOnTime = (emp: any) =>
+          emp.status === 'Present (On Time)' ||
+          emp.status === 'Present' ||
+          emp.status_clock_in === 'Present (On Time)' ||
+          ((emp.status === 'Missing Clock-Out' || emp.missing_clock_out || Boolean(emp.clock_in)) && !emp.is_late && emp.status !== 'Present (Late)' && emp.status_clock_in !== 'Present (Late)');
+
+        const isEmpLate = (emp: any) =>
+          emp.status === 'Present (Late)' ||
+          emp.status_clock_in === 'Present (Late)' ||
+          ((emp.status === 'Missing Clock-Out' || emp.missing_clock_out || Boolean(emp.clock_in)) && Boolean(emp.is_late));
+
+        const isEmpPresent = (emp: any) => isEmpOnTime(emp) || isEmpLate(emp);
+
+        const presentOnTime = activePermanent.filter(isEmpOnTime).length;
+        const presentLate = activePermanent.filter(isEmpLate).length;
+        const onLeave = activePermanent.filter((emp:any) => !isEmpPresent(emp) && (emp.status === 'On Leave' || emp.status === 'Approved Leave')).length;
+        const companyLeave = activePermanent.filter((emp:any) => !isEmpPresent(emp) && emp.status === 'Company Leave').length;
+        const outstation = activePermanent.filter((emp:any) => emp.status === 'Outstation' || emp.status_clock_in === 'Outstation').length;
         
-        const tempPresent = activeTemporary.filter((emp:any) => emp.status === 'Present (On Time)' || emp.status === 'Present').length;
-        const tempLate = activeTemporary.filter((emp:any) => emp.status === 'Present (Late)').length;
-        const tempOnLeave = activeTemporary.filter((emp:any) => emp.status === 'On Leave' || emp.status === 'Approved Leave').length;
-        const tempCompanyLeave = activeTemporary.filter((emp:any) => emp.status === 'Company Leave').length;
-        const tempOutstation = activeTemporary.filter((emp:any) => emp.status === 'Outstation').length;
+        const tempPresent = activeTemporary.filter(isEmpOnTime).length;
+        const tempLate = activeTemporary.filter(isEmpLate).length;
+        const tempOnLeave = activeTemporary.filter((emp:any) => !isEmpPresent(emp) && (emp.status === 'On Leave' || emp.status === 'Approved Leave')).length;
+        const tempCompanyLeave = activeTemporary.filter((emp:any) => !isEmpPresent(emp) && emp.status === 'Company Leave').length;
+        const tempOutstation = activeTemporary.filter((emp:any) => emp.status === 'Outstation' || emp.status_clock_in === 'Outstation').length;
 
         const isWeekend = activePermanent.length > 0
           ? activePermanent.every((r:any) => r.status === "Weekend" || r.status === "Rest Day" || Boolean(r.is_rest_day))
