@@ -1,4 +1,5 @@
 import { LucideIcon } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface StatCardProps {
   title: string;
@@ -12,6 +13,7 @@ interface StatCardProps {
   valueClassName?: string;
   isAnalyticsStyle?: boolean;
   footer?: React.ReactNode;
+  loading?: boolean;
 }
 
 const variantStyles = {
@@ -35,7 +37,8 @@ export default function StatCard({
   onClick,
   valueClassName,
   isAnalyticsStyle = false,
-  footer
+  footer,
+  loading = false
 }: StatCardProps) {
   
   const currentStyle = variantStyles[variant] || variantStyles.default;
@@ -49,22 +52,35 @@ export default function StatCard({
           <div className="min-h-[28px] mb-3">
             <p className="text-[10px] font-bold text-foreground dark:text-foreground uppercase tracking-widest whitespace-normal break-words leading-tight">{title}</p>
           </div>
-          <div>
-            <p className="text-[28px] font-black text-slate-800 dark:text-slate-100 tracking-tight leading-tight whitespace-pre-wrap break-words">{value}</p>
-            {subtitle && <p className="text-[10px] text-foreground dark:text-foreground mt-1 font-medium font-mono truncate">{subtitle}</p>}
-          </div>
+          {loading ? (
+            <div className="space-y-2">
+              <Skeleton className="h-8 w-20 rounded-lg" />
+              {subtitle && <Skeleton className="h-3 w-28 rounded" />}
+            </div>
+          ) : (
+            <div>
+              <p className="text-[28px] font-black text-slate-800 dark:text-slate-100 tracking-tight leading-tight whitespace-pre-wrap break-words">{value}</p>
+              {subtitle && <p className="text-[10px] text-foreground dark:text-foreground mt-1 font-medium font-mono truncate">{subtitle}</p>}
+            </div>
+          )}
         </div>
         <div className="relative w-14 h-14 flex items-center justify-center shrink-0 ml-2">
-          <svg className="w-full h-full transform -rotate-90">
-            <circle cx="50%" cy="50%" r="42%" stroke="currentColor" strokeWidth="5" fill="transparent" className="text-slate-100 dark:text-slate-700" />
-            <circle cx="50%" cy="50%" r="42%" stroke="currentColor" strokeWidth="5" fill="transparent" 
-              strokeDasharray={175.9}
-              strokeDashoffset={175.9 - (progress / 100) * 175.9}
-              className="text-[#942392] dark:text-indigo-400 transition-all duration-1000 ease-out" 
-              strokeLinecap="round"
-            />
-          </svg>
-          <span className="absolute text-[10px] font-black text-slate-800 dark:text-slate-100">{progress}%</span>
+          {loading ? (
+            <Skeleton className="w-14 h-14 rounded-full" />
+          ) : (
+            <>
+              <svg className="w-full h-full transform -rotate-90">
+                <circle cx="50%" cy="50%" r="42%" stroke="currentColor" strokeWidth="5" fill="transparent" className="text-slate-100 dark:text-slate-700" />
+                <circle cx="50%" cy="50%" r="42%" stroke="currentColor" strokeWidth="5" fill="transparent" 
+                  strokeDasharray={175.9}
+                  strokeDashoffset={175.9 - (progress / 100) * 175.9}
+                  className="text-[#942392] dark:text-indigo-400 transition-all duration-1000 ease-out" 
+                  strokeLinecap="round"
+                />
+              </svg>
+              <span className="absolute text-[10px] font-black text-slate-800 dark:text-slate-100">{progress}%</span>
+            </>
+          )}
         </div>
       </div>
     );
@@ -103,26 +119,36 @@ export default function StatCard({
         </div>
         
         <div className="flex items-baseline gap-2 mb-1 mt-1 min-w-0">
-          <p className={`${valueClassName ? valueClassName : `font-black ${String(value).length > 12 ? 'text-xl' : String(value).length > 8 ? 'text-2xl' : 'text-3xl'}`} tracking-tight leading-tight whitespace-pre-wrap break-words text-foreground`}>
-            {value}
-          </p>
+          {loading ? (
+            <Skeleton className="h-8 w-20 rounded-lg my-0.5" />
+          ) : (
+            <p className={`${valueClassName ? valueClassName : `font-black ${String(value).length > 12 ? 'text-xl' : String(value).length > 8 ? 'text-2xl' : 'text-3xl'}`} tracking-tight leading-tight whitespace-pre-wrap break-words text-foreground`}>
+              {value}
+            </p>
+          )}
         </div>
         
         {(subtitle || trend) && (
           <div className="mt-auto pt-2">
-            {trend && (
-              <span className={`inline-block mr-1 text-[10px] font-black px-1.5 py-0.5 rounded-md ${
-                trend.positive ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
-              }`}>
-                {trend.positive ? "↑" : "↓"} {trend.value}
-              </span>
-            )}
-            {subtitle && (
-              <p className="text-[10px] font-medium font-mono text-foreground truncate">{subtitle}</p>
+            {loading ? (
+              <Skeleton className="h-3.5 w-28 rounded" />
+            ) : (
+              <>
+                {trend && (
+                  <span className={`inline-block mr-1 text-[10px] font-black px-1.5 py-0.5 rounded-md ${
+                    trend.positive ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
+                  }`}>
+                    {trend.positive ? "↑" : "↓"} {trend.value}
+                  </span>
+                )}
+                {subtitle && (
+                  <p className="text-[10px] font-medium font-mono text-foreground truncate">{subtitle}</p>
+                )}
+              </>
             )}
           </div>
         )}
-        {footer && (
+        {!loading && footer && (
           <div className="mt-2">
             {footer}
           </div>
@@ -153,36 +179,45 @@ export default function StatCard({
       </div>
 
       <div className="min-w-0">
-        <p className={`${valueClassName ? valueClassName : `font-black ${String(value).length > 12 ? 'text-lg' : String(value).length > 8 ? 'text-xl' : 'text-[28px]'}`} tracking-tight leading-tight whitespace-pre-wrap break-words ${
-          variant === 'maroon' ? 'text-rose-700 dark:text-rose-300' : 
-          variant === 'warning' ? 'text-amber-700 dark:text-amber-300' : 'text-slate-800 dark:text-slate-100'
-        }`}>
-          {value}
-        </p>
+        {loading ? (
+          <div className="space-y-2 py-0.5">
+            <Skeleton className="h-8 w-20 rounded-lg" />
+            {(subtitle || trend) && <Skeleton className="h-3.5 w-28 rounded" />}
+          </div>
+        ) : (
+          <>
+            <p className={`${valueClassName ? valueClassName : `font-black ${String(value).length > 12 ? 'text-lg' : String(value).length > 8 ? 'text-xl' : 'text-[28px]'}`} tracking-tight leading-tight whitespace-pre-wrap break-words ${
+              variant === 'maroon' ? 'text-rose-700 dark:text-rose-300' : 
+              variant === 'warning' ? 'text-amber-700 dark:text-amber-300' : 'text-slate-800 dark:text-slate-100'
+            }`}>
+              {value}
+            </p>
 
-        {(subtitle || trend) && (
-          <div className="mt-1">
-            {trend && (
-              <span className={`inline-block mr-1 text-[10px] font-black px-1.5 py-0.5 rounded-md ${
-                trend.positive ? 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400' : 'bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400'
-              }`}>
-                {trend.positive ? "↑" : "↓"} {trend.value}
-              </span>
+            {(subtitle || trend) && (
+              <div className="mt-1">
+                {trend && (
+                  <span className={`inline-block mr-1 text-[10px] font-black px-1.5 py-0.5 rounded-md ${
+                    trend.positive ? 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400' : 'bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400'
+                  }`}>
+                    {trend.positive ? "↑" : "↓"} {trend.value}
+                  </span>
+                )}
+                {subtitle && (
+                  <p className={`text-[10px] font-medium font-mono truncate ${
+                    variant === 'maroon' ? 'text-rose-500 dark:text-rose-400' : 
+                    variant === 'warning' ? 'text-amber-600 dark:text-amber-400' : 'text-foreground dark:text-foreground'
+                  }`}>
+                    {subtitle}
+                  </p>
+                )}
+              </div>
             )}
-            {subtitle && (
-              <p className={`text-[10px] font-medium font-mono truncate ${
-                variant === 'maroon' ? 'text-rose-500 dark:text-rose-400' : 
-                variant === 'warning' ? 'text-amber-600 dark:text-amber-400' : 'text-foreground dark:text-foreground'
-              }`}>
-                {subtitle}
-              </p>
+            {footer && (
+              <div className="mt-2 border-t border-slate-100 dark:border-slate-800/60 pt-2">
+                {footer}
+              </div>
             )}
-          </div>
-        )}
-        {footer && (
-          <div className="mt-2 border-t border-slate-100 dark:border-slate-800/60 pt-2">
-            {footer}
-          </div>
+          </>
         )}
       </div>
     </div>

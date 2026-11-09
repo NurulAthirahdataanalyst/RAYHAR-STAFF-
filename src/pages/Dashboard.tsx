@@ -35,6 +35,7 @@ import {
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import PageHeader from "@/components/layout/PageHeader";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
@@ -87,6 +88,9 @@ export default function Dashboard() {
   const dashboardUserId = user?.user_id || userId || user?.id || storedUser?.user_id;
 
   const [loading, setLoading] = useState(true);
+  const [loadingWhoOut, setLoadingWhoOut] = useState(true);
+  const [loadingOutstations, setLoadingOutstations] = useState(true);
+  const [loadingTempStaff, setLoadingTempStaff] = useState(true);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState("");
@@ -192,7 +196,6 @@ export default function Dashboard() {
       ].slice(0, 5));
 
       setLastUpdated("Updated a few seconds ago");
-      setLoading(false);
     },
     [dashboardUserId, rawName]
   );
@@ -204,7 +207,10 @@ export default function Dashboard() {
         return () => clearTimeout(timer);
       }
 
-      if (!silent) setIsRefreshing(true);
+      if (!silent) {
+        setLoading(true);
+        setIsRefreshing(true);
+      }
 
       try {
         const dateStr = selectedDate.toLocaleDateString("en-CA");
@@ -347,7 +353,8 @@ export default function Dashboard() {
     [applyAttendanceUpdate, dashboardUserId, role, userBranch, userDepartment, selectedDate, activeCompany?.id]
   );
 
-  const fetchWhoOutToday = useCallback(async () => {
+  const fetchWhoOutToday = useCallback(async (silent = false) => {
+    if (!silent) setLoadingWhoOut(true);
     try {
       const dateStr = selectedDate.toLocaleDateString("en-CA");
       const params = new URLSearchParams({
@@ -363,6 +370,8 @@ export default function Dashboard() {
       }
     } catch (err) {
       console.error("Who Out Today Error:", err);
+    } finally {
+      setLoadingWhoOut(false);
     }
   }, [role, userBranch, userDepartment, selectedDate]);
 
@@ -428,9 +437,13 @@ export default function Dashboard() {
     }
   };
 
-  const fetchUpcomingOutstations = useCallback(async () => {
+  const fetchUpcomingOutstations = useCallback(async (silent = false) => {
+    if (!dashboardUserId) {
+      const timer = setTimeout(() => setLoadingOutstations(false), 2000);
+      return () => clearTimeout(timer);
+    }
+    if (!silent) setLoadingOutstations(true);
     try {
-      if (!dashboardUserId) return;
       const outstationRole = ["hr_admin", "managing_director", "operation_manager", "head_of_department", "branch_leader", "assure_leader"].includes(role || "") ? role : "employee";
       const params = new URLSearchParams({
         role: outstationRole || "employee",
@@ -465,10 +478,13 @@ export default function Dashboard() {
       }
     } catch (err) {
       console.error("Fetch Upcoming Outstations Error:", err);
+    } finally {
+      setLoadingOutstations(false);
     }
   }, [dashboardUserId, role, userBranch, userDepartment, selectedDate]);
 
-  const fetchTemporaryStaff = useCallback(async () => {
+  const fetchTemporaryStaff = useCallback(async (silent = false) => {
+    if (!silent) setLoadingTempStaff(true);
     try {
       const res = await fetch(`${API_BASE_URL}/api/work-assignments-all`);
       const data = await res.json();
@@ -477,20 +493,24 @@ export default function Dashboard() {
       }
     } catch (e) {
       console.error("Failed to fetch temporary staff", e);
+    } finally {
+      setLoadingTempStaff(false);
     }
   }, []);
 
   // Fetch data whenever selectedDate changes
   useEffect(() => {
     const handleCompSwitched = () => {
-      fetchDashboardData(true);
+      fetchDashboardData(false);
+      fetchUpcomingOutstations(false);
       if (["hr_admin", "branch_leader", "managing_director", "operation_manager", "head_of_department", "assure_leader"].includes(role)) {
-        fetchWhoOutToday();
+        fetchWhoOutToday(false);
+        fetchTemporaryStaff(false);
       }
     };
     window.addEventListener('rayhar_company_switched', handleCompSwitched);
     return () => window.removeEventListener('rayhar_company_switched', handleCompSwitched);
-  }, [fetchDashboardData, fetchWhoOutToday, role]);
+  }, [fetchDashboardData, fetchUpcomingOutstations, fetchWhoOutToday, fetchTemporaryStaff, role]);
 
   useEffect(() => {
     fetchDashboardData();
@@ -565,7 +585,7 @@ export default function Dashboard() {
           
           fetchDashboardData(true);
           if (["hr_admin", "branch_leader", "managing_director", "operation_manager", "head_of_department", "assure_leader"].includes(role)) {
-            fetchWhoOutToday();
+            fetchWhoOutToday(true);
           }
         }
       } catch (e) {}
@@ -666,17 +686,6 @@ export default function Dashboard() {
     }
   });
 
-  if (loading && !dashboardUserId) {
-    return (
-      <div className="flex flex-col h-[80vh] items-center justify-center space-y-4">
-        <Loader2 className="animate-spin text-[#a01497] w-12 h-12" />
-        <p className="text-foreground animate-pulse font-medium">
-          Loading your workspace...
-        </p>
-      </div>
-    );
-  }
-
   const safeTodayStatus = stats.todayStatus || "Absent";
   const isPresent = safeTodayStatus.includes("Present");
   const isClockedOut = safeTodayStatus.includes("Clocked Out");
@@ -721,7 +730,7 @@ export default function Dashboard() {
           : `Clock in: ${stats.clockInTime || "--:--"}`;
 
   const isTodayDate = isToday(selectedDate);
-  const showEmptyState = !isTodayDate && isElevatedRole && stats.hasRecords === false && !isCompanyLeave && (stats.companyLeave || 0) === 0 && (stats.onLeave || 0) === 0 && (stats.outstationToday || 0) === 0;
+  const showEmptyState = !loading && !isTodayDate && isElevatedRole && stats.hasRecords === false && !isCompanyLeave && (stats.companyLeave || 0) === 0 && (stats.onLeave || 0) === 0 && (stats.outstationToday || 0) === 0;
 
   const filteredWhoOutToday = useMemo(() => {
     const selectedDateStr = selectedDate.toLocaleDateString("en-CA");
@@ -757,8 +766,15 @@ export default function Dashboard() {
       {/* Header - responsive */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="min-w-0">
-          <h1 className="text-responsive-2xl font-black tracking-tight text-foreground truncate" style={{ fontFamily: "'Outfit', sans-serif" }}>
-            {getGreeting()}, {rawName}!
+          <h1 className="text-responsive-2xl font-black tracking-tight text-foreground truncate flex items-center gap-2" style={{ fontFamily: "'Outfit', sans-serif" }}>
+            {loading && !userName && !user?.full_name ? (
+              <>
+                <span>{getGreeting()},</span>
+                <Skeleton className="h-7 w-36 rounded-lg inline-block" />
+              </>
+            ) : (
+              `${getGreeting()}, ${rawName}!`
+            )}
           </h1>
           <p className="text-foreground font-semibold mt-1 flex items-center gap-2 text-responsive-sm" style={{ fontFamily: "'Outfit', sans-serif" }}>
             {selectedDate.toLocaleDateString("en-US", {
@@ -861,7 +877,9 @@ export default function Dashboard() {
             <Card 
               onClick={() => navigate("/attendance")}
               className={`rounded-2xl shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] group relative overflow-hidden flex flex-col justify-between cursor-pointer ${
-                safeTodayStatus.includes("Present (On Time)") 
+                loading
+                  ? "border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/40"
+                  : safeTodayStatus.includes("Present (On Time)") 
                   ? "border border-emerald-200 dark:border-emerald-900/60 bg-emerald-50/60 dark:bg-emerald-950/30" 
                   : safeTodayStatus.includes("Present (Late)")
                   ? "border border-amber-200 dark:border-amber-900/60 bg-amber-50/60 dark:bg-amber-950/30"
@@ -878,6 +896,7 @@ export default function Dashboard() {
             >
               <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform duration-500 ease-out group-hover:scale-115 group-hover:rotate-6 group-hover:-translate-y-1.5 pointer-events-none">
                 <Clock className={`w-24 h-24 ${
+                  loading ? "text-slate-500" :
                   safeTodayStatus.includes("Present (On Time)") ? "text-emerald-600" :
                   safeTodayStatus.includes("Present (Late)") ? "text-amber-600" :
                   isCompanyLeave ? "text-purple-600" :
@@ -889,24 +908,36 @@ export default function Dashboard() {
               <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
                 <div>
                   <div className="flex items-center gap-1.5 mb-2">
-                    <div className={`w-2.5 h-2.5 rounded-full shadow-xs ${
-                      safeTodayStatus.includes("Present (On Time)") ? "bg-emerald-500" :
-                      safeTodayStatus.includes("Present (Late)") ? "bg-amber-500" :
-                      isCompanyLeave ? "bg-purple-500" :
-                      isOnLeave ? "bg-blue-500" :
-                      displayStatus.includes("Outstation") ? "bg-pink-500" :
-                      isClockedOut ? "bg-slate-500" : "bg-rose-500"
-                    }`}></div>
+                    {loading ? (
+                      <Skeleton className="w-2.5 h-2.5 rounded-full" />
+                    ) : (
+                      <div className={`w-2.5 h-2.5 rounded-full shadow-xs ${
+                        safeTodayStatus.includes("Present (On Time)") ? "bg-emerald-500" :
+                        safeTodayStatus.includes("Present (Late)") ? "bg-amber-500" :
+                        isCompanyLeave ? "bg-purple-500" :
+                        isOnLeave ? "bg-blue-500" :
+                        displayStatus.includes("Outstation") ? "bg-pink-500" :
+                        isClockedOut ? "bg-slate-500" : "bg-rose-500"
+                      }`}></div>
+                    )}
                     <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Today's Status</span>
                   </div>
                   <div className="my-1 h-[36px] flex items-center">
-                    <span className={`text-2xl font-black leading-none ${todayStatusTextClass}`}>{displayStatus}</span>
+                    {loading ? (
+                      <Skeleton className="h-8 w-28 rounded-lg" />
+                    ) : (
+                      <span className={`text-2xl font-black leading-none ${todayStatusTextClass}`}>{displayStatus}</span>
+                    )}
                   </div>
                 </div>
                 <div className="mt-3 pt-2.5 border-t border-slate-200/80 dark:border-slate-800/60">
-                  <p className="text-[10px] font-semibold text-slate-600 dark:text-foreground truncate">
-                    {todayStatusSubtitle}
-                  </p>
+                  {loading ? (
+                    <Skeleton className="h-3.5 w-32 rounded" />
+                  ) : (
+                    <p className="text-[10px] font-semibold text-slate-600 dark:text-foreground truncate">
+                      {todayStatusSubtitle}
+                    </p>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -934,13 +965,21 @@ export default function Dashboard() {
                     <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Attendance</span>
                   </div>
                   <div className="my-1 h-[36px] flex items-center">
-                    <span className="text-3xl font-black text-blue-700 dark:text-blue-300 leading-none">{stats.attendanceRate}%</span>
+                    {loading ? (
+                      <Skeleton className="h-8 w-20 rounded-lg bg-blue-200/60 dark:bg-blue-900/40" />
+                    ) : (
+                      <span className="text-3xl font-black text-blue-700 dark:text-blue-300 leading-none">{stats.attendanceRate}%</span>
+                    )}
                   </div>
                 </div>
                 <div className="mt-3 pt-2.5 border-t border-blue-200/80 dark:border-blue-800/60">
-                  <p className="text-[10px] font-semibold text-slate-600 dark:text-foreground">
-                    Monthly Average
-                  </p>
+                  {loading ? (
+                    <Skeleton className="h-3.5 w-24 rounded bg-blue-200/50 dark:bg-blue-900/30" />
+                  ) : (
+                    <p className="text-[10px] font-semibold text-slate-600 dark:text-foreground">
+                      Monthly Average
+                    </p>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -968,17 +1007,30 @@ export default function Dashboard() {
                     <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Leave Balance</span>
                   </div>
                   <div className="my-1 h-[36px] flex items-center">
-                    <span className="text-3xl font-black text-purple-700 dark:text-purple-300 leading-none">{stats.leaveBalance} days</span>
+                    {loading ? (
+                      <Skeleton className="h-8 w-24 rounded-lg bg-purple-200/60 dark:bg-purple-900/40" />
+                    ) : (
+                      <span className="text-3xl font-black text-purple-700 dark:text-purple-300 leading-none">{stats.leaveBalance} days</span>
+                    )}
                   </div>
                 </div>
                 <div className="mt-3 pt-2.5 border-t border-purple-200/80 dark:border-purple-800/60 flex items-center justify-between">
-                  <p className="text-[10px] font-semibold text-slate-600 dark:text-foreground">
-                    Annual Leave
-                  </p>
-                  {(stats as any)?.annualEntitlement !== undefined && (
-                    <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400">
-                      {(stats as any)?.annualLeavesUsed ?? 0} / {(stats as any)?.annualEntitlement} used
-                    </span>
+                  {loading ? (
+                    <>
+                      <Skeleton className="h-3.5 w-20 rounded bg-purple-200/50 dark:bg-purple-900/30" />
+                      <Skeleton className="h-3 w-14 rounded bg-purple-200/50 dark:bg-purple-900/30" />
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-[10px] font-semibold text-slate-600 dark:text-foreground">
+                        Annual Leave
+                      </p>
+                      {(stats as any)?.annualEntitlement !== undefined && (
+                        <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400">
+                          {(stats as any)?.annualLeavesUsed ?? 0} / {(stats as any)?.annualEntitlement} used
+                        </span>
+                      )}
+                    </>
                   )}
                 </div>
               </CardContent>
@@ -1007,13 +1059,21 @@ export default function Dashboard() {
                     <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Pending</span>
                   </div>
                   <div className="my-1 h-[36px] flex items-center">
-                    <span className="text-3xl font-black text-amber-700 dark:text-amber-300 leading-none">{stats.pendingLeaves}</span>
+                    {loading ? (
+                      <Skeleton className="h-8 w-14 rounded-lg bg-amber-200/60 dark:bg-amber-900/40" />
+                    ) : (
+                      <span className="text-3xl font-black text-amber-700 dark:text-amber-300 leading-none">{stats.pendingLeaves}</span>
+                    )}
                   </div>
                 </div>
                 <div className="mt-3 pt-2.5 border-t border-amber-200/80 dark:border-amber-800/60">
-                  <p className="text-[10px] font-semibold text-slate-600 dark:text-foreground">
-                    Leave Requests
-                  </p>
+                  {loading ? (
+                    <Skeleton className="h-3.5 w-24 rounded bg-amber-200/50 dark:bg-amber-900/30" />
+                  ) : (
+                    <p className="text-[10px] font-semibold text-slate-600 dark:text-foreground">
+                      Leave Requests
+                    </p>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -1069,6 +1129,7 @@ export default function Dashboard() {
                       value={String(stats.presentToday ?? 0)}
                       subtitle="Clocked In Today"
                       variant="success"
+                      loading={loading}
                       onClick={() => navigate("/hr-analytics/attendance#admin-attendance")}
                     />
                     <StatCard
@@ -1077,6 +1138,7 @@ export default function Dashboard() {
                       value={String(stats.outstationToday ?? 0)}
                       subtitle={`${stats.upcomingOutstation ?? 0} Upcoming`}
                       variant="purple"
+                      loading={loading}
                       onClick={() => navigate("/outstation/my?tab=active")}
                     />
                     <StatCard
@@ -1085,6 +1147,7 @@ export default function Dashboard() {
                       value={String(stats.absentToday ?? 0)}
                       subtitle={(stats.absentToday ?? 0) > 0 ? "Not Clocked In" : "All Present"}
                       variant="maroon"
+                      loading={loading}
                       onClick={() => navigate("/hr-analytics/attendance#employee-absenteeism")}
                       footer={
                         (stats.restDayToday ?? 0) > 0 ? (
@@ -1101,6 +1164,7 @@ export default function Dashboard() {
                       value={String(stats.companyLeave ?? 0)}
                       subtitle="Employees Exempt"
                       variant="purple"
+                      loading={loading}
                     />
                     <StatCard
                       icon={Building2}
@@ -1108,6 +1172,7 @@ export default function Dashboard() {
                       value={stats.activeCompanyLeave.applies_to === 'all' ? 'ALL STAFF' : stats.activeCompanyLeave.applies_to === 'branch' ? `BRANCH ${stats.activeCompanyLeave.branch_id}` : `DEPT ${stats.activeCompanyLeave.department_id}`}
                       subtitle="Coverage"
                       variant="purple"
+                      loading={loading}
                     />
                     <StatCard
                       icon={(stats.lateArrivals ?? 0) > 0 ? AlertTriangle : CheckCircle2}
@@ -1115,6 +1180,7 @@ export default function Dashboard() {
                       value={String(stats.lateArrivals ?? 0)}
                       subtitle={(stats.lateArrivals ?? 0) > 0 ? "Action Required" : "All On Time"}
                       variant="warning"
+                      loading={loading}
                     />
                   </>
                 ) : (
@@ -1182,7 +1248,8 @@ export default function Dashboard() {
                     value={displayStatus}
                     valueClassName={todayStatusTextClass}
                     subtitle={todayStatusSubtitle}
-                    variant={isPresent ? "success" : isClockedOut ? "default" : (isOnLeave || isCompanyLeave) ? "purple" : "maroon"}
+                    variant={loading ? "default" : isPresent ? "success" : isClockedOut ? "default" : (isOnLeave || isCompanyLeave) ? "purple" : "maroon"}
+                    loading={loading}
                     onClick={() => navigate("/attendance")}
                   />
                 )}
@@ -1200,24 +1267,33 @@ export default function Dashboard() {
                               <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#a01497]" />
                             </div>
                           </div>
-                          <div className="flex items-baseline gap-2">
-                            <h3 className="text-lg sm:text-xl font-black text-foreground tracking-tighter truncate">
-                              {stats.activeCompanyLeave.title || stats.activeCompanyLeave.leave_name || "Company Leave"}
-                            </h3>
-                          </div>
-                          <div className="flex flex-col gap-1 mt-1">
-                            <Badge variant="outline" className="w-fit border-[#a01497]/20 text-[#a01497] bg-[#a01497]/5 uppercase text-[8px] tracking-wider font-black">
-                              📅 {(() => {
-                                if (!stats.activeCompanyLeave?.start_date) return "COMPANY TRIP";
-                                const start = new Date(stats.activeCompanyLeave.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase();
-                                const end = stats.activeCompanyLeave.end_date ? new Date(stats.activeCompanyLeave.end_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase() : start;
-                                return start === end ? start : `${start} - ${end}`;
-                              })()}
-                            </Badge>
-                            <Badge variant="outline" className="w-fit border-slate-500/20 text-slate-600 bg-slate-500/5 uppercase text-[8px] tracking-wider font-black truncate max-w-full">
-                              👥 Applies To: {stats.activeCompanyLeave.applies_to === 'all' ? 'All Staff' : stats.activeCompanyLeave.applies_to === 'branch' ? `Branch: ${stats.activeCompanyLeave.branch_id}` : stats.activeCompanyLeave.applies_to === 'department' ? `Dept: ${stats.activeCompanyLeave.department_id}` : stats.activeCompanyLeave.applies_to}
-                            </Badge>
-                          </div>
+                          {loading ? (
+                            <div className="space-y-2 pt-1">
+                              <Skeleton className="h-6 w-32 rounded-lg" />
+                              <Skeleton className="h-4 w-28 rounded" />
+                            </div>
+                          ) : (
+                            <>
+                              <div className="flex items-baseline gap-2">
+                                <h3 className="text-lg sm:text-xl font-black text-foreground tracking-tighter truncate">
+                                  {stats.activeCompanyLeave.title || stats.activeCompanyLeave.leave_name || "Company Leave"}
+                                </h3>
+                              </div>
+                              <div className="flex flex-col gap-1 mt-1">
+                                <Badge variant="outline" className="w-fit border-[#a01497]/20 text-[#a01497] bg-[#a01497]/5 uppercase text-[8px] tracking-wider font-black">
+                                  📅 {(() => {
+                                    if (!stats.activeCompanyLeave?.start_date) return "COMPANY TRIP";
+                                    const start = new Date(stats.activeCompanyLeave.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase();
+                                    const end = stats.activeCompanyLeave.end_date ? new Date(stats.activeCompanyLeave.end_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase() : start;
+                                    return start === end ? start : `${start} - ${end}`;
+                                  })()}
+                                </Badge>
+                                <Badge variant="outline" className="w-fit border-slate-500/20 text-slate-600 bg-slate-500/5 uppercase text-[8px] tracking-wider font-black truncate max-w-full">
+                                  👥 Applies To: {stats.activeCompanyLeave.applies_to === 'all' ? 'All Staff' : stats.activeCompanyLeave.applies_to === 'branch' ? `Branch: ${stats.activeCompanyLeave.branch_id}` : stats.activeCompanyLeave.applies_to === 'department' ? `Dept: ${stats.activeCompanyLeave.department_id}` : stats.activeCompanyLeave.applies_to}
+                                </Badge>
+                              </div>
+                            </>
+                          )}
                         </div>
                       </CardContent>
                     </Card>
@@ -1231,6 +1307,7 @@ export default function Dashboard() {
                         value={String(stats.totalEmployees ?? 0)}
                         subtitle="Active Personnel"
                         variant="success"
+                        loading={loading}
                       />
                     </div>
                   </>
@@ -1245,6 +1322,7 @@ export default function Dashboard() {
                   value={String(stats.presentToday ?? 0)}
                   subtitle="Clocked In Today"
                   variant="success"
+                  loading={loading}
                   onClick={() => {
                     if (role === "branch_leader" || role === "branch_officer" || role === "head_of_department") {
                       navigate("/team-attendance");
@@ -1259,6 +1337,7 @@ export default function Dashboard() {
                   value={String(stats.outstationToday ?? 0)}
                   subtitle={`${stats.upcomingOutstation ?? 0} Upcoming`}
                   variant="purple"
+                  loading={loading}
                   onClick={() => {
                     if (role === "branch_leader" || role === "branch_officer" || role === "head_of_department") {
                       navigate("/outstation/assignment");
@@ -1273,6 +1352,7 @@ export default function Dashboard() {
                   value={String(stats.onLeave ?? 0)}
                   subtitle="Approved Leaves"
                   variant="default"
+                  loading={loading}
                   onClick={() => {
                     if (hasPermission("leave.approval") || ["hr_admin", "managing_director", "operation_manager", "assure_leader"].includes(role)) {
                       navigate("/leave/admin");
@@ -1289,6 +1369,7 @@ export default function Dashboard() {
                   value={String(stats.absentToday ?? 0)}
                   subtitle={(stats.absentToday ?? 0) > 0 ? "Not Clocked In" : "All Present"}
                   variant="maroon"
+                  loading={loading}
                   onClick={() => {
                     if (role === "branch_leader" || role === "branch_officer" || role === "head_of_department") {
                       navigate("/team-attendance");
@@ -1311,6 +1392,7 @@ export default function Dashboard() {
                   value={String(stats.lateArrivals ?? 0)}
                   subtitle={(stats.lateArrivals ?? 0) > 0 ? "Action Required" : "All On Time"}
                   variant="warning"
+                  loading={loading}
                 />
               </>
             )}
@@ -1346,7 +1428,41 @@ export default function Dashboard() {
             </div>
           </CardHeader>
           <CardContent className="p-4 bg-slate-50/50">
-            {(() => {
+            {loading ? (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
+                  {Array.from({ length: 5 }).map((_, idx) => (
+                    <div key={idx} className="bg-card rounded-[24px] p-3 flex flex-col justify-between h-[180px]">
+                      <div className="flex items-center gap-2">
+                        <Skeleton className="w-6 h-6 rounded-md shrink-0" />
+                        <Skeleton className="h-3 w-24 rounded" />
+                      </div>
+                      <div className="flex justify-between items-end px-2">
+                        <div className="flex flex-col items-center gap-1">
+                          <Skeleton className="h-6 w-10 rounded" />
+                          <Skeleton className="h-2.5 w-8 rounded" />
+                        </div>
+                        <div className="flex flex-col items-center gap-1">
+                          <Skeleton className="h-6 w-10 rounded" />
+                          <Skeleton className="h-2.5 w-10 rounded" />
+                        </div>
+                      </div>
+                      <div className="h-16 flex items-end justify-center gap-8 px-4 border-b border-slate-200 dark:border-slate-800">
+                        <Skeleton className="w-8 h-12 rounded-t-sm" />
+                        <Skeleton className="w-8 h-14 rounded-t-sm" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="rounded-xl p-4 border border-purple-100 flex items-start gap-3">
+                  <Skeleton className="w-8 h-8 rounded-full shrink-0" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-3.5 w-32 rounded" />
+                    <Skeleton className="h-3 w-full rounded" />
+                  </div>
+                </div>
+              </div>
+            ) : (() => {
               const todayTotal = stats.totalEmployees || 0;
               const typicalTotal = todayTotal || 1;
               const typicalPresent = Math.round(todayTotal * 0.88);
@@ -1364,6 +1480,7 @@ export default function Dashboard() {
               const rateDiff = (typicalAttendanceRate - todayAttendanceRate).toFixed(1);
 
               return (
+                <>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
                   {/* Total Employees */}
                   <div className="bg-card rounded-[24px] border-none shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] p-3 flex flex-col relative h-[180px]">
@@ -1515,20 +1632,21 @@ export default function Dashboard() {
                     </div>
                   </div>
                 </div>
+
+                <div className="mt-10 bg-gradient-to-r from-purple-50/80 to-purple-50/50 rounded-xl p-3 sm:p-4 border border-purple-100 flex items-start gap-3 sm:gap-4 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+                  <div className="w-8 h-8 rounded-full bg-card shadow-sm flex items-center justify-center shrink-0 border border-purple-100">
+                    <Info className="w-4 h-4 text-[#a01497]" />
+                  </div>
+                  <div className="pt-0.5">
+                    <p className="text-xs font-black text-[#1a0029] mb-1">Why the difference?</p>
+                    <p className="text-[11px] text-slate-600 dark:text-slate-200 font-medium leading-relaxed">
+                      Today's attendance is lower because <span className="font-bold text-[#a01497] bg-card px-1 py-0.5 rounded shadow-sm border border-slate-100 dark:border-slate-800">{stats.companyLeave || 0} employees</span> are on Company Leave (<span className="font-bold">{stats.activeCompanyLeave?.title || "Company Trip"}</span>) which applies to <span className="font-bold text-[#a01497] bg-card px-1 py-0.5 rounded shadow-sm border border-slate-100 dark:border-slate-800 uppercase">{stats.activeCompanyLeave?.applies_to === 'all' ? 'ALL STAFF' : stats.activeCompanyLeave?.applies_to === 'branch' ? `BRANCH ${stats.activeCompanyLeave?.branch_id}` : `DEPT ${stats.activeCompanyLeave?.department_id}`}</span>.
+                    </p>
+                  </div>
+                </div>
+                </>
               );
             })()}
-
-            <div className="mt-10 bg-gradient-to-r from-purple-50/80 to-purple-50/50 rounded-xl p-3 sm:p-4 border border-purple-100 flex items-start gap-3 sm:gap-4 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
-              <div className="w-8 h-8 rounded-full bg-card shadow-sm flex items-center justify-center shrink-0 border border-purple-100">
-                <Info className="w-4 h-4 text-[#a01497]" />
-              </div>
-              <div className="pt-0.5">
-                <p className="text-xs font-black text-[#1a0029] mb-1">Why the difference?</p>
-                <p className="text-[11px] text-slate-600 dark:text-slate-200 font-medium leading-relaxed">
-                  Today's attendance is lower because <span className="font-bold text-[#a01497] bg-card px-1 py-0.5 rounded shadow-sm border border-slate-100 dark:border-slate-800">{stats.companyLeave || 0} employees</span> are on Company Leave (<span className="font-bold">{stats.activeCompanyLeave?.title || "Company Trip"}</span>) which applies to <span className="font-bold text-[#a01497] bg-card px-1 py-0.5 rounded shadow-sm border border-slate-100 dark:border-slate-800 uppercase">{stats.activeCompanyLeave?.applies_to === 'all' ? 'ALL STAFF' : stats.activeCompanyLeave?.applies_to === 'branch' ? `BRANCH ${stats.activeCompanyLeave?.branch_id}` : `DEPT ${stats.activeCompanyLeave?.department_id}`}</span>.
-                </p>
-              </div>
-            </div>
           </CardContent>
         </Card>
       )}
@@ -1547,9 +1665,13 @@ export default function Dashboard() {
                       <CardTitle className="text-lg font-bold text-slate-800 dark:text-slate-100 tracking-tight">
                         Who's Out Today
                       </CardTitle>
-                      <p className="text-xs text-foreground mt-0.5">
-                        {filteredWhoOutToday.length} employee{filteredWhoOutToday.length !== 1 ? "s" : ""} currently on leave / outstation
-                      </p>
+                      {loadingWhoOut ? (
+                        <Skeleton className="h-3.5 w-48 mt-1 rounded" />
+                      ) : (
+                        <p className="text-xs text-foreground mt-0.5">
+                          {filteredWhoOutToday.length} employee{filteredWhoOutToday.length !== 1 ? "s" : ""} currently on leave / outstation
+                        </p>
+                      )}
                     </div>
                   </div>
                   <Button
@@ -1571,7 +1693,28 @@ export default function Dashboard() {
                 </div>
               </CardHeader>
               <CardContent className="p-4">
-                {filteredWhoOutToday.length > 0 ? (
+                {loadingWhoOut ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {Array.from({ length: 4 }).map((_, idx) => (
+                      <div
+                        key={idx}
+                        className="rounded-md border border-slate-200 dark:border-slate-800 p-3"
+                      >
+                        <div className="flex items-start gap-3">
+                          <Skeleton className="w-10 h-10 rounded shrink-0" />
+                          <div className="min-w-0 flex-1 space-y-2">
+                            <Skeleton className="h-3.5 w-32 rounded" />
+                            <Skeleton className="h-3 w-24 rounded" />
+                            <div className="flex items-center justify-between pt-1">
+                              <Skeleton className="h-4 w-20 rounded-sm" />
+                              <Skeleton className="h-3 w-12 rounded" />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : filteredWhoOutToday.length > 0 ? (
                   <div className={`grid grid-cols-1 sm:grid-cols-2 gap-3`}>
                     {filteredWhoOutToday.map((emp) => {
                       const endDate = new Date(emp.end_date);
@@ -1655,8 +1798,12 @@ export default function Dashboard() {
                   </CardTitle>
                 </div>
                 <div className="flex items-center gap-3">
-                  {lastUpdated && (
-                    <span className="text-xs italic text-foreground">Updated a few seconds ago</span>
+                  {loading ? (
+                    <Skeleton className="h-3.5 w-36 rounded" />
+                  ) : (
+                    lastUpdated && (
+                      <span className="text-xs italic text-foreground">Updated a few seconds ago</span>
+                    )
                   )}
                   <div className="border border-slate-200 dark:border-slate-800 rounded px-2 py-1 text-[10px] font-bold text-slate-600 dark:text-white">
                     Recent Activities
@@ -1710,7 +1857,45 @@ export default function Dashboard() {
             </CardHeader>
 
             <CardContent className="p-0">
-              {(() => {
+              {loading ? (
+                <div className="w-full text-left border-t border-slate-100 dark:border-slate-800">
+                  <div className="grid grid-cols-12 px-4 py-2 bg-slate-50 dark:bg-slate-900/50 text-[10px] font-bold text-foreground uppercase tracking-widest border-b border-slate-100 dark:border-slate-800">
+                    <div className="col-span-2">Type</div>
+                    <div className="col-span-2">Timestamp</div>
+                    <div className="col-span-6">Description</div>
+                    <div className="col-span-2 text-right">Status</div>
+                  </div>
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="grid grid-cols-12 px-4 py-3.5 border-b border-slate-100 dark:border-slate-800/60 items-center"
+                    >
+                      <div className="col-span-2 flex items-center gap-2">
+                        <Skeleton className="w-2 h-2 rounded-full shrink-0" />
+                        <Skeleton className="h-3.5 w-16 rounded" />
+                      </div>
+                      <div className="col-span-2">
+                        <Skeleton className="h-3 w-14 rounded" />
+                      </div>
+                      <div className="col-span-6 pr-4 space-y-1.5">
+                        <Skeleton className="h-3.5 w-3/4 rounded" />
+                        <Skeleton className="h-3 w-1/2 rounded" />
+                      </div>
+                      <div className="col-span-2 flex justify-end">
+                        <Skeleton className="h-5 w-16 rounded" />
+                      </div>
+                    </div>
+                  ))}
+                  <div className="px-4 py-3 flex items-center justify-between border-t border-slate-100 dark:border-slate-800">
+                    <Skeleton className="h-4 w-36 rounded" />
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-7 w-16 rounded" />
+                      <Skeleton className="h-7 w-7 rounded" />
+                      <Skeleton className="h-7 w-7 rounded" />
+                    </div>
+                  </div>
+                </div>
+              ) : (() => {
                 let feedItems: any[] = [];
                 if (activeTab === "my") feedItems = activityFeed.my;
                 else if (activeTab === "team") feedItems = activityFeed.team;
@@ -1859,7 +2044,28 @@ export default function Dashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-4 flex flex-col gap-3">
-              {groupedActiveOutstations.length > 0 ? (
+              {loadingOutstations ? (
+                Array.from({ length: 2 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="flex items-start gap-3 p-4 border border-slate-200 dark:border-slate-800 rounded-md"
+                  >
+                    <Skeleton className="w-[3px] h-16 rounded-full self-stretch mr-1 shrink-0" />
+                    <div className="flex-1 min-w-0 space-y-2">
+                      <Skeleton className="h-3.5 w-3/4 rounded" />
+                      <div className="space-y-1.5 pt-0.5">
+                        <Skeleton className="h-3 w-5/6 rounded" />
+                        <Skeleton className="h-3 w-1/2 rounded" />
+                        <Skeleton className="h-3 w-2/3 rounded" />
+                      </div>
+                    </div>
+                    <div className="flex -space-x-1.5 mt-0.5 shrink-0">
+                      <Skeleton className="w-5 h-5 rounded-full border border-white dark:border-slate-800" />
+                      <Skeleton className="w-5 h-5 rounded-full border border-white dark:border-slate-800" />
+                    </div>
+                  </div>
+                ))
+              ) : groupedActiveOutstations.length > 0 ? (
                 groupedActiveOutstations.map((g, i) => {
                   const displayEmps = g.employees.slice(0, 3);
                   const extraCount = Math.max(0, g.employees.length - 3);
@@ -1939,7 +2145,28 @@ export default function Dashboard() {
               </span>
             </CardHeader>
             <CardContent className="p-4 flex flex-col gap-3">
-              {groupedUpcomingOutstations.length > 0 ? (
+              {loadingOutstations ? (
+                Array.from({ length: 2 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="flex items-start gap-3 p-4 border border-slate-200 dark:border-slate-800 rounded-md"
+                  >
+                    <Skeleton className="w-[3px] h-16 rounded-full self-stretch mr-1 shrink-0" />
+                    <div className="flex-1 min-w-0 space-y-2">
+                      <Skeleton className="h-3.5 w-3/4 rounded" />
+                      <div className="space-y-1.5 pt-0.5">
+                        <Skeleton className="h-3 w-5/6 rounded" />
+                        <Skeleton className="h-3 w-1/2 rounded" />
+                        <Skeleton className="h-3 w-2/3 rounded" />
+                      </div>
+                    </div>
+                    <div className="flex -space-x-1.5 mt-0.5 shrink-0">
+                      <Skeleton className="w-5 h-5 rounded-full border border-white dark:border-slate-800" />
+                      <Skeleton className="w-5 h-5 rounded-full border border-white dark:border-slate-800" />
+                    </div>
+                  </div>
+                ))
+              ) : groupedUpcomingOutstations.length > 0 ? (
                 groupedUpcomingOutstations.map((g, i) => {
                   const displayEmps = g.employees.slice(0, 3);
                   const extraCount = Math.max(0, g.employees.length - 3);
@@ -2024,7 +2251,32 @@ export default function Dashboard() {
                 </span>
               </CardHeader>
               <CardContent className="p-4 flex flex-col gap-3">
-                {(() => {
+                {loadingTempStaff ? (
+                  Array.from({ length: 2 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="flex items-start gap-3 p-4 border border-slate-200 dark:border-slate-800 rounded-md"
+                    >
+                      <Skeleton className="w-[3px] h-24 rounded-full self-stretch mr-1 shrink-0" />
+                      <div className="flex-1 min-w-0 space-y-2">
+                        <div className="flex items-center gap-2">
+                          <Skeleton className="w-3.5 h-3.5 rounded-full shrink-0" />
+                          <Skeleton className="h-3.5 w-32 rounded" />
+                        </div>
+                        <Skeleton className="h-2.5 w-24 rounded ml-5" />
+                        <div className="space-y-1.5 ml-5 pt-1">
+                          <Skeleton className="h-2.5 w-28 rounded" />
+                          <Skeleton className="h-3 w-36 rounded" />
+                          <Skeleton className="h-3 w-40 rounded" />
+                          <div className="flex items-center gap-1.5 pt-1">
+                            <Skeleton className="w-2 h-2 rounded-full" />
+                            <Skeleton className="h-2.5 w-12 rounded" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (() => {
                   const onDutyStaff = temporaryStaff.filter((a: any) => {
                     if (a.status !== 'Active') return false;
                     const start = new Date(a.start_date);
@@ -2091,15 +2343,27 @@ export default function Dashboard() {
               <p className="text-[10px] font-bold uppercase tracking-widest opacity-80 mb-2">
                 Monthly Attendance Score
               </p>
-              <div className="flex items-end gap-3 mb-2">
-                <span className="text-4xl font-black">{stats.attendanceRate}%</span>
-                <span className="text-[10px] font-bold bg-white/20 px-2 py-0.5 rounded-sm mb-1.5">
-                  +1.2%
-                </span>
-              </div>
-              <p className="text-[11px] opacity-80">
-                Excellent performance this month!
-              </p>
+              {loading ? (
+                <div className="space-y-2">
+                  <div className="flex items-end gap-3">
+                    <Skeleton className="h-10 w-24 rounded-lg bg-white/20" />
+                    <Skeleton className="h-5 w-12 rounded-sm bg-white/20 mb-1" />
+                  </div>
+                  <Skeleton className="h-3.5 w-48 rounded bg-white/20" />
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-end gap-3 mb-2">
+                    <span className="text-4xl font-black">{stats.attendanceRate}%</span>
+                    <span className="text-[10px] font-bold bg-white/20 px-2 py-0.5 rounded-sm mb-1.5">
+                      +1.2%
+                    </span>
+                  </div>
+                  <p className="text-[11px] opacity-80">
+                    Excellent performance this month!
+                  </p>
+                </>
+              )}
             </CardContent>
           </Card>
 
@@ -2109,12 +2373,19 @@ export default function Dashboard() {
               <span className="text-[10px] font-bold text-foreground uppercase tracking-widest">
                 Server Status
               </span>
-              <div className="flex items-center gap-1.5">
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
-                <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">
-                  Operational
-                </span>
-              </div>
+              {loading ? (
+                <div className="flex items-center gap-1.5">
+                  <Skeleton className="w-2 h-2 rounded-full" />
+                  <Skeleton className="h-3 w-20 rounded" />
+                </div>
+              ) : (
+                <div className="flex items-center gap-1.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                  <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">
+                    Operational
+                  </span>
+                </div>
+              )}
             </CardContent>
           </Card>
 
