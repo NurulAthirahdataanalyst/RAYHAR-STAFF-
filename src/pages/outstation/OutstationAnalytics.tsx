@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useRole } from "@/contexts/RoleContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { API_BASE_URL } from "@/config/api";
 import {
@@ -1004,7 +1005,16 @@ export default function OutstationAnalytics() {
             </CardHeader>
             <CardContent className="p-0">
               {showSkeleton ? (
-                <div className="p-6 flex items-center justify-center"><Loader2 className="animate-spin w-6 h-6 text-[#942392]" /></div>
+                <div className="p-6 space-y-3">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <div key={i} className="flex items-center justify-between gap-4 py-2.5 border-b border-border/40 last:border-0">
+                      <Skeleton className={`h-4 ${i % 2 === 0 ? 'w-36' : 'w-28'} rounded`} />
+                      <Skeleton className="h-4 w-24 rounded" />
+                      <Skeleton className="h-4 w-32 rounded hidden sm:block" />
+                      <Skeleton className="h-5 w-16 rounded-full" />
+                    </div>
+                  ))}
+                </div>
               ) : allRecentAssignments.length === 0 ? (
                 <div className="p-6 text-center text-foreground text-xs">No recent outstations found.</div>
               ) : (

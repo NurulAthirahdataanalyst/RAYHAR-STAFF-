@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useRole } from "@/contexts/RoleContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -256,12 +257,21 @@ export default function MasterOverview() {
       </PageActions>
 
       {loading ? (
-        <Card className="border-none shadow-sm overflow-hidden bg-card/60 backdrop-blur-md rounded-[28px]">
-          <CardContent className="p-24 flex flex-col items-center justify-center gap-4">
-            <Loader2 className="w-10 h-10 animate-spin text-[#942392]" />
-            <p className="text-xs font-black text-foreground animate-pulse uppercase tracking-[0.25em]">Syncing Core Master Directory...</p>
-          </CardContent>
-        </Card>
+        <div className="space-y-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+            {Array.from({ length: 5 }).map((_, idx) => (
+              <Card key={idx} className="p-6 rounded-[24px] space-y-2.5">
+                <Skeleton className="h-3 w-24 rounded" />
+                <Skeleton className={`h-8 ${idx % 2 === 0 ? "w-16" : "w-20"} rounded-lg`} />
+                <Skeleton className="h-2.5 w-28 rounded" />
+              </Card>
+            ))}
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <Skeleton className="h-64 w-full rounded-[24px]" />
+            <Skeleton className="h-64 w-full rounded-[24px]" />
+          </div>
+        </div>
       ) : (
         <div className="space-y-4 sm:space-y-5">
           

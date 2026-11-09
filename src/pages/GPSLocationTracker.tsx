@@ -5,6 +5,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { TablePagination } from "@/components/common/TablePagination";
@@ -872,7 +873,16 @@ export default function GPSLocationTracker() {
                   </TableHeader>
                   <TableBody>
                     {historyLoading ? (
-                      <TableRow><TableCell colSpan={6} className="text-center py-8">Loading history...</TableCell></TableRow>
+                      Array.from({ length: 5 }).map((_, idx) => (
+                        <TableRow key={idx}>
+                          <TableCell><Skeleton className="h-4 w-32 rounded" /></TableCell>
+                          <TableCell><Skeleton className="h-3.5 w-28 rounded" /></TableCell>
+                          <TableCell><Skeleton className="h-3.5 w-16 rounded" /></TableCell>
+                          <TableCell><Skeleton className="h-3.5 w-20 rounded" /></TableCell>
+                          <TableCell><Skeleton className="h-5 w-20 rounded-full" /></TableCell>
+                          <TableCell><Skeleton className="h-5 w-24 rounded-full" /></TableCell>
+                        </TableRow>
+                      ))
                     ) : history.length === 0 ? (
                       <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">No history found</TableCell></TableRow>
                     ) : (

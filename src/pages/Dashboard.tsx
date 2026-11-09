@@ -62,7 +62,7 @@ const getStoredUser = () => {
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const { role, userName, userId, userBranch, userDepartment, scopeType, hasPermission } = useRole();
+  const { role, userName, userId, userBranch, userDepartment, scopeType, hasPermission, loading: roleLoading } = useRole();
   const { activeCompany } = useCompany();
   const normRole = (role || "").toLowerCase().trim();
   const rawScope = (scopeType || user?.scope_type || "").toLowerCase().trim();
@@ -88,6 +88,7 @@ export default function Dashboard() {
   const dashboardUserId = user?.user_id || userId || user?.id || storedUser?.user_id;
 
   const [loading, setLoading] = useState(true);
+  const [loadingActivities, setLoadingActivities] = useState(true);
   const [loadingWhoOut, setLoadingWhoOut] = useState(true);
   const [loadingOutstations, setLoadingOutstations] = useState(true);
   const [loadingTempStaff, setLoadingTempStaff] = useState(true);
@@ -209,6 +210,7 @@ export default function Dashboard() {
 
       if (!silent) {
         setLoading(true);
+        setLoadingActivities(true);
         setIsRefreshing(true);
       }
 
@@ -258,6 +260,8 @@ export default function Dashboard() {
           ) {
             setStats((current) => ({ ...current, ...(data.stats || {}) }));
             setActivities(data.recentActivities || []);
+            applyAttendanceUpdate(localUpdate);
+            setLoading(false);
             let updatedActivityFeed = data.activityFeed;
             if (updatedActivityFeed && updatedActivityFeed.my) {
               try {
@@ -289,10 +293,10 @@ export default function Dashboard() {
               }
               setActivityFeed(updatedActivityFeed);
             }
-            applyAttendanceUpdate(localUpdate);
           } else {
             setStats((current) => ({ ...current, ...(data.stats || {}) }));
             setActivities(data.recentActivities || []);
+            setLoading(false);
             let updatedActivityFeed = data.activityFeed;
             if (updatedActivityFeed && updatedActivityFeed.my) {
               try {
@@ -347,6 +351,7 @@ export default function Dashboard() {
         }
       } finally {
         setLoading(false);
+        setLoadingActivities(false);
         setIsRefreshing(false);
       }
     },
@@ -766,27 +771,29 @@ export default function Dashboard() {
       {/* Header - responsive */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="min-w-0">
-          <h1 className="text-responsive-2xl font-black tracking-tight text-foreground truncate flex items-center gap-2" style={{ fontFamily: "'Outfit', sans-serif" }}>
-            {loading && !userName && !user?.full_name ? (
-              <>
-                <span>{getGreeting()},</span>
-                <Skeleton className="h-7 w-36 rounded-lg inline-block" />
-              </>
-            ) : (
-              `${getGreeting()}, ${rawName}!`
-            )}
-          </h1>
-          <p className="text-foreground font-semibold mt-1 flex items-center gap-2 text-responsive-sm" style={{ fontFamily: "'Outfit', sans-serif" }}>
-            {selectedDate.toLocaleDateString("en-US", {
-              weekday: "long",
-              month: "long",
-              day: "numeric",
-              year: "numeric",
-            })}
-            {isRefreshing && (
-              <Loader2 className="w-3 h-3 animate-spin text-primary" />
-            )}
-          </p>
+          {loading || roleLoading ? (
+            <div className="space-y-2 py-0.5">
+              <Skeleton className="h-8 sm:h-9 w-64 sm:w-80 rounded-lg" />
+              <Skeleton className="h-4 w-36 sm:w-44 rounded" />
+            </div>
+          ) : (
+            <>
+              <h1 className="text-responsive-2xl font-black tracking-tight text-foreground truncate flex items-center gap-2" style={{ fontFamily: "'Outfit', sans-serif" }}>
+                {`${getGreeting()}, ${rawName}!`}
+              </h1>
+              <p className="text-foreground font-semibold mt-1 flex items-center gap-2 text-responsive-sm" style={{ fontFamily: "'Outfit', sans-serif" }}>
+                {selectedDate.toLocaleDateString("en-US", {
+                  weekday: "long",
+                  month: "long",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+                {isRefreshing && (
+                  <Loader2 className="w-3 h-3 animate-spin text-primary" />
+                )}
+              </p>
+            </>
+          )}
         </div>
 
         {/* Date Filter Datepicker */}
@@ -1695,7 +1702,12 @@ export default function Dashboard() {
               <CardContent className="p-4">
                 {loadingWhoOut ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {Array.from({ length: 4 }).map((_, idx) => (
+                    {([
+                      { nameW: "w-36", subW: "w-20", badgeW: "w-24", branchW: "w-12" },
+                      { nameW: "w-24", subW: "w-36", badgeW: "w-16", branchW: "w-14" },
+                      { nameW: "w-40", subW: "w-24", badgeW: "w-20", branchW: "w-10" },
+                      { nameW: "w-28", subW: "w-32", badgeW: "w-24", branchW: "w-12" },
+                    ]).map((cfg, idx) => (
                       <div
                         key={idx}
                         className="rounded-md border border-slate-200 dark:border-slate-800 p-3"
@@ -1703,11 +1715,11 @@ export default function Dashboard() {
                         <div className="flex items-start gap-3">
                           <Skeleton className="w-10 h-10 rounded shrink-0" />
                           <div className="min-w-0 flex-1 space-y-2">
-                            <Skeleton className="h-3.5 w-32 rounded" />
-                            <Skeleton className="h-3 w-24 rounded" />
+                            <Skeleton className={`h-3.5 ${cfg.nameW} rounded`} />
+                            <Skeleton className={`h-3 ${cfg.subW} rounded`} />
                             <div className="flex items-center justify-between pt-1">
-                              <Skeleton className="h-4 w-20 rounded-sm" />
-                              <Skeleton className="h-3 w-12 rounded" />
+                              <Skeleton className={`h-4 ${cfg.badgeW} rounded-sm`} />
+                              <Skeleton className={`h-3 ${cfg.branchW} rounded`} />
                             </div>
                           </div>
                         </div>
@@ -1798,7 +1810,7 @@ export default function Dashboard() {
                   </CardTitle>
                 </div>
                 <div className="flex items-center gap-3">
-                  {loading ? (
+                  {loadingActivities ? (
                     <Skeleton className="h-3.5 w-36 rounded" />
                   ) : (
                     lastUpdated && (
@@ -1857,7 +1869,7 @@ export default function Dashboard() {
             </CardHeader>
 
             <CardContent className="p-0">
-              {loading ? (
+              {loadingActivities ? (
                 <div className="w-full text-left border-t border-slate-100 dark:border-slate-800">
                   <div className="grid grid-cols-12 px-4 py-2 bg-slate-50 dark:bg-slate-900/50 text-[10px] font-bold text-foreground uppercase tracking-widest border-b border-slate-100 dark:border-slate-800">
                     <div className="col-span-2">Type</div>
@@ -1865,24 +1877,30 @@ export default function Dashboard() {
                     <div className="col-span-6">Description</div>
                     <div className="col-span-2 text-right">Status</div>
                   </div>
-                  {Array.from({ length: 5 }).map((_, i) => (
+                  {([
+                    { typeW: "w-16", timeW: "w-14", descW: "w-3/4", subW: "w-1/2", badgeW: "w-16" },
+                    { typeW: "w-12", timeW: "w-16", descW: "w-11/12", subW: "w-2/3", badgeW: "w-20" },
+                    { typeW: "w-20", timeW: "w-12", descW: "w-3/5", subW: "w-2/5", badgeW: "w-14" },
+                    { typeW: "w-14", timeW: "w-16", descW: "w-4/5", subW: "w-3/5", badgeW: "w-16" },
+                    { typeW: "w-16", timeW: "w-12", descW: "w-2/3", subW: "w-1/2", badgeW: "w-18" },
+                  ]).map((rowCfg, i) => (
                     <div
                       key={i}
                       className="grid grid-cols-12 px-4 py-3.5 border-b border-slate-100 dark:border-slate-800/60 items-center"
                     >
                       <div className="col-span-2 flex items-center gap-2">
-                        <Skeleton className="w-2 h-2 rounded-full shrink-0" />
-                        <Skeleton className="h-3.5 w-16 rounded" />
+                        <Skeleton className="w-2.5 h-2.5 rounded-full shrink-0" />
+                        <Skeleton className={`h-3.5 ${rowCfg.typeW} rounded`} />
                       </div>
                       <div className="col-span-2">
-                        <Skeleton className="h-3 w-14 rounded" />
+                        <Skeleton className={`h-3 ${rowCfg.timeW} rounded`} />
                       </div>
                       <div className="col-span-6 pr-4 space-y-1.5">
-                        <Skeleton className="h-3.5 w-3/4 rounded" />
-                        <Skeleton className="h-3 w-1/2 rounded" />
+                        <Skeleton className={`h-3.5 ${rowCfg.descW} rounded`} />
+                        <Skeleton className={`h-2.5 ${rowCfg.subW} rounded`} />
                       </div>
                       <div className="col-span-2 flex justify-end">
-                        <Skeleton className="h-5 w-16 rounded" />
+                        <Skeleton className={`h-5 ${rowCfg.badgeW} rounded`} />
                       </div>
                     </div>
                   ))}
@@ -2045,18 +2063,21 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent className="p-4 flex flex-col gap-3">
               {loadingOutstations ? (
-                Array.from({ length: 2 }).map((_, i) => (
+                ([
+                  { titleW: "w-3/4", dateW: "w-5/6", daysW: "w-1/2", locW: "w-2/3" },
+                  { titleW: "w-1/2", dateW: "w-3/4", daysW: "w-2/5", locW: "w-4/5" },
+                ]).map((cfg, i) => (
                   <div
                     key={i}
                     className="flex items-start gap-3 p-4 border border-slate-200 dark:border-slate-800 rounded-md"
                   >
                     <Skeleton className="w-[3px] h-16 rounded-full self-stretch mr-1 shrink-0" />
                     <div className="flex-1 min-w-0 space-y-2">
-                      <Skeleton className="h-3.5 w-3/4 rounded" />
+                      <Skeleton className={`h-3.5 ${cfg.titleW} rounded`} />
                       <div className="space-y-1.5 pt-0.5">
-                        <Skeleton className="h-3 w-5/6 rounded" />
-                        <Skeleton className="h-3 w-1/2 rounded" />
-                        <Skeleton className="h-3 w-2/3 rounded" />
+                        <Skeleton className={`h-3 ${cfg.dateW} rounded`} />
+                        <Skeleton className={`h-3 ${cfg.daysW} rounded`} />
+                        <Skeleton className={`h-3 ${cfg.locW} rounded`} />
                       </div>
                     </div>
                     <div className="flex -space-x-1.5 mt-0.5 shrink-0">
@@ -2146,18 +2167,21 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent className="p-4 flex flex-col gap-3">
               {loadingOutstations ? (
-                Array.from({ length: 2 }).map((_, i) => (
+                ([
+                  { titleW: "w-2/3", dateW: "w-4/5", daysW: "w-2/5", locW: "w-3/4" },
+                  { titleW: "w-5/6", dateW: "w-2/3", daysW: "w-1/2", locW: "w-3/5" },
+                ]).map((cfg, i) => (
                   <div
                     key={i}
                     className="flex items-start gap-3 p-4 border border-slate-200 dark:border-slate-800 rounded-md"
                   >
                     <Skeleton className="w-[3px] h-16 rounded-full self-stretch mr-1 shrink-0" />
                     <div className="flex-1 min-w-0 space-y-2">
-                      <Skeleton className="h-3.5 w-3/4 rounded" />
+                      <Skeleton className={`h-3.5 ${cfg.titleW} rounded`} />
                       <div className="space-y-1.5 pt-0.5">
-                        <Skeleton className="h-3 w-5/6 rounded" />
-                        <Skeleton className="h-3 w-1/2 rounded" />
-                        <Skeleton className="h-3 w-2/3 rounded" />
+                        <Skeleton className={`h-3 ${cfg.dateW} rounded`} />
+                        <Skeleton className={`h-3 ${cfg.daysW} rounded`} />
+                        <Skeleton className={`h-3 ${cfg.locW} rounded`} />
                       </div>
                     </div>
                     <div className="flex -space-x-1.5 mt-0.5 shrink-0">

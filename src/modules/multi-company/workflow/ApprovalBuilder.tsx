@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 import { multiCompanyApi } from '../services/multiCompanyApi';
 import {
   CompanyRole,
@@ -880,9 +881,16 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
 
   if (loading) {
     return (
-      <div className="p-8 text-center text-xs text-muted-foreground flex items-center justify-center gap-2">
-        <Loader2 className="w-4 h-4 animate-spin text-[#942392]" />
-        Loading branch-based approval workflows...
+      <div className="space-y-4 py-2">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-7 w-64 rounded-lg" />
+          <Skeleton className="h-9 w-36 rounded-xl" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {Array.from({ length: 2 }).map((_, i) => (
+            <Skeleton key={i} className="h-64 w-full rounded-2xl" />
+          ))}
+        </div>
       </div>
     );
   }

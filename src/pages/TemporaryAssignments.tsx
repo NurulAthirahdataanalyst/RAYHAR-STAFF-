@@ -3,6 +3,7 @@ import { format } from "date-fns";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -398,11 +399,30 @@ const TemporaryAssignments = () => {
             </TableHeader>
             <TableBody>
               {loading ? (
-                <TableRow>
-                  <TableCell colSpan={isHRAdmin ? 5 : 4} className="text-center py-10 text-foreground">
-                    Loading assignments...
-                  </TableCell>
-                </TableRow>
+                Array.from({ length: 5 }).map((_, idx) => (
+                  <TableRow key={idx}>
+                    <TableCell className="pl-6">
+                      <div className="space-y-1.5 py-1">
+                        <Skeleton className={`h-4 ${idx % 2 === 0 ? "w-40" : "w-32"} rounded`} />
+                        <Skeleton className="h-3 w-24 rounded" />
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className={`h-4 ${idx % 2 === 0 ? "w-28" : "w-24"} rounded`} />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-3.5 w-36 rounded" />
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Skeleton className="h-6 w-20 rounded-full mx-auto" />
+                    </TableCell>
+                    {isHRAdmin && (
+                      <TableCell className="pr-6 text-center">
+                        <Skeleton className="h-7 w-16 rounded-lg mx-auto" />
+                      </TableCell>
+                    )}
+                  </TableRow>
+                ))
               ) : filteredAssignments.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={isHRAdmin ? 5 : 4} className="text-center py-10 text-foreground">

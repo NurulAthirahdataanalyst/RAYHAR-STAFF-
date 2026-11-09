@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Users, CalendarClock, CalendarX2, Building2, FileText, Printer, PhoneCall, Clock , X, Download } from 'lucide-react';
 
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
@@ -195,8 +196,29 @@ export default function TeamLeaveRequests() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="space-y-6 py-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {Array.from({ length: 3 }).map((_, idx) => (
+            <Card key={idx} className="p-5 space-y-2.5">
+              <Skeleton className="h-3.5 w-28 rounded" />
+              <Skeleton className={`h-8 ${idx % 2 === 0 ? "w-16" : "w-20"} rounded-lg`} />
+              <Skeleton className="h-3 w-24 rounded" />
+            </Card>
+          ))}
+        </div>
+        <Card className="p-4 space-y-3">
+          {Array.from({ length: 6 }).map((_, idx) => (
+            <div key={idx} className="flex items-center justify-between py-3 border-b border-border/50">
+              <div className="space-y-1.5">
+                <Skeleton className={`h-4 ${idx % 2 === 0 ? "w-40" : "w-32"} rounded`} />
+                <Skeleton className="h-2.5 w-24 rounded" />
+              </div>
+              <Skeleton className="h-4 w-28 rounded" />
+              <Skeleton className="h-4 w-24 rounded" />
+              <Skeleton className="h-6 w-20 rounded-full" />
+            </div>
+          ))}
+        </Card>
       </div>
     );
   }

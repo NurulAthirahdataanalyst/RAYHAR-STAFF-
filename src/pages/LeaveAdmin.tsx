@@ -1150,9 +1150,49 @@ export default function LeaveAdmin() {
         {/* Table Content */}
         <CardContent className="p-0">
           {loading ? (
-            <div className="flex flex-col items-center justify-center py-20 gap-3">
-              <Loader2 className="w-8 h-8 animate-spin text-[#942392]" />
-              <p className="text-xs font-bold uppercase tracking-wider text-foreground animate-pulse">Loading Leaves...</p>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader className="bg-muted/20 border-b border-border/40">
+                  <TableRow>
+                    <TableHead className="px-3 py-4 text-[10px]">Date Submitted</TableHead>
+                    <TableHead className="px-3 py-4 text-[10px]">Employee</TableHead>
+                    <TableHead className="px-3 py-4 text-[10px]">Leave Type</TableHead>
+                    <TableHead className="px-3 py-4 text-[10px]">From</TableHead>
+                    <TableHead className="px-3 py-4 text-[10px]">To</TableHead>
+                    <TableHead className="px-3 py-4 text-[10px]">Days</TableHead>
+                    <TableHead className="px-3 py-4 text-[10px]">Status</TableHead>
+                    <TableHead className="px-3 py-4 text-[10px]">Company</TableHead>
+                    {canApprove && <TableHead className="px-3 py-4 text-[10px] text-right">Actions</TableHead>}
+                  </TableRow>
+                </TableHeader>
+                <TableBody className="divide-y divide-border/40">
+                  {Array.from({ length: 6 }).map((_, idx) => (
+                    <TableRow key={idx}>
+                      <TableCell className="px-3 py-4"><Skeleton className="h-3.5 w-20 rounded" /></TableCell>
+                      <TableCell className="px-3 py-4">
+                        <div className="space-y-1.5">
+                          <Skeleton className={`h-4 ${idx % 2 === 0 ? "w-36" : "w-28"} rounded`} />
+                          <Skeleton className="h-2.5 w-20 rounded" />
+                        </div>
+                      </TableCell>
+                      <TableCell className="px-3 py-4"><Skeleton className={`h-3.5 ${idx % 2 === 0 ? "w-28" : "w-24"} rounded`} /></TableCell>
+                      <TableCell className="px-3 py-4"><Skeleton className="h-3.5 w-20 rounded" /></TableCell>
+                      <TableCell className="px-3 py-4"><Skeleton className="h-3.5 w-20 rounded" /></TableCell>
+                      <TableCell className="px-3 py-4"><Skeleton className="h-4 w-8 rounded" /></TableCell>
+                      <TableCell className="px-3 py-4"><Skeleton className="h-5 w-20 rounded-full" /></TableCell>
+                      <TableCell className="px-3 py-4"><Skeleton className="h-4 w-24 rounded" /></TableCell>
+                      {canApprove && (
+                        <TableCell className="px-3 py-4 text-right">
+                          <div className="flex justify-end gap-1.5">
+                            <Skeleton className="h-7 w-16 rounded-lg" />
+                            <Skeleton className="h-7 w-16 rounded-lg" />
+                          </div>
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
           ) : (
             <div className="overflow-x-auto">

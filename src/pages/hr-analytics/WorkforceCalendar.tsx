@@ -4,6 +4,7 @@ import { format, isSameDay, startOfMonth, endOfMonth, startOfWeek, endOfWeek, ea
 import { useRole } from "@/contexts/RoleContext";
 import { useCompany } from "@/modules/multi-company/contexts/CompanyContext";
 import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -346,7 +347,19 @@ export default function WorkforceCalendar() {
   };
   const canFilterBranchDept = ["hr_admin", "managing_director", "finance_manager"].includes(role);
 
-  if (roleLoading) return <div className="min-h-[60vh] flex items-center justify-center"><Loader2 className="animate-spin w-8 h-8 text-[#942392]" /></div>;
+  if (roleLoading) {
+    return (
+      <div className="space-y-6 pb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
+          {Array.from({ length: 7 }).map((_, i) => (
+            <Skeleton key={i} className="h-20 w-full rounded-xl" />
+          ))}
+        </div>
+        <Skeleton className="h-16 w-full rounded-xl" />
+        <Skeleton className="h-96 w-full rounded-2xl" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-8">
@@ -459,7 +472,22 @@ export default function WorkforceCalendar() {
       {/* Calendar Grid */}
       <Card className="border border-gray-200 dark:border-slate-800/80 shadow-sm overflow-hidden">
         {loading ? (
-          <div className="h-80 flex items-center justify-center"><Loader2 className="animate-spin w-7 h-7 text-[#942392]" /></div>
+          <div>
+            <div className="grid grid-cols-7 border-b border-border/60 bg-[#942392] divide-x divide-white/20">
+              {DAYS.map(d => (
+                <div key={d} className="px-2 py-3 text-center text-[11px] font-bold uppercase tracking-widest text-white">{d}</div>
+              ))}
+            </div>
+            <div className="grid grid-cols-7 divide-x divide-y divide-border/40">
+              {Array.from({ length: 35 }).map((_, idx) => (
+                <div key={idx} className="min-h-[90px] p-2 space-y-2">
+                  <Skeleton className="h-4 w-6 rounded" />
+                  {idx % 3 === 0 && <Skeleton className="h-4 w-full rounded" />}
+                  {idx % 5 === 0 && <Skeleton className="h-4 w-4/5 rounded" />}
+                </div>
+              ))}
+            </div>
+          </div>
         ) : (
           <>
             {/* Day Headers */}
@@ -760,7 +788,10 @@ export default function WorkforceCalendar() {
                       Total Outstation ({outstationStaffList.length})
                     </h4>
                     {loadingDaily && outstationStaffList.length === 0 ? (
-                      <div className="flex justify-center py-3"><Loader2 className="w-4 h-4 animate-spin text-[#a01497]" /></div>
+                      <div className="space-y-2 py-2">
+                        <Skeleton className="h-14 w-full rounded-lg" />
+                        <Skeleton className="h-14 w-full rounded-lg" />
+                      </div>
                     ) : outstationStaffList.length > 0 ? (
                       <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
                         {outstationStaffList.map(a => {
@@ -805,7 +836,11 @@ export default function WorkforceCalendar() {
                       Attendance
                     </h4>
                     {loadingDaily ? (
-                      <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 animate-spin text-[#a01497]" /></div>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+                        {Array.from({ length: 4 }).map((_, idx) => (
+                          <Skeleton key={idx} className="h-16 w-full rounded-xl" />
+                        ))}
+                      </div>
                     ) : (
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
                         <div className="border border-emerald-200 bg-emerald-50 rounded-xl p-3 flex flex-col items-start dark:bg-emerald-950/30">

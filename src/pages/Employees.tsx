@@ -8,6 +8,7 @@ import { TableScrollTopButton } from '@/components/shared/TableScrollTopButton';
 import { useRole } from "@/contexts/RoleContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { 
@@ -1266,17 +1267,78 @@ export default function Employees() {
           </Button>
         
           <Badge variant="outline" className="hidden sm:flex ml-auto px-3 py-1.5 text-xs print:text-[11px] font-bold whitespace-nowrap bg-muted/30 border-border/60 h-9 items-center justify-center rounded-md shrink-0">
-            Total <span className="ml-2 flex items-center justify-center bg-[#942392] text-white rounded-md h-5 min-w-[20px] px-1.5 text-[8px] print:text-[13px] leading-none shrink-0">{filtered.length}</span>
+            Total {loading ? <Skeleton className="ml-2 h-5 w-7 rounded-md" /> : <span className="ml-2 flex items-center justify-center bg-[#942392] text-white rounded-md h-5 min-w-[20px] px-1.5 text-[8px] print:text-[13px] leading-none shrink-0">{filtered.length}</span>}
           </Badge>
       </div>
 
       <Card className="border-none shadow-sm overflow-hidden bg-card/60 backdrop-blur-md">
         <CardContent className="p-0">
           {loading ? (
-            <div className="flex flex-col items-center justify-center p-12 gap-3">
-              <Loader2 className="w-8 h-8 animate-spin text-[#942392]" />
-              <p className="text-xs print:text-[11px] font-bold text-foreground animate-pulse uppercase tracking-widest">Loading Personnel...</p>
-            </div>
+            <>
+              <div className="hidden md:block overflow-x-auto">
+                <Table>
+                  <TableHeader className="bg-muted/30">
+                    <TableRow>
+                      <TableHead className="py-4 px-6">Staff Member</TableHead>
+                      <TableHead className="py-4 px-6">Position</TableHead>
+                      <TableHead className="py-4 px-6">Branch</TableHead>
+                      <TableHead className="py-4 px-6">Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody className="divide-y divide-border/50">
+                    {([
+                      { nameW: "w-44", emailW: "w-32", posW: "w-28", branchW: "w-24" },
+                      { nameW: "w-36", emailW: "w-40", posW: "w-24", branchW: "w-32" },
+                      { nameW: "w-52", emailW: "w-36", posW: "w-32", branchW: "w-20" },
+                      { nameW: "w-40", emailW: "w-28", posW: "w-20", branchW: "w-28" },
+                      { nameW: "w-48", emailW: "w-36", posW: "w-28", branchW: "w-24" },
+                      { nameW: "w-32", emailW: "w-32", posW: "w-24", branchW: "w-36" },
+                      { nameW: "w-44", emailW: "w-40", posW: "w-32", branchW: "w-20" },
+                      { nameW: "w-36", emailW: "w-28", posW: "w-24", branchW: "w-28" },
+                    ]).map((rowCfg, idx) => (
+                      <TableRow key={idx}>
+                        <TableCell className="py-4 px-6">
+                          <div className="flex items-center gap-4">
+                            <Skeleton className="w-10 h-10 rounded-xl shrink-0" />
+                            <div className="space-y-1.5">
+                              <Skeleton className={`h-4 ${rowCfg.nameW} rounded`} />
+                              <Skeleton className={`h-2.5 ${rowCfg.emailW} rounded`} />
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="py-4 px-6">
+                          <Skeleton className={`h-3.5 ${rowCfg.posW} rounded`} />
+                        </TableCell>
+                        <TableCell className="py-4 px-6">
+                          <Skeleton className={`h-3.5 ${rowCfg.branchW} rounded`} />
+                        </TableCell>
+                        <TableCell className="py-4 px-6">
+                          <div className="flex items-center gap-2">
+                            <Skeleton className="h-6 w-24 rounded-full" />
+                            <Skeleton className="h-6 w-20 rounded-full" />
+                            <Skeleton className="h-7 w-7 rounded-md" />
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+              <div className="md:hidden divide-y divide-border/50">
+                {Array.from({ length: 6 }).map((_, idx) => (
+                  <div key={idx} className="p-4 flex items-center gap-4">
+                    <Skeleton className="w-12 h-12 rounded-2xl shrink-0" />
+                    <div className="flex-1 space-y-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <Skeleton className={`h-4 ${idx % 2 === 0 ? "w-36" : "w-28"} rounded`} />
+                        <Skeleton className="h-5 w-20 rounded-full" />
+                      </div>
+                      <Skeleton className={`h-3 ${idx % 2 === 0 ? "w-44" : "w-32"} rounded`} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
           ) : (
             <>
               {/* Desktop Table View */}
@@ -1667,8 +1729,19 @@ export default function Employees() {
             </div>
 
             {loadingWorkspaceModal ? (
-              <div className="py-8 flex justify-center">
-                <Loader2 className="w-6 h-6 animate-spin text-[#942392]" />
+              <div className="space-y-3">
+                {Array.from({ length: 2 }).map((_, idx) => (
+                  <div key={idx} className="flex items-center justify-between p-3.5 rounded-xl border border-border/70 bg-background">
+                    <div className="flex items-center gap-3">
+                      <Skeleton className="w-9 h-9 rounded-lg shrink-0" />
+                      <div className="space-y-1.5">
+                        <Skeleton className={`h-3.5 ${idx === 0 ? "w-28" : "w-36"} rounded`} />
+                        <Skeleton className="h-2.5 w-20 rounded" />
+                      </div>
+                    </div>
+                    <Skeleton className="h-8 w-28 rounded-xl" />
+                  </div>
+                ))}
               </div>
             ) : (
               <div className="space-y-3">
@@ -1747,8 +1820,29 @@ export default function Employees() {
             <div className="p-6 overflow-y-auto flex-1">
 
           {loadingLeaves ? (
-            <div className="flex justify-center p-8">
-              <Loader2 className="w-6 h-6 animate-spin text-primary" />
+            <div className="border border-border/50 rounded-xl overflow-hidden mt-2">
+              <Table>
+                <TableHeader className="bg-muted/50">
+                  <TableRow>
+                    <TableHead className="text-[8px]">Leave Type</TableHead>
+                    <TableHead className="text-[8px]">Start Date</TableHead>
+                    <TableHead className="text-[8px]">End Date</TableHead>
+                    <TableHead className="text-[8px]">Days</TableHead>
+                    <TableHead className="text-[8px] text-right">Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {Array.from({ length: 4 }).map((_, idx) => (
+                    <TableRow key={idx}>
+                      <TableCell><Skeleton className={`h-3.5 ${idx % 2 === 0 ? "w-28" : "w-20"} rounded`} /></TableCell>
+                      <TableCell><Skeleton className="h-3.5 w-20 rounded" /></TableCell>
+                      <TableCell><Skeleton className="h-3.5 w-20 rounded" /></TableCell>
+                      <TableCell><Skeleton className="h-3.5 w-8 rounded" /></TableCell>
+                      <TableCell className="text-right"><Skeleton className="h-7 w-16 rounded ml-auto" /></TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
           ) : (
             <div className="space-y-4 mt-2">

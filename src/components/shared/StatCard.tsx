@@ -44,6 +44,14 @@ export default function StatCard({
   const currentStyle = variantStyles[variant] || variantStyles.default;
   const clickableStyle = onClick ? "cursor-pointer transition-transform hover:-translate-y-1 hover:shadow-md" : "";
 
+  const titleHash = Array.from(title || "").reduce((acc, ch, idx) => acc + ch.charCodeAt(0) * (idx + 1), 0);
+  const valWidths = ["w-16", "w-24", "w-14", "w-20", "w-28", "w-12"];
+  const subWidths = ["w-24", "w-32", "w-20", "w-28", "w-36", "w-16"];
+  const footWidths = ["w-14", "w-20", "w-12", "w-16", "w-24", "w-10"];
+  const skelValW = valWidths[titleHash % valWidths.length];
+  const skelSubW = subWidths[(titleHash + 2) % subWidths.length];
+  const skelFootW = footWidths[(titleHash + 4) % footWidths.length];
+
   // Render for Circular Gauge (Attendance Rate)
   if (variant === "gauge") {
     return (
@@ -54,8 +62,9 @@ export default function StatCard({
           </div>
           {loading ? (
             <div className="space-y-2">
-              <Skeleton className="h-8 w-20 rounded-lg" />
-              {subtitle && <Skeleton className="h-3 w-28 rounded" />}
+              <Skeleton className={`h-7 ${skelValW} rounded-lg`} />
+              <Skeleton className={`h-3.5 ${skelSubW} rounded`} />
+              <Skeleton className={`h-2.5 ${skelFootW} rounded`} />
             </div>
           ) : (
             <div>
@@ -120,7 +129,7 @@ export default function StatCard({
         
         <div className="flex items-baseline gap-2 mb-1 mt-1 min-w-0">
           {loading ? (
-            <Skeleton className="h-8 w-20 rounded-lg my-0.5" />
+            <Skeleton className={`h-8 ${skelValW} rounded-lg my-0.5`} />
           ) : (
             <p className={`${valueClassName ? valueClassName : `font-black ${String(value).length > 12 ? 'text-xl' : String(value).length > 8 ? 'text-2xl' : 'text-3xl'}`} tracking-tight leading-tight whitespace-pre-wrap break-words text-foreground`}>
               {value}
@@ -131,7 +140,10 @@ export default function StatCard({
         {(subtitle || trend) && (
           <div className="mt-auto pt-2">
             {loading ? (
-              <Skeleton className="h-3.5 w-28 rounded" />
+              <div className="space-y-1.5">
+                <Skeleton className={`h-3.5 ${skelSubW} rounded`} />
+                <Skeleton className={`h-2.5 ${skelFootW} rounded`} />
+              </div>
             ) : (
               <>
                 {trend && (
@@ -181,8 +193,9 @@ export default function StatCard({
       <div className="min-w-0">
         {loading ? (
           <div className="space-y-2 py-0.5">
-            <Skeleton className="h-8 w-20 rounded-lg" />
-            {(subtitle || trend) && <Skeleton className="h-3.5 w-28 rounded" />}
+            <Skeleton className={`h-7 ${skelValW} rounded-lg`} />
+            <Skeleton className={`h-3.5 ${skelSubW} rounded`} />
+            <Skeleton className={`h-2.5 ${skelFootW} rounded`} />
           </div>
         ) : (
           <>

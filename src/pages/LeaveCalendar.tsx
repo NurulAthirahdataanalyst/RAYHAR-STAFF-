@@ -4,6 +4,7 @@ import { format, isSameDay, startOfMonth, endOfMonth, startOfWeek, endOfWeek, ea
 import { useRole } from "@/contexts/RoleContext";
 import { useCompany } from "@/modules/multi-company/contexts/CompanyContext";
 import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Loader2, ChevronLeft, ChevronRight, X, Calendar, User, FileText, Activity, AlertCircle, RefreshCw } from "lucide-react";
@@ -160,7 +161,19 @@ export default function LeaveCalendar() {
   const kpiReplacement = currentMonthRequests.filter(r => r.status === "Approved" && r.leave_type?.includes("Replacement")).length;
   const kpiUnpaid = currentMonthRequests.filter(r => r.status === "Approved" && r.leave_type?.includes("Unpaid")).length;
 
-  if (roleLoading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin w-7 h-7 text-[#942392]" /></div>;
+  if (roleLoading) {
+    return (
+      <div className="space-y-5 w-full pt-2 pb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-24 w-full rounded-2xl" />
+          ))}
+        </div>
+        <Skeleton className="h-16 w-full rounded-xl" />
+        <Skeleton className="h-96 w-full rounded-2xl" />
+      </div>
+    );
+  }
 
 
   return (
@@ -290,7 +303,22 @@ export default function LeaveCalendar() {
       {/* Calendar Grid */}
       <Card className="border border-gray-200 dark:border-slate-800/80 shadow-sm overflow-hidden">
         {loading ? (
-          <div className="h-80 flex items-center justify-center"><Loader2 className="animate-spin w-7 h-7 text-[#942392]" /></div>
+          <div>
+            <div className="grid grid-cols-7 border-b border-border/60 bg-[#942392] divide-x divide-white/20">
+              {DAYS.map(d => (
+                <div key={d} className="px-2 py-3 text-center text-[11px] font-bold uppercase tracking-widest text-white">{d}</div>
+              ))}
+            </div>
+            <div className="grid grid-cols-7 divide-x divide-y divide-border/40">
+              {Array.from({ length: 35 }).map((_, idx) => (
+                <div key={idx} className="min-h-[90px] p-2 space-y-2">
+                  <Skeleton className="h-4 w-6 rounded" />
+                  {idx % 3 === 0 && <Skeleton className="h-4 w-full rounded" />}
+                  {idx % 5 === 0 && <Skeleton className="h-4 w-4/5 rounded" />}
+                </div>
+              ))}
+            </div>
+          </div>
         ) : (
           <>
             {/* Day Headers */}

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useRole } from "@/contexts/RoleContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogHeader } from "@/components/ui/dialog";
@@ -154,7 +155,14 @@ export default function MyOutstation() {
   const active = assignments.find(a => a.status === "Active");
   const nextUpcoming = assignments.filter(a => a.status === "Upcoming").sort((a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime())[0];
 
-  if (roleLoading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin w-7 h-7 text-pink-500" /></div>;
+  if (roleLoading) return (
+    <div className="space-y-6 py-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-28 rounded-2xl" />)}
+      </div>
+      <Skeleton className="h-[420px] w-full rounded-[24px]" />
+    </div>
+  );
 
   return (
     <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-500">
@@ -329,9 +337,17 @@ export default function MyOutstation() {
 
         <CardContent className="p-0">
           {loading ? (
-            <div className="flex flex-col items-center justify-center p-12 gap-3">
-              <Loader2 className="w-8 h-8 animate-spin text-[#942392]" />
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground animate-pulse">Syncing Outstations...</p>
+            <div className="p-6 space-y-3">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="flex items-center justify-between gap-4 py-3 border-b border-border/40 last:border-0">
+                  <div className="space-y-1.5">
+                    <Skeleton className={`h-4 ${i % 2 === 0 ? 'w-44' : 'w-36'} rounded`} />
+                    <Skeleton className="h-3 w-28 rounded" />
+                  </div>
+                  <Skeleton className="h-4 w-32 rounded hidden sm:block" />
+                  <Skeleton className="h-6 w-20 rounded-full" />
+                </div>
+              ))}
             </div>
           ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center p-12 gap-4 text-center">

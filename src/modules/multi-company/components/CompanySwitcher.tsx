@@ -18,6 +18,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { resolveCompanyLogoUrl } from '../utils/companyLogo';
@@ -31,7 +32,7 @@ export const CompanySwitcher: React.FC<CompanySwitcherProps> = ({
   variant = 'header',
   className = ''
 }) => {
-  const { activeCompany, companies, setActiveCompanyId, isParentGroupAdmin, userActiveRole, userCompanies } = useCompany();
+  const { activeCompany, companies, setActiveCompanyId, isParentGroupAdmin, userActiveRole, userCompanies, loading: companyLoading } = useCompany();
   const { user } = useAuth();
   const { role: contextRole, scopeType } = useRole();
   const navigate = useNavigate();
@@ -129,6 +130,20 @@ export const CompanySwitcher: React.FC<CompanySwitcherProps> = ({
   };
 
   const isHeader = variant === 'header';
+
+  if (companyLoading) {
+    return isHeader ? (
+      <div className={`flex items-center gap-2.5 px-3 py-1.5 rounded-xl border border-white/15 bg-white/10 ${className}`}>
+        <Skeleton className="h-5 w-5 rounded-full bg-white/25 shrink-0" />
+        <div className="flex flex-col gap-1">
+          <Skeleton className="h-3 w-28 rounded bg-white/30" />
+          <Skeleton className="h-2 w-16 rounded bg-white/20" />
+        </div>
+      </div>
+    ) : (
+      <Skeleton className={`h-9 w-40 rounded-lg ${className}`} />
+    );
+  }
 
   // If role does not have authorization scope for Parent Group Data, render static indicator without switching capability
   if (!canSwitchCompany) {

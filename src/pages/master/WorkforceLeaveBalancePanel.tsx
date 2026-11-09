@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useRole } from "@/contexts/RoleContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -692,9 +693,20 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
         {/* Table Content */}
         <div className="overflow-x-auto custom-scrollbar relative">
           {loading ? (
-            <div className="flex flex-col items-center justify-center p-12 text-muted-foreground gap-2">
-              <Loader2 className="w-6 h-6 animate-spin text-[#942392]" />
-              <p className="text-xs font-bold">Loading workforce leave balances...</p>
+            <div className="p-4 space-y-3">
+              {Array.from({ length: 6 }).map((_, idx) => (
+                <div key={idx} className="flex items-center justify-between py-2.5 border-b border-border/50">
+                  <div className="space-y-1.5">
+                    <Skeleton className={`h-4 ${idx % 2 === 0 ? "w-40" : "w-32"} rounded`} />
+                    <Skeleton className="h-2.5 w-24 rounded" />
+                  </div>
+                  <Skeleton className="h-3.5 w-16 rounded" />
+                  <Skeleton className="h-3.5 w-24 rounded" />
+                  <Skeleton className="h-5 w-14 rounded-full" />
+                  <Skeleton className="h-5 w-14 rounded-full" />
+                  <Skeleton className="h-5 w-14 rounded-full" />
+                </div>
+              ))}
             </div>
           ) : processedEmployees.length === 0 ? (
             <div className="p-12 text-center text-muted-foreground italic text-xs font-medium">

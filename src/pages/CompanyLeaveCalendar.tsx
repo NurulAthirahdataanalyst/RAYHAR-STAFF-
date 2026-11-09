@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Search } from "lucide-react";
 import { DatePickerInput } from "@/components/shared/DatePickerInput";
 import { TablePagination } from "@/components/common/TablePagination";
@@ -216,7 +217,18 @@ const CompanyLeaveCalendar = () => {
       <Card>
         <CardContent className="pt-6">
           {isLoading ? (
-            <div className="text-center py-8 text-foreground">Loading leaves...</div>
+            <div className="space-y-3 py-2">
+              {Array.from({ length: 5 }).map((_, idx) => (
+                <div key={idx} className="grid grid-cols-6 gap-4 items-center p-3 border-b border-border/50">
+                  <Skeleton className={`h-4 ${idx % 2 === 0 ? "w-36" : "w-28"} rounded`} />
+                  <Skeleton className="h-3.5 w-32 rounded" />
+                  <Skeleton className="h-3.5 w-24 rounded" />
+                  <Skeleton className="h-5 w-20 rounded-full" />
+                  <Skeleton className="h-5 w-14 rounded-full" />
+                  <Skeleton className="h-6 w-20 rounded-full" />
+                </div>
+              ))}
+            </div>
           ) : leaves.length === 0 ? (
             <div className="text-center py-8 text-foreground border-2 border-dashed rounded-lg border-gray-200 dark:border-gray-800">
               No company leaves found. {isHR && "Click 'Add Company Leave' to create one."}

@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { API_BASE_URL, getActiveCompanyId } from "@/config/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { MonthPicker } from "@/components/shared/MonthPicker";
@@ -810,9 +811,19 @@ export default function Notifications() {
       {/* Notification List */}
       <div className="space-y-2.5">
         {loading ? (
-          <div className="py-16 text-center text-muted-foreground">
-            <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-[#942392]" />
-            <p className="text-sm">Loading notifications...</p>
+          <div className="space-y-2.5">
+            {Array.from({ length: 5 }).map((_, idx) => (
+              <div key={idx} className="flex items-start gap-4 p-4 rounded-xl border border-border/60 bg-card">
+                <Skeleton className="w-10 h-10 rounded-xl shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <Skeleton className={`h-4 ${idx % 2 === 0 ? "w-48" : "w-36"} rounded`} />
+                    <Skeleton className="h-3 w-20 rounded" />
+                  </div>
+                  <Skeleton className={`h-3 ${idx % 2 === 0 ? "w-3/4" : "w-2/3"} rounded`} />
+                </div>
+              </div>
+            ))}
           </div>
         ) : filteredNotifications.length === 0 ? (
           <Card className="border-dashed border-2">

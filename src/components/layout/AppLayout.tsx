@@ -28,6 +28,7 @@ import { UserAvatar, getSavedAvatar } from "@/utils/avatarUtils";
 import { GlobalScrollTopButton } from "../shared/GlobalScrollTopButton";
 import { CompanySwitcher } from "@/modules/multi-company/components/CompanySwitcher";
 import { useCompany } from "@/modules/multi-company/contexts/CompanyContext";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const isSafeInternalPath = (path: string) => {
   return (
@@ -45,7 +46,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { activeCompany } = useCompany();
   const navigate = useNavigate();
   const location = useLocation();
-  const { role: resolvedRole, roleName, userBranch, userDepartment, userName, userId, isSystemRole } = useRole();
+  const { role: resolvedRole, roleName, userBranch, userDepartment, userName, userId, isSystemRole, loading: roleLoading } = useRole();
   const normRole = (resolvedRole || "").toLowerCase().trim();
   const normRoleName = (roleName || "").toLowerCase().trim();
   const isCustomRole = !isSystemRole || (
@@ -390,15 +391,27 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <DropdownMenu>
                 <DropdownMenuTrigger className="outline-none relative z-10">
                     <div className="flex items-center gap-3 pr-1 group cursor-pointer">
-                    <div className="text-right hidden sm:block space-y-0.5">
-                      <p className="text-xs font-black text-white group-hover:text-purple-200 transition-colors">{displayName}</p>
-                      <p className="text-[9px] font-black text-purple-200/60 uppercase tracking-widest opacity-80 leading-none">
-                        {formattedRole}
-                      </p>
-                    </div>
-                    <div className="h-9 w-9 rounded-xl bg-card text-[#942392] flex items-center justify-center font-black text-xs shadow-lg shadow-purple-950/40 group-hover:scale-105 transition-transform border border-white/20 overflow-hidden p-0.5">
-                      <UserAvatar avatarId={avatarId} name={displayName} className="w-full h-full" />
-                    </div>
+                    {roleLoading ? (
+                      <>
+                        <div className="text-right hidden sm:flex flex-col items-end space-y-1.5">
+                          <Skeleton className="h-3 w-28 rounded bg-white/30" />
+                          <Skeleton className="h-2.5 w-16 rounded bg-white/20" />
+                        </div>
+                        <Skeleton className="h-9 w-9 rounded-xl bg-white/25 border border-white/20" />
+                      </>
+                    ) : (
+                      <>
+                        <div className="text-right hidden sm:block space-y-0.5">
+                          <p className="text-xs font-black text-white group-hover:text-purple-200 transition-colors">{displayName}</p>
+                          <p className="text-[9px] font-black text-purple-200/60 uppercase tracking-widest opacity-80 leading-none">
+                            {formattedRole}
+                          </p>
+                        </div>
+                        <div className="h-9 w-9 rounded-xl bg-card text-[#942392] flex items-center justify-center font-black text-xs shadow-lg shadow-purple-950/40 group-hover:scale-105 transition-transform border border-white/20 overflow-hidden p-0.5">
+                          <UserAvatar avatarId={avatarId} name={displayName} className="w-full h-full" />
+                        </div>
+                      </>
+                    )}
                   </div>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56 mt-3 rounded-2xl p-2 border border-white/10 bg-slate-950/95 backdrop-blur-xl shadow-2xl text-white">

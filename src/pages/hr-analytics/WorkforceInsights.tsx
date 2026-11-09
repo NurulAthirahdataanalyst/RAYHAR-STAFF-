@@ -11,6 +11,7 @@ import { MonthPicker } from "@/components/shared/MonthPicker";
 import { exportToCSV } from "@/utils/export";
 import { API_BASE_URL } from "@/config/api";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Loader2, Users, UserCheck, CalendarDays, Calendar as CalendarIcon, Clock, FileCheck, CheckCircle2, XCircle, AlertTriangle, Building2, Download, ChevronRight, Wifi, WifiOff, TrendingUp, TrendingDown, MapPin, Plane, FileText, AlertCircle, Award, ChevronLeft } from "lucide-react";
 import { getCleanReason } from "@/lib/leaveStorage";
 import { format, subDays, addDays, startOfWeek, endOfWeek } from "date-fns";
@@ -504,7 +505,37 @@ export default function WorkforceInsights() {
     return () => window.removeEventListener('rayhar_company_switched', handleCompSwitch);
   }, [role, userBranch, userDepartment, month, year, day, viewMode, activeCompany?.id]);
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+  if (loading) {
+    return (
+      <div className="space-y-6 py-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Card key={i} className="p-4 rounded-2xl space-y-2.5">
+              <Skeleton className="h-3 w-24 rounded" />
+              <Skeleton className={`h-8 ${i % 2 === 0 ? "w-16" : "w-20"} rounded-lg`} />
+              <Skeleton className="h-2.5 w-28 rounded" />
+            </Card>
+          ))}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <Card className="p-5 rounded-2xl space-y-4">
+            <Skeleton className="h-5 w-40 rounded" />
+            <div className="flex items-center justify-center py-6">
+              <Skeleton className="w-40 h-40 rounded-full" />
+            </div>
+          </Card>
+          <Card className="lg:col-span-2 p-5 rounded-2xl space-y-4">
+            <Skeleton className="h-5 w-48 rounded" />
+            <div className="h-52 flex items-end justify-between gap-3 pt-6 px-4 border-b border-l border-border/60">
+              {[50, 75, 60, 90, 65, 80, 55, 85].map((h, idx) => (
+                <Skeleton key={idx} className="flex-1 rounded-t-md" style={{ height: `${h}%` }} />
+              ))}
+            </div>
+          </Card>
+        </div>
+      </div>
+    );
+  }
   if (error) return <div className="min-h-screen flex items-center justify-center text-red-500">Error: {error}. The backend may still be deploying.</div>;
   if (!data) return <div className="min-h-screen flex items-center justify-center text-foreground">No data available</div>;
 
@@ -1542,10 +1573,20 @@ export default function WorkforceInsights() {
 
                     <div className="flex-1 space-y-2 max-h-[260px] overflow-y-auto custom-scrollbar pr-0.5">
                       {displayClockIns.length === 0 && !feedConnected && (
-                        <div className="flex flex-col items-center justify-center py-8 text-slate-300">
-                          <Loader2 className="w-5 h-5 animate-spin mb-2" />
-                          <p className="text-[10px] font-medium">Loading live data…</p>
+                  <div className="space-y-2 py-2">
+                    {Array.from({ length: 3 }).map((_, idx) => (
+                      <div key={idx} className="flex items-center justify-between p-2 rounded-lg">
+                        <div className="flex items-center gap-2.5">
+                          <Skeleton className="w-8 h-8 rounded-full shrink-0" />
+                          <div className="space-y-1.5">
+                            <Skeleton className={`h-3.5 ${idx % 2 === 0 ? "w-32" : "w-24"} rounded`} />
+                            <Skeleton className="h-2.5 w-20 rounded" />
+                          </div>
                         </div>
+                        <Skeleton className="h-5 w-14 rounded" />
+                      </div>
+                    ))}
+                  </div>
                       )}
                       {displayClockIns.length === 0 && feedConnected && (
                         <div className="flex flex-col items-center justify-center py-8 text-foreground">
@@ -1611,10 +1652,20 @@ export default function WorkforceInsights() {
 
                     <div className="flex-1 space-y-2 max-h-[260px] overflow-y-auto custom-scrollbar pr-0.5">
                       {displayAbsent.length === 0 && !feedConnected && (
-                        <div className="flex flex-col items-center justify-center py-8 text-slate-300">
-                          <Loader2 className="w-5 h-5 animate-spin mb-2" />
-                          <p className="text-[10px] font-medium">Loading live data…</p>
+                  <div className="space-y-2 py-2">
+                    {Array.from({ length: 3 }).map((_, idx) => (
+                      <div key={idx} className="flex items-center justify-between p-2 rounded-lg">
+                        <div className="flex items-center gap-2.5">
+                          <Skeleton className="w-8 h-8 rounded-full shrink-0" />
+                          <div className="space-y-1.5">
+                            <Skeleton className={`h-3.5 ${idx % 2 === 0 ? "w-32" : "w-24"} rounded`} />
+                            <Skeleton className="h-2.5 w-20 rounded" />
+                          </div>
                         </div>
+                        <Skeleton className="h-5 w-14 rounded" />
+                      </div>
+                    ))}
+                  </div>
                       )}
                       {displayAbsent.length === 0 && feedConnected && (
                         <div className="flex flex-col items-center justify-center py-8 text-foreground">
@@ -1770,9 +1821,19 @@ export default function WorkforceInsights() {
               return (
                 <div className="flex-1 space-y-2 max-h-[260px] overflow-y-auto custom-scrollbar pr-0.5">
                   {displayClockIns.length === 0 && !feedConnected && (
-                    <div className="flex flex-col items-center justify-center py-8 text-slate-300">
-                      <Loader2 className="w-5 h-5 animate-spin mb-2" />
-                      <p className="text-[10px] font-medium">Loading live data…</p>
+                    <div className="space-y-3 py-2">
+                      {Array.from({ length: 3 }).map((_, idx) => (
+                        <div key={idx} className="flex items-center justify-between p-2 rounded-lg">
+                          <div className="flex items-center gap-2.5">
+                            <Skeleton className="w-8 h-8 rounded-full shrink-0" />
+                            <div className="space-y-1.5">
+                              <Skeleton className={`h-3.5 ${idx % 2 === 0 ? 'w-32' : 'w-24'} rounded`} />
+                              <Skeleton className="h-2.5 w-20 rounded" />
+                            </div>
+                          </div>
+                          <Skeleton className="h-5 w-14 rounded" />
+                        </div>
+                      ))}
                     </div>
                   )}
                   {displayClockIns.length === 0 && feedConnected && (
@@ -1841,9 +1902,19 @@ export default function WorkforceInsights() {
 
             <div className="flex-1 space-y-2 max-h-[260px] overflow-y-auto custom-scrollbar pr-0.5">
               {lateList.length === 0 && !feedConnected && (
-                <div className="flex flex-col items-center justify-center py-8 text-slate-300">
-                  <Loader2 className="w-5 h-5 animate-spin mb-2" />
-                  <p className="text-[10px] font-medium">Loading live data…</p>
+                <div className="space-y-3 py-2">
+                  {Array.from({ length: 3 }).map((_, idx) => (
+                    <div key={idx} className="flex items-center justify-between p-2 rounded-lg">
+                      <div className="flex items-center gap-2.5">
+                        <Skeleton className="w-8 h-8 rounded-full shrink-0" />
+                        <div className="space-y-1.5">
+                          <Skeleton className={`h-3.5 ${idx % 2 === 0 ? 'w-32' : 'w-24'} rounded`} />
+                          <Skeleton className="h-2.5 w-20 rounded" />
+                        </div>
+                      </div>
+                      <Skeleton className="h-5 w-14 rounded" />
+                    </div>
+                  ))}
                 </div>
               )}
               {lateList.length === 0 && feedConnected && (
@@ -1907,9 +1978,19 @@ export default function WorkforceInsights() {
 
             <div className="flex-1 space-y-2 max-h-[260px] overflow-y-auto custom-scrollbar pr-0.5">
               {absentList.length === 0 && !feedConnected && (
-                <div className="flex flex-col items-center justify-center py-8 text-slate-300">
-                  <Loader2 className="w-5 h-5 animate-spin mb-2" />
-                  <p className="text-[10px] font-medium">Loading live data…</p>
+                <div className="space-y-3 py-2">
+                  {Array.from({ length: 3 }).map((_, idx) => (
+                    <div key={idx} className="flex items-center justify-between p-2 rounded-lg">
+                      <div className="flex items-center gap-2.5">
+                        <Skeleton className="w-8 h-8 rounded-full shrink-0" />
+                        <div className="space-y-1.5">
+                          <Skeleton className={`h-3.5 ${idx % 2 === 0 ? 'w-32' : 'w-24'} rounded`} />
+                          <Skeleton className="h-2.5 w-20 rounded" />
+                        </div>
+                      </div>
+                      <Skeleton className="h-5 w-14 rounded" />
+                    </div>
+                  ))}
                 </div>
               )}
               {absentList.length === 0 && feedConnected && (
@@ -1991,9 +2072,19 @@ export default function WorkforceInsights() {
                 
                 <div className="flex-1 space-y-4 max-h-[300px] overflow-y-auto custom-scrollbar pr-0.5">
                   {activeOutstationList.length === 0 && !feedConnected && (
-                    <div className="flex flex-col items-center justify-center py-8 text-slate-300">
-                      <Loader2 className="w-5 h-5 animate-spin mb-2" />
-                      <p className="text-[10px] font-medium">Loading live data…</p>
+                    <div className="space-y-3 py-2">
+                      {Array.from({ length: 3 }).map((_, idx) => (
+                        <div key={idx} className="flex items-center justify-between p-2 rounded-lg">
+                          <div className="flex items-center gap-2.5">
+                            <Skeleton className="w-8 h-8 rounded-full shrink-0" />
+                            <div className="space-y-1.5">
+                              <Skeleton className={`h-3.5 ${idx % 2 === 0 ? 'w-32' : 'w-24'} rounded`} />
+                              <Skeleton className="h-2.5 w-20 rounded" />
+                            </div>
+                          </div>
+                          <Skeleton className="h-5 w-14 rounded" />
+                        </div>
+                      ))}
                     </div>
                   )}
                   {activeOutstationList.length === 0 && feedConnected && (
@@ -2092,9 +2183,13 @@ export default function WorkforceInsights() {
 
             <div className="flex-1 space-y-3 max-h-[300px] overflow-y-auto custom-scrollbar pr-0.5">
               {pendingApprovalsList.length === 0 && !feedConnected && (
-                <div className="flex flex-col items-center justify-center py-8 text-slate-300">
-                  <Loader2 className="w-5 h-5 animate-spin mb-2" />
-                  <p className="text-[10px] font-medium">Loading…</p>
+                <div className="space-y-3 py-2">
+                  {Array.from({ length: 2 }).map((_, idx) => (
+                    <div key={idx} className="p-3 border border-slate-200 dark:border-slate-800 rounded-lg space-y-2">
+                      <Skeleton className="h-4 w-36 rounded" />
+                      <Skeleton className="h-3 w-48 rounded" />
+                    </div>
+                  ))}
                 </div>
               )}
               {pendingApprovalsList.length === 0 && feedConnected ? (
@@ -2186,9 +2281,19 @@ export default function WorkforceInsights() {
             
             <div className="flex-1 space-y-4 max-h-[300px] overflow-y-auto custom-scrollbar pr-0.5">
               {upcomingOutstationList.length === 0 && !feedConnected && (
-                <div className="flex flex-col items-center justify-center py-8 text-slate-300">
-                  <Loader2 className="w-5 h-5 animate-spin mb-2" />
-                  <p className="text-[10px] font-medium">Loading live data…</p>
+                <div className="space-y-3 py-2">
+                  {Array.from({ length: 3 }).map((_, idx) => (
+                    <div key={idx} className="flex items-center justify-between p-2 rounded-lg">
+                      <div className="flex items-center gap-2.5">
+                        <Skeleton className="w-8 h-8 rounded-full shrink-0" />
+                        <div className="space-y-1.5">
+                          <Skeleton className={`h-3.5 ${idx % 2 === 0 ? 'w-32' : 'w-24'} rounded`} />
+                          <Skeleton className="h-2.5 w-20 rounded" />
+                        </div>
+                      </div>
+                      <Skeleton className="h-5 w-14 rounded" />
+                    </div>
+                  ))}
                 </div>
               )}
               {upcomingOutstationList.length === 0 && feedConnected && (

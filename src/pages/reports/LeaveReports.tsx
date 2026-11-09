@@ -2,6 +2,7 @@ import { useRole } from "@/contexts/RoleContext";
 import { useState, useEffect, useRef, useMemo } from "react";
 import { API_BASE_URL } from "@/config/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Loader2, Download, Search, FileText, CalendarDays, X, XCircle, RotateCcw, CheckCircle } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 
@@ -469,8 +470,23 @@ export default function LeaveReports() {
             </CardHeader>
           <CardContent>
             {loading ? (
-              <div className="flex justify-center py-8">
-                <Loader2 className="w-6 h-6 animate-spin text-primary" />
+              <div className="rounded-md border">
+                <Table>
+                  <TableBody>
+                    {Array.from({ length: 6 }).map((_, idx) => (
+                      <TableRow key={idx}>
+                        <TableCell><Skeleton className="h-3.5 w-20 rounded" /></TableCell>
+                        <TableCell><Skeleton className={`h-4 ${idx % 2 === 0 ? "w-36" : "w-28"} rounded`} /></TableCell>
+                        <TableCell><Skeleton className="h-3.5 w-14 rounded" /></TableCell>
+                        <TableCell><Skeleton className="h-3.5 w-28 rounded" /></TableCell>
+                        <TableCell><Skeleton className="h-3.5 w-20 rounded" /></TableCell>
+                        <TableCell><Skeleton className="h-3.5 w-20 rounded" /></TableCell>
+                        <TableCell><Skeleton className="h-4 w-8 rounded" /></TableCell>
+                        <TableCell><Skeleton className="h-5 w-20 rounded-full" /></TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               </div>
             ) : (
               <div className="rounded-md border">

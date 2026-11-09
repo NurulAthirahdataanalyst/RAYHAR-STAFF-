@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { API_BASE_URL } from "../config/api";
 import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, ReferenceLine
 } from "recharts";
@@ -16,6 +17,7 @@ interface EmployeeAnalyticsViewProps {
   myLogs: any[];
   leaveRequests: any[];
   createdAt?: string;
+  loading?: boolean;
 }
 
 const COLORS = ['#16A34A', '#3b82f6', '#EAB308', '#DC2626', '#8b5cf6'];
@@ -34,7 +36,8 @@ const getLocalDateString = (dVal: any) => {
   return `${y}-${m}-${day}`;
 };
 
-export default function EmployeeAnalyticsView({ userId, userName, month, year, myLogs: rawMyLogs, leaveRequests: propLeaveRequests, createdAt: propCreatedAt }: EmployeeAnalyticsViewProps) {
+export default function EmployeeAnalyticsView({ userId, userName, month, year, myLogs: rawMyLogs, leaveRequests: propLeaveRequests, createdAt: propCreatedAt, loading = false }: EmployeeAnalyticsViewProps) {
+  const [loadingAux, setLoadingAux] = useState(true);
   const [rankData, setRankData] = useState<{ rank: number | null, total: number, score: number }>({ rank: null, total: 0, score: 0 });
   const [lastMonthLogs, setLastMonthLogs] = useState<any[]>([]);
   const [profile, setProfile] = useState<any>(() => {
@@ -112,8 +115,12 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
   }, [lastMonthLogs, companyLeaves, profile]);
 
   useEffect(() => {
-    if (!userId) return;
-    fetch(`${API_BASE_URL}/api/replacement-leave-stats?user_id=${userId}`)
+    if (!userId) {
+      setLoadingAux(false);
+      return;
+    }
+    setLoadingAux(true);
+    const p1 = fetch(`${API_BASE_URL}/api/replacement-leave-stats?user_id=${userId}`)
       .then(res => res.json())
       .then(data => {
         if (data.success && data.stats) {
@@ -134,7 +141,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
       })
       .catch(console.error);
 
-    fetch(`${API_BASE_URL}/api/user-details/${userId}`)
+    const p2 = fetch(`${API_BASE_URL}/api/user-details/${userId}`)
       .then(res => res.json())
       .then(data => {
         if (data.success && data.profile) {
@@ -163,7 +170,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
           .catch(() => {});
       });
 
-    fetch(`${API_BASE_URL}/api/employees/${userId}/replacement-leaves`)
+    const p3 = fetch(`${API_BASE_URL}/api/employees/${userId}/replacement-leaves`)
       .then(res => res.json())
       .then(data => {
         if (data.success) {
@@ -171,7 +178,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
         }
       })
       .catch(console.error);
-    fetch(`${API_BASE_URL}/api/company-leaves`)
+    const p4 = fetch(`${API_BASE_URL}/api/company-leaves`)
       .then(res => res.json())
       .then(data => {
         if (data.success) {
@@ -180,7 +187,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
       })
       .catch(console.error);
 
-    fetch(`${API_BASE_URL}/api/outstation?role=employee&user_id=${userId}`)
+    const p5 = fetch(`${API_BASE_URL}/api/outstation?role=employee&user_id=${userId}`)
       .then(res => res.json())
       .then(data => {
         if (data.success) {
@@ -189,7 +196,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
       })
       .catch(console.error);
 
-    fetch(`${API_BASE_URL}/api/work-assignments-all`)
+    const p6 = fetch(`${API_BASE_URL}/api/work-assignments-all`)
       .then(res => res.json())
       .then(data => {
         if (data.success) {
@@ -198,6 +205,10 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
         }
       })
       .catch(console.error);
+
+    Promise.allSettled([p1, p2, p3, p4, p5, p6]).finally(() => {
+      setLoadingAux(false);
+    });
   }, [userId]);
 
   useEffect(() => {
@@ -922,6 +933,8 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
     return list;
   }, [attendanceRate, lateArrivals, streak, leaveBalanceRemaining, profile, monthOutstationsCount]);
 
+  const isLoading = Boolean(loading || loadingAux);
+
   return (
     <div className="space-y-4 animate-in fade-in">
       {/* ROW 1: Key Metrics */}
@@ -937,10 +950,16 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
               <span className="text-[11px] font-bold text-foreground capitalize">Attendance Rate</span>
             </div>
             <div className="flex items-baseline gap-2 mb-1 mt-1">
-              <span className="text-3xl font-black text-foreground">{attendanceRate}%</span>
+              {isLoading ? (
+                <Skeleton className="h-8 w-20 my-0.5" />
+              ) : (
+                <span className="text-3xl font-black text-foreground">{attendanceRate}%</span>
+              )}
             </div>
             <div className="h-4 mb-4">
-              {processedLastMonthLogs.length > 0 && rateDiff !== 0 ? (
+              {isLoading ? (
+                <Skeleton className="h-3.5 w-12" />
+              ) : processedLastMonthLogs.length > 0 && rateDiff !== 0 ? (
                 <div className="flex items-center gap-1">
                   {rateDiff > 0 ? <ArrowUpRight className="w-3 h-3 text-emerald-500" /> : <ArrowDownRight className="w-3 h-3 text-rose-500" />}
                   <span className={`text-[10px] font-bold ${rateDiff > 0 ? "text-emerald-500" : "text-rose-500"}`}>
@@ -952,9 +971,13 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
               )}
             </div>
             <div className="mt-auto pt-3 border-t border-border/40">
-              <p className="text-[10px] font-bold text-foreground text-center">
-                {attendanceRate >= 95 ? "Excellent" : attendanceRate >= 85 ? "Good" : "Needs Attention"}
-              </p>
+              {isLoading ? (
+                <Skeleton className="h-3.5 w-20 mx-auto" />
+              ) : (
+                <p className="text-[10px] font-bold text-foreground text-center">
+                  {attendanceRate >= 95 ? "Excellent" : attendanceRate >= 85 ? "Good" : "Needs Attention"}
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -970,13 +993,21 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
               <span className="text-[11px] font-bold text-foreground capitalize">Late Arrivals</span>
             </div>
             <div className="flex items-baseline gap-1 mb-1 mt-1">
-              <span className="text-3xl font-black text-foreground">{lateArrivals}</span>
+              {isLoading ? (
+                <Skeleton className="h-8 w-12 my-0.5" />
+              ) : (
+                <span className="text-3xl font-black text-foreground">{lateArrivals}</span>
+              )}
             </div>
             <div className="text-[10px] font-medium text-foreground mb-4 h-4">Days Late</div>
             <div className="mt-auto pt-3 border-t border-border/40">
-              <p className="text-[10px] font-bold text-foreground text-center">
-                {lateArrivals === 0 ? "Perfect Record" : "Needs Attention"}
-              </p>
+              {isLoading ? (
+                <Skeleton className="h-3.5 w-24 mx-auto" />
+              ) : (
+                <p className="text-[10px] font-bold text-foreground text-center">
+                  {lateArrivals === 0 ? "Perfect Record" : "Needs Attention"}
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -992,13 +1023,21 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
               <span className="text-[11px] font-bold text-foreground capitalize">Absent Days</span>
             </div>
             <div className="flex items-baseline gap-1 mb-1 mt-1">
-              <span className="text-3xl font-black text-foreground">{absentDays}</span>
+              {isLoading ? (
+                <Skeleton className="h-8 w-12 my-0.5" />
+              ) : (
+                <span className="text-3xl font-black text-foreground">{absentDays}</span>
+              )}
             </div>
             <div className="text-[10px] font-medium text-foreground mb-4 h-4">Total Absences</div>
             <div className="mt-auto pt-3 border-t border-border/40">
-              <p className="text-[10px] font-bold text-foreground text-center">
-                {absentDays === 0 ? "Perfect Record" : "Needs Attention"}
-              </p>
+              {isLoading ? (
+                <Skeleton className="h-3.5 w-24 mx-auto" />
+              ) : (
+                <p className="text-[10px] font-bold text-foreground text-center">
+                  {absentDays === 0 ? "Perfect Record" : "Needs Attention"}
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -1014,14 +1053,24 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
               <span className="text-[11px] font-bold text-foreground capitalize">Leave Balance</span>
             </div>
             <div className="flex items-baseline gap-1 mb-1 mt-1">
-              <span className="text-3xl font-black text-foreground">{leaveBalanceRemaining}</span>
-              <span className="text-sm font-bold text-foreground">/ {totalEntitlement}</span>
+              {isLoading ? (
+                <Skeleton className="h-8 w-20 my-0.5" />
+              ) : (
+                <>
+                  <span className="text-3xl font-black text-foreground">{leaveBalanceRemaining}</span>
+                  <span className="text-sm font-bold text-foreground">/ {totalEntitlement}</span>
+                </>
+              )}
             </div>
             <div className="text-[10px] font-medium text-foreground mb-4 h-4">Remaining</div>
             <div className="mt-auto pt-3 border-t border-border/40">
-              <p className="text-[10px] font-bold text-foreground text-center">
-                {leaveBalanceRemaining === totalEntitlement ? "Full Entitlement" : leaveBalanceRemaining === 0 ? "Exhausted" : "Available"}
-              </p>
+              {isLoading ? (
+                <Skeleton className="h-3.5 w-24 mx-auto" />
+              ) : (
+                <p className="text-[10px] font-bold text-foreground text-center">
+                  {leaveBalanceRemaining === totalEntitlement ? "Full Entitlement" : leaveBalanceRemaining === 0 ? "Exhausted" : "Available"}
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -1037,13 +1086,21 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
               <span className="text-[11px] font-bold text-foreground capitalize">Outstation Requests</span>
             </div>
             <div className="flex items-baseline gap-1 mb-1 mt-1">
-              <span className="text-3xl font-black text-foreground">{monthOutstationsCount}</span>
+              {isLoading ? (
+                <Skeleton className="h-8 w-12 my-0.5" />
+              ) : (
+                <span className="text-3xl font-black text-foreground">{monthOutstationsCount}</span>
+              )}
             </div>
             <div className="text-[10px] font-medium text-foreground mb-4 h-4">Requests</div>
             <div className="mt-auto pt-3 border-t border-border/40">
-              <p className="text-[10px] font-bold text-foreground text-center">
-                {monthOutstationsCount === 0 ? "No Travel Plans" : "Active Requests"}
-              </p>
+              {isLoading ? (
+                <Skeleton className="h-3.5 w-24 mx-auto" />
+              ) : (
+                <p className="text-[10px] font-bold text-foreground text-center">
+                  {monthOutstationsCount === 0 ? "No Travel Plans" : "Active Requests"}
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -1059,13 +1116,21 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
               <span className="text-[11px] font-bold text-foreground capitalize">Top Leave</span>
             </div>
             <div className="flex items-baseline gap-1 mb-1 mt-1 h-[36px] overflow-hidden">
-              <span className="text-2xl font-black text-foreground leading-none truncate max-w-full" title={topLeave.name}>{topLeave.name}</span>
+              {isLoading ? (
+                <Skeleton className="h-8 w-24 my-0.5" />
+              ) : (
+                <span className="text-2xl font-black text-foreground leading-none truncate max-w-full" title={topLeave.name}>{topLeave.name}</span>
+              )}
             </div>
             <div className="text-[10px] font-medium text-foreground mb-4 h-4">Most used</div>
             <div className="mt-auto pt-3 border-t border-border/40">
-              <p className="text-[10px] font-bold text-foreground text-center">
-                {topLeave.name === 'None' ? "No Leave Taken Yet" : "Frequent Leave"}
-              </p>
+              {isLoading ? (
+                <Skeleton className="h-3.5 w-28 mx-auto" />
+              ) : (
+                <p className="text-[10px] font-bold text-foreground text-center">
+                  {topLeave.name === 'None' ? "No Leave Taken Yet" : "Frequent Leave"}
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -1084,13 +1149,21 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
               <div className="grid grid-cols-2 gap-2.5 mb-3.5">
                 <div className="p-2.5 bg-slate-50 dark:bg-slate-900/50 border border-border/20 rounded-2xl flex flex-col">
                   <span className="text-[9px] font-bold text-foreground uppercase tracking-wider">WORKING DAYS</span>
-                  <span className="text-sm font-black text-foreground mt-0.5">{totalWorkingDaysPassed} Days</span>
+                  {isLoading ? (
+                    <Skeleton className="h-5 w-16 mt-1" />
+                  ) : (
+                    <span className="text-sm font-black text-foreground mt-0.5">{totalWorkingDaysPassed} Days</span>
+                  )}
                 </div>
                 <div className="p-2.5 bg-slate-50 dark:bg-slate-900/50 border border-border/20 rounded-2xl flex flex-col">
                   <span className="text-[9px] font-bold text-foreground uppercase tracking-wider">PUNCTUALITY</span>
-                  <span className="text-sm font-black text-foreground mt-0.5">
-                    {presentDays > 0 ? Math.round(((presentDays - lateArrivals) / presentDays) * 100) : 100}%
-                  </span>
+                  {isLoading ? (
+                    <Skeleton className="h-5 w-14 mt-1" />
+                  ) : (
+                    <span className="text-sm font-black text-foreground mt-0.5">
+                      {presentDays > 0 ? Math.round(((presentDays - lateArrivals) / presentDays) * 100) : 100}%
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -1105,16 +1178,27 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                 ].map((item, i) => (
                   <div key={i} className="flex items-center gap-3">
                     <span className="text-xs font-bold text-foreground w-14 shrink-0">{item.label}</span>
-                    <div className="flex-1 h-2 bg-muted/40 rounded-full overflow-hidden">
-                      <div 
-                        className={`h-full rounded-full ${item.color} transition-all duration-1000`} 
-                        style={{ width: `${daysInMonth > 0 ? (item.value / daysInMonth) * 100 : 0}%` }} 
-                      />
-                    </div>
-                    <div className="w-16 text-right shrink-0">
-                      <span className="text-xs font-black">{item.value}</span>
-                      <span className="text-[10px] text-foreground ml-1">({daysInMonth > 0 ? Math.round((item.value / daysInMonth) * 100) : 0}%)</span>
-                    </div>
+                    {isLoading ? (
+                      <>
+                        <Skeleton className="flex-1 h-2 rounded-full" />
+                        <div className="w-16 flex justify-end shrink-0">
+                          <Skeleton className="h-3.5 w-12" />
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex-1 h-2 bg-muted/40 rounded-full overflow-hidden">
+                          <div 
+                            className={`h-full rounded-full ${item.color} transition-all duration-1000`} 
+                            style={{ width: `${daysInMonth > 0 ? (item.value / daysInMonth) * 100 : 0}%` }} 
+                          />
+                        </div>
+                        <div className="w-16 text-right shrink-0">
+                          <span className="text-xs font-black">{item.value}</span>
+                          <span className="text-[10px] text-foreground ml-1">({daysInMonth > 0 ? Math.round((item.value / daysInMonth) * 100) : 0}%)</span>
+                        </div>
+                      </>
+                    )}
                   </div>
                 ))}
               </div>
@@ -1139,15 +1223,38 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
             <div className="grid grid-cols-2 gap-2.5 mb-3.5">
               <div className="p-2.5 bg-slate-50 dark:bg-slate-900/50 border border-border/20 rounded-2xl flex flex-col">
                 <span className="text-[9px] font-bold text-foreground uppercase tracking-wider">APPROVED LEAVES</span>
-                <span className="text-sm font-black text-foreground mt-0.5">{mLeaves.length} {mLeaves.length === 1 ? 'Request' : 'Requests'}</span>
+                {isLoading ? (
+                  <Skeleton className="h-5 w-20 mt-1" />
+                ) : (
+                  <span className="text-sm font-black text-foreground mt-0.5">{mLeaves.length} {mLeaves.length === 1 ? 'Request' : 'Requests'}</span>
+                )}
               </div>
               <div className="p-2.5 bg-slate-50 dark:bg-slate-900/50 border border-border/20 rounded-2xl flex flex-col">
                 <span className="text-[9px] font-bold text-foreground uppercase tracking-wider">REMAINING BALANCE</span>
-                <span className="text-sm font-black text-foreground mt-0.5">{leaveBalanceRemaining} Days</span>
+                {isLoading ? (
+                  <Skeleton className="h-5 w-16 mt-1" />
+                ) : (
+                  <span className="text-sm font-black text-foreground mt-0.5">{leaveBalanceRemaining} Days</span>
+                )}
               </div>
             </div>
 
-            {monthPieData.length === 0 ? (
+            {isLoading ? (
+              <div className="flex-1 flex items-center justify-center my-auto">
+                <Skeleton className="w-[112px] h-[112px] rounded-full shrink-0" />
+                <div className="ml-6 flex-1 space-y-3">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className="flex items-center gap-3">
+                      <Skeleton className="w-3 h-3 rounded-full shrink-0" />
+                      <div className="flex flex-col gap-1">
+                        <Skeleton className="h-3 w-24" />
+                        <Skeleton className="h-2.5 w-16" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : monthPieData.length === 0 ? (
               <div className="flex-1 flex flex-col items-center justify-center text-center opacity-50 my-auto">
                 <Briefcase className="w-10 h-10 mb-2 text-foreground" />
                 <p className="text-sm font-bold text-foreground">{month === "all" ? "No leaves applied this year" : "No leaves applied this month"}</p>
@@ -1230,7 +1337,11 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                  </div>
                  
                  <div className="grid grid-cols-7 gap-1 sm:gap-1.5 flex-1 content-start">
-                    {calendarDays.map((cell, i) => {
+                    {isLoading ? (
+                      Array.from({ length: 35 }).map((_, i) => (
+                        <Skeleton key={i} className="aspect-square rounded-[6px]" />
+                      ))
+                    ) : calendarDays.map((cell, i) => {
                       // Calculate weekend based on operating zone
                       let isWeekend = false;
                       if (zone === 'ZONE_A') {
@@ -1296,11 +1407,19 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
             
             <div className="grid grid-cols-2 gap-4 mb-6">
               <div>
-                <p className="text-3xl font-black text-foreground">{todayClockIn}</p>
+                {isLoading ? (
+                  <Skeleton className="h-8 w-24 mb-1" />
+                ) : (
+                  <p className="text-3xl font-black text-foreground">{todayClockIn}</p>
+                )}
                 <p className="text-xs font-bold text-foreground">Today's Clock In</p>
               </div>
               <div className="text-right">
-                <p className="text-3xl font-black text-foreground">{avgFmt}</p>
+                {isLoading ? (
+                  <Skeleton className="h-8 w-24 mb-1 ml-auto" />
+                ) : (
+                  <p className="text-3xl font-black text-foreground">{avgFmt}</p>
+                )}
                 <p className="text-xs font-bold text-foreground">Average Clock In</p>
               </div>
             </div>
@@ -1308,26 +1427,57 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-4">
                <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-xl p-2.5 text-center">
                  <p className="text-[9px] font-bold text-foreground mb-1">On Time</p>
-                 <p className="text-sm font-black text-emerald-600">{onTimePercentage}%</p>
-                 <p className="text-[8px] text-emerald-600/70 font-bold">↑ {attendanceRate > 0 ? "Good" : "-"}</p>
+                 {isLoading ? (
+                   <>
+                     <Skeleton className="h-4 w-12 mx-auto mb-1" />
+                     <Skeleton className="h-2.5 w-10 mx-auto" />
+                   </>
+                 ) : (
+                   <>
+                     <p className="text-sm font-black text-emerald-600">{onTimePercentage}%</p>
+                     <p className="text-[8px] text-emerald-600/70 font-bold">↑ {attendanceRate > 0 ? "Good" : "-"}</p>
+                   </>
+                 )}
                </div>
                <div className="bg-rose-500/5 border border-rose-500/10 rounded-xl p-2.5 text-center">
                  <p className="text-[9px] font-bold text-foreground mb-1">Late Arrivals</p>
-                 <p className="text-sm font-black text-rose-600">{lateArrivals}</p>
-                 <p className="text-[8px] text-rose-600/70 font-bold">↓ {lateArrivals > 0 ? "Needs Focus" : "-"}</p>
+                 {isLoading ? (
+                   <>
+                     <Skeleton className="h-4 w-8 mx-auto mb-1" />
+                     <Skeleton className="h-2.5 w-12 mx-auto" />
+                   </>
+                 ) : (
+                   <>
+                     <p className="text-sm font-black text-rose-600">{lateArrivals}</p>
+                     <p className="text-[8px] text-rose-600/70 font-bold">↓ {lateArrivals > 0 ? "Needs Focus" : "-"}</p>
+                   </>
+                 )}
                </div>
                <div className="bg-muted/20 border border-border/50 rounded-xl p-2.5 text-center flex flex-col justify-center">
                  <p className="text-[9px] font-bold text-foreground mb-1">Earliest</p>
-                 <p className="text-[11px] font-black">{formatTime(earliest)}</p>
+                 {isLoading ? (
+                   <Skeleton className="h-4 w-14 mx-auto" />
+                 ) : (
+                   <p className="text-[11px] font-black">{formatTime(earliest)}</p>
+                 )}
                </div>
                <div className="bg-muted/20 border border-border/50 rounded-xl p-2.5 text-center flex flex-col justify-center">
                  <p className="text-[9px] font-bold text-foreground mb-1">Latest</p>
-                 <p className="text-[11px] font-black">{formatTime(latest)}</p>
+                 {isLoading ? (
+                   <Skeleton className="h-4 w-14 mx-auto" />
+                 ) : (
+                   <p className="text-[11px] font-black">{formatTime(latest)}</p>
+                 )}
                </div>
             </div>
             
-            <div className="mt-auto text-[10px] font-bold text-foreground">
-              Most common clock-in time: <span className="text-foreground">{mostCommonTime}</span>
+            <div className="mt-auto text-[10px] font-bold text-foreground flex items-center gap-1.5">
+              <span>Most common clock-in time:</span>
+              {isLoading ? (
+                <Skeleton className="h-3.5 w-16" />
+              ) : (
+                <span className="text-foreground">{mostCommonTime}</span>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -1348,7 +1498,16 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
               )}
             </div>
             
-            {trendData.length === 0 ? (
+            {isLoading ? (
+              <div className="h-[180px] w-full flex-1 flex flex-col justify-between gap-2">
+                <Skeleton className="flex-1 w-full rounded-xl" />
+                <div className="flex justify-between px-2">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Skeleton key={i} className="h-2.5 w-8" />
+                  ))}
+                </div>
+              </div>
+            ) : trendData.length === 0 ? (
               <div className="flex-1 flex flex-col items-center justify-center text-center opacity-50">
                 <Flame className="w-10 h-10 mb-2 text-foreground" />
                 <p className="text-sm font-bold text-foreground">No data points yet</p>
@@ -1436,30 +1595,39 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
             
             <div className="flex items-center flex-1">
               <div className="flex flex-col items-center shrink-0">
-                <div className="w-[120px] h-[120px] relative flex items-center justify-center">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={[{ value: overallScore, fill: "#6366f1" }, { value: 100 - overallScore, fill: "rgba(0,0,0,0.05)" }]}
-                        innerRadius={45}
-                        outerRadius={55}
-                        startAngle={90}
-                        endAngle={-270}
-                        dataKey="value"
-                        stroke="none"
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                    <span className="text-2xl font-black text-foreground leading-none">{overallScore}</span>
-                    <span className="text-[9px] font-bold text-foreground">/ 100</span>
-                  </div>
-                </div>
-                <div className="mt-1">
-                   <span className={`whitespace-nowrap text-[10px] font-bold px-3 py-1 rounded-md ${overallScore >= 90 ? 'bg-emerald-500/10 text-emerald-600' : overallScore >= 75 ? 'bg-amber-500/10 text-amber-600' : 'bg-rose-500/10 text-rose-600'}`}>
-                     {overallScore >= 90 ? 'Excellent' : overallScore >= 75 ? 'Good' : 'Needs Work'}
-                   </span>
-                </div>
+                {isLoading ? (
+                  <>
+                    <Skeleton className="w-[120px] h-[120px] rounded-full" />
+                    <Skeleton className="h-5 w-16 rounded-md mt-2" />
+                  </>
+                ) : (
+                  <>
+                    <div className="w-[120px] h-[120px] relative flex items-center justify-center">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={[{ value: overallScore, fill: "#6366f1" }, { value: 100 - overallScore, fill: "rgba(0,0,0,0.05)" }]}
+                            innerRadius={45}
+                            outerRadius={55}
+                            startAngle={90}
+                            endAngle={-270}
+                            dataKey="value"
+                            stroke="none"
+                          />
+                        </PieChart>
+                      </ResponsiveContainer>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                        <span className="text-2xl font-black text-foreground leading-none">{overallScore}</span>
+                        <span className="text-[9px] font-bold text-foreground">/ 100</span>
+                      </div>
+                    </div>
+                    <div className="mt-1">
+                       <span className={`whitespace-nowrap text-[10px] font-bold px-3 py-1 rounded-md ${overallScore >= 90 ? 'bg-emerald-500/10 text-emerald-600' : overallScore >= 75 ? 'bg-amber-500/10 text-amber-600' : 'bg-rose-500/10 text-rose-600'}`}>
+                         {overallScore >= 90 ? 'Excellent' : overallScore >= 75 ? 'Good' : 'Needs Work'}
+                       </span>
+                    </div>
+                  </>
+                )}
               </div>
               
               <div className="ml-8 flex-1 space-y-3">
@@ -1474,7 +1642,11 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                       <div className={`w-2 h-2 rounded-full ${item.color}`} />
                       <span className="text-[10px] font-bold text-foreground group-hover:text-foreground transition-colors">{item.label}</span>
                     </div>
-                    <span className="text-[10px] font-black text-foreground">{item.score} <span className="text-foreground font-medium">/ {item.total}</span></span>
+                    {isLoading ? (
+                      <Skeleton className="h-3.5 w-12" />
+                    ) : (
+                      <span className="text-[10px] font-black text-foreground">{item.score} <span className="text-foreground font-medium">/ {item.total}</span></span>
+                    )}
                   </div>
                 ))}
               </div>
@@ -1494,7 +1666,18 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
               <Calendar className="w-3.5 h-3.5 text-blue-500" /> UPCOMING EVENTS
             </h3>
             <div className="space-y-3">
-              {upcomingEvents.length > 0 ? (
+              {isLoading ? (
+                Array.from({ length: 3 }).map((_, idx) => (
+                  <div key={idx} className="flex items-center gap-3 p-3 bg-muted/20 rounded-xl border border-border/50">
+                    <Skeleton className="w-10 h-10 rounded-lg shrink-0" />
+                    <div className="flex-1 space-y-1.5">
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-3 w-24" />
+                    </div>
+                    <Skeleton className="h-5 w-16 rounded-md" />
+                  </div>
+                ))
+              ) : upcomingEvents.length > 0 ? (
                 upcomingEvents.map((event, idx) => (
                   <div key={idx} className="flex items-center gap-3 p-3 bg-muted/20 rounded-xl border border-border/50">
                     <div className={`w-10 h-10 rounded-lg ${event.color} text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-sm`}>
@@ -1531,14 +1714,31 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                 <div>
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-sm font-bold text-foreground">Annual / Emergency Leave</span>
-                    <span className="text-sm font-bold text-foreground">{annualLeavesUsed + emergencyLeavesUsed} / {totalEntitlement} Days</span>
+                    {isLoading ? (
+                      <Skeleton className="h-4 w-16" />
+                    ) : (
+                      <span className="text-sm font-bold text-foreground">{annualLeavesUsed + emergencyLeavesUsed} / {totalEntitlement} Days</span>
+                    )}
                   </div>
-                  <div className="w-full h-2 bg-indigo-500/10 rounded-full overflow-hidden mb-1">
-                    <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${Math.min(((annualLeavesUsed + emergencyLeavesUsed) / Math.max(totalEntitlement, 1)) * 100, 100)}%` }} />
-                  </div>
+                  {isLoading ? (
+                    <Skeleton className="w-full h-2 rounded-full mb-1.5" />
+                  ) : (
+                    <div className="w-full h-2 bg-indigo-500/10 rounded-full overflow-hidden mb-1">
+                      <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${Math.min(((annualLeavesUsed + emergencyLeavesUsed) / Math.max(totalEntitlement, 1)) * 100, 100)}%` }} />
+                    </div>
+                  )}
                   <div className="flex justify-between items-center">
-                    <span className="text-xs font-black text-foreground">{Math.max(0, totalEntitlement - (annualLeavesUsed + emergencyLeavesUsed))} Days Available</span>
-                    <span className="text-[10px] font-black text-muted-foreground uppercase tracking-wider">{annualApps + emergencyApps} APPLICATION{(annualApps + emergencyApps) !== 1 ? 'S' : ''}</span>
+                    {isLoading ? (
+                      <>
+                        <Skeleton className="h-3.5 w-24" />
+                        <Skeleton className="h-3 w-20" />
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-xs font-black text-foreground">{Math.max(0, totalEntitlement - (annualLeavesUsed + emergencyLeavesUsed))} Days Available</span>
+                        <span className="text-[10px] font-black text-muted-foreground uppercase tracking-wider">{annualApps + emergencyApps} APPLICATION{(annualApps + emergencyApps) !== 1 ? 'S' : ''}</span>
+                      </>
+                    )}
                   </div>
                 </div>
 
@@ -1546,14 +1746,31 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                 <div>
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-sm font-bold text-foreground">Medical Leave</span>
-                    <span className="text-sm font-bold text-foreground">{sickLeavesUsed} / {totalSick} Days</span>
+                    {isLoading ? (
+                      <Skeleton className="h-4 w-16" />
+                    ) : (
+                      <span className="text-sm font-bold text-foreground">{sickLeavesUsed} / {totalSick} Days</span>
+                    )}
                   </div>
-                  <div className="w-full h-2 bg-rose-500/10 rounded-full overflow-hidden mb-1">
-                    <div className="h-full bg-rose-500 rounded-full" style={{ width: `${Math.min((sickLeavesUsed / Math.max(totalSick, 1)) * 100, 100)}%` }} />
-                  </div>
+                  {isLoading ? (
+                    <Skeleton className="w-full h-2 rounded-full mb-1.5" />
+                  ) : (
+                    <div className="w-full h-2 bg-rose-500/10 rounded-full overflow-hidden mb-1">
+                      <div className="h-full bg-rose-500 rounded-full" style={{ width: `${Math.min((sickLeavesUsed / Math.max(totalSick, 1)) * 100, 100)}%` }} />
+                    </div>
+                  )}
                   <div className="flex justify-between items-center">
-                    <span className="text-xs font-black text-foreground">{sickRemaining} Days Available</span>
-                    <span className="text-[10px] font-black text-muted-foreground uppercase tracking-wider">{sickApps} APPLICATION{sickApps !== 1 ? 'S' : ''}</span>
+                    {isLoading ? (
+                      <>
+                        <Skeleton className="h-3.5 w-24" />
+                        <Skeleton className="h-3 w-20" />
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-xs font-black text-foreground">{sickRemaining} Days Available</span>
+                        <span className="text-[10px] font-black text-muted-foreground uppercase tracking-wider">{sickApps} APPLICATION{sickApps !== 1 ? 'S' : ''}</span>
+                      </>
+                    )}
                   </div>
                 </div>
 
@@ -1561,14 +1778,31 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                 <div>
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-sm font-bold text-foreground uppercase">Replacement Leave</span>
-                    <span className="text-sm font-bold text-foreground">{rlStats.used} {rlStats.used === 1 ? 'Day Taken' : 'Days Taken'}</span>
+                    {isLoading ? (
+                      <Skeleton className="h-4 w-20" />
+                    ) : (
+                      <span className="text-sm font-bold text-foreground">{rlStats.used} {rlStats.used === 1 ? 'Day Taken' : 'Days Taken'}</span>
+                    )}
                   </div>
-                  <div className="w-full h-2 bg-amber-500/10 rounded-full overflow-hidden mb-1">
-                    <div className="h-full bg-amber-500 rounded-full" style={{ width: `${Math.min((rlStats.used / Math.max(rlStats.earned, 1)) * 100, 100)}%` }} />
-                  </div>
+                  {isLoading ? (
+                    <Skeleton className="w-full h-2 rounded-full mb-1.5" />
+                  ) : (
+                    <div className="w-full h-2 bg-amber-500/10 rounded-full overflow-hidden mb-1">
+                      <div className="h-full bg-amber-500 rounded-full" style={{ width: `${Math.min((rlStats.used / Math.max(rlStats.earned, 1)) * 100, 100)}%` }} />
+                    </div>
+                  )}
                   <div className="flex justify-between items-center">
-                    <span className="text-xs font-black text-foreground">{rlStats.available} {rlStats.available === 1 ? 'Day Available' : 'Days Available'}</span>
-                    <span className="text-[10px] font-black text-muted-foreground uppercase tracking-wider">{replacementApps} APPLICATION{replacementApps !== 1 ? 'S' : ''}</span>
+                    {isLoading ? (
+                      <>
+                        <Skeleton className="h-3.5 w-24" />
+                        <Skeleton className="h-3 w-20" />
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-xs font-black text-foreground">{rlStats.available} {rlStats.available === 1 ? 'Day Available' : 'Days Available'}</span>
+                        <span className="text-[10px] font-black text-muted-foreground uppercase tracking-wider">{replacementApps} APPLICATION{replacementApps !== 1 ? 'S' : ''}</span>
+                      </>
+                    )}
                   </div>
                 </div>
 
@@ -1576,15 +1810,27 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                 <div>
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-sm font-bold text-foreground">Unpaid Leave</span>
-                    <span className="text-sm font-bold text-foreground">{unpaidLeavesUsed} {unpaidLeavesUsed === 1 ? 'Day' : 'Days'}</span>
+                    {isLoading ? (
+                      <Skeleton className="h-4 w-14" />
+                    ) : (
+                      <span className="text-sm font-bold text-foreground">{unpaidLeavesUsed} {unpaidLeavesUsed === 1 ? 'Day' : 'Days'}</span>
+                    )}
                   </div>
-                  <div className="w-full h-2 bg-slate-500/10 rounded-full overflow-hidden mb-1">
-                    {/* Fixed visual indicator for unpaid leave (e.g., just show 25% or proportional to arbitrary number like 14) */}
-                    <div className="h-full bg-slate-500 rounded-full" style={{ width: `${unpaidLeavesUsed > 0 ? Math.min((unpaidLeavesUsed / 14) * 100, 100) : 0}%` }} />
-                  </div>
+                  {isLoading ? (
+                    <Skeleton className="w-full h-2 rounded-full mb-1.5" />
+                  ) : (
+                    <div className="w-full h-2 bg-slate-500/10 rounded-full overflow-hidden mb-1">
+                      {/* Fixed visual indicator for unpaid leave (e.g., just show 25% or proportional to arbitrary number like 14) */}
+                      <div className="h-full bg-slate-500 rounded-full" style={{ width: `${unpaidLeavesUsed > 0 ? Math.min((unpaidLeavesUsed / 14) * 100, 100) : 0}%` }} />
+                    </div>
+                  )}
                   <div className="flex justify-between items-center">
                     <span></span>
-                    <span className="text-[10px] font-black text-muted-foreground uppercase tracking-wider">{unpaidApps} APPLICATION{unpaidApps !== 1 ? 'S' : ''}</span>
+                    {isLoading ? (
+                      <Skeleton className="h-3 w-20" />
+                    ) : (
+                      <span className="text-[10px] font-black text-muted-foreground uppercase tracking-wider">{unpaidApps} APPLICATION{unpaidApps !== 1 ? 'S' : ''}</span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1597,11 +1843,17 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                 <Zap className="w-3.5 h-3.5 text-amber-500" /> PERSONAL INSIGHTS
             </h3>
             <div className="space-y-3">
-              {insights.map((insight, idx) => (
-                <div key={idx} className="flex items-start gap-2.5 p-3 bg-amber-500/5 rounded-xl border border-amber-500/10">
-                  <p className="text-sm font-medium text-foreground">{insight}</p>
-                </div>
-              ))}
+              {isLoading ? (
+                Array.from({ length: 3 }).map((_, idx) => (
+                  <Skeleton key={idx} className="h-11 w-full rounded-xl" />
+                ))
+              ) : (
+                insights.map((insight, idx) => (
+                  <div key={idx} className="flex items-start gap-2.5 p-3 bg-amber-500/5 rounded-xl border border-amber-500/10">
+                    <p className="text-sm font-medium text-foreground">{insight}</p>
+                  </div>
+                ))
+              )}
             </div>
           </CardContent>
         </Card>

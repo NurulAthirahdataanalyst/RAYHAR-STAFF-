@@ -4,6 +4,7 @@ import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { useRole } from "@/contexts/RoleContext";
 import { useCompany } from "@/modules/multi-company/contexts/CompanyContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -750,8 +751,11 @@ export default function OutstationAssignment() {
 
   if (roleLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="animate-spin w-7 h-7 text-pink-500" />
+      <div className="space-y-4 py-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-28 rounded-2xl" />)}
+        </div>
+        <Skeleton className="h-[460px] w-full rounded-[24px]" />
       </div>
     );
   }
@@ -951,8 +955,17 @@ export default function OutstationAssignment() {
         {/* Card Body */}
         <CardContent className="p-0">
           {loading ? (
-            <div className="h-48 flex items-center justify-center">
-              <Loader2 className="animate-spin w-7 h-7 text-pink-400" />
+            <div className="p-6 space-y-3">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="flex items-center justify-between gap-4 py-3 border-b border-border/40 last:border-0">
+                  <div className="space-y-1.5">
+                    <Skeleton className={`h-4 ${i % 2 === 0 ? 'w-48' : 'w-36'} rounded`} />
+                    <Skeleton className="h-3 w-28 rounded" />
+                  </div>
+                  <Skeleton className="h-4 w-32 rounded hidden sm:block" />
+                  <Skeleton className="h-6 w-20 rounded-full" />
+                </div>
+              ))}
             </div>
           ) : (!selectedEvent && filteredEvents.length === 0) || (selectedEvent && filteredParticipants.length === 0) ? (
             <div className="h-48 flex flex-col items-center justify-center gap-2 text-muted-foreground">

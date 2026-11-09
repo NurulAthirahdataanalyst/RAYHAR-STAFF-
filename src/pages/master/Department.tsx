@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
@@ -153,14 +154,21 @@ export default function Department() {
         </div>
 
       {loading ? (
-        <Card className="border-none shadow-sm overflow-hidden bg-card/60 backdrop-blur-md">
-          <CardContent className="p-12 flex flex-col items-center justify-center gap-3">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            <p className="text-xs font-bold text-foreground animate-pulse uppercase tracking-widest">
-              Loading Departments...
-            </p>
-          </CardContent>
-        </Card>
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+            <Skeleton className="h-24 w-full rounded-2xl" />
+            <Skeleton className="h-24 w-full rounded-2xl" />
+          </div>
+          <Card className="border-none shadow-sm overflow-hidden bg-card/60 backdrop-blur-md p-4 space-y-3">
+            {Array.from({ length: 5 }).map((_, idx) => (
+              <div key={idx} className="flex items-center justify-between py-3 border-b border-border/50">
+                <Skeleton className={`h-4 ${idx % 2 === 0 ? "w-44" : "w-32"} rounded`} />
+                <Skeleton className="h-5 w-16 rounded-full" />
+                <Skeleton className="h-7 w-20 rounded-lg" />
+              </div>
+            ))}
+          </Card>
+        </div>
       ) : (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6">

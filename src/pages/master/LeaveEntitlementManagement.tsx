@@ -1,5 +1,6 @@
 import React from 'react';
 import { useState, useEffect, useRef } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { TableScrollTopButton } from "@/components/shared/TableScrollTopButton";
 
 // HR Notification Helper
@@ -2523,7 +2524,17 @@ function ReplacementLeaveValidationForm({ employees, onCancel }: { employees: an
       </CardHeader>
       <CardContent className="p-0">
         {loading ? (
-          <div className="p-10 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-blue-600" /></div>
+          <div className="p-4 space-y-3">
+            {Array.from({ length: 5 }).map((_, idx) => (
+              <div key={idx} className="flex items-center justify-between py-2.5 border-b border-border/40">
+                <Skeleton className="h-3.5 w-24 rounded" />
+                <Skeleton className="h-3.5 w-24 rounded" />
+                <Skeleton className="h-3.5 w-24 rounded" />
+                <Skeleton className="h-3.5 w-12 rounded" />
+                <Skeleton className="h-5 w-20 rounded-full" />
+              </div>
+            ))}
+          </div>
         ) : data.length === 0 ? (
           <div className="p-10 text-center text-foreground text-sm font-bold">No replacement leaves found.</div>
         ) : (

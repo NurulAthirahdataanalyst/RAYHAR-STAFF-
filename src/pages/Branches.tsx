@@ -1,6 +1,7 @@
 import { sanitizeUrl, safeFileUrl } from '@/utils/security';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { TablePagination } from "@/components/common/TablePagination";
 import { Input } from "@/components/ui/input";
@@ -1158,12 +1159,26 @@ export default function Branches() {
           </div>
 
           {loading ? (
-            <div className="flex flex-col items-center justify-center p-20 gap-4 bg-card/60 backdrop-blur-md rounded-[32px] border border-border/50">
-              <Loader2 className="h-10 w-10 animate-spin text-[#942392]" />
-              <p className="text-[10px] print:text-[13px] font-black uppercase tracking-[0.2em] text-foreground animate-pulse">
-                Syncing Branch Data...
-              </p>
-            </div>
+            <Card className="border-none shadow-sm overflow-hidden bg-card/60 backdrop-blur-md rounded-[24px]">
+              <CardContent className="p-0">
+                <div className="divide-y divide-border/50">
+                  {Array.from({ length: 6 }).map((_, idx) => (
+                    <div key={idx} className="p-5 flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-4">
+                        <Skeleton className="w-10 h-10 rounded-xl shrink-0" />
+                        <div className="space-y-1.5">
+                          <Skeleton className={`h-4 ${idx % 2 === 0 ? "w-44" : "w-36"} rounded`} />
+                          <Skeleton className="h-2.5 w-28 rounded" />
+                        </div>
+                      </div>
+                      <Skeleton className={`h-3.5 ${idx % 2 === 0 ? "w-28" : "w-24"} rounded hidden sm:block`} />
+                      <Skeleton className="h-4 w-20 rounded hidden md:block" />
+                      <Skeleton className="h-6 w-24 rounded-full" />
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           ) : (
             <Card className="border-none shadow-sm overflow-hidden bg-card/60 backdrop-blur-md rounded-[24px]">
               <CardContent className="p-0">
@@ -1756,11 +1771,30 @@ export default function Branches() {
             )}
           </PageActions>
           {loadingBranches ? (
-            <div className="flex flex-col items-center justify-center py-20 gap-3 bg-card/60 backdrop-blur-md rounded-[32px] border border-border/50">
-              <Loader2 className="h-10 w-10 animate-spin text-[#942392]" />
-              <p className="text-xs font-black uppercase tracking-widest text-foreground animate-pulse">
-                Scanning Network...
-              </p>
+            <div className="pt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+              {Array.from({ length: 6 }).map((_, idx) => (
+                <div key={idx} className="bg-card/60 backdrop-blur-md rounded-[28px] border border-border/50 p-6 space-y-5">
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-2">
+                      <Skeleton className={`h-5 ${idx % 2 === 0 ? "w-40" : "w-32"} rounded-lg`} />
+                      <Skeleton className="h-3 w-24 rounded" />
+                    </div>
+                    <Skeleton className="w-10 h-10 rounded-xl shrink-0" />
+                  </div>
+                  <div className="grid grid-cols-3 gap-3 pt-2">
+                    <Skeleton className="h-14 rounded-xl" />
+                    <Skeleton className="h-14 rounded-xl" />
+                    <Skeleton className="h-14 rounded-xl" />
+                  </div>
+                  <div className="space-y-2 pt-2">
+                    <div className="flex justify-between">
+                      <Skeleton className="h-3 w-24 rounded" />
+                      <Skeleton className="h-3 w-10 rounded" />
+                    </div>
+                    <Skeleton className="h-2.5 w-full rounded-full" />
+                  </div>
+                </div>
+              ))}
             </div>
           ) : viewMode === "grid" ? (
             <div className="pt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 gap-y-12 sm:gap-y-14">
@@ -2135,11 +2169,16 @@ export default function Branches() {
           <div className="flex-1 overflow-y-auto">
           <div className="p-4 sm:p-6 print:p-6 space-y-6">
             {loadingLeaves ? (
-              <div className="flex flex-col items-center justify-center p-12 gap-3">
-                <Loader2 className="w-8 h-8 animate-spin text-[#942392]" />
-                <p className="text-[10px] print:text-[13px] font-black uppercase tracking-widest text-foreground">
-                  Fetching Forms...
-                </p>
+              <div className="space-y-3">
+                {Array.from({ length: 4 }).map((_, idx) => (
+                  <div key={idx} className="p-4 rounded-xl border border-border/50 flex items-center justify-between gap-4">
+                    <div className="space-y-2">
+                      <Skeleton className={`h-4 ${idx % 2 === 0 ? "w-36" : "w-28"} rounded`} />
+                      <Skeleton className="h-3 w-44 rounded" />
+                    </div>
+                    <Skeleton className="h-7 w-20 rounded-lg" />
+                  </div>
+                ))}
               </div>
             ) : (
               <div className="space-y-4">

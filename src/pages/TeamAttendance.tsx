@@ -12,6 +12,7 @@ import { exportToCSV } from "@/utils/export";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 
@@ -238,8 +239,32 @@ export default function TeamAttendance() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="space-y-6 py-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, idx) => (
+            <Card key={idx} className="p-5 space-y-2.5">
+              <Skeleton className="h-3.5 w-28 rounded" />
+              <Skeleton className={`h-8 ${idx % 2 === 0 ? "w-16" : "w-20"} rounded-lg`} />
+              <Skeleton className="h-3 w-24 rounded" />
+            </Card>
+          ))}
+        </div>
+        <Card className="p-4 space-y-3">
+          {Array.from({ length: 6 }).map((_, idx) => (
+            <div key={idx} className="flex items-center justify-between py-3 border-b border-border/50">
+              <div className="flex items-center gap-3">
+                <Skeleton className="w-9 h-9 rounded-full shrink-0" />
+                <div className="space-y-1.5">
+                  <Skeleton className={`h-4 ${idx % 2 === 0 ? "w-40" : "w-32"} rounded`} />
+                  <Skeleton className="h-2.5 w-24 rounded" />
+                </div>
+              </div>
+              <Skeleton className="h-4 w-20 rounded" />
+              <Skeleton className="h-4 w-20 rounded" />
+              <Skeleton className="h-6 w-24 rounded-full" />
+            </div>
+          ))}
+        </Card>
       </div>
     );
   }
@@ -749,7 +774,16 @@ export default function TeamAttendance() {
                 </TableHeader>
                 <TableBody>
                   {historyLoading ? (
-                    <TableRow><TableCell colSpan={6} className="text-center py-8">Loading history...</TableCell></TableRow>
+                    Array.from({ length: 4 }).map((_, idx) => (
+                      <TableRow key={idx}>
+                        <TableCell><Skeleton className="h-4 w-32 rounded" /></TableCell>
+                        <TableCell><Skeleton className="h-3.5 w-28 rounded" /></TableCell>
+                        <TableCell><Skeleton className="h-3.5 w-16 rounded" /></TableCell>
+                        <TableCell><Skeleton className="h-3.5 w-20 rounded" /></TableCell>
+                        <TableCell><Skeleton className="h-5 w-20 rounded-full" /></TableCell>
+                        <TableCell><Skeleton className="h-5 w-24 rounded-full" /></TableCell>
+                      </TableRow>
+                    ))
                   ) : history.length === 0 ? (
                     <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">No history found</TableCell></TableRow>
                   ) : (

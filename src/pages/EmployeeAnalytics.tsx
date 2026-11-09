@@ -3,6 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRole } from "@/contexts/RoleContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import {
@@ -455,9 +456,9 @@ export default function EmployeeAnalytics() {
         // If there's an attendance update, refresh our data
         const eventUserId = data.userId || data.user_id;
         if (eventUserId && eventUserId.toString() === userId.toString()) {
-          void fetchMyData();
+          void fetchMyData(true);
         } else if (!eventUserId || data.type === 'refresh') { // Broadcast or generic refresh
-          void fetchMyData();
+          void fetchMyData(true);
         }
       } catch (err) {
         console.error("SSE parse error", err);
@@ -467,8 +468,8 @@ export default function EmployeeAnalytics() {
     return () => eventSource.close();
   }, [userId, selectedMonth, selectedYear]);
 
-  const fetchMyData = async () => {
-    setLoadingMe(true);
+  const fetchMyData = async (silent = false) => {
+    if (!silent) setLoadingMe(true);
     const maxRetries = 2;
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
@@ -684,6 +685,7 @@ export default function EmployeeAnalytics() {
         myLogs={myLogs}
         leaveRequests={leaveRequests}
         createdAt={user?.created_at}
+        loading={loadingMe}
       />
 
       {/* ═══════════════════════════════════════════════════════════════════
@@ -705,14 +707,40 @@ export default function EmployeeAnalytics() {
                 Punctuality Leaderboard
               </CardTitle>
               <CardDescription className="text-[10px] font-bold uppercase tracking-widest opacity-60 ml-11 italic">
-                {loadingTeam ? "Loading team data…" : `${teamMetrics.length} employees · click row for details`}
+                {loadingTeam ? (
+                  <Skeleton className="h-3.5 w-48 mt-1" />
+                ) : (
+                  `${teamMetrics.length} employees · click row for details`
+                )}
               </CardDescription>
             </CardHeader>
             <CardContent className="p-0">
               {loadingTeam ? (
-                <div className="flex items-center justify-center p-16 gap-3">
-                  <Loader2 className="animate-spin text-[#942392] w-7 h-7" />
-                  <span className="text-[10px] font-black text-foreground uppercase tracking-widest animate-pulse">Calculating metrics…</span>
+                <div className="divide-y divide-border/50">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <div key={i} className="px-4 sm:px-6 py-4 flex items-center gap-4">
+                      <Skeleton className="w-8 h-8 rounded-full shrink-0" />
+                      <div className="flex-1 min-w-0 space-y-1.5">
+                        <Skeleton className="h-4 w-40 max-w-full" />
+                        <Skeleton className="h-3 w-24" />
+                      </div>
+                      <div className="hidden sm:flex items-center gap-4">
+                        <div className="flex flex-col items-end gap-1.5">
+                          <Skeleton className="h-2.5 w-16" />
+                          <div className="flex items-center gap-2">
+                            <Skeleton className="w-28 h-2.5 rounded-full" />
+                            <Skeleton className="h-3 w-8" />
+                          </div>
+                        </div>
+                        <div className="flex flex-col items-end gap-1">
+                          <Skeleton className="h-2.5 w-10" />
+                          <Skeleton className="h-3.5 w-8" />
+                        </div>
+                      </div>
+                      <Skeleton className="h-5 w-20 rounded-full" />
+                      <Skeleton className="w-4 h-4 rounded" />
+                    </div>
+                  ))}
                 </div>
               ) : teamMetrics.length === 0 ? (
                 <div className="py-16 text-center text-[10px] font-black text-foreground/30 uppercase tracking-widest">
@@ -916,8 +944,13 @@ export default function EmployeeAnalytics() {
                   </CardHeader>
                   <CardContent className="pt-5">
                     {loadingTeam ? (
-                      <div className="h-[235px] flex items-center justify-center">
-                        <Loader2 className="animate-spin text-[#942392] opacity-40 w-7 h-7" />
+                      <div className="h-[235px] flex items-end justify-between gap-3 px-4 pb-6 pt-4">
+                        {[75, 92, 68, 85, 90, 72, 88, 80, 95, 78].map((h, i) => (
+                          <div key={i} className="flex-1 flex flex-col items-center justify-end gap-2 h-full">
+                            <Skeleton className="w-full max-w-[24px] rounded-t-md" style={{ height: `${h}%` }} />
+                            <Skeleton className="h-2.5 w-8" />
+                          </div>
+                        ))}
                       </div>
                     ) : (
                       <ResponsiveContainer width="100%" height={chartLabelAngle === '135' ? 255 : 235}>
@@ -984,9 +1017,29 @@ export default function EmployeeAnalytics() {
                 </CardHeader>
                 <CardContent className="pt-5">
                   {loadingTeam ? (
-                    <div className="h-[220px] flex items-center justify-center">
-                      <Loader2 className="animate-spin text-[#942392] opacity-40 w-7 h-7" />
-                    </div>
+                    <>
+                      <div className="h-[220px] flex items-end justify-around gap-4 px-6 pb-6 pt-4">
+                        {[65, 85, 50, 75, 60].map((h, i) => (
+                          <div key={i} className="flex-1 flex flex-col items-center justify-end gap-2 h-full">
+                            <Skeleton className="w-full max-w-[32px] rounded-t-md" style={{ height: `${h}%` }} />
+                            <Skeleton className="h-2.5 w-12" />
+                          </div>
+                        ))}
+                      </div>
+                      <div className="mt-4 space-y-2.5 pt-3 border-t border-border/40">
+                        <p className="text-[9px] font-black text-black dark:text-white uppercase tracking-widest">
+                          Average OT Hours
+                        </p>
+                        <div className="space-y-1.5">
+                          {Array.from({ length: 3 }).map((_, i) => (
+                            <div key={i} className="flex items-center justify-between gap-3 p-1">
+                              <Skeleton className="h-3.5 w-28" />
+                              <Skeleton className="h-3.5 w-14" />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </>
                   ) : deptOvertimeData.length === 0 ? (
                     <div className="h-[220px] flex items-center justify-center text-[10px] font-black text-foreground/30 uppercase tracking-widest">
                       No overtime data
@@ -1043,7 +1096,7 @@ export default function EmployeeAnalytics() {
           )}
 
           {/* ── Summary Strip ── */}
-          {!loadingTeam && teamMetrics.length > 0 && showOvertime && (
+          {(loadingTeam || teamMetrics.length > 0) && showOvertime && (
             <Card className="border-2 border-slate-300 dark:border-slate-600 bg-card/80 backdrop-blur-md rounded-[24px] group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20 shadow-[0_8px_30px_rgba(0,0,0,0.03)]">
               <CardContent className="p-5">
                 <div className="flex flex-wrap items-center gap-4 sm:gap-8">
@@ -1056,13 +1109,21 @@ export default function EmployeeAnalytics() {
                     { label: "At Risk",    value: teamMetrics.filter(m => m.badge === "AT RISK").length,   color: "bg-rose-500 text-white"    },
                   ].map(s => (
                     <div key={s.label} className="flex items-center gap-2">
-                      <Badge className={`${s.color} font-black text-[10px] px-3 py-1 rounded-md`}>{s.value}</Badge>
+                      {loadingTeam ? (
+                        <Skeleton className="h-6 w-9 rounded-md" />
+                      ) : (
+                        <Badge className={`${s.color} font-black text-[10px] px-3 py-1 rounded-md`}>{s.value}</Badge>
+                      )}
                       <span className="text-[10px] font-black text-foreground uppercase">{s.label}</span>
                     </div>
                   ))}
                   <div className="ml-auto flex items-center gap-1.5 text-[9px] font-black text-[#942392] uppercase tracking-wider bg-[#942392]/10 px-3 py-1.5 rounded-xl font-bold">
                     <ArrowUpRight className="w-3.5 h-3.5 text-[#942392]" />
-                    Team Average OT: {teamMetrics.length > 0 ? (teamMetrics.reduce((s, m) => s + (m.overtimeHours || 0), 0) / teamMetrics.length).toFixed(1) : "0.0"}h
+                    {loadingTeam ? (
+                      <Skeleton className="h-3.5 w-28" />
+                    ) : (
+                      <>Team Average OT: {teamMetrics.length > 0 ? (teamMetrics.reduce((s, m) => s + (m.overtimeHours || 0), 0) / teamMetrics.length).toFixed(1) : "0.0"}h</>
+                    )}
                   </div>
                 </div>
               </CardContent>

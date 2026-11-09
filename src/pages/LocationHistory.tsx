@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { API_BASE_URL } from "@/config/api";
 import { MonthPicker } from "@/components/shared/MonthPicker";
 import PageActions from "@/components/layout/PageActions";
@@ -73,7 +74,16 @@ export default function LocationHistory() {
                 </TableHeader>
                 <TableBody className="divide-y divide-border">
                   {historyLoading && history.length === 0 ? (
-                    <TableRow><TableCell colSpan={6} className="text-center py-12 text-muted-foreground">Loading history...</TableCell></TableRow>
+                    Array.from({ length: 6 }).map((_, idx) => (
+                      <TableRow key={idx}>
+                        <TableCell className="py-4"><Skeleton className="h-4 w-32 rounded" /></TableCell>
+                        <TableCell className="py-4"><Skeleton className="h-3.5 w-28 rounded" /></TableCell>
+                        <TableCell className="py-4"><Skeleton className="h-3.5 w-16 rounded" /></TableCell>
+                        <TableCell className="py-4"><Skeleton className="h-3.5 w-20 rounded" /></TableCell>
+                        <TableCell className="py-4"><Skeleton className="h-5 w-20 rounded-full" /></TableCell>
+                        <TableCell className="py-4"><Skeleton className="h-5 w-24 rounded-full" /></TableCell>
+                      </TableRow>
+                    ))
                   ) : history.length === 0 ? (
                     <TableRow><TableCell colSpan={6} className="text-center py-12 text-muted-foreground">No location history found for {selectedMonthStr}</TableCell></TableRow>
                   ) : (

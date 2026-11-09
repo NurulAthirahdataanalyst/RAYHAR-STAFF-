@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { format, isSameDay, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isBefore, startOfDay } from "date-fns";
 import { useRole } from "@/contexts/RoleContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -125,7 +126,12 @@ export default function OutstationCalendar({ onlyMine = false }: { onlyMine?: bo
     return isSameDay(day, new Date());
   };
 
-  if (roleLoading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin w-7 h-7 text-pink-500" /></div>;
+  if (roleLoading) return (
+    <div className="space-y-4 py-4">
+      <Skeleton className="h-8 w-40 rounded-lg" />
+      <Skeleton className="h-[520px] w-full rounded-[24px]" />
+    </div>
+  );
 
   return (
     <div className="animate-in fade-in duration-500">
@@ -186,7 +192,11 @@ export default function OutstationCalendar({ onlyMine = false }: { onlyMine?: bo
           </div>
         </CardHeader>
         {loading ? (
-          <div className="h-80 flex items-center justify-center"><Loader2 className="animate-spin w-7 h-7 text-pink-400" /></div>
+          <div className="p-4 grid grid-cols-7 gap-2">
+            {Array.from({ length: 35 }).map((_, i) => (
+              <Skeleton key={i} className="h-20 w-full rounded-xl" />
+            ))}
+          </div>
         ) : (
           <>
             {/* Day Headers */}

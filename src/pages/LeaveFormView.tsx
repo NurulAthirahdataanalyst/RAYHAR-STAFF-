@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { ApprovalHistoryTimeline } from "@/components/leave/ApprovalHistoryTimeline";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
   Dialog,
@@ -498,9 +499,31 @@ export default function LeaveFormView() {
             </div>
           </div>
           {loading ? (
-            <div className="flex flex-col items-center justify-center p-12 gap-3">
-              <Loader2 className="w-8 h-8 animate-spin text-[#942392]" />
-              <p className="text-[10px] print:text-[13px] font-black uppercase tracking-[0.2em] text-foreground animate-pulse">Syncing History...</p>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader className="bg-muted/30">
+                  <TableRow>
+                    <TableHead className="px-6 py-4 text-[10px]">Leave Type</TableHead>
+                    <TableHead className="px-6 py-4 text-[10px]">From</TableHead>
+                    <TableHead className="px-6 py-4 text-[10px]">To</TableHead>
+                    <TableHead className="px-6 py-4 text-[10px] text-center">Days</TableHead>
+                    <TableHead className="px-6 py-4 text-[10px] text-center">Status</TableHead>
+                    <TableHead className="px-6 py-4 text-right"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody className="divide-y divide-border/50">
+                  {Array.from({ length: 5 }).map((_, idx) => (
+                    <TableRow key={idx}>
+                      <TableCell className="px-6 py-4"><Skeleton className={`h-4 ${idx % 2 === 0 ? "w-32" : "w-24"} rounded`} /></TableCell>
+                      <TableCell className="px-6 py-4"><Skeleton className="h-3.5 w-20 rounded" /></TableCell>
+                      <TableCell className="px-6 py-4"><Skeleton className="h-3.5 w-20 rounded" /></TableCell>
+                      <TableCell className="px-6 py-4 text-center"><Skeleton className="h-4 w-8 rounded mx-auto" /></TableCell>
+                      <TableCell className="px-6 py-4 text-center"><Skeleton className="h-5 w-20 rounded-full mx-auto" /></TableCell>
+                      <TableCell className="px-6 py-4 text-right"><Skeleton className="h-7 w-20 rounded-lg ml-auto" /></TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
           ) : filteredForms.length > 0 ? (
             <>

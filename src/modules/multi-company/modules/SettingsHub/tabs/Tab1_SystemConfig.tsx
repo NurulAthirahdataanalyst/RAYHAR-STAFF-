@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -310,9 +311,16 @@ export const Tab1_SystemConfig: React.FC = () => {
         </div>
 
         {loading ? (
-          <div className="p-12 text-center text-xs text-muted-foreground flex items-center justify-center gap-2">
-            <Loader2 className="w-4 h-4 animate-spin text-[#942392]" />
-            Loading system activities...
+          <div className="p-6 space-y-3">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="flex items-center justify-between gap-4 p-3.5 rounded-xl border border-border/50">
+                <div className="space-y-2 flex-1">
+                  <Skeleton className={`h-4 ${i % 2 === 0 ? 'w-2/3' : 'w-1/2'} rounded`} />
+                  <Skeleton className="h-3 w-40 rounded" />
+                </div>
+                <Skeleton className="h-5 w-20 rounded-full shrink-0" />
+              </div>
+            ))}
           </div>
         ) : filteredLogs.length === 0 ? (
           <div className="p-12 text-center space-y-2">

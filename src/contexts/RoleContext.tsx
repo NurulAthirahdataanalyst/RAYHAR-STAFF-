@@ -162,7 +162,7 @@ export const RoleProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [userName, setUserName] = useState<string>(getInitialName);
   const [userBranch, setUserBranch] = useState<string>(getInitialBranch);
   const [userDepartment, setUserDepartment] = useState<string>(getInitialDept);
-  const [loading, setLoading] = useState(!user);
+  const [loading, setLoading] = useState(true);
   const lastFetchedUserRef = useRef<string>("");
   const isFetchingRef = useRef<boolean>(false);
 
@@ -202,12 +202,16 @@ export const RoleProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchUserData = useCallback(async (force = false) => {
     const targetId = resolvedUserId || user?.email;
-    if (!targetId) return;
+    if (!targetId) {
+      setLoading(false);
+      return;
+    }
     if (!force && lastFetchedUserRef.current === targetId) return;
     if (isFetchingRef.current) return;
 
     lastFetchedUserRef.current = targetId;
     isFetchingRef.current = true;
+    setLoading(true);
     try {
       const response = await fetch(`${API_BASE_URL}/api/user-details/${targetId}`);
       const data = await response.json();

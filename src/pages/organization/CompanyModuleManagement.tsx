@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -799,9 +800,25 @@ export const CompanyModuleManagement: React.FC = () => {
 
       {/* Loading Skeleton */}
       {loading ? (
-        <div className="flex flex-col items-center justify-center p-16 space-y-3">
-          <Loader2 className="w-8 h-8 text-[#942392] animate-spin" />
-          <p className="text-xs font-black text-black dark:text-white uppercase tracking-wider">Loading company module matrix...</p>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {Array.from({ length: 6 }).map((_, idx) => (
+            <div key={idx} className="p-5 rounded-2xl border border-border/60 bg-card space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Skeleton className="w-10 h-10 rounded-xl shrink-0" />
+                  <div className="space-y-1.5">
+                    <Skeleton className={`h-4 ${idx % 2 === 0 ? "w-36" : "w-28"} rounded`} />
+                    <Skeleton className="h-2.5 w-24 rounded" />
+                  </div>
+                </div>
+                <Skeleton className="h-6 w-20 rounded-full" />
+              </div>
+              <div className="space-y-2 pt-2 border-t border-border/40">
+                <Skeleton className="h-8 w-full rounded-lg" />
+                <Skeleton className="h-8 w-full rounded-lg" />
+              </div>
+            </div>
+          ))}
         </div>
       ) : (
         /* 2-Column Responsive Card Grid (Matching /master/role exactly) */

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -502,9 +503,14 @@ export const Tab9_IAM: React.FC = () => {
       {/* Roles Table */}
       <Card className="border border-border dark:border-neutral-800 shadow-xs bg-white/70 dark:bg-card/70 backdrop-blur-md rounded-2xl overflow-hidden">
         {loading ? (
-          <div className="p-10 text-center text-xs text-black dark:text-white flex items-center justify-center gap-2">
-            <Loader2 className="w-4 h-4 animate-spin text-[#942392]" />
-            Loading roles...
+          <div className="p-6 space-y-3">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="flex items-center justify-between gap-4 py-3 border-b border-border/40 last:border-0">
+                <Skeleton className={`h-4 ${i % 2 === 0 ? 'w-40' : 'w-32'} rounded`} />
+                <Skeleton className="h-4 w-48 rounded hidden sm:block" />
+                <Skeleton className="h-5 w-16 rounded-full" />
+              </div>
+            ))}
           </div>
         ) : roles.length === 0 ? (
           <div className="p-10 text-center space-y-2">
@@ -1062,9 +1068,16 @@ export const Tab9_IAM: React.FC = () => {
 
           <div className="max-h-80 overflow-y-auto p-4 space-y-2">
             {loadingUsers ? (
-              <div className="py-8 text-center text-xs text-muted-foreground">
-                <Loader2 className="w-5 h-5 animate-spin mx-auto mb-2 text-[#942392]" />
-                Loading staff...
+              <div className="space-y-2 py-2">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="flex items-center justify-between p-2.5 rounded-xl border border-border/50">
+                    <div className="space-y-1.5">
+                      <Skeleton className={`h-3.5 ${i % 2 === 0 ? 'w-36' : 'w-28'} rounded`} />
+                      <Skeleton className="h-2.5 w-24 rounded" />
+                    </div>
+                    <Skeleton className="h-5 w-16 rounded-full" />
+                  </div>
+                ))}
               </div>
             ) : roleUsers.length === 0 ? (
               <div className="py-8 text-center text-xs text-muted-foreground">

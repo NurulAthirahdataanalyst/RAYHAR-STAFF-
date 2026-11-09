@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "@/config/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Loader2, Building2, Users } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -332,8 +333,14 @@ export default function DepartmentReports() {
             </CardHeader>
             <CardContent>
               {loading ? (
-                <div className="flex justify-center py-8">
-                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                <div className="space-y-3 py-2">
+                  {Array.from({ length: 5 }).map((_, idx) => (
+                    <div key={idx} className="flex items-center justify-between p-3 border-b border-border/50">
+                      <Skeleton className={`h-4 ${idx % 2 === 0 ? "w-36" : "w-28"} rounded`} />
+                      <Skeleton className="h-4 w-10 rounded" />
+                      <Skeleton className="h-4 w-10 rounded" />
+                    </div>
+                  ))}
                 </div>
               ) : (
                 <div className="rounded-md border">
@@ -374,8 +381,14 @@ export default function DepartmentReports() {
             </CardHeader>
             <CardContent>
               {loading ? (
-                <div className="flex justify-center py-8">
-                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                <div className="space-y-3 py-2">
+                  {Array.from({ length: 5 }).map((_, idx) => (
+                    <div key={idx} className="flex items-center justify-between p-3 border-b border-border/50">
+                      <Skeleton className={`h-4 ${idx % 2 === 0 ? "w-36" : "w-28"} rounded`} />
+                      <Skeleton className="h-4 w-10 rounded" />
+                      <Skeleton className="h-4 w-10 rounded" />
+                    </div>
+                  ))}
                 </div>
               ) : (
                 <div className="rounded-md border">

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Card } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -436,9 +437,15 @@ export const Tab6_WorkScheduleMgmt: React.FC = () => {
       {/* Schedules Table */}
       <Card className="border border-border dark:border-neutral-800 shadow-xs bg-white/70 dark:bg-card/70 backdrop-blur-md rounded-2xl overflow-hidden">
         {loading ? (
-          <div className="p-10 text-center text-xs text-muted-foreground flex items-center justify-center gap-2">
-            <Loader2 className="w-4 h-4 animate-spin text-[#942392]" />
-            Loading work schedules...
+          <div className="p-6 space-y-3">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="flex items-center justify-between gap-4 py-3 border-b border-border/40 last:border-0">
+                <Skeleton className={`h-4 ${i % 2 === 0 ? 'w-44' : 'w-36'} rounded`} />
+                <Skeleton className="h-4 w-28 rounded" />
+                <Skeleton className="h-4 w-32 rounded hidden sm:block" />
+                <Skeleton className="h-5 w-20 rounded-full" />
+              </div>
+            ))}
           </div>
         ) : schedules.length === 0 ? (
           <div className="p-10 text-center space-y-2">

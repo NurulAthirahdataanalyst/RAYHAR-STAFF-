@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -697,9 +698,20 @@ export const TabPersonnelEntity: React.FC = () => {
       {/* Personnel Table (Clean Branches & Geofence Card Style, Non-Clickable Rows) */}
       <Card className="border border-border dark:border-neutral-800 shadow-xs bg-white/70 dark:bg-card/70 backdrop-blur-md rounded-2xl overflow-hidden">
         {loading ? (
-          <div className="p-12 text-center text-xs text-muted-foreground flex flex-col items-center justify-center gap-2">
-            <Loader2 className="w-5 h-5 animate-spin text-[#942392]" />
-            <span>Loading personnel for {currentCompanyName}...</span>
+          <div className="p-6 space-y-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="flex items-center justify-between gap-4 py-3 border-b border-border/40 last:border-0">
+                <div className="flex items-center gap-3">
+                  <Skeleton className="w-8 h-8 rounded-full shrink-0" />
+                  <div className="space-y-1.5">
+                    <Skeleton className={`h-4 ${i % 2 === 0 ? 'w-40' : 'w-32'} rounded`} />
+                    <Skeleton className="h-3 w-24 rounded" />
+                  </div>
+                </div>
+                <Skeleton className="h-4 w-28 rounded hidden sm:block" />
+                <Skeleton className="h-5 w-20 rounded-full" />
+              </div>
+            ))}
           </div>
         ) : filteredPersonnel.length === 0 ? (
           <div className="p-12 text-center space-y-2">

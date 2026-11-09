@@ -3,6 +3,7 @@ import { multiCompanyApi } from '../services/multiCompanyApi';
 import { EmployeeTransferRecord } from '../types/multiCompany.types';
 import { History, ArrowRight, Calendar, User, Search, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface EmployeeCompanyHistoryProps {
   employeeId?: string;
@@ -63,9 +64,15 @@ export const EmployeeCompanyHistory: React.FC<EmployeeCompanyHistoryProps> = ({ 
 
       <div className="rounded-xl border border-border dark:border-neutral-800 bg-card dark:bg-card/90 overflow-hidden shadow-xs">
         {loading ? (
-          <div className="p-8 text-center text-xs text-muted-foreground flex items-center justify-center gap-2">
-            <Loader2 className="w-4 h-4 animate-spin text-[#942392]" />
-            Loading transfer history...
+          <div className="p-6 space-y-3">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="flex items-center justify-between gap-4 py-2.5 border-b border-border/40 last:border-0">
+                <Skeleton className="h-4 w-24 rounded" />
+                <Skeleton className={`h-4 ${i % 2 === 0 ? 'w-36' : 'w-28'} rounded`} />
+                <Skeleton className="h-4 w-40 rounded hidden sm:block" />
+                <Skeleton className="h-5 w-20 rounded-full" />
+              </div>
+            ))}
           </div>
         ) : filtered.length === 0 ? (
           <div className="p-8 text-center text-xs text-muted-foreground">

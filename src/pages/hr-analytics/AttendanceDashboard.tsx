@@ -2,6 +2,7 @@ import { writePrintDocument } from '@/utils/security';
 
 import { useRole } from "@/contexts/RoleContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -1217,8 +1218,32 @@ export default function AttendanceDashboard() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 animate-spin text-[#942392]" />
+      <div className="space-y-6 w-full pt-2 pb-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-4">
+          {Array.from({ length: 7 }).map((_, i) => (
+            <Card key={i} className="p-4 space-y-2.5 rounded-2xl">
+              <Skeleton className="h-3 w-20 rounded" />
+              <Skeleton className={`h-7 ${i % 2 === 0 ? "w-14" : "w-20"} rounded-lg`} />
+              <Skeleton className="h-2.5 w-24 rounded" />
+            </Card>
+          ))}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card className="p-6 rounded-2xl space-y-4">
+            <Skeleton className="h-5 w-48 rounded" />
+            <div className="h-56 flex items-end justify-between gap-3 pt-6 px-4 border-b border-l border-border/60">
+              {[45, 70, 55, 85, 60, 90, 50].map((h, idx) => (
+                <Skeleton key={idx} className="flex-1 rounded-t-md" style={{ height: `${h}%` }} />
+              ))}
+            </div>
+          </Card>
+          <Card className="p-6 rounded-2xl space-y-4">
+            <Skeleton className="h-5 w-44 rounded" />
+            <div className="h-56 flex items-center justify-center">
+              <Skeleton className="w-40 h-40 rounded-full" />
+            </div>
+          </Card>
+        </div>
       </div>
     );
   }
@@ -1434,9 +1459,23 @@ export default function AttendanceDashboard() {
 
         <CardContent className="p-0">
           {loadingDaily ? (
-            <div className="flex flex-col items-center justify-center p-20 gap-4">
-              <Loader2 className="h-8 w-8 animate-spin text-[#942392] opacity-40" />
-              <p className="text-xs font-medium text-foreground animate-pulse">Syncing logs...</p>
+            <div className="divide-y divide-gray-100 dark:divide-slate-800">
+              {Array.from({ length: 6 }).map((_, idx) => (
+                <div key={idx} className="flex items-center justify-between px-6 py-4">
+                  <div className="flex items-center gap-3">
+                    <Skeleton className="w-8 h-8 rounded-full shrink-0" />
+                    <div className="space-y-1.5">
+                      <Skeleton className={`h-4 ${idx % 2 === 0 ? "w-40" : "w-32"} rounded`} />
+                      <Skeleton className="h-2.5 w-24 rounded" />
+                    </div>
+                  </div>
+                  <Skeleton className="h-5 w-20 rounded-full" />
+                  <Skeleton className="h-4 w-16 rounded" />
+                  <Skeleton className="h-4 w-16 rounded" />
+                  <Skeleton className="h-4 w-14 rounded" />
+                  <Skeleton className="h-4 w-16 rounded" />
+                </div>
+              ))}
             </div>
           ) : (
             <div className="relative overflow-x-auto">
@@ -1657,9 +1696,16 @@ export default function AttendanceDashboard() {
 
         <CardContent className="p-0">
           {loadingAbsent ? (
-            <div className="flex flex-col items-center justify-center p-12 gap-4">
-              <Loader2 className="h-6 w-6 animate-spin text-[#942392] opacity-40" />
-              <p className="text-xs font-medium text-foreground animate-pulse">Checking absent employees...</p>
+            <div className="divide-y divide-gray-100 dark:divide-slate-800">
+              {Array.from({ length: 5 }).map((_, idx) => (
+                <div key={idx} className="flex items-center justify-between px-4 py-3">
+                  <Skeleton className={`h-4 ${idx % 2 === 0 ? "w-40" : "w-32"} rounded`} />
+                  <Skeleton className="h-3.5 w-16 rounded" />
+                  <Skeleton className="h-3.5 w-24 rounded" />
+                  <Skeleton className="h-3.5 w-24 rounded" />
+                  <Skeleton className="h-5 w-20 rounded-full" />
+                </div>
+              ))}
             </div>
           ) : (
             <>

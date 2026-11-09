@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo, Fragment } from "react";
 import { API_BASE_URL } from "@/config/api";
 import { writePrintDocument } from "@/utils/security";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Loader2, Search, X, Users, CheckCircle, Briefcase, CalendarOff, AlertCircle, XCircle, Percent, Clock, MapPin, RotateCcw } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -1095,8 +1096,22 @@ export default function AttendanceReports() {
           </CardHeader>
           <CardContent className="p-0 sm:p-6">
             {loading ? (
-              <div className="flex justify-center py-8">
-                <Loader2 className="w-6 h-6 animate-spin text-primary" />
+              <div className="rounded-md border overflow-x-auto">
+                <Table className="text-xs">
+                  <TableBody>
+                    {Array.from({ length: 7 }).map((_, idx) => (
+                      <TableRow key={idx}>
+                        <TableCell><Skeleton className="h-3.5 w-20 rounded" /></TableCell>
+                        <TableCell><Skeleton className={`h-4 ${idx % 2 === 0 ? "w-40" : "w-32"} rounded`} /></TableCell>
+                        <TableCell><Skeleton className="h-3.5 w-16 rounded" /></TableCell>
+                        <TableCell><Skeleton className="h-3.5 w-16 rounded" /></TableCell>
+                        <TableCell><Skeleton className="h-3.5 w-16 rounded" /></TableCell>
+                        <TableCell><Skeleton className="h-3.5 w-20 rounded" /></TableCell>
+                        <TableCell><Skeleton className="h-5 w-24 rounded-full" /></TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               </div>
             ) : (
               <div className="rounded-md border overflow-x-auto">

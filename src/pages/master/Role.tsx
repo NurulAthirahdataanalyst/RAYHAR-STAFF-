@@ -4,6 +4,7 @@ import { ExportDropdown } from "@/components/shared/ExportDropdown";
 import { exportToCSV } from "@/utils/export";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -754,12 +755,17 @@ export default function Role() {
               </thead>
               <tbody className="divide-y divide-border/40">
                 {loading ? (
-                  <tr>
-                    <td colSpan={7} className="px-6 py-12 text-center text-muted-foreground">
-                      <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-[#942392]" />
-                      Loading roles & permissions matrix...
-                    </td>
-                  </tr>
+                  Array.from({ length: 5 }).map((_, idx) => (
+                    <tr key={idx}>
+                      <td className="px-6 py-4"><Skeleton className={`h-4 ${idx % 2 === 0 ? "w-36" : "w-28"} rounded`} /></td>
+                      <td className="px-6 py-4"><Skeleton className="h-3.5 w-44 rounded" /></td>
+                      <td className="px-6 py-4"><Skeleton className="h-5 w-24 rounded-full" /></td>
+                      <td className="px-6 py-4 text-center"><Skeleton className="h-4 w-10 rounded mx-auto" /></td>
+                      <td className="px-6 py-4 text-center"><Skeleton className="h-5 w-16 rounded-full mx-auto" /></td>
+                      <td className="px-6 py-4"><Skeleton className="h-3.5 w-24 rounded" /></td>
+                      <td className="px-6 py-4 text-right"><Skeleton className="h-7 w-20 rounded-lg ml-auto" /></td>
+                    </tr>
+                  ))
                 ) : filteredRoles.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="px-6 py-12 text-center text-muted-foreground">
@@ -1539,9 +1545,16 @@ export default function Role() {
 
           <div className="max-h-80 overflow-y-auto p-4 space-y-2">
             {loadingUsers ? (
-              <div className="py-8 text-center text-xs text-muted-foreground">
-                <Loader2 className="w-5 h-5 animate-spin mx-auto mb-2 text-[#942392]" />
-                Loading staff...
+              <div className="space-y-2 py-2">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="flex items-center justify-between p-2.5 rounded-xl border border-border/50">
+                    <div className="space-y-1.5">
+                      <Skeleton className={`h-3.5 ${i % 2 === 0 ? 'w-36' : 'w-28'} rounded`} />
+                      <Skeleton className="h-2.5 w-24 rounded" />
+                    </div>
+                    <Skeleton className="h-5 w-16 rounded-full" />
+                  </div>
+                ))}
               </div>
             ) : roleUsers.length === 0 ? (
               <div className="py-8 text-center text-xs text-muted-foreground">

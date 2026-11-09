@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
 import PageActions from "@/components/layout/PageActions";
 import {
@@ -162,7 +163,8 @@ export default function Attendance() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const tableRef = useRef<HTMLTableElement>(null);
-  const [fetchingHistory, setFetchingHistory] = useState(false);
+  const [fetchingHistory, setFetchingHistory] = useState(true);
+  const [loadingTempAssignments, setLoadingTempAssignments] = useState(true);
   const [tempAssignments, setTempAssignments] = useState<any[]>([]);
   const [locationLastUpdated, setLocationLastUpdated] = useState<string | null>(null);
   const [locationAccuracy, setLocationAccuracy] = useState<number | null>(null);
@@ -408,12 +410,15 @@ export default function Attendance() {
         fetchHistoryLogs(userId, selectedMonth, selectedYear);
         fetchTempAssignments(userId);
         fetchAllowedLocations(userId);
-        fetchTempAssignments(userId);
       } else {
         setInitialFetch(false);
+        setFetchingHistory(false);
+        setLoadingTempAssignments(false);
       }
     } else {
       setInitialFetch(false);
+      setFetchingHistory(false);
+      setLoadingTempAssignments(false);
     }
   }, [user]);
 
@@ -516,11 +521,13 @@ export default function Attendance() {
       }
     } catch (err) {
       console.error("Error fetching temp assignments:", err);
+    } finally {
+      setLoadingTempAssignments(false);
     }
   }, []);
 
-  const fetchHistoryLogs = useCallback(async (id: string, monthVal: number, yearVal: number) => {
-    setFetchingHistory(true);
+  const fetchHistoryLogs = useCallback(async (id: string, monthVal: number, yearVal: number, silent = false) => {
+    if (!silent) setFetchingHistory(true);
     try {
       const response = await fetch(
         `${API_BASE_URL}/api/attendance/history?userId=${id}&month=${monthVal}&year=${yearVal}`
@@ -571,7 +578,7 @@ export default function Attendance() {
     if (userId) {
       const interval = setInterval(() => {
         fetchStatus(userId);
-        fetchHistoryLogs(userId, selectedMonth, selectedYear);
+        fetchHistoryLogs(userId, selectedMonth, selectedYear, true);
       }, 30000);
       return () => clearInterval(interval);
     }
@@ -726,12 +733,12 @@ export default function Attendance() {
         console.log("📡 Live attendance update received in dashboard:", data);
         if (data.userId === String(userId).trim() || data.type === 'refresh') {
           fetchStatus(userId);
-          fetchHistoryLogs(userId, selectedMonth, selectedYear);
+          fetchHistoryLogs(userId, selectedMonth, selectedYear, true);
         }
       } catch (err) {
         console.error("Error parsing stream message in attendance:", err);
         fetchStatus(userId);
-        fetchHistoryLogs(userId, selectedMonth, selectedYear);
+        fetchHistoryLogs(userId, selectedMonth, selectedYear, true);
       }
     };
 
@@ -1847,17 +1854,6 @@ export default function Attendance() {
 
   const totalWorkdays = calculateTotalWorkdaysUpTo(selectedYear, selectedMonth);
 
-  if (initialFetch) {
-    return (
-      <div className="flex h-[60vh] sm:h-[80vh] items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="animate-spin text-[#942392] w-10 h-10" />
-          <p className="text-foreground font-medium animate-pulse text-sm">Initializing Attendance System...</p>
-        </div>
-      </div>
-    );
-  }
-
   const parseHoursStrToNum = (val: string | number | undefined) => {
     if (!val) return 0;
     if (typeof val === 'number') return val;
@@ -1867,6 +1863,8 @@ export default function Attendance() {
     }
     return parseFloat(val.toString()) || 0;
   };
+
+  const isStatsLoading = initialFetch || fetchingHistory;
 
   return (
     <div className="relative flex flex-col mx-auto w-full animate-in fade-in duration-700">
@@ -1881,16 +1879,25 @@ export default function Attendance() {
             <div className="flex-1 flex flex-col items-center justify-between w-full h-full">
               {/* Header section inside card */}
               <div className="flex flex-col items-center gap-0.5 mb-4 sm:mb-6">
-                <div className="text-2xl sm:text-3xl md:text-4xl font-black text-foreground tracking-tight font-mono drop-shadow-sm">
-                  {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}
-                </div>
-                <div className="text-foreground font-semibold text-[11px] sm:text-xs md:text-sm tracking-wide">
-                  {currentTime.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}
-                </div>
+                {initialFetch ? (
+                  <>
+                    <Skeleton className="h-8 sm:h-10 w-36 sm:w-44 mb-1.5" />
+                    <Skeleton className="h-4 w-40 sm:w-48" />
+                  </>
+                ) : (
+                  <>
+                    <div className="text-2xl sm:text-3xl md:text-4xl font-black text-foreground tracking-tight font-mono drop-shadow-sm">
+                      {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}
+                    </div>
+                    <div className="text-foreground font-semibold text-[11px] sm:text-xs md:text-sm tracking-wide">
+                      {currentTime.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* Company Leave Banner */}
-              {attendanceStatus && attendanceStatus.type === "COMPANY_LEAVE" && !activeSession && (
+              {!initialFetch && attendanceStatus && attendanceStatus.type === "COMPANY_LEAVE" && !activeSession && (
                 <div className="w-full mb-4 px-3 py-2 bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-900/50 rounded-lg text-center shadow-inner">
                   <p className="text-xs font-bold text-purple-700 dark:text-purple-400">
                     🏢 Company Leave Today
@@ -1906,156 +1913,173 @@ export default function Attendance() {
 
               {/* Central Circular Button - compact and clean */}
               <div className="relative w-36 h-36 sm:w-44 sm:h-44 md:w-48 md:h-48 flex items-center justify-center mb-4 sm:mb-6 group">
-                {/* Outer pulsing rings for active session */}
-                {activeSession && (
+                {initialFetch ? (
+                  <Skeleton className="w-28 h-28 sm:w-36 sm:h-36 md:w-38 md:h-38 rounded-full" />
+                ) : (
                   <>
-                    <div className="absolute inset-0 rounded-full border-[4px] sm:border-[6px] border-emerald-100 dark:border-emerald-900/30 opacity-50" />
-                    {/* Dynamic Progress Ring */}
-                    <svg className="absolute inset-0 w-full h-full transform -rotate-90 pointer-events-none" viewBox="0 0 100 100">
-                      <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" strokeWidth="6" className="text-muted/30 dark:text-muted" />
-                      <circle
-                        cx="50" cy="50" r="46"
-                        fill="none"
-                        stroke="#942392"
-                        strokeWidth="6"
-                        strokeDasharray={289.027}
-                        strokeDashoffset={289.027 - (shiftProgress * 289.027)}
-                        strokeLinecap="round"
-                        className="animate-pulse"
-                        style={{ transition: 'stroke-dashoffset 1s ease-in-out' }}
-                      />
-                    </svg>
+                    {/* Outer pulsing rings for active session */}
+                    {activeSession && (
+                      <>
+                        <div className="absolute inset-0 rounded-full border-[4px] sm:border-[6px] border-emerald-100 dark:border-emerald-900/30 opacity-50" />
+                        {/* Dynamic Progress Ring */}
+                        <svg className="absolute inset-0 w-full h-full transform -rotate-90 pointer-events-none" viewBox="0 0 100 100">
+                          <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" strokeWidth="6" className="text-muted/30 dark:text-muted" />
+                          <circle
+                            cx="50" cy="50" r="46"
+                            fill="none"
+                            stroke="#942392"
+                            strokeWidth="6"
+                            strokeDasharray={289.027}
+                            strokeDashoffset={289.027 - (shiftProgress * 289.027)}
+                            strokeLinecap="round"
+                            className="animate-pulse"
+                            style={{ transition: 'stroke-dashoffset 1s ease-in-out' }}
+                          />
+                        </svg>
+                      </>
+                    )}
+
+                    {/* Outer pulsing rings for inactive session */}
+                    {!activeSession && (
+                      <>
+                        <div className="absolute inset-0 rounded-full bg-purple-50/50 dark:bg-purple-900/20 animate-pulse pointer-events-none" style={{ transform: 'scale(1.15)' }} />
+                        <div className="absolute inset-2 rounded-full bg-purple-100/30 dark:bg-purple-800/10 animate-ping pointer-events-none" style={{ animationDuration: '3s' }} />
+                      </>
+                    )}
+
+                    <button
+                      onClick={handleAttendanceAction}
+                      disabled={loading || (attendanceStatus && !attendanceStatus.clockInAllowed && !activeSession)}
+                      className={`relative w-28 h-28 sm:w-36 sm:h-36 md:w-38 md:h-38 rounded-full flex flex-col items-center justify-center gap-1 sm:gap-1.5 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.96] shadow-2xl focus:outline-none focus:ring-4 focus:ring-offset-4 dark:focus:ring-offset-card touch-target ${
+                        activeSession
+                        ? "bg-card dark:bg-card border-[3px] border-emerald-500 focus:ring-emerald-200 dark:focus:ring-emerald-800 text-emerald-600 dark:text-emerald-400 shadow-emerald-500/20"
+                        : attendanceStatus && !attendanceStatus.clockInAllowed
+                        ? "bg-purple-100 dark:bg-purple-950/60 border-[3px] border-purple-500 text-purple-600 dark:text-purple-400 shadow-purple-500/10 cursor-not-allowed"
+                        : "bg-gradient-to-tr from-[#5e0080] via-[#942392] to-purple-500 focus:ring-purple-200 dark:focus:ring-purple-800 text-white shadow-purple-500/40"
+                        }`}
+                      aria-label={activeSession ? "Clock out - End shift" : (attendanceStatus && !attendanceStatus.clockInAllowed) ? "Company Leave - Clock-in disabled" : "Clock in - Start shift"}
+                    >
+                      {loading ? (
+                        <Loader2 className={`animate-spin w-6 h-6 sm:w-8 sm:h-8 ${activeSession ? "text-emerald-500" : "text-white"}`} />
+                      ) : activeSession ? (
+                        <>
+                          <Clock className="w-6 h-6 sm:w-8 sm:h-8 text-emerald-500 dark:text-emerald-400 mb-0.5" />
+                          <span className="font-black tracking-widest text-xs sm:text-sm md:text-base">END SHIFT</span>
+                        </>
+                      ) : attendanceStatus && !attendanceStatus.clockInAllowed ? (
+                        <>
+                          <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-purple-500 mb-0.5 animate-pulse" />
+                          <span className="font-black tracking-widest text-[9px] sm:text-xs text-purple-700 dark:text-purple-400 text-center uppercase max-w-[85%] leading-tight break-words">
+                            {attendanceStatus.name || "Company Leave"}
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <Hand className="w-6 h-6 sm:w-8 sm:h-8 text-white/90 drop-shadow-md mb-0.5 animate-bounce" style={{ animationDuration: '2s' }} />
+                          <span className="font-black tracking-widest text-sm sm:text-base md:text-lg drop-shadow-md">CLOCK IN</span>
+                        </>
+                      )}
+                    </button>
                   </>
                 )}
-
-                {/* Outer pulsing rings for inactive session */}
-                {!activeSession && (
-                  <>
-                    <div className="absolute inset-0 rounded-full bg-purple-50/50 dark:bg-purple-900/20 animate-pulse pointer-events-none" style={{ transform: 'scale(1.15)' }} />
-                    <div className="absolute inset-2 rounded-full bg-purple-100/30 dark:bg-purple-800/10 animate-ping pointer-events-none" style={{ animationDuration: '3s' }} />
-                  </>
-                )}
-
-
-
-
-                <button
-                  onClick={handleAttendanceAction}
-                  disabled={loading || (attendanceStatus && !attendanceStatus.clockInAllowed && !activeSession)}
-                  className={`relative w-28 h-28 sm:w-36 sm:h-36 md:w-38 md:h-38 rounded-full flex flex-col items-center justify-center gap-1 sm:gap-1.5 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.96] shadow-2xl focus:outline-none focus:ring-4 focus:ring-offset-4 dark:focus:ring-offset-card touch-target ${
-                    activeSession
-                    ? "bg-card dark:bg-card border-[3px] border-emerald-500 focus:ring-emerald-200 dark:focus:ring-emerald-800 text-emerald-600 dark:text-emerald-400 shadow-emerald-500/20"
-                    : attendanceStatus && !attendanceStatus.clockInAllowed
-                    ? "bg-purple-100 dark:bg-purple-950/60 border-[3px] border-purple-500 text-purple-600 dark:text-purple-400 shadow-purple-500/10 cursor-not-allowed"
-                    : "bg-gradient-to-tr from-[#5e0080] via-[#942392] to-purple-500 focus:ring-purple-200 dark:focus:ring-purple-800 text-white shadow-purple-500/40"
-                    }`}
-                  aria-label={activeSession ? "Clock out - End shift" : (attendanceStatus && !attendanceStatus.clockInAllowed) ? "Company Leave - Clock-in disabled" : "Clock in - Start shift"}
-                >
-                  {loading ? (
-                    <Loader2 className={`animate-spin w-6 h-6 sm:w-8 sm:h-8 ${activeSession ? "text-emerald-500" : "text-white"}`} />
-                  ) : activeSession ? (
-                    <>
-                      <Clock className="w-6 h-6 sm:w-8 sm:h-8 text-emerald-500 dark:text-emerald-400 mb-0.5" />
-                      <span className="font-black tracking-widest text-xs sm:text-sm md:text-base">END SHIFT</span>
-                    </>
-                  ) : attendanceStatus && !attendanceStatus.clockInAllowed ? (
-                    <>
-                      <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-purple-500 mb-0.5 animate-pulse" />
-                      <span className="font-black tracking-widest text-[9px] sm:text-xs text-purple-700 dark:text-purple-400 text-center uppercase max-w-[85%] leading-tight break-words">
-                        {attendanceStatus.name || "Company Leave"}
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <Hand className="w-6 h-6 sm:w-8 sm:h-8 text-white/90 drop-shadow-md mb-0.5 animate-bounce" style={{ animationDuration: '2s' }} />
-                      <span className="font-black tracking-widest text-sm sm:text-base md:text-lg drop-shadow-md">CLOCK IN</span>
-                    </>
-                  )}
-                </button>
-                  
-    
               </div>
 
-              {/* Working Location Selector — shown before clock-in for multi-location employees */}
-              {!activeSession && attendanceMode === 'multi' && allowedLocations.length > 1 && (
-                <div className="w-full mb-3 bg-purple-50/60 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-900/50 rounded-xl p-3">
-                  <div className="flex items-center justify-between mb-1.5">
-                    <div className="flex items-center gap-1.5">
-                      <MapPin className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
-                      <span className="text-[10px] font-bold text-purple-700 dark:text-purple-400 uppercase tracking-wider">Working Location</span>
+              {initialFetch ? (
+                <div className="w-full mb-3 flex items-center justify-between bg-muted/30 px-3 py-2.5 rounded-xl border border-border/50">
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="w-3.5 h-3.5 rounded-full shrink-0" />
+                    <div className="flex flex-col gap-1">
+                      <Skeleton className="h-2.5 w-24" />
+                      <Skeleton className="h-3.5 w-16" />
                     </div>
-                    {isTemporaryAssignmentPeriod && (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-purple-100 text-[#942392] dark:bg-purple-900/50 dark:text-purple-300 border border-purple-200 dark:border-purple-800 shadow-xs">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#942392] dark:bg-purple-400 animate-pulse" />
-                        (TEMPORARY BRANCH)
-                      </span>
-                    )}
                   </div>
-                  <Select value={selectedLocation} onValueChange={setSelectedLocation}>
-                    <SelectTrigger className="w-full bg-card h-10 text-xs font-bold border-purple-200 dark:border-purple-800 shadow-xs focus:ring-1 focus:ring-[#942392]">
-                      <SelectValue placeholder="Select working location..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {allowedLocations.map((loc, i) => (
-                        <SelectItem key={i} value={loc} className="text-xs font-bold cursor-pointer">
-                          <div className="flex items-center gap-2">
-                            <span>{(branchMap[loc] || BRANCH_NAMES[loc]) ? `${loc} - ${toProperCase(branchMap[loc] || BRANCH_NAMES[loc])}` : loc}</span>
-                            {activeTempAssignment && (activeTempAssignment.location === loc || activeTempAssignment.temp_branch === loc) && (
-                              <span className="text-[9px] font-extrabold text-[#942392] dark:text-purple-400">(TEMPORARY BRANCH)</span>
+                </div>
+              ) : (
+                <>
+                  {/* Working Location Selector — shown before clock-in for multi-location employees */}
+                  {!activeSession && attendanceMode === 'multi' && allowedLocations.length > 1 && (
+                    <div className="w-full mb-3 bg-purple-50/60 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-900/50 rounded-xl p-3">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <div className="flex items-center gap-1.5">
+                          <MapPin className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                          <span className="text-[10px] font-bold text-purple-700 dark:text-purple-400 uppercase tracking-wider">Working Location</span>
+                        </div>
+                        {isTemporaryAssignmentPeriod && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-purple-100 text-[#942392] dark:bg-purple-900/50 dark:text-purple-300 border border-purple-200 dark:border-purple-800 shadow-xs">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#942392] dark:bg-purple-400 animate-pulse" />
+                            (TEMPORARY BRANCH)
+                          </span>
+                        )}
+                      </div>
+                      <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+                        <SelectTrigger className="w-full bg-card h-10 text-xs font-bold border-purple-200 dark:border-purple-800 shadow-xs focus:ring-1 focus:ring-[#942392]">
+                          <SelectValue placeholder="Select working location..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {allowedLocations.map((loc, i) => (
+                            <SelectItem key={i} value={loc} className="text-xs font-bold cursor-pointer">
+                              <div className="flex items-center gap-2">
+                                <span>{(branchMap[loc] || BRANCH_NAMES[loc]) ? `${loc} - ${toProperCase(branchMap[loc] || BRANCH_NAMES[loc])}` : loc}</span>
+                                {activeTempAssignment && (activeTempAssignment.location === loc || activeTempAssignment.temp_branch === loc) && (
+                                  <span className="text-[9px] font-extrabold text-[#942392] dark:text-purple-400">(TEMPORARY BRANCH)</span>
+                                )}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-[9px] text-purple-500/80 dark:text-purple-400/60 mt-1.5 font-medium">Select your working branch before clocking in.</p>
+                    </div>
+                  )}
+
+                  {/* Single location display when NOT multi-mode */}
+                  {!activeSession && attendanceMode !== 'multi' && selectedLocation && (
+                    <div className="w-full mb-3 flex items-center justify-between bg-muted/30 px-3 py-2 rounded-xl border border-border/50">
+                      <div className="flex items-center gap-2">
+                        <MapPin className="w-3.5 h-3.5 text-foreground flex-shrink-0" />
+                        <div className="flex flex-col">
+                          <span className="text-[9px] font-bold text-foreground uppercase tracking-wider">Working Location</span>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-xs font-bold text-foreground">{selectedLocation}</span>
+                            {isTemporaryAssignmentPeriod && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-purple-100 text-[#942392] dark:bg-purple-900/50 dark:text-purple-300 border border-purple-200 dark:border-purple-800 shadow-xs">
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#942392] dark:bg-purple-400 animate-pulse" />
+                                (TEMPORARY BRANCH)
+                              </span>
                             )}
                           </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-[9px] text-purple-500/80 dark:text-purple-400/60 mt-1.5 font-medium">Select your working branch before clocking in.</p>
-                </div>
-              )}
-
-              {/* Single location display when NOT multi-mode */}
-              {!activeSession && attendanceMode !== 'multi' && selectedLocation && (
-                <div className="w-full mb-3 flex items-center justify-between bg-muted/30 px-3 py-2 rounded-xl border border-border/50">
-                  <div className="flex items-center gap-2">
-                    <MapPin className="w-3.5 h-3.5 text-foreground flex-shrink-0" />
-                    <div className="flex flex-col">
-                      <span className="text-[9px] font-bold text-foreground uppercase tracking-wider">Working Location</span>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-xs font-bold text-foreground">{selectedLocation}</span>
-                        {isTemporaryAssignmentPeriod && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-purple-100 text-[#942392] dark:bg-purple-900/50 dark:text-purple-300 border border-purple-200 dark:border-purple-800 shadow-xs">
-                            <span className="w-1.5 h-1.5 rounded-full bg-[#942392] dark:bg-purple-400 animate-pulse" />
-                            (TEMPORARY BRANCH)
-                          </span>
-                        )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </div>
-              )}
+                  )}
 
-              {/* Location display during active session */}
-              {activeSession && (activeSession.location || selectedLocation) && (
-                <div className="w-full mb-3 flex items-center justify-between bg-muted/30 px-3 py-2 rounded-xl border border-border/50">
-                  <div className="flex items-center gap-2">
-                    <MapPin className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
-                    <div className="flex flex-col">
-                      <span className="text-[9px] font-bold text-foreground uppercase tracking-wider">Working Location</span>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-xs font-bold text-foreground">{activeSession.location || selectedLocation}</span>
-                        {isTemporaryAssignmentPeriod && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-purple-100 text-[#942392] dark:bg-purple-900/50 dark:text-purple-300 border border-purple-200 dark:border-purple-800 shadow-xs">
-                            <span className="w-1.5 h-1.5 rounded-full bg-[#942392] dark:bg-purple-400 animate-pulse" />
-                            (TEMPORARY BRANCH)
-                          </span>
-                        )}
+                  {/* Location display during active session */}
+                  {activeSession && (activeSession.location || selectedLocation) && (
+                    <div className="w-full mb-3 flex items-center justify-between bg-muted/30 px-3 py-2 rounded-xl border border-border/50">
+                      <div className="flex items-center gap-2">
+                        <MapPin className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
+                        <div className="flex flex-col">
+                          <span className="text-[9px] font-bold text-foreground uppercase tracking-wider">Working Location</span>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-xs font-bold text-foreground">{activeSession.location || selectedLocation}</span>
+                            {isTemporaryAssignmentPeriod && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-purple-100 text-[#942392] dark:bg-purple-900/50 dark:text-purple-300 border border-purple-200 dark:border-purple-800 shadow-xs">
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#942392] dark:bg-purple-400 animate-pulse" />
+                                (TEMPORARY BRANCH)
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </div>
+                  )}
+                </>
               )}
 
               <div className="flex items-center justify-center gap-1.5 text-[10px] sm:text-xs font-bold mb-3 sm:mb-4 w-full">
-                {activeSession ? (
+                {initialFetch ? (
+                  <Skeleton className="h-4 w-28" />
+                ) : activeSession ? (
                   <>
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                     <span className="text-emerald-600 dark:text-emerald-400">Shift in progress ({Math.round(shiftProgress * 100)}%)...</span>
@@ -2075,28 +2099,44 @@ export default function Attendance() {
               <div className="w-full mt-4 rounded-xl border border-border bg-muted/20 p-3">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-[9px] font-black uppercase tracking-[0.18em] text-foreground">Location Status</span>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[9px] font-bold text-emerald-700">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                    Active
-                  </span>
+                  {initialFetch ? (
+                    <Skeleton className="h-4 w-14 rounded-full" />
+                  ) : (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[9px] font-bold text-emerald-700">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                      Active
+                    </span>
+                  )}
                 </div>
 
                 <div className="space-y-2 text-xs text-foreground">
                   <div className="flex items-center justify-between">
                     <span className="font-semibold text-foreground">Last updated</span>
-                    <span className="font-bold">{locationLastUpdated ? formatFullDateTime(locationLastUpdated).toUpperCase() : "-"}</span>
+                    {initialFetch ? (
+                      <Skeleton className="h-3.5 w-28" />
+                    ) : (
+                      <span className="font-bold">{locationLastUpdated ? formatFullDateTime(locationLastUpdated).toUpperCase() : "-"}</span>
+                    )}
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="font-semibold text-foreground">Coordinates</span>
-                    <span className="font-bold font-mono text-[10px]">{locationCoords ? `${locationCoords.lat.toFixed(7)}, ${locationCoords.lng.toFixed(7)}` : "-"}</span>
+                    {initialFetch ? (
+                      <Skeleton className="h-3.5 w-32" />
+                    ) : (
+                      <span className="font-bold font-mono text-[10px]">{locationCoords ? `${locationCoords.lat.toFixed(7)}, ${locationCoords.lng.toFixed(7)}` : "-"}</span>
+                    )}
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="font-semibold text-foreground">Distance</span>
-                    <span className="font-bold">{locationDistance !== null ? `${Math.round(locationDistance)} m` : "-"}</span>
+                    {initialFetch ? (
+                      <Skeleton className="h-3.5 w-14" />
+                    ) : (
+                      <span className="font-bold">{locationDistance !== null ? `${Math.round(locationDistance)} m` : "-"}</span>
+                    )}
                   </div>
                 </div>
 
-                {activeSession && (
+                {!initialFetch && activeSession && (
                   <Button
                     type="button"
                     onClick={handleUpdateLocation}
@@ -2117,9 +2157,13 @@ export default function Attendance() {
                       <Clock className="w-3.5 h-3.5" />
                     </div>
                     <span className="text-[9px] uppercase font-bold text-foreground tracking-wider text-center">Clock In</span>
-                    <span className="text-[11px] sm:text-xs font-bold text-foreground tabular-nums">
-                      {activeSession ? formatAttendanceTime(activeSession.clock_in) : "--:--"}
-                    </span>
+                    {initialFetch ? (
+                      <Skeleton className="h-4 w-14 mt-0.5" />
+                    ) : (
+                      <span className="text-[11px] sm:text-xs font-bold text-foreground tabular-nums">
+                        {activeSession ? formatAttendanceTime(activeSession.clock_in) : "--:--"}
+                      </span>
+                    )}
                   </div>
 
                   <div className="flex flex-col items-center py-3 px-2 gap-1 bg-muted/20">
@@ -2129,9 +2173,13 @@ export default function Attendance() {
                     <span className="text-[9px] uppercase font-bold text-foreground tracking-wider text-center">
                       {activeSession ? "Est. Out" : "Clock Out"}
                     </span>
-                    <span className="text-[11px] sm:text-xs font-bold text-foreground tabular-nums">
-                      {activeSession ? getEstClockOutTime() : "--:--"}
-                    </span>
+                    {initialFetch ? (
+                      <Skeleton className="h-4 w-14 mt-0.5" />
+                    ) : (
+                      <span className="text-[11px] sm:text-xs font-bold text-foreground tabular-nums">
+                        {activeSession ? getEstClockOutTime() : "--:--"}
+                      </span>
+                    )}
                   </div>
 
                   <div className="flex flex-col items-center py-3 px-2 gap-1 bg-muted/20">
@@ -2139,9 +2187,13 @@ export default function Attendance() {
                       <Timer className="w-3.5 h-3.5" />
                     </div>
                     <span className="text-[9px] uppercase font-bold text-foreground tracking-wider text-center">Working Hrs</span>
-                    <span className="text-[11px] sm:text-xs font-bold text-foreground font-mono tabular-nums whitespace-nowrap">
-                      {workingHrs}
-                    </span>
+                    {initialFetch ? (
+                      <Skeleton className="h-4 w-14 mt-0.5" />
+                    ) : (
+                      <span className="text-[11px] sm:text-xs font-bold text-foreground font-mono tabular-nums whitespace-nowrap">
+                        {workingHrs}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -2173,9 +2225,13 @@ export default function Attendance() {
               <div className="w-8 h-8 rounded-full bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center mb-2 shadow-sm">
                  <Clock className="w-4 h-4 text-[#942392] dark:text-purple-400" />
               </div>
-              <div className="text-xl sm:text-2xl font-black text-foreground font-mono">
-                {stats.totalHoursToday} <span className="text-xs text-foreground">hrs</span>
-              </div>
+              {isStatsLoading ? (
+                <Skeleton className="h-7 w-20 my-0.5" />
+              ) : (
+                <div className="text-xl sm:text-2xl font-black text-foreground font-mono">
+                  {stats.totalHoursToday} <span className="text-xs text-foreground">hrs</span>
+                </div>
+              )}
               <div className="text-[10px] sm:text-xs font-bold text-foreground uppercase tracking-widest mt-1">
                 Total Today
               </div>
@@ -2189,9 +2245,13 @@ export default function Attendance() {
               <div className="w-8 h-8 rounded-full bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center mb-2 shadow-sm">
                  <Coffee className="w-4 h-4 text-amber-600 dark:text-amber-400" />
               </div>
-              <div className="text-xl sm:text-2xl font-black text-foreground font-mono" title={stats.todayRestMinutes > 0 ? `${stats.todayRestMinutes} Min` : undefined}>
-                {stats.todayRest} <span className="text-xs text-foreground">hrs</span>
-              </div>
+              {isStatsLoading ? (
+                <Skeleton className="h-7 w-20 my-0.5" />
+              ) : (
+                <div className="text-xl sm:text-2xl font-black text-foreground font-mono" title={stats.todayRestMinutes > 0 ? `${stats.todayRestMinutes} Min` : undefined}>
+                  {stats.todayRest} <span className="text-xs text-foreground">hrs</span>
+                </div>
+              )}
               <div className="text-[10px] sm:text-xs font-bold text-foreground uppercase tracking-widest mt-1">
                 Today Rest
               </div>
@@ -2205,9 +2265,13 @@ export default function Attendance() {
               <div className="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center mb-2 shadow-sm">
                  <FileText className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               </div>
-              <div className="text-xl sm:text-2xl font-black text-foreground font-mono">
-                {stats.totalHoursMonth} <span className="text-xs text-foreground">hrs</span>
-              </div>
+              {isStatsLoading ? (
+                <Skeleton className="h-7 w-20 my-0.5" />
+              ) : (
+                <div className="text-xl sm:text-2xl font-black text-foreground font-mono">
+                  {stats.totalHoursMonth} <span className="text-xs text-foreground">hrs</span>
+                </div>
+              )}
               <div className="text-[10px] sm:text-xs font-bold text-foreground uppercase tracking-widest mt-1">
                 Total This Month
               </div>
@@ -2221,9 +2285,13 @@ export default function Attendance() {
               <div className="w-8 h-8 rounded-full bg-rose-50 dark:bg-rose-900/30 flex items-center justify-center mb-2 shadow-sm">
                  <Fingerprint className="w-4 h-4 text-rose-600 dark:text-rose-400" />
               </div>
-              <div className="text-xl sm:text-2xl font-black text-foreground font-mono">
-                {stats.overtimeMonth} <span className="text-xs text-foreground">hrs</span>
-              </div>
+              {isStatsLoading ? (
+                <Skeleton className="h-7 w-20 my-0.5" />
+              ) : (
+                <div className="text-xl sm:text-2xl font-black text-foreground font-mono">
+                  {stats.overtimeMonth} <span className="text-xs text-foreground">hrs</span>
+                </div>
+              )}
               <div className="text-[10px] sm:text-xs font-bold text-foreground uppercase tracking-widest mt-1">
                 OT This Month
               </div>
@@ -2243,31 +2311,49 @@ export default function Attendance() {
                 <span className="text-[10px] uppercase font-bold text-foreground flex items-center gap-1.5">
                    Total Working
                 </span>
-                <span className="text-sm font-black font-mono">{stats.totalHoursMonth} hrs</span>
+                {isStatsLoading ? (
+                  <Skeleton className="h-5 w-20 mt-0.5" />
+                ) : (
+                  <span className="text-sm font-black font-mono">{stats.totalHoursMonth} hrs</span>
+                )}
               </div>
               <div className="flex flex-col gap-1">
                 <span className="text-[10px] uppercase font-bold text-emerald-600 flex items-center gap-1.5">
                    Productive
                 </span>
-                <span className="text-sm font-black font-mono">{stats.productiveHours} hrs</span>
+                {isStatsLoading ? (
+                  <Skeleton className="h-5 w-20 mt-0.5" />
+                ) : (
+                  <span className="text-sm font-black font-mono">{stats.productiveHours} hrs</span>
+                )}
               </div>
               <div className="flex flex-col gap-1">
                 <span className="text-[10px] uppercase font-bold text-yellow-600 flex items-center gap-1.5">
                    Break Hours
                 </span>
-                <span className="text-sm font-black font-mono">{stats.breakHours} hrs</span>
+                {isStatsLoading ? (
+                  <Skeleton className="h-5 w-20 mt-0.5" />
+                ) : (
+                  <span className="text-sm font-black font-mono">{stats.breakHours} hrs</span>
+                )}
               </div>
               <div className="flex flex-col gap-1">
                 <span className="text-[10px] uppercase font-bold text-blue-600 flex items-center gap-1.5">
                    Overtime
                 </span>
-                <span className="text-sm font-black font-mono">{stats.overtimeMonth} hrs</span>
+                {isStatsLoading ? (
+                  <Skeleton className="h-5 w-20 mt-0.5" />
+                ) : (
+                  <span className="text-sm font-black font-mono">{stats.overtimeMonth} hrs</span>
+                )}
               </div>
             </div>
 
             {/* Visual Timeline Bar */}
             <div className="w-full h-4 sm:h-5 bg-muted rounded-full flex overflow-hidden shadow-inner mt-auto mb-2">
-               {(() => {
+               {isStatsLoading ? (
+                 <Skeleton className="w-full h-full rounded-full" />
+               ) : (() => {
                   const today = new Date();
                   today.setHours(23, 59, 59, 999);
                   const lastDay = new Date(selectedYear, selectedMonth, 0).getDate();
@@ -2357,7 +2443,14 @@ export default function Attendance() {
                 </h3>
               </div>
               
-              {(() => {
+              {initialFetch || loadingTempAssignments ? (
+                <div className="flex flex-col gap-4 mt-2">
+                  <div className="py-5 px-4 bg-muted/20 rounded-lg border border-border/50 flex flex-col items-center justify-center gap-2">
+                    <Skeleton className="h-4 w-48" />
+                    <Skeleton className="h-3 w-64 max-w-full" />
+                  </div>
+                </div>
+              ) : (() => {
                 const now = new Date();
                 now.setHours(0,0,0,0);
                 
@@ -2553,13 +2646,21 @@ export default function Attendance() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                {fetchingHistory && historyLogs.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={attendanceMode === 'multi' ? 8 : 7} className="py-12 text-center">
-                      <Loader2 className="w-6 h-6 animate-spin text-[#942392] mx-auto mb-2" />
-                      <p className="text-sm font-medium text-foreground">Loading Data...</p>
-                    </TableCell>
-                  </TableRow>
+                {initialFetch || fetchingHistory ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell className="py-4 pl-6"><Skeleton className="h-4 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                      <TableCell><Skeleton className="h-5 w-28 rounded-full" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-12" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-14" /></TableCell>
+                      <TableCell className="text-right pr-6"><Skeleton className="h-4 w-16 ml-auto" /></TableCell>
+                      {attendanceMode === 'multi' && (
+                        <TableCell><Skeleton className="h-5 w-16 rounded-md" /></TableCell>
+                      )}
+                    </TableRow>
+                  ))
                 ) : displayedLogs.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={attendanceMode === 'multi' ? 8 : 7} className="py-12 text-center">
@@ -2671,7 +2772,7 @@ export default function Attendance() {
           </CardContent>
 
           {/* Pagination Controls */}
-          {totalRows > 0 && (
+          {!initialFetch && !fetchingHistory && totalRows > 0 && (
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 py-3 px-4 border-t border-border/50 bg-muted/10">
               <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-[10px] font-bold text-foreground uppercase tracking-widest">
                 <span>TOTAL SHOWING {(page-1)*pageSize + 1} TO {Math.min(page*pageSize, totalRows)} OF {totalRows} ENTRIES</span>
@@ -2724,7 +2825,30 @@ export default function Attendance() {
             </div>
           </CardHeader>
           <CardContent className="p-0">
-            {(() => {
+            {initialFetch || loadingTempAssignments ? (
+              <div className="p-4 sm:p-6">
+                <div className="overflow-x-auto rounded-lg border border-border/50">
+                  <table className="w-full text-left text-xs whitespace-nowrap">
+                    <thead className="bg-muted/50 border-b border-border/50">
+                      <tr>
+                        <th className="px-4 py-3 font-black uppercase text-[10px] tracking-wider text-slate-900 dark:text-slate-100">Temporary Branch</th>
+                        <th className="px-4 py-3 font-black uppercase text-[10px] tracking-wider text-slate-900 dark:text-slate-100">Assignment Period</th>
+                        <th className="px-4 py-3 font-black uppercase text-[10px] tracking-wider text-slate-900 dark:text-slate-100">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border/50">
+                      {Array.from({ length: 3 }).map((_, i) => (
+                        <tr key={i}>
+                          <td className="px-4 py-3"><Skeleton className="h-4 w-36" /></td>
+                          <td className="px-4 py-3"><Skeleton className="h-4 w-44" /></td>
+                          <td className="px-4 py-3"><Skeleton className="h-5 w-20 rounded-md" /></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : (() => {
                 const now = new Date();
                 now.setHours(0,0,0,0);
                 const processed = tempAssignments.map(a => {
