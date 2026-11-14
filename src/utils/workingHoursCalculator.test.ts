@@ -3,6 +3,8 @@ import {
   calculateLateWorkingHour,
   calculateTotalWorkingHoursFormatted,
   calculateTotalRestMinutes,
+  calculateDailyRestMinutesValue,
+  calculateMonthlyBreakMinutes,
   calculateStatusClockIn,
   calculateStatusClockOut,
   calculateDayStatus,
@@ -125,6 +127,74 @@ describe('workingHoursCalculator', () => {
       // Total Rest = 75 Min
       const rest = calculateTotalRestMinutes({ sessions });
       expect(rest).toBe('75 Min');
+    });
+
+    it('Single session full working day (8:30 AM - 5:33 PM) assumes 60 Min rest', () => {
+      expect(
+        calculateTotalRestMinutes({
+          sessions: [{ clock_in: '8:30 AM', clock_out: '5:33 PM' }],
+        })
+      ).toBe('60 Min');
+
+      expect(
+        calculateTotalRestMinutes({
+          clock_in: '8:30 AM',
+          clock_out: '5:33 PM',
+        })
+      ).toBe('60 Min');
+    });
+
+    it('Single session short/half-day or open session returns 0 Min rest', () => {
+      expect(
+        calculateTotalRestMinutes({
+          sessions: [{ clock_in: '8:30 AM', clock_out: '1:00 PM' }],
+        })
+      ).toBe('0 Min');
+
+      expect(
+        calculateTotalRestMinutes({
+          sessions: [{ clock_in: '8:30 AM', clock_out: null }],
+        })
+      ).toBe('0 Min');
+    });
+
+    it('Monthly break aggregation sums daily rest and assumed 60 Min single-session breaks (60+62+46+48+50+59+60+60 = 445 Min)', () => {
+      const logs = [
+        // Day 1: single session full day -> 60 Min
+        { date: '2026-11-01', clock_in: '8:30 AM', clock_out: '5:33 PM', status: 'Present (On Time)' },
+        // Day 2: two sessions -> 62 Min gap
+        { date: '2026-11-02', clock_in: '8:30 AM', clock_out: '1:00 PM', status: 'Present (On Time)' },
+        { date: '2026-11-02', clock_in: '2:02 PM', clock_out: '5:30 PM', status: 'Present (On Time)' },
+        // Day 3: two sessions -> 46 Min gap
+        { date: '2026-11-03', clock_in: '8:30 AM', clock_out: '1:00 PM', status: 'Present (On Time)' },
+        { date: '2026-11-03', clock_in: '1:46 PM', clock_out: '5:30 PM', status: 'Present (On Time)' },
+        // Day 4: two sessions -> 48 Min gap
+        { date: '2026-11-04', clock_in: '8:30 AM', clock_out: '1:00 PM', status: 'Present (On Time)' },
+        { date: '2026-11-04', clock_in: '1:48 PM', clock_out: '5:30 PM', status: 'Present (On Time)' },
+        // Day 5: two sessions -> 50 Min gap
+        { date: '2026-11-05', clock_in: '8:30 AM', clock_out: '1:00 PM', status: 'Present (On Time)' },
+        { date: '2026-11-05', clock_in: '1:50 PM', clock_out: '5:30 PM', status: 'Present (On Time)' },
+        // Weekend / Leave / Absent -> 0 Min
+        { date: '2026-11-06', clock_in: null, clock_out: null, status: 'Weekend' },
+        { date: '2026-11-07', clock_in: null, clock_out: null, status: 'Approved Leave', is_on_leave: true },
+        // Day 6: single session full day -> 60 Min
+        { date: '2026-11-08', clock_in: '8:30 AM', clock_out: '5:30 PM', status: 'Present (On Time)' },
+        // Day 7: single session full day -> 60 Min
+        { date: '2026-11-09', clock_in: '8:30 AM', clock_out: '5:30 PM', status: 'Present (On Time)' },
+        // Day 8 (today): two sessions -> 59 Min gap (second session still active)
+        { date: '2026-11-10', attendance_id: 101, clock_in: '8:30 AM', clock_out: '1:01 PM', status: 'Present (On Time)' },
+        { date: '2026-11-10', attendance_id: 102, clock_in: '2:00 PM', clock_out: null, status: 'Present (On Time)' },
+      ];
+
+      const { totalBreakMins, todayRestMins } = calculateMonthlyBreakMinutes(
+        logs,
+        { attendance_id: 102, date: '2026-11-10', clock_in: '2:00 PM', clock_out: null },
+        '2026-11-10'
+      );
+
+      expect(calculateDailyRestMinutesValue({ clock_in: '8:30 AM', clock_out: '5:33 PM' })).toBe(60);
+      expect(todayRestMins).toBe(59);
+      expect(totalBreakMins).toBe(445); // 7h 25m
     });
   });
 

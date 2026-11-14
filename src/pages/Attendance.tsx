@@ -26,6 +26,7 @@ import { ExportDropdown } from "@/components/shared/ExportDropdown";
 import PageActions from "@/components/layout/PageActions";
 import {
   calculateLateWorkingHour,
+  calculateMonthlyBreakMinutes,
   calculateSessionWorkingMinutes,
   calculateTotalRestMinutes,
   calculateTotalWorkingHoursFormatted,
@@ -599,11 +600,9 @@ export default function Attendance() {
 
   // 4c. Calculate stats from historyLogs
   useEffect(() => {
-    let totalMonth = 0;
-    let totalWeek = 0;
-    let totalToday = 0;
-    let overtime = 0;
-    let breakTime = 0;
+    let totalMonthMins = 0;
+    let totalWeekMins = 0;
+    let totalTodayMins = 0;
     
     // Use en-CA locale for YYYY-MM-DD format in LOCAL timezone (avoids UTC date shift for UTC+8 users)
     const today = new Date().toLocaleDateString('en-CA');
@@ -633,88 +632,55 @@ export default function Attendance() {
     }
     // Note: Friday is always off (no attendance records will exist for Fridays).
     
+    const weekStartStr = weekStart.toLocaleDateString('en-CA');
+
     historyLogs.forEach(log => {
       const dur = log.duration || log.working_hours;
       if (dur && dur !== '--' && dur !== '--:--') {
         const parts = dur.match(/(\d+)\s*[hH]\s*(\d+)\s*[mM]/);
-        let hours = 0;
+        let mins = 0;
         if (parts) {
-          hours = parseInt(parts[1]) + parseInt(parts[2]) / 60;
+          mins = parseInt(parts[1], 10) * 60 + parseInt(parts[2], 10);
         } else {
           const hParts = dur.match(/(\d+)\s*[hH]/);
-          if (hParts) hours = parseInt(hParts[1]);
+          if (hParts) mins = parseInt(hParts[1], 10) * 60;
         }
         
-        totalMonth += hours;
-        
-        // Break time calculation (10% of working hours)
-        breakTime += hours * 0.1;
-        // NOTE: Overtime (OT) is not functional yet — hardcoded to 00:00
+        totalMonthMins += mins;
         
         const logDateStr = log.date ? log.date.split('T')[0] : "";
 
-        // Format weekStart as YYYY-MM-DD for string comparison (timezone-safe)
-        const weekStartStr = weekStart.toLocaleDateString('en-CA');
-
         if (logDateStr === today || (log.date && log.date.startsWith(today))) {
-          totalToday += hours;
+          totalTodayMins += mins;
         }
         // This week: from most recent Saturday (or Sunday in Week 1) up to today
         if (logDateStr >= weekStartStr) {
-          totalWeek += hours;
+          totalWeekMins += mins;
         }
       }
     });
 
-    const formatHrs = (decimalHours: number) => {
-      if (isNaN(decimalHours) || decimalHours < 0) return "00:00";
-      const h = Math.floor(decimalHours);
-      const m = Math.round((decimalHours - h) * 60);
+    const formatMins = (totalMins: number) => {
+      if (isNaN(totalMins) || totalMins < 0) return "00:00";
+      const safe = Math.round(totalMins);
+      const h = Math.floor(safe / 60);
+      const m = safe % 60;
       return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
     };
 
-    // Calculate today's rest: following range clock out until staff clock in back for today
-    const todayLogs = historyLogs.filter((l: any) => {
-      const lDate = l.date ? String(l.date).slice(0, 10) : "";
-      return (lDate === today || (l.date && String(l.date).startsWith(today))) && l.clock_in;
-    }).sort((a: any, b: any) => new Date(a.clock_in).getTime() - new Date(b.clock_in).getTime());
-
-    const allTodayLogs = [...todayLogs];
-    if (activeSession && activeSession.clock_in) {
-      const aDate = activeSession.date ? String(activeSession.date).slice(0, 10) : new Date(activeSession.clock_in).toISOString().slice(0, 10);
-      if (aDate === today) {
-        const existingIdx = allTodayLogs.findIndex((l: any) =>
-          (l.attendance_id && activeSession.attendance_id && l.attendance_id === activeSession.attendance_id) ||
-          (l.id && activeSession.id && l.id === activeSession.id)
-        );
-        if (existingIdx >= 0) {
-          allTodayLogs[existingIdx] = { ...allTodayLogs[existingIdx], ...activeSession };
-        } else {
-          allTodayLogs.push(activeSession);
-        }
-        allTodayLogs.sort((a: any, b: any) => new Date(a.clock_in).getTime() - new Date(b.clock_in).getTime());
-      }
-    }
-
-    let todayRestMins = 0;
-    for (let i = 0; i < allTodayLogs.length - 1; i++) {
-      if (allTodayLogs[i].clock_out && allTodayLogs[i + 1].clock_in) {
-        const outMs = new Date(allTodayLogs[i].clock_out).getTime();
-        const inMs = new Date(allTodayLogs[i + 1].clock_in).getTime();
-        const gap = Math.round((inMs - outMs) / 60000);
-        if (gap > 0) todayRestMins += gap;
-      }
-    }
+    // Break Hours = sum of daily Rest across the month (with 60 Min assumed for single-session full days)
+    const { totalBreakMins, todayRestMins } = calculateMonthlyBreakMinutes(historyLogs, activeSession, today);
+    const productiveMins = Math.max(0, totalMonthMins - totalBreakMins);
 
     setStats({
-      totalHoursToday: formatHrs(totalToday),
-      todayRest: formatHrs(todayRestMins / 60),
+      totalHoursToday: formatMins(totalTodayMins),
+      todayRest: formatMins(todayRestMins),
       todayRestMinutes: todayRestMins,
-      totalHoursWeek: formatHrs(totalWeek),
-      totalHoursMonth: formatHrs(totalMonth),
+      totalHoursWeek: formatMins(totalWeekMins),
+      totalHoursMonth: formatMins(totalMonthMins),
       overtimeMonth: "00:00", // OT not functional yet
-      productiveHours: formatHrs(totalMonth - breakTime),
-      breakHours: formatHrs(breakTime)
+      productiveHours: formatMins(productiveMins),
+      breakHours: formatMins(totalBreakMins)
     });
   }, [historyLogs, activeSession]);
 

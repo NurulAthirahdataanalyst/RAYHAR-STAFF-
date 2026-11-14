@@ -573,48 +573,59 @@ export function calculateStatusClockOut(
   return totalMins >= CLOCK_OUT_THRESHOLD_MINUTES ? 'Clock Out' : 'Clocked Out Early';
 }
 
+const DEFAULT_SINGLE_SESSION_REST_MINUTES = 60;
+const FULL_DAY_SINGLE_SESSION_MIN_SPAN_MINUTES = 360;
+
+const NON_WORKING_REST_STATUSES = new Set([
+  'Approved Leave',
+  'Company Leave',
+  'Weekend',
+  'Rest Day',
+  'Absent',
+  'Holiday',
+  'N/A',
+  'On Leave',
+  'Leave',
+]);
+
+function hasValidClockValue(val: unknown): boolean {
+  return Boolean(val && val !== '-' && val !== 'N/A' && val !== '--');
+}
+
 /**
- * Calculates Total Rest between all sessions within the same day.
+ * Calculates Total Rest in numeric minutes between all sessions within the same day,
+ * returning null for non-working / unclocked days (displayed as "--").
  *
- * Business Rule:
- * - Calculate total inactive time between all attendance sessions within the same day.
- * - Formula: Rest (Min) = Sum of (Next Clock In - Previous Clock Out)
- * - Logic:
- *   For every attendance session:
- *   Compare Clock Out of current session with Clock In of the next session.
- *   Calculate the gap in minutes.
- *   Add all gaps together.
- * - Display format: strictly total minutes followed by "Min" (e.g. "45 Min", "75 Min", "0 Min").
- * - Never displays hours format.
+ * Business Rules:
+ * - Multi-session days: sum of (Next Clock In - Previous Clock Out) gaps in minutes.
+ * - Single-session completed full working days (span >= 6 hours, e.g. 8:30 AM - 5:33 PM):
+ *   assumes a 60 Min break.
+ * - Single-session open/incomplete or short/half-day (< 6 hours): 0 Min.
  */
-export function calculateTotalRestMinutes(recordOrSessions: any): string {
+export function calculateDailyRestMinutesValue(recordOrSessions: any): number | null {
   if (recordOrSessions && typeof recordOrSessions === 'object' && !(recordOrSessions instanceof Date)) {
     const st = recordOrSessions.status;
     if (
-      st === 'Approved Leave' ||
-      st === 'Company Leave' ||
-      st === 'Weekend' ||
-      st === 'Rest Day' ||
-      st === 'Absent' ||
+      NON_WORKING_REST_STATUSES.has(st) ||
       recordOrSessions.is_leave ||
+      recordOrSessions.is_on_leave ||
       recordOrSessions.is_company_leave ||
       recordOrSessions.is_weekend ||
       recordOrSessions.is_rest_day ||
       recordOrSessions.leave_type
     ) {
-      return '--';
+      return null;
     }
   }
 
-  const sessions: AttendanceSession[] = Array.isArray(recordOrSessions?.sessions)
+  const rawSessions: AttendanceSession[] = Array.isArray(recordOrSessions?.sessions)
     ? recordOrSessions.sessions
     : Array.isArray(recordOrSessions)
     ? recordOrSessions
     : [];
 
-  // Filter valid sessions that have at least a clock-in
-  const validSessions = sessions
-    .filter((s) => Boolean(s && (s.clock_in || s.time_in)))
+  let validSessions = rawSessions
+    .filter((s) => Boolean(s && hasValidClockValue(s.clock_in || s.time_in)))
     .sort((a, b) => {
       const minA = parseTimeToMinutes(a.clock_in || a.time_in) ?? 0;
       const minB = parseTimeToMinutes(b.clock_in || b.time_in) ?? 0;
@@ -623,11 +634,35 @@ export function calculateTotalRestMinutes(recordOrSessions: any): string {
 
   if (validSessions.length === 0) {
     const rawIn = recordOrSessions?.clock_in || recordOrSessions?.time_in;
-    return rawIn ? '0 Min' : '--';
+    if (!hasValidClockValue(rawIn)) {
+      return null;
+    }
+    validSessions = [
+      {
+        clock_in: recordOrSessions?.clock_in,
+        clock_out: recordOrSessions?.clock_out,
+        time_in: recordOrSessions?.time_in,
+        time_out: recordOrSessions?.time_out,
+      },
+    ];
   }
 
-  if (validSessions.length < 2) {
-    return '0 Min';
+  if (validSessions.length === 1) {
+    const onlySession = validSessions[0];
+    const inVal = onlySession.clock_in || onlySession.time_in;
+    const outVal = onlySession.clock_out || onlySession.time_out;
+
+    if (!hasValidClockValue(outVal)) {
+      return 0;
+    }
+
+    const inMins = parseTimeToMinutes(inVal);
+    const outMins = parseTimeToMinutes(outVal);
+    if (inMins !== null && outMins !== null && outMins - inMins >= FULL_DAY_SINGLE_SESSION_MIN_SPAN_MINUTES) {
+      return DEFAULT_SINGLE_SESSION_REST_MINUTES;
+    }
+
+    return 0;
   }
 
   let totalRestMins = 0;
@@ -647,5 +682,108 @@ export function calculateTotalRestMinutes(recordOrSessions: any): string {
     }
   }
 
-  return `${totalRestMins} Min`;
+  return totalRestMins;
+}
+
+/**
+ * Calculates Total Rest between all sessions within the same day.
+ *
+ * Business Rule:
+ * - Multi-session days: Rest (Min) = Sum of (Next Clock In - Previous Clock Out)
+ * - Single-session full working days (e.g. 8:30 AM - 5:33 PM): assumes 60 Min break.
+ * - Display format: strictly total minutes followed by "Min" (e.g. "45 Min", "60 Min", "75 Min", "0 Min").
+ * - Never displays hours format.
+ */
+export function calculateTotalRestMinutes(recordOrSessions: any): string {
+  const totalRestMins = calculateDailyRestMinutesValue(recordOrSessions);
+  return totalRestMins === null ? '--' : `${totalRestMins} Min`;
+}
+
+/**
+ * Aggregates daily rest minutes across a month's attendance logs (flat session rows or grouped days),
+ * merging an optional active session for `todayStr` (YYYY-MM-DD).
+ *
+ * Returns `{ totalBreakMins, todayRestMins }`.
+ */
+export function calculateMonthlyBreakMinutes(
+  logs: any[],
+  activeSession?: any,
+  todayStr?: string
+): { totalBreakMins: number; todayRestMins: number } {
+  const dateMap = new Map<string, any[]>();
+
+  (Array.isArray(logs) ? logs : []).forEach((log) => {
+    if (!log) return;
+    const rawDate = log.date ? String(log.date).slice(0, 10) : '';
+    if (!rawDate) return;
+    if (!dateMap.has(rawDate)) {
+      dateMap.set(rawDate, []);
+    }
+    dateMap.get(rawDate)!.push(log);
+  });
+
+  if (activeSession && (activeSession.clock_in || activeSession.time_in)) {
+    const fallbackDate = activeSession.clock_in
+      ? new Date(activeSession.clock_in).toLocaleDateString('en-CA')
+      : todayStr || '';
+    const aDate = activeSession.date ? String(activeSession.date).slice(0, 10) : fallbackDate;
+    if (aDate && (!todayStr || aDate === todayStr)) {
+      const existing = dateMap.get(aDate) || [];
+      const merged = [...existing];
+      const existingIdx = merged.findIndex(
+        (l: any) =>
+          (l.attendance_id && activeSession.attendance_id && l.attendance_id === activeSession.attendance_id) ||
+          (l.id && activeSession.id && l.id === activeSession.id)
+      );
+      if (existingIdx >= 0) {
+        merged[existingIdx] = { ...merged[existingIdx], ...activeSession };
+      } else {
+        merged.push(activeSession);
+      }
+      dateMap.set(aDate, merged);
+    }
+  }
+
+  let totalBreakMins = 0;
+  let todayRestMins = 0;
+
+  dateMap.forEach((dayLogs, dateStr) => {
+    const isNonWorkingDay = dayLogs.some(
+      (l) =>
+        NON_WORKING_REST_STATUSES.has(l.status) ||
+        l.is_leave ||
+        l.is_on_leave ||
+        l.is_company_leave ||
+        l.is_weekend ||
+        l.is_rest_day ||
+        Boolean(l.leave_type)
+    );
+
+    let dayRestMins = 0;
+    if (!isNonWorkingDay) {
+      const daySessions: AttendanceSession[] = [];
+      dayLogs.forEach((l) => {
+        if (Array.isArray(l.sessions) && l.sessions.length > 0) {
+          l.sessions.forEach((s: any) => {
+            if (s && hasValidClockValue(s.clock_in || s.time_in)) {
+              daySessions.push(s);
+            }
+          });
+        } else if (hasValidClockValue(l.clock_in || l.time_in)) {
+          daySessions.push(l);
+        }
+      });
+
+      if (daySessions.length > 0) {
+        dayRestMins = calculateDailyRestMinutesValue({ sessions: daySessions }) ?? 0;
+      }
+    }
+
+    totalBreakMins += dayRestMins;
+    if (todayStr && dateStr === todayStr) {
+      todayRestMins = dayRestMins;
+    }
+  });
+
+  return { totalBreakMins, todayRestMins };
 }

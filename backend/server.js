@@ -402,6 +402,50 @@ function isAttendanceLate(clockInDateOrIso, companyId = null, targetDateStr = nu
   return { isLate, lateMinutes, status, cutoffTime, clockInMins, cutoffMins };
 }
 
+/**
+ * Calculates daily rest minutes from an employee's clock sessions on a single date.
+ * - Multi-session days: sum of positive (Next Clock In - Previous Clock Out) gaps in minutes.
+ * - Single-session completed full working days (span >= 6 hours / 360 mins): assumes 60 Min break.
+ */
+function calculateDailyRestMinsFromClocks(clocks) {
+  const MYT_OFFSET_MS = 8 * 60 * 60 * 1000;
+  const valid = (Array.isArray(clocks) ? clocks : [])
+    .filter((c) => c && c.clock_in)
+    .sort((a, b) => new Date(a.clock_in).getTime() - new Date(b.clock_in).getTime());
+
+  if (valid.length === 0) return 0;
+
+  const toMytMins = (val) => {
+    const d = new Date(val);
+    if (isNaN(d.getTime())) return null;
+    const myt = new Date(d.getTime() + MYT_OFFSET_MS);
+    return myt.getUTCHours() * 60 + myt.getUTCMinutes();
+  };
+
+  if (valid.length === 1) {
+    if (!valid[0].clock_out) return 0;
+    const inM = toMytMins(valid[0].clock_in);
+    const outM = toMytMins(valid[0].clock_out);
+    if (inM !== null && outM !== null && outM - inM >= 360) {
+      return 60;
+    }
+    return 0;
+  }
+
+  let totalRestMins = 0;
+  for (let i = 0; i < valid.length - 1; i++) {
+    if (valid[i].clock_out && valid[i + 1].clock_in) {
+      const outM = toMytMins(valid[i].clock_out);
+      const inM = toMytMins(valid[i + 1].clock_in);
+      if (outM !== null && inM !== null) {
+        const gap = inM - outM;
+        if (gap > 0) totalRestMins += gap;
+      }
+    }
+  }
+  return totalRestMins;
+}
+
 async function getBranchZoneMap() {
   const [rows] = await pool.query('SELECT code, operating_zone FROM branches');
   const map = new Map();
@@ -10566,17 +10610,7 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
             const wM = String(totalActiveMins % 60).padStart(2, '0');
             workingHours = `${wH} H ${wM} M`;
 
-            let totalRestMins = 0;
-            for (let i = 0; i < matchingClocks.length - 1; i++) {
-              if (matchingClocks[i].clock_out && matchingClocks[i + 1].clock_in) {
-                const outD = new Date(new Date(matchingClocks[i].clock_out).getTime() + 8 * 60 * 60 * 1000);
-                const inD = new Date(new Date(matchingClocks[i + 1].clock_in).getTime() + 8 * 60 * 60 * 1000);
-                const outM = outD.getUTCHours() * 60 + outD.getUTCMinutes();
-                const inM = inD.getUTCHours() * 60 + inD.getUTCMinutes();
-                const gap = inM - outM;
-                if (gap > 0) totalRestMins += gap;
-              }
-            }
+            const totalRestMins = calculateDailyRestMinsFromClocks(matchingClocks);
             restMinutes = `${totalRestMins} Min`;
           }
 
@@ -10878,17 +10912,7 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
         const wM = String(totalActiveMins % 60).padStart(2, '0');
         workingHours = `${wH} H ${wM} M`;
 
-        let totalRestMins = 0;
-        for (let i = 0; i < clockRowsForUser.length - 1; i++) {
-          if (clockRowsForUser[i].clock_out && clockRowsForUser[i + 1].clock_in) {
-            const outD = new Date(new Date(clockRowsForUser[i].clock_out).getTime() + 8 * 60 * 60 * 1000);
-            const inD = new Date(new Date(clockRowsForUser[i + 1].clock_in).getTime() + 8 * 60 * 60 * 1000);
-            const outM = outD.getUTCHours() * 60 + outD.getUTCMinutes();
-            const inM = inD.getUTCHours() * 60 + inD.getUTCMinutes();
-            const gap = inM - outM;
-            if (gap > 0) totalRestMins += gap;
-          }
-        }
+        const totalRestMins = calculateDailyRestMinsFromClocks(clockRowsForUser);
         restMinutes = `${totalRestMins} Min`;
       }
 
@@ -13747,18 +13771,8 @@ app.get("/api/reports/generator", async (req, res) => {
               const wM = String(totalActiveMins % 60).padStart(2, '0');
               const workingHoursFormatted = `${wH} H ${wM} M`;
 
-              // Rest Minutes (all inactive gaps between consecutive sessions)
-              let totalRestMins = 0;
-              for (let i = 0; i < matchingClocks.length - 1; i++) {
-                if (matchingClocks[i].clock_out && matchingClocks[i + 1].clock_in) {
-                  const outD = new Date(new Date(matchingClocks[i].clock_out).getTime() + MYT_OFFSET_MS);
-                  const inD = new Date(new Date(matchingClocks[i + 1].clock_in).getTime() + MYT_OFFSET_MS);
-                  const outM = outD.getUTCHours() * 60 + outD.getUTCMinutes();
-                  const inM = inD.getUTCHours() * 60 + inD.getUTCMinutes();
-                  const gap = inM - outM;
-                  if (gap > 0) totalRestMins += gap;
-                }
-              }
+              // Rest Minutes (gaps between consecutive sessions, or 60 Min assumed for single-session full days)
+              const totalRestMins = calculateDailyRestMinsFromClocks(matchingClocks);
               const restMinutes = `${totalRestMins} Min`;
 
               const sessions = matchingClocks.map(c => ({
