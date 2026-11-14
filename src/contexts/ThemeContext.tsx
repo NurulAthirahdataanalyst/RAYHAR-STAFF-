@@ -1,10 +1,12 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { flushSync } from "react-dom";
+import { runCircularRevealTransition, TransitionOriginSource } from "@/utils/viewTransitions";
 
 type Theme = "light" | "dark";
 
 interface ThemeContextType {
   theme: Theme;
-  toggleTheme: () => void;
+  toggleTheme: (source?: TransitionOriginSource) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -23,8 +25,17 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     localStorage.setItem("theme", theme);
   }, [theme]);
 
-  const toggleTheme = () => {
-    setTheme((prev) => (prev === "light" ? "dark" : "light"));
+  const toggleTheme = (source?: TransitionOriginSource) => {
+    const nextTheme: Theme = theme === "light" ? "dark" : "light";
+    runCircularRevealTransition(() => {
+      flushSync(() => {
+        setTheme(nextTheme);
+      });
+      const root = window.document.documentElement;
+      root.classList.remove("light", "dark");
+      root.classList.add(nextTheme);
+      localStorage.setItem("theme", nextTheme);
+    }, source);
   };
 
   return (

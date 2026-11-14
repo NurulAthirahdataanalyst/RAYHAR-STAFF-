@@ -41,6 +41,21 @@ const isSafeInternalPath = (path: string) => {
   );
 };
 
+const getPageTransitionClass = (pathname: string) => {
+  if (
+    pathname === "/" ||
+    pathname === "/analytics" ||
+    pathname === "/profile" ||
+    pathname.startsWith("/hr-analytics") ||
+    pathname.startsWith("/reports") ||
+    pathname.startsWith("/outstation/analytics") ||
+    pathname.startsWith("/outstation/reports")
+  ) {
+    return "page-transition-panel";
+  }
+  return "page-transition-enter";
+};
+
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, signOut } = useAuth();
   const { activeCompany } = useCompany();
@@ -519,15 +534,20 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* ═══════ MAIN CONTENT ═══════ */}
-        <div className="relative p-4 sm:p-4 lg:p-5 w-full mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="relative p-4 sm:p-4 lg:p-5 w-full mx-auto">
           
           <div className="flex flex-col lg:flex-row gap-4 lg:gap-8 items-start relative w-full">
             
             {/* Ruang Kerja Utama (70% - 90%) */}
-            <div className="flex-1 min-w-0 space-y-2.5 sm:space-y-3 transition-all duration-500 ease-in-out w-full">
-              {location.pathname !== "/" && location.pathname !== "/analytics" && location.pathname !== "/settings" && <PageHeader />}
-              <div key={`${refreshKey}-${activeCompany?.id || 1}`} className="w-full">
-                {children}
+            <div className="flex-1 min-w-0 transition-all duration-500 ease-in-out w-full">
+              <div
+                key={`${location.pathname}-${refreshKey}-${activeCompany?.id || 1}`}
+                className={`w-full space-y-2.5 sm:space-y-3 ${getPageTransitionClass(location.pathname)}`}
+              >
+                {location.pathname !== "/" && location.pathname !== "/analytics" && location.pathname !== "/settings" && <PageHeader />}
+                <div className="w-full">
+                  {children}
+                </div>
               </div>
             </div>
 

@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { API_BASE_URL } from "@/config/api";
 import { supabase } from "@/integrations/supabase/client";
+import { triggerLoginCurtain } from "@/components/layout/LoginCurtain";
 
 // ASSETS
 import watercolorBg from "@/assets/watercolor-bg.png";
@@ -203,15 +204,14 @@ export default function Login() {
 
       if (response.ok && data.success) {
         console.log("Login success, user data:", data.user);
-        loginLocal(data.user); 
         const displayName = data.user?.full_name || data.user?.name || loginEmail;
         toast({ title: "Welcome back!", description: `Logged in as ${displayName}` });
         
         setIsExiting(true);
-        // Wait for the animation to finish before navigation
-        setTimeout(() => {
+        triggerLoginCurtain(() => {
+          loginLocal(data.user);
           navigate("/");
-        }, 700);
+        });
       } else {
         toast({ title: "Login failed", description: data.error || data.message || "Invalid credentials", variant: "destructive" });
       }
@@ -257,9 +257,12 @@ export default function Login() {
 
       if (response.ok && data.success) {
         // The DB Trigger assigned 'E0001' and the backend returned it in data.user
-        loginLocal(data.user); 
         toast({ title: "Account Created!", description: `Welcome! Your ID is ${data.user.user_id}` });
-        navigate("/");
+        setIsExiting(true);
+        triggerLoginCurtain(() => {
+          loginLocal(data.user);
+          navigate("/");
+        });
       } else {
         toast({ title: "Signup failed", description: data.error || "Could not create account", variant: "destructive" });
       }

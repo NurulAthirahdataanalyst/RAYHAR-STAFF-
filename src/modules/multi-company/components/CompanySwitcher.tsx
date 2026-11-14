@@ -1,7 +1,9 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { flushSync } from 'react-dom';
 import { useCompany } from '../contexts/CompanyContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRole, normalizeRole } from '@/contexts/RoleContext';
+import { runCircularRevealTransition } from '@/utils/viewTransitions';
 import { 
   Building2, 
   ChevronDown, 
@@ -38,6 +40,7 @@ export const CompanySwitcher: React.FC<CompanySwitcherProps> = ({
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [open, setOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   const [overrideScope, setOverrideScope] = useState<string>('');
 
@@ -114,7 +117,7 @@ export const CompanySwitcher: React.FC<CompanySwitcherProps> = ({
     );
   }, [companies, searchTerm]);
 
-  const handleSelectCompany = (id: number, name: string) => {
+  const handleSelectCompany = (id: number, name: string, e?: React.MouseEvent<HTMLElement>) => {
     if (!canSwitchCompany) {
       toast.error('Only HR roles or roles with Parent Group Data authorization scope can switch companies.');
       return;
@@ -124,8 +127,17 @@ export const CompanySwitcher: React.FC<CompanySwitcherProps> = ({
       toast.error(`${name} is currently inactive.`);
       return;
     }
-    setActiveCompanyId(id);
-    setOpen(false);
+    if (id === activeCompany?.id) {
+      setOpen(false);
+      return;
+    }
+    const originSource = e && (e.clientX > 0 || e.clientY > 0) ? e : triggerRef.current;
+    runCircularRevealTransition(() => {
+      flushSync(() => {
+        setOpen(false);
+        setActiveCompanyId(id);
+      });
+    }, originSource);
     toast.success(`Switched active context to ${name}`);
   };
 
@@ -187,6 +199,7 @@ export const CompanySwitcher: React.FC<CompanySwitcherProps> = ({
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <button
+          ref={triggerRef}
           className={
             isHeader
               ? `flex items-center gap-2 px-3 py-1.5 rounded-xl hover:bg-white/10 transition-all text-white font-semibold text-xs border border-white/20 bg-white/5 active:scale-95 cursor-pointer shadow-xs ${className}`
@@ -272,7 +285,7 @@ export const CompanySwitcher: React.FC<CompanySwitcherProps> = ({
               return (
                 <DropdownMenuItem
                   key={c.id}
-                  onClick={() => handleSelectCompany(c.id, c.company_name)}
+                  onClick={(e) => handleSelectCompany(c.id, c.company_name, e)}
                   className={`flex items-center justify-between px-2.5 py-2 rounded-lg cursor-pointer transition-colors ${
                     isSelected
                       ? 'bg-[#942392]/10 dark:bg-[#942392]/20 text-[#942392] dark:text-purple-300 font-bold'
