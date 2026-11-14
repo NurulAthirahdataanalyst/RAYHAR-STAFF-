@@ -15207,6 +15207,136 @@ function broadcastWorkforceCalendarUpdate(payload = { type: 'refresh' }) {
   });
 }
 
+const CALENDAR_DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const DEFAULT_ZONE_A_BRANCH_CODES = new Set(['AOR', 'CNH', 'DGN', 'HQ', 'JTH', 'KBG', 'KBR', 'KMN', 'KMM', 'TGG']);
+
+function normalizeCalendarZoneCode(zone) {
+  if (!zone || typeof zone !== 'string') return null;
+  const trimmed = zone.trim();
+  if (!trimmed || trimmed.toUpperCase() === 'ALL' || trimmed.toUpperCase() === 'NONE') return null;
+  const upper = trimmed.toUpperCase().replace(/\s+/g, '_');
+  if (upper === 'ZONE_A' || upper.startsWith('ZONE_A_')) return 'ZONE_A';
+  if (upper === 'ZONE_B' || upper.startsWith('ZONE_B_')) return 'ZONE_B';
+  return upper;
+}
+
+function parseScheduleBranchCodes(branchIds, branchIdFallback) {
+  let rawList = [];
+  if (Array.isArray(branchIds)) {
+    rawList = branchIds;
+  } else if (typeof branchIds === 'string' && branchIds.trim()) {
+    try {
+      const parsed = JSON.parse(branchIds);
+      if (Array.isArray(parsed)) rawList = parsed;
+    } catch {
+      rawList = branchIds.split(',');
+    }
+  }
+  if (rawList.length === 0 && typeof branchIdFallback === 'string' && branchIdFallback.trim()) {
+    rawList = branchIdFallback.split(',');
+  }
+  return Array.from(
+    new Set(
+      rawList
+        .map((c) => String(c || '').trim().toUpperCase())
+        .filter((c) => c && c !== 'ALL')
+    )
+  ).sort();
+}
+
+function normalizeScheduleSpecialRules(rawRules, normZone) {
+  let rules = [];
+  if (Array.isArray(rawRules)) {
+    rules = rawRules.map((r) => String(r || '').trim()).filter(Boolean);
+  } else if (typeof rawRules === 'string' && rawRules.trim()) {
+    try {
+      const parsed = JSON.parse(rawRules);
+      if (Array.isArray(parsed)) rules = parsed.map((r) => String(r || '').trim()).filter(Boolean);
+    } catch {}
+  }
+  if (rules.length === 0 && normZone === 'ZONE_A') {
+    return ['first_thursday_full', 'first_saturday_closed'];
+  }
+  if (rules.length === 0 && normZone === 'ZONE_B') {
+    return ['first_saturday_closed'];
+  }
+  return rules;
+}
+
+function resolveEmployeeWorkSchedule(schedules, empCompanyId, branchCode, departmentName, branchZone) {
+  if (!Array.isArray(schedules) || schedules.length === 0) return null;
+  const compMatches = empCompanyId
+    ? schedules.filter((ws) => Number(ws.company_id) === Number(empCompanyId))
+    : [];
+  const poolList = compMatches.length > 0 ? compMatches : schedules;
+  const normBranch = String(branchCode || '').trim().toUpperCase();
+  const normDept = String(departmentName || '').trim().toLowerCase();
+  const matchesDept = (ws) => {
+    if (!ws.department_id) return true;
+    return String(ws.department_id).trim().toLowerCase() === normDept;
+  };
+
+  if (normBranch) {
+    const branchDeptMatch = poolList.find(
+      (ws) => ws.department_id && matchesDept(ws) && Array.isArray(ws.branch_ids) && ws.branch_ids.includes(normBranch)
+    );
+    if (branchDeptMatch) return branchDeptMatch;
+
+    const branchMatch = poolList.find(
+      (ws) => !ws.department_id && Array.isArray(ws.branch_ids) && ws.branch_ids.includes(normBranch)
+    );
+    if (branchMatch) return branchMatch;
+  }
+
+  if (branchZone) {
+    const zoneDeptMatch = poolList.find(
+      (ws) => ws.department_id && matchesDept(ws) && ws.operating_zone === branchZone
+    );
+    if (zoneDeptMatch) return zoneDeptMatch;
+
+    const zoneMatch = poolList.find(
+      (ws) => !ws.department_id && ws.operating_zone === branchZone
+    );
+    if (zoneMatch) return zoneMatch;
+  }
+
+  return (
+    poolList.find(
+      (ws) => matchesDept(ws) && (!ws.branch_ids || ws.branch_ids.length === 0) && !ws.operating_zone
+    ) || null
+  );
+}
+
+function isCalendarDateRestDay(dayOfWeekIdx, dateNum, branchZone, matchedSchedule) {
+  const isFirstSaturday = dayOfWeekIdx === 6 && dateNum <= 7;
+  if (matchedSchedule) {
+    const rules = Array.isArray(matchedSchedule.special_rules) ? matchedSchedule.special_rules : [];
+    if (isFirstSaturday && rules.includes('first_saturday_closed')) {
+      return true;
+    }
+    const dayName = CALENDAR_DAY_NAMES[dayOfWeekIdx];
+    const days = Array.isArray(matchedSchedule.days) ? matchedSchedule.days : [];
+    const dayCfg = days.find((d) => String(d.day_of_week || '').toLowerCase() === dayName.toLowerCase());
+    if (dayCfg && typeof dayCfg.is_working_day === 'boolean') {
+      return !dayCfg.is_working_day;
+    }
+  } else if (isFirstSaturday) {
+    return true;
+  }
+
+  if (branchZone === 'ZONE_A') {
+    return dayOfWeekIdx === 5 || isFirstSaturday;
+  }
+  return dayOfWeekIdx === 0 || isFirstSaturday;
+}
+
+function formatMytDateStr(val) {
+  if (!val) return null;
+  const ms = new Date(val).getTime();
+  if (isNaN(ms)) return toDateStr(val);
+  return new Date(ms + 8 * 3600 * 1000).toISOString().split('T')[0];
+}
+
 // Helper to compute workforce calendar data for a given role/branch/dept
 async function getWorkforceCalendarData(role, branch, department, month, year, companyId = null) {
   const params = [];
@@ -15225,7 +15355,7 @@ async function getWorkforceCalendarData(role, branch, department, month, year, c
     params.push(department);
     outstationWhere += ` AND oa.department = ?`;
   } else if (role === 'head_of_department' && !department) {
-    return [];
+    return { events: [], workSchedules: [], branchZones: {}, activeEmployees: [] };
   }
 
   const events = [];
@@ -15249,6 +15379,8 @@ async function getWorkforceCalendarData(role, branch, department, month, year, c
         id: `leave-${r.id}`,
         user_id: r.user_id,
         name: r.full_name,
+        branch: r.branch || null,
+        department: r.department || null,
         type: r.leave_type,
         source: 'leave',
         start_date: r.start_date,
@@ -15267,7 +15399,9 @@ async function getWorkforceCalendarData(role, branch, department, month, year, c
   try {
     const outstationParamsCopy = [...params];
     const [outstationRows] = await pool.query(
-      `SELECT oa.id, oa.user_id, p.full_name, oa.branch, oa.department,
+      `SELECT oa.id, oa.user_id, p.full_name,
+              COALESCE(NULLIF(oa.branch, ''), p.branch) AS branch,
+              COALESCE(NULLIF(oa.department, ''), p.department) AS department,
               oa.destination, oa.purpose, oa.project, oa.meeting_title, oa.client_company, oa.start_date, oa.end_date, oa.status
        FROM outstation_assignments oa
        LEFT JOIN profiles p ON oa.user_id = p.user_id
@@ -15280,6 +15414,8 @@ async function getWorkforceCalendarData(role, branch, department, month, year, c
         id: `outstation-${r.id}`,
         user_id: r.user_id,
         name: r.full_name,
+        branch: r.branch || null,
+        department: r.department || null,
         type: 'Outstation',
         source: 'outstation',
         start_date: r.start_date,
@@ -15314,12 +15450,110 @@ async function getWorkforceCalendarData(role, branch, department, month, year, c
         end_time: null,
         status: r.status,
         applies_to: r.applies_to,
+        branch_id: r.branch_id || null,
+        department_id: r.department_id || null,
         days: null,
       });
     }
   } catch (e) { console.error('workforce-calendar company_leave fetch error:', e); }
 
-  // 4. Attendance & Absents (Only if month & year are provided to prevent massive queries)
+  // 3.5 Load Branch Operating Zones, Active Work Schedules, and Active Employees in Scope
+  const cidNum = toSafeCompanyId(companyId);
+  const companyBranchZoneMap = new Map();
+  const globalBranchZoneMap = new Map();
+  let normalizedSchedules = [];
+  let empRows = [];
+
+  try {
+    const [branchRows] = await pool.query(
+      `SELECT UPPER(code) AS code, operating_zone, company_id FROM branches`
+    );
+    for (const b of branchRows) {
+      const code = String(b.code || '').trim().toUpperCase();
+      if (!code) continue;
+      const normZone = normalizeCalendarZoneCode(b.operating_zone) ||
+        (DEFAULT_ZONE_A_BRANCH_CODES.has(code) ? 'ZONE_A' : 'ZONE_B');
+      globalBranchZoneMap.set(code, normZone);
+      const bComp = b.company_id !== null && b.company_id !== undefined ? Number(b.company_id) : 1;
+      if (!cidNum || cidNum === bComp || (cidNum === 1 && (b.company_id === null || b.company_id === undefined))) {
+        companyBranchZoneMap.set(code, normZone);
+      }
+    }
+
+    const [schedRows] = await pool.query(`
+      SELECT ws.id, ws.company_id, ws.schedule_name, ws.operating_zone, ws.department_id,
+             ws.branch_id, ws.branch_ids, ws.special_rules, ws.effective_date, ws.status,
+             COALESCE(
+               json_agg(
+                 json_build_object(
+                   'day_of_week', wsd.day_of_week,
+                   'start_time', wsd.start_time,
+                   'end_time', wsd.end_time,
+                   'is_working_day', wsd.is_working_day
+                 ) ORDER BY
+                   CASE wsd.day_of_week
+                     WHEN 'Monday' THEN 1
+                     WHEN 'Tuesday' THEN 2
+                     WHEN 'Wednesday' THEN 3
+                     WHEN 'Thursday' THEN 4
+                     WHEN 'Friday' THEN 5
+                     WHEN 'Saturday' THEN 6
+                     WHEN 'Sunday' THEN 7
+                   END
+               ) FILTER (WHERE wsd.id IS NOT NULL), '[]'::json
+             ) AS days
+      FROM work_schedules ws
+      LEFT JOIN work_schedule_days wsd ON ws.id = wsd.schedule_id
+      WHERE ws.status = 'active'
+      GROUP BY ws.id
+      ORDER BY ws.id ASC
+    `);
+
+    normalizedSchedules = schedRows.map((ws) => {
+      const normZone = normalizeCalendarZoneCode(ws.operating_zone);
+      let branchIds = parseScheduleBranchCodes(ws.branch_ids, ws.branch_id);
+      if (branchIds.length === 0 && normZone) {
+        const wsCompId = Number(ws.company_id) || 1;
+        branchIds = branchRows
+          .filter((b) => {
+            const bCompId = b.company_id !== null && b.company_id !== undefined ? Number(b.company_id) : 1;
+            const bZone = normalizeCalendarZoneCode(b.operating_zone) ||
+              (DEFAULT_ZONE_A_BRANCH_CODES.has(String(b.code || '').toUpperCase()) ? 'ZONE_A' : 'ZONE_B');
+            return bCompId === wsCompId && bZone === normZone;
+          })
+          .map((b) => String(b.code || '').trim().toUpperCase())
+          .filter(Boolean);
+      }
+      const specialRules = normalizeScheduleSpecialRules(ws.special_rules, normZone);
+      return {
+        ...ws,
+        operating_zone: normZone,
+        branch_ids: branchIds,
+        branch_id: branchIds.length > 0 ? branchIds.join(',') : null,
+        special_rules: specialRules,
+        days: Array.isArray(ws.days) ? ws.days : []
+      };
+    });
+
+    const empParams = [];
+    let empWhere = companyFilterPlain;
+    if (role === 'branch_leader' && branch) {
+      empWhere += ` AND branch = $1`;
+      empParams.push(branch);
+    } else if (role === 'head_of_department' && department) {
+      empWhere += ` AND department = $1`;
+      empParams.push(department);
+    }
+    const [fetchedEmpRows] = await pool.query(
+      `SELECT user_id, full_name, branch, department, created_at FROM profiles WHERE status = 'Active' ${empWhere}`,
+      empParams
+    );
+    empRows = fetchedEmpRows;
+  } catch (e) {
+    console.error('workforce-calendar schedule/employee metadata error:', e);
+  }
+
+  // 4. Attendance, Rest Days & Absents (Only if month & year are provided to prevent massive queries)
   try {
     if (month && year) {
       const lateTimeStr = typeof getLateThresholdTime === 'function' ? getLateThresholdTime() : '09:00:00';
@@ -15335,7 +15569,7 @@ async function getWorkforceCalendarData(role, branch, department, month, year, c
 
       // Present
       const [attRows] = await pool.query(
-        `SELECT a.user_id, p.full_name, a.clock_in, a.clock_out,
+        `SELECT a.user_id, p.full_name, p.branch, p.department, a.clock_in, a.clock_out,
                 CASE WHEN (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::time > $1::time 
                 THEN 'Present (Late)' ELSE 'Present (On Time)' END as att_status
          FROM attendances a
@@ -15351,7 +15585,7 @@ async function getWorkforceCalendarData(role, branch, department, month, year, c
       // Deduplicate: Keep only the earliest clock-in per user per date for calendar events
       const dayAttMap = new Map();
       for (const r of attRows) {
-        const dStr = new Date(new Date(r.clock_in).getTime() + 8 * 3600 * 1000).toISOString().split('T')[0];
+        const dStr = formatMytDateStr(r.clock_in);
         const key = `${r.user_id}_${dStr}`;
         if (!dayAttMap.has(key)) {
           dayAttMap.set(key, { ...r });
@@ -15364,13 +15598,15 @@ async function getWorkforceCalendarData(role, branch, department, month, year, c
       }
 
       for (const r of dayAttMap.values()) {
-        const dStr = new Date(new Date(r.clock_in).getTime() + 8 * 3600 * 1000).toISOString().split('T')[0];
+        const dStr = formatMytDateStr(r.clock_in);
         const empCompanyId = r.company_id || getEmployeeCompanyId(r.user_id) || companyId;
         const { status: calculatedStatus } = isAttendanceLate(r.clock_in, empCompanyId, dStr);
         events.push({
           id: `att-${r.user_id}-${new Date(r.clock_in).getTime()}`,
           user_id: r.user_id,
           name: r.full_name,
+          branch: r.branch || null,
+          department: r.department || null,
           type: calculatedStatus,
           source: 'attendance',
           start_date: r.clock_in,
@@ -15381,7 +15617,7 @@ async function getWorkforceCalendarData(role, branch, department, month, year, c
         });
       }
 
-      // Absent (for past days in the month)
+      // Rest Days & Absents (for past days up to today in requested month)
       const now = new Date();
       const klNow = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kuala_Lumpur" }));
       
@@ -15397,81 +15633,145 @@ async function getWorkforceCalendarData(role, branch, department, month, year, c
       }
 
       if (lastDayToCheck > 0) {
-        // Build Sets for fast lookup
-        const companyHolidays = new Set();
-        events.filter(e => e.source === 'company_leave').forEach(e => {
-            const start = new Date(e.start_date);
-            const end = new Date(e.end_date);
-            for(let d = new Date(start); d <= end; d.setDate(d.getDate()+1)) {
-               companyHolidays.add(d.toISOString().split('T')[0]);
+        const companyLeaveEntries = events
+          .filter((e) => e.source === 'company_leave')
+          .map((e) => ({
+            ...e,
+            startStr: toDateStr(e.start_date),
+            endStr: toDateStr(e.end_date || e.start_date),
+          }));
+
+        const isCompanyHolidayForEmp = (emp, dateStr) => {
+          return companyLeaveEntries.some((cl) => {
+            if (!cl.startStr || !cl.endStr || dateStr < cl.startStr || dateStr > cl.endStr) return false;
+            if (cl.applies_to === 'all' || !cl.applies_to) return true;
+            if (cl.applies_to === 'branch' && cl.branch_id) {
+              return safeArraySplit(cl.branch_id).map((b) => b.toUpperCase()).includes(String(emp.branch || '').trim().toUpperCase());
             }
-        });
+            if (cl.applies_to === 'department' && cl.department_id) {
+              const depts = safeArraySplit(cl.department_id);
+              const normEmpDept = safeLower(emp.department).replace(/\bdepartment\b/g, '').trim();
+              return depts.some((d) => {
+                const normClDept = d.toLowerCase().replace(/\bdepartment\b/g, '').trim();
+                return normEmpDept === normClDept || emp.department === d;
+              });
+            }
+            return false;
+          });
+        };
 
         // Map: user_id -> set of YYYY-MM-DD they are covered (leave, outstation, present)
         const userCoverage = {};
 
-        events.filter(e => e.source !== 'company_leave').forEach(e => {
-           if (!userCoverage[e.user_id]) userCoverage[e.user_id] = new Set();
-           const start = new Date(e.start_date);
-           const end = new Date(e.end_date || e.start_date);
-           for(let d = new Date(start); d <= end; d.setDate(d.getDate()+1)) {
-              userCoverage[e.user_id].add(d.toISOString().split('T')[0]);
-           }
+        events.filter((e) => e.source !== 'company_leave' && e.user_id).forEach((e) => {
+          if (!userCoverage[e.user_id]) userCoverage[e.user_id] = new Set();
+
+          if (e.source === 'attendance') {
+            const mDate = formatMytDateStr(e.start_date);
+            if (mDate) userCoverage[e.user_id].add(mDate);
+            return;
+          }
+
+          if (
+            e.source === 'leave' &&
+            e.type &&
+            (e.type.toUpperCase().includes('REPLACEMENT') || e.type.toUpperCase().includes('GANTI'))
+          ) {
+            const cgDates = getCutiGantiDates(e.reason, e.cuti_ganti_tarikh);
+            if (cgDates && cgDates.length > 0) {
+              cgDates.forEach((dt) => userCoverage[e.user_id].add(dt));
+              return;
+            }
+          }
+
+          const sStr = toDateStr(e.start_date);
+          const eStr = toDateStr(e.end_date || e.start_date);
+          if (!sStr || !eStr) return;
+          const startUtc = new Date(`${sStr}T00:00:00Z`);
+          const endUtc = new Date(`${eStr}T00:00:00Z`);
+          for (let cur = new Date(startUtc); cur <= endUtc; cur.setUTCDate(cur.getUTCDate() + 1)) {
+            userCoverage[e.user_id].add(cur.toISOString().split('T')[0]);
+          }
         });
 
-        // Get active employees for the scope
-        const empParams = [];
-        let empWhere = companyFilterPlain;
-        if (role === 'branch_leader' && branch) {
-          empWhere += ` AND branch = $1`;
-          empParams.push(branch);
-        } else if (role === 'head_of_department' && department) {
-          empWhere += ` AND department = $1`;
-          empParams.push(department);
-        }
-        const [empRows] = await pool.query(`SELECT user_id, full_name FROM profiles WHERE status = 'Active' ${empWhere}`, empParams);
-
         for (let day = 1; day <= lastDayToCheck; day++) {
-           const d = new Date(Date.UTC(reqYear, reqMonth, day));
-           const dayOfWeek = d.getUTCDay();
-           if (dayOfWeek === 0 || dayOfWeek === 6) continue; // Skip weekend
-           
-           const dateStr = d.toISOString().split('T')[0];
-           if (companyHolidays.has(dateStr)) continue; // Skip company holiday
+          const d = new Date(Date.UTC(reqYear, reqMonth, day));
+          const dayOfWeekIdx = d.getUTCDay();
+          const dateStr = d.toISOString().split('T')[0];
 
-           for (const emp of empRows) {
-              if (!userCoverage[emp.user_id] || !userCoverage[emp.user_id].has(dateStr)) {
-                 events.push({
-                   id: `absent-${emp.user_id}-${dateStr}`,
-                   user_id: emp.user_id,
-                   name: emp.full_name,
-                   type: 'Absent',
-                   source: 'attendance',
-                   start_date: d,
-                   end_date: d,
-                   status: 'Absent'
-                 });
-              }
-           }
+          for (const emp of empRows) {
+            const empStart = getEmpCreatedDateStr(emp.created_at);
+            if (empStart && dateStr < empStart) continue;
+            if (userCoverage[emp.user_id] && userCoverage[emp.user_id].has(dateStr)) continue;
+            if (isCompanyHolidayForEmp(emp, dateStr)) continue;
+
+            const empBranch = String(emp.branch || '').trim().toUpperCase();
+            const empCompId = getEmployeeCompanyId(emp.user_id) || cidNum || 1;
+            const empZone =
+              companyBranchZoneMap.get(empBranch) ||
+              globalBranchZoneMap.get(empBranch) ||
+              (DEFAULT_ZONE_A_BRANCH_CODES.has(empBranch) ? 'ZONE_A' : 'ZONE_B');
+            const matchedSched = resolveEmployeeWorkSchedule(
+              normalizedSchedules,
+              empCompId,
+              empBranch,
+              emp.department,
+              empZone
+            );
+            const isRestDay = isCalendarDateRestDay(dayOfWeekIdx, day, empZone, matchedSched);
+
+            events.push({
+              id: `${isRestDay ? 'rest' : 'absent'}-${emp.user_id}-${dateStr}`,
+              user_id: emp.user_id,
+              name: emp.full_name,
+              branch: emp.branch || null,
+              department: emp.department || null,
+              type: isRestDay ? 'Rest Day' : 'Absent',
+              source: 'attendance',
+              start_date: d,
+              end_date: d,
+              status: isRestDay ? 'Rest Day' : 'Absent'
+            });
+          }
         }
       }
     }
   } catch (e) { console.error('workforce-calendar attendance/absent fetch error:', e); }
 
-  return events;
+  const scopedWorkSchedules = cidNum && cidNum > 0
+    ? normalizedSchedules.filter((ws) => Number(ws.company_id) === cidNum)
+    : normalizedSchedules;
+
+  const branchZones = {};
+  for (const [code, zone] of (companyBranchZoneMap.size > 0 ? companyBranchZoneMap : globalBranchZoneMap).entries()) {
+    branchZones[code] = zone;
+  }
+
+  return {
+    events,
+    workSchedules: scopedWorkSchedules,
+    branchZones,
+    activeEmployees: empRows.map((e) => ({
+      user_id: e.user_id,
+      branch: e.branch || null,
+      department: e.department || null,
+    }))
+  };
 }
 
 // GET /api/workforce-calendar — consolidated workforce availability
 app.get('/api/workforce-calendar', async (req, res) => {
-    try {
-      const role = safeString(req.query.role);
-      const branch = safeString(req.query.branch);
-      const department = safeString(req.query.department);
-      const month = safeString(req.query.month);
-      const year = safeString(req.query.year);
-      const companyId = req.companyId || req.query.company_id || req.query.companyId;
-      const events = await getWorkforceCalendarData(role, branch, department, month, year, companyId);
-    res.json({ success: true, events });
+  try {
+    const role = safeString(req.query.role);
+    const branch = safeString(req.query.branch);
+    const department = safeString(req.query.department);
+    const month = safeString(req.query.month);
+    const year = safeString(req.query.year);
+    const companyId = req.companyId || req.query.company_id || req.query.companyId;
+    const { events, workSchedules, branchZones, activeEmployees } = await getWorkforceCalendarData(
+      role, branch, department, month, year, companyId
+    );
+    res.json({ success: true, events, workSchedules, branchZones, activeEmployees });
   } catch (err) {
     console.error('GET /api/workforce-calendar error:', err);
     res.status(500).json({ success: false, error: err.message });

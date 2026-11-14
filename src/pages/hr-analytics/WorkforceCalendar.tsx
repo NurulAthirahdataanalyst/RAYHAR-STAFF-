@@ -13,6 +13,9 @@ import {
   Plane, Building2, Users, Wifi, WifiOff, RefreshCw, MapPin, Activity, AlertCircle
 } from "lucide-react";
 import { API_BASE_URL } from "@/config/api";
+import { WorkSchedule } from "@/modules/multi-company/types/multiCompany.types";
+import { normalizeZoneCode } from "@/utils/scheduleZoneUtils";
+import { isDateRestDayBySchedule } from "@/utils/workforceCalendarSchedule";
 
 // Convert any string to Proper Case (title case), e.g. "SEPANG" -> "Sepang"
 function toProperCase(str: string): string {
@@ -67,6 +70,8 @@ const EVENT_COLORS: Record<string, { bg: string; text: string; border: string; d
   "Replacement Leave":   { bg: "bg-blue-100 dark:bg-blue-500/20",   text: "text-blue-700 dark:text-blue-300",   border: "border-blue-200 dark:border-blue-500/30",   dot: "bg-blue-500",   label: "Replacement Leave" },
   "Unpaid Leave":        { bg: "bg-gray-100 dark:bg-gray-500/20",   text: "text-gray-700 dark:text-gray-300",   border: "border-gray-200 dark:border-gray-500/30",   dot: "bg-gray-500",   label: "Unpaid Leave" },
   "Pending":             { bg: "bg-amber-100 dark:bg-amber-500/20", text: "text-amber-700 dark:text-amber-300", border: "border-amber-200 dark:border-amber-500/30", dot: "bg-amber-400",  label: "Pending" },
+  "Rest Day":            { bg: "bg-slate-100 dark:bg-slate-800", text: "text-slate-600 dark:text-slate-300", border: "border-slate-200 dark:border-slate-700", dot: "bg-slate-500", label: "Rest Day" },
+  "Rest/Wknd":           { bg: "bg-slate-100 dark:bg-slate-800", text: "text-slate-600 dark:text-slate-300", border: "border-slate-200 dark:border-slate-700", dot: "bg-slate-500", label: "Rest/Wknd" },
   "__default__":         { bg: "bg-indigo-100 dark:bg-indigo-500/20", text: "text-indigo-700 dark:text-indigo-300", border: "border-indigo-200 dark:border-indigo-500/30", dot: "bg-indigo-500", label: "Leave" },
 };
 
@@ -112,12 +117,14 @@ export const getCutiGantiDates = (reason?: string, fallbackTarikh?: string): str
 
 type WorkforceEvent = {
   id: string;
-  source: "leave" | "outstation" | "company_leave";
+  source: "leave" | "outstation" | "company_leave" | "attendance";
   employee: string;
   user_id: string | null;
   branch: string;
   department: string;
   type: string;
+  branch_id?: string | null;
+  department_id?: string | null;
   name?: string;
   destination?: string;
   purpose?: string;
@@ -160,6 +167,9 @@ export default function WorkforceCalendar() {
   const [branches, setBranches] = useState<string[]>([]);
   const [departments, setDepartments] = useState<string[]>([]);
   const [branchMap, setBranchMap] = useState<Record<string, string>>(BRANCH_NAMES);
+  const [workSchedules, setWorkSchedules] = useState<WorkSchedule[]>([]);
+  const [branchZoneMap, setBranchZoneMap] = useState<Record<string, string>>({});
+  const [activeEmployees, setActiveEmployees] = useState<Array<{ user_id: string; branch: string | null; department: string | null }>>([]);
   const [connected, setConnected] = useState(false);
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
 
@@ -182,10 +192,17 @@ export default function WorkforceCalendar() {
       const data = await res.json();
       if (data.success && isMounted.current) {
         setEvents(data.events || []);
+        if (Array.isArray(data.workSchedules)) {
+          setWorkSchedules(data.workSchedules);
+        }
+        if (Array.isArray(data.activeEmployees)) {
+          setActiveEmployees(data.activeEmployees);
+        }
         setLastRefresh(new Date());
         // Derive unique branches and departments for filters (merging with system master branches/departments)
         let bCodes: string[] = [];
         let dNames: string[] = [];
+        const nextZoneMap: Record<string, string> = {};
         try {
           const [sysBranches, sysDepts] = await Promise.all([
             fetch(`${API_BASE_URL}/api/branches`).then(r => r.json()).catch(() => ({})),
@@ -194,13 +211,31 @@ export default function WorkforceCalendar() {
           if (sysBranches?.success && Array.isArray(sysBranches.branches)) {
             bCodes = sysBranches.branches.map((b: any) => b.code);
             const map = { ...BRANCH_NAMES };
-            sysBranches.branches.forEach((b: any) => { map[b.code] = b.name; });
+            sysBranches.branches.forEach((b: any) => {
+              map[b.code] = b.name;
+              const bCode = String(b.code || "").trim().toUpperCase();
+              if (bCode && b.operating_zone) {
+                nextZoneMap[bCode] = normalizeZoneCode(b.operating_zone) || b.operating_zone;
+              }
+            });
             setBranchMap(map);
           }
           if (sysDepts?.success && Array.isArray(sysDepts.departments)) {
             dNames = sysDepts.departments.map((d: any) => d.name);
           }
         } catch {}
+
+        if (data.branchZones && typeof data.branchZones === "object") {
+          for (const [code, zone] of Object.entries(data.branchZones as Record<string, string>)) {
+            const normCode = String(code || "").trim().toUpperCase();
+            if (normCode && zone) {
+              nextZoneMap[normCode] = normalizeZoneCode(zone) || zone;
+            }
+          }
+        }
+        if (isMounted.current) {
+          setBranchZoneMap(nextZoneMap);
+        }
 
         const uniqueBranches = Array.from(new Set([...bCodes, ...data.events.map((e: WorkforceEvent) => e.branch).filter(Boolean)])) as string[];
         const uniqueDepts = Array.from(new Set([...dNames, ...data.events.map((e: WorkforceEvent) => e.department).filter(Boolean)])) as string[];
@@ -322,8 +357,25 @@ export default function WorkforceCalendar() {
           }
         }
         
-        if (filterBranch !== "__ALL__" && e.branch !== filterBranch) return false;
-        if (filterDept !== "__ALL__" && e.department !== filterDept) return false;
+        if (e.source === "company_leave") {
+          if (filterBranch !== "__ALL__") {
+            if (e.applies_to === "branch") {
+              const targetBranches = String(e.branch_id || "").split(",").map(s => s.trim().toUpperCase()).filter(Boolean);
+              if (!targetBranches.includes(filterBranch.trim().toUpperCase())) return false;
+            }
+          }
+          if (filterDept !== "__ALL__") {
+            if (e.applies_to === "department") {
+              const normFilterDept = filterDept.toLowerCase().replace(/\bdepartment\b/g, "").trim();
+              const targetDepts = String(e.department_id || "").split(",").map(s => s.trim()).filter(Boolean);
+              const matched = targetDepts.some(d => d.toLowerCase().replace(/\bdepartment\b/g, "").trim() === normFilterDept || d === filterDept);
+              if (!matched) return false;
+            }
+          }
+        } else {
+          if (filterBranch !== "__ALL__" && (e.branch || "").trim().toUpperCase() !== filterBranch.trim().toUpperCase()) return false;
+          if (filterDept !== "__ALL__" && e.department !== filterDept) return false;
+        }
         
         const isReplacement = e.source === "leave" && e.type && (e.type.toUpperCase().includes('REPLACEMENT') || e.type.toUpperCase().includes('GANTI'));
         if (isReplacement) {
@@ -338,6 +390,43 @@ export default function WorkforceCalendar() {
         return evStart <= dateStr && evEnd >= dateStr;
       })
       .sort((a, b) => getEventPriority(a) - getEventPriority(b));
+  };
+
+  const isCalendarDayRestWknd = (day: Date): boolean => {
+    const activeDept = filterDept !== "__ALL__" ? filterDept : (role === "head_of_department" ? (userDepartment || "") : "");
+    const scopedBranch = filterBranch !== "__ALL__" ? filterBranch : (role === "branch_leader" ? (userBranch || "") : "");
+
+    if (scopedBranch) {
+      const normCode = scopedBranch.trim().toUpperCase();
+      return isDateRestDayBySchedule(day, normCode, branchZoneMap[normCode], workSchedules, activeDept);
+    }
+
+    const scopedEmps = activeDept
+      ? activeEmployees.filter((emp) => (emp.department || "").trim().toLowerCase() === activeDept.trim().toLowerCase())
+      : activeEmployees;
+
+    if (scopedEmps.length > 0) {
+      const seenScopes = new Map<string, { branch: string; department: string | null }>();
+      for (const emp of scopedEmps) {
+        const b = (emp.branch || "").trim().toUpperCase();
+        const d = activeDept || emp.department || null;
+        const key = `${b}__${(d || "").trim().toLowerCase()}`;
+        if (!seenScopes.has(key)) seenScopes.set(key, { branch: b, department: d });
+      }
+      const scopes = Array.from(seenScopes.values());
+      return scopes.length > 0 && scopes.every(({ branch, department }) =>
+        isDateRestDayBySchedule(day, branch, branchZoneMap[branch], workSchedules, department)
+      );
+    }
+
+    const branchCodes = Object.keys(branchZoneMap);
+    if (branchCodes.length > 0) {
+      return branchCodes.every((code) =>
+        isDateRestDayBySchedule(day, code, branchZoneMap[code], workSchedules, activeDept)
+      );
+    }
+
+    return day.getDay() === 0 || (day.getDay() === 6 && day.getDate() <= 7);
   };
 
   const prevMonth = () => { if (viewMonth === 0) { setViewMonth(11); setViewYear(y => y - 1); } else setViewMonth(m => m - 1); };
@@ -539,6 +628,7 @@ export default function WorkforceCalendar() {
                           else if (e.type === "Present (On Time)") key = "Present (On Time)";
                           else if (e.type === "Present (Late)") key = "Present (Late)";
                           else if (e.type === "Absent") key = "Absent";
+                          else if (e.type === "Rest Day") key = "Rest Day";
                           else if (e.type === "Rest/Wknd") key = "Rest/Wknd";
                           
                           if (!summary[key]) {
@@ -570,7 +660,7 @@ export default function WorkforceCalendar() {
 
                               const isElevated = role === "branch_leader" || role === "hod" || role === "head_of_department";
                               let namesStr = "";
-                              if (isElevated && !key.startsWith("Present") && key !== "Rest/Wknd") {
+                              if (isElevated && !key.startsWith("Present") && key !== "Rest/Wknd" && key !== "Rest Day") {
                                 const matchingEvts = evts.filter(e => {
                                   let eKey = e.type;
                                   if (e.source === "leave") eKey = "Leave";
@@ -587,7 +677,7 @@ export default function WorkforceCalendar() {
                                 </div>
                               );
                             })}
-                            {evts.length === 0 && (day.getDay() === 0 || day.getDay() === 6) && (
+                            {evts.length === 0 && isCalendarDayRestWknd(day) && (
                               <div className="px-1.5 py-0.5 rounded text-[10px] font-bold flex items-center gap-1 bg-slate-100 text-slate-600 border border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700">
                                 <span className="truncate">Rest/Wknd</span>
                               </div>
@@ -609,7 +699,7 @@ export default function WorkforceCalendar() {
         {/* Daily Summary Popup */}
         {selectedDay && (() => {
           const dayEvts = getEventsForDay(selectedDay);
-          const leaveEvts = dayEvts.filter(e => e.source !== "outstation" && !["Present (On Time)", "Present (Late)", "Absent"].includes(e.type) && e.status !== "Cancelled");
+          const leaveEvts = dayEvts.filter(e => e.source !== "outstation" && !["Present (On Time)", "Present (Late)", "Absent", "Rest Day", "Rest/Wknd"].includes(e.type) && e.status !== "Cancelled");
           const outstationEvts = dayEvts.filter(e => e.source === "outstation" && e.status !== "Cancelled");
 
           // Filter dailyAttendance based on current branch/dept if filters are active
@@ -711,14 +801,16 @@ export default function WorkforceCalendar() {
           const presentOnTime = regulars.filter(a => a.status === "Present (On Time)" || (a.status === "Missing Clock-Out" && !a.is_late));
           const presentLate = regulars.filter(a => a.status === "Present (Late)" || a.is_late || (a.status === "Missing Clock-Out" && a.is_late));
           
-          const dayOfWeek = selectedDay.getDay();
-          const d = selectedDay.getDate();
-
           const checkIsRest = (a: any) => {
-            const empZone = a.zone || a.operating_zone || (['AOR', 'CNH', 'DGN', 'HQ', 'JTH', 'KBG', 'KBR', 'KMM', 'TGG'].includes((a.branch || '').toUpperCase()) ? 'ZONE_A' : 'ZONE_B');
-            return empZone === 'ZONE_A' 
-              ? (dayOfWeek === 5 || (dayOfWeek === 6 && d <= 7))
-              : (dayOfWeek === 0 || (dayOfWeek === 6 && d <= 7));
+            const empBranch = String(a.branch || "").trim().toUpperCase();
+            const explicitZone = a.zone || a.operating_zone || (empBranch ? branchZoneMap[empBranch] : undefined);
+            return isDateRestDayBySchedule(
+              selectedDay,
+              empBranch,
+              explicitZone,
+              workSchedules,
+              a.department
+            );
           };
 
           const checkIsLeave = (a: any) => {
