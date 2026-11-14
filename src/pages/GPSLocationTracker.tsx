@@ -618,37 +618,27 @@ export default function GPSLocationTracker() {
                 ? new Date(first.last_updated).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                 : 'Unknown');
               const dotColor = isSelected ? '#f59e0b' : (isOnline ? '#10b981' : '#f43f5e');
-              const borderColor = isSelected ? '#f59e0b' : '#e5e7eb';
+              const borderColor = isSelected ? '#f59e0b' : 'hsl(var(--border))';
+              const isCluster = group.length > 1;
+              const badgeText = isCluster ? `+${group.length}` : avatarText;
+              const titleText = isCluster ? `${group.length} Employees` : name;
+              const subtitleText = isCluster ? 'Click to view' : `Updated ${timeText}`;
+              const selectedOutline = isSelected ? ';outline:3px solid rgba(245,158,11,0.3)' : '';
 
-              const markerHtml = group.length > 1
-                ? `<div style="transform: translate(-50%, -100%); display:flex;flex-direction:column;align-items:center;cursor:pointer">
-                    <div style="background:white;border-radius:9999px;padding:4px 12px 4px 4px;display:flex;align-items:center;gap:8px;border:2px solid ${borderColor};box-shadow:0 2px 8px rgba(0,0,0,0.15)">
-                      <div style="width:32px;height:32px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;position:relative">
-                        +${group.length}
-                        <div style="position:absolute;bottom:0;right:0;width:10px;height:10px;border-radius:50%;background:${dotColor};border:2px solid white"></div>
-                      </div>
-                      <div style="display:flex;flex-direction:column">
-                        <span style="font-size:11px;font-weight:700;white-space:nowrap">${group.length} Employees</span>
-                        <span style="font-size:10px;color:#6b7280;white-space:nowrap">Click to view</span>
-                      </div>
+              const markerHtml = `<div style="transform: translate(-50%, -100%); display:flex;flex-direction:column;align-items:center;cursor:pointer">
+                  <div style="background:hsl(var(--card));color:hsl(var(--card-foreground));border-radius:9999px;padding:4px 12px 4px 4px;display:flex;align-items:center;gap:8px;border:2px solid ${borderColor};box-shadow:0 2px 8px rgba(0,0,0,0.22)${selectedOutline}">
+                    <div style="width:32px;height:32px;border-radius:50%;background:hsl(var(--muted));color:hsl(var(--foreground));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;position:relative">
+                      ${badgeText}
+                      <div style="position:absolute;bottom:0;right:0;width:10px;height:10px;border-radius:50%;background:${dotColor};border:2px solid hsl(var(--card))"></div>
                     </div>
-                    <div style="width:2px;height:20px;background:${dotColor};opacity:0.5"></div>
-                    <div style="width:12px;height:12px;border-radius:50%;background:${dotColor};border:2.5px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.2)"></div>
-                  </div>`
-                : `<div style="transform: translate(-50%, -100%); display:flex;flex-direction:column;align-items:center;cursor:pointer">
-                    <div style="background:white;border-radius:9999px;padding:4px 12px 4px 4px;display:flex;align-items:center;gap:8px;border:2px solid ${borderColor};box-shadow:0 2px 8px rgba(0,0,0,0.15)${isSelected ? ';outline:3px solid rgba(245,158,11,0.3)' : ''}">
-                      <div style="width:32px;height:32px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;position:relative">
-                        ${avatarText}
-                        <div style="position:absolute;bottom:0;right:0;width:10px;height:10px;border-radius:50%;background:${dotColor};border:2px solid white"></div>
-                      </div>
-                      <div style="display:flex;flex-direction:column">
-                        <span style="font-size:11px;font-weight:700;white-space:nowrap">${name}</span>
-                        <span style="font-size:10px;color:#6b7280;white-space:nowrap">Updated ${timeText}</span>
-                      </div>
+                    <div style="display:flex;flex-direction:column">
+                      <span style="font-size:11px;font-weight:700;color:hsl(var(--card-foreground));white-space:nowrap">${titleText}</span>
+                      <span style="font-size:10px;color:hsl(var(--muted-foreground));white-space:nowrap">${subtitleText}</span>
                     </div>
-                    <div style="width:2px;height:20px;background:${dotColor};opacity:0.5"></div>
-                    <div style="width:12px;height:12px;border-radius:50%;background:${dotColor};border:2.5px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.2)"></div>
-                  </div>`;
+                  </div>
+                  <div style="width:2px;height:20px;background:${dotColor};opacity:0.5"></div>
+                  <div style="width:12px;height:12px;border-radius:50%;background:${dotColor};border:2.5px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.2)"></div>
+                </div>`;
 
               const icon = L.divIcon({
                 html: markerHtml,
@@ -676,8 +666,8 @@ export default function GPSLocationTracker() {
                   {group.length === 1 && (
                     <LeafletPopup offset={[0, -60]}>
                       <div style={{ minWidth: 160 }}>
-                        <div style={{ fontWeight: 700, fontSize: 13 }}>{name}</div>
-                        <div style={{ fontSize: 11, color: '#6b7280' }}>{first.branch || ''}</div>
+                        <div style={{ fontWeight: 700, fontSize: 13 }}>{rawName}</div>
+                        <div style={{ fontSize: 11, color: 'hsl(var(--muted-foreground))' }}>{first.branch || ''}</div>
                         {first.last_updated && (
                           <div style={{ fontSize: 11, marginTop: 4 }}>
                             {new Date(first.last_updated).toLocaleString()}
@@ -704,7 +694,7 @@ export default function GPSLocationTracker() {
                   closeOnClick={false}
                 >
                   <div style={{ minWidth: 220, maxHeight: 200, overflowY: 'auto' }}>
-                    <div style={{ fontWeight: 700, fontSize: 12, borderBottom: '1px solid #e5e7eb', paddingBottom: 6, marginBottom: 6 }}>
+                    <div style={{ fontWeight: 700, fontSize: 12, borderBottom: '1px solid hsl(var(--border))', paddingBottom: 6, marginBottom: 6 }}>
                       Employees at this location ({activeCluster.length})
                     </div>
                     {activeCluster.map((emp) => (
@@ -712,14 +702,14 @@ export default function GPSLocationTracker() {
                         key={emp.user_id}
                         onClick={() => { focusOn(emp.user_id); setActiveCluster(null); }}
                         style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 6px', borderRadius: 6, cursor: 'pointer', fontSize: 11 }}
-                        onMouseOver={e => (e.currentTarget.style.background = '#f3f4f6')}
+                        onMouseOver={e => (e.currentTarget.style.background = 'hsl(var(--muted))')}
                         onMouseOut={e => (e.currentTarget.style.background = '')}
                       >
                         <div>
                           <div style={{ fontWeight: 600 }}>{emp.full_name || emp.user_id}</div>
-                          <div style={{ color: '#6b7280' }}>{emp.branch || 'No branch'}</div>
+                          <div style={{ color: 'hsl(var(--muted-foreground))' }}>{emp.branch || 'No branch'}</div>
                         </div>
-                        <div style={{ color: '#6b7280', alignSelf: 'center' }}>
+                        <div style={{ color: 'hsl(var(--muted-foreground))', alignSelf: 'center' }}>
                           {emp.last_updated ? new Date(emp.last_updated).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
                         </div>
                       </div>

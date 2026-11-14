@@ -970,3 +970,21 @@ div[role="dialog"]:focus-visible,
     rgba(255, 255, 255, 0) 100%
   );
 }
+
+/* ════════════════════════════════════════════════════════════════════ */
+/* 7. LEAFLET POPUP DARK MODE SUPPORT                                   */
+/* ════════════════════════════════════════════════════════════════════ */
+.dark .leaflet-popup-content-wrapper,
+.dark .leaflet-popup-tip {
+  background: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+}
+
+.dark .leaflet-container a.leaflet-popup-close-button {
+  color: hsl(var(--muted-foreground));
+}
+
+.dark .leaflet-container a.leaflet-popup-close-button:hover,
+.dark .leaflet-container a.leaflet-popup-close-button:focus {
+  color: hsl(var(--foreground));
+}
