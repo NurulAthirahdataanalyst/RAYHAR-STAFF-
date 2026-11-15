@@ -210,10 +210,11 @@ export default function Login() {
         setIsExiting(true);
         triggerLoginCurtain(() => {
           loginLocal(data.user);
-          navigate("/");
+          navigate("/", { replace: true });
         });
       } else {
         toast({ title: "Login failed", description: data.error || data.message || "Invalid credentials", variant: "destructive" });
+        setLoading(false);
       }
     } catch (err: any) {
       console.error("Login connection error:", err);
@@ -222,7 +223,6 @@ export default function Login() {
         description: "The cloud server may have been sleeping or took too long to respond. Please try clicking 'Sign In' again now.",
         variant: "destructive",
       });
-    } finally {
       setLoading(false);
     }
   };
@@ -261,26 +261,25 @@ export default function Login() {
         setIsExiting(true);
         triggerLoginCurtain(() => {
           loginLocal(data.user);
-          navigate("/");
+          navigate("/", { replace: true });
         });
       } else {
         toast({ title: "Signup failed", description: data.error || "Could not create account", variant: "destructive" });
+        setLoading(false);
       }
     } catch (err) {
       console.error("Signup connection error:", err);
-    } finally {
       setLoading(false);
     }
   };
 
   return (
     <div
-      className={`min-h-screen relative flex items-center justify-center p-4 force-light safe-area-top safe-area-bottom transition-all duration-700 ease-in-out ${isExiting ? 'opacity-0 blur-md scale-95' : 'opacity-100 blur-0 scale-100'}`}
+      className="min-h-screen relative flex items-center justify-center p-4 force-light safe-area-top safe-area-bottom overflow-hidden"
       style={{
         backgroundImage: `url(${watercolorBg})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-        backgroundAttachment: 'fixed',
         backgroundRepeat: 'no-repeat',
       }}
     >
@@ -297,6 +296,7 @@ export default function Login() {
       />
 
       <div className="w-full max-w-sm sm:max-w-md animate-in fade-in zoom-in duration-500 relative z-10">
+        <div className={`transition-[opacity,transform] duration-200 ease-out ${isExiting ? 'opacity-0 scale-[0.98]' : 'opacity-100 scale-100'}`}>
         <div className="flex flex-col items-center justify-center gap-2 sm:gap-3 mb-6 sm:mb-8">
           <img src={rayharLogo} alt="Rayhar Logo" className="w-12 h-12 sm:w-14 sm:h-14 object-contain mix-blend-multiply" />
           <div className="text-center">
@@ -533,6 +533,7 @@ export default function Login() {
             </TabsContent>
           </Tabs>
         </Card>
+        </div>
       </div>
     </div>
   );

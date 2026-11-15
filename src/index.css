@@ -1016,19 +1016,19 @@ div[role="dialog"]:focus-visible,
 
 @keyframes rayhar-curtain-in {
   from {
-    transform: translateY(100%);
+    transform: translate3d(0, 100%, 0);
   }
   to {
-    transform: translateY(0%);
+    transform: translate3d(0, 0, 0);
   }
 }
 
 @keyframes rayhar-curtain-out {
   from {
-    transform: translateY(0%);
+    transform: translate3d(0, 0, 0);
   }
   to {
-    transform: translateY(-100%);
+    transform: translate3d(0, -100%, 0);
   }
 }
 
@@ -1041,11 +1041,11 @@ div[role="dialog"]:focus-visible,
 }
 
 .login-curtain-in {
-  animation: rayhar-curtain-in 240ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: rayhar-curtain-in 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .login-curtain-out {
-  animation: rayhar-curtain-out 300ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: rayhar-curtain-out 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 html.vt-circular::view-transition-old(root),

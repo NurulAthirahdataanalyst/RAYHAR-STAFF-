@@ -1669,7 +1669,7 @@ export default function Dashboard() {
                   <div className="flex items-start gap-2">
                     <CalendarOff className="w-5 h-5 text-[#a01497] mt-0.5" />
                     <div>
-                      <CardTitle className="text-lg font-bold text-slate-800 dark:text-slate-100 tracking-tight">
+                      <CardTitle className="text-[11px] font-bold text-slate-800 dark:text-slate-100 uppercase tracking-widest">
                         Who's Out Today
                       </CardTitle>
                       {loadingWhoOut ? (
@@ -1805,7 +1805,7 @@ export default function Dashboard() {
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
                 <div className="flex items-center gap-2">
                   <Activity className="w-5 h-5 text-[#a01497]" />
-                  <CardTitle className="text-lg font-bold text-slate-800 dark:text-slate-100">
+                  <CardTitle className="text-[11px] font-bold text-slate-800 dark:text-slate-100 uppercase tracking-widest">
                     Recent Activity
                   </CardTitle>
                 </div>
