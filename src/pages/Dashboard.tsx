@@ -767,11 +767,11 @@ export default function Dashboard() {
   }, [whoOutToday, selectedDate]);
 
   return (
-    <div className="space-y-3 animate-in fade-in duration-500">
+    <div className="space-y-3">
       {/* Header - responsive */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="min-w-0">
-          {loading || roleLoading ? (
+          {(loading || roleLoading) && !user?.full_name && !userName ? (
             <div className="space-y-2 py-0.5">
               <Skeleton className="h-8 sm:h-9 w-64 sm:w-80 rounded-lg" />
               <Skeleton className="h-4 w-36 sm:w-44 rounded" />
@@ -1408,7 +1408,7 @@ export default function Dashboard() {
       </div>
 
       {isCompanyLeave && isCompanyLeaveActiveOnDate && ["hr_admin", "managing_director", "operation_manager", "assure_leader"].includes(role) && (
-        <Card className="border-none shadow-[0_2px_12px_rgba(0,0,0,0.06)]   overflow-hidden bg-card mb-6 animate-in fade-in slide-in-from-bottom-2 duration-700 delay-100 fill-mode-both rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
+        <Card className="border-none shadow-[0_2px_12px_rgba(0,0,0,0.06)] overflow-hidden bg-card mb-6 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
           <CardHeader className="border-b border-border/50 pb-3 px-4 flex flex-col md:flex-row md:items-center justify-between bg-card gap-4">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-[#a01497]/10 rounded-xl">

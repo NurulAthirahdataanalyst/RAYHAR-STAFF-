@@ -12,7 +12,6 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { API_BASE_URL } from "@/config/api";
 import { supabase } from "@/integrations/supabase/client";
-import { triggerLoginCurtain } from "@/components/layout/LoginCurtain";
 
 // ASSETS
 import watercolorBg from "@/assets/watercolor-bg.png";
@@ -54,7 +53,6 @@ function toProperCase(str: string): string {
 export default function Login() {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("login"); // Controlled tab state
-  const [isExiting, setIsExiting] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
   const { loginLocal } = useAuth();
@@ -206,12 +204,8 @@ export default function Login() {
         console.log("Login success, user data:", data.user);
         const displayName = data.user?.full_name || data.user?.name || loginEmail;
         toast({ title: "Welcome back!", description: `Logged in as ${displayName}` });
-        
-        setIsExiting(true);
-        triggerLoginCurtain(() => {
-          loginLocal(data.user);
-          navigate("/", { replace: true });
-        });
+        loginLocal(data.user);
+        navigate("/", { replace: true });
       } else {
         toast({ title: "Login failed", description: data.error || data.message || "Invalid credentials", variant: "destructive" });
         setLoading(false);
@@ -258,11 +252,8 @@ export default function Login() {
       if (response.ok && data.success) {
         // The DB Trigger assigned 'E0001' and the backend returned it in data.user
         toast({ title: "Account Created!", description: `Welcome! Your ID is ${data.user.user_id}` });
-        setIsExiting(true);
-        triggerLoginCurtain(() => {
-          loginLocal(data.user);
-          navigate("/", { replace: true });
-        });
+        loginLocal(data.user);
+        navigate("/", { replace: true });
       } else {
         toast({ title: "Signup failed", description: data.error || "Could not create account", variant: "destructive" });
         setLoading(false);
@@ -296,7 +287,6 @@ export default function Login() {
       />
 
       <div className="w-full max-w-sm sm:max-w-md animate-in fade-in zoom-in duration-500 relative z-10">
-        <div className={`transition-[opacity,transform] duration-200 ease-out ${isExiting ? 'opacity-0 scale-[0.98]' : 'opacity-100 scale-100'}`}>
         <div className="flex flex-col items-center justify-center gap-2 sm:gap-3 mb-6 sm:mb-8">
           <img src={rayharLogo} alt="Rayhar Logo" className="w-12 h-12 sm:w-14 sm:h-14 object-contain mix-blend-multiply" />
           <div className="text-center">
@@ -533,7 +523,6 @@ export default function Login() {
             </TabsContent>
           </Tabs>
         </Card>
-        </div>
       </div>
     </div>
   );

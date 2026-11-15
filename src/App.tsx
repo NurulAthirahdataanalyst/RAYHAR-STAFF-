@@ -10,7 +10,6 @@ import { RoleProvider } from "@/contexts/RoleContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import AppLayout from "@/components/layout/AppLayout";
-import { LoginCurtain } from "@/components/layout/LoginCurtain";
 import { CompanyProvider } from "@/modules/multi-company/contexts/CompanyContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { supabase } from "@/integrations/supabase/client";
@@ -237,7 +236,6 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <LoginCurtain />
         <Analytics />
         <BrowserRouter>
           <AuthRecoveryListener />
