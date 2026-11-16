@@ -206,17 +206,18 @@ export const LeaveDiscussionCard: React.FC<LeaveDiscussionCardProps> = ({
               )}
             </div>
             <p className="text-[11px] text-muted-foreground">
-              Pre-approval clarification thread &bull; Permanently recorded for audit
+              Pre-approval clarification thread &bull; Permanently recorded{" "}
+              <span className="whitespace-nowrap">for audit</span>
             </p>
           </div>
 
-          <div className="flex items-center gap-1.5 self-start sm:self-center rounded-xl border border-border/60 bg-muted/30 px-3 py-1.5">
+          <div className="flex items-center gap-1.5 self-start sm:self-center shrink-0 rounded-xl border border-border/60 bg-muted/30 px-3 py-1.5">
             <UserCheck className="w-3.5 h-3.5 text-[#942392] shrink-0" />
             <div className="text-left">
-              <span className="block text-[9px] font-black uppercase tracking-wider text-muted-foreground leading-none">
+              <span className="block text-[9px] font-black uppercase tracking-wider text-muted-foreground leading-none whitespace-nowrap">
                 {isPending ? "Current Approver" : "Workflow Status"}
               </span>
-              <span className="block text-[11px] font-bold text-foreground mt-0.5">
+              <span className="block text-[11px] font-bold text-foreground mt-0.5 whitespace-nowrap">
                 {currentApproverText}
               </span>
             </div>

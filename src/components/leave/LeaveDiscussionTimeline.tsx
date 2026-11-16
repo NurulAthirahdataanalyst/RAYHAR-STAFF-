@@ -222,7 +222,7 @@ export const LeaveDiscussionTimeline: React.FC<LeaveDiscussionTimelineProps> = (
                 </div>
 
                 {msg.message && (
-                  <p className="text-xs sm:text-[13px] text-foreground/90 leading-relaxed whitespace-pre-wrap break-words">
+                  <p className="text-[11px] sm:text-[11.5px] text-foreground/90 leading-relaxed whitespace-pre-wrap break-words">
                     {msg.message}
                   </p>
                 )}
