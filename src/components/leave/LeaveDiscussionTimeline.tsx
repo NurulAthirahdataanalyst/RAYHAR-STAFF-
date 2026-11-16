@@ -6,7 +6,6 @@ import {
   FileText,
   Image as ImageIcon,
   MessageSquare,
-  Sparkles,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
@@ -25,6 +24,41 @@ interface LeaveDiscussionTimelineProps {
   messages: LeaveDiscussionMessage[];
   currentUserId?: string;
 }
+
+const SystemBotIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+    aria-hidden="true"
+  >
+    {/* Left & Right Antennas */}
+    <line x1="8.5" y1="7" x2="6.5" y2="3.8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    <circle cx="6.2" cy="3.5" r="1.4" fill="currentColor" />
+    <line x1="15.5" y1="7" x2="17.5" y2="3.8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    <circle cx="17.8" cy="3.5" r="1.4" fill="currentColor" />
+    {/* Side Ears */}
+    <rect x="2" y="11" width="2.5" height="5" rx="1.25" fill="currentColor" />
+    <rect x="19.5" y="11" width="2.5" height="5" rx="1.25" fill="currentColor" />
+    {/* Robot Head */}
+    <rect
+      x="4.5"
+      y="7"
+      width="15"
+      height="13"
+      rx="3.8"
+      className="fill-[#e9d5ff] dark:fill-[#942392]/30"
+      stroke="currentColor"
+      strokeWidth="1.8"
+    />
+    {/* Eyes */}
+    <circle cx="9.2" cy="12" r="1.45" fill="currentColor" />
+    <circle cx="14.8" cy="12" r="1.45" fill="currentColor" />
+    {/* Mouth */}
+    <rect x="8.2" y="15.5" width="7.6" height="1.8" rx="0.9" fill="currentColor" />
+  </svg>
+);
 
 const getInitials = (name?: string): string => {
   const parts = String(name || "User")
@@ -128,8 +162,8 @@ export const LeaveDiscussionTimeline: React.FC<LeaveDiscussionTimelineProps> = (
 
             <div className="flex items-start gap-3 py-1 px-1">
               {isSystem ? (
-                <div className="w-8 h-8 rounded-full bg-[#942392]/12 border border-[#942392]/25 flex items-center justify-center shrink-0 mt-0.5">
-                  <Sparkles className="w-3.5 h-3.5 text-[#942392]" />
+                <div className="w-8 h-8 rounded-full bg-[#942392]/12 border border-[#942392]/25 flex items-center justify-center shrink-0 mt-0.5 text-[#701a75] dark:text-[#e9d5ff]">
+                  <SystemBotIcon className="w-4 h-4" />
                 </div>
               ) : (
                 <Avatar className="w-8 h-8 border border-border/60 shrink-0 mt-0.5">
