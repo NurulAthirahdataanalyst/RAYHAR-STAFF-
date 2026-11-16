@@ -301,14 +301,14 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       const sectionTitle = isBL ? "BRANCH ADMINISTRATION" : "HOD ADMINISTRATION";
       return [
         { title: "Main Navigation", isSection: true },
-        { title: "Dashboard", icon: LayoutDashboard, path: "/" },
+        { title: "Dashboard", icon: LayoutDashboard, path: "/", permission: "dashboard.view" },
         {
           title: "Calendar",
           icon: Calendar,
           path: "/calendar",
           children: [
-            { title: "Work Calendar", icon: Calendar, path: "/calendar" },
-            { title: "Company Leave Calendar", icon: CalendarDays, path: "/calendar/company-leave" },
+            { title: "Work Calendar", icon: Calendar, path: "/calendar", permission: "calendar.work" },
+            { title: "Company Leave Calendar", icon: CalendarDays, path: "/calendar/company-leave", permission: "calendar.company_leave" },
           ],
         },
         {
@@ -316,8 +316,8 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
           icon: Clock,
           path: "/attendance",
           children: [
-            { title: "My Attendance", icon: Clock, path: "/attendance" },
-            { title: "Team Attendance", icon: Users, path: "/team-attendance" },
+            { title: "My Attendance", icon: Clock, path: "/attendance", permission: "attendance.my" },
+            { title: "Team Attendance", icon: Users, path: "/team-attendance", permission: "attendance.team" },
           ],
         },
         {
@@ -326,8 +326,8 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
           icon: Plane,
           path: "/outstation/my",
           children: [
-            { title: "My Outstation", icon: Plane, path: "/outstation/my" },
-            { title: "My Outstation Calendar", icon: Calendar, path: "/outstation/my-calendar" },
+            { title: "My Outstation", icon: Plane, path: "/outstation/my", permission: "outstation.my" },
+            { title: "My Outstation Calendar", icon: Calendar, path: "/outstation/my-calendar", permission: "outstation.my_calendar" },
           ],
         },
         {
@@ -335,11 +335,11 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
           icon: CalendarDays,
           path: "/leave",
           children: [
-            { title: "Leave Application", icon: FilePlus2, path: "/leave/apply" },
-            { title: "My Leave Requests", icon: FileText, path: "/leave/forms" },
+            { title: "Leave Application", icon: FilePlus2, path: "/leave/apply", permission: "leave.apply" },
+            { title: "My Leave Requests", icon: FileText, path: "/leave/forms", permission: "leave.my_requests" },
           ],
         },
-        { title: "Analytics", icon: BarChart3, path: "/analytics" },
+        { title: "Analytics", icon: BarChart3, path: "/analytics", permission: "analytics.employee" },
 
         { title: sectionTitle, isSection: true },
         {
@@ -347,34 +347,34 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
           icon: CheckSquare,
           path: "/leave/admin",
           children: [
-            { title: "Leave Approval", icon: ClipboardList, path: "/leave/admin" },
-            { title: "Team Leave Requests", icon: FileCheck, path: "/leave/team" },
-            { title: "Leave Calendar", icon: Calendar, path: "/leave/calendar" },
+            { title: "Leave Approval", icon: ClipboardList, path: "/leave/admin", permission: "leave.approval" },
+            { title: "Team Leave Requests", icon: FileCheck, path: "/leave/team", permission: "leave.team_requests" },
+            { title: "Leave Calendar", icon: Calendar, path: "/leave/calendar", permission: "leave.calendar" },
           ],
         },
-        { title: "Employee Directory", icon: Users, path: "/employees" },
+        { title: "Employee Directory", icon: Users, path: "/employees", permission: "employee.directory" },
         {
           id: "admin_outstation",
           title: "Outstation Management",
           icon: Plane,
           path: "/outstation",
           children: [
-            { title: "Outstation Dashboard", icon: Plane, path: "/outstation" },
-            { title: "Outstation Assignment", icon: Plane, path: "/outstation/assignment" },
-            { title: "Outstation Analytics", icon: BarChart3, path: "/outstation/analytics" },
-            { title: "Outstation Calendar", icon: Calendar, path: "/outstation/calendar" },
+            { title: "Outstation Dashboard", icon: Plane, path: "/outstation", permission: "outstation.dashboard" },
+            { title: "Outstation Assignment", icon: Plane, path: "/outstation/assignment", permission: "outstation.assignment" },
+            { title: "Outstation Analytics", icon: BarChart3, path: "/outstation/analytics", permission: "outstation.analytics" },
+            { title: "Outstation Calendar", icon: Calendar, path: "/outstation/calendar", permission: "outstation.calendar" },
           ],
         },
-        { title: "Temporary Assignments", icon: Building2, path: "/branches/temporary-assignments" },
+        { title: "Temporary Assignments", icon: Building2, path: "/branches/temporary-assignments", permission: "employee.temporary_assignment" },
         {
           title: "Workforce Analytics",
           icon: PieChart,
           path: "/hr-analytics/attendance",
           children: [
-            { title: "Attendance Dashboard", icon: BarChart3, path: "/hr-analytics/attendance" },
-            { title: "Leave Analytics", icon: BarChart3, path: "/hr-analytics/leave" },
-            { title: "Workforce Insights", icon: PieChart, path: "/hr-analytics/workforce" },
-            { title: "Workforce Calendar", icon: Calendar, path: "/hr-analytics/calendar" },
+            { title: "Attendance Dashboard", icon: BarChart3, path: "/hr-analytics/attendance", permission: "analytics.attendance" },
+            { title: "Leave Analytics", icon: BarChart3, path: "/hr-analytics/leave", permission: "analytics.leave" },
+            { title: "Workforce Insights", icon: PieChart, path: "/hr-analytics/workforce", permission: "analytics.workforce" },
+            { title: "Workforce Calendar", icon: Calendar, path: "/hr-analytics/calendar", permission: "analytics.workforce_calendar" },
           ],
         },
         {
@@ -382,9 +382,9 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
           icon: FileSearch,
           path: "/reports",
           children: [
-            { title: "Attendance Reports", icon: FileSearch, path: "/reports/attendance" },
-            { title: "Leave Reports", icon: FileSearch, path: "/reports/leave" },
-            { title: "Outstation Reports", icon: FileSearch, path: "/outstation/reports" },
+            { title: "Attendance Reports", icon: FileSearch, path: "/reports/attendance", permission: "report.attendance" },
+            { title: "Leave Reports", icon: FileSearch, path: "/reports/leave", permission: "report.leave" },
+            { title: "Outstation Reports", icon: FileSearch, path: "/outstation/reports", permission: "report.outstation" },
           ],
         },
         {
@@ -392,8 +392,8 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
           icon: MapPinned,
           path: "/gps-location-tracker",
           children: [
-            { title: "Live Tracker", icon: MapPinned, path: "/gps-location-tracker" },
-            { title: "Location History", icon: History, path: "/gps-location-tracker/history" },
+            { title: "Live Tracker", icon: MapPinned, path: "/gps-location-tracker", permission: "gps.live_tracker" },
+            { title: "Location History", icon: History, path: "/gps-location-tracker/history", permission: "gps.location_history" },
           ],
         },
       ];
@@ -534,6 +534,9 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
     }
 
     // 6. CUSTOM ROLES (Dynamic Permission Fallback)
+    const hasFullMasterAccess = hasPermission(["employee.department", "employee.role"]);
+    const hasBranchOverviewAccess = hasPermission("employee.branch");
+
     return [
       { title: "Main Navigation", isSection: true },
       { title: "Dashboard", icon: LayoutDashboard, path: "/", permission: "dashboard.view" },
@@ -588,7 +591,9 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
           { title: "Leave Calendar", icon: Calendar, path: "/leave/calendar", permission: "leave.calendar" },
         ],
       },
-      { title: "Employee Directory", icon: Users, path: "/employees", permission: "employee.directory" },
+      ...(!hasFullMasterAccess
+        ? [{ title: "Employee Directory", icon: Users, path: "/employees", permission: "employee.directory" }]
+        : []),
       {
         id: "admin_outstation",
         title: "Outstation Management",
@@ -601,25 +606,35 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
           { title: "Outstation Calendar", icon: Calendar, path: "/outstation/calendar", permission: "outstation.calendar" },
         ],
       },
-      {
-        title: "Employee Management",
-        icon: Users,
-        path: "/master",
-        children: [
-          { title: "Employee Directory", icon: Users, path: "/employees", permission: "employee.directory" },
-          { title: "Department", icon: Building2, path: "/master/department", permission: "employee.department" },
-          { title: "Role", icon: Settings, path: "/master/role", permission: "employee.role" },
-        ],
-      },
-      {
-        title: "Branch Management",
-        icon: Building2,
-        path: "/branches",
-        children: [
-          { title: "Overview", icon: Building2, path: "/branches", permission: "employee.branch" },
-          { title: "Temporary Assignment", icon: Briefcase, path: "/branches/temporary-assignments", permission: "employee.temporary_assignment" },
-        ],
-      },
+      ...(hasFullMasterAccess
+        ? [
+            {
+              title: "Employee Management",
+              icon: Users,
+              path: "/master",
+              children: [
+                { title: "Employee Directory", icon: Users, path: "/employees", permission: "employee.directory" },
+                { title: "Department", icon: Building2, path: "/master/department", permission: "employee.department" },
+                { title: "Role", icon: Settings, path: "/master/role", permission: "employee.role" },
+              ],
+            },
+          ]
+        : []),
+      ...(hasBranchOverviewAccess
+        ? [
+            {
+              title: "Branch Management",
+              icon: Building2,
+              path: "/branches",
+              children: [
+                { title: "Overview", icon: Building2, path: "/branches", permission: "employee.branch" },
+                { title: "Temporary Assignment", icon: Briefcase, path: "/branches/temporary-assignments", permission: "employee.temporary_assignment" },
+              ],
+            },
+          ]
+        : [
+            { title: "Temporary Assignments", icon: Building2, path: "/branches/temporary-assignments", permission: "employee.temporary_assignment" },
+          ]),
       {
         title: "Workforce Analytics",
         icon: PieChart,
@@ -653,7 +668,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       },
       { title: "Settings", icon: Settings, path: "/settings", permission: "settings.manage" },
     ];
-  }, [role]);
+  }, [role, hasPermission]);
 
   // Helper to map sidebar item to its parent functional module
   const getModuleKeyForMenuItem = useCallback((item: any): string | null => {
@@ -709,6 +724,9 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         if (visibleChildren.length > 0) {
           isVisible = true;
           resolvedItem.children = visibleChildren;
+          if (item.path !== "/master" && !visibleChildren.some((c: any) => c.path === item.path)) {
+            resolvedItem.path = visibleChildren[0].path;
+          }
         }
       } else {
         isVisible = (!item.permission || (isPermissionEnabled(item.permission) && hasPermission(item.permission)));

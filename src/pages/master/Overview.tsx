@@ -39,7 +39,7 @@ interface DepartmentData {
 }
 
 export default function MasterOverview() {
-  const { role, userBranch, loading: roleLoading } = useRole();
+  const { role, userBranch, hasPermission, loading: roleLoading } = useRole();
   const { activeCompany } = useCompany();
   const navigate = useNavigate();
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -72,10 +72,14 @@ export default function MasterOverview() {
 
   // Redirect non-hr_admin roles as this is a master administration center
   useEffect(() => {
-    if (!roleLoading && role !== "hr_admin" && role !== "managing_director" && role !== "operation_manager") {
-      navigate("/");
+    if (!roleLoading && role !== "hr_admin" && role !== "managing_director" && role !== "operation_manager" && !hasPermission(["employee.department", "employee.role"])) {
+      if (hasPermission("employee.directory") || role === "branch_leader" || role === "head_of_department") {
+        navigate("/employees", { replace: true });
+      } else {
+        navigate("/", { replace: true });
+      }
     }
-  }, [role, roleLoading, navigate]);
+  }, [role, roleLoading, hasPermission, navigate]);
 
 
 

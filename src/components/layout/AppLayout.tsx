@@ -309,9 +309,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const breadcrumb = getBreadcrumb();
 
   const getFormattedRoleDisplay = () => {
-    if (!resolvedRole) return "EMPLOYEE";
+    if (!resolvedRole && !roleName) return "EMPLOYEE";
     
-    const roleStr = resolvedRole.replace(/_/g, ' ').toUpperCase();
+    const rawCustomTitle = (roleName || "").trim();
+    const isStandardTitle = ["branch_leader", "branch leader", "hr_admin", "hr admin", "managing_director", "managing director", "operation_manager", "operation manager", "head_of_department", "head of department", "employee"].includes(rawCustomTitle.toLowerCase());
+    const roleStr = (!isStandardTitle && rawCustomTitle ? rawCustomTitle : resolvedRole).replace(/_/g, ' ').toUpperCase();
     const branchStr = (userBranch || '').toUpperCase();
     const deptStr = (userDepartment || '').toUpperCase();
     

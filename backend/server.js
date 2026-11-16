@@ -720,7 +720,7 @@ async function getUserPermissions(userIdOrEmail, rawRole) {
         `SELECT DISTINCT p.permission_key 
          FROM permissions p
          JOIN role_permissions rp ON rp.permission_id = p.id
-         JOIN profiles prof ON prof.role_id = rp.role_id
+         JOIN profiles prof ON (prof.role_id = rp.role_id OR rp.role_id IN (SELECT cur.role_id FROM company_user_roles cur WHERE cur.user_id = prof.user_id AND cur.status = 'active'))
          WHERE prof.user_id = ? OR prof.email = ?`,
         [userIdOrEmail, userIdOrEmail]
       );
@@ -777,7 +777,7 @@ async function getUserPermissionsWithLevels(userIdOrEmail, rawRole) {
         `SELECT DISTINCT p.permission_key, COALESCE(rp.access_level, 'edit') AS access_level
          FROM permissions p
          JOIN role_permissions rp ON rp.permission_id = p.id
-         JOIN profiles prof ON prof.role_id = rp.role_id
+         JOIN profiles prof ON (prof.role_id = rp.role_id OR rp.role_id IN (SELECT cur.role_id FROM company_user_roles cur WHERE cur.user_id = prof.user_id AND cur.status = 'active'))
          WHERE prof.user_id = ? OR prof.email = ?`,
         [userIdOrEmail, userIdOrEmail]
       );
@@ -8596,17 +8596,20 @@ app.get("/api/user-details/:identifier", async (req, res) => {
 
     const normUserRole = safeLower(user.role).replace(/\s+/g, "_");
     const [uCompRows] = await pool.query(
-      "SELECT cur.company_id, cur.role_id, r.scope_type FROM company_user_roles cur LEFT JOIN roles r ON cur.role_id = r.id WHERE cur.user_id = ? AND cur.status = 'active' ORDER BY cur.company_id DESC, cur.is_default DESC LIMIT 1",
+      "SELECT cur.company_id, cur.role_id, r.name AS role_name, r.is_system_role, r.scope_type FROM company_user_roles cur LEFT JOIN roles r ON cur.role_id = r.id WHERE cur.user_id = ? AND cur.status = 'active' ORDER BY cur.company_id DESC, cur.is_default DESC LIMIT 1",
       [user.user_id]
     );
     const assignedCompanyId = uCompRows[0]?.company_id || (user.branch === 'RAYRENT' ? 2 : 1);
+    const finalRoleId = user.role_id || uCompRows[0]?.role_id;
+    const finalRoleName = uCompRows[0]?.role_name || user.role_name;
+    const finalIsSystemRole = uCompRows[0]?.is_system_role !== undefined ? uCompRows[0].is_system_role : user.is_system_role;
     const rawUserScope = user.scope_type || uCompRows[0]?.scope_type || "";
     const resolvedScopeType = (normUserRole === 'employee')
       ? 'Own Data Only'
       : (!rawUserScope || rawUserScope === 'Current Company Only')
         ? (
             normUserRole === 'hr_admin' || normUserRole === 'managing_director' ? 'Parent Group Data' :
-            normUserRole === 'branch_leader' || normUserRole === 'branch_officer' ? 'Branch Data Only' :
+            normUserRole === 'branch_leader' || normUserRole === 'branch_officer' || normUserRole.includes('supervisor') || normUserRole.includes('leader') ? 'Branch Data Only' :
             normUserRole === 'operation_manager' || normUserRole === 'head_of_department' || normUserRole.includes('assure') ? 'Company Staff Data' :
             'Own Data Only'
           )
@@ -8645,16 +8648,16 @@ app.get("/api/user-details/:identifier", async (req, res) => {
         medical_leave_entitlement: belongsToCompany ? (user.medical_leave_entitlement ?? 14) : 0,
         belongs_to_company: belongsToCompany,
         company_id: assignedCompanyId,
-        role_id: user.role_id,
-        role_name: user.role_name,
-        is_system_role: user.is_system_role,
+        role_id: finalRoleId,
+        role_name: finalRoleName,
+        is_system_role: finalIsSystemRole,
         scope_type: resolvedScopeType
       },
       company_id: assignedCompanyId,
       role: user.role,
-      role_id: user.role_id,
-      role_name: user.role_name,
-      is_system_role: user.is_system_role,
+      role_id: finalRoleId,
+      role_name: finalRoleName,
+      is_system_role: finalIsSystemRole,
       scope_type: resolvedScopeType,
       permissions: userPermsDetail.keys,
       permission_levels: userPermsDetail.levels
@@ -9940,11 +9943,11 @@ app.get("/api/dashboard-stats", async (req, res) => {
   let role = safeLower(req.query.role);
     if (role.includes('hr admin') || role === 'hr_admin' || role.includes('hr ')) role = 'hr_admin';
     else if (role.includes('md') || role.includes('managing director')) role = 'managing_director';
-    else if (role.includes('branch leader') || role === 'branch_leader') role = 'branch_leader';
+    else if (role.includes('branch leader') || role === 'branch_leader' || role.includes('branch manager') || role.includes('supervisor')) role = 'branch_leader';
     else if (role.includes('finance manager') || role.includes('operation manager') || role.includes('operations manager')) role = 'operation_manager';
     else if (role.includes('assure leader') || role.includes('assure_leader') || role.includes('assure')) role = 'assure_leader';
     else if (role.includes('head of department') || role.includes('hod') || role === 'head_of_department') role = 'head_of_department';
-    else if (role.includes('employee') || role.includes('staff')) role = 'employee';
+    else if (role.includes('employee') || role.includes('staff') || role.includes('driver')) role = 'employee';
 
   const branch = safeString(req.query.branch);
 

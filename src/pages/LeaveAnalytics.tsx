@@ -389,7 +389,7 @@ function StatCard({
 
 // ─── Main Component ──────────────────────────────────────────────────────────
 export default function LeaveAnalytics() {
-  const { role, userBranch, userDepartment, loading: roleLoading } = useRole();
+  const { role, scopeType, hasPermission, userBranch, userDepartment, loading: roleLoading } = useRole();
   const { activeCompany } = useCompany();
   const navigate = useNavigate();
 
@@ -405,7 +405,7 @@ export default function LeaveAnalytics() {
   }, []);
 
   // Identify scoped roles
-  const isBranchLeader = role === "branch_leader";
+  const isBranchLeader = role === "branch_leader" || scopeType === "Branch Data Only";
   const isHOD = role === "head_of_department";
   const isScopedRole = isBranchLeader || isHOD;
 
@@ -413,15 +413,19 @@ export default function LeaveAnalytics() {
   useEffect(() => {
     if (
       !roleLoading &&
+      !hasPermission("analytics.leave") &&
       role !== "hr_admin" &&
       role !== "managing_director" &&
       role !== "operation_manager" &&
       role !== "branch_leader" &&
-      role !== "head_of_department"
+      role !== "head_of_department" &&
+      scopeType !== "Branch Data Only" &&
+      scopeType !== "Company Staff Data" &&
+      scopeType !== "Parent Group Data"
     ) {
       navigate("/");
     }
-  }, [role, roleLoading, navigate]);
+  }, [role, scopeType, hasPermission, roleLoading, navigate]);
 
 
 

@@ -34,18 +34,27 @@ interface RoleContextType {
 
 const RoleContext = createContext<RoleContextType | undefined>(undefined);
 
-export const normalizeRole = (rawRole?: string): string => {
-  if (!rawRole) return "employee";
-  const r = String(rawRole).trim().toLowerCase();
-  if (r === 'hr' || r === 'hr admin' || r === 'hr_admin' || r === 'admin' || r.includes('hr admin') || r.includes('hr_admin')) return 'hr_admin';
-  if (r === 'md' || r === 'managing director' || r === 'managing_director' || r.includes('managing director')) return 'managing_director';
-  if (r.includes('assure leader') || r.includes('assure_leader') || r.includes('assure')) return 'assure_leader';
-  if (r.includes('branch leader') || r.includes('branch_leader')) return 'branch_leader';
+export const normalizeRole = (rawRole?: string, rawScope?: string, copiedFromRole?: string): string => {
+  if (!rawRole && !copiedFromRole && !rawScope) return "employee";
+  const r = String(rawRole || "").trim().toLowerCase();
+  const c = String(copiedFromRole || "").trim().toLowerCase();
+  const s = String(rawScope || "").trim().toLowerCase();
+
+  if (r === 'hr' || r === 'hr admin' || r === 'hr_admin' || r === 'admin' || r.includes('hr admin') || r.includes('hr_admin') || c.includes('hr admin') || c === 'hr_admin') return 'hr_admin';
+  if (r === 'md' || r === 'managing director' || r === 'managing_director' || r.includes('managing director') || c.includes('managing director') || c === 'md') return 'managing_director';
+  if (r.includes('assure leader') || r.includes('assure_leader') || r.includes('assure') || c.includes('assure')) return 'assure_leader';
+  if (r.includes('branch leader') || r.includes('branch_leader') || r.includes('branch manager') || r.includes('supervisor') || c.includes('branch leader') || c === 'branch_leader') return 'branch_leader';
   if (r.includes('branch officer') || r.includes('branch_officer')) return 'branch_officer';
-  if (r.includes('finance manager') || r.includes('operation manager') || r.includes('operations manager') || r.includes('operation_manager')) return 'operation_manager';
-  if (r.includes('head of department') || r.includes('hod') || r.includes('head_of_department')) return 'head_of_department';
-  if (r.includes('employee') || r.includes('staff') || r === 'user') return 'employee';
-  return r;
+  if (r.includes('finance manager') || r.includes('operation manager') || r.includes('operations manager') || r.includes('operation_manager') || c.includes('operation manager')) return 'operation_manager';
+  if (r.includes('head of department') || r.includes('hod') || r.includes('head_of_department') || c.includes('head of department') || c === 'hod') return 'head_of_department';
+  if (r.includes('employee') || r.includes('staff') || r.includes('driver') || r === 'user' || c === 'employee') return 'employee';
+
+  if (s.includes('branch')) return 'branch_leader';
+  if (s.includes('own') || s.includes('self')) return 'employee';
+  if (s.includes('company')) return 'operation_manager';
+  if (s.includes('parent') || s.includes('group')) return 'managing_director';
+
+  return r || "employee";
 };
 
 export const formatRoleDisplayName = (roleStr?: string): string => {
@@ -89,10 +98,11 @@ export const RoleProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const resolvedUserId = user?.user_id || user?.id;
 
   const getInitialRole = (): string => {
-    if (user?.role) return normalizeRole(user.role);
+    if (user?.role) return normalizeRole(user.role, user.scope_type, (user as any).copied_from_role_name);
     try {
       const cached = sessionStorage.getItem("presence_cached_role");
-      if (cached) return normalizeRole(cached);
+      const cachedScope = sessionStorage.getItem("presence_cached_scope_type") || "";
+      if (cached) return normalizeRole(cached, cachedScope);
     } catch {}
     return "employee";
   };
@@ -103,6 +113,9 @@ export const RoleProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const cached = sessionStorage.getItem("presence_cached_role_name");
       if (cached) return cached;
     } catch {}
+    if (user?.role && !["employee", "branch_leader", "hr_admin", "managing_director", "operation_manager", "head_of_department"].includes(String(user.role).toLowerCase())) {
+      return user.role;
+    }
     return formatRoleDisplayName(user?.role || "employee");
   };
 
@@ -220,14 +233,16 @@ export const RoleProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const fetchedName = data.profile.full_name || user?.full_name || user?.name || user?.email || "User";
         const fetchedBranch = data.profile.branch || "HQ";
         const fetchedDept = data.profile.department || "";
-        const parsedRole = normalizeRole(data.role || user?.role);
-        const resolvedRName = data.role_name || data.profile.role_name || formatRoleDisplayName(parsedRole);
+        const rawScope = data.scope_type || data.profile?.scope_type || "";
+        const copiedFromRole = data.copied_from_role_name || data.profile?.copied_from_role_name || "";
+        const parsedRole = normalizeRole(data.role_name || data.role || user?.role, rawScope, copiedFromRole);
+        const resolvedRName = data.role_name || data.profile.role_name || (data.role && !["employee", "branch_leader", "hr_admin", "managing_director", "operation_manager", "head_of_department"].includes(String(data.role).toLowerCase()) ? data.role : formatRoleDisplayName(parsedRole));
         const resolvedRId = data.role_id || data.profile.role_id;
         const resolvedIsSys = data.is_system_role ?? data.profile.is_system_role ?? true;
         const fetchedPerms = Array.isArray(data.permissions) ? data.permissions : [];
         const fetchedPermLevels = (data.permission_levels && typeof data.permission_levels === 'object') ? data.permission_levels : {};
 
-        const resolvedScopeType = normalizeScopeType(data.scope_type || data.profile?.scope_type || "", parsedRole);
+        const resolvedScopeType = normalizeScopeType(rawScope, parsedRole);
 
         setUserName(fetchedName);
         setUserBranch(fetchedBranch);
@@ -288,7 +303,7 @@ export const RoleProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Immediate sync from session user
     if (user.role) {
-      const norm = normalizeRole(user.role);
+      const norm = normalizeRole(user.role_name || user.role, user.scope_type, (user as any).copied_from_role_name);
       setRole(norm);
       setScopeType(normalizeScopeType(user.scope_type, norm));
     } else if (user.scope_type) {

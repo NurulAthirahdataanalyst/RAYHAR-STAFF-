@@ -97,13 +97,14 @@ export default function Employees() {
   const navigate = useNavigate();
 
   const { activeCompany, companies } = useCompany();
-  const { role, userBranch, userDepartment, canEdit } = useRole();
+  const { role, userBranch, userDepartment, canEdit, hasPermission } = useRole();
   const [workspaceModalOpen, setWorkspaceModalOpen] = useState(false);
   const [workspaceEmployee, setWorkspaceEmployee] = useState<any>(null);
   const [userCompanyAssignments, setUserCompanyAssignments] = useState<any[]>([]);
   const [loadingWorkspaceModal, setLoadingWorkspaceModal] = useState(false);
   const [savingWorkspaceAccess, setSavingWorkspaceAccess] = useState(false);
-  const canEditEmployees = canEdit("employee.directory") || role === "hr_admin" || role === "admin";
+  const canEditEmployees = role === "hr_admin" || role === "admin" || (canEdit("employee.directory") && role !== "branch_leader" && role !== "head_of_department");
+  const canAccessMasterOverview = role === "hr_admin" || role === "managing_director" || role === "operation_manager" || hasPermission(["employee.department", "employee.role"]);
   const printRef = useRef<HTMLDivElement>(null);
   
   const handlePrint = useReactToPrint({
@@ -1003,17 +1004,19 @@ export default function Employees() {
     <div className="space-y-4 sm:space-y-4 animate-in fade-in duration-500">
 
         <div className="mb-2 flex items-center justify-between">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="mb-1 gap-2 px-0 text-foreground hover:bg-transparent hover:text-[#942392] transition-colors touch-target no-global-hover"
-            onClick={() => navigate("/master")}
-          >
-            <ArrowLeft className="h-4 w-4" />
-            <span className="text-[10px] print:text-[13px] font-black uppercase tracking-widest">
-              Back to Employee Management
-            </span>
-          </Button>
+          {canAccessMasterOverview ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="mb-1 gap-2 px-0 text-foreground hover:bg-transparent hover:text-[#942392] transition-colors touch-target no-global-hover"
+              onClick={() => navigate("/master")}
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span className="text-[10px] print:text-[13px] font-black uppercase tracking-widest">
+                Back to Employee Management
+              </span>
+            </Button>
+          ) : <div />}
 
           <div className="flex flex-wrap items-center justify-end gap-2.5">
             <Button
