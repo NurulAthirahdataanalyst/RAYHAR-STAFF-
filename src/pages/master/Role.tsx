@@ -57,6 +57,7 @@ import { toast } from "sonner";
 import { API_BASE_URL } from "@/config/api";
 import { useRole } from "@/contexts/RoleContext";
 import { useCompany } from "@/modules/multi-company/contexts/CompanyContext";
+import { saveRoleCopySource, resolveRoleCopySource } from "@/modules/multi-company/utils/roleCopySource";
 import { YearPopover } from "@/components/shared/YearPopover";
 
 interface PermissionItem {
@@ -268,8 +269,20 @@ export default function Role() {
       sType = "Parent Group Data";
     }
     setFormScopeType(sType);
-    setSelectedTemplate(roleItem.name);
-    setCopyCompanyId(roleItem.company_id || 1);
+
+    const resolvedCopy = resolveRoleCopySource({
+      role: roleItem as any,
+      mainCompanyRoles: roles.filter(r => r.is_system_role || r.company_id === 1 || !r.company_id),
+      allCompaniesRoles: { 1: roles.filter(r => r.is_system_role || r.company_id === 1 || !r.company_id) },
+    });
+    if (resolvedCopy && resolvedCopy.sourceRoleName) {
+      setCopyCompanyId(resolvedCopy.sourceCompanyId || 1);
+      setSelectedTemplate(resolvedCopy.sourceRoleName);
+    } else {
+      setSelectedTemplate(roleItem.name);
+      setCopyCompanyId(roleItem.company_id || 1);
+    }
+
     setSelectedPermissionKeys(new Set(roleItem.permission_keys || []));
     setSelectedPermissionLevels(extractLevels(roleItem));
     setCollapsedModules({});
@@ -440,6 +453,9 @@ export default function Role() {
     setIsSubmitting(true);
     try {
       const permsArray = Array.from(selectedPermissionKeys);
+      const matchedSource = selectedTemplate && selectedTemplate !== 'blank'
+        ? roles.find(r => r.name.toLowerCase() === selectedTemplate.toLowerCase() || String(r.id) === selectedTemplate)
+        : null;
 
       if (formMode === "add" || formMode === "duplicate") {
         const res = await fetch(`${API_BASE_URL}/api/roles`, {
@@ -450,13 +466,26 @@ export default function Role() {
             description: formDescription.trim(),
             status: formStatus,
             scope_type: formScopeType,
-            company_id: copyCompanyId || activeCompany?.id || 1,
+            company_id: activeCompany?.id || 1,
             permissions: permsArray,
-            permission_levels: selectedPermissionLevels
+            permission_levels: selectedPermissionLevels,
+            copied_from_company_id: selectedTemplate && selectedTemplate !== 'blank' ? copyCompanyId : null,
+            copied_from_role_id: matchedSource ? String(matchedSource.id) : null,
+            copied_from_role_name: matchedSource ? matchedSource.name : (selectedTemplate !== 'blank' ? selectedTemplate : null)
           })
         });
         const data = await res.json();
         if (data.success) {
+          if (selectedTemplate) {
+            saveRoleCopySource({
+              roleId: data.role?.id,
+              companyId: activeCompany?.id || 1,
+              roleName: formName.trim(),
+              sourceCompanyId: copyCompanyId || 1,
+              sourceRoleId: matchedSource ? String(matchedSource.id) : selectedTemplate,
+              sourceRoleName: matchedSource ? matchedSource.name : selectedTemplate,
+            });
+          }
           toast.success(formMode === "duplicate" ? `Role duplicated as '${formName}'` : `Role '${formName}' created successfully!`);
           setIsFormModalOpen(false);
           fetchData();
@@ -464,6 +493,8 @@ export default function Role() {
           toast.error(data.error || "Failed to create role");
         }
       } else if (formMode === "edit" && editingRoleId) {
+        const existingRole = roles.find(r => r.id === editingRoleId);
+        const targetCompId = existingRole?.company_id || activeCompany?.id || 1;
         const res = await fetch(`${API_BASE_URL}/api/roles/${editingRoleId}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -472,13 +503,26 @@ export default function Role() {
             description: formDescription.trim(),
             status: formStatus,
             scope_type: formScopeType,
-            company_id: copyCompanyId || activeCompany?.id || 1,
+            company_id: targetCompId,
             permissions: permsArray,
-            permission_levels: selectedPermissionLevels
+            permission_levels: selectedPermissionLevels,
+            copied_from_company_id: selectedTemplate && selectedTemplate !== 'blank' ? copyCompanyId : null,
+            copied_from_role_id: matchedSource ? String(matchedSource.id) : null,
+            copied_from_role_name: matchedSource ? matchedSource.name : (selectedTemplate !== 'blank' ? selectedTemplate : null)
           })
         });
         const data = await res.json();
         if (data.success) {
+          if (selectedTemplate) {
+            saveRoleCopySource({
+              roleId: editingRoleId,
+              companyId: targetCompId,
+              roleName: formName.trim(),
+              sourceCompanyId: copyCompanyId || 1,
+              sourceRoleId: matchedSource ? String(matchedSource.id) : selectedTemplate,
+              sourceRoleName: matchedSource ? matchedSource.name : selectedTemplate,
+            });
+          }
           toast.success(`Role '${formName}' updated successfully!`);
           setIsFormModalOpen(false);
           fetchData();

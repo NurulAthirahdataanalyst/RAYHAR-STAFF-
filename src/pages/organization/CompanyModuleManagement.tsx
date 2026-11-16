@@ -40,6 +40,7 @@ import { toast } from 'sonner';
 import { useCompany } from '@/modules/multi-company/contexts/CompanyContext';
 import { multiCompanyApi } from '@/modules/multi-company/services/multiCompanyApi';
 import { CompanyModuleSetting, CompanyRole, ModulePermission } from '@/modules/multi-company/types/multiCompany.types';
+import { saveRoleCopySource, resolveRoleCopySource } from '@/modules/multi-company/utils/roleCopySource';
 import { useRole } from '@/contexts/RoleContext';
 import { API_BASE_URL } from '@/config/api';
 
@@ -117,6 +118,7 @@ export const CompanyModuleManagement: React.FC = () => {
   const [rolePermissionLevels, setRolePermissionLevels] = useState<Record<string, 'view' | 'edit'>>({});
   const [roleScope, setRoleScope] = useState<string>('Own Data Only');
   const [copyCompanyId, setCopyCompanyId] = useState<number>(1);
+  const [selectedCopyTemplate, setSelectedCopyTemplate] = useState<string>('');
 
   // Sync selected company when active company changes
   useEffect(() => {
@@ -132,7 +134,7 @@ export const CompanyModuleManagement: React.FC = () => {
       const [modRes, rolesRes, mainRolesRes] = await Promise.all([
         multiCompanyApi.getCompanyModules(companyId),
         multiCompanyApi.getCompanyRoles(companyId),
-        fetch(`${API_BASE_URL}/api/roles`).then(r => r.json()).catch(() => ({ roles: [] }))
+        fetch(`${API_BASE_URL}/api/roles?company_id=1`).then(r => r.json()).catch(() => ({ roles: [] }))
       ]);
 
       const loadedMods = modRes.modules || [];
@@ -158,12 +160,13 @@ export const CompanyModuleManagement: React.FC = () => {
     }
   }, [selectedCompanyId]);
 
-  // When selected role changes, initialize role permissions
+  // When selected role changes, initialize role permissions and copy template
   useEffect(() => {
     setIsEditing(false);
     if (selectedRoleId === 'all') {
       setRolePermissions(new Set());
       setRolePermissionLevels({});
+      setSelectedCopyTemplate('');
     } else {
       const targetRole = companyRoles.find(r => r.id === selectedRoleId);
       if (targetRole) {
@@ -175,10 +178,31 @@ export const CompanyModuleManagement: React.FC = () => {
           if (!levels[k]) levels[k] = 'edit';
         });
         setRolePermissionLevels(levels);
+
+        const enabledCompanyPerms = new Set(
+          modules.filter(m => m.is_enabled).flatMap(m => (m.permissions || []).map(p => p.permission_key))
+        );
+        const resolvedCopy = resolveRoleCopySource({
+          role: targetRole,
+          mainCompanyRoles,
+          allCompaniesRoles: { [selectedCompanyId]: companyRoles },
+          enabledPermissionKeys: enabledCompanyPerms,
+        });
+        if (resolvedCopy && resolvedCopy.sourceRoleName && resolvedCopy.sourceRoleName !== 'blank') {
+          const matchedMain = mainCompanyRoles.find(
+            mr => String(mr.name || '').toLowerCase() === resolvedCopy.sourceRoleName.toLowerCase()
+          );
+          const matchedComp = companyRoles.find(
+            cr => cr.id !== selectedRoleId && String(cr.name || '').toLowerCase() === resolvedCopy.sourceRoleName.toLowerCase()
+          );
+          setSelectedCopyTemplate(matchedMain?.name || matchedComp?.name || resolvedCopy.sourceRoleName);
+        } else {
+          setSelectedCopyTemplate('');
+        }
       }
     }
     setHasChanges(false);
-  }, [selectedRoleId, companyRoles]);
+  }, [selectedRoleId, companyRoles, mainCompanyRoles, modules, selectedCompanyId]);
 
   const currentCompany = companies.find(c => c.id === selectedCompanyId) || activeCompany;
   const isMainCompany = currentCompany?.company_type === 'main';
@@ -361,6 +385,8 @@ export const CompanyModuleManagement: React.FC = () => {
     const mainRole = mainCompanyRoles.find(r => r.name.toLowerCase() === templateName.toLowerCase()) || companyRoles.find(r => r.name.toLowerCase() === templateName.toLowerCase());
     if (!mainRole) return;
 
+    setSelectedCopyTemplate(mainRole.name);
+
     const sourceKeys: string[] = mainRole.permission_keys || [];
     const sourceLevels: Record<string, 'view' | 'edit'> = { ...(mainRole.permission_levels || {}) };
 
@@ -404,6 +430,15 @@ export const CompanyModuleManagement: React.FC = () => {
         const targetRole = companyRoles.find(r => r.id === selectedRoleId);
         if (!targetRole) throw new Error('Selected role not found');
 
+        const matchedSourceMain = selectedCopyTemplate
+          ? mainCompanyRoles.find(r => String(r.name || '').toLowerCase() === selectedCopyTemplate.toLowerCase())
+          : null;
+        const matchedSourceComp = selectedCopyTemplate && !matchedSourceMain
+          ? companyRoles.find(r => String(r.name || '').toLowerCase() === selectedCopyTemplate.toLowerCase())
+          : null;
+        const matchedSource = matchedSourceMain || matchedSourceComp;
+        const sourceCompId = matchedSourceMain ? 1 : (matchedSourceComp?.company_id || 1);
+
         const payload = {
           role_name: targetRole.name,
           name: targetRole.name,
@@ -412,10 +447,25 @@ export const CompanyModuleManagement: React.FC = () => {
           scope_type: roleScope,
           permissions: Array.from(rolePermissions),
           permission_levels: rolePermissionLevels,
-          company_id: selectedCompanyId
+          company_id: selectedCompanyId,
+          copied_from_company_id: selectedCopyTemplate ? sourceCompId : undefined,
+          copied_from_role_id: matchedSource ? String(matchedSource.id) : undefined,
+          copied_from_role_name: selectedCopyTemplate || undefined
         };
 
         await multiCompanyApi.updateRole(targetRole.id, payload);
+
+        if (selectedCopyTemplate) {
+          saveRoleCopySource({
+            roleId: targetRole.id,
+            companyId: selectedCompanyId,
+            roleName: targetRole.name,
+            sourceCompanyId: sourceCompId,
+            sourceRoleId: matchedSource ? String(matchedSource.id) : selectedCopyTemplate,
+            sourceRoleName: matchedSource ? String(matchedSource.name) : selectedCopyTemplate,
+          });
+        }
+
         toast.success(`Permissions for role "${targetRole.name}" saved successfully!`);
         
         // Notify application of scope update in real-time
@@ -731,7 +781,7 @@ export const CompanyModuleManagement: React.FC = () => {
                     <Sparkles className="w-4 h-4 text-[#942392]" />
                     Copy Template:
                   </span>
-                  <Select onValueChange={handleCopyFromMainRole}>
+                  <Select value={selectedCopyTemplate || undefined} onValueChange={handleCopyFromMainRole}>
                     <SelectTrigger className="h-9 min-w-[240px] px-3.5 rounded-xl font-bold text-xs bg-background dark:bg-neutral-900 border-border text-foreground shadow-2xs hover:border-[#942392]/50 transition-colors">
                       <div className="flex items-center gap-2 truncate">
                         <Sparkles className="w-3.5 h-3.5 text-[#942392] shrink-0" />
@@ -745,7 +795,16 @@ export const CompanyModuleManagement: React.FC = () => {
                       {mainCompanyRoles.map(mr => {
                         const RoleIcon = getRoleIcon(mr.name);
                         return (
-                          <SelectItem key={mr.id} value={mr.name} className="text-xs font-bold py-2 px-3 rounded-xl">
+                          <SelectItem
+                            key={mr.id}
+                            value={mr.name}
+                            className="text-xs font-bold py-2 px-3 rounded-xl"
+                            onPointerUp={() => {
+                              if (selectedCopyTemplate === mr.name) {
+                                handleCopyFromMainRole(mr.name);
+                              }
+                            }}
+                          >
                             <div className="flex items-center justify-between w-full gap-2">
                               <div className="flex items-center gap-2 truncate">
                                 <RoleIcon className="w-3.5 h-3.5 text-[#942392] shrink-0" />
@@ -766,7 +825,16 @@ export const CompanyModuleManagement: React.FC = () => {
                           {companyRoles.filter(cr => cr.id !== selectedRoleId && !mainCompanyRoles.some(mr => mr.name.toLowerCase() === cr.name.toLowerCase())).map(cr => {
                             const RoleIcon = getRoleIcon(cr.name);
                             return (
-                              <SelectItem key={cr.id} value={cr.name} className="text-xs font-bold py-2 px-3 rounded-xl">
+                              <SelectItem
+                                key={cr.id}
+                                value={cr.name}
+                                className="text-xs font-bold py-2 px-3 rounded-xl"
+                                onPointerUp={() => {
+                                  if (selectedCopyTemplate === cr.name) {
+                                    handleCopyFromMainRole(cr.name);
+                                  }
+                                }}
+                              >
                                 <div className="flex items-center justify-between w-full gap-2">
                                   <div className="flex items-center gap-2 truncate">
                                     <RoleIcon className="w-3.5 h-3.5 text-[#942392] shrink-0" />

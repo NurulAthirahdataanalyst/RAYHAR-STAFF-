@@ -922,9 +922,26 @@ app.get("/api/permissions", async (req, res) => {
 // ROLES API (RBAC)
 // ===============================
 
+let roleColumnsEnsured = false;
+async function ensureRoleCopyColumns() {
+  if (roleColumnsEnsured) return;
+  try {
+    await pgPool.query(`
+      ALTER TABLE roles ADD COLUMN IF NOT EXISTS role_type VARCHAR(100) DEFAULT 'Operational Role';
+      ALTER TABLE roles ADD COLUMN IF NOT EXISTS copied_from_company_id INT;
+      ALTER TABLE roles ADD COLUMN IF NOT EXISTS copied_from_role_id VARCHAR(100);
+      ALTER TABLE roles ADD COLUMN IF NOT EXISTS copied_from_role_name VARCHAR(150);
+    `);
+    roleColumnsEnsured = true;
+  } catch (e) {
+    console.warn("ensureRoleCopyColumns warning:", e.message);
+  }
+}
+
 // GET /api/roles — List all roles with user count and permission keys
 app.get("/api/roles", async (req, res) => {
   try {
+    await ensureRoleCopyColumns();
     const rawCompanyId = req.query.company_id || req.query.companyId || req.companyId;
     let companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
 
@@ -940,15 +957,9 @@ app.get("/api/roles", async (req, res) => {
 
     const result = await pgPool.query(`
       SELECT 
-        r.id,
-        r.name,
-        r.description,
+        r.*,
         COALESCE(r.is_system_role, FALSE) AS is_system_role,
         COALESCE(r.status, 'Active') AS status,
-        r.scope_type,
-        r.company_id,
-        r.created_at,
-        r.updated_at,
         (SELECT COUNT(DISTINCT p.user_id)::int FROM profiles p WHERE (p.role_id = r.id OR LOWER(p.role) = LOWER(r.name) OR LOWER(REPLACE(p.role, '_', ' ')) = LOWER(r.name)) AND LOWER(TRIM(COALESCE(p.status, 'active'))) = 'active' AND p.email NOT LIKE '%_deleted_%' AND p.user_id NOT LIKE '%_deleted_%') AS total_users,
         COUNT(DISTINCT rp.permission_id)::int AS permission_count,
         COALESCE(
@@ -977,7 +988,7 @@ app.get("/api/roles", async (req, res) => {
             LEFT JOIN role_permissions rp ON rp.role_id = r.id
       LEFT JOIN permissions perm ON perm.id = rp.permission_id
       ${whereFilter}
-      GROUP BY r.id, r.name, r.description, r.is_system_role, r.status, r.scope_type, r.company_id, r.created_at, r.updated_at
+      GROUP BY r.id
       ORDER BY r.is_system_role DESC, r.created_at ASC, r.name ASC
     `);
 
@@ -992,15 +1003,12 @@ app.get("/api/roles", async (req, res) => {
 app.get("/api/roles/:id", async (req, res) => {
   const id = safeString(req.params.id);
   try {
+    await ensureRoleCopyColumns();
     const result = await pgPool.query(`
       SELECT 
-        r.id,
-        r.name,
-        r.description,
+        r.*,
         COALESCE(r.is_system_role, FALSE) AS is_system_role,
         COALESCE(r.status, 'Active') AS status,
-        r.created_at,
-        r.updated_at,
         COUNT(DISTINCT p.user_id)::int AS total_users,
         COALESCE(
           json_agg(
@@ -1029,7 +1037,7 @@ app.get("/api/roles/:id", async (req, res) => {
       LEFT JOIN role_permissions rp ON rp.role_id = r.id
       LEFT JOIN permissions perm ON perm.id = rp.permission_id
       WHERE r.id = $1
-      GROUP BY r.id, r.name, r.description, r.is_system_role, r.status, r.created_at, r.updated_at
+      GROUP BY r.id
     `, [id]);
 
     if (result.rows.length === 0) {
@@ -1045,11 +1053,16 @@ app.get("/api/roles/:id", async (req, res) => {
 
 // POST /api/roles — Create a new custom role with permissions
 app.post("/api/roles", async (req, res) => {
+  await ensureRoleCopyColumns();
   const name = safeString(req.body?.name);
   const description = safeString(req.body?.description);
   const status = safeString(req.body?.status) || "Active";
+  const role_type = safeString(req.body?.role_type) || "Operational Role";
   const scope_type = safeString(req.body?.scope_type) || "Own Data Only";
   const company_id = parseInt(req.body?.company_id || req.companyId || req.query?.company_id || 1, 10) || 1;
+  const copied_from_company_id = req.body?.copied_from_company_id ? parseInt(req.body.copied_from_company_id, 10) : null;
+  const copied_from_role_id = safeString(req.body?.copied_from_role_id) || null;
+  const copied_from_role_name = safeString(req.body?.copied_from_role_name) || null;
   const permissions = Array.isArray(req.body?.permissions) ? req.body.permissions : [];
 
   if (!name) {
@@ -1060,10 +1073,10 @@ app.post("/api/roles", async (req, res) => {
   try {
     await client.query("BEGIN");
 
-    // Check duplicate name
+    // Check duplicate name within same company
     const existing = await client.query(
-      "SELECT id FROM roles WHERE LOWER(TRIM(name)) = LOWER(TRIM($1))",
-      [name]
+      "SELECT id FROM roles WHERE LOWER(TRIM(name)) = LOWER(TRIM($1)) AND COALESCE(company_id, 1) = COALESCE($2, 1)",
+      [name, company_id]
     );
     if (existing.rows.length > 0) {
       await client.query("ROLLBACK");
@@ -1072,10 +1085,10 @@ app.post("/api/roles", async (req, res) => {
 
     // Insert custom role
     const insertRoleRes = await client.query(
-      `INSERT INTO roles (name, description, is_system_role, status, scope_type, company_id, created_at, updated_at)
-       VALUES ($1, $2, FALSE, $3, $4, $5, NOW(), NOW())
+      `INSERT INTO roles (name, description, is_system_role, status, role_type, scope_type, company_id, copied_from_company_id, copied_from_role_id, copied_from_role_name, created_at, updated_at)
+       VALUES ($1, $2, FALSE, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
        RETURNING *`,
-      [name, description || null, status, scope_type, company_id]
+      [name, description || null, status, role_type, scope_type, company_id, copied_from_company_id, copied_from_role_id, copied_from_role_name]
     );
     const newRole = insertRoleRes.rows[0];
 
@@ -1131,11 +1144,18 @@ app.post("/api/roles", async (req, res) => {
 
 // PUT /api/roles/:id — Edit a role
 app.put("/api/roles/:id", async (req, res) => {
+  await ensureRoleCopyColumns();
   const id = safeString(req.params.id);
-  const name = safeString(req.body?.name);
+  const name = safeString(req.body?.name || req.body?.role_name);
   const description = safeString(req.body?.description);
   const status = safeString(req.body?.status);
+  const role_type = safeString(req.body?.role_type);
   const scope_type = safeString(req.body?.scope_type);
+  const copied_from_company_id = req.body?.copied_from_company_id !== undefined && req.body?.copied_from_company_id !== null
+    ? parseInt(req.body.copied_from_company_id, 10)
+    : null;
+  const copied_from_role_id = safeString(req.body?.copied_from_role_id) || null;
+  const copied_from_role_name = safeString(req.body?.copied_from_role_name) || null;
   const permissions = Array.isArray(req.body?.permissions) ? req.body.permissions : null;
 
   if (!name) {
@@ -1164,10 +1184,10 @@ app.put("/api/roles/:id", async (req, res) => {
         });
       }
     } else {
-      // Check duplicate name on another role
+      // Check duplicate name on another role within the same company
       const nameCheck = await client.query(
-        "SELECT id FROM roles WHERE LOWER(TRIM(name)) = LOWER(TRIM($1)) AND id != $2",
-        [name, id]
+        "SELECT id FROM roles WHERE LOWER(TRIM(name)) = LOWER(TRIM($1)) AND COALESCE(company_id, 1) = COALESCE($2, 1) AND id != $3",
+        [name, currentRole.company_id || 1, id]
       );
       if (nameCheck.rows.length > 0) {
         await client.query("ROLLBACK");
@@ -1178,10 +1198,28 @@ app.put("/api/roles/:id", async (req, res) => {
     // Update role metadata
     const updateRes = await client.query(
       `UPDATE roles 
-       SET name = $1, description = $2, status = COALESCE($3, status), scope_type = COALESCE($5, scope_type), updated_at = NOW() 
+       SET name = $1,
+           description = $2,
+           status = COALESCE($3, status),
+           scope_type = COALESCE($5, scope_type),
+           role_type = COALESCE($6, role_type),
+           copied_from_company_id = COALESCE($7, copied_from_company_id),
+           copied_from_role_id = COALESCE($8, copied_from_role_id),
+           copied_from_role_name = COALESCE($9, copied_from_role_name),
+           updated_at = NOW() 
        WHERE id = $4 
        RETURNING *`,
-      [currentRole.is_system_role ? currentRole.name : name, description, status || currentRole.status, id, scope_type || null]
+      [
+        currentRole.is_system_role ? currentRole.name : name,
+        description,
+        status || currentRole.status,
+        id,
+        scope_type || null,
+        role_type || null,
+        copied_from_company_id,
+        copied_from_role_id,
+        copied_from_role_name
+      ]
     );
 
     // Update permissions if provided and not a system role (system roles have immutable templates)

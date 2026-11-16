@@ -306,6 +306,10 @@ function createMultiCompanyRouter(pgPool) {
     ALTER TABLE role_permissions ADD COLUMN IF NOT EXISTS access_level VARCHAR(20) DEFAULT 'edit';
     ALTER TABLE company_modules ADD COLUMN IF NOT EXISTS enabled_permissions JSONB DEFAULT '[]'::jsonb;
     ALTER TABLE company_modules ADD COLUMN IF NOT EXISTS permission_levels JSONB DEFAULT '{}'::jsonb;
+    ALTER TABLE roles ADD COLUMN IF NOT EXISTS role_type VARCHAR(100) DEFAULT 'Operational Role';
+    ALTER TABLE roles ADD COLUMN IF NOT EXISTS copied_from_company_id INT;
+    ALTER TABLE roles ADD COLUMN IF NOT EXISTS copied_from_role_id VARCHAR(100);
+    ALTER TABLE roles ADD COLUMN IF NOT EXISTS copied_from_role_name VARCHAR(150);
   `).then(async () => {
     // Seed 12 modules
     const modules = [
@@ -1343,7 +1347,7 @@ function createMultiCompanyRouter(pgPool) {
   // GET roles by company
   router.get('/companies/:companyId/roles', async (req, res) => {
     try {
-      const companyId = req.params.companyId;
+      const companyId = parseInt(req.params.companyId, 10) || 1;
       const rolesRes = await pgPool.query(`
         SELECT 
           r.*,
@@ -1368,7 +1372,7 @@ function createMultiCompanyRouter(pgPool) {
         FROM roles r
         LEFT JOIN role_permissions rp ON r.id = rp.role_id
         LEFT JOIN permissions p ON rp.permission_id = p.id
-        WHERE r.company_id = $1
+        WHERE (r.company_id = $1 OR ($1 = 1 AND r.company_id IS NULL AND LOWER(r.name) NOT LIKE '%ray rent%'))
         GROUP BY r.id
         ORDER BY r.name ASC;
       `, [companyId]);
@@ -1400,7 +1404,10 @@ function createMultiCompanyRouter(pgPool) {
         role_type = 'Employee Role',
         scope_type = 'Current Company Only',
         permissions = [],
-        permission_levels = {}
+        permission_levels = {},
+        copied_from_company_id = null,
+        copied_from_role_id = null,
+        copied_from_role_name = null
       } = req.body;
 
       const safeRoleName = cleanString(role_name);
@@ -1421,10 +1428,19 @@ function createMultiCompanyRouter(pgPool) {
       }
 
       const roleRes = await pgPool.query(`
-        INSERT INTO roles (name, description, role_type, scope_type, company_id, is_system_role, status)
-        VALUES ($1, $2, $3, $4, $5, FALSE, 'Active')
+        INSERT INTO roles (name, description, role_type, scope_type, company_id, is_system_role, status, copied_from_company_id, copied_from_role_id, copied_from_role_name)
+        VALUES ($1, $2, $3, $4, $5, FALSE, 'Active', $6, $7, $8)
         RETURNING *;
-      `, [safeRoleName, cleanString(description), role_type || 'Employee Role', scope_type || 'Current Company Only', companyId]);
+      `, [
+        safeRoleName,
+        cleanString(description),
+        role_type || 'Employee Role',
+        scope_type || 'Current Company Only',
+        companyId,
+        copied_from_company_id ? parseInt(copied_from_company_id, 10) : null,
+        copied_from_role_id ? String(copied_from_role_id) : null,
+        copied_from_role_name ? String(copied_from_role_name) : null
+      ]);
 
       const newRole = roleRes.rows[0];
 
@@ -1455,7 +1471,18 @@ function createMultiCompanyRouter(pgPool) {
   router.put('/roles/:id', async (req, res) => {
     try {
       const roleId = req.params.id;
-      const { name, description, role_type, scope_type, status, permissions, permission_levels = {} } = req.body;
+      const {
+        name,
+        description,
+        role_type,
+        scope_type,
+        status,
+        permissions,
+        permission_levels = {},
+        copied_from_company_id,
+        copied_from_role_id,
+        copied_from_role_name
+      } = req.body;
 
       const safeName = cleanString(name);
       if (safeName) {
@@ -1479,10 +1506,23 @@ function createMultiCompanyRouter(pgPool) {
           role_type = COALESCE($3, role_type),
           scope_type = COALESCE($4, scope_type),
           status = COALESCE($5, status),
+          copied_from_company_id = COALESCE($7, copied_from_company_id),
+          copied_from_role_id = COALESCE($8, copied_from_role_id),
+          copied_from_role_name = COALESCE($9, copied_from_role_name),
           updated_at = CURRENT_TIMESTAMP
         WHERE id = $6
         RETURNING *;
-      `, [name, description, role_type, scope_type, status, roleId]);
+      `, [
+        name,
+        description,
+        role_type,
+        scope_type,
+        status,
+        roleId,
+        copied_from_company_id !== undefined && copied_from_company_id !== null ? parseInt(copied_from_company_id, 10) : null,
+        copied_from_role_id !== undefined && copied_from_role_id !== null ? String(copied_from_role_id) : null,
+        copied_from_role_name !== undefined && copied_from_role_name !== null ? String(copied_from_role_name) : null
+      ]);
 
       if (updateRes.rows.length === 0) {
         return res.status(404).json({ success: false, error: 'Role not found' });

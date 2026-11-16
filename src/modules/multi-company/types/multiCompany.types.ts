@@ -69,6 +69,9 @@ export interface CompanyRole {
   permission_keys?: string[];
   permission_levels?: Record<string, 'view' | 'edit'>;
   permissions_detail?: ModulePermission[];
+  copied_from_company_id?: number | null;
+  copied_from_role_id?: string | null;
+  copied_from_role_name?: string | null;
   created_at?: string;
 }
 

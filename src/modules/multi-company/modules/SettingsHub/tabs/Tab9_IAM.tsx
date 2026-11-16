@@ -37,6 +37,7 @@ import { toast } from 'sonner';
 import { useCompany } from '../../../contexts/CompanyContext';
 import { multiCompanyApi } from '../../../services/multiCompanyApi';
 import { CompanyRole, RoleTemplate, RoleType, ScopeType, CompanyModuleSetting, ModulePermission } from '../../../types/multiCompany.types';
+import { saveRoleCopySource, resolveRoleCopySource } from '../../../utils/roleCopySource';
 import { API_BASE_URL } from '@/config/api';
 
 const MODULE_ICONS: Record<string, React.ElementType> = {
@@ -152,7 +153,7 @@ export const Tab9_IAM: React.FC = () => {
       const [rList, modRes, mainRolesRes] = await Promise.all([
         multiCompanyApi.getCompanyRoles(cId),
         multiCompanyApi.getCompanyModules(cId),
-        fetch(`${API_BASE_URL}/api/roles`).then(r => r.json()).catch(() => ({ roles: [] }))
+        fetch(`${API_BASE_URL}/api/roles?company_id=1`).then(r => r.json()).catch(() => ({ roles: [] }))
       ]);
       setRoles(rList || []);
       setCompanyModules(modRes.modules || []);
@@ -195,11 +196,36 @@ export const Tab9_IAM: React.FC = () => {
   }, [companies]);
 
   const availableRolesForCopy = useMemo(() => {
-    const fromMap = allCompaniesRoles[copySourceCompanyId];
-    if (fromMap && fromMap.length > 0) return fromMap;
-    if (copySourceCompanyId === 1 && mainCompanyRoles.length > 0) return mainCompanyRoles;
-    return [];
+    const fromMap = allCompaniesRoles[copySourceCompanyId] || [];
+    if (copySourceCompanyId === 1) {
+      const combined: any[] = [...fromMap];
+      const seenIds = new Set(combined.map(r => String(r.id)));
+      const seenNames = new Set(combined.map(r => String(r.name || '').toLowerCase()));
+      mainCompanyRoles.forEach((mr: any) => {
+        if (mr && !seenIds.has(String(mr.id)) && !seenNames.has(String(mr.name || '').toLowerCase())) {
+          combined.push(mr);
+        }
+      });
+      return combined;
+    }
+    return fromMap;
   }, [allCompaniesRoles, copySourceCompanyId, mainCompanyRoles]);
+
+  useEffect(() => {
+    if (!modalOpen || !copySourceRoleId || copySourceRoleId === 'blank') return;
+    if (availableRolesForCopy.length === 0) return;
+    const exactIdMatch = availableRolesForCopy.find(r => String(r.id) === String(copySourceRoleId));
+    if (!exactIdMatch) {
+      const byName = availableRolesForCopy.find(
+        r =>
+          String(r.name || '').trim().toLowerCase() === String(copySourceRoleId).trim().toLowerCase() ||
+          (selectedTemplate && String(r.name || '').trim().toLowerCase() === String(selectedTemplate).trim().toLowerCase())
+      );
+      if (byName) {
+        setCopySourceRoleId(String(byName.id));
+      }
+    }
+  }, [modalOpen, availableRolesForCopy, copySourceRoleId, selectedTemplate]);
 
   const currentCompany = companies.find(c => c.id === selectedCompanyId) || activeCompany;
 
@@ -250,9 +276,26 @@ export const Tab9_IAM: React.FC = () => {
     }
     setScopeType(sType);
     setRoleStatus(r.status || 'Active');
-    setCopySourceCompanyId(r.company_id || 1);
-    setCopySourceRoleId(String(r.id));
-    setSelectedTemplate(r.name);
+
+    const allowedCompanyPerms = new Set(
+      visibleModules.flatMap(m => (m.permissions || []).map(p => p.permission_key))
+    );
+    const resolvedCopy = resolveRoleCopySource({
+      role: r,
+      mainCompanyRoles,
+      allCompaniesRoles,
+      enabledPermissionKeys: allowedCompanyPerms,
+    });
+
+    if (resolvedCopy) {
+      setCopySourceCompanyId(resolvedCopy.sourceCompanyId);
+      setCopySourceRoleId(String(resolvedCopy.sourceRoleId));
+      setSelectedTemplate(resolvedCopy.sourceRoleName || String(resolvedCopy.sourceRoleId));
+    } else {
+      setCopySourceCompanyId(r.company_id || selectedCompanyId || 1);
+      setCopySourceRoleId(String(r.id));
+      setSelectedTemplate(r.name);
+    }
 
     const keys = r.permission_keys || [];
     setSelectedPermissions(new Set(keys));
@@ -289,6 +332,8 @@ export const Tab9_IAM: React.FC = () => {
       sourceRole = mainCompanyRoles.find((r: any) => String(r.id) === String(sourceRoleId) || r.name.toLowerCase() === sourceRoleId.toLowerCase());
     }
     if (!sourceRole) return;
+
+    setSelectedTemplate(sourceRole.name);
 
     if (!roleName.trim()) {
       setRoleName(sourceRole.name);
@@ -417,6 +462,27 @@ export const Tab9_IAM: React.FC = () => {
 
     try {
       setSaving(true);
+
+      let copiedSourceRole: any = null;
+      if (copySourceRoleId && copySourceRoleId !== 'blank') {
+        copiedSourceRole = availableRolesForCopy.find(
+          (r: any) => String(r.id) === String(copySourceRoleId) || String(r.name || '').toLowerCase() === String(copySourceRoleId).toLowerCase()
+        );
+        if (!copiedSourceRole) {
+          for (const cId in allCompaniesRoles) {
+            const found = allCompaniesRoles[cId]?.find(
+              (r: any) => String(r.id) === String(copySourceRoleId) || String(r.name || '').toLowerCase() === String(copySourceRoleId).toLowerCase()
+            );
+            if (found) { copiedSourceRole = found; break; }
+          }
+        }
+        if (!copiedSourceRole && mainCompanyRoles.length > 0) {
+          copiedSourceRole = mainCompanyRoles.find(
+            (r: any) => String(r.id) === String(copySourceRoleId) || String(r.name || '').toLowerCase() === String(copySourceRoleId).toLowerCase()
+          );
+        }
+      }
+
       const payload = {
         role_name: roleName.trim(),
         name: roleName.trim(),
@@ -427,18 +493,36 @@ export const Tab9_IAM: React.FC = () => {
         status: roleStatus,
         permissions: Array.from(selectedPermissions),
         permission_levels: selectedPermissionLevels,
-        company_id: selectedCompanyId
+        company_id: selectedCompanyId,
+        copied_from_company_id: copySourceRoleId && copySourceRoleId !== 'blank' ? copySourceCompanyId : null,
+        copied_from_role_id: copySourceRoleId && copySourceRoleId !== 'blank' ? String(copiedSourceRole?.id || copySourceRoleId) : null,
+        copied_from_role_name: copySourceRoleId && copySourceRoleId !== 'blank' ? String(copiedSourceRole?.name || selectedTemplate || '') : null
       };
 
+      let savedRole: CompanyRole | null = null;
       if (editingRole) {
-        await multiCompanyApi.updateRole(editingRole.id, payload);
+        savedRole = await multiCompanyApi.updateRole(editingRole.id, payload);
         toast.success(`Role "${roleName}" updated successfully!`);
       } else {
-        await multiCompanyApi.createCompanyRole(selectedCompanyId, payload);
+        savedRole = await multiCompanyApi.createCompanyRole(selectedCompanyId, payload);
         toast.success(`Role "${roleName}" registered for ${currentCompany?.company_name}!`);
       }
 
-      await fetchRolesAndModules(selectedCompanyId);
+      if (copySourceRoleId) {
+        saveRoleCopySource({
+          roleId: savedRole?.id || editingRole?.id,
+          companyId: selectedCompanyId,
+          roleName: roleName.trim(),
+          sourceCompanyId: copySourceCompanyId,
+          sourceRoleId: copySourceRoleId === 'blank' ? 'blank' : String(copiedSourceRole?.id || copySourceRoleId),
+          sourceRoleName: copySourceRoleId === 'blank' ? 'blank' : String(copiedSourceRole?.name || selectedTemplate || ''),
+        });
+      }
+
+      await Promise.all([
+        fetchRolesAndModules(selectedCompanyId),
+        fetchAllCompanyRoles()
+      ]);
       setModalOpen(false);
     } catch (err: any) {
       toast.error(err.message || 'Error saving role');
@@ -713,7 +797,16 @@ export const Tab9_IAM: React.FC = () => {
                             ⚪ Blank Template (Clear Permissions)
                           </SelectItem>
                           {availableRolesForCopy.map(r => (
-                            <SelectItem key={r.id} value={String(r.id)} className="font-bold text-xs">
+                            <SelectItem
+                              key={r.id}
+                              value={String(r.id)}
+                              className="font-bold text-xs"
+                              onPointerUp={() => {
+                                if (String(copySourceRoleId) === String(r.id)) {
+                                  handleApplyRoleCopy(String(r.id));
+                                }
+                              }}
+                            >
                               🛡️ {r.name} ({r.permission_keys ? r.permission_keys.length : 0} perms)
                             </SelectItem>
                           ))}
