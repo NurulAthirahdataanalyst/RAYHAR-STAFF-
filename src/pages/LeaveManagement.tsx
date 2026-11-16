@@ -252,11 +252,11 @@ export default function LeaveManagement() {
         const res = await fetch(`${API_BASE_URL}/api/user-details/${encodeURIComponent(userId)}`);
         const data = await res.json();
         if (data.success && data.profile) {
-          const base = Number(data.profile.annual_leave_entitlement) || 14;
+          const base = Number(data.profile.annual_leave_entitlement ?? 14);
             const adj = Number(data.profile.total_adjustment) || 0;
             setTotalEntitlement(base + adj);
             
-            const medicalBase = Number(data.profile.medical_leave_entitlement) || 14;
+            const medicalBase = Number(data.profile.medical_leave_entitlement ?? 14);
             const medicalAdj = Number(data.profile.medical_adj) || 0;
             setMedicalEntitlement(medicalBase + medicalAdj);
             

@@ -114,6 +114,12 @@ export const Tab8_LeaveWorkflowConfig: React.FC = () => {
         company_id: selectedCompanyId,
         new_values: { annual_days: annualDays, sick_days: sickDays, replacement_days: replacementDays, unpaid_days: unpaidDays, mc_required: mcRequired }
       });
+      try {
+        window.dispatchEvent(new CustomEvent('rayhar_leave_refresh', {
+          detail: { companyId: selectedCompanyId, annualDays: Number(annualDays), sickDays: Number(sickDays) }
+        }));
+        new BroadcastChannel('rayhar_leave_refresh').postMessage('refresh');
+      } catch (_) {}
       toast.success(`Leave entitlements and policies saved for ${currentCompanyName}!`);
     } catch (err: any) {
       toast.error(err.message || 'Failed to save leave policies');

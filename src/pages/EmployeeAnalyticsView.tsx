@@ -283,7 +283,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
   
 
   
-    const sickEntitlement = profile?.medical_leave_entitlement || 14;
+    const sickEntitlement = Number(profile?.medical_leave_entitlement ?? 14);
     const sickAdjustment = profile?.medical_adj || 0;
     const totalSick = sickEntitlement + sickAdjustment;
     const sickRemaining = Math.max(0, totalSick - sickLeavesUsed);
@@ -311,7 +311,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
 
   quotaLeavesUsed += pendingReplacementDeduction;
     
-  const baseEntitlement = profile?.annual_leave_entitlement || 14;
+  const baseEntitlement = Number(profile?.annual_leave_entitlement ?? 14);
   const totalAdjustment = profile?.total_adjustment || 0;
   const totalEntitlement = baseEntitlement + totalAdjustment;
   const leaveBalanceRemaining = Math.max(totalEntitlement - quotaLeavesUsed, 0);

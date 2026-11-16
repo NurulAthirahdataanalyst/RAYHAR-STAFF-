@@ -206,9 +206,16 @@ export default function LeaveEntitlementManagement() {
     const handleRefresh = (e: MessageEvent) => {
       if (e.data === "refresh") fetchEmployees();
     };
+    const handleEventRefresh = () => fetchEmployees();
     const bc = new BroadcastChannel("rayhar_leave_refresh");
     bc.addEventListener("message", handleRefresh);
-    return () => bc.close();
+    window.addEventListener("rayhar_company_switched", handleEventRefresh);
+    window.addEventListener("rayhar_leave_refresh", handleEventRefresh);
+    return () => {
+      bc.close();
+      window.removeEventListener("rayhar_company_switched", handleEventRefresh);
+      window.removeEventListener("rayhar_leave_refresh", handleEventRefresh);
+    };
   }, []);
 
   if (roleLoading) {
@@ -557,6 +564,21 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
   const [checkedEmployees, setCheckedEmployees] = useState<string[]>([]);
   const [carryToYear, setCarryToYear] = useState<string>(new Date().getFullYear().toString());
 
+  useEffect(() => {
+    const cid = sessionStorage.getItem("rayhar_active_company_id") || localStorage.getItem("rayhar_active_company_id") || "1";
+    fetch(`${API_BASE_URL}/api/multi-company/companies/${encodeURIComponent(cid)}/leave-settings`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (d?.success && Array.isArray(d.leave_types)) {
+          const annual = d.leave_types.find((l: any) => l.leave_type === "Annual Leave");
+          if (annual && annual.default_entitlement_days !== undefined && annual.default_entitlement_days !== null) {
+            setLeaveDays(Number(annual.default_entitlement_days));
+          }
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   // Mode 2: OT convert state variables
   const [selectedEmp, setSelectedEmp] = useState<any | null>(null);
   const [selectedOTs, setSelectedOTs] = useState<string[]>([]);
@@ -598,7 +620,7 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           leaveType: "Annual Leave",
-          adjustmentDays: leaveDays - (emp.annual_leave_entitlement || 14), // Rough estimate of difference for base allocation
+          adjustmentDays: leaveDays - Number(emp.annual_leave_entitlement ?? 14), // Difference from current base entitlement
           reason: "Annual Base Allocation",
           approvedBy: "HR Admin"
         })
@@ -1654,7 +1676,13 @@ function AdditionalLeaveAllocationForm({ employees, onCancel, onRefresh }: { emp
               <div className="grid grid-cols-3 gap-4 bg-muted/20 p-3 rounded-lg border border-border/50 text-xs">
                 <div>
                   <span className="text-foreground block">Current Balance</span>
-                  <span className="font-bold text-foreground text-sm">14 Days</span>
+                  <span className="font-bold text-foreground text-sm">
+                    {leaveType.includes("Sick")
+                      ? (selectedEmp.medical_leave_balance ?? selectedEmp.medical_leave_entitlement ?? 14)
+                      : leaveType.includes("Replacement")
+                        ? (selectedEmp.replacement_leave_balance ?? 0)
+                        : (selectedEmp.annual_leave_balance ?? selectedEmp.annual_leave_entitlement ?? 14)} Days
+                  </span>
                 </div>
                 <div>
                   <span className="text-foreground block">Department</span>
@@ -1787,17 +1815,34 @@ function ManualLeaveAdjustmentForm({
             const replacementBalance = replacementAdj - replacementTaken;
 
             // Build balances object from analytics
+            const annualBaseEnt = Number(
+              profile.annual_leave_entitlement ??
+              data.analytics?.leave?.annual?.entitlement ??
+              selectedEmp.annual_leave_entitlement ??
+              14
+            );
+            const sickBaseEnt = Number(
+              profile.medical_leave_entitlement ??
+              data.analytics?.leave?.sick?.entitlement ??
+              selectedEmp.medical_leave_entitlement ??
+              14
+            );
+            const annualTakenDays = Number(
+              data.analytics?.leave?.annual?.taken ??
+              data.analytics?.leave?.used ??
+              Math.max(0, annualBaseEnt - Number(data.analytics?.leave?.remaining ?? annualBaseEnt))
+            );
             const balances = {
               "Annual & Emergency Leave": {
-                  entitlement: Number(profile.annual_leave_entitlement) || 14,
-                  balance: data.analytics.leave.remaining,
-                  taken: (Number(profile.annual_leave_entitlement) || 14) - data.analytics.leave.remaining,
+                  entitlement: annualBaseEnt,
+                  balance: Number(data.analytics?.leave?.remaining ?? Math.max(0, annualBaseEnt - annualTakenDays)),
+                  taken: annualTakenDays,
                   adjustments: Number(profile.total_adjustment) || 0,
               },
               "Sick Leave (MC)": {
-                  entitlement: Number(profile.medical_leave_entitlement) || 14,
-                  balance: data.analytics.leave.sick.balance - data.analytics.leave.sick.taken,
-                  taken: data.analytics.leave.sick.taken,
+                  entitlement: sickBaseEnt,
+                  balance: Math.max(0, sickBaseEnt + (Number(profile.medical_adj) || 0) - Number(data.analytics?.leave?.sick?.taken || 0)),
+                  taken: Number(data.analytics?.leave?.sick?.taken || 0),
                   adjustments: Number(profile.medical_adj) || 0,
               },
               "Replacement Leave": {
@@ -1818,7 +1863,9 @@ function ManualLeaveAdjustmentForm({
         } catch (err) {
           console.error("Failed to fetch balance", err);
           if (isMounted) {
-            const fallback = { "Annual & Emergency Leave": 14, "Replacement Leave": 0, "Sick Leave (MC)": 14, "Unpaid Leave": 0 };
+            const fallbackAnnual = Number(selectedEmp?.annual_leave_entitlement ?? 14);
+            const fallbackSick = Number(selectedEmp?.medical_leave_entitlement ?? 14);
+            const fallback = { "Annual & Emergency Leave": fallbackAnnual, "Replacement Leave": 0, "Sick Leave (MC)": fallbackSick, "Unpaid Leave": 0 };
             setLeaveBalances(fallback);
           }
         }
@@ -1846,15 +1893,15 @@ function ManualLeaveAdjustmentForm({
 
   if (selectedEmp) {
     if (leaveBalances && leaveBalances[mappedType] && typeof leaveBalances[mappedType] === "object") {
-      entitlement = leaveBalances[mappedType].entitlement || 0;
-      currentBalance = leaveBalances[mappedType].balance || 0;
-      currentAdjustments = leaveBalances[mappedType].adjustments || 0;
-      approvedLeaveTaken = leaveBalances[mappedType].taken || 0;
+      entitlement = leaveBalances[mappedType].entitlement ?? 0;
+      currentBalance = leaveBalances[mappedType].balance ?? 0;
+      currentAdjustments = leaveBalances[mappedType].adjustments ?? 0;
+      approvedLeaveTaken = leaveBalances[mappedType].taken ?? 0;
     } else {
       // Fallback
       entitlement = mappedType === "Annual & Emergency Leave" 
-        ? (selectedEmp.annual_leave_entitlement || 14) 
-        : (mappedType === "Sick Leave (MC)" ? 14 : 0);
+        ? Number(selectedEmp.annual_leave_entitlement ?? 14) 
+        : (mappedType === "Sick Leave (MC)" ? Number(selectedEmp.medical_leave_entitlement ?? 14) : 0);
       currentBalance = (leaveBalances && typeof leaveBalances[mappedType] === "number") ? leaveBalances[mappedType] : entitlement;
       currentAdjustments = 0;
       approvedLeaveTaken = entitlement - currentBalance;

@@ -8558,7 +8558,7 @@ app.get("/api/user-details/:identifier", async (req, res) => {
 
     const normUserRole = safeLower(user.role).replace(/\s+/g, "_");
     const [uCompRows] = await pool.query(
-      "SELECT cur.company_id, cur.role_id, r.scope_type FROM company_user_roles cur LEFT JOIN roles r ON cur.role_id = r.id WHERE cur.user_id = ? AND cur.status = 'active' ORDER BY cur.is_default DESC LIMIT 1",
+      "SELECT cur.company_id, cur.role_id, r.scope_type FROM company_user_roles cur LEFT JOIN roles r ON cur.role_id = r.id WHERE cur.user_id = ? AND cur.status = 'active' ORDER BY cur.company_id DESC, cur.is_default DESC LIMIT 1",
       [user.user_id]
     );
     const assignedCompanyId = uCompRows[0]?.company_id || (user.branch === 'RAYRENT' ? 2 : 1);

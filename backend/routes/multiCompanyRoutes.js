@@ -2001,6 +2001,80 @@ function createMultiCompanyRouter(pgPool) {
   }
   ensureRayharLeaveWorkflowSeeded();
 
+  // Synchronize company default leave entitlements (from leave_settings) into profiles for all employees of a company
+  async function syncCompanyLeaveEntitlementsToProfiles(companyId) {
+    try {
+      const cId = parseInt(companyId, 10) || 1;
+      const lsRes = await pgPool.query(
+        'SELECT leave_type, default_entitlement_days FROM leave_settings WHERE company_id = $1',
+        [cId]
+      );
+      if (!lsRes.rows || lsRes.rows.length === 0) return;
+
+      const annualRow = lsRes.rows.find((r) => r.leave_type === 'Annual Leave');
+      const sickRow = lsRes.rows.find((r) => r.leave_type === 'Sick Leave');
+      const annualDays = annualRow?.default_entitlement_days !== undefined && annualRow?.default_entitlement_days !== null
+        ? parseInt(annualRow.default_entitlement_days, 10)
+        : null;
+      const sickDays = sickRow?.default_entitlement_days !== undefined && sickRow?.default_entitlement_days !== null
+        ? parseInt(sickRow.default_entitlement_days, 10)
+        : null;
+
+      if (annualDays === null && sickDays === null) return;
+
+      if (cId === 1) {
+        await pgPool.query(
+          `UPDATE profiles p
+           SET
+             annual_leave_entitlement = COALESCE($1, p.annual_leave_entitlement, 14),
+             medical_leave_entitlement = COALESCE($2, p.medical_leave_entitlement, 14)
+           WHERE NOT EXISTS (
+             SELECT 1 FROM company_user_roles cur_sub
+             WHERE cur_sub.user_id = p.user_id AND cur_sub.company_id != 1 AND cur_sub.status = 'active'
+           )
+           AND NOT EXISTS (
+             SELECT 1 FROM branches b_sub
+             WHERE UPPER(b_sub.code) = UPPER(p.branch) AND b_sub.company_id IS NOT NULL AND b_sub.company_id != 1
+           )`,
+          [annualDays, sickDays]
+        );
+      } else {
+        await pgPool.query(
+          `UPDATE profiles p
+           SET
+             annual_leave_entitlement = COALESCE($1, p.annual_leave_entitlement, 14),
+             medical_leave_entitlement = COALESCE($2, p.medical_leave_entitlement, 14)
+           WHERE p.user_id IN (
+             SELECT cur.user_id FROM company_user_roles cur
+             WHERE cur.company_id = $3 AND cur.status = 'active'
+           )
+           OR UPPER(p.branch) IN (
+             SELECT UPPER(b.code) FROM branches b WHERE b.company_id = $3
+           )
+           OR ($3 = 2 AND UPPER(p.branch) = 'RAYRENT')
+           OR ($3 = 3 AND UPPER(p.branch) LIKE 'RV%')`,
+          [annualDays, sickDays, cId]
+        );
+      }
+    } catch (e) {
+      console.warn('Could not sync company leave entitlements to profiles:', e.message);
+    }
+  }
+
+  async function syncAllCompaniesLeaveEntitlementsToProfiles() {
+    try {
+      const compRes = await pgPool.query(
+        'SELECT id FROM companies ORDER BY CASE WHEN id = 1 THEN 0 ELSE 1 END ASC, id ASC'
+      );
+      for (const comp of compRes.rows) {
+        await syncCompanyLeaveEntitlementsToProfiles(comp.id);
+      }
+    } catch (e) {
+      console.warn('Could not run startup leave entitlement sync:', e.message);
+    }
+  }
+  syncAllCompaniesLeaveEntitlementsToProfiles();
+
   // GET leave settings & approval workflow
   router.get('/companies/:companyId/leave-settings', async (req, res) => {
     try {
@@ -2065,6 +2139,14 @@ function createMultiCompanyRouter(pgPool) {
            updated_at = CURRENT_TIMESTAMP`,
         [companyId, annual_days, sick_days, emergency_days, replacement_days, unpaid_days, escalate_to_parent, mc_required]
       );
+
+      // Sync updated baseline entitlements into profiles of employees assigned to this company
+      await syncCompanyLeaveEntitlementsToProfiles(companyId);
+
+      if (typeof global.broadcastPresenceUpdate === 'function') {
+        global.broadcastPresenceUpdate({ type: 'refresh' });
+        global.broadcastPresenceUpdate({ type: 'leave-status', companyId, refresh: true });
+      }
 
       const updated = await pgPool.query('SELECT * FROM leave_settings WHERE company_id = $1 ORDER BY id ASC', [companyId]);
       await logAudit(req, 'LEAVE_SETTINGS_UPDATE', `Updated leave entitlement policies for company ${companyId}`, null, updated.rows, companyId);
@@ -2281,6 +2363,10 @@ function createMultiCompanyRouter(pgPool) {
         `, [user_id, company_id, targetRoleId, branch_id || null, department_id || null, status, is_default]);
       }
 
+      if (status === 'active') {
+        await syncCompanyLeaveEntitlementsToProfiles(company_id);
+      }
+
       const compRes = await pgPool.query('SELECT company_name FROM companies WHERE id = $1', [company_id]);
       const compName = compRes.rows[0]?.company_name || `Company #${company_id}`;
 
@@ -2408,6 +2494,8 @@ function createMultiCompanyRouter(pgPool) {
           VALUES ($1, $2, $3, $4);
         `, [employee_id, finalRoleName, finalRoleId, finalDept]);
       }
+
+      await syncCompanyLeaveEntitlementsToProfiles(new_company_id);
 
       await logAudit(req, 'EMPLOYEE_TRANSFER', `Transferred employee ${emp.full_name} (${employee_id}) to ${newCompanyName}`, { company: emp.current_company_name }, { company: newCompanyName }, new_company_id);
 
