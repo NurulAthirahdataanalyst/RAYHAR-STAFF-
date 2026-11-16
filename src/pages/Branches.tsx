@@ -1,4 +1,5 @@
 import { sanitizeUrl, safeFileUrl } from '@/utils/security';
+import { LeaveStatusDecisionBy } from "@/components/leave/ApprovalHistoryTimeline";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -2284,9 +2285,20 @@ export default function Branches() {
                                 Status
                               </span>
                               <p
-                                className={`font-black uppercase ${req.status === "Rejected" ? "text-rose-600" : "text-[#942392]"}`}
+                                className={`font-black uppercase ${
+                                  req.status === "Rejected" ? "text-rose-600" :
+                                  req.status === "Approved" ? "text-emerald-600" :
+                                  "text-[#942392]"
+                                }`}
                               >
                                 {req.status}
+                                <LeaveStatusDecisionBy
+                                  status={req.status}
+                                  approvalHistory={Array.isArray(req.approval_history) ? req.approval_history : []}
+                                  approverRole={req.approver_role}
+                                  branch={selectedBranch?.code}
+                                  department={selectedEmployee?.department}
+                                />
                               </p>
                             </div>
                           </div>

@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ApprovalHistoryTimeline } from "@/components/leave/ApprovalHistoryTimeline";
+import { ApprovalHistoryTimeline, LeaveStatusDecisionBy } from "@/components/leave/ApprovalHistoryTimeline";
 import { LeaveDiscussionCard } from "@/components/leave/LeaveDiscussionCard";
 import { parseCutiGantiRows, getCleanReason } from "@/lib/leaveStorage";
 
@@ -408,7 +408,15 @@ export default function TeamLeaveRequests() {
       </div>
 
       <Dialog open={!!selectedRequest} onOpenChange={(open) => !open && setSelectedRequest(null)}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto border-none shadow-2xl rounded-[32px] p-0 safe-area-bottom">
+        <DialogContent
+          onOpenAutoFocus={(e) => {
+            e.preventDefault();
+            const el = e.currentTarget as HTMLElement;
+            el.focus({ preventScroll: true });
+            el.scrollTop = 0;
+          }}
+          className="max-w-3xl max-h-[90vh] overflow-y-auto border-none shadow-2xl rounded-[32px] p-0 safe-area-bottom"
+        >
           {selectedRequest && (
             <>
               <div className="p-6 bg-gradient-to-br from-[#942392] to-[#a855f7] text-white print:hidden">
@@ -449,13 +457,19 @@ export default function TeamLeaveRequests() {
                     </div>
                     <div className="space-y-1 col-span-2 sm:col-span-1">
                       <span className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50">Status</span>
-                      <p className={`font-black uppercase ${selectedRequest.status === "Rejected" ? "text-rose-600" : "text-[#942392]"}`}>
+                      <p className={`font-black uppercase ${
+                        selectedRequest.status === "Rejected" ? "text-rose-600" :
+                        selectedRequest.status === "Approved" ? "text-emerald-600" :
+                        "text-[#942392]"
+                      }`}>
                         {getDisplayStatus(selectedRequest.status, selectedRequest.branch, selectedRequest.company_name)}
-                        {selectedRequest.status === "Rejected" && selectedRequest.approverRole && (
-                          <span className="block text-[8px] print:text-[13px] text-rose-500 mt-0.5 opacity-60">
-                            (by: {formatRole(selectedRequest.approverRole)})
-                          </span>
-                        )}
+                        <LeaveStatusDecisionBy
+                          status={selectedRequest.status}
+                          approvalHistory={selectedRequest.approvalHistory}
+                          approverRole={selectedRequest.approverRole}
+                          branch={selectedRequest.branch}
+                          department={selectedRequest.department}
+                        />
                       </p>
                     </div>
                   </div>

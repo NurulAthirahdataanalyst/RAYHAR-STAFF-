@@ -102,14 +102,17 @@ export const LeaveDiscussionTimeline: React.FC<LeaveDiscussionTimelineProps> = (
   messages,
   currentUserId,
 }) => {
-  const bottomRef = useRef<HTMLDivElement | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const prevCountRef = useRef<number>(0);
 
   useEffect(() => {
     if (messages.length > 0 && messages.length !== prevCountRef.current) {
       const behavior: ScrollBehavior = prevCountRef.current === 0 ? "auto" : "smooth";
       requestAnimationFrame(() => {
-        bottomRef.current?.scrollIntoView({ behavior, block: "nearest" });
+        const container = scrollContainerRef.current;
+        if (container) {
+          container.scrollTo({ top: container.scrollHeight, behavior });
+        }
       });
     }
     prevCountRef.current = messages.length;
@@ -131,7 +134,7 @@ export const LeaveDiscussionTimeline: React.FC<LeaveDiscussionTimelineProps> = (
   }
 
   return (
-    <div className="max-h-[380px] overflow-y-auto pr-1 space-y-0">
+    <div ref={scrollContainerRef} className="max-h-[360px] overflow-y-auto custom-scrollbar pr-2 space-y-0">
       {messages.map((msg, idx) => {
         const isSystem =
           msg.message_type === "system" ||
@@ -194,7 +197,7 @@ export const LeaveDiscussionTimeline: React.FC<LeaveDiscussionTimelineProps> = (
                       )}
                     </span>
                     <span
-                      className={`inline-flex items-center px-2.5 py-0.5 text-[10px] tracking-wider font-black uppercase rounded-full border shadow-2xs ${
+                      className={`inline-flex items-center px-2 py-[1px] text-[9px] leading-4 tracking-wider font-black uppercase rounded-full border shadow-2xs ${
                         isSystem
                           ? "bg-[#942392]/10 text-[#942392] border-[#942392]/25 dark:text-[#f3a8f1]"
                           : isEmployee
@@ -282,7 +285,6 @@ export const LeaveDiscussionTimeline: React.FC<LeaveDiscussionTimelineProps> = (
           </React.Fragment>
         );
       })}
-      <div ref={bottomRef} />
     </div>
   );
 };

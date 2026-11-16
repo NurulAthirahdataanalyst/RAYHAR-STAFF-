@@ -563,6 +563,7 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
   const [empSearchText, setEmpSearchText] = useState("");
   const [checkedEmployees, setCheckedEmployees] = useState<string[]>([]);
   const [carryToYear, setCarryToYear] = useState<string>(new Date().getFullYear().toString());
+  const [isAllocating, setIsAllocating] = useState(false);
 
   useEffect(() => {
     const cid = sessionStorage.getItem("rayhar_active_company_id") || localStorage.getItem("rayhar_active_company_id") || "1";
@@ -612,43 +613,90 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
     const uniqueBranches = ["All", ...new Set(employees.map(e => e.branch).filter(Boolean))];
   const uniqueDepts = ["All", ...new Set(employees.map(e => e.department).filter(Boolean))];
 
-  const handleGrant = () => {
-    // Audit Log for localStorage
-    const newLogs = filtered.map(emp => {
-      fetch(`${API_BASE_URL}/api/profiles/${emp.user_id}/leave-adjustments`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          leaveType: "Annual Leave",
-          adjustmentDays: leaveDays - Number(emp.annual_leave_entitlement ?? 14), // Difference from current base entitlement
-          reason: "Annual Base Allocation",
-          approvedBy: "HR Admin"
-        })
+  const handleGrant = async () => {
+    if (isAllocating || filtered.length === 0) return;
+    setIsAllocating(true);
+    try {
+      const updates = filtered.map((emp) => {
+        const baseEntitlement = Number(emp.annual_leave_entitlement ?? 14);
+        const currentAdj = Number(emp.annual_adj ?? 0);
+        const currentAllocated = baseEntitlement + currentAdj;
+        const delta = leaveDays - currentAllocated;
+        return { emp, currentAllocated, delta };
       });
-      return buildHistoryLog({
-        employee_id: emp.user_id,
-        employee_name: emp.full_name,
-        branch: emp.branch || 'HQ',
-        department: emp.department || '',
-        leave_type: "Annual & Emergency Leave",
-        action: `Annual Leave Allocation (${leaveYear})`,
-        action_type: 'Initial Allocation',
-        previous_balance: 0,
-        adjustment: leaveDays,
-        new_balance: leaveDays,
-        reason: `Base annual entitlement for ${leaveYear}`,
-        performed_by: performedByStr,
-        performed_role: 'HR Admin',
-        source_module: 'Annual Leave Allocation',
-      });
-    });
-    newLogs.forEach(log => appendHistoryLog(log));
 
-    toast({
-      title: "Annual Leave Allocated",
-      description: `Successfully allocated base ${leaveDays} days for year ${leaveYear} to ${filtered.length} employees.`,
-    });
-    onCancel();
+      const changedUpdates = updates.filter((u) => u.delta !== 0);
+      if (changedUpdates.length === 0) {
+        toast({
+          title: "Already Up to Date",
+          description: `All ${filtered.length} selected employees already have ${leaveDays} days allocated.`,
+        });
+        onCancel();
+        return;
+      }
+
+      const results = await Promise.all(
+        changedUpdates.map(async ({ emp, delta }) => {
+          const response = await fetch(`${API_BASE_URL}/api/profiles/${emp.user_id}/leave-adjustments`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              leaveType: "Annual Leave",
+              adjustmentDays: delta,
+              reason: "Annual Base Allocation",
+              approvedBy: "HR Admin",
+            }),
+          });
+          if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            throw new Error(errData.error || `Failed to update ${emp.full_name}`);
+          }
+          return emp.user_id;
+        })
+      );
+
+      changedUpdates.forEach(({ emp, currentAllocated, delta }) => {
+        appendHistoryLog(
+          buildHistoryLog({
+            employee_id: emp.user_id,
+            employee_name: emp.full_name,
+            branch: emp.branch || "HQ",
+            department: emp.department || "",
+            leave_type: "Annual & Emergency Leave",
+            action: `Annual Leave Allocation (${leaveYear})`,
+            action_type: "Initial Allocation",
+            previous_balance: currentAllocated,
+            adjustment: delta,
+            new_balance: leaveDays,
+            reason: `Base annual entitlement for ${leaveYear}`,
+            performed_by: performedByStr,
+            performed_role: "HR Admin",
+            source_module: "Annual Leave Allocation",
+          })
+        );
+      });
+
+      try {
+        new BroadcastChannel("rayhar_leave_refresh").postMessage("refresh");
+        window.dispatchEvent(new StorageEvent("storage", { key: "rayhar_employee_leave_balances" }));
+      } catch (e) {}
+      if (onRefresh) await onRefresh();
+
+      toast({
+        title: "Annual Leave Allocated",
+        description: `Successfully set Annual Leave allocation to ${leaveDays} days for ${results.length} employee${results.length > 1 ? "s" : ""}.`,
+      });
+      onCancel();
+    } catch (err) {
+      console.error("Failed to allocate annual leave:", err);
+      toast({
+        title: "Allocation Failed",
+        description: err instanceof Error ? err.message : "Failed to update leave allocation in database.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAllocating(false);
+    }
   };
 
   const handleOTAllocate = () => {
@@ -990,8 +1038,11 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
             </div>
 
             <div className="flex justify-end gap-3 border-t pt-4">
-              <Button variant="outline" size="sm" onClick={onCancel} className="text-xs uppercase font-black tracking-wider">Cancel</Button>
-              <Button size="sm" onClick={handleGrant} className="bg-sky-600 hover:bg-sky-700 text-white text-xs uppercase font-black tracking-wider">Allocate Base Leave</Button>
+              <Button variant="outline" size="sm" onClick={onCancel} disabled={isAllocating} className="text-xs uppercase font-black tracking-wider">Cancel</Button>
+              <Button size="sm" onClick={handleGrant} disabled={isAllocating || filtered.length === 0} className="bg-sky-600 hover:bg-sky-700 text-white text-xs uppercase font-black tracking-wider">
+                {isAllocating ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : null}
+                Allocate Base Leave
+              </Button>
             </div>
           </>
         ) : (
@@ -1117,6 +1168,7 @@ function CarryForwardLeaveForm({
   const [empSearchText, setEmpSearchText] = useState("");
   const [checkedEmployees, setCheckedEmployees] = useState<string[]>([]);
   const [carryToYear, setCarryToYear] = useState<string>(new Date().getFullYear().toString());
+  const [isAllocating, setIsAllocating] = useState(false);
   const [maxCarry, setMaxCarry] = useState(5);
   const [expiryDate, setExpiryDate] = useState("2027-03-31");
 

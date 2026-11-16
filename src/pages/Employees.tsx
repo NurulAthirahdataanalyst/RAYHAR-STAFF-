@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { MonthPicker } from '@/components/shared/MonthPicker';
 import { TableScrollTopButton } from '@/components/shared/TableScrollTopButton';
 import { useRole } from "@/contexts/RoleContext";
+import { LeaveStatusDecisionBy } from "@/components/leave/ApprovalHistoryTimeline";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -1955,8 +1956,19 @@ export default function Employees() {
                       </div>
                       <div className="space-y-1 print:space-y-1.5">
                         <span className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50">Status</span>
-                        <p className={`font-black uppercase ${req.status === "Rejected" ? "text-rose-600" : "text-[#942392]"}`}>
+                        <p className={`font-black uppercase ${
+                          req.status === "Rejected" ? "text-rose-600" :
+                          req.status === "Approved" ? "text-emerald-600" :
+                          "text-[#942392]"
+                        }`}>
                           {req.status}
+                          <LeaveStatusDecisionBy
+                            status={req.status}
+                            approvalHistory={Array.isArray(req.approval_history) ? req.approval_history : []}
+                            approverRole={req.approver_role}
+                            branch={selectedEmployee?.branch}
+                            department={selectedEmployee?.department}
+                          />
                         </p>
                       </div>
                     </div>

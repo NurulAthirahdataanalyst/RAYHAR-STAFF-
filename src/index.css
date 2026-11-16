@@ -580,6 +580,19 @@ input[type=range]::-moz-range-thumb {
   scrollbar-width: none;  /* Firefox */
 }
 
+/* Re-enable visible thin scrollbar for .custom-scrollbar containers */
+.custom-scrollbar {
+  -ms-overflow-style: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+.dark .custom-scrollbar {
+  scrollbar-color: #334155 transparent;
+}
+.custom-scrollbar::-webkit-scrollbar {
+  display: block;
+}
+
 /* Custom Checkbox */
 .check {
   cursor: pointer;

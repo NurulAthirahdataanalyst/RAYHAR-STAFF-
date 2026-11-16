@@ -10,7 +10,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { ApprovalHistoryTimeline } from "@/components/leave/ApprovalHistoryTimeline";
+import { ApprovalHistoryTimeline, LeaveStatusDecisionBy } from "@/components/leave/ApprovalHistoryTimeline";
 import { LeaveDiscussionCard } from "@/components/leave/LeaveDiscussionCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -239,7 +239,15 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role, onApprove, o
 
   return (
     <Dialog open={!!selectedRequest} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] overflow-y-auto border-none shadow-2xl rounded-[32px] p-0 safe-area-bottom">
+      <DialogContent
+        onOpenAutoFocus={(e) => {
+          e.preventDefault();
+          const el = e.currentTarget as HTMLElement;
+          el.focus({ preventScroll: true });
+          el.scrollTop = 0;
+        }}
+        className="max-w-4xl w-[95vw] max-h-[90vh] overflow-y-auto border-none shadow-2xl rounded-[32px] p-0 safe-area-bottom"
+      >
         {selectedRequest && (
           <>
             <div className="p-6 bg-gradient-to-br from-[#942392] to-[#a855f7] text-white print:hidden">
@@ -286,11 +294,13 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role, onApprove, o
                       "text-amber-600 dark:text-amber-400"
                     }`}>
                       {getDisplayStatus(selectedRequest.status, selectedRequest.branch, selectedRequest.companyName)}
-                      {selectedRequest.status === "Rejected" && selectedRequest.approverRole && (
-                        <span className="block text-[8px] print:text-[13px] text-rose-500 mt-0.5 opacity-60">
-                          (by: {formatRole(selectedRequest.approverRole)})
-                        </span>
-                      )}
+                      <LeaveStatusDecisionBy
+                        status={selectedRequest.status}
+                        approvalHistory={selectedRequest.approvalHistory}
+                        approverRole={selectedRequest.approverRole}
+                        branch={selectedRequest.branch}
+                        department={selectedRequest.department}
+                      />
                     </p>
                   </div>
                 </div>

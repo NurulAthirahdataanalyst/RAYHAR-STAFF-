@@ -3,7 +3,7 @@ import { sanitizeUrl, safeFileUrl, downloadUploadedFile, getMcAttachmentUrl, pre
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { ApprovalHistoryTimeline } from "@/components/leave/ApprovalHistoryTimeline";
+import { ApprovalHistoryTimeline, LeaveStatusDecisionBy } from "@/components/leave/ApprovalHistoryTimeline";
 import { LeaveDiscussionCard } from "@/components/leave/LeaveDiscussionCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -771,7 +771,15 @@ export default function LeaveFormView() {
 
       {/* Leave Form Dialog (Print/PDF View) */}
       <Dialog open={!!selectedForm} onOpenChange={(open) => !open && setSelectedForm(null)}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto border-none shadow-2xl rounded-[32px] p-0 safe-area-bottom">
+        <DialogContent
+          onOpenAutoFocus={(e) => {
+            e.preventDefault();
+            const el = e.currentTarget as HTMLElement;
+            el.focus({ preventScroll: true });
+            el.scrollTop = 0;
+          }}
+          className="max-w-3xl max-h-[90vh] overflow-y-auto border-none shadow-2xl rounded-[32px] p-0 safe-area-bottom"
+        >
           {selectedForm && (
             <>
               <div className="p-6 bg-gradient-to-br from-[#942392] to-[#a855f7] text-white print:hidden">
@@ -812,13 +820,19 @@ export default function LeaveFormView() {
                     </div>
                     <div className="space-y-1 col-span-2 sm:col-span-1">
                       <span className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50">Status</span>
-                      <p className={`font-black uppercase ${selectedForm.status === "Rejected" ? "text-[#ff0000]" : "text-[#942392]"}`}>
+                      <p className={`font-black uppercase ${
+                        selectedForm.status === "Rejected" ? "text-[#ff0000]" :
+                        selectedForm.status === "Approved" ? "text-emerald-600" :
+                        "text-[#942392]"
+                      }`}>
                         {selectedForm.status}
-                        {selectedForm.status === "Rejected" && selectedForm.approverRole && (
-                          <span className="block text-[8px] print:text-[13px] text-[#ff0000] mt-0.5 opacity-75">
-                            (by: {formatRole(selectedForm.approverRole)})
-                          </span>
-                        )}
+                        <LeaveStatusDecisionBy
+                          status={selectedForm.status}
+                          approvalHistory={selectedForm.approvalHistory}
+                          approverRole={selectedForm.approverRole}
+                          branch={selectedForm.branch}
+                          department={selectedForm.department}
+                        />
                       </p>
                     </div>
                   </div>

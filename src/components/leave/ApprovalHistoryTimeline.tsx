@@ -88,6 +88,80 @@ const formatRoleWithContext = (role?: string, department?: string, branch?: stri
   return role.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 };
 
+export interface FinalDecisionActor {
+  action: "Approved" | "Rejected";
+  name?: string;
+  roleLabel: string;
+}
+
+/**
+ * Resolves the final approver/rejector name and role label for a completed leave request.
+ */
+export function getFinalDecisionActor({
+  status,
+  approvalHistory = [],
+  approverRole,
+  branch,
+  department,
+}: {
+  status?: string;
+  approvalHistory?: ApprovalHistoryRecord[];
+  approverRole?: string;
+  branch?: string;
+  department?: string;
+}): FinalDecisionActor | null {
+  const normStatus = String(status || "").trim().toLowerCase();
+  const isRejected = normStatus === "rejected" || normStatus.startsWith("rejected");
+  const isApproved = normStatus === "approved";
+  if (!isRejected && !isApproved) return null;
+
+  const action: "Approved" | "Rejected" = isRejected ? "Rejected" : "Approved";
+  const targetKey = isRejected ? "rejected" : "approved";
+  const reversed = [...(approvalHistory || [])].reverse();
+  const matched =
+    reversed.find((h) => String(h.status || "").toLowerCase().includes(targetKey)) ||
+    reversed[0];
+
+  const rawName = String(matched?.approver_name || matched?.approver_id || "").trim();
+  const name =
+    rawName && rawName.toUpperCase() !== "APPROVER" && rawName.toUpperCase() !== "MANAGEMENT"
+      ? rawName.toUpperCase()
+      : undefined;
+
+  const rawRole = matched?.approver_role || approverRole;
+  const roleLabel = formatRoleWithContext(
+    rawRole,
+    matched?.approver_department || department,
+    matched?.approver_branch || branch
+  );
+
+  if (!name && !rawRole) return null;
+  return { action, name, roleLabel };
+}
+
+export const LeaveStatusDecisionBy: React.FC<{
+  status?: string;
+  approvalHistory?: ApprovalHistoryRecord[];
+  approverRole?: string;
+  branch?: string;
+  department?: string;
+}> = (props) => {
+  const actor = getFinalDecisionActor(props);
+  if (!actor) return null;
+
+  return (
+    <span
+      className={`block text-[9px] print:text-[13px] mt-0.5 normal-case font-bold ${
+        actor.action === "Rejected"
+          ? "text-rose-500"
+          : "text-emerald-600 dark:text-emerald-400"
+      }`}
+    >
+      (BY - {actor.name ? `${actor.name} (${actor.roleLabel})` : actor.roleLabel})
+    </span>
+  );
+};
+
 export const ApprovalHistoryTimeline: React.FC<ApprovalHistoryTimelineProps> = ({
   status,
   approverRole,
