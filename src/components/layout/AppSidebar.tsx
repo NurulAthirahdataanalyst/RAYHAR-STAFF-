@@ -724,7 +724,8 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         if (visibleChildren.length > 0) {
           isVisible = true;
           resolvedItem.children = visibleChildren;
-          if (item.path !== "/master" && !visibleChildren.some((c: any) => c.path === item.path)) {
+          const parentMatchesAnyDeclaredChild = item.children.some((c: any) => c.path === item.path);
+          if (parentMatchesAnyDeclaredChild && !visibleChildren.some((c: any) => c.path === item.path)) {
             resolvedItem.path = visibleChildren[0].path;
           }
         }
