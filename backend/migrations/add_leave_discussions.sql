@@ -1,4 +1,6 @@
 -- Leave Discussion & System Activity Schema for Supabase PostgreSQL
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS avatar_url TEXT;
+
 CREATE TABLE IF NOT EXISTS public.leave_discussions (
   id SERIAL PRIMARY KEY,
   leave_request_id INTEGER NOT NULL REFERENCES public.leave_requests(leave_id) ON DELETE CASCADE,

@@ -1974,6 +1974,58 @@ function getCompanyUserSqlFilter(req, columnExpr = "user_id") {
   return getCompanyUserSqlFilterById(raw, columnExpr);
 }
 
+function getEffectiveCompanyIdSql(profileAlias = "p") {
+  const p = toSafeSqlColumn(profileAlias);
+  return `COALESCE(
+    (SELECT cur_ls.company_id FROM company_user_roles cur_ls WHERE cur_ls.user_id = ${p}.user_id AND cur_ls.status = 'active' ORDER BY cur_ls.company_id DESC, cur_ls.is_default DESC LIMIT 1),
+    (SELECT b_ls.company_id FROM branches b_ls WHERE UPPER(b_ls.code) = UPPER(${p}.branch) LIMIT 1),
+    CASE WHEN UPPER(${p}.branch) LIKE 'RV%' THEN 3 WHEN UPPER(${p}.branch) = 'RAYRENT' THEN 2 ELSE 1 END
+  )`;
+}
+
+function getEffectiveAnnualEntitlementSql(profileAlias = "p") {
+  const p = toSafeSqlColumn(profileAlias);
+  return `COALESCE(
+    (SELECT ls_a.default_entitlement_days FROM leave_settings ls_a WHERE ls_a.company_id = ${getEffectiveCompanyIdSql(p)} AND ls_a.leave_type = 'Annual Leave' LIMIT 1),
+    ${p}.annual_leave_entitlement,
+    14
+  )`;
+}
+
+function getEffectiveMedicalEntitlementSql(profileAlias = "p") {
+  const p = toSafeSqlColumn(profileAlias);
+  return `COALESCE(
+    (SELECT ls_m.default_entitlement_days FROM leave_settings ls_m WHERE ls_m.company_id = ${getEffectiveCompanyIdSql(p)} AND ls_m.leave_type = 'Sick Leave' LIMIT 1),
+    ${p}.medical_leave_entitlement,
+    14
+  )`;
+}
+
+async function getCompanyLeaveEntitlements(companyId) {
+  const cid = parseInt(companyId, 10) || 1;
+  let annual = 14;
+  let medical = 14;
+  try {
+    const [rows] = await pool.query(
+      "SELECT leave_type, default_entitlement_days FROM leave_settings WHERE company_id = ?",
+      [cid]
+    );
+    if (Array.isArray(rows)) {
+      const aRow = rows.find((r) => r.leave_type === "Annual Leave");
+      const sRow = rows.find((r) => r.leave_type === "Sick Leave");
+      if (aRow && aRow.default_entitlement_days !== null && aRow.default_entitlement_days !== undefined) {
+        annual = parseInt(aRow.default_entitlement_days, 10);
+      }
+      if (sRow && sRow.default_entitlement_days !== null && sRow.default_entitlement_days !== undefined) {
+        medical = parseInt(sRow.default_entitlement_days, 10);
+      }
+    }
+  } catch (e) {
+    console.warn("Could not read company leave_settings:", e.message);
+  }
+  return { annual, medical };
+}
+
 // Helper: Resolve effective Authorization Scope for a user
 // Scopes: 'Own Data Only' | 'Branch Data Only' | 'Company Staff Data' | 'Parent Group Data'
 async function resolveUserScope(req, userId, requesterRole) {
@@ -2415,6 +2467,7 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
 
     // Auto-migrate leave_discussions & leave_discussion_reads tables
     try {
+      await connection.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS avatar_url TEXT;`);
       await connection.query(`
         CREATE TABLE IF NOT EXISTS leave_discussions (
           id SERIAL PRIMARY KEY,
@@ -4123,10 +4176,13 @@ app.post(["/api/signup", "/api/employees"], async (req, res) => {
       }
     }
 
+    const signupCompanyId = parseInt(req.body?.company_id || req.companyId || req.query?.company_id || 1, 10) || 1;
+    const companyLeaveDefaults = await getCompanyLeaveEntitlements(signupCompanyId);
+
     await connection.query(
-      `INSERT INTO profiles (user_id, full_name, email, password, branch, department, status, role, role_id, ic_number, phone, gender, dob, join_date, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`,
-      [userId, full_name, email, hashedPassword, branch, department || null, status || "Active", resolvedRoleName, resolvedRoleId, ic_number || null, phone || null, gender || null, dob || null, join_date || null]
+      `INSERT INTO profiles (user_id, full_name, email, password, branch, department, status, role, role_id, ic_number, phone, gender, dob, join_date, annual_leave_entitlement, medical_leave_entitlement, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`,
+      [userId, full_name, email, hashedPassword, branch, department || null, status || "Active", resolvedRoleName, resolvedRoleId, ic_number || null, phone || null, gender || null, dob || null, join_date || null, companyLeaveDefaults.annual, companyLeaveDefaults.medical]
     );
 
     await connection.query(
@@ -4134,7 +4190,6 @@ app.post(["/api/signup", "/api/employees"], async (req, res) => {
       [userId, resolvedRoleName, department || null, resolvedRoleId]
     );
 
-    const signupCompanyId = parseInt(req.body?.company_id || req.companyId || req.query?.company_id || 1, 10) || 1;
     try {
       await connection.query(
         "INSERT INTO company_user_roles (user_id, company_id, role_id, branch_id, department_id, is_default, status) VALUES (?, ?, ?, ?, ?, TRUE, 'active')",
@@ -4205,7 +4260,7 @@ app.get("/api/branch-employees", async (req, res) => {
         COALESCE(lr.rejected_leaves, 0) AS rejected_leaves,
         COALESCE(lr.total_leave_requests, 0) AS total_leave_requests,
         COALESCE(lr.mc_leaves, 0) AS mc_leaves,
-        GREATEST((COALESCE(p.annual_leave_entitlement, 14) + COALESCE(adj.total_adjustment, 0)) - COALESCE(lr.annual_days_used, 0), 0) AS annual_leave_balance,
+        GREATEST((${getEffectiveAnnualEntitlementSql("p")} + COALESCE(adj.total_adjustment, 0)) - COALESCE(lr.annual_days_used, 0), 0) AS annual_leave_balance,
         COALESCE(att.days_present, 0) AS days_present,
         LEAST(100, ROUND((COALESCE(att.days_present, 0)::numeric / NULLIF(EXTRACT(DAY FROM CURRENT_DATE), 0)) * 100)) AS attendance_rate,
         today.clock_in AS today_clock_in,
@@ -4398,8 +4453,8 @@ app.get("/api/leave-entitlements", async (req, res) => {
         p.branch,
         p.department,
         COALESCE(lr.annual_days_used, 0) AS annual_days_used,
-        (COALESCE(p.annual_leave_entitlement, 14) + COALESCE(adj.total_adjustment, 0)) AS total_entitled,
-        GREATEST((COALESCE(p.annual_leave_entitlement, 14) + COALESCE(adj.total_adjustment, 0)) - COALESCE(lr.annual_days_used, 0), 0) AS balance,
+        (${getEffectiveAnnualEntitlementSql("p")} + COALESCE(adj.total_adjustment, 0)) AS total_entitled,
+        GREATEST((${getEffectiveAnnualEntitlementSql("p")} + COALESCE(adj.total_adjustment, 0)) - COALESCE(lr.annual_days_used, 0), 0) AS balance,
         COALESCE(lr.pending_count, 0) AS pending,
         CASE
           WHEN COALESCE(lr.pending_count, 0) > 0 THEN 'Pending'
@@ -4489,9 +4544,12 @@ app.post("/api/profiles/:userId/leave-adjustments", async (req, res) => {
 app.get(["/api/profiles/:userId/leave-balance", "/api/leave-balance/:userId"], async (req, res) => {
   const userId = safeString(req.params.userId);
   try {
-    const compFilter = getCompanyUserSqlFilter(req, "user_id");
+    const compFilter = getCompanyUserSqlFilter(req, "p.user_id");
     // 1. Get Base Entitlements
-    const [profile] = await pool.query(`SELECT annual_leave_entitlement, medical_leave_entitlement FROM profiles WHERE user_id = ? ${compFilter}`, [userId]);
+    const [profile] = await pool.query(
+      `SELECT ${getEffectiveAnnualEntitlementSql("p")} AS annual_leave_entitlement, ${getEffectiveMedicalEntitlementSql("p")} AS medical_leave_entitlement FROM profiles p WHERE p.user_id = ? ${compFilter}`,
+      [userId]
+    );
     if (!profile.length) {
       return res.json({
         success: true,
@@ -4504,8 +4562,8 @@ app.get(["/api/profiles/:userId/leave-balance", "/api/leave-balance/:userId"], a
       });
     }
     
-    const baseAnnual = parseFloat(profile[0].annual_leave_entitlement || 14);
-    const baseMedical = parseFloat(profile[0].medical_leave_entitlement || 14);
+    const baseAnnual = parseFloat(profile[0].annual_leave_entitlement ?? 14);
+    const baseMedical = parseFloat(profile[0].medical_leave_entitlement ?? 14);
 
     // 2. Get Manual Adjustments
     const [adjustments] = await pool.query(`
@@ -4863,14 +4921,14 @@ app.get("/api/leave-requests", async (req, res) => {
         COALESCE(lr.phone, p.phone, '') AS phone,
         COALESCE(p_appr.full_name, '') AS approver_name,
         COALESCE(ur_approver.role, p_appr.role, '') AS approver_role,
-        GREATEST((COALESCE(p.annual_leave_entitlement, 14) + COALESCE(adj.annual_adj, 0)) - COALESCE(l_used.annual_days_used, 0), 0)::int AS annual_leave_balance,
-        GREATEST((COALESCE(p.medical_leave_entitlement, 14) + COALESCE(adj.medical_adj, 0)) - COALESCE(l_used.medical_days_used, 0), 0)::int AS medical_leave_balance,
+        GREATEST((${getEffectiveAnnualEntitlementSql("p")} + COALESCE(adj.annual_adj, 0)) - COALESCE(l_used.annual_days_used, 0), 0)::int AS annual_leave_balance,
+        GREATEST((${getEffectiveMedicalEntitlementSql("p")} + COALESCE(adj.medical_adj, 0)) - COALESCE(l_used.medical_days_used, 0), 0)::int AS medical_leave_balance,
         GREATEST(COALESCE(adj.replacement_adj, 0) - COALESCE(l_used.replacement_days_used, 0), 0)::int AS replacement_leave_balance,
         (
           CASE 
-            WHEN UPPER(lr.leave_type) IN ('SICK LEAVE', 'MEDICAL LEAVE', 'CUTI SAKIT') THEN GREATEST((COALESCE(p.medical_leave_entitlement, 14) + COALESCE(adj.medical_adj, 0)) - COALESCE(l_used.medical_days_used, 0), 0)
+            WHEN UPPER(lr.leave_type) IN ('SICK LEAVE', 'MEDICAL LEAVE', 'CUTI SAKIT') THEN GREATEST((${getEffectiveMedicalEntitlementSql("p")} + COALESCE(adj.medical_adj, 0)) - COALESCE(l_used.medical_days_used, 0), 0)
             WHEN UPPER(lr.leave_type) IN ('REPLACEMENT LEAVE', 'CUTI GANTI') THEN GREATEST(COALESCE(adj.replacement_adj, 0) - COALESCE(l_used.replacement_days_used, 0), 0)
-            ELSE GREATEST((COALESCE(p.annual_leave_entitlement, 14) + COALESCE(adj.annual_adj, 0)) - COALESCE(l_used.annual_days_used, 0), 0)
+            ELSE GREATEST((${getEffectiveAnnualEntitlementSql("p")} + COALESCE(adj.annual_adj, 0)) - COALESCE(l_used.annual_days_used, 0), 0)
           END
         )::int AS balance,
         (
@@ -5212,7 +5270,7 @@ app.post("/api/leave-requests", uploadLimiter, upload.single("lampiranMc"), asyn
   
   try {
     const [empRows] = await pool.query(`SELECT p.branch, p.department, p.full_name, p.role,
-      COALESCE(p.annual_leave_entitlement, 14) AS annual_leave_entitlement,
+      ${getEffectiveAnnualEntitlementSql("p")} AS annual_leave_entitlement,
       COALESCE(adj.total_adjustment, 0) AS total_adjustment
       FROM profiles p
       LEFT JOIN (
@@ -7598,8 +7656,11 @@ app.post("/api/employees/:userId/today-attendance", async (req, res) => {
 app.get("/api/employees/:userId/analytics", async (req, res) => {
   const userId = safeString(req.params.userId);
   try {
-    const compFilter = getCompanyUserSqlFilter(req, "user_id");
-    const [empRows] = await pool.query(`SELECT * FROM profiles WHERE user_id = ? ${compFilter}`, [userId]);
+    const compFilter = getCompanyUserSqlFilter(req, "p.user_id");
+    const [empRows] = await pool.query(
+      `SELECT p.*, ${getEffectiveAnnualEntitlementSql("p")} AS effective_annual_entitlement, ${getEffectiveMedicalEntitlementSql("p")} AS effective_medical_entitlement FROM profiles p WHERE p.user_id = ? ${compFilter}`,
+      [userId]
+    );
     if (empRows.length === 0) {
       return res.json({
         success: true,
@@ -7735,8 +7796,8 @@ app.get("/api/employees/:userId/analytics", async (req, res) => {
     });
 
     // Dynamic leave balance: entitlement + adjustments
-    const annualEntitlement = parseInt(employee.annual_leave_entitlement || 14);
-    const medicalEntitlement = parseInt(employee.medical_leave_entitlement || 14);
+    const annualEntitlement = parseInt(employee.effective_annual_entitlement ?? employee.annual_leave_entitlement ?? 14, 10);
+    const medicalEntitlement = parseInt(employee.effective_medical_entitlement ?? employee.medical_leave_entitlement ?? 14, 10);
     const totalAnnualAllowed = annualEntitlement + totalAdjustment;
     const totalMedicalAllowed = medicalEntitlement + medicalAdj;
     const totalLeaveBalance = totalAnnualAllowed + totalMedicalAllowed;
@@ -7848,14 +7909,14 @@ app.get("/api/employees", async (req, res) => {
         COALESCE(lr.rejected_leaves, 0) AS rejected_leaves,
         COALESCE(lr.total_leave_requests, 0) AS total_leave_requests,
         COALESCE(lr.mc_leaves, 0) AS mc_leaves,
-        p.annual_leave_entitlement,
-        p.medical_leave_entitlement,
+        ${getEffectiveAnnualEntitlementSql("p")}::int AS annual_leave_entitlement,
+        ${getEffectiveMedicalEntitlementSql("p")}::int AS medical_leave_entitlement,
         COALESCE(adj.annual_adj, 0) AS annual_adj,
         COALESCE(adj.medical_adj, 0) AS medical_adj,
         COALESCE(adj.replacement_adj, 0) AS replacement_adj,
         COALESCE(lr.annual_days_used, 0) AS annual_days_used,
-        GREATEST((COALESCE(p.annual_leave_entitlement, 14) + COALESCE(adj.annual_adj, 0)) - COALESCE(lr.annual_days_used, 0), 0)::int AS annual_leave_balance,
-        GREATEST((COALESCE(p.medical_leave_entitlement, 14) + COALESCE(adj.medical_adj, 0)) - COALESCE(lr.medical_days_used, 0), 0)::int AS medical_leave_balance,
+        GREATEST((${getEffectiveAnnualEntitlementSql("p")} + COALESCE(adj.annual_adj, 0)) - COALESCE(lr.annual_days_used, 0), 0)::int AS annual_leave_balance,
+        GREATEST((${getEffectiveMedicalEntitlementSql("p")} + COALESCE(adj.medical_adj, 0)) - COALESCE(lr.medical_days_used, 0), 0)::int AS medical_leave_balance,
         GREATEST(COALESCE(adj.replacement_adj, 0) - COALESCE(lr.replacement_days_used, 0), 0)::int AS replacement_leave_balance,
         COALESCE(att.days_present, 0) AS days_present,
         LEAST(100, ROUND((COALESCE(att.days_present, 0)::numeric / NULLIF(EXTRACT(DAY FROM CURRENT_DATE), 0)) * 100)) AS attendance_rate,
@@ -8437,7 +8498,8 @@ app.get("/api/user-details/:identifier", async (req, res) => {
         p.department,
         p.created_at,
         p.updated_at,
-        COALESCE(p.annual_leave_entitlement, 14)::int AS annual_leave_entitlement,
+        ${getEffectiveAnnualEntitlementSql("p")}::int AS annual_leave_entitlement,
+        ${getEffectiveMedicalEntitlementSql("p")}::int AS medical_leave_entitlement,
         b.operating_zone,
         COALESCE(adj.total_adjustment, 0)::int AS total_adjustment,
         COALESCE(adj.medical_adj, 0)::int AS medical_adj,
@@ -8537,12 +8599,12 @@ app.get("/api/user-details/:identifier", async (req, res) => {
         department: user.department, 
         created_at: user.created_at, 
         updated_at: user.updated_at,
-        annual_leave_entitlement: belongsToCompany ? user.annual_leave_entitlement : 0,
+        annual_leave_entitlement: belongsToCompany ? (user.annual_leave_entitlement ?? 14) : 0,
         operating_zone: user.operating_zone || 'ZONE_B',
         total_adjustment: belongsToCompany ? user.total_adjustment : 0,
         medical_adj: belongsToCompany ? user.medical_adj : 0,
         replacement_adj: belongsToCompany ? user.replacement_adj : 0,
-        medical_leave_entitlement: belongsToCompany ? (user.medical_leave_entitlement || 14) : 0,
+        medical_leave_entitlement: belongsToCompany ? (user.medical_leave_entitlement ?? 14) : 0,
         belongs_to_company: belongsToCompany,
         company_id: assignedCompanyId,
         role_id: user.role_id,
@@ -10323,7 +10385,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
          p.branch, 
          p.department,
          p.created_at,
-         p.annual_leave_entitlement,
+         ${getEffectiveAnnualEntitlementSql("p")} AS annual_leave_entitlement,
          COALESCE((SELECT SUM(adjustment_days) FROM leave_balance_adjustments WHERE employee_id = p.user_id AND UPPER(leave_type) IN ('ANNUAL LEAVE', 'ANNUAL & EMERGENCY LEAVE', 'ANNUAL/EMERGENCY LEAVE', 'CUTI TAHUNAN')), 0)::int AS annual_adjustment
        FROM profiles p WHERE p.user_id = ? ${personalCompPFilter}`,
       [userId]
@@ -10485,7 +10547,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
     );
     const quotaLeavesUsed = parseFloat(leaveRows[0].used_days || 0);
     const empData = empProfile[0] || {};
-    const baseEntitlement = empProfile.length > 0 ? parseFloat(empData.annual_leave_entitlement || 14) : 0;
+    const baseEntitlement = empProfile.length > 0 ? parseFloat(empData.annual_leave_entitlement ?? 14) : 0;
     const annualAdjustment = empProfile.length > 0 ? parseFloat(empData.annual_adjustment || 0) : 0;
     const totalEntitlement = Math.max(baseEntitlement + annualAdjustment, 0);
     const leaveBalance = empProfile.length > 0 ? Math.max(totalEntitlement - quotaLeavesUsed, 0) : 0;
@@ -12928,7 +12990,7 @@ app.get("/api/workforce-stats", async (req, res) => {
          p.department as dept,
          p.branch,
          COALESCE(lr.annual_days_used, 0) as taken,
-         CAST(COALESCE(p.annual_leave_entitlement, '14') AS NUMERIC) + CAST(COALESCE(adj.total_adjustment, 0) AS NUMERIC) as total
+         CAST(${getEffectiveAnnualEntitlementSql("p")} AS NUMERIC) + CAST(COALESCE(adj.total_adjustment, 0) AS NUMERIC) as total
        FROM profiles p
        LEFT JOIN (
          SELECT employee_id, SUM(adjustment_days) as total_adjustment 
@@ -13280,8 +13342,8 @@ app.get("/api/reports/workforce-leave-balance", async (req, res) => {
     // 1. Fetch Profiles
     const [profiles] = await pool.query(
       `SELECT p.user_id, p.full_name, p.branch, p.department, p.role as position,
-              COALESCE(p.annual_leave_entitlement, 14) as annual_entitlement,
-              COALESCE(p.medical_leave_entitlement, 14) as medical_entitlement,
+              ${getEffectiveAnnualEntitlementSql("p")} as annual_entitlement,
+              ${getEffectiveMedicalEntitlementSql("p")} as medical_entitlement,
               5 as emergency_entitlement
        FROM profiles p
        ${profileFilter}

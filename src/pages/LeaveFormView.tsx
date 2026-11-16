@@ -197,7 +197,7 @@ type FormTabFilter = "pending" | "approved" | "rejected" | "history";
 
 export default function LeaveFormView() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { userId, userName, userBranch } = useRole();
   const [forms, setForms] = useState<LeaveForm[]>([]);
   const [loading, setLoading] = useState(true);
@@ -389,9 +389,13 @@ export default function LeaveFormView() {
             document.getElementById("leave-discussion-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
           }, 250);
         }
+        const nextParams = new URLSearchParams(searchParams);
+        nextParams.delete("leaveId");
+        nextParams.delete("focus");
+        setSearchParams(nextParams, { replace: true });
       }
     }
-  }, [searchParams, forms]);
+  }, [searchParams, forms, setSearchParams]);
 
   // Fetch leave balance for selected form if missing
   useEffect(() => {
@@ -1074,7 +1078,9 @@ export default function LeaveFormView() {
                     role="employee"
                     onMarkedRead={(leaveId) => {
                       setForms((prev) =>
-                        prev.map((f) => (f.id === leaveId ? { ...f, unreadDiscussionCount: 0 } : f))
+                        prev.some((f) => f.id === leaveId && (f.unreadDiscussionCount ?? 0) > 0)
+                          ? prev.map((f) => (f.id === leaveId ? { ...f, unreadDiscussionCount: 0 } : f))
+                          : prev
                       );
                     }}
                   />

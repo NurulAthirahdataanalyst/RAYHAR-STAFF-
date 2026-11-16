@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Info, Loader2, Lock, MessageSquare, ShieldAlert, UserCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { API_BASE_URL } from "@/config/api";
@@ -61,6 +61,8 @@ export const LeaveDiscussionCard: React.FC<LeaveDiscussionCardProps> = ({
     Number(leaveRequest.unreadDiscussionCount || 0)
   );
   const [serverApproverLabel, setServerApproverLabel] = useState<string>("");
+  const onMarkedReadRef = useRef(onMarkedRead);
+  onMarkedReadRef.current = onMarkedRead;
 
   const permission = useMemo(
     () =>
@@ -112,10 +114,10 @@ export const LeaveDiscussionCard: React.FC<LeaveDiscussionCardProps> = ({
     if (!leaveId || !currentUserId || loading || !permission.canView) return;
     markLeaveDiscussionRead(leaveId, currentUserId)
       .then(() => {
-        onMarkedRead?.(leaveId);
+        onMarkedReadRef.current?.(leaveId);
       })
       .catch(() => {});
-  }, [leaveId, currentUserId, loading, permission.canView, messages.length, onMarkedRead]);
+  }, [leaveId, currentUserId, loading, permission.canView, messages.length]);
 
   // Live updates via existing SSE stream when another participant posts or status changes
   useEffect(() => {
@@ -153,7 +155,7 @@ export const LeaveDiscussionCard: React.FC<LeaveDiscussionCardProps> = ({
     });
     setMessages((prev) => [...prev, created]);
     setUnreadBannerCount(0);
-    onMarkedRead?.(leaveId);
+    onMarkedReadRef.current?.(leaveId);
   };
 
   if (!permission.canView) {
