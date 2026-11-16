@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ApprovalHistoryTimeline } from "@/components/leave/ApprovalHistoryTimeline";
+import { LeaveDiscussionCard } from "@/components/leave/LeaveDiscussionCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -16,7 +17,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { FileText, Printer, Loader2, ArrowLeft, PhoneCall, Eye, Calendar, MapPin, Clock, Check, X, Download, Upload } from "lucide-react";
+import { FileText, Printer, Loader2, ArrowLeft, PhoneCall, Eye, Calendar, MapPin, Clock, Check, X, Download, Upload, MessageSquare } from "lucide-react";
 import { useRole } from "@/contexts/RoleContext";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -90,6 +91,9 @@ const getDisplayStatus = (status: string, branch?: string, companyName?: string)
 
 type LeaveForm = {
   id: number;
+  user_id?: string;
+  created_by?: string;
+  employee_id?: string;
   employee: string;
   branch: string;
   department?: string;
@@ -131,6 +135,14 @@ type LeaveForm = {
     approver_department?: string;
     approver_branch?: string;
   }[];
+  workflowSteps?: {
+    step_order?: number;
+    step_label?: string;
+    role_name?: string;
+    branch_scope?: string;
+  }[];
+  discussionCount?: number;
+  unreadDiscussionCount?: number;
 };
 
 
@@ -270,6 +282,21 @@ export default function LeaveFormView() {
 
   useEffect(() => {
     void fetchForms();
+    if (!userId) return;
+    const sse = new EventSource(`${API_BASE_URL}/api/presence/stream`);
+    sse.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === "leave-discussion" || data.type === "leave-status") {
+          void fetchForms();
+        }
+      } catch {
+        // Ignore malformed SSE events
+      }
+    };
+    return () => {
+      sse.close();
+    };
   }, [userId]);
 
   const fetchForms = async () => {
@@ -281,7 +308,7 @@ export default function LeaveFormView() {
     setLoading(true);
     try {
       const response = await fetch(
-        `${API_BASE_URL}/api/leave-requests?userId=${encodeURIComponent(userId)}`
+        `${API_BASE_URL}/api/leave-requests?userId=${encodeURIComponent(userId)}&viewerId=${encodeURIComponent(userId)}`
       );
       const data = await response.json();
 
@@ -295,6 +322,9 @@ export default function LeaveFormView() {
 
         return {
           id: request.leave_id,
+          user_id: request.user_id,
+          created_by: request.created_by || request.user_id,
+          employee_id: request.employee_id || request.user_id,
           employee: request.full_name || userName,
           branch: request.branch || userBranch || "HQ",
           department: request.department,
@@ -321,6 +351,9 @@ export default function LeaveFormView() {
           balance: request.balance !== undefined && request.balance !== null ? Number(request.balance) : (request.annual_leave_balance !== undefined ? Number(request.annual_leave_balance) : undefined),
           phone: request.phone || "N/A",
           approvalHistory: request.approval_history || [],
+          workflowSteps: request.workflow_steps || [],
+          discussionCount: Number(request.discussion_count || 0),
+          unreadDiscussionCount: Number(request.unread_discussion_count || 0),
         };
       });
 
@@ -338,6 +371,7 @@ export default function LeaveFormView() {
   // Auto-open a specific leave form when navigated with ?leaveId=xxx
   useEffect(() => {
     const leaveId = searchParams.get("leaveId");
+    const focusParam = searchParams.get("focus");
     if (leaveId && forms.length > 0) {
       const match = forms.find((f) => f.id === Number(leaveId));
       if (match) {
@@ -349,6 +383,11 @@ export default function LeaveFormView() {
           setActiveTab("rejected");
         } else if (match.status.startsWith("Pending")) {
           setActiveTab("pending");
+        }
+        if (focusParam === "discussion") {
+          setTimeout(() => {
+            document.getElementById("leave-discussion-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
+          }, 250);
         }
       }
     }
@@ -562,16 +601,29 @@ export default function LeaveFormView() {
                         <TableCell className="px-6 py-4 text-foreground font-bold">{form.to}</TableCell>
                         <TableCell className="px-6 py-4 text-center font-black text-foreground">{form.days}</TableCell>
                         <TableCell className="px-6 py-4 text-center">
-                          <Badge
-                            className={`text-[10px] print:text-[13px] font-extrabold tracking-wider px-3 py-1 h-auto rounded-full border-[1.5px] whitespace-nowrap shadow-none ${
-                              form.status === "Approved" ? "bg-green-50 text-[#228b22] border-green-200 hover:bg-green-100 dark:bg-green-500/10 dark:border-green-500/20" :
-                              form.status === "Rejected" ? "bg-red-50 text-[#ff0000] border-red-200 hover:bg-red-100 dark:bg-red-500/10 dark:border-red-500/20 dark:text-[#ff0000]" :
-                              "bg-[#C2410C] text-white hover:bg-[#A3370A] border-transparent shadow-sm"
-                            }`}
-                            style={form.status !== "Approved" && form.status !== "Rejected" ? { backgroundColor: "#C2410C", color: "white" } : {}}
-                          >
-                            {getDisplayStatus(form.status, form.branch).toUpperCase()}
-                          </Badge>
+                          <div className="inline-flex flex-col items-center gap-1">
+                            <Badge
+                              className={`text-[10px] print:text-[13px] font-extrabold tracking-wider px-3 py-1 h-auto rounded-full border-[1.5px] whitespace-nowrap shadow-none ${
+                                form.status === "Approved" ? "bg-green-50 text-[#228b22] border-green-200 hover:bg-green-100 dark:bg-green-500/10 dark:border-green-500/20" :
+                                form.status === "Rejected" ? "bg-red-50 text-[#ff0000] border-red-200 hover:bg-red-100 dark:bg-red-500/10 dark:border-red-500/20 dark:text-[#ff0000]" :
+                                "bg-[#C2410C] text-white hover:bg-[#A3370A] border-transparent shadow-sm"
+                              }`}
+                              style={form.status !== "Approved" && form.status !== "Rejected" ? { backgroundColor: "#C2410C", color: "white" } : {}}
+                            >
+                              {getDisplayStatus(form.status, form.branch).toUpperCase()}
+                            </Badge>
+                            {(form.unreadDiscussionCount ?? 0) > 0 ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-[#942392] text-white shadow-2xs">
+                                <MessageSquare className="w-3 h-3" />
+                                {form.unreadDiscussionCount} New
+                              </span>
+                            ) : (form.discussionCount ?? 0) > 0 ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-muted text-muted-foreground border border-border/50">
+                                <MessageSquare className="w-3 h-3" />
+                                {form.discussionCount}
+                              </span>
+                            ) : null}
+                          </div>
                         </TableCell>
                         <TableCell className="px-6 py-4 text-right">
                           <div className="flex justify-end items-center gap-2">
@@ -674,6 +726,12 @@ export default function LeaveFormView() {
                         >
                           {getDisplayStatus(form.status, form.branch).toUpperCase()}
                         </Badge>
+                        {(form.unreadDiscussionCount ?? 0) > 0 && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black bg-[#942392] text-white">
+                            <MessageSquare className="w-2.5 h-2.5" />
+                            {form.unreadDiscussionCount} New
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1010,9 +1068,17 @@ export default function LeaveFormView() {
                     )}
                   </div>
 
-                  
+                  {/* Leave Discussion (Separate from Approval Comments) */}
+                  <LeaveDiscussionCard
+                    leaveRequest={selectedForm}
+                    role="employee"
+                    onMarkedRead={(leaveId) => {
+                      setForms((prev) =>
+                        prev.map((f) => (f.id === leaveId ? { ...f, unreadDiscussionCount: 0 } : f))
+                      );
+                    }}
+                  />
 
-                  
                   <div className="hidden print:block pt-24 mt-12 pb-2">
                     <div className="grid grid-cols-2 gap-16">
                       <div className="border-t border-foreground pt-2 text-center">

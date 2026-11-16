@@ -61,7 +61,8 @@ import {
   Building2, 
   MapPin, 
   ArrowRight,
-  ExternalLink
+  ExternalLink,
+  MessageSquare
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -150,6 +151,21 @@ export default function NotificationBell() {
     const isApprover = ["hr_admin", "managing_director", "operation_manager", "finance_manager", "head_of_department", "branch_leader", "assure_leader"].includes(role);
     const title = (notif.title || "").toLowerCase();
     const message = (notif.message || "").toLowerCase();
+
+    if (notif.type === "leave_discussion") {
+      if (notif.action_url) {
+        navigate(safeRedirectUrl(notif.action_url, "/leave/forms"));
+        return;
+      }
+      if (notif.related_leave_id) {
+        navigate(
+          notif.scope === "team" && isApprover
+            ? `/leave/admin?leaveId=${notif.related_leave_id}&focus=discussion`
+            : `/leave/forms?leaveId=${notif.related_leave_id}&focus=discussion`
+        );
+        return;
+      }
+    }
 
     // Check if this is a leave-related notification
     const isLeaveNotification = notif.type === "leave_approval" || 
@@ -244,6 +260,9 @@ export default function NotificationBell() {
     const type = (notif.type || "").toLowerCase();
     const title = (notif.title || "").toLowerCase();
 
+    if (type === "leave_discussion") {
+      return <MessageSquare className="w-4 h-4 text-[#942392]" />;
+    }
     if (type === "approval" || title.includes("approved")) {
       return <CheckCircle2 className="w-4 h-4 text-emerald-500" />;
     }

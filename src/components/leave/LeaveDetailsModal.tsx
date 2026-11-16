@@ -11,6 +11,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { ApprovalHistoryTimeline } from "@/components/leave/ApprovalHistoryTimeline";
+import { LeaveDiscussionCard } from "@/components/leave/LeaveDiscussionCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -124,9 +125,10 @@ interface LeaveDetailsModalProps {
   role: string;
   onApprove?: (id: number, currentStatus: string) => void;
   onReject?: (id: number, currentStatus: string) => void;
+  onMarkedRead?: (leaveId: number) => void;
 }
 
-export function LeaveDetailsModal({ selectedRequest, onClose, role, onApprove, onReject }: LeaveDetailsModalProps) {
+export function LeaveDetailsModal({ selectedRequest, onClose, role, onApprove, onReject, onMarkedRead }: LeaveDetailsModalProps) {
   const { user } = useAuth();
   const { userId } = useRole();
   const current_user_id = String(userId || user?.user_id || user?.id || "").trim();
@@ -550,6 +552,13 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role, onApprove, o
                     </div>
                   )}
                 </div>
+
+                {/* Leave Discussion (Separate from Approval Comments) */}
+                <LeaveDiscussionCard
+                  leaveRequest={selectedRequest}
+                  role={role}
+                  onMarkedRead={onMarkedRead}
+                />
 
                 <div className="hidden print:block pt-24 mt-12 pb-2">
                   <div className="grid grid-cols-2 gap-16">

@@ -203,14 +203,57 @@ function validateUploadedFile(file, maxSizeBytes = MAX_UPLOAD_FILE_SIZE) {
   };
 }
 
+const DISCUSSION_ALLOWED_EXTENSIONS = Object.freeze([
+  ".pdf",
+  ".jpg",
+  ".jpeg",
+  ".png",
+  ".docx",
+]);
+
+const DISCUSSION_ALLOWED_MIME_TYPES = Object.freeze([
+  "application/pdf",
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+]);
+
+/**
+ * Validates an uploaded Leave Discussion attachment (PDF, JPG, PNG, DOCX only).
+ *
+ * @param {any} file
+ * @param {number} [maxSizeBytes=MAX_UPLOAD_FILE_SIZE]
+ * @returns {{ valid: boolean, error?: string, safeExt?: string }}
+ */
+function validateDiscussionFile(file, maxSizeBytes = MAX_UPLOAD_FILE_SIZE) {
+  const base = validateUploadedFile(file, maxSizeBytes);
+  if (!base.valid) return base;
+
+  const ext = path.extname(path.basename(file.originalname)).toLowerCase();
+  if (!DISCUSSION_ALLOWED_EXTENSIONS.includes(ext)) {
+    return { valid: false, error: "Only PDF, JPG, PNG, and DOCX attachments are allowed" };
+  }
+
+  const normalizedMime = String(file.mimetype || "").split(";")[0].trim().toLowerCase();
+  if (!DISCUSSION_ALLOWED_MIME_TYPES.includes(normalizedMime)) {
+    return { valid: false, error: "Unsupported discussion attachment MIME type" };
+  }
+
+  return base;
+}
+
 module.exports = {
   MAX_UPLOAD_FILE_SIZE,
   ALLOWED_EXTENSIONS,
   ALLOWED_MIME_TYPES,
+  DISCUSSION_ALLOWED_EXTENSIONS,
+  DISCUSSION_ALLOWED_MIME_TYPES,
   getSafeUploadExtension,
   isValidUploadFilename,
   isAllowedExtension,
   isAllowedMimeType,
   createSafeFileFilter,
   validateUploadedFile,
+  validateDiscussionFile,
 };

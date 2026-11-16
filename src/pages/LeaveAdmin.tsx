@@ -24,7 +24,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Check, X, Users, MapPin, Info, Loader2, FileText, Printer, PhoneCall, Clock, CheckCircle2, XCircle, ChevronRight, ChevronLeft, ClipboardList, Download, RotateCcw, Search, Building2 } from "lucide-react";
+import { Check, X, Users, MapPin, Info, Loader2, FileText, Printer, PhoneCall, Clock, CheckCircle2, XCircle, ChevronRight, ChevronLeft, ClipboardList, Download, RotateCcw, Search, Building2, MessageSquare } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRole } from "@/contexts/RoleContext";
@@ -144,6 +144,14 @@ type LeaveRequest = {
     actual_hours: string | number | null;
     validation_status: "Pending" | "Validated" | "Failed";
   }[];
+  workflowSteps?: {
+    step_order?: number;
+    step_label?: string;
+    role_name?: string;
+    branch_scope?: string;
+  }[];
+  discussionCount?: number;
+  unreadDiscussionCount?: number;
 };
 
 const formatDate = (value: string) => (value ? value.slice(0, 10) : "");
@@ -437,7 +445,7 @@ export default function LeaveAdmin() {
     sse.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        if (data.type === 'leave-status' || data.type === 'leave-request' || data.type === 'refresh') {
+        if (data.type === 'leave-status' || data.type === 'leave-request' || data.type === 'leave-discussion' || data.type === 'refresh') {
           void fetchRequests();
         }
       } catch (e) {}
@@ -508,6 +516,7 @@ export default function LeaveAdmin() {
     }
 
     const leaveId = searchParams.get("leaveId");
+    const focusParam = searchParams.get("focus");
     if (leaveId && requests.length > 0) {
       const match = requests.find(r => r.id === parseInt(leaveId, 10));
       if (match) {
@@ -522,8 +531,13 @@ export default function LeaveAdmin() {
         }
         setSelectedYear("all");
         setSelectedMonth("all");
-        // Do not automatically open the Leave Details view modal
-        // setSelectedRequest(match);
+        if (focusParam === "discussion") {
+          setSelectedRequest(match);
+          setTimeout(() => {
+            document.getElementById("leave-discussion-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
+          }, 250);
+          newParams.delete("focus");
+        }
         newParams.delete("leaveId");
         updated = true;
       }
@@ -598,6 +612,7 @@ export default function LeaveAdmin() {
           branch: userBranch || "",
           department: userDepartment || "",
           company_id: String(activeCompany?.id || 1),
+          viewerId: userId || "",
         });
 
         const response = await fetch(`${API_BASE_URL}/api/leave-requests?${params}`, {
@@ -655,6 +670,9 @@ export default function LeaveAdmin() {
           pendingApproverName: request.pending_approver_name,
           pendingApproverContext: request.pending_approver_context,
           replacementValidations: request.replacement_validations || [],
+          workflowSteps: request.workflow_steps || [],
+          discussionCount: Number(request.discussion_count || 0),
+          unreadDiscussionCount: Number(request.unread_discussion_count || 0),
         }));
 
         setRequests(formatted);
@@ -1261,13 +1279,26 @@ export default function LeaveAdmin() {
                           </Badge>
                         </TableCell>
                         <TableCell className="px-3 py-3.5">
-                          <span className={`inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-normal text-center leading-tight max-w-[140px] ${
-                            req.status === "Approved" ? "bg-green-50 text-green-600 border-green-200 dark:bg-green-500/10 dark:border-green-500/20" :
-                            req.status === "Rejected" ? "bg-red-50 text-[#ff0000] border-red-200 dark:bg-red-500/10 dark:border-red-500/20 dark:text-[#ff0000]" :
-                            "bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-500/10 dark:border-amber-500/20"
-                          }`}>
-                            {getDisplayStatus(req.status, req.branch, req.companyName)}
-                          </span>
+                          <div className="flex flex-col items-start gap-1">
+                            <span className={`inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-normal text-center leading-tight max-w-[140px] ${
+                              req.status === "Approved" ? "bg-green-50 text-green-600 border-green-200 dark:bg-green-500/10 dark:border-green-500/20" :
+                              req.status === "Rejected" ? "bg-red-50 text-[#ff0000] border-red-200 dark:bg-red-500/10 dark:border-red-500/20 dark:text-[#ff0000]" :
+                              "bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-500/10 dark:border-amber-500/20"
+                            }`}>
+                              {getDisplayStatus(req.status, req.branch, req.companyName)}
+                            </span>
+                            {(req.unreadDiscussionCount ?? 0) > 0 ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-[#942392] text-white shadow-2xs">
+                                <MessageSquare className="w-3 h-3" />
+                                {req.unreadDiscussionCount} New
+                              </span>
+                            ) : (req.discussionCount ?? 0) > 0 ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-muted text-muted-foreground border border-border/50">
+                                <MessageSquare className="w-3 h-3" />
+                                {req.discussionCount}
+                              </span>
+                            ) : null}
+                          </div>
                         </TableCell>
                         <TableCell className="px-3 py-3.5">
                           <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border shadow-2xs ${
@@ -1403,6 +1434,11 @@ export default function LeaveAdmin() {
         selectedRequest={selectedRequest}
         onClose={() => setSelectedRequest(null)}
         role={role}
+        onMarkedRead={(leaveId) => {
+          setRequests((prev) =>
+            prev.map((r) => (r.id === leaveId ? { ...r, unreadDiscussionCount: 0 } : r))
+          );
+        }}
         onApprove={selectedRequest && !isOwnLeaveRequest(selectedRequest) ? (id, currentStatus) => {
           setSelectedRequest(null);
           handleAction(id, "approve", currentStatus, selectedRequest);

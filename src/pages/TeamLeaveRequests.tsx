@@ -5,7 +5,7 @@ import { useCompany } from "@/modules/multi-company/contexts/CompanyContext";
 import { useState, useEffect } from "react";
 import { API_BASE_URL } from "@/config/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Users, CalendarClock, CalendarX2, Building2, FileText, Printer, PhoneCall, Clock , X, Download } from 'lucide-react';
+import { Loader2, Users, CalendarClock, CalendarX2, Building2, FileText, Printer, PhoneCall, Clock, X, Download, MessageSquare } from 'lucide-react';
 
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -15,12 +15,13 @@ import { Search } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ApprovalHistoryTimeline } from "@/components/leave/ApprovalHistoryTimeline";
+import { LeaveDiscussionCard } from "@/components/leave/LeaveDiscussionCard";
 import { parseCutiGantiRows, getCleanReason } from "@/lib/leaveStorage";
 
 const formatDate = (value: string) => (value ? value.slice(0, 10) : "");
 
 export default function TeamLeaveRequests() {
-  const { role, userBranch, userDepartment } = useRole();
+  const { role, userId, userBranch, userDepartment } = useRole();
   const { activeCompany } = useCompany();
   const [loading, setLoading] = useState(true);
   const [leaveRequests, setLeaveRequests] = useState<any[]>([]);
@@ -134,6 +135,7 @@ export default function TeamLeaveRequests() {
           branch: userBranch || "",
           department: userDepartment || "",
           company_id: String(activeCompany?.id || 1),
+          viewerId: userId || "",
         });
 
         const response = await fetch(`${API_BASE_URL}/api/leave-requests?${params}`, {
@@ -159,6 +161,8 @@ export default function TeamLeaveRequests() {
             id: request.leave_id,
             employee: request.full_name || request.user_id,
             user_id: request.user_id,
+            created_by: request.created_by || request.user_id,
+            employee_id: request.employee_id || request.user_id,
             branch: request.branch || "HQ",
             company_name: request.company_name || (request.branch === "RAYRENT" ? "RayRent" : "Rayhar Travels"),
             department: request.department || "N/A",
@@ -173,6 +177,7 @@ export default function TeamLeaveRequests() {
             warisAlamat: request.waris_alamat || "N/A",
             warisHubungan: request.waris_hubungan || "N/A",
             approverRole: request.approver_role,
+            pendingApproverName: request.pending_approver_name,
             cutiGantiTarikh: request.cuti_ganti_tarikh ? formatDate(request.cuti_ganti_tarikh) : undefined,
             cutiGantiHari: request.cuti_ganti_hari,
             cutiGantiJam: request.cuti_ganti_jam,
@@ -180,6 +185,9 @@ export default function TeamLeaveRequests() {
             cutiTanpaGajiSignature: request.cuti_tanpa_gaji_signature,
             mcFileUrl: request.mc_file_url,
             approvalHistory: request.approval_history || [],
+            workflowSteps: request.workflow_steps || [],
+            discussionCount: Number(request.discussion_count || 0),
+            unreadDiscussionCount: Number(request.unread_discussion_count || 0),
           }));
 
           setLeaveRequests(formatted);
@@ -192,7 +200,7 @@ export default function TeamLeaveRequests() {
     };
 
     fetchRequests();
-  }, [role, userBranch, userDepartment, activeCompany?.id]);
+  }, [role, userId, userBranch, userDepartment, activeCompany?.id]);
 
   if (loading) {
     return (
@@ -349,21 +357,34 @@ export default function TeamLeaveRequests() {
                         <TableCell>{req.to}</TableCell>
                         <TableCell>{req.days}</TableCell>
                         <TableCell>
-                          <Badge 
-                            variant={
-                              req.status === "Approved" ? "default" : 
-                              req.status === "Rejected" ? "destructive" : 
-                              "default"
-                            } 
-                            className={
-                              req.status === "Approved" ? "bg-[#228b22] text-white hover:bg-[#1a661a]" : 
-                              req.status === "Rejected" ? "" :
-                              "bg-[#C2410C] hover:bg-[#A3370A] text-white border-none"
-                            }
-                            style={req.status !== "Approved" && req.status !== "Rejected" ? { backgroundColor: "#C2410C", color: "white" } : {}}
-                          >
-                            {getDisplayStatus(req.status, req.branch, req.company_name)}
-                          </Badge>
+                          <div className="flex flex-col items-start gap-1">
+                            <Badge 
+                              variant={
+                                req.status === "Approved" ? "default" : 
+                                req.status === "Rejected" ? "destructive" : 
+                                "default"
+                              } 
+                              className={
+                                req.status === "Approved" ? "bg-[#228b22] text-white hover:bg-[#1a661a]" : 
+                                req.status === "Rejected" ? "" :
+                                "bg-[#C2410C] hover:bg-[#A3370A] text-white border-none"
+                              }
+                              style={req.status !== "Approved" && req.status !== "Rejected" ? { backgroundColor: "#C2410C", color: "white" } : {}}
+                            >
+                              {getDisplayStatus(req.status, req.branch, req.company_name)}
+                            </Badge>
+                            {(req.unreadDiscussionCount ?? 0) > 0 ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-[#942392] text-white">
+                                <MessageSquare className="w-3 h-3" />
+                                {req.unreadDiscussionCount} New
+                              </span>
+                            ) : (req.discussionCount ?? 0) > 0 ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-muted text-muted-foreground border border-border/50">
+                                <MessageSquare className="w-3 h-3" />
+                                {req.discussionCount}
+                              </span>
+                            ) : null}
+                          </div>
                         </TableCell>
                         <TableCell>
                           <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border ${
@@ -662,6 +683,17 @@ export default function TeamLeaveRequests() {
                       </div>
                     )}
                   </div>
+
+                  {/* Leave Discussion (Separate from Approval Comments) */}
+                  <LeaveDiscussionCard
+                    leaveRequest={selectedRequest}
+                    role={role}
+                    onMarkedRead={(leaveId) => {
+                      setLeaveRequests((prev) =>
+                        prev.map((r) => (r.id === leaveId ? { ...r, unreadDiscussionCount: 0 } : r))
+                      );
+                    }}
+                  />
 
                   <div className="hidden print:block pt-24 mt-12 pb-2">
                     <div className="grid grid-cols-2 gap-16">

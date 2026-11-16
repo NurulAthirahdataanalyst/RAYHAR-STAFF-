@@ -21,6 +21,7 @@ const {
   getSafeUploadExtension,
   createSafeFileFilter,
   validateUploadedFile,
+  validateDiscussionFile,
 } = require("./utils/fileSecurity");
 
 const isString = (value) =>
@@ -2412,6 +2413,53 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
       console.error('⚠️ employee_work_assignment column migration warning:', assignErr.message);
     }
 
+    // Auto-migrate leave_discussions & leave_discussion_reads tables
+    try {
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS leave_discussions (
+          id SERIAL PRIMARY KEY,
+          leave_request_id INTEGER NOT NULL REFERENCES leave_requests(leave_id) ON DELETE CASCADE,
+          sender_id VARCHAR(100) NOT NULL,
+          sender_role VARCHAR(100) NOT NULL,
+          message_type VARCHAR(30) NOT NULL DEFAULT 'comment',
+          message TEXT NOT NULL DEFAULT '',
+          attachment_url TEXT,
+          attachment_name VARCHAR(255),
+          attachment_mime VARCHAR(150),
+          attachment_size INTEGER,
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        );
+      `);
+      await connection.query(`CREATE INDEX IF NOT EXISTS idx_leave_discussions_leave_created ON leave_discussions (leave_request_id, created_at ASC);`);
+      await connection.query(`CREATE INDEX IF NOT EXISTS idx_leave_discussions_sender ON leave_discussions (sender_id);`);
+
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS leave_discussion_reads (
+          leave_request_id INTEGER NOT NULL REFERENCES leave_requests(leave_id) ON DELETE CASCADE,
+          user_id VARCHAR(100) NOT NULL,
+          last_read_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+          PRIMARY KEY (leave_request_id, user_id)
+        );
+      `);
+
+      // Idempotent system activity backfill for existing leave requests
+      await connection.query(`
+        INSERT INTO leave_discussions (leave_request_id, sender_id, sender_role, message_type, message, created_at, updated_at)
+        SELECT lr.leave_id, 'system', 'system', 'system', 'Leave request submitted.', lr.created_at, lr.created_at
+        FROM leave_requests lr
+        WHERE NOT EXISTS (
+          SELECT 1 FROM leave_discussions ld
+          WHERE ld.leave_request_id = lr.leave_id
+            AND ld.message_type = 'system'
+            AND ld.message = 'Leave request submitted.'
+        );
+      `);
+      console.log('✅ Auto-migration for leave_discussions & leave_discussion_reads completed.');
+    } catch (discMigErr) {
+      console.error('⚠️ leave_discussions migration warning:', discMigErr.message);
+    }
+
     try {
       const [roleCountRows] = await connection.query("SELECT COUNT(*) as count FROM roles");
       if (parseInt(roleCountRows[0].count) === 0) {
@@ -4694,6 +4742,13 @@ function formatDeptForApprover(dept) {
 
 app.get("/api/leave-requests", async (req, res) => {
   let userId = safeString(req.query.userId || req.query.user_id);
+  const viewerId = safeString(
+    req.query.viewerId ||
+      req.query.userId ||
+      req.query.user_id ||
+      req.headers['x-operator-id'] ||
+      req.headers['x-user-id']
+  );
   const requesterId = safeString(req.query.requesterId);
   const role = safeString(req.query.role);
   let branch = safeString(req.query.branch);
@@ -4907,7 +4962,25 @@ app.get("/api/leave-requests", async (req, res) => {
             b_comp.company_id,
             CASE WHEN UPPER(p.branch) LIKE 'RV%' THEN 3 WHEN UPPER(p.branch) = 'RAYRENT' THEN 2 ELSE 1 END
           ) AND aw.module = 'leave'
-        ) AS workflow_steps
+        ) AS workflow_steps,
+        (
+          SELECT COUNT(*)::int
+          FROM leave_discussions ld
+          WHERE ld.leave_request_id = lr.leave_id
+            AND ld.message_type = 'comment'
+        ) AS discussion_count,
+        (
+          SELECT COUNT(*)::int
+          FROM leave_discussions ld
+          LEFT JOIN leave_discussion_reads ldr
+            ON ldr.leave_request_id = ld.leave_request_id
+           AND LOWER(ldr.user_id) = LOWER(?)
+          WHERE ld.leave_request_id = lr.leave_id
+            AND ld.message_type = 'comment'
+            AND ? <> ''
+            AND LOWER(ld.sender_id) <> LOWER(?)
+            AND (ldr.last_read_at IS NULL OR ld.created_at > ldr.last_read_at)
+        ) AS unread_discussion_count
       FROM leave_requests lr
       JOIN profiles p ON p.user_id = lr.user_id
       LEFT JOIN branches b_comp ON UPPER(b_comp.code) = UPPER(p.branch)
@@ -4933,7 +5006,7 @@ app.get("/api/leave-requests", async (req, res) => {
       ${whereClause}
       ORDER BY lr.created_at DESC, lr.leave_id DESC
       `,
-      params
+      [viewerId, viewerId, viewerId, ...params]
     );
 
     res.json({ success: true, leaveRequests: rows });
@@ -5432,6 +5505,21 @@ app.post("/api/leave-requests", uploadLimiter, upload.single("lampiranMc"), asyn
 
     const leaveData = rows[0];
 
+    // Log System Activity for Leave Discussion timeline
+    try {
+      await logLeaveDiscussionSystemActivity(result.insertId, "Leave request submitted.");
+      if (initialStatus === "Approved") {
+        await logLeaveDiscussionSystemActivity(result.insertId, "Leave request completed (auto-approved).");
+      } else {
+        await logLeaveDiscussionSystemActivity(
+          result.insertId,
+          `Waiting for ${formatLeaveStageRoleLabel(initialStatus)} approval.`
+        );
+      }
+    } catch (sysLogErr) {
+      console.warn("Leave discussion initial system activity warning:", sysLogErr.message);
+    }
+
     res.status(201).json({ success: true, leaveRequest: leaveData });
     broadcastPresenceUpdate({ type: 'leave-status', leaveId: result.insertId, status: initialStatus, userId: user_id });
     
@@ -5877,7 +5965,10 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
         }
       } catch (_) {}
 
-      if (matchingSteps.length > 0) {
+      if (isHrApprover) {
+        // HR Admin acts as highest approver and can finalize approval regardless of MD/OM presence
+        nextStatus = 'Approved';
+      } else if (matchingSteps.length > 0) {
         const cleanCurrentStatus = currentStatus.replace(/^Pending\s+/, '').trim().toLowerCase();
         const currentStepIndex = matchingSteps.findIndex((s) => {
           const rName = (s.role_name || '').trim().toLowerCase();
@@ -5956,6 +6047,26 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
       `INSERT INTO leave_approvals (leave_id, approver_id, approver_role, status, remarks) VALUES (?, ?, ?, ?, ?)`,
       [leaveId, approver_id, role, action === 'Approve' ? 'Approved' : 'Rejected', remarks || null]
     );
+
+    // Log System Activity to leave_discussions (keeps approval remarks strictly separate)
+    try {
+      const actorLabel = formatLeaveStageRoleLabel(role);
+      if (nextStatus === 'Rejected') {
+        await logLeaveDiscussionSystemActivity(leaveId, `${actorLabel} rejected the leave.`);
+        await logLeaveDiscussionSystemActivity(leaveId, `Leave request closed.`);
+      } else if (nextStatus === 'Approved') {
+        await logLeaveDiscussionSystemActivity(leaveId, `${actorLabel} approved the leave.`);
+        await logLeaveDiscussionSystemActivity(leaveId, `Leave request completed.`);
+      } else if (nextStatus && nextStatus.startsWith('Pending ')) {
+        await logLeaveDiscussionSystemActivity(leaveId, `${actorLabel} approved the leave.`);
+        await logLeaveDiscussionSystemActivity(
+          leaveId,
+          `Forwarded to ${formatLeaveStageRoleLabel(nextStatus)} for approval.`
+        );
+      }
+    } catch (sysLogErr) {
+      console.warn("Leave discussion status system activity warning:", sysLogErr.message);
+    }
 
     res.json({ success: true, nextStatus });
     broadcastPresenceUpdate({ type: 'leave-status', leaveId, status: nextStatus, userId: user_id });
@@ -6234,6 +6345,686 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
 
   } catch (err) {
     console.error("Update Leave Request Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ===============================
+// LEAVE DISCUSSION & SYSTEM ACTIVITY
+// ===============================
+
+const DISCUSSION_MAX_MESSAGE_LENGTH = 1000;
+
+function normalizeDiscussionRole(rawRole) {
+  const r = safeLower(rawRole).replace(/[\s-]+/g, "_");
+  if (!r) return "employee";
+  if (["hr", "hr_admin", "admin", "superadmin"].includes(r) || r.includes("hr_admin") || r.includes("hr admin")) return "hr_admin";
+  if (r === "md" || r.includes("managing_director") || r.includes("managing director")) return "managing_director";
+  if (r.includes("operation_manager") || r.includes("finance_manager")) return "operation_manager";
+  if (r === "hod" || r.includes("head_of_department") || r.includes("head of department")) return "head_of_department";
+  if (r.includes("branch_leader")) return "branch_leader";
+  if (r.includes("assure")) return "assure_leader";
+  if (r === "staff" || r === "user") return "employee";
+  return r;
+}
+
+function formatLeaveStageRoleLabel(statusOrRole) {
+  const raw = String(statusOrRole || "").replace(/^Pending\s+/i, "").trim();
+  const norm = normalizeDiscussionRole(raw);
+  switch (norm) {
+    case "head_of_department": return "Head of Department";
+    case "branch_leader": return "Branch Leader";
+    case "operation_manager": return "Operation Manager";
+    case "managing_director": return "Managing Director";
+    case "hr_admin": return "HR Admin";
+    case "assure_leader": return "Assure Leader";
+    case "employee": return "Employee";
+    default:
+      return raw ? raw.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) : "Approver";
+  }
+}
+
+async function logLeaveDiscussionSystemActivity(leaveId, message) {
+  if (!leaveId || !message) return;
+  await pool.query(
+    `INSERT INTO leave_discussions (leave_request_id, sender_id, sender_role, message_type, message)
+     VALUES (?, 'system', 'system', 'system', ?)`,
+    [leaveId, message]
+  );
+}
+
+function matchesLeaveStageRole(normUserRole, leaveStatus) {
+  const u = normalizeDiscussionRole(normUserRole).replace(/_/g, "");
+  const p = String(leaveStatus || "")
+    .replace(/^Pending\s+/i, "")
+    .toLowerCase()
+    .replace(/[\s_-]+/g, "")
+    .trim();
+  if (!p) return false;
+  if (u === p) return true;
+  if (p === "hod" && u === "headofdepartment") return true;
+  if (p === "md" && u === "managingdirector") return true;
+  if ((p === "operation" || p === "finance" || p === "financemanager") && u === "operationmanager") return true;
+  if ((p === "hr" || p === "admin") && u === "hradmin") return true;
+  if (p.includes("assure") && u.includes("assure")) return true;
+  return false;
+}
+
+async function resolveDiscussionCaller(req, fallbackUserId, fallbackRole) {
+  const callerId = safeString(
+    fallbackUserId ||
+      req.user?.userId ||
+      req.user?.id ||
+      req.query?.userId ||
+      req.query?.user_id ||
+      req.body?.sender_id ||
+      req.body?.user_id ||
+      req.headers["x-operator-id"] ||
+      req.headers["x-user-id"]
+  );
+
+  let headerRole = "";
+  try {
+    headerRole = req.headers["x-operator-role"]
+      ? decodeURIComponent(String(req.headers["x-operator-role"]))
+      : "";
+  } catch {
+    headerRole = String(req.headers["x-operator-role"] || "");
+  }
+
+  let callerRole = safeString(
+    fallbackRole ||
+      req.user?.role ||
+      req.query?.role ||
+      req.body?.sender_role ||
+      req.body?.role ||
+      req.headers["x-user-role"] ||
+      headerRole
+  );
+  let callerBranch = "";
+  let callerDepartment = "";
+
+  if (callerId) {
+    try {
+      const [profRows] = await pool.query(
+        `SELECT p.branch, p.department, COALESCE(ur.role, r.name, p.role) AS resolved_role
+         FROM profiles p
+         LEFT JOIN user_role ur ON ur.user_id = p.user_id
+         LEFT JOIN roles r ON r.id = p.role_id
+         WHERE LOWER(p.user_id) = LOWER(?)
+         LIMIT 1`,
+        [callerId]
+      );
+      if (profRows && profRows.length > 0) {
+        callerBranch = profRows[0].branch || "";
+        callerDepartment = profRows[0].department || "";
+        if (!callerRole && profRows[0].resolved_role) {
+          callerRole = profRows[0].resolved_role;
+        }
+      }
+    } catch (_) {}
+  }
+
+  return {
+    callerId,
+    callerRole: normalizeDiscussionRole(callerRole),
+    callerBranch,
+    callerDepartment,
+  };
+}
+
+async function evaluateLeaveDiscussionAccess(leaveId, caller) {
+  const [leaveRows] = await pool.query(
+    `SELECT lr.*, p.full_name AS employee_name, p.branch AS employee_branch, p.department AS employee_department
+     FROM leave_requests lr
+     JOIN profiles p ON p.user_id = lr.user_id
+     WHERE lr.leave_id = ?`,
+    [leaveId]
+  );
+  if (!leaveRows || leaveRows.length === 0) {
+    return { notFound: true };
+  }
+
+  const leave = leaveRows[0];
+  const uid = String(caller.callerId || "").trim().toLowerCase();
+  const ownerIds = [leave.user_id, leave.created_by, leave.employee_id]
+    .filter(Boolean)
+    .map((v) => String(v).trim().toLowerCase());
+
+  const isOwner = Boolean(uid && ownerIds.includes(uid));
+  const normRole = normalizeDiscussionRole(caller.callerRole);
+  const isHrAdmin = normRole === "hr_admin";
+  const isPending = String(leave.status || "").trim().toLowerCase().startsWith("pending");
+
+  const sameDept =
+    !caller.callerDepartment ||
+    !leave.employee_department ||
+    caller.callerDepartment.trim().toLowerCase() === leave.employee_department.trim().toLowerCase();
+  const sameBranch =
+    !caller.callerBranch ||
+    !leave.employee_branch ||
+    caller.callerBranch.trim().toLowerCase() === leave.employee_branch.trim().toLowerCase();
+
+  const isScopedApprover =
+    normRole === "head_of_department"
+      ? sameDept
+      : normRole === "branch_leader"
+        ? sameBranch
+        : true;
+
+  const isCurrentApprover =
+    !isOwner &&
+    isPending &&
+    isScopedApprover &&
+    matchesLeaveStageRole(normRole, leave.status);
+
+  const [historyRows] = await pool.query(
+    `SELECT approver_id, approver_role FROM leave_approvals WHERE leave_id = ?`,
+    [leaveId]
+  );
+  const isPreviousApprover =
+    !isOwner &&
+    (historyRows || []).some(
+      (h) =>
+        (uid && String(h.approver_id || "").trim().toLowerCase() === uid) ||
+        normalizeDiscussionRole(h.approver_role) === normRole
+    );
+
+  let isFutureApprover = false;
+  if (!isOwner && !isCurrentApprover && !isPreviousApprover) {
+    try {
+      const [wfRows] = await pool.query(
+        `SELECT r.name AS role_name, aw.step_label
+         FROM approval_workflow aw
+         LEFT JOIN roles r ON aw.approver_role_id = r.id
+         WHERE aw.module = 'leave'`
+      );
+      isFutureApprover = (wfRows || []).some((s) =>
+        matchesLeaveStageRole(normRole, `Pending ${s.role_name || s.step_label || ""}`)
+      );
+    } catch (_) {}
+  }
+
+  const canView =
+    isOwner ||
+    isCurrentApprover ||
+    isPreviousApprover ||
+    isFutureApprover ||
+    isHrAdmin ||
+    ["managing_director", "operation_manager", "assure_leader", "head_of_department", "branch_leader"].includes(
+      normRole
+    );
+
+  const canPost = Boolean(canView && isPending && (isOwner || isCurrentApprover || isHrAdmin));
+
+  let reason = "";
+  if (!canView) {
+    reason = "You do not have permission to view this leave discussion.";
+  } else if (!isPending) {
+    reason = `This leave request has been ${String(leave.status || "").toLowerCase()}. The discussion is now read-only.`;
+  } else if (!canPost) {
+    reason = isPreviousApprover
+      ? "Read-only: You have already completed your approval stage."
+      : `Read-only: You can participate once this request reaches your approval stage (currently ${leave.status}).`;
+  }
+
+  return {
+    notFound: false,
+    leave,
+    isOwner,
+    isHrAdmin,
+    isCurrentApprover,
+    isPending,
+    canView,
+    canPost,
+    mode: !canView ? "denied" : canPost ? "participant" : "read_only",
+    reason,
+    currentApproverLabel: isPending
+      ? formatLeaveStageRoleLabel(leave.status)
+      : `Closed (${leave.status})`,
+  };
+}
+
+async function resolveCurrentStageApproverUsers(leave) {
+  const statusStr = String(leave.status || "").trim();
+  const sUpper = statusStr.toUpperCase();
+  const dept = leave.employee_department || leave.department || "";
+  const branch = leave.employee_branch || leave.branch || "";
+
+  if (sUpper.includes("HOD") || sUpper.includes("HEAD OF DEPARTMENT")) {
+    const [rows] = await pool.query(
+      `SELECT DISTINCT p.user_id, p.email, p.full_name
+       FROM profiles p
+       LEFT JOIN user_role ur ON p.user_id = ur.user_id
+       LEFT JOIN roles r ON p.role_id = r.id
+       WHERE (
+         LOWER(COALESCE(ur.role, '')) LIKE '%head%department%'
+         OR LOWER(COALESCE(ur.role, '')) = 'hod'
+         OR LOWER(COALESCE(r.name, '')) LIKE '%head%department%'
+         OR LOWER(COALESCE(r.name, '')) = 'hod'
+         OR LOWER(COALESCE(p.role, '')) LIKE '%head%department%'
+         OR LOWER(COALESCE(p.role, '')) = 'hod'
+       )
+       AND (LOWER(COALESCE(p.department, '')) = LOWER(?) OR ? = '')
+       AND p.status = 'Active'`,
+      [dept, dept]
+    );
+    return rows || [];
+  }
+
+  if (sUpper.includes("BRANCH LEADER")) {
+    const [rows] = await pool.query(
+      `SELECT DISTINCT p.user_id, p.email, p.full_name
+       FROM profiles p
+       LEFT JOIN user_role ur ON p.user_id = ur.user_id
+       LEFT JOIN roles r ON p.role_id = r.id
+       WHERE (
+         LOWER(COALESCE(ur.role, '')) LIKE '%branch%leader%'
+         OR LOWER(COALESCE(r.name, '')) LIKE '%branch%leader%'
+         OR LOWER(COALESCE(p.role, '')) LIKE '%branch%leader%'
+       )
+       AND UPPER(COALESCE(p.branch, '')) = UPPER(?)
+       AND p.status = 'Active'`,
+      [branch]
+    );
+    return rows || [];
+  }
+
+  if (sUpper.includes("OPERATION") || sUpper.includes("FINANCE")) {
+    const [rows] = await pool.query(
+      `SELECT DISTINCT p.user_id, p.email, p.full_name
+       FROM profiles p
+       LEFT JOIN user_role ur ON p.user_id = ur.user_id
+       LEFT JOIN roles r ON p.role_id = r.id
+       WHERE (
+         LOWER(COALESCE(ur.role, '')) LIKE '%operation%manager%'
+         OR LOWER(COALESCE(ur.role, '')) LIKE '%finance%manager%'
+         OR LOWER(COALESCE(r.name, '')) LIKE '%operation%manager%'
+         OR LOWER(COALESCE(r.name, '')) LIKE '%finance%manager%'
+       ) AND p.status = 'Active'`
+    );
+    return rows || [];
+  }
+
+  if (sUpper.includes("MD") || sUpper.includes("MANAGING DIRECTOR")) {
+    const [rows] = await pool.query(
+      `SELECT DISTINCT p.user_id, p.email, p.full_name
+       FROM profiles p
+       LEFT JOIN user_role ur ON p.user_id = ur.user_id
+       LEFT JOIN roles r ON p.role_id = r.id
+       WHERE (
+         LOWER(COALESCE(ur.role, '')) LIKE '%managing%director%'
+         OR LOWER(COALESCE(ur.role, '')) = 'md'
+         OR LOWER(COALESCE(r.name, '')) LIKE '%managing%director%'
+         OR LOWER(COALESCE(r.name, '')) = 'md'
+       ) AND p.status = 'Active'`
+    );
+    return rows || [];
+  }
+
+  if (sUpper.includes("ASSURE")) {
+    const [rows] = await pool.query(
+      `SELECT DISTINCT p.user_id, p.email, p.full_name
+       FROM profiles p
+       LEFT JOIN user_role ur ON p.user_id = ur.user_id
+       LEFT JOIN roles r ON p.role_id = r.id
+       WHERE (
+         LOWER(COALESCE(ur.role, '')) LIKE '%assure%'
+         OR LOWER(COALESCE(r.name, '')) LIKE '%assure%'
+         OR LOWER(COALESCE(p.role, '')) LIKE '%assure%'
+       ) AND p.status = 'Active'`
+    );
+    return rows || [];
+  }
+
+  if (sUpper.includes("HR")) {
+    const [rows] = await pool.query(
+      `SELECT DISTINCT p.user_id, p.email, p.full_name
+       FROM profiles p
+       LEFT JOIN user_role ur ON p.user_id = ur.user_id
+       LEFT JOIN roles r ON p.role_id = r.id
+       WHERE (
+         LOWER(COALESCE(ur.role, '')) IN ('hr_admin', 'hr', 'admin')
+         OR LOWER(COALESCE(r.name, '')) LIKE '%hr%admin%'
+       ) AND p.status = 'Active'`
+    );
+    return rows || [];
+  }
+
+  const stagePart = statusStr.replace(/^Pending\s+/i, "").trim();
+  if (!stagePart) return [];
+  const [rows] = await pool.query(
+    `SELECT DISTINCT p.user_id, p.email, p.full_name
+     FROM profiles p
+     LEFT JOIN user_role ur ON p.user_id = ur.user_id
+     LEFT JOIN roles r ON p.role_id = r.id
+     WHERE (
+       LOWER(COALESCE(ur.role, '')) = LOWER(?)
+       OR LOWER(COALESCE(r.name, '')) = LOWER(?)
+       OR LOWER(COALESCE(r.name, '')) LIKE LOWER(?)
+     ) AND p.status = 'Active'`,
+    [stagePart, stagePart, `%${stagePart}%`]
+  );
+  return rows || [];
+}
+
+app.get("/api/leave-requests/:leaveId/discussions", async (req, res) => {
+  const leaveId = parseInt(safeString(req.params.leaveId), 10);
+  if (!Number.isFinite(leaveId) || leaveId <= 0) {
+    return res.status(400).json({ success: false, error: "Invalid leave request ID" });
+  }
+
+  try {
+    const caller = await resolveDiscussionCaller(req);
+    const access = await evaluateLeaveDiscussionAccess(leaveId, caller);
+    if (access.notFound) {
+      return res.status(404).json({ success: false, error: "Leave request not found" });
+    }
+    if (!access.canView) {
+      return res.status(403).json({ success: false, error: access.reason });
+    }
+
+    const [rows] = await pool.query(
+      `SELECT
+         ld.*,
+         CASE
+           WHEN ld.message_type = 'system' OR LOWER(ld.sender_role) = 'system' THEN 'System'
+           ELSE COALESCE(p.full_name, ld.sender_id)
+         END AS sender_name,
+         p.avatar_url AS sender_avatar,
+         p.department AS sender_department,
+         p.branch AS sender_branch
+       FROM leave_discussions ld
+       LEFT JOIN profiles p ON LOWER(p.user_id) = LOWER(ld.sender_id)
+       WHERE ld.leave_request_id = ?
+       ORDER BY ld.created_at ASC, ld.id ASC`,
+      [leaveId]
+    );
+
+    let unreadCount = 0;
+    if (caller.callerId) {
+      const [unreadRows] = await pool.query(
+        `SELECT COUNT(*)::int AS cnt
+         FROM leave_discussions ld
+         LEFT JOIN leave_discussion_reads ldr
+           ON ldr.leave_request_id = ld.leave_request_id
+          AND LOWER(ldr.user_id) = LOWER(?)
+         WHERE ld.leave_request_id = ?
+           AND ld.message_type = 'comment'
+           AND LOWER(ld.sender_id) <> LOWER(?)
+           AND (ldr.last_read_at IS NULL OR ld.created_at > ldr.last_read_at)`,
+        [caller.callerId, leaveId, caller.callerId]
+      );
+      unreadCount = unreadRows?.[0]?.cnt || 0;
+    }
+
+    res.json({
+      success: true,
+      discussions: rows || [],
+      unreadCount,
+      currentApproverLabel: access.currentApproverLabel,
+      permission: {
+        canView: access.canView,
+        canPost: access.canPost,
+        mode: access.mode,
+        reason: access.reason,
+        isOwner: access.isOwner,
+        isHrAdmin: access.isHrAdmin,
+        isCurrentApprover: access.isCurrentApprover,
+      },
+    });
+  } catch (err) {
+    console.error("Get Leave Discussions Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post("/api/leave-requests/:leaveId/discussions", uploadLimiter, upload.single("attachment"), async (req, res) => {
+  const leaveId = parseInt(safeString(req.params.leaveId), 10);
+  if (!Number.isFinite(leaveId) || leaveId <= 0) {
+    return res.status(400).json({ success: false, error: "Invalid leave request ID" });
+  }
+
+  try {
+    const caller = await resolveDiscussionCaller(
+      req,
+      req.body?.sender_id || req.body?.user_id,
+      req.body?.sender_role || req.body?.role
+    );
+    if (!caller.callerId) {
+      return res.status(401).json({ success: false, error: "Missing sender identity" });
+    }
+
+    const access = await evaluateLeaveDiscussionAccess(leaveId, caller);
+    if (access.notFound) {
+      return res.status(404).json({ success: false, error: "Leave request not found" });
+    }
+    if (!access.canPost) {
+      return res.status(403).json({
+        success: false,
+        error: access.reason || "You cannot post to this leave discussion.",
+      });
+    }
+
+    const rawMessage = typeof req.body?.message === "string" ? req.body.message.trim() : "";
+    if (rawMessage.length > DISCUSSION_MAX_MESSAGE_LENGTH) {
+      return res.status(400).json({
+        success: false,
+        error: `Message cannot exceed ${DISCUSSION_MAX_MESSAGE_LENGTH} characters.`,
+      });
+    }
+    if (!rawMessage && !req.file) {
+      return res.status(400).json({
+        success: false,
+        error: "Please provide a message or attach a file.",
+      });
+    }
+
+    let attachmentUrl = null;
+    let attachmentName = null;
+    let attachmentMime = null;
+    let attachmentSize = null;
+
+    if (req.file) {
+      const check = validateDiscussionFile(req.file);
+      if (!check.valid) {
+        return res.status(400).json({ success: false, error: check.error });
+      }
+
+      const safeExt = getSafeUploadExtension(req.file.originalname);
+      const safeFilename = path.basename(`${crypto.randomUUID()}${safeExt}`);
+      const uploadsRoot = path.resolve(uploadsDir);
+      const discussionDir = path.resolve(uploadsRoot, "discussions", String(leaveId));
+      if (!discussionDir.startsWith(uploadsRoot + path.sep)) {
+        return res.status(400).json({ success: false, error: "Invalid storage directory" });
+      }
+      if (!fs.existsSync(discussionDir)) {
+        fs.mkdirSync(discussionDir, { recursive: true });
+      }
+
+      const resolvedTempDir = path.resolve(tempDir);
+      const requestedTempFile = path.basename(String(req.file.filename || req.file.path || ""));
+      let verifiedTempFile = null;
+      for (const existingFile of fs.readdirSync(resolvedTempDir)) {
+        if (existingFile === requestedTempFile) {
+          verifiedTempFile = existingFile;
+          break;
+        }
+      }
+      if (!verifiedTempFile) {
+        return res.status(400).json({ success: false, error: "Invalid uploaded temp file" });
+      }
+
+      const resolvedSource = path.resolve(resolvedTempDir, verifiedTempFile);
+      const resolvedDest = path.resolve(discussionDir, safeFilename);
+      if (!resolvedDest.startsWith(discussionDir + path.sep)) {
+        return res.status(400).json({ success: false, error: "Invalid attachment path" });
+      }
+
+      fs.renameSync(resolvedSource, resolvedDest);
+      attachmentUrl = `/uploads/discussions/${leaveId}/${safeFilename}`;
+      attachmentName = path.basename(String(req.file.originalname || safeFilename)).slice(0, 255);
+      attachmentMime = safeString(req.file.mimetype).slice(0, 150) || null;
+      attachmentSize = typeof req.file.size === "number" ? req.file.size : null;
+
+      uploadToSupabaseStorage(resolvedDest, `discussions/${leaveId}/${safeFilename}`, req.file.mimetype);
+    }
+
+    const storedRole = access.isOwner ? "employee" : caller.callerRole;
+    const [insertRes] = await pool.query(
+      `INSERT INTO leave_discussions
+        (leave_request_id, sender_id, sender_role, message_type, message, attachment_url, attachment_name, attachment_mime, attachment_size)
+       VALUES (?, ?, ?, 'comment', ?, ?, ?, ?, ?)`,
+      [
+        leaveId,
+        caller.callerId,
+        storedRole,
+        rawMessage,
+        attachmentUrl,
+        attachmentName,
+        attachmentMime,
+        attachmentSize,
+      ]
+    );
+
+    // Mark read for the sender immediately
+    await pool.query(
+      `INSERT INTO leave_discussion_reads (leave_request_id, user_id, last_read_at)
+       VALUES (?, ?, NOW())
+       ON CONFLICT (leave_request_id, user_id)
+       DO UPDATE SET last_read_at = NOW()`,
+      [leaveId, caller.callerId]
+    );
+
+    const [createdRows] = await pool.query(
+      `SELECT
+         ld.*,
+         COALESCE(p.full_name, ld.sender_id) AS sender_name,
+         p.avatar_url AS sender_avatar,
+         p.department AS sender_department,
+         p.branch AS sender_branch
+       FROM leave_discussions ld
+       LEFT JOIN profiles p ON LOWER(p.user_id) = LOWER(ld.sender_id)
+       WHERE ld.id = ?`,
+      [insertRes.insertId]
+    );
+
+    const discussion = createdRows[0];
+    res.status(201).json({ success: true, discussion });
+
+    broadcastPresenceUpdate({
+      type: "leave-discussion",
+      leaveId,
+      senderId: caller.callerId,
+    });
+
+    // Dispatch Notifications asynchronously
+    (async () => {
+      try {
+        const leave = access.leave;
+        const senderDisplayName = discussion?.sender_name || caller.callerId;
+        const senderRoleLabel = formatLeaveStageRoleLabel(storedRole);
+        const snippet = rawMessage
+          ? rawMessage.length > 90
+            ? `${rawMessage.slice(0, 87)}...`
+            : rawMessage
+          : `Attached ${attachmentName || "a document"}.`;
+
+        if (access.isOwner) {
+          // Employee posted -> notify current stage approver(s)
+          const approvers = await resolveCurrentStageApproverUsers(leave);
+          for (const appr of approvers) {
+            if (!appr.user_id || String(appr.user_id).toLowerCase() === caller.callerId.toLowerCase()) {
+              continue;
+            }
+            await notificationService.createNotification({
+              userId: appr.user_id,
+              title: `Leave Discussion: ${leave.employee_name || senderDisplayName}`,
+              message: `${leave.employee_name || senderDisplayName} replied on their ${leave.leave_type} request: "${snippet}"`,
+              type: "leave_discussion",
+              scope: "team",
+              relatedLeaveId: leaveId,
+              subjectUserId: leave.user_id,
+              sendPush: true,
+            });
+            await pool.query(
+              `UPDATE notifications SET action_url = ? WHERE related_leave_id = ? AND user_id = ? AND type = 'leave_discussion' AND action_url IS NULL`,
+              [`/leave/admin?leaveId=${leaveId}&focus=discussion`, leaveId, appr.user_id]
+            );
+          }
+        } else {
+          // Current Approver or HR Admin posted -> notify Employee
+          if (leave.user_id && String(leave.user_id).toLowerCase() !== caller.callerId.toLowerCase()) {
+            await notificationService.createNotification({
+              userId: leave.user_id,
+              title: `Leave Discussion Update`,
+              message: `${senderRoleLabel} (${senderDisplayName}) commented on your ${leave.leave_type} request: "${snippet}"`,
+              type: "leave_discussion",
+              scope: "personal",
+              relatedLeaveId: leaveId,
+              sendPush: true,
+            });
+            await pool.query(
+              `UPDATE notifications SET action_url = ? WHERE related_leave_id = ? AND user_id = ? AND type = 'leave_discussion' AND action_url IS NULL`,
+              [`/leave/forms?leaveId=${leaveId}&focus=discussion`, leaveId, leave.user_id]
+            );
+          }
+
+          // If HR Admin intervened on a non-HR stage, also inform the current stage approver
+          if (access.isHrAdmin && !access.isCurrentApprover) {
+            const approvers = await resolveCurrentStageApproverUsers(leave);
+            for (const appr of approvers) {
+              if (
+                !appr.user_id ||
+                String(appr.user_id).toLowerCase() === caller.callerId.toLowerCase() ||
+                String(appr.user_id).toLowerCase() === String(leave.user_id).toLowerCase()
+              ) {
+                continue;
+              }
+              await notificationService.createNotification({
+                userId: appr.user_id,
+                title: `HR Note on Leave: ${leave.employee_name || leave.user_id}`,
+                message: `HR Admin (${senderDisplayName}) added a note on ${leave.employee_name || "employee"}'s ${leave.leave_type} discussion: "${snippet}"`,
+                type: "leave_discussion",
+                scope: "team",
+                relatedLeaveId: leaveId,
+                subjectUserId: leave.user_id,
+                sendPush: true,
+              });
+              await pool.query(
+                `UPDATE notifications SET action_url = ? WHERE related_leave_id = ? AND user_id = ? AND type = 'leave_discussion' AND action_url IS NULL`,
+                [`/leave/admin?leaveId=${leaveId}&focus=discussion`, leaveId, appr.user_id]
+              );
+            }
+          }
+        }
+      } catch (notifErr) {
+        console.error("Leave discussion notification error:", notifErr);
+      }
+    })();
+  } catch (err) {
+    console.error("Post Leave Discussion Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post("/api/leave-requests/:leaveId/discussions/read", async (req, res) => {
+  const leaveId = parseInt(safeString(req.params.leaveId), 10);
+  const userId = safeString(req.body?.user_id || req.headers["x-operator-id"] || req.headers["x-user-id"]);
+  if (!Number.isFinite(leaveId) || leaveId <= 0 || !userId) {
+    return res.status(400).json({ success: false, error: "Invalid leaveId or user_id" });
+  }
+  try {
+    await pool.query(
+      `INSERT INTO leave_discussion_reads (leave_request_id, user_id, last_read_at)
+       VALUES (?, ?, NOW())
+       ON CONFLICT (leave_request_id, user_id)
+       DO UPDATE SET last_read_at = NOW()`,
+      [leaveId, userId]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Mark Leave Discussion Read Error:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 });
