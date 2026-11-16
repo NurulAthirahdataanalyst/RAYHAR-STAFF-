@@ -6731,7 +6731,7 @@ app.get("/api/leave-requests/:leaveId/discussions", async (req, res) => {
            WHEN ld.message_type = 'system' OR LOWER(ld.sender_role) = 'system' THEN 'System'
            ELSE COALESCE(p.full_name, ld.sender_id)
          END AS sender_name,
-         p.avatar_url AS sender_avatar,
+         NULL AS sender_avatar,
          p.department AS sender_department,
          p.branch AS sender_branch
        FROM leave_discussions ld
@@ -6900,7 +6900,7 @@ app.post("/api/leave-requests/:leaveId/discussions", uploadLimiter, upload.singl
       `SELECT
          ld.*,
          COALESCE(p.full_name, ld.sender_id) AS sender_name,
-         p.avatar_url AS sender_avatar,
+         NULL AS sender_avatar,
          p.department AS sender_department,
          p.branch AS sender_branch
        FROM leave_discussions ld
