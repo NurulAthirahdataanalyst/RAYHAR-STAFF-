@@ -17,7 +17,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { FileText, Printer, Loader2, ArrowLeft, PhoneCall, Eye, Calendar, MapPin, Clock, Check, X, Download, Upload, MessageSquare } from "lucide-react";
+import { FileText, Printer, Loader2, ArrowLeft, PhoneCall, Eye, Calendar, MapPin, Clock, Check, X, Download, Upload, MessageSquare, User } from "lucide-react";
 import { useRole } from "@/contexts/RoleContext";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -801,39 +801,46 @@ export default function LeaveFormView() {
                     <p className="text-[10px] print:text-[16px] font-black tracking-[0.2em] print:tracking-[0.3em] uppercase opacity-60 dark:text-purple-300">Permohonan Cuti Kakitangan</p>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 print:gap-y-6 print:gap-x-8 text-xs print:text-[11px] font-bold">
-                    <div className="space-y-1 print:space-y-1.5">
-                      <span className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50">Nama Penuh</span>
-                      <p className="border-b pb-1 print:pb-2 border-border/40 break-words font-bold">{selectedForm.employee}</p>
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <User className="w-4 h-4 text-[#942392]" />
+                      <h3 className="text-[10px] print:text-[13px] font-black uppercase tracking-[0.2em]">Maklumat Kakitangan</h3>
                     </div>
-                    <div className="space-y-1 print:space-y-1.5">
-                      <span className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50">Cawangan</span>
-                      <p className="border-b pb-1 print:pb-2 border-border/40">{formatBranchName(selectedForm.branch)}</p>
-                    </div>
-                    <div className="space-y-1 print:space-y-1.5">
-                      <span className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50">No. Telefon</span>
-                      <p className="border-b pb-1 print:pb-2 border-border/40 font-black text-[#942392]">{selectedForm.phone || (selectedForm as any).applicant_phone || "-"}</p>
-                    </div>
-                    <div className="space-y-1 print:space-y-1.5">
-                      <span className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50">Jenis Cuti</span>
-                      <p className="border-b pb-1 print:pb-2 border-border/40">{selectedForm.type}</p>
-                    </div>
-                    <div className="space-y-1 col-span-2 sm:col-span-1">
-                      <span className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50">Status</span>
-                      <p className={`font-black uppercase ${
-                        selectedForm.status === "Rejected" ? "text-[#ff0000]" :
-                        selectedForm.status === "Approved" ? "text-emerald-600" :
-                        "text-[#942392]"
-                      }`}>
-                        {selectedForm.status}
-                        <LeaveStatusDecisionBy
-                          status={selectedForm.status}
-                          approvalHistory={selectedForm.approvalHistory}
-                          approverRole={selectedForm.approverRole}
-                          branch={selectedForm.branch}
-                          department={selectedForm.department}
-                        />
-                      </p>
+
+                    <div className="grid grid-cols-2 gap-4 print:gap-y-6 print:gap-x-8 text-xs print:text-[11px] font-bold">
+                      <div className="space-y-1 print:space-y-1.5">
+                        <span className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50">Nama Penuh</span>
+                        <p className="border-b pb-1 print:pb-2 border-border/40 break-words font-bold">{selectedForm.employee}</p>
+                      </div>
+                      <div className="space-y-1 print:space-y-1.5">
+                        <span className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50">Cawangan</span>
+                        <p className="border-b pb-1 print:pb-2 border-border/40">{formatBranchName(selectedForm.branch)}</p>
+                      </div>
+                      <div className="space-y-1 print:space-y-1.5">
+                        <span className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50">No. Telefon</span>
+                        <p className="border-b pb-1 print:pb-2 border-border/40 font-bold text-foreground">{selectedForm.phone || (selectedForm as any).applicant_phone || "-"}</p>
+                      </div>
+                      <div className="space-y-1 print:space-y-1.5">
+                        <span className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50">Jenis Cuti</span>
+                        <p className="border-b pb-1 print:pb-2 border-border/40">{selectedForm.type}</p>
+                      </div>
+                      <div className="space-y-1 col-span-2 sm:col-span-1">
+                        <span className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50">Status</span>
+                        <p className={`font-black uppercase ${
+                          selectedForm.status === "Rejected" ? "text-[#ff0000]" :
+                          selectedForm.status === "Approved" ? "text-emerald-600" :
+                          "text-[#942392]"
+                        }`}>
+                          {selectedForm.status}
+                          <LeaveStatusDecisionBy
+                            status={selectedForm.status}
+                            approvalHistory={selectedForm.approvalHistory}
+                            approverRole={selectedForm.approverRole}
+                            branch={selectedForm.branch}
+                            department={selectedForm.department}
+                          />
+                        </p>
+                      </div>
                     </div>
                   </div>
 
@@ -841,48 +848,25 @@ export default function LeaveFormView() {
                     <div className={`grid ${
                       (selectedForm.type === "Unpaid Leave" || selectedForm.type === "Cuti Tanpa Gaji")
                         ? "grid-cols-3"
-                        : "grid-cols-4"
-                    } gap-3 print:gap-4`}>
-                      {/* Dari */}
-                      <div className="border border-border/50 rounded-xl overflow-hidden flex flex-col">
-                        <div className="bg-slate-50 dark:bg-slate-800/50 p-1.5 text-center border-b border-border/50">
-                          <p className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50">Dari</p>
-                        </div>
-                        <div className="p-2 flex-1 flex items-center justify-center bg-white dark:bg-slate-950">
-                          <p className="font-black text-xs sm:text-sm print:text-[11px] text-center">{selectedForm.from}</p>
-                        </div>
+                        : "grid-cols-2 sm:grid-cols-4 print:grid-cols-4"
+                    } gap-4 print:gap-x-8 text-xs print:text-[11px] font-bold`}>
+                      <div className="space-y-1 print:space-y-1.5">
+                        <span className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50">Dari</span>
+                        <p className="border-b pb-1 print:pb-2 border-border/40 font-bold text-foreground">{selectedForm.from}</p>
                       </div>
-                      
-                      {/* Hingga */}
-                      <div className="border border-border/50 rounded-xl overflow-hidden flex flex-col">
-                        <div className="bg-slate-50 dark:bg-slate-800/50 p-1.5 text-center border-b border-border/50">
-                          <p className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50">Hingga</p>
-                        </div>
-                        <div className="p-2 flex-1 flex items-center justify-center bg-white dark:bg-slate-950">
-                          <p className="font-black text-xs sm:text-sm print:text-[11px] text-center">{selectedForm.to}</p>
-                        </div>
+                      <div className="space-y-1 print:space-y-1.5">
+                        <span className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50">Hingga</span>
+                        <p className="border-b pb-1 print:pb-2 border-border/40 font-bold text-foreground">{selectedForm.to}</p>
                       </div>
-                      
-                      {/* Bilangan Hari */}
-                      <div className="border border-[#942392]/30 rounded-xl overflow-hidden flex flex-col shadow-sm">
-                        <div className="bg-[#942392]/5 p-1.5 text-center border-b border-[#942392]/20">
-                          <p className="text-[9px] print:text-[13px] uppercase font-black text-[#942392]">Bilangan Hari</p>
-                        </div>
-                        <div className="p-2 flex-1 flex items-center justify-center bg-white dark:bg-slate-950">
-                          <p className="font-black text-xs sm:text-sm print:text-[11px] text-[#942392] text-center">{selectedForm.days}</p>
-                        </div>
+                      <div className="space-y-1 print:space-y-1.5">
+                        <span className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50">Bilangan Hari</span>
+                        <p className="border-b pb-1 print:pb-2 border-border/40 font-bold text-foreground">{selectedForm.days}</p>
                       </div>
-                      
-                      {/* Baki Layak */}
                       {!(selectedForm.type === "Unpaid Leave" || selectedForm.type === "Cuti Tanpa Gaji") && (
-                        <div className="border border-emerald-500/40 rounded-xl overflow-hidden flex flex-col shadow-sm">
-                        <div className="bg-emerald-50 p-1.5 text-center border-b border-emerald-500/20 dark:bg-emerald-950/20">
-                          <p className="text-[9px] print:text-[13px] uppercase font-black text-emerald-600">Baki Layak</p>
+                        <div className="space-y-1 print:space-y-1.5">
+                          <span className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50">Baki Layak</span>
+                          <p className="border-b pb-1 print:pb-2 border-border/40 font-bold text-foreground">{selectedForm.balance ?? "-"} HARI</p>
                         </div>
-                        <div className="p-2 flex-1 flex items-center justify-center bg-white dark:bg-slate-950">
-                          <p className="font-black text-xs sm:text-sm print:text-[11px] text-emerald-600 text-center">{selectedForm.balance ?? "-"} HARI</p>
-                        </div>
-                      </div>
                       )}
                     </div>
                   ) : (
@@ -897,8 +881,8 @@ export default function LeaveFormView() {
 
                   {!(selectedForm.type === "Replacement Leave" || selectedForm.type === "Cuti Ganti") && (
                   <div className="space-y-2">
-                    <p className="text-[10px] print:text-[13px] font-black uppercase text-slate-950 dark:text-slate-50 tracking-widest">Sebab / Tujuan</p>
-                    <div className="rounded-[16px] border border-border/40 print:border-none print:border-0 print:border-transparent print:bg-transparent p-4 font-bold text-foreground bg-muted/10 text-sm leading-relaxed whitespace-pre-wrap break-words min-h-[50px] max-h-[100px] overflow-y-auto print:max-h-none print:overflow-visible print:p-0 print:pt-1">
+                    <p className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50">Sebab / Tujuan</p>
+                    <div className="rounded-[16px] border border-border/40 print:border-none print:border-0 print:border-transparent print:bg-transparent p-4 font-bold text-foreground bg-muted/10 text-xs print:text-[11px] leading-relaxed whitespace-pre-wrap break-words min-h-[50px] max-h-[100px] overflow-y-auto print:max-h-none print:overflow-visible print:p-0 print:pt-1">
                       {getCleanReason(selectedForm.reason) || "-"}
                     </div>
                   </div>
@@ -1044,7 +1028,7 @@ export default function LeaveFormView() {
                       </div>
                       <div className="space-y-1 print:space-y-1.5">
                         <span className="text-[10px] print:text-[13px] font-black text-slate-950 dark:text-slate-50 uppercase">No. Telefon</span>
-                        <p className="text-[9px] print:text-[13px] font-black text-[#942392]">{selectedForm.warisPhone}</p>
+                        <p className="text-xs print:text-[11px] font-bold text-foreground">{selectedForm.warisPhone}</p>
                       </div>
                       <div className="space-y-1 print:space-y-1.5">
                         <span className="text-[10px] print:text-[13px] font-black text-slate-950 dark:text-slate-50 uppercase">Alamat</span>
