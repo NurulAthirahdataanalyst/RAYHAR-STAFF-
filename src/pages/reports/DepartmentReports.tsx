@@ -53,26 +53,29 @@ export default function DepartmentReports() {
   const [selectedBranch, setSelectedBranch] = useState("All");
   const [selectedDept, setSelectedDept] = useState("All");
 
+  const isDepartmentScoped = scopeType === "Department Data Only" || (!scopeType && (role === "head_of_department" || role === "hod"));
+  const isBranchScoped = scopeType === "Branch Data Only" || (!scopeType && role === "branch_leader");
+
   useEffect(() => {
-    if (["head_of_department", "branch_leader"].includes(role) || isOwnDataOnly) {
+    if (isDepartmentScoped || isBranchScoped || isOwnDataOnly) {
       navigate("/reports/attendance", { replace: true });
     }
-  }, [role, isOwnDataOnly, navigate]);
+  }, [isDepartmentScoped, isBranchScoped, isOwnDataOnly, navigate]);
 
   useEffect(() => {
-    if (["head_of_department", "branch_leader"].includes(role) || isOwnDataOnly) return;
+    if (isDepartmentScoped || isBranchScoped || isOwnDataOnly) return;
     fetchData();
-  }, [role, isOwnDataOnly, userBranch, userDepartment]);
+  }, [isDepartmentScoped, isBranchScoped, isOwnDataOnly, userBranch, userDepartment]);
 
-  // Lock the internal states to match user's branch/dept for fixed roles
+  // Lock the internal states to match user's branch/dept for scoped roles
   useEffect(() => {
-    if (role === "branch_leader" && userBranch) {
+    if (isBranchScoped && userBranch) {
       setSelectedBranch(userBranch);
     }
-    if ((role === "head_of_department" || role === "hod") && userDepartment) {
+    if (isDepartmentScoped && userDepartment) {
       setSelectedDept(userDepartment);
     }
-  }, [role, userBranch, userDepartment]);
+  }, [isBranchScoped, isDepartmentScoped, userBranch, userDepartment]);
 
   const fetchData = async () => {
     setLoading(true);

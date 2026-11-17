@@ -100,8 +100,8 @@ export default function Employees() {
 
   const { activeCompany, companies } = useCompany();
   const { role, userBranch, userDepartment, scopeType, canEdit, hasPermission } = useRole();
-  const isDepartmentScoped = scopeType === "Department Data Only" || role === "head_of_department";
-  const isBranchScoped = scopeType === "Branch Data Only" || role === "branch_leader";
+  const isDepartmentScoped = scopeType === "Department Data Only" || (!scopeType && role === "head_of_department");
+  const isBranchScoped = scopeType === "Branch Data Only" || (!scopeType && role === "branch_leader");
   const [workspaceModalOpen, setWorkspaceModalOpen] = useState(false);
   const [workspaceEmployee, setWorkspaceEmployee] = useState<any>(null);
   const [userCompanyAssignments, setUserCompanyAssignments] = useState<any[]>([]);

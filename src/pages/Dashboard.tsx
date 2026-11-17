@@ -217,7 +217,7 @@ export default function Dashboard() {
 
       try {
         const dateStr = selectedDate.toLocaleDateString("en-CA");
-        const effectiveDashboardScope = isEmployee ? "Own Data Only" : (scopeType || user?.scope_type || "");
+        const effectiveDashboardScope = scopeType || user?.scope_type || (isEmployee ? "Own Data Only" : "");
         const url = `${API_BASE_URL}/api/dashboard-stats?userId=${dashboardUserId}&role=${role}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}&date=${dateStr}&company_id=${activeCompany?.id || 1}&scope_type=${encodeURIComponent(effectiveDashboardScope)}`;
 
         let response: Response;

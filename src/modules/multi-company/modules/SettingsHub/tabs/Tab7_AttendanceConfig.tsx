@@ -558,21 +558,21 @@ export const Tab7_AttendanceConfig: React.FC = () => {
         {/* Card 1: Time Parameters */}
         <Card className="border border-border dark:border-neutral-800 shadow-xs bg-white/70 dark:bg-card/70 backdrop-blur-md rounded-2xl p-5 space-y-4">
           <div className="space-y-1">
-            <h4 className="text-[11px] font-black uppercase tracking-wider text-black dark:text-white">
-              Time Boundaries & Overtime Rules
-            </h4>
+            <Label className="text-[11px] font-black uppercase tracking-wider text-black dark:text-white block">
+              Time Boundaries &amp; Overtime Rules
+            </Label>
             <p className="text-[11px] text-muted-foreground">Thresholds for calculating early departures and minimum shift completion.</p>
           </div>
 
           <div className="space-y-3 pt-2">
             {/* Synchronized Late Arrival Window Indicator */}
-            <div className="flex items-center justify-between p-2 rounded-lg bg-muted/20 border border-border/40">
+            <div className="flex items-center justify-between">
               <div>
                 <Label className="text-[11px] font-black uppercase tracking-wider text-black dark:text-white">Late Arrival Window</Label>
                 <span className="text-[10px] text-muted-foreground block">Governed by Default Grace Period above</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="px-2.5 py-1 rounded bg-[#942392]/10 text-[#942392] font-mono font-bold text-xs">
+                <span className="font-mono font-bold text-xs text-[#942392]">
                   {safeGrace} mins
                 </span>
               </div>
@@ -624,9 +624,9 @@ export const Tab7_AttendanceConfig: React.FC = () => {
         {/* Card 2: GPS Geofencing & Biometrics */}
         <Card className="border border-border dark:border-neutral-800 shadow-xs bg-white/70 dark:bg-card/70 backdrop-blur-md rounded-2xl p-5 space-y-4">
           <div className="space-y-1">
-            <h4 className="text-[11px] font-black uppercase tracking-wider text-black dark:text-white">
-              GPS Geofencing & Biometric Validation
-            </h4>
+            <Label className="text-[11px] font-black uppercase tracking-wider text-black dark:text-white block">
+              GPS Geofencing &amp; Biometric Validation
+            </Label>
             <p className="text-[11px] text-muted-foreground">Enforce physical branch boundary checks and camera capture.</p>
           </div>
 

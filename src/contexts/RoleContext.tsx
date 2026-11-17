@@ -49,6 +49,7 @@ export const normalizeRole = (rawRole?: string, rawScope?: string, copiedFromRol
   if (r.includes('head of department') || r.includes('hod') || r.includes('head_of_department') || c.includes('head of department') || c === 'hod') return 'head_of_department';
   if (r.includes('employee') || r.includes('staff') || r.includes('driver') || r === 'user' || c === 'employee') return 'employee';
 
+  if (s.includes('department')) return 'head_of_department';
   if (s.includes('branch')) return 'branch_leader';
   if (s.includes('own') || s.includes('self')) return 'employee';
   if (s.includes('company')) return 'operation_manager';
@@ -75,22 +76,22 @@ export const formatRoleDisplayName = (roleStr?: string): string => {
 
 export const normalizeScopeType = (rawScope?: string, rawRole?: string): string => {
   const normR = normalizeRole(rawRole);
-  if (normR === "employee") {
-    return "Own Data Only";
-  }
   const s = String(rawScope || "").trim();
   const sLower = s.toLowerCase();
+  if (sLower && sLower !== "current company only") {
+    if (sLower === "parent group access" || sLower.includes("parent") || sLower.includes("group")) return "Parent Group Data";
+    if (sLower.includes("own") || sLower.includes("self")) return "Own Data Only";
+    if (sLower.includes("department")) return "Department Data Only";
+    if (sLower.includes("branch")) return "Branch Data Only";
+    if (sLower.includes("company")) return "Company Staff Data";
+  }
   if (!s || sLower === "current company only") {
+    if (normR === "employee") return "Own Data Only";
     if (normR === "branch_leader" || normR === "branch_officer") return "Branch Data Only";
     if (normR === "hr_admin" || normR === "managing_director") return "Parent Group Data";
     if (normR === "operation_manager" || normR === "head_of_department" || normR === "assure_leader" || normR === "finance_manager") return "Company Staff Data";
     return "Own Data Only";
   }
-  if (sLower === "parent group access" || sLower.includes("parent") || sLower.includes("group")) return "Parent Group Data";
-  if (sLower.includes("own") || sLower.includes("self")) return "Own Data Only";
-  if (sLower.includes("department")) return "Department Data Only";
-  if (sLower.includes("branch")) return "Branch Data Only";
-  if (sLower.includes("company")) return "Company Staff Data";
   return s;
 };
 

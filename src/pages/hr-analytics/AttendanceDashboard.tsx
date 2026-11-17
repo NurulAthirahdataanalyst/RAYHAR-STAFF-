@@ -104,8 +104,8 @@ export default function AttendanceDashboard() {
   const { activeCompany } = useCompany();
   const { user } = useAuth();
   const { role, userBranch, userDepartment, scopeType, loading } = useRole();
-  const isDepartmentScoped = scopeType === "Department Data Only" || role === "head_of_department";
-  const isBranchScoped = scopeType === "Branch Data Only" || role === "branch_leader";
+  const isDepartmentScoped = scopeType === "Department Data Only" || (!scopeType && role === "head_of_department");
+  const isBranchScoped = scopeType === "Branch Data Only" || (!scopeType && role === "branch_leader");
   const isSubsidiaryView = activeCompany?.company_type === "subsidiary";
   const canHrReview = ["hr_admin", "managing_director", "superadmin"].some((r) =>
     String(role || "").toLowerCase().includes(r)

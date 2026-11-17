@@ -221,7 +221,8 @@ export default function WorkforceInsights() {
   // SSE connection for live feed
   useEffect(() => {
     if (!isAdminRole) return;
-    const isAllAccessRole = ["hr_admin", "managing_director", "operation_manager", "finance_manager"].includes(role || "");
+    const isScopedRestriction = scopeType === "Department Data Only" || scopeType === "Branch Data Only";
+    const isAllAccessRole = !isScopedRestriction && ["hr_admin", "managing_director", "operation_manager", "finance_manager"].includes(role || "");
     const queryBranch = isAllAccessRole ? "" : (userBranch || "");
     const queryDept = isAllAccessRole ? "" : (userDepartment || "");
 
@@ -229,6 +230,7 @@ export default function WorkforceInsights() {
       role: role || "",
       branch: queryBranch,
       department: queryDept,
+      scope_type: scopeType || "",
       month: month.toString(),
       year: year.toString(),
       company_id: String(activeCompany?.id || 1)

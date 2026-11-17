@@ -197,15 +197,13 @@ export default function TeamAttendance() {
           temp_branch: getTempBranchForDate(e.user_id, selectedDate),
           temporary_branch: null
         })) : [];
-        if (role === 'head_of_department') {
-          teamEmployees = teamEmployees.filter((e: any) => e.department === userDepartment && e.branch === userBranch);
-        } else if (scopeType === 'Department Data Only') {
+        if (scopeType === 'Department Data Only' || (!scopeType && role === 'head_of_department')) {
           const normTargetDept = (userDepartment || '').toLowerCase().replace(/\bdepartment\b/g, '').trim();
           teamEmployees = teamEmployees.filter((e: any) =>
             normTargetDept &&
             (e.department || '').toLowerCase().replace(/\bdepartment\b/g, '').trim() === normTargetDept
           );
-        } else if (scopeType === 'Branch Data Only') {
+        } else if (scopeType === 'Branch Data Only' || (!scopeType && role === 'branch_leader')) {
           const normTargetBranch = (userBranch || '').toLowerCase().trim();
           teamEmployees = teamEmployees.filter((e: any) =>
             normTargetBranch && (e.branch || '').toLowerCase().trim() === normTargetBranch

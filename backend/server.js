@@ -2221,18 +2221,28 @@ async function resolveUserScope(req, userId, requesterRole) {
   } catch (_) {}
   let rawScope = safeString(req?.query?.scope_type || req?.query?.scopeType || req?.body?.scope_type || req?.body?.scopeType || rawHeaderScope);
   const effectiveUid = safeString(userId || req?.headers?.['x-operator-id'] || req?.headers?.['x-user-id']);
+  const reqCompId = parseInt(req?.companyId || req?.query?.company_id || req?.query?.companyId || "", 10);
 
   if (!rawScope && effectiveUid) {
     try {
       // 1. Check company_user_roles (multi-company role assignment)
-      const [curRows] = await pool.query(
-        `SELECT r.scope_type 
-         FROM company_user_roles cur 
-         JOIN roles r ON r.id = cur.role_id 
-         WHERE cur.user_id = ? AND cur.status = 'active' 
-         ORDER BY cur.is_default DESC LIMIT 1`,
-        [effectiveUid]
-      );
+      const [curRows] = Number.isFinite(reqCompId)
+        ? await pool.query(
+            `SELECT r.scope_type 
+             FROM company_user_roles cur 
+             JOIN roles r ON r.id = cur.role_id 
+             WHERE cur.user_id = ? AND cur.status = 'active' 
+             ORDER BY (CASE WHEN cur.company_id = ? THEN 0 ELSE 1 END), cur.is_default DESC LIMIT 1`,
+            [effectiveUid, reqCompId]
+          )
+        : await pool.query(
+            `SELECT r.scope_type 
+             FROM company_user_roles cur 
+             JOIN roles r ON r.id = cur.role_id 
+             WHERE cur.user_id = ? AND cur.status = 'active' 
+             ORDER BY cur.is_default DESC, cur.company_id DESC LIMIT 1`,
+            [effectiveUid]
+          );
       if (curRows[0]?.scope_type) {
         rawScope = curRows[0].scope_type;
       }
@@ -2270,14 +2280,16 @@ async function resolveUserScope(req, userId, requesterRole) {
   }
 
   const r = (requesterRole || "").toLowerCase().trim();
-  if (r === 'employee') return 'Own Data Only';
-
   const s = (rawScope || "").toLowerCase().trim();
-  if (s.includes('own') || s.includes('self')) return 'Own Data Only';
-  if (s.includes('department')) return 'Department Data Only';
-  if (s.includes('branch')) return 'Branch Data Only';
-  if (s.includes('group') || s.includes('parent')) return 'Parent Group Data';
-  if (s.includes('company staff')) return 'Company Staff Data';
+  if (s && s !== 'current company only') {
+    if (s.includes('own') || s.includes('self')) return 'Own Data Only';
+    if (s.includes('department')) return 'Department Data Only';
+    if (s.includes('branch')) return 'Branch Data Only';
+    if (s.includes('group') || s.includes('parent')) return 'Parent Group Data';
+    if (s.includes('company staff')) return 'Company Staff Data';
+  }
+
+  if (r === 'employee') return 'Own Data Only';
 
   if (r.includes('hr_admin') || r.includes('hr admin') || r.includes('admin') || r.includes('managing_director') || r.includes('managing director') || r === 'md') {
     return 'Parent Group Data';
@@ -3533,22 +3545,23 @@ function computeOutstationEventMetrics(rows, monthStart, monthEnd) {
   return { completed, upcoming, cancelled, popularRoutes, upcomingEvents };
 }
 
-async function computeDynamicWorkforceMetrics(dateStr, role, branch, department, companyId = null) {
+async function computeDynamicWorkforceMetrics(dateStr, role, branch, department, companyId = null, scopeType = null) {
   const companyFilter = getCompanyUserSqlFilterById(companyId, "p.user_id");
   let profileFilter = companyFilter;
   let pFilterParams = [];
   const normRole = safeLower(role).replace(/ /g, "_");
+  const normScope = safeLower(scopeType);
   const cleanBranch = safeString(branch);
   const cleanDept = safeString(department);
 
-  if (normRole === 'branch_leader') {
-    const safeBranch = (cleanBranch && cleanBranch !== "All") ? cleanBranch : "INVALID_BYPASS";
+  if (normScope.includes('department') || (!normScope && (normRole === 'head_of_department' || normRole === 'hod'))) {
+    const safeDept = (cleanDept && cleanDept !== "All" && cleanDept !== "all") ? cleanDept : "INVALID_BYPASS";
+    profileFilter = `${companyFilter} AND ${getNormalizedDeptSql("p.department")}`;
+    pFilterParams.push(safeDept, safeDept);
+  } else if (normScope.includes('branch') || (!normScope && normRole === 'branch_leader')) {
+    const safeBranch = (cleanBranch && cleanBranch !== "All" && cleanBranch !== "all") ? cleanBranch : "INVALID_BYPASS";
     profileFilter = `${companyFilter} AND LOWER(p.branch) = LOWER(?)`;
     pFilterParams.push(safeBranch);
-  } else if (normRole === 'head_of_department' || normRole === 'hod') {
-    const safeDept = (cleanDept && cleanDept !== "All") ? cleanDept : "INVALID_BYPASS";
-    profileFilter = `${companyFilter} AND LOWER(p.department) = LOWER(?)`;
-    pFilterParams.push(safeDept);
   }
 
   let targetDateObj = (dateStr && dateStr !== "undefined" && dateStr !== "null") ? new Date(dateStr) : new Date();
@@ -3662,25 +3675,26 @@ async function computeDynamicWorkforceMetrics(dateStr, role, branch, department,
 // ============================================================
 let workforceFeedClients = [];
 
-async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMonth, targetYear, companyId = null) {
+async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMonth, targetYear, companyId = null, scopeType = null) {
   const lateTimeStr = getLateThresholdTime(companyId, dateStr);
 
   const normRole = safeLower(role).replace(/ /g, "_");
+  const normScope = safeLower(scopeType);
   const cleanBranch = safeString(branch);
   const cleanDept = safeString(department);
   const companyFilter = getCompanyUserSqlFilterById(companyId, "p.user_id");
   const companyFilterPlain = getCompanyUserSqlFilterById(companyId, "user_id");
   let filterP = companyFilter;
   let paramsBase = [];
-  if (normRole === 'branch_leader' || normRole === 'assure_leader') {
-    const safeBranch = (cleanBranch && cleanBranch !== "All") ? cleanBranch : "INVALID_BYPASS";
+  if (normScope.includes('department') || (!normScope && (normRole === 'head_of_department' || normRole === 'hod'))) {
+    const safeDept = (cleanDept && cleanDept !== "All" && cleanDept !== "all") ? cleanDept : "INVALID_BYPASS";
+    filterP = `${companyFilter} AND ${getNormalizedDeptSql("p.department")}`;
+    paramsBase.push(safeDept, safeDept);
+  } else if (normScope.includes('branch') || (!normScope && (normRole === 'branch_leader' || normRole === 'assure_leader'))) {
+    const safeBranch = (cleanBranch && cleanBranch !== "All" && cleanBranch !== "all") ? cleanBranch : "INVALID_BYPASS";
     filterP = `${companyFilter} AND LOWER(p.branch) = LOWER(?)`;
     paramsBase.push(safeBranch);
-  } else if (normRole === 'head_of_department' || normRole === 'hod') {
-    const safeDept = (cleanDept && cleanDept !== "All") ? cleanDept : "INVALID_BYPASS";
-    filterP = `${companyFilter} AND LOWER(p.department) = LOWER(?)`;
-    paramsBase.push(safeDept);
-  } else if (['hr_admin', 'hr', 'admin', 'managing_director', 'md', 'operation_manager', 'finance_manager'].includes(normRole)) {
+  } else if (['hr_admin', 'hr', 'admin', 'managing_director', 'md', 'operation_manager', 'finance_manager'].includes(normRole) || normScope.includes('company') || normScope.includes('parent')) {
     filterP = companyFilter;
     paramsBase = [];
   }
@@ -4286,6 +4300,7 @@ app.get("/api/workforce/live-feed", async (req, res) => {
   const role = safeString(req.query.role);
   const branch = safeString(req.query.branch);
   const department = safeString(req.query.department);
+  const scopeType = safeString(req.query.scope_type || req.query.scopeType);
   const month = safeString(req.query.month);
   const year = safeString(req.query.year);
   const targetDate = date || new Date().toISOString().split('T')[0];
@@ -4295,7 +4310,7 @@ app.get("/api/workforce/live-feed", async (req, res) => {
 
   // Send initial snapshot
   try {
-    const snapshot = await getWorkforceLiveFeed(targetDate, role, branch, department, targetMonth, targetYear, companyId);
+    const snapshot = await getWorkforceLiveFeed(targetDate, role, branch, department, targetMonth, targetYear, companyId, scopeType);
     res.write(`data: ${JSON.stringify(snapshot)}\n\n`);
   } catch (e) {
     console.error("workforce live-feed initial send error:", e);
@@ -4304,7 +4319,7 @@ app.get("/api/workforce/live-feed", async (req, res) => {
   // Refresh every 30 seconds
   const interval = setInterval(async () => {
     try {
-      const data = await getWorkforceLiveFeed(targetDate, role, branch, department, targetMonth, targetYear, companyId);
+      const data = await getWorkforceLiveFeed(targetDate, role, branch, department, targetMonth, targetYear, companyId, scopeType);
       res.write(`data: ${JSON.stringify(data)}\n\n`);
     } catch (e) {
       console.error("workforce live-feed interval error:", e);
@@ -5167,16 +5182,26 @@ app.get("/api/leave-requests", async (req, res) => {
       const safeDept = (await resolveRequesterDepartment(req, viewerId, department)) || "INVALID_BYPASS";
       filters.push(getNormalizedDeptSql("p.department"));
       params.push(safeDept, safeDept);
-    } else if (resolvedScope === 'Branch Data Only' && branch && branch !== 'all') {
+    } else if (resolvedScope === 'Branch Data Only') {
+      const safeBranch = (branch && branch.toLowerCase() !== 'all') ? branch : 'INVALID_BYPASS';
       filters.push("LOWER(p.branch) = LOWER(?)");
-      params.push(branch);
+      params.push(safeBranch);
+    } else if (resolvedScope === 'Company Staff Data' || resolvedScope === 'Parent Group Data') {
+      if (branch && branch.toLowerCase() !== 'all') {
+        filters.push("LOWER(p.branch) = LOWER(?)");
+        params.push(branch);
+      }
+      if (department && department.toLowerCase() !== 'all') {
+        filters.push(getNormalizedDeptSql("p.department"));
+        params.push(department, department);
+      }
     } else {
       if ((effectiveViewerRole === "branch_leader" || normRole.includes("branch_leader") || normRole.includes("branch leader") || normRole.includes("branch")) && branch && branch !== 'all') {
         filters.push("LOWER(p.branch) = LOWER(?)");
         params.push(branch);
       } else if ((effectiveViewerRole === "head_of_department" || normRole.includes("head_of_department") || normRole.includes("head of department") || normRole === "hod") && department && department !== 'all') {
-        filters.push("LOWER(p.department) = LOWER(?)");
-        params.push(department);
+        filters.push(getNormalizedDeptSql("p.department"));
+        params.push(department, department);
       } else if (effectiveViewerRole === "head_of_department" || normRole.includes("head_of_department") || normRole.includes("head of department") || normRole === "hod") {
         filters.push("1 = 0");
       } else if (!isGroupWideLeaveRole && branch && branch !== 'all') {
@@ -8253,14 +8278,18 @@ app.get("/api/employees", async (req, res) => {
     const reqUid = safeString(req.query.userId || req.query.user_id || req.query.requesterId);
     const resolvedScope = await resolveUserScope(req, reqUid, role);
 
-    if (resolvedScope === "Department Data Only" || (role === "head_of_department" && department)) {
+    if (resolvedScope === "Own Data Only" && reqUid) {
+      filters.push("p.user_id = ?");
+      params.push(reqUid);
+    } else if (resolvedScope === "Department Data Only") {
       const safeDept = (await resolveRequesterDepartment(req, reqUid, department)) || "INVALID_BYPASS";
       filters.push(getNormalizedDeptSql("p.department"));
       params.push(safeDept, safeDept);
-    } else if ((resolvedScope === "Branch Data Only" || role === "branch_leader") && branch) {
+    } else if (resolvedScope === "Branch Data Only") {
+      const safeBranch = (branch && branch.toLowerCase() !== "all") ? branch : "INVALID_BYPASS";
       filters.push("LOWER(p.branch) = LOWER(?)");
-      params.push(branch);
-    } else if (!["hr_admin", "admin", "hr", "managing_director", "md", "finance_manager", "operation_manager", "assure_leader"].includes(role) && resolvedScope !== "Company Staff Data" && resolvedScope !== "Parent Group Data" && branch) {
+      params.push(safeBranch);
+    } else if (resolvedScope !== "Company Staff Data" && resolvedScope !== "Parent Group Data" && branch && branch.toLowerCase() !== "all") {
       filters.push("LOWER(p.branch) = LOWER(?)");
       params.push(branch);
     }
@@ -8959,26 +8988,30 @@ app.get("/api/user-details/:identifier", async (req, res) => {
     let companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
 
     const normUserRole = safeLower(user.role).replace(/\s+/g, "_");
-    const [uCompRows] = await pool.query(
-      "SELECT cur.company_id, cur.role_id, r.name AS role_name, r.is_system_role, r.scope_type, r.copied_from_role_name FROM company_user_roles cur LEFT JOIN roles r ON cur.role_id = r.id WHERE cur.user_id = ? AND cur.status = 'active' ORDER BY cur.company_id DESC, cur.is_default DESC LIMIT 1",
-      [user.user_id]
-    );
+    const [uCompRows] = Number.isFinite(companyId)
+      ? await pool.query(
+          "SELECT cur.company_id, cur.role_id, r.name AS role_name, r.is_system_role, r.scope_type, r.copied_from_role_name FROM company_user_roles cur LEFT JOIN roles r ON cur.role_id = r.id WHERE cur.user_id = ? AND cur.status = 'active' ORDER BY (CASE WHEN cur.company_id = ? THEN 0 ELSE 1 END), cur.is_default DESC, cur.company_id DESC LIMIT 1",
+          [user.user_id, companyId]
+        )
+      : await pool.query(
+          "SELECT cur.company_id, cur.role_id, r.name AS role_name, r.is_system_role, r.scope_type, r.copied_from_role_name FROM company_user_roles cur LEFT JOIN roles r ON cur.role_id = r.id WHERE cur.user_id = ? AND cur.status = 'active' ORDER BY cur.company_id DESC, cur.is_default DESC LIMIT 1",
+          [user.user_id]
+        );
     const assignedCompanyId = uCompRows[0]?.company_id || (user.branch === 'RAYRENT' ? 2 : 1);
-    const finalRoleId = user.role_id || uCompRows[0]?.role_id;
+    const finalRoleId = uCompRows[0]?.role_id || user.role_id;
     const finalRoleName = uCompRows[0]?.role_name || user.role_name;
     const finalCopiedFromRoleName = uCompRows[0]?.copied_from_role_name || user.copied_from_role_name || null;
     const finalIsSystemRole = uCompRows[0]?.is_system_role !== undefined ? uCompRows[0].is_system_role : user.is_system_role;
-    const rawUserScope = user.scope_type || uCompRows[0]?.scope_type || "";
-    const resolvedScopeType = (normUserRole === 'employee')
-      ? 'Own Data Only'
-      : (!rawUserScope || rawUserScope === 'Current Company Only')
-        ? (
-            normUserRole === 'hr_admin' || normUserRole === 'managing_director' ? 'Parent Group Data' :
-            normUserRole === 'branch_leader' || normUserRole === 'branch_officer' || normUserRole.includes('supervisor') || normUserRole.includes('leader') ? 'Branch Data Only' :
-            normUserRole === 'operation_manager' || normUserRole === 'head_of_department' || normUserRole.includes('assure') ? 'Company Staff Data' :
-            'Own Data Only'
-          )
-        : (rawUserScope === 'Parent Group Access' ? 'Parent Group Data' : rawUserScope);
+    const rawUserScope = uCompRows[0]?.scope_type || user.scope_type || "";
+    const resolvedScopeType = (!rawUserScope || rawUserScope === 'Current Company Only')
+      ? (
+          normUserRole === 'employee' ? 'Own Data Only' :
+          normUserRole === 'hr_admin' || normUserRole === 'managing_director' ? 'Parent Group Data' :
+          normUserRole === 'branch_leader' || normUserRole === 'branch_officer' || normUserRole.includes('supervisor') || normUserRole.includes('leader') ? 'Branch Data Only' :
+          normUserRole === 'operation_manager' || normUserRole === 'head_of_department' || normUserRole.includes('assure') ? 'Company Staff Data' :
+          'Own Data Only'
+        )
+      : (rawUserScope === 'Parent Group Access' ? 'Parent Group Data' : rawUserScope);
 
     if (normUserRole === 'assure_leader' || normUserRole.includes('assure')) {
       if (assignedCompanyId) {
@@ -10825,32 +10858,14 @@ app.get("/api/dashboard-stats", async (req, res) => {
 
     companyId = await resolveAssureCompanyId(req, companyId);
 
-    // Determine user data scope dynamically
-    let headerScope = "";
-    try {
-      if (req.headers['x-user-scope']) headerScope = decodeURIComponent(String(req.headers['x-user-scope']));
-    } catch (_) {}
-    const rawScopeType = safeString(req.query.scope_type || headerScope);
-    let resolvedScope = rawScopeType;
-    if (!resolvedScope && userId) {
-      try {
-        const [uScopeRows] = await pool.query(
-          "SELECT r.scope_type FROM profiles p LEFT JOIN roles r ON r.id = p.role_id WHERE p.user_id = ? OR p.email = ? LIMIT 1",
-          [userId, userId]
-        );
-        resolvedScope = uScopeRows[0]?.scope_type || "";
-      } catch (e) {}
-    }
-    const rawNormScope = (resolvedScope || "").toLowerCase().trim();
-    const normScope = rawNormScope === "current company only"
-      ? (role === "employee" ? "own data only" : (role === "branch_leader" || role === "branch_officer") ? "branch data only" : ["hr_admin", "managing_director", "operation_manager", "head_of_department", "assure_leader", "finance_manager"].includes(role) ? "company staff data" : "own data only")
-      : rawNormScope;
-    const isOwnScope = role === "employee" || normScope.includes("own") || normScope.includes("self");
-    const isDepartmentScope = !isOwnScope && (normScope.includes("department") || role === "head_of_department");
-    const isBranchScope = !isOwnScope && !isDepartmentScope && (normScope.includes("branch") || role === "branch_leader");
-    const isCompanyScope = !isOwnScope && !isDepartmentScope && !isBranchScope && (normScope.includes("company staff") || role === "assure_leader" || role === "operation_manager" || role === "finance_manager");
-    const isGroupScope = !isOwnScope && (normScope.includes("group") || normScope.includes("parent") || role === "managing_director" || role === "hr_admin");
-    const hasElevatedScope = !isOwnScope && (isDepartmentScope || isBranchScope || isCompanyScope || isGroupScope || ["hr_admin", "branch_leader", "managing_director", "operation_manager", "finance_manager", "head_of_department", "assure_leader"].includes(role));
+    // Determine user data scope dynamically (Authorization Scope ALWAYS takes priority)
+    const canonicalScope = await resolveUserScope(req, userId, role);
+    const isOwnScope = canonicalScope === "Own Data Only";
+    const isDepartmentScope = canonicalScope === "Department Data Only";
+    const isBranchScope = canonicalScope === "Branch Data Only";
+    const isCompanyScope = canonicalScope === "Company Staff Data";
+    const isGroupScope = canonicalScope === "Parent Group Data";
+    const hasElevatedScope = !isOwnScope && (isDepartmentScope || isBranchScope || isCompanyScope || isGroupScope);
 
     if (hasElevatedScope) {
       try {
@@ -10875,12 +10890,12 @@ app.get("/api/dashboard-stats", async (req, res) => {
 
         if (isBranchLeader) {
           const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
-          profileFilter = `${companyUserFilter} AND branch = ?`;
-          profileAliasFilter = `${companyProfileFilter} AND p.branch = ?`;
-          attendanceFilter = `AND user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE p_s.branch = ? AND p_s.status = 'Active')${companyUserFilter}`;
-          leaveAttendanceFilter = `AND lr.user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE p_s.branch = ? AND p_s.status = 'Active')${companyLrFilter}`;
-          lateFilter = `AND fc.user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE p_s.branch = ? AND p_s.status = 'Active')${companyFcFilter}`;
-          ealFilter = `AND eal.user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE p_s.branch = ? AND p_s.status = 'Active')${companyEalFilter}`;
+          profileFilter = `${companyUserFilter} AND LOWER(branch) = LOWER(?)`;
+          profileAliasFilter = `${companyProfileFilter} AND LOWER(p.branch) = LOWER(?)`;
+          attendanceFilter = `AND user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE LOWER(p_s.branch) = LOWER(?) AND p_s.status = 'Active')${companyUserFilter}`;
+          leaveAttendanceFilter = `AND lr.user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE LOWER(p_s.branch) = LOWER(?) AND p_s.status = 'Active')${companyLrFilter}`;
+          lateFilter = `AND fc.user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE LOWER(p_s.branch) = LOWER(?) AND p_s.status = 'Active')${companyFcFilter}`;
+          ealFilter = `AND eal.user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE LOWER(p_s.branch) = LOWER(?) AND p_s.status = 'Active')${companyEalFilter}`;
           queryParams.push(safeBranch);
         } else if (isHOD) {
           const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
@@ -10912,11 +10927,14 @@ app.get("/api/dashboard-stats", async (req, res) => {
         let attendanceCheckFilter = companyUserFilter;
         let attendanceCheckParams = [queryDate];
         if (isBranchLeader) {
-          attendanceCheckFilter = `${companyUserFilter} AND user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE p_s.branch = ?)`;
-          attendanceCheckParams.push(branch);
+          const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
+          attendanceCheckFilter = `${companyUserFilter} AND user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE LOWER(p_s.branch) = LOWER(?))`;
+          attendanceCheckParams.push(safeBranch);
         } else if (isHOD) {
-          attendanceCheckFilter = `${companyUserFilter} AND user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE p_s.department = ?)`;
-          attendanceCheckParams.push(department);
+          const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
+          const deptExpr = (col) => `LOWER(REGEXP_REPLACE(TRIM(COALESCE(${col}, '')), '\\s+department$', '', 'i')) = LOWER(REGEXP_REPLACE(TRIM(?), '\\s+department$', '', 'i'))`;
+          attendanceCheckFilter = `${companyUserFilter} AND user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE ${deptExpr('p_s.department')})`;
+          attendanceCheckParams.push(safeDept);
         } else if (isAssureLeader && branch && branch !== "All") {
           attendanceCheckFilter = `${companyUserFilter} AND user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE p_s.branch = ?)`;
           attendanceCheckParams.push(branch);
@@ -10989,7 +11007,13 @@ app.get("/api/dashboard-stats", async (req, res) => {
         const lateRows = [{ late_arrivals: lateArrivalsCount }];
 
         let pendingRows;
-        if (role === "managing_director") {
+        if (isHOD || isBranchLeader) {
+          const statusToCount = isHOD ? "Pending HOD%" : "Pending Branch Leader%";
+          [pendingRows] = await pool.query(
+            `SELECT COUNT(*) AS pending_approvals FROM leave_requests WHERE status LIKE ? ${attendanceFilter}`,
+            [statusToCount, ...queryParams]
+          );
+        } else if (role === "managing_director") {
           [pendingRows] = await pool.query(
             `SELECT COUNT(*) AS pending_approvals FROM leave_requests lr WHERE (lr.status LIKE 'Pending MD%' OR lr.status LIKE 'Pending Managing Director%') AND lr.user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE p_s.status = 'Active')`
           );
@@ -11006,15 +11030,9 @@ app.get("/api/dashboard-stats", async (req, res) => {
             `SELECT COUNT(*) AS pending_approvals FROM leave_requests lr WHERE lr.status LIKE 'Pending%' AND lr.user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE p_s.status = 'Active')`
           );
         } else {
-          let statusToCount = "Pending%";
-          if (role === "head_of_department") {
-            statusToCount = "Pending HOD%";
-          } else if (role === "branch_leader") {
-            statusToCount = "Pending Branch Leader%";
-          }
           [pendingRows] = await pool.query(
-            `SELECT COUNT(*) AS pending_approvals FROM leave_requests WHERE status LIKE ? ${attendanceFilter}`,
-            [statusToCount, ...queryParams]
+            `SELECT COUNT(*) AS pending_approvals FROM leave_requests WHERE status LIKE 'Pending%' ${attendanceFilter}`,
+            [...queryParams]
           );
         }
 
@@ -12044,11 +12062,11 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
     if (resolvedScope === 'Own Data Only' && userId) {
       profileFilter += " AND p.user_id = ?";
       queryParams.push(userId);
-    } else if (resolvedScope === 'Department Data Only' || role === 'head_of_department') {
+    } else if (resolvedScope === 'Department Data Only') {
       const safeDept = (await resolveRequesterDepartment(req, userId, department)) || "INVALID_BYPASS";
       profileFilter += " AND " + getNormalizedDeptSql("p.department");
       queryParams.push(safeDept, safeDept);
-    } else if (resolvedScope === 'Branch Data Only' || role === 'branch_leader') {
+    } else if (resolvedScope === 'Branch Data Only') {
       const safeBranch = (branch && branch !== "All" && branch !== "all") ? branch : "INVALID_BYPASS";
       branch = safeBranch;
       profileFilter += " AND LOWER(p.branch) = LOWER(?)";
@@ -12499,11 +12517,11 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
     if (resolvedScope === 'Own Data Only' && userId) {
       profileFilter += " AND p.user_id = ?";
       queryParams.push(userId);
-    } else if (resolvedScope === 'Department Data Only' || role === 'head_of_department') {
+    } else if (resolvedScope === 'Department Data Only') {
       const safeDept = (await resolveRequesterDepartment(req, userId, department)) || "INVALID_BYPASS";
       profileFilter += " AND " + getNormalizedDeptSql("p.department");
       queryParams.push(safeDept, safeDept);
-    } else if (resolvedScope === 'Branch Data Only' || role === 'branch_leader') {
+    } else if (resolvedScope === 'Branch Data Only') {
       const safeBranch = (branch && branch !== "All" && branch !== "all") ? branch : "INVALID_BYPASS";
       branch = safeBranch;
       profileFilter += " AND LOWER(p.branch) = LOWER(?)";
@@ -13187,30 +13205,31 @@ app.get("/api/workforce-stats", async (req, res) => {
     const role = safeString(req.query.role);
     const branch = safeString(req.query.branch);
     const department = safeString(req.query.department);
+    const userId = safeString(req.query.userId || req.query.user_id || req.query.requesterId);
     const queryMonth = safeString(req.query.month);
     const queryYear = safeString(req.query.year);
     const queryDateParam = safeString(req.query.date);
-    const normRole = safeLower(role).replace(/ /g, "_");
 
     const rawCompanyId = req.query.company_id || req.query.companyId || req.companyId;
     let companyId = rawCompanyId ? parseInt(rawCompanyId, 10) : null;
 
     companyId = await resolveAssureCompanyId(req, companyId);
+    const resolvedScope = await resolveUserScope(req, userId, role);
     const companyFilter = getCompanyUserSqlFilterById(companyId, "p.user_id");
     let profileFilter = companyFilter;
     let pFilterParams = [];
 
-    if (normRole === 'branch_leader' || normRole === 'assure_leader') {
-      const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
+    if (resolvedScope === 'Own Data Only' && userId) {
+      profileFilter = `${companyFilter} AND p.user_id = ?`;
+      pFilterParams.push(userId);
+    } else if (resolvedScope === 'Department Data Only') {
+      const safeDept = (await resolveRequesterDepartment(req, userId, department)) || "INVALID_BYPASS";
+      profileFilter = `${companyFilter} AND ${getNormalizedDeptSql("p.department")}`;
+      pFilterParams.push(safeDept, safeDept);
+    } else if (resolvedScope === 'Branch Data Only') {
+      const safeBranch = (branch && branch !== "All" && branch !== "all") ? branch : "INVALID_BYPASS";
       profileFilter = `${companyFilter} AND LOWER(p.branch) = LOWER(?)`;
       pFilterParams.push(safeBranch);
-    } else if (normRole === 'head_of_department' || normRole === 'hod') {
-      const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
-      profileFilter = `${companyFilter} AND LOWER(p.department) = LOWER(?)`;
-      pFilterParams.push(safeDept);
-    } else if (['hr_admin', 'hr', 'admin', 'managing_director', 'md', 'operation_manager', 'finance_manager'].includes(normRole)) {
-      profileFilter = companyFilter;
-      pFilterParams = [];
     }
 
     const requestedMonth = parseInt(queryMonth, 10) || (new Date().getMonth() + 1);
@@ -14088,7 +14107,7 @@ app.get("/api/workforce-stats", async (req, res) => {
       // Note: outstationTodayCount in topKpi uses the local variable `outstationTodayCount`
     }
 
-    const dynamicMetrics = await computeDynamicWorkforceMetrics(targetDateStr, role, branch, department, rawCompanyId);
+    const dynamicMetrics = await computeDynamicWorkforceMetrics(targetDateStr, role, branch, department, rawCompanyId, resolvedScope);
 
     const sseInitialPayload = {
       attendance: uniqueAttRows.filter(a => a.dStr === targetDateStr).map(a => ({
