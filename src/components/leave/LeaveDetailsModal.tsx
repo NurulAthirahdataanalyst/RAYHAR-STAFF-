@@ -279,41 +279,41 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role, onApprove, o
 
                 <div className="space-y-4">
                   <div className="flex items-center gap-2">
-                    <User className="w-4 h-4 text-[#942392]" />
+                    <User className="w-4 h-4 text-[#942392] print:hidden" />
                     <h3 className="text-[10px] print:text-[13px] font-black uppercase tracking-[0.1em]">Maklumat Kakitangan</h3>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 print:gap-y-6 print:gap-x-8 text-xs print:text-[11px] font-bold">
+                  <div className="grid grid-cols-2 gap-4 print:gap-y-6 print:gap-x-8 text-xs print:text-[13px] font-bold">
                     <div className="space-y-1 print:space-y-1.5">
-                      <span className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50">Nama Penuh</span>
+                      <span className="text-[9px] print:text-[13px] print:normal-case uppercase font-black text-slate-950 dark:text-slate-50">Nama Penuh</span>
                       <p className="break-words font-bold">{selectedRequest.employee || (selectedRequest as any).full_name}</p>
                     </div>
                     <div className="space-y-1 print:space-y-1.5">
-                      <span className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50">Cawangan</span>
-                      <p className="border-b pb-1 print:pb-2 border-border/40">{formatBranchName(selectedRequest.branch)}</p>
+                      <span className="text-[9px] print:text-[13px] print:normal-case uppercase font-black text-slate-950 dark:text-slate-50">Cawangan</span>
+                      <p className="">{formatBranchName(selectedRequest.branch)}</p>
                     </div>
                     <div className="space-y-1 print:space-y-1.5">
-                      <span className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50">No. Telefon</span>
+                      <span className="text-[9px] print:text-[13px] print:normal-case uppercase font-black text-slate-950 dark:text-slate-50">No. Telefon</span>
                       <p className="font-bold text-foreground">{selectedRequest.phone || (selectedRequest as any).applicant_phone || "-"}</p>
                     </div>
                     <div className="space-y-1 print:space-y-1.5">
-                      <span className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50">Jenis Cuti</span>
-                      <p className="border-b pb-1 print:pb-2 border-border/40">{selectedRequest.type}</p>
+                      <span className="text-[9px] print:text-[13px] print:normal-case uppercase font-black text-slate-950 dark:text-slate-50">Jenis Cuti</span>
+                      <p className="">{selectedRequest.type}</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 print:gap-x-8 print:mb-10 text-xs print:text-[11px] font-bold">
+                <div className="grid grid-cols-2 gap-4 print:gap-x-8 print:mb-10 text-xs print:text-[13px] font-bold">
                   {!(selectedRequest.type === "Replacement Leave" || selectedRequest.type === "Cuti Ganti") && (
                 <div className="space-y-2">
-                  <p className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50">Sebab / Tujuan</p>
-                  <div className="rounded-[16px] border border-border/40 print:border-none print:border-0 print:border-transparent print:bg-transparent p-4 font-bold text-foreground bg-muted/10 text-xs print:text-[11px] leading-relaxed whitespace-pre-wrap break-words min-h-[50px] print:p-0 print:pt-1">
+                  <p className="text-[9px] print:text-[13px] print:normal-case uppercase font-black text-slate-950 dark:text-slate-50">Sebab / Tujuan</p>
+                  <div className="rounded-[16px] border border-border/40 print:border-none print:border-0 print:border-transparent print:bg-transparent p-4 font-bold text-foreground bg-muted/10 text-xs print:text-[13px] leading-relaxed whitespace-pre-wrap break-words min-h-[50px] print:p-0 print:pt-1">
                     {getCleanReason(selectedRequest.reason) || "-"}
                   </div>
                 </div>
                 )}
                   <div className="space-y-1 col-start-2">
-                      <span className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50">Status</span>
+                      <span className="text-[9px] print:text-[13px] print:normal-case uppercase font-black text-slate-950 dark:text-slate-50">Status</span>
                       <p className={`font-black uppercase print:normal-case ${
                         selectedRequest.status === "Rejected" ? "text-rose-600" :
                         selectedRequest.status === "Approved" ? "text-emerald-600" :
@@ -332,22 +332,22 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role, onApprove, o
                 </div>
 
                 {!(selectedRequest.type === "Replacement Leave" || selectedRequest.type === "Cuti Ganti") ? (
-                  <div className={`grid ${(selectedRequest.type === "Unpaid Leave" || selectedRequest.type === "Cuti Tanpa Gaji") ? "grid-cols-3" : "grid-cols-2 sm:grid-cols-4 print:grid-cols-4"} gap-4 print:gap-x-8 text-xs print:text-[11px] font-bold`}>
+                  <div className={`grid ${(selectedRequest.type === "Unpaid Leave" || selectedRequest.type === "Cuti Tanpa Gaji") ? "grid-cols-3" : "grid-cols-2 sm:grid-cols-4 print:grid-cols-4"} gap-4 print:gap-x-8 text-xs print:text-[13px] font-bold`}>
                     <div className="space-y-1 print:space-y-1.5">
-                      <span className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50">Dari</span>
+                      <span className="text-[9px] print:text-[13px] print:normal-case uppercase font-black text-slate-950 dark:text-slate-50">Dari</span>
                       <p className="font-bold text-foreground">{formatDisplayDate(selectedRequest.from)}</p>
                     </div>
                     <div className="space-y-1 print:space-y-1.5">
-                      <span className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50">Hingga</span>
+                      <span className="text-[9px] print:text-[13px] print:normal-case uppercase font-black text-slate-950 dark:text-slate-50">Hingga</span>
                       <p className="font-bold text-foreground">{formatDisplayDate(selectedRequest.to)}</p>
                     </div>
                     <div className="space-y-1 print:space-y-1.5">
-                      <span className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50">Bilangan Hari</span>
+                      <span className="text-[9px] print:text-[13px] print:normal-case uppercase font-black text-slate-950 dark:text-slate-50">Bilangan Hari</span>
                       <p className="font-bold text-foreground">{selectedRequest.days}</p>
                     </div>
                     {!(selectedRequest.type === "Unpaid Leave" || selectedRequest.type === "Cuti Tanpa Gaji") && (
                       <div className="space-y-1 print:space-y-1.5">
-                        <span className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50">Baki Layak</span>
+                        <span className="text-[9px] print:text-[13px] print:normal-case uppercase font-black text-slate-950 dark:text-slate-50">Baki Layak</span>
                         <p className="font-bold text-foreground">{selectedRequest.balance ?? "-"} HARI</p>
                       </div>
                     )}
@@ -501,25 +501,25 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role, onApprove, o
                 {ADMIN_VIEW_ROLES.includes(role) && (
                   <div className="pt-4 border-t border-border/50 space-y-4">
                     <div className="flex items-center gap-2">
-                      <PhoneCall className="w-4 h-4 text-rose-500" />
+                      <PhoneCall className="w-4 h-4 text-rose-500 print:hidden" />
                       <h3 className="text-[10px] print:text-[13px] font-black uppercase tracking-[0.1em]">Maklumat Waris (Kecemasan)</h3>
                     </div>
                     <div className="grid grid-cols-2 gap-4 print:gap-y-6 print:gap-x-8">
                       <div className="space-y-1 print:space-y-1.5">
-                        <span className="text-[10px] print:text-[13px] font-black text-slate-950 dark:text-slate-50 uppercase">Nama</span>
-                        <p className="text-xs print:text-[11px] font-bold truncate">{selectedRequest.warisNama}</p>
+                        <span className="text-[10px] print:text-[13px] print:normal-case font-black text-slate-950 dark:text-slate-50 uppercase">Nama</span>
+                        <p className="text-xs print:text-[13px] font-bold truncate">{selectedRequest.warisNama}</p>
                       </div>
                       <div className="space-y-1 print:space-y-1.5">
-                        <span className="text-[10px] print:text-[13px] font-black text-slate-950 dark:text-slate-50 uppercase">Hubungan</span>
-                        <p className="text-xs print:text-[11px] font-bold truncate">{selectedRequest.warisHubungan}</p>
+                        <span className="text-[10px] print:text-[13px] print:normal-case font-black text-slate-950 dark:text-slate-50 uppercase">Hubungan</span>
+                        <p className="text-xs print:text-[13px] font-bold truncate">{selectedRequest.warisHubungan}</p>
                       </div>
                       <div className="space-y-1 print:space-y-1.5">
-                        <span className="text-[10px] print:text-[13px] font-black text-slate-950 dark:text-slate-50 uppercase">No. Telefon</span>
-                        <p className="text-xs print:text-[11px] font-bold text-foreground">{selectedRequest.warisPhone}</p>
+                        <span className="text-[10px] print:text-[13px] print:normal-case font-black text-slate-950 dark:text-slate-50 uppercase">No. Telefon</span>
+                        <p className="text-xs print:text-[13px] font-bold text-foreground">{selectedRequest.warisPhone}</p>
                       </div>
                       <div className="space-y-1 print:space-y-1.5">
-                        <span className="text-[10px] print:text-[13px] font-black text-slate-950 dark:text-slate-50 uppercase">Alamat</span>
-                        <p className="text-xs print:text-[11px] font-bold break-words">{selectedRequest.warisAlamat}</p>
+                        <span className="text-[10px] print:text-[13px] print:normal-case font-black text-slate-950 dark:text-slate-50 uppercase">Alamat</span>
+                        <p className="text-xs print:text-[13px] font-bold break-words">{selectedRequest.warisAlamat}</p>
                       </div>
                     </div>
                   </div>

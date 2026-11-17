@@ -276,7 +276,6 @@ export const ApprovalHistoryTimeline: React.FC<ApprovalHistoryTimelineProps> = (
     {/* Print-only: clean vertical timeline */}
     <div className="hidden print:block">
       <div className="flex items-center gap-2 mb-3">
-        <Clock className="w-4 h-4 text-foreground" />
         <h3 className="text-[13px] font-black uppercase tracking-[0.1em] text-foreground">
           APPROVAL HISTORY
         </h3>
@@ -293,7 +292,7 @@ export const ApprovalHistoryTimeline: React.FC<ApprovalHistoryTimelineProps> = (
                   isApproved ? 'bg-emerald-500' : isRejected ? 'bg-rose-500' : 'bg-amber-400'
                 }`}
               />
-              <div className="text-[11px] leading-relaxed">
+              <div className="text-[13px] leading-relaxed">
                 {item.dateLong && <p className="font-black">{item.dateLong}</p>}
                 <p className="font-bold">{item.status}</p>
                 {hasName ? (

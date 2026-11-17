@@ -383,7 +383,9 @@
 
   /* A4 fit: box fills the printable page, content spread evenly, signature at bottom */
   #leave-form-print .rounded-\[24px\] {
-    min-height: 268mm !important;
+    min-height: 270mm !important;
+    height: 270mm !important;
+    box-sizing: border-box !important;
     display: flex !important;
     flex-direction: column !important;
     justify-content: space-between !important;
