@@ -50,10 +50,73 @@ interface StaffMember {
   user_id: string;
   full_name: string;
   role?: string;
+  role_name?: string;
+  copied_from_role_name?: string;
+  role_type?: string;
+  scope_type?: string;
   branch?: string;
   department?: string;
   status?: string;
 }
+
+const isEmployeeRoleObj = (r?: Partial<CompanyRole> | null): boolean => {
+  if (!r) return false;
+  const nameLower = (r.name || '').trim().toLowerCase();
+  const copiedLower = (r.copied_from_role_name || '').trim().toLowerCase();
+  const rt = (r.role_type || '').trim().toLowerCase();
+  const st = (r.scope_type || '').trim().toLowerCase();
+  if (
+    nameLower.includes('branch leader') ||
+    nameLower.includes('head of department') ||
+    nameLower === 'hod' ||
+    nameLower.includes('supervisor') ||
+    nameLower.includes('coordinator') ||
+    nameLower.includes('manager') ||
+    nameLower.includes('director') ||
+    nameLower.includes('hr admin')
+  ) {
+    return false;
+  }
+  return (
+    nameLower.includes('employee') ||
+    nameLower.includes('staff') ||
+    nameLower.includes('driver') ||
+    copiedLower === 'employee' ||
+    rt === 'employee role' ||
+    st === 'own data only'
+  );
+};
+
+const isHodRoleObj = (r?: Partial<CompanyRole> | null, deptList: CompanyDepartment[] = []): boolean => {
+  if (!r || isEmployeeRoleObj(r)) return false;
+  const nameLower = (r.name || '').trim().toLowerCase();
+  const copiedLower = (r.copied_from_role_name || '').trim().toLowerCase();
+  if (
+    nameLower === 'hod' ||
+    nameLower.includes('head of department') ||
+    nameLower.includes('head_of_department') ||
+    copiedLower === 'hod' ||
+    copiedLower.includes('head of department')
+  ) {
+    return true;
+  }
+  return deptList.some((d) => (d.name || '').trim().toLowerCase() === nameLower);
+};
+
+const isBranchLeaderRoleObj = (r?: Partial<CompanyRole> | null, deptList: CompanyDepartment[] = []): boolean => {
+  if (!r || isEmployeeRoleObj(r)) return false;
+  const nameLower = (r.name || '').trim().toLowerCase();
+  const copiedLower = (r.copied_from_role_name || '').trim().toLowerCase();
+  const st = (r.scope_type || '').trim().toLowerCase();
+  return (
+    nameLower.includes('branch leader') ||
+    nameLower.includes('branch_leader') ||
+    nameLower.includes('branch manager') ||
+    nameLower.includes('supervisor') ||
+    copiedLower.includes('branch leader') ||
+    (st.includes('branch') && !isHodRoleObj(r, deptList))
+  );
+};
 
 export interface WorkflowTrack {
   id: string;
@@ -163,31 +226,54 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
   };
 
   // Helper to build default workflows for Subsidiary Companies
-  const buildDefaultSubsidiaryTracks = (roles: CompanyRole[], branchList: CompanyBranch[]): WorkflowTrack[] => {
-    const findRole = (targetName: string) =>
-      roles.find((r) => (r.name || '').trim().toLowerCase() === targetName.toLowerCase());
-
-    const blRole = findRole('Branch Leader') || findRole('Branch Admin') || roles[0];
+  const buildDefaultSubsidiaryTracks = (
+    roles: CompanyRole[],
+    branchList: CompanyBranch[],
+    deptList: CompanyDepartment[] = []
+  ): WorkflowTrack[] => {
+    const eligibleRoles = roles.filter((r) => !isEmployeeRoleObj(r));
+    const blRole =
+      eligibleRoles.find((r) => isBranchLeaderRoleObj(r, deptList)) ||
+      eligibleRoles.find((r) => (r.name || '').toLowerCase().includes('branch admin')) ||
+      eligibleRoles[0];
+    const hodRole = eligibleRoles.find((r) => isHodRoleObj(r, deptList));
     const allBranchCodes = branchList.map((b) => b.code);
+
+    const steps: ApprovalWorkflowStep[] = [];
+    if (hodRole && (deptList.length > 0 || !blRole)) {
+      steps.push({
+        company_id: companyId,
+        module: 'leave',
+        branch_scope: 'ALL',
+        step_order: 1,
+        approver_role_id: hodRole.id || '',
+        approver_role_name: hodRole.name || 'Head of Department',
+        step_label: 'Department Review (If Staff Has Department)',
+        routing_rule: 'Routes to Head of Department if the employee has a department; automatically skipped if no department is assigned',
+        auto_escalate_hours: 48
+      });
+    }
+
+    if (blRole) {
+      steps.push({
+        company_id: companyId,
+        module: 'leave',
+        branch_scope: 'ALL',
+        step_order: steps.length + 1,
+        approver_role_id: blRole.id || '',
+        approver_role_name: blRole.name || 'Branch Leader',
+        step_label: steps.length === 0 ? 'Highest Approval (Branch Leader)' : 'Branch Leader Approval (No-Department Fallback / Final)',
+        routing_rule: `Routes to the Branch Leader for ${companyName} (primary approver when staff has no department)`,
+        auto_escalate_hours: 48
+      });
+    }
 
     const subTrack: WorkflowTrack = {
       id: `wf-sub-${companyId}`,
       name: `Workflow 1 • ${companyName} Approval Workflow`,
       scopeType: 'ALL',
       selectedBranches: allBranchCodes.length > 0 ? allBranchCodes : ['RAYRENT'],
-      steps: [
-        {
-          company_id: companyId,
-          module: 'leave',
-          branch_scope: 'ALL',
-          step_order: 1,
-          approver_role_id: blRole?.id || '',
-          approver_role_name: blRole?.name || 'Branch Leader',
-          step_label: 'Highest Approval (Branch Leader)',
-          routing_rule: `Highest approval authority for ${companyName} leave applicants`,
-          auto_escalate_hours: 48
-        }
-      ]
+      steps
     };
 
     return [subTrack];
@@ -204,7 +290,7 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
           companyId !== 1 ? multiCompanyApi.getCompanyRoles(1) : Promise.resolve([]),
           multiCompanyApi.getCompanyBranches(companyId).catch(() => []),
           multiCompanyApi.getCompanyDepartments(companyId).catch(() => []),
-          fetch(`${API_BASE_URL}/api/employees?role=hr_admin&status=Active`)
+          fetch(`${API_BASE_URL}/api/employees?company_id=${companyId}&status=Active`)
             .then((r) => r.json())
             .catch(() => ({ employees: [] }))
         ]);
@@ -243,7 +329,7 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
           if (isMainCompany) {
             setTracks(buildDefaultRayharTracks(uniqueRoles, currentBranches));
           } else {
-            setTracks(buildDefaultSubsidiaryTracks(uniqueRoles, currentBranches));
+            setTracks(buildDefaultSubsidiaryTracks(uniqueRoles, currentBranches, deptData || []));
           }
         } else {
           // Group raw steps by branch_scope
@@ -334,30 +420,49 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
     void fetchData();
   }, [companyId, companyName]);
 
+  const approverEligibleRoles = useMemo(
+    () => availableRoles.filter((r) => !isEmployeeRoleObj(r)),
+    [availableRoles]
+  );
+
   // Live approver coverage details from active staff list
   const approverCoverage = useMemo(() => {
-    const normalizeRole = (r?: string) => (r || '').toLowerCase().replace(/_/g, ' ').trim();
-
     const hodByDept = new Map<string, string[]>();
     const branchLeadersByBranch = new Map<string, string[]>();
     const operationManagers: string[] = [];
     const managingDirectors: string[] = [];
 
     staffList.forEach((emp) => {
-      const r = normalizeRole(emp.role);
+      const roleObj = availableRoles.find(
+        (r) =>
+          (r.name || '').trim().toLowerCase() === (emp.role_name || emp.role || '').trim().toLowerCase()
+      );
+      const r = (emp.role_name || emp.role || '').toLowerCase().replace(/_/g, ' ').trim();
+      const copied = (emp.copied_from_role_name || roleObj?.copied_from_role_name || '').toLowerCase().replace(/_/g, ' ').trim();
       const name = emp.full_name || emp.user_id;
       const bCode = (emp.branch || '').toUpperCase().trim();
       const dept = (emp.department || '').trim();
 
-      if (r === 'head of department' || r === 'hod') {
+      if (
+        r === 'head of department' ||
+        r === 'hod' ||
+        copied === 'head of department' ||
+        copied === 'hod' ||
+        (roleObj && isHodRoleObj(roleObj, departments))
+      ) {
         const key = dept || 'HQ General';
         hodByDept.set(key, [...(hodByDept.get(key) || []), name]);
-      } else if (r === 'branch leader') {
+      } else if (
+        r === 'branch leader' ||
+        r.includes('supervisor') ||
+        copied === 'branch leader' ||
+        (roleObj && isBranchLeaderRoleObj(roleObj, departments))
+      ) {
         const key = bCode || 'BRANCH';
         branchLeadersByBranch.set(key, [...(branchLeadersByBranch.get(key) || []), name]);
-      } else if (r === 'operation manager' || r === 'finance manager') {
+      } else if (r === 'operation manager' || r === 'finance manager' || copied === 'operation manager') {
         if (!operationManagers.includes(name)) operationManagers.push(name);
-      } else if (r === 'managing director' || r === 'md') {
+      } else if (r === 'managing director' || r === 'md' || copied === 'managing director') {
         if (!managingDirectors.includes(name)) managingDirectors.push(name);
       }
     });
@@ -371,11 +476,17 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
       managingDirectors,
       nonHqBranches
     };
-  }, [staffList, branches]);
+  }, [staffList, branches, availableRoles, departments]);
 
   // Handler: Add New Workflow Track
   const handleAddWorkflow = () => {
-    const defaultRoleId = availableRoles.length > 0 ? availableRoles[0].id : '';
+    const candidateRoles = approverEligibleRoles.length > 0 ? approverEligibleRoles : availableRoles;
+    const hodRole = candidateRoles.find((r) => isHodRoleObj(r, departments));
+    const blRole = candidateRoles.find((r) => isBranchLeaderRoleObj(r, departments));
+    const fallbackFirst = blRole || hodRole || candidateRoles[0];
+    const fallbackSecond =
+      (hodRole && blRole ? blRole : candidateRoles.find((r) => r.id !== fallbackFirst?.id)) ||
+      fallbackFirst;
     const newIndex = tracks.length + 1;
 
     // Prioritize HQ branch for the first trigger if HQ is in branch list
@@ -384,35 +495,60 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
       ? ['HQ'] 
       : branches.length > 0 ? [branches[0].code] : ['HQ'];
 
+    const isSubsidiaryWithDept = !isMainCompany && Boolean(hodRole) && departments.length > 0;
+    const step1Role = initialBranches[0] === 'HQ' ? (hodRole || fallbackFirst) : (isSubsidiaryWithDept ? hodRole : fallbackFirst);
+    const step2Role = initialBranches[0] === 'HQ'
+      ? (candidateRoles.find((r) => (r.name || '').toLowerCase() === 'operation manager') || fallbackSecond)
+      : (isSubsidiaryWithDept ? (blRole || fallbackSecond) : fallbackSecond);
+
+    const steps: ApprovalWorkflowStep[] = [
+      {
+        company_id: companyId,
+        module: 'leave',
+        branch_scope: initialBranches[0] === 'HQ' ? 'HQ' : initialBranches.join(','),
+        step_order: 1,
+        approver_role_id: step1Role?.id || '',
+        approver_role_name: step1Role?.name || 'Approver',
+        step_label:
+          initialBranches[0] === 'HQ'
+            ? 'Department Review (HQ Department Only)'
+            : isSubsidiaryWithDept
+            ? 'Department Review (If Staff Has Department)'
+            : 'Branch Endorsement (Own Branch Only)',
+        routing_rule:
+          initialBranches[0] === 'HQ'
+            ? 'Only HQ has departments — routes to Head of Department'
+            : isSubsidiaryWithDept
+            ? 'Routes to Head of Department if the employee has a department; automatically skipped if no department is assigned'
+            : "Follows employee's own branch only",
+        auto_escalate_hours: 48
+      }
+    ];
+
+    if (step2Role && step2Role.id !== step1Role?.id) {
+      steps.push({
+        company_id: companyId,
+        module: 'leave',
+        branch_scope: initialBranches[0] === 'HQ' ? 'HQ' : initialBranches.join(','),
+        step_order: 2,
+        approver_role_id: step2Role.id,
+        approver_role_name: step2Role.name || 'Highest Approval',
+        step_label: isSubsidiaryWithDept
+          ? 'Branch Leader Approval (No-Department Fallback / Final)'
+          : 'Highest Approval (Final Sign-off)',
+        routing_rule: isSubsidiaryWithDept
+          ? 'Routes to Branch Leader for branch approval and for staff without a department'
+          : 'Highest approval authority for assigned scope',
+        auto_escalate_hours: 48
+      });
+    }
+
     const newTrack: WorkflowTrack = {
       id: `wf-${Date.now()}`,
       name: `Workflow ${newIndex} • Branch Approval Flow`,
       scopeType: initialBranches[0] === 'HQ' ? 'HQ' : 'CUSTOM',
       selectedBranches: initialBranches,
-      steps: [
-        {
-          company_id: companyId,
-          module: 'leave',
-          branch_scope: initialBranches[0] === 'HQ' ? 'HQ' : initialBranches.join(','),
-          step_order: 1,
-          approver_role_id: defaultRoleId,
-          approver_role_name: availableRoles[0]?.name || 'Approver',
-          step_label: initialBranches[0] === 'HQ' ? 'Department Review (HQ Department Only)' : 'Branch Endorsement (Own Branch Only)',
-          routing_rule: initialBranches[0] === 'HQ' ? 'Only HQ has departments — routes to Head of Department' : 'Follows employee\'s own branch only',
-          auto_escalate_hours: 48
-        },
-        {
-          company_id: companyId,
-          module: 'leave',
-          branch_scope: initialBranches[0] === 'HQ' ? 'HQ' : initialBranches.join(','),
-          step_order: 2,
-          approver_role_id: availableRoles.length > 1 ? availableRoles[1].id : defaultRoleId,
-          approver_role_name: availableRoles[1]?.name || 'Highest Approval',
-          step_label: 'Highest Approval (Final Sign-off)',
-          routing_rule: 'Highest approval authority for assigned scope',
-          auto_escalate_hours: 48
-        }
-      ],
+      steps,
       isBranchPickerOpen: true
     };
 
@@ -508,7 +644,10 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
   const handleAddStepToTrack = (trackIndex: number) => {
     const updated = [...tracks];
     const track = updated[trackIndex];
-    const defaultRoleId = availableRoles.length > 0 ? availableRoles[0].id : '';
+    const candidateRoles = approverEligibleRoles.length > 0 ? approverEligibleRoles : availableRoles;
+    const usedIds = new Set(track.steps.map((s) => s.approver_role_id));
+    const pickedRole = candidateRoles.find((r) => !usedIds.has(r.id)) || candidateRoles[0];
+    const defaultRoleId = pickedRole ? pickedRole.id : '';
 
     const newStep: ApprovalWorkflowStep = {
       company_id: companyId,
@@ -516,7 +655,7 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
       branch_scope: track.scopeType as WorkflowBranchScope,
       step_order: track.steps.length + 1,
       approver_role_id: defaultRoleId,
-      approver_role_name: availableRoles[0]?.name || 'Approver',
+      approver_role_name: pickedRole?.name || 'Approver',
       step_label:
         track.steps.length === 0
           ? 'Initial Endorsement'
@@ -572,7 +711,7 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
       setTracks(def);
       toast.info('Reset to Rayhar Travels standard branch-based workflows (HQ & Other Branches).');
     } else {
-      const def = buildDefaultSubsidiaryTracks(availableRoles, branches);
+      const def = buildDefaultSubsidiaryTracks(availableRoles, branches, departments);
       setTracks(def);
       toast.info(`Reset to standard workflow for ${companyName}.`);
     }
@@ -581,6 +720,7 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
   // Save All Workflows to Backend
   const handleSave = async () => {
     const allStepsToSave: ApprovalWorkflowStep[] = [];
+    const seenBranchOwners = new Map<string, string>();
 
     for (let tIdx = 0; tIdx < tracks.length; tIdx++) {
       const track = tracks[tIdx];
@@ -589,9 +729,30 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
         return;
       }
 
+      for (const bCode of track.selectedBranches) {
+        const key = bCode.toUpperCase();
+        if (seenBranchOwners.has(key)) {
+          toast.error(
+            `Branch "${bCode}" is assigned to both "${seenBranchOwners.get(key)}" and "${track.name}". Please keep only one workflow track per branch.`
+          );
+          return;
+        }
+        seenBranchOwners.set(key, track.name);
+      }
+
       if (track.steps.some((s) => !s.approver_role_id)) {
         toast.error(`All steps in "${track.name}" must have an assigned approver role.`);
         return;
+      }
+
+      for (const s of track.steps) {
+        const rObj = availableRoles.find((r) => r.id === s.approver_role_id);
+        if (isEmployeeRoleObj(rObj)) {
+          toast.error(
+            `Step "${s.step_label}" in "${track.name}" uses Employee role "${rObj?.name}". Please select a Branch Leader, Head of Department, or Management role instead.`
+          );
+          return;
+        }
       }
 
       let resolvedScope = track.scopeType as string;
@@ -685,18 +846,31 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
     const roleObj = availableRoles.find((r) => r.id === roleId);
     const roleNameLower = (roleObj?.name || '').toLowerCase().trim();
 
-    if (roleNameLower === 'head of department' || roleNameLower === 'hod') {
+    if (roleObj && isEmployeeRoleObj(roleObj)) {
+      return (
+        <div className="mt-2.5 pt-2.5 border-t border-rose-500/30 text-[10px] text-rose-600 dark:text-rose-400 font-semibold flex items-center gap-1.5">
+          <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+          <span>
+            &quot;{roleObj.name}&quot; is an Employee role and cannot approve leave. Please change this step to a Branch Leader, Head of Department, or Management role.
+          </span>
+        </div>
+      );
+    }
+
+    if (isHodRoleObj(roleObj, departments)) {
       return (
         <div className="mt-2.5 pt-2.5 border-t border-border/50 dark:border-neutral-800 space-y-2">
           <div className="flex flex-wrap items-center justify-between gap-1.5">
             <span className="text-[10px] font-black uppercase tracking-wider text-[#942392] dark:text-[#f885d5]">
-              Rayhar HQ Departments (Only HQ Has Departments):
+              {isMainCompany
+                ? 'Rayhar HQ Departments (Only HQ Has Departments):'
+                : 'Department-Based Approval (Skipped Automatically If Staff Has No Department):'}
             </span>
             <Badge
               variant="outline"
               className="text-[9px] font-bold border-purple-500/30 bg-purple-500/10 text-[#942392] dark:text-purple-300"
             >
-              {departments.length} HQ Departments
+              {departments.length} {isMainCompany ? 'HQ ' : ''}Departments
             </Badge>
           </div>
           <div className="flex flex-wrap gap-1.5">
@@ -731,7 +905,7 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
       );
     }
 
-    if (roleNameLower === 'branch leader') {
+    if (isBranchLeaderRoleObj(roleObj, departments)) {
       const assignedBranches = approverCoverage.nonHqBranches.filter((b) =>
         approverCoverage.branchLeadersByBranch.has((b.code || '').toUpperCase())
       );
@@ -743,7 +917,9 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
         <div className="mt-2.5 pt-2.5 border-t border-border/50 dark:border-neutral-800 space-y-2">
           <div className="flex flex-wrap items-center justify-between gap-1.5">
             <span className="text-[10px] font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
-              Follows Employee&apos;s Own Branch Only (Appears When HR Assigns Branch Leader):
+              {isMainCompany
+                ? "Follows Employee's Own Branch Only (Appears When HR Assigns Branch Leader):"
+                : "Follows Employee's Own Branch Only (Primary Approver When Staff Has No Department):"}
             </span>
             <Badge
               variant="outline"
@@ -1319,7 +1495,7 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
                                     <SelectValue placeholder="Select approver role..." />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    {availableRoles.map((r) => (
+                                    {approverEligibleRoles.map((r) => (
                                       <SelectItem key={r.id} value={r.id} className="text-xs font-medium">
                                         {r.name}{' '}
                                         {r.scope_type === 'Parent Group Access' || r.scope_type === 'Parent Group Data'
@@ -1327,6 +1503,16 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
                                           : ''}
                                       </SelectItem>
                                     ))}
+                                    {(() => {
+                                      const legacySelected = availableRoles.find(
+                                        (r) => r.id === step.approver_role_id && isEmployeeRoleObj(r)
+                                      );
+                                      return legacySelected ? (
+                                        <SelectItem key={legacySelected.id} value={legacySelected.id} className="text-xs font-medium text-rose-600">
+                                          {legacySelected.name} (Invalid Employee Role — Change)
+                                        </SelectItem>
+                                      ) : null;
+                                    })()}
                                   </SelectContent>
                                 </Select>
                               </div>

@@ -23,6 +23,13 @@ const {
   validateUploadedFile,
   validateDiscussionFile,
 } = require("./utils/fileSecurity");
+const {
+  normalizeDeptValue,
+  classifyRoleCategory,
+  findApproverForStep,
+  resolveEffectiveWorkflowForApplicant,
+  findStepIndexForStatus,
+} = require("./utils/leaveWorkflowResolver");
 
 const isString = (value) =>
   typeof value === "string";
@@ -295,6 +302,146 @@ function getEmployeeCompanyId(userId) {
   if (!userId) return 1;
   return userCompanyMap.get(userId) || 1;
 }
+
+async function loadLeaveWorkflowContext(companyIdsInput = []) {
+  const uniqueIds = Array.from(
+    new Set(
+      (companyIdsInput || [])
+        .map((id) => parseInt(id, 10))
+        .filter((id) => !isNaN(id) && id > 0)
+    )
+  );
+  if (!uniqueIds.includes(1)) uniqueIds.push(1);
+
+  const [wfRes, rolesRes, deptRes, staffRes] = await Promise.all([
+    pgPool.query(
+      `SELECT aw.*, r.name AS role_name, r.copied_from_role_name, r.role_type, r.scope_type
+       FROM approval_workflow aw
+       LEFT JOIN roles r ON aw.approver_role_id = r.id
+       WHERE aw.company_id = ANY($1::int[]) AND aw.module = 'leave'
+       ORDER BY aw.company_id ASC, aw.step_order ASC`,
+      [uniqueIds]
+    ),
+    pgPool.query(
+      `SELECT id, name, company_id, role_type, scope_type, copied_from_role_name
+       FROM roles
+       WHERE company_id = ANY($1::int[]) OR company_id IS NULL`,
+      [uniqueIds]
+    ),
+    pgPool.query(
+      `SELECT id, name, company_id
+       FROM departments
+       WHERE company_id = ANY($1::int[]) OR company_id IS NULL`,
+      [uniqueIds]
+    ),
+    pgPool.query(
+      `SELECT p.user_id, p.full_name, p.email, p.branch, p.department, p.status,
+              COALESCE(cur.company_id, b.company_id, 1)::int AS company_id,
+              COALESCE(cur.role_id, p.role_id, ur.role_id) AS role_id,
+              COALESCE(r.name, ur.role, p.role, 'Employee') AS role_name,
+              COALESCE(ur.role, p.role, '') AS role,
+              r.copied_from_role_name,
+              r.role_type,
+              r.scope_type
+       FROM profiles p
+       LEFT JOIN branches b ON UPPER(b.code) = UPPER(p.branch)
+       LEFT JOIN LATERAL (
+         SELECT cur1.company_id, cur1.role_id
+         FROM company_user_roles cur1
+         WHERE cur1.user_id = p.user_id AND cur1.status = 'active'
+         ORDER BY cur1.company_id DESC, cur1.is_default DESC
+         LIMIT 1
+       ) cur ON TRUE
+       LEFT JOIN LATERAL (
+         SELECT ur1.role, ur1.role_id
+         FROM user_role ur1
+         WHERE ur1.user_id = p.user_id
+         ORDER BY ur1.id DESC
+         LIMIT 1
+       ) ur ON TRUE
+       LEFT JOIN roles r ON r.id = COALESCE(cur.role_id, p.role_id, ur.role_id)
+       WHERE p.status = 'Active'`
+    ),
+  ]);
+
+  return {
+    wfRows: wfRes.rows || [],
+    roles: rolesRes.rows || [],
+    departments: deptRes.rows || [],
+    activeStaff: staffRes.rows || [],
+  };
+}
+
+function buildCompanyWorkflowResolution(ctx, companyId, applicant) {
+  const cId = parseInt(companyId, 10) || 1;
+  const companyWfRows = ctx.wfRows.filter((w) => Number(w.company_id) === cId);
+  const companyRoles = ctx.roles.filter(
+    (r) =>
+      Number(r.company_id) === cId ||
+      (cId === 1 && !r.company_id) ||
+      (Number(r.company_id) === 1 &&
+        (r.scope_type === "Parent Group Access" || r.scope_type === "Parent Group Data"))
+  );
+  const companyDepts = ctx.departments.filter(
+    (d) => Number(d.company_id) === cId || (cId === 1 && !d.company_id)
+  );
+  const eligibleStaff = ctx.activeStaff.filter(
+    (s) =>
+      Number(s.company_id) === cId ||
+      (Number(s.company_id) === 1 &&
+        (s.scope_type === "Parent Group Access" || s.scope_type === "Parent Group Data"))
+  );
+
+  return resolveEffectiveWorkflowForApplicant({
+    companyId: cId,
+    wfRows: companyWfRows,
+    companyRoles,
+    companyDepartments: companyDepts,
+    activeStaff: eligibleStaff,
+    applicant,
+  });
+}
+
+async function resolveApproverCategoryFromDb(approverId, fallbackRole) {
+  try {
+    if (approverId) {
+      const [rows] = await pool.query(
+        `SELECT COALESCE(r.name, ur.role, p.role, '') AS role_name,
+                r.copied_from_role_name, r.role_type, r.scope_type
+         FROM profiles p
+         LEFT JOIN LATERAL (
+           SELECT cur1.role_id FROM company_user_roles cur1
+           WHERE cur1.user_id = p.user_id AND cur1.status = 'active'
+           ORDER BY cur1.company_id DESC, cur1.is_default DESC LIMIT 1
+         ) cur ON TRUE
+         LEFT JOIN LATERAL (
+           SELECT ur1.role, ur1.role_id FROM user_role ur1
+           WHERE ur1.user_id = p.user_id ORDER BY ur1.id DESC LIMIT 1
+         ) ur ON TRUE
+         LEFT JOIN roles r ON r.id = COALESCE(cur.role_id, p.role_id, ur.role_id)
+         WHERE p.user_id = ? LIMIT 1`,
+        [approverId]
+      );
+      if (rows && rows.length > 0) {
+        const row = rows[0];
+        const cat = classifyRoleCategory(
+          row.role_name || fallbackRole,
+          row.copied_from_role_name,
+          row.role_type,
+          row.scope_type
+        );
+        if (cat && cat !== "other") return cat;
+      }
+    }
+  } catch (err) {
+    console.warn("resolveApproverCategoryFromDb warning:", err.message);
+  }
+  return classifyRoleCategory(fallbackRole, null, null, null);
+}
+
+global.loadLeaveWorkflowContext = loadLeaveWorkflowContext;
+global.buildCompanyWorkflowResolution = buildCompanyWorkflowResolution;
+global.findStepIndexForStatus = findStepIndexForStatus;
 
 function getLateCutoffForCompanyAndDate(companyId = null, targetDateStr = null) {
   const cid = (companyId && !isNaN(parseInt(companyId, 10))) ? parseInt(companyId, 10) : 1;
@@ -2616,26 +2763,69 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
       console.error('âš ï¸ Database sanitization/demotion warning:', sanErr.message);
     }
 
-    // Auto fix: Align any RayRent leave requests to Pending Branch Leader
+    // Auto fix: Re-align any pending leave requests stuck on an Employee role or mismatched HOD (no department)
     try {
-      await connection.query(`
-        UPDATE leave_requests lr
-        SET status = 'Pending Branch Leader'
-        FROM profiles p
-        WHERE lr.user_id = p.user_id
-          AND (
-            UPPER(p.branch) = 'RAYRENT' 
-            OR UPPER(COALESCE(p.department, '')) = 'RAYRENT'
-            OR EXISTS (
-              SELECT 1 FROM company_user_roles cur 
-              WHERE cur.user_id = p.user_id AND cur.company_id = 2 AND cur.status = 'active'
-            )
-          )
-          AND lr.status IN ('Pending MD', 'Pending Managing Director')
+      const [brokenPendingRows] = await connection.query(`
+        SELECT lr.leave_id, lr.user_id, lr.status, p.branch, p.department,
+               COALESCE(
+                 (SELECT cur.company_id FROM company_user_roles cur WHERE cur.user_id = lr.user_id AND cur.status = 'active' ORDER BY cur.company_id DESC LIMIT 1),
+                 b.company_id,
+                 CASE WHEN UPPER(p.branch) LIKE 'RV%' THEN 3 WHEN UPPER(p.branch) = 'RAYRENT' THEN 2 ELSE 1 END
+               )::int AS company_id,
+               (SELECT COUNT(*)::int FROM leave_approvals la WHERE la.leave_id = lr.leave_id AND la.status = 'Approved') AS approved_count
+        FROM leave_requests lr
+        JOIN profiles p ON p.user_id = lr.user_id
+        LEFT JOIN branches b ON UPPER(b.code) = UPPER(p.branch)
+        WHERE lr.status LIKE 'Pending %'
       `);
-      console.log('Successfully aligned RayRent leave requests to Pending Branch Leader.');
+
+      if (brokenPendingRows && brokenPendingRows.length > 0) {
+        const cIds = brokenPendingRows.map((r) => r.company_id || 1);
+        const wfCtx = await loadLeaveWorkflowContext(cIds);
+        const staffByUid = new Map(
+          (wfCtx.activeStaff || []).map((s) => [String(s.user_id || '').toLowerCase(), s])
+        );
+
+        for (const reqRow of brokenPendingRows) {
+          const pendingPart = String(reqRow.status || '').replace(/^Pending\s+/i, '').trim();
+          const pendingCat = classifyRoleCategory(pendingPart, null, null, null);
+          const hasDept = Boolean(normalizeDeptValue(reqRow.department));
+          const isBrokenEmployeeStage = pendingCat === 'employee';
+          const isNoDeptHodStage =
+            Number(reqRow.company_id || 1) !== 1 &&
+            !hasDept &&
+            (pendingCat === 'head_of_department' || pendingPart.toUpperCase() === 'HOD');
+
+          if (isBrokenEmployeeStage || isNoDeptHodStage) {
+            const staffInfo = staffByUid.get(String(reqRow.user_id || '').toLowerCase()) || {};
+            const resolved = buildCompanyWorkflowResolution(wfCtx, reqRow.company_id || 1, {
+              user_id: reqRow.user_id,
+              branch: reqRow.branch,
+              department: reqRow.department,
+              role: staffInfo.role,
+              role_name: staffInfo.role_name,
+              copied_from_role_name: staffInfo.copied_from_role_name,
+              role_type: staffInfo.role_type,
+              scope_type: staffInfo.scope_type,
+            });
+            const steps = resolved.effectiveSteps || [];
+            const idx = Math.min(reqRow.approved_count || 0, Math.max(steps.length - 1, 0));
+            const targetStep = steps[idx];
+            if (targetStep && targetStep.role_name) {
+              const targetStatus = `Pending ${targetStep.role_name}`;
+              if (targetStatus !== reqRow.status) {
+                await connection.query(
+                  'UPDATE leave_requests SET status = ? WHERE leave_id = ?',
+                  [targetStatus, reqRow.leave_id]
+                );
+              }
+            }
+          }
+        }
+      }
+      console.log('Successfully verified and aligned pending leave request workflows.');
     } catch (rayrentFixErr) {
-      console.warn('RayRent leave request alignment note:', rayrentFixErr.message);
+      console.warn('Leave request workflow alignment note:', rayrentFixErr.message);
     }
 
     // Align legacy Rayhar Vacation leave requests from hardcoded Pending MD/HOD/Travel Consultant to dynamic workflow (Pending Administrative Assistant)
@@ -4861,14 +5051,15 @@ app.get("/api/leave-requests", async (req, res) => {
     companyId = await resolveAssureCompanyId(req, companyId);
     const effectiveTargetId = userId || requesterId;
     const resolvedScope = await resolveUserScope(req, effectiveTargetId, role);
+    const viewerCategory = viewerId
+      ? await resolveApproverCategoryFromDb(viewerId, role)
+      : classifyRoleCategory(role, null, null, resolvedScope);
     const normRole = safeLower(role).replace(/\s+/g, "_");
-    const isGroupWideLeaveRole = (resolvedScope === 'Parent Group Data') || [
-      "hr_admin",
-      "hr",
-      "admin",
-      "managing_director",
-      "md"
-    ].includes(normRole);
+    const effectiveViewerRole =
+      viewerCategory && viewerCategory !== "other" ? viewerCategory : normRole;
+    const isGroupWideLeaveRole =
+      resolvedScope === "Parent Group Data" ||
+      ["hr_admin", "hr", "admin", "managing_director", "md"].includes(effectiveViewerRole);
 
     if (companyId && !userId && resolvedScope !== 'Parent Group Data') {
       filters.push(`COALESCE(
@@ -4895,13 +5086,13 @@ app.get("/api/leave-requests", async (req, res) => {
       filters.push("LOWER(p.branch) = LOWER(?)");
       params.push(branch);
     } else {
-      if ((normRole.includes("branch_leader") || normRole.includes("branch leader") || normRole.includes("branch")) && branch && branch !== 'all') {
+      if ((effectiveViewerRole === "branch_leader" || normRole.includes("branch_leader") || normRole.includes("branch leader") || normRole.includes("branch")) && branch && branch !== 'all') {
         filters.push("LOWER(p.branch) = LOWER(?)");
         params.push(branch);
-      } else if ((normRole.includes("head_of_department") || normRole.includes("head of department") || normRole === "hod") && department && department !== 'all') {
+      } else if ((effectiveViewerRole === "head_of_department" || normRole.includes("head_of_department") || normRole.includes("head of department") || normRole === "hod") && department && department !== 'all') {
         filters.push("LOWER(p.department) = LOWER(?)");
         params.push(department);
-      } else if (normRole.includes("head_of_department") || normRole.includes("head of department") || normRole === "hod") {
+      } else if (effectiveViewerRole === "head_of_department" || normRole.includes("head_of_department") || normRole.includes("head of department") || normRole === "hod") {
         filters.push("1 = 0");
       } else if (!isGroupWideLeaveRole && branch && branch !== 'all') {
         filters.push("LOWER(p.branch) = LOWER(?)");
@@ -5104,6 +5295,78 @@ app.get("/api/leave-requests", async (req, res) => {
       `,
       [viewerId, viewerId, viewerId, ...params]
     );
+
+    if (rows && rows.length > 0) {
+      try {
+        const companyIds = rows.map((r) => r.company_id || 1);
+        const wfCtx = await loadLeaveWorkflowContext(companyIds);
+        const staffByUserId = new Map(
+          (wfCtx.activeStaff || []).map((s) => [String(s.user_id || "").toLowerCase(), s])
+        );
+
+        for (const row of rows) {
+          const staffInfo = staffByUserId.get(String(row.user_id || "").toLowerCase()) || {};
+          const resolved = buildCompanyWorkflowResolution(wfCtx, row.company_id || 1, {
+            user_id: row.user_id,
+            branch: row.branch,
+            department: row.department,
+            role: staffInfo.role,
+            role_name: staffInfo.role_name,
+            copied_from_role_name: staffInfo.copied_from_role_name,
+            role_type: staffInfo.role_type,
+            scope_type: staffInfo.scope_type,
+          });
+
+          if (resolved.workflowStepsForUi && resolved.workflowStepsForUi.length > 0) {
+            row.workflow_steps = resolved.workflowStepsForUi;
+          }
+
+          if (typeof row.status === "string" && row.status.startsWith("Pending ")) {
+            const matchedIdx = findStepIndexForStatus(resolved.effectiveSteps, row.status);
+            const matchedStep =
+              matchedIdx !== -1 ? resolved.effectiveSteps[matchedIdx] : null;
+            if (matchedStep) {
+              if (matchedStep.approver_name) {
+                row.pending_approver_name = matchedStep.approver_name;
+              }
+              if (matchedStep.approver_context) {
+                row.pending_approver_context = matchedStep.approver_context;
+              }
+            } else {
+              // Fallback: find matching approver strictly within the applicant's company/branch/dept
+              const pendingRoleName = row.status.replace(/^Pending\s+/i, "").trim();
+              const cat = classifyRoleCategory(pendingRoleName, null, null, null);
+              if (cat !== "employee") {
+                const companyStaff = (wfCtx.activeStaff || []).filter(
+                  (s) =>
+                    Number(s.company_id || 1) === Number(row.company_id || 1) ||
+                    (Number(s.company_id) === 1 &&
+                      (s.scope_type === "Parent Group Access" || s.scope_type === "Parent Group Data"))
+                );
+                const found = findApproverForStep({
+                  step: {
+                    role_name: pendingRoleName,
+                    role_category: cat,
+                    is_hod: cat === "head_of_department",
+                    is_branch_leader: cat === "branch_leader",
+                  },
+                  activeStaff: companyStaff,
+                  applicantUserId: row.user_id,
+                  applicantBranch: row.branch,
+                  applicantDept: row.department,
+                  companyId: row.company_id || 1,
+                });
+                if (found?.full_name) {
+                  row.pending_approver_name = String(found.full_name).toUpperCase();
+                }
+              }
+            }
+          }
+        }
+      } catch (enrichErr) {
+        console.warn("Leave workflow enrichment warning:", enrichErr.message);
+      }
+    }
 
     res.json({ success: true, leaveRequests: rows });
   } catch (err) {
@@ -5478,65 +5741,35 @@ app.post("/api/leave-requests", uploadLimiter, upload.single("lampiranMc"), asyn
     }
 
     let initialStatus = 'Pending HOD';
-    const normEmpRole = (employeeRole || '').toLowerCase().trim();
+    let resolvedSubmitWorkflow = null;
 
     if (leave_type === 'Cuti Sakit' || leave_type === 'Sick Leave') {
       initialStatus = 'Approved';
     } else {
-      // Query company's approval_workflow for module = 'leave'
-      const [wfRows] = await pool.query(
-        `SELECT aw.*, r.name AS role_name 
-         FROM approval_workflow aw 
-         LEFT JOIN roles r ON aw.approver_role_id = r.id 
-         WHERE aw.company_id = ? AND aw.module = 'leave'
-         ORDER BY aw.step_order ASC`,
-        [applicantCompanyId]
-      );
-
-      if (wfRows && wfRows.length > 0) {
-        const cleanBranch = String(employeeBranch || '').trim().toUpperCase();
-        
-        let matchingSteps = wfRows.filter((s) => {
-          const scope = String(s.branch_scope || '').trim().toUpperCase();
-          const rule = String(s.routing_rule || '').toUpperCase();
-          if (scope === cleanBranch) return true;
-          if (scope.split(',').map((x) => x.trim()).includes(cleanBranch)) return true;
-          if (rule.includes(cleanBranch)) return true;
-          return false;
+      try {
+        const wfCtx = await loadLeaveWorkflowContext([applicantCompanyId]);
+        const applicantStaff = (wfCtx.activeStaff || []).find(
+          (s) => String(s.user_id || '').toLowerCase() === String(user_id || '').toLowerCase()
+        ) || {};
+        resolvedSubmitWorkflow = buildCompanyWorkflowResolution(wfCtx, applicantCompanyId, {
+          user_id,
+          branch: employeeBranch,
+          department: employeeDept,
+          role: applicantStaff.role || employeeRole,
+          role_name: applicantStaff.role_name,
+          copied_from_role_name: applicantStaff.copied_from_role_name,
+          role_type: applicantStaff.role_type,
+          scope_type: applicantStaff.scope_type,
         });
-
-        if (matchingSteps.length === 0) {
-          if (cleanBranch === 'HQ') {
-            matchingSteps = wfRows.filter((s) => String(s.branch_scope || '').trim().toUpperCase() === 'HQ');
-          } else {
-            matchingSteps = wfRows.filter((s) => String(s.branch_scope || '').trim().toUpperCase() === 'OTHER_BRANCHES');
-          }
-        }
-
-        if (matchingSteps.length === 0) {
-          matchingSteps = wfRows.filter((s) => String(s.branch_scope || '').trim().toUpperCase() === 'ALL');
-        }
-
-        if (matchingSteps.length === 0) {
-          matchingSteps = wfRows;
-        }
-
-        matchingSteps.sort((a, b) => a.step_order - b.step_order);
-
-        const firstStep = matchingSteps[0];
-        if (firstStep && firstStep.role_name) {
-          initialStatus = `Pending ${firstStep.role_name.trim()}`;
-        } else if (firstStep && firstStep.step_label) {
-          initialStatus = `Pending ${firstStep.step_label.trim()}`;
-        }
-      } else {
-        // Fallback if no custom workflow exists
-        if (String(employeeBranch).toUpperCase() === 'RAYRENT' || applicantCompanyId === 2) {
-          initialStatus = 'Pending Branch Leader';
-        } else if (String(employeeBranch).toUpperCase().startsWith('RV') || applicantCompanyId === 3) {
+        initialStatus = resolvedSubmitWorkflow.initialStatus || initialStatus;
+      } catch (wfResolveErr) {
+        console.warn('Leave submit workflow resolution warning:', wfResolveErr.message);
+        const normEmpRole = (employeeRole || '').toLowerCase().trim();
+        const hasDept = Boolean(normalizeDeptValue(employeeDept));
+        if (String(employeeBranch).toUpperCase().startsWith('RV') || applicantCompanyId === 3) {
           initialStatus = 'Pending Administrative Assistant';
         } else if (String(employeeBranch).toUpperCase() === 'HQ') {
-          if (normEmpRole === 'head_of_department' || normEmpRole === 'head of department') {
+          if (normEmpRole === 'head_of_department' || normEmpRole === 'head of department' || !hasDept) {
             initialStatus = 'Pending Operation Manager';
           } else {
             initialStatus = 'Pending HOD';
@@ -5659,22 +5892,13 @@ app.post("/api/leave-requests", uploadLimiter, upload.single("lampiranMc"), asyn
         let approverTitle = "Approver";
         let approverName = "Approver";
 
-        // Find approver according to workflow stage
-        const stepRoleMatch = initialStatus.replace(/^Pending\s+/, '').trim();
-        const [apprRows] = await pool.query(
-          `SELECT p.email, p.user_id, p.full_name, r.name as role_name
-           FROM profiles p
-           JOIN company_user_roles cur ON p.user_id = cur.user_id AND cur.status = 'active'
-           JOIN roles r ON cur.role_id = r.id
-           WHERE cur.company_id = ? AND (LOWER(r.name) = LOWER(?) OR LOWER(r.name) LIKE LOWER(?)) AND p.status = 'Active'
-           ORDER BY p.user_id ASC LIMIT 1`,
-          [applicantCompanyId, stepRoleMatch, `%${stepRoleMatch}%`]
-        );
-        if (apprRows && apprRows.length > 0) {
-          approverEmail = apprRows[0].email;
-          approverUserId = apprRows[0].user_id;
-          approverName = apprRows[0].full_name;
-          approverTitle = apprRows[0].role_name || stepRoleMatch;
+        // Prefer the exact approver resolved from the applicant's company/branch/department workflow
+        const firstResolvedStep = resolvedSubmitWorkflow?.firstStep;
+        if (firstResolvedStep?.approver) {
+          approverEmail = firstResolvedStep.approver.email || "";
+          approverUserId = firstResolvedStep.approver.user_id || null;
+          approverName = firstResolvedStep.approver.full_name || firstResolvedStep.role_name || "Approver";
+          approverTitle = firstResolvedStep.role_name || firstResolvedStep.approver.role_name || "Approver";
         } else if (initialStatus === "Pending Managing Director" || initialStatus === "Pending MD") {
           const [mdRows] = await pool.query(
             `SELECT p.email, p.user_id, p.full_name FROM profiles p LEFT JOIN user_role ur ON p.user_id = ur.user_id LEFT JOIN roles r ON p.role_id = r.id WHERE (LOWER(COALESCE(ur.role, '')) LIKE '%managing%director%' OR LOWER(COALESCE(ur.role, '')) = 'md' OR LOWER(COALESCE(r.name, '')) LIKE '%managing%director%' OR LOWER(COALESCE(r.name, '')) = 'md' OR LOWER(COALESCE(p.role, '')) LIKE '%managing%director%' OR LOWER(COALESCE(p.role, '')) = 'md') AND p.status = 'Active' LIMIT 1`
@@ -5697,7 +5921,7 @@ app.post("/api/leave-requests", uploadLimiter, upload.single("lampiranMc"), asyn
           }
         } else if (initialStatus === "Pending Branch Leader") {
           const [blRows] = await pool.query(
-            `SELECT p.email, p.user_id, p.full_name FROM profiles p LEFT JOIN user_role ur ON p.user_id = ur.user_id LEFT JOIN roles r ON p.role_id = r.id WHERE (LOWER(COALESCE(ur.role, '')) LIKE '%branch%leader%' OR LOWER(COALESCE(r.name, '')) LIKE '%branch%leader%' OR LOWER(COALESCE(p.role, '')) LIKE '%branch%leader%') AND UPPER(p.branch) = UPPER(?) AND p.status = 'Active' LIMIT 1`,
+            `SELECT p.email, p.user_id, p.full_name FROM profiles p LEFT JOIN user_role ur ON p.user_id = ur.user_id LEFT JOIN roles r ON p.role_id = r.id WHERE (LOWER(COALESCE(ur.role, '')) LIKE '%branch%leader%' OR LOWER(COALESCE(r.name, '')) LIKE '%branch%leader%' OR LOWER(COALESCE(r.copied_from_role_name, '')) LIKE '%branch%leader%' OR LOWER(COALESCE(p.role, '')) LIKE '%branch%leader%') AND UPPER(p.branch) = UPPER(?) AND p.status = 'Active' LIMIT 1`,
             [leaveData.branch]
           );
           if (blRows && blRows.length > 0) {
@@ -5706,10 +5930,9 @@ app.post("/api/leave-requests", uploadLimiter, upload.single("lampiranMc"), asyn
             approverName = blRows[0].full_name || "Branch Leader";
             approverTitle = "Branch Leader";
           }
-        } else {
-          // Pending HOD
+        } else if (initialStatus === "Pending HOD" || initialStatus === "Pending Head of Department") {
           const [hodRows] = await pool.query(
-            `SELECT p.email, p.user_id, p.full_name FROM profiles p LEFT JOIN user_role ur ON p.user_id = ur.user_id LEFT JOIN roles r ON p.role_id = r.id WHERE (LOWER(COALESCE(ur.role, '')) LIKE '%head%department%' OR LOWER(COALESCE(ur.role, '')) = 'hod' OR LOWER(COALESCE(r.name, '')) LIKE '%head%department%' OR LOWER(COALESCE(r.name, '')) = 'hod' OR LOWER(COALESCE(p.role, '')) LIKE '%head%department%' OR LOWER(COALESCE(p.role, '')) = 'hod') AND (LOWER(p.department) = LOWER(?) OR ? IS NULL) AND p.status = 'Active' LIMIT 1`,
+            `SELECT p.email, p.user_id, p.full_name FROM profiles p LEFT JOIN user_role ur ON p.user_id = ur.user_id LEFT JOIN roles r ON p.role_id = r.id WHERE (LOWER(COALESCE(ur.role, '')) LIKE '%head%department%' OR LOWER(COALESCE(ur.role, '')) = 'hod' OR LOWER(COALESCE(r.name, '')) LIKE '%head%department%' OR LOWER(COALESCE(r.name, '')) = 'hod' OR LOWER(COALESCE(r.copied_from_role_name, '')) LIKE '%head%department%' OR LOWER(COALESCE(p.role, '')) LIKE '%head%department%' OR LOWER(COALESCE(p.role, '')) = 'hod') AND (LOWER(p.department) = LOWER(?) OR ? IS NULL) AND p.status = 'Active' LIMIT 1`,
             [employeeDept, employeeDept]
           );
           if (hodRows && hodRows.length > 0) {
@@ -5766,7 +5989,17 @@ app.post("/api/leave-requests", uploadLimiter, upload.single("lampiranMc"), asyn
 
         // Determine exact target title for progress notification
         let waitingTargetTitle = "";
-        if (initialStatus === "Pending Managing Director" || initialStatus === "Pending MD") {
+        if (firstResolvedStep) {
+          const stepTitle = firstResolvedStep.role_name || approverTitle || "Approver";
+          const stepCtx = firstResolvedStep.approver_context || employeeBranch || "";
+          if (firstResolvedStep.approver?.full_name) {
+            waitingTargetTitle = `${stepTitle} (${String(firstResolvedStep.approver.full_name).toUpperCase()} • ${stepCtx})`;
+          } else if (stepCtx) {
+            waitingTargetTitle = `${stepTitle} (${stepCtx})`;
+          } else {
+            waitingTargetTitle = stepTitle;
+          }
+        } else if (initialStatus === "Pending Managing Director" || initialStatus === "Pending MD") {
           waitingTargetTitle = "Managing Director";
         } else if (initialStatus === "Pending Operation Manager" || initialStatus === "Pending Operation" || initialStatus === "Pending Finance") {
           waitingTargetTitle = "Operation Manager";
@@ -5777,13 +6010,15 @@ app.post("/api/leave-requests", uploadLimiter, upload.single("lampiranMc"), asyn
           );
           const blName = (blRows && blRows.length > 0 && blRows[0].full_name) ? blRows[0].full_name : "";
           waitingTargetTitle = blName ? `Branch Leader (${blName} • ${employeeBranch})` : `Branch Leader (${employeeBranch})`;
-        } else {
+        } else if (initialStatus === "Pending HOD" || initialStatus === "Pending Head of Department") {
           const [hodRows] = await pool.query(
             `SELECT UPPER(p.full_name) AS full_name, p.department FROM profiles p LEFT JOIN user_role ur ON p.user_id = ur.user_id LEFT JOIN roles r ON p.role_id = r.id WHERE (LOWER(COALESCE(ur.role, '')) LIKE '%head%department%' OR LOWER(COALESCE(ur.role, '')) = 'hod' OR LOWER(COALESCE(r.name, '')) LIKE '%head%department%' OR LOWER(COALESCE(r.name, '')) = 'hod' OR LOWER(COALESCE(p.role, '')) LIKE '%head%department%' OR LOWER(COALESCE(p.role, '')) = 'hod') AND (LOWER(p.department) = LOWER(?) OR ? IS NULL) AND p.status = 'Active' LIMIT 1`,
             [leaveData.department, leaveData.department]
           );
           const dCode = formatDeptForApprover((hodRows && hodRows.length > 0 && hodRows[0].department) ? hodRows[0].department : leaveData.department);
           waitingTargetTitle = `Head of Department (${dCode})`;
+        } else {
+          waitingTargetTitle = initialStatus.replace(/^Pending\s+/i, "").trim() || "Approver";
         }
 
         const employeeMsg = `Your leave application for ${leaveData.leave_type} (${leaveData.days} day(s)) is currently waiting for ${waitingTargetTitle}.`;
@@ -5965,7 +6200,11 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
     }
 
     // --- SECURITY CHECK: HOD/Branch Leader must match Department/Branch ---
-    if (approver_id && (role === "head_of_department" || role === "branch_leader")) {
+    const approverCategory = await resolveApproverCategoryFromDb(approver_id, role);
+    const normApproverRole = safeLower(role).replace(/\s+/g, "_");
+    const effectiveApproverCat = approverCategory && approverCategory !== "other" ? approverCategory : normApproverRole;
+
+    if (approver_id && (effectiveApproverCat === "head_of_department" || effectiveApproverCat === "branch_leader")) {
       const [approverRows] = await pool.query(
         "SELECT branch, department FROM profiles WHERE user_id = ?",
         [approver_id]
@@ -5979,12 +6218,14 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
         const approverData = approverRows[0];
         const employeeData = employeeRows[0];
 
-        if (role === "head_of_department") {
-          if (approverData.department !== employeeData.department) {
+        if (effectiveApproverCat === "head_of_department") {
+          const appDept = normalizeDeptValue(approverData.department);
+          const empDept = normalizeDeptValue(employeeData.department);
+          if (!appDept || !empDept || appDept.toLowerCase() !== empDept.toLowerCase()) {
             return res.status(403).json({ success: false, error: "Unauthorized: You can only approve requests from your own department." });
           }
-        } else if (role === "branch_leader") {
-          if (approverData.branch !== employeeData.branch) {
+        } else if (effectiveApproverCat === "branch_leader") {
+          if (String(approverData.branch || "").trim().toUpperCase() !== String(employeeData.branch || "").trim().toUpperCase()) {
             return res.status(403).json({ success: false, error: "Unauthorized: You can only approve requests from your own branch." });
           }
         }
@@ -5994,14 +6235,16 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
     let nextStatus = status; // Default to what frontend sent
     if (nextStatus && !isValidStatus(nextStatus)) return res.status(400).json({ success: false, error: 'Invalid status value' });
 
-    const normApproverRole = safeLower(role).replace(/\s+/g, "_");
-    const isHrApprover = ['hr_admin', 'hr', 'admin'].includes(normApproverRole);
+    const isHrApprover = ['hr_admin', 'hr', 'admin'].includes(effectiveApproverCat) || ['hr_admin', 'hr', 'admin'].includes(normApproverRole);
+    let resolvedPatchWorkflow = null;
+    let resolvedNextStep = null;
 
     if (action === 'Reject' || status === 'Rejected') {
       nextStatus = 'Rejected';
     } else if (action === 'Approve' || status === 'Approved') {
-      // Find applicant's company and branch
+      // Find applicant's company, branch, department, and role
       let empBranch = '';
+      let empDept = '';
       let empCompId = 1;
       try {
         const [empBranchCheck] = await pool.query(
@@ -6017,105 +6260,70 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
           [user_id]
         );
         empBranch = empBranchCheck[0]?.branch || '';
+        empDept = empBranchCheck[0]?.department || '';
         empCompId = empBranchCheck[0]?.company_id || 1;
         if (String(empBranch).toUpperCase().startsWith('RV')) {
           empCompId = 3;
         }
       } catch (_) {}
 
-      // Query workflow for this company
-      let matchingSteps = [];
-      try {
-        const [wfRows] = await pool.query(
-          `SELECT aw.*, r.name AS role_name 
-           FROM approval_workflow aw 
-           LEFT JOIN roles r ON aw.approver_role_id = r.id 
-           WHERE aw.company_id = ? AND aw.module = 'leave'
-           ORDER BY aw.step_order ASC`,
-          [empCompId]
-        );
-        if (wfRows && wfRows.length > 0) {
-          const cleanBranch = String(empBranch || '').trim().toUpperCase();
-          matchingSteps = wfRows.filter((s) => {
-            const scope = String(s.branch_scope || '').trim().toUpperCase();
-            const rule = String(s.routing_rule || '').toUpperCase();
-            if (scope === cleanBranch) return true;
-            if (scope.split(',').map((x) => x.trim()).includes(cleanBranch)) return true;
-            if (rule.includes(cleanBranch)) return true;
-            return false;
-          });
-          if (matchingSteps.length === 0) {
-            if (cleanBranch === 'HQ') {
-              matchingSteps = wfRows.filter((s) => String(s.branch_scope || '').trim().toUpperCase() === 'HQ');
-            } else {
-              matchingSteps = wfRows.filter((s) => String(s.branch_scope || '').trim().toUpperCase() === 'OTHER_BRANCHES');
-            }
-          }
-          if (matchingSteps.length === 0) {
-            matchingSteps = wfRows.filter((s) => String(s.branch_scope || '').trim().toUpperCase() === 'ALL');
-          }
-          if (matchingSteps.length === 0) {
-            matchingSteps = wfRows;
-          }
-          matchingSteps.sort((a, b) => a.step_order - b.step_order);
-        }
-      } catch (_) {}
-
       if (isHrApprover) {
         // HR Admin acts as highest approver and can finalize approval regardless of MD/OM presence
         nextStatus = 'Approved';
-      } else if (matchingSteps.length > 0) {
-        const cleanCurrentStatus = currentStatus.replace(/^Pending\s+/, '').trim().toLowerCase();
-        const currentStepIndex = matchingSteps.findIndex((s) => {
-          const rName = (s.role_name || '').trim().toLowerCase();
-          const sLabel = (s.step_label || '').trim().toLowerCase();
-          return (
-            cleanCurrentStatus === rName ||
-            cleanCurrentStatus.replace(/_/g, ' ') === rName ||
-            (cleanCurrentStatus === 'hod' && rName.includes('head of department')) ||
-            (cleanCurrentStatus === 'md' && rName.includes('managing director')) ||
-            (cleanCurrentStatus.includes('administrative') && rName.includes('administrative')) ||
-            (cleanCurrentStatus.includes('general') && rName.includes('general')) ||
-            (cleanCurrentStatus.includes('travel') && rName.includes('administrative')) ||
-            cleanCurrentStatus === sLabel
-          );
-        });
-
-        let stepIdx = currentStepIndex;
-        if (stepIdx === -1) {
-          try {
-            const [apprRows] = await pool.query(
-              "SELECT COUNT(*)::int AS cnt FROM leave_approvals WHERE leave_id = ? AND status = 'Approved'",
-              [leaveId]
-            );
-            stepIdx = Math.min(apprRows[0]?.cnt || 0, matchingSteps.length - 1);
-          } catch (_) {
-            stepIdx = 0;
-          }
-        }
-
-        if (stepIdx < matchingSteps.length - 1) {
-          const nextStep = matchingSteps[stepIdx + 1];
-          nextStatus = `Pending ${nextStep.role_name || nextStep.step_label || 'Approver'}`;
-        } else {
-          // Reached final approval step
-          nextStatus = 'Approved';
-        }
-      } else if (isHrApprover) {
-        // HR Admin fallback when no multi-step workflow configured
-        nextStatus = 'Approved';
       } else {
-        // Fallback for unconfigured companies
-        if (currentStatus === 'Pending' || currentStatus.startsWith('Pending HOD')) {
-          nextStatus = 'Pending Operation Manager';
-        } else if (currentStatus === 'Pending Branch Leader') {
-          if (empCompId === 2 || String(empBranch).toUpperCase() === 'RAYRENT') {
-            nextStatus = 'Approved';
+        try {
+          const wfCtx = await loadLeaveWorkflowContext([empCompId]);
+          const applicantStaff = (wfCtx.activeStaff || []).find(
+            (s) => String(s.user_id || '').toLowerCase() === String(user_id || '').toLowerCase()
+          ) || {};
+          resolvedPatchWorkflow = buildCompanyWorkflowResolution(wfCtx, empCompId, {
+            user_id,
+            branch: empBranch,
+            department: empDept,
+            role: applicantStaff.role,
+            role_name: applicantStaff.role_name,
+            copied_from_role_name: applicantStaff.copied_from_role_name,
+            role_type: applicantStaff.role_type,
+            scope_type: applicantStaff.scope_type,
+          });
+        } catch (wfPatchErr) {
+          console.warn('Patch workflow resolution warning:', wfPatchErr.message);
+        }
+
+        const effectiveSteps = resolvedPatchWorkflow?.effectiveSteps || [];
+        if (effectiveSteps.length > 0) {
+          let stepIdx = findStepIndexForStatus(effectiveSteps, currentStatus);
+          if (stepIdx === -1) {
+            try {
+              const [apprRows] = await pool.query(
+                "SELECT COUNT(*)::int AS cnt FROM leave_approvals WHERE leave_id = ? AND status = 'Approved'",
+                [leaveId]
+              );
+              stepIdx = Math.min(apprRows[0]?.cnt || 0, effectiveSteps.length - 1);
+            } catch (_) {
+              stepIdx = 0;
+            }
+          }
+
+          if (stepIdx < effectiveSteps.length - 1) {
+            resolvedNextStep = effectiveSteps[stepIdx + 1];
+            nextStatus = `Pending ${resolvedNextStep.role_name || resolvedNextStep.step_label || 'Approver'}`;
           } else {
-            nextStatus = 'Pending MD';
+            nextStatus = 'Approved';
           }
         } else {
-          nextStatus = 'Approved';
+          // Fallback for unconfigured companies
+          if (currentStatus === 'Pending' || currentStatus.startsWith('Pending HOD')) {
+            nextStatus = 'Pending Operation Manager';
+          } else if (currentStatus === 'Pending Branch Leader') {
+            if (empCompId === 2 || String(empBranch).toUpperCase() === 'RAYRENT') {
+              nextStatus = 'Approved';
+            } else {
+              nextStatus = 'Pending MD';
+            }
+          } else {
+            nextStatus = 'Approved';
+          }
         }
       }
     }
@@ -6189,7 +6397,15 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
         let notificationTitle = "";
         let notificationMessage = "";
 
-        if (nextStatus === "Pending Operation" || nextStatus === "Pending Operation Manager" || nextStatus === "Pending Finance") {
+        if (nextStatus.startsWith("Pending ") && resolvedNextStep?.approver) {
+          targetEmail = resolvedNextStep.approver.email || null;
+          targetUserId = resolvedNextStep.approver.user_id || null;
+          const nextRoleTitle = resolvedNextStep.role_name || nextStatus.replace(/^Pending\s+/i, "").trim();
+          subject = `Leave Request Pending ${nextRoleTitle} Approval: ${leaveData.employee_name}`;
+          html = `<p>Previous approval stage complete for <strong>${escapeHtml(leaveData.employee_name)}</strong>. It is now pending your ${escapeHtml(nextRoleTitle)} review.</p>`;
+          notificationTitle = `Leave Approval Required`;
+          notificationMessage = `${leaveData.employee_name} requires your ${nextRoleTitle} approval for a leave request.`;
+        } else if (nextStatus === "Pending Operation" || nextStatus === "Pending Operation Manager" || nextStatus === "Pending Finance") {
           const [omRows] = await pool.query(`SELECT p.email, p.user_id FROM profiles p LEFT JOIN user_role ur ON p.user_id = ur.user_id LEFT JOIN roles r ON p.role_id = r.id WHERE (LOWER(COALESCE(ur.role, '')) IN ('operation_manager', 'operation manager', 'finance_manager', 'finance manager') OR LOWER(COALESCE(r.name, '')) IN ('operation_manager', 'operation manager', 'finance_manager', 'finance manager')) AND p.status = 'Active' LIMIT 1`);
           if (omRows.length > 0) {
             targetEmail = omRows[0].email;
@@ -8545,6 +8761,7 @@ app.get("/api/user-details/:identifier", async (req, res) => {
         COALESCE(ur.role, p.role, 'employee') AS role,
         COALESCE(p.role_id, ur.role_id, r.id) AS role_id,
         COALESCE(r.name, ur.role, p.role, 'Employee') AS role_name,
+        r.copied_from_role_name AS copied_from_role_name,
         COALESCE(r.is_system_role, TRUE) AS is_system_role,
         r.scope_type AS scope_type
       FROM profiles p
@@ -8556,7 +8773,7 @@ app.get("/api/user-details/:identifier", async (req, res) => {
         LIMIT 1
       ) ur ON true
       LEFT JOIN LATERAL (
-        SELECT r.id, r.name, r.is_system_role, r.scope_type
+        SELECT r.id, r.name, r.is_system_role, r.scope_type, r.copied_from_role_name
         FROM roles r
         WHERE r.id = p.role_id
            OR (p.role_id IS NULL AND r.id = ur.role_id)
@@ -8596,12 +8813,13 @@ app.get("/api/user-details/:identifier", async (req, res) => {
 
     const normUserRole = safeLower(user.role).replace(/\s+/g, "_");
     const [uCompRows] = await pool.query(
-      "SELECT cur.company_id, cur.role_id, r.name AS role_name, r.is_system_role, r.scope_type FROM company_user_roles cur LEFT JOIN roles r ON cur.role_id = r.id WHERE cur.user_id = ? AND cur.status = 'active' ORDER BY cur.company_id DESC, cur.is_default DESC LIMIT 1",
+      "SELECT cur.company_id, cur.role_id, r.name AS role_name, r.is_system_role, r.scope_type, r.copied_from_role_name FROM company_user_roles cur LEFT JOIN roles r ON cur.role_id = r.id WHERE cur.user_id = ? AND cur.status = 'active' ORDER BY cur.company_id DESC, cur.is_default DESC LIMIT 1",
       [user.user_id]
     );
     const assignedCompanyId = uCompRows[0]?.company_id || (user.branch === 'RAYRENT' ? 2 : 1);
     const finalRoleId = user.role_id || uCompRows[0]?.role_id;
     const finalRoleName = uCompRows[0]?.role_name || user.role_name;
+    const finalCopiedFromRoleName = uCompRows[0]?.copied_from_role_name || user.copied_from_role_name || null;
     const finalIsSystemRole = uCompRows[0]?.is_system_role !== undefined ? uCompRows[0].is_system_role : user.is_system_role;
     const rawUserScope = user.scope_type || uCompRows[0]?.scope_type || "";
     const resolvedScopeType = (normUserRole === 'employee')
@@ -8650,6 +8868,7 @@ app.get("/api/user-details/:identifier", async (req, res) => {
         company_id: assignedCompanyId,
         role_id: finalRoleId,
         role_name: finalRoleName,
+        copied_from_role_name: finalCopiedFromRoleName,
         is_system_role: finalIsSystemRole,
         scope_type: resolvedScopeType
       },
@@ -8657,6 +8876,7 @@ app.get("/api/user-details/:identifier", async (req, res) => {
       role: user.role,
       role_id: finalRoleId,
       role_name: finalRoleName,
+      copied_from_role_name: finalCopiedFromRoleName,
       is_system_role: finalIsSystemRole,
       scope_type: resolvedScopeType,
       permissions: userPermsDetail.keys,

@@ -3,6 +3,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
+const { classifyRoleCategory } = require('../utils/leaveWorkflowResolver');
 
 function createMultiCompanyRouter(pgPool) {
   const router = express.Router();
@@ -2202,6 +2203,36 @@ function createMultiCompanyRouter(pgPool) {
       const companyId = parseInt(req.params.companyId, 10) || 1;
       const { steps = [] } = req.body;
 
+      // Validate that no step assigns an Employee-only role as an approver
+      const roleIds = Array.from(
+        new Set(steps.map((s) => s.approver_role_id).filter(Boolean).map(String))
+      );
+      if (roleIds.length > 0) {
+        const roleCheckRes = await pgPool.query(
+          'SELECT id, name, copied_from_role_name, role_type, scope_type FROM roles WHERE id = ANY($1::varchar[])',
+          [roleIds]
+        ).catch(() => pgPool.query('SELECT id, name, copied_from_role_name, role_type, scope_type FROM roles'));
+        const roleMap = new Map((roleCheckRes.rows || []).map((r) => [String(r.id), r]));
+        for (const step of steps) {
+          if (!step.approver_role_id) continue;
+          const rObj = roleMap.get(String(step.approver_role_id));
+          if (rObj) {
+            const cat = classifyRoleCategory(
+              rObj.name,
+              rObj.copied_from_role_name,
+              rObj.role_type,
+              rObj.scope_type
+            );
+            if (cat === 'employee') {
+              return res.status(400).json({
+                success: false,
+                error: `Role "${rObj.name}" is an Employee role and cannot be assigned as a leave approver. Please select a Branch Leader, Head of Department, or Management role.`
+              });
+            }
+          }
+        }
+      }
+
       await pgPool.query('DELETE FROM approval_workflow WHERE company_id = $1 AND module = \'leave\'', [companyId]);
 
       const scopeCounters = {};
@@ -2236,69 +2267,58 @@ function createMultiCompanyRouter(pgPool) {
 
       // Align all active pending leave requests for this company to the latest saved workflow steps
       try {
-        const latestWfRes = await pgPool.query(`
-          SELECT aw.*, r.name AS role_name
-          FROM approval_workflow aw
-          LEFT JOIN roles r ON aw.approver_role_id = r.id
-          WHERE aw.company_id = $1 AND aw.module = 'leave'
-          ORDER BY aw.step_order ASC
+        const pendingReqsRes = await pgPool.query(`
+          SELECT lr.leave_id, lr.user_id, lr.status, p.branch, p.department,
+            (SELECT COUNT(*)::int FROM leave_approvals la WHERE la.leave_id = lr.leave_id AND la.status = 'Approved') AS approved_count
+          FROM leave_requests lr
+          JOIN profiles p ON p.user_id = lr.user_id
+          LEFT JOIN branches b_comp ON UPPER(b_comp.code) = UPPER(p.branch)
+          WHERE lr.status LIKE 'Pending%'
+            AND COALESCE(
+              (SELECT cur.company_id FROM company_user_roles cur WHERE cur.user_id = lr.user_id AND cur.status = 'active' ORDER BY cur.company_id DESC LIMIT 1),
+              b_comp.company_id,
+              CASE 
+                WHEN UPPER(p.branch) LIKE 'RV%' THEN 3
+                WHEN UPPER(p.branch) = 'RAYRENT' THEN 2 
+                ELSE 1 
+              END
+            )::int = $1
         `, [companyId]);
-        const savedSteps = latestWfRes.rows;
 
-        if (savedSteps.length > 0) {
-          const pendingReqsRes = await pgPool.query(`
-            SELECT lr.leave_id, lr.status, p.branch,
-              (SELECT COUNT(*)::int FROM leave_approvals la WHERE la.leave_id = lr.leave_id AND la.status = 'Approved') AS approved_count
-            FROM leave_requests lr
-            JOIN profiles p ON p.user_id = lr.user_id
-            WHERE lr.status LIKE 'Pending%'
-              AND (
-                COALESCE(
-                  (SELECT cur.company_id FROM company_user_roles cur WHERE cur.user_id = lr.user_id AND cur.status = 'active' ORDER BY cur.company_id DESC LIMIT 1),
-                  CASE 
-                    WHEN UPPER(p.branch) LIKE 'RV%' THEN 3
-                    WHEN UPPER(p.branch) = 'RAYRENT' THEN 2 
-                    ELSE 1 
-                  END
-                )::int = $1
-              )
-          `, [companyId]);
+        if (
+          pendingReqsRes.rows.length > 0 &&
+          typeof global.loadLeaveWorkflowContext === 'function' &&
+          typeof global.buildCompanyWorkflowResolution === 'function'
+        ) {
+          const wfCtx = await global.loadLeaveWorkflowContext([companyId]);
+          const staffByUid = new Map(
+            (wfCtx.activeStaff || []).map((s) => [String(s.user_id || '').toLowerCase(), s])
+          );
 
           for (const preq of pendingReqsRes.rows) {
-            const cleanBranch = String(preq.branch || '').trim().toUpperCase();
-            let matching = savedSteps.filter((s) => {
-              const scope = String(s.branch_scope || '').trim().toUpperCase();
-              const rule = String(s.routing_rule || '').toUpperCase();
-              if (scope === 'ALL') return true;
-              if (scope === cleanBranch) return true;
-              if (scope.split(',').map((x) => x.trim()).includes(cleanBranch)) return true;
-              if (rule.includes(cleanBranch)) return true;
-              return false;
+            const staffInfo = staffByUid.get(String(preq.user_id || '').toLowerCase()) || {};
+            const resolved = global.buildCompanyWorkflowResolution(wfCtx, companyId, {
+              user_id: preq.user_id,
+              branch: preq.branch,
+              department: preq.department,
+              role: staffInfo.role,
+              role_name: staffInfo.role_name,
+              copied_from_role_name: staffInfo.copied_from_role_name,
+              role_type: staffInfo.role_type,
+              scope_type: staffInfo.scope_type,
             });
-
-            if (matching.length === 0) {
-              if (cleanBranch === 'HQ') {
-                matching = savedSteps.filter((s) => String(s.branch_scope || '').trim().toUpperCase() === 'HQ');
-              } else {
-                matching = savedSteps.filter((s) => String(s.branch_scope || '').trim().toUpperCase() === 'OTHER_BRANCHES');
-              }
-            }
-            if (matching.length === 0) {
-              matching = savedSteps.filter((s) => String(s.branch_scope || '').trim().toUpperCase() === 'ALL');
-            }
-            if (matching.length === 0) matching = savedSteps;
-
-            matching.sort((a, b) => a.step_order - b.step_order);
-
+            const effectiveSteps = resolved.effectiveSteps || [];
             const approvedCount = preq.approved_count || 0;
-            if (approvedCount < matching.length) {
-              const targetStep = matching[approvedCount];
-              const newStatus = `Pending ${targetStep.role_name || targetStep.step_label || 'Approver'}`;
-              if (newStatus !== preq.status) {
-                await pgPool.query('UPDATE leave_requests SET status = $1 WHERE leave_id = $2', [newStatus, preq.leave_id]);
+            if (effectiveSteps.length > 0) {
+              if (approvedCount < effectiveSteps.length) {
+                const targetStep = effectiveSteps[approvedCount];
+                const newStatus = `Pending ${targetStep.role_name || targetStep.step_label || 'Approver'}`;
+                if (newStatus !== preq.status) {
+                  await pgPool.query('UPDATE leave_requests SET status = $1 WHERE leave_id = $2', [newStatus, preq.leave_id]);
+                }
+              } else {
+                await pgPool.query('UPDATE leave_requests SET status = $1 WHERE leave_id = $2', ['Approved', preq.leave_id]);
               }
-            } else if (matching.length > 0) {
-              await pgPool.query('UPDATE leave_requests SET status = $1 WHERE leave_id = $2', ['Approved', preq.leave_id]);
             }
           }
 

@@ -28,13 +28,22 @@ const normalizeToken = (val?: string): string =>
     .replace(/[\s_-]+/g, "")
     .trim();
 
-export const matchesStageRole = (userRole: string, pendingStatus: string): boolean => {
+export const matchesStageRole = (
+  userRole: string,
+  pendingStatus: string,
+  userRoleName?: string
+): boolean => {
   const normUser = normalizeToken(normalizeRole(userRole));
+  const normDisplay = normalizeToken(userRoleName);
   const pendingPart = normalizeToken(String(pendingStatus || "").replace(/^Pending\s+/i, ""));
   if (!pendingPart) return false;
 
   if (normUser === pendingPart) return true;
+  if (normDisplay && normDisplay === pendingPart) return true;
   if (pendingPart === "hod" && normUser === "headofdepartment") return true;
+  if (pendingPart === "headofdepartment" && normUser === "headofdepartment") return true;
+  if (pendingPart === "branchleader" && normUser === "branchleader") return true;
+  if (pendingPart.includes("supervisor") && normUser === "branchleader") return true;
   if (pendingPart === "md" && normUser === "managingdirector") return true;
   if ((pendingPart === "operation" || pendingPart === "finance" || pendingPart === "financemanager") && normUser === "operationmanager") {
     return true;
@@ -43,6 +52,49 @@ export const matchesStageRole = (userRole: string, pendingStatus: string): boole
   if (pendingPart.includes("assure") && normUser.includes("assure")) return true;
   return false;
 };
+
+/**
+ * Checks whether the current approver can approve/reject a specific leave request,
+ * supporting both system role names and custom subsidiary role names (e.g. Fleet Supervisor, Rental Coordinator)
+ * while enforcing branch/department scope.
+ */
+export function canUserActOnLeaveStage(params: {
+  userRole: string;
+  userRoleName?: string;
+  userBranch?: string;
+  userDepartment?: string;
+  reqStatus: string;
+  reqBranch?: string;
+  reqDepartment?: string;
+}): boolean {
+  const { userRole, userRoleName, userBranch, userDepartment, reqStatus, reqBranch, reqDepartment } = params;
+  const trimmedStatus = String(reqStatus || "").trim();
+  if (!trimmedStatus.startsWith("Pending")) return false;
+
+  const normUser = normalizeToken(normalizeRole(userRole));
+  if (normUser === "hradmin") return true;
+
+  if (!matchesStageRole(userRole, trimmedStatus, userRoleName)) return false;
+
+  const cleanUserDept = String(userDepartment || "").trim().toLowerCase();
+  const cleanReqDept = String(reqDepartment || "").trim().toLowerCase();
+  const isEmptyReqDept = !cleanReqDept || cleanReqDept === "-" || cleanReqDept === "—" || cleanReqDept === "n/a";
+
+  if (normUser === "headofdepartment") {
+    if (!cleanUserDept || isEmptyReqDept) return false;
+    return cleanUserDept === cleanReqDept;
+  }
+
+  if (normUser === "branchleader") {
+    const cleanUserBranch = String(userBranch || "").trim().toLowerCase();
+    const cleanReqBranch = String(reqBranch || "").trim().toLowerCase();
+    if (cleanUserBranch && cleanReqBranch) {
+      return cleanUserBranch === cleanReqBranch;
+    }
+  }
+
+  return true;
+}
 
 /**
  * Formats a human-readable label for the current approver stage in Leave Discussion.

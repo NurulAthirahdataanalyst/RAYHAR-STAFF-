@@ -26,7 +26,10 @@ interface ApprovalStatusTrackerProps {
     step_order: number;
     step_label?: string;
     role_name?: string;
+    role_category?: string;
     branch_scope?: string;
+    approver_name?: string | null;
+    approver_context?: string | null;
   }>;
 }
 
@@ -60,12 +63,12 @@ const formatRoleName = (r?: string) => {
   return map[key] || cleaned.replace(/_/g, " ").toUpperCase();
 };
 
-const formatDept = (dept?: string) => {
-  if (!dept) return "HQ";
+const formatDept = (dept?: string, isHqScope = true) => {
+  if (!dept) return isHqScope ? "HQ" : "Department";
   let d = String(dept).trim();
   if (d.toLowerCase() === 'information technology') d = 'IT';
   if (/^it$/i.test(d)) d = 'IT';
-  if (!d.toUpperCase().includes('HQ')) {
+  if (isHqScope && !d.toUpperCase().includes('HQ')) {
     return `${d} (HQ)`;
   }
   return d;
@@ -441,9 +444,19 @@ export function ApprovalStatusTracker({
     date?: string;
   }> | null = null;
 
-  const getStepLocationContext = (effectiveRoleTitle: string, stepHist?: ApprovalHistoryItem) => {
+  const getStepLocationContext = (
+    effectiveRoleTitle: string,
+    stepHist?: ApprovalHistoryItem,
+    stepObj?: NonNullable<ApprovalStatusTrackerProps['workflowSteps']>[number]
+  ) => {
+    if (stepObj?.approver_context) {
+      return stepObj.approver_context;
+    }
     const rNorm = normRoleStr(effectiveRoleTitle);
+    const cat = String(stepObj?.role_category || '').toLowerCase();
     if (
+      cat === 'managing_director' ||
+      cat === 'operation_manager' ||
       rNorm.includes("managing director") ||
       rNorm === "md" ||
       rNorm.includes("operation manager") ||
@@ -452,10 +465,13 @@ export function ApprovalStatusTracker({
       return "HQ";
     }
     if (rNorm.includes("hr admin") || rNorm === "hr" || rNorm === "admin") {
-      return isRayRent ? "RAYRENT" : (stepHist?.approver_branch || "HQ");
+      return isRayRent ? "RAYRENT" : (stepHist?.approver_branch || (isHQ ? "HQ" : branch || "HQ"));
     }
-    if (rNorm.includes("head of department") || rNorm === "hod") {
-      return formatDept(stepHist?.approver_department || department);
+    if (cat === 'head_of_department' || rNorm.includes("head of department") || rNorm === "hod") {
+      return formatDept(stepHist?.approver_department || department, isHQ);
+    }
+    if (cat === 'branch_leader' || rNorm.includes("branch leader")) {
+      return stepHist?.approver_branch || branch || "HQ";
     }
     if (rNorm.includes("assure")) {
       return "RayRent";
@@ -470,9 +486,9 @@ export function ApprovalStatusTracker({
     const cleanBranch = String(branch || '').trim().toUpperCase();
     let applicableSteps = workflowSteps.filter(s => {
       const scope = String(s.branch_scope || '').trim().toUpperCase();
-      if (scope === 'ALL') return true;
+      if (scope === 'ALL' || scope.startsWith('ALL_TRACK_')) return true;
       if (scope === cleanBranch) return true;
-      if (scope.split(',').map(x => x.trim()).includes(cleanBranch)) return true;
+      if (scope.replace(/^BRANCHES:/, '').split(',').map(x => x.trim()).includes(cleanBranch)) return true;
       return false;
     });
 
@@ -507,6 +523,7 @@ export function ApprovalStatusTracker({
 
       for (let i = 0; i < applicableSteps.length; i++) {
         const sr = normRoleStr(applicableSteps[i].role_name || applicableSteps[i].step_label);
+        const sCat = String(applicableSteps[i].role_category || '').toLowerCase();
         const matchIdx = (approvalHistory || []).findIndex((h, idx) => {
           if (usedHistIndices.has(idx)) return false;
           const hr = normRoleStr(h.approver_role);
@@ -515,6 +532,8 @@ export function ApprovalStatusTracker({
             hr === sr ||
             hr.includes(sr) ||
             sr.includes(hr) ||
+            (sCat === 'head_of_department' && (hr.includes('hod') || hr.includes('head'))) ||
+            (sCat === 'branch_leader' && (hr.includes('branch') || hr.includes('supervisor'))) ||
             (sr.includes('hod') && hr.includes('head')) ||
             (sr.includes('head') && hr.includes('hod')) ||
             (sr.includes('md') && hr.includes('managing')) ||
@@ -540,9 +559,12 @@ export function ApprovalStatusTracker({
       let currentIdx = applicableSteps.findIndex(s => {
         const r = normRoleStr(s.role_name);
         const l = normRoleStr(s.step_label);
+        const sCat = String(s.role_category || '').toLowerCase();
         return (
           cleanCurrent === r ||
           cleanCurrent === l ||
+          (sCat === 'head_of_department' && (cleanCurrent === 'hod' || cleanCurrent.includes('head of department'))) ||
+          (sCat === 'branch_leader' && cleanCurrent === 'branch leader') ||
           (cleanCurrent.includes('hod') && r.includes('head')) ||
           (cleanCurrent.includes('head') && r.includes('hod')) ||
           (cleanCurrent.includes('md') && r.includes('managing')) ||
@@ -570,7 +592,7 @@ export function ApprovalStatusTracker({
         const stepHist = stepHists[i];
 
         let roleTitle = formatRoleName(step.role_name || step.step_label || `STEP ${step.step_order}`);
-        if (stepHist?.approver_role) {
+        if (stepHist?.approver_role && normRoleStr(stepHist.approver_role) !== 'branch leader' && normRoleStr(stepHist.approver_role) !== 'head of department') {
           roleTitle = formatRoleName(stepHist.approver_role);
         } else if (isApproved && i === applicableSteps.length - 1 && approverRole && (approvalHistory || []).length === 0) {
           roleTitle = formatRoleName(approverRole);
@@ -578,7 +600,7 @@ export function ApprovalStatusTracker({
           roleTitle = formatRoleName(approverRole);
         }
 
-        const stepLoc = getStepLocationContext(roleTitle, stepHist);
+        const stepLoc = getStepLocationContext(roleTitle, stepHist, step);
 
         let stepStatus: 'Approved' | 'Rejected' | 'Pending' | 'Future' = 'Future';
         let stepSub: string | undefined = undefined;
@@ -609,7 +631,8 @@ export function ApprovalStatusTracker({
             if (stepHist?.created_at) stepDate = new Date(stepHist.created_at).toLocaleDateString('en-GB');
           } else if (i === currentIdx) {
             stepStatus = 'Pending';
-            stepSub = pendingApproverName ? `${pendingApproverName} • ${stepLoc}` : `Awaiting ${step.role_name || step.step_label} Approval • ${stepLoc}`;
+            const dispPendingName = pendingApproverName || step.approver_name || '';
+            stepSub = dispPendingName ? `${dispPendingName} • ${stepLoc}` : `Awaiting ${step.role_name || step.step_label} Approval • ${stepLoc}`;
           } else {
             stepStatus = 'Future';
           }

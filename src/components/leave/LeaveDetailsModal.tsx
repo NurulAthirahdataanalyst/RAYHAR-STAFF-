@@ -18,6 +18,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { FileText, Printer, PhoneCall, Clock, Check, X, Download, Loader2, User } from "lucide-react";
 import { parseCutiGantiRows, getCleanReason } from "@/lib/leaveStorage";
 import { API_BASE_URL } from "@/config/api";
+import { canUserActOnLeaveStage } from "@/utils/leaveDiscussionPermissions";
 
 const formatRole = (role: string) => {
   if (!role) return "APPROVER";
@@ -148,7 +149,7 @@ const formatPrintText = (value?: string | null) => {
 
 export function LeaveDetailsModal({ selectedRequest, onClose, role, onApprove, onReject, onMarkedRead }: LeaveDetailsModalProps) {
   const { user } = useAuth();
-  const { userId } = useRole();
+  const { userId, roleName, userBranch, userDepartment } = useRole();
   const current_user_id = String(userId || user?.user_id || user?.id || "").trim();
   const current_employee_id = String(user?.employee_id || user?.user_id || user?.id || userId || "").trim();
 
@@ -164,20 +165,18 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role, onApprove, o
     (currentEid && (currentEid === reqEmployeeId || currentEid === reqCreatedBy || currentEid === reqUserId))
   );
 
-  const isHrRole = ["hr_admin", "hr", "admin"].includes(role?.toLowerCase()?.trim() || "");
   const reqStatus = String(selectedRequest?.status || "").trim();
-  const isPending = reqStatus.startsWith("Pending");
-  const normRole = (role || "").toLowerCase().replace(/[\s_-]+/g, "");
-  const pendingRole = reqStatus.replace(/^Pending\s+/, "").toLowerCase().replace(/[\s_-]+/g, "");
-  const canModalApprove = !isOwnRequest && isPending && (
-    isHrRole ||
-    (pendingRole && normRole === pendingRole) ||
-    (reqStatus.startsWith("Pending HOD") && role === "head_of_department") ||
-    (reqStatus === "Pending Branch Leader" && role === "branch_leader") ||
-    ((reqStatus === "Pending Operation" || reqStatus === "Pending Operation Manager" || reqStatus === "Pending Finance" || reqStatus === "Pending Finance Manager") && (role === "operation_manager" || (role as string) === "finance_manager")) ||
-    ((reqStatus === "Pending MD" || reqStatus === "Pending Managing Director") && (role === "managing_director" || (role as string) === "md")) ||
-    ((reqStatus === "Pending Assure Leader" || reqStatus === "Pending Assure") && (role === "assure_leader" || role?.toLowerCase()?.includes("assure")))
-  );
+  const canModalApprove =
+    !isOwnRequest &&
+    canUserActOnLeaveStage({
+      userRole: role,
+      userRoleName: roleName,
+      userBranch,
+      userDepartment,
+      reqStatus,
+      reqBranch: selectedRequest?.branch,
+      reqDepartment: selectedRequest?.department,
+    });
   const [bakiLayak, setBakiLayak] = useState<number | string>('-');
   const [mcBlobUrl, setMcBlobUrl] = useState<string | null>(null);
   const [isPrinting, setIsPrinting] = useState<boolean>(false);

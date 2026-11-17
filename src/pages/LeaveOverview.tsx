@@ -251,6 +251,7 @@ export default function LeaveOverview() {
           const reqBranch = request.branch || "HQ";
           const reqCompany = request.company_name || (reqBranch.toUpperCase() === "RAYRENT" ? "RayRent" : "Rayhar Travels");
 
+          const hasDynamicSteps = Array.isArray(request.workflow_steps) && request.workflow_steps.length > 0;
           let reqStatus = request.status;
           if (!reqStatus) {
             if (reqBranch.toUpperCase().includes('RV') || (reqCompany && reqCompany.toLowerCase().includes('vacation'))) {
@@ -264,12 +265,14 @@ export default function LeaveOverview() {
             }
           }
           if (
+            !hasDynamicSteps &&
             (reqBranch.toUpperCase() === "RAYRENT" || (reqCompany && reqCompany.toLowerCase().includes("rayrent"))) &&
             (reqStatus === "Pending MD" || reqStatus === "Pending Managing Director" || reqStatus === "Pending Travel Consultant" || reqStatus === "Pending HOD")
           ) {
             reqStatus = "Pending Branch Leader";
           }
           if (
+            !hasDynamicSteps &&
             (reqBranch.toUpperCase().includes("RV") || (reqCompany && reqCompany.toLowerCase().includes("vacation"))) &&
             (reqStatus === "Pending MD" || reqStatus === "Pending Managing Director")
           ) {
@@ -701,8 +704,9 @@ export default function LeaveOverview() {
 
               const effectiveCompany = (req as any).companyName || (isRayRent ? 'RayRent' : (activeCompany?.company_name || 'Rayhar Travels'));
 
-              let effectiveStatus = req.status;
-              if (isRayRent && (effectiveStatus === 'Pending MD' || effectiveStatus === 'Pending Managing Director')) {
+              const hasDynamicSteps = Array.isArray((req as any).workflowSteps) && (req as any).workflowSteps.length > 0;
+              let effectiveStatus: string = req.status;
+              if (!hasDynamicSteps && isRayRent && (effectiveStatus === 'Pending MD' || effectiveStatus === 'Pending Managing Director')) {
                 effectiveStatus = 'Pending Branch Leader';
               }
 
@@ -747,7 +751,7 @@ export default function LeaveOverview() {
       department={(req as any).department || ""}
       companyName={effectiveCompany}
       pendingApproverName={(req as any).pendingApproverName || ""}
-      pendingApproverContext={isRayRent ? "RayRent" : ((req as any).pendingApproverContext || "")}
+      pendingApproverContext={(req as any).pendingApproverContext || (isRayRent ? "RayRent" : "")}
       workflowSteps={(req as any).workflowSteps || []}
     />
   </div>

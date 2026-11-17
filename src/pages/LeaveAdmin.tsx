@@ -31,6 +31,7 @@ import { useRole } from "@/contexts/RoleContext";
 import { parseCutiGantiRows, getCleanReason } from "@/lib/leaveStorage";
 import { API_BASE_URL } from "../config/api";
 import { useCompany } from "@/modules/multi-company/contexts/CompanyContext";
+import { canUserActOnLeaveStage } from "@/utils/leaveDiscussionPermissions";
 
 const getDisplayStatus = (status: string, branch?: string, companyName?: string) => {
   const isRayRent = 
@@ -202,7 +203,7 @@ type TabFilter = "pending" | "approved" | "rejected" | "history";
 
 export default function LeaveAdmin() {
   const { user } = useAuth();
-  const { role, userBranch, userDepartment, userId, hasPermission, loading: roleLoading } = useRole();
+  const { role, roleName, userBranch, userDepartment, userId, hasPermission, loading: roleLoading } = useRole();
   const { activeCompany } = useCompany();
 
   const current_user_id = String(userId || user?.user_id || user?.id || "").trim();
@@ -236,7 +237,9 @@ export default function LeaveAdmin() {
     return <Navigate to="/" replace />;
   }
   const currentCompanyId = activeCompany?.id || 1;
-  const canApprove = APPROVER_ROLES.includes(role);
+  const canApprove =
+    APPROVER_ROLES.includes(role) ||
+    (typeof hasPermission === "function" && hasPermission("leave.approval"));
   const [requests, setRequests] = useState<LeaveRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const tableRef = useRef<HTMLTableElement>(null);
@@ -1299,18 +1302,16 @@ export default function LeaveAdmin() {
                         </TableCell>
                         {canApprove && (
                           <TableCell className="px-3 py-3.5 text-right">
-                            {!isOwnLeaveRequest(req) && Boolean(
-                              (["hr_admin", "hr", "admin"].includes(role?.toLowerCase()?.trim() || "") && req.status.trim().startsWith("Pending")) ||
-                              (req.status.trim().startsWith("Pending HOD") && role === "head_of_department") ||
-                              (req.status.trim() === "Pending Branch Leader" && role === "branch_leader") ||
-                              ((req.status.trim() === "Pending Operation" || req.status.trim() === "Pending Operation Manager" || req.status.trim() === "Pending Finance" || req.status.trim() === "Pending Finance Manager") && (role === "operation_manager" || (role as string) === "finance_manager")) ||
-                              ((req.status.trim() === "Pending MD" || req.status.trim() === "Pending Managing Director") && (role === "managing_director" || (role as string) === "md")) ||
-                              ((req.status.trim() === "Pending Assure Leader" || req.status.trim() === "Pending Assure") && (role === "assure_leader" || role?.toLowerCase()?.includes("assure"))) ||
-                              (req.status.trim().startsWith("Pending ") && (
-                                role?.toLowerCase().replace(/\s+/g, '_') === req.status.trim().replace(/^Pending\s+/, '').toLowerCase().replace(/\s+/g, '_') ||
-                                role?.toLowerCase() === req.status.trim().replace(/^Pending\s+/, '').toLowerCase()
-                              ))
-                            ) ? (
+                            {!isOwnLeaveRequest(req) &&
+                            canUserActOnLeaveStage({
+                              userRole: role,
+                              userRoleName: roleName,
+                              userBranch,
+                              userDepartment,
+                              reqStatus: req.status,
+                              reqBranch: req.branch,
+                              reqDepartment: req.department,
+                            }) ? (
                               <div className="flex justify-end gap-2">
                                 <Button
                                   size="sm"
