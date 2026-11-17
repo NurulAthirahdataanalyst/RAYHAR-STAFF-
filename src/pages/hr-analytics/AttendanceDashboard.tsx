@@ -41,8 +41,10 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { API_BASE_URL } from "../../config/api";
 import { useCompany } from "@/modules/multi-company/contexts/CompanyContext";
+import { useAuth } from "@/contexts/AuthContext";
 import PageActions from "@/components/layout/PageActions";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
+import { AttendanceVerificationModal, getVerificationBadgeProps } from "@/components/attendance/AttendanceVerificationModal";
 import { TablePagination } from "@/components/common/TablePagination";
 import { Tooltip as UITooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -100,7 +102,13 @@ const parseThreshold = (thresholdStr: string) => {
 
 export default function AttendanceDashboard() {
   const { activeCompany } = useCompany();
+  const { user } = useAuth();
   const { role, userBranch, userDepartment, loading } = useRole();
+  const isSubsidiaryView = activeCompany?.company_type === "subsidiary";
+  const canHrReview = ["hr_admin", "managing_director", "superadmin"].some((r) =>
+    String(role || "").toLowerCase().includes(r)
+  );
+  const [reviewAttendanceId, setReviewAttendanceId] = useState<number | null>(null);
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
@@ -1073,6 +1081,9 @@ export default function AttendanceDashboard() {
         if (!r.clock_in && displayStatus !== 'Outstation' && displayStatus !== 'Approved Leave' && displayStatus !== 'Company Leave') {
           if (searchTerm.trim() === '' && selectedStatusFilter !== 'weekend' && selectedStatusFilter !== 'absent') return false;
         }
+        if ((displayStatus === 'Absent (Expired)' || displayStatus === 'Absent (Rejected)') && selectedStatusFilter !== 'absent_expired' && selectedStatusFilter !== 'absent_rejected' && searchTerm.trim() === '') {
+          return false;
+        }
 
         const matchesStatus = selectedStatusFilter === "all" || 
           (selectedStatusFilter === "present_on_time" && (punctualityStatus === "Present (On Time)" || displayStatus === "Present (On Time)")) ||
@@ -1084,15 +1095,24 @@ export default function AttendanceDashboard() {
           (selectedStatusFilter === "absent" && displayStatus === "Absent") ||
           (selectedStatusFilter === "clocked_out" && r.clock_out != null) ||
           (selectedStatusFilter === "temporary_branch" && !!activeTempUsers[r.user_id]) ||
-          (selectedStatusFilter === "multi_location" && multiLocationUsers.includes(r.user_id));
+          (selectedStatusFilter === "multi_location" && multiLocationUsers.includes(r.user_id)) ||
+          (selectedStatusFilter === "pending_verification" && (r as any).verification_status === "Pending Verification") ||
+          (selectedStatusFilter === "absent_expired" && ((r as any).verification_status === "Expired" || displayStatus === "Absent (Expired)")) ||
+          (selectedStatusFilter === "absent_rejected" && ((r as any).verification_status === "Rejected" || displayStatus === "Absent (Rejected)")) ||
+          (selectedStatusFilter === "overridden" && ((r as any).verification_status === "Overridden" || displayStatus === "Present (Override)"));
           
         return matchesBranch && matchesDept && matchesSearch && matchesStatus;
       })
   }, [dailyAttendance, selectedBranchFilter, selectedDepartmentFilter, searchTerm, selectedStatusFilter, outstationRecords, selectedDate]);
 
+  const pendingPhotoReviewCount = useMemo(() => {
+    if (!isSubsidiaryView) return 0;
+    return dailyAttendance.filter((r: any) => r.verification_status === "Pending Verification").length;
+  }, [dailyAttendance, isSubsidiaryView]);
+
   const filteredAbsentEmployees = useMemo(() => {
     return dailyAttendance.filter((r: any) => {
-      // We want to show Absent, Company Leave, and Approved Leave here.
+      // We want to show Absent, Absent (Expired), Absent (Rejected), Company Leave, and Approved Leave here.
       // Compute the display status exactly like in Admin Attendance list.
       let displayStatus = r.status || "Absent";
       const isOutstation = outstationRecords.some((o: any) => 
@@ -1102,7 +1122,13 @@ export default function AttendanceDashboard() {
       );
       if (isOutstation) displayStatus = "Outstation";
 
-      if (displayStatus !== "Absent" && displayStatus !== "Company Leave" && displayStatus !== "Approved Leave") {
+      if (
+        displayStatus !== "Absent" &&
+        displayStatus !== "Absent (Expired)" &&
+        displayStatus !== "Absent (Rejected)" &&
+        displayStatus !== "Company Leave" &&
+        displayStatus !== "Approved Leave"
+      ) {
         return false;
       }
 
@@ -1402,6 +1428,14 @@ export default function AttendanceDashboard() {
                   <SelectItem value="clocked_out">Clocked Out</SelectItem>
                   <SelectItem value="temporary_branch">Temporary Branch</SelectItem>
                   <SelectItem value="multi_location">Multi-Location</SelectItem>
+                  {isSubsidiaryView && (
+                    <>
+                      <SelectItem value="pending_verification">Pending Verification</SelectItem>
+                      <SelectItem value="absent_expired">Absent (Expired)</SelectItem>
+                      <SelectItem value="absent_rejected">Absent (Rejected)</SelectItem>
+                      <SelectItem value="overridden">Overridden</SelectItem>
+                    </>
+                  )}
                 </SelectContent>
               </Select>
               
@@ -1453,6 +1487,28 @@ export default function AttendanceDashboard() {
                 <span className="text-[10px] font-bold text-foreground uppercase tracking-wider">Multi Location</span>
                 <span className="text-[13px] font-black text-slate-700 dark:text-slate-200">{multiLocationUsers.length}</span>
               </div>
+              {isSubsidiaryView && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setSelectedStatusFilter((prev) =>
+                      prev === "pending_verification" ? "all" : "pending_verification"
+                    )
+                  }
+                  className={`px-3 py-1.5 rounded-md flex items-center gap-2 border transition-colors ${
+                    selectedStatusFilter === "pending_verification"
+                      ? "bg-yellow-100 dark:bg-yellow-900/50 border-yellow-400 dark:border-yellow-600"
+                      : "bg-yellow-50/80 dark:bg-yellow-950/30 border-yellow-200 dark:border-yellow-900/50 hover:bg-yellow-100/70"
+                  }`}
+                >
+                  <span className="text-[10px] font-bold text-yellow-700 dark:text-yellow-300 uppercase tracking-wider">
+                    Pending Photo Review
+                  </span>
+                  <span className="text-[13px] font-black text-yellow-800 dark:text-yellow-200">
+                    {pendingPhotoReviewCount}
+                  </span>
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -1488,6 +1544,9 @@ export default function AttendanceDashboard() {
                     <th className="px-4 py-3.5 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Time Out</th>
                     <th className="px-4 py-3.5 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Late</th>
                     <th className="px-4 py-3.5 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Working Hours</th>
+                    {isSubsidiaryView && (
+                      <th className="px-4 py-3.5 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Verification</th>
+                    )}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
@@ -1551,6 +1610,14 @@ export default function AttendanceDashboard() {
                         ? "bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-400 border border-green-100 dark:border-green-800/50"
                         : attStatus === "Present (Late)"
                         ? "bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 border border-amber-100 dark:border-amber-800/50"
+                        : attStatus === "Pending Verification"
+                        ? "bg-yellow-50 dark:bg-yellow-500/15 text-yellow-700 dark:text-yellow-300 border border-yellow-300 dark:border-yellow-500/40"
+                        : attStatus === "Present (Override)"
+                        ? "bg-blue-50 dark:bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-300 dark:border-blue-500/40"
+                        : attStatus === "Absent (Expired)"
+                        ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-600"
+                        : attStatus === "Absent (Rejected)"
+                        ? "bg-red-50 dark:bg-red-500/15 text-red-700 dark:text-red-300 border border-red-300 dark:border-red-500/40"
                         : attStatus === "Company Leave"
                         ? "bg-purple-50 dark:bg-purple-950/30 text-purple-700 dark:text-purple-400 border border-purple-100 dark:border-purple-800/50"
                         : attStatus === "Approved Leave"
@@ -1643,12 +1710,36 @@ export default function AttendanceDashboard() {
                               })()}
                             </span>
                           </td>
+                          {isSubsidiaryView && (
+                            <td className="px-4 py-3 whitespace-nowrap">
+                              {(record as any).attendance_id ? (
+                                <div className="flex items-center gap-1.5">
+                                  <span className={`px-2 py-0.5 rounded-full border text-[10px] font-bold uppercase ${getVerificationBadgeProps((record as any).verification_status).className}`}>
+                                    {getVerificationBadgeProps((record as any).verification_status).label}
+                                  </span>
+                                  {((record as any).clock_in_photo_url || (record as any).clock_out_photo_url || (record as any).verification_status !== "Approved") && (
+                                    <Button
+                                      type="button"
+                                      size="sm"
+                                      variant="outline"
+                                      className="h-6 px-2 text-[10px] font-bold"
+                                      onClick={() => setReviewAttendanceId((record as any).attendance_id)}
+                                    >
+                                      {(record as any).verification_status === "Pending Verification" ? "Review" : "View"}
+                                    </Button>
+                                  )}
+                                </div>
+                              ) : (
+                                <span className="text-[10px] text-muted-foreground">--</span>
+                              )}
+                            </td>
+                          )}
                         </tr>
                       );
                     })
                   ) : (
                     <tr>
-                      <td colSpan={6} className="px-6 py-10 text-center text-xs font-bold text-foreground uppercase tracking-wider italic">
+                      <td colSpan={isSubsidiaryView ? 7 : 6} className="px-6 py-10 text-center text-xs font-bold text-foreground uppercase tracking-wider italic">
                         No logs registered on this date
                       </td>
                     </tr>
@@ -1765,6 +1856,42 @@ export default function AttendanceDashboard() {
                                 <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-blue-500" />
                                 <span>On Leave</span>
                               </span>
+                            ) : displayStatus === 'Absent (Expired)' ? (
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[10px] tracking-wider font-extrabold uppercase rounded-full border shadow-2xs whitespace-nowrap bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border-zinc-300 dark:border-zinc-600">
+                                  <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-zinc-500" />
+                                  <span>Absent (Expired)</span>
+                                </span>
+                                {isSubsidiaryView && (emp as any).attendance_id && (
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="outline"
+                                    className="h-6 px-2 text-[10px] font-bold border-blue-300 text-blue-700 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-300"
+                                    onClick={() => setReviewAttendanceId((emp as any).attendance_id)}
+                                  >
+                                    Override
+                                  </Button>
+                                )}
+                              </div>
+                            ) : displayStatus === 'Absent (Rejected)' ? (
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[10px] tracking-wider font-extrabold uppercase rounded-full border shadow-2xs whitespace-nowrap bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 border-red-200 dark:border-red-900/50">
+                                  <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-red-500" />
+                                  <span>Absent (Rejected)</span>
+                                </span>
+                                {isSubsidiaryView && (emp as any).attendance_id && (
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="outline"
+                                    className="h-6 px-2 text-[10px] font-bold"
+                                    onClick={() => setReviewAttendanceId((emp as any).attendance_id)}
+                                  >
+                                    View
+                                  </Button>
+                                )}
+                              </div>
                             ) : (
                               <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[10px] tracking-wider font-extrabold uppercase rounded-full border shadow-2xs whitespace-nowrap bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 border-red-100 dark:border-red-900/50">
                                 <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-red-500" />
@@ -2173,6 +2300,20 @@ export default function AttendanceDashboard() {
 
 
       </div>
+
+      {/* HR Subsidiary Photo Verification, Review & Manual Override Modal */}
+      <AttendanceVerificationModal
+        open={reviewAttendanceId !== null}
+        onOpenChange={(next) => { if (!next) setReviewAttendanceId(null); }}
+        attendanceId={reviewAttendanceId}
+        canReview={canHrReview && isSubsidiaryView}
+        reviewerId={String(user?.user_id || user?.id || "")}
+        reviewerName={user?.full_name || user?.name || "HR Admin"}
+        reviewerRole={String(role || "hr_admin")}
+        onActionCompleted={() => {
+          void fetchDailyAttendance(false);
+        }}
+      />
     </div>
   );
 }

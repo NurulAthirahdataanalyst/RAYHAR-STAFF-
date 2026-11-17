@@ -13,6 +13,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Loader2, Clock, Fingerprint, Hand, Timer, MapPin, History, Home, SlidersHorizontal, Download, ChevronDown, FileText, FileSpreadsheet, Sparkles, CalendarDays, Coffee } from "lucide-react";
 import { API_BASE_URL } from "@/config/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { RayharCameraModal } from "@/components/attendance/RayharCameraModal";
+import { AttendanceVerificationModal, getVerificationBadgeProps } from "@/components/attendance/AttendanceVerificationModal";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -212,6 +214,39 @@ export default function Attendance() {
   const [isOutstationAssigned, setIsOutstationAssigned] = useState(false);
   const [pendingLocation, setPendingLocation] = useState<{lat: number, lng: number, acc: number} | null>(null);
   const [outstationLocationLoading, setOutstationLocationLoading] = useState(false);
+
+  // Subsidiary-only photo verification policy & modals
+  const [verificationPolicy, setVerificationPolicy] = useState<{
+    isSubsidiary: boolean;
+    verification_rule: "geofence" | "geofence_photo" | "live_photo";
+    company_name?: string;
+    branch?: string;
+  } | null>(null);
+  const [cameraModalOpen, setCameraModalOpen] = useState(false);
+  const [pendingPhotoPunch, setPendingPhotoPunch] = useState<{
+    employeeId: string;
+    attendanceType: string;
+    branchName: string;
+    lat?: number;
+    lng?: number;
+    acc?: number;
+    dist?: number;
+    isClockOut: boolean;
+  } | null>(null);
+  const [detailsModalId, setDetailsModalId] = useState<number | null>(null);
+
+  useEffect(() => {
+    const empId = user?.user_id || user?.id;
+    if (!empId) return;
+    fetch(`${API_BASE_URL}/api/attendance/verification-policy/${encodeURIComponent(empId)}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.success && data.policy) {
+          setVerificationPolicy(data.policy);
+        }
+      })
+      .catch(() => {});
+  }, [user?.user_id, user?.id]);
 
   const fetchBranches = useCallback(() => {
     fetch(`${API_BASE_URL}/api/branches`)
@@ -1379,7 +1414,16 @@ export default function Attendance() {
   };
 
   // 5. THE CORE ACTION: Clock In / Clock Out
-  const performClockInOrOut = async (employeeId: string, attendance_type: string, lat?: number, lng?: number, acc?: number, dist?: number) => {
+  const performClockInOrOut = async (
+    employeeId: string,
+    attendance_type: string,
+    lat?: number,
+    lng?: number,
+    acc?: number,
+    dist?: number,
+    photoDataUrl?: string,
+    deviceInfo?: string
+  ) => {
     setLoading(true);
     try {
       const isClockOut = !!activeSession;
@@ -1392,13 +1436,15 @@ export default function Attendance() {
         if (lat !== undefined) payload.latitude = lat;
         if (lng !== undefined) payload.longitude = lng;
         if (acc !== undefined) payload.accuracy = acc;
-          if (dist !== undefined) payload.distance = dist;
-        } else {
-          if (lat !== undefined) payload.latitude = lat;
-          if (lng !== undefined) payload.longitude = lng;
-          if (acc !== undefined) payload.accuracy = acc;
-          if (dist !== undefined) payload.distance = dist;
-        }
+        if (dist !== undefined) payload.distance = dist;
+      } else {
+        if (lat !== undefined) payload.latitude = lat;
+        if (lng !== undefined) payload.longitude = lng;
+        if (acc !== undefined) payload.accuracy = acc;
+        if (dist !== undefined) payload.distance = dist;
+      }
+      if (photoDataUrl) payload.photo_data = photoDataUrl;
+      if (deviceInfo) payload.device_info = deviceInfo;
 
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: "POST",
@@ -1409,13 +1455,20 @@ export default function Attendance() {
       const result = await response.json();
 
       if (result.success) {
+        setCameraModalOpen(false);
+        setPendingPhotoPunch(null);
+        const isPendingVerif = result.record?.verification_status === "Pending Verification";
         const eventTime = formatAttendanceTime(
           isClockOut ? result.record?.clock_out : result.record?.clock_in
         );
         const dashboardUpdate = {
           userId: String(employeeId).trim(),
           name: user?.full_name || "User",
-          todayStatus: isClockOut ? (result.isOnOutstation ? "Clocked Out (Outstation)" : "Clocked Out") : (result.isOnOutstation ? "Clocked In (Outstation)" : "Present"),
+          todayStatus: isPendingVerif
+            ? "Pending Verification"
+            : isClockOut
+            ? (result.isOnOutstation ? "Clocked Out (Outstation)" : "Clocked Out")
+            : (result.isOnOutstation ? "Clocked In (Outstation)" : "Present"),
           activityStatus: isClockOut ? "Clocked Out" : (result.isOnOutstation ? "Clocked In (Outstation)" : "Clocked In"),
           time: eventTime,
           timestamp: Date.now(),
@@ -1426,8 +1479,12 @@ export default function Attendance() {
         window.dispatchEvent(new CustomEvent("attendanceUpdated", { detail: dashboardUpdate }));
 
         toast({
-          title: isClockOut ? "Successfully Clocked Out" : "Successfully Clocked In",
-          description: isClockOut
+          title: isPendingVerif
+            ? (isClockOut ? "Clock-Out Submitted for Verification" : "Clock-In Submitted for Verification")
+            : (isClockOut ? "Successfully Clocked Out" : "Successfully Clocked In"),
+          description: isPendingVerif
+            ? "Photo proof received. Status is Pending Verification until HR approves."
+            : isClockOut
             ? `Goodbye! Session ended at ${new Date().toLocaleTimeString()}`
             : `Welcome! Session started at ${new Date().toLocaleTimeString()}`,
         });
@@ -1512,40 +1569,71 @@ export default function Attendance() {
         const targetBranchCode = isClockOut 
           ? (activeSession?.location || selectedLocation || user?.branch || 'HQ')
           : (attendanceMode === 'multi' ? (selectedLocation || allowedLocations[0]) : (selectedLocation || user?.branch || 'HQ'));
-          
+
+        const requiresPhoto = Boolean(
+          verificationPolicy?.isSubsidiary &&
+          (verificationPolicy.verification_rule === "geofence_photo" || verificationPolicy.verification_rule === "live_photo")
+        );
+        const skipGeofenceCheck = Boolean(
+          verificationPolicy?.isSubsidiary && verificationPolicy.verification_rule === "live_photo"
+        );
+
         const branchInfo = branches.find((b: any) => b.code === targetBranchCode || b.name === targetBranchCode);
 
-        if (!branchInfo || !branchInfo.latitude || !branchInfo.longitude || String(branchInfo.latitude).trim() === '' || String(branchInfo.longitude).trim() === '') {
-          toast({ title: isClockOut ? "Clock Out Failed" : "Clock In Failed", description: "Your branch location coordinates are not configured in the system. Please contact HR.", variant: "destructive" });
+        if (!skipGeofenceCheck) {
+          if (!branchInfo || !branchInfo.latitude || !branchInfo.longitude || String(branchInfo.latitude).trim() === '' || String(branchInfo.longitude).trim() === '') {
+            toast({ title: isClockOut ? "Clock Out Failed" : "Clock In Failed", description: "Your branch location coordinates are not configured in the system. Please contact HR.", variant: "destructive" });
+            setLoading(false);
+            return;
+          }
+
+          const latNum = parseFloat(branchInfo.latitude);
+          const lngNum = parseFloat(branchInfo.longitude);
+          const radius = branchInfo.radius || 50;
+
+          if (isNaN(latNum) || isNaN(lngNum)) {
+            toast({ title: isClockOut ? "Clock Out Failed" : "Clock In Failed", description: "Your branch location coordinates are invalid. Please contact HR.", variant: "destructive" });
+            setLoading(false);
+            return;
+          }
+
+          dist_meters = Math.round(haversineDistance(lat, lng, latNum, lngNum));
+
+          if (isNaN(dist_meters)) {
+            toast({ title: isClockOut ? "Clock Out Failed" : "Clock In Failed", description: "Unable to calculate distance to branch. Please try again.", variant: "destructive" });
+            setLoading(false);
+            return;
+          }
+
+          if (dist_meters > radius) {
+            toast({
+              title: isClockOut ? "Clock Out Failed — Outside Branch Radius" : "Clock In Failed — Outside Branch Radius",
+              description: "You are outside your assigned branch radius. Please move inside the branch area and try again.",
+              variant: "destructive"
+            });
+            setLoading(false);
+            return;
+          }
+        }
+
+        // Subsidiary photo verification: open live Rayhar Staff Portal camera modal
+        if (requiresPhoto) {
           setLoading(false);
+          setPendingPhotoPunch({
+            employeeId: String(employeeId),
+            attendanceType: attendance_type,
+            branchName: branchInfo?.name || getBranchFullName(targetBranchCode),
+            lat,
+            lng,
+            acc,
+            dist: dist_meters,
+            isClockOut,
+          });
+          setCameraModalOpen(true);
           return;
         }
 
-        const latNum = parseFloat(branchInfo.latitude);
-        const lngNum = parseFloat(branchInfo.longitude);
-        const radius = branchInfo.radius || 50;
-
-        if (isNaN(latNum) || isNaN(lngNum)) {
-          toast({ title: isClockOut ? "Clock Out Failed" : "Clock In Failed", description: "Your branch location coordinates are invalid. Please contact HR.", variant: "destructive" });
-          setLoading(false);
-          return;
-        }
-
-        dist_meters = Math.round(haversineDistance(lat, lng, latNum, lngNum));
-        
-        if (isNaN(dist_meters)) {
-          toast({ title: isClockOut ? "Clock Out Failed" : "Clock In Failed", description: "Unable to calculate distance to branch. Please try again.", variant: "destructive" });
-          setLoading(false);
-          return;
-        }
-        
-        if (dist_meters > radius) {
-          toast({ title: isClockOut ? "Clock Out Failed" : "Clock In Failed", description: "You are outside the branch radius", variant: "destructive" });
-          setLoading(false);
-          return;
-        }
-
-        // Within branch radius, proceed
+        // Main company or standard geofence subsidiary: proceed immediately
         performClockInOrOut(employeeId, attendance_type, lat, lng, acc, dist_meters);
       },
       (error) => {
@@ -2650,7 +2738,23 @@ export default function Attendance() {
 
                     let displayStatus = log.status;
 
-                    if (isLate) {
+                    if (log.status === "Pending Verification") {
+                      displayStatus = "PENDING VERIFICATION";
+                      statusBadge = "bg-yellow-50 text-yellow-700 border-yellow-300 dark:bg-yellow-500/15 dark:text-yellow-300 dark:border-yellow-500/40";
+                      statusDot = "bg-yellow-500";
+                    } else if (log.status === "Absent (Rejected)" || log.status === "Rejected") {
+                      displayStatus = "ABSENT (REJECTED)";
+                      statusBadge = "bg-red-50 text-red-700 border-red-300 dark:bg-red-500/15 dark:text-red-300 dark:border-red-500/40";
+                      statusDot = "bg-red-500";
+                    } else if (log.status === "Absent (Expired)" || log.status === "Expired") {
+                      displayStatus = "ABSENT (EXPIRED)";
+                      statusBadge = "bg-zinc-100 text-zinc-700 border-zinc-300 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-600";
+                      statusDot = "bg-zinc-500";
+                    } else if (log.status === "Present (Override)" || log.status === "Overridden") {
+                      displayStatus = "PRESENT (OVERRIDE)";
+                      statusBadge = "bg-blue-50 text-blue-700 border-blue-300 dark:bg-blue-500/15 dark:text-blue-300 dark:border-blue-500/40";
+                      statusDot = "bg-blue-500";
+                    } else if (isLate) {
                       displayStatus = "PRESENT (LATE)";
                       statusBadge = "bg-yellow-50 text-yellow-700 border-yellow-300 dark:bg-yellow-500/10 dark:text-yellow-400 dark:border-yellow-500/30";
                       statusDot = "bg-yellow-500";
@@ -2698,12 +2802,23 @@ export default function Attendance() {
                           {log.time_out || "--"}
                         </TableCell>
                         <TableCell className="whitespace-nowrap">
-                          <span 
-                            style={customStyle}
-                            className={`inline-flex items-center px-2.5 py-0.5 text-[10px] tracking-wider font-black uppercase rounded-full border shadow-2xs ${statusBadge}`}
-                          >
-                            <span>{displayStatus}</span>
-                          </span>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span 
+                              style={customStyle}
+                              className={`inline-flex items-center px-2.5 py-0.5 text-[10px] tracking-wider font-black uppercase rounded-full border shadow-2xs ${statusBadge}`}
+                            >
+                              <span>{displayStatus}</span>
+                            </span>
+                            {log.attendance_id && (log.clock_in_photo_url || log.clock_out_photo_url || (log.verification_status && log.verification_status !== "Approved")) && (
+                              <button
+                                type="button"
+                                onClick={() => setDetailsModalId(log.attendance_id)}
+                                className={`px-2 py-0.5 text-[9px] font-bold uppercase rounded border transition-colors hover:opacity-80 ${getVerificationBadgeProps(log.verification_status).className}`}
+                              >
+                                Details
+                              </button>
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell className={`font-medium ${log.late === "0 Min" || log.late === "00h 00m" || log.late === "00:00" ? "text-[#008000]" : "text-rose-600"}`}>
                           {log.late === "00h 00m" || log.late === "00:00" || log.late === "--" ? "--" : log.late}
@@ -2908,6 +3023,44 @@ export default function Attendance() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Subsidiary-Only Rayhar Staff Portal Live Camera Verification Modal */}
+      <RayharCameraModal
+        open={cameraModalOpen}
+        onOpenChange={(next) => {
+          setCameraModalOpen(next);
+          if (!next) setPendingPhotoPunch(null);
+        }}
+        actionType={pendingPhotoPunch?.isClockOut ? "CLOCK OUT" : "CLOCK IN"}
+        staffName={user?.full_name || user?.name || "Staff"}
+        staffId={String(user?.user_id || user?.id || "")}
+        companyName={verificationPolicy?.company_name || "Subsidiary"}
+        branchName={pendingPhotoPunch?.branchName || user?.branch || "Branch"}
+        latitude={pendingPhotoPunch?.lat}
+        longitude={pendingPhotoPunch?.lng}
+        submitting={loading}
+        onSubmitPhoto={(photoDataUrl, deviceInfo) => {
+          if (!pendingPhotoPunch) return;
+          void performClockInOrOut(
+            pendingPhotoPunch.employeeId,
+            pendingPhotoPunch.attendanceType,
+            pendingPhotoPunch.lat,
+            pendingPhotoPunch.lng,
+            pendingPhotoPunch.acc,
+            pendingPhotoPunch.dist,
+            photoDataUrl,
+            deviceInfo
+          );
+        }}
+      />
+
+      {/* Staff Read-Only Attendance Verification Details & Audit Modal */}
+      <AttendanceVerificationModal
+        open={detailsModalId !== null}
+        onOpenChange={(next) => { if (!next) setDetailsModalId(null); }}
+        attendanceId={detailsModalId}
+        canReview={false}
+      />
     </div>
   );
 }

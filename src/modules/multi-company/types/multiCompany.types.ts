@@ -180,6 +180,10 @@ export interface AttendanceSettings {
   gps_required: boolean;
   geofence_enforcement: 'strict' | 'relaxed' | 'disabled';
   face_verification_required: boolean;
+  verification_rule?: 'geofence' | 'geofence_photo' | 'live_photo';
+  approval_expiry_mode?: 'days' | 'after_working_hours';
+  approval_expiry_days?: number;
+  photo_retention_days?: number;
   calculation_rule_version?: number;
 }
 

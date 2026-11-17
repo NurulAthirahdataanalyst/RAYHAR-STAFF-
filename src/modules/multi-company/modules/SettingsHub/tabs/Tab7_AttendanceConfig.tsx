@@ -36,6 +36,10 @@ export const Tab7_AttendanceConfig: React.FC = () => {
   const [gpsRequired, setGpsRequired] = useState<boolean>(true);
   const [geofenceEnforce, setGeofenceEnforce] = useState<'strict' | 'relaxed' | 'disabled'>('strict');
   const [faceVerify, setFaceVerify] = useState<boolean>(false);
+  const [verificationRule, setVerificationRule] = useState<'geofence' | 'geofence_photo' | 'live_photo'>('geofence');
+  const [approvalExpiryMode, setApprovalExpiryMode] = useState<'days' | 'after_working_hours'>('days');
+  const [approvalExpiryDays, setApprovalExpiryDays] = useState<number>(3);
+  const [photoRetentionDays, setPhotoRetentionDays] = useState<number>(30);
   const [ruleVersion, setRuleVersion] = useState<number>(1);
   const [saving, setSaving] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
@@ -70,6 +74,10 @@ export const Tab7_AttendanceConfig: React.FC = () => {
           setGpsRequired(res.gps_required !== false);
           setGeofenceEnforce(res.geofence_enforcement || 'strict');
           setFaceVerify(Boolean(res.face_verification_required));
+          setVerificationRule(res.verification_rule || 'geofence');
+          setApprovalExpiryMode(res.approval_expiry_mode || 'days');
+          setApprovalExpiryDays(res.approval_expiry_days ?? 3);
+          setPhotoRetentionDays(res.photo_retention_days ?? 30);
           setRuleVersion(res.calculation_rule_version || 1);
         }
         setSchedules(schedRes || []);
@@ -92,7 +100,11 @@ export const Tab7_AttendanceConfig: React.FC = () => {
         overtime_enabled: otEnabled,
         gps_required: gpsRequired,
         geofence_enforcement: geofenceEnforce,
-        face_verification_required: faceVerify
+        face_verification_required: faceVerify,
+        verification_rule: currentCompany?.company_type === 'subsidiary' ? verificationRule : 'geofence',
+        approval_expiry_mode: approvalExpiryMode,
+        approval_expiry_days: Number(approvalExpiryDays),
+        photo_retention_days: Number(photoRetentionDays)
       });
 
       // Synchronize back
@@ -658,6 +670,94 @@ export const Tab7_AttendanceConfig: React.FC = () => {
                 <span className="text-[10px] text-muted-foreground block">Take selfie verification upon check-in</span>
               </div>
               <Switch checked={faceVerify} onCheckedChange={setFaceVerify} className="data-[state=checked]:bg-[#942392]" />
+            </div>
+
+            {/* Subsidiary-Only Rayhar Staff Portal Photo Verification */}
+            <div className="pt-3 mt-3 border-t border-border/60 space-y-3">
+              <div className="flex items-center justify-between gap-2">
+                <div>
+                  <Label className="text-[11px] font-black uppercase tracking-wider text-black dark:text-white flex items-center gap-1.5">
+                    <Camera className="w-3.5 h-3.5 text-[#942392]" />
+                    Rayhar Staff Portal Photo Verification (Subsidiary Only)
+                  </Label>
+                  <span className="text-[10px] text-muted-foreground block">
+                    Clock-In &amp; Clock-Out live camera proof with watermark and auto-expiry
+                  </span>
+                </div>
+                {currentCompany?.company_type !== 'subsidiary' && (
+                  <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-border">
+                    Locked (Main Company)
+                  </span>
+                )}
+              </div>
+
+              {currentCompany?.company_type !== 'subsidiary' ? (
+                <div className="p-2.5 rounded-lg bg-muted/40 border border-border/50 text-[11px] text-muted-foreground">
+                  Main Company is locked to <strong className="text-foreground">Branch Geofence</strong> only. Photo verification, HR approval queue, and photo retention apply strictly to Subsidiary Companies.
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-[11px] font-bold text-black dark:text-white">Verification Rule (Clock-In &amp; Clock-Out)</Label>
+                    <Select value={verificationRule} onValueChange={(val: any) => setVerificationRule(val)}>
+                      <SelectTrigger className="text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium text-black dark:text-white">
+                        <SelectValue placeholder="Select verification rule" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="geofence" className="text-xs">
+                          Branch Geofence (GPS Only)
+                        </SelectItem>
+                        <SelectItem value="geofence_photo" className="text-xs font-bold">
+                          Branch Geofence + Live Photo (Recommended — Blocks Outside Branch)
+                        </SelectItem>
+                        <SelectItem value="live_photo" className="text-xs">
+                          Live Photo (Field / No Branch Pin Lock)
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    <div className="space-y-1">
+                      <Label className="text-[10px] font-bold uppercase text-muted-foreground">Expiry Window Type</Label>
+                      <Select value={approvalExpiryMode} onValueChange={(val: any) => setApprovalExpiryMode(val)}>
+                        <SelectTrigger className="text-xs h-8 bg-background dark:bg-neutral-900 border-border">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="days" className="text-xs">After N Days</SelectItem>
+                          <SelectItem value="after_working_hours" className="text-xs">After Working Hours</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label className="text-[10px] font-bold uppercase text-muted-foreground">Approval Expiry Days</Label>
+                      <Input
+                        type="number"
+                        min={1}
+                        max={30}
+                        disabled={approvalExpiryMode === 'after_working_hours'}
+                        value={approvalExpiryDays}
+                        onChange={(e) => setApprovalExpiryDays(Math.max(1, Number(e.target.value) || 3))}
+                        className="text-xs h-8 font-semibold text-black dark:text-white"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label className="text-[10px] font-bold uppercase text-muted-foreground">Photo Retention Days</Label>
+                      <Input
+                        type="number"
+                        min={1}
+                        max={365}
+                        value={photoRetentionDays}
+                        onChange={(e) => setPhotoRetentionDays(Math.max(1, Number(e.target.value) || 30))}
+                        className="text-xs h-8 font-semibold text-black dark:text-white"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </Card>

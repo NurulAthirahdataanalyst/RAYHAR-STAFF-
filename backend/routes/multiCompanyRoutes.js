@@ -1894,12 +1894,30 @@ function createMultiCompanyRouter(pgPool) {
         overtime_enabled = false,
         gps_required = true,
         geofence_enforcement = 'strict',
-        face_verification_required = false
+        face_verification_required = false,
+        verification_rule = 'geofence',
+        approval_expiry_mode = 'days',
+        approval_expiry_days = 3,
+        photo_retention_days = 30
       } = req.body;
 
+      // Enforce subsidiary-only restriction: Main Company NEVER uses photo verification
+      const compCheck = await pgPool.query('SELECT company_type FROM companies WHERE id = $1 LIMIT 1', [companyId]);
+      const companyType = String(compCheck.rows?.[0]?.company_type || 'main').toLowerCase();
+      const isSubsidiary = companyType === 'subsidiary';
+      const allowedRules = ['geofence', 'geofence_photo', 'live_photo'];
+      const safeVerificationRule = isSubsidiary && allowedRules.includes(verification_rule) ? verification_rule : 'geofence';
+      const safeExpiryMode = approval_expiry_mode === 'after_working_hours' ? 'after_working_hours' : 'days';
+      const safeExpiryDays = Math.max(1, Math.min(30, parseInt(approval_expiry_days, 10) || 3));
+      const safeRetentionDays = Math.max(1, Math.min(365, parseInt(photo_retention_days, 10) || 30));
+
       const result = await pgPool.query(`
-        INSERT INTO attendance_settings (company_id, late_threshold_minutes, early_checkout_minutes, min_working_hours, overtime_enabled, gps_required, geofence_enforcement, face_verification_required)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        INSERT INTO attendance_settings (
+          company_id, late_threshold_minutes, early_checkout_minutes, min_working_hours,
+          overtime_enabled, gps_required, geofence_enforcement, face_verification_required,
+          verification_rule, approval_expiry_mode, approval_expiry_days, photo_retention_days
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
         ON CONFLICT (company_id) DO UPDATE SET
           late_threshold_minutes = EXCLUDED.late_threshold_minutes,
           early_checkout_minutes = EXCLUDED.early_checkout_minutes,
@@ -1908,9 +1926,26 @@ function createMultiCompanyRouter(pgPool) {
           gps_required = EXCLUDED.gps_required,
           geofence_enforcement = EXCLUDED.geofence_enforcement,
           face_verification_required = EXCLUDED.face_verification_required,
+          verification_rule = EXCLUDED.verification_rule,
+          approval_expiry_mode = EXCLUDED.approval_expiry_mode,
+          approval_expiry_days = EXCLUDED.approval_expiry_days,
+          photo_retention_days = EXCLUDED.photo_retention_days,
           updated_at = CURRENT_TIMESTAMP
         RETURNING *;
-      `, [companyId, late_threshold_minutes, early_checkout_minutes, min_working_hours, overtime_enabled, gps_required, geofence_enforcement, face_verification_required]);
+      `, [
+        companyId,
+        late_threshold_minutes,
+        early_checkout_minutes,
+        min_working_hours,
+        overtime_enabled,
+        gps_required,
+        geofence_enforcement,
+        face_verification_required,
+        safeVerificationRule,
+        safeExpiryMode,
+        safeExpiryDays,
+        safeRetentionDays
+      ]);
 
       const updatedSettings = result.rows[0];
 

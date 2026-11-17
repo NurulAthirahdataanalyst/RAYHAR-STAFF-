@@ -30,6 +30,7 @@ const {
   resolveEffectiveWorkflowForApplicant,
   findStepIndexForStatus,
 } = require("./utils/leaveWorkflowResolver");
+const attendanceVerificationService = require("./services/attendanceVerificationService");
 
 const isString = (value) =>
   typeof value === "string";
@@ -2642,6 +2643,14 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
       console.error('⚠️ Clock-out coordinate column migration warning:', coordErr.message);
     }
 
+    // Auto-migrate subsidiary-only attendance photo verification & retention tables/columns
+    try {
+      await attendanceVerificationService.ensureAttendanceVerificationSchema(pgPool);
+      console.log('✅ Auto-migration for subsidiary attendance verification & audit logs completed.');
+    } catch (verifErr) {
+      console.error('⚠️ Attendance verification migration warning:', verifErr.message);
+    }
+
     // Add assigned_by column to employee_work_assignment table
     try {
       await connection.query(`ALTER TABLE employee_work_assignment ADD COLUMN IF NOT EXISTS assigned_by VARCHAR(255)`);
@@ -4969,6 +4978,23 @@ cron.schedule('0 0 * * *', async () => {
   await validateReplacementLeaves();
   await autoRejectPendingLeaves();
 });
+
+// Subsidiary Attendance Verification Jobs:
+// 1) Auto-Expire unapproved Pending Verification submissions (every 5 minutes)
+cron.schedule('*/5 * * * *', async () => {
+  await attendanceVerificationService.runAttendanceExpiryJob(pgPool, notificationService);
+});
+
+// 2) Soft-delete expired attendance proof photos after retention window (hourly)
+cron.schedule('0 * * * *', async () => {
+  await attendanceVerificationService.runPhotoRetentionCleanupJob(pgPool);
+});
+
+// Run initial pass shortly after server boot to catch any missed windows
+setTimeout(() => {
+  attendanceVerificationService.runAttendanceExpiryJob(pgPool, notificationService).catch(() => {});
+  attendanceVerificationService.runPhotoRetentionCleanupJob(pgPool).catch(() => {});
+}, 10000);
 
 // Missing clock-in reminder: Runs at 09:15 AM Monday to Friday
 cron.schedule('15 9 * * 1-5', async () => {
@@ -9511,7 +9537,7 @@ app.post("/api/attendance", async (req, res) => {
   const user_id = safeString(req.body?.user_id);
   const location = safeString(req.body?.location);
   const attendance_type = safeString(req.body?.attendance_type);
-  const { latitude, longitude, accuracy, distance } = req.body || {};
+  const { latitude, longitude, accuracy, distance, photo_data, device_info } = req.body || {};
 
   if (!user_id) {
     return res
@@ -9589,12 +9615,91 @@ app.post("/api/attendance", async (req, res) => {
       });
     }
 
+    // Subsidiary-only photo verification policy check
+    const policy = await attendanceVerificationService.getEffectiveCompanyPolicy(pgPool, user_id, req.companyId);
+    const isOutstation = String(finalType).toUpperCase() === 'OUTSTATION';
+    const requiresPhoto = policy.isSubsidiary && !isOutstation && (policy.verification_rule === 'geofence_photo' || policy.verification_rule === 'live_photo');
+
+    let verifiedDist = distance ?? null;
+    if (policy.isSubsidiary && !isOutstation && policy.verification_rule === 'geofence_photo') {
+      const geo = await attendanceVerificationService.verifyBranchGeofence(pgPool, finalLocation, latitude, longitude);
+      if (!geo.ok) {
+        return res.status(400).json({
+          success: false,
+          code: geo.outside ? 'OUTSIDE_BRANCH_RADIUS' : 'GEOFENCE_ERROR',
+          error: geo.reason,
+        });
+      }
+      verifiedDist = geo.distance;
+    }
+
+    let photoUrl = null;
+    let approvalExpiresAt = null;
+    let photoRetentionUntil = null;
+    let verificationStatus = 'Approved';
+    let clockInVerificationStatus = 'Approved';
+
+    if (requiresPhoto) {
+      if (!photo_data) {
+        return res.status(400).json({
+          success: false,
+          code: 'PHOTO_REQUIRED',
+          error: 'Live camera verification photo is required for subsidiary attendance.',
+        });
+      }
+      photoUrl = attendanceVerificationService.saveProofPhotoFromDataUrl(photo_data, user_id, 'in');
+      approvalExpiresAt = await attendanceVerificationService.computeApprovalExpiryTimestamp(
+        pgPool,
+        policy.company_id,
+        policy.approval_expiry_mode,
+        policy.approval_expiry_days
+      );
+      photoRetentionUntil = attendanceVerificationService.computePhotoRetentionTimestamp(policy.photo_retention_days);
+      verificationStatus = 'Pending Verification';
+      clockInVerificationStatus = 'Pending Verification';
+    }
+
+    const safeDeviceInfo = safeString(device_info || req.headers['user-agent'] || '').slice(0, 300) || null;
+
     const [result] = await pool.query(
-      `INSERT INTO attendances (user_id, clock_in, location, attendance_type, distance_meters, clock_in_latitude, clock_in_longitude, clock_in_accuracy) VALUES (?, NOW(), ?, ?, ?, ?, ?, ?)`,
-        [user_id, finalLocation, finalType, distance || null, latitude || null, longitude || null, accuracy || null]
+      `INSERT INTO attendances (
+         user_id, company_id, clock_in, location, attendance_type, distance_meters,
+         clock_in_latitude, clock_in_longitude, clock_in_accuracy,
+         verification_status, clock_in_verification_status, clock_in_photo_url, clock_in_device_info,
+         approval_expires_at, photo_retention_until
+       ) VALUES (?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        user_id,
+        policy.company_id,
+        finalLocation,
+        finalType,
+        verifiedDist,
+        latitude || null,
+        longitude || null,
+        accuracy || null,
+        verificationStatus,
+        clockInVerificationStatus,
+        photoUrl,
+        safeDeviceInfo,
+        approvalExpiresAt,
+        photoRetentionUntil
+      ]
     );
 
-    const insertedId = result.insertId || result.rows?.[0]?.attendance_id; // Support both mysql/postgres result structures or fallback to a query later
+    const insertedId = result.insertId || result.rows?.[0]?.attendance_id;
+
+    if (requiresPhoto && insertedId) {
+      await attendanceVerificationService.insertAuditLog(pgPool, {
+        attendanceId: insertedId,
+        employeeId: user_id,
+        companyId: policy.company_id,
+        action: 'Attendance Submitted',
+        actorId: user_id,
+        actorName: empProfile[0]?.name || user_id,
+        remarks: `Clock-In submitted with live photo (${policy.verification_rule}). Pending HR verification.`,
+        metadata: { punch: 'clock_in', location: finalLocation, device_info: safeDeviceInfo }
+      }).catch((e) => console.error('Clock-in audit log error:', e.message));
+    }
 
     if (latitude && longitude) {
       try {
@@ -9747,19 +9852,79 @@ app.post("/api/attendance", async (req, res) => {
 // ===============================
 app.post("/api/clock-out", async (req, res) => {
   const user_id = safeString(req.body?.user_id);
-  const { latitude, longitude, accuracy, distance } = req.body || {};
+  const { latitude, longitude, accuracy, distance, photo_data, device_info } = req.body || {};
   if (!user_id) {
     return res.status(400).json({ success: false, error: "Missing user_id" });
   }
 
   try {
-    // Build the SET clause dynamically to include coordinates if provided
+    // Fetch active session first
+    const [activeRows] = await pool.query(
+      `SELECT * FROM attendances
+       WHERE user_id = ?
+       AND (clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date
+       AND clock_out IS NULL
+       ORDER BY clock_in DESC
+       LIMIT 1`,
+      [user_id]
+    );
+    const activeRow = activeRows?.[0] || null;
+
+    // Subsidiary-only photo verification policy check
+    const policy = await attendanceVerificationService.getEffectiveCompanyPolicy(pgPool, user_id, req.companyId);
+    const isOutstation = activeRow && String(activeRow.attendance_type || '').toUpperCase() === 'OUTSTATION';
+    const requiresPhoto = policy.isSubsidiary && !isOutstation && (policy.verification_rule === 'geofence_photo' || policy.verification_rule === 'live_photo');
+
+    let verifiedDist = distance;
+    if (policy.isSubsidiary && !isOutstation && policy.verification_rule === 'geofence_photo') {
+      const targetBranch = activeRow?.location || policy.branch;
+      const geo = await attendanceVerificationService.verifyBranchGeofence(pgPool, targetBranch, latitude, longitude);
+      if (!geo.ok) {
+        return res.status(400).json({
+          success: false,
+          code: geo.outside ? 'OUTSIDE_BRANCH_RADIUS' : 'GEOFENCE_ERROR',
+          error: geo.reason,
+        });
+      }
+      verifiedDist = geo.distance;
+    }
+
+    // Build the SET clause dynamically to include coordinates & optional subsidiary photo proof
     const coordUpdates = [];
     const coordValues = [];
     if (latitude !== undefined && latitude !== null) { coordUpdates.push(`clock_out_latitude = ?`); coordValues.push(latitude); }
     if (longitude !== undefined && longitude !== null) { coordUpdates.push(`clock_out_longitude = ?`); coordValues.push(longitude); }
     if (accuracy !== undefined && accuracy !== null) { coordUpdates.push(`clock_out_accuracy = ?`); coordValues.push(accuracy); }
-    if (distance !== undefined && distance !== null) { coordUpdates.push(`clock_out_distance_meters = ?`); coordValues.push(distance); }
+    if (verifiedDist !== undefined && verifiedDist !== null) { coordUpdates.push(`clock_out_distance_meters = ?`); coordValues.push(verifiedDist); }
+
+    let outPhotoUrl = null;
+    const safeDeviceInfo = safeString(device_info || req.headers['user-agent'] || '').slice(0, 300) || null;
+    if (requiresPhoto) {
+      if (!photo_data) {
+        return res.status(400).json({
+          success: false,
+          code: 'PHOTO_REQUIRED',
+          error: 'Live camera verification photo is required for subsidiary clock-out.',
+        });
+      }
+      outPhotoUrl = attendanceVerificationService.saveProofPhotoFromDataUrl(photo_data, user_id, 'out');
+      const approvalExpiresAt = await attendanceVerificationService.computeApprovalExpiryTimestamp(
+        pgPool,
+        policy.company_id,
+        policy.approval_expiry_mode,
+        policy.approval_expiry_days
+      );
+      const photoRetentionUntil = attendanceVerificationService.computePhotoRetentionTimestamp(policy.photo_retention_days);
+
+      coordUpdates.push(`clock_out_photo_url = ?`); coordValues.push(outPhotoUrl);
+      coordUpdates.push(`clock_out_device_info = ?`); coordValues.push(safeDeviceInfo);
+      coordUpdates.push(`clock_out_verification_status = 'Pending Verification'`);
+      coordUpdates.push(`verification_status = CASE WHEN COALESCE(verification_status, 'Approved') IN ('Rejected', 'Expired') THEN verification_status ELSE 'Pending Verification' END`);
+      coordUpdates.push(`approval_expires_at = ?`); coordValues.push(approvalExpiresAt);
+      coordUpdates.push(`photo_retention_until = GREATEST(COALESCE(photo_retention_until, ?), ?)`); coordValues.push(photoRetentionUntil, photoRetentionUntil);
+    } else {
+      coordUpdates.push(`clock_out_verification_status = 'Approved'`);
+    }
 
     const setClause = coordUpdates.length > 0
       ? `clock_out = NOW(), ${coordUpdates.join(", ")}`
@@ -9783,6 +9948,19 @@ app.post("/api/clock-out", async (req, res) => {
       `,
       [user_id]
     );
+
+    if (requiresPhoto && rows?.[0]?.attendance_id) {
+      await attendanceVerificationService.insertAuditLog(pgPool, {
+        attendanceId: rows[0].attendance_id,
+        employeeId: user_id,
+        companyId: policy.company_id,
+        action: 'Attendance Submitted',
+        actorId: user_id,
+        actorName: policy.full_name || user_id,
+        remarks: `Clock-Out submitted with live photo (${policy.verification_rule}). Pending HR verification.`,
+        metadata: { punch: 'clock_out', device_info: safeDeviceInfo }
+      }).catch((e) => console.error('Clock-out audit log error:', e.message));
+    }
 
     // ==========================================
     // REPLACEMENT LEAVE AUTO-VALIDATION
@@ -9839,6 +10017,288 @@ app.post("/api/clock-out", async (req, res) => {
 });
 
 // ===============================
+// SUBSIDIARY ATTENDANCE PHOTO VERIFICATION & REVIEW
+// ===============================
+async function verifyHrReviewerPermission(pgPool, actorId, claimedRole) {
+  const normalizedClaim = String(claimedRole || '').toLowerCase().replace(/\s+/g, '_');
+  const allowed = ['hr_admin', 'managing_director', 'superadmin', 'hr'];
+  if (!actorId) return allowed.some((r) => normalizedClaim.includes(r));
+
+  const res = await pgPool.query(
+    `SELECT LOWER(REPLACE(COALESCE(ur.role, p.role, ''), ' ', '_')) AS role_name
+       FROM profiles p
+       LEFT JOIN user_role ur ON ur.user_id = p.user_id
+      WHERE p.user_id = $1
+      ORDER BY ur.id DESC NULLS LAST
+      LIMIT 1`,
+    [actorId]
+  );
+  const dbRole = res.rows?.[0]?.role_name || '';
+  if (allowed.some((r) => dbRole.includes(r))) return true;
+  if (allowed.some((r) => normalizedClaim.includes(r))) return true;
+
+  // Also check company_user_roles joined with roles
+  const curRes = await pgPool.query(
+    `SELECT LOWER(REPLACE(COALESCE(r.name, ''), ' ', '_')) AS role_name
+       FROM company_user_roles cur
+       JOIN roles r ON cur.role_id = r.id
+      WHERE cur.user_id = $1 AND cur.status = 'active'`,
+    [actorId]
+  );
+  return (curRes.rows || []).some((row) => allowed.some((r) => row.role_name.includes(r)));
+}
+
+// Get effective verification policy for an employee (Main Company always geofence-only)
+app.get("/api/attendance/verification-policy/:userId", async (req, res) => {
+  try {
+    const userId = safeString(req.params.userId);
+    if (!userId) return res.status(400).json({ success: false, error: "Missing userId" });
+    const policy = await attendanceVerificationService.getEffectiveCompanyPolicy(pgPool, userId, req.companyId);
+    res.json({ success: true, policy });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Get full Attendance Details + Audit Timeline
+app.get("/api/attendance/details/:attendanceId", async (req, res) => {
+  try {
+    const attendanceId = parseInt(req.params.attendanceId, 10);
+    if (!Number.isFinite(attendanceId)) {
+      return res.status(400).json({ success: false, error: "Invalid attendanceId" });
+    }
+    const [attRes, auditRes] = await Promise.all([
+      pgPool.query(
+        `SELECT a.*, p.full_name, p.branch AS permanent_branch, p.department,
+                c.company_name, c.company_type
+           FROM attendances a
+           LEFT JOIN profiles p ON p.user_id = a.user_id
+           LEFT JOIN companies c ON c.id = a.company_id
+          WHERE a.attendance_id = $1
+          LIMIT 1`,
+        [attendanceId]
+      ),
+      pgPool.query(
+        `SELECT * FROM attendance_audit_logs
+          WHERE attendance_id = $1
+          ORDER BY created_at ASC, id ASC`,
+        [attendanceId]
+      ),
+    ]);
+
+    if (!attRes.rows || attRes.rows.length === 0) {
+      return res.status(404).json({ success: false, error: "Attendance record not found" });
+    }
+    const record = attRes.rows[0];
+    const summary = attendanceVerificationService.resolveVerificationSummary(record, "Present");
+    res.json({
+      success: true,
+      record: {
+        ...record,
+        resolved_verification_status: summary.verificationStatus,
+        resolved_attendance_status: summary.attendanceStatus,
+      },
+      audit_logs: auditRes.rows || [],
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// HR Admin Approve or Reject Pending Verification attendance
+app.post("/api/attendance/:attendanceId/review", async (req, res) => {
+  const attendanceId = parseInt(req.params.attendanceId, 10);
+  const decision = safeLower(req.body?.decision);
+  const remarks = safeString(req.body?.remarks);
+  const reviewerId = safeString(req.body?.reviewer_id || req.headers['x-user-id']);
+  const reviewerName = safeString(req.body?.reviewer_name) || reviewerId || 'HR Admin';
+  const reviewerRole = safeString(req.body?.reviewer_role || req.headers['x-user-role']);
+
+  if (!Number.isFinite(attendanceId) || !['approve', 'reject'].includes(decision)) {
+    return res.status(400).json({ success: false, error: "Invalid attendanceId or decision (approve/reject)." });
+  }
+  if (!reviewerId) {
+    return res.status(400).json({ success: false, error: "Reviewer identity is required." });
+  }
+  if (decision === 'reject' && !remarks) {
+    return res.status(400).json({ success: false, error: "Remarks are required when rejecting attendance." });
+  }
+
+  const client = await pgPool.connect();
+  try {
+    const isAllowed = await verifyHrReviewerPermission(pgPool, reviewerId, reviewerRole);
+    if (!isAllowed) {
+      client.release();
+      return res.status(403).json({ success: false, error: "Only authorized HR roles can review photo attendance." });
+    }
+
+    await client.query('BEGIN');
+    const curRes = await client.query(
+      `SELECT a.*, c.company_type
+         FROM attendances a
+         LEFT JOIN companies c ON c.id = a.company_id
+        WHERE a.attendance_id = $1
+        FOR UPDATE`,
+      [attendanceId]
+    );
+    const att = curRes.rows?.[0];
+    if (!att) {
+      await client.query('ROLLBACK');
+      client.release();
+      return res.status(404).json({ success: false, error: "Attendance record not found." });
+    }
+    if (String(att.company_type || 'subsidiary').toLowerCase() !== 'subsidiary' && Number(att.company_id || 1) === 1) {
+      await client.query('ROLLBACK');
+      client.release();
+      return res.status(400).json({ success: false, error: "Verification review only applies to subsidiary company records." });
+    }
+    if (att.verification_status !== 'Pending Verification') {
+      await client.query('ROLLBACK');
+      client.release();
+      return res.status(409).json({ success: false, error: `Record is already ${att.verification_status}.` });
+    }
+
+    const newStatus = decision === 'approve' ? 'Approved' : 'Rejected';
+    const updRes = await client.query(
+      `UPDATE attendances
+          SET verification_status = $1,
+              clock_in_verification_status = CASE WHEN clock_in_verification_status = 'Pending Verification' THEN $1 ELSE clock_in_verification_status END,
+              clock_out_verification_status = CASE WHEN clock_out_verification_status = 'Pending Verification' THEN $1 ELSE clock_out_verification_status END,
+              reviewed_by = $2,
+              reviewed_by_name = $3,
+              reviewed_at = NOW(),
+              review_remarks = $4
+        WHERE attendance_id = $5
+        RETURNING *`,
+      [newStatus, reviewerId, reviewerName, remarks || null, attendanceId]
+    );
+
+    await attendanceVerificationService.insertAuditLog(client, {
+      attendanceId,
+      employeeId: att.user_id,
+      companyId: att.company_id,
+      action: decision === 'approve' ? 'Attendance Approved' : 'Attendance Rejected',
+      actorId: reviewerId,
+      actorName: reviewerName,
+      remarks: remarks || (decision === 'approve' ? 'Verified by HR Admin.' : 'Rejected by HR Admin.'),
+    });
+
+    await client.query('COMMIT');
+    const updated = updRes.rows[0];
+
+    notificationService.createNotification({
+      userId: att.user_id,
+      title: decision === 'approve' ? 'Attendance Approved' : 'Attendance Rejected',
+      message: decision === 'approve'
+        ? `Your attendance submission has been approved by ${reviewerName}${remarks ? ` (${remarks})` : ''}.`
+        : `Your attendance submission was rejected by ${reviewerName}: ${remarks}. Status: Absent (Rejected).`,
+      type: 'attendance',
+      scope: 'personal',
+      sendPush: true,
+    }).catch((e) => console.error('Review notification error:', e.message));
+
+    broadcastPresenceUpdate({ type: 'attendance-reviewed', attendanceId, userId: att.user_id, status: newStatus });
+    res.json({ success: true, record: updated });
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    res.status(500).json({ success: false, error: err.message });
+  } finally {
+    client.release();
+  }
+});
+
+// HR Admin Manual Override: Absent (Expired) -> Present (Override)
+app.post("/api/attendance/:attendanceId/override", async (req, res) => {
+  const attendanceId = parseInt(req.params.attendanceId, 10);
+  const overrideReason = safeString(req.body?.override_reason);
+  const overrideBy = safeString(req.body?.override_by || req.headers['x-user-id']);
+  const overrideByName = safeString(req.body?.override_by_name) || overrideBy || 'HR Admin';
+  const overrideRole = safeString(req.body?.override_role || req.headers['x-user-role']);
+
+  if (!Number.isFinite(attendanceId)) {
+    return res.status(400).json({ success: false, error: "Invalid attendanceId." });
+  }
+  if (!overrideReason) {
+    return res.status(400).json({ success: false, error: "Override reason is mandatory." });
+  }
+  if (!overrideBy) {
+    return res.status(400).json({ success: false, error: "Override actor identity is required." });
+  }
+
+  const client = await pgPool.connect();
+  try {
+    const isAllowed = await verifyHrReviewerPermission(pgPool, overrideBy, overrideRole);
+    if (!isAllowed) {
+      client.release();
+      return res.status(403).json({ success: false, error: "Only authorized HR roles can override expired attendance." });
+    }
+
+    await client.query('BEGIN');
+    const curRes = await client.query(
+      `SELECT * FROM attendances WHERE attendance_id = $1 FOR UPDATE`,
+      [attendanceId]
+    );
+    const att = curRes.rows?.[0];
+    if (!att) {
+      await client.query('ROLLBACK');
+      client.release();
+      return res.status(404).json({ success: false, error: "Attendance record not found." });
+    }
+    if (att.verification_status !== 'Expired') {
+      await client.query('ROLLBACK');
+      client.release();
+      return res.status(400).json({ success: false, error: "Only Absent (Expired) records can be overridden." });
+    }
+
+    const updRes = await client.query(
+      `UPDATE attendances
+          SET original_status_before_override = 'Absent (Expired)',
+              verification_status = 'Overridden',
+              clock_in_verification_status = CASE WHEN clock_in_verification_status = 'Expired' THEN 'Overridden' ELSE clock_in_verification_status END,
+              clock_out_verification_status = CASE WHEN clock_out_verification_status = 'Expired' THEN 'Overridden' ELSE clock_out_verification_status END,
+              override_by = $1,
+              override_by_name = $2,
+              override_at = NOW(),
+              override_reason = $3
+        WHERE attendance_id = $4
+        RETURNING *`,
+      [overrideBy, overrideByName, overrideReason, attendanceId]
+    );
+
+    await attendanceVerificationService.insertAuditLog(client, {
+      attendanceId,
+      employeeId: att.user_id,
+      companyId: att.company_id,
+      action: 'Attendance Overridden',
+      actorId: overrideBy,
+      actorName: overrideByName,
+      remarks: overrideReason,
+      metadata: { from: 'Absent (Expired)', to: 'Present (Override)' },
+    });
+
+    await client.query('COMMIT');
+    const updated = updRes.rows[0];
+
+    notificationService.createNotification({
+      userId: att.user_id,
+      title: 'Attendance Manually Overridden',
+      message: `Your expired attendance was manually overridden to Present (Override) by ${overrideByName}: ${overrideReason}.`,
+      type: 'attendance',
+      scope: 'personal',
+      sendPush: true,
+    }).catch((e) => console.error('Override notification error:', e.message));
+
+    broadcastPresenceUpdate({ type: 'attendance-overridden', attendanceId, userId: att.user_id });
+    res.json({ success: true, record: updated });
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    res.status(500).json({ success: false, error: err.message });
+  } finally {
+    client.release();
+  }
+});
+
+// ===============================
 // PERSONAL ATTENDANCE HISTORY
 // ===============================
 app.get("/api/attendance/history", async (req, res) => {
@@ -9865,12 +10325,33 @@ app.get("/api/attendance/history", async (req, res) => {
     const [clockRows] = await pool.query(
       `SELECT 
         attendance_id,
+        company_id,
         clock_in,
         clock_out,
         location,
         attendance_type,
         clock_in_latitude,
         clock_in_longitude,
+        clock_out_latitude,
+        clock_out_longitude,
+        verification_status,
+        clock_in_verification_status,
+        clock_out_verification_status,
+        clock_in_photo_url,
+        clock_out_photo_url,
+        clock_in_photo_deleted,
+        clock_out_photo_deleted,
+        approval_expires_at,
+        photo_retention_until,
+        reviewed_by_name,
+        reviewed_at,
+        review_remarks,
+        expired_at,
+        expiry_reason,
+        override_by_name,
+        override_at,
+        override_reason,
+        original_status_before_override,
         TO_CHAR(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_in,
         TO_CHAR(clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_out,
           TO_CHAR(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'YYYY-MM-DD') AS date,
@@ -10173,15 +10654,39 @@ app.get("/api/attendance/history", async (req, res) => {
         status = "Absent";
       }
 
+      const verifSummary = clockRow
+        ? attendanceVerificationService.resolveVerificationSummary(clockRow, status)
+        : { verificationStatus: null, attendanceStatus: status };
+      const finalStatus = clockRow ? verifSummary.attendanceStatus : status;
+
       return {
         attendance_id: clockRow ? clockRow.attendance_id : null,
+        company_id: clockRow ? clockRow.company_id : null,
         user_id: userId,
         clock_in: clock_in,
         clock_out: clock_out,
         time_in: time_in,
         time_out: time_out,
         date: dateStr,
-        status: status,
+        status: finalStatus,
+        verification_status: verifSummary.verificationStatus,
+        clock_in_verification_status: clockRow ? clockRow.clock_in_verification_status : null,
+        clock_out_verification_status: clockRow ? clockRow.clock_out_verification_status : null,
+        clock_in_photo_url: clockRow ? clockRow.clock_in_photo_url : null,
+        clock_out_photo_url: clockRow ? clockRow.clock_out_photo_url : null,
+        clock_in_photo_deleted: clockRow ? Boolean(clockRow.clock_in_photo_deleted) : false,
+        clock_out_photo_deleted: clockRow ? Boolean(clockRow.clock_out_photo_deleted) : false,
+        approval_expires_at: clockRow ? clockRow.approval_expires_at : null,
+        photo_retention_until: clockRow ? clockRow.photo_retention_until : null,
+        reviewed_by_name: clockRow ? clockRow.reviewed_by_name : null,
+        reviewed_at: clockRow ? clockRow.reviewed_at : null,
+        review_remarks: clockRow ? clockRow.review_remarks : null,
+        expired_at: clockRow ? clockRow.expired_at : null,
+        expiry_reason: clockRow ? clockRow.expiry_reason : null,
+        override_by_name: clockRow ? clockRow.override_by_name : null,
+        override_at: clockRow ? clockRow.override_at : null,
+        override_reason: clockRow ? clockRow.override_reason : null,
+        original_status_before_override: clockRow ? clockRow.original_status_before_override : null,
         is_late: is_late ? 1 : 0,
         late: late,
         duration: duration,
@@ -11937,7 +12442,15 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
 
     // 2. Fetch all clock-ins for that date
     const [clockRows] = await pool.query(
-      `SELECT a.user_id, a.clock_in, a.clock_out, a.location, a.attendance_type, a.distance_meters, a.clock_in_latitude, a.clock_in_longitude,
+      `SELECT a.attendance_id, a.company_id, a.user_id, a.clock_in, a.clock_out, a.location, a.attendance_type,
+              a.distance_meters, a.clock_in_latitude, a.clock_in_longitude, a.clock_out_latitude, a.clock_out_longitude,
+              a.verification_status, a.clock_in_verification_status, a.clock_out_verification_status,
+              a.clock_in_photo_url, a.clock_out_photo_url, a.clock_in_photo_deleted, a.clock_out_photo_deleted,
+              a.clock_in_device_info, a.clock_out_device_info,
+              a.approval_expires_at, a.photo_retention_until,
+              a.reviewed_by_name, a.reviewed_at, a.review_remarks,
+              a.expired_at, a.expiry_reason,
+              a.override_by_name, a.override_at, a.override_reason, a.original_status_before_override,
               TO_CHAR(a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_in,
               TO_CHAR(a.clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_out
        FROM attendances a
@@ -12217,7 +12730,14 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
       }
 
       const tempBranch = tempAssignmentMap.get(p.user_id);
+      const verifSummary = clockRow
+        ? attendanceVerificationService.resolveVerificationSummary(clockRow, status)
+        : { verificationStatus: null, attendanceStatus: status };
+      const finalDailyStatus = clockRow ? verifSummary.attendanceStatus : status;
+
       return {
+        attendance_id: clockRow ? clockRow.attendance_id : null,
+        company_id: clockRow ? (clockRow.company_id || empCompanyId) : empCompanyId,
         user_id: p.user_id,
         full_name: p.full_name,
         branch: tempBranch || p.branch,
@@ -12232,13 +12752,35 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
         distance_meters: clockRow ? clockRow.distance_meters : null,
         latitude: clockRow ? clockRow.clock_in_latitude : null,
         longitude: clockRow ? clockRow.clock_in_longitude : null,
+        clock_out_latitude: clockRow ? clockRow.clock_out_latitude : null,
+        clock_out_longitude: clockRow ? clockRow.clock_out_longitude : null,
+        verification_status: verifSummary.verificationStatus,
+        clock_in_verification_status: clockRow ? clockRow.clock_in_verification_status : null,
+        clock_out_verification_status: clockRow ? clockRow.clock_out_verification_status : null,
+        clock_in_photo_url: clockRow ? clockRow.clock_in_photo_url : null,
+        clock_out_photo_url: clockRow ? clockRow.clock_out_photo_url : null,
+        clock_in_photo_deleted: clockRow ? Boolean(clockRow.clock_in_photo_deleted) : false,
+        clock_out_photo_deleted: clockRow ? Boolean(clockRow.clock_out_photo_deleted) : false,
+        clock_in_device_info: clockRow ? clockRow.clock_in_device_info : null,
+        clock_out_device_info: clockRow ? clockRow.clock_out_device_info : null,
+        approval_expires_at: clockRow ? clockRow.approval_expires_at : null,
+        photo_retention_until: clockRow ? clockRow.photo_retention_until : null,
+        reviewed_by_name: clockRow ? clockRow.reviewed_by_name : null,
+        reviewed_at: clockRow ? clockRow.reviewed_at : null,
+        review_remarks: clockRow ? clockRow.review_remarks : null,
+        expired_at: clockRow ? clockRow.expired_at : null,
+        expiry_reason: clockRow ? clockRow.expiry_reason : null,
+        override_by_name: clockRow ? clockRow.override_by_name : null,
+        override_at: clockRow ? clockRow.override_at : null,
+        override_reason: clockRow ? clockRow.override_reason : null,
+        original_status_before_override: clockRow ? clockRow.original_status_before_override : null,
         department: p.department,
         role: p.role,
         clock_in,
         clock_out,
         time_in,
         time_out,
-        status,
+        status: finalDailyStatus,
         status_clock_in: statusClockIn,
         status_clock_out: statusClockOut,
         leave_type: leaveRow?.leave_type || (matchingLeave ? 'Company Holiday' : null),
