@@ -128,6 +128,14 @@ interface LeaveDetailsModalProps {
   onMarkedRead?: (leaveId: number) => void;
 }
 
+const formatDisplayDate = (value?: string) => {
+  if (!value) return "-";
+  const m = String(value).match(/^(\d{4})-(\d{2})-(\d{2})/);
+  const d = m ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])) : new Date(value);
+  if (isNaN(d.getTime())) return String(value);
+  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+};
+
 export function LeaveDetailsModal({ selectedRequest, onClose, role, onApprove, onReject, onMarkedRead }: LeaveDetailsModalProps) {
   const { user } = useAuth();
   const { userId } = useRole();
@@ -272,13 +280,13 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role, onApprove, o
                 <div className="space-y-4">
                   <div className="flex items-center gap-2">
                     <User className="w-4 h-4 text-[#942392]" />
-                    <h3 className="text-[10px] print:text-[13px] font-black uppercase tracking-[0.2em]">Maklumat Kakitangan</h3>
+                    <h3 className="text-[10px] print:text-[13px] font-black uppercase tracking-[0.1em]">Maklumat Kakitangan</h3>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4 print:gap-y-6 print:gap-x-8 text-xs print:text-[11px] font-bold">
                     <div className="space-y-1 print:space-y-1.5">
                       <span className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50">Nama Penuh</span>
-                      <p className="border-b pb-1 print:pb-2 border-border/40 break-words font-bold">{selectedRequest.employee || (selectedRequest as any).full_name}</p>
+                      <p className="break-words font-bold">{selectedRequest.employee || (selectedRequest as any).full_name}</p>
                     </div>
                     <div className="space-y-1 print:space-y-1.5">
                       <span className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50">Cawangan</span>
@@ -286,15 +294,27 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role, onApprove, o
                     </div>
                     <div className="space-y-1 print:space-y-1.5">
                       <span className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50">No. Telefon</span>
-                      <p className="border-b pb-1 print:pb-2 border-border/40 font-bold text-foreground">{selectedRequest.phone || (selectedRequest as any).applicant_phone || "-"}</p>
+                      <p className="font-bold text-foreground">{selectedRequest.phone || (selectedRequest as any).applicant_phone || "-"}</p>
                     </div>
                     <div className="space-y-1 print:space-y-1.5">
                       <span className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50">Jenis Cuti</span>
                       <p className="border-b pb-1 print:pb-2 border-border/40">{selectedRequest.type}</p>
                     </div>
-                    <div className="space-y-1 col-span-2 sm:col-span-1">
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 print:gap-x-8 print:mb-10 text-xs print:text-[11px] font-bold">
+                  {!(selectedRequest.type === "Replacement Leave" || selectedRequest.type === "Cuti Ganti") && (
+                <div className="space-y-2">
+                  <p className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50">Sebab / Tujuan</p>
+                  <div className="rounded-[16px] border border-border/40 print:border-none print:border-0 print:border-transparent print:bg-transparent p-4 font-bold text-foreground bg-muted/10 text-xs print:text-[11px] leading-relaxed whitespace-pre-wrap break-words min-h-[50px] print:p-0 print:pt-1">
+                    {getCleanReason(selectedRequest.reason) || "-"}
+                  </div>
+                </div>
+                )}
+                  <div className="space-y-1 col-start-2">
                       <span className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50">Status</span>
-                      <p className={`font-black uppercase ${
+                      <p className={`font-black uppercase print:normal-case ${
                         selectedRequest.status === "Rejected" ? "text-rose-600" :
                         selectedRequest.status === "Approved" ? "text-emerald-600" :
                         "text-amber-600 dark:text-amber-400"
@@ -309,27 +329,26 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role, onApprove, o
                         />
                       </p>
                     </div>
-                  </div>
                 </div>
 
                 {!(selectedRequest.type === "Replacement Leave" || selectedRequest.type === "Cuti Ganti") ? (
                   <div className={`grid ${(selectedRequest.type === "Unpaid Leave" || selectedRequest.type === "Cuti Tanpa Gaji") ? "grid-cols-3" : "grid-cols-2 sm:grid-cols-4 print:grid-cols-4"} gap-4 print:gap-x-8 text-xs print:text-[11px] font-bold`}>
                     <div className="space-y-1 print:space-y-1.5">
                       <span className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50">Dari</span>
-                      <p className="border-b pb-1 print:pb-2 border-border/40 font-bold text-foreground">{selectedRequest.from}</p>
+                      <p className="font-bold text-foreground">{formatDisplayDate(selectedRequest.from)}</p>
                     </div>
                     <div className="space-y-1 print:space-y-1.5">
                       <span className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50">Hingga</span>
-                      <p className="border-b pb-1 print:pb-2 border-border/40 font-bold text-foreground">{selectedRequest.to}</p>
+                      <p className="font-bold text-foreground">{formatDisplayDate(selectedRequest.to)}</p>
                     </div>
                     <div className="space-y-1 print:space-y-1.5">
                       <span className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50">Bilangan Hari</span>
-                      <p className="border-b pb-1 print:pb-2 border-border/40 font-bold text-foreground">{selectedRequest.days}</p>
+                      <p className="font-bold text-foreground">{selectedRequest.days}</p>
                     </div>
                     {!(selectedRequest.type === "Unpaid Leave" || selectedRequest.type === "Cuti Tanpa Gaji") && (
                       <div className="space-y-1 print:space-y-1.5">
                         <span className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50">Baki Layak</span>
-                        <p className="border-b pb-1 print:pb-2 border-border/40 font-bold text-foreground">{selectedRequest.balance ?? "-"} HARI</p>
+                        <p className="font-bold text-foreground">{selectedRequest.balance ?? "-"} HARI</p>
                       </div>
                     )}
                   </div>
@@ -343,14 +362,6 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role, onApprove, o
                   </div>
                 )}
 
-                {!(selectedRequest.type === "Replacement Leave" || selectedRequest.type === "Cuti Ganti") && (
-                <div className="space-y-2">
-                  <p className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50">Sebab / Tujuan</p>
-                  <div className="rounded-[16px] border border-border/40 print:border-none print:border-0 print:border-transparent print:bg-transparent p-4 font-bold text-foreground bg-muted/10 text-xs print:text-[11px] leading-relaxed whitespace-pre-wrap break-words min-h-[50px] print:p-0 print:pt-1">
-                    {getCleanReason(selectedRequest.reason) || "-"}
-                  </div>
-                </div>
-                )}
 
                 {(selectedRequest.type === "Replacement Leave" || selectedRequest.type === "Cuti Ganti") && (() => {
                   const rows = parseCutiGantiRows(
@@ -491,7 +502,7 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role, onApprove, o
                   <div className="pt-4 border-t border-border/50 space-y-4">
                     <div className="flex items-center gap-2">
                       <PhoneCall className="w-4 h-4 text-rose-500" />
-                      <h3 className="text-[10px] print:text-[13px] font-black uppercase tracking-[0.2em]">Maklumat Waris (Kecemasan)</h3>
+                      <h3 className="text-[10px] print:text-[13px] font-black uppercase tracking-[0.1em]">Maklumat Waris (Kecemasan)</h3>
                     </div>
                     <div className="grid grid-cols-2 gap-4 print:gap-y-6 print:gap-x-8">
                       <div className="space-y-1 print:space-y-1.5">

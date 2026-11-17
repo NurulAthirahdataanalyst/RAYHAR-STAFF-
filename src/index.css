@@ -371,7 +371,7 @@
 
   #leave-form-print .rounded-\[24px\] {
     border-radius: 0 !important;
-    border: 2px solid #000 !important;
+    border: 1px solid #E5E7EB !important;
     box-shadow: none !important;
     background: white !important;
     padding: 24px !important; /* Re-optimize padding to save horizontal page space */
@@ -379,6 +379,14 @@
     width: 100% !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
+  }
+
+  /* A4 fit: box fills the printable page, content spread evenly, signature at bottom */
+  #leave-form-print .rounded-\[24px\] {
+    min-height: 268mm !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
   }
 
   #leave-form-print .rounded-\[20px\] {

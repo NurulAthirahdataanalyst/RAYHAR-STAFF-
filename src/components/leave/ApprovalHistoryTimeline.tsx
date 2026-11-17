@@ -88,6 +88,12 @@ const formatRoleWithContext = (role?: string, department?: string, branch?: stri
   return role.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 };
 
+const toTitleCase = (v: string) =>
+  v.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
+
+const formatLongDate = (d: Date | null) =>
+  d ? d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+
 export interface FinalDecisionActor {
   action: "Approved" | "Rejected";
   name?: string;
@@ -151,13 +157,17 @@ export const LeaveStatusDecisionBy: React.FC<{
 
   return (
     <span
-      className={`block text-[9px] print:text-[13px] mt-0.5 normal-case font-bold ${
+      className={`block text-[9px] print:text-[11px] mt-1 normal-case font-bold leading-relaxed ${
         actor.action === "Rejected"
           ? "text-rose-500"
           : "text-emerald-600 dark:text-emerald-400"
       }`}
     >
-      (BY - {actor.name ? `${actor.name} (${actor.roleLabel})` : actor.roleLabel})
+      <span className="block font-medium opacity-80">
+        {actor.action === "Approved" ? "Approved by" : "Reviewed by"}
+      </span>
+      {actor.name && <span className="block">{toTitleCase(actor.name)}</span>}
+      <span className="block">{actor.roleLabel}</span>
     </span>
   );
 };
@@ -178,6 +188,7 @@ export const ApprovalHistoryTimeline: React.FC<ApprovalHistoryTimelineProps> = (
     name?: string;
     roleLabel: string;
     dateStr?: string;
+    dateLong?: string;
     remarks?: string;
   }> = [];
 
@@ -195,6 +206,7 @@ export const ApprovalHistoryTimeline: React.FC<ApprovalHistoryTimelineProps> = (
         name: h.approver_name || h.approver_id || "Approver",
         roleLabel: roleText,
         dateStr: dateFormatted,
+        dateLong: formatLongDate(d),
         remarks: h.remarks,
       };
     });
@@ -225,6 +237,7 @@ export const ApprovalHistoryTimeline: React.FC<ApprovalHistoryTimelineProps> = (
         name: "Management",
         roleLabel: defaultApprover,
         dateStr: new Date().toLocaleDateString('en-GB'),
+        dateLong: formatLongDate(new Date()),
       });
     } else if (status && status.toLowerCase().startsWith('rejected')) {
       let rejectRole = "Management";
@@ -245,6 +258,7 @@ export const ApprovalHistoryTimeline: React.FC<ApprovalHistoryTimelineProps> = (
         name: "Management",
         roleLabel: rejectRole,
         dateStr: new Date().toLocaleDateString('en-GB'),
+        dateLong: formatLongDate(new Date()),
       });
     } else {
       // Pending
@@ -258,7 +272,46 @@ export const ApprovalHistoryTimeline: React.FC<ApprovalHistoryTimelineProps> = (
   }
 
   return (
-    <div className="space-y-4">
+    <>
+    {/* Print-only: clean vertical timeline */}
+    <div className="hidden print:block">
+      <div className="flex items-center gap-2 mb-3">
+        <Clock className="w-4 h-4 text-foreground" />
+        <h3 className="text-[13px] font-black uppercase tracking-[0.1em] text-foreground">
+          APPROVAL HISTORY
+        </h3>
+      </div>
+      <div className="space-y-4">
+        {displayItems.map((item, index) => {
+          const isApproved = item.status === 'Approved';
+          const isRejected = item.status === 'Rejected';
+          const hasName = item.name && item.name.toUpperCase() !== 'APPROVER' && item.name.toUpperCase() !== 'MANAGEMENT';
+          return (
+            <div key={index} className="flex items-start gap-3 break-inside-avoid">
+              <div
+                className={`mt-1 w-3 h-3 rounded-full shrink-0 ${
+                  isApproved ? 'bg-emerald-500' : isRejected ? 'bg-rose-500' : 'bg-amber-400'
+                }`}
+              />
+              <div className="text-[11px] leading-relaxed">
+                {item.dateLong && <p className="font-black">{item.dateLong}</p>}
+                <p className="font-bold">{item.status}</p>
+                {hasName ? (
+                  <>
+                    <p>{toTitleCase(String(item.name))}</p>
+                    <p>{item.roleLabel}</p>
+                  </>
+                ) : (
+                  <p>{item.roleLabel}</p>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+
+    <div className="space-y-4 print:hidden">
       <div className="flex items-center gap-2 mb-3">
         <Clock className="w-4 h-4 text-foreground" />
         <h3 className="text-xs print:text-[11px] font-black uppercase tracking-[0.2em] text-foreground">
@@ -357,6 +410,7 @@ export const ApprovalHistoryTimeline: React.FC<ApprovalHistoryTimelineProps> = (
         })}
       </div>
     </div>
+    </>
   );
 };
 
