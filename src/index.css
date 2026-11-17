@@ -305,7 +305,7 @@
 @media print {
   @page {
     size: A4;
-    margin: 12mm !important;
+    margin: 10mm !important;
   }
 
   /* 1. Reset body and background */
@@ -374,21 +374,21 @@
     border: 1px solid #E5E7EB !important;
     box-shadow: none !important;
     background: white !important;
-    padding: 24px !important; /* Re-optimize padding to save horizontal page space */
+    padding: 36px 44px !important;
     margin: 0 !important;
     width: 100% !important;
     max-width: 100% !important;
-    box-sizing: border-box !important;
-  }
-
-  /* A4 fit: box fills the printable page, content spread evenly, signature at bottom */
-  #leave-form-print .rounded-\[24px\] {
-    min-height: 270mm !important;
-    height: 270mm !important;
+    min-height: 274mm !important;
+    height: 274mm !important;
     box-sizing: border-box !important;
     display: flex !important;
     flex-direction: column !important;
     justify-content: space-between !important;
+  }
+
+  #leave-form-print .rounded-\[24px\] > * {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
   }
 
   #leave-form-print .rounded-\[20px\] {
@@ -446,6 +446,18 @@
   }
   #leave-form-print .text-rose-600 {
     color: #c5221f !important;
+  }
+  #leave-form-print .print\:text-\[\#111\] {
+    color: #111 !important;
+  }
+  #leave-form-print .print\:text-\[\#222\] {
+    color: #222 !important;
+  }
+  #leave-form-print .print\:text-\[\#444\] {
+    color: #444 !important;
+  }
+  #leave-form-print .print\:text-\[\#666\] {
+    color: #666 !important;
   }
   #leave-form-print [class*="before:bg-gradient-to-b"]::before {
     background-color: #e5e7eb !important;

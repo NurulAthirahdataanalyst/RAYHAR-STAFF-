@@ -157,13 +157,13 @@ export const LeaveStatusDecisionBy: React.FC<{
 
   return (
     <span
-      className={`block text-[9px] print:text-[11px] mt-1 normal-case font-bold leading-relaxed ${
+      className={`block text-[9px] print:text-[12.5px] mt-1 print:mt-0.5 normal-case font-bold print:font-normal print:text-[#222] leading-relaxed print:leading-snug ${
         actor.action === "Rejected"
           ? "text-rose-500"
           : "text-emerald-600 dark:text-emerald-400"
       }`}
     >
-      <span className="block font-medium opacity-80">
+      <span className="block font-medium print:font-normal opacity-80 print:opacity-100">
         {actor.action === "Approved" ? "Approved by" : "Reviewed by"}
       </span>
       {actor.name && <span className="block">{toTitleCase(actor.name)}</span>}
@@ -275,26 +275,26 @@ export const ApprovalHistoryTimeline: React.FC<ApprovalHistoryTimelineProps> = (
     <>
     {/* Print-only: clean vertical timeline */}
     <div className="hidden print:block">
-      <div className="flex items-center gap-2 mb-3">
-        <h3 className="text-[13px] font-black uppercase tracking-[0.1em] text-foreground">
+      <div className="flex items-center gap-2 mb-4">
+        <h3 className="text-[12px] font-extrabold uppercase tracking-[0.15em] text-[#111]">
           APPROVAL HISTORY
         </h3>
       </div>
-      <div className="space-y-4">
+      <div className="space-y-3">
         {displayItems.map((item, index) => {
           const isApproved = item.status === 'Approved';
           const isRejected = item.status === 'Rejected';
           const hasName = item.name && item.name.toUpperCase() !== 'APPROVER' && item.name.toUpperCase() !== 'MANAGEMENT';
           return (
-            <div key={index} className="flex items-start gap-3 break-inside-avoid">
+            <div key={index} className="flex items-start gap-3.5 break-inside-avoid">
               <div
-                className={`mt-1 w-3 h-3 rounded-full shrink-0 ${
+                className={`mt-1 w-[11px] h-[11px] rounded-full shrink-0 ${
                   isApproved ? 'bg-emerald-500' : isRejected ? 'bg-rose-500' : 'bg-amber-400'
                 }`}
               />
-              <div className="text-[13px] leading-relaxed">
-                {item.dateLong && <p className="font-black">{item.dateLong}</p>}
-                <p className="font-bold">{item.status}</p>
+              <div className="text-[12.5px] leading-snug font-normal text-[#222]">
+                {item.dateLong && <p className="font-bold text-[#111]">{item.dateLong}</p>}
+                <p>{item.status}</p>
                 {hasName ? (
                   <>
                     <p>{toTitleCase(String(item.name))}</p>
