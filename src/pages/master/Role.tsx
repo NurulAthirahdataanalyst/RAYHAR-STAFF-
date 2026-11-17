@@ -674,19 +674,6 @@ export default function Role() {
               Back to Employee Management
             </span>
           </Button>
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-[#942392]/10 dark:bg-[#942392]/20 rounded-xl text-[#942392]">
-              <Shield className="w-5 h-5" />
-            </div>
-            <div>
-              <h1 className="text-xl font-black text-gray-900 dark:text-gray-100 tracking-tight">
-                Role Management
-              </h1>
-              <p className="text-xs text-muted-foreground">
-                Manage enterprise system roles and configure unlimited custom permissions
-              </p>
-            </div>
-          </div>
         </div>
 
         <div className="flex items-center gap-2.5 self-start sm:self-auto">

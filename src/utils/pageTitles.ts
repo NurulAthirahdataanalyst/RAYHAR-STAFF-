@@ -161,7 +161,7 @@ export function getPageTitleInfo(pathname: string, userRole?: string, search?: s
   }
   if (pathname === "/master/role") return {
     title: "Role",
-    subtitle: "Configure employee roles and system permissions.",
+    subtitle: "Manage enterprise system roles and configure unlimited custom permissions",
     icon: UserCog
   };
 

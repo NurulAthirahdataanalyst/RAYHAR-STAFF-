@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Users, UserCog, ArrowLeft, Building2, ShieldAlert, CheckCircle2, AlertCircle, UserCheck, History } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCompany } from "@/modules/multi-company/contexts/CompanyContext";
 import { API_BASE_URL } from "@/config/api";
 import {
   Dialog,
@@ -59,6 +60,7 @@ export default function DepartmentDetails() {
   const { deptName } = useParams<{ deptName: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { activeCompany } = useCompany();
   
   const [employees, setEmployees] = useState<any[]>([]);
   const [tempAssignments, setTempAssignments] = useState<any[]>([]);
@@ -70,7 +72,7 @@ export default function DepartmentDetails() {
   const fetchDepartmentData = async () => {
     try {
       const [empRes, assignRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/api/employees?branch=HQ&status=Active`),
+        fetch(`${API_BASE_URL}/api/employees?company_id=${activeCompany?.id || 1}`),
         fetch(`${API_BASE_URL}/api/work-assignments-all`)
       ]);
       const empData = await empRes.json();
@@ -78,11 +80,11 @@ export default function DepartmentDetails() {
 
       if (empData.success) {
         // Filter by the specific department
-        const deptStaff = empData.employees.filter((e: any) => {
+        const deptStaff = (empData.employees || []).filter((e: any) => {
           if (!e.department || !deptName) return false;
           const normEmpDept = e.department.toLowerCase().replace(/\bdepartment\b/g, '').trim();
           const normDeptName = deptName.toLowerCase().replace(/\bdepartment\b/g, '').trim();
-          return normEmpDept === normDeptName || e.department === deptName;
+          return normEmpDept === normDeptName || e.department.trim().toLowerCase() === deptName.trim().toLowerCase();
         });
         setEmployees(deptStaff);
       }
@@ -120,7 +122,7 @@ export default function DepartmentDetails() {
       window.removeEventListener("focus", handleFocus);
       window.removeEventListener("storage", handleFocus);
     };
-  }, [deptName]);
+  }, [deptName, activeCompany?.id]);
 
   const isHeadOfDepartment = (emp: any): boolean => {
     if (!emp) return false;
@@ -174,7 +176,7 @@ export default function DepartmentDetails() {
           departmentName: deptName,
           newHodUserId: selectedNewHod,
           changedByUserId: user?.user_id,
-          branch: "HQ"
+          branch: currentHod?.permanent_branch || currentHod?.branch || "HQ"
         })
       });
 
