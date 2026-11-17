@@ -5,6 +5,7 @@ export interface LeaveDiscussionPermissionInput {
   currentUserId?: string;
   currentEmployeeId?: string;
   currentUserRole: string;
+  currentUserRoleName?: string;
   currentUserBranch?: string;
   currentUserDepartment?: string;
   leaveRequest: {
@@ -181,10 +182,13 @@ export function getLeaveDiscussionPermission(
   const isHrAdmin = normRole === "hr_admin";
   const isPending = String(req.status || "").trim().toLowerCase().startsWith("pending");
 
+  const cleanUserDept = String(ctx.currentUserDepartment || "").trim().toLowerCase();
+  const cleanReqDept = String(req.department || "").trim().toLowerCase();
+  const isEmptyReqDept = !cleanReqDept || cleanReqDept === "-" || cleanReqDept === "—" || cleanReqDept === "n/a";
   const sameDept =
-    !ctx.currentUserDepartment ||
-    !req.department ||
-    ctx.currentUserDepartment.trim().toLowerCase() === req.department.trim().toLowerCase();
+    normRole === "head_of_department"
+      ? Boolean(cleanUserDept && !isEmptyReqDept && cleanUserDept === cleanReqDept)
+      : !cleanUserDept || isEmptyReqDept || cleanUserDept === cleanReqDept;
   const sameBranch =
     !ctx.currentUserBranch ||
     !req.branch ||
@@ -201,14 +205,16 @@ export function getLeaveDiscussionPermission(
     !isOwner &&
     isPending &&
     isScopedApprover &&
-    matchesStageRole(normRole, req.status);
+    matchesStageRole(normRole, req.status, ctx.currentUserRoleName);
 
   const isPreviousApprover =
     !isOwner &&
     (req.approvalHistory || []).some(
       (h) =>
         (uid && String(h.approver_id || "").trim().toLowerCase() === uid) ||
-        normalizeRole(h.approver_role) === normRole
+        normalizeRole(h.approver_role) === normRole ||
+        (ctx.currentUserRoleName &&
+          String(h.approver_role || "").trim().toLowerCase() === ctx.currentUserRoleName.trim().toLowerCase())
     );
 
   const isFutureApprover =
@@ -216,7 +222,7 @@ export function getLeaveDiscussionPermission(
     !isCurrentApprover &&
     !isPreviousApprover &&
     (req.workflowSteps || []).some((step) =>
-      matchesStageRole(normRole, `Pending ${step.role_name || step.step_label || ""}`)
+      matchesStageRole(normRole, `Pending ${step.role_name || step.step_label || ""}`, ctx.currentUserRoleName)
     );
 
   const canView =

@@ -171,9 +171,9 @@ export const LeaveDiscussionComposer: React.FC<LeaveDiscussionComposerProps> = (
             size="sm"
             disabled={disabled || submitting}
             onClick={() => fileInputRef.current?.click()}
-            className="gap-1.5 rounded-xl border-border/70 text-xs font-bold hover:border-[#942392]/50 hover:text-[#942392]"
+            className="group h-9 gap-1.5 rounded-xl border-border/70 bg-background px-3.5 text-xs font-bold hover:bg-[#942392]/10 hover:border-[#942392]/50 hover:text-[#942392] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 cursor-pointer"
           >
-            <Paperclip className="w-3.5 h-3.5" />
+            <Paperclip className="w-3.5 h-3.5 transition-transform duration-200 group-hover:-rotate-12" />
             Attach File
           </Button>
         </div>
@@ -183,7 +183,7 @@ export const LeaveDiscussionComposer: React.FC<LeaveDiscussionComposerProps> = (
           size="sm"
           disabled={!canSubmit}
           onClick={() => void handleSubmit()}
-          className="gap-2 rounded-xl bg-[#942392] hover:bg-[#5e0080] text-white font-black text-[10px] uppercase tracking-wider px-5 shadow-sm"
+          className="group h-9 gap-2 rounded-xl bg-[#942392] hover:bg-[#7d1b7b] text-white font-black text-[10px] uppercase tracking-wider px-5 shadow-sm hover:shadow-md hover:shadow-[#942392]/25 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
         >
           {submitting ? (
             <>
@@ -192,7 +192,7 @@ export const LeaveDiscussionComposer: React.FC<LeaveDiscussionComposerProps> = (
             </>
           ) : (
             <>
-              <Send className="w-3.5 h-3.5" />
+              <Send className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               Send
             </>
           )}

@@ -6705,20 +6705,28 @@ async function logLeaveDiscussionSystemActivity(leaveId, message) {
   );
 }
 
-function matchesLeaveStageRole(normUserRole, leaveStatus) {
-  const u = normalizeDiscussionRole(normUserRole).replace(/_/g, "");
-  const p = String(leaveStatus || "")
-    .replace(/^Pending\s+/i, "")
-    .toLowerCase()
-    .replace(/[\s_-]+/g, "")
-    .trim();
+function matchesLeaveStageRole(normUserRole, leaveStatus, callerRoleName = "", callerCategory = "") {
+  const u = normalizeDiscussionRole(normUserRole).replace(/[\s_-]+/g, "");
+  const disp = String(callerRoleName || "").toLowerCase().replace(/[\s_-]+/g, "").trim();
+  const pendingPart = String(leaveStatus || "").replace(/^Pending\s+/i, "").trim();
+  const p = pendingPart.toLowerCase().replace(/[\s_-]+/g, "").trim();
   if (!p) return false;
   if (u === p) return true;
-  if (p === "hod" && u === "headofdepartment") return true;
-  if (p === "md" && u === "managingdirector") return true;
-  if ((p === "operation" || p === "finance" || p === "financemanager") && u === "operationmanager") return true;
-  if ((p === "hr" || p === "admin") && u === "hradmin") return true;
-  if (p.includes("assure") && u.includes("assure")) return true;
+  if (disp && disp === p) return true;
+  if (p === "hod" && (u === "headofdepartment" || callerCategory === "head_of_department")) return true;
+  if (p === "headofdepartment" && (u === "headofdepartment" || callerCategory === "head_of_department")) return true;
+  if (p === "branchleader" && (u === "branchleader" || callerCategory === "branch_leader")) return true;
+  if (p.includes("supervisor") && (u === "branchleader" || callerCategory === "branch_leader")) return true;
+  if (p === "md" && (u === "managingdirector" || callerCategory === "managing_director")) return true;
+  if ((p === "operation" || p === "finance" || p === "financemanager") && (u === "operationmanager" || callerCategory === "operation_manager")) return true;
+  if ((p === "hr" || p === "admin") && (u === "hradmin" || callerCategory === "hr_admin")) return true;
+  if (p.includes("assure") && (u.includes("assure") || callerCategory === "assure_leader")) return true;
+
+  const pCategory = classifyRoleCategory(pendingPart, null, null, null);
+  if (pCategory && pCategory !== "other" && pCategory !== "employee") {
+    if (callerCategory && callerCategory === pCategory) return true;
+    if (u && u === pCategory.replace(/_/g, "")) return true;
+  }
   return false;
 }
 
@@ -6753,16 +6761,38 @@ async function resolveDiscussionCaller(req, fallbackUserId, fallbackRole) {
       req.headers["x-user-role"] ||
       headerRole
   );
+  let callerRoleName = "";
+  let callerCopiedFrom = "";
+  let callerRoleType = "";
+  let callerScopeType = "";
   let callerBranch = "";
   let callerDepartment = "";
 
   if (callerId) {
     try {
       const [profRows] = await pool.query(
-        `SELECT p.branch, p.department, COALESCE(ur.role, r.name, p.role) AS resolved_role
+        `SELECT p.branch, p.department,
+                COALESCE(r.name, ur.role, p.role, '') AS role_name,
+                COALESCE(ur.role, r.name, p.role, '') AS resolved_role,
+                r.copied_from_role_name,
+                r.role_type,
+                r.scope_type
          FROM profiles p
-         LEFT JOIN user_role ur ON ur.user_id = p.user_id
-         LEFT JOIN roles r ON r.id = p.role_id
+         LEFT JOIN LATERAL (
+           SELECT cur1.role_id
+           FROM company_user_roles cur1
+           WHERE cur1.user_id = p.user_id AND cur1.status = 'active'
+           ORDER BY cur1.company_id DESC, cur1.is_default DESC
+           LIMIT 1
+         ) cur ON TRUE
+         LEFT JOIN LATERAL (
+           SELECT ur1.role, ur1.role_id
+           FROM user_role ur1
+           WHERE ur1.user_id = p.user_id
+           ORDER BY ur1.id DESC
+           LIMIT 1
+         ) ur ON TRUE
+         LEFT JOIN roles r ON r.id = COALESCE(cur.role_id, p.role_id, ur.role_id)
          WHERE LOWER(p.user_id) = LOWER(?)
          LIMIT 1`,
         [callerId]
@@ -6770,6 +6800,10 @@ async function resolveDiscussionCaller(req, fallbackUserId, fallbackRole) {
       if (profRows && profRows.length > 0) {
         callerBranch = profRows[0].branch || "";
         callerDepartment = profRows[0].department || "";
+        callerRoleName = profRows[0].role_name || "";
+        callerCopiedFrom = profRows[0].copied_from_role_name || "";
+        callerRoleType = profRows[0].role_type || "";
+        callerScopeType = profRows[0].scope_type || "";
         if (!callerRole && profRows[0].resolved_role) {
           callerRole = profRows[0].resolved_role;
         }
@@ -6777,9 +6811,22 @@ async function resolveDiscussionCaller(req, fallbackUserId, fallbackRole) {
     } catch (_) {}
   }
 
+  const callerCategory = classifyRoleCategory(
+    callerRoleName || callerRole,
+    callerCopiedFrom,
+    callerRoleType,
+    callerScopeType
+  );
+  const normalizedRole =
+    callerCategory && callerCategory !== "other"
+      ? callerCategory
+      : normalizeDiscussionRole(callerRole);
+
   return {
     callerId,
-    callerRole: normalizeDiscussionRole(callerRole),
+    callerRole: normalizedRole,
+    callerRoleName: callerRoleName || callerRole,
+    callerCategory,
     callerBranch,
     callerDepartment,
   };
@@ -6805,22 +6852,25 @@ async function evaluateLeaveDiscussionAccess(leaveId, caller) {
 
   const isOwner = Boolean(uid && ownerIds.includes(uid));
   const normRole = normalizeDiscussionRole(caller.callerRole);
-  const isHrAdmin = normRole === "hr_admin";
+  const callerCat = caller.callerCategory || normRole;
+  const callerRoleName = caller.callerRoleName || "";
+  const isHrAdmin = normRole === "hr_admin" || callerCat === "hr_admin";
   const isPending = String(leave.status || "").trim().toLowerCase().startsWith("pending");
 
-  const sameDept =
-    !caller.callerDepartment ||
-    !leave.employee_department ||
-    caller.callerDepartment.trim().toLowerCase() === leave.employee_department.trim().toLowerCase();
+  const cleanCallerDept = normalizeDeptValue(caller.callerDepartment);
+  const cleanLeaveDept = normalizeDeptValue(leave.employee_department);
+  const sameDept = Boolean(
+    cleanCallerDept && cleanLeaveDept && cleanCallerDept.toLowerCase() === cleanLeaveDept.toLowerCase()
+  );
   const sameBranch =
     !caller.callerBranch ||
     !leave.employee_branch ||
     caller.callerBranch.trim().toLowerCase() === leave.employee_branch.trim().toLowerCase();
 
   const isScopedApprover =
-    normRole === "head_of_department"
+    normRole === "head_of_department" || callerCat === "head_of_department"
       ? sameDept
-      : normRole === "branch_leader"
+      : normRole === "branch_leader" || callerCat === "branch_leader"
         ? sameBranch
         : true;
 
@@ -6828,7 +6878,7 @@ async function evaluateLeaveDiscussionAccess(leaveId, caller) {
     !isOwner &&
     isPending &&
     isScopedApprover &&
-    matchesLeaveStageRole(normRole, leave.status);
+    matchesLeaveStageRole(normRole, leave.status, callerRoleName, callerCat);
 
   const [historyRows] = await pool.query(
     `SELECT approver_id, approver_role FROM leave_approvals WHERE leave_id = ?`,
@@ -6839,7 +6889,8 @@ async function evaluateLeaveDiscussionAccess(leaveId, caller) {
     (historyRows || []).some(
       (h) =>
         (uid && String(h.approver_id || "").trim().toLowerCase() === uid) ||
-        normalizeDiscussionRole(h.approver_role) === normRole
+        normalizeDiscussionRole(h.approver_role) === normRole ||
+        (callerRoleName && String(h.approver_role || "").trim().toLowerCase() === callerRoleName.trim().toLowerCase())
     );
 
   let isFutureApprover = false;
@@ -6852,7 +6903,7 @@ async function evaluateLeaveDiscussionAccess(leaveId, caller) {
          WHERE aw.module = 'leave'`
       );
       isFutureApprover = (wfRows || []).some((s) =>
-        matchesLeaveStageRole(normRole, `Pending ${s.role_name || s.step_label || ""}`)
+        matchesLeaveStageRole(normRole, `Pending ${s.role_name || s.step_label || ""}`, callerRoleName, callerCat)
       );
     } catch (_) {}
   }
@@ -6865,6 +6916,9 @@ async function evaluateLeaveDiscussionAccess(leaveId, caller) {
     isHrAdmin ||
     ["managing_director", "operation_manager", "assure_leader", "head_of_department", "branch_leader"].includes(
       normRole
+    ) ||
+    ["managing_director", "operation_manager", "assure_leader", "head_of_department", "branch_leader"].includes(
+      callerCat
     );
 
   const canPost = Boolean(canView && isPending && (isOwner || isCurrentApprover || isHrAdmin));
@@ -7005,17 +7059,22 @@ async function resolveCurrentStageApproverUsers(leave) {
 
   const stagePart = statusStr.replace(/^Pending\s+/i, "").trim();
   if (!stagePart) return [];
+  const stageCat = classifyRoleCategory(stagePart, null, null, null);
   const [rows] = await pool.query(
-    `SELECT DISTINCT p.user_id, p.email, p.full_name
+    `SELECT DISTINCT p.user_id, p.email, p.full_name, p.branch, p.department
      FROM profiles p
+     LEFT JOIN company_user_roles cur ON cur.user_id = p.user_id AND cur.status = 'active'
      LEFT JOIN user_role ur ON p.user_id = ur.user_id
-     LEFT JOIN roles r ON p.role_id = r.id
+     LEFT JOIN roles r ON r.id = COALESCE(cur.role_id, p.role_id, ur.role_id)
      WHERE (
        LOWER(COALESCE(ur.role, '')) = LOWER(?)
        OR LOWER(COALESCE(r.name, '')) = LOWER(?)
        OR LOWER(COALESCE(r.name, '')) LIKE LOWER(?)
-     ) AND p.status = 'Active'`,
-    [stagePart, stagePart, `%${stagePart}%`]
+     )
+     AND (? != 'branch_leader' OR UPPER(COALESCE(p.branch, '')) = UPPER(?))
+     AND (? != 'head_of_department' OR LOWER(COALESCE(p.department, '')) = LOWER(?))
+     AND p.status = 'Active'`,
+    [stagePart, stagePart, `%${stagePart}%`, stageCat, branch, stageCat, dept]
   );
   return rows || [];
 }

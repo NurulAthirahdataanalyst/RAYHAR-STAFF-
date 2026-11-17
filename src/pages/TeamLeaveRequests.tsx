@@ -738,12 +738,12 @@ export default function TeamLeaveRequests() {
                     Borang ini sah digunakan sebagai bukti rasmi cuti kakitangan setelah mendapat kelulusan pihak pengurusan.
                   </p>
 
-                  <div className="pt-4 flex justify-end gap-3 print:hidden">
+                  <div className="pt-5 mt-2 border-t border-border/50 flex justify-end gap-3 print:hidden">
                     <Button
                       type="button"
                       variant="outline"
                       disabled={isPrinting}
-                      className="gap-2 border-[#942392] text-[#942392] hover:bg-[#942392]/5 rounded-xl font-black text-[8px] print:text-[13px] uppercase tracking-widest px-6"
+                      className="group h-10 gap-2 border-2 border-[#942392]/35 bg-[#942392]/5 text-[#942392] dark:text-[#f3a8f1] hover:bg-[#942392] hover:text-white hover:border-[#942392] rounded-xl font-black text-[11px] print:text-[13px] uppercase tracking-wider px-5 shadow-xs hover:shadow-md hover:shadow-[#942392]/25 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-200 cursor-pointer disabled:opacity-60 disabled:pointer-events-none"
                       onClick={async () => {
                         setIsPrinting(true);
                         try {
@@ -767,7 +767,7 @@ export default function TeamLeaveRequests() {
                         }
                       }}
                     >
-                      {isPrinting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Printer className="h-4 w-4" />}
+                      {isPrinting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Printer className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />}
                       {isPrinting ? "Preparing..." : "Print Form"}
                     </Button>
                   </div>

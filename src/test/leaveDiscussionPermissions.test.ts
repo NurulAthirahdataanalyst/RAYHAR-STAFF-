@@ -117,6 +117,65 @@ describe("getLeaveDiscussionPermission", () => {
       expect(hrPerm.canPost).toBe(false);
     }
   });
+
+  it("allows custom subsidiary Branch Leader (Fleet Supervisor) to participate when status is Pending Fleet Supervisor", () => {
+    const perm = getLeaveDiscussionPermission({
+      currentUserId: "BL_RAYRENT",
+      currentUserRole: "branch_leader",
+      currentUserRoleName: "Fleet Supervisor",
+      currentUserBranch: "RAYRENT",
+      currentUserDepartment: "",
+      leaveRequest: {
+        user_id: "STAFF_NODEPT",
+        status: "Pending Fleet Supervisor",
+        branch: "RAYRENT",
+        department: "",
+        approvalHistory: [],
+        workflowSteps: [{ step_order: 1, role_name: "Fleet Supervisor" }],
+      },
+    });
+    expect(perm.canView).toBe(true);
+    expect(perm.canPost).toBe(true);
+    expect(perm.isCurrentApprover).toBe(true);
+    expect(perm.mode).toBe("participant");
+  });
+
+  it("allows custom subsidiary HOD (Rental Coordinator) to participate only for matching department", () => {
+    const sameDeptPerm = getLeaveDiscussionPermission({
+      currentUserId: "HOD_RAYRENT",
+      currentUserRole: "head_of_department",
+      currentUserRoleName: "Rental Coordinator",
+      currentUserBranch: "RAYRENT",
+      currentUserDepartment: "Rental Coordinator",
+      leaveRequest: {
+        user_id: "STAFF_DEPT",
+        status: "Pending Rental Coordinator",
+        branch: "RAYRENT",
+        department: "Rental Coordinator",
+        approvalHistory: [],
+        workflowSteps: [{ step_order: 1, role_name: "Rental Coordinator" }],
+      },
+    });
+    expect(sameDeptPerm.canPost).toBe(true);
+    expect(sameDeptPerm.isCurrentApprover).toBe(true);
+
+    const noDeptPerm = getLeaveDiscussionPermission({
+      currentUserId: "HOD_RAYRENT",
+      currentUserRole: "head_of_department",
+      currentUserRoleName: "Rental Coordinator",
+      currentUserBranch: "RAYRENT",
+      currentUserDepartment: "Rental Coordinator",
+      leaveRequest: {
+        user_id: "STAFF_NODEPT",
+        status: "Pending Rental Coordinator",
+        branch: "RAYRENT",
+        department: "-",
+        approvalHistory: [],
+      },
+    });
+    expect(noDeptPerm.canPost).toBe(false);
+    expect(noDeptPerm.isCurrentApprover).toBe(false);
+  });
 });
 
 describe("getCurrentApproverLabel", () => {

@@ -45,7 +45,7 @@ export const LeaveDiscussionCard: React.FC<LeaveDiscussionCardProps> = ({
   onMarkedRead,
 }) => {
   const { user } = useAuth();
-  const { role: contextRole, userId, userBranch, userDepartment } = useRole();
+  const { role: contextRole, roleName, userId, userBranch, userDepartment } = useRole();
 
   const leaveId = Number(leaveRequest.id);
   const currentUserId = String(userId || user?.user_id || user?.id || "").trim();
@@ -70,6 +70,7 @@ export const LeaveDiscussionCard: React.FC<LeaveDiscussionCardProps> = ({
         currentUserId,
         currentEmployeeId,
         currentUserRole: effectiveRole,
+        currentUserRoleName: roleName,
         currentUserBranch: userBranch,
         currentUserDepartment: userDepartment,
         leaveRequest,
@@ -78,6 +79,7 @@ export const LeaveDiscussionCard: React.FC<LeaveDiscussionCardProps> = ({
       currentUserId,
       currentEmployeeId,
       effectiveRole,
+      roleName,
       userBranch,
       userDepartment,
       leaveRequest,
@@ -145,7 +147,7 @@ export const LeaveDiscussionCard: React.FC<LeaveDiscussionCardProps> = ({
     if (!currentUserId) {
       throw new Error("Unable to identify current user.");
     }
-    const senderRole = permission.isOwner ? "employee" : effectiveRole;
+    const senderRole = permission.isOwner ? "employee" : (roleName || effectiveRole);
     const created = await postLeaveDiscussionMessage({
       leaveRequestId: leaveId,
       senderId: currentUserId,

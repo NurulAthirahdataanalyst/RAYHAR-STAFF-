@@ -598,25 +598,25 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role, onApprove, o
                   Borang ini sah digunakan sebagai bukti rasmi cuti kakitangan setelah mendapat kelulusan pihak pengurusan.
                 </p>
 
-                <div className="pt-4 flex flex-wrap items-center justify-end gap-3 print:hidden">
+                <div className="pt-5 mt-2 border-t border-border/50 flex flex-wrap items-center justify-end gap-3 print:hidden">
                   {onApprove && canModalApprove && (
                     <Button
                       type="button"
-                      className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-black text-[9px] uppercase tracking-wider px-5 shadow-sm transition-all"
+                      className="group h-10 gap-2 bg-emerald-600 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:bg-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white rounded-xl font-black text-[11px] uppercase tracking-wider px-5 shadow-md shadow-emerald-600/20 hover:shadow-lg hover:shadow-emerald-600/30 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-200 cursor-pointer"
                       onClick={() => onApprove(selectedRequest.id || selectedRequest.leave_id, selectedRequest.status)}
                     >
-                      <Check className="h-4 w-4" strokeWidth={3} />
+                      <Check className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" strokeWidth={3} />
                       Approve Leave
                     </Button>
                   )}
                   {onReject && canModalApprove && (
                     <Button
                       type="button"
-                      variant="outline"
-                      className="gap-2 border-rose-300 text-rose-600 hover:bg-rose-50 hover:border-rose-500 rounded-xl font-black text-[9px] uppercase tracking-wider px-5 shadow-sm transition-all"
+                      variant="destructive"
+                      className="group h-10 gap-2 border-2 border-red-300 dark:border-red-800/70 bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 hover:bg-red-600 hover:text-white hover:border-red-600 dark:hover:bg-red-600 dark:hover:text-white rounded-xl font-black text-[11px] uppercase tracking-wider px-5 shadow-xs hover:shadow-md hover:shadow-red-600/25 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-200 cursor-pointer"
                       onClick={() => onReject(selectedRequest.id || selectedRequest.leave_id, selectedRequest.status)}
                     >
-                      <X className="h-4 w-4" strokeWidth={3} />
+                      <X className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" strokeWidth={3} />
                       Reject Leave
                     </Button>
                   )}
@@ -624,7 +624,7 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role, onApprove, o
                     type="button"
                     variant="outline"
                     disabled={isPrinting}
-                    className="gap-2 border-[#942392] text-[#942392] hover:bg-[#942392]/5 rounded-xl font-black text-[8px] print:text-[13px] uppercase tracking-widest px-6"
+                    className="group h-10 gap-2 border-2 border-[#942392]/35 bg-[#942392]/5 text-[#942392] dark:text-[#f3a8f1] hover:bg-[#942392] hover:text-white hover:border-[#942392] rounded-xl font-black text-[11px] print:text-[13px] uppercase tracking-wider px-5 shadow-xs hover:shadow-md hover:shadow-[#942392]/25 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-200 cursor-pointer disabled:opacity-60 disabled:pointer-events-none"
                     onClick={async () => {
                       setIsPrinting(true);
                       try {
@@ -650,7 +650,7 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role, onApprove, o
                       }
                     }}
                   >
-                    {isPrinting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Printer className="h-4 w-4" />}
+                    {isPrinting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Printer className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />}
                     {isPrinting ? "Preparing..." : "Print Form"}
                   </Button>
                 </div>

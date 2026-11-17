@@ -1316,7 +1316,7 @@ export default function LeaveAdmin() {
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  className="h-10 w-10 rounded-md p-0 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 border-2 border-emerald-200 hover:border-emerald-500 shadow-sm transition-all"
+                                  className="h-10 w-10 rounded-md p-0 bg-emerald-50/50 text-emerald-600 hover:text-white hover:bg-emerald-600 border-2 border-emerald-200 hover:border-emerald-600 shadow-sm transition-all cursor-pointer"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     handleAction(req.id, "approve", req.status, req);
@@ -1327,8 +1327,8 @@ export default function LeaveAdmin() {
                                 </Button>
                                 <Button
                                   size="sm"
-                                  variant="outline"
-                                  className="h-10 w-10 rounded-md p-0 text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-2 border-rose-200 hover:border-rose-500 shadow-sm transition-all"
+                                  variant="destructive"
+                                  className="h-10 w-10 rounded-md p-0 bg-red-50 text-red-600 hover:text-white hover:bg-red-600 border-2 border-red-200 hover:border-red-600 shadow-sm transition-all cursor-pointer"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     handleAction(req.id, "reject", req.status, req);
