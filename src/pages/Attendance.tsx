@@ -1510,7 +1510,13 @@ export default function Attendance() {
     } catch (err: any) {
       console.error("Attendance Error Detail:", err);
       toast({
-        title: err.message.includes("Company Leave") ? "Clock-In Restricted" : "Database Error",
+        title: err.message.includes("Company Leave")
+          ? "Clock-In Restricted"
+          : err.message.toLowerCase().includes("outside")
+          ? "Outside Branch Radius"
+          : err.message.toLowerCase().includes("photo")
+          ? "Photo Verification Failed"
+          : "Attendance Error",
         description: err.message || "Constraint violation. Check if your ID exists in the system.",
         variant: "destructive",
       });

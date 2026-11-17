@@ -228,7 +228,7 @@ export const RayharCameraModal: React.FC<RayharCameraModalProps> = ({
         </DialogHeader>
 
         <div className="space-y-3">
-          <div className="relative rounded-xl overflow-hidden border border-border bg-slate-950 aspect-video flex items-center justify-center">
+          <div className="relative rounded-xl overflow-hidden border border-border bg-slate-950 min-h-[240px] max-h-[58vh] flex items-center justify-center">
             {cameraError ? (
               <div className="p-4 text-center space-y-2">
                 <p className="text-xs text-rose-400 font-medium">{cameraError}</p>
@@ -237,7 +237,7 @@ export const RayharCameraModal: React.FC<RayharCameraModalProps> = ({
                 </Button>
               </div>
             ) : capturedPhoto ? (
-              <img src={capturedPhoto} alt="Captured verification proof" className="w-full h-full object-cover" />
+              <img src={capturedPhoto} alt="Captured verification proof" className="w-full max-h-[58vh] object-contain" />
             ) : (
               <>
                 <video
@@ -245,7 +245,7 @@ export const RayharCameraModal: React.FC<RayharCameraModalProps> = ({
                   playsInline
                   muted
                   autoPlay
-                  className={`w-full h-full object-cover ${facingMode === "user" ? "-scale-x-100" : ""}`}
+                  className={`w-full max-h-[58vh] object-cover ${facingMode === "user" ? "-scale-x-100" : ""}`}
                 />
                 {!cameraReady && (
                   <div className="absolute inset-0 flex items-center justify-center bg-slate-950/70 text-white text-xs gap-2">

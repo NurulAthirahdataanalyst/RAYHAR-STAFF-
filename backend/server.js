@@ -2331,12 +2331,28 @@ function mysqlPlaceholdersToPostgres(sql, params) {
         return `$${i++}`;
       }
       const placeholders = currentParam.map(item => {
-        flatParams.push(typeof item === 'boolean' ? item : item === null || item === undefined ? null : String(item));
+        flatParams.push(
+          typeof item === 'boolean'
+            ? item
+            : item instanceof Date
+            ? item.toISOString()
+            : item === null || item === undefined
+            ? null
+            : String(item)
+        );
         return `$${i++}`;
       });
       return placeholders.join(', ');
     } else {
-      flatParams.push(typeof currentParam === 'boolean' ? currentParam : currentParam === null || currentParam === undefined ? null : String(currentParam));
+      flatParams.push(
+        typeof currentParam === 'boolean'
+          ? currentParam
+          : currentParam instanceof Date
+          ? currentParam.toISOString()
+          : currentParam === null || currentParam === undefined
+          ? null
+          : String(currentParam)
+      );
       return `$${i++}`;
     }
   });
@@ -9648,13 +9664,15 @@ app.post("/api/attendance", async (req, res) => {
         });
       }
       photoUrl = attendanceVerificationService.saveProofPhotoFromDataUrl(photo_data, user_id, 'in');
-      approvalExpiresAt = await attendanceVerificationService.computeApprovalExpiryTimestamp(
+      const expDate = await attendanceVerificationService.computeApprovalExpiryTimestamp(
         pgPool,
         policy.company_id,
         policy.approval_expiry_mode,
         policy.approval_expiry_days
       );
-      photoRetentionUntil = attendanceVerificationService.computePhotoRetentionTimestamp(policy.photo_retention_days);
+      const retDate = attendanceVerificationService.computePhotoRetentionTimestamp(policy.photo_retention_days);
+      approvalExpiresAt = expDate ? expDate.toISOString() : null;
+      photoRetentionUntil = retDate ? retDate.toISOString() : null;
       verificationStatus = 'Pending Verification';
       clockInVerificationStatus = 'Pending Verification';
     }
@@ -9667,7 +9685,7 @@ app.post("/api/attendance", async (req, res) => {
          clock_in_latitude, clock_in_longitude, clock_in_accuracy,
          verification_status, clock_in_verification_status, clock_in_photo_url, clock_in_device_info,
          approval_expires_at, photo_retention_until
-       ) VALUES (?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       ) VALUES (?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::timestamptz, ?::timestamptz)`,
       [
         user_id,
         policy.company_id,
@@ -9908,20 +9926,22 @@ app.post("/api/clock-out", async (req, res) => {
         });
       }
       outPhotoUrl = attendanceVerificationService.saveProofPhotoFromDataUrl(photo_data, user_id, 'out');
-      const approvalExpiresAt = await attendanceVerificationService.computeApprovalExpiryTimestamp(
+      const expDate = await attendanceVerificationService.computeApprovalExpiryTimestamp(
         pgPool,
         policy.company_id,
         policy.approval_expiry_mode,
         policy.approval_expiry_days
       );
-      const photoRetentionUntil = attendanceVerificationService.computePhotoRetentionTimestamp(policy.photo_retention_days);
+      const retDate = attendanceVerificationService.computePhotoRetentionTimestamp(policy.photo_retention_days);
+      const approvalExpiresIso = expDate ? expDate.toISOString() : null;
+      const photoRetentionIso = retDate ? retDate.toISOString() : null;
 
       coordUpdates.push(`clock_out_photo_url = ?`); coordValues.push(outPhotoUrl);
       coordUpdates.push(`clock_out_device_info = ?`); coordValues.push(safeDeviceInfo);
       coordUpdates.push(`clock_out_verification_status = 'Pending Verification'`);
       coordUpdates.push(`verification_status = CASE WHEN COALESCE(verification_status, 'Approved') IN ('Rejected', 'Expired') THEN verification_status ELSE 'Pending Verification' END`);
-      coordUpdates.push(`approval_expires_at = ?`); coordValues.push(approvalExpiresAt);
-      coordUpdates.push(`photo_retention_until = GREATEST(COALESCE(photo_retention_until, ?), ?)`); coordValues.push(photoRetentionUntil, photoRetentionUntil);
+      coordUpdates.push(`approval_expires_at = ?::timestamptz`); coordValues.push(approvalExpiresIso);
+      coordUpdates.push(`photo_retention_until = GREATEST(COALESCE(photo_retention_until, ?::timestamptz), ?::timestamptz)`); coordValues.push(photoRetentionIso, photoRetentionIso);
     } else {
       coordUpdates.push(`clock_out_verification_status = 'Approved'`);
     }
