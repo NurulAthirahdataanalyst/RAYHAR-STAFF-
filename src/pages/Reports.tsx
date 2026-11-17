@@ -45,17 +45,19 @@ export default function Reports() {
   const { role, roleName, userBranch, userDepartment, userId, userName, scopeType } = useRole();
   const { companies, activeCompany } = useCompany();
 
-  // Resolve Authorization Scope
+  // Resolve Authorization Scope (explicit Authorization Scope always takes priority)
   const effectiveScope = useMemo(() => {
     const norm = (role || "").toLowerCase().trim();
-    if (norm === 'employee') return 'Own Data Only';
-
     const s = (scopeType || "").toLowerCase().trim();
-    if (s.includes('own') || s.includes('self')) return 'Own Data Only';
-    if (s.includes('department')) return 'Department Data Only';
-    if (s.includes('branch')) return 'Branch Data Only';
-    if (s.includes('group') || s.includes('parent')) return 'Parent Group Data';
-    if (s.includes('company staff')) return 'Company Staff Data';
+    if (s && s !== 'current company only') {
+      if (s.includes('own') || s.includes('self')) return 'Own Data Only';
+      if (s.includes('department')) return 'Department Data Only';
+      if (s.includes('branch')) return 'Branch Data Only';
+      if (s.includes('group') || s.includes('parent')) return 'Parent Group Data';
+      if (s.includes('company staff')) return 'Company Staff Data';
+    }
+
+    if (norm === 'employee') return 'Own Data Only';
 
     // Fallback deducing from role
     if (norm.includes('hr_admin') || norm.includes('hr admin') || norm.includes('admin') || norm.includes('managing_director') || norm.includes('md')) {
