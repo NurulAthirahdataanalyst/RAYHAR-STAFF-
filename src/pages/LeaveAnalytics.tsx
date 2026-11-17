@@ -406,7 +406,7 @@ export default function LeaveAnalytics() {
 
   // Identify scoped roles
   const isBranchLeader = role === "branch_leader" || scopeType === "Branch Data Only";
-  const isHOD = role === "head_of_department";
+  const isHOD = role === "head_of_department" || scopeType === "Department Data Only";
   const isScopedRole = isBranchLeader || isHOD;
 
   // Redirect roles that are not allowed
@@ -420,6 +420,7 @@ export default function LeaveAnalytics() {
       role !== "branch_leader" &&
       role !== "head_of_department" &&
       scopeType !== "Branch Data Only" &&
+      scopeType !== "Department Data Only" &&
       scopeType !== "Company Staff Data" &&
       scopeType !== "Parent Group Data"
     ) {

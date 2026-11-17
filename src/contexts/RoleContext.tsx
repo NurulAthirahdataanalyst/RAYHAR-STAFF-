@@ -88,6 +88,7 @@ export const normalizeScopeType = (rawScope?: string, rawRole?: string): string 
   }
   if (sLower === "parent group access" || sLower.includes("parent") || sLower.includes("group")) return "Parent Group Data";
   if (sLower.includes("own") || sLower.includes("self")) return "Own Data Only";
+  if (sLower.includes("department")) return "Department Data Only";
   if (sLower.includes("branch")) return "Branch Data Only";
   if (sLower.includes("company")) return "Company Staff Data";
   return s;

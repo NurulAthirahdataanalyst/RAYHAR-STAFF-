@@ -70,6 +70,12 @@ export const AUTHORIZATION_SCOPES = [
     badge: 'Branch'
   },
   {
+    value: 'Department Data Only' as ScopeType,
+    title: 'Department Data Only',
+    desc: 'User can view employees under the same department only',
+    badge: 'Department'
+  },
+  {
     value: 'Company Staff Data' as ScopeType,
     title: 'Company Staff Data',
     desc: 'User can view all employees within the same company (1 company workspace, no dropdown)',
@@ -363,6 +369,8 @@ export const Tab9_IAM: React.FC = () => {
       autoScope = 'Own Data Only';
     } else if (sourceRole.scope_type === 'Branch Data Only') {
       autoScope = 'Branch Data Only';
+    } else if (sourceRole.scope_type === 'Department Data Only') {
+      autoScope = 'Department Data Only';
     } else if (sourceRole.scope_type === 'Company Staff Data') {
       autoScope = 'Company Staff Data';
     } else if (sourceRole.scope_type === 'Parent Group Data') {
@@ -655,6 +663,8 @@ export const Tab9_IAM: React.FC = () => {
                                 ? 'border-[#942392]/30 bg-[#942392]/10 text-[#942392] dark:text-[#f885d5]' 
                                 : dispS === 'Branch Data Only'
                                 ? 'border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                                : dispS === 'Department Data Only'
+                                ? 'border-cyan-500/30 bg-cyan-500/10 text-cyan-700 dark:text-cyan-300'
                                 : dispS === 'Own Data Only'
                                 ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
                                 : 'border-blue-500/30 bg-blue-500/10 text-blue-600 dark:text-blue-400'

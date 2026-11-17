@@ -51,6 +51,7 @@ export type RoleType = 'Management Role' | 'Department Role' | 'Operational Role
 export type ScopeType = 
   | 'Own Data Only' 
   | 'Branch Data Only' 
+  | 'Department Data Only'
   | 'Company Staff Data' 
   | 'Parent Group Data' 
   | 'Current Company Only' 

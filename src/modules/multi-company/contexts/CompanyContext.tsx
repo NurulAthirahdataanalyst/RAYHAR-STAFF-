@@ -50,6 +50,7 @@ export const isCompanyRestrictedScope = (st?: string | null): boolean => {
     s === 'company' || 
     s === 'current company only' || 
     s.includes('branch data') || 
+    s.includes('department data') ||
     s.includes('own data')
   );
 };

@@ -35,7 +35,6 @@ export const Tab7_AttendanceConfig: React.FC = () => {
   const [otEnabled, setOtEnabled] = useState<boolean>(false);
   const [gpsRequired, setGpsRequired] = useState<boolean>(true);
   const [geofenceEnforce, setGeofenceEnforce] = useState<'strict' | 'relaxed' | 'disabled'>('strict');
-  const [faceVerify, setFaceVerify] = useState<boolean>(false);
   const [verificationRule, setVerificationRule] = useState<'geofence' | 'geofence_photo' | 'live_photo'>('geofence');
   const [approvalExpiryMode, setApprovalExpiryMode] = useState<'days' | 'after_working_hours'>('days');
   const [approvalExpiryDays, setApprovalExpiryDays] = useState<number>(3);
@@ -73,7 +72,6 @@ export const Tab7_AttendanceConfig: React.FC = () => {
           setOtEnabled(Boolean(res.overtime_enabled));
           setGpsRequired(res.gps_required !== false);
           setGeofenceEnforce(res.geofence_enforcement || 'strict');
-          setFaceVerify(Boolean(res.face_verification_required));
           setVerificationRule(res.verification_rule || 'geofence');
           setApprovalExpiryMode(res.approval_expiry_mode || 'days');
           setApprovalExpiryDays(res.approval_expiry_days ?? 3);
@@ -100,7 +98,6 @@ export const Tab7_AttendanceConfig: React.FC = () => {
         overtime_enabled: otEnabled,
         gps_required: gpsRequired,
         geofence_enforcement: geofenceEnforce,
-        face_verification_required: faceVerify,
         verification_rule: currentCompany?.company_type === 'subsidiary' ? verificationRule : 'geofence',
         approval_expiry_mode: approvalExpiryMode,
         approval_expiry_days: Number(approvalExpiryDays),
@@ -660,16 +657,6 @@ export const Tab7_AttendanceConfig: React.FC = () => {
                   </SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-
-            <div className="flex items-center justify-between pt-2">
-              <div>
-                <Label className="text-[11px] font-black uppercase tracking-wider text-black dark:text-white">
-                  Biometric Face Snapshot Verification
-                </Label>
-                <span className="text-[10px] text-muted-foreground block">Take selfie verification upon check-in</span>
-              </div>
-              <Switch checked={faceVerify} onCheckedChange={setFaceVerify} className="data-[state=checked]:bg-[#942392]" />
             </div>
 
             {/* Subsidiary-Only Rayhar Staff Portal Photo Verification */}

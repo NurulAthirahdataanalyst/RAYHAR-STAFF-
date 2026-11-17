@@ -135,9 +135,15 @@ if (typeof window !== 'undefined' && !((window as any).__rayhar_fetch_intercepto
               const opName = u.full_name || u.name || sessionStorage.getItem('presence_cached_name') || 'HR Admin';
               const opRole = u.role || sessionStorage.getItem('presence_cached_role') || 'hr_admin';
               const opId = String(u.id || u.user_id || 'system');
+              const opScope = sessionStorage.getItem('presence_cached_scope_type') || u.scope_type || '';
+              const opDept = sessionStorage.getItem('presence_cached_department') || u.department || '';
+              const opBranch = sessionStorage.getItem('presence_cached_branch') || u.branch || '';
               headers.set('X-Operator-Name', encodeURIComponent(opName));
               headers.set('X-Operator-Role', encodeURIComponent(opRole));
               headers.set('X-Operator-Id', opId);
+              if (opScope && !headers.has('X-User-Scope')) headers.set('X-User-Scope', encodeURIComponent(opScope));
+              if (opDept && !headers.has('X-User-Department')) headers.set('X-User-Department', encodeURIComponent(opDept));
+              if (opBranch && !headers.has('X-User-Branch')) headers.set('X-User-Branch', encodeURIComponent(opBranch));
             }
           } catch (_) {}
         }

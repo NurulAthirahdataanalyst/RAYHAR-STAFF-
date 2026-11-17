@@ -22,7 +22,7 @@ import { Calendar as CalendarWidget } from "@/components/ui/calendar";
 import { calculateTotalWorkingHoursFormatted } from "@/utils/workingHoursCalculator";
 
 export default function TeamAttendance() {
-  const { role, userBranch, userDepartment } = useRole();
+  const { role, userBranch, userDepartment, scopeType } = useRole();
   const [loading, setLoading] = useState(true);
   const [employees, setEmployees] = useState<any[]>([]);
   const [attendanceData, setAttendanceData] = useState<any[]>([]);
@@ -199,6 +199,17 @@ export default function TeamAttendance() {
         })) : [];
         if (role === 'head_of_department') {
           teamEmployees = teamEmployees.filter((e: any) => e.department === userDepartment && e.branch === userBranch);
+        } else if (scopeType === 'Department Data Only') {
+          const normTargetDept = (userDepartment || '').toLowerCase().replace(/\bdepartment\b/g, '').trim();
+          teamEmployees = teamEmployees.filter((e: any) =>
+            normTargetDept &&
+            (e.department || '').toLowerCase().replace(/\bdepartment\b/g, '').trim() === normTargetDept
+          );
+        } else if (scopeType === 'Branch Data Only') {
+          const normTargetBranch = (userBranch || '').toLowerCase().trim();
+          teamEmployees = teamEmployees.filter((e: any) =>
+            normTargetBranch && (e.branch || '').toLowerCase().trim() === normTargetBranch
+          );
         }
         setEmployees(teamEmployees);
 

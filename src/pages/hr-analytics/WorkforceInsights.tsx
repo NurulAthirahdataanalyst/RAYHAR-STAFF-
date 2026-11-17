@@ -127,9 +127,11 @@ interface PendingItem {
 export default function WorkforceInsights() {
   const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
   const { user } = useAuth();
-  const { role, userBranch, userDepartment, userId } = useRole();
+  const { role, scopeType, userBranch, userDepartment, userId } = useRole();
   const { activeCompany } = useCompany();
-  const scopeLabel = role === "head_of_department" || role === "hod" ? userDepartment : (role === "branch_leader" ? userBranch : "");
+  const scopeLabel = (scopeType === "Department Data Only" || role === "head_of_department" || role === "hod")
+    ? userDepartment
+    : ((scopeType === "Branch Data Only" || role === "branch_leader") ? userBranch : "");
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -263,10 +265,11 @@ export default function WorkforceInsights() {
   // SSE connection for live stats (to get liveEmployees)
   useEffect(() => {
     if (!isAdminRole) return;
-    const isAllAccessRole = ["hr_admin", "managing_director", "operation_manager", "finance_manager"].includes(role || "");
+    const isScopedRestriction = scopeType === "Department Data Only" || scopeType === "Branch Data Only";
+    const isAllAccessRole = !isScopedRestriction && ["hr_admin", "managing_director", "operation_manager", "finance_manager"].includes(role || "");
     const queryBranch = isAllAccessRole ? "" : (userBranch || "");
     const queryDept = isAllAccessRole ? "" : (userDepartment || "");
-    const url = `${API_BASE_URL}/api/presence/live-stats?date=${year}-${month}-${day}&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(queryBranch)}&department=${encodeURIComponent(queryDept)}&company_id=${activeCompany?.id || 1}`;
+    const url = `${API_BASE_URL}/api/presence/live-stats?date=${year}-${month}-${day}&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(queryBranch)}&department=${encodeURIComponent(queryDept)}&scope_type=${encodeURIComponent(scopeType || "")}&company_id=${activeCompany?.id || 1}`;
     const es = new EventSource(url);
     
     es.onmessage = (event) => {

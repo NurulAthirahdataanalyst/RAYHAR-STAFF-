@@ -52,6 +52,7 @@ export default function Reports() {
 
     const s = (scopeType || "").toLowerCase().trim();
     if (s.includes('own') || s.includes('self')) return 'Own Data Only';
+    if (s.includes('department')) return 'Department Data Only';
     if (s.includes('branch')) return 'Branch Data Only';
     if (s.includes('group') || s.includes('parent')) return 'Parent Group Data';
     if (s.includes('company staff')) return 'Company Staff Data';
@@ -71,6 +72,7 @@ export default function Reports() {
 
   const isOwnDataOnly = effectiveScope === 'Own Data Only';
   const isBranchOnly = effectiveScope === 'Branch Data Only';
+  const isDepartmentOnly = effectiveScope === 'Department Data Only';
   const isCompanyOnly = effectiveScope === 'Company Staff Data';
   const isParentGroup = effectiveScope === 'Parent Group Data';
   
@@ -173,7 +175,7 @@ export default function Reports() {
       
       const effectiveDept = isOwnDataOnly
         ? (userDepartment || generatorDept)
-        : (isHOD ? (userDepartment || generatorDept) : generatorDept);
+        : ((isHOD || isDepartmentOnly) ? (userDepartment || generatorDept) : generatorDept);
 
       let companiesParam = String(activeCompany?.id || 1);
       if (isParentGroup) {
@@ -272,7 +274,7 @@ export default function Reports() {
       
       const effectiveDept = isOwnDataOnly
         ? (userDepartment || generatorDept)
-        : (isHOD ? (userDepartment || generatorDept) : generatorDept);
+        : ((isHOD || isDepartmentOnly) ? (userDepartment || generatorDept) : generatorDept);
 
       let companiesParam = String(activeCompany?.id || 1);
       if (isParentGroup) {

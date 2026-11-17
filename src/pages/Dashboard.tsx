@@ -73,6 +73,7 @@ export default function Dashboard() {
     normRole !== "employee" &&
     !normScope.includes("own") && (
       normScope.includes("branch") || 
+      normScope.includes("department") ||
       normScope.includes("company staff") || 
       normScope.includes("group") || 
       normScope.includes("parent") || 

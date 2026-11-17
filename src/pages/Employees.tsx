@@ -99,7 +99,9 @@ export default function Employees() {
   const navigate = useNavigate();
 
   const { activeCompany, companies } = useCompany();
-  const { role, userBranch, userDepartment, canEdit, hasPermission } = useRole();
+  const { role, userBranch, userDepartment, scopeType, canEdit, hasPermission } = useRole();
+  const isDepartmentScoped = scopeType === "Department Data Only" || role === "head_of_department";
+  const isBranchScoped = scopeType === "Branch Data Only" || role === "branch_leader";
   const [workspaceModalOpen, setWorkspaceModalOpen] = useState(false);
   const [workspaceEmployee, setWorkspaceEmployee] = useState<any>(null);
   const [userCompanyAssignments, setUserCompanyAssignments] = useState<any[]>([]);
@@ -659,7 +661,11 @@ export default function Employees() {
         ? checkedEmployees.includes(e.id?.toString() || e.user_id || e.name)
         : (!search || e.name.toLowerCase().includes(search.toLowerCase()) || e.position?.toLowerCase().includes(search.toLowerCase()));
     const matchesBranch = selectedBranch === "All" || e.branch === selectedBranch;
-    const matchesDepartment = selectedDepartment === "All" || e.department === selectedDepartment;
+    const normUserDept = (userDepartment || "").toLowerCase().replace(/\bdepartment\b/g, "").trim();
+    const normEmpDept = (e.department || "").toLowerCase().replace(/\bdepartment\b/g, "").trim();
+    const matchesDepartment = isDepartmentScoped
+      ? (Boolean(normUserDept) && normEmpDept === normUserDept)
+      : (selectedDepartment === "All" || e.department === selectedDepartment);
     const matchesPosition = selectedPosition === "All" ||
       e.position?.toLowerCase() === selectedPosition.toLowerCase() ||
       e.role?.toLowerCase() === selectedPosition.toLowerCase() ||
@@ -1194,7 +1200,7 @@ export default function Employees() {
               </PopoverContent>
             </Popover>
 
-          {!["head_of_department", "branch_leader"].includes(role) && (["hr_admin", "managing_director", "operation_manager", "finance_manager"].includes(role) || uniqueBranches.length > 1) && (
+          {!isDepartmentScoped && !isBranchScoped && (["hr_admin", "managing_director", "operation_manager", "finance_manager"].includes(role) || uniqueBranches.length > 1) && (
             <Select value={selectedBranch} onValueChange={setSelectedBranch}>
               <SelectTrigger className="w-[calc(50%-0.25rem)] sm:w-[140px] shrink-0 h-9 border-border/60 bg-background/50 focus:ring-[#942392]/20 font-bold text-xs rounded-xl">
                 <SelectValue placeholder="All Branches" />
@@ -1210,7 +1216,7 @@ export default function Employees() {
             </Select>
           )}
 
-          {!["head_of_department", "branch_leader"].includes(role) && (["hr_admin", "managing_director", "operation_manager", "finance_manager"].includes(role) || uniqueDepartments.length > 1) && (
+          {!isDepartmentScoped && !isBranchScoped && (["hr_admin", "managing_director", "operation_manager", "finance_manager"].includes(role) || uniqueDepartments.length > 1) && (
             <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
               <SelectTrigger className="w-[calc(50%-0.25rem)] sm:w-[150px] shrink-0 h-9 border-border/60 bg-background/50 focus:ring-[#942392]/20 font-bold text-xs rounded-xl">
                 <SelectValue placeholder="All Departments" />

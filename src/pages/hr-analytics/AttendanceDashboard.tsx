@@ -103,7 +103,9 @@ const parseThreshold = (thresholdStr: string) => {
 export default function AttendanceDashboard() {
   const { activeCompany } = useCompany();
   const { user } = useAuth();
-  const { role, userBranch, userDepartment, loading } = useRole();
+  const { role, userBranch, userDepartment, scopeType, loading } = useRole();
+  const isDepartmentScoped = scopeType === "Department Data Only" || role === "head_of_department";
+  const isBranchScoped = scopeType === "Branch Data Only" || role === "branch_leader";
   const isSubsidiaryView = activeCompany?.company_type === "subsidiary";
   const canHrReview = ["hr_admin", "managing_director", "superadmin"].some((r) =>
     String(role || "").toLowerCase().includes(r)
@@ -524,13 +526,13 @@ export default function AttendanceDashboard() {
   };
 
   useEffect(() => {
-    if (role === "branch_leader" && userBranch) {
+    if (isBranchScoped && userBranch) {
       setSelectedBranchFilter(userBranch);
     }
-    if (role === "head_of_department" && userDepartment) {
+    if (isDepartmentScoped && userDepartment) {
       setSelectedDepartmentFilter(userDepartment);
     }
-  }, [role, userBranch, userDepartment]);
+  }, [isBranchScoped, isDepartmentScoped, userBranch, userDepartment]);
 
   useEffect(() => {
     if (loading) return;
@@ -547,7 +549,7 @@ export default function AttendanceDashboard() {
   // ── LIVE-STATS SSE CONNECTION ─────────────────────────────────────────
   useEffect(() => {
     if (loading) return;
-    const url = `${API_BASE_URL}/api/presence/live-stats?date=${encodeURIComponent(selectedDate)}&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}&company_id=${activeCompany?.id || 1}`;
+    const url = `${API_BASE_URL}/api/presence/live-stats?date=${encodeURIComponent(selectedDate)}&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}&scope_type=${encodeURIComponent(scopeType || "")}&company_id=${activeCompany?.id || 1}`;
     const es = new EventSource(url);
     liveEsRef.current = es;
 
@@ -605,8 +607,19 @@ export default function AttendanceDashboard() {
       return;
     }
 
+    const getPunchConfirmationState = (r: any) => {
+      const unconfirmed = new Set(["Pending Verification", "Rejected", "Expired"]);
+      const overall = r.verification_status;
+      const inVerif = r.clock_in_verification_status || overall;
+      const outVerif = r.clock_out_verification_status || overall;
+      const isClockInConfirmed = Boolean(r.clock_in) && !unconfirmed.has(inVerif) && overall !== "Rejected" && overall !== "Expired";
+      const isClockOutConfirmed = isClockInConfirmed && Boolean(r.clock_out) && !unconfirmed.has(outVerif) && overall !== "Pending Verification";
+      return { isClockInConfirmed, isClockOutConfirmed };
+    };
+
     const headers = ["Employee Name", "Branch", "Time In", "Time Out", "Attendance Status", "Work Status"];
     const rows = dailyAttendance.map(r => {
+      const { isClockInConfirmed, isClockOutConfirmed } = getPunchConfirmationState(r);
       let attStatus = (r as any).status || "Absent";
       const isOutstation = outstationRecords.some((o: any) => 
         o.user_id === r.user_id && 
@@ -615,21 +628,21 @@ export default function AttendanceDashboard() {
       );
       if (isOutstation) attStatus = "Outstation";
       
-      let workStatus = "Checked In";
-      if (r.clock_out) {
+      let workStatus = isClockInConfirmed ? "Checked In" : "--";
+      if (isClockOutConfirmed) {
          const workHrsStr = calculateWorkingHours(r.clock_in, r.clock_out, getScheduledStartTimeForRecord(r));
          const matchH = workHrsStr.match(/^(\d{2})\s*H\s*(\d{2})\s*M/);
          const totalWorkMins = matchH ? parseInt(matchH[1], 10) * 60 + parseInt(matchH[2], 10) : 0;
          workStatus = totalWorkMins >= 8 * 60 ? "Clocked Out" : "Clocked Out Early";
-      } else if (!r.clock_in) {
+      } else if ((r as any).clock_out && !isClockOutConfirmed) {
          workStatus = "--";
       }
 
       return [
         r.full_name,
         (r as any).temp_branch || r.branch,
-        r.clock_in ? formatAttendanceTime(r.clock_in) : "--:--",
-        r.clock_out ? formatAttendanceTime(r.clock_out) : "--:--",
+        isClockInConfirmed ? formatAttendanceTime(r.clock_in) : "--:--",
+        isClockOutConfirmed ? formatAttendanceTime(r.clock_out) : "--:--",
         attStatus,
         workStatus
       ];
@@ -666,9 +679,15 @@ export default function AttendanceDashboard() {
       return;
     }
 
+    const unconfirmedVerifs = new Set(["Pending Verification", "Rejected", "Expired"]);
     const rowsHtml = dailyAttendance.map(r => {
-      const timeIn = r.clock_in ? formatAttendanceTime(r.clock_in) : "--:--";
-      const timeOut = r.clock_out ? formatAttendanceTime(r.clock_out) : "--:--";
+      const overallV = (r as any).verification_status;
+      const inV = (r as any).clock_in_verification_status || overallV;
+      const outV = (r as any).clock_out_verification_status || overallV;
+      const isClockInConfirmed = Boolean(r.clock_in) && !unconfirmedVerifs.has(inV) && overallV !== "Rejected" && overallV !== "Expired";
+      const isClockOutConfirmed = isClockInConfirmed && Boolean(r.clock_out) && !unconfirmedVerifs.has(outV) && overallV !== "Pending Verification";
+      const timeIn = isClockInConfirmed ? formatAttendanceTime(r.clock_in) : "--:--";
+      const timeOut = isClockOutConfirmed ? formatAttendanceTime(r.clock_out) : "--:--";
       
       let attStatus = (r as any).status || "Absent";
       const isOutstation = outstationRecords.some((o: any) => 
@@ -678,13 +697,13 @@ export default function AttendanceDashboard() {
       );
       if (isOutstation) attStatus = "Outstation";
       
-      let workStatus = "Checked In";
-      if (r.clock_out) {
+      let workStatus = isClockInConfirmed ? "Checked In" : "--";
+      if (isClockOutConfirmed) {
          const workHrsStr = calculateWorkingHours(r.clock_in, r.clock_out, getScheduledStartTimeForRecord(r));
          const matchH = workHrsStr.match(/^(\d{2})\s*H\s*(\d{2})\s*M/);
          const totalWorkMins = matchH ? parseInt(matchH[1], 10) * 60 + parseInt(matchH[2], 10) : 0;
          workStatus = totalWorkMins >= 8 * 60 ? "Clocked Out" : "Clocked Out Early";
-      } else if (!r.clock_in) {
+      } else if (r.clock_out && !isClockOutConfirmed) {
          workStatus = "--";
       }
 
@@ -1198,18 +1217,24 @@ export default function AttendanceDashboard() {
   }, [dailyAttendance, selectedBranchFilter, selectedDepartmentFilter, absentSearchTerm, selectedDate, absentEmployees]);
 
   const allAnomalies = useMemo(() => {
+    const unconfirmedVerifs = new Set(["Pending Verification", "Rejected", "Expired"]);
     return filteredDailyAttendance.flatMap(record => {
+      const overallV = (record as any).verification_status;
+      const inV = (record as any).clock_in_verification_status || overallV;
+      const outV = (record as any).clock_out_verification_status || overallV;
+      const isInConfirmed = Boolean(record.clock_in) && !unconfirmedVerifs.has(inV) && overallV !== "Rejected" && overallV !== "Expired";
+      const isOutConfirmed = isInConfirmed && Boolean(record.clock_out) && !unconfirmedVerifs.has(outV) && overallV !== "Pending Verification";
       const list = [];
-      if ((record as any).is_late) {
+      if (isInConfirmed && (record as any).is_late) {
         list.push({ id: `${record.user_id}-late`, user_id: record.user_id, full_name: record.full_name, branch: record.branch, type: 'LATE', title: 'Late Checked', desc: `Late Arrival today at ${formatAttendanceTime(record.clock_in)}`, color: '#EAB308' });
       }
-      if ((record as any).is_early_leaver) {
+      if (isOutConfirmed && (record as any).is_early_leaver) {
         list.push({ id: `${record.user_id}-early`, user_id: record.user_id, full_name: record.full_name, branch: record.branch, type: 'EARLY LEAVE', title: 'Early Leave', desc: `Clocked out early at ${formatAttendanceTime(record.clock_out)}`, color: '#F43F5E' });
       }
-      if ((record as any).missing_clock_out) {
+      if (isInConfirmed && (record as any).missing_clock_out) {
         list.push({ id: `${record.user_id}-missing`, user_id: record.user_id, full_name: record.full_name, branch: record.branch, type: 'MISSING OUT', title: 'Missing Clock-Out', desc: `No clock-out recorded for this shift`, color: '#8B5CF6' });
       }
-      if ((record as any).is_overtime) {
+      if (isOutConfirmed && (record as any).is_overtime) {
         list.push({ id: `${record.user_id}-overtime`, user_id: record.user_id, full_name: record.full_name, branch: record.branch, type: 'OVERTIME', title: 'Overtime', desc: `Logged more than 9 hours for this shift`, color: '#3B82F6' });
       }
       return list;
@@ -1383,7 +1408,7 @@ export default function AttendanceDashboard() {
               </div>
 
               {/* Department Filter */}
-              {!["head_of_department", "branch_leader"].includes(role) && (
+              {!isDepartmentScoped && !isBranchScoped && (
                 <Select value={selectedDepartmentFilter} onValueChange={setSelectedDepartmentFilter}>
                   <SelectTrigger className="w-[calc(50%-0.25rem)] sm:w-[140px] shrink-0 h-9 text-[11px] font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-none outline-none hover:border-[#942392]/40 hover:ring-1 hover:ring-[#942392]/40 hover:bg-[#942392]/5 dark:hover:border-[#942392]/60 dark:hover:ring-[#942392]/60 dark:hover:bg-[#942392]/20 transition-all duration-200 focus:ring-1 focus:ring-[#942392]">
                     <SelectValue placeholder="Department" />
@@ -1398,7 +1423,7 @@ export default function AttendanceDashboard() {
               )}
 
               {/* Branch Filter */}
-              {!["head_of_department", "branch_leader"].includes(role) && (
+              {!isBranchScoped && !isDepartmentScoped && (
                 <Select value={selectedBranchFilter} onValueChange={setSelectedBranchFilter}>
                   <SelectTrigger className="flex-1 min-w-[115px] sm:flex-none sm:w-[165px] shrink-0 h-9 text-[11px] font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-none outline-none hover:border-[#942392]/40 hover:ring-1 hover:ring-[#942392]/40 hover:bg-[#942392]/5 dark:hover:border-[#942392]/60 dark:hover:ring-[#942392]/60 dark:hover:bg-[#942392]/20 transition-all duration-200 focus:ring-1 focus:ring-[#942392]">
                     <SelectValue placeholder="All Branches" />
@@ -1552,25 +1577,35 @@ export default function AttendanceDashboard() {
                 <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
                   {filteredDailyAttendance.length > 0 ? (
                     filteredDailyAttendance.slice((currentPage - 1) * parseInt(limit), currentPage * parseInt(limit)).map((record, index) => {
+                      const unconfirmedVerifs = new Set(["Pending Verification", "Rejected", "Expired"]);
+                      const overallVerif = (record as any).verification_status;
+                      const inVerif = (record as any).clock_in_verification_status || overallVerif;
+                      const outVerif = (record as any).clock_out_verification_status || overallVerif;
+                      const isClockInConfirmed = Boolean(record.clock_in) && !unconfirmedVerifs.has(inVerif) && overallVerif !== "Rejected" && overallVerif !== "Expired";
+                      const isClockOutConfirmed = isClockInConfirmed && Boolean(record.clock_out) && !unconfirmedVerifs.has(outVerif) && overallVerif !== "Pending Verification";
+                      const hasPendingClockOut = Boolean(record.clock_out) && !isClockOutConfirmed;
+
                       const isFirstClockIn = (record as any).is_first_clock_in !== undefined
                         ? Boolean((record as any).is_first_clock_in)
                         : isFirstClockInOfDay(record, filteredDailyAttendance);
                       const recordStartTime = getScheduledStartTimeForRecord(record);
 
-                      const lateMinStr = !record.clock_in
+                      const lateMinStr = !isClockInConfirmed
                         ? "--"
                         : !isFirstClockIn
                         ? "—"
                         : calculateLateWorkingHour(record, recordStartTime, 'min', isFirstClockIn);
 
                       const sessionRecord = {
-                        clock_in: record.clock_in,
-                        clock_out: record.clock_out,
-                        time_in: record.time_in,
-                        time_out: record.time_out,
+                        clock_in: isClockInConfirmed ? record.clock_in : null,
+                        clock_out: isClockOutConfirmed ? record.clock_out : null,
+                        time_in: isClockInConfirmed ? record.time_in : null,
+                        time_out: isClockOutConfirmed ? record.time_out : null,
                         status: (record as any).status
                       };
-                      const workHrsStr = calculateTotalWorkingHoursFormatted(sessionRecord, isFirstClockIn ? recordStartTime : undefined);
+                      const workHrsStr = (!isClockInConfirmed || hasPendingClockOut)
+                        ? "--"
+                        : calculateTotalWorkingHoursFormatted(sessionRecord, isFirstClockIn ? recordStartTime : undefined);
                       const matchH = workHrsStr.match(/(\d+)\s*[hH]\s*(\d+)\s*[mM]/i);
                       const totalWorkMins = matchH ? parseInt(matchH[1], 10) * 60 + parseInt(matchH[2], 10) : 0;
                       const isGoodHrs = totalWorkMins >= 8 * 60;
@@ -1585,7 +1620,7 @@ export default function AttendanceDashboard() {
                       if (isOutstation) attStatus = "Outstation";
                       
                       let isRecordLate = false;
-                      if (record.clock_in && isFirstClockIn) {
+                      if (isClockInConfirmed && record.clock_in && isFirstClockIn) {
                         if ((record as any).is_late || (record as any).status === "Present (Late)" || ((record as any).late_minutes && (record as any).late_minutes > 0)) {
                           isRecordLate = true;
                         } else {
@@ -1600,9 +1635,9 @@ export default function AttendanceDashboard() {
                       const punctualityTag = isRecordLate ? "Present (Late)" : "Present (On Time)";
 
                       let workStatus: string | null = null;
-                      if (record.clock_out) {
+                      if (isClockOutConfirmed) {
                         workStatus = isGoodHrs ? "Clocked Out" : "Clocked Out Early";
-                      } else if (attStatus === "Missing Clock-Out") {
+                      } else if (isClockInConfirmed && attStatus === "Missing Clock-Out") {
                         workStatus = punctualityTag;
                       }
                       
@@ -1683,15 +1718,15 @@ export default function AttendanceDashboard() {
                               <span className={`inline-flex items-center justify-center px-2.5 py-0.5 text-[10px] tracking-wider font-extrabold uppercase rounded-full border shadow-2xs whitespace-nowrap ${attStatusClass}`}>
                                 <span>{attStatus}</span>
                               </span>
-                              {record.clock_in && workStatus && (
+                              {isClockInConfirmed && workStatus && (
                                 <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium ${workStatusClass}`}>
                                   {workStatus}
                                 </span>
                               )}
                             </div>
                           </td>
-                          <td className="px-4 py-3 text-[11px] text-gray-600 font-medium">{formatAttendanceTime(record.clock_in)}</td>
-                          <td className="px-4 py-3 text-[11px] text-gray-600 font-medium">{record.clock_out ? formatAttendanceTime(record.clock_out) : "--:--"}</td>
+                          <td className="px-4 py-3 text-[11px] text-gray-600 font-medium">{isClockInConfirmed ? formatAttendanceTime(record.clock_in) : "--:--"}</td>
+                          <td className="px-4 py-3 text-[11px] text-gray-600 font-medium">{isClockOutConfirmed ? formatAttendanceTime(record.clock_out) : "--:--"}</td>
                           <td
                             className={`px-4 py-3 text-[11px] font-medium ${
                               lateMinStr === "0 Min"
@@ -1703,12 +1738,18 @@ export default function AttendanceDashboard() {
                             {lateMinStr}
                           </td>
                           <td className="px-4 py-3">
-                            <span className={`inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap ${isGoodHrs ? 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/20' : 'bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-500/10 dark:border-rose-500/20'}`}>
-                              {workHrsStr === '--' ? '0 H 00 Min' : (() => {
-                                const match = workHrsStr.match(/(\d+)\s*[hH]\s*(\d+)\s*[mM]/i);
-                                return match ? `${parseInt(match[1], 10)} H ${match[2].padStart(2, '0')} Min` : workHrsStr;
-                              })()}
-                            </span>
+                            {(!isClockInConfirmed || hasPendingClockOut) ? (
+                              <span className="inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap bg-gray-50 text-gray-500 border-gray-200 dark:bg-slate-800/60 dark:text-slate-400 dark:border-slate-700">
+                                --
+                              </span>
+                            ) : (
+                              <span className={`inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap ${isGoodHrs ? 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/20' : 'bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-500/10 dark:border-rose-500/20'}`}>
+                                {workHrsStr === '--' ? '0 H 00 Min' : (() => {
+                                  const match = workHrsStr.match(/(\d+)\s*[hH]\s*(\d+)\s*[mM]/i);
+                                  return match ? `${parseInt(match[1], 10)} H ${match[2].padStart(2, '0')} Min` : workHrsStr;
+                                })()}
+                              </span>
+                            )}
                           </td>
                           {isSubsidiaryView && (
                             <td className="px-4 py-3 whitespace-nowrap">

@@ -254,26 +254,34 @@ export const AttendanceVerificationModal: React.FC<AttendanceVerificationModalPr
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto p-5">
-        <DialogHeader>
-          <DialogTitle className="text-base font-bold flex flex-wrap items-center gap-2">
-            <span>Attendance Details &amp; Verification</span>
+      <DialogContent className="sm:max-w-3xl max-h-[90vh] flex flex-col p-0 overflow-hidden sm:rounded-2xl border-border/50 [&>button]:text-white [&>button]:hover:bg-white/20">
+        <DialogHeader className="bg-[#942392] px-6 py-5 sm:rounded-t-2xl m-0 text-left shrink-0 border-b border-white/25 shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pr-6">
+            <div>
+              <DialogTitle className="text-base sm:text-lg font-black uppercase tracking-tight text-white">
+                Attendance Details &amp; Verification
+              </DialogTitle>
+              <DialogDescription className="text-xs font-bold uppercase tracking-wider text-white/80 mt-1">
+                {record ? `${record.full_name || record.user_id} • ${record.company_name || "Subsidiary"} • ${record.location || record.permanent_branch || ""}` : "Loading verification record..."}
+              </DialogDescription>
+            </div>
             {record && (
-              <>
-                <span className={`px-2 py-0.5 rounded-full border text-[10px] font-bold uppercase ${vBadge.className}`}>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className={`px-2.5 py-0.5 rounded-full border text-[10px] font-extrabold uppercase tracking-wider shadow-2xs ${vBadge.className}`}>
                   {vBadge.label}
                 </span>
-                <span className={`px-2 py-0.5 rounded-full border text-[10px] font-bold uppercase ${aBadge.className}`}>
-                  {record.resolved_attendance_status}
-                </span>
-              </>
+                {record.resolved_attendance_status &&
+                  record.resolved_attendance_status.toLowerCase() !== vBadge.label.toLowerCase() && (
+                    <span className={`px-2.5 py-0.5 rounded-full border text-[10px] font-extrabold uppercase tracking-wider shadow-2xs ${aBadge.className}`}>
+                      {record.resolved_attendance_status}
+                    </span>
+                  )}
+              </div>
             )}
-          </DialogTitle>
-          <DialogDescription className="text-xs">
-            {record ? `${record.full_name || record.user_id} • ${record.company_name || "Subsidiary"} • ${record.location || record.permanent_branch || ""}` : "Loading verification record..."}
-          </DialogDescription>
+          </div>
         </DialogHeader>
 
+        <div className="flex-1 overflow-y-auto p-5 sm:p-6">
         {loading || !record ? (
           <div className="py-10 flex items-center justify-center gap-2 text-xs text-muted-foreground">
             <Loader2 className="w-4 h-4 animate-spin" />
@@ -450,6 +458,7 @@ export const AttendanceVerificationModal: React.FC<AttendanceVerificationModalPr
             </div>
           </div>
         )}
+        </div>
       </DialogContent>
     </Dialog>
   );

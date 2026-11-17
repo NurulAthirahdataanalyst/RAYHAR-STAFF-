@@ -68,6 +68,7 @@ function inferExpectedScope(role: any): string {
   if (
     s === 'Own Data Only' ||
     s === 'Branch Data Only' ||
+    s === 'Department Data Only' ||
     s === 'Company Staff Data' ||
     s === 'Parent Group Data'
   ) {
