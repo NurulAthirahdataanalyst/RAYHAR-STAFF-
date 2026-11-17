@@ -24,7 +24,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Check, X, Users, MapPin, Info, Loader2, FileText, Printer, PhoneCall, Clock, CheckCircle2, XCircle, ChevronRight, ChevronLeft, ClipboardList, Download, RotateCcw, Search, Building2, MessageSquare } from "lucide-react";
+import { Check, X, Users, MapPin, Info, Loader2, FileText, Printer, PhoneCall, Clock, CheckCircle2, XCircle, ChevronRight, ChevronLeft, ClipboardList, Download, RotateCcw, Search, MessageSquare } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRole } from "@/contexts/RoleContext";
@@ -1179,7 +1179,6 @@ export default function LeaveAdmin() {
                     <TableHead className="px-3 py-4 text-[10px]">To</TableHead>
                     <TableHead className="px-3 py-4 text-[10px]">Days</TableHead>
                     <TableHead className="px-3 py-4 text-[10px]">Status</TableHead>
-                    <TableHead className="px-3 py-4 text-[10px]">Company</TableHead>
                     {canApprove && <TableHead className="px-3 py-4 text-[10px] text-right">Actions</TableHead>}
                   </TableRow>
                 </TableHeader>
@@ -1198,7 +1197,6 @@ export default function LeaveAdmin() {
                       <TableCell className="px-3 py-4"><Skeleton className="h-3.5 w-20 rounded" /></TableCell>
                       <TableCell className="px-3 py-4"><Skeleton className="h-4 w-8 rounded" /></TableCell>
                       <TableCell className="px-3 py-4"><Skeleton className="h-5 w-20 rounded-full" /></TableCell>
-                      <TableCell className="px-3 py-4"><Skeleton className="h-4 w-24 rounded" /></TableCell>
                       {canApprove && (
                         <TableCell className="px-3 py-4 text-right">
                           <div className="flex justify-end gap-1.5">
@@ -1224,7 +1222,6 @@ export default function LeaveAdmin() {
                     <TableHead className="px-3 py-4 text-[10px]">To</TableHead>
                     <TableHead className="px-3 py-4 text-[10px]">Days</TableHead>
                     <TableHead className="px-3 py-4 text-[10px]">Status</TableHead>
-                    <TableHead className="px-3 py-4 text-[10px]">Company</TableHead>
                     {canApprove && <TableHead className="px-3 py-4 text-[10px] text-right">Actions</TableHead>}
                   </TableRow>
                 </TableHeader>
@@ -1299,16 +1296,6 @@ export default function LeaveAdmin() {
                               </span>
                             ) : null}
                           </div>
-                        </TableCell>
-                        <TableCell className="px-3 py-3.5">
-                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border shadow-2xs ${
-                            (req.companyName || "").toLowerCase().includes("rayrent") || req.branch?.toUpperCase() === "RAYRENT"
-                              ? "bg-teal-500/10 text-teal-700 dark:text-teal-300 border-teal-500/30"
-                              : "bg-[#942392]/10 text-[#942392] dark:text-[#f3a8f1] border-[#942392]/25"
-                          }`}>
-                            <Building2 className="w-3 h-3 shrink-0" />
-                            <span>{req.companyName || (req.branch?.toUpperCase() === "RAYRENT" ? "RayRent" : "Rayhar Travels")}</span>
-                          </span>
                         </TableCell>
                         {canApprove && (
                           <TableCell className="px-3 py-3.5 text-right">
